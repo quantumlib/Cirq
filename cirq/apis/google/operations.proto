@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package cirq.api.google.v1;
+
+option java_package = "com.google.cirq.api.google.v1";
+option java_outer_classname = "OperationsProto";
+option java_multiple_files = true;
+
+// Identifies a qubit.
+message Qubit {
+  // X position in grid.
+  int32 x = 1;
+
+  // Y position in grid.
+  int32 y = 2;
+}
+
+// A number specified as a constant plus an optional parameter lookup.
+message ParameterizedFloat {
+  // A constant value.
+  // If a parameter key is also specified, then this is an offset.
+  float raw = 1;
+
+  // A variable value stored under some parameter key.
+  // Leave empty to not use a parameter lookup and just use the raw value.
+  string parameter_key = 2;
+}
+
+// A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
+//
+// This gate is exp(i * 2 * pi * H(theta) * t) where
+//   H(theta) = cos(theta) X + sin(theta) Y
+// or in matrix form
+//   H(theta) = [[0, cos(theta) - i sin(theta)], [cos(theta) + i sin(theta), 0]]
+message XY {
+  // The qubit to rotate.
+  Qubit target = 1;
+  // The angle of the rotation axis' facing in the XY plane, expressed in
+  // units of 2 pi.
+  //    - 0 is positive-ward along X.
+  //    - 0.25 is positive-ward along Y.
+  //    - 0.5 is negative-ward along X.
+  //    - 0.75 is negative-ward along Y.
+  // Note that this is periodic with period 1.
+  ParameterizedFloat rotation_axis_turns = 2;
+
+  // The amount to rotate by expressed in units of 2 pi, i.e. the t in
+  // exp(i 2 pi H(xy_angle_radians) t).
+  // Note that this is periodic with period 1.
+  ParameterizedFloat turns = 3;
+}
+
+// A single-qubit rotation around the Z axis of the Bloch sphere.
+//
+// This gate is exp(i * 2 * pi * Z * t) where Z is the Pauli Z matrix,
+//   Z = [[1, 0], [0, -1]]
+message Z {
+  // The qubit to rotate.
+  Qubit target = 1;
+  // The amount of the rotation in radians, i.e. the t in
+  // exp(i * 2 * pi * Z * t).
+  // Note that this is periodic with period 1.
+  ParameterizedFloat turns = 2;
+}
+
+// A two qubit rotation which acts to phase only the |11> state.
+//
+// This gate is exp(i * 2 * pi * H  * t) where H = |11><11| or in matrix form
+//   H = diag(0, 0, 0, 1)
+message CZ {
+  // The first qubit to interact.
+  Qubit target1 = 1;
+  // The other qubit to interact.
+  Qubit target2 = 2;
+  // The amount of the rotation in radians, i.e. the t in
+  // exp(i * 2 * pi * |11><11| * t).
+  ParameterizedFloat turns = 3;
+}
+
+// A single qubit measurement in the computational basis (|0>, |1>).
+message Measurement {
+  // The qubit to measure.
+  Qubit target = 1;
+
+  // The key that this measurement's bit will be grouped under.
+  string key = 2;
+}
+
+// An operation to apply: either a gate or a measurement.
+message Operation {
+  // When this operation should be done, relative to the previous operation.
+  // Use a delay of 0 to apply simultaneous with previous operation.
+  // (Implies operations must be sorted by application order.)
+  uint64 incremental_delay_picoseconds = 1;
+
+  // The operation to apply.
+  oneof operation {
+    // A single-qubit rotation around an axis on the XY equator.
+    XY xy = 10;
+    // A single-qubit rotation around the Z axis.
+    Z z = 11;
+    // An operation that interacts two qubits, phasing only the 11 state.
+    CZ cz = 12;
+    // Measures a qubit and indicates where to store the result.
+    Measurement measurement = 13;
+  }
+}

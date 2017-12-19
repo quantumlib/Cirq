@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+import "operations.proto";
+import "params.proto";
+
+package cirq.api.google.v1;
+
+option java_package = "com.google.cirq.api.google.v1";
+option java_outer_classname = "ProgramProto";
+option java_multiple_files = true;
+
+// A quantum program. This includes a quantum circuit and also a set of circuit
+// parameters over which the circuit should be run.
+message Program {
+  // Gates and measurements that make up the circuit.
+  repeated Operation operations = 1;
+
+  // The circuit parameters will be evaluated for each parameter set.
+  repeated ParameterSweep parameter_sweep = 2;
+}
+
+// Results of measurements for a particular measurement key value.
+message KeyedMeasurementResult {
+  // The key under which the measurements have been grouped.
+  string key = 1;
+
+  // The results of the measurements. These appear in the order in which
+  // they measurements were done in the circuit's operation list.
+  repeated bool bits = 2;
+}
+
+// The parameters used to generate result along with the results for this
+// set of parameters.
+message ParameterizedResult {
+  // The parameter dict that was used when generating these results.
+  ParameterDict params = 1;
+
+  // The measurement results.
+  repeated KeyedMeasurementResult results = 2;
+}
