@@ -162,3 +162,46 @@ def test_fails_when_ne_is_inconsistent():
 
     with pytest.raises(AssertionError):
         eq.make_equality_pair(InconsistentNeImplementation)
+
+
+def test_fails_when_not_reflexive():
+    eq = EqualsTester()
+
+    class NotReflexiveImplementation:
+        def __init__(self):
+            self.x = 1
+
+        def __eq__(self, other):
+            if other is not self:
+                return NotImplemented
+            return False
+
+        def __ne__(self, other):
+            return not self == other
+
+    with pytest.raises(AssertionError):
+        eq.add_equality_group(NotReflexiveImplementation())
+
+
+def test_fails_when_not_commutative():
+    eq = EqualsTester()
+
+    class NotCommutativeImplementation:
+        def __init__(self, x):
+            self.x = x
+
+        def __eq__(self, other):
+            if not isinstance(other, type(self)):
+                return NotImplemented
+            return self.x <= other.x
+
+        def __ne__(self, other):
+            return not self == other
+
+    with pytest.raises(AssertionError):
+        eq.add_equality_group(NotCommutativeImplementation(0),
+                              NotCommutativeImplementation(1))
+
+    with pytest.raises(AssertionError):
+        eq.add_equality_group(NotCommutativeImplementation(1),
+                              NotCommutativeImplementation(0))
