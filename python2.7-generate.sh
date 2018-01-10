@@ -19,10 +19,12 @@
 # directory already exists, it will be deleted first.
 
 # Assumes the current working directory is the root of cirq's git repository.
+# Can be passed the directory of the output file, which will be overwritten,
+# otherwise this defaults to python2.7-output.
 
 set -e
 
-out='python2.7-output'
+out=${1:-'python2.7-output'}
 
 rm -rf ${out}
 mkdir ${out}
