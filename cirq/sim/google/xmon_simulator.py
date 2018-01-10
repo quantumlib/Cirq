@@ -148,7 +148,7 @@ class XmonSimulator(object):
         self._shared_mem_dict['state_handle'] = state_handle
 
     def __del__(self):
-        for handle in self._shared_mem_dict.itervalues():
+        for handle in self._shared_mem_dict.values():
             mem_manager.SharedMemManager.free_array(handle)
 
     def __enter__(self):
