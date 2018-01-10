@@ -420,6 +420,6 @@ def _collapse_state(args: Dict[str, Any]):
 
     state = _state_shard(args)
     normalization = np.sqrt(prob_one if result else 1 - prob_one)
-    state *= _one_projector(args, index) * (result
+    state *= (_one_projector(args, index) * result
         + (1 - _one_projector(args, index)) * (1 - result))
     state /= normalization
