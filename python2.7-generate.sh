@@ -24,7 +24,7 @@
 
 set -e
 
-out=${1:-'python2.7-output'}
+out='python2.7-output'
 
 rm -rf ${out}
 mkdir ${out}
