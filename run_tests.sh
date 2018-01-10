@@ -23,7 +23,7 @@
 # The shell requires that virtualenv has been installed.
 
 set -e
-base_dir=${TESTING_DIR:-"temp_dir"}
+base_dir=$(mktemp -d '/tmp/test-cirq-XXXXX')
 py35=${PYTHON35_DIR:-"/usr/bin/python3.5"}
 py27=${PYTHON27_DIR:-"/usr/bin/python2.7"}
 
@@ -46,7 +46,8 @@ virtualenv -p "${py27}" "${base_dir}/cirq2.7"
 source "${base_dir}/cirq2.7/bin/activate"
 pip install -r python2.7-requirements.txt
 pip install 3to2
-./python2.7-generate.sh "$base_dir/python2.7-output"
+./python2.7-generate.sh
+mv python2.7-output $base_dir
 pytest "${base_dir}/python2.7-output/cirq"
 deactivate
 
