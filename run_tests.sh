@@ -51,10 +51,13 @@ deactivate
 
 echo "All tests passed."
 
+state='"state":"success"'
+target_url='"target_url": "https://example.com"'
+description='"description": "Tests passed!"'
+context='"context":"pytest"'
 if [ -n "$1" ] && [ -n "$2" ]; then
   echo "Updating github..."
-  curl -d '{"state":"success","target_url": "https://example.com",' \
-    '"description": "Tests passed! \(manual\)", "context": "pytest"}' \
+  curl -d "{$state,$target_url,$description,$context}" \
     -X POST https://api.github.com/repos/quantumlib/cirq/statuses/"$1"?access_token="$2"
   echo "Successfully updated github tested status."
 else
