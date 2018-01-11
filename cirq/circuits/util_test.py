@@ -348,7 +348,7 @@ def assert_ops_implement_unitary(operations, intended_effect,
 ] + [
     (1, 2, _random_single_partial_cz_effect()) for _ in range(10)
 ] + [
-    (2, 2, _random_double_full_cz_effect()) for _ in range(1)
+    (2, 2, _random_double_full_cz_effect()) for _ in range(10)
 ] + [
     (2, 3, _random_double_partial_cz_effect()) for _ in range(10)
 ] + [
