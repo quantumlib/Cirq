@@ -252,14 +252,14 @@ def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
     assert testing.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
-def _random_single_cz_effect():
+def _random_single_partial_cz_effect():
     return linalg.dot(
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
         np.mat(np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)])),
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
 
 
-def _random_double_cz_effect():
+def _random_double_partial_cz_effect():
     return linalg.dot(
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
         np.mat(np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)])),
@@ -268,13 +268,24 @@ def _random_double_cz_effect():
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
 
 
-def assert_cz_depth_below(operations, threshold):
+def _random_double_full_cz_effect():
+    return linalg.dot(
+        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+        ops.CZ.matrix(),
+        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+        ops.CZ.matrix(),
+        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
+
+
+def assert_cz_depth_below(operations, threshold, must_be_full):
     total_cz = 0
 
     for op in operations:
         assert len(op.qubits) <= 2
         if len(op.qubits) == 2:
             assert isinstance(op.gate, ops.CZGate)
+            if must_be_full:
+                assert op.gate.turns == 0.5
             total_cz += abs(op.gate.turns) * 2
 
     assert total_cz <= threshold
@@ -289,127 +300,74 @@ def assert_ops_implement_unitary(operations, intended_effect,
                                                atol=atol)
 
 
-@pytest.mark.parametrize('ideal_depth,intended_effect','partial_cz' [
-    [1, ops.CZ.matrix(), True],
-    [3, ops.SWAP.matrix(), True],
-    [1, ops.CNOT.matrix(), True],
-    [
-        0,
-        np.mat([
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-            [1, 0, 0, 0j],
-        ]), True
-    ],
-    [
-        3,
-        np.mat([
-            [0, 0, 0, 1],
-            [0, 1, 0, 0],
-            [0, 0, 1, 0],
-            [1, 0, 0, 0j],
-        ]), True
-    ],
-    [2, ops.SWAP.matrix() * ops.CZ.matrix(), True],
-    [
-        1,
-        np.mat([
-            [1, 0, 0, 1j],
-            [0, 1, 1j, 0],
-            [0, 1j, 1, 0],
-            [1j, 0, 0, 1],
-        ]) * np.sqrt(0.5), True
-    ],
-    [
-        1,
-        np.mat([
-            [1, 0, 0, -1j],
-            [0, 1, -1j, 0],
-            [0, -1j, 1, 0],
-            [-1j, 0, 0, 1],
-        ]) * np.sqrt(0.5), True
-    ],
-    [
-        1,
-        np.mat([
-            [1, 0, 0, 1j],
-            [0, 1, -1j, 0],
-            [0, -1j, 1, 0],
-            [1j, 0, 0, 1],
-        ]) * np.sqrt(0.5), True
-    ],
-    ] + [
-        (1, _random_single_cz_effect(), True, 0.3) for _ in range(10)
-    ] + [
-        (2, _random_double_cz_effect(), True, 0.3) for _ in range(10)
-    ] + [
-        (3, testing.random_unitary(4), True) for _ in range(10)
-    ] + [
-    [1, ops.CZ.matrix(), False],
-    [3, ops.SWAP.matrix(), False],
-    [1, ops.CNOT.matrix(), False],
-    [
-     0,
-     np.mat([
-         [0, 0, 0, 1],
-         [0, 0, 1, 0],
-         [0, 1, 0, 0],
-         [1, 0, 0, 0j],
-     ]), False
-    ],
-    [
-     3,
-     np.mat([
-         [0, 0, 0, 1],
-         [0, 1, 0, 0],
-         [0, 0, 1, 0],
-         [1, 0, 0, 0j],
-     ]), False
-    ],
-    [2, ops.SWAP.matrix() * ops.CZ.matrix(), False],
-    [
-     2,
-     np.mat([
-         [1, 0, 0, 1j],
-         [0, 1, 1j, 0],
-         [0, 1j, 1, 0],
-         [1j, 0, 0, 1],
-     ]) * np.sqrt(0.5), False
-    ],
-    [
-     2,
-     np.mat([
-         [1, 0, 0, -1j],
-         [0, 1, -1j, 0],
-         [0, -1j, 1, 0],
-         [-1j, 0, 0, 1],
-     ]) * np.sqrt(0.5), False
-    ],
-    [
-     2,
-     np.mat([
-         [1, 0, 0, 1j],
-         [0, 1, -1j, 0],
-         [0, -1j, 1, 0],
-         [1j, 0, 0, 1],
-     ]) * np.sqrt(0.5), False
-    ],
-    ] + [
-        (2, _random_single_cz_effect(), False, 0.3) for _ in range(10)
-    ] + [
-        (3, _random_double_cz_effect(), False, 0.3) for _ in range(10)
-    ] + [
-        (3, testing.random_unitary(4), False) for _ in range(10)
-    ]
-)
+@pytest.mark.parametrize('max_partial_cz_depth,max_full_cz_depth,effect', [
+    [0, 0, np.mat(np.eye(4))],
+    [0, 0, np.mat([
+        [0, 0, 0, 1],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0j],
+    ])],
+    [0, 0, (ops.CZ**0.00000001).matrix()],
+
+    [0.5, 2, (ops.CZ**0.5).matrix()],
+
+    [1, 1, ops.CZ.matrix()],
+    [1, 1, ops.CNOT.matrix()],
+    [1, 1, np.mat([
+        [1, 0, 0, 1j],
+        [0, 1, 1j, 0],
+        [0, 1j, 1, 0],
+        [1j, 0, 0, 1],
+    ]) * np.sqrt(0.5)],
+    [1, 1, np.mat([
+        [1, 0, 0, -1j],
+        [0, 1, -1j, 0],
+        [0, -1j, 1, 0],
+        [-1j, 0, 0, 1],
+    ]) * np.sqrt(0.5)],
+    [1, 1, np.mat([
+        [1, 0, 0, 1j],
+        [0, 1, -1j, 0],
+        [0, -1j, 1, 0],
+        [1j, 0, 0, 1],
+    ]) * np.sqrt(0.5)],
+
+    [1.5, 3, linalg.map_eigenvalues(ops.SWAP.matrix(),
+                                    lambda e: complex(e)**0.5)],
+
+    [2, 2, ops.SWAP.matrix() * ops.CZ.matrix()],
+
+    [3, 3, ops.SWAP.matrix()],
+    [3, 3, np.mat([
+        [0, 0, 0, 1],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [1, 0, 0, 0j],
+    ])],
+] + [
+    (1, 2, _random_single_partial_cz_effect()) for _ in range(10)
+] + [
+    (2, 2, _random_double_full_cz_effect()) for _ in range(1)
+] + [
+    (2, 3, _random_double_partial_cz_effect()) for _ in range(10)
+] + [
+    (3, 3, testing.random_unitary(4)) for _ in range(10)
+])
 def test_two_to_native_equivalent_and_bounded_for_known_and_random(
-        ideal_depth,
-        intended_effect,
-        partial_cz):
+        max_partial_cz_depth,
+        max_full_cz_depth,
+        effect):
     q0 = ops.QubitId(0, 0)
     q1 = ops.QubitId(1, 0)
-    operations = circuits.two_qubit_matrix_to_native_gates(
-        q0, q1, intended_effect, partial_cz)
-    assert_ops_implement_unitary(operations, intended_effect)
-    assert_cz_depth_below(operations, ideal_depth)
+
+    operations_with_partial = circuits.two_qubit_matrix_to_native_gates(
+        q0, q1, effect, True)
+    operations_with_full = circuits.two_qubit_matrix_to_native_gates(
+        q0, q1, effect, False)
+
+    assert_ops_implement_unitary(operations_with_partial, effect)
+    assert_ops_implement_unitary(operations_with_full, effect)
+
+    assert_cz_depth_below(operations_with_partial, max_partial_cz_depth, False)
+    assert_cz_depth_below(operations_with_full, max_full_cz_depth, True)
