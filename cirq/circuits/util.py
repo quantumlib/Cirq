@@ -98,6 +98,28 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(
             _signed_mod_1(total_z_turn))
 
 
+def _easy_direction_partial_cz(q0: ops.QubitId, q1: ops.QubitId, t: float):
+    """The actual hardware can only do CZs that phase counter-clockwise.
+
+    This method replaces clockwise phase(t) to counter-clockwise.
+
+    Args:
+      q0: The first qubit being operated on.
+      q1: The other qubit being operated on.
+      t: The parameter to describe partial-CZ(CZ^t).
+
+    Yields:
+      Yields an equivalent circuit for CZ^t with counter-clock phased CZs.
+    """
+    if t >= 0:
+        yield (ops.CZ**t).on(q0, q1)
+        return
+    yield (ops.Z**t).on(q0)
+    yield (ops.X).on(q1)
+    yield (ops.CZ**(-t)).on(q0, q1)
+    yield (ops.X).on(q1)
+
+
 def single_qubit_matrix_to_native_gates(
         mat: np.matrix, tolerance: float = 0
 ) -> List[ops.ConstantSingleQubitGate]:
@@ -201,6 +223,7 @@ def controlled_op_to_native_gates(
 def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
                                      q1: ops.QubitId,
                                      mat: np.matrix,
+                                     partial_cz: bool,
                                      tolerance: float = 1e-8
                                      ) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into Z/XY/CZ gates.
@@ -209,6 +232,7 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
         q0: The first qubit being operated on.
         q1: The other qubit being operated on.
         mat: Defines the operation to apply to the pair of qubits.
+        partial_cz: Enables the use of Partial-CZ gates.
         tolerance: A limit on the amount of error introduced by the
             construction.
 
@@ -222,32 +246,110 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
     def parity_interaction(rads: float,
                            op: Optional[ops.ReversibleGate] = None):
         """Yields a ZZ interaction framed by the given operation."""
-        if abs(rads) < tolerance:
-            return
-        e = rads * 4 / np.pi
-        h = -e / 2
+        h = rads * -2 / np.pi
         if op is not None:
             yield op.on(q0), op.on(q1)
-        yield (ops.CZ**e).on(q0, q1)
+
+        # If rads is pi/4 radians within tolerance, single full-CZ suffices.
+        if abs(rads - (np.pi / 4)) < tolerance:
+            yield (ops.CZ).on(q0, q1)
+        else:
+            yield _easy_direction_partial_cz(q0, q1, -2 * h)
+
         yield (ops.Z**h).on(q0)
         yield (ops.Z**h).on(q1)
         if op is not None:
             yield op.inverse().on(q0), op.inverse().on(q1)
 
+    def non_local_operation_with_x():
+        """Yields non-local operations of KAK decomposition when y,z are negligible."""
+        if abs(x) < tolerance:
+            return
+
+        if partial_cz or abs(x - (np.pi / 4)) < tolerance:
+            yield parity_interaction(x, ops.Y**-0.5)
+        else:
+            a = x * -2 / np.pi
+            yield (ops.H).on(q1)
+            yield (ops.CZ).on(q0, q1)
+            yield (ops.X**a).on(q0)
+            yield (ops.CZ).on(q0, q1)
+            yield (ops.H).on(q1)
+
+    def non_local_operation_with_x_y():
+        """Yields non-local operations of KAK decomposition when z is negligible."""
+        if partial_cz or (abs(x - (np.pi / 4)) < tolerance and
+                          abs(y - (np.pi / 4)) < tolerance):
+            yield parity_interaction(x, ops.Y**-0.5)
+            yield parity_interaction(y, ops.X**0.5)
+        else:
+            a = x * -2 / np.pi
+            b = y * -2 / np.pi
+            yield (ops.X**0.5).on(q0)
+            yield (ops.H).on(q1)
+            yield (ops.CZ).on(q0, q1)
+            yield (ops.H).on(q1)
+            yield (ops.X**0.5).on(q0)
+            yield (ops.X**a).on(q0)
+            yield (ops.Y**0.5).on(q1)
+            yield (ops.Y**b).on(q1)
+            yield (ops.H).on(q0)
+            yield (ops.CZ).on(q1, q0)
+            yield (ops.H).on(q0)
+            yield (ops.X**-0.5).on(q1)
+            yield (ops.Z**0.5).on(q1)
+            yield (ops.H).on(q1)
+            yield (ops.CZ).on(q0, q1)
+            yield (ops.H).on(q1)
+
+    def non_local_operation_with_x_y_z():
+        """Yields KAK's non-local operations with non-negligable x,y,z."""
+        if partial_cz or (abs(x - (np.pi / 4)) < tolerance and
+                          abs(y - (np.pi / 4)) < tolerance and
+                          abs(z - (np.pi / 4)) < tolerance):
+            yield parity_interaction(x, ops.Y**-0.5)
+            yield parity_interaction(y, ops.X**0.5)
+            yield parity_interaction(z)
+        else:
+            a = x * -2 / np.pi
+            b = y * -2 / np.pi
+            c = z * -2 / np.pi
+            yield (ops.X**0.5).on(q0)
+            yield (ops.H).on(q1)
+            yield (ops.CZ).on(q0, q1)
+            yield (ops.H).on(q1)
+            yield (ops.X**0.5).on(q0)
+            yield (ops.X**a).on(q0)
+            yield (ops.Y**0.5).on(q1)
+            yield (ops.Y**b).on(q1)
+            yield (ops.H).on(q0)
+            yield (ops.CZ).on(q1, q0)
+            yield (ops.H).on(q0)
+            yield (ops.X**-0.5).on(q1)
+            yield (ops.Z**0.5).on(q1)
+            yield (ops.Z**c).on(q1)
+            yield (ops.H).on(q1)
+            yield (ops.CZ).on(q0, q1)
+            yield (ops.H).on(q1)
+
     def do_single_on(u, q):
         for gate in single_qubit_matrix_to_native_gates(u, tolerance):
             yield gate(q)
 
+    def non_local_operation():
+        """Yields non-local operation of KAK decomposition."""
+        if abs(z) < tolerance and abs(y) < tolerance:
+            yield non_local_operation_with_x()
+        elif abs(z) < tolerance:
+            yield non_local_operation_with_x_y()
+        else:
+            yield non_local_operation_with_x_y_z()
+
     pre = [do_single_on(b1, q1), do_single_on(b0, q0)]
     post = [do_single_on(a1, q1), do_single_on(a0, q0)]
-    xx_part = parity_interaction(x, ops.Y**-0.5)
-    yy_part = parity_interaction(y, ops.X**0.5)
-    zz_part = parity_interaction(z)
 
     return list(ops.flatten_op_tree([
         pre,
-        xx_part,
-        yy_part,
-        zz_part,
+        non_local_operation(),
         post,
     ]))
