@@ -214,10 +214,11 @@ def controlled_op_to_native_gates(
     effect = (ops.CZ**(cmath.phase(z_phase) / math.pi))(control, target)
     kickback = (ops.Z**(cmath.phase(global_phase) / math.pi))(control)
 
-    return list(
-        ops.flatten_op_tree((ops_before, effect, kickback
-        if abs(global_phase - 1) > tolerance else [],
-                             ops_after)))
+    return list(ops.flatten_op_tree((
+        ops_before,
+        effect,
+        kickback if abs(global_phase - 1) > tolerance else [],
+        ops_after)))
 
 
 def _xx_interaction_via_full_czs(q0: ops.QubitId,
@@ -326,7 +327,6 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
 
     def non_local_part():
         """Yields non-local operation of KAK decomposition."""
-        print(x, y, z)
 
         if allow_partial_czs or all(is_trivial_angle(e) for e in [x, y, z]):
             return [
