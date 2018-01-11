@@ -21,8 +21,9 @@
 #
 #   bash test-pull-request.sh [pull_request_number] [access_token]
 #
-# The pull request number argument is required, and determines which PR is
-# fetched.
+# The pull request number argument is optional, and determines which PR is
+# fetched from the cirq repo to test. If no pull request number is given, the
+# tests run against local files; the current repo state.
 #
 # The access_token argument is optional. If it is set to a github access token
 # with permission to update status values on the cirq repo, then the status of
@@ -37,17 +38,17 @@ pull_id=${1}
 access_token=${2:-${CIRQ_GITHUB_ACCESS_TOKEN}}
 
 if [ -z "${pull_id}" ]; then
-  echo "No pull request id given."
-  exit 1
-fi
-if [ -z "${access_token}" ]; then
-  echo "No access token given. Won't update github status."
+  echo "No pull request id given, using local files."
+else
+  if [ -z "${access_token}" ]; then
+    echo "No access token given. Won't update github status."
+  fi
 fi
 
 function set_status () {
   state=$1
   desc=$2
-  if [ -n "${access_token}" ]; then
+  if [ -n "${pull_id}" ] && [ -n "${access_token}" ]; then
     json='{
             "state": "'${state}'",
             "description": "'${desc}'",
@@ -58,10 +59,8 @@ function set_status () {
   fi
 }
 
-work_dir="$(pwd)/tmp_run_tests"
+work_dir="$(mktemp -d '/tmp/test-cirq-XXXXXXXX')"
 set -e
-mkdir "${work_dir}"
-cd "${work_dir}"
 function clean_up_finally () {
   rm -rf "${work_dir}"
 }
@@ -69,16 +68,25 @@ function clean_up_catch () {
   echo "FAILED TO COMPLETE"
   set_status "error" "Script failed."
 }
-trap clean_up_finally EXIT INT TERM ERR
-trap clean_up_catch INT TERM
+trap clean_up_finally EXIT ERR
+trap clean_up_catch ERR
 
 # Get content to test.
-echo "Fetching pull request #${pull_id}..."
-git init --quiet
-git fetch git@github.com:quantumlib/cirq.git pull/${pull_id}/head --depth=1 --quiet
-commit_id="$(git rev-parse FETCH_HEAD)"
-git checkout "${commit_id}" --quiet
-set_status "pending" "Running..."
+if [ -z "${pull_id}" ]; then
+  origin=$(git rev-parse --show-toplevel)
+  cp -r "${origin}"/* "${work_dir}"
+  cd "${work_dir}"
+else
+  echo "Fetching pull request #${pull_id}..."
+  branch="pull/${pull_id}/head"
+  origin="git@github.com:quantumlib/cirq.git"
+  cd "${work_dir}"
+  git init --quiet
+  git fetch git@github.com:quantumlib/cirq.git pull/${pull_id}/head --depth=1 --quiet
+  commit_id="$(git rev-parse FETCH_HEAD)"
+  git checkout "${commit_id}" --quiet
+  set_status "pending" "Running..."
+fi
 
 # Run python 3.5 tests.
 echo
