@@ -139,7 +139,6 @@ def test_fails_hash_is_default_and_inconsistent():
             return not self == other
 
     with pytest.raises(AssertionError):
-        
         eq.make_equality_pair(DefaultHashImplementation)
 
 
