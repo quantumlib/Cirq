@@ -27,8 +27,6 @@ base_dir=$(mktemp -d '/tmp/test-cirq-XXXXX')
 py35=${PYTHON35_DIR:-"/usr/bin/python3.5"}
 py27=${PYTHON27_DIR:-"/usr/bin/python2.7"}
 
-mkdir -p "${base_dir}"
-
 function clean_up () {
   rm -rf "${base_dir}"
 }
