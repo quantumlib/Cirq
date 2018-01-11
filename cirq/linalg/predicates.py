@@ -164,3 +164,30 @@ def commutes(
     return (m1.shape[0] == m1.shape[1] and
             m1.shape == m2.shape and
             tolerance.all_close(m1.dot(m2), m2.dot(m1)))
+
+
+def allclose_up_to_global_phase(
+        a: np.matrix,
+        b: np.matrix,
+        rtol: float = 1.e-5,
+        atol: float = 1.e-8,
+        equal_nan: bool = False
+) -> bool:
+    n = a.shape[0]
+
+    # Find the entry with the largest magnitude in the desired matrix.
+    k = max(((i, j) for i in range(n) for j in range(n)),
+            key=lambda t: abs(b[t]))
+    dephase_a = abs(a[k]) / a[k] if a[k] else 1
+    dephase_b = abs(b[k]) / b[k] if b[k] else 1
+
+    # Zero the phase at this entry in both matrices.
+    corrected_a = a * dephase_a
+    corrected_b = b * dephase_b
+
+    # Should now be equivalent.
+    return np.allclose(a=corrected_a,
+                       b=corrected_b,
+                       rtol=rtol,
+                       atol=atol,
+                       equal_nan=equal_nan)
