@@ -53,8 +53,8 @@ echo "All tests passed."
 
 state='"state":"success"'
 target_url='"target_url": "https://example.com"'
-description='"description": "Tests passed!"'
-context='"context":"pytest"'
+description='"description": "Tests passed! (manual)"'
+context='"context":"pytest (manual)"'
 if [ -n "$1" ] && [ -n "$2" ]; then
   echo "Updating github..."
   curl -d "{$state,$target_url,$description,$context}" \
