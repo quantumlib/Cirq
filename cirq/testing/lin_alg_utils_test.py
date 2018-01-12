@@ -13,40 +13,14 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 
-from cirq.testing.lin_alg_utils import allclose_up_to_global_phase
+from cirq.testing.lin_alg_utils import random_unitary
+from cirq.linalg import is_unitary
 
 
-def test_allclose_up_to_global_phase():
-    assert allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[1]]))
-    assert allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[-1]]))
-
-    assert allclose_up_to_global_phase(
-        np.mat([[0]]),
-        np.mat([[0]]))
-
-    assert allclose_up_to_global_phase(
-        np.mat([[1, 2]]),
-        np.mat([[1j, 2j]]))
-
-    assert allclose_up_to_global_phase(
-        np.mat([[1, 2.0000000001]]),
-        np.mat([[1j, 2j]]))
-
-    with pytest.raises(AssertionError):
-        assert allclose_up_to_global_phase(
-            np.mat([[1]]),
-            np.mat([[1, 0]]))
-    with pytest.raises(AssertionError):
-        assert allclose_up_to_global_phase(
-            np.mat([[1]]),
-            np.mat([[2]]))
-    with pytest.raises(AssertionError):
-        assert allclose_up_to_global_phase(
-            np.mat([[1]]),
-            np.mat([[2]]))
+def test_random_unitary():
+    u1 = random_unitary(2)
+    u2 = random_unitary(2)
+    assert is_unitary(u1)
+    assert is_unitary(u2)
+    assert not np.allclose(u1, u2)
