@@ -30,9 +30,11 @@ class MergeInteractions(PointOptimizer):
 
     def __init__(self,
                  insert_strategy: InsertStrategy = InsertStrategy.INLINE,
-                 tolerance: float = 1e-8):
+                 tolerance: float = 1e-8,
+                 allow_partial_czs: bool = True):
         self.insert_strategy = insert_strategy
         self.tolerance = tolerance
+        self.allow_partial_czs = allow_partial_czs
 
     def optimize_at(self, circuit, index, op):
         if len(op.qubits) != 2:
@@ -45,7 +47,11 @@ class MergeInteractions(PointOptimizer):
 
         # Find a max-3-cz construction.
         operations = util.two_qubit_matrix_to_native_gates(
-            op.qubits[0], op.qubits[1], matrix, self.tolerance)
+            op.qubits[0],
+            op.qubits[1],
+            matrix,
+            self.allow_partial_czs,
+            self.tolerance)
 
         # TODO: don't replace if there's no benefit in CZ depth.
         # Replace the operation.
