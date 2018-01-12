@@ -14,3 +14,5 @@
 
 """Types and methods related to simulating quantum computers.
 """
+
+from cirq.sim import google
