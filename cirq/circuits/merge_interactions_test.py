@@ -19,6 +19,17 @@ from cirq import ops
 def assert_optimizes(before, after):
     opt = circuits.MergeInteractions()
     opt.optimize_circuit(before)
+
+    # Ignore differences that would be caught by follow-up optimizations.
+    followup_optimizations = [
+        circuits.MergeRotations(),
+        circuits.DropNegligible(),
+        circuits.DropEmptyMoments()
+    ]
+    for opt in followup_optimizations:
+        opt.optimize_circuit(before)
+        opt.optimize_circuit(after)
+
     assert before == after
 
 
@@ -30,11 +41,7 @@ def test_clears_paired_cnot():
             circuits.Moment([ops.CNOT(q1, q2)]),
             circuits.Moment([ops.CNOT(q1, q2)]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.XYGate(0.125, 0.5).on(q2)]),
-            circuits.Moment([ops.XYGate(0.125, 0.5).on(q2)]),
-            circuits.Moment(),
-        ]))
+        after=circuits.Circuit())
 
 
 def test_ignores_czs_separated_by_parameterized():

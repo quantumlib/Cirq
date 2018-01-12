@@ -12,16 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to building and optimizing sequenced circuits."""
+from cirq import circuits
+from cirq import ops
 
-from cirq.circuits.ascii import *
-from cirq.circuits.drop_negligible import *
-from cirq.circuits.drop_empty_moments import *
-from cirq.circuits.circuit import *
-from cirq.circuits.eject_z import *
-from cirq.circuits.insert_strategy import *
-from cirq.circuits.merge_interactions import *
-from cirq.circuits.merge_rotations import *
-from cirq.circuits.moment import *
-from cirq.circuits.optimization_pass import *
-from cirq.circuits.util import *
+
+def assert_optimizes(before, after):
+    opt = circuits.DropEmptyMoments()
+    opt.optimize_circuit(before)
+    assert before == after
+
+
+def test_drop():
+    q1 = ops.QubitId(0, 0)
+    q2 = ops.QubitId(0, 1)
+    assert_optimizes(
+        before=circuits.Circuit([
+            circuits.Moment(),
+            circuits.Moment(),
+            circuits.Moment([ops.CNOT(q1, q2)]),
+            circuits.Moment(),
+        ]),
+        after=circuits.Circuit([
+            circuits.Moment([ops.CNOT(q1, q2)]),
+        ]))

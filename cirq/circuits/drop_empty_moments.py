@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to building and optimizing sequenced circuits."""
+"""An optimization pass that removes empty moments from a circuit."""
 
-from cirq.circuits.ascii import *
-from cirq.circuits.drop_negligible import *
-from cirq.circuits.drop_empty_moments import *
-from cirq.circuits.circuit import *
-from cirq.circuits.eject_z import *
-from cirq.circuits.insert_strategy import *
-from cirq.circuits.merge_interactions import *
-from cirq.circuits.merge_rotations import *
-from cirq.circuits.moment import *
-from cirq.circuits.optimization_pass import *
-from cirq.circuits.util import *
+from cirq.circuits.circuit import Circuit
+from cirq.circuits.optimization_pass import OptimizationPass
+
+
+class DropEmptyMoments(OptimizationPass):
+    """Removes empty moments from a circuit."""
+
+    def optimize_circuit(self, circuit: Circuit):
+        circuit.moments = [moment
+                           for moment in circuit.moments
+                           if moment.operations]
