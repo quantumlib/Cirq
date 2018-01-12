@@ -30,7 +30,7 @@ class MergeRotations(PointOptimizer):
 
     def __init__(self,
                  insert_strategy: InsertStrategy = InsertStrategy.INLINE,
-                 tolerance: float=1e-8):
+                 tolerance: float = 1e-8):
         self.insert_strategy = insert_strategy
         self.tolerance = tolerance
 
