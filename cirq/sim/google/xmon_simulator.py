@@ -192,6 +192,16 @@ class XmonSimulator(object):
         return np.array(self._pool.map(_state_shard,
                                        self._shard_num_args())).flatten()
 
+    def reset_state(self, initial_state):
+        """Reset the state to the given initial computational state.
+
+        Args:
+            initial_state: The initial state to start from, expressed as an
+            integer of the computational basis. Integer to bitwise indices is
+            little endian."""
+        self._pool.map(_reset_state,
+                       self._shard_num_args({'initial_state': initial_state}))
+
     def simulate_phases(self, phase_map: Dict[Tuple[int], float]):
         """Simulate a set of phase gates on the xmon architecture.
 
@@ -293,6 +303,16 @@ def as_raw_array(arr: np.ndarray) -> multiprocessing.RawArray:
 def _kth_bit(x: int, k: int) -> int:
     """Returns 1 if the kth bit of x is set, 0 otherwise."""
     return (x >> k) & 1
+
+
+def _reset_state(args: Dict[str, Any]):
+    shard_num = args['shard_num']
+    shard_size = 2 ** args['num_shard_qubits']
+    initial_state = args['initial_state']
+
+    _state_shard(args).fill(0)
+    if shard_num == initial_state // shard_size:
+        _state_shard(args)[initial_state % shard_size] = 1.0
 
 
 def _clear_scratch(args: Dict[str, Any]):
