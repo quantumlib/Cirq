@@ -15,6 +15,7 @@
 """Global level manager of shared numpy arrays."""
 
 import multiprocessing
+import warnings
 
 import numpy as np
 
@@ -60,7 +61,7 @@ class SharedMemManager(object):
         if not isinstance(arr, np.ndarray):
             raise ValueError('Array is not a numpy ndarray.')
         try:
-            c_arr = np.ctypeslib.as_ctypes(arr)
+           c_arr = np.ctypeslib.as_ctypes(arr)
         except KeyError:
             raise ValueError(
                 'Array has unsupported dtype {}.'.format(arr.dtype))
@@ -110,7 +111,9 @@ class SharedMemManager(object):
         Returns:
           The numpy ndarray with the handle given from _create_array.
         """
-        return np.ctypeslib.as_array(self._arrays[handle])
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            return np.ctypeslib.as_array(self._arrays[handle])
 
     @staticmethod
     def get_instance() -> 'SharedMemManager':
