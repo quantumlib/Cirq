@@ -28,7 +28,9 @@ from cirq.circuits.optimization_pass import PointOptimizer
 class MergeRotations(PointOptimizer):
     """Combines adjacent constant single-qubit rotations."""
 
-    def __init__(self, insert_strategy: InsertStrategy, tolerance: float):
+    def __init__(self,
+                 insert_strategy: InsertStrategy = InsertStrategy.INLINE,
+                 tolerance: float = 1e-8):
         self.insert_strategy = insert_strategy
         self.tolerance = tolerance
 
