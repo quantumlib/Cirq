@@ -293,13 +293,6 @@ def _zero_one_vects(args: Dict[str, Any]) -> np.ndarray:
     return mem_manager.SharedMemManager.get_array(args['zero_one_vects_handle'])
 
 
-def as_raw_array(arr: np.ndarray) -> multiprocessing.RawArray:
-    """Returns a multiprocessing.RawArray for a given numpy array."""
-    c_arr = np.ctypeslib.as_ctypes(arr)
-    # pylint: disable=protected-access
-    return multiprocessing.RawArray(c_arr._type_, c_arr)
-
-
 def _kth_bit(x: int, k: int) -> int:
     """Returns 1 if the kth bit of x is set, 0 otherwise."""
     return (x >> k) & 1

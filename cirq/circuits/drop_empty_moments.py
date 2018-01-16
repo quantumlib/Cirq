@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import apis
-from cirq import linalg
-from cirq import ops
-from cirq import sim
-from cirq import testing
+"""An optimization pass that removes empty moments from a circuit."""
+
+from cirq.circuits.circuit import Circuit
+from cirq.circuits.optimization_pass import OptimizationPass
+
+
+class DropEmptyMoments(OptimizationPass):
+    """Removes empty moments from a circuit."""
+
+    def optimize_circuit(self, circuit: Circuit):
+        circuit.moments = [moment
+                           for moment in circuit.moments
+                           if moment.operations]

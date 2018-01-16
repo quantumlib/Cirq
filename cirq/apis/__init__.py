@@ -18,8 +18,4 @@ Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.
 """
 
-from cirq.linalg.combinators import *
-from cirq.linalg.decompositions import *
-from cirq.linalg.diagonalize import *
-from cirq.linalg.predicates import *
-from cirq.linalg.tolerance import *
+from cirq.apis import google

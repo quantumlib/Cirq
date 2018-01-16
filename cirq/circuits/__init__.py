@@ -16,6 +16,7 @@
 
 from cirq.circuits.ascii import *
 from cirq.circuits.drop_negligible import *
+from cirq.circuits.drop_empty_moments import *
 from cirq.circuits.circuit import *
 from cirq.circuits.eject_z import *
 from cirq.circuits.insert_strategy import *

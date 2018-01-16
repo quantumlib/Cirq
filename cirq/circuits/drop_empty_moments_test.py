@@ -12,8 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import apis
-from cirq import linalg
+from cirq import circuits
 from cirq import ops
-from cirq import sim
-from cirq import testing
+
+
+def assert_optimizes(before, after):
+    opt = circuits.DropEmptyMoments()
+    opt.optimize_circuit(before)
+    assert before == after
+
+
+def test_drop():
+    q1 = ops.QubitId(0, 0)
+    q2 = ops.QubitId(0, 1)
+    assert_optimizes(
+        before=circuits.Circuit([
+            circuits.Moment(),
+            circuits.Moment(),
+            circuits.Moment([ops.CNOT(q1, q2)]),
+            circuits.Moment(),
+        ]),
+        after=circuits.Circuit([
+            circuits.Moment([ops.CNOT(q1, q2)]),
+        ]))

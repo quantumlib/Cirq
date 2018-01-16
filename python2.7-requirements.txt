@@ -1,3 +1,4 @@
+absl-py
 numpy
 protobuf
 pytest
