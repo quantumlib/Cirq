@@ -340,3 +340,34 @@ def test_commutes_tolerance():
     # Pays attention to specified tolerance.
     assert predicates.commutes(x, x + z * 0.1, tol)
     assert not predicates.commutes(x, x + z * 0.5, tol)
+
+
+def test_allclose_up_to_global_phase():
+    assert predicates.allclose_up_to_global_phase(
+        np.mat([[1]]),
+        np.mat([[1]]))
+    assert predicates.allclose_up_to_global_phase(
+        np.mat([[1]]),
+        np.mat([[-1]]))
+
+    assert predicates.allclose_up_to_global_phase(
+        np.mat([[0]]),
+        np.mat([[0]]))
+
+    assert predicates.allclose_up_to_global_phase(
+        np.mat([[1, 2]]),
+        np.mat([[1j, 2j]]))
+
+    assert predicates.allclose_up_to_global_phase(
+        np.mat([[1, 2.0000000001]]),
+        np.mat([[1j, 2j]]))
+
+    assert not predicates.allclose_up_to_global_phase(
+        np.mat([[1]]),
+        np.mat([[1, 0]]))
+    assert not predicates.allclose_up_to_global_phase(
+        np.mat([[1]]),
+        np.mat([[2]]))
+    assert not predicates.allclose_up_to_global_phase(
+        np.mat([[1]]),
+        np.mat([[2]]))
