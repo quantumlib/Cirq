@@ -173,6 +173,16 @@ def allclose_up_to_global_phase(
         atol: float = 1.e-8,
         equal_nan: bool = False
 ) -> bool:
+    """Determines if a ~= b * exp(i t) for some t.
+
+    Args:
+        a: A matrix.
+        b: Another matrix.
+        rtol: Relative error tolerance.
+        atol: Absolute error tolerance.
+        equal_nan: Whether or not NaN entries should be considered equal to other NaN entries.
+    """
+
     n = a.shape[0]
 
     # Find the entry with the largest magnitude in the desired matrix.
