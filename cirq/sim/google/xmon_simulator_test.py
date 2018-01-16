@@ -21,14 +21,28 @@ import pytest
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_initial_state(num_prefix_qubits):
-    for initial_state in range(2 ** 5):
+    for initial_state in range(2 ** 3):
         with xmon_simulator.XmonSimulator(
-            num_qubits=5,
+            num_qubits=3,
             num_prefix_qubits=num_prefix_qubits,
             initial_state=initial_state,
             shard_for_small_num_qubits=False) as s:
-            expected = np.zeros(2 ** 5, dtype=np.complex64)
+            expected = np.zeros(2 ** 3, dtype=np.complex64)
             expected[initial_state] = 1.0
+            np.testing.assert_almost_equal(expected, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_reset_state(num_prefix_qubits):
+    with xmon_simulator.XmonSimulator(
+        num_qubits=3,
+        num_prefix_qubits=num_prefix_qubits,
+        initial_state=0,
+        shard_for_small_num_qubits=False) as s:
+        for initial_state in range(2 ** 3):
+            expected = np.zeros(2 ** 3, dtype=np.complex64)
+            expected[initial_state] = 1.0
+            s.reset_state(initial_state)
             np.testing.assert_almost_equal(expected, s.current_state)
 
 
@@ -251,12 +265,13 @@ def compute_phases_matrix(num_prefix_qubits, phase_map):
 
 def compute_matrix(num_prefix_qubits, fn):
     columns = []
-    for x in range(8):
-        with xmon_simulator.XmonSimulator(
-            num_qubits=3,
-            num_prefix_qubits=num_prefix_qubits,
-            initial_state=x,
-            shard_for_small_num_qubits=False) as s:
+    with xmon_simulator.XmonSimulator(
+         num_qubits=3,
+         num_prefix_qubits=num_prefix_qubits,
+         initial_state=0,
+         shard_for_small_num_qubits=False) as s:
+        for x in range(8):
+            s.reset_state(x)
             fn(s)
             columns.append(s.current_state)
     return np.array(columns).transpose()
@@ -350,14 +365,15 @@ def assert_measurements(s, results):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_large_circuit_unitary(num_prefix_qubits):
-    moments = random_moments(5, 50)
+    moments = random_moments(5, 40)
     columns = []
-    for initial_state in range(2 ** 5):
-        with xmon_simulator.XmonSimulator(
-            num_qubits=5,
-            num_prefix_qubits=num_prefix_qubits,
-            initial_state=initial_state,
-            shard_for_small_num_qubits=False) as s:
+    with xmon_simulator.XmonSimulator(
+        num_qubits=5,
+        num_prefix_qubits=num_prefix_qubits,
+        initial_state=0,
+        shard_for_small_num_qubits=False) as s:
+        for initial_state in range(2 ** 5):
+            s.reset_state(initial_state)
             for moment in moments:
                 phase_map = {}
                 for op in moment:
