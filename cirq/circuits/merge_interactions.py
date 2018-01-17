@@ -60,7 +60,7 @@ class MergeInteractions(PointOptimizer):
 
     @staticmethod
     def _op_to_matrix(op: ops.Operation, qubits: Tuple[ops.QubitId, ...]
-                      ) -> Optional[Tuple[np.matrix, bool]]:
+                      ) -> Optional[Tuple[np.ndarray, bool]]:
         """Determines the effect of an operation on the given qubits.
 
         The operation must be a 1-qubit operation on one of the given qubits,
@@ -97,7 +97,7 @@ class MergeInteractions(PointOptimizer):
     def _scan_two_qubit_ops_into_matrix(
             circuit: Circuit, index: int,
             qubits: Tuple[ops.QubitId, ...]
-    ) -> Tuple[int, List[int], np.matrix]:
+    ) -> Tuple[int, List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 
         The scan terminates when it hits the end of the circuit, finds an
@@ -142,9 +142,9 @@ class MergeInteractions(PointOptimizer):
         return interaction_count, touched_indices, product
 
     @staticmethod
-    def _flip_kron_order(mat4x4: np.matrix) -> np.matrix:
+    def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
         """Given M = sum(kron(a_i, b_i)), returns M' = sum(kron(b_i, a_i))."""
-        result = np.mat([[0] * 4] * 4, dtype=np.complex128)
+        result = np.array([[0] * 4] * 4, dtype=np.complex128)
         order = [0, 2, 1, 3]
         for i in range(4):
             for j in range(4):
