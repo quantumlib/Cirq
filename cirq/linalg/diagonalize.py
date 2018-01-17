@@ -23,9 +23,9 @@ from cirq.linalg.tolerance import Tolerance
 
 
 def diagonalize_real_symmetric_matrix(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> np.matrix:
+) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes the given matrix.
 
     Args:
@@ -80,10 +80,10 @@ def _contiguous_groups(
 
 
 def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
-        symmetric_matrix: np.matrix,
-        diagonal_matrix: np.matrix,
+        symmetric_matrix: np.ndarray,
+        diagonal_matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> np.matrix:
+) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes both given matrices.
 
     The given matrices must commute.
@@ -128,7 +128,7 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
     ranges = _contiguous_groups(diagonal_matrix.shape[0], similar_singular)
 
     # Build the overall diagonalization by diagonalizing each block.
-    p = np.mat(np.zeros(symmetric_matrix.shape, dtype=np.float64))
+    p = np.zeros(symmetric_matrix.shape, dtype=np.float64)
     for start, end in ranges:
         block = symmetric_matrix[start:end, start:end]
         p[start:end, start:end] = diagonalize_real_symmetric_matrix(block)
@@ -145,17 +145,17 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
 
 def _svd_handling_empty(mat):
     if not mat.shape[0] * mat.shape[1]:
-        z = np.mat(np.zeros((0, 0)), dtype=mat.dtype)
+        z = np.zeros((0, 0), dtype=mat.dtype)
         return z, np.array([]), z
 
     return np.linalg.svd(mat)
 
 
 def bidiagonalize_real_matrix_pair_with_symmetric_products(
-        mat1: np.matrix,
-        mat2: np.matrix,
+        mat1: np.ndarray,
+        mat2: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[np.matrix, np.matrix]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Finds orthogonal matrices that diagonalize both mat1 and mat2.
 
     Requires mat1 and mat2 to be real.
@@ -187,14 +187,14 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
     # Use SVD to bi-diagonalize the first matrix.
     base_left, base_diag, base_right = _svd_handling_empty(np.real(mat1))
-    base_diag = np.mat(np.diag(base_diag))
+    base_diag = np.diag(base_diag)
 
     # Determine where we switch between diagonalization-fixup strategies.
     dim = base_diag.shape[0]
     rank = dim
     while rank > 0 and tolerance.all_near_zero(base_diag[rank - 1, rank - 1]):
         rank -= 1
-    base_diag = np.mat(base_diag[:rank, :rank])
+    base_diag = base_diag[:rank, :rank]
 
     # Try diagonalizing the second matrix with the same factors as the first.
     semi_corrected = base_left.T.dot(np.real(mat2)).dot(base_right.T)
@@ -202,13 +202,13 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # Fix up the part of the second matrix's diagonalization that's matched
     # against non-zero diagonal entries in the first matrix's diagonalization
     # by performing simultaneous diagonalization.
-    overlap = np.mat(semi_corrected[:rank, :rank])
+    overlap = semi_corrected[:rank, :rank]
     overlap_adjust = diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         overlap, base_diag, tolerance)
 
     # Fix up the part of the second matrix's diagonalization that's matched
     # against zeros in the first matrix's diagonalization by performing an SVD.
-    extra = np.mat(semi_corrected[rank:, rank:])
+    extra = semi_corrected[rank:, rank:]
     extra_left_adjust, _, extra_right_adjust = _svd_handling_empty(extra)
 
     # Merge the fixup factors into the initial diagonalization.
@@ -227,9 +227,9 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
 
 def bidiagonalize_unitary_with_special_orthogonals(
-        mat: np.matrix,
+        mat: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[np.matrix, np.array, np.matrix]:
+) -> Tuple[np.ndarray, np.array, np.ndarray]:
     """Finds orthogonal matrices L, R such that L @ matrix @ R is diagonal.
 
     Args:
@@ -251,8 +251,8 @@ def bidiagonalize_unitary_with_special_orthogonals(
     # Note: Because mat is unitary, setting A = real(mat) and B = imag(mat)
     # guarantees that both A @ B.T and A.T @ B are Hermitian.
     left, right = bidiagonalize_real_matrix_pair_with_symmetric_products(
-        np.mat(np.real(mat)),
-        np.mat(np.imag(mat)),
+        np.real(mat),
+        np.imag(mat),
         tolerance)
 
     # Convert to special orthogonal w/o breaking diagonalization.
