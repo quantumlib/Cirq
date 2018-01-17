@@ -176,7 +176,7 @@ def single_qubit_op_to_framed_phase_form(
         When M is controlled, the control must be rotated around the Z axis to
         apply g.
     """
-    vals, vecs = np.linalg.eig(mat)
+    vals, vecs = np.linalg.eig(np.mat(mat))
     u = np.mat(vecs).H
     r = vals[1] / vals[0]
     g = vals[0]

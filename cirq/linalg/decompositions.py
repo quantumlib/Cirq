@@ -73,7 +73,7 @@ def _perp_eigendecompose(matrix: np.matrix, tolerance: Tolerance
     Raises:
         ArithmeticError: Failed to find perpendicular eigenvectors.
     """
-    vals, cols = np.linalg.eig(matrix)
+    vals, cols = np.linalg.eig(np.mat(matrix))
     vecs = [cols[:, i] for i in range(len(cols))]
 
     # Group by similar eigenvalue.
