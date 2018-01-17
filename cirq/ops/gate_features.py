@@ -103,7 +103,7 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose constant non-parameterized effect has a known matrix."""
 
     @abc.abstractmethod
-    def matrix(self) -> np.matrix:
+    def matrix(self) -> np.ndarray:
         """The unitary matrix of the operation this gate applies."""
         pass
 
@@ -146,7 +146,7 @@ class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect on the state is known to be below some threshold."""
 
     @abc.abstractmethod
-    def trace_distance_bound(self) -> np.matrix:
+    def trace_distance_bound(self) -> np.ndarray:
         """A maximum on the trace distance between this gate's input/output.
 
         Approximations that overestimate are permitted. Even ones that exceed

@@ -20,7 +20,7 @@ from typing import Union
 import numpy as np
 
 
-def kron(*matrices: np.matrix) -> np.matrix:
+def kron(*matrices: np.ndarray) -> np.ndarray:
     """Computes the kronecker product of a sequence of matrices.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
@@ -35,13 +35,13 @@ def kron(*matrices: np.matrix) -> np.matrix:
     product = np.eye(1)
     for m in matrices:
         product = np.kron(product, m)
-    return np.mat(product)
+    return np.array(product)
 
 
-CONTROL_TAG = np.mat([[float('nan'), 0], [0, 1]])  # For kron_with_controls
+CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])  # For kron_with_controls
 
 
-def kron_with_controls(*matrices: np.matrix) -> np.matrix:
+def kron_with_controls(*matrices: np.ndarray) -> np.ndarray:
     """Computes the kronecker product of a sequence of matrices and controls.
 
     Use linalg.CONTROL_TAG to represent controls. Any entry of the output
@@ -77,8 +77,8 @@ def kron_with_controls(*matrices: np.matrix) -> np.matrix:
     return product
 
 
-def dot(*values: Union[float, complex, np.ndarray, np.matrix]
-        ) -> Union[float, complex, np.ndarray, np.matrix]:
+def dot(*values: Union[float, complex, np.ndarray, np.ndarray]
+        ) -> Union[float, complex, np.ndarray, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
 
   A *args version of np.linalg.multi_dot.
@@ -96,7 +96,7 @@ def _merge_dtypes(dtype1: np.dtype, dtype2: np.dtype) -> np.dtype:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 
-def block_diag(*blocks: np.matrix) -> np.matrix:
+def block_diag(*blocks: np.ndarray) -> np.ndarray:
     """Concatenates blocks into a block diagonal matrix.
 
     Args:
@@ -113,12 +113,12 @@ def block_diag(*blocks: np.matrix) -> np.matrix:
             raise ValueError('Blocks must be square.')
 
     if not blocks:
-        return np.mat(np.zeros((0, 0), dtype=np.complex128))
+        return np.zeros((0, 0), dtype=np.complex128)
 
     n = sum(b.shape[0] for b in blocks)
     dtype = functools.reduce(_merge_dtypes, (b.dtype for b in blocks))
 
-    result = np.mat(np.zeros(shape=(n, n), dtype=dtype))
+    result = np.zeros(shape=(n, n), dtype=dtype)
     i = 0
     for b in blocks:
         j = i + b.shape[0]

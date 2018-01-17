@@ -19,9 +19,9 @@ from cirq import linalg
 from cirq import ops
 from cirq.testing import EqualsTester
 
-H = np.mat([[1, 1], [1, -1]]) * np.sqrt(0.5)
+H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = linalg.kron(H, H)
-QFT2 = np.mat([[1, 1, 1, 1],
+QFT2 = np.array([[1, 1, 1, 1],
                [1, 1j, -1, -1j],
                [1, -1, 1, -1],
                [1, -1j, -1, 1j]]) * 0.5
@@ -73,25 +73,25 @@ def test_cz_extrapolate():
 
 def test_cz_matrix():
     assert np.allclose(ops.CZGate(0.5).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, -1]]))
 
     assert np.allclose(ops.CZGate(0.25).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, 1j]]))
 
     assert np.allclose(ops.CZGate(0).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, 1]]))
 
     assert np.allclose(ops.CZGate(-0.25).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, -1j]]))
@@ -133,10 +133,10 @@ def test_z_to_proto():
 
 
 def test_z_matrix():
-    assert np.allclose(ops.ZGate(0.5).matrix(), np.mat([[1, 0], [0, -1]]))
-    assert np.allclose(ops.ZGate(0.25).matrix(), np.mat([[1, 0], [0, 1j]]))
-    assert np.allclose(ops.ZGate(0).matrix(), np.mat([[1, 0], [0, 1]]))
-    assert np.allclose(ops.ZGate(-0.25).matrix(), np.mat([[1, 0], [0, -1j]]))
+    assert np.allclose(ops.ZGate(0.5).matrix(), np.array([[1, 0], [0, -1]]))
+    assert np.allclose(ops.ZGate(0.25).matrix(), np.array([[1, 0], [0, 1j]]))
+    assert np.allclose(ops.ZGate(0).matrix(), np.array([[1, 0], [0, 1]]))
+    assert np.allclose(ops.ZGate(-0.25).matrix(), np.array([[1, 0], [0, -1j]]))
 
 
 def test_xy_init():
@@ -191,32 +191,32 @@ def test_xy_to_proto():
 
 def test_xy_matrix():
     assert np.allclose(ops.XYGate(turns=0.5, axis_phase_turns=0.25).matrix(),
-                       np.mat([[0, -1j], [1j, 0]]))
+                       np.array([[0, -1j], [1j, 0]]))
 
     assert np.allclose(ops.XYGate(turns=0.25, axis_phase_turns=0.25).matrix(),
-                       np.mat([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
+                       np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
     assert np.allclose(ops.XYGate(turns=0, axis_phase_turns=0.25).matrix(),
-                       np.mat([[1, 0], [0, 1]]))
+                       np.array([[1, 0], [0, 1]]))
 
     assert np.allclose(ops.XYGate(turns=-0.25, axis_phase_turns=0.25).matrix(),
-                       np.mat([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
+                       np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
     assert np.allclose(ops.XYGate(turns=0.5).matrix(),
-                       np.mat([[0, 1], [1, 0]]))
+                       np.array([[0, 1], [1, 0]]))
 
     assert np.allclose(ops.XYGate(turns=0.25).matrix(),
-                       np.mat([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
+                       np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
     assert np.allclose(ops.XYGate(turns=0).matrix(),
-                       np.mat([[1, 0], [0, 1]]))
+                       np.array([[1, 0], [0, 1]]))
 
     assert np.allclose(ops.XYGate(turns=-0.25).matrix(),
-                       np.mat([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
+                       np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
 
 def test_single_qubit_init():
-    m = np.mat([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
+    m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = ops.SingleQubitMatrixGate(m)
     assert np.alltrue(x2.matrix() == m)
 
@@ -225,33 +225,33 @@ def test_single_qubit_eq():
     eq = EqualsTester()
     eq.make_equality_pair(lambda: ops.SingleQubitMatrixGate(np.eye(2)))
     eq.make_equality_pair(
-        lambda: ops.SingleQubitMatrixGate(np.mat([[0, 1], [1, 0]])))
-    x2 = np.mat([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
+        lambda: ops.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]])))
+    x2 = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     eq.make_equality_pair(lambda: ops.SingleQubitMatrixGate(x2))
 
 
 def test_single_qubit_phase_by():
-    x = ops.SingleQubitMatrixGate(np.mat([[0, 1], [1, 0]]))
-    y = ops.SingleQubitMatrixGate(np.mat([[0, -1j], [1j, 0]]))
-    z = ops.SingleQubitMatrixGate(np.mat([[1, 0], [0, -1]]))
+    x = ops.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
+    y = ops.SingleQubitMatrixGate(np.array([[0, -1j], [1j, 0]]))
+    z = ops.SingleQubitMatrixGate(np.array([[1, 0], [0, -1]]))
     assert x.phase_by(0.25, 0).approx_eq(y)
     assert y.phase_by(-0.25, 0).approx_eq(x)
     assert z.phase_by(0.25, 0).approx_eq(z)
 
 
 def test_single_qubit_trace_distance_bound():
-    x = ops.SingleQubitMatrixGate(np.mat([[0, 1], [1, 0]]))
+    x = ops.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = ops.SingleQubitMatrixGate(
-        np.mat([[1, 1j], [1j, 1]]) * np.sqrt(0.5))
+        np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5))
     assert x.trace_distance_bound() >= 1
     assert x2.trace_distance_bound() >= 0.5
 
 
 def test_single_qubit_approx_eq():
-    x = ops.SingleQubitMatrixGate(np.mat([[0, 1], [1, 0]]))
-    i = ops.SingleQubitMatrixGate(np.mat([[1, 0], [0, 1]]))
+    x = ops.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
+    i = ops.SingleQubitMatrixGate(np.array([[1, 0], [0, 1]]))
     i_ish = ops.SingleQubitMatrixGate(
-        np.mat([[1, 0.000000000000001], [0, 1]]))
+        np.array([[1, 0.000000000000001], [0, 1]]))
     assert i.approx_eq(i_ish)
     assert i.approx_eq(i)
     assert not i.approx_eq(x)
@@ -260,10 +260,10 @@ def test_single_qubit_approx_eq():
 
 def test_single_qubit_extrapolate():
     i = ops.SingleQubitMatrixGate(np.eye(2))
-    x = ops.SingleQubitMatrixGate(np.mat([[0, 1], [1, 0]]))
+    x = ops.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = ops.SingleQubitMatrixGate(
-        np.mat([[1, 1j], [1j, 1]]) * (1 - 1j) / 2)
-    x2i = ops.SingleQubitMatrixGate(x2.matrix().H)
+        np.array([[1, 1j], [1j, 1]]) * (1 - 1j) / 2)
+    x2i = ops.SingleQubitMatrixGate(np.conj(x2.matrix().T))
 
     assert x.extrapolate_effect(0).approx_eq(i)
     assert x2.extrapolate_effect(0).approx_eq(i)
@@ -272,9 +272,9 @@ def test_single_qubit_extrapolate():
     assert x2.extrapolate_effect(3).approx_eq(x2i)
     assert x.extrapolate_effect(-1).approx_eq(x)
 
-    z2 = ops.SingleQubitMatrixGate(np.mat([[1, 0], [0, 1j]]))
+    z2 = ops.SingleQubitMatrixGate(np.array([[1, 0], [0, 1j]]))
     z4 = ops.SingleQubitMatrixGate(
-        np.mat([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
+        np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
     assert z2.extrapolate_effect(0.5).approx_eq(z4)
 
 
@@ -291,20 +291,20 @@ def test_two_qubit_eq():
 
 
 def test_two_qubit_phase_by():
-    x = np.mat([[0, 1], [1, 0]])
-    y = np.mat([[0, -1j], [1j, 0]])
-    z = np.mat([[1, 0], [0, -1]])
+    x = np.array([[0, 1], [1, 0]])
+    y = np.array([[0, -1j], [1j, 0]])
+    z = np.array([[1, 0], [0, -1]])
 
-    xx = ops.TwoQubitMatrixGate(np.mat(np.kron(x, x)))
-    yx = ops.TwoQubitMatrixGate(np.mat(np.kron(x, y)))
-    xy = ops.TwoQubitMatrixGate(np.mat(np.kron(y, x)))
-    yy = ops.TwoQubitMatrixGate(np.mat(np.kron(y, y)))
+    xx = ops.TwoQubitMatrixGate(np.kron(x, x))
+    yx = ops.TwoQubitMatrixGate(np.kron(x, y))
+    xy = ops.TwoQubitMatrixGate(np.kron(y, x))
+    yy = ops.TwoQubitMatrixGate(np.kron(y, y))
     assert xx.phase_by(0.25, 0).approx_eq(yx)
     assert xx.phase_by(0.25, 1).approx_eq(xy)
     assert xy.phase_by(0.25, 0).approx_eq(yy)
     assert xy.phase_by(-0.25, 1).approx_eq(xx)
 
-    zz = ops.TwoQubitMatrixGate(np.mat(np.kron(z, z)))
+    zz = ops.TwoQubitMatrixGate(np.kron(z, z))
     assert zz.phase_by(0.25, 0).approx_eq(zz)
     assert zz.phase_by(0.25, 1).approx_eq(zz)
 
@@ -319,9 +319,8 @@ def test_two_qubit_approx_eq():
 
 
 def test_two_qubit_extrapolate():
-    cz2 = ops.TwoQubitMatrixGate(np.mat(np.diag([1, 1, 1, 1j])))
-    cz4 = ops.TwoQubitMatrixGate(
-        np.mat(np.diag([1, 1, 1, (1 + 1j) * np.sqrt(0.5)])))
+    cz2 = ops.TwoQubitMatrixGate(np.diag([1, 1, 1, 1j]))
+    cz4 = ops.TwoQubitMatrixGate(np.diag([1, 1, 1, (1 + 1j) * np.sqrt(0.5)]))
     i = ops.TwoQubitMatrixGate(np.eye(4))
 
     assert cz2.extrapolate_effect(0).approx_eq(i)
