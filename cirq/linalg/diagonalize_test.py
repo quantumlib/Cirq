@@ -25,31 +25,31 @@ from cirq.linalg.tolerance import Tolerance
 from cirq import testing
 
 
-X = np.mat([[0, 1], [1, 0]])
-Y = np.mat([[0, -1j], [1j, 0]])
-Z = np.mat(np.diag([1, -1]))
-H = np.mat([[1, 1], [1, -1]]) * np.sqrt(0.5)
-SWAP = np.mat([[1, 0, 0, 0],
+X = np.array([[0, 1], [1, 0]])
+Y = np.array([[0, -1j], [1j, 0]])
+Z = np.diag([1, -1])
+H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
+SWAP = np.array([[1, 0, 0, 0],
                [0, 0, 1, 0],
                [0, 1, 0, 0],
                [0, 0, 0, 1]])
-CNOT = np.mat([[1, 0, 0, 0],
+CNOT = np.array([[1, 0, 0, 0],
                [0, 1, 0, 0],
                [0, 0, 0, 1],
                [0, 0, 1, 0]])
-QFT = np.mat([[1, 1, 1, 1],
+QFT = np.array([[1, 1, 1, 1],
               [1, 1j, -1, -1j],
               [1, -1, 1, -1],
               [1, -1j, -1, 1j]]) * 0.5
 
 
-def random_real_diagonal_matrix(n: int, d: Optional[int] = None) -> np.matrix:
-    return np.mat(np.diag([random.random() if d is None or k < d else 0
-                           for k in range(n)]))
+def random_real_diagonal_matrix(n: int, d: Optional[int] = None) -> np.ndarray:
+    return np.diag([random.random() if d is None or k < d else 0
+                    for k in range(n)])
 
 
-def random_symmetric_matrix(n: int) -> np.matrix:
-    m = np.mat(np.zeros((n, n), dtype=np.float64))
+def random_symmetric_matrix(n: int) -> np.ndarray:
+    m = np.zeros((n, n), dtype=np.float64)
     for i in range(n):
         for j in range(i, n):
             p = random.random() * 2 - 1
@@ -58,13 +58,13 @@ def random_symmetric_matrix(n: int) -> np.matrix:
     return m
 
 
-def random_block_diagonal_symmetric_matrix(*ns: int) -> np.matrix:
+def random_block_diagonal_symmetric_matrix(*ns: int) -> np.ndarray:
     return combinators.block_diag(*[random_symmetric_matrix(n) for n in ns])
 
 
 def random_bi_diagonalizable_pair(
         n: int, d1: Optional[int] = None, d2: Optional[int] = None
-) -> Tuple[np.matrix, np.matrix]:
+) -> Tuple[np.ndarray, np.ndarray]:
     u = testing.random_orthogonal(n)
     s = random_real_diagonal_matrix(n, d1)
     z = random_real_diagonal_matrix(n, d2)
@@ -117,16 +117,16 @@ def assert_bidiagonalized_by(m, p, q, tol=Tolerance.DEFAULT):
 
 
 @pytest.mark.parametrize('matrix', [
-    np.mat([[0, 0], [0, 0]]),
-    np.mat([[0, 0], [0, 1]]),
-    np.mat([[1, 0], [0, 1]]),
-    np.mat([[1, 0], [0, 5]]),
-    np.mat([[1, 1], [1, 1]]),
-    np.mat([[0, 1], [1, 0]]),
-    np.mat([[0, 2], [2, 0]]),
-    np.mat([[-1, 500], [500, 4]]),
-    np.mat([[-1, 500], [500, -4]]),
-    np.mat([[1, 3], [3, 7]]),
+    np.array([[0, 0], [0, 0]]),
+    np.array([[0, 0], [0, 1]]),
+    np.array([[1, 0], [0, 1]]),
+    np.array([[1, 0], [0, 5]]),
+    np.array([[1, 1], [1, 1]]),
+    np.array([[0, 1], [1, 0]]),
+    np.array([[0, 2], [2, 0]]),
+    np.array([[-1, 500], [500, 4]]),
+    np.array([[-1, 500], [500, -4]]),
+    np.array([[1, 3], [3, 7]]),
 ] + [
     random_symmetric_matrix(2) for _ in
     range(10)
@@ -143,11 +143,11 @@ def testdiagonalize_real_symmetric_matrix(matrix):
 
 
 @pytest.mark.parametrize('matrix', [
-    np.mat([[0, 1], [0, 0]]),
-    np.mat([[1, 1], [0, 1]]),
-    np.mat([[1, 1j], [-1j, 1]]),
-    np.mat([[1, 1j], [1j, 1]]),
-    np.mat([[3, 1], [7, 3]]),
+    np.array([[0, 1], [0, 0]]),
+    np.array([[1, 1], [0, 1]]),
+    np.array([[1, 1j], [-1j, 1]]),
+    np.array([[1, 1j], [1j, 1]]),
+    np.array([[3, 1], [7, 3]]),
 ])
 def testdiagonalize_real_symmetric_matrix_fails(matrix):
     with pytest.raises(ValueError):
@@ -173,8 +173,8 @@ def testdiagonalize_real_symmetric_matrix_fails(matrix):
 ])
 def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars(
         s, m):
-    m = np.mat(m)
-    s = np.mat(np.diag(s))
+    m = np.array(m)
+    s = np.diag(s)
     p = diagonalize.diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         m, s)
     assertdiagonalized_by(s, p)
@@ -191,8 +191,8 @@ def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars(
 ])
 def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars_fail(
         s, m):
-    m = np.mat(m)
-    s = np.mat(np.diag(s))
+    m = np.array(m)
+    s = np.diag(s)
     with pytest.raises(ValueError):
         diagonalize.diagonalize_real_symmetric_and_sorted_diagonal_matrices(
             m, s)
@@ -224,8 +224,8 @@ def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars_fail(
     for k in range(1, 10)
 ])
 def test_bidiagonalize_real_matrix_pair_with_symmetric_products(a, b):
-    a = np.mat(a)
-    b = np.mat(b)
+    a = np.array(a)
+    b = np.array(b)
     p, q = diagonalize.bidiagonalize_real_matrix_pair_with_symmetric_products(
         a, b)
     assert_bidiagonalized_by(a, p, q)
@@ -247,17 +247,17 @@ def test_bidiagonalize_real_matrix_pair_with_symmetric_products(a, b):
     ],
 ])
 def test_bidiagonalize_real_fails(a, b):
-    a = np.mat(a)
-    b = np.mat(b)
+    a = np.array(a)
+    b = np.array(b)
     with pytest.raises(ValueError):
         diagonalize.bidiagonalize_real_matrix_pair_with_symmetric_products(
             a, b)
 
 
 @pytest.mark.parametrize('mat', [
-    np.mat(np.diag([1])),
-    np.mat(np.diag([1j])),
-    np.mat(np.diag([-1])),
+    np.diag([1]),
+    np.diag([1j]),
+    np.diag([-1]),
     SWAP,
     CNOT,
     Y,
@@ -279,17 +279,17 @@ def test_bidiagonalize_unitary_with_special_orthogonals(mat):
     p, d, q = diagonalize.bidiagonalize_unitary_with_special_orthogonals(mat)
     assert predicates.is_special_orthogonal(p)
     assert predicates.is_special_orthogonal(q)
-    assert np.allclose(p.dot(mat).dot(q), np.mat(np.diag(d)))
+    assert np.allclose(p.dot(mat).dot(q), np.diag(d))
     assert_bidiagonalized_by(mat, p, q)
 
 
 @pytest.mark.parametrize('mat', [
-    np.mat(np.diag([0])),
-    np.mat(np.diag([0.5])),
-    np.mat(np.diag([1, 0])),
-    np.mat(np.diag([0.5, 2])),
-    np.mat(np.mat([[0, 1], [0, 0]])),
+    np.diag([0]),
+    np.diag([0.5]),
+    np.diag([1, 0]),
+    np.diag([0.5, 2]),
+    np.array([[0, 1], [0, 0]]),
 ])
 def test_bidiagonalize_unitary_fails(mat):
     with pytest.raises(ValueError):
-        diagonalize.bidiagonalize_unitary_with_special_orthogonals(np.mat(mat))
+        diagonalize.bidiagonalize_unitary_with_special_orthogonals(np.array(mat))
