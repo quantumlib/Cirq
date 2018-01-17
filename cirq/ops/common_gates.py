@@ -51,7 +51,7 @@ class CZGate(native_gates.ParameterizedCZGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat(np.diag([1, 1, 1, np.exp(2j * np.pi * self.turns)]))
+        return np.diag([1, 1, 1, np.exp(2j * np.pi * self.turns)])
 
     def __repr__(self):
         if self.turns == 0.5:
@@ -96,8 +96,8 @@ class XYGate(native_gates.ParameterizedXYGate,
         """See base class."""
         phase = ZGate(self.axis_phase_turns).matrix()
         c = np.exp(2j * np.pi * self.turns)
-        rot = np.mat([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
-        return phase.dot(rot).dot(phase.H)
+        rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
+        return phase.dot(rot).dot(np.conj(phase))
 
     def __repr__(self):
         if self.axis_phase_turns == 0:
@@ -140,7 +140,7 @@ class ZGate(native_gates.ParameterizedZGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat(np.diag([1, np.exp(2j * np.pi * self.turns)]))
+        return np.diag([1, np.exp(2j * np.pi * self.turns)])
 
     def __repr__(self):
         if self.turns == 0.5:
@@ -164,7 +164,7 @@ class HGate(gate_features.ConstantSingleQubitGate,
     def matrix(self):
         """See base class."""
         s = math.sqrt(0.5)
-        return np.mat([[s, s], [s, -s]])
+        return np.array([[s, s], [s, -s]])
 
     def __repr__(self):
         return 'H'
@@ -181,7 +181,7 @@ class CNotGate(gate_features.ConstantAdjacentTwoQubitGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat([[1, 0, 0, 0],
+        return np.array([[1, 0, 0, 0],
                        [0, 1, 0, 0],
                        [0, 0, 0, 1],
                        [0, 0, 1, 0]])
@@ -209,7 +209,7 @@ class SwapGate(gate_features.CompositeGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat([[1, 0, 0, 0],
+        return np.array([[1, 0, 0, 0],
                        [0, 0, 1, 0],
                        [0, 1, 0, 0],
                        [0, 0, 0, 1]])
@@ -238,7 +238,7 @@ class SingleQubitMatrixGate(gate_features.ConstantSingleQubitGate,
     more float-error sensitive to work with (due to using eigendecompositions).
     """
 
-    def __init__(self, matrix: np.matrix):
+    def __init__(self, matrix: np.ndarray):
         if matrix.shape != (2, 2):
             raise ValueError('Not a 2x2 unitary matrix: {}'.format(matrix))
         self._matrix = matrix
@@ -255,7 +255,7 @@ class SingleQubitMatrixGate(gate_features.ConstantSingleQubitGate,
 
     def phase_by(self, phase_turns: float, qubit_index: int):
         phaser = ZGate(phase_turns).matrix()
-        phased_matrix = phaser.dot(self._matrix).dot(phaser.H)
+        phased_matrix = phaser.dot(self._matrix).dot(np.conj(phaser))
         return SingleQubitMatrixGate(phased_matrix)
 
     def matrix(self):
@@ -294,7 +294,7 @@ class TwoQubitMatrixGate(gate_features.ConstantAdjacentTwoQubitGate,
     more float-error sensitive to work with (due to using eigendecompositions).
     """
 
-    def __init__(self, matrix: np.matrix):
+    def __init__(self, matrix: np.ndarray):
         if matrix.shape != (4, 4):
             raise ValueError('Not a 4x4 unitary matrix: {}'.format(matrix))
         self._matrix = matrix
@@ -307,8 +307,8 @@ class TwoQubitMatrixGate(gate_features.ConstantAdjacentTwoQubitGate,
     def phase_by(self, phase_turns: float, qubit_index: int):
         z = ZGate(phase_turns).matrix()
         i = np.eye(2)
-        z2 = np.mat(np.kron(z, i) if qubit_index else np.kron(i, z))
-        phased_matrix = z2.dot(self._matrix).dot(z2.H)
+        z2 = np.kron(z, i) if qubit_index else np.kron(i, z)
+        phased_matrix = z2.dot(self._matrix).dot(np.conj(z2))
         return TwoQubitMatrixGate(phased_matrix)
 
     def approx_eq(self, other):
