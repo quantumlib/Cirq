@@ -74,48 +74,48 @@ def assert_gates_implement_unitary(gates, intended_effect):
 
 def test_single_qubit_matrix_to_native_gates_known_x():
     actual = circuits.single_qubit_matrix_to_native_gates(
-        np.mat([[0, 1], [1, 0]]), tolerance=0.01)
+        np.array([[0, 1], [1, 0]]), tolerance=0.01)
 
     assert actual == [ops.X]
 
 
 def test_single_qubit_matrix_to_native_gates_known_y():
     actual = circuits.single_qubit_matrix_to_native_gates(
-        np.mat([[0, -1j], [1j, 0]]), tolerance=0.01)
+        np.array([[0, -1j], [1j, 0]]), tolerance=0.01)
 
     assert actual == [ops.Y]
 
 
 def test_single_qubit_matrix_to_native_gates_known_z():
     actual = circuits.single_qubit_matrix_to_native_gates(
-        np.mat([[1, 0], [0, -1]]), tolerance=0.01)
+        np.array([[1, 0], [0, -1]]), tolerance=0.01)
 
     assert actual == [ops.Z]
 
 
 def test_single_qubit_matrix_to_native_gates_known_s():
     actual = circuits.single_qubit_matrix_to_native_gates(
-        np.mat([[1, 0], [0, 1j]]), tolerance=0.01)
+        np.array([[1, 0], [0, 1j]]), tolerance=0.01)
 
     assert actual == [ops.Z**0.5]
 
 
 def test_known_s_dag():
     actual = circuits.single_qubit_matrix_to_native_gates(
-        np.mat([[1, 0], [0, -1j]]), tolerance=0.01)
+        np.array([[1, 0], [0, -1j]]), tolerance=0.01)
 
     assert actual == [ops.Z**-0.5]
 
 
 def test_known_h():
     actual = circuits.single_qubit_matrix_to_native_gates(
-        np.mat([[1, 1], [1, -1]]) * np.sqrt(0.5), tolerance=0.001)
+        np.array([[1, 1], [1, -1]]) * np.sqrt(0.5), tolerance=0.001)
 
     assert actual == [ops.Y**-0.5, ops.Z]
 
 
 @pytest.mark.parametrize('intended_effect', [
-    np.mat([[0, 1j], [1, 0]]),
+    np.array([[0, 1j], [1, 0]]),
 ] + [
     testing.random_unitary(2) for _ in range(10)
 ])
@@ -142,7 +142,7 @@ def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
 
 
 def test_single_qubit_matrix_to_native_gates_tolerance_z():
-    z = np.mat(np.diag([1, np.exp(1j * 0.01)]))
+    z = np.diag([1, np.exp(1j * 0.01)])
 
     optimized_away = circuits.single_qubit_matrix_to_native_gates(
         z, tolerance=0.1)
@@ -155,7 +155,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_z():
 
 def test_single_qubit_matrix_to_native_gates_tolerance_xy():
     c, s = np.cos(0.01), np.sin(0.01)
-    xy = np.mat([[c, -s], [s, c]])
+    xy = np.array([[c, -s], [s, c]])
 
     optimized_away = circuits.single_qubit_matrix_to_native_gates(
         xy, tolerance=0.1)
@@ -169,7 +169,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_xy():
 def test_single_qubit_matrix_to_native_gates_tolerance_half_turn_phasing():
     a = np.pi / 2 + 0.01
     c, s = np.cos(a), np.sin(a)
-    nearly_x = np.mat([[c, -s], [s, c]])
+    nearly_x = np.array([[c, -s], [s, c]])
     z1 = np.diag([1, np.exp(1j * 1.2)])
     z2 = np.diag([1, np.exp(1j * 1.6)])
     phased_nearly_x = z1.dot(nearly_x).dot(z2)
@@ -192,7 +192,7 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
 
 
 @pytest.mark.parametrize('mat', [
-    np.mat(np.eye(2)),
+    np.eye(2),
     ops.H.matrix(),
     ops.X.matrix(),
     (ops.X**0.5).matrix(),
@@ -204,8 +204,8 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
         mat):
     u, t, g = circuits.single_qubit_op_to_framed_phase_form(mat)
-    z = np.mat(np.diag([g, g * t]))
-    assert np.allclose(mat, u.H.dot(z).dot(u))
+    z = np.diag([g, g * t])
+    assert np.allclose(mat, np.conj(u.T).dot(z).dot(u))
 
 
 def test_controlled_op_to_gates_concrete_case():
@@ -214,7 +214,7 @@ def test_controlled_op_to_gates_concrete_case():
     operations = circuits.controlled_op_to_native_gates(
         control=qc,
         target=qt,
-        operation=np.matrix([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
+        operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
         tolerance=0.0001)
 
     assert operations == [(ops.Y**-0.5)(qt), (ops.CZ**1.5)(qc, qt),
@@ -232,7 +232,7 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
 
 
 @pytest.mark.parametrize('mat', [
-    np.mat(np.eye(2)),
+    np.eye(2),
     ops.H.matrix(),
     ops.X.matrix(),
     (ops.X**0.5).matrix(),
@@ -255,16 +255,16 @@ def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
 def _random_single_partial_cz_effect():
     return linalg.dot(
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
-        np.mat(np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)])),
+        np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
 
 
 def _random_double_partial_cz_effect():
     return linalg.dot(
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
-        np.mat(np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)])),
+        np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
-        np.mat(np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)])),
+        np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
 
 
@@ -301,8 +301,8 @@ def assert_ops_implement_unitary(operations, intended_effect,
 
 
 @pytest.mark.parametrize('max_partial_cz_depth,max_full_cz_depth,effect', [
-    [0, 0, np.mat(np.eye(4))],
-    [0, 0, np.mat([
+    [0, 0, np.eye(4)],
+    [0, 0, np.array([
         [0, 0, 0, 1],
         [0, 0, 1, 0],
         [0, 1, 0, 0],
@@ -314,19 +314,19 @@ def assert_ops_implement_unitary(operations, intended_effect,
 
     [1, 1, ops.CZ.matrix()],
     [1, 1, ops.CNOT.matrix()],
-    [1, 1, np.mat([
+    [1, 1, np.array([
         [1, 0, 0, 1j],
         [0, 1, 1j, 0],
         [0, 1j, 1, 0],
         [1j, 0, 0, 1],
     ]) * np.sqrt(0.5)],
-    [1, 1, np.mat([
+    [1, 1, np.array([
         [1, 0, 0, -1j],
         [0, 1, -1j, 0],
         [0, -1j, 1, 0],
         [-1j, 0, 0, 1],
     ]) * np.sqrt(0.5)],
-    [1, 1, np.mat([
+    [1, 1, np.array([
         [1, 0, 0, 1j],
         [0, 1, -1j, 0],
         [0, -1j, 1, 0],
@@ -336,10 +336,10 @@ def assert_ops_implement_unitary(operations, intended_effect,
     [1.5, 3, linalg.map_eigenvalues(ops.SWAP.matrix(),
                                     lambda e: complex(e)**0.5)],
 
-    [2, 2, ops.SWAP.matrix() * ops.CZ.matrix()],
+    [2, 2, ops.SWAP.matrix().dot(ops.CZ.matrix())],
 
     [3, 3, ops.SWAP.matrix()],
-    [3, 3, np.mat([
+    [3, 3, np.array([
         [0, 0, 0, 1],
         [0, 1, 0, 0],
         [0, 0, 1, 0],

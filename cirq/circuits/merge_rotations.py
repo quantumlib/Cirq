@@ -64,12 +64,13 @@ class MergeRotations(PointOptimizer):
         return indices, gates
 
     def _merge_rotations(
-            self, qubit: ops.QubitId,
-            gates: Iterable[ops.ConstantSingleQubitGate]) -> List[
-        ops.Operation]:
+            self,
+            qubit: ops.QubitId,
+            gates: Iterable[ops.ConstantSingleQubitGate]
+    ) -> List[ops.Operation]:
         matrix = np.eye(2, dtype=np.complex128)
         for op in gates:
-            matrix = op.matrix() * matrix
+            matrix = np.dot(op.matrix(), matrix)
 
         gates = util.single_qubit_matrix_to_native_gates(matrix,
                                                          self.tolerance)
