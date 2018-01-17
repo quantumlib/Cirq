@@ -292,4 +292,4 @@ def test_bidiagonalize_unitary_with_special_orthogonals(mat):
 ])
 def test_bidiagonalize_unitary_fails(mat):
     with pytest.raises(ValueError):
-        diagonalize.bidiagonalize_unitary_with_special_orthogonals(np.array(mat))
+        diagonalize.bidiagonalize_unitary_with_special_orthogonals(mat)
