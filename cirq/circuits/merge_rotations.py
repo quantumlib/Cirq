@@ -69,7 +69,7 @@ class MergeRotations(PointOptimizer):
         ops.Operation]:
         matrix = np.eye(2, dtype=np.complex128)
         for op in gates:
-            matrix = op.matrix() * matrix
+            matrix = op.matrix().dot(matrix)
 
         gates = util.single_qubit_matrix_to_native_gates(matrix,
                                                          self.tolerance)
