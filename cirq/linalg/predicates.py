@@ -55,7 +55,6 @@ def is_hermitian(
     Returns:
         Whether the matrix is Hermitian within the given tolerance.
     """
-    matrix = np.mat(matrix)
     return (matrix.shape[0] == matrix.shape[1] and
             tolerance.all_close(matrix, np.conj(matrix.T)))
 
