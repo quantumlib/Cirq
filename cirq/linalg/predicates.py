@@ -55,6 +55,7 @@ def is_hermitian(
     Returns:
         Whether the matrix is Hermitian within the given tolerance.
     """
+    matrix = np.mat(matrix)
     return (matrix.shape[0] == matrix.shape[1] and
             tolerance.all_close(matrix, matrix.H))
 
@@ -116,6 +117,7 @@ def is_unitary(
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
+    matrix = np.mat(matrix)
     return (matrix.shape[0] == matrix.shape[1] and
             tolerance.all_close(matrix.dot(matrix.H), np.eye(matrix.shape[0])))
 
