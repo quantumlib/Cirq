@@ -28,13 +28,13 @@ def is_negligible_turn(turns: float, tolerance: float) -> bool:
     return abs(_signed_mod_1(turns)) < tolerance
 
 
-def _phase_matrix(angle: float) -> np.matrix:
-    return np.mat(np.diag([1, np.exp(1j * angle)]))
+def _phase_matrix(angle: float) -> np.ndarray:
+    return np.diag([1, np.exp(1j * angle)])
 
 
-def _rotation_matrix(angle: float) -> np.matrix:
+def _rotation_matrix(angle: float) -> np.ndarray:
     c, s = np.cos(angle), np.sin(angle)
-    return np.mat([[c, -s], [s, c]])
+    return np.array([[c, -s], [s, c]])
 
 
 def _signed_mod_1(x: float) -> float:
@@ -42,7 +42,7 @@ def _signed_mod_1(x: float) -> float:
 
 
 def _deconstruct_single_qubit_matrix_into_angles(
-        mat: np.matrix) -> Tuple[float, float, float]:
+        mat: np.ndarray) -> Tuple[float, float, float]:
     """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
 
     Args:
@@ -72,7 +72,7 @@ def _deconstruct_single_qubit_matrix_into_angles(
 
 
 def _deconstruct_single_qubit_matrix_into_gate_turns(
-        mat: np.matrix) -> Tuple[float, float, float]:
+        mat: np.ndarray) -> Tuple[float, float, float]:
     """Breaks down a 2x2 unitary into gate parameters.
 
     Args:
@@ -121,7 +121,7 @@ def _easy_direction_partial_cz(q0: ops.QubitId, q1: ops.QubitId, t: float):
 
 
 def single_qubit_matrix_to_native_gates(
-        mat: np.matrix, tolerance: float = 0
+        mat: np.ndarray, tolerance: float = 0
 ) -> List[ops.ConstantSingleQubitGate]:
     """Implements a single-qubit operation with few native gates.
 
@@ -156,7 +156,7 @@ def single_qubit_matrix_to_native_gates(
 
 
 def single_qubit_op_to_framed_phase_form(
-        mat: np.mat) -> Tuple[np.mat, complex, complex]:
+        mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
     """Decomposes a 2x2 unitary M into U^-1 * diag(1, r) * U * diag(g, g).
 
     U translates the rotation axis of M to the Z axis.
@@ -176,8 +176,8 @@ def single_qubit_op_to_framed_phase_form(
         When M is controlled, the control must be rotated around the Z axis to
         apply g.
     """
-    vals, vecs = np.linalg.eig(np.mat(mat))
-    u = np.mat(vecs).H
+    vals, vecs = np.linalg.eig(mat)
+    u = np.conj(vecs).T
     r = vals[1] / vals[0]
     g = vals[0]
     return u, r, g
@@ -186,7 +186,7 @@ def single_qubit_op_to_framed_phase_form(
 def controlled_op_to_native_gates(
         control: ops.QubitId,
         target: ops.QubitId,
-        operation: np.mat,
+        operation: np.ndarray,
         tolerance: float = 0.0) -> List[ops.Operation]:
     """Decomposes a controlled single-qubit operation into Z/XY/CZ gates.
 
@@ -276,7 +276,7 @@ def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
 
 def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
                                      q1: ops.QubitId,
-                                     mat: np.matrix,
+                                     mat: np.ndarray,
                                      allow_partial_czs: bool,
                                      tolerance: float = 1e-8
                                      ) -> List[ops.Operation]:
