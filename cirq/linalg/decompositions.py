@@ -52,8 +52,8 @@ def _group_similar(items: List[T],
     return groups
 
 
-def _perp_eigendecompose(matrix: np.matrix, tolerance: Tolerance
-                         ) -> Tuple[np.array, List[np.matrix]]:
+def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
+                         ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
 
     numpy.linalg.eig doesn't guarantee that eigenvectors from the same
@@ -91,17 +91,17 @@ def _perp_eigendecompose(matrix: np.matrix, tolerance: Tolerance
     # Ensure no eigenvectors overlap.
     for i in range(len(vecs)):
         for j in range(i + 1, len(vecs)):
-            if not tolerance.all_near_zero(vecs[i].H.dot(vecs[j])):
+            if not tolerance.all_near_zero(np.dot(np.conj(vecs[i].T), vecs[j])):
                 raise ArithmeticError('Eigenvectors overlap.')
 
     return vals, vecs
 
 
 def map_eigenvalues(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         func: Callable[[complex], complex],
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> np.matrix:
+) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -115,20 +115,19 @@ def map_eigenvalues(
         The transformed matrix.
     """
     vals, vecs = _perp_eigendecompose(matrix, tolerance)
-    pieces = [np.mat(np.outer(vec, vec.H)) for vec in vecs]
+    pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
     out_vals = np.vectorize(func)(vals)
 
     total = np.zeros(shape=matrix.shape)
     for piece, val in zip(pieces, out_vals):
         total = np.add(total, piece * val)
-
-    return np.mat(total)
+    return total
 
 
 def kron_factor_4x4_to_2x2s(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[complex, np.matrix, np.matrix]:
+) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
@@ -153,8 +152,8 @@ def kron_factor_4x4_to_2x2s(
         key=lambda t: abs(matrix[t]))
 
     # Extract sub-factors touching the reference cell.
-    f1 = np.mat(np.zeros((2, 2), dtype=np.complex128))
-    f2 = np.mat(np.zeros((2, 2), dtype=np.complex128))
+    f1 = np.zeros((2, 2), dtype=np.complex128)
+    f2 = np.zeros((2, 2), dtype=np.complex128)
     for i in range(2):
         for j in range(2):
             f1[(a >> 1) ^ i, (b >> 1) ^ j] = matrix[a ^ (i << 1), b ^ (j << 1)]
@@ -178,9 +177,9 @@ def kron_factor_4x4_to_2x2s(
 
 
 def so4_to_magic_su2s(
-        mat: np.matrix,
+        mat: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[np.matrix, np.matrix]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
     Mag is the magic basis matrix:
@@ -207,15 +206,17 @@ def so4_to_magic_su2s(
                                                                    tolerance):
         raise ValueError('mat must be 4x4 special orthogonal.')
 
-    magic = np.mat([[1, 0, 0, 1j],
+    magic = np.array([[1, 0, 0, 1j],
                     [0, 1j, 1, 0],
                     [0, 1j, -1, 0],
                     [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    ab = combinators.dot(magic, mat, magic.H)
+    ab = combinators.dot(magic, mat, np.conj(magic.T))
     _, a, b = kron_factor_4x4_to_2x2s(ab, tolerance)
 
     # Check decomposition against desired tolerance.
-    reconstructed = combinators.dot(magic.H, combinators.kron(a, b), magic)
+    reconstructed = combinators.dot(np.conj(magic.T),
+                                    combinators.kron(a, b),
+                                    magic)
     if not tolerance.all_close(reconstructed, mat):
         raise ArithmeticError('Failed to decompose to desired tolerance.')
 
@@ -225,9 +226,9 @@ def so4_to_magic_su2s(
 def kak_canonicalize_vector(
         x: float, y: float, z: float
 ) -> Tuple[complex,
-           Tuple[np.matrix, np.matrix],
+           Tuple[np.ndarray, np.ndarray],
            Tuple[float, float, float],
-           Tuple[np.matrix, np.matrix]]:
+           Tuple[np.ndarray, np.ndarray]]:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
 
     Args:
@@ -258,24 +259,24 @@ def kak_canonicalize_vector(
     """
 
     phase = [complex(1)]  # Accumulated global phase.
-    left = [np.mat(np.eye(2))] * 2  # Per-qubit left factors.
-    right = [np.mat(np.eye(2))] * 2  # Per-qubit right factors.
+    left = [np.eye(2)] * 2  # Per-qubit left factors.
+    right = [np.eye(2)] * 2  # Per-qubit right factors.
     v = [x, y, z]  # Remaining XX/YY/ZZ interaction vector.
 
     # These special-unitary matrices flip the X, Y, and Z axes respectively.
     flippers = [
-        np.mat([[0, 1], [1, 0]]) * 1j,
-        np.mat([[0, -1j], [1j, 0]]) * 1j,
-        np.mat([[1, 0], [0, -1]]) * 1j
+        np.array([[0, 1], [1, 0]]) * 1j,
+        np.array([[0, -1j], [1j, 0]]) * 1j,
+        np.array([[1, 0], [0, -1]]) * 1j
     ]
 
     # Each of these special-unitary matrices swaps two the roles of two axes.
     # The matrix at index k swaps the *other two* axes (e.g. swappers[1] is a
     # Hadamard operation that swaps X and Z).
     swappers = [
-        np.mat([[1, -1j], [1j, -1]]) * 1j * np.sqrt(0.5),
-        np.mat([[1, 1], [1, -1]]) * 1j * np.sqrt(0.5),
-        np.mat([[0, 1 - 1j], [1 + 1j, 0]]) * 1j * np.sqrt(0.5)
+        np.array([[1, -1j], [1j, -1]]) * 1j * np.sqrt(0.5),
+        np.array([[1, 1], [1, -1]]) * 1j * np.sqrt(0.5),
+        np.array([[0, 1 - 1j], [1 + 1j, 0]]) * 1j * np.sqrt(0.5)
     ]
 
     # Shifting strength by ½π is equivalent to local ops (e.g. exp(i½π XX)∝XX).
@@ -341,12 +342,12 @@ def kak_canonicalize_vector(
 
 
 def kak_decomposition(
-        mat: np.matrix,
+        mat: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> Tuple[complex,
-           Tuple[np.matrix, np.matrix],
+           Tuple[np.ndarray, np.ndarray],
            Tuple[float, float, float],
-           Tuple[np.matrix, np.matrix]]:
+           Tuple[np.ndarray, np.ndarray]]:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
@@ -378,11 +379,11 @@ def kak_decomposition(
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
     """
-    magic = np.mat([[1, 0, 0, 1j],
+    magic = np.array([[1, 0, 0, 1j],
                     [0, 1j, 1, 0],
                     [0, 1j, -1, 0],
                     [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    gamma = np.mat([[1, 1, 1, 1],
+    gamma = np.array([[1, 1, 1, 1],
                     [1, 1, -1, -1],
                     [-1, 1, -1, 1],
                     [1, -1, -1, 1]]) * 0.25
@@ -390,13 +391,13 @@ def kak_decomposition(
     # Diagonalize in magic basis.
     left, d, right = (
         diagonalize.bidiagonalize_unitary_with_special_orthogonals(
-            combinators.dot(magic.H, mat, magic),
+            combinators.dot(np.conj(magic.T), mat, magic),
             tolerance))
 
     # Recover pieces.
     a1, a0 = so4_to_magic_su2s(left.T, tolerance)
     b1, b0 = so4_to_magic_su2s(right.T, tolerance)
-    w, x, y, z = gamma.dot(np.vstack(np.angle(d))).getA().flatten()
+    w, x, y, z = gamma.dot(np.vstack(np.angle(d))).flatten()
     g = np.exp(1j * w)
 
     # Canonicalize.
