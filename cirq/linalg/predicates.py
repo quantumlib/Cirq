@@ -20,7 +20,7 @@ from cirq.linalg.tolerance import Tolerance
 
 
 def is_diagonal(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if a matrix is a approximately diagonal.
@@ -34,14 +34,14 @@ def is_diagonal(
     Returns:
         Whether the matrix is diagonal within the given tolerance.
     """
-    diag = np.matrix(matrix)
-    for i in range(min(diag.shape)):
-        diag[i, i] = 0
-    return tolerance.all_near_zero(diag)
+    matrix = np.copy(matrix)
+    for i in range(min(matrix.shape)):
+        matrix[i, i] = 0
+    return tolerance.all_near_zero(matrix)
 
 
 def is_hermitian(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if a matrix is approximately Hermitian.
@@ -56,11 +56,11 @@ def is_hermitian(
         Whether the matrix is Hermitian within the given tolerance.
     """
     return (matrix.shape[0] == matrix.shape[1] and
-            tolerance.all_close(matrix, matrix.H))
+            tolerance.all_close(matrix, np.conj(matrix.T)))
 
 
 def is_orthogonal(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if a matrix is approximately orthogonal.
@@ -81,7 +81,7 @@ def is_orthogonal(
 
 
 def is_special_orthogonal(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if a matrix is approximately special orthogonal.
@@ -102,7 +102,7 @@ def is_special_orthogonal(
 
 
 def is_unitary(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if a matrix is approximately unitary.
@@ -116,12 +116,12 @@ def is_unitary(
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and
-            tolerance.all_close(matrix.dot(matrix.H), np.eye(matrix.shape[0])))
+    return (matrix.shape[0] == matrix.shape[1] and tolerance.all_close(
+        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0])))
 
 
 def is_special_unitary(
-        matrix: np.matrix,
+        matrix: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if a matrix is approximately unitary with unit determinant.
@@ -143,8 +143,8 @@ def is_special_unitary(
 
 
 def commutes(
-        m1: np.matrix,
-        m2: np.matrix,
+        m1: np.ndarray,
+        m2: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
 ) -> bool:
     """Determines if two matrices approximately commute.
@@ -167,8 +167,8 @@ def commutes(
 
 
 def allclose_up_to_global_phase(
-        a: np.matrix,
-        b: np.matrix,
+        a: np.ndarray,
+        b: np.ndarray,
         rtol: float = 1.e-5,
         atol: float = 1.e-8,
         equal_nan: bool = False
@@ -180,7 +180,8 @@ def allclose_up_to_global_phase(
         b: Another matrix.
         rtol: Relative error tolerance.
         atol: Absolute error tolerance.
-        equal_nan: Whether or not NaN entries should be considered equal to other NaN entries.
+        equal_nan: Whether or not NaN entries should be considered equal to
+            other NaN entries.
     """
 
     n = a.shape[0]
