@@ -30,8 +30,8 @@ cp -r cirq ${out}/cirq
 3to2 ${out}/cirq -w > /dev/null 2> /dev/null
 find ${out}/cirq | grep "\.py\.bak$" | xargs rm -f
 
-proto_dir=${out}/cirq/apis/google
+proto_dir=${out}/cirq/apis/google/v1
 find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
-protoc -I=${proto_dir} --python_out=${proto_dir} ${proto_dir}/*.proto
+protoc -I=${out} --python_out=${out} ${proto_dir}/*.proto
 
 cp python2.7-requirements.txt ${out}/requirements.txt
