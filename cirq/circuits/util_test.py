@@ -69,7 +69,7 @@ def _gates_to_matrix(gates):
 
 def assert_gates_implement_unitary(gates, intended_effect):
     actual_effect = _gates_to_matrix(gates)
-    assert testing.allclose_up_to_global_phase(actual_effect, intended_effect)
+    assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
 def test_single_qubit_matrix_to_native_gates_known_x():
@@ -186,7 +186,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_half_turn_phasing():
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = circuits.single_qubit_op_to_framed_phase_form(
         (ops.Y**0.25).matrix())
-    assert testing.allclose_up_to_global_phase(u, (ops.X**0.5).matrix())
+    assert linalg.allclose_up_to_global_phase(u, (ops.X**0.5).matrix())
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
     assert abs(g - 1) < 0.00001
 
@@ -249,7 +249,7 @@ def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
     intended_effect = linalg.kron_with_controls(mat, linalg.CONTROL_TAG)
-    assert testing.allclose_up_to_global_phase(actual_effect, intended_effect)
+    assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
 def _random_single_partial_cz_effect():
@@ -296,8 +296,8 @@ def assert_ops_implement_unitary(operations, intended_effect,
     q0 = ops.QubitId(0, 0)
     q1 = ops.QubitId(1, 0)
     actual_effect = _operations_to_matrix(operations, (q0, q1))
-    assert testing.allclose_up_to_global_phase(actual_effect, intended_effect,
-                                               atol=atol)
+    assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect,
+                                              atol=atol)
 
 
 @pytest.mark.parametrize('max_partial_cz_depth,max_full_cz_depth,effect', [

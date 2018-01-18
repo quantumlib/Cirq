@@ -55,22 +55,3 @@ def random_special_orthogonal(dim: int) -> np.ndarray:
     if np.linalg.det(m) < 0:
         m[0, :] *= -1
     return m
-
-
-def allclose_up_to_global_phase(actual: np.ndarray,
-                                desired: np.ndarray,
-                                atol: float = 1e-8):
-    n = desired.shape[0]
-
-    # Find the entry with the largest magnitude in the desired matrix.
-    k = max(((i, j) for i in range(n) for j in range(n)),
-            key=lambda t: abs(desired[t]))
-    dephase_actual = abs(actual[k]) / actual[k] if actual[k] else 1
-    dephase_desired = abs(desired[k]) / desired[k] if desired[k] else 1
-
-    # Zero the phase at this entry in both matrices.
-    actual_corrected = actual * dephase_actual
-    desired_corrected = desired * dephase_desired
-
-    # Should now be equivalent.
-    return np.allclose(actual_corrected, desired_corrected, atol=atol)
