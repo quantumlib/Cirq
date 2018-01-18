@@ -19,23 +19,24 @@ import pytest
 
 from cirq import linalg
 from cirq import testing
+from cirq.linalg import combinators
 
-X = np.mat([[0, 1], [1, 0]])
-Y = np.mat([[0, -1j], [1j, 0]])
-Z = np.mat([[1, 0], [0, -1]])
-H = np.mat([[1, 1], [1, -1]]) * np.sqrt(0.5)
-SQRT_X = np.mat([[1, 1j], [1j, 1]])
+X = np.array([[0, 1], [1, 0]])
+Y = np.array([[0, -1j], [1j, 0]])
+Z = np.array([[1, 0], [0, -1]])
+H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
+SQRT_X = np.array([[1, 1j], [1j, 1]])
 c = np.exp(1j * np.pi / 4)
-SQRT_SQRT_X = np.mat([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
-SWAP = np.mat([[1, 0, 0, 0],
+SQRT_SQRT_X = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
+SWAP = np.array([[1, 0, 0, 0],
                [0, 0, 1, 0],
                [0, 1, 0, 0],
                [0, 0, 0, 1]])
-CNOT = np.mat([[1, 0, 0, 0],
+CNOT = np.array([[1, 0, 0, 0],
                [0, 1, 0, 0],
                [0, 0, 0, 1],
                [0, 0, 1, 0]])
-CZ = np.mat(np.diag([1, 1, 1, -1]))
+CZ = np.diag([1, 1, 1, -1])
 
 
 @pytest.mark.parametrize('matrix', [
@@ -54,8 +55,8 @@ def test_map_eigenvalues_identity(matrix):
     [X, 3, X],
     [Z, 2, np.eye(2)],
     [H, 2, np.eye(2)],
-    [Z, 0.5, np.mat(np.diag([1, 1j]))],
-    [X, 0.5, np.mat([[1j, 1], [1, 1j]]) * (1 - 1j) / 2],
+    [Z, 0.5, np.diag([1, 1j])],
+    [X, 0.5, np.array([[1j, 1], [1, 1j]]) * (1 - 1j) / 2],
 ])
 def test_map_eigenvalues_raise(matrix, exponent, desired):
     exp_mapped = linalg.map_eigenvalues(matrix, lambda e: complex(e)**exponent)
@@ -105,20 +106,22 @@ def test_kron_factor_fail():
             linalg.kron_with_controls(linalg.CONTROL_TAG, X))
 
     with pytest.raises(ValueError):
-        _ = linalg.kron_factor_4x4_to_2x2s(np.mat(np.diag([1, 1, 1, 1j])))
+        _ = linalg.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
 
 
-def recompose_so4(a: np.mat, b: np.mat) -> np.mat:
+def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     assert a.shape == (2, 2)
     assert b.shape == (2, 2)
     assert linalg.is_special_unitary(a)
     assert linalg.is_special_unitary(b)
 
-    magic = np.mat([[1, 0, 0, 1j],
+    magic = np.array([[1, 0, 0, 1j],
                     [0, 1j, 1, 0],
                     [0, 1j, -1, 0],
                     [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    result = np.mat(np.real(magic.H.dot(linalg.kron(a, b)).dot(magic)))
+    result = np.real(combinators.dot(np.conj(magic.T),
+                                     linalg.kron(a, b),
+                                     magic))
     assert linalg.is_orthogonal(result)
     return result
 
@@ -154,17 +157,17 @@ def test_so4_to_magic_su2s_known_factors(a, b):
 
 
 @pytest.mark.parametrize('mat', [
-    np.mat(np.diag([0, 1, 1, 1])),
-    np.mat(np.diag([0.5, 2, 1, 1])),
-    np.mat(np.diag([1, 1j, 1, 1])),
-    np.mat(np.diag([1, 1, 1, -1])),
+    np.diag([0, 1, 1, 1]),
+    np.diag([0.5, 2, 1, 1]),
+    np.diag([1, 1j, 1, 1]),
+    np.diag([1, 1, 1, -1]),
 ])
 def test_so4_to_magic_su2s_fail(mat):
     with pytest.raises(ValueError):
         linalg.so4_to_magic_su2s(mat)
 
 
-def recompose_kak(g, a, v, b) -> np.mat:
+def recompose_kak(g, a, v, b) -> np.ndarray:
     a1, a0 = a
     x, y, z = v
     b1, b0 = b
@@ -185,7 +188,7 @@ def recompose_kak(g, a, v, b) -> np.mat:
     for _ in range(10)
 ])
 def test_kak_canonicalize_vector(x, y, z):
-    i = np.mat(np.eye(2))
+    i = np.eye(2)
     m = recompose_kak(1, (i, i), (x, y, z), (i, i))
 
     g, (a1, a0), (x2, y2, z2), (b1, b0) = linalg.kak_canonicalize_vector(
@@ -204,7 +207,7 @@ def test_kak_canonicalize_vector(x, y, z):
 
 
 @pytest.mark.parametrize('m', [
-    np.mat(np.eye(4)),
+    np.eye(4),
     SWAP,
     SWAP * 1j,
     CZ,

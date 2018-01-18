@@ -16,7 +16,7 @@
 
 import abc
 
-from cirq.apis.google import operations_pb2
+from cirq.apis.google.v1 import operations_pb2
 from cirq.ops import gate_features, raw_types
 
 
