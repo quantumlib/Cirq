@@ -21,7 +21,7 @@
 
 set -e
 
-dir='cirq/apis/google'
+dir='cirq/apis/google/v1'
 
 find ${dir} | grep '_pb2\.py' | xargs rm -f
-protoc -I=${dir} --python_out=${dir} ${dir}/*.proto
+protoc --python_out=. ${dir}/*.proto

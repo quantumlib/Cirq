@@ -19,9 +19,9 @@ from cirq import linalg
 from cirq import ops
 from cirq.testing import EqualsTester
 
-H = np.mat([[1, 1], [1, -1]]) * np.sqrt(0.5)
+H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = linalg.kron(H, H)
-QFT2 = np.mat([[1, 1, 1, 1],
+QFT2 = np.array([[1, 1, 1, 1],
                [1, 1j, -1, -1j],
                [1, -1, 1, -1],
                [1, -1j, -1, 1j]]) * 0.5
@@ -73,25 +73,25 @@ def test_cz_extrapolate():
 
 def test_cz_matrix():
     assert np.allclose(ops.CZGate(0.5).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, -1]]))
 
     assert np.allclose(ops.CZGate(0.25).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, 1j]]))
 
     assert np.allclose(ops.CZGate(0).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, 1]]))
 
     assert np.allclose(ops.CZGate(-0.25).matrix(),
-                       np.mat([[1, 0, 0, 0],
+                       np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, -1j]]))
@@ -133,10 +133,10 @@ def test_z_to_proto():
 
 
 def test_z_matrix():
-    assert np.allclose(ops.ZGate(0.5).matrix(), np.mat([[1, 0], [0, -1]]))
-    assert np.allclose(ops.ZGate(0.25).matrix(), np.mat([[1, 0], [0, 1j]]))
-    assert np.allclose(ops.ZGate(0).matrix(), np.mat([[1, 0], [0, 1]]))
-    assert np.allclose(ops.ZGate(-0.25).matrix(), np.mat([[1, 0], [0, -1j]]))
+    assert np.allclose(ops.ZGate(0.5).matrix(), np.array([[1, 0], [0, -1]]))
+    assert np.allclose(ops.ZGate(0.25).matrix(), np.array([[1, 0], [0, 1j]]))
+    assert np.allclose(ops.ZGate(0).matrix(), np.array([[1, 0], [0, 1]]))
+    assert np.allclose(ops.ZGate(-0.25).matrix(), np.array([[1, 0], [0, -1j]]))
 
 
 def test_xy_init():
@@ -191,25 +191,25 @@ def test_xy_to_proto():
 
 def test_xy_matrix():
     assert np.allclose(ops.XYGate(turns=0.5, axis_phase_turns=0.25).matrix(),
-                       np.mat([[0, -1j], [1j, 0]]))
+                       np.array([[0, -1j], [1j, 0]]))
 
     assert np.allclose(ops.XYGate(turns=0.25, axis_phase_turns=0.25).matrix(),
-                       np.mat([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
+                       np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
     assert np.allclose(ops.XYGate(turns=0, axis_phase_turns=0.25).matrix(),
-                       np.mat([[1, 0], [0, 1]]))
+                       np.array([[1, 0], [0, 1]]))
 
     assert np.allclose(ops.XYGate(turns=-0.25, axis_phase_turns=0.25).matrix(),
-                       np.mat([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
+                       np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
     assert np.allclose(ops.XYGate(turns=0.5).matrix(),
-                       np.mat([[0, 1], [1, 0]]))
+                       np.array([[0, 1], [1, 0]]))
 
     assert np.allclose(ops.XYGate(turns=0.25).matrix(),
-                       np.mat([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
+                       np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
     assert np.allclose(ops.XYGate(turns=0).matrix(),
-                       np.mat([[1, 0], [0, 1]]))
+                       np.array([[1, 0], [0, 1]]))
 
     assert np.allclose(ops.XYGate(turns=-0.25).matrix(),
-                       np.mat([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
+                       np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)

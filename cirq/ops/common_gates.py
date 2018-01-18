@@ -51,7 +51,7 @@ class CZGate(native_gates.ParameterizedCZGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat(np.diag([1, 1, 1, np.exp(2j * np.pi * self.turns)]))
+        return np.diag([1, 1, 1, np.exp(2j * np.pi * self.turns)])
 
     def __repr__(self):
         if self.turns == 0.5:
@@ -96,8 +96,8 @@ class XYGate(native_gates.ParameterizedXYGate,
         """See base class."""
         phase = ZGate(self.axis_phase_turns).matrix()
         c = np.exp(2j * np.pi * self.turns)
-        rot = np.mat([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
-        return phase.dot(rot).dot(phase.H)
+        rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
+        return phase.dot(rot).dot(np.conj(phase))
 
     def __repr__(self):
         if self.axis_phase_turns == 0:
@@ -140,7 +140,7 @@ class ZGate(native_gates.ParameterizedZGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat(np.diag([1, np.exp(2j * np.pi * self.turns)]))
+        return np.diag([1, np.exp(2j * np.pi * self.turns)])
 
     def __repr__(self):
         if self.turns == 0.5:
@@ -164,7 +164,7 @@ class HGate(gate_features.ConstantSingleQubitGate,
     def matrix(self):
         """See base class."""
         s = math.sqrt(0.5)
-        return np.mat([[s, s], [s, -s]])
+        return np.array([[s, s], [s, -s]])
 
     def __repr__(self):
         return 'H'
@@ -181,7 +181,7 @@ class CNotGate(gate_features.ConstantAdjacentTwoQubitGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat([[1, 0, 0, 0],
+        return np.array([[1, 0, 0, 0],
                        [0, 1, 0, 0],
                        [0, 0, 0, 1],
                        [0, 0, 1, 0]])
@@ -209,7 +209,7 @@ class SwapGate(gate_features.CompositeGate,
 
     def matrix(self):
         """See base class."""
-        return np.mat([[1, 0, 0, 0],
+        return np.array([[1, 0, 0, 0],
                        [0, 0, 1, 0],
                        [0, 1, 0, 0],
                        [0, 0, 0, 1]])

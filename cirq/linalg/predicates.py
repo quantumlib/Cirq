@@ -167,8 +167,8 @@ def commutes(
 
 
 def allclose_up_to_global_phase(
-        a: np.matrix,
-        b: np.matrix,
+        a: np.ndarray,
+        b: np.ndarray,
         rtol: float = 1.e-5,
         atol: float = 1.e-8,
         equal_nan: bool = False
@@ -180,7 +180,8 @@ def allclose_up_to_global_phase(
         b: Another matrix.
         rtol: Relative error tolerance.
         atol: Absolute error tolerance.
-        equal_nan: Whether or not NaN entries should be considered equal to other NaN entries.
+        equal_nan: Whether or not NaN entries should be considered equal to
+            other NaN entries.
     """
 
     n = a.shape[0]

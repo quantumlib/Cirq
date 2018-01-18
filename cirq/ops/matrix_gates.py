@@ -22,8 +22,8 @@ from cirq import linalg
 from cirq.ops import gate_features
 
 
-def _phase_matrix(turns: float) -> np.matrix:
-    return np.mat(np.diag([1, np.exp(2j * np.pi * turns)]))
+def _phase_matrix(turns: float) -> np.ndarray:
+    return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
 class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
@@ -36,7 +36,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
     more float-error sensitive to work with (due to using eigendecompositions).
     """
 
-    def __init__(self, matrix: Optional[np.matrix]):
+    def __init__(self, matrix: Optional[np.ndarray]):
         """
         Initializes the 2-qubit matrix gate.
 
@@ -44,11 +44,10 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
             matrix: The matrix that defines the gate. Child classes can instead
                 instead implement the matrix method and pass in None.
         """
-        if matrix is not None and (not isinstance(matrix, np.matrix) or
-                                   matrix.shape != (2, 2) or
+        if matrix is not None and (matrix.shape != (2, 2) or
                                    not linalg.is_unitary(matrix)):
             raise ValueError('Not a 2x2 unitary matrix: {}'.format(matrix))
-        self._matrix = np.mat(matrix)
+        self._matrix = matrix
 
     def validate_args(self, qubits):
         if len(qubits) != 1:
@@ -71,7 +70,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
         phased_matrix = z.dot(self.matrix()).dot(z.H)
         return SingleQubitMatrixGate(phased_matrix)
 
-    def matrix(self) -> np.matrix:
+    def matrix(self) -> np.ndarray:
         if self._matrix is None:
             raise NotImplementedError(
                 'Children of {} must either provide a '
@@ -114,7 +113,7 @@ class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
     more float-error sensitive to work with (due to using eigendecompositions).
     """
 
-    def __init__(self, matrix: Optional[np.matrix]):
+    def __init__(self, matrix: Optional[np.ndarray]):
         """
         Initializes the 2-qubit matrix gate.
 
@@ -123,8 +122,7 @@ class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
                 instead implement the matrix method and pass in None.
         """
 
-        if matrix is not None and (not isinstance(matrix, np.matrix) or
-                                   matrix.shape != (4, 4) or
+        if matrix is not None and (matrix.shape != (4, 4) or
                                    not linalg.is_unitary(matrix)):
             raise ValueError('Not a 4x4 unitary matrix: {}'.format(matrix))
         self._matrix = matrix
@@ -143,7 +141,7 @@ class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
     def phase_by(self, phase_turns: float, qubit_index: int):
         i = np.eye(2)
         z = _phase_matrix(phase_turns)
-        z2 = np.mat(np.kron(z, i) if qubit_index else np.kron(i, z))
+        z2 = np.kron(z, i) if qubit_index else np.kron(i, z)
         phased_matrix = z2.dot(self.matrix()).dot(z2.H)
         return TwoQubitMatrixGate(phased_matrix)
 

@@ -344,30 +344,30 @@ def test_commutes_tolerance():
 
 def test_allclose_up_to_global_phase():
     assert predicates.allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[1]]))
+        np.array([[1]]),
+        np.array([[1]]))
     assert predicates.allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[-1]]))
+        np.array([[1]]),
+        np.array([[-1]]))
 
     assert predicates.allclose_up_to_global_phase(
-        np.mat([[0]]),
-        np.mat([[0]]))
+        np.array([[0]]),
+        np.array([[0]]))
 
     assert predicates.allclose_up_to_global_phase(
-        np.mat([[1, 2]]),
-        np.mat([[1j, 2j]]))
+        np.array([[1, 2]]),
+        np.array([[1j, 2j]]))
 
     assert predicates.allclose_up_to_global_phase(
-        np.mat([[1, 2.0000000001]]),
-        np.mat([[1j, 2j]]))
+        np.array([[1, 2.0000000001]]),
+        np.array([[1j, 2j]]))
 
     assert not predicates.allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[1, 0]]))
+        np.array([[1]]),
+        np.array([[1, 0]]))
     assert not predicates.allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[2]]))
+        np.array([[1]]),
+        np.array([[2]]))
     assert not predicates.allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[2]]))
+        np.array([[1]]),
+        np.array([[2]]))
