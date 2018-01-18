@@ -20,33 +20,33 @@ from cirq.testing.lin_alg_utils import allclose_up_to_global_phase
 
 def test_allclose_up_to_global_phase():
     assert allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[1]]))
+        np.array([[1]]),
+        np.array([[1]]))
     assert allclose_up_to_global_phase(
-        np.mat([[1]]),
-        np.mat([[-1]]))
+        np.array([[1]]),
+        np.array([[-1]]))
 
     assert allclose_up_to_global_phase(
-        np.mat([[0]]),
-        np.mat([[0]]))
+        np.array([[0]]),
+        np.array([[0]]))
 
     assert allclose_up_to_global_phase(
-        np.mat([[1, 2]]),
-        np.mat([[1j, 2j]]))
+        np.array([[1, 2]]),
+        np.array([[1j, 2j]]))
 
     assert allclose_up_to_global_phase(
-        np.mat([[1, 2.0000000001]]),
-        np.mat([[1j, 2j]]))
+        np.array([[1, 2.0000000001]]),
+        np.array([[1j, 2j]]))
 
     with pytest.raises(AssertionError):
         assert allclose_up_to_global_phase(
-            np.mat([[1]]),
-            np.mat([[1, 0]]))
+            np.array([[1]]),
+            np.array([[1, 0]]))
     with pytest.raises(AssertionError):
         assert allclose_up_to_global_phase(
-            np.mat([[1]]),
-            np.mat([[2]]))
+            np.array([[1]]),
+            np.array([[2]]))
     with pytest.raises(AssertionError):
         assert allclose_up_to_global_phase(
-            np.mat([[1]]),
-            np.mat([[2]]))
+            np.array([[1]]),
+            np.array([[2]]))

@@ -17,7 +17,7 @@
 import numpy as np
 
 
-def random_unitary(dim: int) -> np.matrix:
+def random_unitary(dim: int) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -34,31 +34,31 @@ def random_unitary(dim: int) -> np.matrix:
          1j * np.random.randn(dim, dim)) * np.sqrt(0.5)
     q, r = np.linalg.qr(z)
     d = np.diag(r)
-    return np.mat(q * (d / abs(d)))
+    return q * (d / abs(d))
 
 
-def random_orthogonal(dim: int) -> np.matrix:
+def random_orthogonal(dim: int) -> np.ndarray:
     # TODO(craiggidney): Distribute with Haar measure.
-    m = np.mat(np.random.randn(dim, dim) * 2 - 1)
+    m = np.random.randn(dim, dim) * 2 - 1
     q, _ = np.linalg.qr(m)
     return q
 
 
-def random_special_unitary(dim: int) -> np.matrix:
+def random_special_unitary(dim: int) -> np.ndarray:
     r = random_unitary(dim)
     r[0, :] /= np.linalg.det(r)
     return r
 
 
-def random_special_orthogonal(dim: int) -> np.matrix:
+def random_special_orthogonal(dim: int) -> np.ndarray:
     m = random_orthogonal(dim)
     if np.linalg.det(m) < 0:
         m[0, :] *= -1
     return m
 
 
-def allclose_up_to_global_phase(actual: np.matrix,
-                                desired: np.matrix,
+def allclose_up_to_global_phase(actual: np.ndarray,
+                                desired: np.ndarray,
                                 atol: float = 1e-8):
     n = desired.shape[0]
 
