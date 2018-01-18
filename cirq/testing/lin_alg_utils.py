@@ -34,7 +34,7 @@ def random_unitary(dim: int) -> np.ndarray:
          1j * np.random.randn(dim, dim)) * np.sqrt(0.5)
     q, r = np.linalg.qr(z)
     d = np.diag(r)
-    return np.array(q * (d / abs(d)))
+    return q * (d / abs(d))
 
 
 def random_orthogonal(dim: int) -> np.ndarray:
