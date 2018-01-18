@@ -67,7 +67,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
 
     def phase_by(self, phase_turns: float, qubit_index: int):
         z = _phase_matrix(phase_turns)
-        phased_matrix = z.dot(self.matrix()).dot(z.H)
+        phased_matrix = z.dot(self.matrix()).dot(np.conj(z.T))
         return SingleQubitMatrixGate(phased_matrix)
 
     def matrix(self) -> np.ndarray:
@@ -142,7 +142,7 @@ class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
         i = np.eye(2)
         z = _phase_matrix(phase_turns)
         z2 = np.kron(z, i) if qubit_index else np.kron(i, z)
-        phased_matrix = z2.dot(self.matrix()).dot(z2.H)
+        phased_matrix = z2.dot(self.matrix()).dot(np.conj(z2.T))
         return TwoQubitMatrixGate(phased_matrix)
 
     def approx_eq(self, other, ignore_global_phase=True):
