@@ -42,23 +42,23 @@ class CZGate(native_gates.ParameterizedCZGate,
         return CZGate(half_turns=self.half_turns * factor)
 
     def ascii_exponent(self):
-        return self.turns * 2
+        return self.half_turns
 
     def ascii_wire_symbols(self):
         return 'Z', 'Z'
 
     def trace_distance_bound(self):
         """See base class."""
-        return abs(self.turns) * 7
+        return abs(self.half_turns) * 3.5
 
     def matrix(self):
         """See base class."""
-        return np.diag([1, 1, 1, np.exp(2j * np.pi * self.turns)])
+        return np.diag([1, 1, 1, np.exp(1j * np.pi * self.half_turns)])
 
     def __repr__(self):
-        if self.turns == 0.5:
+        if self.half_turns == 1:
             return 'CZ'
-        return 'CZ**{}'.format(repr(self.turns * 2))
+        return 'CZ**{}'.format(repr(self.half_turns))
 
 
 class XYGate(native_gates.ParameterizedXYGate,
