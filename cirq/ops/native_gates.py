@@ -63,7 +63,7 @@ class MeasurementGate(NativeGate, gate_features.AsciiDiagrammableGate):
         return hash((MeasurementGate, self.key))
 
 
-class ParameterizedCZGate(NativeGate, gate_features.PhaseableGate):
+class Exp11Gate(NativeGate, gate_features.PhaseableGate):
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
     def __init__(self, turns_param_key: str = '',
@@ -102,12 +102,12 @@ class ParameterizedCZGate(NativeGate, gate_features.PhaseableGate):
         return not self == other
 
     def __hash__(self):
-        return hash((ParameterizedCZGate,
+        return hash((Exp11Gate,
                      self.turns_param_key,
                      self.half_turns))
 
 
-class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
+class ExpWGate(NativeGate, gate_features.PhaseableGate):
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
     def __init__(self,
@@ -144,7 +144,7 @@ class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
         return op
 
     def phase_by(self, phase_turns, qubit_index):
-        return ParameterizedXYGate(
+        return ExpWGate(
             turns_param_key=self.turns_param_key,
             turns_offset=self.half_turns / 2,
             axis_phase_turns_key=self.axis_phase_turns_key,
@@ -173,14 +173,14 @@ class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
         return not self == other
 
     def __hash__(self):
-        return hash((ParameterizedXYGate,
+        return hash((ExpWGate,
                      self.turns_param_key,
                      self.half_turns,
                      self.axis_phase_turns_key,
                      self.axis_half_turns))
 
 
-class ParameterizedZGate(NativeGate, gate_features.PhaseableGate):
+class ExpZGate(NativeGate, gate_features.PhaseableGate):
     """A rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, turns_param_key: str = '',
@@ -217,7 +217,7 @@ class ParameterizedZGate(NativeGate, gate_features.PhaseableGate):
         return not self == other
 
     def __hash__(self):
-        return hash((ParameterizedZGate,
+        return hash((ExpZGate,
                      self.turns_param_key,
                      self.half_turns))
 
