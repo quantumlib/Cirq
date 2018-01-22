@@ -35,7 +35,7 @@ class CZGate(native_gates.ParameterizedCZGate,
     def __init__(self, *positional_args,
                  half_turns: float=1.0):
         assert not positional_args
-        super(CZGate, self).__init__(turns_offset=half_turns/2.0)
+        super(CZGate, self).__init__(turns_offset=half_turns / 2.0)
 
     def extrapolate_effect(self, factor) -> 'CZGate':
         """See base class."""
@@ -74,11 +74,11 @@ class XYGate(native_gates.ParameterizedXYGate,
                  axis_half_turns: float = 0):
         assert not positional_args
         super(XYGate, self).__init__(
-            axis_phase_turns_offset=axis_half_turns/2.0,
-            turns_offset=half_turns/2.0)
+            axis_phase_turns_offset=axis_half_turns / 2.0,
+            turns_offset=half_turns / 2.0)
 
     def phase_by(self, phase_turns, qubit_index):
-        return XYGate(axis_half_turns=self.axis_half_turns + 2*phase_turns,
+        return XYGate(axis_half_turns=self.axis_half_turns + 2 * phase_turns,
                       half_turns=self.half_turns)
 
     def ascii_exponent(self):
