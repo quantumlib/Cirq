@@ -135,14 +135,14 @@ class ZGate(native_gates.ParameterizedZGate,
         super(ZGate, self).__init__(turns_offset=half_turns / 2.0)
 
     def ascii_exponent(self):
-        return self.turns * 2
+        return self.half_turns
 
     def ascii_wire_symbols(self):
         return 'Z',
 
     def trace_distance_bound(self):
         """See base class."""
-        return abs(self.turns) * 7
+        return abs(self.half_turns) * 3.5
 
     def extrapolate_effect(self, factor) -> 'ZGate':
         """See base class."""
