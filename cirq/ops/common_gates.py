@@ -113,7 +113,7 @@ class XYGate(native_gates.ParameterizedXYGate,
 
     def matrix(self):
         """See base class."""
-        phase = ZGate(turns=self.axis_phase_turns).matrix()
+        phase = ZGate(half_turns=self.axis_half_turns).matrix()
         c = np.exp(2j * np.pi * self.turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return phase.dot(rot).dot(np.conj(phase))
@@ -141,14 +141,9 @@ class ZGate(native_gates.ParameterizedZGate,
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
-                 turns: float = None,
-                 half_turns: float = None):
+                 half_turns: float = 1.0):
         assert not positional_args
-        if turns is None and half_turns is None:
-            half_turns = 1.0
-        turns = turns or 0
-        half_turns = half_turns or 0
-        super(ZGate, self).__init__(turns_offset=turns + half_turns / 2.0)
+        super(ZGate, self).__init__(turns_offset=half_turns / 2.0)
 
     def ascii_exponent(self):
         return self.turns * 2
@@ -162,16 +157,16 @@ class ZGate(native_gates.ParameterizedZGate,
 
     def extrapolate_effect(self, factor) -> 'ZGate':
         """See base class."""
-        return ZGate(turns=self.turns * factor)
+        return ZGate(half_turns=self.half_turns * factor)
 
     def matrix(self):
         """See base class."""
-        return np.diag([1, np.exp(2j * np.pi * self.turns)])
+        return np.diag([1, np.exp(1j * np.pi * self.half_turns)])
 
     def __repr__(self):
-        if self.turns == 0.5:
+        if self.half_turns == 1:
             return 'Z'
-        return 'Z**{}'.format(repr(self.turns * 2))
+        return 'Z**{}'.format(repr(self.half_turns))
 
 
 X = XYGate()  # Pauli X gate.
