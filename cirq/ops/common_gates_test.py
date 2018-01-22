@@ -102,7 +102,7 @@ def test_cz_matrix():
 
 def test_z_init():
     z = ops.ZGate(half_turns=5)
-    assert z.turns == 0.5
+    assert z.half_turns == 1
     assert z.turns_param_key == ''
 
 
