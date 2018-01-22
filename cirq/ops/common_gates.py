@@ -32,12 +32,13 @@ class CZGate(native_gates.ParameterizedCZGate,
   A ParameterizedCZGate guaranteed to not be using the parameter key field.
   """
 
-    def __init__(self, turns=0.5):
+    def __init__(self, *positional_args, turns=0.5):
+        assert not positional_args
         super(CZGate, self).__init__(turns_offset=turns)
 
     def extrapolate_effect(self, factor) -> 'CZGate':
         """See base class."""
-        return CZGate(self.turns * factor)
+        return CZGate(turns=self.turns * factor)
 
     def ascii_exponent(self):
         return self.turns * 2
@@ -67,12 +68,14 @@ class XYGate(native_gates.ParameterizedXYGate,
              gate_features.PhaseableGate):
     """Fixed rotation around an axis in the XY plane of the Bloch sphere."""
 
-    def __init__(self, axis_phase_turns=0.0, turns=0.5):
+    def __init__(self, *positional_args, axis_phase_turns=0.0, turns=0.5):
+        assert not positional_args
         super(XYGate, self).__init__(
             axis_phase_turns_offset=axis_phase_turns, turns_offset=turns)
 
     def phase_by(self, phase_turns, qubit_index):
-        return XYGate(self.axis_phase_turns + phase_turns, self.turns)
+        return XYGate(axis_phase_turns=self.axis_phase_turns + phase_turns,
+                      turns=self.turns)
 
     def ascii_exponent(self):
         return self.turns * 2
@@ -90,11 +93,12 @@ class XYGate(native_gates.ParameterizedXYGate,
 
     def extrapolate_effect(self, factor) -> 'XYGate':
         """See base class."""
-        return XYGate(self.axis_phase_turns, self.turns * factor)
+        return XYGate(axis_phase_turns=self.axis_phase_turns,
+                      turns=self.turns * factor)
 
     def matrix(self):
         """See base class."""
-        phase = ZGate(self.axis_phase_turns).matrix()
+        phase = ZGate(turns=self.axis_phase_turns).matrix()
         c = np.exp(2j * np.pi * self.turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return phase.dot(rot).dot(np.conj(phase))
@@ -121,7 +125,8 @@ class ZGate(native_gates.ParameterizedZGate,
             gate_features.AsciiDiagrammableGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self, turns=0.5):
+    def __init__(self, *positional_args, turns=0.5):
+        assert not positional_args
         super(ZGate, self).__init__(turns_offset=turns)
 
     def ascii_exponent(self):
@@ -136,7 +141,7 @@ class ZGate(native_gates.ParameterizedZGate,
 
     def extrapolate_effect(self, factor) -> 'ZGate':
         """See base class."""
-        return ZGate(self.turns * factor)
+        return ZGate(turns=self.turns * factor)
 
     def matrix(self):
         """See base class."""
