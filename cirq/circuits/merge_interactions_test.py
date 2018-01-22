@@ -50,12 +50,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ops.ParameterizedZGate('boo')(q0)]),
+            circuits.Moment([ops.ExpZGate('boo')(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ops.ParameterizedZGate('boo')(q0)]),
+            circuits.Moment([ops.ExpZGate('boo')(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]))
 

@@ -22,7 +22,7 @@ from cirq.ops import gate_features
 from cirq.ops import native_gates
 
 
-class CZGate(native_gates.ParameterizedCZGate,
+class CZGate(native_gates.Exp11Gate,
              gate_features.ConstantAdjacentTwoQubitGate,
              gate_features.ExtrapolatableGate,
              gate_features.BoundedEffectGate,
@@ -61,7 +61,7 @@ class CZGate(native_gates.ParameterizedCZGate,
         return 'CZ**{}'.format(repr(self.half_turns))
 
 
-class XYGate(native_gates.ParameterizedXYGate,
+class XYGate(native_gates.ExpWGate,
              gate_features.ConstantSingleQubitGate,
              gate_features.ExtrapolatableGate,
              gate_features.BoundedEffectGate,
@@ -122,7 +122,7 @@ class XYGate(native_gates.ParameterizedXYGate,
             repr(self.axis_half_turns), repr(self.half_turns))
 
 
-class ZGate(native_gates.ParameterizedZGate,
+class ZGate(native_gates.ExpZGate,
             gate_features.ConstantSingleQubitGate,
             gate_features.ExtrapolatableGate,
             gate_features.BoundedEffectGate,

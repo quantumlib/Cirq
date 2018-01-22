@@ -163,12 +163,12 @@ def test_parameterized_as_source_and_sink():
     q = ops.QubitId(0, 0)
     assert_optimizes(
         before=circuits.Circuit([
-            circuits.Moment([ops.ParameterizedZGate('', 0.5)(q)]),
-            circuits.Moment([ops.ParameterizedZGate('a', 0.25)(q)]),
-            circuits.Moment([ops.ParameterizedZGate('', 0.125)(q)]),
+            circuits.Moment([ops.ExpZGate('', 0.5)(q)]),
+            circuits.Moment([ops.ExpZGate('a', 0.25)(q)]),
+            circuits.Moment([ops.ExpZGate('', 0.125)(q)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment(),
-            circuits.Moment([ops.ParameterizedZGate('a', 0.75)(q)]),
-            circuits.Moment([ops.ParameterizedZGate('', 0.125)(q)]),
+            circuits.Moment([ops.ExpZGate('a', 0.75)(q)]),
+            circuits.Moment([ops.ExpZGate('', 0.125)(q)]),
         ]))
