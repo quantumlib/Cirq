@@ -287,8 +287,8 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
         if len(op.qubits) == 2:
             assert isinstance(op.gate, ops.CZGate)
             if must_be_full:
-                assert op.gate.turns == 0.5
-            total_cz += abs(op.gate.turns) * 2
+                assert op.gate.half_turns == 1
+            total_cz += abs(op.gate.half_turns)
 
     assert total_cz <= threshold
 

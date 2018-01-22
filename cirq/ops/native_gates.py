@@ -69,8 +69,7 @@ class ParameterizedCZGate(NativeGate, gate_features.PhaseableGate):
     def __init__(self, turns_param_key: str = '',
                  turns_offset: float = 0.0):
         self.turns_param_key = turns_param_key
-        self.turns = _signed_mod_unity(turns_offset)
-        self.half_turns = self.turns * 2.0
+        self.half_turns = _signed_mod_unity(turns_offset) * 2.0
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -85,25 +84,27 @@ class ParameterizedCZGate(NativeGate, gate_features.PhaseableGate):
         op.cz.target1.y = p.y
         op.cz.target2.x = q.x
         op.cz.target2.y = q.y
-        op.cz.turns.raw = self.turns / 2
+        op.cz.turns.raw = self.half_turns / 4
         op.cz.turns.parameter_key = self.turns_param_key
         return op
 
     def __repr__(self):
-        return 'ParameterizedCZGate({}, {})'.format(
-            repr(self.turns_param_key), repr(self.turns))
+        return 'ParameterizedCZGate(turns_param_key={}, half_turns={})'.format(
+            repr(self.turns_param_key), repr(self.half_turns))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
         return (self.turns_param_key == other.turns_param_key and
-                self.turns == other.turns)
+                self.half_turns == other.half_turns)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((ParameterizedCZGate, self.turns_param_key, self.turns))
+        return hash((ParameterizedCZGate,
+                     self.turns_param_key,
+                     self.half_turns))
 
 
 class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
