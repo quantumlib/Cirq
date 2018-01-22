@@ -107,13 +107,13 @@ def test_z_to_proto():
         ops.ExpZGate(half_turns=ops.ParameterizedValue('k', 0.5)).to_proto(
             ops.QubitId(2, 3)),
         """
-        z {
+        exp_z {
             target {
                 x: 2
                 y: 3
             }
-            turns {
-                raw: 0.125
+            half_turns {
+                raw: 0.5
                 parameter_key: "k"
             }
         }
@@ -141,7 +141,7 @@ def test_cz_to_proto():
         ops.Exp11Gate(half_turns=ops.ParameterizedValue('k', 0.5)).to_proto(
             ops.QubitId(2, 3), ops.QubitId(4, 5)),
         """
-        cz {
+        exp_11 {
             target1 {
                 x: 2
                 y: 3
@@ -150,8 +150,8 @@ def test_cz_to_proto():
                 x: 4
                 y: 5
             }
-            turns {
-                raw: 0.125
+            half_turns {
+                raw: 0.5
                 parameter_key: "k"
             }
         }
@@ -207,17 +207,17 @@ def test_xy_to_proto():
                      axis_half_turns=ops.ParameterizedValue('j', 1)).to_proto(
             ops.QubitId(2, 3)),
         """
-        xy {
+        exp_w {
             target {
                 x: 2
                 y: 3
             }
-            rotation_axis_turns {
-                raw: 0.5
+            axis_half_turns {
+                raw: 1
                 parameter_key: "j"
             }
-            turns {
-                raw: 0.125
+            half_turns {
+                raw: 0.5
                 parameter_key: "k"
             }
         }
