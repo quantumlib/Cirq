@@ -129,6 +129,9 @@ class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
         self.half_turns = t * 2.0
         self.axis_half_turns = p * 2.0
 
+        self.half_turns = self.turns * 2.0
+        self.axis_half_turns = self.axis_phase_turns * 2.0
+
     def to_proto(self, *qubits):
         if len(qubits) != 1:
             raise ValueError('Wrong number of qubits.')
