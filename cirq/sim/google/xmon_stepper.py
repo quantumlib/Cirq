@@ -29,7 +29,7 @@ import numpy as np
 from cirq.sim.google import mem_manager
 
 
-class XmonSimulator(object):
+class XmonStepper(object):
     """A wave function simulator for quantum circuits with the xmon gate set.
 
     Xmons have a natural gate set made up of
@@ -39,13 +39,13 @@ class XmonSimulator(object):
       exp(i t (cos(theta) X + sin(theta)Y)
     * Two qubit phase gates exp(i t |11><11|)
 
-    This simulator will do sharded simulation of the wave function using
+    This stepper will do sharded simulation of the wave function using
     python's multiprocessing module.
 
-    Simulator should be used like a context manager:
+    The stepper should be used like a context manager:
       with XmonSimulator(num_qubits=3) as s:
-        s.simulate_z(1, 0.25)
-        s.simulate_xy(2, 0.25, 0.25)
+        s.simulate_phases((1, 0.25))
+        s.simulate_w(2, 0.25, 0.25)
         ...
     """
 
@@ -227,7 +227,7 @@ class XmonSimulator(object):
         # Exponentiate the phases and add them into the state.
         self._pool.map(_apply_scratch_as_phase, self._shard_num_args())
 
-    def simulate_xy(self, index: int, half_turns: float,
+    def simulate_w(self, index: int, half_turns: float,
         axis_half_turns: float):
         """Simulate a single qubit rotation gate about a X + b Y.
 
@@ -246,13 +246,13 @@ class XmonSimulator(object):
             'axis_half_turns': axis_half_turns
         })
         if index >= self._num_shard_qubits:
-            # XY gate spans shards.
+            # W gate spans shards.
             self._pool.map(_clear_scratch, args)
-            self._pool.map(_xy_between_shards, args)
+            self._pool.map(_w_between_shards, args)
             self._pool.map(_copy_scratch_to_state, args)
         else:
-            # XY gate is within a shard.
-            self._pool.map(_xy_within_shard, args)
+            # W gate is within a shard.
+            self._pool.map(_w_within_shard, args)
 
     def simulate_measurement(self, index: int) -> bool:
         """Simulates a single qubit measurement in the computational basis.
@@ -358,8 +358,8 @@ def _apply_scratch_as_phase(args: Dict[str, Any]):
     state *= np.exp((1j * np.pi) * _scratch_shard(args))
 
 
-def _xy_within_shard(args: Dict[str, Any]):
-    """Applies an XY gate when the gate acts only within a shard."""
+def _w_within_shard(args: Dict[str, Any]):
+    """Applies a W gate when the gate acts only within a shard."""
     index = args['index']
     half_turns = args['half_turns']
     axis_half_turns = args['axis_half_turns']
@@ -382,8 +382,8 @@ def _xy_within_shard(args: Dict[str, Any]):
     np.copyto(state, new_state)
 
 
-def _xy_between_shards(args: Dict[str, Any]):
-    """Applies an XY gate when the gate acts between shards."""
+def _w_between_shards(args: Dict[str, Any]):
+    """Applies a W gate when the gate acts between shards."""
     shard_num = args['shard_num']
     state = _state_shard(args)
     num_shard_qubits = args['num_shard_qubits']
