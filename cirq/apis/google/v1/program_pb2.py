@@ -24,7 +24,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   serialized_pb=_b('\n!cirq/apis/google/v1/program.proto\x12\x12\x63irq.api.google.v1\x1a$cirq/apis/google/v1/operations.proto\x1a cirq/apis/google/v1/params.proto\"y\n\x07Program\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v1.Operation\x12;\n\x0fparameter_sweep\x18\x02 \x03(\x0b\x32\".cirq.api.google.v1.ParameterSweep\"3\n\x16KeyedMeasurementResult\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0c\n\x04\x62its\x18\x02 \x03(\x08\"\x85\x01\n\x13ParameterizedResult\x12\x31\n\x06params\x18\x01 \x01(\x0b\x32!.cirq.api.google.v1.ParameterDict\x12;\n\x07results\x18\x02 \x03(\x0b\x32*.cirq.api.google.v1.KeyedMeasurementResultB/\n\x1d\x63om.google.cirq.api.google.v1B\x0cProgramProtoP\x01\x62\x06proto3')
   ,
   dependencies=[cirq_dot_apis_dot_google_dot_v1_dot_operations__pb2.DESCRIPTOR,cirq_dot_apis_dot_google_dot_v1_dot_params__pb2.DESCRIPTOR,])
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -42,14 +41,14 @@ _PROGRAM = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='parameter_sweep', full_name='cirq.api.google.v1.Program.parameter_sweep', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -80,14 +79,14 @@ _KEYEDMEASUREMENTRESULT = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bits', full_name='cirq.api.google.v1.KeyedMeasurementResult.bits', index=1,
       number=2, type=8, cpp_type=7, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -118,14 +117,14 @@ _PARAMETERIZEDRESULT = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='results', full_name='cirq.api.google.v1.ParameterizedResult.results', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -149,6 +148,7 @@ _PARAMETERIZEDRESULT.fields_by_name['results'].message_type = _KEYEDMEASUREMENTR
 DESCRIPTOR.message_types_by_name['Program'] = _PROGRAM
 DESCRIPTOR.message_types_by_name['KeyedMeasurementResult'] = _KEYEDMEASUREMENTRESULT
 DESCRIPTOR.message_types_by_name['ParameterizedResult'] = _PARAMETERIZEDRESULT
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), dict(
   DESCRIPTOR = _PROGRAM,

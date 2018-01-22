@@ -96,8 +96,8 @@ class ParameterizedValue:
     @staticmethod
     def val_of(val: Union['ParameterizedValue', float]):
         if isinstance(val, ParameterizedValue):
-            return val.val
-        return val
+            return float(val.val)
+        return float(val)
 
     @staticmethod
     def key_of(val: Union['ParameterizedValue', float]):
@@ -147,7 +147,7 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1):
         assert not positional_args
-        self.half_turns = _canonicalize_param_turns(half_turns)
+        self.half_turns = _canonicalize_turns(half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -158,12 +158,13 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
 
         p, q = qubits
         op = operations_pb2.Operation()
-        op.cz.target1.x = p.x
-        op.cz.target1.y = p.y
-        op.cz.target2.x = q.x
-        op.cz.target2.y = q.y
-        op.cz.turns.raw = ParameterizedValue.val_of(self.half_turns) / 4
-        op.cz.turns.parameter_key = ParameterizedValue.key_of(self.half_turns)
+        op.exp_11.target1.x = p.x
+        op.exp_11.target1.y = p.y
+        op.exp_11.target2.x = q.x
+        op.exp_11.target2.y = q.y
+        op.exp_11.half_turns.raw = ParameterizedValue.val_of(self.half_turns)
+        op.exp_11.half_turns.parameter_key = ParameterizedValue.key_of(
+            self.half_turns)
         return op
 
     def __repr__(self):
@@ -189,15 +190,15 @@ class ExpWGate(NativeGate, gate_features.PhaseableGate):
                  half_turns: Union[ParameterizedValue, float]=1,
                  axis_half_turns: Union[ParameterizedValue, float]=0):
         assert not positional_args
-        self.half_turns = _canonicalize_param_turns(half_turns)
-        self.axis_half_turns = _canonicalize_param_turns(axis_half_turns)
+        self.half_turns = _canonicalize_turns(half_turns)
+        self.axis_half_turns = _canonicalize_turns(axis_half_turns)
 
         if (not isinstance(self.half_turns, ParameterizedValue) and
                 not isinstance(self.axis_half_turns, ParameterizedValue) and
                 not 0 <= self.axis_half_turns < 1):
             # Canonicalize to negative rotation around positive axis.
-            self.half_turns = _canonicalize_param_turns(-self.half_turns)
-            self.axis_half_turns = _canonicalize_param_turns(
+            self.half_turns = _canonicalize_turns(-self.half_turns)
+            self.axis_half_turns = _canonicalize_turns(
                 self.axis_half_turns + 1)
 
     def to_proto(self, *qubits):
@@ -206,14 +207,15 @@ class ExpWGate(NativeGate, gate_features.PhaseableGate):
 
         q = qubits[0]
         op = operations_pb2.Operation()
-        op.xy.target.x = q.x
-        op.xy.target.y = q.y
-        op.xy.rotation_axis_turns.raw = ParameterizedValue.val_of(
-            self.axis_half_turns) / 2
-        op.xy.rotation_axis_turns.parameter_key = ParameterizedValue.key_of(
+        op.exp_w.target.x = q.x
+        op.exp_w.target.y = q.y
+        op.exp_w.axis_half_turns.raw = ParameterizedValue.val_of(
             self.axis_half_turns)
-        op.xy.turns.raw = ParameterizedValue.val_of(self.half_turns) / 4
-        op.xy.turns.parameter_key = ParameterizedValue.key_of(self.half_turns)
+        op.exp_w.axis_half_turns.parameter_key = ParameterizedValue.key_of(
+            self.axis_half_turns)
+        op.exp_w.half_turns.raw = ParameterizedValue.val_of(self.half_turns)
+        op.exp_w.half_turns.parameter_key = ParameterizedValue.key_of(
+            self.half_turns)
         return op
 
     def phase_by(self, phase_turns, qubit_index):
@@ -247,7 +249,7 @@ class ExpZGate(NativeGate, gate_features.PhaseableGate):
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1):
         assert not positional_args
-        self.half_turns = _canonicalize_param_turns(half_turns)
+        self.half_turns = _canonicalize_turns(half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -258,10 +260,11 @@ class ExpZGate(NativeGate, gate_features.PhaseableGate):
 
         q = qubits[0]
         op = operations_pb2.Operation()
-        op.z.target.x = q.x
-        op.z.target.y = q.y
-        op.z.turns.raw = ParameterizedValue.val_of(self.half_turns) / 4
-        op.z.turns.parameter_key = ParameterizedValue.key_of(self.half_turns)
+        op.exp_z.target.x = q.x
+        op.exp_z.target.y = q.y
+        op.exp_z.half_turns.raw = ParameterizedValue.val_of(self.half_turns)
+        op.exp_z.half_turns.parameter_key = ParameterizedValue.key_of(
+            self.half_turns)
         return op
 
     def __repr__(self):
@@ -280,16 +283,11 @@ class ExpZGate(NativeGate, gate_features.PhaseableGate):
         return hash((ExpZGate, self.half_turns))
 
 
-def _signed_mod_unity(r):
-    """Returns a number from (0.5, 0.5], equivalent to r modulo 1.0."""
-    r %= 1.0
-    if r > 0.5:
-        r -= 1.0
-    return r
-
-
-def _canonicalize_param_turns(r: Union[ParameterizedValue, float]
-                              ) -> Union[ParameterizedValue, float]:
-    return ParameterizedValue(
-        ParameterizedValue.key_of(r),
-        2 * _signed_mod_unity(ParameterizedValue.val_of(r) / 2))
+def _canonicalize_turns(
+        val: Union[ParameterizedValue, float]
+) -> Union[ParameterizedValue, float]:
+    v = ParameterizedValue.val_of(val)
+    v %= 2
+    if v > 1:
+        v -= 2
+    return ParameterizedValue(ParameterizedValue.key_of(val), v)

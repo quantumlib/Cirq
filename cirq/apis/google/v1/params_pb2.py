@@ -21,7 +21,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_pb=_b('\n cirq/apis/google/v1/params.proto\x12\x12\x63irq.api.google.v1\"b\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x03\x12;\n\x05sweep\x18\x02 \x01(\x0b\x32,.cirq.api.google.v1.ParameterSweepZipProduct\"R\n\x18ParameterSweepZipProduct\x12\x36\n\x07\x66\x61\x63tors\x18\x01 \x03(\x0b\x32%.cirq.api.google.v1.ParameterSweepZip\"M\n\x11ParameterSweepZip\x12\x38\n\x06sweeps\x18\x01 \x03(\x0b\x32(.cirq.api.google.v1.SingleParameterSweep\"\xad\x01\n\x14SingleParameterSweep\x12\x16\n\x0eparameter_name\x18\x01 \x01(\t\x12\x37\n\x0csweep_points\x18\x02 \x01(\x0b\x32\x1f.cirq.api.google.v1.SweepPointsH\x00\x12;\n\x0esweep_linspace\x18\x03 \x01(\x0b\x32!.cirq.api.google.v1.SweepLinspaceH\x00\x42\x07\n\x05sweep\"\x1d\n\x0bSweepPoints\x12\x0e\n\x06points\x18\x01 \x03(\x02\"L\n\rSweepLinspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\"\x8c\x01\n\rParameterDict\x12G\n\x0b\x61ssignments\x18\x01 \x03(\x0b\x32\x32.cirq.api.google.v1.ParameterDict.AssignmentsEntry\x1a\x32\n\x10\x41ssignmentsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x42.\n\x1d\x63om.google.cirq.api.google.v1B\x0bParamsProtoP\x01\x62\x06proto3')
 )
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -39,14 +38,14 @@ _PARAMETERSWEEP = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sweep', full_name='cirq.api.google.v1.ParameterSweep.sweep', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -77,7 +76,7 @@ _PARAMETERSWEEPZIPPRODUCT = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -108,7 +107,7 @@ _PARAMETERSWEEPZIP = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -139,21 +138,21 @@ _SINGLEPARAMETERSWEEP = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sweep_points', full_name='cirq.api.google.v1.SingleParameterSweep.sweep_points', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sweep_linspace', full_name='cirq.api.google.v1.SingleParameterSweep.sweep_linspace', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -187,7 +186,7 @@ _SWEEPPOINTS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -218,21 +217,21 @@ _SWEEPLINSPACE = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='last_point', full_name='cirq.api.google.v1.SweepLinspace.last_point', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='num_points', full_name='cirq.api.google.v1.SweepLinspace.num_points', index=2,
       number=3, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -263,14 +262,14 @@ _PARAMETERDICT_ASSIGNMENTSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='cirq.api.google.v1.ParameterDict.AssignmentsEntry.value', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -300,7 +299,7 @@ _PARAMETERDICT = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -337,6 +336,7 @@ DESCRIPTOR.message_types_by_name['SingleParameterSweep'] = _SINGLEPARAMETERSWEEP
 DESCRIPTOR.message_types_by_name['SweepPoints'] = _SWEEPPOINTS
 DESCRIPTOR.message_types_by_name['SweepLinspace'] = _SWEEPLINSPACE
 DESCRIPTOR.message_types_by_name['ParameterDict'] = _PARAMETERDICT
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), dict(
   DESCRIPTOR = _PARAMETERSWEEP,
