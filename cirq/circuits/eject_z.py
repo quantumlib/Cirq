@@ -76,7 +76,8 @@ class EjectZ(OptimizationPass):
             if start_z is None:
                 # Unparameterized Zs start optimization ranges.
                 if (isinstance(op.gate, ops.ExpZGate) and
-                        not op.gate.turns_param_key):
+                        not isinstance(op.gate.half_turns,
+                                       ops.ParameterizedValue)):
                     start_z = i
                     prev_z = None
 
@@ -86,7 +87,7 @@ class EjectZ(OptimizationPass):
                 start_z = None
 
             elif isinstance(op.gate, ops.ExpZGate):
-                if op.gate.turns_param_key:
+                if isinstance(op.gate.half_turns, ops.ParameterizedValue):
                     # Parameterized Z gates can't move, but can drain.
                     yield start_z, i
                     start_z = None
@@ -164,8 +165,8 @@ class EjectZ(OptimizationPass):
             circuit.insert(
                 drain + 1,
                 ops.ExpZGate(
-                    op.gate.turns_param_key,
-                    accumulated_phase + op.gate.half_turns/2).on(qubit),
+                    half_turns=op.gate.half_turns + accumulated_phase*2).on(
+                        qubit),
                 InsertStrategy.INLINE)
             return
 

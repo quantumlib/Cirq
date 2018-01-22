@@ -15,6 +15,7 @@
 """Gates that can be directly described to the API, without decomposition."""
 
 import abc
+from typing import Union
 
 from cirq.apis.google.v1 import operations_pb2
 from cirq.ops import gate_features, raw_types
@@ -26,6 +27,83 @@ class NativeGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def to_proto(self, *qubits) -> operations_pb2.Operation:
         raise NotImplementedError()
+
+
+class ParameterizedValue:
+    """A constant plus the runtime value of a parameter with a given key."""
+
+    def __new__(cls, key: str = '', val: float = 0):
+        """Constructs a ParameterizedValue representing val + param(key).
+
+        Args:
+            val: A constant offset.
+            key: The name of a parameter. If this is the empty string, then no
+                parameter will be used.
+
+        Returns:
+            Just val if key is empty, otherwise a new ParameterizedValue.
+        """
+        if key == '':
+            return val
+        return super().__new__(cls)
+
+    def __init__(self, key: str = '', val: float = 0):
+        """Initializes a ParameterizedValue representing val + param(key).
+
+        Args:
+            val: A constant offset.
+            key: The name of a parameter. Because of the implementation of new,
+                this will never be the empty string.
+        """
+        self.val = val
+        self.key = key
+
+    def __str__(self):
+        if self.key == '':
+            return repr(self.val)
+        if self.val == 0:
+            return 'param({})'.format(repr(self.key))
+        return '{} + param({})'.format(repr(self.val), repr(self.key))
+
+    def __repr__(self):
+        return 'ParameterizedValue({}, {})'.format(repr(self.val),
+                                                   repr(self.key))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.key == other.key and self.val == other.val
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((ParameterizedValue, self.val, self.key))
+
+    def __add__(self, other: float) -> 'ParameterizedValue':
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return ParameterizedValue(self.key, self.val + other)
+
+    def __radd__(self, other: float) -> 'ParameterizedValue':
+        return self.__add__(other)
+
+    def __sub__(self, other: float) -> 'ParameterizedValue':
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        return ParameterizedValue(self.key, self.val - other)
+
+    @staticmethod
+    def val_of(val: Union['ParameterizedValue', float]):
+        if isinstance(val, ParameterizedValue):
+            return val.val
+        return val
+
+    @staticmethod
+    def key_of(val: Union['ParameterizedValue', float]):
+        if isinstance(val, ParameterizedValue):
+            return val.key
+        return ''
 
 
 class MeasurementGate(NativeGate, gate_features.AsciiDiagrammableGate):
@@ -66,10 +144,10 @@ class MeasurementGate(NativeGate, gate_features.AsciiDiagrammableGate):
 class Exp11Gate(NativeGate, gate_features.PhaseableGate):
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
-    def __init__(self, turns_param_key: str = '',
-                 turns_offset: float = 0.0):
-        self.turns_param_key = turns_param_key
-        self.half_turns = _signed_mod_unity(turns_offset) * 2.0
+    def __init__(self, *positional_args,
+                 half_turns: Union[ParameterizedValue, float]=1):
+        assert not positional_args
+        self.half_turns = _canonicalize_param_turns(half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -84,50 +162,43 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
         op.cz.target1.y = p.y
         op.cz.target2.x = q.x
         op.cz.target2.y = q.y
-        op.cz.turns.raw = self.half_turns / 4
-        op.cz.turns.parameter_key = self.turns_param_key
+        op.cz.turns.raw = ParameterizedValue.val_of(self.half_turns) / 4
+        op.cz.turns.parameter_key = ParameterizedValue.key_of(self.half_turns)
         return op
 
     def __repr__(self):
-        return 'ParameterizedCZGate(turns_param_key={}, half_turns={})'.format(
-            repr(self.turns_param_key), repr(self.half_turns))
+        return 'ParameterizedCZGate(half_turns={})'.format(
+            repr(self.half_turns))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self.turns_param_key == other.turns_param_key and
-                self.half_turns == other.half_turns)
+        return self.half_turns == other.half_turns
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((Exp11Gate,
-                     self.turns_param_key,
-                     self.half_turns))
+        return hash((Exp11Gate, self.half_turns))
 
 
 class ExpWGate(NativeGate, gate_features.PhaseableGate):
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
-    def __init__(self,
-                 turns_param_key: str = '',
-                 turns_offset: float = 0.0,
-                 axis_phase_turns_key: str = '',
-                 axis_phase_turns_offset: float = 0.0):
-        self.turns_param_key = turns_param_key
-        self.axis_phase_turns_key = axis_phase_turns_key
-        t = _signed_mod_unity(turns_offset)
-        p = _signed_mod_unity(axis_phase_turns_offset)
+    def __init__(self, *positional_args,
+                 half_turns: Union[ParameterizedValue, float]=1,
+                 axis_half_turns: Union[ParameterizedValue, float]=0):
+        assert not positional_args
+        self.half_turns = _canonicalize_param_turns(half_turns)
+        self.axis_half_turns = _canonicalize_param_turns(axis_half_turns)
 
-        if (not turns_param_key and not axis_phase_turns_key and
-                not 0 <= p < 0.5):
+        if (not isinstance(self.half_turns, ParameterizedValue) and
+                not isinstance(self.axis_half_turns, ParameterizedValue) and
+                not 0 <= self.axis_half_turns < 1):
             # Canonicalize to negative rotation around positive axis.
-            p = _signed_mod_unity(p + 0.5)
-            t = _signed_mod_unity(-turns_offset)
-
-        self.half_turns = t * 2.0
-        self.axis_half_turns = p * 2.0
+            self.half_turns = _canonicalize_param_turns(-self.half_turns)
+            self.axis_half_turns = _canonicalize_param_turns(
+                self.axis_half_turns + 1)
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:
@@ -137,56 +208,46 @@ class ExpWGate(NativeGate, gate_features.PhaseableGate):
         op = operations_pb2.Operation()
         op.xy.target.x = q.x
         op.xy.target.y = q.y
-        op.xy.rotation_axis_turns.raw = self.axis_half_turns / 2
-        op.xy.rotation_axis_turns.parameter_key = self.axis_phase_turns_key
-        op.xy.turns.raw = self.half_turns / 4
-        op.xy.turns.parameter_key = self.turns_param_key
+        op.xy.rotation_axis_turns.raw = ParameterizedValue.val_of(
+            self.axis_half_turns) / 2
+        op.xy.rotation_axis_turns.parameter_key = ParameterizedValue.key_of(
+            self.axis_half_turns)
+        op.xy.turns.raw = ParameterizedValue.val_of(self.half_turns) / 4
+        op.xy.turns.parameter_key = ParameterizedValue.key_of(self.half_turns)
         return op
 
     def phase_by(self, phase_turns, qubit_index):
         return ExpWGate(
-            turns_param_key=self.turns_param_key,
-            turns_offset=self.half_turns / 2,
-            axis_phase_turns_key=self.axis_phase_turns_key,
-            axis_phase_turns_offset=self.axis_half_turns / 2 + phase_turns)
+            half_turns=self.half_turns,
+            axis_half_turns=self.axis_half_turns + phase_turns*2)
 
     def __repr__(self):
-        return ('ParameterizedXYGate(turns_param_key={}, '
-                'half_turns={}, '
-                'axis_phase_turns_key={}, '
+        return ('ParameterizedXYGate(half_turns={}, '
                 'axis_half_turns={})'.format(
-                    repr(self.turns_param_key),
                     repr(self.half_turns),
-                    repr(self.axis_phase_turns_key),
                     repr(self.axis_half_turns)))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return (self.turns_param_key == other.turns_param_key and
-                self.half_turns == other.half_turns and
-                self.axis_phase_turns_key == other.axis_phase_turns_key and
+        return (self.half_turns == other.half_turns and
                 self.axis_half_turns == other.axis_half_turns)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((ExpWGate,
-                     self.turns_param_key,
-                     self.half_turns,
-                     self.axis_phase_turns_key,
-                     self.axis_half_turns))
+        return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
 
 class ExpZGate(NativeGate, gate_features.PhaseableGate):
     """A rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self, turns_param_key: str = '',
-                 turns_offset: float = 0.0):
-        self.turns_param_key = turns_param_key
-        self.half_turns = _signed_mod_unity(turns_offset) * 2.0
+    def __init__(self, *positional_args,
+                 half_turns: Union[ParameterizedValue, float]=1):
+        assert not positional_args
+        self.half_turns = _canonicalize_param_turns(half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -199,27 +260,24 @@ class ExpZGate(NativeGate, gate_features.PhaseableGate):
         op = operations_pb2.Operation()
         op.z.target.x = q.x
         op.z.target.y = q.y
-        op.z.turns.raw = self.half_turns / 4
-        op.z.turns.parameter_key = self.turns_param_key
+        op.z.turns.raw = ParameterizedValue.val_of(self.half_turns) / 4
+        op.z.turns.parameter_key = ParameterizedValue.key_of(self.half_turns)
         return op
 
     def __repr__(self):
-        return 'ParameterizedZGate(turns_param_key={}, half_turns={})'.format(
-            repr(self.turns_param_key), repr(self.half_turns))
+        return 'ParameterizedZGate(half_turns={})'.format(
+            repr(self.half_turns))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self.turns_param_key == other.turns_param_key and
-                self.half_turns == other.half_turns)
+        return self.half_turns == other.half_turns
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((ExpZGate,
-                     self.turns_param_key,
-                     self.half_turns))
+        return hash((ExpZGate, self.half_turns))
 
 
 def _signed_mod_unity(r):
@@ -228,3 +286,10 @@ def _signed_mod_unity(r):
     if r > 0.5:
         r -= 1.0
     return r
+
+
+def _canonicalize_param_turns(r: Union[ParameterizedValue, float]
+                              ) -> Union[ParameterizedValue, float]:
+    return ParameterizedValue(
+        ParameterizedValue.key_of(r),
+        2 * _signed_mod_unity(ParameterizedValue.val_of(r) / 2))
