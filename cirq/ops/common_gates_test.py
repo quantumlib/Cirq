@@ -100,28 +100,29 @@ def test_cz_matrix():
 
 
 def test_z_init():
-    z = ops.ZGate(turns=2.5)
+    z = ops.ZGate(half_turns=5)
     assert z.turns == 0.5
     assert z.turns_param_key == ''
 
 
 def test_z_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.ZGate(), ops.ZGate(turns=0.5), ops.Z)
-    eq.add_equality_group(ops.ZGate(turns=1.75), ops.ZGate(turns=-0.25))
-    eq.make_equality_pair(lambda: ops.ZGate(turns=0))
-    eq.make_equality_pair(lambda: ops.ZGate(turns=0.25))
+    eq.add_equality_group(ops.ZGate(), ops.ZGate(half_turns=1), ops.Z)
+    eq.add_equality_group(ops.ZGate(half_turns=3.5),
+                          ops.ZGate(half_turns=-0.5))
+    eq.make_equality_pair(lambda: ops.ZGate(half_turns=0))
+    eq.make_equality_pair(lambda: ops.ZGate(half_turns=0.5))
 
 
 def test_z_extrapolate():
     assert ops.ZGate(
-        turns=0.5).extrapolate_effect(0.5) == ops.ZGate(turns=0.25)
-    assert ops.Z**-0.25 == ops.ZGate(turns=1.75 / 2)
+        half_turns=1).extrapolate_effect(0.5) == ops.ZGate(half_turns=0.5)
+    assert ops.Z**-0.25 == ops.ZGate(half_turns=1.75)
 
 
 def test_z_to_proto():
     assert proto_matches_text(
-        ops.ZGate(turns=0.25).to_proto(ops.QubitId(2, 3)),
+        ops.ZGate(half_turns=0.5).to_proto(ops.QubitId(2, 3)),
         """
         z {
             target {
@@ -136,13 +137,13 @@ def test_z_to_proto():
 
 
 def test_z_matrix():
-    assert np.allclose(ops.ZGate(turns=0.5).matrix(),
+    assert np.allclose(ops.ZGate(half_turns=1).matrix(),
                        np.array([[1, 0], [0, -1]]))
-    assert np.allclose(ops.ZGate(turns=0.25).matrix(),
+    assert np.allclose(ops.ZGate(half_turns=0.5).matrix(),
                        np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(ops.ZGate(turns=0).matrix(),
+    assert np.allclose(ops.ZGate(half_turns=0).matrix(),
                        np.array([[1, 0], [0, 1]]))
-    assert np.allclose(ops.ZGate(turns=-0.25).matrix(),
+    assert np.allclose(ops.ZGate(half_turns=-0.5).matrix(),
                        np.array([[1, 0], [0, -1j]]))
 
 
