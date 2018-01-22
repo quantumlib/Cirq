@@ -30,7 +30,7 @@ class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way.
 
     Examples: The S gate, the CZ gate, and the H gate.
-    Anti-examples: The measurement gate and some sweep-parameterized gates.
+    Anti-examples: The measurement gate.
     """
 
     @abc.abstractmethod
@@ -43,9 +43,8 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated.
 
     Examples: The Z gate, the Z**0.5 gate, the CZ gate, and the H gate.
-    Anti-examples: The measurement gate, some sweep-parameterized gates, and
-        abstract gates representing operations where it is not tractable to
-        compute the scaled effect.
+    Anti-examples: The measurement gate, and abstract gates representing
+        operations where it is not tractable to compute the scaled effect.
     """
 
     @abc.abstractmethod
@@ -141,7 +140,7 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be phased around the Z axis of target qubits.
+    """A gate whose effect can be phased in the computational basis.
 
     When this is implemented by a gate, phase operations can be moved across
     the gate by phasing it when doing so.
@@ -169,7 +168,7 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class PhaseSinkGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can absorb phasing of its target qubits.
+    """A gate whose effect can absorb phasing in the computational basis.
 
     When this is implemented by a gate, phase operations can be moved into
     the gate by sinking phase into it.
