@@ -40,10 +40,11 @@ def test_cz_init():
 
 def test_cz_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.CZGate(), ops.CZGate(turns=0.5), ops.CZ)
-    eq.add_equality_group(ops.CZGate(turns=1.75), ops.CZGate(turns=-0.25))
-    eq.make_equality_pair(lambda: ops.CZGate(turns=0))
-    eq.make_equality_pair(lambda: ops.CZGate(turns=0.25))
+    eq.add_equality_group(ops.CZGate(), ops.CZGate(half_turns=1), ops.CZ)
+    eq.add_equality_group(ops.CZGate(half_turns=3.5),
+                          ops.CZGate(half_turns=-0.5))
+    eq.make_equality_pair(lambda: ops.CZGate(half_turns=0))
+    eq.make_equality_pair(lambda: ops.CZGate(half_turns=0.5))
 
 
 def test_cz_to_proto():
@@ -69,34 +70,34 @@ def test_cz_to_proto():
 
 def test_cz_extrapolate():
     assert ops.CZGate(
-        turns=0.5).extrapolate_effect(0.5) == ops.CZGate(turns=0.25)
-    assert ops.CZ**-0.25 == ops.CZGate(turns=1.75 / 2)
+        half_turns=1).extrapolate_effect(0.5) == ops.CZGate(half_turns=0.5)
+    assert ops.CZ**-0.25 == ops.CZGate(half_turns=1.75)
 
 
 def test_cz_matrix():
-    assert np.allclose(ops.CZGate(turns=0.5).matrix(),
+    assert np.allclose(ops.CZGate(half_turns=1).matrix(),
                        np.array([[1, 0, 0, 0],
-                               [0, 1, 0, 0],
-                               [0, 0, 1, 0],
-                               [0, 0, 0, -1]]))
+                                 [0, 1, 0, 0],
+                                 [0, 0, 1, 0],
+                                 [0, 0, 0, -1]]))
 
-    assert np.allclose(ops.CZGate(turns=0.25).matrix(),
+    assert np.allclose(ops.CZGate(half_turns=0.5).matrix(),
                        np.array([[1, 0, 0, 0],
-                               [0, 1, 0, 0],
-                               [0, 0, 1, 0],
-                               [0, 0, 0, 1j]]))
+                                 [0, 1, 0, 0],
+                                 [0, 0, 1, 0],
+                                 [0, 0, 0, 1j]]))
 
-    assert np.allclose(ops.CZGate(turns=0).matrix(),
+    assert np.allclose(ops.CZGate(half_turns=0).matrix(),
                        np.array([[1, 0, 0, 0],
-                               [0, 1, 0, 0],
-                               [0, 0, 1, 0],
-                               [0, 0, 0, 1]]))
+                                 [0, 1, 0, 0],
+                                 [0, 0, 1, 0],
+                                 [0, 0, 0, 1]]))
 
-    assert np.allclose(ops.CZGate(turns=-0.25).matrix(),
+    assert np.allclose(ops.CZGate(half_turns=-0.5).matrix(),
                        np.array([[1, 0, 0, 0],
-                               [0, 1, 0, 0],
-                               [0, 0, 1, 0],
-                               [0, 0, 0, -1j]]))
+                                 [0, 1, 0, 0],
+                                 [0, 0, 1, 0],
+                                 [0, 0, 0, -1j]]))
 
 
 def test_z_init():
