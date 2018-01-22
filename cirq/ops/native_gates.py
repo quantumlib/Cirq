@@ -117,18 +117,17 @@ class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
                  axis_phase_turns_offset: float = 0.0):
         self.turns_param_key = turns_param_key
         self.axis_phase_turns_key = axis_phase_turns_key
-        self.turns = _signed_mod_unity(turns_offset)
-        self.axis_phase_turns = _signed_mod_unity(axis_phase_turns_offset)
+        t = _signed_mod_unity(turns_offset)
+        p = _signed_mod_unity(axis_phase_turns_offset)
 
         if (not turns_param_key and not axis_phase_turns_key and
-                not 0 <= self.axis_phase_turns < 0.5):
+                not 0 <= p < 0.5):
             # Canonicalize to negative rotation around positive axis.
-            self.axis_phase_turns = _signed_mod_unity(
-                self.axis_phase_turns + 0.5)
-            self.turns = _signed_mod_unity(-turns_offset)
+            p = _signed_mod_unity(p + 0.5)
+            t = _signed_mod_unity(-turns_offset)
 
-        self.half_turns = self.turns * 2.0
-        self.axis_half_turns = self.axis_phase_turns * 2.0
+        self.half_turns = t * 2.0
+        self.axis_half_turns = p * 2.0
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:
@@ -138,38 +137,47 @@ class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
         op = operations_pb2.Operation()
         op.xy.target.x = q.x
         op.xy.target.y = q.y
-        op.xy.rotation_axis_turns.raw = self.axis_phase_turns
+        op.xy.rotation_axis_turns.raw = self.axis_half_turns / 2
         op.xy.rotation_axis_turns.parameter_key = self.axis_phase_turns_key
-        op.xy.turns.raw = self.turns / 2
+        op.xy.turns.raw = self.half_turns / 4
         op.xy.turns.parameter_key = self.turns_param_key
         return op
 
     def phase_by(self, phase_turns, qubit_index):
-        return ParameterizedXYGate(self.turns_param_key, self.turns,
-                                   self.axis_phase_turns_key,
-                                   self.axis_phase_turns + phase_turns)
+        return ParameterizedXYGate(
+            turns_param_key=self.turns_param_key,
+            turns_offset=self.half_turns / 2,
+            axis_phase_turns_key=self.axis_phase_turns_key,
+            axis_phase_turns_offset=self.axis_half_turns / 2 + phase_turns)
 
     def __repr__(self):
-        return 'ParameterizedXYGate({}, {}, {}, {})'.format(
-            repr(self.turns_param_key),
-            repr(self.turns),
-            repr(self.axis_phase_turns_key), repr(self.axis_phase_turns))
+        return ('ParameterizedXYGate(turns_param_key={}, '
+                'half_turns={}, '
+                'axis_phase_turns_key={}, '
+                'axis_half_turns={})'.format(
+                    repr(self.turns_param_key),
+                    repr(self.half_turns),
+                    repr(self.axis_phase_turns_key),
+                    repr(self.axis_half_turns)))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
 
         return (self.turns_param_key == other.turns_param_key and
-                self.turns == other.turns and
+                self.half_turns == other.half_turns and
                 self.axis_phase_turns_key == other.axis_phase_turns_key and
-                self.axis_phase_turns == other.axis_phase_turns)
+                self.axis_half_turns == other.axis_half_turns)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((ParameterizedXYGate, self.turns_param_key, self.turns,
-                     self.axis_phase_turns_key, self.axis_phase_turns))
+        return hash((ParameterizedXYGate,
+                     self.turns_param_key,
+                     self.half_turns,
+                     self.axis_phase_turns_key,
+                     self.axis_half_turns))
 
 
 class ParameterizedZGate(NativeGate, gate_features.PhaseableGate):
