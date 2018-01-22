@@ -219,7 +219,7 @@ class ExpWGate(NativeGate, gate_features.PhaseableGate):
     def phase_by(self, phase_turns, qubit_index):
         return ExpWGate(
             half_turns=self.half_turns,
-            axis_half_turns=self.axis_half_turns + phase_turns*2)
+            axis_half_turns=self.axis_half_turns + phase_turns * 2)
 
     def __repr__(self):
         return ('ParameterizedXYGate(half_turns={}, '
