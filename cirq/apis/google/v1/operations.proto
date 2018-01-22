@@ -28,53 +28,54 @@ message ParameterizedFloat {
 
 // A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
 //
-// This gate is exp(i * 2 * pi * H(theta) * t) where
-//   H(theta) = cos(theta) X + sin(theta) Y
+// This gate is exp(i * pi * H(theta) * t) where
+//   W(theta) = cos(pi * theta) X + sin(pi * theta) Y
 // or in matrix form
-//   H(theta) = [[0, cos(theta) - i sin(theta)], [cos(theta) + i sin(theta), 0]]
-message XY {
+//   W(theta) = [[0, cos(pi * theta) - i sin(pi * theta)], [cos(pi * theta) + i sin(pi * theta), 0]]
+message ExpW {
   // The qubit to rotate.
   Qubit target = 1;
   // The angle of the rotation axis' facing in the XY plane, expressed in
-  // units of 2 pi.
+  // units of pi.
   //    - 0 is positive-ward along X.
-  //    - 0.25 is positive-ward along Y.
-  //    - 0.5 is negative-ward along X.
-  //    - 0.75 is negative-ward along Y.
-  // Note that this is periodic with period 1.
-  ParameterizedFloat rotation_axis_turns = 2;
+  //    - 0.5 is positive-ward along Y.
+  //    - 1.0 is negative-ward along X.
+  //    - 1.5 is negative-ward along Y.
+  // Note that this is periodic with period 2.
+  ParameterizedFloat axis_half_turns = 2;
 
-  // The amount to rotate by expressed in units of 2 pi, i.e. the t in
-  // exp(i 2 pi H(xy_angle_radians) t).
-  // Note that this is periodic with period 1.
-  ParameterizedFloat turns = 3;
+  // The amount to rotate by expressed in units of pi, i.e. the t in
+  // exp(i pi H(xy_angle_radians) t).
+  // Note that this is periodic with period 4, or 2 when ignoring global phase.
+  ParameterizedFloat half_turns = 3;
 }
 
 // A single-qubit rotation around the Z axis of the Bloch sphere.
 //
-// This gate is exp(i * 2 * pi * Z * t) where Z is the Pauli Z matrix,
+// This gate is exp(i * pi * Z * t) where Z is the Pauli Z matrix,
 //   Z = [[1, 0], [0, -1]]
-message Z {
+message ExpZ {
   // The qubit to rotate.
   Qubit target = 1;
   // The amount of the rotation in radians, i.e. the t in
-  // exp(i * 2 * pi * Z * t).
-  // Note that this is periodic with period 1.
-  ParameterizedFloat turns = 2;
+  // exp(i * pi * Z * t).
+  // Note that this is periodic with period 4, or 2 when ignoring global phase.
+  ParameterizedFloat half_turns = 2;
 }
 
 // A two qubit rotation which acts to phase only the |11> state.
 //
 // This gate is exp(i * 2 * pi * H  * t) where H = |11><11| or in matrix form
 //   H = diag(0, 0, 0, 1)
-message CZ {
+message Exp11 {
   // The first qubit to interact.
   Qubit target1 = 1;
   // The other qubit to interact.
   Qubit target2 = 2;
-  // The amount of the rotation in radians, i.e. the t in
-  // exp(i * 2 * pi * |11><11| * t).
-  ParameterizedFloat turns = 3;
+  // The amount of the rotation in units of pi, i.e. the t in
+  // exp(i * pi * |11><11| * t).
+  // Note that this is periodic with period 4, or 2 when ignoring global phase.
+  ParameterizedFloat half_turns = 3;
 }
 
 // A single qubit measurement in the computational basis (|0>, |1>).
@@ -96,11 +97,11 @@ message Operation {
   // The operation to apply.
   oneof operation {
     // A single-qubit rotation around an axis on the XY equator.
-    XY xy = 10;
+    ExpW exp_w = 10;
     // A single-qubit rotation around the Z axis.
-    Z z = 11;
+    ExpZ exp_z = 11;
     // An operation that interacts two qubits, phasing only the 11 state.
-    CZ cz = 12;
+    Exp11 exp_11 = 12;
     // Measures a qubit and indicates where to store the result.
     Measurement measurement = 13;
   }

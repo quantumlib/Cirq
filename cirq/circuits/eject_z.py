@@ -75,8 +75,9 @@ class EjectZ(OptimizationPass):
 
             if start_z is None:
                 # Unparameterized Zs start optimization ranges.
-                if (isinstance(op.gate, ops.ParameterizedZGate) and
-                        not op.gate.turns_param_key):
+                if (isinstance(op.gate, ops.ExpZGate) and
+                        not isinstance(op.gate.half_turns,
+                                       ops.ParameterizedValue)):
                     start_z = i
                     prev_z = None
 
@@ -85,8 +86,8 @@ class EjectZ(OptimizationPass):
                 yield start_z, i
                 start_z = None
 
-            elif isinstance(op.gate, ops.ParameterizedZGate):
-                if op.gate.turns_param_key:
+            elif isinstance(op.gate, ops.ExpZGate):
+                if isinstance(op.gate.half_turns, ops.ParameterizedValue):
                     # Parameterized Z gates can't move, but can drain.
                     yield start_z, i
                     start_z = None
@@ -129,10 +130,10 @@ class EjectZ(OptimizationPass):
                 # Empty.
                 pass
 
-            elif isinstance(op.gate, ops.ParameterizedZGate):
+            elif isinstance(op.gate, ops.ExpZGate):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
-                lost_phase_turns += op.gate.turns
+                lost_phase_turns += op.gate.half_turns / 2
 
             elif isinstance(op.gate, ops.PhaseableGate):
                 # Adjust phaseable gates to account for the lost phase.
@@ -153,19 +154,19 @@ class EjectZ(OptimizationPass):
         # Drain type: end of circuit.
         if drain == len(circuit.moments):
             circuit.append(
-                ops.ZGate(accumulated_phase).on(qubit),
+                ops.ZGate(half_turns=2*accumulated_phase).on(qubit),
                 InsertStrategy.INLINE)
             return
 
         # Drain type: another Z gate.
         op = circuit.operation_at(qubit, drain)
-        if isinstance(op.gate, ops.ParameterizedZGate):
+        if isinstance(op.gate, ops.ExpZGate):
             circuit.clear_operations_touching([qubit], [drain])
             circuit.insert(
                 drain + 1,
-                ops.ParameterizedZGate(op.gate.turns_param_key,
-                                       accumulated_phase + op.gate.turns).on(
-                    qubit),
+                ops.ExpZGate(
+                    half_turns=op.gate.half_turns + accumulated_phase * 2).on(
+                        qubit),
                 InsertStrategy.INLINE)
             return
 

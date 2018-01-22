@@ -23,6 +23,48 @@ def proto_matches_text(proto: message, expected_as_text: str):
     return str(proto) == str(expected)
 
 
+def test_parameterized_value_init():
+    r = ops.ParameterizedValue('', 5)
+    assert isinstance(r, int)
+    assert r == 5
+
+    s = ops.ParameterizedValue('a', 6)
+    assert isinstance(s, ops.ParameterizedValue)
+    assert s.val == 6
+    assert s.key == 'a'
+
+
+def test_parameterized_value_eq():
+    eq = EqualsTester()
+    eq.add_equality_group(ops.ParameterizedValue('', 2.5), 2.5)
+    eq.make_equality_pair(lambda: ops.ParameterizedValue('rr', -1))
+    eq.make_equality_pair(lambda: ops.ParameterizedValue('rr', 0))
+    eq.make_equality_pair(lambda: ops.ParameterizedValue('ra', 0))
+
+
+def test_parameterized_value_shift():
+    assert (ops.ParameterizedValue('e', 0.5) + 1.5 ==
+            ops.ParameterizedValue('e', 2))
+
+    assert (5 + ops.ParameterizedValue('a', 0.5) ==
+            ops.ParameterizedValue('a', 5.5))
+
+    assert (ops.ParameterizedValue('b', 0.5) - 1.5 ==
+            ops.ParameterizedValue('b', -1))
+
+    assert (ops.ParameterizedValue('c', 0.5) - 1 ==
+            ops.ParameterizedValue('c', -0.5))
+
+
+def test_parameterized_value_of():
+    assert ops.ParameterizedValue.val_of(5) == 5
+    assert ops.ParameterizedValue.key_of(5) == ''
+
+    e = ops.ParameterizedValue('rr', -1)
+    assert ops.ParameterizedValue.val_of(e) == -1
+    assert ops.ParameterizedValue.key_of(e) == 'rr'
+
+
 def test_measurement_eq():
     eq = EqualsTester()
     eq.add_equality_group(ops.MeasurementGate(), ops.MeasurementGate(''))
@@ -46,28 +88,32 @@ def test_measurement_to_proto():
 
 def test_z_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.ParameterizedZGate(),
-                          ops.ParameterizedZGate('', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedZGate('a', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedZGate('', 0.5))
-    eq.make_equality_pair(lambda: ops.ParameterizedZGate('a', 0.5))
-    eq.make_equality_pair(lambda: ops.ParameterizedZGate('test', -1))
+    eq.make_equality_pair(lambda: ops.ExpZGate(half_turns=0))
+    eq.add_equality_group(ops.ExpZGate(),
+                          ops.ExpZGate(half_turns=1))
+    eq.make_equality_pair(
+        lambda: ops.ExpZGate(half_turns=ops.ParameterizedValue('a', 0)))
+    eq.make_equality_pair(
+        lambda: ops.ExpZGate(half_turns=ops.ParameterizedValue('a', 1)))
+    eq.make_equality_pair(
+        lambda: ops.ExpZGate(half_turns=ops.ParameterizedValue('test', -2)))
     eq.add_equality_group(
-        ops.ParameterizedZGate(turns_offset=-0.75),
-        ops.ParameterizedZGate(turns_offset=5.25))
+        ops.ExpZGate(half_turns=-1.5),
+        ops.ExpZGate(half_turns=10.5))
 
 
 def test_z_to_proto():
     assert proto_matches_text(
-        ops.ParameterizedZGate('k', 0.25).to_proto(ops.QubitId(2, 3)),
+        ops.ExpZGate(half_turns=ops.ParameterizedValue('k', 0.5)).to_proto(
+            ops.QubitId(2, 3)),
         """
-        z {
+        exp_z {
             target {
                 x: 2
                 y: 3
             }
-            turns {
-                raw: 0.125
+            half_turns {
+                raw: 0.5
                 parameter_key: "k"
             }
         }
@@ -76,23 +122,26 @@ def test_z_to_proto():
 
 def test_cz_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.ParameterizedCZGate(),
-                          ops.ParameterizedCZGate('', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedCZGate('a', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedCZGate('', 0.5))
-    eq.make_equality_pair(lambda: ops.ParameterizedCZGate('a', 0.5))
-    eq.make_equality_pair(lambda: ops.ParameterizedCZGate('test', -1))
+    eq.make_equality_pair(lambda: ops.Exp11Gate(half_turns=0))
+    eq.add_equality_group(ops.Exp11Gate(),
+                          ops.Exp11Gate(half_turns=1))
+    eq.make_equality_pair(
+        lambda: ops.Exp11Gate(half_turns=ops.ParameterizedValue('a')))
+    eq.make_equality_pair(
+        lambda: ops.Exp11Gate(half_turns=ops.ParameterizedValue('a', 1)))
+    eq.make_equality_pair(
+        lambda: ops.Exp11Gate(half_turns=ops.ParameterizedValue('test', -2)))
     eq.add_equality_group(
-        ops.ParameterizedCZGate(turns_offset=-0.75),
-        ops.ParameterizedCZGate(turns_offset=3.25))
+        ops.Exp11Gate(half_turns=-1.5),
+        ops.Exp11Gate(half_turns=6.5))
 
 
 def test_cz_to_proto():
     assert proto_matches_text(
-        ops.ParameterizedCZGate('k', 0.25).to_proto(
+        ops.Exp11Gate(half_turns=ops.ParameterizedValue('k', 0.5)).to_proto(
             ops.QubitId(2, 3), ops.QubitId(4, 5)),
         """
-        cz {
+        exp_11 {
             target1 {
                 x: 2
                 y: 3
@@ -101,8 +150,8 @@ def test_cz_to_proto():
                 x: 4
                 y: 5
             }
-            turns {
-                raw: 0.125
+            half_turns {
+                raw: 0.5
                 parameter_key: "k"
             }
         }
@@ -111,49 +160,64 @@ def test_cz_to_proto():
 
 def test_xy_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.ParameterizedXYGate(),
-                          ops.ParameterizedXYGate('', 0, '', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedXYGate('a', 0, '', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedXYGate('', 0.5, '', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedXYGate('', 0, 'a', 0))
-    eq.make_equality_pair(lambda: ops.ParameterizedXYGate('', 0, '', 0.25))
+    eq.add_equality_group(ops.ExpWGate(),
+                          ops.ExpWGate(half_turns=1, axis_half_turns=0))
     eq.make_equality_pair(
-        lambda: ops.ParameterizedXYGate('ab', 0.5, 'xy', 0.25))
+        lambda: ops.ExpWGate(half_turns=ops.ParameterizedValue('a', 0)))
+    eq.make_equality_pair(lambda: ops.ExpWGate(half_turns=0))
+    eq.make_equality_pair(
+        lambda: ops.ExpWGate(half_turns=0,
+                             axis_half_turns=ops.ParameterizedValue('a', 0)))
+    eq.make_equality_pair(
+        lambda: ops.ExpWGate(half_turns=0, axis_half_turns=0.5))
+    eq.make_equality_pair(
+        lambda: ops.ExpWGate(
+            half_turns=ops.ParameterizedValue('ab', 1),
+            axis_half_turns=ops.ParameterizedValue('xy', 0.5)))
 
     # Flipping the axis and negating the angle gives the same rotation.
     eq.add_equality_group(
-        ops.ParameterizedXYGate('', 0.125, '', 0.75),
-        ops.ParameterizedXYGate('', 0.875, '', 0.25))
+        ops.ExpWGate(half_turns=0.25, axis_half_turns=1.5),
+        ops.ExpWGate(half_turns=1.75, axis_half_turns=0.5))
     # ...but not when there are parameters.
-    eq.add_equality_group(ops.ParameterizedXYGate('a', 0.125, '', 0.75))
-    eq.add_equality_group(ops.ParameterizedXYGate('a', 0.875, '', 0.25))
-    eq.add_equality_group(ops.ParameterizedXYGate('', 0.125, 'a', 0.75))
-    eq.add_equality_group(ops.ParameterizedXYGate('', 0.875, 'a', 0.25))
+    eq.add_equality_group(ops.ExpWGate(
+        half_turns=ops.ParameterizedValue('a', 0.25),
+        axis_half_turns=1.5))
+    eq.add_equality_group(ops.ExpWGate(
+        half_turns=ops.ParameterizedValue('a', 1.75),
+        axis_half_turns=0.5))
+    eq.add_equality_group(ops.ExpWGate(
+        half_turns=0.25,
+        axis_half_turns=ops.ParameterizedValue('a', 1.5)))
+    eq.add_equality_group(ops.ExpWGate(
+        half_turns=1.75,
+        axis_half_turns=ops.ParameterizedValue('a', 0.5)))
 
     # Adding or subtracting whole turns/phases gives the same rotation.
     eq.add_equality_group(
-        ops.ParameterizedXYGate(
-            turns_offset=-1.125, axis_phase_turns_offset=0.625),
-        ops.ParameterizedXYGate(
-            turns_offset=3.875, axis_phase_turns_offset=5.625))
+        ops.ExpWGate(
+            half_turns=-2.25, axis_half_turns=1.25),
+        ops.ExpWGate(
+            half_turns=7.75, axis_half_turns=11.25))
 
 
 def test_xy_to_proto():
     assert proto_matches_text(
-        ops.ParameterizedXYGate('k', 0.25, 'j', 0.5).to_proto(
+        ops.ExpWGate(half_turns=ops.ParameterizedValue('k', 0.5),
+                     axis_half_turns=ops.ParameterizedValue('j', 1)).to_proto(
             ops.QubitId(2, 3)),
         """
-        xy {
+        exp_w {
             target {
                 x: 2
                 y: 3
             }
-            rotation_axis_turns {
-                raw: 0.5
+            axis_half_turns {
+                raw: 1
                 parameter_key: "j"
             }
-            turns {
-                raw: 0.125
+            half_turns {
+                raw: 0.5
                 parameter_key: "k"
             }
         }
