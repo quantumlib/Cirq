@@ -142,9 +142,9 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         before=circuits.Circuit([
             circuits.Moment([ops.Z(q)]),
             circuits.Moment([u(q)]),
-            circuits.Moment([(ops.Z**0.5)(q)]),
+            circuits.Moment([(ops.Z**0.5).on(q)]),
             circuits.Moment([ops.X(q)]),
-            circuits.Moment([(ops.Z**0.25)(q)]),
+            circuits.Moment([(ops.Z**0.25).on(q)]),
             circuits.Moment([ops.X(q)]),
             circuits.Moment([u(q)]),
         ]),
@@ -153,7 +153,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             circuits.Moment([u(q)]),
             circuits.Moment(),
             circuits.Moment([ops.Y(q)]),
-            circuits.Moment([(ops.Z**0.75)(q)]),
+            circuits.Moment([(ops.Z**0.75).on(q)]),
             circuits.Moment([ops.X(q)]),  # Note: wasn't phased.
             circuits.Moment([u(q)]),
         ]))
@@ -163,12 +163,14 @@ def test_parameterized_as_source_and_sink():
     q = ops.QubitId(0, 0)
     assert_optimizes(
         before=circuits.Circuit([
-            circuits.Moment([ops.ExpZGate('', 0.5)(q)]),
-            circuits.Moment([ops.ExpZGate('a', 0.25)(q)]),
-            circuits.Moment([ops.ExpZGate('', 0.125)(q)]),
+            circuits.Moment([ops.ExpZGate(half_turns=1)(q)]),
+            circuits.Moment([ops.ExpZGate(
+                half_turns=ops.ParameterizedValue('a', 0.5))(q)]),
+            circuits.Moment([ops.ExpZGate(half_turns=0.25)(q)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment(),
-            circuits.Moment([ops.ExpZGate('a', 0.75)(q)]),
-            circuits.Moment([ops.ExpZGate('', 0.125)(q)]),
+            circuits.Moment([ops.ExpZGate(
+                half_turns=ops.ParameterizedValue('a', 1.5))(q)]),
+            circuits.Moment([ops.ExpZGate(half_turns=0.25)(q)]),
         ]))

@@ -33,9 +33,12 @@ def proto_matches_text(proto: message, expected_as_text: str):
 
 
 def test_cz_init():
-    cz = ops.CZGate(half_turns=5)
-    assert cz.half_turns == 1
-    assert cz.turns_param_key == ''
+    assert ops.CZGate(half_turns=0.5).half_turns == 0.5
+    assert ops.CZGate(half_turns=5).half_turns == 1
+    assert (ops.CZGate(half_turns=ops.ParameterizedValue('a')).half_turns ==
+            ops.ParameterizedValue('a'))
+    assert (ops.CZGate(half_turns=ops.ParameterizedValue('a', 3)).half_turns ==
+            ops.ParameterizedValue('a', 1))
 
 
 def test_cz_eq():
@@ -103,7 +106,6 @@ def test_cz_matrix():
 def test_z_init():
     z = ops.ZGate(half_turns=5)
     assert z.half_turns == 1
-    assert z.turns_param_key == ''
 
 
 def test_z_eq():
@@ -152,8 +154,6 @@ def test_xy_init():
     y = ops.XYGate(half_turns=4.5, axis_half_turns=2.25)
     assert y.half_turns == 0.5
     assert y.axis_half_turns == 0.25
-    assert y.turns_param_key == ''
-    assert y.axis_phase_turns_key == ''
 
 
 def test_xy_eq():
