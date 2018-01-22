@@ -153,7 +153,7 @@ class EjectZ(OptimizationPass):
         # Drain type: end of circuit.
         if drain == len(circuit.moments):
             circuit.append(
-                ops.ZGate(turns=accumulated_phase).on(qubit),
+                ops.ZGate(half_turns=2*accumulated_phase).on(qubit),
                 InsertStrategy.INLINE)
             return
 
