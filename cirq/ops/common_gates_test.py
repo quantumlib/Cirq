@@ -149,7 +149,7 @@ def test_z_matrix():
 
 
 def test_xy_init():
-    y = ops.XYGate(turns=2.25, axis_phase_turns=1.125)
+    y = ops.XYGate(half_turns=4.5, axis_half_turns=2.25)
     assert y.turns == 0.25
     assert y.axis_phase_turns == 0.125
     assert y.turns_param_key == ''
@@ -158,31 +158,31 @@ def test_xy_init():
 
 def test_xy_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.XYGate(), ops.XYGate(axis_phase_turns=0,
-                                                   turns=0.5), ops.X)
-    eq.add_equality_group(ops.XYGate(axis_phase_turns=1.75, turns=1.125),
-                          ops.XYGate(axis_phase_turns=-0.25, turns=0.125))
-    eq.add_equality_group(ops.XYGate(axis_phase_turns=0.25, turns=0.375),
-                          ops.XYGate(axis_phase_turns=-0.25, turns=-0.375))
-    eq.make_equality_pair(lambda: ops.XYGate(axis_phase_turns=0, turns=0))
-    eq.make_equality_pair(lambda: ops.XYGate(axis_phase_turns=0.25,
-                                             turns=0.25))
+    eq.add_equality_group(ops.XYGate(), ops.XYGate(axis_half_turns=0,
+                                                   half_turns=1), ops.X)
+    eq.add_equality_group(ops.XYGate(axis_half_turns=3.5, half_turns=2.25),
+                          ops.XYGate(axis_half_turns=-0.5, half_turns=0.25))
+    eq.add_equality_group(ops.XYGate(axis_half_turns=0.5, half_turns=0.75),
+                          ops.XYGate(axis_half_turns=-0.5, half_turns=-0.75))
+    eq.make_equality_pair(lambda: ops.XYGate(axis_half_turns=0, half_turns=0))
+    eq.make_equality_pair(lambda: ops.XYGate(axis_half_turns=0.5,
+                                             half_turns=0.5))
 
 
 def test_xy_extrapolate():
-    assert (ops.XYGate(turns=0.5).extrapolate_effect(0.5) ==
-            ops.XYGate(turns=0.25))
+    assert (ops.XYGate(half_turns=1).extrapolate_effect(0.5) ==
+            ops.XYGate(half_turns=0.5))
     assert (
-        ops.XYGate(turns=0.5, axis_phase_turns=0.125).extrapolate_effect(0.5)
+        ops.XYGate(half_turns=1, axis_half_turns=0.25).extrapolate_effect(0.5)
         ==
-        ops.XYGate(turns=0.25, axis_phase_turns=0.125))
-    assert ops.X**-0.25 == ops.XYGate(turns=1.75 / 2)
-    assert ops.Y**-0.25 == ops.XYGate(turns=1.75 / 2, axis_phase_turns=0.25)
+        ops.XYGate(half_turns=0.5, axis_half_turns=0.25))
+    assert ops.X**-0.25 == ops.XYGate(half_turns=1.75)
+    assert ops.Y**-0.25 == ops.XYGate(half_turns=1.75, axis_half_turns=0.5)
 
 
 def test_xy_to_proto():
     assert proto_matches_text(
-        ops.XYGate(turns=0.125, axis_phase_turns=0.25).to_proto(
+        ops.XYGate(half_turns=0.25, axis_half_turns=0.5).to_proto(
             ops.QubitId(2, 3)),
         """
         xy {
@@ -201,26 +201,29 @@ def test_xy_to_proto():
 
 
 def test_xy_matrix():
-    assert np.allclose(ops.XYGate(turns=0.5, axis_phase_turns=0.25).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=1, axis_half_turns=0.5).matrix(),
                        np.array([[0, -1j], [1j, 0]]))
 
-    assert np.allclose(ops.XYGate(turns=0.25, axis_phase_turns=0.25).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=0.5,
+                                  axis_half_turns=0.5).matrix(),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(ops.XYGate(turns=0, axis_phase_turns=0.25).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=0,
+                                  axis_half_turns=0.5).matrix(),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(ops.XYGate(turns=-0.25, axis_phase_turns=0.25).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=-0.5,
+                                  axis_half_turns=0.5).matrix(),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
-    assert np.allclose(ops.XYGate(turns=0.5).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=1).matrix(),
                        np.array([[0, 1], [1, 0]]))
 
-    assert np.allclose(ops.XYGate(turns=0.25).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=0.5).matrix(),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(ops.XYGate(turns=0).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=0).matrix(),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(ops.XYGate(turns=-0.25).matrix(),
+    assert np.allclose(ops.XYGate(half_turns=-0.5).matrix(),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
