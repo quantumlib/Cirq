@@ -33,22 +33,22 @@ def proto_matches_text(proto: message, expected_as_text: str):
 
 
 def test_cz_init():
-    cz = ops.CZGate(2.5)
+    cz = ops.CZGate(turns=2.5)
     assert cz.turns == 0.5
     assert cz.turns_param_key == ''
 
 
 def test_cz_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.CZGate(), ops.CZGate(0.5), ops.CZ)
-    eq.add_equality_group(ops.CZGate(1.75), ops.CZGate(-0.25))
-    eq.make_equality_pair(lambda: ops.CZGate(0))
-    eq.make_equality_pair(lambda: ops.CZGate(0.25))
+    eq.add_equality_group(ops.CZGate(), ops.CZGate(turns=0.5), ops.CZ)
+    eq.add_equality_group(ops.CZGate(turns=1.75), ops.CZGate(turns=-0.25))
+    eq.make_equality_pair(lambda: ops.CZGate(turns=0))
+    eq.make_equality_pair(lambda: ops.CZGate(turns=0.25))
 
 
 def test_cz_to_proto():
     assert proto_matches_text(
-        ops.CZGate(0.25).to_proto(ops.QubitId(2, 3), ops.QubitId(4, 5)),
+        ops.CZGate(turns=0.25).to_proto(ops.QubitId(2, 3), ops.QubitId(4, 5)),
         """
         cz {
             target1 {
@@ -67,30 +67,31 @@ def test_cz_to_proto():
 
 
 def test_cz_extrapolate():
-    assert ops.CZGate(0.5).extrapolate_effect(0.5) == ops.CZGate(0.25)
+    assert ops.CZGate(
+        turns=0.5).extrapolate_effect(0.5) == ops.CZGate(turns=0.25)
     assert ops.CZ**-0.25 == ops.CZGate(turns=1.75 / 2)
 
 
 def test_cz_matrix():
-    assert np.allclose(ops.CZGate(0.5).matrix(),
+    assert np.allclose(ops.CZGate(turns=0.5).matrix(),
                        np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, -1]]))
 
-    assert np.allclose(ops.CZGate(0.25).matrix(),
+    assert np.allclose(ops.CZGate(turns=0.25).matrix(),
                        np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, 1j]]))
 
-    assert np.allclose(ops.CZGate(0).matrix(),
+    assert np.allclose(ops.CZGate(turns=0).matrix(),
                        np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
                                [0, 0, 0, 1]]))
 
-    assert np.allclose(ops.CZGate(-0.25).matrix(),
+    assert np.allclose(ops.CZGate(turns=-0.25).matrix(),
                        np.array([[1, 0, 0, 0],
                                [0, 1, 0, 0],
                                [0, 0, 1, 0],
@@ -98,27 +99,28 @@ def test_cz_matrix():
 
 
 def test_z_init():
-    z = ops.ZGate(2.5)
+    z = ops.ZGate(turns=2.5)
     assert z.turns == 0.5
     assert z.turns_param_key == ''
 
 
 def test_z_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.ZGate(), ops.ZGate(0.5), ops.Z)
-    eq.add_equality_group(ops.ZGate(1.75), ops.ZGate(-0.25))
-    eq.make_equality_pair(lambda: ops.ZGate(0))
-    eq.make_equality_pair(lambda: ops.ZGate(0.25))
+    eq.add_equality_group(ops.ZGate(), ops.ZGate(turns=0.5), ops.Z)
+    eq.add_equality_group(ops.ZGate(turns=1.75), ops.ZGate(turns=-0.25))
+    eq.make_equality_pair(lambda: ops.ZGate(turns=0))
+    eq.make_equality_pair(lambda: ops.ZGate(turns=0.25))
 
 
 def test_z_extrapolate():
-    assert ops.ZGate(0.5).extrapolate_effect(0.5) == ops.ZGate(0.25)
+    assert ops.ZGate(
+        turns=0.5).extrapolate_effect(0.5) == ops.ZGate(turns=0.25)
     assert ops.Z**-0.25 == ops.ZGate(turns=1.75 / 2)
 
 
 def test_z_to_proto():
     assert proto_matches_text(
-        ops.ZGate(0.25).to_proto(ops.QubitId(2, 3)),
+        ops.ZGate(turns=0.25).to_proto(ops.QubitId(2, 3)),
         """
         z {
             target {
@@ -133,10 +135,14 @@ def test_z_to_proto():
 
 
 def test_z_matrix():
-    assert np.allclose(ops.ZGate(0.5).matrix(), np.array([[1, 0], [0, -1]]))
-    assert np.allclose(ops.ZGate(0.25).matrix(), np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(ops.ZGate(0).matrix(), np.array([[1, 0], [0, 1]]))
-    assert np.allclose(ops.ZGate(-0.25).matrix(), np.array([[1, 0], [0, -1j]]))
+    assert np.allclose(ops.ZGate(turns=0.5).matrix(),
+                       np.array([[1, 0], [0, -1]]))
+    assert np.allclose(ops.ZGate(turns=0.25).matrix(),
+                       np.array([[1, 0], [0, 1j]]))
+    assert np.allclose(ops.ZGate(turns=0).matrix(),
+                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(ops.ZGate(turns=-0.25).matrix(),
+                       np.array([[1, 0], [0, -1j]]))
 
 
 def test_xy_init():
@@ -149,13 +155,15 @@ def test_xy_init():
 
 def test_xy_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.XYGate(), ops.XYGate(0, 0.5), ops.X)
-    eq.add_equality_group(ops.XYGate(1.75, 1.125),
-                          ops.XYGate(-0.25, 0.125))
-    eq.add_equality_group(ops.XYGate(0.25, 0.375),
-                          ops.XYGate(-0.25, -0.375))
-    eq.make_equality_pair(lambda: ops.XYGate(0, 0))
-    eq.make_equality_pair(lambda: ops.XYGate(0.25, 0.25))
+    eq.add_equality_group(ops.XYGate(), ops.XYGate(axis_phase_turns=0,
+                                                   turns=0.5), ops.X)
+    eq.add_equality_group(ops.XYGate(axis_phase_turns=1.75, turns=1.125),
+                          ops.XYGate(axis_phase_turns=-0.25, turns=0.125))
+    eq.add_equality_group(ops.XYGate(axis_phase_turns=0.25, turns=0.375),
+                          ops.XYGate(axis_phase_turns=-0.25, turns=-0.375))
+    eq.make_equality_pair(lambda: ops.XYGate(axis_phase_turns=0, turns=0))
+    eq.make_equality_pair(lambda: ops.XYGate(axis_phase_turns=0.25,
+                                             turns=0.25))
 
 
 def test_xy_extrapolate():
