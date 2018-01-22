@@ -141,7 +141,7 @@ def single_qubit_matrix_to_native_gates(
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
         ops.XYGate(turns=xy_turn, axis_phase_turns=xy_phase_turn),
-        ops.ZGate(total_z_turn)
+        ops.ZGate(turns=total_z_turn)
     ]
     result = [g for g in result if g.trace_distance_bound() > tolerance]
 

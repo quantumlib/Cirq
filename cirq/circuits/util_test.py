@@ -131,8 +131,10 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
                           for _ in range(10)])
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
-    intended_effect = ops.ZGate(pre_turns).matrix().dot(
-        ops.XYGate(turns=0.5).matrix()).dot(ops.ZGate(post_turns).matrix())
+    intended_effect = linalg.dot(
+        ops.ZGate(turns=pre_turns).matrix(),
+        ops.XYGate(turns=0.5).matrix(),
+        ops.ZGate(turns=post_turns).matrix())
 
     gates = circuits.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)
