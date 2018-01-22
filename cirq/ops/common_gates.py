@@ -33,18 +33,13 @@ class CZGate(native_gates.ParameterizedCZGate,
   """
 
     def __init__(self, *positional_args,
-                 turns: float=None,
-                 half_turns: float=None):
+                 half_turns: float=1.0):
         assert not positional_args
-        if turns is None and half_turns is None:
-            half_turns = 1.0
-        turns = turns or 0
-        half_turns = half_turns or 0
-        super(CZGate, self).__init__(turns_offset=turns + half_turns/2.0)
+        super(CZGate, self).__init__(turns_offset=half_turns/2.0)
 
     def extrapolate_effect(self, factor) -> 'CZGate':
         """See base class."""
-        return CZGate(turns=self.turns * factor)
+        return CZGate(half_turns=self.half_turns * factor)
 
     def ascii_exponent(self):
         return self.turns * 2
