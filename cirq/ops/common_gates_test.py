@@ -150,8 +150,8 @@ def test_z_matrix():
 
 def test_xy_init():
     y = ops.XYGate(half_turns=4.5, axis_half_turns=2.25)
-    assert y.turns == 0.25
-    assert y.axis_phase_turns == 0.125
+    assert y.half_turns == 0.5
+    assert y.axis_half_turns == 0.25
     assert y.turns_param_key == ''
     assert y.axis_phase_turns_key == ''
 
