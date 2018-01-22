@@ -133,7 +133,7 @@ class EjectZ(OptimizationPass):
             elif isinstance(op.gate, ops.ExpZGate):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
-                lost_phase_turns += op.gate.half_turns/2
+                lost_phase_turns += op.gate.half_turns / 2
 
             elif isinstance(op.gate, ops.PhaseableGate):
                 # Adjust phaseable gates to account for the lost phase.
@@ -165,7 +165,7 @@ class EjectZ(OptimizationPass):
             circuit.insert(
                 drain + 1,
                 ops.ExpZGate(
-                    half_turns=op.gate.half_turns + accumulated_phase*2).on(
+                    half_turns=op.gate.half_turns + accumulated_phase * 2).on(
                         qubit),
                 InsertStrategy.INLINE)
             return
