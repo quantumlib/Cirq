@@ -29,9 +29,9 @@ message ParameterizedFloat {
 // A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
 //
 // This gate is exp(i * pi * H(theta) * t) where
-//   H(theta) = cos(pi * theta) X + sin(pi * theta) Y
+//   W(theta) = cos(pi * theta) X + sin(pi * theta) Y
 // or in matrix form
-//   H(theta) = [[0, cos(pi * theta) - i sin(pi * theta)], [cos(pi * theta) + i sin(pi * theta), 0]]
+//   W(theta) = [[0, cos(pi * theta) - i sin(pi * theta)], [cos(pi * theta) + i sin(pi * theta), 0]]
 message ExpW {
   // The qubit to rotate.
   Qubit target = 1;
