@@ -178,8 +178,7 @@ class ParameterizedZGate(NativeGate, gate_features.PhaseableGate):
     def __init__(self, turns_param_key: str = '',
                  turns_offset: float = 0.0):
         self.turns_param_key = turns_param_key
-        self.turns = _signed_mod_unity(turns_offset)
-        self.half_turns = self.turns * 2.0
+        self.half_turns = _signed_mod_unity(turns_offset) * 2.0
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -192,25 +191,27 @@ class ParameterizedZGate(NativeGate, gate_features.PhaseableGate):
         op = operations_pb2.Operation()
         op.z.target.x = q.x
         op.z.target.y = q.y
-        op.z.turns.raw = self.turns / 2
+        op.z.turns.raw = self.half_turns / 4
         op.z.turns.parameter_key = self.turns_param_key
         return op
 
     def __repr__(self):
-        return 'ParameterizedZGate({}, {})'.format(
-            repr(self.turns_param_key), repr(self.turns))
+        return 'ParameterizedZGate(turns_param_key={}, half_turns={})'.format(
+            repr(self.turns_param_key), repr(self.half_turns))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
         return (self.turns_param_key == other.turns_param_key and
-                self.turns == other.turns)
+                self.half_turns == other.half_turns)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((ParameterizedZGate, self.turns_param_key, self.turns))
+        return hash((ParameterizedZGate,
+                     self.turns_param_key,
+                     self.half_turns))
 
 
 def _signed_mod_unity(r):
