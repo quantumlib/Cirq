@@ -70,22 +70,16 @@ class XYGate(native_gates.ParameterizedXYGate,
     """Fixed rotation around an axis in the XY plane of the Bloch sphere."""
 
     def __init__(self, *positional_args,
-                 turns: float = None,
-                 half_turns: float = None,
-                 axis_phase_turns: float = 0.0,
-                 axis_half_turns: float = 0.0):
+                 half_turns: float = 1,
+                 axis_half_turns: float = 0):
         assert not positional_args
-        if turns is None and half_turns is None:
-            half_turns = 1.0
-        turns = turns or 0
-        half_turns = half_turns or 0
         super(XYGate, self).__init__(
-            axis_phase_turns_offset=axis_phase_turns + axis_half_turns/2.0,
-            turns_offset=turns + half_turns/2.0)
+            axis_phase_turns_offset=axis_half_turns/2.0,
+            turns_offset=half_turns/2.0)
 
     def phase_by(self, phase_turns, qubit_index):
-        return XYGate(axis_phase_turns=self.axis_phase_turns + phase_turns,
-                      turns=self.turns)
+        return XYGate(axis_half_turns=self.axis_half_turns + 2*phase_turns,
+                      half_turns=self.half_turns)
 
     def ascii_exponent(self):
         return self.turns * 2
@@ -103,8 +97,8 @@ class XYGate(native_gates.ParameterizedXYGate,
 
     def extrapolate_effect(self, factor) -> 'XYGate':
         """See base class."""
-        return XYGate(axis_phase_turns=self.axis_phase_turns,
-                      turns=self.turns * factor)
+        return XYGate(axis_half_turns=self.axis_half_turns,
+                      half_turns=self.half_turns * factor)
 
     def matrix(self):
         """See base class."""
@@ -165,7 +159,7 @@ class ZGate(native_gates.ParameterizedZGate,
 
 
 X = XYGate()  # Pauli X gate.
-Y = XYGate(axis_phase_turns=0.25)  # Pauli Y gate.
+Y = XYGate(axis_half_turns=0.5)  # Pauli Y gate.
 Z = ZGate()  # Pauli Z gate.
 CZ = CZGate()  # Negates the amplitude of the |11> state.
 

@@ -140,7 +140,7 @@ def single_qubit_matrix_to_native_gates(
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
-        ops.XYGate(turns=xy_turn, axis_phase_turns=xy_phase_turn),
+        ops.XYGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
         ops.ZGate(half_turns=2*total_z_turn)
     ]
     result = [g for g in result if g.trace_distance_bound() > tolerance]
@@ -148,8 +148,7 @@ def single_qubit_matrix_to_native_gates(
     # Special case: XY half-turns can absorb Z rotations.
     if len(result) == 2 and abs(xy_turn) >= 0.5 - tolerance:
         return [
-            ops.XYGate(
-                turns=0.5, axis_phase_turns=xy_phase_turn + total_z_turn / 2)
+            ops.XYGate(axis_half_turns=2*xy_phase_turn + total_z_turn)
         ]
 
     return result
