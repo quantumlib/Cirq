@@ -32,9 +32,15 @@ class CZGate(native_gates.ParameterizedCZGate,
   A ParameterizedCZGate guaranteed to not be using the parameter key field.
   """
 
-    def __init__(self, *positional_args, turns=0.5):
+    def __init__(self, *positional_args,
+                 turns: float=None,
+                 half_turns: float=None):
         assert not positional_args
-        super(CZGate, self).__init__(turns_offset=turns)
+        if turns is None and half_turns is None:
+            half_turns = 1.0
+        turns = turns or 0
+        half_turns = half_turns or 0
+        super(CZGate, self).__init__(turns_offset=turns + half_turns/2.0)
 
     def extrapolate_effect(self, factor) -> 'CZGate':
         """See base class."""
@@ -68,10 +74,19 @@ class XYGate(native_gates.ParameterizedXYGate,
              gate_features.PhaseableGate):
     """Fixed rotation around an axis in the XY plane of the Bloch sphere."""
 
-    def __init__(self, *positional_args, axis_phase_turns=0.0, turns=0.5):
+    def __init__(self, *positional_args,
+                 turns: float = None,
+                 half_turns: float = None,
+                 axis_phase_turns: float = 0.0,
+                 axis_half_turns: float = 0.0):
         assert not positional_args
+        if turns is None and half_turns is None:
+            half_turns = 1.0
+        turns = turns or 0
+        half_turns = half_turns or 0
         super(XYGate, self).__init__(
-            axis_phase_turns_offset=axis_phase_turns, turns_offset=turns)
+            axis_phase_turns_offset=axis_phase_turns + axis_half_turns/2.0,
+            turns_offset=turns + half_turns/2.0)
 
     def phase_by(self, phase_turns, qubit_index):
         return XYGate(axis_phase_turns=self.axis_phase_turns + phase_turns,
@@ -125,9 +140,15 @@ class ZGate(native_gates.ParameterizedZGate,
             gate_features.AsciiDiagrammableGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args, turns=0.5):
+    def __init__(self, *positional_args,
+                 turns: float = None,
+                 half_turns: float = None):
         assert not positional_args
-        super(ZGate, self).__init__(turns_offset=turns)
+        if turns is None and half_turns is None:
+            half_turns = 1.0
+        turns = turns or 0
+        half_turns = half_turns or 0
+        super(ZGate, self).__init__(turns_offset=turns + half_turns / 2.0)
 
     def ascii_exponent(self):
         return self.turns * 2

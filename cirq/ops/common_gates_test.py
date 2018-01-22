@@ -33,8 +33,8 @@ def proto_matches_text(proto: message, expected_as_text: str):
 
 
 def test_cz_init():
-    cz = ops.CZGate(turns=2.5)
-    assert cz.turns == 0.5
+    cz = ops.CZGate(half_turns=5)
+    assert cz.half_turns == 1
     assert cz.turns_param_key == ''
 
 
@@ -48,7 +48,8 @@ def test_cz_eq():
 
 def test_cz_to_proto():
     assert proto_matches_text(
-        ops.CZGate(turns=0.25).to_proto(ops.QubitId(2, 3), ops.QubitId(4, 5)),
+        ops.CZGate(half_turns=0.5).to_proto(
+            ops.QubitId(2, 3), ops.QubitId(4, 5)),
         """
         cz {
             target1 {
