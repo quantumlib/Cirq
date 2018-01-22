@@ -75,7 +75,7 @@ class EjectZ(OptimizationPass):
 
             if start_z is None:
                 # Unparameterized Zs start optimization ranges.
-                if (isinstance(op.gate, ops.ParameterizedZGate) and
+                if (isinstance(op.gate, ops.ExpZGate) and
                         not op.gate.turns_param_key):
                     start_z = i
                     prev_z = None
@@ -85,7 +85,7 @@ class EjectZ(OptimizationPass):
                 yield start_z, i
                 start_z = None
 
-            elif isinstance(op.gate, ops.ParameterizedZGate):
+            elif isinstance(op.gate, ops.ExpZGate):
                 if op.gate.turns_param_key:
                     # Parameterized Z gates can't move, but can drain.
                     yield start_z, i
@@ -129,7 +129,7 @@ class EjectZ(OptimizationPass):
                 # Empty.
                 pass
 
-            elif isinstance(op.gate, ops.ParameterizedZGate):
+            elif isinstance(op.gate, ops.ExpZGate):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
                 lost_phase_turns += op.gate.half_turns/2
@@ -159,11 +159,11 @@ class EjectZ(OptimizationPass):
 
         # Drain type: another Z gate.
         op = circuit.operation_at(qubit, drain)
-        if isinstance(op.gate, ops.ParameterizedZGate):
+        if isinstance(op.gate, ops.ExpZGate):
             circuit.clear_operations_touching([qubit], [drain])
             circuit.insert(
                 drain + 1,
-                ops.ParameterizedZGate(
+                ops.ExpZGate(
                     op.gate.turns_param_key,
                     accumulated_phase + op.gate.half_turns/2).on(qubit),
                 InsertStrategy.INLINE)
