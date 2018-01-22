@@ -70,6 +70,7 @@ class ParameterizedCZGate(NativeGate, gate_features.PhaseableGate):
                  turns_offset: float = 0.0):
         self.turns_param_key = turns_param_key
         self.turns = _signed_mod_unity(turns_offset)
+        self.half_turns = self.turns * 2.0
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -125,6 +126,9 @@ class ParameterizedXYGate(NativeGate, gate_features.PhaseableGate):
                 self.axis_phase_turns + 0.5)
             self.turns = _signed_mod_unity(-turns_offset)
 
+        self.half_turns = self.turns * 2.0
+        self.axis_half_turns = self.axis_phase_turns * 2.0
+
     def to_proto(self, *qubits):
         if len(qubits) != 1:
             raise ValueError('Wrong number of qubits.')
@@ -174,6 +178,7 @@ class ParameterizedZGate(NativeGate, gate_features.PhaseableGate):
                  turns_offset: float = 0.0):
         self.turns_param_key = turns_param_key
         self.turns = _signed_mod_unity(turns_offset)
+        self.half_turns = self.turns * 2.0
 
     def phase_by(self, phase_turns, qubit_index):
         return self
