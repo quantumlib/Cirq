@@ -82,18 +82,18 @@ class XYGate(native_gates.ParameterizedXYGate,
                       half_turns=self.half_turns)
 
     def ascii_exponent(self):
-        return self.turns * 2
+        return self.half_turns
 
     def ascii_wire_symbols(self):
-        if self.axis_phase_turns == 0:
+        if self.axis_half_turns == 0:
             return 'X',
-        if self.axis_phase_turns == 0.25:
+        if self.axis_half_turns == 0.5:
             return 'Y',
-        return 'XY({})'.format(repr(self.axis_phase_turns)),
+        return 'XY({})'.format(repr(self.axis_half_turns)),
 
     def trace_distance_bound(self):
         """See base class."""
-        return abs(self.turns) * 7
+        return abs(self.half_turns) * 3.5
 
     def extrapolate_effect(self, factor) -> 'XYGate':
         """See base class."""
@@ -103,23 +103,23 @@ class XYGate(native_gates.ParameterizedXYGate,
     def matrix(self):
         """See base class."""
         phase = ZGate(half_turns=self.axis_half_turns).matrix()
-        c = np.exp(2j * np.pi * self.turns)
+        c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return phase.dot(rot).dot(np.conj(phase))
 
     def __repr__(self):
-        if self.axis_phase_turns == 0:
-            if self.turns == 0.5:
+        if self.axis_half_turns == 0:
+            if self.half_turns == 1:
                 return 'X'
-            return 'X**{}'.format(repr(self.turns * 2))
+            return 'X**{}'.format(repr(self.half_turns))
 
-        if self.axis_phase_turns == 0.25:
-            if self.turns == 0.5:
+        if self.axis_half_turns == 0.5:
+            if self.half_turns == 1:
                 return 'Y'
-            return 'Y**{}'.format(repr(self.turns * 2))
+            return 'Y**{}'.format(repr(self.half_turns))
 
-        return 'XYGate({}, {})'.format(
-            repr(self.axis_phase_turns), repr(self.turns))
+        return 'XYGate(axis_half_turns={}, half_turns={})'.format(
+            repr(self.axis_half_turns), repr(self.half_turns))
 
 
 class ZGate(native_gates.ParameterizedZGate,
