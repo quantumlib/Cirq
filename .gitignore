@@ -1,5 +1,7 @@
 # ignore compiled python files
 __pycache__
 *.pyc
+# ignore idea SDK 
 .idea/*
-
+# ignore cache
+.cache/*

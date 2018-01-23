@@ -21,7 +21,7 @@ import numpy as np
 from absl import app
 from absl import flags
 
-from cirq.sim.google import xmon_simulator
+from cirq.sim.google import xmon_stepper
 
 FLAGS = flags.FLAGS
 
@@ -40,48 +40,50 @@ def simulate(num_qubits, num_gates):
     """"Runs the xmon_simulator."""
     ops = []
     for _ in range(num_gates):
-        which = np.random.choice(['z', 'xy', 'cz'])
-        if which == 'xy':
-            ops.append(('xy', np.random.randint(num_qubits), np.random.random(),
+        which = np.random.choice(['expz', 'expw', 'exp11'])
+        if which == 'expw':
+            ops.append(('expw', np.random.randint(num_qubits), np.random.random(),
                         np.random.random()))
-        elif which == 'z':
-            ops.append(('z', np.random.randint(num_qubits), np.random.random()))
-        elif which == 'cz':
-            ops.append(('z', np.random.randint(num_qubits), np.random.random(),
+        elif which == 'expz':
+            ops.append(('expz', np.random.randint(num_qubits), np.random.random()))
+        elif which == 'exp11':
+            ops.append(('exp11', np.random.randint(num_qubits),
+                        np.random.randint(num_qubits),
                         np.random.random()))
 
     current_moment = num_qubits * [0]
     moments = [[]]
 
     for op in ops:
-        if op[0] == 'xy' or op[0] == 'z':
+        if op[0] == 'expw' or op[0] == 'expz':
             index = op[1]
             new_moment = current_moment[index]
             if len(moments) == new_moment:
                 moments.append([])
             moments[new_moment].append(op)
             current_moment[index] = new_moment + 1
-        elif op[0] == 'cz':
+        elif op[0] == 'exp11':
             index0 = op[1]
             index1 = op[2]
-            new_moment = max(index0, index1)
+            new_moment = max(current_moment[index0], current_moment[index1])
             if len(moments) == new_moment:
                 moments.append([])
             moments[new_moment].append(op)
             current_moment[index0] = new_moment + 1
             current_moment[index1] = new_moment + 1
 
-    with xmon_simulator.XmonSimulator(
+    with xmon_stepper.XmonStepper(
         num_qubits=num_qubits, num_prefix_qubits=2) as s:
         for moment in moments:
             phase_map = {}
             for op in moment:
-                if op[0] == 'z':
+                if op[0] == 'expz':
                     phase_map[(op[1],)] = op[2]
-                elif op[0] == 'cz':
+                elif op[0] == 'exp11':
                     phase_map[(op[1], op[2])] = op[3]
-                elif op[0] == 'xy':
-                    s.simulate_xy(op[1], op[2], op[3])
+                elif op[0] == 'expw':
+                    s.simulate_w(op[1], op[2], op[3])
+            s.simulate_phases(phase_map)
 
 
 def main(argv):
