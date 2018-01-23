@@ -29,22 +29,23 @@ import numpy as np
 from cirq.sim.google import mem_manager
 
 
-class XmonSimulator(object):
+class XmonStepper(object):
     """A wave function simulator for quantum circuits with the xmon gate set.
 
     Xmons have a natural gate set made up of
 
     * Single qubit phase gates, exp(i t Z)
-    * Single qubit XY gates, exp(i t (cos(theta) X + sin(theta)Y)
+    * Single qubit gates about a operation in the Pauli X/Y plane,
+      exp(i t (cos(theta) X + sin(theta)Y)
     * Two qubit phase gates exp(i t |11><11|)
 
-    This simulator will do sharded simulation of the wave function using
+    This stepper will do sharded simulation of the wave function using
     python's multiprocessing module.
 
-    Simulator should be used like a context manager:
+    The stepper should be used like a context manager:
       with XmonSimulator(num_qubits=3) as s:
-        s.simulate_z(1, 0.25)
-        s.simulate_xy(2, 0.25, 0.25)
+        s.simulate_phases((1, 0.25))
+        s.simulate_w(2, 0.25, 0.25)
         ...
     """
 
@@ -209,15 +210,16 @@ class XmonSimulator(object):
           phase_map: A map from a tuple of indices to a value, one for each
             phase gate being simulated. If the tuple key has one index, then
             this is a Z phase gate on the index-th qubit with a rotation angle
-            of 2 pi times the value of the map. If the tuple key has two
+            of pi times the value of the map. If the tuple key has two
             indices, then this is a |11> phasing gate, acting on the qubits at
-            the two indices, and a rotation angle of 2 pi times the value of
+            the two indices, and a rotation angle of pi times the value of
             the map.
         """
         self._pool.map(_clear_scratch, self._shard_num_args())
         # Iterate over the map of phase data.
-        for indices, turns in phase_map.items():
-            args = self._shard_num_args({'indices': indices, 'turns': turns})
+        for indices, half_turns in phase_map.items():
+            args = self._shard_num_args(
+                {'indices': indices, 'half_turns': half_turns})
             if len(indices) == 1:
                 self._pool.map(_single_qubit_accumulate_into_scratch, args)
             elif len(indices) == 2:
@@ -225,31 +227,32 @@ class XmonSimulator(object):
         # Exponentiate the phases and add them into the state.
         self._pool.map(_apply_scratch_as_phase, self._shard_num_args())
 
-    def simulate_xy(self, index: int, turns: float, rotation_axis_turns: float):
-        """Simulate a single qubit XY rotation gate.
+    def simulate_w(self, index: int, half_turns: float,
+        axis_half_turns: float):
+        """Simulate a single qubit rotation gate about a X + b Y.
 
-        The gate simulated is cos(2 pi turns) I + i sin (2 pi turns) *
-        (cos (2 pi rotation_axis_turns) X + sin(2 pi rotation_axis_turns))
+        The gate simulated is cos(pi half_turns) I + i sin (2 pi half_turns) *
+        (cos (pi axis_half_turns) X + sin(pi axis_half_turns) Y)
 
         Args:
           index: The qubit to act on.
-          turns: The amount of the overall rotation, see formula above.
-          rotation_axis_turns: The angle between the pauli X and Y operators,
+          half_turns: The amount of the overall rotation, see the formula above.
+          axis_half_turns: The angle between the pauli X and Y operators,
             see the formula above.
         """
         args = self._shard_num_args({
             'index': index,
-            'turns': turns,
-            'rotation_axis_turns': rotation_axis_turns
+            'half_turns': half_turns,
+            'axis_half_turns': axis_half_turns
         })
         if index >= self._num_shard_qubits:
-            # XY gate spans shards.
+            # W gate spans shards.
             self._pool.map(_clear_scratch, args)
-            self._pool.map(_xy_between_shards, args)
+            self._pool.map(_w_between_shards, args)
             self._pool.map(_copy_scratch_to_state, args)
         else:
-            # XY gate is within a shard.
-            self._pool.map(_xy_within_shard, args)
+            # W gate is within a shard.
+            self._pool.map(_w_within_shard, args)
 
     def simulate_measurement(self, index: int) -> bool:
         """Simulates a single qubit measurement in the computational basis.
@@ -317,17 +320,17 @@ def _single_qubit_accumulate_into_scratch(args: Dict[str, Any]):
     """Accumuates single qubit phase gates into the scratch shards."""
     index = args['indices'][0]
     shard_num = args['shard_num']
-    turns = args['turns']
+    half_turns = args['half_turns']
     num_shard_qubits = args['num_shard_qubits']
     scratch = _scratch_shard(args)
 
     if index >= num_shard_qubits:
         # Acts on prefix qubits.
         sign = 1 - 2 * _kth_bit(shard_num, index - num_shard_qubits)
-        scratch += turns * sign
+        scratch += half_turns * sign
     else:
         # Acts on shard qubits.
-        scratch += turns * _pm_vects(args)[index]
+        scratch += half_turns * _pm_vects(args)[index]
 
 
 def _one_projector(args: Dict[str, Any], index: int) -> np.ndarray:
@@ -342,24 +345,24 @@ def _one_projector(args: Dict[str, Any], index: int) -> np.ndarray:
 def _two_qubit_accumulate_into_scratch(args: Dict[str, Any]):
     """Accumulates two qubit phase gates into the scratch shards."""
     index0, index1 = args['indices']
-    turns = args['turns']
+    half_turns = args['half_turns']
     scratch = _scratch_shard(args)
 
-    sign = 1 - 2 * _one_projector(args, index0) * _one_projector(args, index1)
-    scratch += turns * sign
+    projector = _one_projector(args, index0) * _one_projector(args, index1)
+    scratch += half_turns * projector
 
 
 def _apply_scratch_as_phase(args: Dict[str, Any]):
     """Takes scratch shards and applies them as exponentiated phase to state."""
     state = _state_shard(args)
-    state *= np.exp((2j * np.pi) * _scratch_shard(args))
+    state *= np.exp((1j * np.pi) * _scratch_shard(args))
 
 
-def _xy_within_shard(args: Dict[str, Any]):
-    """Applies an XY gate when the gate acts only within a shard."""
+def _w_within_shard(args: Dict[str, Any]):
+    """Applies a W gate when the gate acts only within a shard."""
     index = args['index']
-    turns = args['turns']
-    rotation_axis_turns = args['rotation_axis_turns']
+    half_turns = args['half_turns']
+    axis_half_turns = args['axis_half_turns']
     state = _state_shard(args)
     pm_vect = _pm_vects(args)[index]
     num_shard_qubits = args['num_shard_qubits']
@@ -368,35 +371,36 @@ def _xy_within_shard(args: Dict[str, Any]):
     reshape_tuple = (2 ** (num_shard_qubits - 1 - index), 2, 2 ** index)
     perm_state = np.reshape(
         np.reshape(state, reshape_tuple)[:, ::-1, :], shard_size)
-    cos = np.cos(2 * np.pi * turns)
-    sin = np.sin(2 * np.pi * turns)
+    cos = np.cos(np.pi * half_turns)
+    sin = np.sin(np.pi * half_turns)
 
-    cos_axis = np.cos(2 * np.pi * rotation_axis_turns)
-    sin_axis = np.sin(2 * np.pi * rotation_axis_turns)
+    cos_axis = np.cos(np.pi * axis_half_turns)
+    sin_axis = np.sin(np.pi * axis_half_turns)
 
     new_state = cos * state + 1j * sin * perm_state * (
         cos_axis - 1j * sin_axis * pm_vect)
     np.copyto(state, new_state)
 
 
-def _xy_between_shards(args: Dict[str, Any]):
-    """Applies an XY gate when the gate acts between shards."""
+def _w_between_shards(args: Dict[str, Any]):
+    """Applies a W gate when the gate acts between shards."""
     shard_num = args['shard_num']
     state = _state_shard(args)
     num_shard_qubits = args['num_shard_qubits']
     index = args['index']
-    turns = args['turns']
-    rotation_axis_turns = args['rotation_axis_turns']
+    half_turns = args['half_turns']
+
+    axis_half_turns = args['axis_half_turns']
 
     perm_index = shard_num ^ (1 << (index - num_shard_qubits))
     perm_state = mem_manager.SharedMemManager.get_array(
         args['state_handle']).view(np.complex64)[perm_index]
 
-    cos = np.cos(2 * np.pi * turns)
-    sin = np.sin(2 * np.pi * turns)
+    cos = np.cos(np.pi * half_turns)
+    sin = np.sin(np.pi * half_turns)
 
-    cos_axis = np.cos(2 * np.pi * rotation_axis_turns)
-    sin_axis = np.sin(2 * np.pi * rotation_axis_turns)
+    cos_axis = np.cos(np.pi * axis_half_turns)
+    sin_axis = np.sin(np.pi * axis_half_turns)
 
     scratch = _scratch_shard(args)
     z_op = (1 - 2 * _kth_bit(shard_num, index - num_shard_qubits))
