@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Wavefunction simulator specialized to Google's xmon gate set."""
+"""Wavefunction simulator specialized to Google's xmon gate set.
+
+This class should not be used directly, see instead Simulator in the
+xmon_simulator class.
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -29,7 +33,7 @@ import numpy as np
 from cirq.sim.google import mem_manager
 
 
-class XmonStepper(object):
+class Stepper(object):
     """A wave function simulator for quantum circuits with the xmon gate set.
 
     Xmons have a natural gate set made up of
@@ -42,11 +46,17 @@ class XmonStepper(object):
     This stepper will do sharded simulation of the wave function using
     python's multiprocessing module.
 
-    The stepper should be used like a context manager:
-      with XmonSimulator(num_qubits=3) as s:
+    This stepper can be used like a context manager:
+      with Stepper(num_qubits=3) as s:
         s.simulate_phases((1, 0.25))
         s.simulate_w(2, 0.25, 0.25)
         ...
+    In this case the stepper will shut down the multiprocessing pool upon
+    exiting the with context.
+
+    If the  stepper is not used as a context manager, then it is required that
+    __exit__ be called in order to ensure that the multiprocessing pool is
+    properly closed (__enter__ does not need to be called).
     """
 
     def __init__(self,
@@ -63,9 +73,11 @@ class XmonStepper(object):
             shard over the nearest power of two below the cpu count. If less
             than 10 qubits are being simulated then no sharding is done,
             depending on whether the shard_for_small_num_qubits is set or not.
-          initial_state: The initial state to start from, expressed as an
-            integer of the computational basis. Integer to bitwise indices is
-            little endian.
+          initial_state: If this is an int, then this is the state to initialize
+            the stepper to, expressed as an integer of the computational basis.
+            Integer to bitwise indices is little endian. Otherwise if this is
+            a np.ndarray this must be the correct size and have dtype of
+            np.complex64 and this is the full initial state.
           shard_for_small_num_qubits: Whether or not to shard for strictly less
             than 10 qubits, default to True. Useful to turn off for testing.
         """
@@ -85,6 +97,7 @@ class XmonStepper(object):
 
         # TODO(dabacon): This could be parallelized.
         self._init_shared_mem(initial_state)
+        self._pool_open = False
 
     def _init_shared_mem(self, initial_state: int):
         self._shared_mem_dict = {}
@@ -139,10 +152,16 @@ class XmonStepper(object):
 
     def _init_state(self, initial_state: int):
         """Initializes a the shard wavefunction and sets the initial state."""
-        state = np.zeros((self._num_shards, self._shard_size),
-                         dtype=np.complex64)
-        shard_num = initial_state // self._shard_size
-        state[shard_num][initial_state % self._shard_size] = 1.0
+        if isinstance(initial_state, int):
+            state = np.zeros((self._num_shards, self._shard_size),
+                             dtype=np.complex64)
+            shard_num = initial_state // self._shard_size
+            state[shard_num][initial_state % self._shard_size] = 1.0
+        elif isinstance(initial_state, np.ndarray):
+            state = np.resize(initial_state,
+                              (self._num_shards, self._shard_size))
+        else:
+            raise TypeError("Initial_state is not an int or np.ndarray.")
 
         state_handle = mem_manager.SharedMemManager.create_array(
             state.view(dtype=np.float32))
@@ -154,11 +173,13 @@ class XmonStepper(object):
 
     def __enter__(self):
         self._pool = multiprocessing.Pool(processes=self._num_shards)
+        self._pool_open = True
         return self
 
     def __exit__(self, *args):
         self._pool.close()
         self._pool.join()
+        self._pool_open = False
 
     def _shard_num_args(
         self, constant_dict: Dict[str, Any] = None) -> List[Dict[str, Any]]:
@@ -190,18 +211,50 @@ class XmonStepper(object):
     @property
     def current_state(self):
         """Returns the current wavefunction."""
+        # If the pool has been closed, recreate to calculate state.
+        if not self._pool_open:
+            self.__enter__()
         return np.array(self._pool.map(_state_shard,
                                        self._shard_num_args())).flatten()
 
-    def reset_state(self, initial_state):
-        """Reset the state to the given initial computational state.
+    def reset_state(self, reset_state):
+        """Reset the state to the given initial state.
 
         Args:
-            initial_state: The initial state to start from, expressed as an
-            integer of the computational basis. Integer to bitwise indices is
-            little endian."""
-        self._pool.map(_reset_state,
-                       self._shard_num_args({'initial_state': initial_state}))
+            reset_state: If this is an int, then this is the state to reset
+            the stepper to, expressed as an integer of the computational basis.
+            Integer to bitwise indices is little endian. Otherwise if this is
+            a np.ndarray this must be the correct size and have dtype of
+            np.complex64.
+
+        Raises:
+            ValueError if the state is incorrectly sized or not of the correct
+            dtype.
+        """
+        # If the pool has been closed, recreate to calculate state.
+        if not self._pool_open:
+            self.__enter__()
+        if isinstance(reset_state, int):
+            self._pool.map(_reset_state,
+                           self._shard_num_args({'reset_state': reset_state}))
+        elif isinstance(reset_state, np.ndarray):
+            if reset_state.size != 1 << self._num_qubits:
+                raise ValueError(
+                    "Reset state has incorrect size. Expected %s but was %s." %
+                    (reset_state.size, 1 << self._num_qubits))
+            if reset_state.dtype != np.complex64:
+                raise ValueError(
+                    "Reset state has invalid dtype. Expected %s but was %s" % (
+                        np.complex64, reset_state.dtype))
+            args = []
+            for kwargs in self._shard_num_args():
+                shard_num = kwargs['shard_num']
+                shard_size = 1 << kwargs['num_shard_qubits']
+                start = shard_num * shard_size
+                end = start + shard_size
+                kwargs['reset_state'] = reset_state[start:end]
+                args.append(kwargs)
+            self._pool.map(_reset_state, args)
 
     def simulate_phases(self, phase_map: Dict[Tuple[int], float]):
         """Simulate a set of phase gates on the xmon architecture.
@@ -215,6 +268,8 @@ class XmonStepper(object):
             the two indices, and a rotation angle of pi times the value of
             the map.
         """
+        if not self._pool_open:
+            self.__enter__()
         self._pool.map(_clear_scratch, self._shard_num_args())
         # Iterate over the map of phase data.
         for indices, half_turns in phase_map.items():
@@ -240,6 +295,8 @@ class XmonStepper(object):
           axis_half_turns: The angle between the pauli X and Y operators,
             see the formula above.
         """
+        if not self._pool_open:
+            self.__enter__()
         args = self._shard_num_args({
             'index': index,
             'half_turns': half_turns,
@@ -263,6 +320,8 @@ class XmonStepper(object):
         Returns:
           True iff the measurement result corresponds to the |1> state.
         """
+        if not self._pool_open:
+            self.__enter__()
         args = self._shard_num_args({'index': index})
         prob_one = np.sum(self._pool.map(_one_prob_per_shard, args))
         result = (np.random.random() <= prob_one)
@@ -304,11 +363,15 @@ def _kth_bit(x: int, k: int) -> int:
 def _reset_state(args: Dict[str, Any]):
     shard_num = args['shard_num']
     shard_size = 2 ** args['num_shard_qubits']
-    initial_state = args['initial_state']
+    reset_state = args['reset_state']
 
-    _state_shard(args).fill(0)
-    if shard_num == initial_state // shard_size:
-        _state_shard(args)[initial_state % shard_size] = 1.0
+    if isinstance(reset_state, int):
+        _state_shard(args).fill(0)
+        if shard_num == reset_state // shard_size:
+            _state_shard(args)[reset_state % shard_size] = 1.0
+    else:
+        np.copyto(_state_shard(args), reset_state)
+
 
 
 def _clear_scratch(args: Dict[str, Any]):

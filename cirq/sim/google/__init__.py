@@ -16,3 +16,4 @@
 """
 
 from cirq.sim.google import xmon_stepper
+from cirq.sim.google import xmon_simulator

@@ -167,3 +167,12 @@ def test_without_operations_touching():
     assert (Moment([ops.CZ(a, b),
                     ops.X(c)]).without_operations_touching([a, c]) ==
             Moment())
+
+
+def test_qubits():
+    a = ops.QubitId(0, 0)
+    b = ops.QubitId(1, 0)
+
+    assert Moment([ops.X(a), ops.X(b)]).qubits == {a , b}
+    assert Moment([ops.X(a)]).qubits == {a}
+    assert Moment([ops.CZ(a, b)]).qubits == {a, b}

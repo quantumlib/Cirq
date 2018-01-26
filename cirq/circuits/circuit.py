@@ -14,15 +14,19 @@
 
 """The circuit data structure for the sequenced phase."""
 
-from typing import Iterable, Optional, List
+import itertools
+
+from typing import Iterable, List, Optional, Set
 
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
+from cirq.ops import QubitId
 
 
 class Circuit(object):
-    """A mutable list of groups of operations to apply to some qubits."""
+    """A mutable list of groups of operations to apply to some qubits.Y
+    """
 
     def __init__(self, moments: Iterable[Moment] = ()):
         """Initializes a circuit.
@@ -251,6 +255,11 @@ class Circuit(object):
             strategy: How to pick/create the moment to put operations into.
         """
         self.insert(len(self.moments), operation_tree, strategy)
+
+    def qubits(self) -> Set[QubitId]:
+        """Returns the qubits acted upon by Operations in this circuit."""
+        return frozenset(
+            itertools.chain.from_iterable([m.qubits for m in self.moments]))
 
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self.moments)

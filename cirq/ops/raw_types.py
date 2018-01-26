@@ -46,7 +46,13 @@ class QubitId:
 
 
 class Gate:
-    """An operation type that can be applied to a collection of qubits."""
+    """An operation type that can be applied to a collection of qubits.
+
+    Gates can be applied to qubits by calling their on() method with
+    the qubits to be applied to supplied, or, alternatively, by simply
+    calling the gate on the qubits.  In other words calling MyGate.on(q1, q2)
+    to create an Operation on q1 and q2 is equivalent to MyGate(q1,q2).
+    """
 
     # noinspection PyMethodMayBeStatic
     def validate_args(self, qubits: Sequence[QubitId]) -> type(None):
