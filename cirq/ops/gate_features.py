@@ -27,7 +27,11 @@ from cirq.ops import raw_types
 
 
 class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be undone in a known way."""
+    """A gate whose effect can be undone in a known way.
+
+    Examples: The S gate, the CZ gate, and the H gate.
+    Anti-examples: The measurement gate.
+    """
 
     @abc.abstractmethod
     def inverse(self) -> 'ReversibleGate':
@@ -36,7 +40,12 @@ class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be continuously scaled up/down/negated."""
+    """A gate whose effect can be continuously scaled up/down/negated.
+
+    Examples: The Z gate, the Z**0.5 gate, the CZ gate, and the H gate.
+    Anti-examples: The measurement gate, and abstract gates representing
+        operations where it is not tractable to compute the scaled effect.
+    """
 
     @abc.abstractmethod
     def extrapolate_effect(self, factor: float) -> 'ExtrapolatableGate':
@@ -79,14 +88,17 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
 
 
 class SelfInverseGate(ReversibleGate):
-    """A reversible gate that is its own inverse."""
+    """A reversible gate that is its own inverse.
+
+    Examples: The Z gate, the X gate, and the CZ gate.
+    Anti-examples: The S gate and the measurement gate."""
 
     def inverse(self) -> 'SelfInverseGate':
         return self
 
 
 class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate with a known decomposition into multiple simpler gates."""
+    """A gate with a known decomposition into 'simpler' gates."""
 
     @abc.abstractmethod
     def default_decompose(
@@ -100,7 +112,12 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose constant non-parameterized effect has a known matrix."""
+    """A gate whose effect is described by a matrix.
+
+    Examples: The H gate, the CZ gate, and the S gate.
+    Anti-examples: The measurement gate, sweep-parameterized gates, and gates
+        with matrices too big to be useful.
+    """
 
     @abc.abstractmethod
     def matrix(self) -> np.ndarray:
@@ -123,22 +140,57 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be phased around the Z axis of target qubits."""
+    """A gate whose effect can be phased in the computational basis.
+
+    When this is implemented by a gate, phase operations can be moved across
+    the gate by phasing it when doing so.
+
+    Examples: The ExpW gate, the CZ gate (no effect).
+    Anti-examples: The CNOT gate.
+    """
 
     @abc.abstractmethod
-    def phase_by(self, phase_turns: float,
+    def phase_by(self,
+                 phase_turns: float,
                  qubit_index: int) -> 'PhaseableGate':
         """Returns a phased version of the gate.
 
-          Args:
-              phase_turns: The amount to phase the gate, in fractions of a
-                  whole turn.
-              qubit_index: The index of the target qubit the phasing applies
-                  to.
+        Args:
+            phase_turns: The amount to phase the gate, in fractions of a
+                whole turn.
+            qubit_index: The index of the target qubit the phasing applies
+                to.
 
-          Returns:
-              The phased gate.
-          """
+        Returns:
+            The phased gate.
+        """
+        pass
+
+
+class PhaseSinkGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate whose effect can absorb phasing in the computational basis.
+
+    When this is implemented by a gate, phase operations can be moved into
+    the gate by sinking phase into it.
+
+    Examples: Measurement, the parametrized ExpZ gate.
+    Anti-examples: The X gate, the CZ gate.
+    """
+
+    @abc.abstractmethod
+    def absorb_phase_by(self,
+                        phase_turns: float,
+                        qubit_index: int) -> 'PhaseSinkGate':
+        """Returns a phased version of the gate.
+
+        Args:
+            phase_turns: The amount to phase the gate, in fractions of a whole
+                turn.
+            qubit_index: The index of the target qubit the phasing applies to.
+
+        Returns:
+            The phased gate.
+        """
         pass
 
 
