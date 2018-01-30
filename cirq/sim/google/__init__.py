@@ -15,4 +15,4 @@
 """Simulators specific to Google's quantum hardware.
 """
 
-from cirq.sim.google import xmon_simulator
+from cirq.sim.google import xmon_stepper
