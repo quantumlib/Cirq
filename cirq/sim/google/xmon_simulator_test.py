@@ -56,15 +56,18 @@ def large_circuit():
 
 def test_xmon_options_negative_num_shards():
     with pytest.raises(AssertionError):
-        xmon_simulator.Options().set_num_shards(-1)
+        xmon_simulator.Options(num_shards=-1)
+
+
+def test_xmon_options_negative_min_qubits_before_shard():
+    with pytest.raises(AssertionError):
+        xmon_simulator.Options(min_qubits_before_shard=-1)
 
 
 def test_xmon_options():
-    options = (xmon_simulator.Options()
-               .set_num_shards(3)
-               .set_shard_for_small_num_qubits(False))
+    options = xmon_simulator.Options(num_shards=3, min_qubits_before_shard=0)
     assert options.num_prefix_qubits == 1
-    assert not options.shard_for_small_num_qubits
+    assert options.min_qubits_before_shard == 0
 
 
 def test_run_no_results():
@@ -105,19 +108,18 @@ def test_run_sharded():
     simulator = xmon_simulator.Simulator()
     result = simulator.run(circuit)
     assert result.measurements == {
-        'meas': [True, False, False, True, False, False, True, False, False,
-                 False]}
+        'meas': [False, False, False, True, False, False, True, False, False,
+                 True]}
 
 
 def test_run_no_sharding():
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    result = simulator.run(circuit,
-                           xmon_simulator.Options().set_num_shards(1))
+    result = simulator.run(circuit, xmon_simulator.Options(num_shards=1))
     assert result.measurements == {
-        'meas': [True, False, False, True, False, False, True, False, False,
-                 False]}
+        'meas': [False, False, False, True, False, False, True, False, False,
+                 True]}
 
 
 def test_run_no_sharing_few_qubits():
@@ -128,7 +130,7 @@ def test_run_no_sharing_few_qubits():
          ops.native_gates.MeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
-    options = xmon_simulator.Options().set_shard_for_small_num_qubits(False)
+    options = xmon_simulator.Options(min_qubits_before_shard=0)
     result = simulator.run(circuit, options=options)
     assert result.measurements == {'a': [False], 'b': [False]}
 
@@ -146,6 +148,13 @@ def test_run_set_state_nd_array():
     result.set_state(np.array([0.5, 0.5, 0.5, -0.5j], dtype=np.complex64))
     np.testing.assert_almost_equal(result.state(),
                                    np.array([0.5, 0.5, 0.5, -0.5j]))
+
+
+def test_run_set_state_nd_array():
+    simulator = xmon_simulator.Simulator()
+    result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
+    with pytest.raises(ValueError):
+        result.set_state(np.array([0.5, 0.5, 0.5, -0.5], dtype=np.float32))
 
 
 def test_moment_steps_no_results():

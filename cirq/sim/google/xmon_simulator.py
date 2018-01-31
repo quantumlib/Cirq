@@ -24,6 +24,7 @@ A simple example:
 """
 
 from collections import defaultdict
+import functools
 import math
 
 import numpy as np
@@ -39,40 +40,33 @@ class Options(object):
     """Options for the Simulator.
 
     Attributes:
-        num_prefix_qubits: Sharing of the wave function is performed over 2
+        num_prefix_qubits: Sharding of the wave function is performed over 2
             raised to this value number of qubits.
-        shard_for_small_num_qubits: Whether or not sharding should be done
-            for less than 10 qubits.
+        min_qubits_before_shard: Sharding will be done only for this number
+            of qubits or more. The default is 10.
     """
 
-    def __init__(self):
-        # The wave function is sharded across two raised to this number.
-        # Default  is to use the smallest power of two less than or equal
-        # to the number of cpus.
-        self.num_prefix_qubits = None
-
-        # By default do not shard for less than 10 qubits.
-        self.shard_for_small_num_qubits = False
-
-    def set_num_shards(self, num_shards: int) -> 'Options':
-        """Sets the number of shards, returning the Options for chaining.
+    def __init__(self, num_shards: int=None, min_qubits_before_shard: int=10):
+        """Simulator options constructor.
 
         Args:
             num_shards: sharding will be done for the greatest value of a
-                power of two less than this value.
-
-        Returns:
-            Self for chaining.
+                power of two less than this value. If None, the default will
+                be used which is the smallest power of two less than or equal
+                to the number of cpus.
+            min_qubits_before_shard: Sharding will be done only for this number
+                of qubits or more. The default is 10.
         """
-        assert num_shards > 0, "Num_shards cannot be less than 1."
-        self.num_prefix_qubits = int(math.log(num_shards, 2))
-        return self
+        assert num_shards is None or num_shards > 0, (
+            "Num_shards cannot be less than 1.")
+        if num_shards is None:
+            self.num_prefix_qubits = None
+        else:
+            self.num_prefix_qubits = int(math.log(num_shards, 2))
 
-    def set_shard_for_small_num_qubits(self,
-        shard_for_small_num_qubits: bool) -> 'Options':
-        """Sets whether the simulator should shard for < 10 qubits."""
-        self.shard_for_small_num_qubits = shard_for_small_num_qubits
-        return self
+        assert min_qubits_before_shard >= 0, (
+            'Min_qubit_before_shard must be positive.')
+        self.min_qubits_before_shard = min_qubits_before_shard
 
 
 class Simulator(object):
@@ -96,20 +90,17 @@ class Simulator(object):
                 a canonical ordering of the qubits. This canonical ordering
                 is used to define the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state.
+                basis state corresponding corresponding to this state. Otherwise
+                if this is a np.ndarray it is the full initial state. In this
+                case itmust be the correct size, be normalized (an L2 norm of
+                1), and have a dtype of np.complex64.
 
         Returns:
             Result for the final step of the simulation. This
             contains measurement results for all of the moments.
         """
-        full_results = None
-        for results in self.moment_steps(circuit, options, qubits,
-                                         initial_state):
-            if full_results is None:
-                full_results = results
-            else:
-                full_results = results.merge_measurements_with(full_results)
-        return full_results
+        all_results = self.moment_steps(circuit, options, qubits, initial_state)
+        return functools.reduce(Result.merge_measurements_with, all_results)
 
     def moment_steps(self,
         circuit: Circuit,
@@ -125,92 +116,82 @@ class Simulator(object):
                 a canonical ordering of the qubits. This canonical ordering
                 is used to define the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state.
+                basis state corresponding corresponding to this state. Otherwise
+                if this is a np.ndarray it is the full initial state. In this
+                case itmust be the correct size, be normalized (an L2 norm of
+                1), and have a dtype of np.complex64.
 
         Returns:
             SimulatorIterator that steps through the simulation, simulating
             each moment and returning a Result for each moment.
         """
-        return SimulatorIterator(circuit, options, qubits, initial_state)
+        return simulator_iterator(circuit, options, qubits, initial_state)
 
 
-class SimulatorIterator(object):
+def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
+    qubits: Sequence[raw_types.QubitId] = None,
+    initial_state: Union[int, np.ndarray]=0):
     """Iterator over Results from Moments of a Circuit.
 
     This should rarely be instantiated directly, instead prefer to create an
     Simulator and use methods on that object to get an iterator.
+
+    Args:
+        circuit: The circuit to simulate.
+        options: Options configuring the simulation.
+        qubits: If specified this list of qubits will be used to define
+            a canonical ordering of the qubits. This canonical ordering
+            is used to define the wave function.
+        initial_state: If an int, the state is set to the computational
+            basis state corresponding corresponding to this state.
+
+    Yields:
+        Results from simulating a Moment of the Circuit.
     """
-
-    def __init__(self, circuit: Circuit, options: 'Options' =Options(),
-        qubits: Sequence[raw_types.QubitId] = None,
-        initial_state: Union[int, np.ndarray]=0):
-        """Iterator constructor.
-
-        Args:
-            circuit: The circuit to simulate.
-            options: Options configuring the simulation.
-            qubits: If specified this list of qubits will be used to define
-                a canonical ordering of the qubits. This canonical ordering
-                is used to define the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state.
-        """
-        circuit_qubits = circuit.qubits()
-        if qubits is not None:
-            assert set(circuit_qubits) <= set(qubits), (
-                'Qubits given to simulator were not those in supplied Circuit.')
-        else:
-            qubits = list(circuit_qubits)
-        self.qubit_map = {q: i for i, q in enumerate(qubits)}
-        self._stepper = Stepper(
-            len(qubits),
-            num_prefix_qubits=options.num_prefix_qubits,
-            initial_state=initial_state,
-            shard_for_small_num_qubits=options.shard_for_small_num_qubits)
-        self._stepper.__enter__()
-        self._moment_iter = iter(circuit.moments)
-
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        try:
-            moment = self._moment_iter.__next__()
-        except StopIteration as e:
-            self._stepper.__exit__()
-            raise e
-        measurements = defaultdict(list)
-        phase_map = {}
-        for op in moment.operations:
-            gate = op.gate
-            if isinstance(gate, native_gates.ExpZGate):
-                index = self.qubit_map[op.qubits[0]]
-                phase_map[(index,)] = native_gates.ParameterizedValue.val_of(
-                    gate.half_turns)
-            elif isinstance(gate, native_gates.Exp11Gate):
-                index0 = self.qubit_map[op.qubits[0]]
-                index1 = self.qubit_map[op.qubits[1]]
-                phase_map[(index0, index1)] = (
-                    native_gates.ParameterizedValue.val_of(gate.half_turns))
-            elif isinstance(gate, native_gates.ExpWGate):
-                index = self.qubit_map[op.qubits[0]]
-                self._stepper.simulate_w(
-                    index=index,
-                    half_turns=native_gates.ParameterizedValue.val_of(
-                        gate.half_turns),
-                    axis_half_turns=native_gates.ParameterizedValue.val_of(
-                        gate.axis_half_turns))
-            elif isinstance(gate, native_gates.MeasurementGate):
-                index = self.qubit_map[op.qubits[0]]
-                results = self._stepper.simulate_measurement(index)
-                measurements[gate.key].append(results)
-            else:
-                raise TypeError(
-                    'Gate %s is not a gate supported by the xmon simulator.'
-                    % gate)
-        self._stepper.simulate_phases(phase_map)
-        return Result(self._stepper, self.qubit_map, measurements)
+    circuit_qubits = circuit.qubits()
+    if qubits is not None:
+        assert set(circuit_qubits) <= set(qubits), (
+            'Qubits given to simulator were not those in supplied Circuit.')
+    else:
+        qubits = list(circuit_qubits)
+    qubit_map = {q: i for i, q in enumerate(qubits)}
+    with Stepper(
+        num_qubits=len(qubits),
+        num_prefix_qubits=options.num_prefix_qubits,
+        initial_state=initial_state,
+        min_qubits_before_shard=options.min_qubits_before_shard) as stepper:
+        for moment in circuit.moments:
+            measurements = defaultdict(list)
+            phase_map = {}
+            for op in moment.operations:
+                gate = op.gate
+                if isinstance(gate, native_gates.ExpZGate):
+                    index = qubit_map[op.qubits[0]]
+                    phase_map[(index,)] = native_gates.ParameterizedValue.val_of(
+                        gate.half_turns)
+                elif isinstance(gate, native_gates.Exp11Gate):
+                    index0 = qubit_map[op.qubits[0]]
+                    index1 = qubit_map[op.qubits[1]]
+                    phase_map[(index0, index1)] = (
+                        native_gates.ParameterizedValue.val_of(gate.half_turns))
+                elif isinstance(gate, native_gates.ExpWGate):
+                    index = qubit_map[op.qubits[0]]
+                    stepper.simulate_w(
+                        index=index,
+                        half_turns=native_gates.ParameterizedValue.val_of(
+                            gate.half_turns),
+                        axis_half_turns=native_gates.ParameterizedValue.val_of(
+                            gate.axis_half_turns))
+                elif isinstance(gate, native_gates.MeasurementGate):
+                    index = qubit_map[op.qubits[0]]
+                    results = stepper.simulate_measurement(index)
+                    measurements[gate.key].append(results)
+                else:
+                    raise TypeError(
+                        'Gate %s is not a gate supported by the xmon simulator.'
+                        % gate)
+            stepper.simulate_phases(phase_map)
+            yield Result(stepper, qubit_map, measurements)
 
 
 class Result(object):

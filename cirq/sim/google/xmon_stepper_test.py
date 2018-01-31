@@ -26,7 +26,7 @@ def test_initial_state_computational_basis(num_prefix_qubits):
             num_qubits=3,
             num_prefix_qubits=num_prefix_qubits,
             initial_state=initial_state,
-            shard_for_small_num_qubits=False) as s:
+            min_qubits_before_shard=0) as s:
             expected = np.zeros(2 ** 3, dtype=np.complex64)
             expected[initial_state] = 1.0
             np.testing.assert_almost_equal(expected, s.current_state)
@@ -34,13 +34,35 @@ def test_initial_state_computational_basis(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_initial_state_full_state(num_prefix_qubits):
-    initial_state = np.array([0.5, 0.5, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+    initial_state = np.array([0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0], dtype=np.complex64)
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
         initial_state=initial_state,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         np.testing.assert_almost_equal(initial_state, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_initial_state_wrong_dtype(num_prefix_qubits):
+    initial_state = np.array([0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0], dtype=np.float32)
+    with pytest.raises(ValueError):
+        xmon_stepper.Stepper(
+            num_qubits=3,
+            num_prefix_qubits=num_prefix_qubits,
+            initial_state=initial_state,
+            min_qubits_before_shard=0)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_initial_state_not_normalized(num_prefix_qubits):
+    initial_state = np.array([0.5, 0.5, 0, 0, 0, 0, 0, 0], dtype=np.float32)
+    with pytest.raises(ValueError):
+        xmon_stepper.Stepper(
+            num_qubits=3,
+            num_prefix_qubits=num_prefix_qubits,
+            initial_state=initial_state,
+            min_qubits_before_shard=0)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -49,7 +71,7 @@ def test_reset_state_computational_basis(num_prefix_qubits):
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
         initial_state=0,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         for initial_state in range(2 ** 3):
             expected = np.zeros(2 ** 3, dtype=np.complex64)
             expected[initial_state] = 1.0
@@ -58,15 +80,39 @@ def test_reset_state_computational_basis(num_prefix_qubits):
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
-def test_reset_state_full_State(num_prefix_qubits):
-    reset_state = np.array([0.5, 0.5, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+def test_reset_state_full_state(num_prefix_qubits):
+    reset_state = np.array([0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0], dtype=np.complex64)
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
         initial_state=0,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         s.reset_state(reset_state)
         np.testing.assert_almost_equal(reset_state, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_reset_state_not_normalized(num_prefix_qubits):
+    reset_state = np.array([0.5, 0.5, 0.5, 0, 0, 0, 0, 0], dtype=np.complex64)
+    with pytest.raises(ValueError):
+        with xmon_stepper.Stepper(
+            num_qubits=3,
+            num_prefix_qubits=num_prefix_qubits,
+            initial_state=0,
+            min_qubits_before_shard=0) as s:
+            s.reset_state(reset_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_reset_state_wrong_dtype(num_prefix_qubits):
+    reset_state = np.array([0.5, 0.5, 0.5, 0, 0, 0, 0, 0], dtype=np.float32)
+    with pytest.raises(ValueError):
+        with xmon_stepper.Stepper(
+            num_qubits=3,
+            num_prefix_qubits=num_prefix_qubits,
+            initial_state=0,
+            min_qubits_before_shard=0) as s:
+            s.reset_state(reset_state)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -292,7 +338,7 @@ def compute_matrix(num_prefix_qubits, fn):
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
         initial_state=0,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         for x in range(8):
             s.reset_state(x)
             fn(s)
@@ -305,7 +351,7 @@ def test_measurement(num_prefix_qubits):
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         for i in range(3):
             assert not s.simulate_measurement(i)
             expected = np.zeros(2 ** 3, dtype=np.complex64)
@@ -318,7 +364,7 @@ def test_measurement_bit_flip(num_prefix_qubits):
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         for i in range(3):
             s.simulate_w(i, 0.5, 0)
         for i in range(3):
@@ -335,7 +381,7 @@ def test_measurement_state_update(num_prefix_qubits):
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         # 1/sqrt(2)(I+iX) gate.
         for i in range(3):
             s.simulate_w(i, 0.25, 0)
@@ -365,7 +411,7 @@ def test_measurement_randomness_sanity(num_prefix_qubits):
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         assert_measurements(s, [False, False, False])
         for i in range(3):
             s.simulate_w(i, 0.25, 0)
@@ -393,7 +439,7 @@ def test_non_context_manager(num_prefix_qubits):
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
         initial_state=1,
-        shard_for_small_num_qubits=False)
+        min_qubits_before_shard=0)
     np.testing.assert_almost_equal(stepper.current_state,
                                    np.array([0, 1, 0, 0, 0, 0, 0, 0],
                                             dtype=np.complex64))
@@ -430,7 +476,7 @@ def test_large_circuit_unitary(num_prefix_qubits):
         num_qubits=5,
         num_prefix_qubits=num_prefix_qubits,
         initial_state=0,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         for initial_state in range(2 ** 5):
             s.reset_state(initial_state)
             for moment in moments:
@@ -493,14 +539,14 @@ def _set_global_state(num_prefix_qubits):
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
-        shard_for_small_num_qubits=False):
+        min_qubits_before_shard=0):
         pass
 
 
 def test_num_prefix_none():
     """Sanity check that setting num_prefix to none still shards correctly."""
     with xmon_stepper.Stepper(
-        num_qubits=5, shard_for_small_num_qubits=False) as s:
+        num_qubits=5, min_qubits_before_shard=0) as s:
         expected = np.zeros(2 ** 5, dtype=np.complex64)
         expected[0] = 1.0
         np.testing.assert_almost_equal(expected, s.current_state)
@@ -518,10 +564,7 @@ def test_shard_for_more_prefix_qubits_than_qubits():
     """Sanity check that the no-sharding works with small number of qubits."""
     with xmon_stepper.Stepper(
         num_qubits=2, num_prefix_qubits=3,
-        shard_for_small_num_qubits=False) as s:
+        min_qubits_before_shard=0) as s:
         expected = np.zeros(2 ** 2, dtype=np.complex64)
         expected[0] = 1.0
         np.testing.assert_almost_equal(expected, s.current_state)
-
-
-

@@ -25,8 +25,7 @@ from cirq.ops import QubitId
 
 
 class Circuit(object):
-    """A mutable list of groups of operations to apply to some qubits.Y
-    """
+    """A mutable list of groups of operations to apply to some qubits."""
 
     def __init__(self, moments: Iterable[Moment] = ()):
         """Initializes a circuit.
@@ -258,8 +257,7 @@ class Circuit(object):
 
     def qubits(self) -> Set[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
-        return frozenset(
-            itertools.chain.from_iterable([m.qubits for m in self.moments]))
+        return frozenset(q for m in self.moments for q in m.qubits)
 
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
