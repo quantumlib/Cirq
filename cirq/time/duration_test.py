@@ -15,7 +15,7 @@
 import pytest
 import sys
 
-from cirq.schedules import Duration
+from cirq.time import Duration
 from cirq.testing import EqualsTester
 
 
