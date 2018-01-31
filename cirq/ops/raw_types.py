@@ -19,12 +19,17 @@ from typing import Sequence
 
 class QubitId:
     """Identifies a qubit."""
+    pass
+
+
+class QubitLoc(QubitId):
+    """A qubit at a location."""
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-    def is_adjacent(self, other: 'QubitId'):
+    def is_adjacent(self, other: 'QubitLoc'):
         return abs(self.x - other.x) + abs(self.y - other.y) == 1
 
     def __eq__(self, other):
@@ -36,10 +41,10 @@ class QubitId:
         return not self == other
 
     def __hash__(self):
-        return hash((QubitId, self.x, self.y))
+        return hash((QubitLoc, self.x, self.y))
 
     def __repr__(self):
-        return 'QubitId({}, {})'.format(self.x, self.y)
+        return 'QubitLoc({}, {})'.format(self.x, self.y)
 
     def __str__(self):
         return '{}_{}'.format(self.x, self.y)

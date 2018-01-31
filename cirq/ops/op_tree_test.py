@@ -15,12 +15,12 @@
 import pytest
 
 from cirq.ops import op_tree
-from cirq.ops.raw_types import Operation, QubitId, Gate
+from cirq.ops.raw_types import Operation, QubitLoc, Gate
 
 
 def test_flatten_op_tree():
     operations = [
-        Operation(Gate(), [QubitId(0, i)])
+        Operation(Gate(), [QubitLoc(0, i)])
         for i in range(10)
     ]
 
@@ -49,7 +49,7 @@ def test_flatten_op_tree():
 
 def test_freeze_op_tree():
     operations = [
-        Operation(Gate(), [QubitId(0, i)])
+        Operation(Gate(), [QubitLoc(0, i)])
         for i in range(10)
     ]
 
@@ -85,24 +85,24 @@ def test_transform_bad_tree():
         _ = list(op_tree.transform_op_tree(5))
     with pytest.raises(TypeError):
         _ = list(op_tree.flatten_op_tree(op_tree.transform_op_tree([
-            Operation(Gate(), [QubitId(0, 0)]), (4,)
+            Operation(Gate(), [QubitLoc(0, 0)]), (4,)
         ])))
 
 
 def test_transform_leaves():
     gs = [Gate() for _ in range(10)]
     operations = [
-        Operation(gs[i], [QubitId(2 * i, i)])
+        Operation(gs[i], [QubitLoc(2 * i, i)])
         for i in range(10)
     ]
     expected = [
-        Operation(gs[i], [QubitId(2 * i + 1, i)])
+        Operation(gs[i], [QubitLoc(2 * i + 1, i)])
         for i in range(10)
     ]
 
     def move_left(op):
         return Operation(op.gate,
-                         [QubitId(q.x + 1, q.y) for q in op.qubits])
+                         [QubitLoc(q.x + 1, q.y) for q in op.qubits])
 
     def move_tree_left_freeze(root):
         return op_tree.freeze_op_tree(
@@ -126,7 +126,7 @@ def test_transform_leaves():
 
 def test_transform_internal_nodes():
     operations = [
-        Operation(Gate(), [QubitId(2 * i, i)])
+        Operation(Gate(), [QubitLoc(2 * i, i)])
         for i in range(10)
     ]
 
