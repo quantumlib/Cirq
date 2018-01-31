@@ -35,25 +35,25 @@ class Duration:
         """Returns the number of nanoseconds that the duration spans."""
         return self._picos / 1000.0
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Duration':
         if not isinstance(other, type(self)):
             return NotImplemented
         return Duration(picos=self._picos + other._picos)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Duration':
         if not isinstance(other, type(self)):
             return NotImplemented
         return Duration(picos=self._picos - other._picos)
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'Duration':
         if not isinstance(other, (int, float)):
             return NotImplemented
         return Duration(picos=self._picos * other)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> 'Duration':
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> Union['Duration', float]:
         if isinstance(other, (int, float)):
             return Duration(picos=self._picos / other)
         if isinstance(other, type(self)):

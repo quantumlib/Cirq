@@ -17,6 +17,7 @@ from cirq import chips
 from cirq import circuits
 from cirq import linalg
 from cirq import ops
+from cirq import schedules
 from cirq import sim
 from cirq import testing
 from cirq import time

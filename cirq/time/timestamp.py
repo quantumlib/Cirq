@@ -36,15 +36,15 @@ class Timestamp:
         """The timestamp's location in picoseconds from arbitrary time zero."""
         return self._picos
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Timestamp':
         if not isinstance(other, Duration):
             return NotImplemented
         return Timestamp(picos=self._picos + other.total_picos())
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> 'Timestamp':
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> Union['Timestamp', Duration]:
         if isinstance(other, Duration):
             return Timestamp(picos=self._picos - other.total_picos())
         if isinstance(other, type(self)):
