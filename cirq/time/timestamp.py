@@ -2,7 +2,7 @@
 
 from typing import Union
 
-from cirq.schedules.duration import Duration
+from cirq.time.duration import Duration
 
 
 class Timestamp:
