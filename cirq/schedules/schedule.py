@@ -25,8 +25,7 @@ class Schedule:
         self.scheduled_operations = SortedListWithKey(scheduled_operations,
                                                       key=lambda e: e.time)
         self._max_duration = max(
-            (e.duration for e in self.scheduled_operations),
-            default=Duration())
+            [e.duration for e in self.scheduled_operations] or [Duration()])
 
     def query(self,
               *positional_args,
