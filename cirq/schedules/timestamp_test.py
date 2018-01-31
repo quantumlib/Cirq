@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+import sys
 
 from cirq.schedules import Duration, Timestamp
 from cirq.testing import EqualsTester
@@ -64,6 +65,15 @@ def test_cmp():
     assert Timestamp() != 0
     assert not (Timestamp() == Duration())
     assert Timestamp() != Duration()
+
+
+def test_cmp_py3_only():
+    if sys.version_info[0] == 2:
+        # In python 2, comparisons fallback to __cmp__ and don't fail.
+        # But a custom __cmp__ that does fail would result in == failing.
+        # So we throw up our hands and let it be.
+        return
+
     with pytest.raises(TypeError):
         _ = Timestamp() < Duration()
     with pytest.raises(TypeError):
