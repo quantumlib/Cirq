@@ -53,7 +53,7 @@ def test_cz_eq():
 def test_cz_to_proto():
     assert proto_matches_text(
         ops.CZGate(half_turns=0.5).to_proto(
-            ops.QubitId(2, 3), ops.QubitId(4, 5)),
+            ops.QubitLoc(2, 3), ops.QubitLoc(4, 5)),
         """
         exp_11 {
             target1 {
@@ -125,7 +125,7 @@ def test_z_extrapolate():
 
 def test_z_to_proto():
     assert proto_matches_text(
-        ops.ZGate(half_turns=0.5).to_proto(ops.QubitId(2, 3)),
+        ops.ZGate(half_turns=0.5).to_proto(ops.QubitLoc(2, 3)),
         """
         exp_z {
             target {
@@ -183,7 +183,7 @@ def test_xy_extrapolate():
 def test_xy_to_proto():
     assert proto_matches_text(
         ops.XYGate(half_turns=0.25, axis_half_turns=0.5).to_proto(
-            ops.QubitId(2, 3)),
+            ops.QubitLoc(2, 3)),
         """
         exp_w {
             target {

@@ -144,8 +144,8 @@ def test_single_qubit_gate_validate_args():
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitId(1, 2)
-    q2 = raw_types.QubitId(3, 4)
+    q1 = raw_types.QubitLoc(1, 2)
+    q2 = raw_types.QubitLoc(3, 4)
 
     g.validate_args([q1])
     g.validate_args([q2])
@@ -184,9 +184,9 @@ def test_two_qubit_gate_validate_pass():
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitId(0, 1)
-    q2 = raw_types.QubitId(0, 2)
-    q3 = raw_types.QubitId(0, 3)
+    q1 = raw_types.QubitLoc(0, 1)
+    q2 = raw_types.QubitLoc(0, 2)
+    q3 = raw_types.QubitLoc(0, 3)
 
     g.validate_args([q1, q2])
     g.validate_args([q2, q3])
@@ -199,9 +199,9 @@ def test_two_qubit_gate_validate_wrong_number():
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitId(0, 1)
-    q2 = raw_types.QubitId(0, 2)
-    q3 = raw_types.QubitId(0, 3)
+    q1 = raw_types.QubitLoc(0, 1)
+    q2 = raw_types.QubitLoc(0, 2)
+    q3 = raw_types.QubitLoc(0, 3)
 
     with pytest.raises(ValueError):
         g.validate_args([])
@@ -217,8 +217,8 @@ def test_two_qubit_gate_validate_not_adjacent():
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitId(0, 1)
-    q3 = raw_types.QubitId(0, 3)
+    q1 = raw_types.QubitLoc(0, 1)
+    q3 = raw_types.QubitLoc(0, 3)
 
     with pytest.raises(ValueError):
         g.validate_args([q1, q3])

@@ -31,7 +31,7 @@ ENTRY_TERMINATOR_CHARS = {' ', '-', '|', '+'}
 def wire_name_to_qubit(name: str) -> ops.QubitId:
     if re.match('\\(\\s*\\d+,\\s*\\d+\\s*\\)', name):
         a, b = name[1:-1].split(',')
-        return ops.QubitId(int(a.strip()), int(b.strip()))
+        return ops.QubitLoc(int(a.strip()), int(b.strip()))
 
     raise NotImplementedError('Bad name: {}'.format(repr(name)))
 
