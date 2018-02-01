@@ -18,7 +18,9 @@ from typing import Sequence
 
 
 class QubitId:
-    """Identifies a qubit."""
+    """Identifies a qubit. Child classes provide specific types of qubits.
+
+    Child classes must be equatable and hashable."""
     pass
 
 
