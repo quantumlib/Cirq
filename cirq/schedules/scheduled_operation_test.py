@@ -20,14 +20,15 @@ from cirq.testing import EqualsTester
 def test_init():
     r = ScheduledOperation(time=Timestamp(picos=5),
                            duration=Duration(picos=7),
-                           operation=ops.Operation(ops.H, [ops.QubitId(0, 0)]))
+                           operation=ops.Operation(ops.H,
+                                                   [ops.QubitLoc(0, 0)]))
     assert r.time == Timestamp(picos=5)
     assert r.duration == Duration(picos=7)
-    assert r.operation == ops.Operation(ops.H, [ops.QubitId(0, 0)])
+    assert r.operation == ops.Operation(ops.H, [ops.QubitLoc(0, 0)])
 
 
 def test_eq():
-    q0 = ops.QubitId(0, 0)
+    q0 = ops.QubitLoc(0, 0)
 
     eq = EqualsTester()
     eq.make_equality_pair(

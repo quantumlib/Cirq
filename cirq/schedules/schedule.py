@@ -3,7 +3,7 @@ from typing import List, Union
 
 from sortedcontainers import SortedListWithKey
 
-from cirq.chips import Chip
+from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.time import Duration, Timestamp
@@ -13,15 +13,15 @@ class Schedule:
     """A quantum program with operations happening at specific times."""
 
     def __init__(self,
-                 chip: Chip,
+                 device: Device,
                  scheduled_operations: Iterable[ScheduledOperation] = ()):
         """Initializes a new schedule.
 
         Args:
-            chip: The hardware this schedule will run on.
+            device: The hardware this schedule will run on.
             scheduled_operations: Initial list of operations to apply.
         """
-        self.chip = chip
+        self.device = device
         self.scheduled_operations = SortedListWithKey(scheduled_operations,
                                                       key=lambda e: e.time)
         self._max_duration = max(
@@ -31,7 +31,9 @@ class Schedule:
               *positional_args,
               time: Timestamp,
               duration: Duration = Duration(),
-              qubits: Iterable[QubitId] = None) -> List[ScheduledOperation]:
+              qubits: Iterable[QubitId] = None,
+              include_query_end_time=False,
+              include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:
@@ -40,6 +42,10 @@ class Schedule:
                 returned.
             qubits: If specified, only operations touching one of the included
                 qubits will be returned.
+            include_query_end_time: Determines if the query interval includes
+                its end time. Defaults to no.
+            include_op_end_times: Determines if the scheduled operation
+                intervals include their end times or not. Defaults to no.
 
         Returns:
             A list of scheduled operations meeting the specified conditions.
@@ -49,12 +55,23 @@ class Schedule:
         end_time = time + duration
         qubits = None if qubits is None else frozenset(qubits)
 
+        def overlaps_interval(op):
+            if not include_op_end_times and op.time + op.duration == time:
+                return False
+            if not include_query_end_time and op.time == end_time:
+                return False
+            return op.time + op.duration >= time and op.time <= end_time
+
+        def overlaps_qubits(op):
+            if qubits is None:
+                return True
+            return not qubits.isdisjoint(op.operation.qubits)
+
+        potential_matches = self.scheduled_operations.irange_key(earliest_time,
+                                                                 end_time)
         return [op
-                for op in self.scheduled_operations.irange_key(earliest_time,
-                                                               end_time)
-                if op.time + op.duration >= time and (
-                    qubits is None or
-                    not qubits.isdisjoint(op.operation.qubits))]
+                for op in potential_matches
+                if overlaps_interval(op) and overlaps_qubits(op)]
 
     def __getitem__(self, item: Union[Timestamp, slice]):
         """Finds operations overlapping a given time or time slice.
@@ -70,7 +87,7 @@ class Schedule:
             if item.step:
                 raise ValueError('Step not supported.')
             return self.query(time=item.start, duration=item.stop - item.start)
-        return self.query(time=item)
+        return self.query(time=item, include_query_end_time=True)
 
     def operations_happening_at_same_time_as(
             self, scheduled_operation: ScheduledOperation
