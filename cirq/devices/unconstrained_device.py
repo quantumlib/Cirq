@@ -1,8 +1,8 @@
-from cirq.chips.chip import Chip
+from cirq.devices.device import Device
 from cirq.time import Duration
 
 
-class VacuousChipType(Chip):
+class _UnconstrainedDeviceType(Device):
     """A chip that allows everything."""
 
     def duration_of(self, operation):
@@ -21,4 +21,4 @@ class VacuousChipType(Chip):
         pass
 
 
-VacuousChip = VacuousChipType()
+UnconstrainedDevice = _UnconstrainedDeviceType()

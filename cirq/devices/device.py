@@ -6,7 +6,7 @@ from cirq.time import Duration
 # Note: circuit/schedule types specified by name to avoid circular references.
 
 
-class Chip:
+class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits and schedules."""
 
     @abc.abstractmethod

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from cirq import apis
-from cirq import chips
 from cirq import circuits
+from cirq import devices
 from cirq import linalg
 from cirq import ops
 from cirq import sim
