@@ -10,10 +10,6 @@ class Chip:
     """Hardware constraints for validating circuits and schedules."""
 
     @abc.abstractmethod
-    def max_operation_duration(self) -> Duration:
-        pass
-
-    @abc.abstractmethod
     def duration_of(self, operation: 'cirq.ops.Operation') -> Duration:
         pass
 

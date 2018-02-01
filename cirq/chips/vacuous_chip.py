@@ -5,9 +5,6 @@ from cirq.time import Duration
 class VacuousChipType(Chip):
     """A chip that allows everything."""
 
-    def max_operation_duration(self):
-        return Duration(picos=0)
-
     def duration_of(self, operation):
         return Duration(picos=0)
 
