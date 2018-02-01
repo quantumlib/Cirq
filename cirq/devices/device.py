@@ -22,7 +22,7 @@ class Device(metaclass=abc.ABCMeta):
             operation: The operation to validate.
 
         Raises:
-            ValueError: The operation isn't valid for this chip.
+            ValueError: The operation isn't valid for this device.
         """
         pass
 
@@ -42,7 +42,7 @@ class Device(metaclass=abc.ABCMeta):
             circuit: The circuit to validate.
 
         Raises:
-            ValueError: The circuit isn't valid for this chip.
+            ValueError: The circuit isn't valid for this device.
         """
         pass
 
@@ -55,6 +55,6 @@ class Device(metaclass=abc.ABCMeta):
             schedule: The schedule to validate.
 
         Raises:
-            ValueError: The schedule isn't valid for this chip.
+            ValueError: The schedule isn't valid for this device.
         """
         pass

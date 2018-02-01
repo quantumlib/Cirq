@@ -3,7 +3,7 @@ from cirq.time import Duration
 
 
 class _UnconstrainedDeviceType(Device):
-    """A chip that allows everything."""
+    """A device that allows everything."""
 
     def duration_of(self, operation):
         return Duration(picos=0)
