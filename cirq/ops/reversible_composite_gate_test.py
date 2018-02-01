@@ -41,11 +41,11 @@ def test_inverse_of_invertable_op_tree():
         return ops.freeze_op_tree(ops.inverse_of_invertable_op_tree(root))
 
     operations = [
-        ops.Operation(_FlipGate(i), [ops.QubitId(2 * i, i)])
+        ops.Operation(_FlipGate(i), [ops.QubitLoc(2 * i, i)])
         for i in range(10)
     ]
     expected = [
-        ops.Operation(_FlipGate(~i), [ops.QubitId(2 * i, i)])
+        ops.Operation(_FlipGate(~i), [ops.QubitLoc(2 * i, i)])
         for i in range(10)
     ]
 
@@ -79,7 +79,7 @@ def test_child_class():
     reversed_gate = gate.inverse()
     assert gate is reversed_gate.inverse()
 
-    q = ops.QubitId(5, 6)
+    q = ops.QubitLoc(5, 6)
     assert (
         ops.freeze_op_tree(gate.default_decompose([q])) ==
         (_FlipGate(1)(q), (_FlipGate(2)(q), _FlipGate(3)(q))))

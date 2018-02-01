@@ -74,7 +74,7 @@ def test_measurement_eq():
 
 def test_measurement_to_proto():
     assert proto_matches_text(
-        ops.MeasurementGate('test').to_proto(ops.QubitId(2, 3)),
+        ops.MeasurementGate('test').to_proto(ops.QubitLoc(2, 3)),
         """
         measurement {
             target {
@@ -105,7 +105,7 @@ def test_z_eq():
 def test_z_to_proto():
     assert proto_matches_text(
         ops.ExpZGate(half_turns=ops.ParameterizedValue('k', 0.5)).to_proto(
-            ops.QubitId(2, 3)),
+            ops.QubitLoc(2, 3)),
         """
         exp_z {
             target {
@@ -139,7 +139,7 @@ def test_cz_eq():
 def test_cz_to_proto():
     assert proto_matches_text(
         ops.Exp11Gate(half_turns=ops.ParameterizedValue('k', 0.5)).to_proto(
-            ops.QubitId(2, 3), ops.QubitId(4, 5)),
+            ops.QubitLoc(2, 3), ops.QubitLoc(4, 5)),
         """
         exp_11 {
             target1 {
@@ -205,7 +205,7 @@ def test_xy_to_proto():
     assert proto_matches_text(
         ops.ExpWGate(half_turns=ops.ParameterizedValue('k', 0.5),
                      axis_half_turns=ops.ParameterizedValue('j', 1)).to_proto(
-            ops.QubitId(2, 3)),
+            ops.QubitLoc(2, 3)),
         """
         exp_w {
             target {
