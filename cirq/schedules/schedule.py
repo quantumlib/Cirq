@@ -1,3 +1,17 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import Iterable
 from typing import List, Union
 
@@ -10,7 +24,11 @@ from cirq.time import Duration, Timestamp
 
 
 class Schedule:
-    """A quantum program with operations happening at specific times."""
+    """A quantum program with operations happening at specific times.
+
+    Supports schedule[time] point lookups and
+        schedule[inclusive_start_time:exclusive_end_time] slice lookups.
+    """
 
     def __init__(self,
                  device: Device,
@@ -19,7 +37,9 @@ class Schedule:
 
         Args:
             device: The hardware this schedule will run on.
-            scheduled_operations: Initial list of operations to apply.
+            scheduled_operations: Initial list of operations to apply. These
+                will be moved into a sorted list, with a key equal to each
+                operation's start time.
         """
         self.device = device
         self.scheduled_operations = SortedListWithKey(scheduled_operations,
