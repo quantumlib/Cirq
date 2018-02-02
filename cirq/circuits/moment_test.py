@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ from cirq.testing import EqualsTester
 
 
 def test_validation():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
-    c = ops.QubitId(0, 1)
-    d = ops.QubitId(1, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
+    c = ops.QubitLoc(0, 1)
+    d = ops.QubitLoc(1, 1)
 
     _ = Moment([])
     _ = Moment([ops.X(a)])
@@ -42,10 +42,10 @@ def test_validation():
 
 
 def test_equality():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
-    c = ops.QubitId(0, 1)
-    d = ops.QubitId(1, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
+    c = ops.QubitLoc(0, 1)
+    d = ops.QubitLoc(1, 1)
 
     eq = EqualsTester()
 
@@ -72,9 +72,9 @@ def test_equality():
 
 
 def test_operates_on():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
-    c = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
+    c = ops.QubitLoc(0, 1)
 
     # Empty case.
     assert not Moment().operates_on([])
@@ -108,8 +108,8 @@ def test_operates_on():
 
 
 def test_with_operation():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
 
     assert Moment().with_operation(ops.X(a)) == Moment([ops.X(a)])
 
@@ -121,9 +121,9 @@ def test_with_operation():
 
 
 def test_without_operations_touching():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
-    c = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
+    c = ops.QubitLoc(0, 1)
 
     # Empty case.
     assert Moment().without_operations_touching([]) == Moment()

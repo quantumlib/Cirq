@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ def test_from_ascii_empty():
 
 
 def test_from_ascii_single_qubit_ops():
-    q00 = ops.QubitId(0, 0)
-    q12 = ops.QubitId(1, 2)
+    q00 = ops.QubitLoc(0, 0)
+    q12 = ops.QubitLoc(1, 2)
     assert from_ascii('(0, 0): --X--') == Circuit([Moment([ops.X(q00)])])
 
     assert from_ascii('(0, 0): --X^0.5--') == Circuit(
@@ -53,8 +53,8 @@ def test_from_ascii_single_qubit_ops():
 
 
 def test_from_ascii_two_qubit_ops():
-    q00 = ops.QubitId(0, 0)
-    q10 = ops.QubitId(1, 0)
+    q00 = ops.QubitLoc(0, 0)
+    q10 = ops.QubitLoc(1, 0)
 
     assert from_ascii("""
 (0, 0): --.--
@@ -95,10 +95,10 @@ def test_from_ascii_two_qubit_ops():
 
 
 def test_from_ascii_teleportation_from_diagram():
-    ali = ops.QubitId(0, 0)
-    bob = ops.QubitId(0, 1)
-    msg = ops.QubitId(1, 0)
-    tmp = ops.QubitId(1, 1)
+    ali = ops.QubitLoc(0, 0)
+    bob = ops.QubitLoc(0, 1)
+    msg = ops.QubitLoc(1, 0)
+    tmp = ops.QubitLoc(1, 1)
 
     assert from_ascii("""
 (1, 0): ------X^0.5--@-H-M----@---
@@ -152,10 +152,10 @@ def test_fail_on_adjacent_operations():
 
 
 def test_to_ascii_teleportation_to_diagram():
-    ali = ops.QubitId(0, 0)
-    bob = ops.QubitId(0, 1)
-    msg = ops.QubitId(1, 0)
-    tmp = ops.QubitId(1, 1)
+    ali = ops.QubitLoc(0, 0)
+    bob = ops.QubitLoc(0, 1)
+    msg = ops.QubitLoc(1, 0)
+    tmp = ops.QubitLoc(1, 1)
 
     c = Circuit([
         Moment([ops.H(ali)]),
@@ -182,7 +182,7 @@ def test_to_ascii_teleportation_to_diagram():
 
 
 def test_to_ascii_extended_gate():
-    q = ops.QubitId(0, 0)
+    q = ops.QubitLoc(0, 0)
 
     class FGate(ops.Gate):
         pass

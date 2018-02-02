@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ ENTRY_TERMINATOR_CHARS = {' ', '-', '|', '+'}
 def wire_name_to_qubit(name: str) -> ops.QubitId:
     if re.match('\\(\\s*\\d+,\\s*\\d+\\s*\\)', name):
         a, b = name[1:-1].split(',')
-        return ops.QubitId(int(a.strip()), int(b.strip()))
+        return ops.QubitLoc(int(a.strip()), int(b.strip()))
 
     raise NotImplementedError('Bad name: {}'.format(repr(name)))
 
