@@ -430,3 +430,31 @@ def test_clear_operations_touching():
         Moment(),
         Moment(),
     ])
+
+
+def test_qubits():
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
+
+    c = Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.X(b)]),
+    ])
+    assert c.qubits() == {a, b}
+
+    c = Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.X(a)]),
+    ])
+    assert c.qubits() == {a}
+
+    c = Circuit([
+        Moment([ops.CZ(a, b)]),
+    ])
+    assert c.qubits() == {a, b}
+
+    c = Circuit([
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.X(a)])
+    ])
+    assert c.qubits() == {a, b}
