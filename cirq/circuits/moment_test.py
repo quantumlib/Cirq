@@ -170,8 +170,8 @@ def test_without_operations_touching():
 
 
 def test_qubits():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
 
     assert Moment([ops.X(a), ops.X(b)]).qubits == {a , b}
     assert Moment([ops.X(a)]).qubits == {a}

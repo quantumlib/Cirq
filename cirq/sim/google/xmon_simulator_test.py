@@ -21,8 +21,8 @@ from cirq import circuits
 from cirq import ops
 from cirq.sim.google import xmon_simulator
 
-Q1 = ops.QubitId(0, 0)
-Q2 = ops.QubitId(1, 0)
+Q1 = ops.QubitLoc(0, 0)
+Q2 = ops.QubitLoc(1, 0)
 
 
 def basic_circuit():
@@ -40,7 +40,7 @@ def basic_circuit():
 
 def large_circuit():
     np.random.seed(0)
-    qubits = [ops.QubitId(i, 0) for i in range(10)]
+    qubits = [ops.QubitLoc(i, 0) for i in range(10)]
     sqrt_x = ops.native_gates.ExpWGate(half_turns=0.25, axis_half_turns=0.0)
     cz = ops.native_gates.Exp11Gate(half_turns=1.0)
     circuit = circuits.Circuit()

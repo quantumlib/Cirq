@@ -433,8 +433,8 @@ def test_clear_operations_touching():
 
 
 def test_qubits():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit([
         Moment([ops.X(a)]),
