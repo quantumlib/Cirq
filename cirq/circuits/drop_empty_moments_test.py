@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ def assert_optimizes(before, after):
 
 
 def test_drop():
-    q1 = ops.QubitId(0, 0)
-    q2 = ops.QubitId(0, 1)
+    q1 = ops.QubitLoc(0, 0)
+    q2 = ops.QubitLoc(0, 1)
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment(),

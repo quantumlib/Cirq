@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from cirq import ops
 
 def test_leaves_big():
     m = circuits.DropNegligible(0.001)
-    q = ops.QubitId(0, 0)
+    q = ops.QubitLoc(0, 0)
     c = circuits.Circuit([circuits.Moment([(ops.Z**0.1)(q)])])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
@@ -28,7 +28,7 @@ def test_leaves_big():
 
 def test_clears_small():
     m = circuits.DropNegligible(0.001)
-    q = ops.QubitId(0, 0)
+    q = ops.QubitLoc(0, 0)
     c = circuits.Circuit([circuits.Moment([(ops.Z**0.000001)(q)])])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
@@ -38,8 +38,8 @@ def test_clears_small():
 
 def test_clears_known_empties_even_at_zero_tolerance():
     m = circuits.DropNegligible(0)
-    q = ops.QubitId(0, 0)
-    q2 = ops.QubitId(1, 0)
+    q = ops.QubitLoc(0, 0)
+    q2 = ops.QubitLoc(1, 0)
     c = circuits.Circuit([
         circuits.Moment([(ops.Z**0)(q)]),
         circuits.Moment([(ops.Y**0)(q)]),

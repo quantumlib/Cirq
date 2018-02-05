@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,16 @@ from cirq import ops
 class Moment(object):
     """A simplified time-slice of operations within a sequenced circuit.
 
-    Note that grouping sequenced circuits into moments is for ease-of-use.
+    Note that grouping sequenced circuits into moments is an abstraction that
+    may not carry over directly to the scheduling on the hardware or simulator.
     Operations in the same moment may or may not actually end up scheduled to
-    occur at the same time.
+    occur at the same time. However the topological quantum circuit ordering
+    will be preserved, and many schedulers or consumers will attempt to
+    maximize the moment representation.
+
+    Attributes:
+        operations: A tuple of the Operations for this Moment.
+        qubits: A set of the qubits acted upon by this Moment.
     """
 
     def __init__(self, operations: Iterable[ops.Operation] = ()):
@@ -41,7 +48,8 @@ class Moment(object):
 
         # Check that operations don't overlap.
         affected_qubits = [q for op in self.operations for q in op.qubits]
-        if len(affected_qubits) != len(set(affected_qubits)):
+        self.qubits = set(affected_qubits)
+        if len(affected_qubits) != len(self.qubits):
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
 

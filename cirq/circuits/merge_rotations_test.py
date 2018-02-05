@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from cirq import ops
 
 def test_leaves_singleton():
     m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
-    q = ops.QubitId(0, 0)
+    q = ops.QubitLoc(0, 0)
     c = circuits.Circuit([circuits.Moment([ops.X(q)])])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
@@ -28,7 +28,7 @@ def test_leaves_singleton():
 
 def test_combines_sequence():
     m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
-    q = ops.QubitId(0, 0)
+    q = ops.QubitLoc(0, 0)
     c = circuits.Circuit([
         circuits.Moment([(ops.X**0.5)(q)]),
         circuits.Moment([(ops.Z**0.5)(q)]),
@@ -46,7 +46,7 @@ def test_combines_sequence():
 
 def test_removes_identity_sequence():
     m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
-    q = ops.QubitId(0, 0)
+    q = ops.QubitLoc(0, 0)
     c = circuits.Circuit([
         circuits.Moment([ops.Z(q)]),
         circuits.Moment([ops.H(q)]),
@@ -66,8 +66,8 @@ def test_removes_identity_sequence():
 
 def test_stopped_at_2qubit():
     m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
-    q = ops.QubitId(0, 0)
-    q2 = ops.QubitId(0, 1)
+    q = ops.QubitLoc(0, 0)
+    q2 = ops.QubitLoc(0, 1)
     c = circuits.Circuit([
         circuits.Moment([ops.Z(q)]),
         circuits.Moment([ops.H(q)]),
@@ -91,8 +91,8 @@ def test_stopped_at_2qubit():
 
 def test_ignores_2qubit_target():
     m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
-    q = ops.QubitId(0, 0)
-    q2 = ops.QubitId(0, 1)
+    q = ops.QubitLoc(0, 0)
+    q2 = ops.QubitLoc(0, 1)
     c = circuits.Circuit([
         circuits.Moment([ops.CZ(q, q2)]),
     ])

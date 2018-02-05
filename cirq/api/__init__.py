@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,4 +18,4 @@ Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.
 """
 
-from cirq.apis import google
+from cirq.api import google

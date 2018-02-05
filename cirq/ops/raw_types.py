@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,20 @@ from typing import Sequence
 
 
 class QubitId:
-    """Identifies a qubit."""
+    """Identifies a qubit. Child classes provide specific types of qubits.
+
+    Child classes must be equatable and hashable."""
+    pass
+
+
+class QubitLoc(QubitId):
+    """A qubit at a location."""
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-    def is_adjacent(self, other: 'QubitId'):
+    def is_adjacent(self, other: 'QubitLoc'):
         return abs(self.x - other.x) + abs(self.y - other.y) == 1
 
     def __eq__(self, other):
@@ -36,17 +43,23 @@ class QubitId:
         return not self == other
 
     def __hash__(self):
-        return hash((QubitId, self.x, self.y))
+        return hash((QubitLoc, self.x, self.y))
 
     def __repr__(self):
-        return 'QubitId({}, {})'.format(self.x, self.y)
+        return 'QubitLoc({}, {})'.format(self.x, self.y)
 
     def __str__(self):
         return '{}_{}'.format(self.x, self.y)
 
 
 class Gate:
-    """An operation type that can be applied to a collection of qubits."""
+    """An operation type that can be applied to a collection of qubits.
+
+    Gates can be applied to qubits by calling their on() method with
+    the qubits to be applied to supplied, or, alternatively, by simply
+    calling the gate on the qubits.  In other words calling MyGate.on(q1, q2)
+    to create an Operation on q1 and q2 is equivalent to MyGate(q1,q2).
+    """
 
     # noinspection PyMethodMayBeStatic
     def validate_args(self, qubits: Sequence[QubitId]) -> type(None):

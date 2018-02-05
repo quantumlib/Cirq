@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import apis
+from cirq import api
+from cirq import circuits
+from cirq import devices
 from cirq import linalg
 from cirq import ops
+from cirq import schedules
 from cirq import sim
 from cirq import testing
+from cirq import time

@@ -1,4 +1,4 @@
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ from cirq.testing import EqualsTester
 
 
 def test_equality():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(1, 0)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(1, 0)
 
     eq = EqualsTester()
 
@@ -59,7 +59,7 @@ def test_equality():
 
 
 def test_append_single():
-    a = ops.QubitId(0, 0)
+    a = ops.QubitLoc(0, 0)
 
     c = Circuit()
     c.append(())
@@ -75,8 +75,8 @@ def test_append_single():
 
 
 def test_append_multiple():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit()
     c.append([ops.X(a), ops.X(b)], InsertStrategy.NEW)
@@ -100,8 +100,8 @@ def test_append_multiple():
 
 
 def test_append_strategies():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
     stream = [ops.X(a), ops.CZ(a, b), ops.X(b), ops.X(b), ops.X(a)]
 
     c = Circuit()
@@ -134,8 +134,8 @@ def test_append_strategies():
 
 
 def test_insert():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit()
 
@@ -175,8 +175,8 @@ def test_insert():
 
 
 def test_insert_inline_near_start():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit([
         Moment(),
@@ -206,8 +206,8 @@ def test_insert_inline_near_start():
 
 
 def test_operation_at():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit()
     assert c.operation_at(a, 0) is None
@@ -228,8 +228,8 @@ def test_operation_at():
 
 
 def test_next_moment_operating_on():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit()
     assert c.next_moment_operating_on([a]) is None
@@ -270,7 +270,7 @@ def test_next_moment_operating_on():
 
 
 def test_next_moment_operating_on_distance():
-    a = ops.QubitId(0, 0)
+    a = ops.QubitLoc(0, 0)
 
     c = Circuit([
         Moment(),
@@ -303,8 +303,8 @@ def test_next_moment_operating_on_distance():
 
 
 def test_prev_moment_operating_on():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit()
     assert c.prev_moment_operating_on([a]) is None
@@ -345,7 +345,7 @@ def test_prev_moment_operating_on():
 
 
 def test_prev_moment_operating_on_distance():
-    a = ops.QubitId(0, 0)
+    a = ops.QubitLoc(0, 0)
 
     c = Circuit([
         Moment(),
@@ -380,8 +380,8 @@ def test_prev_moment_operating_on_distance():
 
 
 def test_clear_operations_touching():
-    a = ops.QubitId(0, 0)
-    b = ops.QubitId(0, 1)
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
 
     c = Circuit()
     c.clear_operations_touching([a, b], range(10))
@@ -430,3 +430,31 @@ def test_clear_operations_touching():
         Moment(),
         Moment(),
     ])
+
+
+def test_qubits():
+    a = ops.QubitLoc(0, 0)
+    b = ops.QubitLoc(0, 1)
+
+    c = Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.X(b)]),
+    ])
+    assert c.qubits() == {a, b}
+
+    c = Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.X(a)]),
+    ])
+    assert c.qubits() == {a}
+
+    c = Circuit([
+        Moment([ops.CZ(a, b)]),
+    ])
+    assert c.qubits() == {a, b}
+
+    c = Circuit([
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.X(a)])
+    ])
+    assert c.qubits() == {a, b}

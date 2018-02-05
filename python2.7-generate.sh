@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2017 Google LLC
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ cp -r cirq ${out}/cirq
 3to2 ${out}/cirq -w > /dev/null 2> /dev/null
 find ${out}/cirq | grep "\.py\.bak$" | xargs rm -f
 
-proto_dir=${out}/cirq/apis/google/v1
+proto_dir=${out}/cirq/api/google/v1
 find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
 protoc -I=${out} --python_out=${out} ${proto_dir}/*.proto
 
