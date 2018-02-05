@@ -1,15 +1,15 @@
 ## Installation
 
 **Note** In its current pre-release state, Cirq can only be installed
-from  source. When Cirq is launched publically, installing using pip will make
+from  source. When Cirq is launched publicly, installing using pip will make
 this process much easier (essentially it will just be ```pip install cirq```). 
 Also note that the instructions below are only for installing Cirq with 
 Python 3.x.
 
 ### Install on Mac or Ubuntu
 
-We recommend using [Virualenv](https://virtualenv.pypa.io/en/stable/) when
-working with Cirq.  Vitualenv creates a Python environment isolated form 
+We recommend using [Virtualenv](https://virtualenv.pypa.io/en/stable/) when
+working with Cirq.  Vitualenv creates a Python environment isolated from 
 other Python installations. This isolation ensures that other Python 
 environment's dependencies or configurations do not interfere with the
 environment you have created to work with Cirq.
@@ -82,3 +82,7 @@ to run the following with no errors
 8. You can leave the virtual environment by typing ```deactivate```
 at any time. To re-enter this environment follow the instructions in 
 step 4.   
+
+### Install on Windows
+
+TODO

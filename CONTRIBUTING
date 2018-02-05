@@ -22,19 +22,19 @@ use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
 
-Our code reviews also currently require a manual run of tests for
-your pull request (due to a limitation while Cirq is a private repo).  To
-Ydo this, you must first install the protobuf compiler:
+Our code reviews also (currently) require the reviewer to run tests for
+your pull request.  To insure that these tests pass, you should run
+these tests locally. To do this, you must first install the protobuf
+compiler:
 ```bash
 sudo apt-get install protobuf-compiler
 ```
-Then, after you have created your pull request, you should run
+Then you can run the following, which assumes you are in the directory
+where your changes are made:
 ```bash
-./continuous_integration/test-pull-request [pull_request_number] [access_token]
+./continuous_integration/test-pull-request
 ```
-where ```[pull_request_number]``` is the number of your pull request,
-and ```[access_token]``` is an api access key for github which you can
-obtain by navigating to your github users Settings / Developer Settings /
-Personal acess tokens [page](https://github.com/settings/tokens).
-When the tests run successfully your pull request will automatically be
-updated showing that these test have passed.
+Reviewers will run these tests before your code is submitted to ensure
+that the tests are not broken.  This ad hoc system is in place until
+Cirq is released publically when a continuous testing system will
+be put in place.
