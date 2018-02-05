@@ -21,3 +21,20 @@ All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
+
+Our code reviews also (currently) require the reviewer to run tests for
+your pull request.  To insure that these tests pass, you should run
+these tests locally. To do this, you must first install the protobuf
+compiler:
+```bash
+sudo apt-get install protobuf-compiler
+```
+Then you can run the following, which assumes you are in the directory
+where your changes are made:
+```bash
+./continuous_integration/test-pull-request
+```
+Reviewers will run these tests before your code is submitted to ensure
+that the tests are not broken.  This ad hoc system is in place until
+Cirq is released publically when a continuous testing system will
+be put in place.
