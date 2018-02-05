@@ -17,7 +17,7 @@
 import abc
 from typing import Union
 
-from cirq.apis.google.v1 import operations_pb2
+from cirq.api.google.v1 import operations_pb2
 from cirq.ops import gate_features, raw_types
 
 
