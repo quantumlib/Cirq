@@ -18,4 +18,4 @@ Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.
 """
 
-from cirq.apis import google
+from cirq.api import google

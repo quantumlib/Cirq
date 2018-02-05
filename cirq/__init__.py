@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import apis
+from cirq import api
 from cirq import circuits
 from cirq import devices
 from cirq import linalg
