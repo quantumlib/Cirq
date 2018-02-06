@@ -55,6 +55,3 @@ message Result {
   // The results each for a specific set of fixed parameters.
   repeated ParameterizedResult parameterized_results = 2;
 }
-
-
-
