@@ -66,11 +66,10 @@ called ```cirq``` in which the base of the github repo is installed.
 you cloned cirq:
 ```bash
 (targetDirectory)$ pip3 install -r cirq/requirements.txt
-(targetDirectory)$ pip3 install -e ./cirq/cirq  
+(targetDirectory)$ pip3 install -e ./cirq 
 ``` 
-If you want to install Cirq and have changes you make to Cirq show up
-when you edit Cirq, add ```-editable``` to the last command.
-For contributed to Cirq see [here](CONTRIBUTING)
+If you want to install Cirq without including local edits, remove ```-e```
+from the last command. For contributing to Cirq see [here](CONTRIBUTING)
 
 7. You should now be able use Cirq. To confirm this you should be able
 to run the following with no errors
