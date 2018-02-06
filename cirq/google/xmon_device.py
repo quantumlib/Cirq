@@ -93,9 +93,12 @@ class XmonDevice(Device):
     def check_if_exp11_operation_interacts(self,
                                            exp11_op: ops.Operation,
                                            other_op: ops.Operation) -> bool:
-        # Adjacent single-qubit operations may be allowed.
-        # But for now we will play it conservatively.
-        return any(q.adjacent_to(p)
+        if isinstance(other_op.gate, ops.ExpZGate):
+            return False
+        # Adjacent ExpW operations may be doable.
+        # For now we will play it conservatively.
+
+        return any(q.is_adjacent(p)
                    for q in exp11_op.qubits
                    for p in other_op.qubits)
 

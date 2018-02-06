@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from cirq import ops
+from cirq.devices import Device
 from cirq.time import Duration, Timestamp
 
 
@@ -33,6 +34,15 @@ class ScheduledOperation:
         self.time = time
         self.duration = duration
         self.operation = operation
+
+    @staticmethod
+    def op_at_on(operation: ops.Operation,
+                 time: Timestamp,
+                 device: Device):
+        """Creates a scheduled operation with a device-determined duration."""
+        return ScheduledOperation(time,
+                                  device.duration_of(operation),
+                                  operation)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

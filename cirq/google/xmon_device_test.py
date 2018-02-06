@@ -16,6 +16,8 @@ import pytest
 
 from cirq import ops
 from cirq.google import XmonDevice
+from cirq.ops import Operation
+from cirq.schedules import Schedule, ScheduledOperation, Timestamp
 from cirq.time import Duration
 
 
@@ -88,3 +90,46 @@ def test_validate_operation_supported_gate():
     d.validate_operation(ops.Operation(ops.ExpZGate(), [ops.QubitLoc(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(ops.Operation(MyGate, [ops.QubitLoc(0, 0)]))
+
+
+def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
+    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
+    q0 = ops.QubitLoc(0, 0)
+    q1 = ops.QubitLoc(1, 0)
+    q2 = ops.QubitLoc(2, 0)
+    s = Schedule(d, [
+        ScheduledOperation.op_at_on(
+            ops.ExpWGate().on(q0), Timestamp(), d),
+        ScheduledOperation.op_at_on(
+            ops.Exp11Gate().on(q1, q2), Timestamp(), d),
+    ])
+    with pytest.raises(ValueError):
+        d.validate_schedule(s)
+
+
+def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
+    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
+    q0 = ops.QubitLoc(0, 0)
+    q1 = ops.QubitLoc(1, 0)
+    q2 = ops.QubitLoc(2, 0)
+    s = Schedule(d, [
+        ScheduledOperation.op_at_on(
+            ops.ExpZGate().on(q0), Timestamp(), d),
+        ScheduledOperation.op_at_on(
+            ops.Exp11Gate().on(q1, q2), Timestamp(), d),
+    ])
+    d.validate_schedule(s)
+
+
+def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
+    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
+    q0 = ops.QubitLoc(0, 0)
+    p1 = ops.QubitLoc(1, 2)
+    p2 = ops.QubitLoc(2, 2)
+    s = Schedule(d, [
+        ScheduledOperation.op_at_on(
+            ops.ExpWGate().on(q0), Timestamp(), d),
+        ScheduledOperation.op_at_on(
+            ops.Exp11Gate().on(p1, p2), Timestamp(), d),
+    ])
+    d.validate_schedule(s)
