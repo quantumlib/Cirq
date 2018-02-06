@@ -19,22 +19,42 @@ message Program {
   repeated ParameterSweep parameter_sweep = 2;
 }
 
-// Results of measurements for a particular measurement key value.
-message KeyedMeasurementResult {
-  // The key under which the measurements have been grouped.
-  string key = 1;
-
-  // The results of the measurements. These appear in the order in which
-  // they measurements were done in the circuit's operation list.
-  repeated bool bits = 2;
-}
-
 // The parameters used to generate result along with the results for this
 // set of parameters.
 message ParameterizedResult {
   // The parameter dict that was used when generating these results.
   ParameterDict params = 1;
 
-  // The measurement results.
-  repeated KeyedMeasurementResult results = 2;
+  // The measurement results. This is repeated, one for every repetition
+  // of the measurements as defined in ParameterSweep.num_repetitions.
+  // The bytes themselves are ordered in little endian order according
+  // to the repeated measurement_keys in Result. If the ith key in this
+  // list has size size_i, then the kth key corresponds to the bits from
+  // \sum_{i<k} size_i (inclusive) to \sum_{i<=k} size_i (exclusive), where
+  // the bits are numbered from the end of the bytes.
+  repeated bytes measurement_results = 2;
 }
+
+// A message which represents a measurement key, along with the number of
+// measurements that are associated with this key.
+message MeasurementKey {
+  // The measurement key.
+  string key = 1;
+
+  // The number of measurements in the Program for this key.
+  int32 size = 2;
+}
+
+// The overall results of running a Program.
+message Result {
+  // A list of measurement keys (string) along with the number of measurements
+  // for each of these keys. The total number of measurements in the program
+  // is the sum of all the sizes.
+  repeated MeasurementKey measurement_keys = 1;
+
+  // The results each for a specific set of fixed parameters.
+  repeated ParameterizedResult parameterized_results = 2;
+}
+
+
+
