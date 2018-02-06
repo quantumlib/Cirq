@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
 from typing import Iterable
 
 from cirq import ops
@@ -91,19 +90,27 @@ class XmonDevice(Device):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
+    def check_if_exp11_operation_interacts(self,
+                                           exp11_op: ops.Operation,
+                                           other_op: ops.Operation) -> bool:
+        # Adjacent single-qubit operations may be allowed.
+        # But for now we will play it conservatively.
+        return any(q.adjacent_to(p)
+                   for q in exp11_op.qubits
+                   for p in other_op.qubits)
+
     def validate_scheduled_operation(self, schedule, scheduled_operation):
         self.validate_operation(scheduled_operation.operation)
 
         if isinstance(scheduled_operation.operation.gate, ops.Exp11Gate):
             for other in schedule.operations_happening_at_same_time_as(
                     scheduled_operation):
-                if isinstance(other.operation.gate, ops.Exp11Gate):
-                    if any(q.adjacent_to(p)
-                           for q in other.operation.qubits
-                           for p in scheduled_operation.operation.qubits):
-                        raise ValueError(
-                            'Adjacent Exp11 operations: {} vs {}.'.format(
-                                scheduled_operation, other))
+                if self.check_if_exp11_operation_interacts(
+                        scheduled_operation.operation,
+                        other.operation):
+                    raise ValueError(
+                        'Adjacent Exp11 operations: {} vs {}.'.format(
+                            scheduled_operation, other))
 
     def validate_circuit(self, circuit):
         for moment in circuit.moments:
