@@ -23,7 +23,7 @@ def square_device(width, height, holes=()):
     ns = Duration(nanos=1)
     return XmonDevice(measurement_duration=ns,
                       exp_w_duration=2 * ns,
-                      exp_z_duration=3 * ns,
+                      exp_11_duration=3 * ns,
                       qubits=[ops.QubitLoc(x, y)
                               for x in range(width)
                               for y in range(height)

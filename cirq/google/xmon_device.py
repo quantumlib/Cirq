@@ -27,19 +27,19 @@ class XmonDevice(Device):
     def __init__(self,
                  measurement_duration: Duration,
                  exp_w_duration: Duration,
-                 exp_z_duration: Duration,
+                 exp_11_duration: Duration,
                  qubits: Iterable[ops.QubitLoc]):
         """Initializes the description of an xmon device.
 
         Args:
             measurement_duration: The maximum duration of a measurement.
             exp_w_duration: The maximum duration of an ExpW operation.
-            exp_z_duration: The maximum duration of an ExpZ operation.
+            exp_11_duration: The maximum duration of an ExpZ operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
         self._measurement_duration = measurement_duration
         self._exp_w_duration = exp_w_duration
-        self._exp_z_duration = exp_z_duration
+        self._exp_z_duration = exp_11_duration
         self.qubits = frozenset(qubits)
 
     def neighbors_of(self, qubit: ops.QubitLoc):
@@ -82,10 +82,11 @@ class XmonDevice(Device):
         for q in operation.qubits:
             if not isinstance(q, ops.QubitLoc):
                 raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
-            if not q in self.qubits:
+            if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
 
-        for p, q in itertools.combinations(operation.qubits, 2):
+        if len(operation.qubits) == 2:
+            p, q = operation.qubits
             if not p.is_adjacent(q):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))

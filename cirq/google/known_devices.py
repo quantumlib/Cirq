@@ -19,5 +19,5 @@ from cirq.time import Duration
 Foxtail = XmonDevice(
     measurement_duration=Duration(nanos=1000),
     exp_w_duration=Duration(nanos=20),
-    exp_z_duration=Duration(nanos=50),
+    exp_11_duration=Duration(nanos=50),
     qubits=[ops.QubitLoc(x, y) for x in range(11) for y in range(2)])
