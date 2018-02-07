@@ -25,14 +25,23 @@ message ParameterizedResult {
   // The parameter dict that was used when generating these results.
   ParameterDict params = 1;
 
-  // The measurement results. This is repeated, one for every repetition
-  // of the measurements as defined in ParameterSweep.num_repetitions.
-  // The bytes themselves are ordered in little endian order according
-  // to the repeated measurement_keys in Result. If the ith key in this
+  // The total number of repetitions that were performed for these results.
+  int32 num_repetitions = 2;
+
+  // The measurement results. This is a packed representation of all of the
+  // measurements for fixed set of parameters (specified by params above)
+  // across all of the repetitions for this set of parameters.
+  //
+  // These bytes should be interpreted using little endian, i.e. the least
+  // significant bit of all bytes is the 0th bit. The bytes themselves
+  // represent num_repetitions chunks of bytes. Each chunk represents the
+  // result of one run of the Program.  Within a chunk the bytes are also
+  // ordered in littled endian, and the bits are ordered in according to the
+  // repeated measurement_keys in Result. For a chunk, if the ith key in this
   // list has size size_i, then the kth key corresponds to the bits from
-  // \sum_{i<k} size_i (inclusive) to \sum_{i<=k} size_i (exclusive), where
-  // the bits are numbered from the end of the bytes.
-  repeated bytes measurement_results = 2;
+  // \sum_{i<k} size_i (inclusive) to \sum_{i<=k} size_i (exclusive) within
+  // the chunk.
+  bytes measurement_results = 3;
 }
 
 // A message which represents a measurement key, along with the number of
@@ -49,9 +58,13 @@ message MeasurementKey {
 message Result {
   // A list of measurement keys (string) along with the number of measurements
   // for each of these keys. The total number of measurements in the program
-  // is the sum of all the sizes.
+  // is the sum of all the sizes. The measurement keys in the repeated
+  // list are all unique: if a measurement with the same key is repeated
+  // the bit results will come back in the order the gate appears in the
+  // Program.
   repeated MeasurementKey measurement_keys = 1;
 
+
   // The results each for a specific set of fixed parameters.
-  repeated ParameterizedResult parameterized_results = 2;
+  repeated ParameterizedResult parameterized_results = 3;
 }
