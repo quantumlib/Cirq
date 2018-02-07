@@ -10,6 +10,7 @@ Follow these [instructions](docs/install.md).
 ## Hello Qubit
 
 A simple example to get you up and running:
+
 ```python
 import cirq
 
@@ -36,6 +37,16 @@ for _ in range(10):
     results.append('1' if result else '0')
 print("Simulated measurement results:")
 print(''.join(results))
+```
+
+Example output:
+
+```
+Circuit:
+(0, 0): ---X^0.5---M---
+
+Simulated measurement results:
+1110111010
 ```
 
 ## Documentation
