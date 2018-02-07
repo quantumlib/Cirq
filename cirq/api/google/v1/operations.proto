@@ -75,7 +75,7 @@ message Exp11 {
   Qubit target2 = 2;
   // The amount of the rotation in units of pi, i.e. the t in
   // exp(i * pi * |11><11| * t).
-  // Note that this is periodic with period 2.
+  // Note that this is periodic with period 2 (including global phase).
   ParameterizedFloat half_turns = 3;
 }
 
