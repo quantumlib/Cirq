@@ -78,7 +78,7 @@ class Simulator(object):
 
     def run(self,
         circuit: Circuit,
-        options: Options = Options(),
+        options: Options = None,
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray] = 0) -> 'Result':
         """Simulates the entire supplied Circuit.
@@ -99,12 +99,13 @@ class Simulator(object):
             Result for the final step of the simulation. This
             contains measurement results for all of the moments.
         """
-        all_results = self.moment_steps(circuit, options, qubits, initial_state)
+        all_results = self.moment_steps(circuit, options or Options(), qubits,
+                                        initial_state)
         return functools.reduce(Result.merge_measurements_with, all_results)
 
     def moment_steps(self,
         circuit: Circuit,
-        options: 'Options' = Options(),
+        options: 'Options' = None,
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray]=0) -> 'Result':
         """Returns an interator of XmonStepResults for each moment simulated.
@@ -125,7 +126,8 @@ class Simulator(object):
             SimulatorIterator that steps through the simulation, simulating
             each moment and returning a Result for each moment.
         """
-        return simulator_iterator(circuit, options, qubits, initial_state)
+        return simulator_iterator(circuit, options or Options(), qubits,
+                                  initial_state)
 
 
 def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
