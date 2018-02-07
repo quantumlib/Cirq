@@ -117,7 +117,7 @@ def test_reset_state_wrong_dtype(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_x0(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 0, 0.5, 0.0)
+    result = compute_xy_matrix(num_prefix_qubits, 0, 1.0, 0.0)
     expected = 1j * np.array([
         [0, 1, 0, 0, 0, 0, 0, 0],
         [1, 0, 0, 0, 0, 0, 0, 0],
@@ -133,7 +133,7 @@ def test_w_x0(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_x1(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 1, 0.5, 0.0)
+    result = compute_xy_matrix(num_prefix_qubits, 1, 1.0, 0.0)
     expected = 1j * np.array([
         [0, 0, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 1, 0, 0, 0, 0],
@@ -149,7 +149,7 @@ def test_w_x1(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_x2(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 2, 0.5, 0.0)
+    result = compute_xy_matrix(num_prefix_qubits, 2, 1.0, 0.0)
     expected = 1j * np.array([
         [0, 0, 0, 0, 1, 0, 0, 0],
         [0, 0, 0, 0, 0, 1, 0, 0],
@@ -165,7 +165,7 @@ def test_w_x2(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_y0(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 0, 0.5, 0.5)
+    result = compute_xy_matrix(num_prefix_qubits, 0, 1.0, 0.5)
     expected = np.array([
         [0, 1, 0, 0, 0, 0, 0, 0],
         [-1, 0, 0, 0, 0, 0, 0, 0],
@@ -181,7 +181,7 @@ def test_w_y0(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_y1(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 1, 0.5, 0.5)
+    result = compute_xy_matrix(num_prefix_qubits, 1, 1.0, 0.5)
     expected = np.array([
         [0, 0, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 1, 0, 0, 0, 0],
@@ -197,7 +197,7 @@ def test_w_y1(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_y2(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 2, 0.5, 0.5)
+    result = compute_xy_matrix(num_prefix_qubits, 2, 1.0, 0.5)
     expected = np.array([
         [0, 0, 0, 0, 1, 0, 0, 0],
         [0, 0, 0, 0, 0, 1, 0, 0],
@@ -213,7 +213,7 @@ def test_w_y2(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_xplusy0(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 0, 0.5, 0.25)
+    result = compute_xy_matrix(num_prefix_qubits, 0, 1.0, 0.25)
     p = np.exp(0.25j * np.pi)
     m = np.exp(-0.25j * np.pi)
     expected = 1j * np.array([
@@ -231,7 +231,7 @@ def test_w_xplusy0(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_xplusy1(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 1, 0.5, 0.25)
+    result = compute_xy_matrix(num_prefix_qubits, 1, 1.0, 0.25)
     p = np.exp(0.25j * np.pi)
     m = np.exp(-0.25j * np.pi)
     expected = 1j * np.array([
@@ -249,7 +249,7 @@ def test_w_xplusy1(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_xplusy2(num_prefix_qubits):
-    result = compute_xy_matrix(num_prefix_qubits, 2, 0.5, 0.25)
+    result = compute_xy_matrix(num_prefix_qubits, 2, 1.0, 0.25)
     p = np.exp(0.25j * np.pi)
     m = np.exp(-0.25j * np.pi)
     expected = 1j * np.array([
@@ -267,21 +267,21 @@ def test_w_xplusy2(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_phase_z0(num_prefix_qubits):
-    result = compute_phases_matrix(num_prefix_qubits, {(0,): 0.5})
+    result = compute_phases_matrix(num_prefix_qubits, {(0,): 1.0})
     expected = 1j * np.diag([1, -1, 1, -1, 1, -1, 1, -1])
     np.testing.assert_almost_equal(result, expected)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_phase_z1(num_prefix_qubits):
-    result = compute_phases_matrix(num_prefix_qubits, {(1,): 0.5})
+    result = compute_phases_matrix(num_prefix_qubits, {(1,): 1.0})
     expected = 1j * np.diag([1, 1, -1, -1, 1, 1, -1, -1])
     np.testing.assert_almost_equal(result, expected)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_phase_z2(num_prefix_qubits):
-    result = compute_phases_matrix(num_prefix_qubits, {(2,): 0.5})
+    result = compute_phases_matrix(num_prefix_qubits, {(2,): 1.0})
     expected = 1j * np.diag([1, 1, 1, 1, -1, -1, -1, -1])
     np.testing.assert_almost_equal(result, expected)
 
@@ -313,7 +313,7 @@ def test_phase_cz02(num_prefix_qubits, indices):
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_multiple_phases(num_prefix_qubits):
     result = compute_phases_matrix(num_prefix_qubits, {
-        (1,): 0.5,
+        (1,): 1.0,
         (0, 2): 1.0
     })
     expected = 1j * np.diag([1, 1, -1, -1, 1, -1, -1, 1])
@@ -366,7 +366,7 @@ def test_measurement_bit_flip(num_prefix_qubits):
         num_prefix_qubits=num_prefix_qubits,
         min_qubits_before_shard=0) as s:
         for i in range(3):
-            s.simulate_w(i, 0.5, 0)
+            s.simulate_w(i, 1.0, 0)
         for i in range(3):
             assert s.simulate_measurement(i)
             expected = np.zeros(2 ** 3, dtype=np.complex64)
@@ -384,7 +384,7 @@ def test_measurement_state_update(num_prefix_qubits):
         min_qubits_before_shard=0) as s:
         # 1/sqrt(2)(I+iX) gate.
         for i in range(3):
-            s.simulate_w(i, 0.25, 0)
+            s.simulate_w(i, 0.5, 0)
         # Check state before measurements.
         single_qubit_state = np.array([1, 1j]) / np.sqrt(2)
         two_qubit_state = np.kron(single_qubit_state, single_qubit_state)
@@ -414,16 +414,16 @@ def test_measurement_randomness_sanity(num_prefix_qubits):
         min_qubits_before_shard=0) as s:
         assert_measurements(s, [False, False, False])
         for i in range(3):
-            s.simulate_w(i, 0.25, 0)
+            s.simulate_w(i, 0.5, 0)
         assert_measurements(s, [True, True, False])
         for i in range(3):
-            s.simulate_w(i, 0.25, 0)
+            s.simulate_w(i, 0.5, 0)
         assert_measurements(s, [True, True, True])
         for i in range(3):
-            s.simulate_w(i, 0.25, 0)
+            s.simulate_w(i, 0.5, 0)
         assert_measurements(s, [True, False, True])
         for i in range(3):
-            s.simulate_w(i, 0.25, 0)
+            s.simulate_w(i, 0.5, 0)
         assert_measurements(s, [False, False, False])
 
 
@@ -451,13 +451,13 @@ def test_non_context_manager(num_prefix_qubits):
                                             dtype=np.complex64))
     stepper.__exit__()
 
-    stepper.simulate_w(0, 0.5, 0)
+    stepper.simulate_w(0, 1.0, 0)
     np.testing.assert_almost_equal(stepper.current_state,
                                    np.array([0, 1j, 0, 0, 0, 0, 0, 0],
                                             dtype=np.complex64))
     stepper.__exit__()
 
-    stepper.simulate_phases({(0, ): 0.5})
+    stepper.simulate_phases({(0, ): 1.0})
     np.testing.assert_almost_equal(stepper.current_state,
                                    np.array([0, 1, 0, 0, 0, 0, 0, 0],
                                             dtype=np.complex64))
