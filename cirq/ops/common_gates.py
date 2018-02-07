@@ -17,7 +17,6 @@
 import math
 import numpy as np
 
-from cirq import linalg
 from cirq.ops import gate_features
 from cirq.ops import native_gates
 
