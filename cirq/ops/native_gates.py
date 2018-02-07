@@ -167,6 +167,12 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
             self.half_turns)
         return op
 
+    def ascii_wire_symbols(self):
+        return 'Z', 'Z'
+
+    def ascii_exponent(self):
+        return self.half_turns
+
     def __repr__(self):
         return 'ParameterizedCZGate(half_turns={})'.format(
             repr(self.half_turns))
@@ -183,7 +189,9 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
         return hash((Exp11Gate, self.half_turns))
 
 
-class ExpWGate(NativeGate, gate_features.PhaseableGate):
+class ExpWGate(NativeGate,
+               gate_features.AsciiDiagrammableGate,
+               gate_features.PhaseableGate):
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
     def __init__(self, *positional_args,
@@ -223,9 +231,18 @@ class ExpWGate(NativeGate, gate_features.PhaseableGate):
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
 
+    def ascii_wire_symbols(self):
+        if self.axis_half_turns == 0:
+            return 'X',
+        if self.axis_half_turns == 0.5:
+            return 'Y',
+        return 'W({})'.format(self.axis_half_turns),
+
+    def ascii_exponent(self):
+        return self.half_turns
+
     def __repr__(self):
-        return ('ParameterizedXYGate(half_turns={}, '
-                'axis_half_turns={})'.format(
+        return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(
                     repr(self.half_turns),
                     repr(self.axis_half_turns)))
 
@@ -243,13 +260,21 @@ class ExpWGate(NativeGate, gate_features.PhaseableGate):
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
 
-class ExpZGate(NativeGate, gate_features.PhaseableGate):
+class ExpZGate(NativeGate,
+               gate_features.AsciiDiagrammableGate,
+               gate_features.PhaseableGate):
     """A rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1):
         assert not positional_args
         self.half_turns = _canonicalize_turns(half_turns)
+
+    def ascii_wire_symbols(self):
+        return 'Z',
+
+    def ascii_exponent(self):
+        return self.half_turns
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -268,7 +293,7 @@ class ExpZGate(NativeGate, gate_features.PhaseableGate):
         return op
 
     def __repr__(self):
-        return 'ParameterizedZGate(half_turns={})'.format(
+        return 'ExpZGate(half_turns={})'.format(
             repr(self.half_turns))
 
     def __eq__(self, other):
