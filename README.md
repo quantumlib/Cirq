@@ -10,28 +10,43 @@ Follow these [instructions](docs/install.md).
 ## Hello Qubit
 
 A simple example to get you up and running:
+
 ```python
-from cirq import ops
-from cirq.circuits.circuit import Circuit
-from cirq.sim.google.xmon_simulator import Simulator
+import cirq
 
 # Define a qubit.
-qubit = ops.QubitLoc(0, 0)
+qubit = cirq.ops.QubitLoc(0, 0)
 
-# Define moments, a sequence of gates.
-moments = [Moment([sqrt_x_gate(qubit)]), Moment([meas(qubit)])]
+# Create a circuit (qubits start in the |0> state).
+circuit = cirq.circuits.Circuit()
+circuit.append([
+    # Square root of NOT.
+    cirq.ops.ExpWGate(half_turns=0.5).on(qubit),
 
-# Define a square root of not gate and a measurement gate.
-sqrt_x_gate = ops.ExpWGate(half_turns=0.25)
-meas = ops.MeasurementGate('result')
-
-# Create a circuit (qubit will start in |0> state).
-circuit = Circuit(moments)
+    # Measurement.
+    cirq.ops.MeasurementGate('result').on(qubit)
+])
+print("Circuit:")
+print(cirq.circuits.to_ascii(circuit))
 
 # Now simulate the circuit and print out the measurment result.
-simulator = Simulator()
-results = simulator.run(circuit)
-print('Measurement result: %s' % results.measurements['result'])
+simulator = cirq.sim.google.xmon_simulator.Simulator()
+results = []
+for _ in range(10):
+    result = simulator.run(circuit).measurements['result'][0]
+    results.append('1' if result else '0')
+print("Simulated measurement results:")
+print(''.join(results))
+```
+
+Example output:
+
+```
+Circuit:
+(0, 0): ---X^0.5---M---
+
+Simulated measurement results:
+1110111010
 ```
 
 ## Documentation
