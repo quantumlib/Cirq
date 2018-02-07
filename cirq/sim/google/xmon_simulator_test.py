@@ -26,8 +26,8 @@ Q2 = ops.QubitLoc(1, 0)
 
 
 def basic_circuit():
-    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.25, axis_half_turns=0.0)
-    z = ops.native_gates.ExpZGate(half_turns=0.5)
+    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    z = ops.native_gates.ExpZGate(half_turns=1.0)
     cz = ops.native_gates.Exp11Gate(half_turns=1.0)
     circuit = circuits.Circuit()
     circuit.append(
@@ -41,7 +41,7 @@ def basic_circuit():
 def large_circuit():
     np.random.seed(0)
     qubits = [ops.QubitLoc(i, 0) for i in range(10)]
-    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.25, axis_half_turns=0.0)
+    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     cz = ops.native_gates.Exp11Gate(half_turns=1.0)
     circuit = circuits.Circuit()
     for _ in range(11):
