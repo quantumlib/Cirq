@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # Read in requirements.txt
 requirements = open('requirements.txt').readlines()
@@ -24,4 +24,6 @@ setup(
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
     install_requirements=requirements,
-    license='Apache 2')
+    license='Apache 2',
+    packages=find_packages(),
+    package_data={'cirq.api.google.v1': ['*.proto']})
