@@ -23,7 +23,7 @@ setup(
     version='0.1',
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
-    install_requirements=requirements,
+    install_requires=requirements,
     license='Apache 2',
     packages=find_packages(),
     package_data={'cirq.api.google.v1': ['*.proto']})
