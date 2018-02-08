@@ -173,8 +173,13 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
     def ascii_exponent(self):
         return self.half_turns
 
+    def __str__(self):
+        if self.half_turns == 1:
+            return 'CZ'
+        return 'CZ**{}'.format(repr(self.half_turns))
+
     def __repr__(self):
-        return 'ParameterizedCZGate(half_turns={})'.format(
+        return 'Exp11Gate(half_turns={})'.format(
             repr(self.half_turns))
 
     def __eq__(self, other):
@@ -240,6 +245,12 @@ class ExpWGate(NativeGate,
 
     def ascii_exponent(self):
         return self.half_turns
+
+    def __str__(self):
+        base = self.ascii_wire_symbols()[0]
+        if self.half_turns == 1:
+            return base
+        return '{}**{}'.format(base, self.half_turns)
 
     def __repr__(self):
         return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(

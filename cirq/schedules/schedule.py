@@ -139,7 +139,8 @@ class Schedule:
                                 duration=scheduled_operation.duration,
                                 qubits=scheduled_operation.operation.qubits)
         if collisions:
-            raise ValueError('Collisions: {}'.format(collisions))
+            raise ValueError('{} collided with {}'.format(scheduled_operation,
+                                                          collisions))
         self.scheduled_operations.add(scheduled_operation)
         self._max_duration = max(self._max_duration,
                                  scheduled_operation.duration)
@@ -159,3 +160,11 @@ class Schedule:
             return True
         except ValueError:
             return False
+
+    def __str__(self):
+        return '\n'.join(str(e) for e in self.scheduled_operations)
+
+    def __repr__(self):
+        return 'Schedule(device={}, scheduled_operations=[{}])'.format(
+            repr(self.device),
+            ',\n\t'.join(repr(e) for e in self.scheduled_operations))

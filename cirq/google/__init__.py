@@ -12,5 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.xmon_device import *
 from cirq.google.known_devices import *
+from cirq.google.xmon_device import *
+from cirq.google.xmon_scheduler import *
