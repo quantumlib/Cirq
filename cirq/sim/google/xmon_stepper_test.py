@@ -19,6 +19,21 @@ import numpy as np
 import pytest
 
 
+def test_no_thread_pool():
+    pool = xmon_stepper.ThreadlessPool()
+    result = pool.map(lambda x: x + 1, range(10))
+    assert result == [x + 1 for x in range(10)]
+    # No ops.
+    pool.close()
+    pool.join()
+
+
+def test_no_thread_pool_no_chunking():
+    pool = xmon_stepper.ThreadlessPool()
+    with pytest.raises(AssertionError):
+        pool.map(lambda x: x + 1, range(10), chunksize=1)
+
+
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_initial_state_computational_basis(num_prefix_qubits):
     for initial_state in range(2 ** 3):
