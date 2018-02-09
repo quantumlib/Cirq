@@ -52,6 +52,7 @@ def moment_schedule(device: Device, circuit: Circuit):
             schedule.include(scheduled_operation=scheduled_op)
             # Raises ValueError at first sign of a device conflict.
             device.validate_scheduled_operation(schedule, scheduled_op)
+        # Increment time for next moment by max of ops during this moment.
         max_duration = max((device.duration_of(op) for op in moment.operations),
                            key=Duration.total_picos)
         t += max_duration
