@@ -25,6 +25,10 @@ message ParameterizedResult {
   // The parameter dict that was used when generating these results.
   ParameterDict params = 1;
 
+  // The total number of repetitions that were performed for this set of
+  // parameters.
+  int32 num_repetitions = 2;
+
   // The measurement results. This is a packed representation of all of the
   // measurements for fixed set of parameters (specified by params above)
   // across all of the repetitions for this set of parameters.
@@ -38,7 +42,7 @@ message ParameterizedResult {
   // list has size size_i, then the kth key corresponds to the bits from
   // \sum_{i<k} size_i (inclusive) to \sum_{i<=k} size_i (exclusive) within
   // the chunk.
-  bytes measurement_results = 2;
+  bytes measurement_results = 3;
 }
 
 // A message which represents a measurement key, along with the number of
@@ -61,10 +65,6 @@ message Result {
   // Program.
   repeated MeasurementKey measurement_keys = 1;
 
-  // The total number of repetitions that were performed. Each of the
-  // parameterized_results below is repeated this many times.
-  int32 num_repetitions = 2;
-
   // The results each for a specific set of fixed parameters.
-  repeated ParameterizedResult parameterized_results = 3;
+  repeated ParameterizedResult parameterized_results = 2;
 }
