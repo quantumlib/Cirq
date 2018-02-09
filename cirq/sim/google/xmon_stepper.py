@@ -66,7 +66,7 @@ class Stepper(object):
         num_qubits: int,
         num_prefix_qubits: int = None,
         initial_state: Union[int, np.ndarray] = 0,
-        min_qubits_before_shard: int = 10):
+        min_qubits_before_shard: int = 13):
         """Construct a new Simulator.
 
         Args:
@@ -83,14 +83,14 @@ class Stepper(object):
             correct size, normalized (an L2 norm of 1), and have dtype of
             np.complex64.
           min_qubits_before_shard: Sharding will be done only for this number
-            of qubits or more. The default is 10.
+            of qubits or more. The default is 13.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
             num_prefix_qubits = int(math.log(multiprocessing.cpu_count(), 2))
         if num_prefix_qubits > num_qubits:
             num_prefix_qubits = num_qubits
-        if min_qubits_before_shard <= num_qubits:
+        if num_qubits < min_qubits_before_shard:
             num_prefix_qubits = 0
         self._num_prefix_qubits = num_prefix_qubits
         # Each shard is of a dimension equal to 2 ** num_shard_qubits.
@@ -177,7 +177,8 @@ class Stepper(object):
             mem_manager.SharedMemManager.free_array(handle)
 
     def __enter__(self):
-        self._pool = multiprocessing.Pool(processes=self._num_shards)
+        self._pool = (multiprocessing.Pool(processes=self._num_shards)
+                      if self._num_qubits > 1 else ThreadlessPool())
         self._pool_open = True
         return self
 
@@ -521,3 +522,22 @@ def _collapse_state(args: Dict[str, Any]):
     state *= (_one_projector(args, index) * result
         + (1 - _one_projector(args, index)) * (1 - result))
     state /= normalization
+
+
+class ThreadlessPool(object):
+    """A Pool that does not use any processes or threads.
+
+    Only supports map, close, and join, the later two being trivial.
+    No enforcement of closing or joining is done, so map can be called
+    repeatedly.
+    """
+
+    def map(self, func, iterable, chunksize=None):
+        assert chunksize is None, 'Chunking not supported by SimplePool'
+        return [func(x) for x in iterable]
+
+    def close(self):
+        pass
+
+    def join(self):
+        pass
