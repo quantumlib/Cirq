@@ -33,6 +33,7 @@ from typing import DefaultDict, Dict, Sequence, Union
 from cirq.circuits.circuit import Circuit
 from cirq.ops import native_gates
 from cirq.ops import raw_types
+from cirq.run.resolver import ParamResolver
 from cirq.sim.google.xmon_stepper import Stepper
 
 
@@ -53,7 +54,7 @@ class Options(object):
             num_shards: sharding will be done for the greatest value of a
                 power of two less than this value. If None, the default will
                 be used which is the smallest power of two less than or equal
-                to the number of cpus.
+                to the number of CPUs.
             min_qubits_before_shard: Sharding will be done only for this number
                 of qubits or more. The default is 10.
         """
@@ -72,7 +73,6 @@ class Options(object):
 class Simulator(object):
     """Simulator for Xmon class quantum circuits.
 
-    TODO(dabacon): Support parameter sweeps and repetitions.
     TODO(dabacon): Optimization pass to decompose into native gate set.
     """
 
@@ -80,7 +80,8 @@ class Simulator(object):
         circuit: Circuit,
         options: Options = None,
         qubits: Sequence[raw_types.QubitId] = None,
-        initial_state: Union[int, np.ndarray] = 0) -> 'Result':
+        initial_state: Union[int, np.ndarray] = 0,
+        param_resolver: ParamResolver = None) -> 'Result':
         """Simulates the entire supplied Circuit.
 
         Args:
@@ -92,7 +93,7 @@ class Simulator(object):
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state. Otherwise
                 if this is a np.ndarray it is the full initial state. In this
-                case itmust be the correct size, be normalized (an L2 norm of
+                case it must be the correct size, be normalized (an L2 norm of
                 1), and have a dtype of np.complex64.
 
         Returns:
@@ -100,15 +101,16 @@ class Simulator(object):
             contains measurement results for all of the moments.
         """
         all_results = self.moment_steps(circuit, options or Options(), qubits,
-                                        initial_state)
+                                        initial_state, param_resolver)
         return functools.reduce(Result.merge_measurements_with, all_results)
 
     def moment_steps(self,
         circuit: Circuit,
         options: 'Options' = None,
         qubits: Sequence[raw_types.QubitId] = None,
-        initial_state: Union[int, np.ndarray]=0) -> 'Result':
-        """Returns an interator of XmonStepResults for each moment simulated.
+        initial_state: Union[int, np.ndarray]=0,
+        param_resolver: ParamResolver = None) -> 'Result':
+        """Returns an iterator of XmonStepResults for each moment simulated.
 
         Args:
             circuit: The Circuit to simulate.
@@ -119,7 +121,7 @@ class Simulator(object):
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state. Otherwise
                 if this is a np.ndarray it is the full initial state. In this
-                case itmust be the correct size, be normalized (an L2 norm of
+                case it must be the correct size, be normalized (an L2 norm of
                 1), and have a dtype of np.complex64.
 
         Returns:
@@ -127,12 +129,13 @@ class Simulator(object):
             each moment and returning a Result for each moment.
         """
         return simulator_iterator(circuit, options or Options(), qubits,
-                                  initial_state)
+                                  initial_state, param_resolver)
 
 
 def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
     qubits: Sequence[raw_types.QubitId] = None,
-    initial_state: Union[int, np.ndarray]=0):
+    initial_state: Union[int, np.ndarray]=0,
+    param_resolver: ParamResolver = None):
     """Iterator over Results from Moments of a Circuit.
 
     This should rarely be instantiated directly, instead prefer to create an
@@ -157,6 +160,8 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
+    if param_resolver is None:
+        param_resolver = ParamResolver({})
     with Stepper(
         num_qubits=len(qubits),
         num_prefix_qubits=options.num_prefix_qubits,
@@ -169,20 +174,19 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
                 gate = op.gate
                 if isinstance(gate, native_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
-                    phase_map[(index,)] = native_gates.ParameterizedValue.val_of(
+                    phase_map[(index,)] = param_resolver.value_of(
                         gate.half_turns)
                 elif isinstance(gate, native_gates.Exp11Gate):
                     index0 = qubit_map[op.qubits[0]]
                     index1 = qubit_map[op.qubits[1]]
-                    phase_map[(index0, index1)] = (
-                        native_gates.ParameterizedValue.val_of(gate.half_turns))
+                    phase_map[(index0, index1)] = param_resolver.value_of(
+                        gate.half_turns)
                 elif isinstance(gate, native_gates.ExpWGate):
                     index = qubit_map[op.qubits[0]]
                     stepper.simulate_w(
                         index=index,
-                        half_turns=native_gates.ParameterizedValue.val_of(
-                            gate.half_turns),
-                        axis_half_turns=native_gates.ParameterizedValue.val_of(
+                        half_turns=param_resolver.value_of(gate.half_turns),
+                        axis_half_turns=param_resolver.value_of(
                             gate.axis_half_turns))
                 elif isinstance(gate, native_gates.MeasurementGate):
                     index = qubit_map[op.qubits[0]]
@@ -193,7 +197,8 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
                         'Gate %s is not a gate supported by the xmon simulator.'
                         % gate)
             stepper.simulate_phases(phase_map)
-            yield Result(stepper, qubit_map, measurements)
+            yield Result(stepper, qubit_map, measurements,
+                         param_resolver.param_dict)
 
 
 class Result(object):
@@ -206,19 +211,22 @@ class Result(object):
         measurements: A dictionary from measurement gate key to measurement
             results. If a key is reused, the measurement values are returned
             in the order they appear in the Circuit being simulated.
+        param_dict: A dictionary produce by the ParamResolver mapping parameter
+            keys to actual parameter values that produced this result.
     """
 
     def __init__(self, stepper: Stepper, qubit_map: Dict,
-        measurements: DefaultDict):
+        measurements: DefaultDict, param_dict: Dict):
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
+        self.param_dict = param_dict
 
     def state(self) -> np.ndarray:
         """Return the state (wave function) at this point in the computation.
 
         The state is returned in the computational basis with these basis
-        states defined by the qubit_map. In paticular the value in the
+        states defined by the qubit_map. In particular the value in the
         qubit_map is the index of the qubit, and these are translated into
         binary vectors using little endian.
 
@@ -275,4 +283,5 @@ class Result(object):
         new_measurements.update(last_result.measurements)
         for key, result_list in self.measurements.items():
             new_measurements[key].extend(result_list)
-        return Result(self._stepper, self.qubit_map, new_measurements)
+        return Result(self._stepper, self.qubit_map, new_measurements,
+                      self.param_dict)

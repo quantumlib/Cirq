@@ -12,13 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import api
-from cirq import circuits
-from cirq import devices
-from cirq import linalg
-from cirq import ops
-from cirq import run
-from cirq import schedules
-from cirq import sim
-from cirq import testing
-from cirq import time
+"""Types and methods related to simulating quantum computers.
+"""
+
+from cirq.run import resolver
