@@ -87,7 +87,7 @@ message SweepResult {
   // The total number of repetitions that were performed for this sweep.
   // This is reported in order to make it possible to decode the bytes
   // in the measurement results.
-  int32 num_repetitions = 1;
+  int32 repetitions = 1;
 
   // A list of measurement keys (string) along with the number of measurements
   // for each of these keys. The size of the measurement key is the total
