@@ -10,7 +10,7 @@ option java_multiple_files = true;
 // varying parameter-dicts.
 message ParameterSweep {
   // How many times to sample, for each parameter-dict that is swept over.
-  int64 repetitions = 1;
+  int32 repetitions = 1;
 
   // Which parameters, that control gates in the circuit, to try.
   // When not specified, the circuit is evaluated unparameterized.
