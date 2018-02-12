@@ -44,8 +44,8 @@ message ParameterizedResult {
   //   (k_0,s_0),(k_1,s_1), ..., (k_{m-1},s_{m-1}),
   // (for m different measurement keys), then the bit string for these
   // measurements is defined as
-  //   r_0[0] r_0[1] ... r_0[s_0] r_1[0] r_1[1] ... r_1[s_1] ...
-  //   ... r_{m-1}[0] r_{m-1}[1] ... r_{m-1}[s_{m-1}]
+  //   r_0[0] r_0[1] ... r_0[s_0-1] r_1[0] r_1[1] ... r_1[s_1-1] ...
+  //   ... r_{m-1}[0] r_{m-1}[1] ... r_{m-1}[s_{m-1}-1]
   // Here r_i are the measurement results for the ith key (order defined by
   // measurement_keys). Since the ith key can appear s_i times, r_i is a
   // length s_i bit string, and r_i[j] is the jth bit in this string.
