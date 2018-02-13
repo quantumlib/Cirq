@@ -292,3 +292,17 @@ def test_param_resolver_exp_11_half_turns(offset):
     np.testing.assert_almost_equal(
         result,
         np.diag([1, 1, 1, cmath.exp(1j * math.pi * 0.5)]))
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_param_dict(offset):
+    exp_w = ops.native_gates.ExpWGate(
+        half_turns=ops.native_gates.ParameterizedValue('a', offset),
+        axis_half_turns=0.0)
+    circuit = circuits.Circuit()
+    circuit.append(exp_w(Q1))
+    resolver = run.resolver.ParamResolver({'a': 0.5})
+
+    simulator = xmon_simulator.Simulator()
+    result = simulator.run(circuit, param_resolver=resolver)
+    assert result.param_dict == {'a': 0.5}

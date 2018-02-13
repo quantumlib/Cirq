@@ -95,6 +95,8 @@ class Simulator(object):
                 if this is a np.ndarray it is the full initial state. In this
                 case it must be the correct size, be normalized (an L2 norm of
                 1), and have a dtype of np.complex64.
+            param_resolver: A ParamResolver for determining values of
+                ParameterizedValues.
 
         Returns:
             Result for the final step of the simulation. This
@@ -123,6 +125,8 @@ class Simulator(object):
                 if this is a np.ndarray it is the full initial state. In this
                 case it must be the correct size, be normalized (an L2 norm of
                 1), and have a dtype of np.complex64.
+            param_resolver: A ParamResolver for determining values of
+                ParameterizedValues.
 
         Returns:
             SimulatorIterator that steps through the simulation, simulating
@@ -149,6 +153,8 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
             is used to define the wave function.
         initial_state: If an int, the state is set to the computational
             basis state corresponding corresponding to this state.
+        param_resolver: A ParamResolver for determining values of
+            ParameterizedValues.
 
     Yields:
         Results from simulating a Moment of the Circuit.
@@ -174,8 +180,9 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
                 gate = op.gate
                 if isinstance(gate, native_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
-                    phase_map[(index,)] = param_resolver.value_of(
-                        gate.half_turns)
+                    half_turns = param_resolver.value_of(gate.half_turns)
+                    phase_map[(index,)] = half_turns
+
                 elif isinstance(gate, native_gates.Exp11Gate):
                     index0 = qubit_map[op.qubits[0]]
                     index1 = qubit_map[op.qubits[1]]

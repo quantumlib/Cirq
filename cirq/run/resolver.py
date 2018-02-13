@@ -27,6 +27,7 @@ class ParamResolver(object):
 
     A ParameterizedValue is a parameter key (str) plus an offset float. A
     ParamResolver is an object that can be used to assign values for these keys.
+    ParamResolvers are hashable.
 
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
@@ -47,9 +48,8 @@ class ParamResolver(object):
         Returns:
             The value of the parameter as resolved by this resolver. If the
             parameterized_value is just a float, then it will return this float.
-            If the parameterized_Value is a ParameterizedValue is a key plus a
-            float, then this will return the assigned value for the key
-            plus the float (offset).
+            If the parameterized_value is a is a key plus a float, then this
+            will return the assigned value for the key plus the float (offset).
         """
         if isinstance(parameterized_value, ParameterizedValue):
             return (
@@ -58,4 +58,7 @@ class ParamResolver(object):
         return parameterized_value
 
     def __hash__(self):
-        self._param_hash
+        return self._param_hash
+
+    def __repr__(self):
+        return 'ParamResolver({})'.format(self.param_dict)

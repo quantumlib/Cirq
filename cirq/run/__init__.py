@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to simulating quantum computers.
-"""
+"""Types and methods related to running programs on simulators or computers."""
 
 from cirq.run import resolver
