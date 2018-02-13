@@ -48,6 +48,7 @@ fi
 function set_status () {
   state=$1
   desc=$2
+  local update_status="success"
   if [ -n "${pull_id}" ] && [ -n "${access_token}" ]; then
     json='{
             "state": "'${state}'",
@@ -55,8 +56,14 @@ function set_status () {
             "context": "pytest (manual)"
         }'
     url="https://api.github.com/repos/quantumlib/cirq/statuses/${commit_id}?access_token=${access_token}"
-    curl --silent -d "${json}" -X POST "${url}" > /dev/null
+    curl_result=$(curl --silent -d "${json}" -X POST "${url}")
+    if [[ $curl_result = *"${state}"* ]]; then
+      update_status="success"
+    else
+      update_status=$curl_result
+    fi
   fi
+  echo $update_status
 }
 
 work_dir="$(mktemp -d '/tmp/test-cirq-XXXXXXXX')"
@@ -85,7 +92,12 @@ else
   git fetch git@github.com:quantumlib/cirq.git pull/${pull_id}/head --depth=1 --quiet
   commit_id="$(git rev-parse FETCH_HEAD)"
   git checkout "${commit_id}" --quiet
-  set_status "pending" "Running..."
+  result=$(set_status "pending" "Running...")
+  if [ "${result}" != "success" ]; then
+    echo "FAILED: Could not update status for pull request."
+    echo "Curl update status returned: #${result}"
+    exit 1
+  fi
 fi
 
 # Run python 3.5 tests.
@@ -119,10 +131,23 @@ deactivate
 # Report result.
 echo
 if [ "${outcome_v35}" -eq 0 ] && [ "${outcome_v27}" -eq 0 ]; then
-  set_status "success" "Tests passed!"
-  echo "Outcome: SUCCESS"
+  result=$(set_status "success" "Tests passed!")
+  if [ "${result}" = "success" ]; then
+    echo "Outcome: SUCCESS"
+  else
+    echo "Outcome: FAILED"
+    echo "Tests passed, but could not update status for pull request."
+    echo "Curl update status returned: #${result}"
+  fi
 else
-  set_status "failure" "Tests failed."
-  echo "Outcome: FAILURE"
+  result=$(set_status "failure" "Tests failed.")
+  if [ "${result}" = "success" ]; then
+    echo "Outcome: FAILED"
+    echo "Tests did not pass."
+  else
+    echo "Outcome: FAILED"
+    echo "Tests did not pass and could not update status on github"
+    echo "Curl update status returned: #${result}"
+  fi
 fi
 
