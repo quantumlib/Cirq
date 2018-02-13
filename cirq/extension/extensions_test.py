@@ -15,6 +15,7 @@
 import pytest
 
 from cirq import extension
+from cirq.extension import PotentialImplementation
 
 
 class DesiredType:
@@ -121,3 +122,22 @@ def test_override_order():
     assert e.cast(None, DesiredType) == 'obj'
     assert e.cast(UnrelatedType(), DesiredType) == 'unrelated'
     assert e.cast(ChildType(), DesiredType) == 'obj'
+
+
+def test_try_cast_potential_implementation():
+
+    class PotentialOther(PotentialImplementation):
+        def __init__(self, is_other):
+            self.is_other = is_other
+
+        def try_cast_to(self, desired_type):
+            if desired_type is OtherType and self.is_other:
+                return OtherType()
+            return None
+
+    e = extension.Extensions()
+    o = PotentialOther(is_other=False)
+    u = PotentialOther(is_other=False)
+
+    assert e.try_cast(o, OtherType) is None
+    assert e.try_cast(u, OtherType) is None
