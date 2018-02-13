@@ -9,7 +9,11 @@ pip install git+https://git@github.com/quantumlib/cirq.git#egg=cirq
 You will be asked for credentials: use an access token for your github
 account generated at
 [https://github.com/settings/tokens](https://github.com/settings/tokens).
-
+Alternative if you have github set up for ssh on your machine, 
+you can use
+```bash
+pip install git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
+``` 
 
 ### Detailed Install on Mac or Ubuntu 
 
