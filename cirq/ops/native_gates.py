@@ -19,6 +19,7 @@ from typing import Union
 
 from cirq.api.google.v1 import operations_pb2
 from cirq.ops import gate_features, raw_types
+from cirq.ops.parameterized_value import ParameterizedValue
 
 
 class NativeGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -27,83 +28,6 @@ class NativeGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def to_proto(self, *qubits) -> operations_pb2.Operation:
         raise NotImplementedError()
-
-
-class ParameterizedValue:
-    """A constant plus the runtime value of a parameter with a given key."""
-
-    def __new__(cls, key: str = '', val: float = 0):
-        """Constructs a ParameterizedValue representing val + param(key).
-
-        Args:
-            val: A constant offset.
-            key: The name of a parameter. If this is the empty string, then no
-                parameter will be used.
-
-        Returns:
-            Just val if key is empty, otherwise a new ParameterizedValue.
-        """
-        if key == '':
-            return val
-        return super().__new__(cls)
-
-    def __init__(self, key: str = '', val: float = 0):
-        """Initializes a ParameterizedValue representing val + param(key).
-
-        Args:
-            val: A constant offset.
-            key: The name of a parameter. Because of the implementation of new,
-                this will never be the empty string.
-        """
-        self.val = val
-        self.key = key
-
-    def __str__(self):
-        if self.key == '':
-            return repr(self.val)
-        if self.val == 0:
-            return 'param({})'.format(repr(self.key))
-        return '{} + param({})'.format(repr(self.val), repr(self.key))
-
-    def __repr__(self):
-        return 'ParameterizedValue({}, {})'.format(repr(self.val),
-                                                   repr(self.key))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.key == other.key and self.val == other.val
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ParameterizedValue, self.val, self.key))
-
-    def __add__(self, other: float) -> 'ParameterizedValue':
-        if not isinstance(other, (int, float)):
-            return NotImplemented
-        return ParameterizedValue(self.key, self.val + other)
-
-    def __radd__(self, other: float) -> 'ParameterizedValue':
-        return self.__add__(other)
-
-    def __sub__(self, other: float) -> 'ParameterizedValue':
-        if not isinstance(other, (int, float)):
-            return NotImplemented
-        return ParameterizedValue(self.key, self.val - other)
-
-    @staticmethod
-    def val_of(val: Union['ParameterizedValue', float]):
-        if isinstance(val, ParameterizedValue):
-            return float(val.val)
-        return float(val)
-
-    @staticmethod
-    def key_of(val: Union['ParameterizedValue', float]):
-        if isinstance(val, ParameterizedValue):
-            return val.key
-        return ''
 
 
 class MeasurementGate(NativeGate, gate_features.AsciiDiagrammableGate):
