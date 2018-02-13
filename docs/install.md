@@ -1,12 +1,17 @@
 ## Installation
 
-**Note** In its current pre-release state, Cirq can only be installed
-from  source. When Cirq is launched publicly, installing using pip will make
-this process much easier (essentially it will just be ```pip install cirq```). 
-Also note that the instructions below are only for installing Cirq with 
-Python 3.x.
+### Summary
 
-### Install on Mac or Ubuntu
+For the experts, installation is as simple as
+```bash
+pip install git+https://git@github.com/quantumlib/cirq.git#egg=cirq
+```
+You will be asked for credentials: use an access token for your github
+account generated at
+[https://github.com/settings/tokens](https://github.com/settings/tokens).
+
+
+### Detailed Install on Mac or Ubuntu 
 
 We recommend using [Virtualenv](https://virtualenv.pypa.io/en/stable/) when
 working with Cirq.  Vitualenv creates a Python environment isolated from 
@@ -15,12 +20,9 @@ environment's dependencies or configurations do not interfere with the
 environment you have created to work with Cirq.
 
 **Prerequisites:**
-1. Python 3 and Pip. See these 
+ - Python 3 and Pip. See these 
 [instructions](http://docs.python-guide.org/en/latest/starting/installation/)
 for installing both of these. 
-2. Git. See these
-[instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-for installing.  
 
 **Instructions:**
 1. Start a shell (terminal). All commands below execute in this shell.
@@ -50,35 +52,35 @@ by appending the target directory name to the shell prompt:
 (targetDirectory)$
 ```
 
-5. Download or clone Cirq from github.  You'll want to decide 
-which directory you want to put this.  ```cd``` to that directory and then
-clone Cirq:
+5. Pip install Cirq and its dependencies. From the directory where 
+you cloned Cirq:
 ```bash
-(targetDirectory)$ git clone https://github.com/quantumlib/cirq
-```
-Use your github username to authenticate, and then, because we require
-2-factor auth, you will need to use a personal access token as your
-password.  This token can be found 
-[here](https://github.com/settings/tokens). This will create a directory
-called ```cirq``` in which the base of the github repo is installed.
-
-6. Pip install cirq and its dependencies. From the directory where 
-you cloned cirq:
-```bash
-(targetDirectory)$ pip3 install -r cirq/requirements.txt
-(targetDirectory)$ pip3 install -e ./cirq 
+(targetDirectory)$ pip3 install git+https://git@github.com/quantumlib/cirq.git#egg=cirq
 ``` 
-If you want to install Cirq without including local edits, remove ```-e```
-from the last command. For contributing to Cirq see [here](CONTRIBUTING)
+You will be asked for credentials: use an access token generated at
+[https://github.com/settings/tokens](https://github.com/settings/tokens) 
+with the "repo" permissions enabled.
 
-7. You should now be able use Cirq. To confirm this you should be able
+If you want to install Cirq and change Cirq code, then you should add the
+```-e``` flag to the above command:
+```bash
+(targetDirectory)$ pip3 install -e git+https://git@github.com/quantumlib/cirq.git#egg=cirq
+```  
+Note that Cirq will be copied into the ```src```directory of your 
+virtual environment, so use this as the base of 
+your git repo. For contributing to Cirq you should use git and
+follow [teste guidelines](../CONTRIBUTING). See these 
+[instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+for installing git.  
+
+6. You should now be able use Cirq. To confirm this you should be able
 to run the following with no errors
 ```bash
 (targetDirectory)$ python   # Or your command to run python.
 >>> import cirq
 ```
 
-8. You can leave the virtual environment by typing ```deactivate```
+7. You can leave the virtual environment by typing ```deactivate```
 at any time. To re-enter this environment follow the instructions in 
 step 4.   
 
