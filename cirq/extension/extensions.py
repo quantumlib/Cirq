@@ -50,6 +50,15 @@ class Extensions:
     def can_cast(self,
                  actual_value: T_ACTUAL,
                  desired_type: Type[T_DESIRED]) -> bool:
+        """Is it possible to turn the given value into the desired type?
+
+        Args:
+            actual_value: The value that the caller has.
+            desired_type: The type that the caller wants.
+
+        Returns:
+            True if the cast will work, False otherwise.
+        """
         return self.try_cast(actual_value, desired_type) is not None
 
     def try_cast(self,

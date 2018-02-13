@@ -4,19 +4,19 @@ import cirq
 def main():
 
     # Define a qubit.
-    qubit = cirq.QubitLoc(0, 0)
+    qubit = cirq.ops.QubitLoc(0, 0)
 
     # Create a circuit (qubits start in the |0> state).
-    circuit = cirq.Circuit()
+    circuit = cirq.circuits.Circuit()
     circuit.append([
         # Square root of NOT.
         (cirq.ops.X**0.5).on(qubit),
 
         # Measurement.
-        cirq.MeasurementGate('result').on(qubit)
+        cirq.ops.MeasurementGate('result').on(qubit)
     ])
     print("Circuit:")
-    print(cirq.to_ascii(circuit))
+    print(cirq.circuits.to_ascii(circuit))
 
     # Now simulate the circuit and print out the measurement result.
     simulator = cirq.sim.google.xmon_simulator.Simulator()

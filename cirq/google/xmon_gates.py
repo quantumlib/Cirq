@@ -21,6 +21,7 @@ import numpy as np
 
 from cirq import ops
 from cirq.api.google.v1 import operations_pb2
+from cirq.extension import PotentialImplementation
 from cirq.google.parameterized_value import ParameterizedValue
 from cirq.ops import gate_features, raw_types
 from cirq.ops.parameterized_value import ParameterizedValue
@@ -51,7 +52,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 class Exp11Gate(XmonGate,
                 gate_features.PhaseableGate,
-                gate_features.PotentiallyKnownMatrixGate):
+                PotentialImplementation):
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
     def __init__(self, *positional_args,
@@ -77,10 +78,17 @@ class Exp11Gate(XmonGate,
             self.half_turns)
         return op
 
-    def has_known_matrix(self):
+    def try_cast_to(self, desired_type):
+        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+            return self
+        return super().try_cast_to(desired_type)
+
+    def has_matrix(self):
         return not isinstance(self.half_turns, ParameterizedValue)
 
     def matrix(self):
+        if not self.has_matrix():
+            raise ValueError("Don't have a known matrix.")
         return ops.ZGate(half_turns=self.half_turns).matrix()
 
     def ascii_wire_symbols(self):
@@ -109,8 +117,7 @@ class ExpWGate(XmonGate,
                gate_features.AsciiDiagrammableGate,
                gate_features.PhaseableGate,
                gate_features.BoundedEffectGate,
-               gate_features.PotentiallyKnownMatrixGate,
-               gate_features.PotentiallyReversibleGate):
+               PotentialImplementation):
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
     def __init__(self, *positional_args,
@@ -152,11 +159,29 @@ class ExpWGate(XmonGate,
             self.half_turns)
         return op
 
-    def has_known_matrix(self):
+    def try_cast_to(self, desired_type):
+        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+            return self
+        if desired_type is gate_features.ReversibleGate and self.has_inverse():
+            return self
+        return super().try_cast_to(desired_type)
+
+    def has_inverse(self):
+        return not isinstance(self.half_turns, ParameterizedValue)
+
+    def inverse(self):
+        if not self.has_inverse():
+            raise ValueError("Don't have a known inverse.")
+        return ExpWGate(half_turns=-self.half_turns,
+                        axis_half_turns=self.axis_half_turns)
+
+    def has_matrix(self):
         return (not isinstance(self.half_turns, ParameterizedValue) and
                 not isinstance(self.axis_half_turns, ParameterizedValue))
 
     def matrix(self):
+        if not self.has_matrix():
+            raise ValueError("Don't have a known matrix.")
         phase = ops.ZGate(half_turns=self.axis_half_turns).matrix()
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
@@ -211,7 +236,7 @@ class ExpWGate(XmonGate,
 class ExpZGate(XmonGate,
                gate_features.AsciiDiagrammableGate,
                gate_features.PhaseableGate,
-               gate_features.PotentiallyReversibleGate):
+               PotentialImplementation):
     """A rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
@@ -225,11 +250,28 @@ class ExpZGate(XmonGate,
     def ascii_exponent(self):
         return self.half_turns
 
+    def try_cast_to(self, desired_type):
+        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+            return self
+        if desired_type is gate_features.ReversibleGate and self.has_inverse():
+            return self
+        return super().try_cast_to(desired_type)
+
     def has_inverse(self):
         return not isinstance(self.half_turns, ParameterizedValue)
 
     def inverse(self):
+        if not self.has_inverse():
+            raise ValueError("Don't have a known inverse.")
         return ExpZGate(half_turns=-self.half_turns)
+
+    def has_matrix(self):
+        return not isinstance(self.half_turns, ParameterizedValue)
+
+    def matrix(self):
+        if not self.has_matrix():
+            raise ValueError("Don't have a known matrix.")
+        return ops.ZGate(half_turns=self.half_turns).matrix()
 
     def phase_by(self, phase_turns, qubit_index):
         return self

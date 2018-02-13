@@ -14,11 +14,12 @@
 
 from google.protobuf import message, text_format
 
+from cirq.extension import Extensions
 from cirq.google import ParameterizedValue
 from cirq.google.xmon_gates import (
     XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
-from cirq.ops import QubitLoc
+from cirq.ops import QubitLoc, KnownMatrixGate, ReversibleGate
 from cirq.testing import EqualsTester
 
 
@@ -120,7 +121,7 @@ def test_cz_to_proto():
         """)
 
 
-def test_xy_eq():
+def test_w_eq():
     eq = EqualsTester()
     eq.add_equality_group(ExpWGate(),
                           ExpWGate(half_turns=1, axis_half_turns=0))
@@ -163,10 +164,10 @@ def test_xy_eq():
             half_turns=7.75, axis_half_turns=11.25))
 
 
-def test_xy_to_proto():
+def test_w_to_proto():
     assert proto_matches_text(
         ExpWGate(half_turns=ParameterizedValue('k', 0.5),
-                     axis_half_turns=ParameterizedValue('j', 1)).to_proto(
+                 axis_half_turns=ParameterizedValue('j', 1)).to_proto(
             QubitLoc(2, 3)),
         """
         exp_w {
@@ -184,3 +185,13 @@ def test_xy_to_proto():
             }
         }
         """)
+
+
+def test_w_potential_implementation():
+    ex = Extensions()
+    assert not ex.can_cast(ExpWGate(half_turns=ParameterizedValue(key='a')),
+                           KnownMatrixGate)
+    assert not ex.can_cast(ExpWGate(half_turns=ParameterizedValue(key='a')),
+                           ReversibleGate)
+    assert ex.can_cast(ExpWGate(), KnownMatrixGate)
+    assert ex.can_cast(ExpWGate(), ReversibleGate)
