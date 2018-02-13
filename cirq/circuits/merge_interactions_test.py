@@ -14,7 +14,7 @@
 
 from cirq import circuits
 from cirq import ops
-from cirq.ops import ExpZGate, ParameterizedValue
+from cirq.google import ExpZGate, ParameterizedValue
 
 
 def assert_optimizes(before, after):

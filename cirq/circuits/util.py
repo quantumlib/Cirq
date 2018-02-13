@@ -199,7 +199,7 @@ def controlled_op_to_native_gates(
 
     Returns:
         A list of Operations that apply the controlled operation.
-  """
+    """
     u, z_phase, global_phase = single_qubit_op_to_framed_phase_form(operation)
     if abs(z_phase - 1) <= tolerance:
         return []

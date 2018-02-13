@@ -19,6 +19,7 @@ from typing import Iterable, List, Tuple
 import numpy as np
 
 from cirq import ops
+from cirq import google
 from cirq.circuits import util
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -43,8 +44,9 @@ class MergeRotations(PointOptimizer):
 
         indices, gates = self._scan_single_qubit_ops(circuit, index,
                                                      op.qubits[0])
-        if not gates or (len(gates) == 1 and
-                         isinstance(gates[0], ops.NativeGate)):
+        if not gates or (
+                len(gates) == 1 and
+                not self.extensions.can_cast(gates[0], google.XmonGate)):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
