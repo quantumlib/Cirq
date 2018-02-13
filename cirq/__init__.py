@@ -15,6 +15,7 @@
 from cirq import api
 from cirq import circuits
 from cirq import devices
+from cirq import google
 from cirq import linalg
 from cirq import ops
 from cirq import schedules
