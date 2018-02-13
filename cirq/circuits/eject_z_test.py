@@ -13,13 +13,32 @@
 # limitations under the License.
 
 from cirq import circuits
+from cirq import google
 from cirq import ops
+from cirq.google import ExpZGate
+from cirq.google import ParameterizedValue
 
 
 def assert_optimizes(before, after):
+    pre_optimizations = [
+        google.ConvertToXmonGates(),
+    ]
+    followup_optimizations = [
+        google.ConvertToXmonGates(),
+        circuits.DropEmptyMoments()
+    ]
+
     opt = circuits.EjectZ()
 
+    for pre in pre_optimizations:
+        pre.optimize_circuit(before)
     opt.optimize_circuit(before)
+    for post in followup_optimizations:
+        post.optimize_circuit(before)
+        post.optimize_circuit(after)
+
+    print(before)
+    print(after)
     assert before == after
 
     # And it should be idempotent.
@@ -163,14 +182,14 @@ def test_parameterized_as_source_and_sink():
     q = ops.QubitLoc(0, 0)
     assert_optimizes(
         before=circuits.Circuit([
-            circuits.Moment([ops.ExpZGate(half_turns=1)(q)]),
-            circuits.Moment([ops.ExpZGate(
-                half_turns=ops.ParameterizedValue('a', 0.5))(q)]),
-            circuits.Moment([ops.ExpZGate(half_turns=0.25)(q)]),
+            circuits.Moment([ExpZGate(half_turns=1)(q)]),
+            circuits.Moment([ExpZGate(
+                half_turns=ParameterizedValue('a', 0.5))(q)]),
+            circuits.Moment([ExpZGate(half_turns=0.25)(q)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment(),
-            circuits.Moment([ops.ExpZGate(
-                half_turns=ops.ParameterizedValue('a', 1.5))(q)]),
-            circuits.Moment([ops.ExpZGate(half_turns=0.25)(q)]),
+            circuits.Moment([ExpZGate(
+                half_turns=ParameterizedValue('a', 1.5))(q)]),
+            circuits.Moment([ExpZGate(half_turns=0.25)(q)]),
         ]))

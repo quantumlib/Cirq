@@ -15,6 +15,7 @@
 from cirq.api import *
 from cirq.circuits import *
 from cirq.devices import *
+from cirq.google import *
 from cirq.linalg import *
 from cirq.ops import *
 from cirq.schedules import *

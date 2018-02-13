@@ -10,7 +10,7 @@ def main():
     circuit = cirq.Circuit()
     circuit.append([
         # Square root of NOT.
-        cirq.ExpWGate(half_turns=0.5).on(qubit),
+        (cirq.ops.X**0.5).on(qubit),
 
         # Measurement.
         cirq.MeasurementGate('result').on(qubit)

@@ -17,6 +17,7 @@
 from typing import Iterator, Tuple
 
 from cirq import ops
+from cirq.google import ExpZGate, ParameterizedValue
 from cirq.circuits import util
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -75,9 +76,9 @@ class EjectZ(OptimizationPass):
 
             if start_z is None:
                 # Unparameterized Zs start optimization ranges.
-                if (isinstance(op.gate, ops.ExpZGate) and
+                if (isinstance(op.gate, ExpZGate) and
                         not isinstance(op.gate.half_turns,
-                                       ops.ParameterizedValue)):
+                                       ParameterizedValue)):
                     start_z = i
                     prev_z = None
 
@@ -86,8 +87,8 @@ class EjectZ(OptimizationPass):
                 yield start_z, i
                 start_z = None
 
-            elif isinstance(op.gate, ops.ExpZGate):
-                if isinstance(op.gate.half_turns, ops.ParameterizedValue):
+            elif isinstance(op.gate, ExpZGate):
+                if isinstance(op.gate.half_turns, ParameterizedValue):
                     # Parameterized Z gates can't move, but can drain.
                     yield start_z, i
                     start_z = None
@@ -130,7 +131,7 @@ class EjectZ(OptimizationPass):
                 # Empty.
                 pass
 
-            elif isinstance(op.gate, ops.ExpZGate):
+            elif isinstance(op.gate, ExpZGate):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
                 lost_phase_turns += op.gate.half_turns / 2
@@ -154,17 +155,17 @@ class EjectZ(OptimizationPass):
         # Drain type: end of circuit.
         if drain == len(circuit.moments):
             circuit.append(
-                ops.ZGate(half_turns=2*accumulated_phase).on(qubit),
+                ExpZGate(half_turns=2*accumulated_phase).on(qubit),
                 InsertStrategy.INLINE)
             return
 
         # Drain type: another Z gate.
         op = circuit.operation_at(qubit, drain)
-        if isinstance(op.gate, ops.ExpZGate):
+        if isinstance(op.gate, ExpZGate):
             circuit.clear_operations_touching([qubit], [drain])
             circuit.insert(
                 drain + 1,
-                ops.ExpZGate(
+                ExpZGate(
                     half_turns=op.gate.half_turns + accumulated_phase * 2).on(
                         qubit),
                 InsertStrategy.INLINE)
