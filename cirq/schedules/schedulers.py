@@ -22,7 +22,7 @@ from cirq.time import Duration
 from cirq.time import Timestamp
 
 
-def moment_schedule(device: Device, circuit: Circuit):
+def moment_by_moment_schedule(device: Device, circuit: Circuit):
     """Returns a schedule aligned with the moment structure of the Circuit.
 
     This method attempts to create a schedule in which each moment of a circuit
@@ -43,7 +43,7 @@ def moment_schedule(device: Device, circuit: Circuit):
     schedule = Schedule(device)
     t = Timestamp()
     for moment in circuit.moments:
-        if len(moment.operations) == 0:
+        if not moment.operations:
             continue
         for op in moment.operations:
             scheduled_op = ScheduledOperation.op_at_on(op, t, device)
@@ -53,7 +53,6 @@ def moment_schedule(device: Device, circuit: Circuit):
             # Raises ValueError at first sign of a device conflict.
             device.validate_scheduled_operation(schedule, scheduled_op)
         # Increment time for next moment by max of ops during this moment.
-        max_duration = max((device.duration_of(op) for op in moment.operations),
-                           key=Duration.total_picos)
+        max_duration = max(device.duration_of(op) for op in moment.operations)
         t += max_duration
     return schedule
