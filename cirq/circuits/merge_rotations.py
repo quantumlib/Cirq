@@ -44,8 +44,9 @@ class MergeRotations(PointOptimizer):
 
         indices, gates = self._scan_single_qubit_ops(circuit, index,
                                                      op.qubits[0])
-        if not gates or (len(gates) == 1 and
-                         isinstance(gates[0], google.XmonGate)):
+        if not gates or (
+                len(gates) == 1 and
+                not self.extensions.can_cast(gates[0], google.XmonGate)):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.

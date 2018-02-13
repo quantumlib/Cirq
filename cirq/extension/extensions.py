@@ -47,10 +47,15 @@ class Extensions:
             if desired_to_actual_to_wrapper is None
             else desired_to_actual_to_wrapper)
 
-    def try_cast(self,
+    def can_cast(self,
                  actual_value: T_ACTUAL,
-                 desired_type: Type[T_DESIRED]
-                 ) -> Union[type(None), T_DESIRED]:
+                 desired_type: Type[T_DESIRED]) -> bool:
+        return self.try_cast(actual_value, desired_type) is not None
+
+    def try_cast(self,
+             actual_value: T_ACTUAL,
+             desired_type: Type[T_DESIRED]
+             ) -> Union[type(None), T_DESIRED]:
         """Represents the given value as the desired type, if possible.
 
         Returns None if no wrapper method is found, and the value isn't already

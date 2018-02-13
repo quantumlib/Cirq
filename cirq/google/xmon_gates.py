@@ -23,6 +23,7 @@ from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.google.parameterized_value import ParameterizedValue
 from cirq.ops import gate_features, raw_types
+from cirq.ops.parameterized_value import ParameterizedValue
 
 
 class XmonGate(raw_types.Gate, metaclass=abc.ABCMeta):
