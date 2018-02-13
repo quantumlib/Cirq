@@ -48,6 +48,7 @@ fi
 function set_status () {
   state=$1
   desc=$2
+  local exit_status=0
   if [ -n "${pull_id}" ] && [ -n "${access_token}" ]; then
     json='{
             "state": "'${state}'",
@@ -55,8 +56,9 @@ function set_status () {
             "context": "pytest (manual)"
         }'
     url="https://api.github.com/repos/quantumlib/cirq/statuses/${commit_id}?access_token=${access_token}"
-    curl --silent -d "${json}" -X POST "${url}" > /dev/null
+    curl --silent -d "${json}" -X POST "${url}"
   fi
+  echo "$exit_status"
 }
 
 work_dir="$(mktemp -d '/tmp/test-cirq-XXXXXXXX')"
@@ -119,10 +121,18 @@ deactivate
 # Report result.
 echo
 if [ "${outcome_v35}" -eq 0 ] && [ "${outcome_v27}" -eq 0 ]; then
-  set_status "success" "Tests passed!"
-  echo "Outcome: SUCCESS"
+  exit_status=$(set_status "success" "Tests passed!")
+  if [ "${exit_status}" -eq 0 ]; then
+    echo "Outcome: SUCCESS"
+  else
+    echo "Tests passed, but failed to update status on github"
+  fi
 else
-  set_status "failure" "Tests failed."
-  echo "Outcome: FAILURE"
+  exit_status=$(set_status "failure" "Tests failed.")
+  if [ "${exit_status}" -eq 0 ]; then
+    echo "Outcome: FAILURE"
+  else
+    echo "Tests failed, and also failed to update status on github"
+  fi
 fi
 
