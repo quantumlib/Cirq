@@ -32,6 +32,16 @@ class Device(metaclass=abc.ABCMeta):
             schedule: 'cirq.schedules.Schedule',
             scheduled_operation: 'cirq.schedules.ScheduledOperation'
     ) -> type(None):
+        """Raises an exception if the scheduled operation is not valid.
+
+        Args:
+            schedule: The schedule to validate against.
+            scheduled_operation: The scheduled operation to validate.
+
+        Raises:
+            ValueError: If the scheduled operation is not valid for the
+                schedule.
+        """
         pass
 
     @abc.abstractmethod
