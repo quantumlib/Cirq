@@ -18,6 +18,8 @@ import inspect
 
 from typing import Dict, Type, Callable, TypeVar, Union, Optional
 
+from cirq.extension.potential_implementation import PotentialImplementation
+
 T_ACTUAL = TypeVar('TActual')
 T_DESIRED = TypeVar('TDesired')
 
@@ -71,10 +73,13 @@ class Extensions:
                 if wrapper:
                     return wrapper(actual_value)
 
-        if not isinstance(actual_value, desired_type):
-            return None
+        if isinstance(actual_value, desired_type):
+            return actual_value
 
-        return actual_value
+        if isinstance(actual_value, PotentialImplementation):
+            return actual_value.try_cast_to(desired_type)
+
+        return None
 
     def cast(self,
              actual_value: T_ACTUAL,
