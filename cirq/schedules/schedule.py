@@ -139,7 +139,8 @@ class Schedule:
                                 duration=scheduled_operation.duration,
                                 qubits=scheduled_operation.operation.qubits)
         if collisions:
-            raise ValueError('Collisions: {}'.format(collisions))
+            raise ValueError('Operation {} has collisions: {}'.format(
+                scheduled_operation.operation, collisions))
         self.scheduled_operations.add(scheduled_operation)
         self._max_duration = max(self._max_duration,
                                  scheduled_operation.duration)
