@@ -111,6 +111,14 @@ def test_try_cast_hit_vs_miss():
     assert e.try_cast(o, UnrelatedType) is None
 
 
+def test_can_cast():
+    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    c = ChildType()
+    u = UnrelatedType()
+    assert not e.can_cast(u, DesiredType)
+    assert e.can_cast(c, DesiredType)
+
+
 def test_override_order():
     e = extension.Extensions({
         DesiredType: {
