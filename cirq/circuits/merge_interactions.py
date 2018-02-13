@@ -23,6 +23,7 @@ from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.optimization_pass import PointOptimizer
 from cirq.circuits import util
+from cirq.extension import Extensions
 
 
 class MergeInteractions(PointOptimizer):
@@ -31,10 +32,12 @@ class MergeInteractions(PointOptimizer):
     def __init__(self,
                  insert_strategy: InsertStrategy = InsertStrategy.INLINE,
                  tolerance: float = 1e-8,
-                 allow_partial_czs: bool = True):
+                 allow_partial_czs: bool = True,
+                 extensions: Extensions = Extensions()):
         self.insert_strategy = insert_strategy
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
+        self.extensions = extensions
 
     def optimize_at(self, circuit, index, op):
         if len(op.qubits) != 2:
@@ -58,8 +61,9 @@ class MergeInteractions(PointOptimizer):
         circuit.clear_operations_touching(op.qubits, indices)
         return circuit.insert(index + 1, operations, self.insert_strategy)
 
-    @staticmethod
-    def _op_to_matrix(op: ops.Operation, qubits: Tuple[ops.QubitId, ...]
+    def _op_to_matrix(self,
+                      op: ops.Operation,
+                      qubits: Tuple[ops.QubitId, ...]
                       ) -> Optional[Tuple[np.ndarray, bool]]:
         """Determines the effect of an operation on the given qubits.
 
@@ -79,23 +83,26 @@ class MergeInteractions(PointOptimizer):
         """
         q1, q2 = qubits
 
-        if isinstance(op.gate, ops.ConstantAdjacentTwoQubitGate):
-            if op.qubits == qubits:
-                return op.gate.matrix(), True
-            if op.qubits == (q2, q1):
-                return MergeInteractions._flip_kron_order(
-                    op.gate.matrix()), True
+        known = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
+        if known is None:
+            return None
+        m = known.matrix()
 
-        if isinstance(op.gate, ops.ConstantSingleQubitGate):
-            if op.qubits[0] == q1:
-                return linalg.kron(np.eye(2), op.gate.matrix()), False
-            return linalg.kron(op.gate.matrix(), np.eye(2)), False
+        if op.qubits == qubits:
+            return m, True
+        if op.qubits == (q2, q1):
+            return MergeInteractions._flip_kron_order(m), True
+        if op.qubits == (q1,):
+            return np.kron(np.eye(2), m), False
+        if op.qubits == (q2,):
+            return np.kron(m, np.eye(2)), False
 
         return None
 
-    @staticmethod
     def _scan_two_qubit_ops_into_matrix(
-            circuit: Circuit, index: int,
+            self,
+            circuit: Circuit,
+            index: int,
             qubits: Tuple[ops.QubitId, ...]
     ) -> Tuple[int, List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
@@ -123,9 +130,9 @@ class MergeInteractions(PointOptimizer):
         while index is not None:
             operations = {circuit.operation_at(q, index) for q in qubits}
             op_data = [
-                MergeInteractions._op_to_matrix(op, qubits) for op in
+                self._op_to_matrix(op, qubits) for op in
                 operations if op
-                ]
+            ]
 
             # Stop at any non-constant or non-local interaction.
             if any(e is None for e in op_data):
