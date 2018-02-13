@@ -17,7 +17,7 @@
 from typing import Iterator, Tuple
 
 from cirq import ops
-from cirq.google import ExpZGate, ParameterizedValue, xmon_gate_ext
+from cirq.google import ExpZGate, ParameterizedValue
 from cirq.circuits import util
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy

@@ -14,8 +14,7 @@
 
 from cirq import circuits
 from cirq import ops
-from cirq.google import ExpZGate
-from cirq.google import ParameterizedValue
+from cirq.google import ExpZGate, ParameterizedValue
 
 
 def assert_optimizes(before, after):
@@ -32,8 +31,9 @@ def assert_optimizes(before, after):
         post.optimize_circuit(before)
         post.optimize_circuit(after)
 
-    print(before)
-    print(after)
+    if before != after:
+        print("before:", before)
+        print("after:", after)
     assert before == after
 
 

@@ -13,18 +13,16 @@
 # limitations under the License.
 
 from cirq import circuits
-from cirq import google
 from cirq import ops
-from cirq.google import ExpZGate
-from cirq.google import ParameterizedValue
+from cirq.google import ExpZGate, ParameterizedValue, ConvertToXmonGates
 
 
 def assert_optimizes(before, after):
     pre_optimizations = [
-        google.ConvertToXmonGates(),
+        ConvertToXmonGates(),
     ]
     followup_optimizations = [
-        google.ConvertToXmonGates(),
+        ConvertToXmonGates(),
         circuits.DropEmptyMoments()
     ]
 

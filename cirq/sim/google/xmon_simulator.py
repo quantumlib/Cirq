@@ -36,7 +36,7 @@ from cirq.ops import raw_types
 from cirq.sim.google.xmon_stepper import Stepper
 
 
-class Options(object):
+class Options:
     """Options for the Simulator.
 
     Attributes:
@@ -69,7 +69,7 @@ class Options(object):
         self.min_qubits_before_shard = min_qubits_before_shard
 
 
-class Simulator(object):
+class Simulator:
     """Simulator for Xmon class quantum circuits.
 
     TODO(dabacon): Support parameter sweeps and repetitions.
@@ -196,7 +196,7 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
             yield Result(stepper, qubit_map, measurements)
 
 
-class Result(object):
+class Result:
     """Results of a step of the simulator.
 
     Attributes:

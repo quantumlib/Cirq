@@ -19,10 +19,12 @@ from typing import Iterable, List, Tuple
 import numpy as np
 
 from cirq import ops
+from cirq import google
 from cirq.circuits import util
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.optimization_pass import PointOptimizer
+from cirq.extension import Extensions
 
 
 class MergeRotations(PointOptimizer):
@@ -30,9 +32,11 @@ class MergeRotations(PointOptimizer):
 
     def __init__(self,
                  insert_strategy: InsertStrategy = InsertStrategy.INLINE,
-                 tolerance: float = 1e-8):
+                 tolerance: float = 1e-8,
+                 extensions = None):
         self.insert_strategy = insert_strategy
         self.tolerance = tolerance
+        self.extensions = extensions or Extensions()
 
     def optimize_at(self, circuit, index, op):
         if len(op.qubits) != 1:
@@ -40,7 +44,8 @@ class MergeRotations(PointOptimizer):
 
         indices, gates = self._scan_single_qubit_ops(circuit, index,
                                                      op.qubits[0])
-        if len(gates) <= 1:
+        if not gates or (len(gates) == 1 and
+                         isinstance(gates[0], google.XmonGate)):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
@@ -49,21 +54,21 @@ class MergeRotations(PointOptimizer):
                               self._merge_rotations(op.qubits[0], gates),
                               self.insert_strategy)
 
-    @staticmethod
     def _scan_single_qubit_ops(
+            self,
             circuit: Circuit, index: int,
             qubit: ops.QubitId) -> Tuple[List[int], List[ops.Gate]]:
         gates = []
         indices = []
         while index is not None:
             op = circuit.operation_at(qubit, index)
-            if not isinstance(circuit.operation_at(qubit, index).gate,
-                              ops.PotentiallyKnownMatrixGate):
+            if len(op.qubits) != 1:
                 break
-            if not op.gate.has_known_matrix() or len(op.qubits) != 1:
+            gate = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
+            if gate is None:
                 break
             indices.append(index)
-            gates.append(op.gate)
+            gates.append(gate)
             index = circuit.next_moment_operating_on([qubit], index + 1)
         return indices, gates
 
