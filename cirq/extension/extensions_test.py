@@ -71,7 +71,7 @@ def test_empty():
         _ = e.cast(o, UnrelatedType)
 
 
-def test_hit_vs_miss():
+def test_cast_hit_vs_miss():
     e = extension.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     c = ChildType()
@@ -91,6 +91,23 @@ def test_hit_vs_miss():
         _ = e.cast(c, UnrelatedType)
     with pytest.raises(TypeError):
         _ = e.cast(o, UnrelatedType)
+
+
+def test_try_cast_hit_vs_miss():
+    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    o = OtherType()
+    c = ChildType()
+    u = UnrelatedType()
+
+    assert e.try_cast(None, DesiredType) is None
+    assert e.try_cast(u, DesiredType) is None
+    assert e.try_cast(c, DesiredType) is c
+    assert e.try_cast(o, DesiredType) is not o
+
+    assert e.try_cast(None, UnrelatedType) is None
+    assert e.try_cast(u, UnrelatedType) is u
+    assert e.try_cast(c, UnrelatedType) is None
+    assert e.try_cast(o, UnrelatedType) is None
 
 
 def test_override_order():
