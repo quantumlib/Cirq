@@ -17,24 +17,24 @@
 import abc
 from typing import Union
 
+import numpy as np
+
+from cirq import ops
 from cirq.api.google.v1 import operations_pb2
+from cirq.google.parameterized_value import ParameterizedValue
 from cirq.ops import gate_features, raw_types
-from cirq.ops.parameterized_value import ParameterizedValue
 
 
-class NativeGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate with a known mechanism for encoding into API protos."""
+class XmonGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate with a known mechanism for encoding into google API protos."""
 
     @abc.abstractmethod
     def to_proto(self, *qubits) -> operations_pb2.Operation:
         raise NotImplementedError()
 
 
-class MeasurementGate(NativeGate, gate_features.AsciiDiagrammableGate):
+class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
     """Indicates that a qubit should be measured, and where the result goes."""
-
-    def __init__(self, key: str = ''):
-        self.key = key
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:
@@ -47,31 +47,16 @@ class MeasurementGate(NativeGate, gate_features.AsciiDiagrammableGate):
         op.measurement.key = self.key
         return op
 
-    def ascii_wire_symbols(self):
-        return 'M',
 
-    def __repr__(self):
-        return 'MeasurementGate({})'.format(repr(self.key))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.key == other.key
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((MeasurementGate, self.key))
-
-
-class Exp11Gate(NativeGate, gate_features.PhaseableGate):
+class Exp11Gate(XmonGate,
+                gate_features.PhaseableGate,
+                gate_features.PotentiallyKnownMatrixGate):
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1):
         assert not positional_args
-        self.half_turns = _canonicalize_turns(half_turns)
+        self.half_turns = _canonicalize_half_turns(half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -91,6 +76,12 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
             self.half_turns)
         return op
 
+    def has_known_matrix(self):
+        return not isinstance(self.half_turns, ParameterizedValue)
+
+    def matrix(self):
+        return ops.ZGate(half_turns=self.half_turns).matrix()
+
     def ascii_wire_symbols(self):
         return 'Z', 'Z'
 
@@ -98,11 +89,11 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
         return self.half_turns
 
     def __repr__(self):
-        return 'ParameterizedCZGate(half_turns={})'.format(
+        return 'Exp11Gate(half_turns={})'.format(
             repr(self.half_turns))
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
+        if not isinstance(other, (ops.CZGate, type(self))):
             return NotImplemented
         return self.half_turns == other.half_turns
 
@@ -110,28 +101,38 @@ class Exp11Gate(NativeGate, gate_features.PhaseableGate):
         return not self == other
 
     def __hash__(self):
-        return hash((Exp11Gate, self.half_turns))
+        return hash((ops.CZGate, self.half_turns))
 
 
-class ExpWGate(NativeGate,
+class ExpWGate(XmonGate,
                gate_features.AsciiDiagrammableGate,
-               gate_features.PhaseableGate):
+               gate_features.PhaseableGate,
+               gate_features.BoundedEffectGate,
+               gate_features.PotentiallyKnownMatrixGate,
+               gate_features.PotentiallyReversibleGate):
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1,
                  axis_half_turns: Union[ParameterizedValue, float]=0):
         assert not positional_args
-        self.half_turns = _canonicalize_turns(half_turns)
-        self.axis_half_turns = _canonicalize_turns(axis_half_turns)
+        self.half_turns = _canonicalize_half_turns(half_turns)
+        self.axis_half_turns = _canonicalize_half_turns(axis_half_turns)
 
         if (not isinstance(self.half_turns, ParameterizedValue) and
                 not isinstance(self.axis_half_turns, ParameterizedValue) and
                 not 0 <= self.axis_half_turns < 1):
             # Canonicalize to negative rotation around positive axis.
-            self.half_turns = _canonicalize_turns(-self.half_turns)
-            self.axis_half_turns = _canonicalize_turns(
+            self.half_turns = _canonicalize_half_turns(-self.half_turns)
+            self.axis_half_turns = _canonicalize_half_turns(
                 self.axis_half_turns + 1)
+
+    def has_inverse(self):
+        return not isinstance(self.half_turns, ParameterizedValue)
+
+    def inverse(self):
+        return ExpWGate(half_turns=-self.half_turns,
+                        axis_half_turns=self.axis_half_turns)
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:
@@ -150,10 +151,23 @@ class ExpWGate(NativeGate,
             self.half_turns)
         return op
 
+    def has_known_matrix(self):
+        return (not isinstance(self.half_turns, ParameterizedValue) and
+                not isinstance(self.axis_half_turns, ParameterizedValue))
+
+    def matrix(self):
+        phase = ops.ZGate(half_turns=self.axis_half_turns).matrix()
+        c = np.exp(1j * np.pi * self.half_turns)
+        rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
+        return phase.dot(rot).dot(np.conj(phase))
+
     def phase_by(self, phase_turns, qubit_index):
         return ExpWGate(
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
+
+    def trace_distance_bound(self):
+        return abs(self.half_turns) * 3.5
 
     def ascii_wire_symbols(self):
         if self.axis_half_turns == 0:
@@ -171,34 +185,50 @@ class ExpWGate(NativeGate,
                     repr(self.axis_half_turns)))
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-
-        return (self.half_turns == other.half_turns and
-                self.axis_half_turns == other.axis_half_turns)
+        if isinstance(other, ops.XGate):
+            return (self.axis_half_turns == 0 and
+                    self.half_turns == other.half_turns)
+        if isinstance(other, ops.YGate):
+            return (self.axis_half_turns == 0.5 and
+                    self.half_turns == other.half_turns)
+        if isinstance(other, type(self)):
+            return (self.half_turns == other.half_turns and
+                    self.axis_half_turns == other.axis_half_turns)
+        return NotImplemented
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
+        if self.axis_half_turns == 0:
+            return hash((ops.XGate, self.half_turns))
+        if self.axis_half_turns == 0.5:
+            return hash((ops.YGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
 
-class ExpZGate(NativeGate,
+class ExpZGate(XmonGate,
                gate_features.AsciiDiagrammableGate,
-               gate_features.PhaseableGate):
+               gate_features.PhaseableGate,
+               gate_features.PotentiallyReversibleGate):
     """A rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1):
         assert not positional_args
-        self.half_turns = _canonicalize_turns(half_turns)
+        self.half_turns = _canonicalize_half_turns(half_turns)
 
     def ascii_wire_symbols(self):
         return 'Z',
 
     def ascii_exponent(self):
         return self.half_turns
+
+    def has_inverse(self):
+        return not isinstance(self.half_turns, ParameterizedValue)
+
+    def inverse(self):
+        return ExpZGate(half_turns=-self.half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -232,11 +262,11 @@ class ExpZGate(NativeGate,
         return hash((ExpZGate, self.half_turns))
 
 
-def _canonicalize_turns(
-        val: Union[ParameterizedValue, float]
+def _canonicalize_half_turns(
+        half_turns: Union[ParameterizedValue, float]
 ) -> Union[ParameterizedValue, float]:
-    v = ParameterizedValue.val_of(val)
+    v = ParameterizedValue.val_of(half_turns)
     v %= 2
     if v > 1:
         v -= 2
-    return ParameterizedValue(ParameterizedValue.key_of(val), v)
+    return ParameterizedValue(ParameterizedValue.key_of(half_turns), v)
