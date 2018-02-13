@@ -31,7 +31,8 @@ def _reverse_operation(operation: raw_types.Operation) -> raw_types.Operation:
     Raises:
         ValueError: The operation's gate isn't reversible.
     """
-    if isinstance(operation.gate, gate_features.ReversibleGate):
+    if (isinstance(operation.gate, gate_features.PotentiallyReversibleGate) and
+            operation.gate.has_inverse()):
         return raw_types.Operation(operation.gate.inverse(), operation.qubits)
     raise ValueError('Not reversible: {}'.format(operation))
 

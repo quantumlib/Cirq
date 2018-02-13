@@ -14,6 +14,8 @@
 
 from cirq import circuits
 from cirq import ops
+from cirq.google import ExpZGate
+from cirq.google import ParameterizedValue
 
 
 def assert_optimizes(before, after):
@@ -26,10 +28,12 @@ def assert_optimizes(before, after):
         circuits.DropNegligible(),
         circuits.DropEmptyMoments()
     ]
-    for opt in followup_optimizations:
-        opt.optimize_circuit(before)
-        opt.optimize_circuit(after)
+    for post in followup_optimizations:
+        post.optimize_circuit(before)
+        post.optimize_circuit(after)
 
+    print(before)
+    print(after)
     assert before == after
 
 
@@ -50,14 +54,14 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ops.ExpZGate(
-                half_turns=ops.ParameterizedValue('boo'))(q0)]),
+            circuits.Moment([ExpZGate(
+                half_turns=ParameterizedValue('boo'))(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ops.ExpZGate(
-                half_turns=ops.ParameterizedValue('boo'))(q0)]),
+            circuits.Moment([ExpZGate(
+                half_turns=ParameterizedValue('boo'))(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]))
 

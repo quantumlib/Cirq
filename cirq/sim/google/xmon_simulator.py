@@ -31,7 +31,7 @@ import numpy as np
 from typing import DefaultDict, Dict, Sequence, Union
 
 from cirq.circuits.circuit import Circuit
-from cirq.ops import native_gates
+from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.ops import raw_types
 from cirq.sim.google.xmon_stepper import Stepper
 
@@ -166,25 +166,25 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
             measurements = defaultdict(list)
             phase_map = {}
             for op in moment.operations:
-                gate = op.gate
-                if isinstance(gate, native_gates.ExpZGate):
+                gate = xmon_gate_ext.try_cast(op.gate, xmon_gates.XmonGate)
+                if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
-                    phase_map[(index,)] = native_gates.ParameterizedValue.val_of(
+                    phase_map[(index,)] = xmon_gates.ParameterizedValue.val_of(
                         gate.half_turns)
-                elif isinstance(gate, native_gates.Exp11Gate):
+                elif isinstance(gate, xmon_gates.Exp11Gate):
                     index0 = qubit_map[op.qubits[0]]
                     index1 = qubit_map[op.qubits[1]]
                     phase_map[(index0, index1)] = (
-                        native_gates.ParameterizedValue.val_of(gate.half_turns))
-                elif isinstance(gate, native_gates.ExpWGate):
+                        xmon_gates.ParameterizedValue.val_of(gate.half_turns))
+                elif isinstance(gate, xmon_gates.ExpWGate):
                     index = qubit_map[op.qubits[0]]
                     stepper.simulate_w(
                         index=index,
-                        half_turns=native_gates.ParameterizedValue.val_of(
+                        half_turns=xmon_gates.ParameterizedValue.val_of(
                             gate.half_turns),
-                        axis_half_turns=native_gates.ParameterizedValue.val_of(
+                        axis_half_turns=xmon_gates.ParameterizedValue.val_of(
                             gate.axis_half_turns))
-                elif isinstance(gate, native_gates.MeasurementGate):
+                elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     index = qubit_map[op.qubits[0]]
                     results = stepper.simulate_measurement(index)
                     measurements[gate.key].append(results)

@@ -26,13 +26,23 @@ from cirq.ops import op_tree
 from cirq.ops import raw_types
 
 
-class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be undone in a known way."""
+class PotentiallyReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def has_inverse(self) -> bool:
+        pass
 
     @abc.abstractmethod
     def inverse(self) -> 'ReversibleGate':
         """Returns a gate with an exactly opposite effect."""
         pass
+
+
+class ReversibleGate(PotentiallyReversibleGate,
+                     metaclass=abc.ABCMeta):
+    """A gate whose effect can be undone in a known way."""
+
+    def has_inverse(self) -> bool:
+        return True
 
 
 class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
@@ -99,13 +109,24 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         pass
 
 
-class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class PotentiallyKnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose constant non-parameterized effect has a known matrix."""
+
+    @abc.abstractmethod
+    def has_known_matrix(self) -> bool:
+        pass
 
     @abc.abstractmethod
     def matrix(self) -> np.ndarray:
         """The unitary matrix of the operation this gate applies."""
         pass
+
+
+class KnownMatrixGate(PotentiallyKnownMatrixGate, metaclass=abc.ABCMeta):
+    """A gate whose constant non-parameterized effect has a known matrix."""
+
+    def has_known_matrix(self):
+        return True
 
 
 class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
