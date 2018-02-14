@@ -50,12 +50,10 @@ class ExpandComposite(PointOptimizer):
     def optimize_at(self, circuit: Circuit, index: int,
         op: ops.Operation) -> Optional[int]:
         decomposition = self._decompose(op)
-        if decomposition == op:
+        if decomposition is op:
             return
 
         circuit.clear_operations_touching(op.qubits, (index, ))
-        if len(circuit.moments[index].operations) == 0:
-            del circuit.moments[index]
         circuit.insert(index, decomposition, strategy=self.insert_strategy)
 
     def _decompose(self, op):
