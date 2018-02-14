@@ -15,21 +15,21 @@ A simple example to get you up and running:
 import cirq
 
 # Define a qubit.
-qubit = cirq.ops.QubitLoc(0, 0)
+qubit = cirq.google.XmonQubit(0, 0)
 
 # Create a circuit (qubits start in the |0> state).
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([
     # Square root of NOT.
-    cirq.ops.ExpWGate(half_turns=0.5).on(qubit),
+    (cirq.ops.X**0.5).on(qubit),
 
     # Measurement.
     cirq.ops.MeasurementGate('result').on(qubit)
 ])
 print("Circuit:")
-print(cirq.circuits.to_ascii(circuit))
+print(cirq.to_ascii(circuit))
 
-# Now simulate the circuit and print out the measurment result.
+# Now simulate the circuit and print out the measurement result.
 simulator = cirq.sim.google.xmon_simulator.Simulator()
 results = []
 for _ in range(10):

@@ -22,6 +22,7 @@ from typing import List, Tuple, Optional
 
 from cirq import linalg
 from cirq import ops
+from cirq.google import ExpWGate
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
@@ -122,7 +123,7 @@ def _easy_direction_partial_cz(q0: ops.QubitId, q1: ops.QubitId, t: float):
 
 def single_qubit_matrix_to_native_gates(
         mat: np.ndarray, tolerance: float = 0
-) -> List[ops.ConstantSingleQubitGate]:
+) -> List[ops.SingleQubitGate]:
     """Implements a single-qubit operation with few native gates.
 
     Args:
@@ -140,15 +141,15 @@ def single_qubit_matrix_to_native_gates(
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
-        ops.XYGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
-        ops.ZGate(half_turns=2*total_z_turn)
+        ExpWGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
+        ops.RotZGate(half_turns=2 * total_z_turn)
     ]
     result = [g for g in result if g.trace_distance_bound() > tolerance]
 
     # Special case: XY half-turns can absorb Z rotations.
     if len(result) == 2 and abs(xy_turn) >= 0.5 - tolerance:
         return [
-            ops.XYGate(axis_half_turns=2*xy_phase_turn + total_z_turn)
+            ExpWGate(axis_half_turns=2*xy_phase_turn + total_z_turn)
         ]
 
     return result
@@ -198,13 +199,13 @@ def controlled_op_to_native_gates(
 
     Returns:
         A list of Operations that apply the controlled operation.
-  """
+    """
     u, z_phase, global_phase = single_qubit_op_to_framed_phase_form(operation)
     if abs(z_phase - 1) <= tolerance:
         return []
 
     u_gates = single_qubit_matrix_to_native_gates(u, tolerance)
-    if u_gates and isinstance(u_gates[-1], ops.ZGate):
+    if u_gates and isinstance(u_gates[-1], ops.RotZGate):
         # Don't keep border operations that commute with CZ.
         del u_gates[-1]
 

@@ -14,6 +14,7 @@
 
 from cirq import circuits
 from cirq import ops
+from cirq.google import ExpZGate, ParameterizedValue
 
 
 def assert_optimizes(before, after):
@@ -26,16 +27,19 @@ def assert_optimizes(before, after):
         circuits.DropNegligible(),
         circuits.DropEmptyMoments()
     ]
-    for opt in followup_optimizations:
-        opt.optimize_circuit(before)
-        opt.optimize_circuit(after)
+    for post in followup_optimizations:
+        post.optimize_circuit(before)
+        post.optimize_circuit(after)
 
+    if before != after:
+        print("before:", before)
+        print("after:", after)
     assert before == after
 
 
 def test_clears_paired_cnot():
-    q1 = ops.QubitLoc(0, 0)
-    q2 = ops.QubitLoc(0, 1)
+    q1 = ops.QubitId()
+    q2 = ops.QubitId()
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment([ops.CNOT(q1, q2)]),
@@ -45,27 +49,27 @@ def test_clears_paired_cnot():
 
 
 def test_ignores_czs_separated_by_parameterized():
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(0, 1)
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ops.ExpZGate(
-                half_turns=ops.ParameterizedValue('boo'))(q0)]),
+            circuits.Moment([ExpZGate(
+                half_turns=ParameterizedValue('boo'))(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ops.ExpZGate(
-                half_turns=ops.ParameterizedValue('boo'))(q0)]),
+            circuits.Moment([ExpZGate(
+                half_turns=ParameterizedValue('boo'))(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]))
 
 
 def test_ignores_czs_separated_by_outer_cz():
-    q00 = ops.QubitLoc(0, 0)
-    q01 = ops.QubitLoc(0, 1)
-    q10 = ops.QubitLoc(1, 0)
+    q00 = ops.QubitId()
+    q01 = ops.QubitId()
+    q10 = ops.QubitId()
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment([ops.CZ(q00, q01)]),

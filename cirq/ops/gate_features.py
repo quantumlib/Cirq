@@ -22,11 +22,13 @@ import abc
 import numpy as np
 from typing import Sequence, Tuple
 
+from cirq.extension import PotentialImplementation
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 
 
-class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class ReversibleGate(raw_types.Gate,
+                     metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way."""
 
     @abc.abstractmethod
@@ -157,7 +159,7 @@ class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
         pass
 
 
-class ConstantSingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
+class SingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
     """A gate that applies a known constant effect to one qubit."""
 
     def validate_args(self, qubits):
@@ -167,16 +169,11 @@ class ConstantSingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-class ConstantAdjacentTwoQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
+class TwoQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
     """A gate that applies a known constant effect to adjacent qubits."""
 
     def validate_args(self, qubits):
         if len(qubits) != 2:
             raise ValueError(
                 'Two-qubit gate not applied to two qubits: {}({})'.
-                format(self, qubits))
-
-        if not qubits[0].is_adjacent(qubits[1]):
-            raise ValueError(
-                'Two-qubit gate applied to non-adjacent qubits: {}({})'.
                 format(self, qubits))

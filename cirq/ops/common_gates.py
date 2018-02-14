@@ -13,19 +13,62 @@
 # limitations under the License.
 
 """Quantum gates that are commonly used in the literature."""
-
+import abc
 import math
 import numpy as np
 
 from cirq.ops import gate_features
-from cirq.ops import native_gates
 
 
-class CZGate(native_gates.Exp11Gate,
-             gate_features.ConstantAdjacentTwoQubitGate,
-             gate_features.ExtrapolatableGate,
-             gate_features.BoundedEffectGate,
-             gate_features.AsciiDiagrammableGate):
+def _canonicalize_half_turns(half_turns: float) -> float:
+    v = half_turns
+    v %= 2
+    if v > 1:
+        v -= 2
+    return v
+
+
+class _TurnGate(gate_features.ExtrapolatableGate,
+                gate_features.BoundedEffectGate,
+                gate_features.AsciiDiagrammableGate):
+
+    def __init__(self, *positional_args,
+                 half_turns: float = 1.0):
+        assert not positional_args
+        self.half_turns = _canonicalize_half_turns(half_turns)
+
+    @abc.abstractmethod
+    def ascii_wire_symbols(self):
+        pass
+
+    def ascii_exponent(self):
+        return self.half_turns
+
+    def __repr__(self):
+        base = ''.join(self.ascii_wire_symbols())
+        if self.half_turns == 1:
+            return base
+        return '{}**{}'.format(base, repr(self.half_turns))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.half_turns == other.half_turns
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((type(self), self.half_turns))
+
+    def trace_distance_bound(self):
+        return abs(self.half_turns) * 3.5
+
+    def extrapolate_effect(self, factor) -> '_TurnGate':
+        return type(self)(half_turns=self.half_turns * factor)
+
+
+class Rot11Gate(_TurnGate, gate_features.TwoQubitGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
   A ParameterizedCZGate guaranteed to not be using the parameter key field.
@@ -34,136 +77,108 @@ class CZGate(native_gates.Exp11Gate,
     def __init__(self, *positional_args,
                  half_turns: float=1.0):
         assert not positional_args
-        super(CZGate, self).__init__(half_turns=half_turns)
-
-    def extrapolate_effect(self, factor) -> 'CZGate':
-        """See base class."""
-        return CZGate(half_turns=self.half_turns * factor)
-
-    def ascii_exponent(self):
-        return self.half_turns
+        super().__init__(half_turns=half_turns)
 
     def ascii_wire_symbols(self):
         return 'Z', 'Z'
-
-    def trace_distance_bound(self):
-        """See base class."""
-        return abs(self.half_turns) * 3.5
 
     def matrix(self):
         """See base class."""
         return np.diag([1, 1, 1, np.exp(1j * np.pi * self.half_turns)])
 
-    def __repr__(self):
-        if self.half_turns == 1:
-            return 'CZ'
-        return 'CZ**{}'.format(repr(self.half_turns))
 
-
-class XYGate(native_gates.ExpWGate,
-             gate_features.ConstantSingleQubitGate,
-             gate_features.ExtrapolatableGate,
-             gate_features.BoundedEffectGate,
-             gate_features.AsciiDiagrammableGate,
-             gate_features.PhaseableGate):
-    """Fixed rotation around an axis in the XY plane of the Bloch sphere."""
+class RotXGate(_TurnGate, gate_features.SingleQubitGate):
+    """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
-                 half_turns: float = 1,
-                 axis_half_turns: float = 0):
+                 half_turns: float = 1.0):
         assert not positional_args
-        super(XYGate, self).__init__(
-            axis_half_turns=axis_half_turns,
-            half_turns=half_turns)
-
-    def phase_by(self, phase_turns, qubit_index):
-        return XYGate(axis_half_turns=self.axis_half_turns + 2*phase_turns,
-                      half_turns=self.half_turns)
-
-    def ascii_exponent(self):
-        return self.half_turns
+        super().__init__(half_turns=half_turns)
 
     def ascii_wire_symbols(self):
-        if self.axis_half_turns == 0:
-            return 'X',
-        if self.axis_half_turns == 0.5:
-            return 'Y',
-        return 'XY({})'.format(repr(self.axis_half_turns)),
+        return 'X',
 
-    def trace_distance_bound(self):
-        """See base class."""
-        return abs(self.half_turns) * 3.5
-
-    def extrapolate_effect(self, factor) -> 'XYGate':
-        """See base class."""
-        return XYGate(axis_half_turns=self.axis_half_turns,
-                      half_turns=self.half_turns * factor)
+    def phase_by(self, phase_turns, qubit_index):
+        return self
 
     def matrix(self):
-        """See base class."""
-        phase = ZGate(half_turns=self.axis_half_turns).matrix()
         c = np.exp(1j * np.pi * self.half_turns)
-        rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
-        return phase.dot(rot).dot(np.conj(phase))
-
-    def __repr__(self):
-        if self.axis_half_turns == 0:
-            if self.half_turns == 1:
-                return 'X'
-            return 'X**{}'.format(repr(self.half_turns))
-
-        if self.axis_half_turns == 0.5:
-            if self.half_turns == 1:
-                return 'Y'
-            return 'Y**{}'.format(repr(self.half_turns))
-
-        return 'XYGate(axis_half_turns={}, half_turns={})'.format(
-            repr(self.axis_half_turns), repr(self.half_turns))
+        return np.array([[1 + c, 1 - c],
+                         [1 - c, 1 + c]]) / 2
 
 
-class ZGate(native_gates.ExpZGate,
-            gate_features.ConstantSingleQubitGate,
-            gate_features.ExtrapolatableGate,
-            gate_features.BoundedEffectGate,
-            gate_features.AsciiDiagrammableGate):
+class RotYGate(_TurnGate, gate_features.SingleQubitGate):
+    """Fixed rotation around the Y axis of the Bloch sphere."""
+
+    def __init__(self, *positional_args,
+                 half_turns: float = 1.0):
+        assert not positional_args
+        super().__init__(half_turns=half_turns)
+
+    def ascii_wire_symbols(self):
+        return 'Y',
+
+    def phase_by(self, phase_turns, qubit_index):
+        return self
+
+    def matrix(self):
+        s = np.sin(np.pi * self.half_turns)
+        c = np.cos(np.pi * self.half_turns)
+        return np.array([[1 + s*1j + c, c*1j - s - 1j],
+                         [1j + s - c*1j, 1 + s*1j + c]]) / 2
+
+
+class RotZGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
                  half_turns: float = 1.0):
         assert not positional_args
-        super(ZGate, self).__init__(half_turns=half_turns)
-
-    def ascii_exponent(self):
-        return self.half_turns
+        super().__init__(half_turns=half_turns)
 
     def ascii_wire_symbols(self):
         return 'Z',
 
-    def trace_distance_bound(self):
-        """See base class."""
-        return abs(self.half_turns) * 3.5
-
-    def extrapolate_effect(self, factor) -> 'ZGate':
-        """See base class."""
-        return ZGate(half_turns=self.half_turns * factor)
+    def phase_by(self, phase_turns, qubit_index):
+        return self
 
     def matrix(self):
         """See base class."""
         return np.diag([1, np.exp(1j * np.pi * self.half_turns)])
 
+
+class MeasurementGate(gate_features.AsciiDiagrammableGate):
+    """Indicates that a qubit should be measured, and where the result goes."""
+
+    def __init__(self, key: str = '', invert_result=False):
+        self.key = key
+        self.invert_result = invert_result
+
+    def ascii_wire_symbols(self):
+        return 'M',
+
     def __repr__(self):
-        if self.half_turns == 1:
-            return 'Z'
-        return 'Z**{}'.format(repr(self.half_turns))
+        return 'MeasurementGate({})'.format(repr(self.key))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.key == other.key
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((MeasurementGate, self.key))
 
 
-X = XYGate()  # Pauli X gate.
-Y = XYGate(axis_half_turns=0.5)  # Pauli Y gate.
-Z = ZGate()  # Pauli Z gate.
-CZ = CZGate()  # Negates the amplitude of the |11> state.
+X = RotXGate()  # Pauli X gate.
+Y = RotYGate()  # Pauli Y gate.
+Z = RotZGate()  # Pauli Z gate.
+CZ = Rot11Gate()  # Negates the amplitude of the |11> state.
 
 
-class HGate(gate_features.ConstantSingleQubitGate,
+class HGate(gate_features.SingleQubitGate,
             gate_features.AsciiDiagrammableGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
@@ -182,7 +197,7 @@ class HGate(gate_features.ConstantSingleQubitGate,
 H = HGate()  # Hadamard gate.
 
 
-class CNotGate(gate_features.ConstantAdjacentTwoQubitGate,
+class CNotGate(gate_features.TwoQubitGate,
                gate_features.CompositeGate,
                gate_features.SelfInverseGate,
                gate_features.AsciiDiagrammableGate):
@@ -213,7 +228,7 @@ CNOT = CNotGate()  # Controlled Not Gate.
 
 
 class SwapGate(gate_features.CompositeGate,
-               gate_features.ConstantAdjacentTwoQubitGate):
+               gate_features.TwoQubitGate):
     """Swaps two qubits."""
 
     def matrix(self):

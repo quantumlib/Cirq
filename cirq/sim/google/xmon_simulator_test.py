@@ -14,21 +14,28 @@
 
 """Tests for xmon_simulator."""
 
+import cmath
+import math
+
 import numpy as np
 import pytest
 
 from cirq import circuits
-from cirq import ops
+from cirq.google import (
+    ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
+)
+from cirq.google import (ParameterizedValue)
+from cirq.google.resolver import ParamResolver
 from cirq.sim.google import xmon_simulator
 
-Q1 = ops.QubitLoc(0, 0)
-Q2 = ops.QubitLoc(1, 0)
+Q1 = XmonQubit(0, 0)
+Q2 = XmonQubit(1, 0)
 
 
 def basic_circuit():
-    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    z = ops.native_gates.ExpZGate()
-    cz = ops.native_gates.Exp11Gate()
+    sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    z = ExpZGate()
+    cz = Exp11Gate()
     circuit = circuits.Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
@@ -40,9 +47,9 @@ def basic_circuit():
 
 def large_circuit():
     np.random.seed(0)
-    qubits = [ops.QubitLoc(i, 0) for i in range(10)]
-    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    cz = ops.native_gates.Exp11Gate()
+    qubits = [XmonQubit(i, 0) for i in range(10)]
+    sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    cz = Exp11Gate()
     circuit = circuits.Circuit()
     for _ in range(11):
         circuit.append(
@@ -50,7 +57,7 @@ def large_circuit():
         circuit.append([cz(qubits[i], qubits[i + 1]) for i in range(9)])
     for i in range(10):
         circuit.append(
-            ops.native_gates.MeasurementGate(key='meas')(qubits[i]))
+            XmonMeasurementGate(key='meas')(qubits[i]))
     return circuit
 
 
@@ -80,8 +87,8 @@ def test_run():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [ops.native_gates.MeasurementGate(key='a')(Q1),
-         ops.native_gates.MeasurementGate(key='b')(Q2),])
+        [XmonMeasurementGate(key='a')(Q1),
+         XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
     result = simulator.run(circuit)
@@ -126,8 +133,8 @@ def test_run_no_sharing_few_qubits():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [ops.native_gates.MeasurementGate(key='a')(Q1),
-         ops.native_gates.MeasurementGate(key='b')(Q2),])
+        [XmonMeasurementGate(key='a')(Q1),
+         XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
     options = xmon_simulator.Options(min_qubits_before_shard=0)
@@ -142,15 +149,7 @@ def test_run_set_state_computational_basis():
     np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
 
 
-def test_run_set_state_nd_array():
-    simulator = xmon_simulator.Simulator()
-    result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
-    result.set_state(np.array([0.5, 0.5, 0.5, -0.5j], dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state(),
-                                   np.array([0.5, 0.5, 0.5, -0.5j]))
-
-
-def test_run_set_state_nd_array():
+def test_run_set_state_nd_array_fail():
     simulator = xmon_simulator.Simulator()
     result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
     with pytest.raises(ValueError):
@@ -167,8 +166,8 @@ def test_moment_steps():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [ops.native_gates.MeasurementGate(key='a')(Q1),
-         ops.native_gates.MeasurementGate(key='b')(Q2),])
+        [XmonMeasurementGate(key='a')(Q1),
+         XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
     results = []
@@ -193,6 +192,7 @@ def test_moment_steps_state():
                                              [-0.5, 0.5j, 0.5j, -0.5],
                                              [-0.5j, 0.5, -0.5, 0.5j]]))
 
+
 def test_moment_steps_set_state():
     np.random.seed(0)
     circuit = basic_circuit()
@@ -203,3 +203,97 @@ def test_moment_steps_set_state():
     result = step.__next__()
     result.set_state(0)
     np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
+
+
+def compute_gate(circuit, resolver, num_qubits=1):
+    simulator = xmon_simulator.Simulator()
+    result = []
+    for initial_state in range(1 << num_qubits):
+        state = simulator.run(circuit, initial_state=initial_state,
+                              param_resolver=resolver).state()
+        result.append(state)
+    return np.array(result).transpose()
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_exp_w_half_turns(offset):
+    exp_w = ExpWGate(
+        half_turns=ParameterizedValue('a', offset),
+        axis_half_turns=0.0)
+    circuit = circuits.Circuit()
+    circuit.append(exp_w(Q1))
+    resolver = ParamResolver({'a': 0.5 - offset})
+    result = compute_gate(circuit, resolver)
+    amp = 1.0 / math.sqrt(2)
+    np.testing.assert_almost_equal(result,
+                                   np.array([[amp, amp * 1j],
+                                             [amp * 1j, amp]]))
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_exp_w_axis_half_turns(offset):
+    exp_w = ExpWGate(
+        half_turns=1.0, axis_half_turns=ParameterizedValue('a', offset))
+    circuit = circuits.Circuit()
+    circuit.append(exp_w(Q1))
+    resolver = ParamResolver({'a': 0.5 - offset})
+    result = compute_gate(circuit, resolver)
+    amp = 1.0 / math.sqrt(2)
+    np.testing.assert_almost_equal(result,
+                                   np.array([[0, 1],
+                                             [-1, 0]]))
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_exp_w_multiple_params(offset):
+    exp_w = ExpWGate(
+        half_turns=ParameterizedValue('a', offset),
+        axis_half_turns=ParameterizedValue('b', offset))
+    circuit = circuits.Circuit()
+    circuit.append(exp_w(Q1))
+    resolver = ParamResolver({'a': 0.5 - offset, 'b': 0.5 - offset})
+    result = compute_gate(circuit, resolver)
+    amp = 1.0 / math.sqrt(2)
+    np.testing.assert_almost_equal(result,
+                                   np.array([[amp, amp],
+                                             [-amp, amp]]))
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_exp_z_half_turns(offset):
+    exp_z = ExpZGate(half_turns=ParameterizedValue('a', offset))
+    circuit = circuits.Circuit()
+    circuit.append(exp_z(Q1))
+    resolver = ParamResolver({'a': 0.5 - offset})
+    result = compute_gate(circuit, resolver)
+    np.testing.assert_almost_equal(
+        result,
+        np.array([[cmath.exp(1j * math.pi * 0.25), 0],
+                  [0, cmath.exp(-1j * math.pi * 0.25)]]))
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_exp_11_half_turns(offset):
+    exp_11 = Exp11Gate(half_turns=ParameterizedValue('a', offset))
+    circuit = circuits.Circuit()
+    circuit.append(exp_11(Q1, Q2))
+    resolver = ParamResolver({'a': 0.5 - offset})
+    result = compute_gate(circuit, resolver, num_qubits=2)
+    # Slight hack: doesn't depend on order of qubits.
+    np.testing.assert_almost_equal(
+        result,
+        np.diag([1, 1, 1, cmath.exp(1j * math.pi * 0.5)]))
+
+
+@pytest.mark.parametrize('offset', (0.0, 0.2))
+def test_param_resolver_param_dict(offset):
+    exp_w = ExpWGate(
+        half_turns=ParameterizedValue('a', offset),
+        axis_half_turns=0.0)
+    circuit = circuits.Circuit()
+    circuit.append(exp_w(Q1))
+    resolver = ParamResolver({'a': 0.5})
+
+    simulator = xmon_simulator.Simulator()
+    result = simulator.run(circuit, param_resolver=resolver)
+    assert result.param_dict == {'a': 0.5}
