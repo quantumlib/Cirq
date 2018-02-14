@@ -89,7 +89,7 @@ class Exp11Gate(XmonGate,
     def matrix(self):
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
-        return ops.ZGate(half_turns=self.half_turns).matrix()
+        return ops.RotZGate(half_turns=self.half_turns).matrix()
 
     def ascii_wire_symbols(self):
         return 'Z', 'Z'
@@ -102,7 +102,7 @@ class Exp11Gate(XmonGate,
             repr(self.half_turns))
 
     def __eq__(self, other):
-        if not isinstance(other, (ops.CZGate, type(self))):
+        if not isinstance(other, (ops.Rot11Gate, type(self))):
             return NotImplemented
         return self.half_turns == other.half_turns
 
@@ -110,7 +110,7 @@ class Exp11Gate(XmonGate,
         return not self == other
 
     def __hash__(self):
-        return hash((ops.CZGate, self.half_turns))
+        return hash((ops.Rot11Gate, self.half_turns))
 
 
 class ExpWGate(XmonGate,
@@ -182,7 +182,7 @@ class ExpWGate(XmonGate,
     def matrix(self):
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
-        phase = ops.ZGate(half_turns=self.axis_half_turns).matrix()
+        phase = ops.RotZGate(half_turns=self.axis_half_turns).matrix()
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return phase.dot(rot).dot(np.conj(phase))
@@ -211,10 +211,10 @@ class ExpWGate(XmonGate,
                     repr(self.axis_half_turns)))
 
     def __eq__(self, other):
-        if isinstance(other, ops.XGate):
+        if isinstance(other, ops.RotXGate):
             return (self.axis_half_turns == 0 and
                     self.half_turns == other.half_turns)
-        if isinstance(other, ops.YGate):
+        if isinstance(other, ops.RotYGate):
             return (self.axis_half_turns == 0.5 and
                     self.half_turns == other.half_turns)
         if isinstance(other, type(self)):
@@ -227,9 +227,9 @@ class ExpWGate(XmonGate,
 
     def __hash__(self):
         if self.axis_half_turns == 0:
-            return hash((ops.XGate, self.half_turns))
+            return hash((ops.RotXGate, self.half_turns))
         if self.axis_half_turns == 0.5:
-            return hash((ops.YGate, self.half_turns))
+            return hash((ops.RotYGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
 
@@ -271,7 +271,7 @@ class ExpZGate(XmonGate,
     def matrix(self):
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
-        return ops.ZGate(half_turns=self.half_turns).matrix()
+        return ops.RotZGate(half_turns=self.half_turns).matrix()
 
     def phase_by(self, phase_turns, qubit_index):
         return self
