@@ -18,6 +18,7 @@ import math
 import numpy as np
 
 from cirq.ops import gate_features
+from cirq.ops.raw_types import InterchangeableQubitsGate
 
 
 def _canonicalize_half_turns(half_turns: float) -> float:
@@ -68,7 +69,9 @@ class _TurnGate(gate_features.ExtrapolatableGate,
         return type(self)(half_turns=self.half_turns * factor)
 
 
-class Rot11Gate(_TurnGate, gate_features.TwoQubitGate):
+class Rot11Gate(_TurnGate,
+                gate_features.TwoQubitGate,
+                InterchangeableQubitsGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
   A ParameterizedCZGate guaranteed to not be using the parameter key field.
