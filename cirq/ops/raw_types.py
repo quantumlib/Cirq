@@ -79,7 +79,7 @@ class Gate:
 
 
 class InterchangeableQubitsGate:
-    """Make an Operation using this gate be equal under qubit permutation."""
+    """Indicates operations should be equal under any qubit permutation."""
     pass
 
 
