@@ -15,7 +15,9 @@
 """Simulator for the Google's Xmon class quantum computers.
 
 The simulator can be used to run all of a Circuit or to step through the
-simulation Moment by Moment.
+simulation Moment by Moment. The simulator requires that all gates used in
+the circuit are either an XmonGate or are CompositeGate which can be
+decomposed into XmonGates.
 
 A simple example:
     circuit = Circuit([Moment(X(q1), X(q2)), Moment(CZ(q1, q2)])
@@ -30,7 +32,7 @@ from typing import DefaultDict, Dict, Sequence, Union
 
 import numpy as np
 
-from cirq.circuits.circuit import Circuit
+from cirq.circuits import Circuit, ExpandComposite
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.resolver import ParamResolver
 from cirq.ops import raw_types
@@ -71,10 +73,7 @@ class Options:
 
 
 class Simulator:
-    """Simulator for Xmon class quantum circuits.
-
-    TODO(dabacon): Optimization pass to decompose into native gate set.
-    """
+    """Simulator for Xmon class quantum circuits."""
 
     def run(self,
         circuit: Circuit,
@@ -168,12 +167,15 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
     qubit_map = {q: i for i, q in enumerate(qubits)}
     if param_resolver is None:
         param_resolver = ParamResolver({})
+    opt = ExpandComposite()
+    circuit_copy = Circuit(circuit.moments)
+    opt.optimize_circuit(circuit_copy)
     with Stepper(
         num_qubits=len(qubits),
         num_prefix_qubits=options.num_prefix_qubits,
         initial_state=initial_state,
         min_qubits_before_shard=options.min_qubits_before_shard) as stepper:
-        for moment in circuit.moments:
+        for moment in circuit_copy.moments:
             measurements = defaultdict(list)
             phase_map = {}
             for op in moment.operations:

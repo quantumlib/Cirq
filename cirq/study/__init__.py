@@ -12,14 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import api
-from cirq import circuits
-from cirq import devices
-from cirq import google
-from cirq import linalg
-from cirq import ops
-from cirq import schedules
-from cirq import sim
-from cirq import study
-from cirq import testing
-from cirq import time
+"""Types and methods for running studies (repeated trials)."""
+
+from study import *

@@ -12,14 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import api
-from cirq import circuits
-from cirq import devices
-from cirq import google
-from cirq import linalg
-from cirq import ops
-from cirq import schedules
-from cirq import sim
-from cirq import study
-from cirq import testing
-from cirq import time
+from typing import Union
+
+import abc
+
+class Executor(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def run(self, program, param_resolver,  **kwags):
+        """"""
+
+
+class Result(metaclass=abc.ABCMeta):
+
+    @property
+    def measurements(self):
+        pass
+
+    @property
+    def param_dict(self):
+        pass
