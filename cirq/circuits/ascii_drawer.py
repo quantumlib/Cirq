@@ -30,7 +30,7 @@ class _AsciiDiagramDrawer:
         self.vertical_lines = []
         self.horizontal_lines = []
 
-    def print(self, x: int, y: int, text: str):
+    def write(self, x: int, y: int, text: str):
         """Adds text to the given location."""
         if (x, y) in self.entries:
             self.entries[(x, y)] += text
@@ -169,12 +169,12 @@ def _to_ascii_moment(moment: Moment,
 
         # Print gate qubit labels.
         for s, q in zip(op_gate_as_ascii.ascii_wire_symbols(), op.qubits):
-            out_diagram.print(x, qubit_map[q], s)
+            out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the first label.
         e = op_gate_as_ascii.ascii_exponent()
         if e != 1:
-            out_diagram.print(x, y1, '^' + repr(e))
+            out_diagram.write(x, y1, '^' + repr(e))
 
 
 def _str_lexi(value):
@@ -229,7 +229,7 @@ def to_ascii(circuit: Circuit,
 
     diagram = _AsciiDiagramDrawer()
     for q, i in qubit_map.items():
-        diagram.print(0, i, str(q) + ('' if transpose else ': '))
+        diagram.write(0, i, str(q) + ('' if transpose else ': '))
 
     for moment in [Moment()] * 2 + circuit.moments + [Moment()]:
         _to_ascii_moment(moment, ext, qubit_map, diagram)
