@@ -19,6 +19,7 @@ from cirq.circuits.drop_negligible import *
 from cirq.circuits.drop_empty_moments import *
 from cirq.circuits.circuit import *
 from cirq.circuits.eject_z import *
+from cirq.circuits.expand_composite import *
 from cirq.circuits.insert_strategy import *
 from cirq.circuits.merge_interactions import *
 from cirq.circuits.merge_rotations import *

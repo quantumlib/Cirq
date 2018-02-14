@@ -17,7 +17,6 @@
 import numpy as np
 from typing import List, Tuple, Optional
 
-from cirq import linalg
 from cirq import ops
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
