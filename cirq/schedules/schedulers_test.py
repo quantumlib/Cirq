@@ -14,7 +14,7 @@
 
 import pytest
 
-from cirq.circuits import Circuit
+from cirq.circuits import Circuit, InsertStrategy
 from cirq.circuits import Moment
 from cirq.devices import Device
 from cirq import ops
@@ -221,8 +221,9 @@ def test_moment_by_moment_schedule_validate_operation_fails():
 def test_moment_by_moment_schedule_device_validation_fails():
     device = _TestDevice()
     qubits = device.qubits
-    circuit = Circuit()
-    circuit.append(ops.CZ(qubits[0], qubits[1]))
-    circuit.append(ops.CZ(qubits[2], qubits[3]))
+    circuit = Circuit([Moment([
+        ops.CZ(qubits[0], qubits[1]),
+        ops.CZ(qubits[2], qubits[3])
+    ])])
     with pytest.raises(ValueError, match="Adjacent CZ"):
-        schedule = schedulers.moment_by_moment_schedule(device, circuit)
+        _ = schedulers.moment_by_moment_schedule(device, circuit)

@@ -173,7 +173,7 @@ def test_moment_steps():
     results = []
     for step in simulator.moment_steps(circuit):
         results.append(step)
-    expected = [{}, {}, {}, {'b': [False]}, {'a': [False]}]
+    expected = [{}, {}, {}, {}, {'a': [False], 'b': [False]}]
     assert len(results) == len(expected)
     assert all(a.measurements == b for a, b in zip(results, expected))
 
