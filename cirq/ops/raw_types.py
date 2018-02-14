@@ -78,6 +78,11 @@ class Gate:
         return self.on(*args)
 
 
+class InterchangeableQubitsGate:
+    """Indicates operations should be equal under any qubit permutation."""
+    pass
+
+
 class Operation:
     """An application of a gate to a collection of qubits."""
 
@@ -93,12 +98,19 @@ class Operation:
                                ', '.join(str(e) for e in self.qubits))
 
     def __hash__(self):
-        return hash((Operation, self.gate, self.qubits))
+        q = self.qubits
+        if isinstance(self.gate, InterchangeableQubitsGate):
+            q = frozenset(q)
+        return hash((Operation, self.gate, q))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.gate == other.gate and self.qubits == other.qubits
+        q1, q2 = self.qubits, other.qubits
+        if isinstance(self.gate, InterchangeableQubitsGate):
+            q1 = frozenset(q1)
+            q2 = frozenset(q2)
+        return self.gate == other.gate and q1 == q2
 
     def __ne__(self, other):
         return not self == other
