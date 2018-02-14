@@ -18,7 +18,6 @@
 from cirq.ops.common_gates import *
 from cirq.ops.gate_features import *
 from cirq.ops.matrix_gates import *
-from cirq.ops.native_gates import *
 from cirq.ops.op_tree import *
 from cirq.ops.parameterized_value import *
 from cirq.ops.raw_types import *

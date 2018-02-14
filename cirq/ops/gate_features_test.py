@@ -45,44 +45,6 @@ def test_known_matrix_gate_is_abstract_cant_instantiate():
         _ = gate_features.KnownMatrixGate()
 
 
-def test_potentially_known_matrix_gate():
-    class M(gate_features.PotentiallyKnownMatrixGate):
-
-        def __init__(self, m):
-            self.m = m
-
-        def has_known_matrix(self):
-            return self.m is not None
-
-        def matrix(self):
-            return self.m
-
-    assert M(None).try_cast_to(gate_features.KnownMatrixGate) is None
-    assert M(None).try_cast_to(gate_features.ReversibleGate) is None
-    m = M(np.array([[1]]))
-    assert m.try_cast_to(gate_features.KnownMatrixGate) is m
-    assert m.try_cast_to(gate_features.ReversibleGate) is None
-
-
-def test_potentially_reversible_gate():
-    class M(gate_features.PotentiallyReversibleGate):
-
-        def __init__(self, inv):
-            self.inv = inv
-
-        def has_inverse(self):
-            return self.inv is not None
-
-        def inverse(self):
-            return self.inv
-
-    assert M(None).try_cast_to(gate_features.KnownMatrixGate) is None
-    assert M(None).try_cast_to(gate_features.ReversibleGate) is None
-    m = M(raw_types.Gate())
-    assert m.try_cast_to(gate_features.KnownMatrixGate) is None
-    assert m.try_cast_to(gate_features.ReversibleGate) is m
-
-
 def test_known_matrix_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
     class Missing(gate_features.KnownMatrixGate):
