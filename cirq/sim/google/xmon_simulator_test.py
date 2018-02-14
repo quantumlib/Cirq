@@ -14,17 +14,18 @@
 
 """Tests for xmon_simulator."""
 
-import math
 import cmath
+import math
 
 import numpy as np
 import pytest
 
 from cirq import circuits
 from cirq import ops
-from cirq import run
+from cirq.google import ExpWGate, ExpZGate, Exp11Gate, ParameterizedValue, \
+    XmonMeasurementGate
+from cirq.google.resolver import ParamResolver
 from cirq.sim.google import xmon_simulator
-from cirq.google import ExpWGate, ExpZGate, Exp11Gate, ParameterizedValue, XmonMeasurementGate
 
 Q1 = ops.QubitLoc(0, 0)
 Q2 = ops.QubitLoc(1, 0)
@@ -220,7 +221,7 @@ def test_param_resolver_exp_w_half_turns(offset):
         axis_half_turns=0.0)
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
-    resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -234,7 +235,7 @@ def test_param_resolver_exp_w_axis_half_turns(offset):
         half_turns=1.0, axis_half_turns=ParameterizedValue('a', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
-    resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -249,8 +250,7 @@ def test_param_resolver_exp_w_multiple_params(offset):
         axis_half_turns=ParameterizedValue('b', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
-    resolver = run.resolver.ParamResolver(
-        {'a': 0.5 - offset, 'b': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5 - offset, 'b': 0.5 - offset})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -263,7 +263,7 @@ def test_param_resolver_exp_z_half_turns(offset):
     exp_z = ExpZGate(half_turns=ParameterizedValue('a', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_z(Q1))
-    resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(
         result,
@@ -276,7 +276,7 @@ def test_param_resolver_exp_11_half_turns(offset):
     exp_11 = Exp11Gate(half_turns=ParameterizedValue('a', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_11(Q1, Q2))
-    resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver, num_qubits=2)
     # Slight hack: doesn't depend on order of qubits.
     np.testing.assert_almost_equal(
@@ -291,7 +291,7 @@ def test_param_resolver_param_dict(offset):
         axis_half_turns=0.0)
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
-    resolver = run.resolver.ParamResolver({'a': 0.5})
+    resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
     result = simulator.run(circuit, param_resolver=resolver)

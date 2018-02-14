@@ -26,14 +26,14 @@ A simple example:
 from collections import defaultdict
 import functools
 import math
+from typing import DefaultDict, Dict, Sequence, Union
 
 import numpy as np
-from typing import DefaultDict, Dict, Sequence, Union
 
 from cirq.circuits.circuit import Circuit
 from cirq.google import xmon_gates, xmon_gate_ext
+from cirq.google.resolver import ParamResolver
 from cirq.ops import raw_types
-from cirq.run.resolver import ParamResolver
 from cirq.sim.google.xmon_stepper import Stepper
 
 

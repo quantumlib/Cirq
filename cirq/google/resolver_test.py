@@ -16,8 +16,7 @@
 
 import itertools
 
-from cirq.run import resolver
-from cirq.google import ParameterizedValue
+from cirq.google import ParameterizedValue, resolver
 
 
 def test_value_of():
@@ -47,8 +46,3 @@ def test_hash():
         assert isinstance(hash(r), int)
     for r1, r2 in itertools.combinations(resolvers, 2):
         assert hash(r1) != hash(r2)
-
-
-def test_repr():
-    r = resolver.ParamResolver({'a': 0.0, 'b': 0.1})
-    assert str(r) == 'ParamResolver({\'a\': 0.0, \'b\': 0.1})'
