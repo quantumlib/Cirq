@@ -15,7 +15,39 @@
 import pytest
 
 from cirq import ops
+from cirq.google import XmonQubit
 from cirq.testing import EqualsTester
+
+
+def test_xmon_qubit_init():
+    q = XmonQubit(3, 4)
+    assert q.x == 3
+    assert q.y == 4
+
+
+def test_xmon_qubit_eq():
+    eq = EqualsTester()
+    eq.make_equality_pair(lambda: XmonQubit(0, 0))
+    eq.make_equality_pair(lambda: XmonQubit(1, 0))
+    eq.make_equality_pair(lambda: XmonQubit(0, 1))
+    eq.make_equality_pair(lambda: XmonQubit(50, 25))
+
+
+def test_xmon_qubit_is_adjacent():
+    assert XmonQubit(0, 0).is_adjacent(XmonQubit(0, 1))
+    assert XmonQubit(0, 0).is_adjacent(XmonQubit(0, -1))
+    assert XmonQubit(0, 0).is_adjacent(XmonQubit(1, 0))
+    assert XmonQubit(0, 0).is_adjacent(XmonQubit(-1, 0))
+
+    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(+1, -1))
+    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(+1, +1))
+    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(-1, -1))
+    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(-1, +1))
+
+    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(2, 0))
+
+    assert XmonQubit(500, 999).is_adjacent(XmonQubit(501, 999))
+    assert not XmonQubit(500, 999).is_adjacent(XmonQubit(5034, 999))
 
 
 def test_gate_calls_validate():
@@ -26,9 +58,9 @@ def test_gate_calls_validate():
                 raise ValueError()
 
     g = ValiGate()
-    q00 = ops.QubitId()
-    q01 = ops.QubitId()
-    q10 = ops.QubitId()
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q10 = XmonQubit(1, 0)
 
     _ = g.on(q00)
     _ = g.on(q01)
@@ -43,7 +75,7 @@ def test_gate_calls_validate():
 
 
 def test_operation_init():
-    q = ops.QubitId()
+    q = XmonQubit(4, 5)
     g = ops.Gate()
     v = ops.Operation(g, (q,))
     assert v.gate == g
@@ -53,8 +85,8 @@ def test_operation_init():
 def test_operation_eq():
     g1 = ops.Gate()
     g2 = ops.Gate()
-    r1 = [ops.QubitId()]
-    r2 = [ops.QubitId()]
+    r1 = [XmonQubit(1, 2)]
+    r2 = [XmonQubit(3, 4)]
     r12 = r1 + r2
     r21 = r2 + r1
 

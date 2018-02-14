@@ -14,9 +14,7 @@
 
 """Utility methods for converting circuits to/from ascii diagram."""
 
-import re
-
-from typing import Optional, List, Dict, Iterator, Tuple
+from typing import Optional, List, Dict, Iterator, Tuple, Callable
 
 from cirq import ops
 from cirq.extension import Extensions
@@ -28,12 +26,13 @@ from cirq.circuits.moment import Moment
 ENTRY_TERMINATOR_CHARS = {' ', '-', '|', '+'}
 
 
-def wire_name_to_qubit(name: str) -> ops.QubitId:
-    if re.match('\\(\\s*\\d+,\\s*\\d+\\s*\\)', name):
-        a, b = name[1:-1].split(',')
-        return ops.QubitLoc(int(a.strip()), int(b.strip()))
-
-    raise NotImplementedError('Bad name: {}'.format(repr(name)))
+def wire_name_to_qubit(qubit_name_parser: Callable[[str],
+                                                   Optional[ops.QubitId]],
+                       name: str) -> ops.QubitId:
+    q = qubit_name_parser(name)
+    if q is None:
+        raise NotImplementedError('Bad name: {}'.format(repr(name)))
+    return q
 
 
 def _column_entry_is_linky(entry):
@@ -210,7 +209,10 @@ def _snip_column_ops(lines: List[str], col: int,
         yield _interaction_group_to_operation(group, exponent, qubit_map)
 
 
-def _snip_qubit_map(lines: List[str]) -> Dict[int, ops.QubitId]:
+def _snip_qubit_map(lines: List[str],
+                    qubit_name_parser: Callable[[str],
+                                                Optional[ops.QubitId]]
+                    ) -> Dict[int, ops.QubitId]:
     """Determines which wires are qubits.
 
     Args:
@@ -224,12 +226,12 @@ def _snip_qubit_map(lines: List[str]) -> Dict[int, ops.QubitId]:
 
     Raises:
         ValueError: Invalid qubit names.
-  """
+    """
     is_wire = [line and not line.startswith(' ') for line in lines]
     wires = [i for i in range(len(lines)) if is_wire[i]]
     wire_lines = [lines[wire] for wire in wires]
     names = [line.split(':')[0] for line in wire_lines]
-    qubits = [wire_name_to_qubit(name) for name in names]
+    qubits = [wire_name_to_qubit(qubit_name_parser, name) for name in names]
     wire_to_qubit = {w: q for w, q in zip(wires, qubits)}
 
     # Check for duplicates.
@@ -248,11 +250,14 @@ def _snip_qubit_map(lines: List[str]) -> Dict[int, ops.QubitId]:
     return wire_to_qubit
 
 
-def from_ascii(text: str) -> Circuit:
+def from_ascii(text: str,
+               qubit_name_parser: Callable[[str],
+                                           Optional[ops.QubitId]]) -> Circuit:
     """Parses a Circuit out of an ascii diagram.
 
     Args:
         text: The text containing the ascii diagram.
+        qubit_name_parser: Understands how to make sense of the qubit names.
 
     Returns:
         The parsed circuit.
@@ -265,7 +270,7 @@ def from_ascii(text: str) -> Circuit:
     w = max(len(s) for s in lines)
     lines = [line.ljust(w, ' ') for line in lines]
 
-    qubit_map = _snip_qubit_map(lines)
+    qubit_map = _snip_qubit_map(lines, qubit_name_parser)
 
     circuit = Circuit()
     for col in range(w):
@@ -295,7 +300,7 @@ def to_ascii(circuit: Circuit,
         for moment in circuit.moments for op in moment.operations
         for q in op.qubits
     }
-    labels = {q: '({}, {})'.format(q.x, q.y) for q in qubits}
+    labels = {q: str(q) for q in qubits}
     ordered_qubits = sorted(qubits, key=lambda k: labels[k])
     qubit_map = {ordered_qubits[i]: i * 2 for i in range(len(ordered_qubits))}
 

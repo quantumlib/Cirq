@@ -21,14 +21,14 @@ def test_init():
     r = ScheduledOperation(time=Timestamp(picos=5),
                            duration=Duration(picos=7),
                            operation=ops.Operation(ops.H,
-                                                   [ops.QubitLoc(0, 0)]))
+                                                   [ops.NamedQubit('a')]))
     assert r.time == Timestamp(picos=5)
     assert r.duration == Duration(picos=7)
-    assert r.operation == ops.Operation(ops.H, [ops.QubitLoc(0, 0)])
+    assert r.operation == ops.Operation(ops.H, [ops.NamedQubit('a')])
 
 
 def test_eq():
-    q0 = ops.QubitLoc(0, 0)
+    q0 = ops.QubitId()
 
     eq = EqualsTester()
     eq.make_equality_pair(

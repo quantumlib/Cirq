@@ -20,7 +20,7 @@ from cirq.schedules import Duration, Timestamp, ScheduledOperation, Schedule
 
 
 def test_query_point_operation_inclusive():
-    q = ops.QubitLoc(0, 0)
+    q = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     op = ScheduledOperation(zero, Duration(), ops.H(q))
@@ -49,7 +49,7 @@ def test_query_point_operation_inclusive():
 
 
 def test_query_point_operation_exclusive():
-    q = ops.QubitLoc(0, 0)
+    q = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     op = ScheduledOperation(zero, Duration(), ops.H(q))
@@ -80,7 +80,7 @@ def test_query_point_operation_exclusive():
 
 
 def test_query_overlapping_operations_inclusive():
-    q = ops.QubitLoc(0, 0)
+    q = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     op1 = ScheduledOperation(zero, 2 * ps, ops.H(q))
@@ -108,7 +108,7 @@ def test_query_overlapping_operations_inclusive():
 
 
 def test_query_overlapping_operations_exclusive():
-    q = ops.QubitLoc(0, 0)
+    q = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     op1 = ScheduledOperation(zero, 2 * ps, ops.H(q))
@@ -129,8 +129,8 @@ def test_query_overlapping_operations_exclusive():
 
 
 def test_slice_operations():
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(0, 1)
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     op1 = ScheduledOperation(zero, ps, ops.H(q0))
@@ -152,8 +152,8 @@ def test_slice_operations():
 
 
 def test_include():
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(0, 1)
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     schedule = Schedule(device=UnconstrainedDevice)
@@ -172,7 +172,7 @@ def test_include():
 
 
 def test_exclude():
-    q = ops.QubitLoc(0, 0)
+    q = ops.QubitId()
     zero = Timestamp(picos=0)
     ps = Duration(picos=1)
     op = ScheduledOperation(zero, ps, ops.H(q))
