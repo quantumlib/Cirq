@@ -61,4 +61,4 @@ class ParamResolver(object):
         return self._param_hash
 
     def __repr__(self):
-        return 'ParamResolver({})'.format(self.param_dict)
+        return 'ParamResolver({})'.format(repr(self.param_dict))

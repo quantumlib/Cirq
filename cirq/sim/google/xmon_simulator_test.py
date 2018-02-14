@@ -22,8 +22,8 @@ import pytest
 
 from cirq import circuits
 from cirq import ops
-from cirq.google import ExpWGate, ExpZGate, Exp11Gate, ParameterizedValue, \
-    XmonMeasurementGate
+from cirq.google import (ExpWGate, ExpZGate, Exp11Gate, ParameterizedValue,
+                         XmonMeasurementGate)
 from cirq.google.resolver import ParamResolver
 from cirq.sim.google import xmon_simulator
 

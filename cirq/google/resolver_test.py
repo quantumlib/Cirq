@@ -25,6 +25,7 @@ def test_value_of():
     assert r.value_of(ParameterizedValue('a', 0.1)) == 0.5 + 0.1
     assert r.value_of(ParameterizedValue('', 0.5)) == 0.5
     assert r.value_of(ParameterizedValue('b', 0.0)) == 0.1
+    assert r.value_of(ParameterizedValue('', 0.3)) == 0.3
     assert r.value_of(0.3) == 0.3
 
 
