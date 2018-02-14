@@ -22,11 +22,13 @@ import abc
 import numpy as np
 from typing import Sequence, Tuple
 
+from cirq.extension import PotentialImplementation
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 
 
-class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class ReversibleGate(raw_types.Gate,
+                     metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way."""
 
     @abc.abstractmethod

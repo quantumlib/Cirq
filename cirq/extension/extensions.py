@@ -18,6 +18,8 @@ import inspect
 
 from typing import Dict, Type, Callable, TypeVar, Union, Optional
 
+from cirq.extension.potential_implementation import PotentialImplementation
+
 T_ACTUAL = TypeVar('TActual')
 T_DESIRED = TypeVar('TDesired')
 
@@ -45,9 +47,57 @@ class Extensions:
             if desired_to_actual_to_wrapper is None
             else desired_to_actual_to_wrapper)
 
+    def can_cast(self,
+                 actual_value: T_ACTUAL,
+                 desired_type: Type[T_DESIRED]) -> bool:
+        """Is it possible to turn the given value into the desired type?
+
+        Args:
+            actual_value: The value that the caller has.
+            desired_type: The type that the caller wants.
+
+        Returns:
+            True if the cast will work, False otherwise.
+        """
+        return self.try_cast(actual_value, desired_type) is not None
+
+    def try_cast(self,
+             actual_value: T_ACTUAL,
+             desired_type: Type[T_DESIRED]
+             ) -> Union[type(None), T_DESIRED]:
+        """Represents the given value as the desired type, if possible.
+
+        Returns None if no wrapper method is found, and the value isn't already
+        an instance of the desired type. Wrapper methods, which are keyed by
+        type, are searched for in the same type order as the standard method
+        resolution order.
+
+        Args:
+            actual_value: The value to be represented as the desired type.
+            desired_type: The type of value that the caller wants.
+
+        Returns:
+            A value of the desired type, or else None.
+        """
+        actual_to_wrapper = self._desired_to_actual_to_wrapper.get(
+            desired_type)
+        if actual_to_wrapper:
+            for actual_type in inspect.getmro(type(actual_value)):
+                wrapper = actual_to_wrapper.get(actual_type)
+                if wrapper:
+                    return wrapper(actual_value)
+
+        if isinstance(actual_value, desired_type):
+            return actual_value
+
+        if isinstance(actual_value, PotentialImplementation):
+            return actual_value.try_cast_to(desired_type)
+
+        return None
+
     def cast(self,
              actual_value: T_ACTUAL,
-             desired_type: Type[T_DESIRED]) -> Union[T_ACTUAL, T_DESIRED]:
+             desired_type: Type[T_DESIRED]) -> T_DESIRED:
         """Represents the given value as the desired type, if possible.
 
         Fails if no wrapper method is found, and the value isn't already an
@@ -67,17 +117,9 @@ class Extensions:
                 extension specified for exposing its type or parent types as
                 the desired type.
         """
-        actual_to_wrapper = self._desired_to_actual_to_wrapper.get(
-            desired_type)
-        if actual_to_wrapper:
-            for actual_type in inspect.getmro(type(actual_value)):
-                wrapper = actual_to_wrapper.get(actual_type)
-                if wrapper:
-                    return wrapper(actual_value)
-
-        if not isinstance(actual_value, desired_type):
+        result = self.try_cast(actual_value, desired_type)
+        if result is None:
             raise TypeError('Expected a {} but got {}'.format(
                 desired_type,
                 repr(actual_value)))
-
-        return actual_value
+        return result

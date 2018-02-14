@@ -24,15 +24,16 @@ from cirq import circuits
 from cirq import ops
 from cirq import run
 from cirq.sim.google import xmon_simulator
+from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate
 
 Q1 = ops.QubitLoc(0, 0)
 Q2 = ops.QubitLoc(1, 0)
 
 
 def basic_circuit():
-    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    z = ops.native_gates.ExpZGate()
-    cz = ops.native_gates.Exp11Gate()
+    sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    z = ExpZGate()
+    cz = Exp11Gate()
     circuit = circuits.Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
@@ -45,8 +46,8 @@ def basic_circuit():
 def large_circuit():
     np.random.seed(0)
     qubits = [ops.QubitLoc(i, 0) for i in range(10)]
-    sqrt_x = ops.native_gates.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    cz = ops.native_gates.Exp11Gate()
+    sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    cz = Exp11Gate()
     circuit = circuits.Circuit()
     for _ in range(11):
         circuit.append(
@@ -54,7 +55,7 @@ def large_circuit():
         circuit.append([cz(qubits[i], qubits[i + 1]) for i in range(9)])
     for i in range(10):
         circuit.append(
-            ops.native_gates.MeasurementGate(key='meas')(qubits[i]))
+            XmonMeasurementGate(key='meas')(qubits[i]))
     return circuit
 
 
@@ -84,8 +85,8 @@ def test_run():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [ops.native_gates.MeasurementGate(key='a')(Q1),
-         ops.native_gates.MeasurementGate(key='b')(Q2),])
+        [XmonMeasurementGate(key='a')(Q1),
+         XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
     result = simulator.run(circuit)
@@ -130,8 +131,8 @@ def test_run_no_sharing_few_qubits():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [ops.native_gates.MeasurementGate(key='a')(Q1),
-         ops.native_gates.MeasurementGate(key='b')(Q2),])
+        [XmonMeasurementGate(key='a')(Q1),
+         XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
     options = xmon_simulator.Options(min_qubits_before_shard=0)
@@ -146,15 +147,7 @@ def test_run_set_state_computational_basis():
     np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
 
 
-def test_run_set_state_nd_array():
-    simulator = xmon_simulator.Simulator()
-    result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
-    result.set_state(np.array([0.5, 0.5, 0.5, -0.5j], dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state(),
-                                   np.array([0.5, 0.5, 0.5, -0.5j]))
-
-
-def test_run_set_state_nd_array():
+def test_run_set_state_nd_array_fail():
     simulator = xmon_simulator.Simulator()
     result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
     with pytest.raises(ValueError):
@@ -171,8 +164,8 @@ def test_moment_steps():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [ops.native_gates.MeasurementGate(key='a')(Q1),
-         ops.native_gates.MeasurementGate(key='b')(Q2),])
+        [XmonMeasurementGate(key='a')(Q1),
+         XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
     results = []

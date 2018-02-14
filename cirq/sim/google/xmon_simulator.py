@@ -31,13 +31,13 @@ import numpy as np
 from typing import DefaultDict, Dict, Sequence, Union
 
 from cirq.circuits.circuit import Circuit
-from cirq.ops import native_gates
+from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.ops import raw_types
 from cirq.run.resolver import ParamResolver
 from cirq.sim.google.xmon_stepper import Stepper
 
 
-class Options(object):
+class Options:
     """Options for the Simulator.
 
     Attributes:
@@ -70,7 +70,7 @@ class Options(object):
         self.min_qubits_before_shard = min_qubits_before_shard
 
 
-class Simulator(object):
+class Simulator:
     """Simulator for Xmon class quantum circuits.
 
     TODO(dabacon): Optimization pass to decompose into native gate set.
@@ -177,25 +177,24 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
             measurements = defaultdict(list)
             phase_map = {}
             for op in moment.operations:
-                gate = op.gate
-                if isinstance(gate, native_gates.ExpZGate):
+                gate = xmon_gate_ext.try_cast(op.gate, xmon_gates.XmonGate)
+                if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
-                    half_turns = param_resolver.value_of(gate.half_turns)
-                    phase_map[(index,)] = half_turns
-
-                elif isinstance(gate, native_gates.Exp11Gate):
+                    phase_map[(index,)] = param_resolver.value_of(
+                        gate.half_turns)
+                elif isinstance(gate, xmon_gates.Exp11Gate):
                     index0 = qubit_map[op.qubits[0]]
                     index1 = qubit_map[op.qubits[1]]
-                    phase_map[(index0, index1)] = param_resolver.value_of(
-                        gate.half_turns)
-                elif isinstance(gate, native_gates.ExpWGate):
+                    phase_map[(index0, index1)] = (
+                        param_resolver.value_of(gate.half_turns))
+                elif isinstance(gate, xmon_gates.ExpWGate):
                     index = qubit_map[op.qubits[0]]
                     stepper.simulate_w(
                         index=index,
                         half_turns=param_resolver.value_of(gate.half_turns),
                         axis_half_turns=param_resolver.value_of(
                             gate.axis_half_turns))
-                elif isinstance(gate, native_gates.MeasurementGate):
+                elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     index = qubit_map[op.qubits[0]]
                     results = stepper.simulate_measurement(index)
                     measurements[gate.key].append(results)
@@ -208,7 +207,7 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
                          param_resolver.param_dict)
 
 
-class Result(object):
+class Result:
     """Results of a step of the simulator.
 
     Attributes:
