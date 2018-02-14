@@ -22,11 +22,13 @@ from cirq.circuits import Circuit
 
 
 class OptimizationPass:
-    """Rewrites a circuit's operations to make them better."""
+    """Rewrites a circuit's operations in place to make them better."""
 
     @abc.abstractmethod
     def optimize_circuit(self, circuit: Circuit):
         """Rewrites the given circuit to make it better.
+
+        Note that this performs an in place optimization.
 
         Args:
             circuit: The circuit to improve.
