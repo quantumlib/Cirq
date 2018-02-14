@@ -33,45 +33,45 @@ def proto_matches_text(proto: message, expected_as_text: str):
 
 
 def test_cz_init():
-    assert ops.CZGate(half_turns=0.5).half_turns == 0.5
-    assert ops.CZGate(half_turns=5).half_turns == 1
+    assert ops.Rot11Gate(half_turns=0.5).half_turns == 0.5
+    assert ops.Rot11Gate(half_turns=5).half_turns == 1
 
 
 def test_cz_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.CZGate(), ops.CZGate(half_turns=1), ops.CZ)
-    eq.add_equality_group(ops.CZGate(half_turns=3.5),
-                          ops.CZGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.CZGate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.CZGate(half_turns=0.5))
+    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
+    eq.add_equality_group(ops.Rot11Gate(half_turns=3.5),
+                          ops.Rot11Gate(half_turns=-0.5))
+    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0))
+    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0.5))
 
 
 def test_cz_extrapolate():
-    assert ops.CZGate(
-        half_turns=1).extrapolate_effect(0.5) == ops.CZGate(half_turns=0.5)
-    assert ops.CZ**-0.25 == ops.CZGate(half_turns=1.75)
+    assert ops.Rot11Gate(
+        half_turns=1).extrapolate_effect(0.5) == ops.Rot11Gate(half_turns=0.5)
+    assert ops.CZ**-0.25 == ops.Rot11Gate(half_turns=1.75)
 
 
 def test_cz_matrix():
-    assert np.allclose(ops.CZGate(half_turns=1).matrix(),
+    assert np.allclose(ops.Rot11Gate(half_turns=1).matrix(),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1]]))
 
-    assert np.allclose(ops.CZGate(half_turns=0.5).matrix(),
+    assert np.allclose(ops.Rot11Gate(half_turns=0.5).matrix(),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1j]]))
 
-    assert np.allclose(ops.CZGate(half_turns=0).matrix(),
+    assert np.allclose(ops.Rot11Gate(half_turns=0).matrix(),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1]]))
 
-    assert np.allclose(ops.CZGate(half_turns=-0.5).matrix(),
+    assert np.allclose(ops.Rot11Gate(half_turns=-0.5).matrix(),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
@@ -79,59 +79,59 @@ def test_cz_matrix():
 
 
 def test_z_init():
-    z = ops.ZGate(half_turns=5)
+    z = ops.RotZGate(half_turns=5)
     assert z.half_turns == 1
 
 
 def test_z_eq():
     eq = EqualsTester()
-    eq.add_equality_group(ops.ZGate(), ops.ZGate(half_turns=1), ops.Z)
-    eq.add_equality_group(ops.ZGate(half_turns=3.5),
-                          ops.ZGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.ZGate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.ZGate(half_turns=0.5))
+    eq.add_equality_group(ops.RotZGate(), ops.RotZGate(half_turns=1), ops.Z)
+    eq.add_equality_group(ops.RotZGate(half_turns=3.5),
+                          ops.RotZGate(half_turns=-0.5))
+    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0))
+    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0.5))
 
 
 def test_z_extrapolate():
-    assert ops.ZGate(
-        half_turns=1).extrapolate_effect(0.5) == ops.ZGate(half_turns=0.5)
-    assert ops.Z**-0.25 == ops.ZGate(half_turns=1.75)
+    assert ops.RotZGate(
+        half_turns=1).extrapolate_effect(0.5) == ops.RotZGate(half_turns=0.5)
+    assert ops.Z**-0.25 == ops.RotZGate(half_turns=1.75)
 
 
 def test_z_matrix():
-    assert np.allclose(ops.ZGate(half_turns=1).matrix(),
+    assert np.allclose(ops.RotZGate(half_turns=1).matrix(),
                        np.array([[1, 0], [0, -1]]))
-    assert np.allclose(ops.ZGate(half_turns=0.5).matrix(),
+    assert np.allclose(ops.RotZGate(half_turns=0.5).matrix(),
                        np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(ops.ZGate(half_turns=0).matrix(),
+    assert np.allclose(ops.RotZGate(half_turns=0).matrix(),
                        np.array([[1, 0], [0, 1]]))
-    assert np.allclose(ops.ZGate(half_turns=-0.5).matrix(),
+    assert np.allclose(ops.RotZGate(half_turns=-0.5).matrix(),
                        np.array([[1, 0], [0, -1j]]))
 
 
 def test_y_matrix():
-    assert np.allclose(ops.YGate(half_turns=1).matrix(),
+    assert np.allclose(ops.RotYGate(half_turns=1).matrix(),
                        np.array([[0, -1j], [1j, 0]]))
 
-    assert np.allclose(ops.YGate(half_turns=0.5).matrix(),
+    assert np.allclose(ops.RotYGate(half_turns=0.5).matrix(),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(ops.YGate(half_turns=0).matrix(),
+    assert np.allclose(ops.RotYGate(half_turns=0).matrix(),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(ops.YGate(half_turns=-0.5).matrix(),
+    assert np.allclose(ops.RotYGate(half_turns=-0.5).matrix(),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
 
 def test_x_matrix():
-    assert np.allclose(ops.XGate(half_turns=1).matrix(),
+    assert np.allclose(ops.RotXGate(half_turns=1).matrix(),
                        np.array([[0, 1], [1, 0]]))
 
-    assert np.allclose(ops.XGate(half_turns=0.5).matrix(),
+    assert np.allclose(ops.RotXGate(half_turns=0.5).matrix(),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(ops.XGate(half_turns=0).matrix(),
+    assert np.allclose(ops.RotXGate(half_turns=0).matrix(),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(ops.XGate(half_turns=-0.5).matrix(),
+    assert np.allclose(ops.RotXGate(half_turns=-0.5).matrix(),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)

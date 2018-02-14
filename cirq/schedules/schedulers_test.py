@@ -40,13 +40,13 @@ class _TestDevice(Device):
         g = operation.gate
         if isinstance(g, ops.HGate):
             return Duration(nanos=20)
-        elif isinstance(g, ops.CZGate):
+        elif isinstance(g, ops.Rot11Gate):
             return Duration(nanos=40)
         else:
             raise ValueError('Unsupported gate type {}'.format(repr(g)))
 
     def validate_gate(self, gate: ops.Gate):
-        if not isinstance(gate, (ops.HGate, ops.CZGate)):
+        if not isinstance(gate, (ops.HGate, ops.Rot11Gate)):
             raise ValueError('Unsupported gate type {}'.format(repr(gate)))
 
     def validate_operation(self, operation: ops.Operation):
@@ -68,7 +68,7 @@ class _TestDevice(Device):
         scheduled_operation: ScheduledOperation):
         op = scheduled_operation.operation
         self.validate_operation(op)
-        if isinstance(op.gate, ops.CZGate):
+        if isinstance(op.gate, ops.Rot11Gate):
             for other in schedule.operations_happening_at_same_time_as(
                 scheduled_operation):
                 if self.check_if_cz_adjacent(op, other.operation):
