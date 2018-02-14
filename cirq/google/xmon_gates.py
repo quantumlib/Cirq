@@ -23,11 +23,10 @@ from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
 from cirq.google.parameterized_value import ParameterizedValue
-from cirq.ops import gate_features, raw_types
-from cirq.ops.parameterized_value import ParameterizedValue
+from cirq import ops
 
 
-class XmonGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     """A gate with a known mechanism for encoding into google API protos."""
 
     @abc.abstractmethod
@@ -51,7 +50,8 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
-                gate_features.PhaseableGate,
+                ops.InterchangeableQubitsGate,
+                ops.PhaseableGate,
                 PotentialImplementation):
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
@@ -79,7 +79,7 @@ class Exp11Gate(XmonGate,
         return op
 
     def try_cast_to(self, desired_type):
-        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
         return super().try_cast_to(desired_type)
 
@@ -114,9 +114,9 @@ class Exp11Gate(XmonGate,
 
 
 class ExpWGate(XmonGate,
-               gate_features.AsciiDiagrammableGate,
-               gate_features.PhaseableGate,
-               gate_features.BoundedEffectGate,
+               ops.AsciiDiagrammableGate,
+               ops.PhaseableGate,
+               ops.BoundedEffectGate,
                PotentialImplementation):
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
@@ -134,13 +134,6 @@ class ExpWGate(XmonGate,
             self.half_turns = _canonicalize_half_turns(-self.half_turns)
             self.axis_half_turns = _canonicalize_half_turns(
                 self.axis_half_turns + 1)
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, ParameterizedValue)
-
-    def inverse(self):
-        return ExpWGate(half_turns=-self.half_turns,
-                        axis_half_turns=self.axis_half_turns)
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:
@@ -160,9 +153,9 @@ class ExpWGate(XmonGate,
         return op
 
     def try_cast_to(self, desired_type):
-        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        if desired_type is gate_features.ReversibleGate and self.has_inverse():
+        if desired_type is ops.ReversibleGate and self.has_inverse():
             return self
         return super().try_cast_to(desired_type)
 
@@ -234,8 +227,8 @@ class ExpWGate(XmonGate,
 
 
 class ExpZGate(XmonGate,
-               gate_features.AsciiDiagrammableGate,
-               gate_features.PhaseableGate,
+               ops.AsciiDiagrammableGate,
+               ops.PhaseableGate,
                PotentialImplementation):
     """A rotation around the Z axis of the Bloch sphere."""
 
@@ -251,9 +244,9 @@ class ExpZGate(XmonGate,
         return self.half_turns
 
     def try_cast_to(self, desired_type):
-        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        if desired_type is gate_features.ReversibleGate and self.has_inverse():
+        if desired_type is ops.ReversibleGate and self.has_inverse():
             return self
         return super().try_cast_to(desired_type)
 
