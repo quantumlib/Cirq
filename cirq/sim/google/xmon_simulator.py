@@ -32,11 +32,13 @@ from typing import DefaultDict, Dict, Sequence, Union
 
 import numpy as np
 
+import cirq
 from cirq.circuits import Circuit, ExpandComposite
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.resolver import ParamResolver
 from cirq.ops import raw_types
 from cirq.sim.google.xmon_stepper import Stepper
+from cirq.study import Executor
 
 
 class Options:
@@ -72,11 +74,11 @@ class Options:
         self.min_qubits_before_shard = min_qubits_before_shard
 
 
-class Simulator:
+class Simulator(Executor):
     """Simulator for Xmon class quantum circuits."""
 
     def run(self,
-        circuit: Circuit,
+        program: Circuit,
         options: Options = None,
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray] = 0,
@@ -84,7 +86,7 @@ class Simulator:
         """Simulates the entire supplied Circuit.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit to simulate.
             options: Options configuring the simulation.
             qubits: If specified this list of qubits will be used to define
                 a canonical ordering of the qubits. This canonical ordering
@@ -101,12 +103,13 @@ class Simulator:
             Result for the final step of the simulation. This
             contains measurement results for all of the moments.
         """
-        all_results = self.moment_steps(circuit, options or Options(), qubits,
+        all_results = self.moment_steps(program, options or Options(), qubits,
                                         initial_state, param_resolver)
         return functools.reduce(Result.merge_measurements_with, all_results)
 
+
     def moment_steps(self,
-        circuit: Circuit,
+        program: Circuit,
         options: 'Options' = None,
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray]=0,
@@ -114,7 +117,7 @@ class Simulator:
         """Returns an iterator of XmonStepResults for each moment simulated.
 
         Args:
-            circuit: The Circuit to simulate.
+            program: The Circuit to simulate.
             options: Options configuring the simulation.
             qubits: If specified this list of qubits will be used to define
                 a canonical ordering of the qubits. This canonical ordering
@@ -131,7 +134,7 @@ class Simulator:
             SimulatorIterator that steps through the simulation, simulating
             each moment and returning a Result for each moment.
         """
-        return simulator_iterator(circuit, options or Options(), qubits,
+        return simulator_iterator(program, options or Options(), qubits,
                                   initial_state, param_resolver)
 
 
@@ -209,7 +212,7 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
                          param_resolver.param_dict)
 
 
-class Result:
+class Result(cirq.study.Result):
     """Results of a step of the simulator.
 
     Attributes:
@@ -223,12 +226,24 @@ class Result:
             keys to actual parameter values that produced this result.
     """
 
+    # TODO(dabacon): This keeps around a lot of state (the stepper) for a
+    # result, but users may want to preserve wave-functions or calculate
+    # expectation values. Create an intermediate Result representation that
+    # is heavy, a light-weight result, and a general function to set
+    # light-weight attributes from the heavy representation.
+
     def __init__(self, stepper: Stepper, qubit_map: Dict,
         measurements: DefaultDict, param_dict: Dict):
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
         self.param_dict = param_dict
+
+    def measurements(self):
+        return self.measurements
+
+    def param_dict(self):
+        return self.param_dict
 
     def state(self) -> np.ndarray:
         """Return the state (wave function) at this point in the computation.

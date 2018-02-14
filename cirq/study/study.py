@@ -12,20 +12,90 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
+
+from typing import Dict, Iterable, Union
+
+from cirq.circuits import Circuit
+from cirq.google import ParamResolver  # TODO(dabacon): Move to study.
+from cirq.schedules import Schedule
+
 
 class Study(object):
+    """A study is a collection of repeated trials run by an executor.
 
-    def __init__(self, executor, program, param_resolvers, **executor_kwags):
+    Examples of executors include local and remote simulator and quantum
+    computer execution APIs.
+    """
+
+    def __init__(self,
+        executor: 'Executor',
+        program: Union[Circuit, Schedule],
+        param_resolvers: Iterable[ParamResolver] = None,
+        repetitions: int = 0,
+        **executor_kwags: Dict):
         self.executor = executor
         self.program = program
         self.param_resolvers = param_resolvers
+        self.repetitions = repetitions
         self.executor_kwags = executor_kwags
 
-    def run_study(self):
-        trial_results = {}
-        for param_resolver in self.param_resolvers:
-            trial_result = self.executor.run(program=self.program,
-                                             param_resolver=param_resolver,
-                                             **self.executor_kwags)
-            trial_results[trial_result.param_dict] = trial_result.measurements
+    def run_study(self) -> Iterable[Iterable['Result']]:
+        """Runs the study for all parameters and repetitions.
+
+        Returns:
+            An iterable of iterables of Results. The outer iterable is for
+            each resolved parameter. The inner iterable is for each
+            reptition.
+        """
+        trial_results = []
+        for param_resolver in self.param_resolvers or [None]:
+            repetitions = []
+            for rep in range(self.repetitions):
+                trial_result = self.executor.run(program=self.program,
+                                                 param_resolver=param_resolver,
+                                                 **self.executor_kwags)
+                repetitions.append(trial_result)
+            trial_results.append(repetitions)
         return trial_results
+
+
+class Executor(metaclass=abc.ABCMeta):
+    """Encapsulates running a Circuit or Scheduler for fixed parameters."""
+
+    @abc.abstractmethod
+    def run(self,
+        program: Union[Circuit, Schedule],
+        param_resolver: ParamResolver) -> 'Result':
+        """Run the program using the parameters described in the ParamResolver.
+
+        Args:
+            program: Either the Circuit or Schedule to run. Some executors
+                only support one of these types.
+            param_resolver: Resolves parameters in the program.
+
+        Returns:
+            Result or subclass for the result of the execution.
+        """
+
+        # TODO(dabacon): Async run.
+
+
+class Result():
+
+    @abc.abstractmethod
+    def measurements(self) -> Dict[str, Iterable[bool]]:
+        """Measurement values.
+
+        A dictionary from measurement gate key to measurement
+        results. If a key is reused, the measurement values are returned
+        in the order they appear in the Circuit being simulated.
+        """
+
+    @abc.abstractmethod
+    def param_dict(self) -> Dict[str, float]:
+        """The parameters used to produce this result.
+
+        A dictionary produce by the ParamResolver mapping parameter
+        keys to actual parameter values that produced this result.
+        """
