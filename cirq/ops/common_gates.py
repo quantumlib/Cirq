@@ -68,7 +68,7 @@ class _TurnGate(gate_features.ExtrapolatableGate,
         return type(self)(half_turns=self.half_turns * factor)
 
 
-class CZGate(_TurnGate, gate_features.ConstantAdjacentTwoQubitGate):
+class CZGate(_TurnGate, gate_features.TwoQubitGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
   A ParameterizedCZGate guaranteed to not be using the parameter key field.
@@ -87,7 +87,7 @@ class CZGate(_TurnGate, gate_features.ConstantAdjacentTwoQubitGate):
         return np.diag([1, 1, 1, np.exp(1j * np.pi * self.half_turns)])
 
 
-class XGate(_TurnGate, gate_features.ConstantSingleQubitGate):
+class XGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
@@ -107,7 +107,7 @@ class XGate(_TurnGate, gate_features.ConstantSingleQubitGate):
                          [1 - c, 1 + c]]) / 2
 
 
-class YGate(_TurnGate, gate_features.ConstantSingleQubitGate):
+class YGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
@@ -128,7 +128,7 @@ class YGate(_TurnGate, gate_features.ConstantSingleQubitGate):
                          [1j + s - c*1j, 1 + s*1j + c]]) / 2
 
 
-class ZGate(_TurnGate, gate_features.ConstantSingleQubitGate):
+class ZGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
@@ -178,7 +178,7 @@ Z = ZGate()  # Pauli Z gate.
 CZ = CZGate()  # Negates the amplitude of the |11> state.
 
 
-class HGate(gate_features.ConstantSingleQubitGate,
+class HGate(gate_features.SingleQubitGate,
             gate_features.AsciiDiagrammableGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
@@ -197,7 +197,7 @@ class HGate(gate_features.ConstantSingleQubitGate,
 H = HGate()  # Hadamard gate.
 
 
-class CNotGate(gate_features.ConstantAdjacentTwoQubitGate,
+class CNotGate(gate_features.TwoQubitGate,
                gate_features.CompositeGate,
                gate_features.SelfInverseGate,
                gate_features.AsciiDiagrammableGate):
@@ -228,7 +228,7 @@ CNOT = CNotGate()  # Controlled Not Gate.
 
 
 class SwapGate(gate_features.CompositeGate,
-               gate_features.ConstantAdjacentTwoQubitGate):
+               gate_features.TwoQubitGate):
     """Swaps two qubits."""
 
     def matrix(self):

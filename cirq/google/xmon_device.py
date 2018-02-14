@@ -18,6 +18,7 @@ from cirq import ops
 from cirq.devices import Device
 from cirq.google import xmon_gates
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
+from cirq.google.xmon_qubit import XmonQubit
 from cirq.time import Duration
 
 
@@ -29,7 +30,7 @@ class XmonDevice(Device):
                  measurement_duration: Duration,
                  exp_w_duration: Duration,
                  exp_11_duration: Duration,
-                 qubits: Iterable[ops.QubitLoc]):
+                 qubits: Iterable[XmonQubit]):
         """Initializes the description of an xmon device.
 
         Args:
@@ -43,13 +44,13 @@ class XmonDevice(Device):
         self._exp_z_duration = exp_11_duration
         self.qubits = frozenset(qubits)
 
-    def neighbors_of(self, qubit: ops.QubitLoc):
+    def neighbors_of(self, qubit: XmonQubit):
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
-            ops.QubitLoc(qubit.x + 1, qubit.y),
-            ops.QubitLoc(qubit.x - 1, qubit.y),
-            ops.QubitLoc(qubit.x, qubit.y + 1),
-            ops.QubitLoc(qubit.x, qubit.y - 1),
+            XmonQubit(qubit.x + 1, qubit.y),
+            XmonQubit(qubit.x - 1, qubit.y),
+            XmonQubit(qubit.x, qubit.y + 1),
+            XmonQubit(qubit.x, qubit.y - 1),
         ]
         return [e for e in possibles if e in self.qubits]
 
@@ -81,7 +82,7 @@ class XmonDevice(Device):
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, ops.QubitLoc):
+            if not isinstance(q, XmonQubit):
                 raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))

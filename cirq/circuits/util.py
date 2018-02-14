@@ -123,7 +123,7 @@ def _easy_direction_partial_cz(q0: ops.QubitId, q1: ops.QubitId, t: float):
 
 def single_qubit_matrix_to_native_gates(
         mat: np.ndarray, tolerance: float = 0
-) -> List[ops.ConstantSingleQubitGate]:
+) -> List[ops.SingleQubitGate]:
     """Implements a single-qubit operation with few native gates.
 
     Args:

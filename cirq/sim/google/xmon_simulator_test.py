@@ -20,10 +20,12 @@ import pytest
 from cirq import circuits
 from cirq import ops
 from cirq.sim.google import xmon_simulator
-from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate
+from cirq.google import (
+    ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
+)
 
-Q1 = ops.QubitLoc(0, 0)
-Q2 = ops.QubitLoc(1, 0)
+Q1 = XmonQubit(0, 0)
+Q2 = XmonQubit(1, 0)
 
 
 def basic_circuit():
@@ -41,7 +43,7 @@ def basic_circuit():
 
 def large_circuit():
     np.random.seed(0)
-    qubits = [ops.QubitLoc(i, 0) for i in range(10)]
+    qubits = [XmonQubit(i, 0) for i in range(10)]
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     cz = Exp11Gate()
     circuit = circuits.Circuit()

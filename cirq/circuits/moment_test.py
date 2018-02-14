@@ -20,10 +20,10 @@ from cirq.testing import EqualsTester
 
 
 def test_validation():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
-    c = ops.QubitLoc(0, 1)
-    d = ops.QubitLoc(1, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = ops.QubitId()
+    d = ops.QubitId()
 
     _ = Moment([])
     _ = Moment([ops.X(a)])
@@ -42,10 +42,10 @@ def test_validation():
 
 
 def test_equality():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
-    c = ops.QubitLoc(0, 1)
-    d = ops.QubitLoc(1, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = ops.QubitId()
+    d = ops.QubitId()
 
     eq = EqualsTester()
 
@@ -72,9 +72,9 @@ def test_equality():
 
 
 def test_operates_on():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
-    c = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = ops.QubitId()
 
     # Empty case.
     assert not Moment().operates_on([])
@@ -108,8 +108,8 @@ def test_operates_on():
 
 
 def test_with_operation():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     assert Moment().with_operation(ops.X(a)) == Moment([ops.X(a)])
 
@@ -121,9 +121,9 @@ def test_with_operation():
 
 
 def test_without_operations_touching():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
-    c = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = ops.QubitId()
 
     # Empty case.
     assert Moment().without_operations_touching([]) == Moment()
@@ -170,8 +170,8 @@ def test_without_operations_touching():
 
 
 def test_qubits():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     assert Moment([ops.X(a), ops.X(b)]).qubits == {a , b}
     assert Moment([ops.X(a)]).qubits == {a}

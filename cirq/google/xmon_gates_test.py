@@ -15,11 +15,11 @@
 from google.protobuf import message, text_format
 
 from cirq.extension import Extensions
-from cirq.google import ParameterizedValue
+from cirq.google import ParameterizedValue, XmonQubit
 from cirq.google.xmon_gates import (
     XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
-from cirq.ops import QubitLoc, KnownMatrixGate, ReversibleGate
+from cirq.ops import KnownMatrixGate, ReversibleGate
 from cirq.testing import EqualsTester
 
 
@@ -37,7 +37,7 @@ def test_measurement_eq():
 
 def test_measurement_to_proto():
     assert proto_matches_text(
-        XmonMeasurementGate('test').to_proto(QubitLoc(2, 3)),
+        XmonMeasurementGate('test').to_proto(XmonQubit(2, 3)),
         """
         measurement {
             target {
@@ -68,7 +68,7 @@ def test_z_eq():
 def test_z_to_proto():
     assert proto_matches_text(
         ExpZGate(half_turns=ParameterizedValue('k', 0.5)).to_proto(
-            QubitLoc(2, 3)),
+            XmonQubit(2, 3)),
         """
         exp_z {
             target {
@@ -102,7 +102,7 @@ def test_cz_eq():
 def test_cz_to_proto():
     assert proto_matches_text(
         Exp11Gate(half_turns=ParameterizedValue('k', 0.5)).to_proto(
-            QubitLoc(2, 3), QubitLoc(4, 5)),
+            XmonQubit(2, 3), XmonQubit(4, 5)),
         """
         exp_11 {
             target1 {
@@ -168,7 +168,7 @@ def test_w_to_proto():
     assert proto_matches_text(
         ExpWGate(half_turns=ParameterizedValue('k', 0.5),
                  axis_half_turns=ParameterizedValue('j', 1)).to_proto(
-            QubitLoc(2, 3)),
+            XmonQubit(2, 3)),
         """
         exp_w {
             target {

@@ -211,8 +211,8 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
 
 
 def test_controlled_op_to_gates_concrete_case():
-    qc = ops.QubitLoc(0, 0)
-    qt = ops.QubitLoc(1, 0)
+    qc = ops.QubitId()
+    qt = ops.QubitId()
     operations = circuits.controlled_op_to_native_gates(
         control=qc,
         target=qt,
@@ -224,8 +224,8 @@ def test_controlled_op_to_gates_concrete_case():
 
 
 def test_controlled_op_to_gates_omits_negligible_global_phase():
-    qc = ops.QubitLoc(0, 0)
-    qt = ops.QubitLoc(1, 0)
+    qc = ops.QubitId()
+    qt = ops.QubitId()
     operations = circuits.controlled_op_to_native_gates(
         control=qc, target=qt, operation=ops.H.matrix(), tolerance=0.0001)
 
@@ -245,8 +245,8 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     testing.random_unitary(2) for _ in range(10)
 ])
 def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
-    qc = ops.QubitLoc(0, 0)
-    qt = ops.QubitLoc(1, 0)
+    qc = ops.QubitId()
+    qt = ops.QubitId()
     operations = circuits.controlled_op_to_native_gates(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
@@ -293,10 +293,8 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
     assert total_cz <= threshold
 
 
-def assert_ops_implement_unitary(operations, intended_effect,
+def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
                                  atol=0.01):
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(1, 0)
     actual_effect = _operations_to_matrix(operations, (q0, q1))
     assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect,
                                               atol=atol)
@@ -360,16 +358,16 @@ def test_two_to_native_equivalent_and_bounded_for_known_and_random(
         max_partial_cz_depth,
         max_full_cz_depth,
         effect):
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(1, 0)
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
 
     operations_with_partial = circuits.two_qubit_matrix_to_native_gates(
         q0, q1, effect, True)
     operations_with_full = circuits.two_qubit_matrix_to_native_gates(
         q0, q1, effect, False)
 
-    assert_ops_implement_unitary(operations_with_partial, effect)
-    assert_ops_implement_unitary(operations_with_full, effect)
+    assert_ops_implement_unitary(q0, q1, operations_with_partial, effect)
+    assert_ops_implement_unitary(q0, q1, operations_with_full, effect)
 
     assert_cz_depth_below(operations_with_partial, max_partial_cz_depth, False)
     assert_cz_depth_below(operations_with_full, max_full_cz_depth, True)

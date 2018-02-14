@@ -118,12 +118,12 @@ def test_self_inverse_reverse():
 
 def test_single_qubit_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ConstantSingleQubitGate()
+        _ = gate_features.SingleQubitGate()
 
 
 def test_single_qubit_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ConstantSingleQubitGate):
+    class Missing(gate_features.SingleQubitGate):
         pass
 
     with pytest.raises(TypeError):
@@ -131,22 +131,22 @@ def test_single_qubit_gate_is_abstract_must_implement():
 
 
 def test_single_qubit_gate_is_abstract_can_implement():
-    class Included(gate_features.ConstantSingleQubitGate):
+    class Included(gate_features.SingleQubitGate):
         def matrix(self):
             pass
 
     assert isinstance(Included(),
-                      gate_features.ConstantSingleQubitGate)
+                      gate_features.SingleQubitGate)
 
 
 def test_single_qubit_gate_validate_args():
-    class Dummy(gate_features.ConstantSingleQubitGate):
+    class Dummy(gate_features.SingleQubitGate):
         def matrix(self):
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitLoc(1, 2)
-    q2 = raw_types.QubitLoc(3, 4)
+    q1 = raw_types.QubitId()
+    q2 = raw_types.QubitId()
 
     g.validate_args([q1])
     g.validate_args([q2])
@@ -158,12 +158,12 @@ def test_single_qubit_gate_validate_args():
 
 def test_two_qubit_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ConstantAdjacentTwoQubitGate()
+        _ = gate_features.TwoQubitGate()
 
 
 def test_two_qubit_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ConstantAdjacentTwoQubitGate):
+    class Missing(gate_features.TwoQubitGate):
         pass
 
     with pytest.raises(TypeError):
@@ -171,23 +171,23 @@ def test_two_qubit_gate_is_abstract_must_implement():
 
 
 def test_two_qubit_gate_is_abstract_can_implement():
-    class Included(gate_features.ConstantAdjacentTwoQubitGate):
+    class Included(gate_features.TwoQubitGate):
         def matrix(self):
             pass
 
     assert isinstance(Included(),
-                      gate_features.ConstantAdjacentTwoQubitGate)
+                      gate_features.TwoQubitGate)
 
 
 def test_two_qubit_gate_validate_pass():
-    class Dummy(gate_features.ConstantAdjacentTwoQubitGate):
+    class Dummy(gate_features.TwoQubitGate):
         def matrix(self):
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitLoc(0, 1)
-    q2 = raw_types.QubitLoc(0, 2)
-    q3 = raw_types.QubitLoc(0, 3)
+    q1 = raw_types.QubitId()
+    q2 = raw_types.QubitId()
+    q3 = raw_types.QubitId()
 
     g.validate_args([q1, q2])
     g.validate_args([q2, q3])
@@ -195,14 +195,14 @@ def test_two_qubit_gate_validate_pass():
 
 
 def test_two_qubit_gate_validate_wrong_number():
-    class Dummy(gate_features.ConstantAdjacentTwoQubitGate):
+    class Dummy(gate_features.TwoQubitGate):
         def matrix(self):
             pass
 
     g = Dummy()
-    q1 = raw_types.QubitLoc(0, 1)
-    q2 = raw_types.QubitLoc(0, 2)
-    q3 = raw_types.QubitLoc(0, 3)
+    q1 = raw_types.QubitId()
+    q2 = raw_types.QubitId()
+    q3 = raw_types.QubitId()
 
     with pytest.raises(ValueError):
         g.validate_args([])
@@ -210,16 +210,3 @@ def test_two_qubit_gate_validate_wrong_number():
         g.validate_args([q1])
     with pytest.raises(ValueError):
         g.validate_args([q1, q2, q3])
-
-
-def test_two_qubit_gate_validate_not_adjacent():
-    class Dummy(gate_features.ConstantAdjacentTwoQubitGate):
-        def matrix(self):
-            pass
-
-    g = Dummy()
-    q1 = raw_types.QubitLoc(0, 1)
-    q3 = raw_types.QubitLoc(0, 3)
-
-    with pytest.raises(ValueError):
-        g.validate_args([q1, q3])
