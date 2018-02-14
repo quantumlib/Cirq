@@ -142,7 +142,7 @@ def single_qubit_matrix_to_native_gates(
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
         ExpWGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
-        ops.ZGate(half_turns=2*total_z_turn)
+        ops.RotZGate(half_turns=2 * total_z_turn)
     ]
     result = [g for g in result if g.trace_distance_bound() > tolerance]
 
@@ -205,7 +205,7 @@ def controlled_op_to_native_gates(
         return []
 
     u_gates = single_qubit_matrix_to_native_gates(u, tolerance)
-    if u_gates and isinstance(u_gates[-1], ops.ZGate):
+    if u_gates and isinstance(u_gates[-1], ops.RotZGate):
         # Don't keep border operations that commute with CZ.
         del u_gates[-1]
 

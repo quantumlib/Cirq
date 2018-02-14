@@ -19,12 +19,12 @@ from cirq.google import xmon_gates
 
 xmon_gate_ext = Extensions(desired_to_actual_to_wrapper={
     xmon_gates.XmonGate: {
-        ops.XGate: lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
-                                                 axis_half_turns=0),
-        ops.YGate: lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
-                                                 axis_half_turns=0.5),
-        ops.ZGate: lambda e: xmon_gates.ExpZGate(half_turns=e.half_turns),
-        ops.CZGate: lambda e: xmon_gates.Exp11Gate(half_turns=e.half_turns),
+        ops.RotXGate: lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
+                                                    axis_half_turns=0),
+        ops.RotYGate: lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
+                                                    axis_half_turns=0.5),
+        ops.RotZGate: lambda e: xmon_gates.ExpZGate(half_turns=e.half_turns),
+        ops.Rot11Gate: lambda e: xmon_gates.Exp11Gate(half_turns=e.half_turns),
         ops.MeasurementGate: lambda e: xmon_gates.XmonMeasurementGate(
             key=e.key,
             invert_result=e.invert_result),
