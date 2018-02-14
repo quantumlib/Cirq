@@ -24,7 +24,7 @@ circuit.append([
     (cirq.ops.X**0.5).on(qubit),
 
     # Measurement.
-    cirq.MeasurementGate('result').on(qubit)
+    cirq.ops.MeasurementGate('result').on(qubit)
 ])
 print("Circuit:")
 print(cirq.to_ascii(circuit))
@@ -32,7 +32,7 @@ print(cirq.to_ascii(circuit))
 # Now simulate the circuit and print out the measurement result.
 simulator = cirq.sim.google.xmon_simulator.Simulator()
 results = []
-for _ in range(100):
+for _ in range(10):
     result = simulator.run(circuit).measurements['result'][0]
     results.append('1' if result else '0')
 print("Simulated measurement results:")
