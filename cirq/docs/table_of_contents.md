@@ -1,8 +1,9 @@
 Table of Contents
 =================
 
-  * [Quick start](quickstart.md)
+  * [Tutorial](tutorial.md)
   * [Circuits, Moments, and OpTrees](circuits.md)
+  * [Gates](gates.md)
   * [Simulation](simulation.md)
   * [Schedules and Devices](schedules.md)
   * Advanced topics

@@ -51,7 +51,8 @@ Simulated measurement results:
 
 ## Documentation
 
-See [here](cirq/docs/table_of_contents.md).
+See [here](cirq/docs/table_of_contents.md) or jump straight to the
+[tutorial](cirq/docs/tutorial.md)
 
 ## Contributing
 
