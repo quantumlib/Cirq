@@ -4,7 +4,7 @@ import cirq
 def main():
 
     # Define a qubit.
-    qubit = cirq.ops.QubitLoc(0, 0)
+    qubit = cirq.google.XmonQubit(0, 0)
 
     # Create a circuit (qubits start in the |0> state).
     circuit = cirq.circuits.Circuit()

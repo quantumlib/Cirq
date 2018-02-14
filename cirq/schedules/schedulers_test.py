@@ -24,17 +24,37 @@ from cirq.schedules import Schedule
 from cirq.schedules import ScheduledOperation
 from cirq.schedules import schedulers
 
+
+class LineQubit:
+    def __init__(self, x):
+        self.x = x
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.x == other.x
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((LineQubit, self.x))
+
+    def is_adjacent(self, other):
+        return abs(self.x - other.x) == 1
+
+
 class _TestDevice(Device):
     """A device for testing that only supports H and CZ gates on 10 qubits.
 
     The H gate take 20 nanos, and the CZ gates take 40 nanos.
 
-    This device has 10 qubits on a line, they all have QubitLoc y of 0 and
-    the x ranges from 0 to 9 (inclusive).
+    This device has 10 QubitLine qubits in a line, with x values ranging from
+    0 to 9 (inclusive).
     """
 
     def __init__(self):
-        self.qubits = [ops.QubitLoc(x, 0) for x in range(10)]
+        self.qubits = [LineQubit(x) for x in range(10)]
 
     def duration_of(self, operation: ops.Operation) -> Duration:
         g = operation.gate
@@ -53,7 +73,7 @@ class _TestDevice(Device):
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, ops.QubitLoc):
+            if not isinstance(q, LineQubit):
                 raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
@@ -86,7 +106,7 @@ class _TestDevice(Device):
     def validate_circuit(self, circuit):
         for moment in circuit.moments:
             for operation in moment.operations:
-                self.validate_operation()
+                self.validate_operation(operation)
 
     def validate_schedule(self, schedule):
         for scheduled_operation in schedule.scheduled_operations:

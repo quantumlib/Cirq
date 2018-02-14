@@ -16,19 +16,24 @@ import pytest
 
 from cirq import extension
 from cirq import ops
+from cirq.google import XmonQubit
 from cirq.circuits import Circuit, from_ascii, Moment, to_ascii
 
 
+def from_ascii_xmon(text):
+    return from_ascii(text, XmonQubit.try_parse_from_ascii)
+
+
 def test_from_ascii_empty():
-    assert from_ascii('') == Circuit()
+    assert from_ascii_xmon('') == Circuit()
 
-    assert from_ascii('(0, 0): ------') == Circuit()
+    assert from_ascii_xmon('(0, 0): ------') == Circuit()
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): ------
     """) == Circuit()
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): ------
 
 (0, 1): ------
@@ -36,16 +41,16 @@ def test_from_ascii_empty():
 
 
 def test_from_ascii_single_qubit_ops():
-    q00 = ops.QubitLoc(0, 0)
-    q12 = ops.QubitLoc(1, 2)
-    assert from_ascii('(0, 0): --X--') == Circuit([Moment([ops.X(q00)])])
+    q00 = XmonQubit(0, 0)
+    q12 = XmonQubit(1, 2)
+    assert from_ascii_xmon('(0, 0): --X--') == Circuit([Moment([ops.X(q00)])])
 
-    assert from_ascii('(0, 0): --X^0.5--') == Circuit(
+    assert from_ascii_xmon('(0, 0): --X^0.5--') == Circuit(
         [Moment([(ops.X**0.5)(q00)])])
 
-    assert from_ascii('(1, 2): --Z--') == Circuit([Moment([ops.Z(q12)])])
+    assert from_ascii_xmon('(1, 2): --Z--') == Circuit([Moment([ops.Z(q12)])])
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --Z--
 (1, 2): --X--
         """) == Circuit([Moment([ops.Z(q00),
@@ -53,39 +58,39 @@ def test_from_ascii_single_qubit_ops():
 
 
 def test_from_ascii_two_qubit_ops():
-    q00 = ops.QubitLoc(0, 0)
-    q10 = ops.QubitLoc(1, 0)
+    q00 = XmonQubit(0, 0)
+    q10 = XmonQubit(1, 0)
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --.--
 (1, 0): --X--
         """) == Circuit([Moment([ops.CNOT(q00, q10)])])
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --x--
 (1, 0): --.--
         """) == Circuit([Moment([ops.CNOT(q10, q00)])])
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --Z--
           |
 (1, 0): --X--
         """) == Circuit([Moment([ops.CNOT(q00, q10)])])
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --Z--
           |
 (2, 0): --|--
 (1, 0): --Z--
         """) == Circuit([Moment([ops.CZ(q00, q10)])])
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --Z-----
           |^0.5
 (1, 0): --Z-----
         """) == Circuit([Moment([(ops.CZ**0.5)(q00, q10)])])
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (0, 0): --@-----
           |^0.5
 (2, 0): --+-----
@@ -95,12 +100,12 @@ def test_from_ascii_two_qubit_ops():
 
 
 def test_from_ascii_teleportation_from_diagram():
-    ali = ops.QubitLoc(0, 0)
-    bob = ops.QubitLoc(0, 1)
-    msg = ops.QubitLoc(1, 0)
-    tmp = ops.QubitLoc(1, 1)
+    ali = XmonQubit(0, 0)
+    bob = XmonQubit(0, 1)
+    msg = XmonQubit(1, 0)
+    tmp = XmonQubit(1, 1)
 
-    assert from_ascii("""
+    assert from_ascii_xmon("""
 (1, 0): ------X^0.5--@-H-M----@---
                      |        |
 (0, 0): --H-@--------X---M-@--|---
@@ -124,7 +129,7 @@ def test_from_ascii_teleportation_from_diagram():
 
 def test_from_ascii_fail_on_duplicate_qubit():
     with pytest.raises(ValueError):
-        _ = from_ascii("""
+        _ = from_ascii_xmon("""
 (0, 0): -X---
 (0, 0): ---X-
         """)
@@ -132,30 +137,30 @@ def test_from_ascii_fail_on_duplicate_qubit():
 
 def test_fail_on_double_colon():
     with pytest.raises(ValueError):
-        _ = from_ascii("""
+        _ = from_ascii_xmon("""
 (0, 0): -X-:-
         """)
 
 
 def test_fail_on_unknown_operation():
     with pytest.raises(ValueError):
-        _ = from_ascii("""
+        _ = from_ascii_xmon("""
 (0, 0): --unknown--
         """)
 
 
 def test_fail_on_adjacent_operations():
     with pytest.raises(ValueError):
-        _ = from_ascii("""
+        _ = from_ascii_xmon("""
 (0, 0): --XY--
         """)
 
 
 def test_to_ascii_teleportation_to_diagram():
-    ali = ops.QubitLoc(0, 0)
-    bob = ops.QubitLoc(0, 1)
-    msg = ops.QubitLoc(1, 0)
-    tmp = ops.QubitLoc(1, 1)
+    ali = XmonQubit(0, 0)
+    bob = XmonQubit(0, 1)
+    msg = XmonQubit(1, 0)
+    tmp = XmonQubit(1, 1)
 
     c = Circuit([
         Moment([ops.H(ali)]),
@@ -182,7 +187,7 @@ def test_to_ascii_teleportation_to_diagram():
 
 
 def test_to_ascii_extended_gate():
-    q = ops.QubitLoc(0, 0)
+    q = XmonQubit(0, 0)
 
     class FGate(ops.Gate):
         pass

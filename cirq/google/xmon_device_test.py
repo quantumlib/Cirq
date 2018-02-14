@@ -15,8 +15,7 @@
 import pytest
 
 from cirq import ops
-from cirq.google import XmonDevice, ExpZGate, ExpWGate, Exp11Gate
-from cirq.ops import Operation
+from cirq.google import XmonDevice, ExpZGate, ExpWGate, Exp11Gate, XmonQubit
 from cirq.schedules import Schedule, ScheduledOperation, Timestamp
 from cirq.time import Duration
 
@@ -26,18 +25,18 @@ def square_device(width, height, holes=()):
     return XmonDevice(measurement_duration=ns,
                       exp_w_duration=2 * ns,
                       exp_11_duration=3 * ns,
-                      qubits=[ops.QubitLoc(x, y)
+                      qubits=[XmonQubit(x, y)
                               for x in range(width)
                               for y in range(height)
-                              if ops.QubitLoc(x, y) not in holes])
+                              if XmonQubit(x, y) not in holes])
 
 
 def test_init():
-    d = square_device(2, 2, holes=[ops.QubitLoc(1, 1)])
+    d = square_device(2, 2, holes=[XmonQubit(1, 1)])
     ns = Duration(nanos=1)
-    q00 = ops.QubitLoc(0, 0)
-    q01 = ops.QubitLoc(0, 1)
-    q10 = ops.QubitLoc(1, 0)
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q10 = XmonQubit(1, 0)
 
     assert d.qubits == {q00, q01, q10}
     assert d.duration_of(ops.Operation(ExpZGate(), (q00,))) == 0 * ns
@@ -52,33 +51,33 @@ def test_validate_operation_adjacent_qubits():
 
     d.validate_operation(ops.Operation(
         Exp11Gate(),
-        (ops.QubitLoc(0, 0), ops.QubitLoc(1, 0))))
+        (XmonQubit(0, 0), XmonQubit(1, 0))))
 
     with pytest.raises(ValueError):
         d.validate_operation(ops.Operation(
             Exp11Gate(),
-            (ops.QubitLoc(0, 0), ops.QubitLoc(2, 0))))
+            (XmonQubit(0, 0), XmonQubit(2, 0))))
 
 
 def test_validate_operation_existing_qubits():
-    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
+    d = square_device(3, 3, holes=[XmonQubit(1, 1)])
 
     d.validate_operation(ops.Operation(
         Exp11Gate(),
-        (ops.QubitLoc(0, 0), ops.QubitLoc(1, 0))))
-    d.validate_operation(ops.Operation(ExpZGate(), (ops.QubitLoc(0, 0),)))
+        (XmonQubit(0, 0), XmonQubit(1, 0))))
+    d.validate_operation(ops.Operation(ExpZGate(), (XmonQubit(0, 0),)))
 
     with pytest.raises(ValueError):
         d.validate_operation(ops.Operation(
             Exp11Gate(),
-            (ops.QubitLoc(0, 0), ops.QubitLoc(-1, 0))))
+            (XmonQubit(0, 0), XmonQubit(-1, 0))))
     with pytest.raises(ValueError):
         d.validate_operation(ops.Operation(ExpZGate(),
-                                           (ops.QubitLoc(-1, 0),)))
+                                           (XmonQubit(-1, 0),)))
     with pytest.raises(ValueError):
         d.validate_operation(ops.Operation(
             Exp11Gate(),
-            (ops.QubitLoc(1, 0), ops.QubitLoc(1, 1))))
+            (XmonQubit(1, 0), XmonQubit(1, 1))))
 
 
 def test_validate_operation_supported_gate():
@@ -87,16 +86,16 @@ def test_validate_operation_supported_gate():
     class MyGate(ops.Gate):
         pass
 
-    d.validate_operation(ops.Operation(ExpZGate(), [ops.QubitLoc(0, 0)]))
+    d.validate_operation(ops.Operation(ExpZGate(), [XmonQubit(0, 0)]))
     with pytest.raises(ValueError):
-        d.validate_operation(ops.Operation(MyGate, [ops.QubitLoc(0, 0)]))
+        d.validate_operation(ops.Operation(MyGate, [XmonQubit(0, 0)]))
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
-    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(1, 0)
-    q2 = ops.QubitLoc(2, 0)
+    d = square_device(3, 3, holes=[XmonQubit(1, 1)])
+    q0 = XmonQubit(0, 0)
+    q1 = XmonQubit(1, 0)
+    q2 = XmonQubit(2, 0)
     s = Schedule(d, [
         ScheduledOperation.op_at_on(
             ExpWGate().on(q0), Timestamp(), d),
@@ -108,10 +107,10 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
-    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
-    q0 = ops.QubitLoc(0, 0)
-    q1 = ops.QubitLoc(1, 0)
-    q2 = ops.QubitLoc(2, 0)
+    d = square_device(3, 3, holes=[XmonQubit(1, 1)])
+    q0 = XmonQubit(0, 0)
+    q1 = XmonQubit(1, 0)
+    q2 = XmonQubit(2, 0)
     s = Schedule(d, [
         ScheduledOperation.op_at_on(
             ExpZGate().on(q0), Timestamp(), d),
@@ -122,10 +121,10 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
 
 
 def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
-    d = square_device(3, 3, holes=[ops.QubitLoc(1, 1)])
-    q0 = ops.QubitLoc(0, 0)
-    p1 = ops.QubitLoc(1, 2)
-    p2 = ops.QubitLoc(2, 2)
+    d = square_device(3, 3, holes=[XmonQubit(1, 1)])
+    q0 = XmonQubit(0, 0)
+    p1 = XmonQubit(1, 2)
+    p2 = XmonQubit(2, 2)
     s = Schedule(d, [
         ScheduledOperation.op_at_on(
             ExpWGate().on(q0), Timestamp(), d),

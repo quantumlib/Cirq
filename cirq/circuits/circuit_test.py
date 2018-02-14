@@ -22,8 +22,8 @@ from cirq.testing import EqualsTester
 
 
 def test_equality():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(1, 0)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     eq = EqualsTester()
 
@@ -59,7 +59,7 @@ def test_equality():
 
 
 def test_append_single():
-    a = ops.QubitLoc(0, 0)
+    a = ops.QubitId()
 
     c = Circuit()
     c.append(())
@@ -75,8 +75,8 @@ def test_append_single():
 
 
 def test_append_multiple():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit()
     c.append([ops.X(a), ops.X(b)], InsertStrategy.NEW)
@@ -100,8 +100,8 @@ def test_append_multiple():
 
 
 def test_append_strategies():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
     stream = [ops.X(a), ops.CZ(a, b), ops.X(b), ops.X(b), ops.X(a)]
 
     c = Circuit()
@@ -134,8 +134,8 @@ def test_append_strategies():
 
 
 def test_insert():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit()
 
@@ -175,8 +175,8 @@ def test_insert():
 
 
 def test_insert_inline_near_start():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit([
         Moment(),
@@ -206,8 +206,8 @@ def test_insert_inline_near_start():
 
 
 def test_operation_at():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit()
     assert c.operation_at(a, 0) is None
@@ -228,8 +228,8 @@ def test_operation_at():
 
 
 def test_next_moment_operating_on():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit()
     assert c.next_moment_operating_on([a]) is None
@@ -270,7 +270,7 @@ def test_next_moment_operating_on():
 
 
 def test_next_moment_operating_on_distance():
-    a = ops.QubitLoc(0, 0)
+    a = ops.QubitId()
 
     c = Circuit([
         Moment(),
@@ -303,8 +303,8 @@ def test_next_moment_operating_on_distance():
 
 
 def test_prev_moment_operating_on():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit()
     assert c.prev_moment_operating_on([a]) is None
@@ -345,7 +345,7 @@ def test_prev_moment_operating_on():
 
 
 def test_prev_moment_operating_on_distance():
-    a = ops.QubitLoc(0, 0)
+    a = ops.QubitId()
 
     c = Circuit([
         Moment(),
@@ -380,8 +380,8 @@ def test_prev_moment_operating_on_distance():
 
 
 def test_clear_operations_touching():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit()
     c.clear_operations_touching([a, b], range(10))
@@ -433,8 +433,8 @@ def test_clear_operations_touching():
 
 
 def test_qubits():
-    a = ops.QubitLoc(0, 0)
-    b = ops.QubitLoc(0, 1)
+    a = ops.QubitId()
+    b = ops.QubitId()
 
     c = Circuit([
         Moment([ops.X(a)]),

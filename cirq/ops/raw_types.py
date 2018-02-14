@@ -24,32 +24,22 @@ class QubitId:
     pass
 
 
-class QubitLoc(QubitId):
-    """A qubit at a location."""
+class NamedQubit(QubitId):
+    """A qubit identified by name."""
 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def is_adjacent(self, other: 'QubitLoc'):
-        return abs(self.x - other.x) + abs(self.y - other.y) == 1
+    def __init__(self, name: str):
+        self.name = name
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.x == other.x and self.y == other.y
+        return self.name == other.name
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((QubitLoc, self.x, self.y))
-
-    def __repr__(self):
-        return 'QubitLoc({}, {})'.format(self.x, self.y)
-
-    def __str__(self):
-        return '{}_{}'.format(self.x, self.y)
+        return hash((NamedQubit, self.name))
 
 
 class Gate:

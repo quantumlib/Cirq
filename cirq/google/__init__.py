@@ -17,3 +17,4 @@ from cirq.google.known_devices import *
 from cirq.google.parameterized_value import *
 from cirq.google.xmon_device import *
 from cirq.google.xmon_gates import *
+from cirq.google.xmon_qubit import *
