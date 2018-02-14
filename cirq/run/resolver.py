@@ -19,7 +19,7 @@ import collections
 
 from typing import Dict, Union
 
-from cirq.ops.native_gates import ParameterizedValue
+from cirq.google import ParameterizedValue
 
 
 class ParamResolver(object):

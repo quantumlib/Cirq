@@ -24,7 +24,7 @@ from cirq import circuits
 from cirq import ops
 from cirq import run
 from cirq.sim.google import xmon_simulator
-from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate
+from cirq.google import ExpWGate, ExpZGate, Exp11Gate, ParameterizedValue, XmonMeasurementGate
 
 Q1 = ops.QubitLoc(0, 0)
 Q2 = ops.QubitLoc(1, 0)
@@ -215,8 +215,8 @@ def compute_gate(circuit, resolver, num_qubits=1):
 
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_w_half_turns(offset):
-    exp_w = ops.native_gates.ExpWGate(
-        half_turns=ops.native_gates.ParameterizedValue('a', offset),
+    exp_w = ExpWGate(
+        half_turns=ParameterizedValue('a', offset),
         axis_half_turns=0.0)
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
@@ -230,9 +230,8 @@ def test_param_resolver_exp_w_half_turns(offset):
 
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_w_axis_half_turns(offset):
-    exp_w = ops.native_gates.ExpWGate(
-        half_turns=1.0,
-        axis_half_turns=ops.native_gates.ParameterizedValue('a', offset))
+    exp_w = ExpWGate(
+        half_turns=1.0, axis_half_turns=ParameterizedValue('a', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
     resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
@@ -245,9 +244,9 @@ def test_param_resolver_exp_w_axis_half_turns(offset):
 
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_w_multiple_params(offset):
-    exp_w = ops.native_gates.ExpWGate(
-        half_turns=ops.native_gates.ParameterizedValue('a', offset),
-        axis_half_turns=ops.native_gates.ParameterizedValue('b', offset))
+    exp_w = ExpWGate(
+        half_turns=ParameterizedValue('a', offset),
+        axis_half_turns=ParameterizedValue('b', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
     resolver = run.resolver.ParamResolver(
@@ -261,8 +260,7 @@ def test_param_resolver_exp_w_multiple_params(offset):
 
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_z_half_turns(offset):
-    exp_z = ops.native_gates.ExpZGate(
-        half_turns=ops.native_gates.ParameterizedValue('a', offset))
+    exp_z = ExpZGate(half_turns=ParameterizedValue('a', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_z(Q1))
     resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
@@ -275,8 +273,7 @@ def test_param_resolver_exp_z_half_turns(offset):
 
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_11_half_turns(offset):
-    exp_11 = ops.native_gates.Exp11Gate(
-        half_turns=ops.native_gates.ParameterizedValue('a', offset))
+    exp_11 = Exp11Gate(half_turns=ParameterizedValue('a', offset))
     circuit = circuits.Circuit()
     circuit.append(exp_11(Q1, Q2))
     resolver = run.resolver.ParamResolver({'a': 0.5 - offset})
@@ -289,8 +286,8 @@ def test_param_resolver_exp_11_half_turns(offset):
 
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_param_dict(offset):
-    exp_w = ops.native_gates.ExpWGate(
-        half_turns=ops.native_gates.ParameterizedValue('a', offset),
+    exp_w = ExpWGate(
+        half_turns=ParameterizedValue('a', offset),
         axis_half_turns=0.0)
     circuit = circuits.Circuit()
     circuit.append(exp_w(Q1))
