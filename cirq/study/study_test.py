@@ -14,6 +14,9 @@
 
 """Tests for studies."""
 
+import pytest
+
+from cirq import study
 from cirq.circuits import Circuit
 from cirq.study import Study
 from cirq.google.parameterized_value import ParameterizedValue
@@ -85,3 +88,34 @@ def test_study_param_and_reps():
                         'q2': [result.param_dict['b'] == 1]}
             assert expected == result.measurements
 
+
+def test_study_executor_kwargs():
+    sim = Simulator()
+    circuit = bit_flip_circuit(1, 1)
+
+    study = Study(executor=sim, program=circuit, repetitions=1, initial_state=3)
+    full_results = study.run_study()
+    assert len(full_results) == 1
+    repetition_results = full_results[0]
+    assert len(repetition_results) == 1
+    assert repetition_results[0].measurements == {'q1': [False], 'q2': [False]}
+
+
+
+class BadResult(study.Result):
+
+    measurements = {}
+
+
+def test_bad_result():
+    with pytest.raises(NotImplementedError):
+        BadResult()
+
+
+class EvenWorseResult(study.Result):
+    pass
+
+
+def test_even_worse_result():
+    with pytest.raises(NotImplementedError):
+        EvenWorseResult()

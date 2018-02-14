@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Defines studies and related classes."""
+
 import abc
 
 from typing import Dict, Iterable, Union
@@ -81,21 +83,27 @@ class Executor(metaclass=abc.ABCMeta):
         # TODO(dabacon): Async run.
 
 
-class Result():
+class ResultMeta(type):
+    """Metaclass that asserts measurements and param_dict attributes exist."""
 
-    @abc.abstractmethod
-    def measurements(self) -> Dict[str, Iterable[bool]]:
-        """Measurement values.
+    def __call__(cls, *args, **kwargs):
+        obj = type.__call__(cls, *args, **kwargs)
+        if not hasattr(obj, 'measurements'):
+            raise NotImplementedError(
+                'Results must have a measurements attribute.')
+        if not hasattr(obj, 'param_dict'):
+            raise NotImplementedError(
+                'Results must have a param_dict attribute.')
+        return obj
 
-        A dictionary from measurement gate key to measurement
-        results. If a key is reused, the measurement values are returned
-        in the order they appear in the Circuit being simulated.
-        """
 
-    @abc.abstractmethod
-    def param_dict(self) -> Dict[str, float]:
-        """The parameters used to produce this result.
+class Result(metaclass=ResultMeta):
+    """Results are required to have measurements and param_dict attributes.
 
-        A dictionary produce by the ParamResolver mapping parameter
-        keys to actual parameter values that produced this result.
-        """
+    Attributes:
+        measurements: A dictionary from measurement gate key to measurement
+            results. If a key is reused, the measurement values are returned
+            in the order they appear in the Circuit being simulated.
+        param_dict: A dictionary produce by the ParamResolver mapping parameter
+            keys to actual parameter values that produced this result.
+    """

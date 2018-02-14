@@ -20,12 +20,13 @@ import math
 import numpy as np
 import pytest
 
-from cirq import circuits
+from cirq.circuits import Circuit
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
 from cirq.google import (ParameterizedValue)
 from cirq.google.resolver import ParamResolver
+from cirq.ops.common_gates import CNOT, X
 from cirq.sim.google import xmon_simulator
 
 Q1 = XmonQubit(0, 0)
@@ -36,7 +37,7 @@ def basic_circuit():
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     z = ExpZGate()
     cz = Exp11Gate()
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
          cz(Q1, Q2),
@@ -50,7 +51,7 @@ def large_circuit():
     qubits = [XmonQubit(i, 0) for i in range(10)]
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     cz = Exp11Gate()
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     for _ in range(11):
         circuit.append(
             [sqrt_x(qubit) for qubit in qubits if np.random.random() < 0.5])
@@ -220,7 +221,7 @@ def test_param_resolver_exp_w_half_turns(offset):
     exp_w = ExpWGate(
         half_turns=ParameterizedValue('a', offset),
         axis_half_turns=0.0)
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(exp_w(Q1))
     resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver)
@@ -234,7 +235,7 @@ def test_param_resolver_exp_w_half_turns(offset):
 def test_param_resolver_exp_w_axis_half_turns(offset):
     exp_w = ExpWGate(
         half_turns=1.0, axis_half_turns=ParameterizedValue('a', offset))
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(exp_w(Q1))
     resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver)
@@ -249,7 +250,7 @@ def test_param_resolver_exp_w_multiple_params(offset):
     exp_w = ExpWGate(
         half_turns=ParameterizedValue('a', offset),
         axis_half_turns=ParameterizedValue('b', offset))
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(exp_w(Q1))
     resolver = ParamResolver({'a': 0.5 - offset, 'b': 0.5 - offset})
     result = compute_gate(circuit, resolver)
@@ -262,7 +263,7 @@ def test_param_resolver_exp_w_multiple_params(offset):
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_z_half_turns(offset):
     exp_z = ExpZGate(half_turns=ParameterizedValue('a', offset))
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(exp_z(Q1))
     resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver)
@@ -275,7 +276,7 @@ def test_param_resolver_exp_z_half_turns(offset):
 @pytest.mark.parametrize('offset', (0.0, 0.2))
 def test_param_resolver_exp_11_half_turns(offset):
     exp_11 = Exp11Gate(half_turns=ParameterizedValue('a', offset))
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(exp_11(Q1, Q2))
     resolver = ParamResolver({'a': 0.5 - offset})
     result = compute_gate(circuit, resolver, num_qubits=2)
@@ -290,10 +291,21 @@ def test_param_resolver_param_dict(offset):
     exp_w = ExpWGate(
         half_turns=ParameterizedValue('a', offset),
         axis_half_turns=0.0)
-    circuit = circuits.Circuit()
+    circuit = Circuit()
     circuit.append(exp_w(Q1))
     resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
     result = simulator.run(circuit, param_resolver=resolver)
     assert result.param_dict == {'a': 0.5}
+
+
+def test_composite_gates():
+    circuit = Circuit()
+    circuit.append([X(Q1), CNOT(Q1, Q2)])
+    m = XmonMeasurementGate('a')
+    circuit.append([m(Q1), m(Q2)])
+
+    simulator = xmon_simulator.Simulator()
+    result = simulator.run(circuit)
+    assert result.measurements['a'] == [True, True]
