@@ -5,7 +5,7 @@ circuits and running them against quantum computers and simulators.
 
 ## Installation
 
-Follow these [instructions](docs/install.md).
+Follow these [instructions](cirq/docs/install.md).
 
 ## Hello Qubit
 
@@ -51,8 +51,13 @@ Simulated measurement results:
 
 ## Documentation
 
-See [here](docs/documentation.md).
+See [here](cirq/docs/table_of_contents.md) or jump straight to the
+[tutorial](cirq/docs/tutorial.md)
 
 ## Contributing
 
 We welcome contributions. Please follow [these](CONTRIBUTING) guidelines.
+
+## Disclaimer
+
+Copyright 2018 The Cirq Developers. This is not an official Google product.
