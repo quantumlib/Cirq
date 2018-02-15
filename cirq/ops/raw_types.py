@@ -114,3 +114,19 @@ class Operation:
 
     def __ne__(self, other):
         return not self == other
+
+    def __pow__(self, power: float) -> 'Operation':
+        """Raise gate to a power, then reapply to the same qubits.
+
+        Only works if the gate implements gate_features.ExtrapolatableGate.
+        For extrapolatable gate G this means the following two are equivalent:
+
+            (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
+
+        Args:
+            power: The amount to scale the gate's effect by.
+
+        Returns:
+            A new operation on the same qubits with the scaled gate.
+        """
+        return (self.gate ** power)(*self.qubits)
