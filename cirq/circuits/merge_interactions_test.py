@@ -38,12 +38,12 @@ def assert_optimizes(before, after):
 
 
 def test_clears_paired_cnot():
+    q0 = ops.QubitId()
     q1 = ops.QubitId()
-    q2 = ops.QubitId()
     assert_optimizes(
         before=circuits.Circuit([
-            circuits.Moment([ops.CNOT(q1, q2)]),
-            circuits.Moment([ops.CNOT(q1, q2)]),
+            circuits.Moment([ops.CNOT(q0, q1)]),
+            circuits.Moment([ops.CNOT(q0, q1)]),
         ]),
         after=circuits.Circuit())
 
