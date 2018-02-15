@@ -14,17 +14,20 @@
 
 """Tests for studies."""
 
+import collections
+import itertools
+
 import pytest
 
 from cirq import study
 from cirq.circuits import Circuit
-from cirq.study import Study
+from cirq.study import ExecutorStudy
 from cirq.google.parameterized_value import ParameterizedValue
 from cirq.google.resolver import ParamResolver
 from cirq.google.xmon_gates import (ExpWGate, Exp11Gate, ExpZGate,
                                     XmonMeasurementGate)
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.sim.google.xmon_simulator import Result, Simulator
+from cirq.sim.google.xmon_simulator import TrialContext, TrialResult, Simulator
 
 
 def bit_flip_circuit(flip0, flip1):
@@ -40,15 +43,14 @@ def test_study_repetitions():
     sim = Simulator()
     circuit = bit_flip_circuit(1, 1)
 
-    study = Study(executor=sim, program=circuit, repetitions=10)
-    full_results = study.run_study()
-    assert len(full_results) == 1
-    repetition_results = full_results[0]
-    assert len(repetition_results) == 10
-    for result in repetition_results:
-        assert isinstance(result, Result)
+    study = ExecutorStudy(executor=sim, program=circuit, repetitions=10)
+    all_trials = study.run_study()
+    assert len(all_trials) == 10
+    for context, result in all_trials:
+        assert context.param_dict == {}
         assert result.measurements == {'q1': [True], 'q2': [True]}
-        assert not result.param_dict
+    # All repetition ids are used.
+    assert set(range(10)) == {c.repetition_id for c,_ in all_trials}
 
 
 def test_study_parameters():
@@ -58,16 +60,20 @@ def test_study_parameters():
     resolvers = [ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
 
-    study = Study(executor=sim, program=circuit, param_resolvers=resolvers,
-                  repetitions=1)
-    full_results = study.run_study()
-    assert len(full_results) == 4
-    for repetition_results in full_results:
-        assert len(repetition_results) == 1
-        result = repetition_results[0]
-        expected = {'q1': [result.param_dict['a'] == 1],
-                    'q2': [result.param_dict['b'] == 1]}
+    study = ExecutorStudy(executor=sim, program=circuit,
+                          param_resolvers=resolvers,
+                          repetitions=1)
+    all_trials = study.run_study()
+    assert len(all_trials) == 4
+    for context, result in all_trials:
+        expected = {'q1': [context.param_dict['a'] == 1],
+                    'q2': [context.param_dict['b'] == 1]}
         assert expected == result.measurements
+    # All parameters explored.
+    assert (set(itertools.product([0, 1], [0, 1]))
+            == {(c.param_dict['a'], c.param_dict['b']) for c, _ in all_trials})
+    # And they always have a single repetition.
+    assert 4 * [0] == [c.repetition_id for c,_ in all_trials]
 
 
 def test_study_param_and_reps():
@@ -77,34 +83,39 @@ def test_study_param_and_reps():
     resolvers = [ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
 
-    study = Study(executor=sim, program=circuit, param_resolvers=resolvers,
-                  repetitions=3)
-    full_results = study.run_study()
-    assert len(full_results) == 4
-    for repetition_results in full_results:
-        assert len(repetition_results) == 3
-        for result in repetition_results:
-            expected = {'q1': [result.param_dict['a'] == 1],
-                        'q2': [result.param_dict['b'] == 1]}
-            assert expected == result.measurements
+    study = ExecutorStudy(executor=sim, program=circuit,
+                          param_resolvers=resolvers,
+                          repetitions=3)
+    all_trials = study.run_study()
+    assert len(all_trials) == 3 * 4
+    for context, result in all_trials:
+        expected = {'q1': [context.param_dict['a'] == 1],
+                    'q2': [context.param_dict['b'] == 1]}
+        assert expected == result.measurements
+    # All parameters explored.
+    comb = list(itertools.product([0, 1], [0, 1]))
+    # And we see the results exactly as many times as expected.
+    expected = collections.Counter(comb * 3)
+    assert expected == collections.Counter(
+        (c.param_dict['a'], c.param_dict['b']) for c, _ in all_trials)
+
 
 
 def test_study_executor_kwargs():
     sim = Simulator()
     circuit = bit_flip_circuit(1, 1)
 
-    study = Study(executor=sim, program=circuit, repetitions=1, initial_state=3)
-    full_results = study.run_study()
-    assert len(full_results) == 1
-    repetition_results = full_results[0]
-    assert len(repetition_results) == 1
-    assert repetition_results[0].measurements == {'q1': [False], 'q2': [False]}
+    study = ExecutorStudy(executor=sim, program=circuit, repetitions=1,
+                          initial_state=3)
+    all_trials = study.run_study()
+    assert len(all_trials ) == 1
+    _, result = all_trials[0]
+    assert result.measurements == {'q1': [False], 'q2': [False]}
 
 
 
-class BadResult(study.Result):
-
-    measurements = {}
+class BadResult(study.TrialResult):
+    pass
 
 
 def test_bad_result():
@@ -112,10 +123,19 @@ def test_bad_result():
         BadResult()
 
 
-class EvenWorseResult(study.Result):
+class BadContext(study.TrialContext):
+    param_dict = {}
+
+
+def test_context_missing_repetitions():
+    with pytest.raises(NotImplementedError):
+        BadContext()
+
+
+class EvenWorseContext(study.TrialContext):
     pass
 
 
-def test_even_worse_result():
+def test_context_missing_all_attributes():
     with pytest.raises(NotImplementedError):
-        EvenWorseResult()
+        EvenWorseContext()

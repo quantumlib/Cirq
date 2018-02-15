@@ -28,7 +28,7 @@ A simple example:
 from collections import defaultdict
 import functools
 import math
-from typing import DefaultDict, Dict, Sequence, Union
+from typing import DefaultDict, Dict, Iterator, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -77,12 +77,14 @@ class Options:
 class Simulator(Executor):
     """Simulator for Xmon class quantum circuits."""
 
-    def run(self,
-        program: Circuit,
-        options: Options = None,
-        qubits: Sequence[raw_types.QubitId] = None,
-        initial_state: Union[int, np.ndarray] = 0,
-        param_resolver: ParamResolver = None) -> 'Result':
+    def run(
+            self,
+            program: Circuit,
+            options: Options = None,
+            qubits: Sequence[raw_types.QubitId] = None,
+            initial_state: Union[int, np.ndarray] = 0,
+            param_resolver: ParamResolver = None,
+    ) -> Tuple['TrialContext', 'TrialResult']:
         """Simulates the entire supplied Circuit.
 
         Args:
@@ -100,20 +102,28 @@ class Simulator(Executor):
                 ParameterizedValues.
 
         Returns:
-            Result for the final step of the simulation. This
-            contains measurement results for all of the moments.
+            A tuple (context, result) where context is the TrailContext for
+                performing this run and result is the TrailResult containing
+                the results of this run.
         """
-        all_results = self.moment_steps(program, options or Options(), qubits,
-                                        initial_state, param_resolver)
-        return functools.reduce(Result.merge_measurements_with, all_results)
+        param_resolver = param_resolver or ParamResolver({})
+        all_step_results = self.moment_steps(program, options or Options(),
+                                             qubits,
+                                             initial_state, param_resolver)
+        context = TrialContext(param_resolver.param_dict)
+        final_step_result = functools.reduce(
+            StepResult.merge_measurements_with,
+            all_step_results)
+        return (context, TrialResult(final_step_result))
 
 
-    def moment_steps(self,
-        program: Circuit,
-        options: 'Options' = None,
-        qubits: Sequence[raw_types.QubitId] = None,
-        initial_state: Union[int, np.ndarray]=0,
-        param_resolver: ParamResolver = None) -> 'Result':
+    def moment_steps(
+            self,
+            program: Circuit,
+            options: 'Options' = None,
+            qubits: Sequence[raw_types.QubitId] = None,
+            initial_state: Union[int, np.ndarray]=0,
+            param_resolver: ParamResolver = None) -> Iterator['TrialResult']:
         """Returns an iterator of XmonStepResults for each moment simulated.
 
         Args:
@@ -132,17 +142,20 @@ class Simulator(Executor):
 
         Returns:
             SimulatorIterator that steps through the simulation, simulating
-            each moment and returning a Result for each moment.
+            each moment and returning a StepResult for each moment.
         """
+        param_resolver = param_resolver or ParamResolver({})
         return simulator_iterator(program, options or Options(), qubits,
                                   initial_state, param_resolver)
 
 
-def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
-    qubits: Sequence[raw_types.QubitId] = None,
-    initial_state: Union[int, np.ndarray]=0,
-    param_resolver: ParamResolver = None):
-    """Iterator over Results from Moments of a Circuit.
+def simulator_iterator(
+        circuit: Circuit,
+        options: 'Options' = Options(),
+        qubits: Sequence[raw_types.QubitId] = None,
+        initial_state: Union[int, np.ndarray]=0,
+        param_resolver: ParamResolver = ParamResolver({})):
+    """Iterator over TrialResults from Moments of a Circuit.
 
     This should rarely be instantiated directly, instead prefer to create an
     Simulator and use methods on that object to get an iterator.
@@ -155,11 +168,11 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
             is used to define the wave function.
         initial_state: If an int, the state is set to the computational
             basis state corresponding corresponding to this state.
-        param_resolver: A ParamResolver for determining values of
+        param_resolver: A ParamResolver for determining values ofs
             ParameterizedValues.
 
     Yields:
-        Results from simulating a Moment of the Circuit.
+        StepResults from simulating a Moment of the Circuit.
     """
     circuit_qubits = circuit.qubits()
     if qubits is not None:
@@ -168,8 +181,6 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    if param_resolver is None:
-        param_resolver = ParamResolver({})
     opt = ExpandComposite()
     circuit_copy = Circuit(circuit.moments)
     opt.optimize_circuit(circuit_copy)
@@ -208,11 +219,34 @@ def simulator_iterator(circuit: Circuit, options: 'Options' =Options(),
                         'Gate %s is not a gate supported by the xmon simulator.'
                         % gate)
             stepper.simulate_phases(phase_map)
-            yield Result(stepper, qubit_map, measurements,
-                         param_resolver.param_dict)
+            yield StepResult(stepper, qubit_map, measurements)
 
 
-class Result(cirq.study.Result):
+class TrialContext(cirq.study.TrialContext):
+    """The context that generated the result.
+
+    Attributes:
+        param_dict: A dictionary produce by the ParamResolver mapping parameter
+            keys to actual parameter values that produced this result.
+        reptition_id: An id used to identify repetitions within runs for
+            a fixed param_dict.
+    """
+
+    def __init__(self, param_dict: Dict, repetition_id: int = None):
+        self.param_dict = param_dict
+        self.repetition_id = repetition_id
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (self.param_dict == other.param_dict
+                and self.repetition_id == other.repetition_id)
+
+    def __neq__(self, other):
+        return not self == other
+
+
+class StepResult():
     """Results of a step of the simulator.
 
     Attributes:
@@ -222,28 +256,16 @@ class Result(cirq.study.Result):
         measurements: A dictionary from measurement gate key to measurement
             results. If a key is reused, the measurement values are returned
             in the order they appear in the Circuit being simulated.
-        param_dict: A dictionary produce by the ParamResolver mapping parameter
-            keys to actual parameter values that produced this result.
     """
 
-    # TODO(dabacon): This keeps around a lot of state (the stepper) for a
-    # result, but users may want to preserve wave-functions or calculate
-    # expectation values. Create an intermediate Result representation that
-    # is heavy, a light-weight result, and a general function to set
-    # light-weight attributes from the heavy representation.
-
-    def __init__(self, stepper: Stepper, qubit_map: Dict,
-        measurements: DefaultDict, param_dict: Dict):
+    def __init__(
+            self,
+            stepper: Stepper,
+            qubit_map: Dict,
+            measurements: DefaultDict):
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
-        self.param_dict = param_dict
-
-    def measurements(self):
-        return self.measurements
-
-    def param_dict(self):
-        return self.param_dict
 
     def state(self) -> np.ndarray:
         """Return the state (wave function) at this point in the computation.
@@ -287,7 +309,8 @@ class Result(cirq.study.Result):
         """
         self._stepper.reset_state(state)
 
-    def merge_measurements_with(self, last_result: 'Result') -> 'Result':
+    def merge_measurements_with(self,
+        last_result: 'TrialResult') -> 'TrialResult':
         """Merges measurement results of last_result into a new Result.
 
         The measurement results are merges such that measurements with duplicate
@@ -306,5 +329,22 @@ class Result(cirq.study.Result):
         new_measurements.update(last_result.measurements)
         for key, result_list in self.measurements.items():
             new_measurements[key].extend(result_list)
-        return Result(self._stepper, self.qubit_map, new_measurements,
-                      self.param_dict)
+        return StepResult(self._stepper, self.qubit_map, new_measurements)
+
+
+class TrialResult(cirq.study.TrialResult):
+    """Results of a single run of an executor.
+
+    Attributes:
+        measurements: A dictionary from measurement gate key to measurement
+            results. If a key is reused, the measurement values are returned
+            in the order they appear in the Circuit being simulated.
+        final_state: The final state (wave function) of the system after
+            the trial finishes.
+    """
+
+    def __init__(self, final_step_result: StepResult):
+        self.measurements = final_step_result.measurements
+        # TODO(dabacon): This should be optional, since it can be rather big.
+        self.final_state = final_step_result.state()
+
