@@ -66,3 +66,9 @@ def test_operation_eq():
     eq.make_equality_pair(lambda: ops.Operation(g1, r21))
     eq.add_equality_group(ops.Operation(ops.CZ, r21),
                           ops.Operation(ops.CZ, r12))
+
+
+def test_operation_pow():
+    Y = ops.Y
+    qubit = ops.QubitId()
+    assert (Y ** 0.5)(qubit) == Y(qubit) ** 0.5
