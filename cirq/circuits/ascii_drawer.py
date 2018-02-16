@@ -14,13 +14,12 @@
 
 """Utility methods for converting circuits to/from ascii diagram."""
 
-from cirq import ops
-from cirq.extension import Extensions
+from typing import Dict
 
+from cirq import ops
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.moment import Moment
-
-from typing import Dict
+from cirq.extension import Extensions
 
 
 class _AsciiDiagramDrawer:
