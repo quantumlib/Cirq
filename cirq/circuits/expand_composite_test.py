@@ -189,7 +189,8 @@ def test_inline_insert_strategy():
     opt = ExpandComposite(insert_strategy=InsertStrategy.INLINE)
     opt.optimize_circuit(circuit)
     expected = Circuit([Moment()])
-    expected.append([(Y ** -0.5)(q1), CZ(q0, q1), (Y ** 0.5)(q1)])
+    expected.append([(Y ** -0.5)(q1), CZ(q0, q1), (Y ** 0.5)(q1)],
+                    strategy=InsertStrategy.EARLIEST)
     expected.moments.append(Moment())
     # Preserves empty moment.
     assert expected == circuit
