@@ -14,10 +14,9 @@
 
 import pytest
 
-from cirq import extension
 from cirq import ops
 from cirq.google import XmonQubit
-from cirq.circuits import Circuit, from_ascii, Moment, to_ascii
+from cirq.circuits import Circuit, from_ascii, Moment
 
 
 def from_ascii_xmon(text):
@@ -154,68 +153,3 @@ def test_fail_on_adjacent_operations():
         _ = from_ascii_xmon("""
 (0, 0): --XY--
         """)
-
-
-def test_to_ascii_teleportation_to_diagram():
-    ali = XmonQubit(0, 0)
-    bob = XmonQubit(0, 1)
-    msg = XmonQubit(1, 0)
-    tmp = XmonQubit(1, 1)
-
-    c = Circuit([
-        Moment([ops.H(ali)]),
-        Moment([ops.CNOT(ali, bob)]),
-        Moment([ops.X(msg)**0.5]),
-        Moment([ops.CNOT(msg, ali)]),
-        Moment([ops.H(msg)]),
-        Moment(
-            [ops.MeasurementGate()(msg),
-             ops.MeasurementGate()(ali)]),
-        Moment([ops.CNOT(ali, bob)]),
-        Moment([ops.CNOT(msg, tmp)]),
-        Moment([ops.CZ(bob, tmp)]),
-    ])
-    assert """
-(0, 0): ---H---@-----------X-------M---@-----------
-               |           |           |
-(0, 1): -------X-----------|-----------X-------Z---
-                           |                   |
-(1, 0): -----------X^0.5---@---H---M-------@---|---
-                                           |   |
-(1, 1): -----------------------------------X---Z---
-        """.strip() == to_ascii(c).strip()
-
-
-def test_to_ascii_extended_gate():
-    q = XmonQubit(0, 0)
-
-    class FGate(ops.Gate):
-        pass
-
-    f = FGate()
-    c = Circuit([
-        Moment([f.on(q)]),
-    ])
-
-    # Fails without extension.
-    with pytest.raises(TypeError):
-        _ = to_ascii(c)
-
-    # Succeeds with extension.
-    class FGateAsAscii(ops.AsciiDiagrammableGate):
-        def __init__(self, f_gate):
-            self.f_gate = f_gate
-
-        def ascii_wire_symbols(self):
-            return 'F'
-
-    diagram = to_ascii(c,
-                       extension.Extensions({
-                           ops.AsciiDiagrammableGate: {
-                               FGate: FGateAsAscii
-                           }
-                       }))
-
-    assert diagram.strip() == """
-(0, 0): ---F---
-        """.strip()

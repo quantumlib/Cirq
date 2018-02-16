@@ -14,7 +14,7 @@
 
 """Utility methods for converting circuits to/from ascii diagram."""
 
-from typing import Dict
+from typing import Dict, List, Callable, Any
 
 from cirq import ops
 from cirq.circuits.circuit import Circuit
@@ -98,8 +98,14 @@ class _AsciiDiagramDrawer:
     def render(self,
                horizontal_spacing: int = 1,
                vertical_spacing: int = 1,
-               crossing_char: str = '+') -> str:
+               crossing_char: str = None,
+               use_unicode_characters: bool = False) -> str:
         """Outputs ascii text containing the ascii diagram."""
+
+        pipe = '│' if use_unicode_characters else '|'
+        dash = '─' if use_unicode_characters else '-'
+        if crossing_char is None:
+            crossing_char = '┼' if use_unicode_characters else '+'
 
         dx = 1 + horizontal_spacing
         dy = 1 + vertical_spacing
@@ -114,18 +120,18 @@ class _AsciiDiagramDrawer:
             y1 *= dy
             y2 *= dy
             for y in range(y1, y2):
-                grid[y][x] = '|'
+                grid[y][x] = pipe
 
         for y, x1, x2 in self.horizontal_lines:
             y *= dy
             x1 *= dx
             x2 *= dx
             for x in range(x1, x2):
-                if grid[y][x] == '|':
+                if grid[y][x] == pipe:
                     grid[y][x] = crossing_char
                 else:
-                    grid[y][x] = '-'
-                extend_char[y][x] = '-'
+                    grid[y][x] = dash
+                extend_char[y][x] = dash
 
         for (x, y), v in self.entries.items():
             x *= dx
@@ -135,10 +141,27 @@ class _AsciiDiagramDrawer:
         for col in range(w):
             col_width = max(1, max(len(grid[y][col]) for y in range(h)))
             for row in range(h):
-                grid[row][col] = grid[row][col].ljust(
-                    col_width, extend_char[row][col])
+                missing = col_width - len(grid[row][col])
+                grid[row][col] += extend_char[row][col] * missing
 
         return '\n'.join(''.join(row).rstrip() for row in grid)
+
+
+def _get_operation_symbols(op: ops.Operation, ext: Extensions) -> List[str]:
+    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
+    if ascii_gate is not None:
+        return ascii_gate.ascii_wire_symbols()
+    name = repr(op.gate)
+    if len(op.qubits) == 1:
+        return [name]
+    return ['{}:{}'.format(name, i) for i in range(len(op.qubits))]
+
+
+def _get_operation_exponent(op: ops.Operation, ext: Extensions) -> List[str]:
+    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
+    if ascii_gate is not None:
+        return ascii_gate.ascii_exponent()
+    return 1
 
 
 def _to_ascii_moment(moment: Moment,
@@ -150,8 +173,6 @@ def _to_ascii_moment(moment: Moment,
 
     x0 = out_diagram.width()
     for op in moment.operations:
-        op_gate_as_ascii = ext.cast(op.gate, ops.AsciiDiagrammableGate)
-
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
         y2 = max(indices)
@@ -167,13 +188,14 @@ def _to_ascii_moment(moment: Moment,
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        for s, q in zip(op_gate_as_ascii.ascii_wire_symbols(), op.qubits):
+        symbols = _get_operation_symbols(op, ext)
+        for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the first label.
-        e = op_gate_as_ascii.ascii_exponent()
-        if e != 1:
-            out_diagram.write(x, y1, '^' + repr(e))
+        exponent = _get_operation_exponent(op, ext)
+        if exponent != 1:
+            out_diagram.write(x, y1, '^' + repr(exponent))
 
 
 def _str_lexi(value):
@@ -203,13 +225,21 @@ def _str_lexi(value):
 
 def to_ascii(circuit: Circuit,
              ext: Extensions = Extensions(),
-             transpose: bool = False) -> str:
+             use_unicode_characters: bool = False,
+             transpose: bool = False,
+             qubit_order_key: Callable[[ops.QubitId], Any] = None) -> str:
     """Paints an ascii diagram describing the given circuit.
 
     Args:
         circuit: The circuit to turn into a diagram.
         ext: For extending gates to implement AsciiDiagrammableGate.
+        use_unicode_characters: Activates the use of box-drawing characters.
         transpose: Arranges the wires vertically instead of horizontally.
+        qubit_order_key: Transforms each qubit into a key that determines how
+            the qubits are ordered in the diagram. Qubits with lower keys come
+            first. Defaults to the qubit's __str__, but augmented so that
+            lexicographic ordering will respect the order of integers within
+            the string (e.g. "name10" will come after "name2").
 
     Returns:
         The ascii diagram.
@@ -218,12 +248,15 @@ def to_ascii(circuit: Circuit,
         ValueError: The circuit contains gates that don't support ascii
             diagramming.
     """
+    if qubit_order_key is None:
+        qubit_order_key = _str_lexi
+
     qubits = {
         q
         for moment in circuit.moments for op in moment.operations
         for q in op.qubits
     }
-    ordered_qubits = sorted(qubits, key=_str_lexi)
+    ordered_qubits = sorted(qubits, key=qubit_order_key)
     qubit_map = {ordered_qubits[i]: i for i in range(len(ordered_qubits))}
 
     diagram = _AsciiDiagramDrawer()
@@ -238,5 +271,10 @@ def to_ascii(circuit: Circuit,
         diagram.horizontal_line(i, 0, w)
 
     if transpose:
-        return diagram.transpose().render(crossing_char='-')
-    return diagram.render(crossing_char='|', horizontal_spacing=3)
+        return diagram.transpose().render(
+            crossing_char='─' if use_unicode_characters else '-',
+            use_unicode_characters=use_unicode_characters)
+    return diagram.render(
+        crossing_char='┼' if use_unicode_characters else '|',
+        horizontal_spacing=3,
+        use_unicode_characters=use_unicode_characters)
