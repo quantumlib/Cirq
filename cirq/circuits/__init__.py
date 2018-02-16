@@ -14,7 +14,8 @@
 
 """Types and methods related to building and optimizing sequenced circuits."""
 
-from cirq.circuits.ascii import *
+from cirq.circuits.ascii_drawer import *
+from cirq.circuits.ascii_parser import *
 from cirq.circuits.drop_negligible import *
 from cirq.circuits.drop_empty_moments import *
 from cirq.circuits.circuit import *

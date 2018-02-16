@@ -183,7 +183,8 @@ class Circuit(object):
             ValueError: Unrecognized append strategy.
         """
 
-        if strategy is InsertStrategy.NEW:
+        if (strategy is InsertStrategy.NEW or
+                strategy is InsertStrategy.NEW_THEN_INLINE):
             self.moments.insert(splitter_index, Moment())
             return splitter_index
 
@@ -213,8 +214,7 @@ class Circuit(object):
             self,
             index: int,
             operation_tree: ops.OP_TREE,
-            strategy: InsertStrategy =
-            InsertStrategy.EARLIEST) -> int:
+            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """Inserts operations into the middle of the circuit.
 
         Args:
@@ -240,13 +240,14 @@ class Circuit(object):
                 self.moments.append(Moment())
             self.moments[p] = self.moments[p].with_operation(op)
             k = max(k, p + 1)
+            if strategy is InsertStrategy.NEW_THEN_INLINE:
+                strategy = InsertStrategy.INLINE
         return k
 
     def append(
             self,
             operation_tree: ops.OP_TREE,
-            strategy: InsertStrategy =
-            InsertStrategy.EARLIEST):
+            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:

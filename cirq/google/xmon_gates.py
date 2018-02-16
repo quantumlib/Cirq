@@ -49,6 +49,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
+                ops.AsciiDiagrammableGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
                 PotentialImplementation):
@@ -95,6 +96,11 @@ class Exp11Gate(XmonGate,
 
     def ascii_exponent(self):
         return self.half_turns
+
+    def __str__(self):
+        if self.half_turns == 1:
+            return 'CZ'
+        return self.__repr__()
 
     def __repr__(self):
         return 'Exp11Gate(half_turns={})'.format(
@@ -197,6 +203,12 @@ class ExpWGate(XmonGate,
     def ascii_exponent(self):
         return self.half_turns
 
+    def __str__(self):
+        base = self.ascii_wire_symbols()[0]
+        if self.half_turns == 1:
+            return base
+        return '{}^{}'.format(base, self.half_turns)
+
     def __repr__(self):
         return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(
                     repr(self.half_turns),
@@ -237,9 +249,15 @@ class ExpZGate(XmonGate,
         self.half_turns = _canonicalize_half_turns(half_turns)
 
     def ascii_wire_symbols(self):
+        if abs(self.half_turns) == 0.25:
+            return 'T'
+        if abs(self.half_turns) == 0.5:
+            return 'S'
         return 'Z',
 
     def ascii_exponent(self):
+        if abs(self.half_turns) in [0.25, 0.5]:
+            return 1
         return self.half_turns
 
     def try_cast_to(self, desired_type):
@@ -280,6 +298,17 @@ class ExpZGate(XmonGate,
         op.exp_z.half_turns.parameter_key = ParameterizedValue.key_of(
             self.half_turns)
         return op
+
+    def __str__(self):
+        if self.half_turns == 0.5:
+            return 'S'
+        if self.half_turns == 0.25:
+            return 'T'
+        if self.half_turns == -0.5:
+            return 'S^-1'
+        if self.half_turns == -0.25:
+            return 'T^-1'
+        return 'Z^{}'.format(self.half_turns)
 
     def __repr__(self):
         return 'ExpZGate(half_turns={})'.format(
