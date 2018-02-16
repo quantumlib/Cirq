@@ -46,7 +46,7 @@ def test_from_ascii_single_qubit_ops():
     assert from_ascii_xmon('(0, 0): --X--') == Circuit([Moment([ops.X(q00)])])
 
     assert from_ascii_xmon('(0, 0): --X^0.5--') == Circuit(
-        [Moment([(ops.X**0.5)(q00)])])
+        [Moment([ops.X(q00)**0.5])])
 
     assert from_ascii_xmon('(1, 2): --Z--') == Circuit([Moment([ops.Z(q12)])])
 
@@ -88,7 +88,7 @@ def test_from_ascii_two_qubit_ops():
 (0, 0): --Z-----
           |^0.5
 (1, 0): --Z-----
-        """) == Circuit([Moment([(ops.CZ**0.5)(q00, q10)])])
+        """) == Circuit([Moment([ops.CZ(q00, q10)**0.5])])
 
     assert from_ascii_xmon("""
 (0, 0): --@-----
@@ -96,7 +96,7 @@ def test_from_ascii_two_qubit_ops():
 (2, 0): --+-----
           |^0.5
 (1, 0): --Z^0.5-
-        """) == Circuit([Moment([(ops.CZ**0.125)(q00, q10)])])
+        """) == Circuit([Moment([ops.CZ(q00, q10)**0.125])])
 
 
 def test_from_ascii_teleportation_from_diagram():
@@ -115,7 +115,7 @@ def test_from_ascii_teleportation_from_diagram():
         """) == Circuit([
             Moment([ops.H(ali)]),
             Moment([ops.CNOT(ali, bob)]),
-            Moment([(ops.X**0.5)(msg)]),
+            Moment([ops.X(msg)**0.5]),
             Moment([ops.CNOT(msg, ali)]),
             Moment([ops.H(msg)]),
             Moment(
@@ -165,7 +165,7 @@ def test_to_ascii_teleportation_to_diagram():
     c = Circuit([
         Moment([ops.H(ali)]),
         Moment([ops.CNOT(ali, bob)]),
-        Moment([(ops.X**0.5)(msg)]),
+        Moment([ops.X(msg)**0.5]),
         Moment([ops.CNOT(msg, ali)]),
         Moment([ops.H(msg)]),
         Moment(

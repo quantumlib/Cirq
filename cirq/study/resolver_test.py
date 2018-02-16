@@ -16,7 +16,8 @@
 
 import itertools
 
-from cirq.google import ParameterizedValue, resolver
+from cirq.google import ParameterizedValue
+from cirq.study import resolver
 
 
 def test_value_of():
