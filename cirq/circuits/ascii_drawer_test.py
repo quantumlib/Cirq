@@ -29,7 +29,7 @@ def test_to_ascii_teleportation_to_diagram():
     c = Circuit([
         Moment([ops.H(ali)]),
         Moment([ops.CNOT(ali, bob)]),
-        Moment([(ops.X**0.5)(msg)]),
+        Moment([ops.X(msg)**0.5]),
         Moment([ops.CNOT(msg, ali)]),
         Moment([ops.H(msg)]),
         Moment(

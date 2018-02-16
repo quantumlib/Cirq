@@ -222,9 +222,9 @@ class CNotGate(gate_features.TwoQubitGate,
     def default_decompose(self, qubits):
         """See base class."""
         c, t = qubits
-        yield (Y**-0.5)(t)
+        yield Y(t)**-0.5
         yield CZ(c, t)
-        yield (Y**0.5)(t)
+        yield Y(t)**0.5
 
     def __repr__(self):
         return 'CNOT'

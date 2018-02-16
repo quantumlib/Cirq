@@ -113,12 +113,12 @@ def _easy_direction_partial_cz(q0: ops.QubitId, q1: ops.QubitId, t: float):
       Yields an equivalent circuit for CZ^t with counter-clock phased CZs.
     """
     if t >= 0:
-        yield (ops.CZ**t).on(q0, q1)
+        yield ops.CZ(q0, q1)**t
         return
-    yield (ops.Z**t).on(q0)
-    yield (ops.X).on(q1)
-    yield (ops.CZ**(-t)).on(q0, q1)
-    yield (ops.X).on(q1)
+    yield ops.Z(q0)**t
+    yield ops.X(q1)
+    yield ops.CZ(q0, q1)**(-t)
+    yield ops.X(q1)
 
 
 def single_qubit_matrix_to_native_gates(
@@ -211,8 +211,8 @@ def controlled_op_to_native_gates(
 
     ops_before = [gate(target) for gate in u_gates]
     ops_after = ops.inverse_of_invertable_op_tree(ops_before)
-    effect = (ops.CZ**(cmath.phase(z_phase) / math.pi))(control, target)
-    kickback = (ops.Z**(cmath.phase(global_phase) / math.pi))(control)
+    effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
+    kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
 
     return list(ops.flatten_op_tree((
         ops_before,
@@ -225,11 +225,11 @@ def _xx_interaction_via_full_czs(q0: ops.QubitId,
                                  q1: ops.QubitId,
                                  x: float):
     a = x * -2 / np.pi
-    yield ops.H.on(q1)
-    yield ops.CZ.on(q0, q1)
-    yield (ops.X**a).on(q0)
-    yield ops.CZ.on(q0, q1)
-    yield ops.H.on(q1)
+    yield ops.H(q1)
+    yield ops.CZ(q0, q1)
+    yield ops.X(q0)**a
+    yield ops.CZ(q0, q1)
+    yield ops.H(q1)
 
 
 def _xx_yy_interaction_via_full_czs(q0: ops.QubitId,
@@ -238,16 +238,16 @@ def _xx_yy_interaction_via_full_czs(q0: ops.QubitId,
                                     y: float):
     a = x * -2 / np.pi
     b = y * -2 / np.pi
-    yield (ops.X**0.5).on(q0)
-    yield ops.H.on(q1)
-    yield ops.CZ.on(q0, q1)
-    yield ops.H.on(q1)
-    yield (ops.X**a).on(q0)
-    yield (ops.Y**b).on(q1)
-    yield ops.H.on(q1)
-    yield ops.CZ.on(q0, q1)
-    yield ops.H.on(q1)
-    yield (ops.X**-0.5).on(q0)
+    yield ops.X(q0)**0.5
+    yield ops.H(q1)
+    yield ops.CZ(q0, q1)
+    yield ops.H(q1)
+    yield ops.X(q0)**a
+    yield ops.Y(q1)**b
+    yield ops.H(q1)
+    yield ops.CZ(q0, q1)
+    yield ops.H(q1)
+    yield ops.X(q0)**-0.5
 
 
 def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
@@ -258,20 +258,20 @@ def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
     a = x * -2 / np.pi + 0.5
     b = y * -2 / np.pi + 0.5
     c = z * -2 / np.pi + 0.5
-    yield (ops.X**0.5).on(q0)
-    yield ops.H.on(q1)
-    yield ops.CZ.on(q0, q1)
-    yield ops.H.on(q1)
-    yield (ops.X**a).on(q0)
-    yield (ops.Y**b).on(q1)
+    yield ops.X(q0)**0.5
+    yield ops.H(q1)
+    yield ops.CZ(q0, q1)
+    yield ops.H(q1)
+    yield ops.X(q0)**a
+    yield ops.Y(q1)**b
     yield ops.H.on(q0)
-    yield (ops.CZ).on(q1, q0)
-    yield ops.H.on(q0)
-    yield (ops.X**-0.5).on(q1)
-    yield (ops.Z**c).on(q1)
-    yield ops.H.on(q1)
-    yield ops.CZ.on(q0, q1)
-    yield ops.H.on(q1)
+    yield ops.CZ(q1, q0)
+    yield ops.H(q0)
+    yield ops.X(q1)**-0.5
+    yield ops.Z(q1)**c
+    yield ops.H(q1)
+    yield ops.CZ(q0, q1)
+    yield ops.H(q1)
 
 
 def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
@@ -316,8 +316,8 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
         else:
             yield _easy_direction_partial_cz(q0, q1, -2 * h)
 
-        yield (ops.Z**h).on(q0)
-        yield (ops.Z**h).on(q1)
+        yield ops.Z(q0)**h
+        yield ops.Z(q1)**h
         if op is not None:
             yield op.inverse().on(q0), op.inverse().on(q1)
 
