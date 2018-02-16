@@ -21,8 +21,8 @@ def test_generate_supremacy_circuit():
     device = cirq.google.Foxtail
 
     circuit = generate_supremacy_circuit(device, cz_depth=6)
-    # Circuit should have 6 layers of 3 plus a final layer of 2.
-    assert len(circuit.moments) == 20
+    # Circuit should have 6 layers of 2 plus a final layer of 1.
+    assert len(circuit.moments) == 13
 
     # For this chip, by cz-depth 6 there should be one CZ on each edge.
     op_counts = {}

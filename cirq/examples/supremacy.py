@@ -11,19 +11,12 @@ def generate_supremacy_circuit(
     circuit = Circuit()
     cz = Exp11Gate()
 
-    def rotation_layer():
+    def single_qubit_layer():
         vals = [random.randint(0, 7) / 4.0 for _ in xmon_device.qubits]
+        phases = [random.randint(0, 7) / 4.0 for _ in xmon_device.qubits]
         return [
-            ExpWGate(half_turns=v).on(q)
-            for v, q in zip(vals, xmon_device.qubits)
-            if v
-        ]
-
-    def phase_layer():
-        vals = [random.randint(0, 7) / 4.0 for _ in xmon_device.qubits]
-        return [
-            ExpZGate(half_turns=v).on(q)
-            for v, q in zip(vals, xmon_device.qubits)
+            ExpWGate(half_turns=v, axis_half_turns=w).on(q)
+            for v, w, q in zip(vals, phases, xmon_device.qubits)
             if v
         ]
 
@@ -39,13 +32,11 @@ def generate_supremacy_circuit(
             if XmonQubit(q.x + dx, q.y + dy) in xmon_device.qubits
         ]
         if cz_layer:
-            circuit.append(phase_layer())
-            circuit.append(rotation_layer())
+            circuit.append(single_qubit_layer())
             circuit.append(cz_layer)
             cz_depth -= 1
         i += 1
 
-    circuit.append(phase_layer())
-    circuit.append(rotation_layer())
+    circuit.append(single_qubit_layer())
 
     return circuit
