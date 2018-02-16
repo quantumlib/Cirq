@@ -14,6 +14,7 @@
 
 import cirq
 from cirq.examples import generate_supremacy_circuit
+from cirq.google import Exp11Gate
 
 
 def test_generate_supremacy_circuit():
@@ -22,8 +23,12 @@ def test_generate_supremacy_circuit():
     circuit = generate_supremacy_circuit(device, cz_depth=6)
     # Circuit should have 6 layers of 3 plus a final layer of 2.
     assert len(circuit.moments) == 20
-    # At cz-depth 6 there will be a CZ for each edge; for this chip.
-    assert len([1
-                for m in circuit.moments
-                for op in m.operations
-                if len(op.qubits) == 2]) == 31
+
+    # For this chip, by cz-depth 6 there should be one CZ on each edge.
+    op_counts = {}
+    for m in circuit.moments:
+        for op in m.operations:
+            op_counts[op] = op_counts.get(op, 0) + 1
+    for q1 in device.qubits:
+        for q2 in device.neighbors_of(q1):
+            assert op_counts[Exp11Gate().on(q1, q2)] == 1
