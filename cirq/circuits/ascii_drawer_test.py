@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
 from cirq import extension
 from cirq import ops
 from cirq.google import XmonQubit
-from cirq.circuits import Circuit, from_ascii, Moment, to_ascii
+from cirq.circuits import Circuit, Moment, to_ascii
 
 
 def test_to_ascii_teleportation_to_diagram():
@@ -76,18 +74,37 @@ M      |      M      |
 
 def test_to_ascii_extended_gate():
     q = XmonQubit(0, 0)
+    q2 = XmonQubit(0, 1)
+    q3 = XmonQubit(0, 2)
 
     class FGate(ops.Gate):
-        pass
+        def __repr__(self):
+            return 'python-object-FGate:arbitrary-digits'
 
     f = FGate()
     c = Circuit([
         Moment([f.on(q)]),
     ])
 
-    # Fails without extension.
-    with pytest.raises(TypeError):
-        _ = to_ascii(c)
+    # Fallback to repr without extension.
+    diagram = to_ascii(Circuit([
+        Moment([f.on(q)]),
+    ]))
+    assert diagram.strip() == """
+(0, 0): ---python-object-FGate:arbitrary-digits---
+        """.strip()
+
+    # When used on multiple qubits, show the qubit order as a digit suffix.
+    diagram = to_ascii(Circuit([
+        Moment([f.on(q, q3, q2)]),
+    ]))
+    assert diagram.strip() == """
+(0, 0): ---python-object-FGate:arbitrary-digits:0---
+           |
+(0, 1): ---python-object-FGate:arbitrary-digits:2---
+           |
+(0, 2): ---python-object-FGate:arbitrary-digits:1---
+            """.strip()
 
     # Succeeds with extension.
     class FGateAsAscii(ops.AsciiDiagrammableGate):
@@ -107,3 +124,20 @@ def test_to_ascii_extended_gate():
     assert diagram.strip() == """
 (0, 0): ---F---
         """.strip()
+
+
+def test_custom_order():
+    qa = ops.NamedQubit('2')
+    qb = ops.NamedQubit('3')
+    qc = ops.NamedQubit('4')
+
+    diagram = to_ascii(
+        circuit=Circuit([Moment([ops.X(qa), ops.X(qb), ops.X(qc)])]),
+        qubit_order_key=lambda e: int(str(e)) % 3)
+    assert diagram.strip() == """
+3: ---X---
+
+4: ---X---
+
+2: ---X---
+    """.strip()
