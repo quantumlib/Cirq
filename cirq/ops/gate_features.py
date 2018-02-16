@@ -170,7 +170,7 @@ class SingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
 
 
 class TwoQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
-    """A gate that applies a known constant effect to adjacent qubits."""
+    """A gate that applies a known constant effect two qubits."""
 
     def validate_args(self, qubits):
         if len(qubits) != 2:
