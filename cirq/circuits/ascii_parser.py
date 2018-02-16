@@ -17,18 +17,17 @@
 from typing import Optional, List, Dict, Iterator, Tuple, Callable
 
 from cirq import ops
-from cirq.extension import Extensions
 
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.moment import Moment
 
 # Characters that indicate nothing is happening here in the circuit.
-ENTRY_TERMINATOR_CHARS = {' ', '-', '|', '+'}
+_ENTRY_TERMINATOR_CHARS = {' ', '-', '|', '+'}
 
 
-def wire_name_to_qubit(qubit_name_parser: Callable[[str],
-                                                   Optional[ops.QubitId]],
-                       name: str) -> ops.QubitId:
+def _wire_name_to_qubit(qubit_name_parser: Callable[[str],
+                                                    Optional[ops.QubitId]],
+                        name: str) -> ops.QubitId:
     q = qubit_name_parser(name)
     if q is None:
         raise NotImplementedError('Bad name: {}'.format(repr(name)))
@@ -39,14 +38,20 @@ def _column_entry_is_linky(entry):
     return entry[0] in {'|', '+', '.', '@'}
 
 
-def gate_name_to_gate(gate_name: str) -> Optional[ops.Gate]:
+def _gate_name_to_gate(gate_name: str) -> Optional[ops.Gate]:
     """Determines the gate that corresponds to some diagram text."""
 
-    if not gate_name or gate_name in ENTRY_TERMINATOR_CHARS:
+    if not gate_name or gate_name in _ENTRY_TERMINATOR_CHARS:
         return None
 
     if gate_name in ['z', 'Z', '.', '@']:
         return ops.Z
+
+    if gate_name in ['t', 'T']:
+        return ops.Z**0.25
+
+    if gate_name in ['s', 'S']:
+        return ops.Z**0.5
 
     if gate_name in ['x', 'X']:
         return ops.X
@@ -63,7 +68,7 @@ def gate_name_to_gate(gate_name: str) -> Optional[ops.Gate]:
     raise ValueError('Unrecognized gate_name: {}'.format(repr(gate_name)))
 
 
-def col_entry_to_gate_and_exponent(
+def _col_entry_to_gate_and_exponent(
         entry: str) -> Tuple[Optional[ops.Gate], float]:
     if '^' in entry:
         gate_name, exponent_str = entry.split('^')
@@ -72,7 +77,7 @@ def col_entry_to_gate_and_exponent(
         gate_name = entry
         exponent = 1
 
-    return gate_name_to_gate(gate_name), exponent
+    return _gate_name_to_gate(gate_name), exponent
 
 
 def _column_entries_to_interaction_groups(
@@ -94,7 +99,7 @@ def _column_entries_to_interaction_groups(
     linked_ops = {}
     linked_exponent = 1
     for wire in range(len(column_entries)):
-        gate, exponent = col_entry_to_gate_and_exponent(column_entries[wire])
+        gate, exponent = _col_entry_to_gate_and_exponent(column_entries[wire])
         linked_exponent *= exponent
         if gate is not None:
             linked_ops[wire] = gate
@@ -174,7 +179,7 @@ def _snip_column_entries(lines: List[str], col: int,
             n = 2
         # Scan ahead until the term terminates.
         while col + n < len(line) and line[
-                    col + n] not in ENTRY_TERMINATOR_CHARS:
+                    col + n] not in _ENTRY_TERMINATOR_CHARS:
             n += 1
         # Must include at least the leading character (to track control lines).
         n = max(n, 1)
@@ -231,7 +236,7 @@ def _snip_qubit_map(lines: List[str],
     wires = [i for i in range(len(lines)) if is_wire[i]]
     wire_lines = [lines[wire] for wire in wires]
     names = [line.split(':')[0] for line in wire_lines]
-    qubits = [wire_name_to_qubit(qubit_name_parser, name) for name in names]
+    qubits = [_wire_name_to_qubit(qubit_name_parser, name) for name in names]
     wire_to_qubit = {w: q for w, q in zip(wires, qubits)}
 
     # Check for duplicates.
@@ -278,81 +283,3 @@ def from_ascii(text: str,
         if col_ops:
             circuit.moments.append(Moment(col_ops))
     return circuit
-
-
-def to_ascii(circuit: Circuit,
-             ext: Extensions = Extensions()) -> str:
-    """Paints an ascii diagram describing the given circuit.
-
-    Args:
-        circuit: The circuit to turn into a diagram.
-        ext: For extending gates to implement AsciiDiagrammableGate.
-
-    Returns:
-        The ascii diagram.
-
-    Raises:
-        ValueError: The circuit contains gates that don't support ascii
-            diagramming.
-    """
-    qubits = {
-        q
-        for moment in circuit.moments for op in moment.operations
-        for q in op.qubits
-    }
-    labels = {q: str(q) for q in qubits}
-    ordered_qubits = sorted(qubits, key=lambda k: labels[k])
-    qubit_map = {ordered_qubits[i]: i * 2 for i in range(len(ordered_qubits))}
-
-    cols = []
-    h = len(qubits) * 2 - 1
-
-    def just_append(new_col):
-        w = (1 if not new_col else max(len(v) for v in new_col)) + 3
-        cols.append(
-            [new_col[i].ljust(w, ' ' if i & 1 else '-') for i in range(h)])
-
-    label_col = []
-    for q in ordered_qubits:
-        label_col.append((labels[q] + ': '))
-        label_col.append('')
-    just_append(label_col)
-
-    for moment in [Moment()] * 2 + circuit.moments + [Moment()]:
-        if not moment.operations:
-            continue
-
-        col = [''] * h
-        for op in moment.operations:
-            op_gate_as_ascii = ext.cast(op.gate, ops.AsciiDiagrammableGate)
-
-            indices = [qubit_map[q] for q in op.qubits]
-            covered = range(min(indices), max(indices) + 1)
-
-            # When there's overlap, force a new column.
-            if any(col[e] for e in covered):
-                just_append(col)
-                col = [''] * h
-
-            # Draw control wires.
-            for i in covered:
-                col[i] = '|'
-
-            # Draw endpoints.
-            for i in range(len(op.qubits)):
-                col[qubit_map[op.qubits[i]]] = (
-                    op_gate_as_ascii.ascii_wire_symbols()[i])
-
-            # Draw exponent on one of the covered rows.
-            e = op_gate_as_ascii.ascii_exponent()
-            if e != 1:
-                col[min(indices)] += '^' + repr(e)
-
-        just_append(col)
-
-    w = len(cols)
-    lines = [
-        ''.join(cols[col][row] for col in range(w)).rstrip() for row in
-        range(h)
-    ]
-    return '\n'.join(lines) + '\n'
