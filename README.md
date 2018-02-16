@@ -5,7 +5,7 @@ circuits and running them against quantum computers and simulators.
 
 ## Installation
 
-Follow these [instructions](docs/install.md).
+Follow these [instructions](cirq/docs/install.md).
 
 ## Hello Qubit
 
@@ -27,14 +27,14 @@ circuit.append([
     cirq.ops.MeasurementGate('result').on(qubit)
 ])
 print("Circuit:")
-print(cirq.to_ascii(circuit))
+print(cirq.circuits.to_ascii(circuit))
 
 # Now simulate the circuit and print out the measurement result.
 simulator = cirq.sim.google.xmon_simulator.Simulator()
 results = []
 for _ in range(10):
-    result = simulator.run(circuit).measurements['result'][0]
-    results.append('1' if result else '0')
+    _, result = simulator.run(circuit)
+    results.append('1' if result.measurements['result'][0] else '0')
 print("Simulated measurement results:")
 print(''.join(results))
 ```
@@ -51,8 +51,13 @@ Simulated measurement results:
 
 ## Documentation
 
-See [here](docs/documentation.md).
+See [here](cirq/docs/table_of_contents.md) or jump straight to the
+[tutorial](cirq/docs/tutorial.md)
 
 ## Contributing
 
 We welcome contributions. Please follow [these](CONTRIBUTING) guidelines.
+
+## Disclaimer
+
+Copyright 2018 The Cirq Developers. This is not an official Google product.
