@@ -42,6 +42,12 @@ def test_gate_calls_validate():
         _ = g(q10, q01, q00)
 
 
+def test_named_qubit():
+    q = ops.NamedQubit('a')
+    assert str(q) == 'a'
+    assert repr(q) == "NamedQubit('a')"
+
+
 def test_operation_init():
     q = ops.QubitId()
     g = ops.Gate()
