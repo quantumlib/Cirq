@@ -106,7 +106,7 @@ take an ``Extension`` which allows for overriding the
 Ascii diagrams of ``Circuits`` are actually quite useful for 
 visualizing the moment structure of a ``Circuit``. In order
 for this to display in a compact form, it is best practice
-to implement his feature. N
+to implement his feature.
 
 ### XmonGates
 
@@ -119,7 +119,7 @@ The ``XmonGates`` are
 
 **ExpWGate** This gate is a rotation about a combination of
 a Pauli `X` and Pauli `Y` gates.  The ``ExpWGate`` takes
-two paramgers, ``half_turns`` and ``axis_half_turns``.  The
+two parameters, ``half_turns`` and ``axis_half_turns``.  The
 later describes the angle of the operator that is being
 rotated about in the ``XY`` plane.  In particular if we define
 ``W(theta) = cos(pi theta) X + sin (pi theta) Y`` then
@@ -156,7 +156,7 @@ Our old friends the Paulis: **X**, **Y**, and **Z**.
 Some other two qubit fiends, **CZ** the controlled-Z gate,
 **CNOT** the controlled-X gate, and **SWAP** the swap gate.
 As well as some other Clifford friends, **H** and **S**,
-and our error correcing friend **T**.
+and our error correcting friend **T**.
 
 TODO: describe these in more detail.  
 
