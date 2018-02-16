@@ -56,7 +56,7 @@ See [here](cirq/docs/table_of_contents.md) or jump straight to the
 
 ## Contributing
 
-We welcome contributions. Please follow [these](CONTRIBUTING) guidelines.
+We welcome contributions. Please follow these [guidelines](CONTRIBUTING.md).
 
 ## Disclaimer
 

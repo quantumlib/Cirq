@@ -73,7 +73,7 @@ If you want to install Cirq and change Cirq code, then you should add the
 Note that Cirq will be copied into the ```src```directory of your 
 virtual environment, so use this as the base of 
 your git repo. For contributing to Cirq you should use git and
-follow [teste guidelines](../CONTRIBUTING). See these 
+follow these [guidelines](../../CONTRIBUTING.md). See these 
 [instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 for installing git.  
 
