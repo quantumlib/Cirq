@@ -27,7 +27,7 @@ For example, one feature is ``ReversibleGate``.  A ``Gate``
 that implements this method is required to implement
 the method ``inverse`` which returns the inverse gate.
 Algorithms that then operate on gates can use 
-``isinstace(gate, ReversibleGate)`` to determine whether
+``isinstance(gate, ReversibleGate)`` to determine whether
 this gate implements this method, and use this method
 in the algorithm. Note that sometimes you have been provided
 a ``Gate`` that does not implement a feature that you care
