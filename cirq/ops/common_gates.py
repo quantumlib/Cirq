@@ -180,6 +180,9 @@ Y = RotYGate()  # Pauli Y gate.
 Z = RotZGate()  # Pauli Z gate.
 CZ = Rot11Gate()  # Negates the amplitude of the |11> state.
 
+S = Z**0.5
+T = Z**0.25
+
 
 class HGate(gate_features.SingleQubitGate,
             gate_features.AsciiDiagrammableGate):
@@ -209,9 +212,9 @@ class CNotGate(gate_features.TwoQubitGate,
     def matrix(self):
         """See base class."""
         return np.array([[1, 0, 0, 0],
-                       [0, 1, 0, 0],
-                       [0, 0, 0, 1],
-                       [0, 0, 1, 0]])
+                         [0, 1, 0, 0],
+                         [0, 0, 0, 1],
+                         [0, 0, 1, 0]])
 
     def ascii_wire_symbols(self):
         return '@', 'X'
@@ -237,9 +240,9 @@ class SwapGate(gate_features.CompositeGate,
     def matrix(self):
         """See base class."""
         return np.array([[1, 0, 0, 0],
-                       [0, 0, 1, 0],
-                       [0, 1, 0, 0],
-                       [0, 0, 0, 1]])
+                         [0, 0, 1, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 0, 1]])
 
     def default_decompose(self, qubits):
         """See base class."""

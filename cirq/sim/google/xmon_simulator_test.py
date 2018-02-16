@@ -25,9 +25,9 @@ from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
 from cirq.google import (ParameterizedValue)
-from cirq.google.resolver import ParamResolver
 from cirq.ops.common_gates import CNOT, X
 from cirq.sim.google import xmon_simulator
+from cirq.study.resolver import ParamResolver
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -170,7 +170,7 @@ def test_moment_steps():
     results = []
     for step in simulator.moment_steps(circuit):
         results.append(step)
-    expected = [{}, {}, {}, {'b': [False]}, {'a': [False]}]
+    expected = [{}, {}, {}, {}, {'a': [False], 'b': [False]}]
     assert len(results) == len(expected)
     assert all(a.measurements == b for a, b in zip(results, expected))
 
