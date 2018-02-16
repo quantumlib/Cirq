@@ -53,15 +53,15 @@ def test_combines_sequence():
     m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     c = circuits.Circuit([
-        circuits.Moment([(ops.X**0.5)(q)]),
-        circuits.Moment([(ops.Z**0.5)(q)]),
-        circuits.Moment([(ops.X**-0.5)(q)]),
+        circuits.Moment([ops.X(q)**0.5]),
+        circuits.Moment([ops.Z(q)**0.5]),
+        circuits.Moment([ops.X(q)**-0.5]),
     ])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
 
     assert c == circuits.Circuit([
-        circuits.Moment([(ops.Y**0.5)(q)]),
+        circuits.Moment([ops.Y(q)**0.5]),
         circuits.Moment(),
         circuits.Moment(),
     ])
