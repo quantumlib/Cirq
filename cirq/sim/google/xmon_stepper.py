@@ -343,7 +343,7 @@ class Stepper(object):
             raise ValueError(
                 'Reset state has invalid dtype. Expected %s but was %s' % (
                     np.complex64, state.dtype))
-        norm = np.sum(state ** 2)
+        norm = np.sum(np.abs(state) ** 2)
         if not np.isclose(norm, 1):
             raise ValueError(
                 'Initial state is not normalized instead had norm %s' % norm
