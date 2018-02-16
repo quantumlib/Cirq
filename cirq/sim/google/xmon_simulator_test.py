@@ -197,9 +197,22 @@ def test_moment_steps_set_state():
     simulator = xmon_simulator.Simulator()
     step = simulator.moment_steps(circuit, qubits=[Q1, Q2])
 
-    result = step.__next__()
+    result = next(step)
     result.set_state(0)
     np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
+
+
+def test_moment_steps_set_state():
+    np.random.seed(0)
+    circuit = basic_circuit()
+
+    simulator = xmon_simulator.Simulator()
+    step = simulator.moment_steps(circuit, qubits=[Q1, Q2])
+
+    result = next(step)
+    result.set_state(np.array([1j, 0, 0 ,0], dtype=np.complex64))
+    np.testing.assert_almost_equal(result.state(),
+                                   np.array([1j, 0, 0, 0], dtype=np.complex64))
 
 
 def compute_gate(circuit, resolver, num_qubits=1):
