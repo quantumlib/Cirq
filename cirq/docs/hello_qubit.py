@@ -22,8 +22,8 @@ def main():
     simulator = cirq.sim.google.xmon_simulator.Simulator()
     results = []
     for _ in range(10):
-        result = simulator.run(circuit).measurements['result'][0]
-        results.append('1' if result else '0')
+        _, result = simulator.run(circuit)
+        results.append('1' if result.measurements['result'][0] else '0')
     print("Simulated measurement results:")
     print(''.join(results))
 

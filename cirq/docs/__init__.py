@@ -11,11 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from cirq.google.convert_to_xmon_gates import *
-from cirq.google.known_devices import *
-from cirq.google.parameterized_value import *
-from cirq.google.resolver import *
-from cirq.google.xmon_device import *
-from cirq.google.xmon_gates import *
-from cirq.google.xmon_qubit import *

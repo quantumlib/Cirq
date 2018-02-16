@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.convert_to_xmon_gates import *
-from cirq.google.known_devices import *
-from cirq.google.parameterized_value import *
-from cirq.google.resolver import *
-from cirq.google.xmon_device import *
-from cirq.google.xmon_gates import *
-from cirq.google.xmon_qubit import *
+"""Types and methods for running studies (repeated trials)."""
+
+from cirq.study.study import *

@@ -20,5 +20,6 @@ from cirq import linalg
 from cirq import ops
 from cirq import schedules
 from cirq import sim
+from cirq import study
 from cirq import testing
 from cirq import time
