@@ -18,7 +18,7 @@ import cirq
 qubit = cirq.google.XmonQubit(0, 0)
 
 # Create a circuit (qubits start in the |0> state).
-circuit = cirq.Circuit()
+circuit = cirq.circuits.Circuit()
 circuit.append([
     # Square root of NOT.
     (cirq.ops.X**0.5).on(qubit),
