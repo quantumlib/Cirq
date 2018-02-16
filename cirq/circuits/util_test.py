@@ -219,8 +219,8 @@ def test_controlled_op_to_gates_concrete_case():
         operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
         tolerance=0.0001)
 
-    assert operations == [(ops.Y**-0.5)(qt), (ops.CZ**1.5)(qc, qt),
-                          (ops.Z**0.25)(qc), (ops.Y**0.5)(qt)]
+    assert operations == [ops.Y(qt)**-0.5, ops.CZ(qc, qt)**1.5,
+                          ops.Z(qc)**0.25, ops.Y(qt)**0.5]
 
 
 def test_controlled_op_to_gates_omits_negligible_global_phase():
@@ -229,8 +229,7 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     operations = circuits.controlled_op_to_native_gates(
         control=qc, target=qt, operation=ops.H.matrix(), tolerance=0.0001)
 
-    assert operations == [(ops.Y**-0.25)(qt),
-                          ops.CZ(qc, qt), (ops.Y**0.25)(qt)]
+    assert operations == [ops.Y(qt)**-0.25, ops.CZ(qc, qt), ops.Y(qt)**0.25]
 
 
 @pytest.mark.parametrize('mat', [
