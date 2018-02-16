@@ -141,8 +141,8 @@ class _AsciiDiagramDrawer:
         for col in range(w):
             col_width = max(1, max(len(grid[y][col]) for y in range(h)))
             for row in range(h):
-                grid[row][col] = grid[row][col].ljust(
-                    col_width, extend_char[row][col])
+                missing = col_width - len(grid[row][col])
+                grid[row][col] += extend_char[row][col] * missing
 
         return '\n'.join(''.join(row).rstrip() for row in grid)
 

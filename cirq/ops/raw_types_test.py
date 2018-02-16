@@ -45,7 +45,7 @@ def test_gate_calls_validate():
 def test_named_qubit():
     q = ops.NamedQubit('a')
     assert str(q) == 'a'
-    assert repr(q) == "NamedQubit('a')"
+    assert repr(q) in ["NamedQubit('a')", "NamedQubit(u'a')"]
 
 
 def test_operation_init():
