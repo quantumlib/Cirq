@@ -15,7 +15,7 @@ A simple example to get you up and running:
 import cirq
 
 # Define a qubit.
-qubit = cirq.google.XmonQubit(0, 0)
+qubit = crq.google.XmonQubit(0, 0)
 
 # Create a circuit (qubits start in the |0> state).
 circuit = cirq.circuits.Circuit()
