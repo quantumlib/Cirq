@@ -22,8 +22,7 @@ import numpy as np
 from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
-from cirq.google.parameterized_value import ParameterizedValue
-from cirq import ops
+from cirq.study.parameterized_value import ParameterizedValue
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):

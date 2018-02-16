@@ -17,11 +17,12 @@
 from typing import Iterator, Tuple
 
 from cirq import ops
-from cirq.google import ExpZGate, ParameterizedValue
 from cirq.circuits import util
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.optimization_pass import OptimizationPass
+from cirq.google import ExpZGate
+from cirq.study import ParameterizedValue
 
 
 class EjectZ(OptimizationPass):
