@@ -18,16 +18,15 @@ import collections
 import itertools
 
 import pytest
+from cirq.study.resolver import ParamResolver
 
 from cirq import study
 from cirq.circuits import Circuit
-from cirq.study import ExecutorStudy
-from cirq.google.parameterized_value import ParameterizedValue
-from cirq.google.resolver import ParamResolver
-from cirq.google.xmon_gates import (ExpWGate, Exp11Gate, ExpZGate,
-                                    XmonMeasurementGate)
+from cirq.google.xmon_gates import ExpWGate, XmonMeasurementGate
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.sim.google.xmon_simulator import TrialContext, TrialResult, Simulator
+from cirq.sim.google.xmon_simulator import Simulator
+from cirq.study import ExecutorStudy
+from cirq.study.parameterized_value import ParameterizedValue
 
 
 def bit_flip_circuit(flip0, flip1):

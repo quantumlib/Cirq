@@ -32,8 +32,8 @@ import abc
 from typing import Dict, Iterable, Tuple, Union
 
 from cirq.circuits import Circuit
-from cirq.google import ParamResolver  # TODO(dabacon): Move to study.
 from cirq.schedules import Schedule
+from cirq.study import ParamResolver
 
 
 class StudyInterface(metaclass=abc.ABCMeta):
