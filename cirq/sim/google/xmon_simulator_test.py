@@ -21,11 +21,13 @@ import numpy as np
 import pytest
 
 from cirq.circuits import Circuit
+from cirq.devices import UnconstrainedDevice
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
 from cirq.google import (ParameterizedValue)
 from cirq.ops.common_gates import CNOT, X
+from cirq.schedules import moment_by_moment_schedule
 from cirq.sim.google import xmon_simulator
 from cirq.study.resolver import ParamResolver
 
@@ -59,7 +61,7 @@ def large_circuit():
     for i in range(10):
         circuit.append(
             XmonMeasurementGate(key='meas')(qubits[i]))
-    return circuit
+    return circuit, qubits
 
 
 def test_xmon_options_negative_num_shards():
@@ -82,14 +84,27 @@ def assert_empty_context(context):
     assert xmon_simulator.TrialContext(param_dict={}) == context
 
 
-def test_run_no_results():
+def run(simulator, circuit, scheduler, **kw):
+    if scheduler is None:
+        return simulator.run(circuit, **kw)
+    else:
+        schedule = scheduler(UnconstrainedDevice, circuit)
+        return simulator.run_schedule(schedule, **kw)
+
+
+SCHEDULERS = [None, moment_by_moment_schedule]
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_no_results(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(basic_circuit())
+    context, result = run(simulator, basic_circuit(), scheduler)
     assert len(result.measurements) == 0
     assert_empty_context(context)
 
 
-def test_run():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run(scheduler):
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
@@ -97,49 +112,58 @@ def test_run():
          XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit)
+    context, result = run(simulator, circuit, scheduler)
     assert result.measurements == {'a': [False], 'b': [False]}
     assert_empty_context(context)
 
 
-def test_run_state():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
+    context, result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([-0.5j, 0.5, -0.5, 0.5j]))
     assert_empty_context(context)
 
 
-def test_run_state_different_order_of_qubits():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_state_different_order_of_qubits(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(basic_circuit(), qubits=[Q2, Q1])
+    context, result = run(simulator, basic_circuit(), scheduler, qubits=[Q2, Q1])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([-0.5j, -0.5, 0.5, 0.5j]))
     assert_empty_context(context)
 
 
-def test_run_sharded():
-    circuit = large_circuit()
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_sharded(scheduler):
+    circuit, qubits = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit)
+    context, result = run(simulator, circuit, scheduler, qubits=qubits)
     assert result.measurements == {
         'meas': [False, False, False, True, False, False, True, False, False,
                  True]}
     assert_empty_context(context)
 
 
-def test_run_no_sharding():
-    circuit = large_circuit()
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_no_sharding(scheduler):
+    circuit, qubits = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit, xmon_simulator.Options(num_shards=1))
+    context, result = run(simulator,
+                          circuit,
+                          scheduler,
+                          options=xmon_simulator.Options(num_shards=1),
+                          qubits=qubits)
     assert result.measurements == {
         'meas': [False, False, False, True, False, False, True, False, False,
                  True]}
 
 
-def test_run_no_sharing_few_qubits():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_no_sharing_few_qubits(scheduler):
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
@@ -148,7 +172,7 @@ def test_run_no_sharing_few_qubits():
 
     simulator = xmon_simulator.Simulator()
     options = xmon_simulator.Options(min_qubits_before_shard=0)
-    context, result = simulator.run(circuit, options=options)
+    context, result = run(simulator, circuit, scheduler, options=options)
     assert result.measurements == {'a': [False], 'b': [False]}
     assert_empty_context(context)
 
@@ -295,12 +319,13 @@ def test_param_resolver_param_dict(offset):
     assert context.param_dict == {'a': 0.5}
 
 
-def test_composite_gates():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_composite_gates(scheduler):
     circuit = Circuit()
     circuit.append([X(Q1), CNOT(Q1, Q2)])
     m = XmonMeasurementGate('a')
     circuit.append([m(Q1), m(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit)
+    context, result = run(simulator, circuit, scheduler)
     assert result.measurements['a'] == [True, True]
