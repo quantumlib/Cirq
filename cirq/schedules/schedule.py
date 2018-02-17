@@ -17,6 +17,7 @@ from typing import List, Union
 
 from sortedcontainers import SortedListWithKey
 
+from cirq.circuits import Circuit
 from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
@@ -160,3 +161,8 @@ class Schedule:
             return True
         except ValueError:
             return False
+
+    def to_circuit(self) -> Circuit:
+        circuit = Circuit()
+        circuit.append(so.operation for so in self.scheduled_operations)
+        return circuit

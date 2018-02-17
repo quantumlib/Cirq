@@ -135,9 +135,7 @@ class Simulator(Executor):
         Returns:
             A tuple (context, result). See run for more info.
         """
-        circuit = Circuit()
-        circuit.append(so.operation for so in schedule.scheduled_operations)
-        return self.run(circuit, **kw)
+        return self.run(schedule.to_circuit(), **kw)
 
     def moment_steps(
             self,
