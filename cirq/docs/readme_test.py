@@ -5,7 +5,7 @@ import re
 def test_readme_code_snippets_execute():
     # Get the contents of the README.md file at the project root.
     readme_path = os.path.join(
-        os.path.split(__file__)[0],  # Start at this file's directory.
+        os.path.dirname(__file__),  # Start at this file's directory.
         '..', '..', 'cirq', 'docs',  # Hacky check that we're under cirq/docs/.
         '..', '..', 'README.md')     # Get the readme two levels up.
     try:
