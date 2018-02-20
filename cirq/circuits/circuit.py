@@ -14,8 +14,6 @@
 
 """The circuit data structure for the sequenced phase."""
 
-import itertools
-
 from typing import Iterable, List, Optional, Set
 
 from cirq import ops

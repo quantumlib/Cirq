@@ -1,2 +1,6 @@
-from cirq.time.duration import *
-from cirq.time.timestamp import *
+from cirq.time.duration import (
+    Duration,
+)
+from cirq.time.timestamp import (
+    Timestamp,
+)

@@ -14,8 +14,9 @@
 
 """Utility methods for diagonalizing matrices."""
 
-import numpy as np
 from typing import Tuple, Callable, List
+
+import numpy as np
 
 from cirq.linalg import combinators
 from cirq.linalg import predicates

@@ -15,8 +15,9 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-import numpy as np
 from typing import Tuple, Callable, List, TypeVar
+
+import numpy as np
 
 from cirq.linalg import combinators
 from cirq.linalg import diagonalize

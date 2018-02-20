@@ -1,7 +1,7 @@
 import random
 
 from cirq.circuits import Circuit
-from cirq.google import XmonDevice, Exp11Gate, XmonQubit, ExpWGate, ExpZGate
+from cirq.google import XmonDevice, Exp11Gate, XmonQubit, ExpWGate
 
 
 def generate_supremacy_circuit(

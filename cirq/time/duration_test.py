@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import sys
 
-from cirq.time import Duration
+import pytest
+
 from cirq.testing import EqualsTester
+from cirq.time import Duration
 
 
 def test_init():

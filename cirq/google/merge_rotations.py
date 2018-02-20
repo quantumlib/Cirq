@@ -19,12 +19,10 @@ from typing import Iterable, List, Tuple
 import numpy as np
 
 from cirq import ops
-from cirq import google
-from cirq.circuits import util
-from cirq.circuits.circuit import Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.optimization_pass import PointOptimizer
+from cirq.circuits import Circuit, InsertStrategy, PointOptimizer
 from cirq.extension import Extensions
+from cirq.google.decompositions import single_qubit_matrix_to_native_gates
+from cirq.google.xmon_gates import XmonGate
 
 
 class MergeRotations(PointOptimizer):
@@ -44,8 +42,7 @@ class MergeRotations(PointOptimizer):
 
         indices, gates = self._scan_single_qubit_ops(circuit, index,
                                                      op.qubits[0])
-        if not gates or (len(gates) == 1 and
-                         isinstance(gates[0], google.XmonGate)):
+        if not gates or (len(gates) == 1 and isinstance(gates[0], XmonGate)):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
@@ -81,6 +78,5 @@ class MergeRotations(PointOptimizer):
         for op in gates:
             matrix = np.dot(op.matrix(), matrix)
 
-        gates = util.single_qubit_matrix_to_native_gates(matrix,
-                                                         self.tolerance)
+        gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
         return [gate(qubit) for gate in gates]

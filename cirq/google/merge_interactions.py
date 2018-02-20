@@ -14,15 +14,14 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-import numpy as np
 from typing import List, Tuple, Optional
 
+import numpy as np
+
 from cirq import ops
-from cirq.circuits.circuit import Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.optimization_pass import PointOptimizer
-from cirq.circuits import util
+from cirq.circuits import Circuit, InsertStrategy, PointOptimizer
 from cirq.extension import Extensions
+from cirq.google.decompositions import two_qubit_matrix_to_native_gates
 
 
 class MergeInteractions(PointOptimizer):
@@ -48,7 +47,7 @@ class MergeInteractions(PointOptimizer):
             return
 
         # Find a max-3-cz construction.
-        operations = util.two_qubit_matrix_to_native_gates(
+        operations = two_qubit_matrix_to_native_gates(
             op.qubits[0],
             op.qubits[1],
             matrix,

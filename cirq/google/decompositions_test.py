@@ -20,7 +20,7 @@ import numpy as np
 
 import pytest
 
-from cirq import circuits
+from cirq.google import decompositions
 from cirq import linalg
 from cirq import ops
 from cirq import testing
@@ -73,42 +73,42 @@ def assert_gates_implement_unitary(gates, intended_effect):
 
 
 def test_single_qubit_matrix_to_native_gates_known_x():
-    actual = circuits.single_qubit_matrix_to_native_gates(
+    actual = decompositions.single_qubit_matrix_to_native_gates(
         np.array([[0, 1], [1, 0]]), tolerance=0.01)
 
     assert actual == [ops.X]
 
 
 def test_single_qubit_matrix_to_native_gates_known_y():
-    actual = circuits.single_qubit_matrix_to_native_gates(
+    actual = decompositions.single_qubit_matrix_to_native_gates(
         np.array([[0, -1j], [1j, 0]]), tolerance=0.01)
 
     assert actual == [ops.Y]
 
 
 def test_single_qubit_matrix_to_native_gates_known_z():
-    actual = circuits.single_qubit_matrix_to_native_gates(
+    actual = decompositions.single_qubit_matrix_to_native_gates(
         np.array([[1, 0], [0, -1]]), tolerance=0.01)
 
     assert actual == [ops.Z]
 
 
 def test_single_qubit_matrix_to_native_gates_known_s():
-    actual = circuits.single_qubit_matrix_to_native_gates(
+    actual = decompositions.single_qubit_matrix_to_native_gates(
         np.array([[1, 0], [0, 1j]]), tolerance=0.01)
 
     assert actual == [ops.Z**0.5]
 
 
 def test_known_s_dag():
-    actual = circuits.single_qubit_matrix_to_native_gates(
+    actual = decompositions.single_qubit_matrix_to_native_gates(
         np.array([[1, 0], [0, -1j]]), tolerance=0.01)
 
     assert actual == [ops.Z**-0.5]
 
 
 def test_known_h():
-    actual = circuits.single_qubit_matrix_to_native_gates(
+    actual = decompositions.single_qubit_matrix_to_native_gates(
         np.array([[1, 1], [1, -1]]) * np.sqrt(0.5), tolerance=0.001)
 
     assert actual == [ops.Y**-0.5, ops.Z]
@@ -120,7 +120,7 @@ def test_known_h():
     testing.random_unitary(2) for _ in range(10)
 ])
 def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
-    gates = circuits.single_qubit_matrix_to_native_gates(
+    gates = decompositions.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)
     assert len(gates) <= 2
     assert_gates_implement_unitary(gates, intended_effect)
@@ -136,7 +136,7 @@ def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         ops.X.matrix(),
         ops.RotZGate(half_turns=2 * post_turns).matrix())
 
-    gates = circuits.single_qubit_matrix_to_native_gates(
+    gates = decompositions.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)
 
     assert len(gates) == 1
@@ -146,11 +146,11 @@ def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
 def test_single_qubit_matrix_to_native_gates_tolerance_z():
     z = np.diag([1, np.exp(1j * 0.01)])
 
-    optimized_away = circuits.single_qubit_matrix_to_native_gates(
+    optimized_away = decompositions.single_qubit_matrix_to_native_gates(
         z, tolerance=0.1)
     assert len(optimized_away) == 0
 
-    kept = circuits.single_qubit_matrix_to_native_gates(z,
+    kept = decompositions.single_qubit_matrix_to_native_gates(z,
                                                         tolerance=0.0001)
     assert len(kept) == 1
 
@@ -159,11 +159,11 @@ def test_single_qubit_matrix_to_native_gates_tolerance_xy():
     c, s = np.cos(0.01), np.sin(0.01)
     xy = np.array([[c, -s], [s, c]])
 
-    optimized_away = circuits.single_qubit_matrix_to_native_gates(
+    optimized_away = decompositions.single_qubit_matrix_to_native_gates(
         xy, tolerance=0.1)
     assert len(optimized_away) == 0
 
-    kept = circuits.single_qubit_matrix_to_native_gates(xy,
+    kept = decompositions.single_qubit_matrix_to_native_gates(xy,
                                                         tolerance=0.0001)
     assert len(kept) == 1
 
@@ -176,17 +176,17 @@ def test_single_qubit_matrix_to_native_gates_tolerance_half_turn_phasing():
     z2 = np.diag([1, np.exp(1j * 1.6)])
     phased_nearly_x = z1.dot(nearly_x).dot(z2)
 
-    optimized_away = circuits.single_qubit_matrix_to_native_gates(
+    optimized_away = decompositions.single_qubit_matrix_to_native_gates(
         phased_nearly_x, tolerance=0.1)
     assert len(optimized_away) == 1
 
-    kept = circuits.single_qubit_matrix_to_native_gates(
+    kept = decompositions.single_qubit_matrix_to_native_gates(
         phased_nearly_x, tolerance=0.0001)
     assert len(kept) == 2
 
 
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
-    u, t, g = circuits.single_qubit_op_to_framed_phase_form(
+    u, t, g = decompositions.single_qubit_op_to_framed_phase_form(
         (ops.Y**0.25).matrix())
     assert linalg.allclose_up_to_global_phase(u, (ops.X**0.5).matrix())
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
@@ -205,7 +205,7 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
      for _ in range(10)])
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
         mat):
-    u, t, g = circuits.single_qubit_op_to_framed_phase_form(mat)
+    u, t, g = decompositions.single_qubit_op_to_framed_phase_form(mat)
     z = np.diag([g, g * t])
     assert np.allclose(mat, np.conj(u.T).dot(z).dot(u))
 
@@ -213,7 +213,7 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
 def test_controlled_op_to_gates_concrete_case():
     qc = ops.QubitId()
     qt = ops.QubitId()
-    operations = circuits.controlled_op_to_native_gates(
+    operations = decompositions.controlled_op_to_native_gates(
         control=qc,
         target=qt,
         operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
@@ -226,7 +226,7 @@ def test_controlled_op_to_gates_concrete_case():
 def test_controlled_op_to_gates_omits_negligible_global_phase():
     qc = ops.QubitId()
     qt = ops.QubitId()
-    operations = circuits.controlled_op_to_native_gates(
+    operations = decompositions.controlled_op_to_native_gates(
         control=qc, target=qt, operation=ops.H.matrix(), tolerance=0.0001)
 
     assert operations == [ops.Y(qt)**-0.25, ops.CZ(qc, qt), ops.Y(qt)**0.25]
@@ -246,7 +246,7 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
 def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
     qc = ops.QubitId()
     qt = ops.QubitId()
-    operations = circuits.controlled_op_to_native_gates(
+    operations = decompositions.controlled_op_to_native_gates(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
     intended_effect = linalg.kron_with_controls(mat, linalg.CONTROL_TAG)
@@ -360,9 +360,9 @@ def test_two_to_native_equivalent_and_bounded_for_known_and_random(
     q0 = ops.QubitId()
     q1 = ops.QubitId()
 
-    operations_with_partial = circuits.two_qubit_matrix_to_native_gates(
+    operations_with_partial = decompositions.two_qubit_matrix_to_native_gates(
         q0, q1, effect, True)
-    operations_with_full = circuits.two_qubit_matrix_to_native_gates(
+    operations_with_full = decompositions.two_qubit_matrix_to_native_gates(
         q0, q1, effect, False)
 
     assert_ops_implement_unitary(q0, q1, operations_with_partial, effect)
