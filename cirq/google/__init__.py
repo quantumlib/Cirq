@@ -40,8 +40,8 @@ from cirq.google.xmon_device import (
 )
 from cirq.google.xmon_gates import (
     Exp11Gate,
-    ExpZGate,
     ExpWGate,
+    ExpZGate,
     XmonGate,
     XmonMeasurementGate,
 )

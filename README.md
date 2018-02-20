@@ -18,16 +18,16 @@ import cirq
 qubit = cirq.google.XmonQubit(0, 0)
 
 # Create a circuit (qubits start in the |0> state).
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([
     # Square root of NOT.
-    cirq.ops.X(qubit)**0.5,
+    cirq.X(qubit)**0.5,
 
     # Measurement.
-    cirq.ops.MeasurementGate('result').on(qubit)
+    cirq.MeasurementGate('result').on(qubit)
 ])
 print("Circuit:")
-print(cirq.circuits.to_ascii(circuit))
+print(cirq.to_ascii(circuit))
 
 # Now simulate the circuit and print out the measurement result.
 simulator = cirq.sim.google.xmon_simulator.Simulator()
