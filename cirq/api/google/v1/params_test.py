@@ -11,7 +11,7 @@ def test_gen_sweep_points():
     points = [0.5, 1.0, 1.5, 2.0, 2.5]
     sweep = SingleParameterSweep()
     sweep.sweep_points.points.extend(points)
-    out = params.gen_single_param_sweep(sweep)
+    out = params._gen_single_param_sweep(sweep)
     assert list(out) == points
 
 
@@ -20,7 +20,7 @@ def test_gen_sweep_linspace():
     sweep.sweep_linspace.first_point = 0
     sweep.sweep_linspace.last_point = 10
     sweep.sweep_linspace.num_points = 11
-    out = params.gen_single_param_sweep(sweep)
+    out = params._gen_single_param_sweep(sweep)
     assert list(out) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
@@ -29,7 +29,7 @@ def test_gen_sweep_linspace_one_point():
     sweep.sweep_linspace.first_point = 0
     sweep.sweep_linspace.last_point = 10
     sweep.sweep_linspace.num_points = 1
-    out = params.gen_single_param_sweep(sweep)
+    out = params._gen_single_param_sweep(sweep)
     assert list(out) == [0]
 
 
@@ -41,7 +41,7 @@ def test_gen_param_sweep_zip():
     s2 = sweep.sweeps.add()
     s2.parameter_name = 'bar'
     s2.sweep_points.points.extend([4, 5])
-    out = params.gen_param_sweep_zip(sweep)
+    out = params._gen_param_sweep_zip(sweep)
     assert list(out) == [(('foo', f), ('bar', b))
                          for f, b in zip([1, 2, 3], [4, 5])]
 
@@ -67,12 +67,12 @@ def test_gen_param_sweep():
                          for f in [1, 2, 3] for b in [4, 5]]
 
 
-def test_empty_param_sweep_params():
+def test_empty_param_sweep_names():
     ps = ParameterSweep()
-    assert params.param_sweep_params(ps) == []
+    assert params.param_sweep_names(ps) == []
 
 
-def test_param_sweep_params():
+def test_param_sweep_names():
     ps = ParameterSweep()
     f1 = ps.sweep.factors.add()
     f1.sweeps.add().parameter_name = 'foo'
@@ -80,7 +80,7 @@ def test_param_sweep_params():
     f2 = ps.sweep.factors.add()
     f2.sweeps.add().parameter_name = 'baz'
     f2.sweeps.add().parameter_name = 'qux'
-    assert params.param_sweep_params(ps) == ['foo', 'bar', 'baz', 'qux']
+    assert params.param_sweep_names(ps) == ['foo', 'bar', 'baz', 'qux']
 
 
 def test_empty_param_sweep_size():
@@ -97,3 +97,10 @@ def test_param_sweep_size():
     f2.sweeps.add().sweep_linspace.num_points = 11
     f2.sweeps.add().sweep_points.points.extend(range(13))
     assert params.param_sweep_size(ps) == 5 * 11
+
+
+def test_param_sweep_size_no_sweeps():
+    ps = ParameterSweep()
+    ps.sweep.factors.add()
+    ps.sweep.factors.add()
+    assert params.param_sweep_size(ps) == 0
