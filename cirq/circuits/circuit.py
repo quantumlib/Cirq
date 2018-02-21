@@ -14,8 +14,6 @@
 
 """The circuit data structure for the sequenced phase."""
 
-import itertools
-
 from typing import Iterable, List, Optional, Set
 
 from cirq import ops
@@ -34,6 +32,23 @@ class Circuit(object):
             moments: The initial list of moments defining the circuit.
         """
         self.moments = list(moments)
+
+    @staticmethod
+    def from_ops(*operations: ops.OP_TREE,
+                 strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE
+                 ) -> 'Circuit':
+        """Creates an empty circuit and appends the given operations.
+
+        Args:
+            operations: The operations to append to the new circuit.
+            strategy: How to append the operations.
+
+        Returns:
+            The constructed circuit containing the operations.
+        """
+        result = Circuit()
+        result.append(operations, strategy)
+        return result
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
