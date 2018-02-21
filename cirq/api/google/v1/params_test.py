@@ -1,3 +1,5 @@
+import pytest
+
 from cirq.api.google.v1 import params
 from cirq.api.google.v1.params_pb2 import (
     ParameterSweep,
@@ -104,3 +106,40 @@ def test_param_sweep_size_no_sweeps():
     ps.sweep.factors.add()
     ps.sweep.factors.add()
     assert params.param_sweep_size(ps) == 0
+
+
+def example_sweeps():
+    empty_sweep = ParameterSweep()
+
+    empty_product = ParameterSweep()
+    empty_product.sweep
+
+    empty_zip = ParameterSweep()
+    empty_zip.sweep.factors.add()
+    empty_zip.sweep.factors.add()
+
+    full_sweep = ParameterSweep()
+    f1 = full_sweep.sweep.factors.add()
+    s11 = f1.sweeps.add()
+    s11.sweep_linspace.first_point = 0
+    s11.sweep_linspace.last_point = 10
+    s11.sweep_linspace.num_points = 5
+    s12 = f1.sweeps.add()
+    s12.sweep_points.points.extend(range(7))
+
+    f2 = full_sweep.sweep.factors.add()
+    s21 = f2.sweeps.add()
+    s21.sweep_linspace.first_point = 0
+    s21.sweep_linspace.last_point = 10
+    s21.sweep_linspace.num_points = 11
+    s22 = f2.sweeps.add()
+    s22.sweep_points.points.extend(range(13))
+
+    return [empty_sweep, empty_product, empty_zip, full_sweep]
+
+
+@pytest.mark.parametrize('param_sweep', example_sweeps())
+def test_param_sweep_size_versus_gen(param_sweep):
+    predicted_size = params.param_sweep_size(param_sweep)
+    out = list(params.gen_param_sweep(param_sweep))
+    assert len(out) == predicted_size

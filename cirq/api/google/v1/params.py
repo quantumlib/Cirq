@@ -15,6 +15,8 @@ Params = Tuple[Tuple[str, float], ...]
 
 def param_sweep_names(param_sweep: ParameterSweep) -> List[str]:
     """Get the list of parameter names in the given parameter sweep."""
+    if not param_sweep.HasField('sweep'):
+        return []
     return [sweep.parameter_name
             for factor in param_sweep.sweep.factors
             for sweep in factor.sweeps]
