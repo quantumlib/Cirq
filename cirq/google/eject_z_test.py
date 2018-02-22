@@ -36,8 +36,9 @@ def assert_optimizes(before, after):
         post.optimize_circuit(before)
         post.optimize_circuit(after)
 
-    print(before)
-    print(after)
+    if before != after:
+        print(before)
+        print(after)
     assert before == after
 
     # And it should be idempotent.

@@ -22,6 +22,8 @@ from cirq.google.xmon_qubit import XmonQubit
 from cirq.time import Duration
 
 
+from cirq.circuits import TextDiagramDrawer
+
 class XmonDevice(Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.
     """
@@ -127,3 +129,19 @@ class XmonDevice(Device):
     def validate_schedule(self, schedule):
         for scheduled_operation in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, scheduled_operation)
+
+    def __str__(self):
+        diagram = TextDiagramDrawer()
+
+        for q in self.qubits:
+            diagram.write(q.x, q.y, str(q))
+            for q2 in self.neighbors_of(q):
+                if q2.x != q.x:
+                    diagram.horizontal_line(q.y, q.x, q2.x)
+                else:
+                    diagram.vertical_line(q.x, q.y, q2.y)
+
+        return diagram.render(
+            horizontal_spacing=3,
+            vertical_spacing=2,
+            use_unicode_characters=True)
