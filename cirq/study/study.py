@@ -28,7 +28,6 @@ Example use:
 """
 
 import abc
-
 from typing import Dict, Iterable, Tuple, Union
 
 from cirq.circuits import Circuit

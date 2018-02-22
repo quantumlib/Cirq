@@ -115,8 +115,7 @@ class Simulator(Executor):
         final_step_result = functools.reduce(
             StepResult.merge_measurements_with,
             all_step_results)
-        return (context, TrialResult(final_step_result))
-
+        return context, TrialResult(final_step_result)
 
     def moment_steps(
             self,
@@ -124,7 +123,7 @@ class Simulator(Executor):
             options: 'Options' = None,
             qubits: Sequence[raw_types.QubitId] = None,
             initial_state: Union[int, np.ndarray]=0,
-            param_resolver: ParamResolver = None) -> Iterator['TrialResult']:
+            param_resolver: ParamResolver = None) -> Iterator['StepResult']:
         """Returns an iterator of XmonStepResults for each moment simulated.
 
         Args:
@@ -155,7 +154,8 @@ def simulator_iterator(
         options: 'Options' = Options(),
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray]=0,
-        param_resolver: ParamResolver = ParamResolver({})):
+        param_resolver: ParamResolver = ParamResolver({})
+) -> Iterator['StepResult']:
     """Iterator over TrialResults from Moments of a Circuit.
 
     This should rarely be instantiated directly, instead prefer to create an
@@ -247,7 +247,7 @@ class TrialContext(cirq.study.TrialContext):
         return not self == other
 
 
-class StepResult():
+class StepResult:
     """Results of a step of the simulator.
 
     Attributes:

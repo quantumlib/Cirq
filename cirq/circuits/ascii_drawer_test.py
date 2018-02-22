@@ -14,8 +14,8 @@
 
 from cirq import extension
 from cirq import ops
-from cirq.google import XmonQubit
 from cirq.circuits import Circuit, Moment, to_ascii
+from cirq.google import XmonQubit
 
 
 def test_to_ascii_teleportation_to_diagram():

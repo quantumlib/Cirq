@@ -16,10 +16,10 @@
 
 
 # This script fetches a pull request from the quantumlib/cirq repository and
-# runs tests for both python 2.7 and python 3.5. It informs github of the
-# outcome of the testing via the 'pytest (manual)' status indicator.
+# runs pylint on it. It informs github of the outcome of the linting via the
+# 'pylint (manual)' status indicator.
 #
-#   bash test-pull-request.sh [pull_request_number] [access_token]
+#   bash pylint-pull-request.sh [pull_request_number] [access_token]
 #
 # The pull request number argument is optional, and determines which PR is
 # fetched from the cirq repo to test. If no pull request number is given, the
@@ -36,7 +36,7 @@
 
 set -e
 own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-github_context="pytest (manual)"
+github_context="pylint (manual)"
 source "${own_directory}/load-pull-request-content.sh"
 
 function clean_up_catch () {
@@ -45,40 +45,25 @@ function clean_up_catch () {
 }
 trap clean_up_catch ERR
 
-# Run python 3.5 tests.
+# Run pylint.
 echo
-echo "Running python 3.5 tests..."
+echo "Running pylint..."
 py35=${PYTHON35_DIR:-"/usr/bin/python3.5"}
 virtualenv --quiet -p "${py35}" "${work_dir}/cirq3.5"
 source "${work_dir}/cirq3.5/bin/activate"
 pip install --quiet -r requirements.txt
 set +e
-pytest --quiet cirq
-outcome_v35=$?
-set -e
-deactivate
-
-# Run python 2.7 tests.
-echo
-echo "Running python 2.7 tests..."
-py27=${PYTHON27_DIR:-"/usr/bin/python2.7"}
-virtualenv --quiet -p "${py27}" "${work_dir}/cirq2.7"
-source "${work_dir}/cirq2.7/bin/activate"
-pip install --quiet -r python2.7-requirements.txt
-pip install --quiet 3to2
-bash python2.7-generate.sh "${work_dir}/python2.7-output"
-set +e
-pytest --quiet "${work_dir}/python2.7-output/cirq"
-outcome_v27=$?
+find cirq | grep "\.py$" | grep -v "_pb2\.py$" | xargs pylint --reports=no --score=no --output-format=colorized --rcfile=continuous-integration/.pylintrc ''
+outcome=$?
 set -e
 deactivate
 
 # Report result.
 echo
-if [ "${outcome_v35}" -eq 0 ] && [ "${outcome_v27}" -eq 0 ]; then
+if [ "${outcome}" -eq 0 ]; then
   echo "Outcome: PASSED"
-  set_status "success" "Tests passed!"
+  set_status "success" "No lint!"
 else
   echo -e "Outcome: \e[31mFAILED\e[0m"
-  set_status "failure" "Tests failed."
+  set_status "failure" "Lint present."
 fi

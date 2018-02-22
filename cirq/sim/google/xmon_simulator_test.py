@@ -24,9 +24,9 @@ from cirq.circuits import Circuit
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
-from cirq.google import (ParameterizedValue)
 from cirq.ops.common_gates import CNOT, X
 from cirq.sim.google import xmon_simulator
+from cirq.study import ParameterizedValue
 from cirq.study.resolver import ParamResolver
 
 Q1 = XmonQubit(0, 0)
@@ -133,7 +133,8 @@ def test_run_no_sharding():
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit, xmon_simulator.Options(num_shards=1))
+    _, result = simulator.run(circuit,
+                              xmon_simulator.Options(num_shards=1))
     assert result.measurements == {
         'meas': [False, False, False, True, False, False, True, False, False,
                  True]}
@@ -202,7 +203,7 @@ def test_moment_steps_set_state():
     np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
 
 
-def test_moment_steps_set_state():
+def test_moment_steps_set_state_2():
     np.random.seed(0)
     circuit = basic_circuit()
 
@@ -210,7 +211,7 @@ def test_moment_steps_set_state():
     step = simulator.moment_steps(circuit, qubits=[Q1, Q2])
 
     result = next(step)
-    result.set_state(np.array([1j, 0, 0 ,0], dtype=np.complex64))
+    result.set_state(np.array([1j, 0, 0, 0], dtype=np.complex64))
     np.testing.assert_almost_equal(result.state(),
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
 
@@ -304,7 +305,7 @@ def test_param_resolver_param_dict(offset):
     resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit, param_resolver=resolver)
+    context, _ = simulator.run(circuit, param_resolver=resolver)
     assert context.param_dict == {'a': 0.5}
 
 
@@ -315,5 +316,5 @@ def test_composite_gates():
     circuit.append([m(Q1), m(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit)
+    _, result = simulator.run(circuit)
     assert result.measurements['a'] == [True, True]

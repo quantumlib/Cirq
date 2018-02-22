@@ -14,7 +14,8 @@
 
 from cirq import circuits
 from cirq import ops
-from cirq.google import ExpZGate, ParameterizedValue, ConvertToXmonGates
+from cirq.google import ExpZGate, ConvertToXmonGates, EjectZ
+from cirq.study import ParameterizedValue
 
 
 def assert_optimizes(before, after):
@@ -26,7 +27,7 @@ def assert_optimizes(before, after):
         circuits.DropEmptyMoments()
     ]
 
-    opt = circuits.EjectZ()
+    opt = EjectZ()
 
     for pre in pre_optimizations:
         pre.optimize_circuit(before)
