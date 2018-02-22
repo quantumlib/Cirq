@@ -18,8 +18,36 @@ Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.
 """
 
-from cirq.linalg.combinators import *
-from cirq.linalg.decompositions import *
-from cirq.linalg.diagonalize import *
-from cirq.linalg.predicates import *
-from cirq.linalg.tolerance import *
+from cirq.linalg.combinators import (
+    block_diag,
+    CONTROL_TAG,
+    dot,
+    kron,
+    kron_with_controls,
+)
+from cirq.linalg.decompositions import (
+    kak_canonicalize_vector,
+    kak_decomposition,
+    kron_factor_4x4_to_2x2s,
+    map_eigenvalues,
+    so4_to_magic_su2s,
+)
+from cirq.linalg.diagonalize import (
+    bidiagonalize_real_matrix_pair_with_symmetric_products,
+    bidiagonalize_unitary_with_special_orthogonals,
+    diagonalize_real_symmetric_and_sorted_diagonal_matrices,
+    diagonalize_real_symmetric_matrix,
+)
+from cirq.linalg.predicates import (
+    allclose_up_to_global_phase,
+    commutes,
+    is_diagonal,
+    is_hermitian,
+    is_orthogonal,
+    is_special_orthogonal,
+    is_special_unitary,
+    is_unitary,
+)
+from cirq.linalg.tolerance import (
+    Tolerance,
+)

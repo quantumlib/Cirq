@@ -24,9 +24,9 @@ from cirq.circuits import Circuit
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
-from cirq.google import (ParameterizedValue)
 from cirq.ops.common_gates import CNOT, X
 from cirq.sim.google import xmon_simulator
+from cirq.study import ParameterizedValue
 from cirq.study.resolver import ParamResolver
 
 Q1 = XmonQubit(0, 0)

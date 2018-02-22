@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import ops
 from cirq.google.xmon_device import XmonDevice
 from cirq.google.xmon_qubit import XmonQubit
 from cirq.time import Duration

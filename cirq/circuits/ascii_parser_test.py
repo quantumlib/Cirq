@@ -15,8 +15,8 @@
 import pytest
 
 from cirq import ops
-from cirq.google import XmonQubit
 from cirq.circuits import Circuit, from_ascii, Moment
+from cirq.google import XmonQubit
 
 
 def from_ascii_xmon(text):

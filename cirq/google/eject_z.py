@@ -17,11 +17,9 @@
 from typing import Iterator, Tuple
 
 from cirq import ops
-from cirq.circuits import util
-from cirq.circuits.circuit import Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.optimization_pass import OptimizationPass
-from cirq.google import ExpZGate
+from cirq.circuits import Circuit, InsertStrategy, OptimizationPass
+from cirq.google.decompositions import is_negligible_turn
+from cirq.google.xmon_gates import ExpZGate
 from cirq.study import ParameterizedValue
 
 
@@ -150,7 +148,7 @@ class EjectZ(OptimizationPass):
 
     def _drain_into(self, circuit: Circuit, qubit: ops.QubitId,
                     drain: int, accumulated_phase: float):
-        if util.is_negligible_turn(accumulated_phase, self.tolerance):
+        if is_negligible_turn(accumulated_phase, self.tolerance):
             return
 
         # Drain type: end of circuit.

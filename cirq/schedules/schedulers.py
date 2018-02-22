@@ -18,7 +18,6 @@ from cirq.circuits import  Circuit
 from cirq.devices import Device
 from cirq.schedules import Schedule
 from cirq.schedules import ScheduledOperation
-from cirq.time import Duration
 from cirq.time import Timestamp
 
 
