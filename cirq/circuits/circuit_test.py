@@ -458,3 +458,24 @@ def test_qubits():
         Moment([ops.X(a)])
     ])
     assert c.qubits() == {a, b}
+
+
+def test_from_ops():
+    a = ops.QubitId()
+    b = ops.QubitId()
+
+    actual = Circuit.from_ops(
+        ops.X(a),
+        [ops.Y(a), ops.Z(b)],
+        ops.CZ(a, b),
+        ops.X(a),
+        [ops.Z(b), ops.Y(a)],
+    )
+
+    assert actual == Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.Y(a), ops.Z(b)]),
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.X(a), ops.Z(b)]),
+        Moment([ops.Y(a)]),
+    ])
