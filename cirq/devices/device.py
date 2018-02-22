@@ -14,8 +14,8 @@
 
 import abc
 
-import cirq
 from cirq.time import Duration
+
 
 # Note: circuit/schedule types specified by name to avoid circular references.
 assert cirq  # Fix unused warning (actually used in type strings).
