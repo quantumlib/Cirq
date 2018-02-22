@@ -14,9 +14,6 @@
 
 """Resolves ParameterValues to assigned values."""
 
-import abc
-import collections
-
 from typing import Dict, Union
 
 from cirq.study import ParameterizedValue

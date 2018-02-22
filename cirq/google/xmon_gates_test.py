@@ -15,11 +15,11 @@
 from google.protobuf import message, text_format
 
 from cirq.extension import Extensions
-from cirq.google import ParameterizedValue, XmonQubit
-from cirq.google.xmon_gates import (
-    XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
+from cirq.google import (
+    XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleGate
+from cirq.study import ParameterizedValue
 from cirq.testing import EqualsTester
 
 

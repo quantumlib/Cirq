@@ -18,7 +18,6 @@ import collections
 import itertools
 
 import pytest
-from cirq.study.resolver import ParamResolver
 
 from cirq import study
 from cirq.circuits import Circuit
@@ -27,6 +26,7 @@ from cirq.google.xmon_qubit import XmonQubit
 from cirq.sim.google.xmon_simulator import Simulator
 from cirq.study import ExecutorStudy
 from cirq.study.parameterized_value import ParameterizedValue
+from cirq.study.resolver import ParamResolver
 
 
 def bit_flip_circuit(flip0, flip1):

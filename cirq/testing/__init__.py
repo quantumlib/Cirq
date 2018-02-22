@@ -14,5 +14,12 @@
 
 """Utilities for testing code."""
 
-from cirq.testing.equals_tester import *
-from cirq.testing.lin_alg_utils import *
+from cirq.testing.equals_tester import (
+    EqualsTester,
+)
+from cirq.testing.lin_alg_utils import (
+    random_orthogonal,
+    random_special_orthogonal,
+    random_special_unitary,
+    random_unitary,
+)

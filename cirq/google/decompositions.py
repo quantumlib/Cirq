@@ -16,13 +16,13 @@
 
 import cmath
 import math
+from typing import List, Tuple, Optional
 
 import numpy as np
-from typing import List, Tuple, Optional
 
 from cirq import linalg
 from cirq import ops
-from cirq.google import ExpWGate
+from cirq.google.xmon_gates import ExpWGate
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
