@@ -12,45 +12,93 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import random
+from typing import List, Iterable
 
-from cirq.circuits import Circuit
-from cirq.google import XmonDevice, Exp11Gate, XmonQubit, ExpWGate
+import cirq
+from cirq import google
 
 
-def generate_supremacy_circuit(
-        xmon_device: XmonDevice,
-        cz_depth: int) -> Circuit:
+def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int
+                               ) -> cirq.Circuit:
 
-    circuit = Circuit()
-    cz = Exp11Gate()
+    circuit = cirq.Circuit()
 
-    def single_qubit_layer():
-        vals = [random.randint(0, 7) / 4.0 for _ in xmon_device.qubits]
-        phases = [random.randint(0, 7) / 4.0 for _ in xmon_device.qubits]
-        return [
-            ExpWGate(half_turns=v, axis_half_turns=w).on(q)
-            for v, w, q in zip(vals, phases, xmon_device.qubits)
-            if v
-        ]
-
-    i = 0
-    while cz_depth:
-        cz_offset = (i >> 1) % 4
-        dx = i % 2
-        dy = 1 - dx
-        cz_layer = [
-            cz.on(q, XmonQubit(q.x + dx, q.y + dy))
-            for q in xmon_device.qubits
-            if (q.x * (2 - dx) + q.y * (2 - dy)) % 4 == cz_offset
-            if XmonQubit(q.x + dx, q.y + dy) in xmon_device.qubits
-        ]
+    for layer_index in itertools.count():
+        if cz_depth <= 0:
+            break
+        cz_layer = list(_make_cz_layer(device, layer_index))
         if cz_layer:
-            circuit.append(single_qubit_layer())
+            circuit.append(_make_random_single_qubit_op_layer(device))
             circuit.append(cz_layer)
             cz_depth -= 1
-        i += 1
 
-    circuit.append(single_qubit_layer())
+    circuit.append(_make_random_single_qubit_op_layer(device))
+    circuit.append(google.XmonMeasurementGate().on(q)
+                   for q in device.qubits)
 
     return circuit
+
+
+def _make_random_single_qubit_op_layer(device: google.XmonDevice
+                                       ) -> List[cirq.Operation]:
+    for q in device.qubits:
+        angle = random.randint(0, 7) / 4
+        axis = random.randint(0, 7) / 4
+        if angle:
+            yield google.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
+
+
+def _make_cz_layer(device: google.XmonDevice, layer_index: int
+                   ) -> Iterable[cirq.Operation]:
+    """
+    Each layer index corresponds to a shift/transpose of this CZ pattern:
+
+        ●───●   ●   ●   ●───●   ●   ● . . .
+
+        ●   ●   ●───●   ●   ●   ●───● . . .
+
+        ●───●   ●   ●   ●───●   ●   ● . . .
+
+        ●   ●   ●───●   ●   ●   ●───● . . .
+
+        ●───●   ●   ●   ●───●   ●   ● . . .
+
+        ●   ●   ●───●   ●   ●   ●───● . . .
+        .   .   .   .   .   .   .   . .
+        .   .   .   .   .   .   .   .   .
+        .   .   .   .   .   .   .   .     .
+
+    Labelled edges, showing the exact index-to-CZs mapping (mod 8):
+
+         ●─0─●─2─●─4─●─6─●─0─. . .
+        1│  5│  1│  5│  1│
+         ●─4─●─6─●─0─●─2─●─4─. . .
+        3│  7│  3│  7│  3│
+         ●─0─●─2─●─4─●─6─●─0─. . .
+        5│  1│  5│  1│  5│
+         ●─4─●─6─●─0─●─2─●─4─. . .
+        7│  3│  7│  3│  7│
+         ●─0─●─2─●─4─●─6─●─0─. . .
+        1│  5│  1│  5│  1│
+         .   .   .   .   .   .
+         .   .   .   .   .     .
+         .   .   .   .   .       .
+
+    Note that, for small devices, some layers will be empty because the layer
+    only contains edges not present on the device.
+    """
+
+    dir_x = layer_index % 2
+    dir_y = 1 - dir_x
+    shift = (layer_index >> 1) % 4
+
+    for q in device.qubits:
+        q2 = google.XmonQubit(q.x + dir_x, q.y + dir_y)
+        if q2 not in device.qubits:
+            continue  # This edge isn't on the device.
+        if (q.x * (2 - dir_x) + q.y * (2 - dir_y)) % 4 != shift:
+            continue  # No CZ along this edge for this layer.
+
+        yield google.Exp11Gate().on(q, q2)
