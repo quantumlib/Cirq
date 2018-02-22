@@ -14,7 +14,6 @@
 
 import abc
 
-import cirq
 from cirq.time import Duration
 
 # Note: circuit/schedule types specified by name to avoid circular references.
