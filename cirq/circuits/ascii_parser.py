@@ -17,7 +17,6 @@
 from typing import Optional, List, Dict, Iterator, Tuple, Callable
 
 from cirq import ops
-
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.moment import Moment
 

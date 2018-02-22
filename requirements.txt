@@ -1,6 +1,7 @@
 3to2
 absl-py
 numpy
+pylint
 pytest
 protobuf
 sortedcontainers

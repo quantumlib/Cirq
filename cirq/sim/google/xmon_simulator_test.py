@@ -24,9 +24,9 @@ from cirq.circuits import Circuit
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
-from cirq.google import (ParameterizedValue)
 from cirq.ops.common_gates import CNOT, X
 from cirq.sim.google import xmon_simulator
+from cirq.study import ParameterizedValue
 from cirq.study.resolver import ParamResolver
 
 Q1 = XmonQubit(0, 0)
@@ -118,26 +118,26 @@ def test_run_state_different_order_of_qubits():
     assert_empty_context(context)
 
 
-def test_run_sharded():
+def test_consistent_seeded_run_sharded():
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
     context, result = simulator.run(circuit)
     assert result.measurements == {
-        'meas': [False, False, False, True, False, False, True, False, False,
-                 True]}
+        'meas': [True, False, False, True, False, False, True, False, False,
+                 False]}
     assert_empty_context(context)
 
 
-def test_run_no_sharding():
+def test_consistent_seeded_run_no_sharding():
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit, xmon_simulator.Options(num_shards=1))
+    _, result = simulator.run(circuit,
+                              xmon_simulator.Options(num_shards=1))
     assert result.measurements == {
-        'meas': [False, False, False, True, False, False, True, False, False,
-                 True]}
-
+        'meas': [True, False, False, True, False, False, True, False, False,
+                 False]}
 
 def test_run_no_sharing_few_qubits():
     np.random.seed(0)
@@ -202,7 +202,7 @@ def test_moment_steps_set_state():
     np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
 
 
-def test_moment_steps_set_state():
+def test_moment_steps_set_state_2():
     np.random.seed(0)
     circuit = basic_circuit()
 
@@ -210,7 +210,7 @@ def test_moment_steps_set_state():
     step = simulator.moment_steps(circuit, qubits=[Q1, Q2])
 
     result = next(step)
-    result.set_state(np.array([1j, 0, 0 ,0], dtype=np.complex64))
+    result.set_state(np.array([1j, 0, 0, 0], dtype=np.complex64))
     np.testing.assert_almost_equal(result.state(),
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
 
@@ -304,7 +304,7 @@ def test_param_resolver_param_dict(offset):
     resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit, param_resolver=resolver)
+    context, _ = simulator.run(circuit, param_resolver=resolver)
     assert context.param_dict == {'a': 0.5}
 
 
@@ -315,5 +315,28 @@ def test_composite_gates():
     circuit.append([m(Q1), m(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit)
+    _, result = simulator.run(circuit)
     assert result.measurements['a'] == [True, True]
+
+
+def test_measurement_order():
+    circuit = Circuit.from_ops(
+        XmonMeasurementGate().on(Q1),
+        X(Q1),
+        XmonMeasurementGate().on(Q1),
+    )
+    _, result = xmon_simulator.Simulator().run(circuit)
+    assert result.measurements[''] == [False, True]
+
+
+def test_inverted_measurement():
+    circuit = Circuit.from_ops(
+        XmonMeasurementGate(invert_result=False)(Q1),
+        X(Q1),
+        XmonMeasurementGate(invert_result=False)(Q1),
+        XmonMeasurementGate(invert_result=True)(Q1),
+        X(Q1),
+        XmonMeasurementGate(invert_result=True)(Q1))
+
+    _, result = xmon_simulator.Simulator().run(circuit)
+    assert result.measurements[''] == [False, True, False, True]

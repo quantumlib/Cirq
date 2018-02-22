@@ -14,8 +14,9 @@
 
 """Utility methods for diagonalizing matrices."""
 
-import numpy as np
 from typing import Tuple, Callable, List
+
+import numpy as np
 
 from cirq.linalg import combinators
 from cirq.linalg import predicates
@@ -168,8 +169,8 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
         tolerance: Numeric error thresholds.
 
     Returns:
-        A tuple (L, R) of two orthogonal matrices, such that both L @ mat1 @ R and
-        L @ mat2 @ R are diagonal matrices.
+        A tuple (L, R) of two orthogonal matrices, such that both L @ mat1 @ R
+        and L @ mat2 @ R are diagonal matrices.
 
     Raises:
         ValueError: Matrices don't meet preconditions (e.g. not real).
@@ -237,8 +238,8 @@ def bidiagonalize_unitary_with_special_orthogonals(
         tolerance: Numeric error thresholds.
 
     Returns:
-        A triplet (L, d, R) such that L @ mat @ R = diag(d). Both L and R will be
-        orthogonal matrices with determinant equal to 1.
+        A triplet (L, d, R) such that L @ mat @ R = diag(d). Both L and R will
+        be orthogonal matrices with determinant equal to 1.
 
     Raises:
         ValueError: Matrices don't meet preconditions (e.g. not real).

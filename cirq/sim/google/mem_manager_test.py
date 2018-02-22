@@ -24,7 +24,7 @@ import numpy as np
 from cirq.sim.google import mem_manager
 
 
-def get_shared_mem(handle: int) -> mem_manager.SharedMemManager:
+def get_shared_mem(handle: int) -> np.ndarray:
     return mem_manager.SharedMemManager.get_array(handle)
 
 
@@ -52,7 +52,6 @@ def test_create_unsupported_type():
     with pytest.raises(ValueError):
         not_an_array = 'not a numpy array'
         mem_manager.SharedMemManager.create_array(not_an_array)
-        assert 'array' in str(exp.value)
 
 
 def test_create_more_than_initial_allocation():
