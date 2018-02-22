@@ -213,8 +213,10 @@ def simulator_iterator(
                             gate.axis_half_turns))
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     index = qubit_map[op.qubits[0]]
-                    results = stepper.simulate_measurement(index)
-                    measurements[gate.key].append(results)
+                    result = stepper.simulate_measurement(index)
+                    if gate.invert_result:
+                        result = not result
+                    measurements[gate.key].append(result)
                 else:
                     raise TypeError(
                         'Gate %s is not a gate supported by the xmon simulator.'
@@ -311,7 +313,7 @@ class StepResult():
         self._stepper.reset_state(state)
 
     def merge_measurements_with(self,
-        last_result: 'TrialResult') -> 'TrialResult':
+                                last_result: 'StepResult') -> 'StepResult':
         """Merges measurement results of last_result into a new Result.
 
         The measurement results are merges such that measurements with duplicate
@@ -327,9 +329,9 @@ class StepResult():
             A new Result, but with merged measurements.
         """
         new_measurements = defaultdict(list)
-        new_measurements.update(last_result.measurements)
-        for key, result_list in self.measurements.items():
-            new_measurements[key].extend(result_list)
+        for d in [self.measurements, last_result.measurements]:
+            for key, result_list in d.items():
+                new_measurements[key].extend(result_list)
         return StepResult(self._stepper, self.qubit_map, new_measurements)
 
 
