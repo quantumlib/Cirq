@@ -24,7 +24,7 @@ import numpy as np
 from cirq.sim.google import mem_manager
 
 
-def get_shared_mem(handle: int) -> mem_manager.SharedMemManager:
+def get_shared_mem(handle: int) -> np.ndarray:
     return mem_manager.SharedMemManager.get_array(handle)
 
 
