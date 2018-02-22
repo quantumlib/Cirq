@@ -157,7 +157,7 @@ def _get_operation_symbols(op: ops.Operation, ext: Extensions) -> List[str]:
     return ['{}:{}'.format(name, i) for i in range(len(op.qubits))]
 
 
-def _get_operation_exponent(op: ops.Operation, ext: Extensions) -> List[str]:
+def _get_operation_exponent(op: ops.Operation, ext: Extensions) -> float:
     ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
     if ascii_gate is not None:
         return ascii_gate.ascii_exponent()
