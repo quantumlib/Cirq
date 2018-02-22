@@ -18,7 +18,6 @@ from cirq import (
     api,
     circuits,
     devices,
-    examples,
     google,
     linalg,
     ops,
@@ -140,3 +139,7 @@ from cirq.time import (
     Duration,
     Timestamp,
 )
+
+# Import examples last, because they reference this top-level package.
+
+from cirq import examples
