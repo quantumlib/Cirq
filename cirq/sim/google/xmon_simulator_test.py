@@ -118,26 +118,26 @@ def test_run_state_different_order_of_qubits():
     assert_empty_context(context)
 
 
-def test_run_sharded():
+def test_consistent_seeded_run_sharded():
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
     context, result = simulator.run(circuit)
     assert result.measurements == {
-        'meas': [False, False, False, True, False, False, True, False, False,
-                 True]}
+        'meas': [True, False, False, True, False, False, True, False, False,
+                 False]}
     assert_empty_context(context)
 
 
-def test_run_no_sharding():
+def test_consistent_seeded_run_no_sharding():
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = simulator.run(circuit, xmon_simulator.Options(num_shards=1))
+    context, result = simulator.run(circuit,
+                                    xmon_simulator.Options(num_shards=1))
     assert result.measurements == {
-        'meas': [False, False, False, True, False, False, True, False, False,
-                 True]}
-
+        'meas': [True, False, False, True, False, False, True, False, False,
+                 False]}
 
 def test_run_no_sharing_few_qubits():
     np.random.seed(0)
@@ -317,3 +317,26 @@ def test_composite_gates():
     simulator = xmon_simulator.Simulator()
     context, result = simulator.run(circuit)
     assert result.measurements['a'] == [True, True]
+
+
+def test_measurement_order():
+    circuit = Circuit.from_ops(
+        XmonMeasurementGate().on(Q1),
+        X(Q1),
+        XmonMeasurementGate().on(Q1),
+    )
+    _, result = xmon_simulator.Simulator().run(circuit)
+    assert result.measurements[''] == [False, True]
+
+
+def test_inverted_measurement():
+    circuit = Circuit.from_ops(
+        XmonMeasurementGate(invert_result=False)(Q1),
+        X(Q1),
+        XmonMeasurementGate(invert_result=False)(Q1),
+        XmonMeasurementGate(invert_result=True)(Q1),
+        X(Q1),
+        XmonMeasurementGate(invert_result=True)(Q1))
+
+    _, result = xmon_simulator.Simulator().run(circuit)
+    assert result.measurements[''] == [False, True, False, True]
