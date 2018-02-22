@@ -1,0 +1,37 @@
+[config]
+max-line-length=80
+disable=all
+enable=
+    bad-option-value,
+    bad-reversed-sequence,
+    continue-in-finally,
+    dangerous-default-value,
+    duplicate-argument-name,
+    function-redefined,
+    init-is-generator,
+    line-too-long,
+    mixed-indentation,
+    no-value-for-parameter,
+    nonexistent-operator,
+    not-in-loop,
+    pointless-statement,
+    redefined-builtin,
+    return-arg-in-generator,
+    return-in-init,
+    return-outside-function,
+    syntax-error,
+    undefined-variable,
+    unexpected-keyword-arg,
+    unnecessary-pass,
+    unreachable,
+    unrecognized-inline-option,
+    unused-import,
+    unused-variable,
+    unused-wildcard-import,
+    wildcard-import,
+    wrong-import-order,
+    wrong-import-position,
+    yield-outside-function
+
+# Ignore long lines containing urls or pylint directives.
+ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
