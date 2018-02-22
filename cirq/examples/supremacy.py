@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import random
 from typing import List, Iterable
 
@@ -24,17 +25,17 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int
 
     circuit = cirq.Circuit()
 
-    i = 0
-    while cz_depth > 0:
-        cz_layer = list(_make_cz_layer(device, i))
+    for layer_index in itertools.count():
+        if cz_depth <= 0:
+            break
+        cz_layer = list(_make_cz_layer(device, layer_index))
         if cz_layer:
             circuit.append(_make_random_single_qubit_op_layer(device))
             circuit.append(cz_layer)
             cz_depth -= 1
-        i += 1
 
     circuit.append(_make_random_single_qubit_op_layer(device))
-    circuit.append(cirq.google.XmonMeasurementGate().on(q)
+    circuit.append(google.XmonMeasurementGate().on(q)
                    for q in device.qubits)
 
     return circuit
@@ -42,13 +43,11 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int
 
 def _make_random_single_qubit_op_layer(device: google.XmonDevice
                                        ) -> List[cirq.Operation]:
-    vals = [random.randint(0, 7) / 4.0 for _ in device.qubits]
-    phases = [random.randint(0, 7) / 4.0 for _ in device.qubits]
-    return [
-        cirq.google.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
-        for angle, axis, q in zip(vals, phases, device.qubits)
-        if angle
-    ]
+    for q in device.qubits:
+        angle = random.randint(0, 7) / 4
+        axis = random.randint(0, 7) / 4
+        if angle:
+            yield google.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
 
 
 def _make_cz_layer(device: google.XmonDevice, layer_index: int
@@ -96,10 +95,10 @@ def _make_cz_layer(device: google.XmonDevice, layer_index: int
     shift = (layer_index >> 1) % 4
 
     for q in device.qubits:
-        q2 = cirq.google.XmonQubit(q.x + dir_x, q.y + dir_y)
+        q2 = google.XmonQubit(q.x + dir_x, q.y + dir_y)
         if q2 not in device.qubits:
             continue  # This edge isn't on the device.
         if (q.x * (2 - dir_x) + q.y * (2 - dir_y)) % 4 != shift:
             continue  # No CZ along this edge for this layer.
 
-        yield cirq.google.Exp11Gate().on(q, q2)
+        yield google.Exp11Gate().on(q, q2)
