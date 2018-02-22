@@ -35,14 +35,14 @@ from cirq.ops.common_gates import (
     Z,
 )
 from cirq.ops.gate_features import (
-    ReversibleGate,
-    ExtrapolatableGate,
-    SelfInverseGate,
-    CompositeGate,
-    KnownMatrixGate,
     AsciiDiagrammableGate,
-    PhaseableGate,
     BoundedEffectGate,
+    CompositeGate,
+    ExtrapolatableGate,
+    KnownMatrixGate,
+    PhaseableGate,
+    ReversibleGate,
+    SelfInverseGate,
     SingleQubitGate,
     TwoQubitGate,
 )
