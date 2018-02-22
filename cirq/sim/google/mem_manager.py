@@ -45,7 +45,7 @@ class SharedMemManager(object):
         self._arrays = SharedMemManager._INITIAL_SIZE * [None]
 
     def _create_array(self, arr: np.ndarray) -> int:
-        """From the given numpy array, creates a RawArray and returns its handle.
+        """Returns the handle of a RawArray created from the given numpy array.
 
         Args:
           arr: A numpy ndarray.
@@ -54,8 +54,8 @@ class SharedMemManager(object):
           The handle (int) of the array.
 
         Raises:
-          ValueError: if arr is not a ndarray or of an unsupported dtype. If the
-            array is of an unsupported type, using a view of the array to
+          ValueError: if arr is not a ndarray or of an unsupported dtype. If
+            the array is of an unsupported type, using a view of the array to
             another dtype and then converting on get is often a work around.
         """
         if not isinstance(arr, np.ndarray):
@@ -124,7 +124,7 @@ class SharedMemManager(object):
 
     @staticmethod
     def create_array(arr: np.ndarray) -> int:
-        """From the given numpy array, creates a RawArray and returns its handle.
+        """Returns the handle of a RawArray created from the given numpy array.
 
         Args:
           arr: A numpy ndarray. Only arrays with a dtype supported by numpy
@@ -134,9 +134,9 @@ class SharedMemManager(object):
           The handle (int) of the array.
 
         Raises:
-          ValueError: if arr is not a ndarray or of an unsupported dtype. If the
-            array is of an unsupported type, using a view of the array to another
-            dtype and then converting on get is often a work around.
+          ValueError: if arr is not a ndarray or of an unsupported dtype. If
+            the array is of an unsupported type, using a view of the array to
+            another dtype and then converting on get is often a work around.
         """
         # pylint: disable=protected-access
         return SharedMemManager._instance._create_array(arr)

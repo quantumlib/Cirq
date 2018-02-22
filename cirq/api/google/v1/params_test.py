@@ -4,7 +4,6 @@ from cirq.api.google.v1 import params
 from cirq.api.google.v1.params_pb2 import (
     ParameterSweep,
     ParameterSweepZip,
-    ParameterSweepZipProduct,
     SingleParameterSweep,
 )
 
@@ -112,7 +111,6 @@ def example_sweeps():
     empty_sweep = ParameterSweep()
 
     empty_product = ParameterSweep()
-    empty_product.sweep
 
     empty_zip = ParameterSweep()
     empty_zip.sweep.factors.add()
