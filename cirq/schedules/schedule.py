@@ -163,6 +163,25 @@ class Schedule:
             return False
 
     def to_circuit(self) -> Circuit:
+        """Convert the schedule to a circuit.
+
+        This discards most timing information from the schedule, but does keep
+        operations that are scheduled at the same time to the same Moment in
+        the circuit.
+        """
         circuit = Circuit()
-        circuit.append(so.operation for so in self.scheduled_operations)
+        ops = []
+        time = None  # type: Timestamp
+        for so in self.scheduled_operations:
+            if not ops:
+                ops.append(so.operation)
+                time = so.time
+            elif so.time == time:
+                ops.append(so.operation)
+            else:
+                circuit.append(ops)
+                ops = [so.operation]
+                time = so.time
+        if ops:
+            circuit.append(ops)
         return circuit
