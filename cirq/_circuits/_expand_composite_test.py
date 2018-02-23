@@ -14,8 +14,8 @@
 
 """Tests for the expand composite optimization pass."""
 
-from cirq.circuits import (Circuit, DropEmptyMoments, ExpandComposite,
-                           InsertStrategy, Moment)
+from cirq._circuits import (Circuit, DropEmptyMoments, ExpandComposite,
+                            InsertStrategy, Moment)
 from cirq.extension import Extensions
 from cirq.ops import CNOT, CNotGate, CompositeGate, CZ, QubitId, SWAP, X, Y, Z
 

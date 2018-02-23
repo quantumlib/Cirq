@@ -14,7 +14,7 @@
 
 "General methods for creating Schedules from Circuits."
 
-from cirq.circuits import  Circuit
+from cirq._circuits import Circuit
 from cirq.devices import Device
 from cirq.schedules import Schedule
 from cirq.schedules import ScheduledOperation

@@ -20,7 +20,7 @@ import itertools
 import pytest
 
 from cirq import study
-from cirq.circuits import Circuit
+from cirq._circuits import Circuit
 from cirq.google.xmon_gates import ExpWGate, XmonMeasurementGate
 from cirq.google.xmon_qubit import XmonQubit
 from cirq.sim.google.xmon_simulator import Simulator

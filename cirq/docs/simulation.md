@@ -13,7 +13,7 @@ implementation in terms of this basic gate set.
 Here is a simple circuit
 ```python
 import cirq
-from cirq.circuits import Circuit
+from cirq import Circuit
 from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit
 
 q0 = XmonQubit(0, 0)
@@ -32,7 +32,7 @@ def basic_circuit(meas=True):
 circuit = Circuit()
 circuit.append(basic_circuit())    
   
-print(cirq.circuits.to_ascii(circuit))
+print(cirq._circuits)
 # prints
 # (0, 0): ---X^0.5---Z---X^0.5---M---
 #                    |

@@ -18,7 +18,7 @@ import abc
 from typing import Optional
 
 from cirq import ops
-from cirq.circuits import Circuit
+from cirq._circuits import Circuit
 
 
 class OptimizationPass:

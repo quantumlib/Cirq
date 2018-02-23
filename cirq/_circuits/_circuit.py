@@ -17,9 +17,9 @@
 from typing import List, Optional, Set, Dict, Callable, Any, Iterable
 
 from cirq import ops
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
-from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq._circuits._insert_strategy import InsertStrategy
+from cirq._circuits._moment import Moment
+from cirq._circuits._text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
 from cirq.ops import QubitId
 

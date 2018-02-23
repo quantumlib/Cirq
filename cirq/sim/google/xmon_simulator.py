@@ -27,14 +27,13 @@ A simple example:
 
 import functools
 import math
-
 from collections import defaultdict
 from typing import DefaultDict, Dict, Iterator, Sequence, Tuple, Union
 
 import numpy as np
 
 import cirq
-from cirq.circuits import Circuit, ExpandComposite
+from cirq._circuits import Circuit, ExpandComposite
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.ops import raw_types
 from cirq.sim.google.xmon_stepper import Stepper

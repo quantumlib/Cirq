@@ -12,26 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
+"""An optimization pass that removes operations with tiny effects."""
+
 from cirq import ops
+from cirq._circuits._optimization_pass import PointOptimizer
 
 
-def assert_optimizes(before, after):
-    opt = circuits.DropEmptyMoments()
-    opt.optimize_circuit(before)
-    assert before == after
+class DropNegligible(PointOptimizer):
+    """An optimization pass that removes operations with tiny effects."""
 
+    def __init__(self, tolerance: float = 1e-8):
+        self.tolerance = tolerance
 
-def test_drop():
-    q1 = ops.QubitId()
-    q2 = ops.QubitId()
-    assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment(),
-            circuits.Moment([ops.CNOT(q1, q2)]),
-            circuits.Moment(),
-        ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.CNOT(q1, q2)]),
-        ]))
+    def optimize_at(self, circuit, index, op):
+        if (isinstance(op.gate, ops.BoundedEffectGate) and
+                op.gate.trace_distance_bound() <= self.tolerance):
+            circuit.clear_operations_touching(op.qubits, [index])

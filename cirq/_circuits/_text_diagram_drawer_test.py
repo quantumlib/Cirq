@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.circuits import TextDiagramDrawer
+from cirq._circuits import TextDiagramDrawer
 
 
 def test_draw_entries_and_lines_with_options():

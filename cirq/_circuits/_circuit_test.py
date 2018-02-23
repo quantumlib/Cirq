@@ -15,9 +15,9 @@
 import pytest
 
 from cirq import ops, ParameterizedValue
-from cirq.circuits.circuit import Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
+from cirq._circuits._circuit import Circuit
+from cirq._circuits._insert_strategy import InsertStrategy
+from cirq._circuits._moment import Moment
 from cirq.testing import EqualsTester
 from cirq.extension import Extensions
 
