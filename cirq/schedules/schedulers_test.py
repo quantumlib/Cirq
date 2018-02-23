@@ -15,8 +15,7 @@
 import pytest
 
 from cirq import ops
-from cirq.circuits import Circuit
-from cirq.circuits import Moment
+from cirq._circuits import Circuit, Moment
 from cirq.devices import Device
 from cirq.schedules import (
     Schedule, ScheduledOperation, moment_by_moment_schedule,

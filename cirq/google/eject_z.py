@@ -17,7 +17,7 @@
 from typing import Iterator, Tuple
 
 from cirq import ops
-from cirq.circuits import Circuit, InsertStrategy, OptimizationPass
+from cirq._circuits import Circuit, InsertStrategy, OptimizationPass
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
 from cirq.study import ParameterizedValue

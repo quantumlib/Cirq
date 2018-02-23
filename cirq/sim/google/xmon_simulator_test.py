@@ -20,7 +20,7 @@ import math
 import numpy as np
 import pytest
 
-from cirq.circuits import Circuit
+from cirq._circuits import Circuit
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )

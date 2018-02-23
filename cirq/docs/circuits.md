@@ -59,7 +59,7 @@ is a Moment in which Pauli X and a CZ gate operate on three qubits:
 ```python
 cz = cirq.ops.CZ(qubits[0], qubits[1])
 x = cirq.ops.X(qubits[2])
-moment = cirq.circuits.Moment([x, cz])
+moment = cirq.Moment([x, cz])
 
 print(moment)
 # prints "X((0, 2)) and ZZ((0, 0), (0, 1))"
@@ -77,12 +77,12 @@ two moments
 cz01 = cirq.ops.CZ(qubits[0], qubits[1])
 x2 = cirq.ops.X(qubits[2])
 cz12 = cirq.ops.CZ(qubits[1], qubits[2])
-moment0 = cirq.circuits.Moment([cz01, x2])
-moment1 = cirq.circuits.Moment([cz12])
-circuit = cirq.circuits.Circuit((moment0, moment1))
+moment0 = cirq.Moment([cz01, x2])
+moment1 = cirq.Moment([cz12])
+circuit = cirq.Circuit((moment0, moment1))
 
-print(cirq.circuits.to_ascii(circuit))
-# prints the ascii diagram for the circuit:
+print(circuit)
+# prints a text diagram of the circuit:
 # (0, 0): ---Z-------
 #            |
 # (0, 1): ---Z---Z---
@@ -105,10 +105,10 @@ appending onto the ``Circuit``.
 ```python
 from cirq.ops import CZ, H
 q0, q1, q2 = [cirq.google.XmonQubit(i, 0) for i in range(3)]
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q0, q1), H(q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---
 #            |
@@ -120,7 +120,7 @@ This appended an entire new moment to the qubit, which we can continue to do,
 ```python
 circuit.append([H(q0), CZ(q1, q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---H---
 #            |
@@ -132,10 +132,10 @@ print(cirq.circuits.to_ascii(circuit))
 In these two examples, we have appending full moments, what happens when we
 append all of these at once?
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q0, q1), H(q2), H(q0), CZ(q1, q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---H---
 #            |
@@ -169,12 +169,12 @@ For example, if we first create an ``Operation`` in a single moment,
 and then use ``EARLIEST`` the ``Operation`` can slide back to this
 first ``Moment`` if there is space:
 ```python
-from cirq.circuits import InsertStrategy
-circuit = cirq.circuits.Circuit()
+from cirq import InsertStrategy
+circuit = cirq.Circuit()
 circuit.append([CZ(q0, q1)])
 circuit.append([H(q0), H(q2)], strategy=InsertStrategy.EARLIEST)
 
-print(cirq.circuits.to_ascii(circuit))
+print(cirq._circuits)
 # prints
 # (0, 0): ---Z---H---
 #            |
@@ -189,10 +189,10 @@ while the ``H`` on ``q2`` can and so ends up in the first ``Moment``.
 Contrast this with the ``NEW`` ``InsertStrategy``:
 > NEW: Every operation that is inserted is created in a new moment.
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.NEW)
 
-print(cirq.circuits.to_ascii(circuit))
+print(cirq._circuits)
 # prints
 # (0, 0): ---H-----------
 #
@@ -212,11 +212,11 @@ an existing operation affecting any of the qubits touched by the
 operation to insert, a new moment is created instead.
 
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q2, q3)])
 circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
 
-print(cirq.circuits.to_ascii(circuit))
+print(cirq._circuits)
 # prints
 # (0, 0): -------Z---H---
 #                |
@@ -237,11 +237,11 @@ location for the first operation, but then switches to inserting
 operations according to INLINE.
 
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([H(q0)])
 circuit.append([CZ(q1,q2), H(q0)], strategy=InsertStrategy.NEW_THEN_INLINE)
 
-print(cirq.circuits.to_ascii(circuit))
+print(cirq._circuits)
 # prints
 # (0, 0): ---H---H---
 #
@@ -274,7 +274,7 @@ def my_layer():
   yield [CZ(q1, q2)]
   yield [H(q0), [CZ(q1, q2)]]  
 
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append(my_layer())
 
 for x in my_layer():
@@ -285,7 +285,7 @@ for x in my_layer():
 # [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]
 # [Operation(H, (XmonQubit(0, 0),)), [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]]
 
-print(cirq.circuits.to_ascii(circuit))
+print(cirq._circuits)
 # prints 
 # (0, 0): ---Z---H---H-------
 #            |

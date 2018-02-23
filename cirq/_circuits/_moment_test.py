@@ -15,7 +15,7 @@
 import pytest
 
 from cirq import ops
-from cirq.circuits.moment import Moment
+from cirq._circuits._moment import Moment
 from cirq.testing import EqualsTester
 
 

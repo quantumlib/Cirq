@@ -27,7 +27,7 @@ circuit.append([
     cirq.MeasurementGate('result').on(qubit)
 ])
 print("Circuit:")
-print(cirq.to_ascii(circuit))
+print(circuit)
 
 # Now simulate the circuit and print out the measurement result.
 simulator = cirq.sim.google.xmon_simulator.Simulator()
@@ -43,7 +43,7 @@ Example output:
 
 ```
 Circuit:
-(0, 0): ---X^0.5---M---
+(0, 0): ───X^0.5───M───
 
 Simulated measurement results:
 1110111010

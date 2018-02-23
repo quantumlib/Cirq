@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
+import cirq
 from cirq import ops
 from cirq.google import ExpZGate, MergeInteractions, MergeRotations
 from cirq.study import ParameterizedValue
@@ -25,8 +25,8 @@ def assert_optimizes(before, after):
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
         MergeRotations(),
-        circuits.DropNegligible(),
-        circuits.DropEmptyMoments()
+        cirq.DropNegligible(),
+        cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
         post.optimize_circuit(before)
@@ -42,28 +42,28 @@ def test_clears_paired_cnot():
     q0 = ops.QubitId()
     q1 = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.CNOT(q0, q1)]),
-            circuits.Moment([ops.CNOT(q0, q1)]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.CNOT(q0, q1)]),
+            cirq.Moment([ops.CNOT(q0, q1)]),
         ]),
-        after=circuits.Circuit())
+        after=cirq.Circuit())
 
 
 def test_ignores_czs_separated_by_parameterized():
     q0 = ops.QubitId()
     q1 = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ExpZGate(
+        before=cirq.Circuit([
+            cirq.Moment([ops.CZ(q0, q1)]),
+            cirq.Moment([ExpZGate(
                 half_turns=ParameterizedValue('boo'))(q0)]),
-            circuits.Moment([ops.CZ(q0, q1)]),
+            cirq.Moment([ops.CZ(q0, q1)]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.CZ(q0, q1)]),
-            circuits.Moment([ExpZGate(
+        after=cirq.Circuit([
+            cirq.Moment([ops.CZ(q0, q1)]),
+            cirq.Moment([ExpZGate(
                 half_turns=ParameterizedValue('boo'))(q0)]),
-            circuits.Moment([ops.CZ(q0, q1)]),
+            cirq.Moment([ops.CZ(q0, q1)]),
         ]))
 
 
@@ -72,13 +72,13 @@ def test_ignores_czs_separated_by_outer_cz():
     q01 = ops.QubitId()
     q10 = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.CZ(q00, q01)]),
-            circuits.Moment([ops.CZ(q00, q10)]),
-            circuits.Moment([ops.CZ(q00, q01)]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.CZ(q00, q01)]),
+            cirq.Moment([ops.CZ(q00, q10)]),
+            cirq.Moment([ops.CZ(q00, q01)]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.CZ(q00, q01)]),
-            circuits.Moment([ops.CZ(q00, q10)]),
-            circuits.Moment([ops.CZ(q00, q01)]),
+        after=cirq.Circuit([
+            cirq.Moment([ops.CZ(q00, q01)]),
+            cirq.Moment([ops.CZ(q00, q10)]),
+            cirq.Moment([ops.CZ(q00, q01)]),
         ]))

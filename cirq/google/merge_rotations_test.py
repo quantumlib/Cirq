@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from cirq import circuits
+import cirq
 from cirq import ops
 from cirq.extension import Extensions
 from cirq.google import MergeRotations
@@ -27,8 +27,8 @@ def assert_optimizes(before, after, optimizer=None):
 
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
-        circuits.DropNegligible(),
-        circuits.DropEmptyMoments()
+        cirq.DropNegligible(),
+        cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
         post.optimize_circuit(before)
@@ -41,81 +41,81 @@ def assert_optimizes(before, after, optimizer=None):
 
 
 def test_leaves_singleton():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(cirq.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
-    c = circuits.Circuit([circuits.Moment([ops.X(q)])])
+    c = cirq.Circuit([cirq.Moment([ops.X(q)])])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
 
-    assert c == circuits.Circuit([circuits.Moment([ops.X(q)])])
+    assert c == cirq.Circuit([cirq.Moment([ops.X(q)])])
 
 
 def test_combines_sequence():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(cirq.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
-    c = circuits.Circuit([
-        circuits.Moment([ops.X(q)**0.5]),
-        circuits.Moment([ops.Z(q)**0.5]),
-        circuits.Moment([ops.X(q)**-0.5]),
+    c = cirq.Circuit([
+        cirq.Moment([ops.X(q)**0.5]),
+        cirq.Moment([ops.Z(q)**0.5]),
+        cirq.Moment([ops.X(q)**-0.5]),
     ])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
 
-    assert c == circuits.Circuit([
-        circuits.Moment([ops.Y(q)**0.5]),
-        circuits.Moment(),
-        circuits.Moment(),
+    assert c == cirq.Circuit([
+        cirq.Moment([ops.Y(q)**0.5]),
+        cirq.Moment(),
+        cirq.Moment(),
     ])
 
 
 def test_removes_identity_sequence():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)]),
-            circuits.Moment([ops.H(q)]),
-            circuits.Moment([ops.X(q)]),
-            circuits.Moment([ops.H(q)]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)]),
+            cirq.Moment([ops.H(q)]),
+            cirq.Moment([ops.X(q)]),
+            cirq.Moment([ops.H(q)]),
         ]),
-        after = circuits.Circuit())
+        after = cirq.Circuit())
 
 
 def test_stopped_at_2qubit():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(cirq.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     q2 = ops.QubitId()
-    c = circuits.Circuit([
-        circuits.Moment([ops.Z(q)]),
-        circuits.Moment([ops.H(q)]),
-        circuits.Moment([ops.X(q)]),
-        circuits.Moment([ops.H(q)]),
-        circuits.Moment([ops.CZ(q, q2)]),
-        circuits.Moment([ops.H(q)]),
+    c = cirq.Circuit([
+        cirq.Moment([ops.Z(q)]),
+        cirq.Moment([ops.H(q)]),
+        cirq.Moment([ops.X(q)]),
+        cirq.Moment([ops.H(q)]),
+        cirq.Moment([ops.CZ(q, q2)]),
+        cirq.Moment([ops.H(q)]),
     ])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
 
-    assert c == circuits.Circuit([
-        circuits.Moment(),
-        circuits.Moment(),
-        circuits.Moment(),
-        circuits.Moment(),
-        circuits.Moment([ops.CZ(q, q2)]),
-        circuits.Moment([ops.H(q)]),
+    assert c == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment([ops.CZ(q, q2)]),
+        cirq.Moment([ops.H(q)]),
     ])
 
 
 def test_ignores_2qubit_target():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(cirq.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     q2 = ops.QubitId()
-    c = circuits.Circuit([
-        circuits.Moment([ops.CZ(q, q2)]),
+    c = cirq.Circuit([
+        cirq.Moment([ops.CZ(q, q2)]),
     ])
 
     m.optimize_at(c, 0, c.operation_at(q, 0))
 
-    assert c == circuits.Circuit([circuits.Moment([ops.CZ(q, q2)])])
+    assert c == cirq.Circuit([cirq.Moment([ops.CZ(q, q2)])])
 
 
 def test_extension():
@@ -130,10 +130,10 @@ def test_extension():
     }))
 
     q = ops.QubitId()
-    c = circuits.Circuit([
-        circuits.Moment([DummyGate().on(q)]),
+    c = cirq.Circuit([
+        cirq.Moment([DummyGate().on(q)]),
     ])
     assert_optimizes(
         before=c,
-        after=circuits.Circuit([circuits.Moment([ops.X(q)])]),
+        after=cirq.Circuit([cirq.Moment([ops.X(q)])]),
         optimizer=optimizer)

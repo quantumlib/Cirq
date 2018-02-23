@@ -17,9 +17,9 @@
 from typing import Optional
 
 from cirq import ops
-from cirq.circuits import Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.optimization_pass import PointOptimizer
+from cirq._circuits import Circuit
+from cirq._circuits._insert_strategy import InsertStrategy
+from cirq._circuits._optimization_pass import PointOptimizer
 from cirq.extension import Extensions
 
 

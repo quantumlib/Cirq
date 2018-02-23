@@ -59,7 +59,7 @@ class Device(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def validate_circuit(self, circuit: 'cirq.circuits.Circuit') -> type(None):
+    def validate_circuit(self, circuit: 'cirq.Circuit') -> type(None):
         """Raises an exception if a circuit is not valid.
 
         Args:

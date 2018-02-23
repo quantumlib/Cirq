@@ -16,7 +16,6 @@
 
 from cirq import (
     api,
-    circuits,
     devices,
     google,
     linalg,
@@ -30,17 +29,16 @@ from cirq import (
 
 # Also flatten some of the sub-modules.
 
-from cirq.circuits import (
+from cirq._circuits import (
     Circuit,
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
-    from_ascii,
     InsertStrategy,
     Moment,
     OptimizationPass,
     PointOptimizer,
-    to_ascii,
+    TextDiagramDrawer,
 )
 
 from cirq.devices import (

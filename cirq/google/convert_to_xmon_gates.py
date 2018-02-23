@@ -13,10 +13,9 @@
 # limitations under the License.
 
 from cirq import ops
-from cirq.circuits import InsertStrategy
+from cirq._circuits import InsertStrategy, PointOptimizer
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_gates import XmonGate
-from cirq.circuits.optimization_pass import PointOptimizer
 
 
 class ConvertToXmonGates(PointOptimizer):

@@ -30,7 +30,7 @@ Example use:
 import abc
 from typing import Dict, Iterable, Tuple, Union
 
-from cirq.circuits import Circuit
+from cirq._circuits import Circuit
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver
 

@@ -27,14 +27,13 @@ A simple example:
 
 import functools
 import math
-
 from collections import defaultdict
 from typing import DefaultDict, Dict, Iterator, Sequence, Tuple, Union
 
 import numpy as np
 
 import cirq
-from cirq.circuits import Circuit, ExpandComposite
+from cirq._circuits import Circuit, ExpandComposite
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.ops import raw_types
 from cirq.sim.google.xmon_stepper import Stepper
@@ -351,3 +350,13 @@ class TrialResult(cirq.study.TrialResult):
         # TODO(dabacon): This should be optional, since it can be rather big.
         self.final_state = final_step_result.state()
 
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        keyed_bitstrings = [
+            (key, bitstring(val)) for key, val in self.measurements.items()
+        ]
+        sorted_bitstrings = sorted(keyed_bitstrings, key=lambda e: e[0])
+        return '\n'.join('{}: {}'.format(repr(key), val)
+                         for key, val in sorted_bitstrings)

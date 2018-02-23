@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
+import cirq
 from cirq import ops
 from cirq.google import ExpZGate, ConvertToXmonGates, EjectZ
 from cirq.study import ParameterizedValue
@@ -24,7 +24,7 @@ def assert_optimizes(before, after):
     ]
     followup_optimizations = [
         ConvertToXmonGates(),
-        circuits.DropEmptyMoments()
+        cirq.DropEmptyMoments()
     ]
 
     opt = EjectZ()
@@ -36,8 +36,9 @@ def assert_optimizes(before, after):
         post.optimize_circuit(before)
         post.optimize_circuit(after)
 
-    print(before)
-    print(after)
+    if before != after:
+        print(before)
+        print(after)
     assert before == after
 
     # And it should be idempotent.
@@ -48,11 +49,11 @@ def assert_optimizes(before, after):
 def test_single_z_stays():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)**0.5]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)**0.5]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.Z(q)**0.5]),
+        after=cirq.Circuit([
+            cirq.Moment([ops.Z(q)**0.5]),
         ]))
 
 
@@ -60,61 +61,61 @@ def test_ignores_xz_and_cz():
     q1 = ops.QubitId()
     q2 = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.X(q1)**0.5]),
-            circuits.Moment([ops.Y(q2)**0.5]),
-            circuits.Moment([ops.CZ(q1, q2)**0.25]),
-            circuits.Moment([ops.Y(q1)**0.5]),
-            circuits.Moment([ops.X(q2)**0.5]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.X(q1)**0.5]),
+            cirq.Moment([ops.Y(q2)**0.5]),
+            cirq.Moment([ops.CZ(q1, q2)**0.25]),
+            cirq.Moment([ops.Y(q1)**0.5]),
+            cirq.Moment([ops.X(q2)**0.5]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.X(q1)**0.5]),
-            circuits.Moment([ops.Y(q2)**0.5]),
-            circuits.Moment([ops.CZ(q1, q2)**0.25]),
-            circuits.Moment([ops.Y(q1)**0.5]),
-            circuits.Moment([ops.X(q2)**0.5]),
+        after=cirq.Circuit([
+            cirq.Moment([ops.X(q1)**0.5]),
+            cirq.Moment([ops.Y(q2)**0.5]),
+            cirq.Moment([ops.CZ(q1, q2)**0.25]),
+            cirq.Moment([ops.Y(q1)**0.5]),
+            cirq.Moment([ops.X(q2)**0.5]),
         ]))
 
 
 def test_early_z_pushed_to_end():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)**0.5]),
-            circuits.Moment(),
-            circuits.Moment(),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)**0.5]),
+            cirq.Moment(),
+            cirq.Moment(),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment(),
-            circuits.Moment([ops.Z(q)**0.5]),
+        after=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment(),
+            cirq.Moment([ops.Z(q)**0.5]),
         ]))
 
 
 def test_multi_z_merges():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)**0.5]),
-            circuits.Moment([ops.Z(q)**0.25]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)**0.5]),
+            cirq.Moment([ops.Z(q)**0.25]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment([ops.Z(q)**0.75]),
+        after=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment([ops.Z(q)**0.75]),
         ]))
 
 
 def test_z_pushes_past_xy_and_phases_it():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)**0.5]),
-            circuits.Moment([ops.Y(q)**0.25]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)**0.5]),
+            cirq.Moment([ops.Y(q)**0.25]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment([ops.X(q)**0.25]),
-            circuits.Moment([ops.Z(q)**0.5]),
+        after=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment([ops.X(q)**0.25]),
+            cirq.Moment([ops.Z(q)**0.5]),
         ]))
 
 
@@ -122,29 +123,29 @@ def test_z_pushes_past_cz():
     q1 = ops.QubitId()
     q2 = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q1)**0.5]),
-            circuits.Moment([ops.CZ(q1, q2)**0.25]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q1)**0.5]),
+            cirq.Moment([ops.CZ(q1, q2)**0.25]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment([ops.CZ(q1, q2)**0.25]),
-            circuits.Moment([ops.Z(q1)**0.5]),
+        after=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment([ops.CZ(q1, q2)**0.25]),
+            cirq.Moment([ops.Z(q1)**0.5]),
         ]))
 
 
 def test_measurement_consumes_zs():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)**0.5]),
-            circuits.Moment([ops.Z(q)**0.25]),
-            circuits.Moment([ops.MeasurementGate()(q)]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)**0.5]),
+            cirq.Moment([ops.Z(q)**0.25]),
+            cirq.Moment([ops.MeasurementGate()(q)]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment(),
-            circuits.Moment([ops.MeasurementGate()(q)]),
+        after=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment(),
+            cirq.Moment([ops.MeasurementGate()(q)]),
         ]))
 
 
@@ -157,38 +158,38 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
     # pylint: disable=not-callable
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ops.Z(q)]),
-            circuits.Moment([u(q)]),
-            circuits.Moment([ops.Z(q)**0.5]),
-            circuits.Moment([ops.X(q)]),
-            circuits.Moment([ops.Z(q)**0.25]),
-            circuits.Moment([ops.X(q)]),
-            circuits.Moment([u(q)]),
+        before=cirq.Circuit([
+            cirq.Moment([ops.Z(q)]),
+            cirq.Moment([u(q)]),
+            cirq.Moment([ops.Z(q)**0.5]),
+            cirq.Moment([ops.X(q)]),
+            cirq.Moment([ops.Z(q)**0.25]),
+            cirq.Moment([ops.X(q)]),
+            cirq.Moment([u(q)]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.Z(q)]),
-            circuits.Moment([u(q)]),
-            circuits.Moment(),
-            circuits.Moment([ops.Y(q)]),
-            circuits.Moment([ops.Z(q)**0.75]),
-            circuits.Moment([ops.X(q)]),  # Note: wasn't phased.
-            circuits.Moment([u(q)]),
+        after=cirq.Circuit([
+            cirq.Moment([ops.Z(q)]),
+            cirq.Moment([u(q)]),
+            cirq.Moment(),
+            cirq.Moment([ops.Y(q)]),
+            cirq.Moment([ops.Z(q)**0.75]),
+            cirq.Moment([ops.X(q)]),  # Note: wasn't phased.
+            cirq.Moment([u(q)]),
         ]))
 
 
 def test_parameterized_as_source_and_sink():
     q = ops.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment([ExpZGate(half_turns=1)(q)]),
-            circuits.Moment([ExpZGate(
+        before=cirq.Circuit([
+            cirq.Moment([ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([ExpZGate(
                 half_turns=ParameterizedValue('a', 0.5))(q)]),
-            circuits.Moment([ExpZGate(half_turns=0.25)(q)]),
+            cirq.Moment([ExpZGate(half_turns=0.25)(q)]),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment([ExpZGate(
+        after=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment([ExpZGate(
                 half_turns=ParameterizedValue('a', 1.5))(q)]),
-            circuits.Moment([ExpZGate(half_turns=0.25)(q)]),
+            cirq.Moment([ExpZGate(half_turns=0.25)(q)]),
         ]))

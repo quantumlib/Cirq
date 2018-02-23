@@ -14,8 +14,8 @@
 
 """An optimization pass that removes empty moments from a circuit."""
 
-from cirq.circuits.circuit import Circuit
-from cirq.circuits.optimization_pass import OptimizationPass
+from cirq._circuits._circuit import Circuit
+from cirq._circuits._optimization_pass import OptimizationPass
 
 
 class DropEmptyMoments(OptimizationPass):
