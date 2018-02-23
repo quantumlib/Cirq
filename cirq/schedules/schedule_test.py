@@ -16,7 +16,8 @@ import pytest
 
 from cirq import ops
 from cirq.devices import UnconstrainedDevice
-from cirq.schedules import Duration, Timestamp, ScheduledOperation, Schedule
+from cirq.schedules import ScheduledOperation, Schedule
+from cirq.time import Duration, Timestamp
 
 
 def test_query_point_operation_inclusive():

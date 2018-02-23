@@ -17,11 +17,12 @@ import numpy as np
 from cirq import circuits
 from cirq import ops
 from cirq.extension import Extensions
+from cirq.google import MergeRotations
 
 
 def assert_optimizes(before, after, optimizer=None):
     if optimizer is None:
-        optimizer = circuits.MergeRotations()
+        optimizer = MergeRotations()
     optimizer.optimize_circuit(before)
 
     # Ignore differences that would be caught by follow-up optimizations.
@@ -40,7 +41,7 @@ def assert_optimizes(before, after, optimizer=None):
 
 
 def test_leaves_singleton():
-    m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     c = circuits.Circuit([circuits.Moment([ops.X(q)])])
 
@@ -50,7 +51,7 @@ def test_leaves_singleton():
 
 
 def test_combines_sequence():
-    m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     c = circuits.Circuit([
         circuits.Moment([ops.X(q)**0.5]),
@@ -80,7 +81,7 @@ def test_removes_identity_sequence():
 
 
 def test_stopped_at_2qubit():
-    m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     q2 = ops.QubitId()
     c = circuits.Circuit([
@@ -105,7 +106,7 @@ def test_stopped_at_2qubit():
 
 
 def test_ignores_2qubit_target():
-    m = circuits.MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
     q = ops.QubitId()
     q2 = ops.QubitId()
     c = circuits.Circuit([
@@ -121,7 +122,7 @@ def test_extension():
     class DummyGate(ops.Gate):
         pass
 
-    optimizer = circuits.MergeRotations(extensions=Extensions({
+    optimizer = MergeRotations(extensions=Extensions({
         ops.KnownMatrixGate: {
             DummyGate: lambda _: ops.SingleQubitMatrixGate(
                 np.array([[0, 1], [1, 0]]))

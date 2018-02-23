@@ -14,15 +14,14 @@
 
 import pytest
 
-from cirq.circuits import Circuit, InsertStrategy
+from cirq import ops
+from cirq.circuits import Circuit
 from cirq.circuits import Moment
 from cirq.devices import Device
-from cirq import ops
-from cirq.schedules import Duration
-from cirq.schedules import Timestamp
-from cirq.schedules import Schedule
-from cirq.schedules import ScheduledOperation
-from cirq.schedules import schedulers
+from cirq.schedules import (
+    Schedule, ScheduledOperation, moment_by_moment_schedule,
+)
+from cirq.time import Duration, Timestamp
 
 
 class LineQubit:
@@ -113,18 +112,17 @@ class _TestDevice(Device):
             self.validate_scheduled_operation(schedule, scheduled_operation)
 
 
-
 def test_moment_by_moment_schedule_no_moments():
     device = _TestDevice()
     circuit = Circuit([])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    schedule = moment_by_moment_schedule(device, circuit)
     assert len(schedule.scheduled_operations) == 0
 
 
 def test_moment_by_moment_schedule_empty_moment():
     device = _TestDevice()
     circuit = Circuit([Moment(),])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    schedule = moment_by_moment_schedule(device, circuit)
     assert len(schedule.scheduled_operations) == 0
 
 
@@ -133,7 +131,7 @@ def test_moment_by_moment_schedule_moment_of_single_qubit_ops():
     qubits = device.qubits
 
     circuit = Circuit([Moment(ops.H(q) for q in qubits),])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    schedule = moment_by_moment_schedule(device, circuit)
 
     zero_ns = Timestamp()
     assert set(schedule.scheduled_operations) == {
@@ -146,7 +144,7 @@ def test_moment_by_moment_schedule_moment_of_two_qubit_ops():
 
     circuit = Circuit(
         [Moment((ops.CZ(qubits[i], qubits[i + 1]) for i in range(0, 9, 3)))])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    schedule = moment_by_moment_schedule(device, circuit)
 
     zero_ns = Timestamp()
     expected = set(
@@ -162,15 +160,16 @@ def test_moment_by_moment_schedule_two_moments():
     circuit = Circuit([Moment(ops.H(q) for q in qubits),
                        Moment((ops.CZ(qubits[i], qubits[i + 1]) for i in
                                range(0, 9, 3)))])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    schedule = moment_by_moment_schedule(device, circuit)
 
     zero_ns = Timestamp()
     twenty_ns = Timestamp(nanos=20)
     expected_one_qubit = set(
         ScheduledOperation.op_at_on(ops.H(q), zero_ns, device) for q in qubits)
     expected_two_qubit = set(
-        ScheduledOperation.op_at_on(ops.CZ(qubits[i], qubits[i + 1]), twenty_ns,
-                                    device) for i in range(0, 9, 3))
+        ScheduledOperation.op_at_on(
+            ops.CZ(qubits[i], qubits[i + 1]), twenty_ns,
+            device) for i in range(0, 9, 3))
     expected = expected_one_qubit.union(expected_two_qubit)
     assert set(schedule.scheduled_operations) == expected
 
@@ -179,15 +178,17 @@ def test_moment_by_moment_schedule_max_duration():
     device = _TestDevice()
     qubits = device.qubits
 
-    circuit = Circuit([Moment([ops.H(qubits[0]), ops.CZ(qubits[1], qubits[2])]),
-                       Moment([ops.H(qubits[0])])])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    circuit = Circuit([
+        Moment([ops.H(qubits[0]), ops.CZ(qubits[1], qubits[2])]),
+        Moment([ops.H(qubits[0])])])
+    schedule = moment_by_moment_schedule(device, circuit)
 
     zero_ns = Timestamp()
     fourty_ns = Timestamp(nanos=40)
     assert set(schedule.scheduled_operations) == {
         ScheduledOperation.op_at_on(ops.H(qubits[0]), zero_ns, device),
-        ScheduledOperation.op_at_on(ops.CZ(qubits[1], qubits[2]), zero_ns, device),
+        ScheduledOperation.op_at_on(
+            ops.CZ(qubits[1], qubits[2]), zero_ns, device),
         ScheduledOperation.op_at_on(ops.H(qubits[0]), fourty_ns, device),
     }
 
@@ -199,7 +200,7 @@ def test_moment_by_moment_schedule_empty_moment_ignored():
     circuit = Circuit([Moment([ops.H(qubits[0])]),
                        Moment([]),
                        Moment([ops.H(qubits[0])])])
-    schedule = schedulers.moment_by_moment_schedule(device, circuit)
+    schedule = moment_by_moment_schedule(device, circuit)
 
     zero_ns = Timestamp()
     twenty_ns = Timestamp(nanos=20)
@@ -215,7 +216,7 @@ def test_moment_by_moment_schedule_validate_operation_fails():
     circuit = Circuit()
     circuit.append(ops.CNOT(qubits[0], qubits[1]))
     with pytest.raises(ValueError, match="CNOT"):
-        schedule = schedulers.moment_by_moment_schedule(device, circuit)
+        _ = moment_by_moment_schedule(device, circuit)
 
 
 def test_moment_by_moment_schedule_device_validation_fails():
@@ -226,4 +227,4 @@ def test_moment_by_moment_schedule_device_validation_fails():
         ops.CZ(qubits[2], qubits[3])
     ])])
     with pytest.raises(ValueError, match="Adjacent CZ"):
-        _ = schedulers.moment_by_moment_schedule(device, circuit)
+        _ = moment_by_moment_schedule(device, circuit)

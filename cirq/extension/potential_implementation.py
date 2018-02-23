@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-import abc
-
 from typing import Type, TypeVar, Union
 
 T_DESIRED = TypeVar('TDesired')

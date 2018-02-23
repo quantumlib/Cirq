@@ -13,8 +13,9 @@
 # limitations under the License.
 
 from cirq import ops
-from cirq.schedules import Duration, Timestamp, ScheduledOperation
+from cirq.schedules import ScheduledOperation
 from cirq.testing import EqualsTester
+from cirq.time import Duration, Timestamp
 
 
 def test_init():

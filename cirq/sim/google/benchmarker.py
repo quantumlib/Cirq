@@ -17,7 +17,6 @@
 import timeit
 
 import numpy as np
-
 from absl import app
 from absl import flags
 
@@ -26,11 +25,11 @@ from cirq.sim.google import xmon_stepper
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('min_num_qubits', 4,
-                     'Lower range (inclusive) of number of qubits that will be '
-                     'benchmarked.')
+                     'Lower range (inclusive) of number of qubits that will '
+                     'be benchmarked.')
 flags.DEFINE_integer('max_num_qubits', 26,
-                     'Upper range (inclusive) of number of qubits that will be '
-                     'benchmarked.')
+                     'Upper range (inclusive) of number of qubits that will '
+                     'be benchmarked.')
 flags.DEFINE_integer('num_gates', 100, 'The number of gates in the benchmark.')
 flags.DEFINE_integer('num_repetitions', 10,
                      'The number of times to average the benchmark over.')
@@ -42,10 +41,14 @@ def simulate(num_qubits, num_gates):
     for _ in range(num_gates):
         which = np.random.choice(['expz', 'expw', 'exp11'])
         if which == 'expw':
-            ops.append(('expw', np.random.randint(num_qubits), np.random.random(),
+            ops.append(('expw',
+                        np.random.randint(num_qubits),
+                        np.random.random(),
                         np.random.random()))
         elif which == 'expz':
-            ops.append(('expz', np.random.randint(num_qubits), np.random.random()))
+            ops.append(('expz',
+                        np.random.randint(num_qubits),
+                        np.random.random()))
         elif which == 'exp11':
             ops.append(('exp11', np.random.randint(num_qubits),
                         np.random.randint(num_qubits),
@@ -90,9 +93,10 @@ def main(argv):
     del argv
     print('num_qubits,seconds per gate')
     for num_qubits in range(FLAGS.min_num_qubits, FLAGS.max_num_qubits + 1):
-        time = timeit.timeit('simulate(%s, %s)' % (num_qubits, FLAGS.num_gates),
-                             'from __main__ import simulate',
-                             number=FLAGS.num_repetitions)
+        time = timeit.timeit(
+            'simulate(%s, %s)' % (num_qubits, FLAGS.num_gates),
+            'from __main__ import simulate',
+            number=FLAGS.num_repetitions)
         print('%s,%s' %
               (num_qubits, time / (FLAGS.num_repetitions * FLAGS.num_gates)))
 

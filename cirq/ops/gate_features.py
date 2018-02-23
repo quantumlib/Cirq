@@ -18,11 +18,10 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
-
-import numpy as np
 from typing import Sequence, Tuple
 
-from cirq.extension import PotentialImplementation
+import numpy as np
+
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 

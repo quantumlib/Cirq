@@ -14,9 +14,10 @@
 
 """Tests for xmon_simulator."""
 
-from cirq.sim.google import xmon_stepper
 import numpy as np
 import pytest
+
+from cirq.sim.google import xmon_stepper
 
 
 def test_no_thread_pool():
@@ -49,7 +50,20 @@ def test_initial_state_computational_basis(num_prefix_qubits):
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_initial_state_full_state(num_prefix_qubits):
-    initial_state = np.array([0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0], dtype=np.complex64)
+    initial_state = np.array([0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0],
+                             dtype=np.complex64)
+    with xmon_stepper.Stepper(
+        num_qubits=3,
+        num_prefix_qubits=num_prefix_qubits,
+        initial_state=initial_state,
+        min_qubits_before_shard=0) as s:
+        np.testing.assert_almost_equal(initial_state, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_initial_state_full_state_complex(num_prefix_qubits):
+    initial_state = np.array([0.5j, 0.5, 0.5, 0.5, 0, 0, 0, 0],
+                             dtype=np.complex64)
     with xmon_stepper.Stepper(
         num_qubits=3,
         num_prefix_qubits=num_prefix_qubits,
