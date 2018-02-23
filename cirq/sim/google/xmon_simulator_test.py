@@ -61,7 +61,7 @@ def large_circuit():
     for i in range(10):
         circuit.append(
             XmonMeasurementGate(key='meas')(qubits[i]))
-    return circuit, qubits
+    return circuit
 
 
 def test_xmon_options_negative_num_shards():
@@ -139,10 +139,10 @@ def test_run_state_different_order_of_qubits(scheduler):
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_consistent_seeded_run_sharded(scheduler):
-    circuit, qubits = large_circuit()
+    circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, circuit, scheduler, qubits=qubits)
+    context, result = run(simulator, circuit, scheduler)
     assert result.measurements == {
         'meas': [True, False, False, True, False, False, True, False, False,
                  False]}
@@ -151,14 +151,13 @@ def test_consistent_seeded_run_sharded(scheduler):
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_consistent_seeded_run_no_sharding(scheduler):
-    circuit, qubits = large_circuit()
+    circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
     _, result = run(simulator,
                     circuit,
                     scheduler,
-                    options=xmon_simulator.Options(num_shards=1),
-                    qubits=qubits)
+                    options=xmon_simulator.Options(num_shards=1))
     assert result.measurements == {
         'meas': [True, False, False, True, False, False, True, False, False,
                  False]}
