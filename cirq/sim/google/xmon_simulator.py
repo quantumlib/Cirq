@@ -351,3 +351,13 @@ class TrialResult(cirq.study.TrialResult):
         # TODO(dabacon): This should be optional, since it can be rather big.
         self.final_state = final_step_result.state()
 
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        keyed_bitstrings = [
+            (key, bitstring(val)) for key, val in self.measurements.items()
+        ]
+        sorted_bitstrings = sorted(keyed_bitstrings, key=lambda e: e[0])
+        return '\n'.join('{}: {}'.format(repr(key), val)
+                         for key, val in sorted_bitstrings)
