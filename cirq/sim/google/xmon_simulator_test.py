@@ -120,7 +120,8 @@ def test_run(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
+    context, result = run(simulator, basic_circuit(), scheduler,
+                          qubits=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([-0.5j, 0.5, -0.5, 0.5j]))
     assert_empty_context(context)
@@ -129,7 +130,8 @@ def test_run_state(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state_different_order_of_qubits(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, basic_circuit(), scheduler, qubits=[Q2, Q1])
+    context, result = run(simulator, basic_circuit(), scheduler,
+                          qubits=[Q2, Q1])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([-0.5j, -0.5, 0.5, 0.5j]))
     assert_empty_context(context)
