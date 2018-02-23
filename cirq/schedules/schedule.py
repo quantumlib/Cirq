@@ -173,15 +173,11 @@ class Schedule:
         ops = []
         time = None  # type: Timestamp
         for so in self.scheduled_operations:
-            if not ops:
-                ops.append(so.operation)
-                time = so.time
-            elif so.time == time:
-                ops.append(so.operation)
-            else:
+            if so.time != time:
                 circuit.append(ops)
                 ops = [so.operation]
                 time = so.time
-        if ops:
-            circuit.append(ops)
+            else:
+                ops.append(so.operation)
+        circuit.append(ops)
         return circuit
