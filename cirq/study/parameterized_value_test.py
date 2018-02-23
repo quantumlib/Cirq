@@ -80,9 +80,10 @@ def test_parameterized_value_of():
 
 
 def test_parameterized_value_repr():
-    assert repr(ParameterizedValue('1',
-                                   2,
-                                   3)) == "ParameterizedValue('1', 2, 3)"
+    assert repr(ParameterizedValue('1', 2, 3)) in [
+        "ParameterizedValue('1', 2, 3)",
+        "ParameterizedValue(u'1', 2, 3)"
+    ]
 
 
 def test_parameterized_value_str():
@@ -96,11 +97,19 @@ def test_parameterized_value_str():
     assert str(ParameterizedValue(key='a', factor=1, val=2)) == '2+a'
     assert str(ParameterizedValue(key='a', factor=3, val=2)) == '2 + a*3'
 
-    assert str(ParameterizedValue(key='+', factor=0)) == '0'
-    assert str(ParameterizedValue(key='+', factor=1)) == "param('+')"
-    assert str(ParameterizedValue(key='+', factor=3)) == "param('+')*3"
-    assert str(ParameterizedValue(key='+', factor=0, val=2)) == '2'
-    assert str(ParameterizedValue(key='+', factor=1, val=2)) == "2+param('+')"
-    assert str(ParameterizedValue(key='+',
-                                  factor=3,
-                                  val=2)) == "2 + param('+')*3"
+    assert str(ParameterizedValue(key='+', factor=1)) in [
+        "param('+')",
+        "param(u'+')"
+    ]
+    assert str(ParameterizedValue(key='+', factor=3)) in [
+        "param('+')*3",
+        "param(u'+')*3"
+    ]
+    assert str(ParameterizedValue(key='+', factor=1, val=2)) in [
+        "2+param('+')",
+        "2+param(u'+')"
+    ]
+    assert str(ParameterizedValue(key='+', factor=3, val=2)) in [
+        "2 + param('+')*3",
+        "2 + param(u'+')*3"
+    ]
