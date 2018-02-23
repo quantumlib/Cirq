@@ -30,7 +30,7 @@ print("Circuit:")
 print(cirq.to_ascii(circuit))
 
 # Now simulate the circuit and print out the measurement result.
-simulator = cirq.sim.google.xmon_simulator.Simulator()
+simulator = cirq.google.Simulator()
 results = []
 for _ in range(10):
     _, result = simulator.run(circuit)

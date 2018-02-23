@@ -18,11 +18,6 @@ This class should not be used directly, see instead Simulator in the
 xmon_simulator class.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import math
 import multiprocessing
 
@@ -30,7 +25,7 @@ from typing import Any, Dict, List, Union, Tuple
 
 import numpy as np
 
-from cirq.sim.google import mem_manager
+from cirq.google._sim import _mem_manager
 
 
 I_PI_OVER_2 = 0.5j * np.pi
@@ -138,19 +133,19 @@ class Stepper(object):
         a >>= b
         a &= 1
         zero_one_vects = np.ascontiguousarray(a.transpose())
-        zero_one_vects_handle = mem_manager.SharedMemManager.create_array(
+        zero_one_vects_handle = _mem_manager.SharedMemManager.create_array(
             zero_one_vects)
         self._shared_mem_dict['zero_one_vects_handle'] = zero_one_vects_handle
 
         pm_vects = 1 - 2 * zero_one_vects
-        pm_vects_handle = mem_manager.SharedMemManager.create_array(pm_vects)
+        pm_vects_handle = _mem_manager.SharedMemManager.create_array(pm_vects)
         self._shared_mem_dict['pm_vects_handle'] = pm_vects_handle
 
     def _init_scratch(self):
         """Initializes a scratch pad equal in size to the wavefunction."""
         scratch = np.zeros((self._num_shards, self._shard_size),
                            dtype=np.complex64)
-        scratch_handle = mem_manager.SharedMemManager.create_array(
+        scratch_handle = _mem_manager.SharedMemManager.create_array(
             scratch.view(dtype=np.float32))
         self._shared_mem_dict['scratch_handle'] = scratch_handle
 
@@ -168,13 +163,13 @@ class Stepper(object):
         else:
             raise TypeError('Initial_state is not an int or np.ndarray.')
 
-        state_handle = mem_manager.SharedMemManager.create_array(
+        state_handle = _mem_manager.SharedMemManager.create_array(
             state.view(dtype=np.float32))
         self._shared_mem_dict['state_handle'] = state_handle
 
     def __del__(self):
         for handle in self._shared_mem_dict.values():
-            mem_manager.SharedMemManager.free_array(handle)
+            _mem_manager.SharedMemManager.free_array(handle)
 
     def __enter__(self):
         self._pool = (multiprocessing.Pool(processes=self._num_shards)
@@ -353,22 +348,23 @@ class Stepper(object):
 
 def _state_shard(args: Dict[str, Any]) -> np.ndarray:
     state_handle = args['state_handle']
-    return mem_manager.SharedMemManager.get_array(state_handle).view(
+    return _mem_manager.SharedMemManager.get_array(state_handle).view(
         dtype=np.complex64)[args['shard_num']]
 
 
 def _scratch_shard(args: Dict[str, Any]) -> np.ndarray:
     scratch_handle = args['scratch_handle']
-    return mem_manager.SharedMemManager.get_array(scratch_handle).view(
+    return _mem_manager.SharedMemManager.get_array(scratch_handle).view(
         dtype=np.complex64)[args['shard_num']]
 
 
 def _pm_vects(args: Dict[str, Any]) -> np.ndarray:
-    return mem_manager.SharedMemManager.get_array(args['pm_vects_handle'])
+    return _mem_manager.SharedMemManager.get_array(args['pm_vects_handle'])
 
 
 def _zero_one_vects(args: Dict[str, Any]) -> np.ndarray:
-    return mem_manager.SharedMemManager.get_array(args['zero_one_vects_handle'])
+    return _mem_manager.SharedMemManager.get_array(
+        args['zero_one_vects_handle'])
 
 
 def _kth_bit(x: int, k: int) -> int:
@@ -475,7 +471,7 @@ def _w_between_shards(args: Dict[str, Any]):
     axis_half_turns = args['axis_half_turns']
 
     perm_index = shard_num ^ (1 << (index - num_shard_qubits))
-    perm_state = mem_manager.SharedMemManager.get_array(
+    perm_state = _mem_manager.SharedMemManager.get_array(
         args['state_handle']).view(np.complex64)[perm_index]
 
     cos = np.cos(0.5 * np.pi * half_turns)

@@ -21,11 +21,11 @@ import pytest
 
 import numpy as np
 
-from cirq.sim.google import mem_manager
+from cirq.google._sim import _mem_manager
 
 
 def get_shared_mem(handle: int) -> np.ndarray:
-    return mem_manager.SharedMemManager.get_array(handle)
+    return _mem_manager.SharedMemManager.get_array(handle)
 
 
 def test_create_supported_dtypes():
@@ -34,67 +34,67 @@ def test_create_supported_dtypes():
         np.float64
     ]:
         arr = np.array([1, 1], dtype=dtype)
-        handle = mem_manager.SharedMemManager.create_array(arr)
+        handle = _mem_manager.SharedMemManager.create_array(arr)
         assert handle is not None
         np.testing.assert_equal(arr,
-                                mem_manager.SharedMemManager.get_array(handle))
-        mem_manager.SharedMemManager.free_array(handle)
+                                _mem_manager.SharedMemManager.get_array(handle))
+        _mem_manager.SharedMemManager.free_array(handle)
 
 
 def test_create_unsupported_dtype():
     with pytest.raises(ValueError) as exp:
         complex_arr = np.array([1j])
-        mem_manager.SharedMemManager.create_array(complex_arr)
+        _mem_manager.SharedMemManager.create_array(complex_arr)
         assert 'dtype' in str(exp.value)
 
 
 def test_create_unsupported_type():
     with pytest.raises(ValueError):
         not_an_array = 'not a numpy array'
-        mem_manager.SharedMemManager.create_array(not_an_array)
+        _mem_manager.SharedMemManager.create_array(not_an_array)
 
 
 def test_create_more_than_initial_allocation():
     handles = []
     for _ in range(1025):
         one = np.array([1])
-        handles.append(mem_manager.SharedMemManager.create_array(one))
+        handles.append(_mem_manager.SharedMemManager.create_array(one))
     for handle in handles:
-        mem_manager.SharedMemManager.free_array(handle)
+        _mem_manager.SharedMemManager.free_array(handle)
 
 
 def test_fills_gaps():
     handles = []
     for _ in range(1024):
         one = np.array([1])
-        handles.append(mem_manager.SharedMemManager.create_array(one))
+        handles.append(_mem_manager.SharedMemManager.create_array(one))
     handle = handles.pop()
-    mem_manager.SharedMemManager.free_array(handle)
+    _mem_manager.SharedMemManager.free_array(handle)
 
     new_one = np.array([1])
-    new_handle = mem_manager.SharedMemManager.create_array(new_one)
+    new_handle = _mem_manager.SharedMemManager.create_array(new_one)
 
     for handle in handles:
-        mem_manager.SharedMemManager.free_array(handle)
-    mem_manager.SharedMemManager.free_array(new_handle)
+        _mem_manager.SharedMemManager.free_array(handle)
+    _mem_manager.SharedMemManager.free_array(new_handle)
 
 
 def test_with_multiprocessing_pool():
     one = np.array([1])
-    handle = mem_manager.SharedMemManager.create_array(one)
+    handle = _mem_manager.SharedMemManager.create_array(one)
     pool = multiprocessing.Pool(processes=2)
     result = pool.map(get_shared_mem, [handle] * 10)
     pool.close()
     pool.join()
     np.testing.assert_equal([1] * 10, result)
-    mem_manager.SharedMemManager.free_array(handle)
+    _mem_manager.SharedMemManager.free_array(handle)
 
 
 def test_with_multiple_multiprocessing_pools():
     one = np.array([1])
     two = np.array([2])
-    one_handle = mem_manager.SharedMemManager.create_array(one)
-    two_handle = mem_manager.SharedMemManager.create_array(two)
+    one_handle = _mem_manager.SharedMemManager.create_array(one)
+    two_handle = _mem_manager.SharedMemManager.create_array(two)
     one_pool = multiprocessing.Pool(processes=2)
     two_pool = multiprocessing.Pool(processes=2)
     one_result = one_pool.map(get_shared_mem, [one_handle] * 10)
@@ -105,5 +105,5 @@ def test_with_multiple_multiprocessing_pools():
     two_pool.join()
     np.testing.assert_equal([1] * 10, one_result)
     np.testing.assert_equal([2] * 10, two_result)
-    mem_manager.SharedMemManager.free_array(one_handle)
-    mem_manager.SharedMemManager.free_array(two_handle)
+    _mem_manager.SharedMemManager.free_array(one_handle)
+    _mem_manager.SharedMemManager.free_array(two_handle)
