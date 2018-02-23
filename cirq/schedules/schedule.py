@@ -17,6 +17,7 @@ from typing import List, Union
 
 from sortedcontainers import SortedListWithKey
 
+from cirq.circuits import Circuit
 from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
@@ -160,3 +161,22 @@ class Schedule:
             return True
         except ValueError:
             return False
+
+    def to_circuit(self) -> Circuit:
+        """Convert the schedule to a circuit.
+
+        This discards most timing information from the schedule, but does place
+        operations that are scheduled at the same time in the same Moment.
+        """
+        circuit = Circuit()
+        ops = []
+        time = None  # type: Timestamp
+        for so in self.scheduled_operations:
+            if so.time != time:
+                circuit.append(ops)
+                ops = [so.operation]
+                time = so.time
+            else:
+                ops.append(so.operation)
+        circuit.append(ops)
+        return circuit

@@ -37,6 +37,7 @@ import cirq
 from cirq.circuits import Circuit, ExpandComposite
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.ops import raw_types
+from cirq.schedules import Schedule
 from cirq.sim.google.xmon_stepper import Stepper
 from cirq.study import Executor
 from cirq.study.resolver import ParamResolver
@@ -116,6 +117,25 @@ class Simulator(Executor):
             StepResult.merge_measurements_with,
             all_step_results)
         return context, TrialResult(final_step_result)
+
+    def run_schedule(
+            self,
+            schedule: Schedule,
+            **kw
+    ) -> Tuple['TrialContext', 'TrialResult']:
+        """Simulates the entire supplied Schedule.
+
+        This takes into account the order of scheduled operations, but not the
+        actual timing, which does not matter for ideal qubits and gates.
+
+        Args:
+            schedule: The schedule to simulate.
+            **kw: Additional keyword args to pass to run.
+
+        Returns:
+            A tuple (context, result). See run for more info.
+        """
+        return self.run(schedule.to_circuit(), **kw)
 
     def moment_steps(
             self,
