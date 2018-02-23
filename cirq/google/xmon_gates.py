@@ -249,14 +249,14 @@ class ExpZGate(XmonGate,
         self.half_turns = _canonicalize_half_turns(half_turns)
 
     def ascii_wire_symbols(self):
-        if abs(self.half_turns) == 0.25:
+        if self.half_turns in [-0.25, 0.25]:
             return 'T'
-        if abs(self.half_turns) == 0.5:
+        if self.half_turns in [-0.5, 0.5]:
             return 'S'
         return 'Z',
 
     def ascii_exponent(self):
-        if abs(self.half_turns) in [0.25, 0.5]:
+        if self.half_turns in [-0.5, -0.25, 0.25, 0.5]:
             return 1
         return self.half_turns
 
