@@ -165,9 +165,8 @@ class Schedule:
     def to_circuit(self) -> Circuit:
         """Convert the schedule to a circuit.
 
-        This discards most timing information from the schedule, but does keep
-        operations that are scheduled at the same time to the same Moment in
-        the circuit.
+        This discards most timing information from the schedule, but does place
+        operations that are scheduled at the same time in the same Moment.
         """
         circuit = Circuit()
         ops = []
