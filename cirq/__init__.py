@@ -22,7 +22,6 @@ from cirq import (
     linalg,
     ops,
     schedules,
-    sim,
     study,
     testing,
     time,

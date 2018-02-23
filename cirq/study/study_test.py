@@ -21,9 +21,7 @@ import pytest
 
 from cirq import study
 from cirq.circuits import Circuit
-from cirq.google.xmon_gates import ExpWGate, XmonMeasurementGate
-from cirq.google.xmon_qubit import XmonQubit
-from cirq.sim.google.xmon_simulator import Simulator
+from cirq.google import Simulator, ExpWGate, XmonMeasurementGate, XmonQubit
 from cirq.study import ExecutorStudy
 from cirq.study.parameterized_value import ParameterizedValue
 from cirq.study.resolver import ParamResolver

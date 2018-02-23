@@ -35,6 +35,14 @@ from cirq.google.merge_interactions import (
 from cirq.google.merge_rotations import (
     MergeRotations,
 )
+from cirq.google._sim import (
+    Options,
+    Simulator,
+    Stepper,
+    StepResult,
+    TrialContext,
+    TrialResult,
+)
 from cirq.google.xmon_device import (
     XmonDevice,
 )

@@ -20,7 +20,7 @@ import numpy as np
 from absl import app
 from absl import flags
 
-from cirq.sim.google import xmon_stepper
+from cirq.google._sim import _xmon_stepper
 
 FLAGS = flags.FLAGS
 
@@ -75,7 +75,7 @@ def simulate(num_qubits, num_gates):
             current_moment[index0] = new_moment + 1
             current_moment[index1] = new_moment + 1
 
-    with xmon_stepper.Stepper(
+    with _xmon_stepper.Stepper(
         num_qubits=num_qubits, num_prefix_qubits=2) as s:
         for moment in moments:
             phase_map = {}

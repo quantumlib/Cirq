@@ -24,8 +24,8 @@ from cirq.circuits import Circuit
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
+from cirq.google._sim import _xmon_simulator
 from cirq.ops.common_gates import CNOT, X
-from cirq.sim.google import xmon_simulator
 from cirq.study import ParameterizedValue
 from cirq.study.resolver import ParamResolver
 
@@ -64,26 +64,26 @@ def large_circuit():
 
 def test_xmon_options_negative_num_shards():
     with pytest.raises(AssertionError):
-        xmon_simulator.Options(num_shards=-1)
+        _xmon_simulator.Options(num_shards=-1)
 
 
 def test_xmon_options_negative_min_qubits_before_shard():
     with pytest.raises(AssertionError):
-        xmon_simulator.Options(min_qubits_before_shard=-1)
+        _xmon_simulator.Options(min_qubits_before_shard=-1)
 
 
 def test_xmon_options():
-    options = xmon_simulator.Options(num_shards=3, min_qubits_before_shard=0)
+    options = _xmon_simulator.Options(num_shards=3, min_qubits_before_shard=0)
     assert options.num_prefix_qubits == 1
     assert options.min_qubits_before_shard == 0
 
 
 def assert_empty_context(context):
-    assert xmon_simulator.TrialContext(param_dict={}) == context
+    assert _xmon_simulator.TrialContext(param_dict={}) == context
 
 
 def test_run_no_results():
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     context, result = simulator.run(basic_circuit())
     assert len(result.measurements) == 0
     assert_empty_context(context)
@@ -96,14 +96,14 @@ def test_run():
         [XmonMeasurementGate(key='a')(Q1),
          XmonMeasurementGate(key='b')(Q2),])
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     context, result = simulator.run(circuit)
     assert result.measurements == {'a': [False], 'b': [False]}
     assert_empty_context(context)
 
 
 def test_run_state():
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     context, result = simulator.run(basic_circuit(), qubits=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([-0.5j, 0.5, -0.5, 0.5j]))
@@ -111,7 +111,7 @@ def test_run_state():
 
 
 def test_run_state_different_order_of_qubits():
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     context, result = simulator.run(basic_circuit(), qubits=[Q2, Q1])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([-0.5j, -0.5, 0.5, 0.5j]))
@@ -121,7 +121,7 @@ def test_run_state_different_order_of_qubits():
 def test_consistent_seeded_run_sharded():
     circuit = large_circuit()
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     context, result = simulator.run(circuit)
     assert result.measurements == {
         'meas': [True, False, False, True, False, False, True, False, False,
@@ -132,9 +132,9 @@ def test_consistent_seeded_run_sharded():
 def test_consistent_seeded_run_no_sharding():
     circuit = large_circuit()
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     _, result = simulator.run(circuit,
-                              xmon_simulator.Options(num_shards=1))
+                              _xmon_simulator.Options(num_shards=1))
     assert result.measurements == {
         'meas': [True, False, False, True, False, False, True, False, False,
                  False]}
@@ -146,15 +146,15 @@ def test_run_no_sharing_few_qubits():
         [XmonMeasurementGate(key='a')(Q1),
          XmonMeasurementGate(key='b')(Q2),])
 
-    simulator = xmon_simulator.Simulator()
-    options = xmon_simulator.Options(min_qubits_before_shard=0)
+    simulator = _xmon_simulator.Simulator()
+    options = _xmon_simulator.Options(min_qubits_before_shard=0)
     context, result = simulator.run(circuit, options=options)
     assert result.measurements == {'a': [False], 'b': [False]}
     assert_empty_context(context)
 
 
 def test_moment_steps_no_results():
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     for step in simulator.moment_steps(basic_circuit()):
         assert len(step.measurements) == 0
 
@@ -166,7 +166,7 @@ def test_moment_steps():
         [XmonMeasurementGate(key='a')(Q1),
          XmonMeasurementGate(key='b')(Q2),])
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     results = []
     for step in simulator.moment_steps(circuit):
         results.append(step)
@@ -179,7 +179,7 @@ def test_moment_steps_state():
     np.random.seed(0)
     circuit = basic_circuit()
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     results = []
     for step in simulator.moment_steps(circuit, qubits=[Q1, Q2]):
         results.append(step.state())
@@ -194,7 +194,7 @@ def test_moment_steps_set_state():
     np.random.seed(0)
     circuit = basic_circuit()
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     step = simulator.moment_steps(circuit, qubits=[Q1, Q2])
 
     result = next(step)
@@ -206,7 +206,7 @@ def test_moment_steps_set_state_2():
     np.random.seed(0)
     circuit = basic_circuit()
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     step = simulator.moment_steps(circuit, qubits=[Q1, Q2])
 
     result = next(step)
@@ -216,7 +216,7 @@ def test_moment_steps_set_state_2():
 
 
 def compute_gate(circuit, resolver, num_qubits=1):
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     gate = []
     for initial_state in range(1 << num_qubits):
         _, result = simulator.run(circuit, initial_state=initial_state,
@@ -303,7 +303,7 @@ def test_param_resolver_param_dict(offset):
     circuit.append(exp_w(Q1))
     resolver = ParamResolver({'a': 0.5})
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     context, _ = simulator.run(circuit, param_resolver=resolver)
     assert context.param_dict == {'a': 0.5}
 
@@ -314,7 +314,7 @@ def test_composite_gates():
     m = XmonMeasurementGate('a')
     circuit.append([m(Q1), m(Q2)])
 
-    simulator = xmon_simulator.Simulator()
+    simulator = _xmon_simulator.Simulator()
     _, result = simulator.run(circuit)
     assert result.measurements['a'] == [True, True]
 
@@ -325,7 +325,7 @@ def test_measurement_order():
         X(Q1),
         XmonMeasurementGate().on(Q1),
     )
-    _, result = xmon_simulator.Simulator().run(circuit)
+    _, result = _xmon_simulator.Simulator().run(circuit)
     assert result.measurements[''] == [False, True]
 
 
@@ -338,5 +338,5 @@ def test_inverted_measurement():
         X(Q1),
         XmonMeasurementGate(invert_result=True)(Q1))
 
-    _, result = xmon_simulator.Simulator().run(circuit)
+    _, result = _xmon_simulator.Simulator().run(circuit)
     assert result.measurements[''] == [False, True, False, True]

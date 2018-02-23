@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simulators specific to Google's quantum hardware.
+"""Types and methods related to simulating quantum computers.
 """
 
-from cirq.sim.google import xmon_stepper
-from cirq.sim.google import xmon_simulator
+from cirq.google._sim._xmon_simulator import (
+    Options,
+    Simulator,
+    StepResult,
+    TrialContext,
+    TrialResult,
+)
+from cirq.google._sim._xmon_stepper import (
+    Stepper,
+)
