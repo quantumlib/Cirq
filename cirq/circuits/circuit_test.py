@@ -617,15 +617,16 @@ def test_to_text_diagram_parameterized_value():
         PGate(2).on(q),
         PGate(ParameterizedValue('a')).on(q),
         PGate(ParameterizedValue('a', 1)).on(q),
-        PGate(ParameterizedValue('%$&#*(')).on(q),
-        PGate(ParameterizedValue('%$&#*(', 1)).on(q),
+        PGate(ParameterizedValue('%$&#!(')).on(q),
+        PGate(ParameterizedValue('%$&#!(', 1)).on(q),
+        PGate(ParameterizedValue('a', factor=3)).on(q),
     )
     assert str(c).strip() in [
-        "cube: ───P───P^2───P^a───P^(1+a)───P^param('%$&#*(')───P^(1+param('%$"
-        "&#*('))───",
+        "cube: ───P───P^2───P^a───P^(1+a)───P^param('%$&#!(')───P^(1+param('%$"
+        "&#!('))───P^(a*3)───",
 
-        "cube: ───P───P^2───P^a───P^(1+a)───P^param(u'%$&#*(')───P^(1+param(u'"
-        "%$&#*('))───",
+        "cube: ───P───P^2───P^a───P^(1+a)───P^param(u'%$&#!(')───P^(1+param(u'"
+        "%$&#!('))───P^(a*3)───",
     ]
 
 

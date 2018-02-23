@@ -361,7 +361,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
     if isinstance(exponent, float):
         return repr(exponent)
     s = str(exponent)
-    if '+' in s or ' ' in s or '-' in s[1:]:
+    if any(e in s[1:] for e in [' ', '*', '/', '+', '-']):
         return '({})'.format(exponent)
     return s
 
