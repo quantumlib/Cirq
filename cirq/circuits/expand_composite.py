@@ -35,7 +35,7 @@ class ExpandComposite(PointOptimizer):
 
     def __init__(self,
         insert_strategy: InsertStrategy = InsertStrategy.INLINE,
-        composite_gate_extension: Extensions = Extensions()):
+        composite_gate_extension: Extensions = Extensions()) -> None:
         """Construct the optimization pass.
 
         Args:

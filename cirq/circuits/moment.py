@@ -34,7 +34,7 @@ class Moment(object):
         qubits: A set of the qubits acted upon by this Moment.
     """
 
-    def __init__(self, operations: Iterable[ops.Operation] = ()):
+    def __init__(self, operations: Iterable[ops.Operation] = ()) -> None:
         """Constructs a moment with the given operations.
 
         Args:

@@ -33,7 +33,8 @@ class Schedule:
 
     def __init__(self,
                  device: Device,
-                 scheduled_operations: Iterable[ScheduledOperation] = ()):
+                 scheduled_operations: Iterable[ScheduledOperation] = ()
+                 ) -> None:
         """Initializes a new schedule.
 
         Args:

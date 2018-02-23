@@ -36,7 +36,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
     more float-error sensitive to work with (due to using eigendecompositions).
     """
 
-    def __init__(self, matrix: Optional[np.ndarray]):
+    def __init__(self, matrix: Optional[np.ndarray]) -> None:
         """
         Initializes the 2-qubit matrix gate.
 
@@ -113,7 +113,7 @@ class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
     more float-error sensitive to work with (due to using eigendecompositions).
     """
 
-    def __init__(self, matrix: Optional[np.ndarray]):
+    def __init__(self, matrix: Optional[np.ndarray]) -> None:
         """
         Initializes the 2-qubit matrix gate.
 
