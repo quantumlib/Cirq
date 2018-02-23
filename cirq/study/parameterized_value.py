@@ -69,8 +69,8 @@ class ParameterizedValue:
                                    repr(self.factor))
 
     def __repr__(self):
-        return 'ParameterizedValue({}, {}, {})'.format(repr(self.val),
-                                                       repr(self.key),
+        return 'ParameterizedValue({}, {}, {})'.format(repr(self.key),
+                                                       repr(self.val),
                                                        repr(self.factor))
 
     def __eq__(self, other):
