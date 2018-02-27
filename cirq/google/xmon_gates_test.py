@@ -14,7 +14,7 @@
 
 from google.protobuf import message, text_format
 
-from cirq.extension import Extensions
+from cirq import Extensions
 from cirq.google import (
     XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )

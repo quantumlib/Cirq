@@ -16,7 +16,7 @@
 
 import abc
 
-from cirq.extension import Extensions
+from cirq.extension.extensions import Extensions
 from cirq.ops import gate_features, op_tree, raw_types
 
 

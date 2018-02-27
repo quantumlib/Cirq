@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from cirq import ops
-from cirq.extension import Extensions
+from cirq.extension.extensions import Extensions
 from cirq.google import xmon_gates
 
 

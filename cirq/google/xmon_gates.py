@@ -21,7 +21,7 @@ import numpy as np
 
 from cirq import ops
 from cirq.api.google.v1 import operations_pb2
-from cirq.extension import PotentialImplementation
+from cirq.extension.potential_implementation import PotentialImplementation
 from cirq.study.parameterized_value import ParameterizedValue
 
 

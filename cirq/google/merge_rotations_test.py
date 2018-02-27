@@ -14,9 +14,7 @@
 
 import numpy as np
 
-from cirq import circuits
-from cirq import ops
-from cirq.extension import Extensions
+from cirq import circuits, ops, Extensions
 from cirq.google import MergeRotations
 
 
