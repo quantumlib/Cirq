@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import extension
+import cirq
 from cirq import ops
 from cirq.circuits import Circuit, Moment, to_ascii
 from cirq.google import XmonQubit
@@ -115,7 +115,7 @@ def test_to_ascii_extended_gate():
             return 'F'
 
     diagram = to_ascii(c,
-                       extension.Extensions({
+                       cirq.Extensions({
                            ops.AsciiDiagrammableGate: {
                                FGate: FGateAsAscii
                            }

@@ -20,7 +20,7 @@ from cirq import ops
 from cirq.circuits import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.optimization_pass import PointOptimizer
-from cirq.extension import Extensions
+from cirq.extension.extensions import Extensions
 
 
 class ExpandComposite(PointOptimizer):

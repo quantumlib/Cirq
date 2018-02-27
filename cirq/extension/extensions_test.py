@@ -14,8 +14,7 @@
 
 import pytest
 
-from cirq import extension
-from cirq.extension import PotentialImplementation
+import cirq
 
 
 class DesiredType:
@@ -45,7 +44,7 @@ class UnrelatedType:
 
 
 def test_wrap():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     w = e.cast(o, DesiredType)
     assert w.make() == 'wrap'
@@ -54,7 +53,7 @@ def test_wrap():
 
 
 def test_empty():
-    e = extension.Extensions()
+    e = cirq.Extensions()
     o = OtherType()
     c = ChildType()
     u = UnrelatedType()
@@ -73,7 +72,7 @@ def test_empty():
 
 
 def test_cast_hit_vs_miss():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     c = ChildType()
     u = UnrelatedType()
@@ -95,7 +94,7 @@ def test_cast_hit_vs_miss():
 
 
 def test_try_cast_hit_vs_miss():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     c = ChildType()
     u = UnrelatedType()
@@ -112,7 +111,7 @@ def test_try_cast_hit_vs_miss():
 
 
 def test_can_cast():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     c = ChildType()
     u = UnrelatedType()
     assert not e.can_cast(u, DesiredType)
@@ -120,7 +119,7 @@ def test_can_cast():
 
 
 def test_override_order():
-    e = extension.Extensions({
+    e = cirq.Extensions({
         DesiredType: {
             object: lambda _: 'obj',
             UnrelatedType: lambda _: 'unrelated',
@@ -134,7 +133,7 @@ def test_override_order():
 
 def test_try_cast_potential_implementation():
 
-    class PotentialOther(PotentialImplementation):
+    class PotentialOther(cirq.PotentialImplementation):
         def __init__(self, is_other):
             self.is_other = is_other
 
@@ -143,7 +142,7 @@ def test_try_cast_potential_implementation():
                 return OtherType()
             return None
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     o = PotentialOther(is_other=False)
     u = PotentialOther(is_other=False)
 

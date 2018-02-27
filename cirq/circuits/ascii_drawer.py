@@ -19,7 +19,7 @@ from typing import Dict, List, Callable, Any
 from cirq import ops
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.moment import Moment
-from cirq.extension import Extensions
+from cirq.extension.extensions import Extensions
 
 
 class _AsciiDiagramDrawer:

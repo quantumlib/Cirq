@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import ops
 from cirq.circuits import Circuit, InsertStrategy, PointOptimizer
-from cirq.extension import Extensions
+from cirq.extension.extensions import Extensions
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.google.xmon_gates import XmonGate
 
