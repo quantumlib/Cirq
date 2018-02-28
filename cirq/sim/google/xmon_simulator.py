@@ -378,6 +378,5 @@ class TrialResult(cirq.study.TrialResult):
         keyed_bitstrings = [
             (key, bitstring(val)) for key, val in self.measurements.items()
         ]
-        sorted_bitstrings = sorted(keyed_bitstrings, key=lambda e: e[0])
         return '\n'.join('{}: {}'.format(repr(key), val)
-                         for key, val in sorted_bitstrings)
+                         for key, val in sorted(keyed_bitstrings))
