@@ -49,9 +49,10 @@ class ParamResolver(object):
             will return the assigned value for the key plus the float (offset).
         """
         if isinstance(parameterized_value, ParameterizedValue):
-            return (
-                self.param_dict[ParameterizedValue.key_of(parameterized_value)]
-                + ParameterizedValue.val_of(parameterized_value))
+            key = parameterized_value.key
+            val = parameterized_value.val
+            factor = parameterized_value.factor
+            return self.param_dict[key] * factor + val
         return parameterized_value
 
     def __hash__(self):
