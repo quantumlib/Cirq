@@ -14,11 +14,13 @@
 
 """The circuit data structure for the sequenced phase."""
 
-from typing import Iterable, List, Optional, Set
+from typing import List, Optional, Set, Dict, Callable, Any, Iterable
 
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.extension import Extensions
 from cirq.ops import QubitId
 
 
@@ -280,5 +282,144 @@ class Circuit(object):
         return 'Circuit([{}])'.format(','.join(moment_lines))
 
     def __str__(self):
-        moment_lines = ('\n    ' + str(moment) for moment in self.moments)
-        return 'Circuit [{}\n]'.format(''.join(moment_lines))
+        return self.to_text_diagram()
+
+    def to_text_diagram(
+            self,
+            ext: Extensions = Extensions(),
+            use_unicode_characters: bool = True,
+            transpose: bool = False,
+            qubit_order_key: Callable[[ops.QubitId], Any] = None) -> str:
+        """Returns text containing a diagram describing the circuit.
+
+        Args:
+            ext: For extending gates to implement AsciiDiagrammableGate.
+            use_unicode_characters: Activates the use of cleaner-looking
+                unicode box-drawing characters for lines.
+            transpose: Arranges the wires vertically instead of horizontally.
+            qubit_order_key: Transforms each qubit into a key that determines
+                how the qubits are ordered in the diagram. Qubits with lower
+                keys come first. Defaults to the qubit's __str__, but augmented
+                so that lexicographic ordering will respect the order of
+                integers within the string (e.g. "name10" will come after
+                "name2").
+
+        Returns:
+            The ascii diagram.
+        """
+        if qubit_order_key is None:
+            qubit_order_key = _str_lexicographic_respecting_int_order
+
+        qubits = {
+            q
+            for moment in self.moments for op in moment.operations
+            for q in op.qubits
+        }
+        ordered_qubits = sorted(qubits, key=qubit_order_key)
+        qubit_map = {ordered_qubits[i]: i for i in range(len(ordered_qubits))}
+
+        diagram = TextDiagramDrawer()
+        for q, i in qubit_map.items():
+            diagram.write(0, i, str(q) + ('' if transpose else ': '))
+
+        for moment in [Moment()] * 2 + self.moments + [Moment()]:
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram)
+
+        w = diagram.width()
+        for i in qubit_map.values():
+            diagram.horizontal_line(i, 0, w)
+
+        if transpose:
+            return diagram.transpose().render(
+                crossing_char='─' if use_unicode_characters else '-',
+                use_unicode_characters=use_unicode_characters)
+        return diagram.render(
+            crossing_char='┼' if use_unicode_characters else '|',
+            horizontal_spacing=3,
+            use_unicode_characters=use_unicode_characters)
+
+
+def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
+                                        ) -> Iterable[str]:
+    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
+    if ascii_gate is not None:
+        return ascii_gate.ascii_wire_symbols()
+    name = repr(op.gate)
+    if len(op.qubits) == 1:
+        return [name]
+    return ['{}:{}'.format(name, i) for i in range(len(op.qubits))]
+
+
+def _get_operation_text_diagram_exponent(op: ops.Operation,
+                                         ext: Extensions) -> Optional[str]:
+    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
+    if ascii_gate is None:
+        return None
+    exponent = ascii_gate.ascii_exponent()
+    if exponent == 1:
+        return None
+    if isinstance(exponent, float):
+        return repr(exponent)
+    s = str(exponent)
+    if '+' in s or ' ' in s or '-' in s[1:]:
+        return '({})'.format(exponent)
+    return s
+
+
+def _draw_moment_in_diagram(moment: Moment,
+                            ext: Extensions,
+                            qubit_map: Dict[ops.QubitId, int],
+                            out_diagram: TextDiagramDrawer):
+    if not moment.operations:
+        return []
+
+    x0 = out_diagram.width()
+    for op in moment.operations:
+        indices = [qubit_map[q] for q in op.qubits]
+        y1 = min(indices)
+        y2 = max(indices)
+
+        # Find an available column.
+        x = x0
+        while any(out_diagram.content_present(x, y)
+                  for y in range(y1, y2 + 1)):
+            x += 1
+
+        # Draw vertical line linking the gate's qubits.
+        if y2 > y1:
+            out_diagram.vertical_line(x, y1, y2)
+
+        # Print gate qubit labels.
+        symbols = _get_operation_text_diagram_symbols(op, ext)
+        for s, q in zip(symbols, op.qubits):
+            out_diagram.write(x, qubit_map[q], s)
+
+        # Add an exponent to the first label.
+        exponent = _get_operation_text_diagram_exponent(op, ext)
+        if exponent is not None:
+            out_diagram.write(x, y1, '^' + exponent)
+
+
+def _str_lexicographic_respecting_int_order(value):
+    """0-pads digits in a string to hack int order into lexicographic order."""
+    s = str(value)
+
+    was_on_digits = False
+    last_transition = 0
+    output = []
+
+    def dump(k):
+        chunk = s[last_transition:k]
+        if was_on_digits:
+            chunk = chunk.rjust(8, '0')
+        output.append(chunk)
+
+    for i in range(len(s)):
+        on_digits = s[i].isdigit()
+        if was_on_digits != on_digits:
+            dump(i)
+            was_on_digits = on_digits
+            last_transition = i
+
+    dump(len(s))
+    return ''.join(output)

@@ -35,12 +35,11 @@ from cirq.circuits import (
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
-    from_ascii,
     InsertStrategy,
     Moment,
     OptimizationPass,
     PointOptimizer,
-    to_ascii,
+    TextDiagramDrawer,
 )
 
 from cirq.devices import (

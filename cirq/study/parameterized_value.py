@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import Union
 
 
@@ -53,9 +52,12 @@ class ParameterizedValue:
     def __str__(self):
         if self.key == '':
             return repr(self.val)
+        key_rep = (self.key
+                   if self.key.isalpha()
+                   else 'param({})'.format(repr(self.key)))
         if self.val == 0:
-            return 'param({})'.format(repr(self.key))
-        return '{} + param({})'.format(repr(self.val), repr(self.key))
+            return key_rep
+        return '{}+{}'.format(repr(self.val), key_rep)
 
     def __repr__(self):
         return 'ParameterizedValue({}, {})'.format(repr(self.val),
