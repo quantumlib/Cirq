@@ -15,9 +15,9 @@
 from cirq import circuits
 from cirq import ops
 from cirq.api.google.v1.params_pb2 import ParameterSweep
+from cirq.contrib import DepolarizerChannel
+from cirq.contrib import Job
 from cirq.google import xmon_gates
-from cirq.jobs import DepolarizerChannel
-from cirq.jobs import Job
 from cirq.study.parameterized_value import ParameterizedValue
 
 
@@ -90,8 +90,3 @@ def test_depolarizer_multiple_repetitions():
                          xmon_gates.ExpZGate(half_turns=p1).on(q2)])]),
                        sweep)
     assert allerrors3.transform_job(cnot) == cnot_then_z3
-
-
-test_depolarizer_no_errors()
-test_depolarizer_all_errors()
-test_depolarizer_multiple_repetitions()
