@@ -35,6 +35,12 @@ class DepolarizerChannel(object):
     This class currently only supports adding a Pauli-Z gate at
     each step.
 
+    If the job already contains a parameter sweep, this will create
+    the error sweep as a cartesian product (i.e. a "factor") of the
+    existing parameter sweep.  For example, if the job contains a
+    parameter with 4 values, the new job will run through the same
+    error scenarios for each of the 4 values.
+
     Attributes:
       probability: Probability of a qubit being affected in a given moment
       repetitions: Number of simulations to create.
@@ -85,9 +91,12 @@ class DepolarizerChannel(object):
         # Add error circuits
         moments = []
         parameter_number = 0
-
         sweep = ParameterSweep()
-        sweep.repetitions = 1
+        sweep.CopyFrom(job.sweep)
+        if sweep.repetitions <= 0:
+            # If unset, set to 1 repetition.
+            sweep.repetitions = 1
+        error_factor = len(sweep.sweep.factors)
         sweep.sweep.factors.add()
         add_gate = False
         for moment in circuit.moments:
@@ -113,7 +122,7 @@ class DepolarizerChannel(object):
                     if gate_needed[q]:
                         sps = self._single_parameter_sweep(parameter_number,
                                                            points[q])
-                        sweep.sweep.factors[0].sweeps.extend([sps])
+                        sweep.sweep.factors[error_factor].sweeps.extend([sps])
                     parameter_number += 1
 
         if add_gate:
