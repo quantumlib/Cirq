@@ -1,37 +1,31 @@
 import pytest
 
-from cirq.api.google.v1 import params
 from cirq.api.google.v1.params_pb2 import (
     ParameterSweep,
     ParameterSweepZip,
     SingleParameterSweep,
 )
+from cirq.google import params
+from cirq.study.sweeps import Linspace, Points, Product, Unit, Zip
 
 
 def test_gen_sweep_points():
     points = [0.5, 1.0, 1.5, 2.0, 2.5]
     sweep = SingleParameterSweep()
+    sweep.parameter_name = 'foo'
     sweep.sweep_points.points.extend(points)
-    out = params._gen_single_param_sweep(sweep)
-    assert list(out) == points
+    out = params._sweep_from_single_param_sweep(sweep)
+    assert out == Points('foo', [0.5, 1.0, 1.5, 2.0, 2.5])
 
 
 def test_gen_sweep_linspace():
     sweep = SingleParameterSweep()
+    sweep.parameter_name = 'bar'
     sweep.sweep_linspace.first_point = 0
     sweep.sweep_linspace.last_point = 10
     sweep.sweep_linspace.num_points = 11
-    out = params._gen_single_param_sweep(sweep)
-    assert list(out) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-
-def test_gen_sweep_linspace_one_point():
-    sweep = SingleParameterSweep()
-    sweep.sweep_linspace.first_point = 0
-    sweep.sweep_linspace.last_point = 10
-    sweep.sweep_linspace.num_points = 1
-    out = params._gen_single_param_sweep(sweep)
-    assert list(out) == [0]
+    out = params._sweep_from_single_param_sweep(sweep)
+    assert out == Linspace('bar', 0, 10, 11)
 
 
 def test_gen_param_sweep_zip():
@@ -42,15 +36,14 @@ def test_gen_param_sweep_zip():
     s2 = sweep.sweeps.add()
     s2.parameter_name = 'bar'
     s2.sweep_points.points.extend([4, 5])
-    out = params._gen_param_sweep_zip(sweep)
-    assert list(out) == [(('foo', f), ('bar', b))
-                         for f, b in zip([1, 2, 3], [4, 5])]
+    out = params._sweep_from_param_sweep_zip(sweep)
+    assert out == Points('foo', [1, 2, 3]) + Points('bar', [4, 5])
 
 
 def test_gen_empty_param_sweep():
     ps = ParameterSweep()
-    out = params.gen_param_sweep(ps)
-    assert list(out) == [()]
+    out = params.sweep_from_proto(ps)
+    assert out == Unit
 
 
 def test_gen_param_sweep():
@@ -63,48 +56,65 @@ def test_gen_param_sweep():
     s2 = f2.sweeps.add()
     s2.parameter_name = 'bar'
     s2.sweep_points.points.extend([4, 5])
-    out = params.gen_param_sweep(ps)
-    assert list(out) == [(('foo', f), ('bar', b))
-                         for f in [1, 2, 3] for b in [4, 5]]
+    out = params.sweep_from_proto(ps)
+    assert out == Product(Zip(Points('foo', [1, 2, 3])),
+                          Zip(Points('bar', [4, 5])))
 
 
-def test_empty_param_sweep_names():
+def test_empty_param_sweep_keys():
     ps = ParameterSweep()
-    assert params.param_sweep_names(ps) == []
+    assert params.sweep_from_proto(ps).keys == []
 
 
-def test_param_sweep_names():
+def test_param_sweep_keys():
     ps = ParameterSweep()
     f1 = ps.sweep.factors.add()
-    f1.sweeps.add().parameter_name = 'foo'
-    f1.sweeps.add().parameter_name = 'bar'
+    s11 = f1.sweeps.add()
+    s11.parameter_name = 'foo'
+    s11.sweep_points.points.extend(range(5))
+    s12 = f1.sweeps.add()
+    s12.parameter_name = 'bar'
+    s12.sweep_points.points.extend(range(7))
     f2 = ps.sweep.factors.add()
-    f2.sweeps.add().parameter_name = 'baz'
-    f2.sweeps.add().parameter_name = 'qux'
-    assert params.param_sweep_names(ps) == ['foo', 'bar', 'baz', 'qux']
+    s21 = f2.sweeps.add()
+    s21.parameter_name = 'baz'
+    s21.sweep_points.points.extend(range(11))
+    s22 = f2.sweeps.add()
+    s22.parameter_name = 'qux'
+    s22.sweep_points.points.extend(range(13))
+    out = params.sweep_from_proto(ps)
+    assert out.keys == ['foo', 'bar', 'baz', 'qux']
 
 
 def test_empty_param_sweep_size():
     ps = ParameterSweep()
-    assert params.param_sweep_size(ps) == 1
+    assert len(params.sweep_from_proto(ps)) == 1
 
 
 def test_param_sweep_size():
     ps = ParameterSweep()
     f1 = ps.sweep.factors.add()
-    f1.sweeps.add().sweep_linspace.num_points = 5
-    f1.sweeps.add().sweep_points.points.extend(range(7))
+    s11 = f1.sweeps.add()
+    s11.parameter_name = '11'
+    s11.sweep_linspace.num_points = 5
+    s12 = f1.sweeps.add()
+    s12.parameter_name = '12'
+    s12.sweep_points.points.extend(range(7))
     f2 = ps.sweep.factors.add()
-    f2.sweeps.add().sweep_linspace.num_points = 11
-    f2.sweeps.add().sweep_points.points.extend(range(13))
-    assert params.param_sweep_size(ps) == 5 * 11
+    s21 = f2.sweeps.add()
+    s21.parameter_name = '21'
+    s21.sweep_linspace.num_points = 11
+    s22 = f2.sweeps.add()
+    s22.parameter_name = '22'
+    s22.sweep_points.points.extend(range(13))
+    assert len(params.sweep_from_proto(ps)) == 5 * 11
 
 
 def test_param_sweep_size_no_sweeps():
     ps = ParameterSweep()
     ps.sweep.factors.add()
     ps.sweep.factors.add()
-    assert params.param_sweep_size(ps) == 0
+    assert len(params.sweep_from_proto(ps)) == 0
 
 
 def example_sweeps():
@@ -119,18 +129,22 @@ def example_sweeps():
     full_sweep = ParameterSweep()
     f1 = full_sweep.sweep.factors.add()
     s11 = f1.sweeps.add()
+    s11.parameter_name = '11'
     s11.sweep_linspace.first_point = 0
     s11.sweep_linspace.last_point = 10
     s11.sweep_linspace.num_points = 5
     s12 = f1.sweeps.add()
+    s12.parameter_name = '12'
     s12.sweep_points.points.extend(range(7))
 
     f2 = full_sweep.sweep.factors.add()
     s21 = f2.sweeps.add()
+    s21.parameter_name = '21'
     s21.sweep_linspace.first_point = 0
     s21.sweep_linspace.last_point = 10
     s21.sweep_linspace.num_points = 11
     s22 = f2.sweeps.add()
+    s22.parameter_name = '22'
     s22.sweep_points.points.extend(range(13))
 
     return [empty_sweep, empty_product, empty_zip, full_sweep]
@@ -138,6 +152,7 @@ def example_sweeps():
 
 @pytest.mark.parametrize('param_sweep', example_sweeps())
 def test_param_sweep_size_versus_gen(param_sweep):
-    predicted_size = params.param_sweep_size(param_sweep)
-    out = list(params.gen_param_sweep(param_sweep))
+    sweep = params.sweep_from_proto(param_sweep)
+    predicted_size = len(sweep)
+    out = list(sweep)
     assert len(out) == predicted_size
