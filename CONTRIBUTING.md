@@ -25,14 +25,14 @@ information on using pull requests.
 Our code reviews also (currently) require the reviewer to run tests for
 your pull request.  To insure that these tests pass, you should run
 these tests locally. To do this, you must first install the protobuf
-compiler:
+compiler and the virtual environment:
 ```bash
-sudo apt-get install protobuf-compiler
+sudo apt-get install protobuf-compiler virtualenv
 ```
 Then you can run the following, which assumes you are in the directory
 where your changes are made:
 ```bash
-./continuous_integration/test-pull-request
+./continuous_integration/test-pull-request.sh
 ```
 Reviewers will run these tests before your code is submitted to ensure
 that the tests are not broken.  This ad hoc system is in place until
