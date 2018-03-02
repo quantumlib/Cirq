@@ -22,6 +22,7 @@ import numpy as np
 from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
+from cirq.google.xmon_qubit import XmonQubit
 from cirq.study.parameterized_value import ParameterizedValue
 
 
@@ -31,6 +32,54 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def to_proto(self, *qubits) -> operations_pb2.Operation:
         raise NotImplementedError()
+
+    @staticmethod
+    def from_proto(op: operations_pb2.Operation) -> ops.Operation:
+        param = XmonGate.parameterized_value_from_proto
+        qubit = XmonQubit.from_proto
+        which = op.WhichOneof('operation')
+        if which == 'exp_w':
+            exp_w = op.exp_w
+            return ExpWGate(
+                half_turns=param(exp_w.half_turns),
+                axis_half_turns=param(exp_w.axis_half_turns),
+            ).on(qubit(exp_w.target))
+        elif which == 'exp_z':
+            exp_z = op.exp_z
+            return ExpZGate(
+                half_turns=param(exp_z.half_turns)
+            ).on(qubit(exp_z.target))
+        elif which == 'exp_11':
+            exp_11 = op.exp_11
+            return Exp11Gate(
+                half_turns=param(exp_11.half_turns)
+            ).on(qubit(exp_11.target1), qubit(exp_11.target2))
+        elif which == 'measurement':
+            meas = op.measurement
+            return XmonMeasurementGate(
+                key=meas.key
+            ).on(qubit(meas.target))
+        else:
+            raise ValueError('invalid operation: {}'.format(op))
+
+    @staticmethod
+    def parameterized_value_from_proto(
+        message: operations_pb2.ParameterizedFloat
+    ) -> Union[ParameterizedValue, float]:
+        if not message.parameter_key:
+            return message.raw
+        return ParameterizedValue(key=message.parameter_key, val=message.raw)
+
+    @staticmethod
+    def parameterized_value_to_proto(
+        param: Union[ParameterizedValue, float],
+        message: operations_pb2.ParameterizedFloat = None
+    ) -> operations_pb2.ParameterizedFloat:
+        if message is None:
+            message = operations_pb2.ParameterizedFloat()
+        message.raw = ParameterizedValue.val_of(param)
+        message.parameter_key = ParameterizedValue.key_of(param)
+        return message
 
 
 class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
@@ -42,8 +91,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
         q = qubits[0]
         op = operations_pb2.Operation()
-        op.measurement.target.x = q.x
-        op.measurement.target.y = q.y
+        q.to_proto(op.measurement.target)
         op.measurement.key = self.key
         return op
 
@@ -69,13 +117,9 @@ class Exp11Gate(XmonGate,
 
         p, q = qubits
         op = operations_pb2.Operation()
-        op.exp_11.target1.x = p.x
-        op.exp_11.target1.y = p.y
-        op.exp_11.target2.x = q.x
-        op.exp_11.target2.y = q.y
-        op.exp_11.half_turns.raw = ParameterizedValue.val_of(self.half_turns)
-        op.exp_11.half_turns.parameter_key = ParameterizedValue.key_of(
-            self.half_turns)
+        p.to_proto(op.exp_11.target1)
+        q.to_proto(op.exp_11.target2)
+        self.parameterized_value_to_proto(self.half_turns, op.exp_11.half_turns)
         return op
 
     def try_cast_to(self, desired_type):
@@ -146,15 +190,10 @@ class ExpWGate(XmonGate,
 
         q = qubits[0]
         op = operations_pb2.Operation()
-        op.exp_w.target.x = q.x
-        op.exp_w.target.y = q.y
-        op.exp_w.axis_half_turns.raw = ParameterizedValue.val_of(
-            self.axis_half_turns)
-        op.exp_w.axis_half_turns.parameter_key = ParameterizedValue.key_of(
-            self.axis_half_turns)
-        op.exp_w.half_turns.raw = ParameterizedValue.val_of(self.half_turns)
-        op.exp_w.half_turns.parameter_key = ParameterizedValue.key_of(
-            self.half_turns)
+        q.to_proto(op.exp_w.target)
+        self.parameterized_value_to_proto(self.axis_half_turns,
+                                          op.exp_w.axis_half_turns)
+        self.parameterized_value_to_proto(self.half_turns, op.exp_w.half_turns)
         return op
 
     def try_cast_to(self, desired_type):
@@ -292,11 +331,8 @@ class ExpZGate(XmonGate,
 
         q = qubits[0]
         op = operations_pb2.Operation()
-        op.exp_z.target.x = q.x
-        op.exp_z.target.y = q.y
-        op.exp_z.half_turns.raw = ParameterizedValue.val_of(self.half_turns)
-        op.exp_z.half_turns.parameter_key = ParameterizedValue.key_of(
-            self.half_turns)
+        q.to_proto(op.exp_z.target)
+        self.parameterized_value_to_proto(self.half_turns, op.exp_z.half_turns)
         return op
 
     def __str__(self):
