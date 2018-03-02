@@ -15,8 +15,8 @@
 from cirq import circuits
 from cirq import ops
 from cirq.api.google.v1.params_pb2 import ParameterSweep
-from cirq.contrib import DepolarizerChannel
-from cirq.contrib import Job
+from cirq.contrib.jobs import DepolarizerChannel
+from cirq.contrib.jobs import Job
 from cirq.google import xmon_gates
 from cirq.study.parameterized_value import ParameterizedValue
 

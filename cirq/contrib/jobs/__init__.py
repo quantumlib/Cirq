@@ -19,9 +19,9 @@ them to Quantum Engine.  Contains classes to help with adding parameter
 sweeps and error simulation.
 """
 
-from cirq.jobs.job import (
+from cirq.contrib.jobs.job import (
     Job,
 )
-from cirq.jobs.depolarizer_channel import (
+from cirq.contrib.jobs.depolarizer_channel import (
     DepolarizerChannel,
 )

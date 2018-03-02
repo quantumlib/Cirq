@@ -19,8 +19,8 @@ from cirq.api.google.v1.params_pb2 import ParameterSweep
 from cirq.api.google.v1.params_pb2 import SingleParameterSweep
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.circuit import Moment
+from cirq.contrib.jobs import Job
 from cirq.google import xmon_gates
-from cirq.jobs import Job
 from cirq.study.parameterized_value import ParameterizedValue
 
 

@@ -16,7 +16,7 @@ from cirq import ops
 from cirq.api.google.v1.params_pb2 import ParameterSweep
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.moment import Moment
-from cirq.contrib import Job
+from cirq.contrib.jobs import Job
 from cirq.testing import EqualsTester
 
 
