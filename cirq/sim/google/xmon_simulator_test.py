@@ -20,6 +20,8 @@ import math
 import numpy as np
 import pytest
 
+from cirq.api.google.v1.params import gen_resolvers
+from cirq.api.google.v1.params_pb2 import ParameterSweep
 from cirq.circuits import Circuit
 from cirq.devices import UnconstrainedDevice
 from cirq.google import (
@@ -28,7 +30,7 @@ from cirq.google import (
 from cirq.ops.common_gates import CNOT, X
 from cirq.schedules import moment_by_moment_schedule
 from cirq.sim.google import xmon_simulator
-from cirq.study import ParameterizedValue
+from cirq.study import ExecutorStudy, ParameterizedValue
 from cirq.study.resolver import ParamResolver
 
 Q1 = XmonQubit(0, 0)
@@ -86,10 +88,10 @@ def assert_empty_context(context):
 
 def run(simulator, circuit, scheduler, **kw):
     if scheduler is None:
-        return simulator.run(circuit, **kw)
+        program = circuit
     else:
-        schedule = scheduler(UnconstrainedDevice, circuit)
-        return simulator.run_schedule(schedule, **kw)
+        program = scheduler(UnconstrainedDevice, circuit)
+    return simulator.run(program, **kw)
 
 
 SCHEDULERS = [None, moment_by_moment_schedule]
@@ -330,6 +332,27 @@ def test_param_resolver_param_dict(offset):
     simulator = xmon_simulator.Simulator()
     context, _ = simulator.run(circuit, param_resolver=resolver)
     assert context.param_dict == {'a': 0.5}
+
+
+def test_run_study():
+    circuit = Circuit.from_ops(
+        ExpWGate(half_turns=ParameterizedValue('a')).on(Q1),
+        XmonMeasurementGate('m').on(Q1),
+    )
+
+    param_sweep = ParameterSweep()
+    s = param_sweep.sweep.factors.add().sweeps.add()
+    s.parameter_name = 'a'
+    s.sweep_points.points.extend(range(10))
+
+    resolvers = gen_resolvers(param_sweep)
+
+    executor = ExecutorStudy(
+        xmon_simulator.Simulator(), circuit, resolvers, repetitions=1)
+
+    for i, (context, result) in enumerate(executor.run_study()):
+        assert context.param_dict['a'] == i
+        assert result.measurements['m'] == [i%2 != 0]
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
