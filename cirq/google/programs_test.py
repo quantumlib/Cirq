@@ -11,7 +11,4 @@ def test_protobuf_roundtrip():
     protos = list(programs.schedule_to_proto(s1))
     s2 = programs.schedule_from_proto(device, protos)
 
-    s1ops, s2ops = s1.scheduled_operations, s2.scheduled_operations
-    assert len(s1ops) == len(s2ops)
-    for s1op, s2op in zip(s1ops, s2ops):
-        assert s1op == s2op
+    assert s2 == s1

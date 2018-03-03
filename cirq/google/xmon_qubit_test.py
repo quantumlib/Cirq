@@ -112,3 +112,9 @@ def test_to_proto():
     q.to_proto(proto2)
     assert proto2.x == 5
     assert proto2.y == 6
+
+
+def test_from_proto():
+    q = XmonQubit(5, 6)
+    q2 = XmonQubit.from_proto(q.to_proto())
+    assert q2 == q

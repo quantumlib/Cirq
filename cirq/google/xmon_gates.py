@@ -73,13 +73,13 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def parameterized_value_to_proto(
         param: Union[ParameterizedValue, float],
-        message: operations_pb2.ParameterizedFloat = None
+        out: operations_pb2.ParameterizedFloat = None
     ) -> operations_pb2.ParameterizedFloat:
-        if message is None:
-            message = operations_pb2.ParameterizedFloat()
-        message.raw = ParameterizedValue.val_of(param)
-        message.parameter_key = ParameterizedValue.key_of(param)
-        return message
+        if out is None:
+            out = operations_pb2.ParameterizedFloat()
+        out.raw = ParameterizedValue.val_of(param)
+        out.parameter_key = ParameterizedValue.key_of(param)
+        return out
 
 
 class XmonMeasurementGate(XmonGate, ops.MeasurementGate):

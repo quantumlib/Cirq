@@ -51,12 +51,13 @@ class XmonQubit(QubitId):
             return XmonQubit(int(a.strip()), int(b.strip()))
         return None
 
-    def to_proto(self, q: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
-        if q is None:
-            q = operations_pb2.Qubit()
-        q.x = self.x
-        q.y = self.y
-        return q
+    def to_proto(
+            self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
+        if out is None:
+            out = operations_pb2.Qubit()
+        out.x = self.x
+        out.y = self.y
+        return out
 
     @staticmethod
     def from_proto(q: operations_pb2.Qubit) -> 'XmonQubit':
