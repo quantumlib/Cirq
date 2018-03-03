@@ -74,6 +74,9 @@ class _Unit(Sweep):
     def __iter__(self) -> Iterator[Params]:
         yield ()
 
+    def __repr__(self):
+        return 'Unit'
+
 
 Unit = _Unit()  # singleton instance
 
@@ -118,6 +121,20 @@ class Product(Sweep):
 
         return _gen(self.factors)
 
+    def __repr__(self):
+        return 'Product({})'.format(', '.join(repr(f) for f in self.factors))
+
+    def __str__(self):
+        if not self.factors:
+            return 'Product()'
+        factor_strs = []
+        for factor in self.factors:
+            factor_str = str(factor)
+            if isinstance(factor, Zip):
+                factor_str = '(' + factor_str + ')'
+            factor_strs.append(factor_str)
+        return ' * '.join(factor_strs)
+
 
 class Zip(Sweep):
     """Direct sum of one or more sweeps.
@@ -149,6 +166,14 @@ class Zip(Sweep):
         iters = [iter(sweep) for sweep in self.sweeps]
         for values in zip(*iters):
             yield sum(values, ())
+
+    def __repr__(self):
+        return 'Zip({})'.format(', '.join(repr(s) for s in self.sweeps))
+
+    def __str__(self):
+        if not self.sweeps:
+            return 'Zip()'
+        return ' + '.join(str(s) for s in self.sweeps)
 
 
 class _Simple(Sweep):
@@ -198,6 +223,9 @@ class Points(_Simple):
     def _iter(self) -> Iterator[float]:
         return iter(self.points)
 
+    def __repr__(self):
+        return 'Points({!r}, {})'.format(self.key, self.points)
+
 
 class Range(_Simple):
     """A simple sweep over a python-style range."""
@@ -215,6 +243,10 @@ class Range(_Simple):
 
     def _iter(self) -> Iterator[float]:
         return iter(range(self.start, self.stop, self.step))
+
+    def __repr__(self):
+        return 'Range({!r}, start={}, stop={}, step={})'.format(
+                self.key, self.start, self.stop, self.step)
 
 
 class Linspace(_Simple):
@@ -242,3 +274,7 @@ class Linspace(_Simple):
                 yield self.stop
             else:
                 yield self.start + delta * i / last
+
+    def __repr__(self):
+        return 'Linspace({!r}, start={}, stop={}, length={})'.format(
+                self.key, self.start, self.stop, self.length)
