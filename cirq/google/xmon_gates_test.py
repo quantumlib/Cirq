@@ -14,9 +14,10 @@
 
 from google.protobuf import message, text_format
 
+from cirq.api.google.v1 import operations_pb2
 from cirq.extension import Extensions
 from cirq.google import (
-    XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
+    XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleGate
 from cirq.study import ParameterizedValue
@@ -26,6 +27,21 @@ from cirq.testing import EqualsTester
 def proto_matches_text(proto: message, expected_as_text: str):
     expected = text_format.Merge(expected_as_text, type(proto)())
     return str(proto) == str(expected)
+
+
+def test_parameterized_value_from_proto():
+    from_proto = XmonGate.parameterized_value_from_proto
+
+    m1 = operations_pb2.ParameterizedFloat(raw=5)
+    assert from_proto(m1) == 5
+
+    m2 = operations_pb2.ParameterizedFloat(raw=5, parameter_key='')
+    assert from_proto(m2) == 5
+
+    m3 = operations_pb2.ParameterizedFloat(raw=-1, parameter_key='rr')
+    e = from_proto(m3)
+    assert ParameterizedValue.key_of(e) == 'rr'
+    assert ParameterizedValue.val_of(e) == -1
 
 
 def test_measurement_eq():
