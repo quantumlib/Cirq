@@ -271,15 +271,12 @@ class Linspace(_SingleParameterSweep):
         return self.length
 
     def _values(self) -> Iterator[float]:
-        last = self.length - 1
-        delta = self.stop - self.start
-        for i in range(self.length):
-            if i == 0:
-                yield self.start
-            elif i == last:
-                yield self.stop
-            else:
-                yield self.start + delta * i / last
+        if self.length == 1:
+            yield self.start
+        else:
+            for i in range(self.length):
+                p = i / (self.length - 1)
+                yield self.start * (1 - p) + self.stop * p
 
     def __repr__(self):
         return 'Linspace({!r}, start={!r}, stop={!r}, length={!r})'.format(
