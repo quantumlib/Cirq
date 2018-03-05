@@ -183,8 +183,12 @@ class _Simple(Sweep):
         self.key = key
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self._tuple() == other._tuple())
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self._tuple() == other._tuple()
+
+    def __ne__(self, other):
+        return not self == other
 
     def __hash__(self):
         return hash(self._tuple())
