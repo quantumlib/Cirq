@@ -228,7 +228,7 @@ class Points(_Simple):
         return iter(self.points)
 
     def __repr__(self):
-        return 'Points({!r}, {})'.format(self.key, self.points)
+        return 'Points({!r}, {!r})'.format(self.key, self.points)
 
 
 class Range(_Simple):
@@ -249,7 +249,7 @@ class Range(_Simple):
         return iter(range(self.start, self.stop, self.step))
 
     def __repr__(self):
-        return 'Range({!r}, start={}, stop={}, step={})'.format(
+        return 'Range({!r}, start={!r}, stop={!r}, step={!r})'.format(
                 self.key, self.start, self.stop, self.step)
 
 
@@ -280,5 +280,5 @@ class Linspace(_Simple):
                 yield self.start + delta * i / last
 
     def __repr__(self):
-        return 'Linspace({!r}, start={}, stop={}, length={})'.format(
+        return 'Linspace({!r}, start={!r}, stop={!r}, length={!r})'.format(
                 self.key, self.start, self.stop, self.length)
