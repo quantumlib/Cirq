@@ -15,6 +15,7 @@
 import pytest
 
 from cirq import ops
+from cirq.api.google.v1 import operations_pb2
 from cirq.google import XmonQubit
 from cirq.testing import EqualsTester
 
@@ -96,3 +97,24 @@ def test_operation_eq():
     eq.make_equality_pair(lambda: ops.Operation(g1, r2))
     eq.make_equality_pair(lambda: ops.Operation(g1, r12))
     eq.make_equality_pair(lambda: ops.Operation(g1, r21))
+
+
+def test_to_proto():
+    q = XmonQubit(5, 6)
+
+    # Create a new message.
+    proto = q.to_proto()
+    assert proto.x == 5
+    assert proto.y == 6
+
+    # Populate an existing message.
+    proto2 = operations_pb2.Qubit()
+    q.to_proto(proto2)
+    assert proto2.x == 5
+    assert proto2.y == 6
+
+
+def test_from_proto():
+    q = XmonQubit(5, 6)
+    q2 = XmonQubit.from_proto(q.to_proto())
+    assert q2 == q
