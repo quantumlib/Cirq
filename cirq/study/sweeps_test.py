@@ -1,6 +1,7 @@
 import pytest
 
 from cirq.study.sweeps import Linspace, Points, Range
+from cirq.testing import EqualsTester
 
 
 def test_product_duplicate_keys():
@@ -35,3 +36,22 @@ def test_points():
     assert len(sweep) == 4
     params = list(sweep)
     assert len(params) == 4
+
+
+def test_equality():
+    et = EqualsTester()
+
+    # Simple sweeps with the same key are equal to themselves, but different
+    # from each other even if they happen to contain the same points.
+    et.make_equality_pair(lambda: Linspace('a', 0, 10, 11))
+    et.make_equality_pair(lambda: Linspace('b', 0, 10, 11))
+    et.make_equality_pair(lambda: Points('a', list(range(11))))
+    et.make_equality_pair(lambda: Points('b', list(range(11))))
+    et.make_equality_pair(lambda: Range('a', 11))
+    et.make_equality_pair(lambda: Range('b', 11))
+
+    # Product and Zip sweeps can also be equated.
+    et.make_equality_pair(lambda: Range('a', 10) * Range('b', 11))
+    et.make_equality_pair(lambda: Range('a', 10) + Range('b', 11))
+    et.make_equality_pair(
+        lambda: Range('a', 10) * (Range('b', 11) + Range('c', 1, 12)))

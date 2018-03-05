@@ -221,7 +221,7 @@ class Points(_Simple):
         self.points = points
 
     def _tuple(self):
-        return tuple(self.points)
+        return self.key, tuple(self.points)
 
     def __len__(self) -> int:
         return len(self.points)
@@ -245,7 +245,7 @@ class Range(_Simple):
         self.step = step
 
     def _tuple(self):
-        return (self.start, self.stop, self.step)
+        return (self.key, self.start, self.stop, self.step)
 
     def _iter(self) -> Iterator[float]:
         return iter(range(self.start, self.stop, self.step))
@@ -265,7 +265,7 @@ class Linspace(_Simple):
         self.length = length
 
     def _tuple(self):
-        return (self.start, self.stop, self.length)
+        return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:
         return self.length
