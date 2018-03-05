@@ -193,8 +193,9 @@ class _Simple(Sweep):
     def __hash__(self):
         return hash(self._tuple())
 
+    @abc.abstractmethod
     def _tuple(self):
-        raise NotImplementedError()
+        pass
 
     @property
     def keys(self) -> List[str]:
@@ -207,8 +208,9 @@ class _Simple(Sweep):
         for value in self._iter():
             yield ((self.key, value),)
 
+    @abc.abstractmethod
     def _iter(self) -> Iterator[float]:
-        raise NotImplementedError()
+        pass
 
 
 class Points(_Simple):
