@@ -56,6 +56,8 @@ class Schedule:
     def __ne__(self, other):
         return not self == other
 
+    __hash__ = None
+
     def query(self,
               *positional_args,
               time: Timestamp,
