@@ -75,7 +75,7 @@ class _Unit(Sweep):
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            raise NotImplemented
+            return NotImplemented
         return True
 
     @property
