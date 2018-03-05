@@ -48,6 +48,16 @@ class Schedule:
         self._max_duration = max(
             [e.duration for e in self.scheduled_operations] or [Duration()])
 
+    def __eq__(self, other):
+        if not isinstance(other, Schedule):
+            return NotImplemented
+        return self.scheduled_operations == other.scheduled_operations
+
+    def __ne__(self, other):
+        return not self == other
+
+    __hash__ = None
+
     def query(self,
               *positional_args,
               time: Timestamp,

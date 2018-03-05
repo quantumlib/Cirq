@@ -13,6 +13,7 @@
 # limitations under the License.
 import re
 
+from cirq.api.google.v1 import operations_pb2
 from cirq.ops import QubitId
 
 
@@ -49,3 +50,15 @@ class XmonQubit(QubitId):
             a, b = text[1:-1].split(',')
             return XmonQubit(int(a.strip()), int(b.strip()))
         return None
+
+    def to_proto(
+            self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
+        if out is None:
+            out = operations_pb2.Qubit()
+        out.x = self.x
+        out.y = self.y
+        return out
+
+    @staticmethod
+    def from_proto(q: operations_pb2.Qubit) -> 'XmonQubit':
+        return XmonQubit(x=q.x, y=q.y)
