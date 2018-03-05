@@ -50,7 +50,7 @@ class Schedule:
 
     def __eq__(self, other):
         if not isinstance(other, Schedule):
-            return False
+            return NotImplemented
         return self.scheduled_operations == other.scheduled_operations
 
     def query(self,
