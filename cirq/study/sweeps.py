@@ -191,7 +191,7 @@ class _Simple(Sweep):
         return not self == other
 
     def __hash__(self):
-        return hash(self._tuple())
+        return hash((self.__class__, self._tuple()))
 
     @abc.abstractmethod
     def _tuple(self):
