@@ -1,6 +1,6 @@
 import pytest
 
-from cirq.study.sweeps import Linspace, Points, Range
+from cirq.study.sweeps import Linspace, Points, Range, Unit
 from cirq.testing import EqualsTester
 
 
@@ -49,6 +49,8 @@ def test_range():
 
 def test_equality():
     et = EqualsTester()
+
+    et.add_equality_group(Unit, Unit)
 
     # Simple sweeps with the same key are equal to themselves, but different
     # from each other even if they happen to contain the same points.

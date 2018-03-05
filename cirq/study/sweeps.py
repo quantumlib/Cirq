@@ -46,6 +46,13 @@ class Sweep(metaclass=abc.ABCMeta):
             raise TypeError('cannot add sweep and {}'.format(type(other)))
         return Zip(*sweeps)
 
+    @abc.abstractmethod
+    def __eq__(self, other):
+        pass
+
+    def __ne__(self, other):
+        return not self == other
+
     @abc.abstractproperty
     def keys(self) -> List[str]:
         pass
@@ -65,6 +72,11 @@ class Sweep(metaclass=abc.ABCMeta):
 
 class _Unit(Sweep):
     """A sweep with a single element that assigns no parameter values."""
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            raise NotImplemented
+        return True
 
     @property
     def keys(self) -> List[str]:
@@ -188,9 +200,6 @@ class _SingleParameterSweep(Sweep):
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self._tuple() == other._tuple()
-
-    def __ne__(self, other):
-        return not self == other
 
     def __hash__(self):
         return hash((self.__class__, self._tuple()))
