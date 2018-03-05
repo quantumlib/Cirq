@@ -1,5 +1,3 @@
-from typing import List
-
 from cirq.api.google.v1.params_pb2 import (
     ParameterSweep,
     ParameterSweepZip,
