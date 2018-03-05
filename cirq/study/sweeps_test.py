@@ -38,6 +38,15 @@ def test_points():
     assert len(params) == 4
 
 
+def test_range():
+    sweep = Range('a', 0, 10, 0.5)
+    assert len(sweep) == 20
+    params = list(sweep)
+    assert len(params) == 20
+    assert params[0] == (('a', 0),)
+    assert params[-1] == (('a', 9.5),)
+
+
 def test_equality():
     et = EqualsTester()
 

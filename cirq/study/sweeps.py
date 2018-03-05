@@ -1,6 +1,8 @@
 import abc
 from typing import Iterator, List, Sequence, Tuple
 
+import numpy as np
+
 from cirq.study.resolver import ParamResolver
 
 
@@ -201,9 +203,6 @@ class _SingleParameterSweep(Sweep):
     def keys(self) -> List[str]:
         return [self.key]
 
-    def __len__(self) -> int:
-        return sum(1 for _ in self.iter_func())
-
     def __iter__(self) -> Iterator[Params]:
         for value in self._values():
             yield ((self.key, value),)
@@ -234,7 +233,7 @@ class Points(_SingleParameterSweep):
 
 
 class Range(_SingleParameterSweep):
-    """A simple sweep over a python-style range."""
+    """A simple sweep over a range specified by start, stop, and step."""
 
     def __init__(self, key, start, stop=None, step=1) -> None:
         super(Range, self).__init__(key)
@@ -247,8 +246,11 @@ class Range(_SingleParameterSweep):
     def _tuple(self):
         return (self.key, self.start, self.stop, self.step)
 
+    def __len__(self):
+        return len(np.arange(self.start, self.stop, self.step))
+
     def _values(self) -> Iterator[float]:
-        return iter(range(self.start, self.stop, self.step))
+        return iter(np.arange(self.start, self.stop, self.step))
 
     def __repr__(self):
         return 'Range({!r}, start={!r}, stop={!r}, step={!r})'.format(
