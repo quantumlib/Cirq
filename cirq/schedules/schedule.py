@@ -53,6 +53,9 @@ class Schedule:
             return NotImplemented
         return self.scheduled_operations == other.scheduled_operations
 
+    def __ne__(self, other):
+        return not self == other
+
     def query(self,
               *positional_args,
               time: Timestamp,
