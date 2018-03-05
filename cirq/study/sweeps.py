@@ -176,7 +176,7 @@ class Zip(Sweep):
         return ' + '.join(str(s) for s in self.sweeps)
 
 
-class _Simple(Sweep):
+class _SingleParameterSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
     def __init__(self, key: str) -> None:
@@ -205,15 +205,15 @@ class _Simple(Sweep):
         return sum(1 for _ in self.iter_func())
 
     def __iter__(self) -> Iterator[Params]:
-        for value in self._iter():
+        for value in self._values():
             yield ((self.key, value),)
 
     @abc.abstractmethod
-    def _iter(self) -> Iterator[float]:
+    def _values(self) -> Iterator[float]:
         pass
 
 
-class Points(_Simple):
+class Points(_SingleParameterSweep):
     """A simple sweep with explicit values."""
 
     def __init__(self, key: str, points: Sequence[float]) -> None:
@@ -226,14 +226,14 @@ class Points(_Simple):
     def __len__(self) -> int:
         return len(self.points)
 
-    def _iter(self) -> Iterator[float]:
+    def _values(self) -> Iterator[float]:
         return iter(self.points)
 
     def __repr__(self):
         return 'Points({!r}, {!r})'.format(self.key, self.points)
 
 
-class Range(_Simple):
+class Range(_SingleParameterSweep):
     """A simple sweep over a python-style range."""
 
     def __init__(self, key, start, stop=None, step=1) -> None:
@@ -247,7 +247,7 @@ class Range(_Simple):
     def _tuple(self):
         return (self.key, self.start, self.stop, self.step)
 
-    def _iter(self) -> Iterator[float]:
+    def _values(self) -> Iterator[float]:
         return iter(range(self.start, self.stop, self.step))
 
     def __repr__(self):
@@ -255,7 +255,7 @@ class Range(_Simple):
                 self.key, self.start, self.stop, self.step)
 
 
-class Linspace(_Simple):
+class Linspace(_SingleParameterSweep):
     """A simple sweep over linearly-spaced values."""
 
     def __init__(self, key, start, stop, length) -> None:
@@ -270,7 +270,7 @@ class Linspace(_Simple):
     def __len__(self) -> int:
         return self.length
 
-    def _iter(self) -> Iterator[float]:
+    def _values(self) -> Iterator[float]:
         last = self.length - 1
         delta = self.stop - self.start
         for i in range(self.length):
