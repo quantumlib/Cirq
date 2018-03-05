@@ -92,7 +92,7 @@ class Product(Sweep):
         return isinstance(other, Product) and self.factors == other.factors
 
     def __hash__(self):
-        return hash(tuple(hash(factor) for factor in self.factors))
+        return hash(tuple(self.factors))
 
     @property
     def keys(self) -> List[str]:
@@ -151,7 +151,7 @@ class Zip(Sweep):
         return isinstance(other, Zip) and self.sweeps == other.sweeps
 
     def __hash__(self):
-        return hash(tuple(hash(sweep) for sweep in self.sweeps))
+        return hash(tuple(self.sweeps))
 
     @property
     def keys(self) -> List[str]:
