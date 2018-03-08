@@ -14,7 +14,7 @@
 
 import itertools
 import random
-from typing import Iterable
+from typing import Callable, Iterable
 
 import cirq
 from cirq import google
@@ -25,6 +25,7 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
                                ) -> cirq.Circuit:
 
     r = random if seed is None else random.Random(seed)
+    randint = r.randint
 
     circuit = cirq.Circuit()
 
@@ -33,11 +34,11 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
             break
         cz_layer = list(_make_cz_layer(device, layer_index))
         if cz_layer:
-            circuit.append(_make_random_single_qubit_op_layer(device, r))
+            circuit.append(_make_random_single_qubit_op_layer(device, randint))
             circuit.append(cz_layer)
             cz_depth -= 1
 
-    circuit.append(_make_random_single_qubit_op_layer(device, r))
+    circuit.append(_make_random_single_qubit_op_layer(device, randint))
     if measure:
         circuit.append(google.XmonMeasurementGate().on(q)
                        for q in device.qubits)
@@ -47,10 +48,10 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
 
 def _make_random_single_qubit_op_layer(
         device: google.XmonDevice,
-        r: random.Random) -> Iterable[cirq.Operation]:
+        randint: Callable[[int, int], int]) -> Iterable[cirq.Operation]:
     for q in device.qubits:
-        angle = r.randint(0, 7) / 4
-        axis = r.randint(0, 7) / 4
+        angle = randint(0, 7) / 4
+        axis = randint(0, 7) / 4
         if angle:
             yield google.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
 
