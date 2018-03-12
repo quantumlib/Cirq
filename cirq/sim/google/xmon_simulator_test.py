@@ -20,8 +20,6 @@ import math
 import numpy as np
 import pytest
 
-from cirq.api.google.v1.params import gen_resolvers
-from cirq.api.google.v1.params_pb2 import ParameterSweep
 from cirq.circuits import Circuit
 from cirq.devices import UnconstrainedDevice
 from cirq.google import (
@@ -32,6 +30,7 @@ from cirq.schedules import moment_by_moment_schedule
 from cirq.sim.google import xmon_simulator
 from cirq.study import ExecutorStudy, ParameterizedValue
 from cirq.study.resolver import ParamResolver
+from cirq.study.sweeps import Linspace
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -340,15 +339,10 @@ def test_run_study():
         XmonMeasurementGate('m').on(Q1),
     )
 
-    param_sweep = ParameterSweep()
-    s = param_sweep.sweep.factors.add().sweeps.add()
-    s.parameter_name = 'a'
-    s.sweep_points.points.extend(range(10))
-
-    resolvers = gen_resolvers(param_sweep)
+    sweep = Linspace('a', 0, 10, 11)
 
     executor = ExecutorStudy(
-        xmon_simulator.Simulator(), circuit, resolvers, repetitions=1)
+        xmon_simulator.Simulator(), circuit, sweep.resolvers(), repetitions=1)
 
     for i, (context, result) in enumerate(executor.run_study()):
         assert context.param_dict['a'] == i
