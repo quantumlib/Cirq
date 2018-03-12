@@ -30,7 +30,7 @@ from cirq.schedules import moment_by_moment_schedule
 from cirq.sim.google import xmon_simulator
 from cirq.study import ExecutorStudy, ParameterizedValue
 from cirq.study.resolver import ParamResolver
-from cirq.study.sweeps import Range
+from cirq.study.sweeps import Linspace
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -339,7 +339,7 @@ def test_run_study():
         XmonMeasurementGate('m').on(Q1),
     )
 
-    sweep = Range('a', 10)
+    sweep = Linspace('a', 0, 10, 11)
 
     executor = ExecutorStudy(
         xmon_simulator.Simulator(), circuit, sweep.resolvers(), repetitions=1)

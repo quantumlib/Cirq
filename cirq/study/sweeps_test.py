@@ -1,17 +1,17 @@
 import pytest
 
-from cirq.study.sweeps import Linspace, Points, Range, Unit
+from cirq.study.sweeps import Linspace, Points, Unit
 from cirq.testing import EqualsTester
 
 
 def test_product_duplicate_keys():
     with pytest.raises(ValueError):
-        Range('a', 10) * Range('a', 11)
+        Linspace('a', 0, 9, 10) * Linspace('a', 0, 10, 11)
 
 
 def test_zip_duplicate_keys():
     with pytest.raises(ValueError):
-        Range('a', 10) * Range('a', 11)
+        Linspace('a', 0, 9, 10) * Linspace('a', 0, 10, 11)
 
 
 def test_linspace():
@@ -38,15 +38,6 @@ def test_points():
     assert len(params) == 4
 
 
-def test_range():
-    sweep = Range('a', 0, 10, 0.5)
-    assert len(sweep) == 20
-    params = list(sweep)
-    assert len(params) == 20
-    assert params[0] == (('a', 0),)
-    assert params[-1] == (('a', 9.5),)
-
-
 def test_equality():
     et = EqualsTester()
 
@@ -58,11 +49,12 @@ def test_equality():
     et.make_equality_pair(lambda: Linspace('b', 0, 10, 11))
     et.make_equality_pair(lambda: Points('a', list(range(11))))
     et.make_equality_pair(lambda: Points('b', list(range(11))))
-    et.make_equality_pair(lambda: Range('a', 11))
-    et.make_equality_pair(lambda: Range('b', 11))
 
     # Product and Zip sweeps can also be equated.
-    et.make_equality_pair(lambda: Range('a', 10) * Range('b', 11))
-    et.make_equality_pair(lambda: Range('a', 10) + Range('b', 11))
     et.make_equality_pair(
-        lambda: Range('a', 10) * (Range('b', 11) + Range('c', 1, 12)))
+        lambda: Linspace('a', 0, 5, 6) * Linspace('b', 10, 15, 6))
+    et.make_equality_pair(
+        lambda: Linspace('a', 0, 5, 6) + Linspace('b', 10, 15, 6))
+    et.make_equality_pair(
+        lambda: Points('a', [1, 2]) *
+                     (Linspace('b', 0, 5, 6) + Linspace('c', 10, 15, 6)))
