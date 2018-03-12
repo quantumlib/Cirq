@@ -90,3 +90,43 @@ def test_depolarizer_multiple_repetitions():
                          xmon_gates.ExpZGate(half_turns=p1).on(q2)])]),
                        sweep)
     assert allerrors3.transform_job(cnot) == cnot_then_z3
+
+
+def test_depolarizer_parameterized_gates():
+    q1 = ops.QubitId()
+    q2 = ops.QubitId()
+    cnot_param = ParameterizedValue('cnot_turns')
+    cnot_gate = xmon_gates.Exp11Gate(half_turns=cnot_param).on(q1, q2)
+    job_sweep = ParameterSweep()
+    job_sweep.repetitions = 2
+    job_sweep.sweep.factors.add()
+    job_sweep.sweep.factors[0].sweeps.add()
+    job_sweep.sweep.factors[0].sweeps[0].parameter_name = 'cnot_turns'
+    job_sweep.sweep.factors[0].sweeps[0].sweep_points.points.append(0.5)
+
+    cnot = Job(circuits.Circuit([circuits.Moment([cnot_gate])]), job_sweep)
+    allerrors = DepolarizerChannel(probability=1.0)
+    p0 = ParameterizedValue(DepolarizerChannel._parameter_name + '0')
+    p1 = ParameterizedValue(DepolarizerChannel._parameter_name + '1')
+
+    new_sweep = ParameterSweep()
+    new_sweep.repetitions = 2
+    new_sweep.sweep.factors.add()
+    new_sweep.sweep.factors[0].sweeps.add()
+    new_sweep.sweep.factors[0].sweeps[0].parameter_name = 'cnot_turns'
+    new_sweep.sweep.factors[0].sweeps[0].sweep_points.points.append(0.5)
+    new_sweep.sweep.factors.add()
+    new_sweep.sweep.factors[1].sweeps.add()
+    new_sweep.sweep.factors[1].sweeps.add()
+    new_sweep.sweep.factors[1].sweeps[0].parameter_name = p0.key
+    new_sweep.sweep.factors[1].sweeps[0].sweep_points.points.append(1.0)
+    new_sweep.sweep.factors[1].sweeps[1].parameter_name = p1.key
+    new_sweep.sweep.factors[1].sweeps[1].sweep_points.points.append(1.0)
+    cnot_then_z = Job(circuits.Circuit([
+        circuits.Moment([cnot_gate]),
+        circuits.Moment([xmon_gates.ExpZGate(half_turns=p0).on(q1),
+                         xmon_gates.ExpZGate(half_turns=p1).on(q2)])]),
+                      new_sweep)
+    assert allerrors.transform_job(cnot) == cnot_then_z
+
+test_depolarizer_parameterized_gates()
