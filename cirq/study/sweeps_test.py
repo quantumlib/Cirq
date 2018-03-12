@@ -17,7 +17,7 @@ def test_zip_duplicate_keys():
 def test_linspace():
     sweep = Linspace('a', 0.34, 9.16, 7)
     assert len(sweep) == 7
-    params = list(sweep)
+    params = list(sweep.param_tuples())
     assert len(params) == 7
     assert params[0] == (('a', 0.34),)
     assert params[-1] == (('a', 9.16),)
@@ -26,7 +26,7 @@ def test_linspace():
 def test_linspace_one_point():
     sweep = Linspace('a', 0.34, 9.16, 1)
     assert len(sweep) == 1
-    params = list(sweep)
+    params = list(sweep.param_tuples())
     assert len(params) == 1
     assert params[0] == (('a', 0.34),)
 

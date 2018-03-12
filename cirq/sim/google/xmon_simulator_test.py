@@ -342,7 +342,7 @@ def test_run_study():
     sweep = Linspace('a', 0, 10, 11)
 
     executor = ExecutorStudy(
-        xmon_simulator.Simulator(), circuit, sweep.resolvers(), repetitions=1)
+        xmon_simulator.Simulator(), circuit, sweep, repetitions=1)
 
     for i, (context, result) in enumerate(executor.run_study()):
         assert context.param_dict['a'] == i
