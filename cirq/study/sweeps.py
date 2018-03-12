@@ -128,7 +128,7 @@ class Product(Sweep):
                 yield ()
             else:
                 first, rest = factors[0], factors[1:]
-                for first_values in first:
+                for first_values in first.param_tuples():
                     for rest_values in _gen(rest):
                         yield first_values + rest_values
 
@@ -176,7 +176,7 @@ class Zip(Sweep):
         return min(len(sweep) for sweep in self.sweeps)
 
     def param_tuples(self) -> Iterator[Params]:
-        iters = [iter(sweep) for sweep in self.sweeps]
+        iters = [sweep.param_tuples() for sweep in self.sweeps]
         for values in zip(*iters):
             yield sum(values, ())
 
