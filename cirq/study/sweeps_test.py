@@ -1,5 +1,6 @@
 import pytest
 
+from cirq.study import ParameterizedValue
 from cirq.study.sweeps import Linspace, Points, Unit
 from cirq.testing import EqualsTester
 
@@ -36,6 +37,25 @@ def test_points():
     assert len(sweep) == 4
     params = list(sweep)
     assert len(params) == 4
+
+
+def test_zip():
+    sweep = Points('a', [1, 2, 3]) + Points('b', [4, 5, 6, 7])
+    assert len(sweep) == 3
+    assert _values(sweep, 'a') == [1, 2, 3]
+    assert _values(sweep, 'b') == [4, 5, 6]
+
+
+def test_product():
+    sweep = Points('a', [1, 2, 3]) * Points('b', [4, 5, 6, 7])
+    assert len(sweep) == 12
+    assert _values(sweep, 'a') == [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
+    assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
+
+
+def _values(sweep, key):
+    p = ParameterizedValue(key)
+    return [resolver.value_of(p) for resolver in sweep]
 
 
 def test_equality():
