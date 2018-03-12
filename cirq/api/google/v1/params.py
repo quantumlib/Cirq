@@ -8,6 +8,7 @@ from cirq.api.google.v1.params_pb2 import (
     ParameterSweepZipProduct,
     SingleParameterSweep,
 )
+from cirq.study import ParamResolver
 
 
 Params = Tuple[Tuple[str, float], ...]
@@ -54,6 +55,12 @@ def gen_param_sweep(param_sweep: ParameterSweep) -> Iterable[Params]:
     if not param_sweep.HasField('sweep'):
         return [()]
     return _gen_param_sweep_zip_product(param_sweep.sweep)
+
+
+def gen_resolvers(param_sweep: ParameterSweep) -> Iterable[ParamResolver]:
+    """Generate resolvers for the given parameter sweep."""
+    for params in gen_param_sweep(param_sweep):
+        yield ParamResolver(dict(params))
 
 
 def _gen_param_sweep_zip_product(

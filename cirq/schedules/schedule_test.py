@@ -17,7 +17,32 @@ import pytest
 from cirq import ops
 from cirq.devices import UnconstrainedDevice
 from cirq.schedules import ScheduledOperation, Schedule
+from cirq.testing import EqualsTester
 from cirq.time import Duration, Timestamp
+
+
+def test_equality():
+    et = EqualsTester()
+
+    def simple_schedule(q, start_picos=0, duration_picos=1, num_ops=1):
+        time_picos = start_picos
+        scheduled_ops = []
+        for _ in range(num_ops):
+            op = ScheduledOperation(Timestamp(picos=time_picos),
+                                    Duration(picos=duration_picos),
+                                    ops.H(q))
+            scheduled_ops.append(op)
+            time_picos += duration_picos
+        return Schedule(device=UnconstrainedDevice,
+                        scheduled_operations=scheduled_ops)
+
+    q0, q1 = ops.QubitId(), ops.QubitId()
+    et.make_equality_pair(lambda: simple_schedule(q0))
+    et.make_equality_pair(lambda: simple_schedule(q1))
+    et.make_equality_pair(lambda: simple_schedule(q0, start_picos=1000))
+    et.make_equality_pair(lambda: simple_schedule(q0, duration_picos=1000))
+    et.make_equality_pair(lambda: simple_schedule(q0, num_ops=3))
+    et.make_equality_pair(lambda: simple_schedule(q1, num_ops=3))
 
 
 def test_query_point_operation_inclusive():

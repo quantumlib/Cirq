@@ -81,16 +81,18 @@ class Simulator(Executor):
 
     def run(
             self,
-            program: Circuit,
+            program: Union[Circuit, Schedule],
+            param_resolver: ParamResolver = None,
             options: Options = None,
             qubits: Sequence[raw_types.QubitId] = None,
             initial_state: Union[int, np.ndarray] = 0,
-            param_resolver: ParamResolver = None,
     ) -> Tuple['TrialContext', 'TrialResult']:
         """Simulates the entire supplied Circuit.
 
         Args:
             program: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                ParameterizedValues.
             options: Options configuring the simulation.
             qubits: If specified this list of qubits will be used to define
                 a canonical ordering of the qubits. This canonical ordering
@@ -100,14 +102,14 @@ class Simulator(Executor):
                 if this is a np.ndarray it is the full initial state. In this
                 case it must be the correct size, be normalized (an L2 norm of
                 1), and have a dtype of np.complex64.
-            param_resolver: A ParamResolver for determining values of
-                ParameterizedValues.
 
         Returns:
             A tuple (context, result) where context is the TrailContext for
                 performing this run and result is the TrailResult containing
                 the results of this run.
         """
+        if isinstance(program, Schedule):
+            program = program.to_circuit()
         param_resolver = param_resolver or ParamResolver({})
         all_step_results = self.moment_steps(program, options or Options(),
                                              qubits,
@@ -117,25 +119,6 @@ class Simulator(Executor):
             StepResult.merge_measurements_with,
             all_step_results)
         return context, TrialResult(final_step_result)
-
-    def run_schedule(
-            self,
-            schedule: Schedule,
-            **kw
-    ) -> Tuple['TrialContext', 'TrialResult']:
-        """Simulates the entire supplied Schedule.
-
-        This takes into account the order of scheduled operations, but not the
-        actual timing, which does not matter for ideal qubits and gates.
-
-        Args:
-            schedule: The schedule to simulate.
-            **kw: Additional keyword args to pass to run.
-
-        Returns:
-            A tuple (context, result). See run for more info.
-        """
-        return self.run(schedule.to_circuit(), **kw)
 
     def moment_steps(
             self,
@@ -371,3 +354,12 @@ class TrialResult(cirq.study.TrialResult):
         # TODO(dabacon): This should be optional, since it can be rather big.
         self.final_state = final_step_result.state()
 
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        keyed_bitstrings = [
+            (key, bitstring(val)) for key, val in self.measurements.items()
+        ]
+        return '\n'.join('{}: {}'.format(repr(key), val)
+                         for key, val in sorted(keyed_bitstrings))

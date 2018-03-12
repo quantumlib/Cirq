@@ -32,3 +32,14 @@ def test_generate_supremacy_circuit():
     for q1 in device.qubits:
         for q2 in device.neighbors_of(q1):
             assert op_counts[Exp11Gate().on(q1, q2)] == 1
+
+
+def test_generate_supremacy_circuit_seeding():
+    device = cirq.google.Foxtail
+
+    circuit1 = generate_supremacy_circuit(device, cz_depth=6, seed=42)
+    circuit2 = generate_supremacy_circuit(device, cz_depth=6, seed=42)
+    circuit3 = generate_supremacy_circuit(device, cz_depth=6, seed=43)
+
+    assert circuit1 == circuit2
+    assert circuit1 != circuit3

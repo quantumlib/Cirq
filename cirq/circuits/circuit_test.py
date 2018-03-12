@@ -14,11 +14,12 @@
 
 import pytest
 
-from cirq import ops
+from cirq import ops, ParameterizedValue
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.testing import EqualsTester
+from cirq.extension import Extensions
 
 
 def test_equality():
@@ -479,3 +480,167 @@ def test_from_ops():
         Moment([ops.X(a), ops.Z(b)]),
         Moment([ops.Y(a)]),
     ])
+
+
+def test_to_text_diagram_teleportation_to_diagram():
+    ali = ops.NamedQubit('(0, 0)')
+    bob = ops.NamedQubit('(0, 1)')
+    msg = ops.NamedQubit('(1, 0)')
+    tmp = ops.NamedQubit('(1, 1)')
+
+    c = Circuit([
+        Moment([ops.H(ali)]),
+        Moment([ops.CNOT(ali, bob)]),
+        Moment([ops.X(msg)**0.5]),
+        Moment([ops.CNOT(msg, ali)]),
+        Moment([ops.H(msg)]),
+        Moment(
+            [ops.MeasurementGate()(msg),
+             ops.MeasurementGate()(ali)]),
+        Moment([ops.CNOT(ali, bob)]),
+        Moment([ops.CNOT(msg, tmp)]),
+        Moment([ops.CZ(bob, tmp)]),
+    ])
+
+    assert c.to_text_diagram().strip() == """
+(0, 0): ───H───@───────────X───────M───@───────────
+               │           │           │
+(0, 1): ───────X───────────┼───────────X───────Z───
+                           │                   │
+(1, 0): ───────────X^0.5───@───H───M───────@───┼───
+                                           │   │
+(1, 1): ───────────────────────────────────X───Z───
+    """.strip()
+    assert c.to_text_diagram(use_unicode_characters=False).strip() == """
+(0, 0): ---H---@-----------X-------M---@-----------
+               |           |           |
+(0, 1): -------X-----------|-----------X-------Z---
+                           |                   |
+(1, 0): -----------X^0.5---@---H---M-------@---|---
+                                           |   |
+(1, 1): -----------------------------------X---Z---
+        """.strip()
+
+    assert c.to_text_diagram(transpose=True,
+                             use_unicode_characters=False).strip() == """
+(0, 0) (0, 1) (1, 0) (1, 1)
+|      |      |      |
+H      |      |      |
+|      |      |      |
+@------X      |      |
+|      |      |      |
+|      |      X^0.5  |
+|      |      |      |
+X-------------@      |
+|      |      |      |
+|      |      H      |
+|      |      |      |
+M      |      M      |
+|      |      |      |
+@------X      |      |
+|      |      |      |
+|      |      @------X
+|      |      |      |
+|      Z-------------Z
+|      |      |      |
+        """.strip()
+
+
+def test_to_text_diagram_extended_gate():
+    q = ops.NamedQubit('(0, 0)')
+    q2 = ops.NamedQubit('(0, 1)')
+    q3 = ops.NamedQubit('(0, 2)')
+
+    class FGate(ops.Gate):
+        def __repr__(self):
+            return 'python-object-FGate:arbitrary-digits'
+
+    f = FGate()
+    c = Circuit([
+        Moment([f.on(q)]),
+    ])
+
+    # Fallback to repr without extension.
+    diagram = Circuit([
+        Moment([f.on(q)]),
+    ]).to_text_diagram(use_unicode_characters=False)
+    assert diagram.strip() == """
+(0, 0): ---python-object-FGate:arbitrary-digits---
+        """.strip()
+
+    # When used on multiple qubits, show the qubit order as a digit suffix.
+    diagram = Circuit([
+        Moment([f.on(q, q3, q2)]),
+    ]).to_text_diagram(use_unicode_characters=False)
+    assert diagram.strip() == """
+(0, 0): ---python-object-FGate:arbitrary-digits:0---
+           |
+(0, 1): ---python-object-FGate:arbitrary-digits:2---
+           |
+(0, 2): ---python-object-FGate:arbitrary-digits:1---
+            """.strip()
+
+    # Succeeds with extension.
+    class FGateAsAscii(ops.AsciiDiagrammableGate):
+        def __init__(self, f_gate):
+            self.f_gate = f_gate
+
+        def ascii_wire_symbols(self):
+            return 'F'
+
+    diagram = c.to_text_diagram(Extensions({
+        ops.AsciiDiagrammableGate: {
+           FGate: FGateAsAscii
+       }
+    }), use_unicode_characters=False)
+
+    assert diagram.strip() == """
+(0, 0): ---F---
+        """.strip()
+
+
+def test_to_text_diagram_parameterized_value():
+    q = ops.NamedQubit('cube')
+
+    class PGate(ops.AsciiDiagrammableGate):
+        def __init__(self, val):
+            self.val = val
+
+        def ascii_wire_symbols(self):
+            return 'P',
+
+        def ascii_exponent(self):
+            return self.val
+
+    c = Circuit.from_ops(
+        PGate(1).on(q),
+        PGate(2).on(q),
+        PGate(ParameterizedValue('a')).on(q),
+        PGate(ParameterizedValue('a', 1)).on(q),
+        PGate(ParameterizedValue('%$&#*(')).on(q),
+        PGate(ParameterizedValue('%$&#*(', 1)).on(q),
+    )
+    assert str(c).strip() in [
+        "cube: ───P───P^2───P^a───P^(1+a)───P^param('%$&#*(')───P^(1+param('%$"
+        "&#*('))───",
+
+        "cube: ───P───P^2───P^a───P^(1+a)───P^param(u'%$&#*(')───P^(1+param(u'"
+        "%$&#*('))───",
+    ]
+
+
+def test_to_text_diagram_custom_order():
+    qa = ops.NamedQubit('2')
+    qb = ops.NamedQubit('3')
+    qc = ops.NamedQubit('4')
+
+    c = Circuit([Moment([ops.X(qa), ops.X(qb), ops.X(qc)])])
+    diagram = c.to_text_diagram(qubit_order_key=lambda e: int(str(e)) % 3,
+                                use_unicode_characters=False)
+    assert diagram.strip() == """
+3: ---X---
+
+4: ---X---
+
+2: ---X---
+    """.strip()
