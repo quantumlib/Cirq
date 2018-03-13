@@ -23,7 +23,7 @@ from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.study.parameterized_value import ParameterizedValue
+from cirq.study.parameterized_value import Parameterizable, ParameterizedValue
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -65,14 +65,14 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def parameterized_value_from_proto(
         message: operations_pb2.ParameterizedFloat
-    ) -> Union[ParameterizedValue, float]:
+    ) -> Parameterizable:
         if not message.parameter_key:
             return message.raw
         return ParameterizedValue(key=message.parameter_key, val=message.raw)
 
     @staticmethod
     def parameterized_value_to_proto(
-        param: Union[ParameterizedValue, float],
+        param: Parameterizable,
         out: operations_pb2.ParameterizedFloat = None
     ) -> operations_pb2.ParameterizedFloat:
         if out is None:
@@ -104,7 +104,7 @@ class Exp11Gate(XmonGate,
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
     def __init__(self, *positional_args,
-                 half_turns: Union[ParameterizedValue, float]=1):
+                 half_turns: Parameterizable = 1):
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 
@@ -170,8 +170,8 @@ class ExpWGate(XmonGate,
     """A rotation around an axis in the XY plane of the Bloch sphere."""
 
     def __init__(self, *positional_args,
-                 half_turns: Union[ParameterizedValue, float]=1,
-                 axis_half_turns: Union[ParameterizedValue, float]=0):
+                 half_turns: Parameterizable = 1,
+                 axis_half_turns: Parameterizable = 0):
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
         self.axis_half_turns = _canonicalize_half_turns(axis_half_turns)
@@ -283,7 +283,7 @@ class ExpZGate(XmonGate,
     """A rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
-                 half_turns: Union[ParameterizedValue, float]=1):
+                 half_turns: Parameterizable = 1):
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 
@@ -362,9 +362,7 @@ class ExpZGate(XmonGate,
         return hash((ExpZGate, self.half_turns))
 
 
-def _canonicalize_half_turns(
-        half_turns: Union[ParameterizedValue, float]
-) -> Union[ParameterizedValue, float]:
+def _canonicalize_half_turns(half_turns: Parameterizable) -> Parameterizable:
     v = ParameterizedValue.val_of(half_turns)
     v %= 2
     if v > 1:
