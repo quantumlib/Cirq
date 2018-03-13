@@ -16,7 +16,7 @@
 
 import inspect
 
-from typing import Dict, Type, Callable, TypeVar, Union, Optional
+from typing import Callable, Dict, Optional, Type, TypeVar
 
 from cirq.extension.potential_implementation import PotentialImplementation
 

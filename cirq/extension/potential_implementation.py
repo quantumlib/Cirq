@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Optional, Type, TypeVar, Union
+from typing import Optional, Type, TypeVar
 
 T_DESIRED = TypeVar('TDesired')
 
