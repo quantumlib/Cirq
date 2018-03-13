@@ -1,4 +1,5 @@
 import abc
+import collections
 from typing import Iterator, List, Sequence, Tuple
 
 from cirq.study.resolver import ParamResolver
@@ -59,13 +60,13 @@ class Sweep(metaclass=abc.ABCMeta):
     def __len__(self) -> int:
         pass
 
-    @abc.abstractmethod
-    def __iter__(self) -> Iterator[Params]:
-        pass
+    def __iter__(self) -> Iterator[ParamResolver]:
+        for params in self.param_tuples():
+            yield ParamResolver(collections.OrderedDict(params))
 
-    def resolvers(self) -> Iterator[ParamResolver]:
-        for params in self:
-            yield ParamResolver(dict(params))
+    @abc.abstractmethod
+    def param_tuples(self) -> Iterator[Params]:
+        pass
 
 
 class _Unit(Sweep):
@@ -83,7 +84,7 @@ class _Unit(Sweep):
     def __len__(self) -> int:
         return 1
 
-    def __iter__(self) -> Iterator[Params]:
+    def param_tuples(self) -> Iterator[Params]:
         yield ()
 
     def __repr__(self):
@@ -118,7 +119,7 @@ class Product(Sweep):
             length *= len(factor)
         return length
 
-    def __iter__(self) -> Iterator[Params]:
+    def param_tuples(self) -> Iterator[Params]:
         if not self.factors:
             return
 
@@ -127,7 +128,7 @@ class Product(Sweep):
                 yield ()
             else:
                 first, rest = factors[0], factors[1:]
-                for first_values in first:
+                for first_values in first.param_tuples():
                     for rest_values in _gen(rest):
                         yield first_values + rest_values
 
@@ -174,8 +175,8 @@ class Zip(Sweep):
             return 0
         return min(len(sweep) for sweep in self.sweeps)
 
-    def __iter__(self) -> Iterator[Params]:
-        iters = [iter(sweep) for sweep in self.sweeps]
+    def param_tuples(self) -> Iterator[Params]:
+        iters = [sweep.param_tuples() for sweep in self.sweeps]
         for values in zip(*iters):
             yield sum(values, ())
 
@@ -210,7 +211,7 @@ class SingleParameterSweep(Sweep):
     def keys(self) -> List[str]:
         return [self.key]
 
-    def __iter__(self) -> Iterator[Params]:
+    def param_tuples(self) -> Iterator[Params]:
         for value in self._values():
             yield ((self.key, value),)
 
