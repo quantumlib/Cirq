@@ -18,8 +18,8 @@ Job data contains, at minimum, contain a circuit and a parameter sweep of any
 parameters contained in the circuit.
 """
 
-from cirq.api.google.v1.params_pb2 import ParameterSweep
 from cirq.circuits import Circuit
+from cirq.study import sweeps
 
 
 class Job(object):
@@ -29,14 +29,20 @@ class Job(object):
     Engine.
     """
 
-    def __init__(self, circuit=Circuit(), sweep=ParameterSweep()):
+    def __init__(self,
+                 circuit: Circuit = Circuit(),
+                 sweep: sweeps.Sweep = sweeps.Unit,
+                 repetitions: int = 1):
         self.circuit = circuit
         self.sweep = sweep
+        self.repetitions = repetitions
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.circuit == other.circuit and self.sweep == other.sweep
+        return (self.circuit == other.circuit and
+                self.repetitions == other.repetitions and
+                self.sweep == other.sweep)
 
     def __ne__(self, other):
         return not self == other
@@ -44,7 +50,7 @@ class Job(object):
     __hash__ = None
 
     def __repr__(self):
-        return "Job(%s,%s)" % (self.circuit, self.sweep)
+        return "Job(%s,%s,%s)" % (self.circuit, self.sweep, self.repetitions)
 
     def __str__(self):
-        return "Job(%s,%s)" % (self.circuit, self.sweep)
+        return "Job(%s,%s,%s)" % (self.circuit, self.sweep, self.repetitions)
