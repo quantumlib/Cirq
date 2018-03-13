@@ -14,6 +14,9 @@
 from typing import Union
 
 
+Parameterizable = Union['ParameterizedValue', float, str]
+
+
 class ParameterizedValue:
     """A constant plus the runtime value of a parameter with a given key.
 
@@ -88,13 +91,17 @@ class ParameterizedValue:
         return ParameterizedValue(self.key, self.val - other)
 
     @staticmethod
-    def val_of(val: Union['ParameterizedValue', float]):
+    def val_of(val: Parameterizable):
         if isinstance(val, ParameterizedValue):
             return float(val.val)
+        elif isinstance(val, str):
+            return 0.0
         return float(val)
 
     @staticmethod
-    def key_of(val: Union['ParameterizedValue', float]):
+    def key_of(val: Parameterizable):
         if isinstance(val, ParameterizedValue):
             return val.key
+        elif isinstance(val, str):
+            return val
         return ''

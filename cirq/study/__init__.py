@@ -15,6 +15,7 @@
 """Types and methods for running studies (repeated trials)."""
 
 from cirq.study.parameterized_value import (
+    Parameterizable,
     ParameterizedValue,
 )
 from cirq.study.resolver import (

@@ -16,7 +16,7 @@
 
 from typing import Dict, Union
 
-from cirq.study import ParameterizedValue
+from cirq.study import Parameterizable, ParameterizedValue
 
 
 class ParamResolver(object):
@@ -35,7 +35,7 @@ class ParamResolver(object):
         self.param_dict = param_dict
         self._param_hash = hash(frozenset(param_dict.items()))
 
-    def value_of(self, parameterized_value: Union[ParameterizedValue, float]):
+    def value_of(self, parameterized_value: Parameterizable):
         """Resolves a ParameterizedValue to its assigned value.
 
         Args:
@@ -52,6 +52,9 @@ class ParamResolver(object):
             return (
                 self.param_dict[ParameterizedValue.key_of(parameterized_value)]
                 + ParameterizedValue.val_of(parameterized_value))
+        elif isinstance(parameterized_value, str):
+            return self.param_dict[
+                ParameterizedValue.key_of(parameterized_value)]
         return parameterized_value
 
     def __hash__(self):

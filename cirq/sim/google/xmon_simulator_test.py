@@ -335,7 +335,7 @@ def test_param_resolver_param_dict(offset):
 
 def test_run_study():
     circuit = Circuit.from_ops(
-        ExpWGate(half_turns=ParameterizedValue('a')).on(Q1),
+        ExpWGate(half_turns='a').on(Q1),
         XmonMeasurementGate('m').on(Q1),
     )
 

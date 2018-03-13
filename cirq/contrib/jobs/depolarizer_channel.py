@@ -21,7 +21,6 @@ from cirq.circuits.circuit import Circuit
 from cirq.circuits.circuit import Moment
 from cirq.contrib.jobs import Job
 from cirq.google import xmon_gates
-from cirq.study.parameterized_value import ParameterizedValue
 from cirq.study.sweeps import Points, Zip
 
 
@@ -100,8 +99,8 @@ class DepolarizerChannel(object):
                 errors = np.random.random(self.realizations) < self.p
                 if any(errors):
                     key = self._parameter_name + str(error_number)
-                    error_gates.append(xmon_gates.ExpZGate(
-                        half_turns=ParameterizedValue(key=key)).on(q))
+                    error_gates.append(
+                        xmon_gates.ExpZGate(half_turns=key).on(q))
                     error_sweep += Points(key, list(errors * 1.0))
                     error_number += 1
 
