@@ -38,7 +38,7 @@ from cirq.circuits import Circuit, ExpandComposite
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.ops import raw_types
 from cirq.schedules import Schedule
-from cirq.sim.google.xmon_stepper import Stepper
+from cirq.google.sim.xmon_stepper import Stepper
 from cirq.study import Executor
 from cirq.study.resolver import ParamResolver
 

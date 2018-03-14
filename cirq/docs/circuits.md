@@ -81,7 +81,7 @@ moment0 = cirq.circuits.Moment([cz01, x2])
 moment1 = cirq.circuits.Moment([cz12])
 circuit = cirq.circuits.Circuit((moment0, moment1))
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints the ascii diagram for the circuit:
 # (0, 0): ---Z-------
 #            |
@@ -108,7 +108,7 @@ q0, q1, q2 = [cirq.google.XmonQubit(i, 0) for i in range(3)]
 circuit = cirq.circuits.Circuit()
 circuit.append([CZ(q0, q1), H(q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---
 #            |
@@ -120,7 +120,7 @@ This appended an entire new moment to the qubit, which we can continue to do,
 ```python
 circuit.append([H(q0), CZ(q1, q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---H---
 #            |
@@ -135,7 +135,7 @@ append all of these at once?
 circuit = cirq.circuits.Circuit()
 circuit.append([CZ(q0, q1), H(q2), H(q0), CZ(q1, q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---H---
 #            |
@@ -156,9 +156,9 @@ identified by the index of the ``Moment`` (in the ``Circuit``) where
 the insertion is requested to be placed at (in the case of ``append``
 this means inserting at the ``Moment`` at an index one greater than
 the maximum moment index in the ``Circuit``). There are four such
-strategies: ``EARLIST``, ``NEW``, ``INLINE`` and ``NEW_THEN_INLINE``.
+strategies: ``EARLIEST``, ``NEW``, ``INLINE`` and ``NEW_THEN_INLINE``.
 
-``EARLIST`` is define as
+``EARLIEST`` is define as
 
 > EARLIEST: Scans backward from the insert location until a moment 
 with operations touching qubits affected by the operation to insert
@@ -174,7 +174,7 @@ circuit = cirq.circuits.Circuit()
 circuit.append([CZ(q0, q1)])
 circuit.append([H(q0), H(q2)], strategy=InsertStrategy.EARLIEST)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---Z---H---
 #            |
@@ -192,7 +192,7 @@ Contrast this with the ``NEW`` ``InsertStrategy``:
 circuit = cirq.circuits.Circuit()
 circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.NEW)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---H-----------
 #
@@ -213,10 +213,10 @@ operation to insert, a new moment is created instead.
 
 ```python
 circuit = cirq.circuits.Circuit()
-circuit.append([CZ(q2, q3)])
+circuit.append([CZ(q1, q2)])
 circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): -------Z---H---
 #                |
@@ -241,7 +241,7 @@ circuit = cirq.circuits.Circuit()
 circuit.append([H(q0)])
 circuit.append([CZ(q1,q2), H(q0)], strategy=InsertStrategy.NEW_THEN_INLINE)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
 # (0, 0): ---H---H---
 #
@@ -285,7 +285,7 @@ for x in my_layer():
 # [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]
 # [Operation(H, (XmonQubit(0, 0),)), [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]]
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints 
 # (0, 0): ---Z---H---H-------
 #            |
