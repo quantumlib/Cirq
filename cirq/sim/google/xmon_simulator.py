@@ -234,7 +234,7 @@ class TrialContext(cirq.study.TrialContext):
     Attributes:
         param_dict: A dictionary produce by the ParamResolver mapping parameter
             keys to actual parameter values that produced this result.
-        reptition_id: An id used to identify repetitions within runs for
+        repetition_id: An id used to identify repetitions within runs for
             a fixed param_dict.
     """
 
@@ -248,8 +248,23 @@ class TrialContext(cirq.study.TrialContext):
         return (self.param_dict == other.param_dict
                 and self.repetition_id == other.repetition_id)
 
-    def __neq__(self, other):
+    def __ne__(self, other):
         return not self == other
+
+    __hash__ = None
+
+    def __str__(self):
+        lines = []
+        if self.repetition_id is not None:
+            lines.append('repetition_id={}'.format(self.repetition_id))
+        for key, val in self.param_dict.items():
+            lines.append('{}={}'.format(key, val))
+        return ' '.join(lines)
+
+    def __repr__(self):
+        return 'TrialContext(param_dict={!r}, repetition_id={!r})'.format(
+            self.param_dict,
+            self.repetition_id)
 
 
 class StepResult:
@@ -361,5 +376,5 @@ class TrialResult(cirq.study.TrialResult):
         keyed_bitstrings = [
             (key, bitstring(val)) for key, val in self.measurements.items()
         ]
-        return '\n'.join('{}: {}'.format(repr(key), val)
-                         for key, val in sorted(keyed_bitstrings))
+        return ' '.join('{}={}'.format(key, val)
+                        for key, val in sorted(keyed_bitstrings))

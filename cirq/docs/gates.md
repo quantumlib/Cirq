@@ -65,14 +65,15 @@ for these gates a power
 import numpy as np
 from cirq.ops import X
 print(np.around(X.matrix()))
+# prints
+# [[0.+0.j 1.-0.j]
+#  [1.-0.j 0.+0.j]]
 
 sqrt_x = X**0.5
 print(sqrt_x.matrix())
 # prints
-# [[ 0.+0.j  1.-0.j]
-#  [ 1.-0.j  0.+0.j]]
-# [[ 0.5+0.5j  0.5-0.5j]
-#  [ 0.5-0.5j  0.5+0.5j]]
+# [[0.5+0.5j 0.5-0.5j]
+#  [0.5-0.5j 0.5+0.5j]]
 ```
 
 Note that it is often the case that ``(g**a)**b != g**(a * b)``,

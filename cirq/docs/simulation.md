@@ -46,9 +46,9 @@ from cirq.sim.google.xmon_simulator import Simulator
 simulator = Simulator()
 context, result = simulator.run(circuit)
 
-print(dict(result.measurements))
+print(result)
 # prints something like
-# {'q0': [False], 'q1': [False]}
+# q0=1 q1=1
 ```
 Run returns a tuple of a context (see below) and a result, which 
 are of type ``TrialContext`` and ``TrialResult``.  As you can see
@@ -62,9 +62,9 @@ set of measurement results:
 ```python
 context, result = simulator.run(circuit)
 
-print(dict(result.measurements))
+print(result)
 # prints something like
-# {'q0': [False], 'q1': [True]}
+# q0=1 q1=0
 ```
 
 The Xmon simulator is designed to mimic what running a program
@@ -80,7 +80,7 @@ context, result = simulator.run(circuit, qubits=[q0, q1])
 
 print(np.around(result.final_state, 3))
 # prints
-# [-0.5-0.j  -0.0+0.5j -0.0+0.5j -0.5+0.j ]
+# [-0.5-0.j  -0. +0.5j -0. +0.5j -0.5+0.j ]
 ```
 
 Note that the xmon simulator uses numpy's ``float32`` precision
@@ -159,14 +159,13 @@ circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
     context, result = simulator.run(circuit, param_resolver=resolver)
-    print('param_dict: %s, state: %s' 
-          % (context.param_dict, np.around(result.final_state, 3)))
-# prints something like
-# param_dict: {'x': 0.0}, state: [ 1.+0.j  0.+0.j  0.+0.j  0.+0.j]
-# param_dict: {'x': 0.25}, state: [ 0.854+0.j     0.000+0.354j  0.000+0.354j -0.146+0.j   ]
-# param_dict: {'x': 0.5}, state: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]
-# param_dict: {'x': 0.75}, state: [ 0.146+0.j     0.000+0.354j  0.000+0.354j -0.854+0.j   ]
-# param_dict: {'x': 1.0}, state: [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
+    print(context, np.around(result.final_state, 2))
+# prints
+# x=0.0 [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+# x=0.25 [ 0.85+0.j    0.  +0.35j  0.  +0.35j -0.15+0.j  ]
+# x=0.5 [ 0.5+0.j   0. +0.5j  0. +0.5j -0.5+0.j ]
+# x=0.75 [ 0.15+0.j    0.  +0.35j  0.  +0.35j -0.85+0.j  ]
+# x=1.0 [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
 ```
 Here we see that the ``ParameterizedValue`` is used in two 
 gates, and then the resolver provide this value at run time.
@@ -193,17 +192,14 @@ study = ExecutorStudy(executor=simulator,
                       param_resolvers=resolvers,
                       repetitions=2)
 for context, result in study.run_study():
-    print('param_dict: %s, reptition_id: %s measurements: %s' 
-          % (context.param_dict, 
-             context.repetition_id, 
-             result.measurements))
+    print(context, result)
 # prints something like
-# param_dict: {'x': 0.0}, reptition_id: 0 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [False]})
-# param_dict: {'x': 0.0}, reptition_id: 1 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [False]})
-# param_dict: {'x': 0.5}, reptition_id: 0 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [True]})
-# param_dict: {'x': 0.5}, reptition_id: 1 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [False]})
-# param_dict: {'x': 1.0}, reptition_id: 0 measurements: defaultdict(<type 'list'>, {'q0': [True], 'q1': [True]})
-# param_dict: {'x': 1.0}, reptition_id: 1 measurements: defaultdict(<type 'list'>, {'q0': [True], 'q1': [True]})
+# repetition_id=0 x=0.0 q0=0 q1=0
+# repetition_id=1 x=0.0 q0=0 q1=0
+# repetition_id=0 x=0.5 q0=0 q1=1
+# repetition_id=1 x=0.5 q0=1 q1=1
+# repetition_id=0 x=1.0 q0=1 q1=1
+# repetition_id=1 x=1.0 q0=1 q1=1
 ```
 where we see that different repetitons for the case that the 
 qubit has been rotated into a superposition over computational

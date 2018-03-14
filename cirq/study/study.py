@@ -71,7 +71,7 @@ class ExecutorStudy(StudyInterface):
         self.repetitions = repetitions
         self.executor_kwags = executor_kwags
 
-    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrailResult']]:
+    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrialResult']]:
         """Runs the study for all parameters and repetitions.
 
         Returns:

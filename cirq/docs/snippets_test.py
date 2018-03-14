@@ -2,6 +2,7 @@ from typing import List, Dict
 
 import os
 import re
+import sys
 
 
 def test_readme_code_snippets_execute():
@@ -23,7 +24,7 @@ def test_docs_code_snippets_execute():
         try:
             assert_file_has_working_code_snippets(path, assume_import=True)
         except:
-            print('Failing file: {}'.format(filename))
+            print('DOCS FILE:\n\t{}'.format(filename))
             raise
 
 
@@ -83,7 +84,11 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
     state['print'] = print_capture
     try:
         exec(snippet, state)
-        assert_expected_lines_present_in_order(expected_outputs, output_lines)
+
+        # Can't re-assign print in python 2.
+        if sys.version_info[0] >= 3:
+            assert_expected_lines_present_in_order(expected_outputs,
+                                                   output_lines)
     except:
         print('SNIPPET: \n' + _indent([snippet]))
         raise
