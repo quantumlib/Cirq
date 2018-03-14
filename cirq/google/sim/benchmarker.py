@@ -20,7 +20,7 @@ import numpy as np
 from absl import app
 from absl import flags
 
-from cirq.sim.google import xmon_stepper
+from cirq.google.sim import xmon_stepper
 
 FLAGS = flags.FLAGS
 
