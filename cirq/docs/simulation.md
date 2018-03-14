@@ -32,11 +32,11 @@ def basic_circuit(meas=True):
 circuit = Circuit()
 circuit.append(basic_circuit())    
   
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---X^0.5---Z---X^0.5---M---
-#                    |
-# (1, 0): ---X^0.5---Z---X^0.5---M---
+# (0, 0): ───X^0.5───Z───X^0.5───M───
+#                    │
+# (1, 0): ───X^0.5───Z───X^0.5───M───
 ```
 
 We can simulate this by creating an ``xmon_simulator.Simulator`` and 
@@ -47,7 +47,7 @@ simulator = Simulator()
 context, result = simulator.run(circuit)
 
 print(dict(result.measurements))
-# prints
+# prints something like
 # {'q0': [False], 'q1': [False]}
 ```
 Run returns a tuple of a context (see below) and a result, which 
@@ -63,7 +63,7 @@ set of measurement results:
 context, result = simulator.run(circuit)
 
 print(dict(result.measurements))
-# prints
+# prints something like
 # {'q0': [False], 'q1': [True]}
 ```
 
@@ -106,11 +106,11 @@ circuit = Circuit()
 circuit.append(basic_circuit())    
 for i, step in enumerate(simulator.moment_steps(circuit, qubits=[q0, q1])):
     print('state at step %d: %s' % (i, np.around(step.state(), 3)))
-# prints
-#  state at step 0: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]
-#  state at step 1: [ 0.5+0.j   0.0+0.5j  0.0+0.5j  0.5+0.j ]
-#  state at step 2: [-0.5-0.j  -0.0+0.5j -0.0+0.5j -0.5+0.j ]
-#  state at step 3: [ 0.+0.j  0.+0.j -0.+1.j  0.+0.j]
+# prints something like
+# state at step 0: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]
+# state at step 1: [ 0.5+0.j   0.0+0.5j  0.0+0.5j  0.5+0.j ]
+# state at step 2: [-0.5-0.j  -0.0+0.5j -0.0+0.5j -0.5+0.j ]
+# state at step 3: [ 0.+0.j  0.+0.j -0.+1.j  0.+0.j]
 ```
 
 The object returned by the ``moment_steps`` iterator is a 
@@ -161,7 +161,7 @@ for y in range(5):
     context, result = simulator.run(circuit, param_resolver=resolver)
     print('param_dict: %s, state: %s' 
           % (context.param_dict, np.around(result.final_state, 3)))
-# prints
+# prints something like
 # param_dict: {'x': 0.0}, state: [ 1.+0.j  0.+0.j  0.+0.j  0.+0.j]
 # param_dict: {'x': 0.25}, state: [ 0.854+0.j     0.000+0.354j  0.000+0.354j -0.146+0.j   ]
 # param_dict: {'x': 0.5}, state: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]
@@ -197,7 +197,7 @@ for context, result in study.run_study():
           % (context.param_dict, 
              context.repetition_id, 
              result.measurements))
-# prints
+# prints something like
 # param_dict: {'x': 0.0}, reptition_id: 0 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [False]})
 # param_dict: {'x': 0.0}, reptition_id: 1 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [False]})
 # param_dict: {'x': 0.5}, reptition_id: 0 measurements: defaultdict(<type 'list'>, {'q0': [False], 'q1': [True]})
