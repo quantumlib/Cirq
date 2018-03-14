@@ -32,7 +32,7 @@ class XmonDevice(Device):
                  measurement_duration: Duration,
                  exp_w_duration: Duration,
                  exp_11_duration: Duration,
-                 qubits: Iterable[XmonQubit]):
+                 qubits: Iterable[XmonQubit]) -> None:
         """Initializes the description of an xmon device.
 
         Args:

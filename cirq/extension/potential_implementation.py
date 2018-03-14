@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Type, TypeVar, Union
+from typing import Optional, Type, TypeVar
 
 T_DESIRED = TypeVar('TDesired')
 
@@ -26,7 +26,7 @@ class PotentialImplementation:
     """
 
     def try_cast_to(self, desired_type: Type[T_DESIRED]
-                    ) -> Union[type(None), T_DESIRED]:
+                    ) -> Optional[T_DESIRED]:
         """Turns this value into the desired type, if possible.
 
         Correct implementations should delegate to super() after failing to

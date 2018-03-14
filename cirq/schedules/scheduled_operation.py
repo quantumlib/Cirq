@@ -23,7 +23,7 @@ class ScheduledOperation:
     def __init__(self,
                  time: Timestamp,
                  duration: Duration,
-                 operation: ops.Operation):
+                 operation: ops.Operation) -> None:
         """Initializes the scheduled operation.
 
         Args:

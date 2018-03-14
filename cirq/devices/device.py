@@ -29,7 +29,7 @@ class Device(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def validate_operation(self, operation: 'cirq.ops.Operation'
-                           ) -> type(None):
+                           ) -> None:
         """Raises an exception if an operation is not valid.
 
         Args:
@@ -45,7 +45,7 @@ class Device(metaclass=abc.ABCMeta):
             self,
             schedule: 'cirq.schedules.Schedule',
             scheduled_operation: 'cirq.schedules.ScheduledOperation'
-    ) -> type(None):
+    ) -> None:
         """Raises an exception if the scheduled operation is not valid.
 
         Args:
@@ -59,7 +59,7 @@ class Device(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def validate_circuit(self, circuit: 'cirq.circuits.Circuit') -> type(None):
+    def validate_circuit(self, circuit: 'cirq.circuits.Circuit') -> None:
         """Raises an exception if a circuit is not valid.
 
         Args:
@@ -72,7 +72,7 @@ class Device(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def validate_schedule(self, schedule: 'cirq.schedules.Schedule'
-                          ) -> type(None):
+                          ) -> None:
         """Raises an exception if a schedule is not valid.
 
         Args:

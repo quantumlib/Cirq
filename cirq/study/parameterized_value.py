@@ -38,7 +38,7 @@ class ParameterizedValue:
             return val
         return super().__new__(cls)
 
-    def __init__(self, key: str = '', val: float = 0):
+    def __init__(self, key: str = '', val: float = 0) -> None:
         """Initializes a ParameterizedValue representing val + param(key).
 
         Args:

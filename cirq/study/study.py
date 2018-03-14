@@ -64,7 +64,7 @@ class ExecutorStudy(StudyInterface):
             program: Union[Circuit, Schedule],
             param_resolvers: Iterable[ParamResolver] = None,
             repetitions: int = 0,
-            **executor_kwags: Dict):
+            **executor_kwags: Dict) -> None:
         self.executor = executor
         self.program = program
         self.param_resolvers = param_resolvers or [ParamResolver({})]

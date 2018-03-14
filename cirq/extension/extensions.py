@@ -16,7 +16,7 @@
 
 import inspect
 
-from typing import Dict, Type, Callable, TypeVar, Union, Optional
+from typing import Callable, Dict, Optional, Type, TypeVar
 
 from cirq.extension.potential_implementation import PotentialImplementation
 
@@ -31,7 +31,8 @@ class Extensions:
             self,
             desired_to_actual_to_wrapper: Optional[Dict[
                 Type[T_DESIRED],
-                Dict[Type[T_ACTUAL], Callable[[T_ACTUAL], T_DESIRED]]]]=None):
+                Dict[Type[T_ACTUAL], Callable[[T_ACTUAL], T_DESIRED]]]]=None
+            ) -> None:
         """Specifies extensions.
 
         Args:
@@ -64,7 +65,7 @@ class Extensions:
     def try_cast(self,
              actual_value: T_ACTUAL,
              desired_type: Type[T_DESIRED]
-             ) -> Union[type(None), T_DESIRED]:
+             ) -> Optional[T_DESIRED]:
         """Represents the given value as the desired type, if possible.
 
         Returns None if no wrapper method is found, and the value isn't already
