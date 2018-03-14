@@ -2,8 +2,9 @@ import sys
 from typing import List, Dict
 
 import os
-import pytest
 import re
+
+import pytest
 
 
 def test_can_run_readme_code_snippets():

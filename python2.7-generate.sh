@@ -39,6 +39,7 @@ find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
 protoc -I=${out} --python_out=${out} ${proto_dir}/*.proto
 
 cp python2.7-requirements.txt ${out}/requirements.txt
+cp README.md ${out}/README.md
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out} | grep "\.py$" | grep -v "_pb2\.py$")
