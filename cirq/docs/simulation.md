@@ -42,7 +42,7 @@ print(cirq.circuits.to_ascii(circuit))
 We can simulate this by creating an ``xmon_simulator.Simulator`` and 
 then simply calling ``run``:
 ```python
-from cirq.sim.google.xmon_simulator import Simulator
+from cirq.google import Simulator
 simulator = Simulator()
 context, result = simulator.run(circuit)
 
