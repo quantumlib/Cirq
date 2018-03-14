@@ -49,3 +49,10 @@ from cirq.google.xmon_gates import (
 from cirq.google.xmon_qubit import (
     XmonQubit,
 )
+from cirq.google.sim import (
+    Options,
+    Simulator,
+    StepResult,
+    TrialContext,
+    TrialResult,
+)
