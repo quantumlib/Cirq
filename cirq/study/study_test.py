@@ -14,16 +14,14 @@
 
 """Tests for studies."""
 
-import collections
 import itertools
 
+import collections
 import pytest
 
 from cirq import study
 from cirq.circuits import Circuit
-from cirq.google.xmon_gates import ExpWGate, XmonMeasurementGate
-from cirq.google.xmon_qubit import XmonQubit
-from cirq.sim.google.xmon_simulator import Simulator
+from cirq.google import Simulator, XmonQubit, ExpWGate, XmonMeasurementGate
 from cirq.study import ExecutorStudy
 from cirq.study.parameterized_value import ParameterizedValue
 from cirq.study.resolver import ParamResolver
