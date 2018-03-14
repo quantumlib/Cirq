@@ -59,12 +59,6 @@ def assert_code_snippets_run_in_sequence(snippets: List[str],
         exec('import cirq', state)
 
     for snippet in snippets:
-        expected_output_lines = []
-
-        for line in snippet.split('\n'):
-            if line.startswith('# prints:'):
-                expected_output_lines.append(line[len('# prints:'):])
-
         assert_code_snippet_runs_and_prints_expected(snippet, state)
 
 
