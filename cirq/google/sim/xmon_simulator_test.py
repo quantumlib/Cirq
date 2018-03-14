@@ -31,6 +31,7 @@ from cirq.google.sim import xmon_simulator
 from cirq.study import ExecutorStudy, ParameterizedValue
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
+from cirq.testing import EqualsTester
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -63,6 +64,17 @@ def large_circuit():
         circuit.append(
             XmonMeasurementGate(key='meas')(qubits[i]))
     return circuit
+
+
+def test_trial_context_eq():
+    eq = EqualsTester()
+    eq.add_equality_group(xmon_simulator.TrialContext({}),
+                          xmon_simulator.TrialContext({}, None))
+    eq.add_equality_group(xmon_simulator.TrialContext({}, 0))
+    eq.add_equality_group(xmon_simulator.TrialContext({}, 1))
+    eq.add_equality_group(xmon_simulator.TrialContext({'a': 1}, 0))
+    eq.add_equality_group(xmon_simulator.TrialContext({'b': 1}, 0))
+    eq.add_equality_group(xmon_simulator.TrialContext({'a': 2}, 0))
 
 
 def test_xmon_options_negative_num_shards():
