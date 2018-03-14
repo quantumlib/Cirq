@@ -156,3 +156,55 @@ def test_param_sweep_size_versus_gen(param_sweep):
     predicted_size = len(sweep)
     out = list(sweep)
     assert len(out) == predicted_size
+
+
+@pytest.mark.parametrize('sweep,expected', [
+    (
+        Linspace('a', 0, 10, 25),
+        Product(Zip(Linspace('a', 0, 10, 25)))
+    ),
+    (
+        Points('a', [1, 2, 3]),
+        Product(Zip(Points('a', [1, 2, 3])))
+    ),
+    (
+        Zip(Linspace('a', 0, 1, 5), Points('b', [1, 2, 3])),
+        Product(Zip(Linspace('a', 0, 1, 5), Points('b', [1, 2, 3]))),
+    ),
+    (
+        Product(Linspace('a', 0, 1, 5), Points('b', [1, 2, 3])),
+        Product(Zip(Linspace('a', 0, 1, 5)), Zip(Points('b', [1, 2, 3]))),
+    ),
+    (
+        Product(
+            Zip(Points('a', [1, 2, 3]), Points('b', [4, 5, 6])),
+            Linspace('c', 0, 1, 5),
+        ),
+        Product(
+            Zip(Points('a', [1, 2, 3]), Points('b', [4, 5, 6])),
+            Zip(Linspace('c', 0, 1, 5)),
+        ),
+    ),
+    (
+        Product(
+            Zip(Linspace('a', 0, 1, 5), Points('b', [1, 2, 3])),
+            Zip(Linspace('c', 0, 1, 8), Points('d', [1, 0.5, 0.25, 0.125])),
+        ),
+        Product(
+            Zip(Linspace('a', 0, 1, 5), Points('b', [1, 2, 3])),
+            Zip(Linspace('c', 0, 1, 8), Points('d', [1, 0.5, 0.25, 0.125])),
+        ),
+    ),
+])
+def test_sweep_to_proto(sweep, expected):
+    proto = params.sweep_to_proto(sweep)
+    out = params.sweep_from_proto(proto)
+    assert out == expected
+
+
+@pytest.mark.parametrize('bad_sweep', [
+    Zip(Product(Linspace('a', 0, 10, 25), Linspace('b', 0, 10, 25))),
+])
+def test_sweep_to_proto_fail(bad_sweep):
+    with pytest.raises(ValueError):
+        params.sweep_to_proto(bad_sweep)
