@@ -66,11 +66,6 @@ def assert_code_snippets_run_in_sequence(snippets: List[str],
                 expected_output_lines.append(line[len('# prints:'):])
 
         assert_code_snippet_runs_and_prints_expected(snippet, state)
-        try:
-            exec(snippet, state)
-        except:
-            print('Failing snippet:\n{}'.format(snippet))
-            raise
 
 
 def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
