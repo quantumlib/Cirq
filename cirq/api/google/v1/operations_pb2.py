@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cirq/api/google/v1/operations.proto',
   package='cirq.api.google.v1',
   syntax='proto3',
-  serialized_pb=_b('\n#cirq/api/google/v1/operations.proto\x12\x12\x63irq.api.google.v1\"\x1d\n\x05Qubit\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"8\n\x12ParameterizedFloat\x12\x0b\n\x03raw\x18\x01 \x01(\x02\x12\x15\n\rparameter_key\x18\x02 \x01(\t\"\xae\x01\n\x04\x45xpW\x12)\n\x06target\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12?\n\x0f\x61xis_half_turns\x18\x02 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\x12:\n\nhalf_turns\x18\x03 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\"m\n\x04\x45xpZ\x12)\n\x06target\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12:\n\nhalf_turns\x18\x02 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\"\x9b\x01\n\x05\x45xp11\x12*\n\x07target1\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12*\n\x07target2\x18\x02 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12:\n\nhalf_turns\x18\x03 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\"E\n\x0bMeasurement\x12)\n\x06target\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12\x0b\n\x03key\x18\x02 \x01(\t\"\xfa\x01\n\tOperation\x12%\n\x1dincremental_delay_picoseconds\x18\x01 \x01(\x04\x12)\n\x05\x65xp_w\x18\n \x01(\x0b\x32\x18.cirq.api.google.v1.ExpWH\x00\x12)\n\x05\x65xp_z\x18\x0b \x01(\x0b\x32\x18.cirq.api.google.v1.ExpZH\x00\x12+\n\x06\x65xp_11\x18\x0c \x01(\x0b\x32\x19.cirq.api.google.v1.Exp11H\x00\x12\x36\n\x0bmeasurement\x18\r \x01(\x0b\x32\x1f.cirq.api.google.v1.MeasurementH\x00\x42\x0b\n\toperationB2\n\x1d\x63om.google.cirq.api.google.v1B\x0fOperationsProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n#cirq/api/google/v1/operations.proto\x12\x12\x63irq.api.google.v1\"!\n\x05Qubit\x12\x0b\n\x03row\x18\x01 \x01(\x05\x12\x0b\n\x03\x63ol\x18\x02 \x01(\x05\"8\n\x12ParameterizedFloat\x12\x0b\n\x03raw\x18\x01 \x01(\x02\x12\x15\n\rparameter_key\x18\x02 \x01(\t\"\xae\x01\n\x04\x45xpW\x12)\n\x06target\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12?\n\x0f\x61xis_half_turns\x18\x02 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\x12:\n\nhalf_turns\x18\x03 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\"m\n\x04\x45xpZ\x12)\n\x06target\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12:\n\nhalf_turns\x18\x02 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\"\x9b\x01\n\x05\x45xp11\x12*\n\x07target1\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12*\n\x07target2\x18\x02 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12:\n\nhalf_turns\x18\x03 \x01(\x0b\x32&.cirq.api.google.v1.ParameterizedFloat\"E\n\x0bMeasurement\x12)\n\x06target\x18\x01 \x01(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12\x0b\n\x03key\x18\x02 \x01(\t\"\xfa\x01\n\tOperation\x12%\n\x1dincremental_delay_picoseconds\x18\x01 \x01(\x04\x12)\n\x05\x65xp_w\x18\n \x01(\x0b\x32\x18.cirq.api.google.v1.ExpWH\x00\x12)\n\x05\x65xp_z\x18\x0b \x01(\x0b\x32\x18.cirq.api.google.v1.ExpZH\x00\x12+\n\x06\x65xp_11\x18\x0c \x01(\x0b\x32\x19.cirq.api.google.v1.Exp11H\x00\x12\x36\n\x0bmeasurement\x18\r \x01(\x0b\x32\x1f.cirq.api.google.v1.MeasurementH\x00\x42\x0b\n\toperationB2\n\x1d\x63om.google.cirq.api.google.v1B\x0fOperationsProtoP\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -34,14 +34,14 @@ _QUBIT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='x', full_name='cirq.api.google.v1.Qubit.x', index=0,
+      name='row', full_name='cirq.api.google.v1.Qubit.row', index=0,
       number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='y', full_name='cirq.api.google.v1.Qubit.y', index=1,
+      name='col', full_name='cirq.api.google.v1.Qubit.col', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -60,7 +60,7 @@ _QUBIT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=59,
-  serialized_end=88,
+  serialized_end=92,
 )
 
 
@@ -97,8 +97,8 @@ _PARAMETERIZEDFLOAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=90,
-  serialized_end=146,
+  serialized_start=94,
+  serialized_end=150,
 )
 
 
@@ -142,8 +142,8 @@ _EXPW = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=149,
-  serialized_end=323,
+  serialized_start=153,
+  serialized_end=327,
 )
 
 
@@ -180,8 +180,8 @@ _EXPZ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=325,
-  serialized_end=434,
+  serialized_start=329,
+  serialized_end=438,
 )
 
 
@@ -225,8 +225,8 @@ _EXP11 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=437,
-  serialized_end=592,
+  serialized_start=441,
+  serialized_end=596,
 )
 
 
@@ -263,8 +263,8 @@ _MEASUREMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=594,
-  serialized_end=663,
+  serialized_start=598,
+  serialized_end=667,
 )
 
 
@@ -325,8 +325,8 @@ _OPERATION = _descriptor.Descriptor(
       name='operation', full_name='cirq.api.google.v1.Operation.operation',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=666,
-  serialized_end=916,
+  serialized_start=670,
+  serialized_end=920,
 )
 
 _EXPW.fields_by_name['target'].message_type = _QUBIT
