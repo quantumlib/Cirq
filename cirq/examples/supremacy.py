@@ -96,15 +96,15 @@ def _make_cz_layer(device: google.XmonDevice, layer_index: int
     only contains edges not present on the device.
     """
 
-    dir_x = layer_index % 2
-    dir_y = 1 - dir_x
+    dir_row = layer_index % 2
+    dir_col = 1 - dir_row
     shift = (layer_index >> 1) % 4
 
     for q in device.qubits:
-        q2 = google.XmonQubit(q.x + dir_x, q.y + dir_y)
+        q2 = google.XmonQubit(q.row + dir_row, q.col + dir_col)
         if q2 not in device.qubits:
             continue  # This edge isn't on the device.
-        if (q.x * (2 - dir_x) + q.y * (2 - dir_y)) % 4 != shift:
+        if (q.row * (2 - dir_row) + q.col * (2 - dir_col)) % 4 != shift:
             continue  # No CZ along this edge for this layer.
 
         yield google.Exp11Gate().on(q, q2)

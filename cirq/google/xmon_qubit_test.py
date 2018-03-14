@@ -22,8 +22,8 @@ from cirq.testing import EqualsTester
 
 def test_xmon_qubit_init():
     q = XmonQubit(3, 4)
-    assert q.x == 3
-    assert q.y == 4
+    assert q.row == 3
+    assert q.col == 4
 
 
 def test_xmon_qubit_eq():
@@ -104,14 +104,14 @@ def test_to_proto():
 
     # Create a new message.
     proto = q.to_proto()
-    assert proto.x == 5
-    assert proto.y == 6
+    assert proto.row == 5
+    assert proto.col == 6
 
     # Populate an existing message.
     proto2 = operations_pb2.Qubit()
     q.to_proto(proto2)
-    assert proto2.x == 5
-    assert proto2.y == 6
+    assert proto2.row == 5
+    assert proto2.col == 6
 
 
 def test_from_proto():
