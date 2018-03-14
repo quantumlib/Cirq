@@ -106,8 +106,8 @@ class Simulator(Executor):
                 1), and have a dtype of np.complex64.
 
         Returns:
-            A tuple (context, result) where context is the TrailContext for
-                performing this run and result is the TrailResult containing
+            A tuple (context, result) where context is the TrialContext for
+                performing this run and result is the TrialResult containing
                 the results of this run.
         """
         if isinstance(program, Schedule):
@@ -234,9 +234,10 @@ class TrialContext(cirq.study.TrialContext):
     """The context that generated the result.
 
     Attributes:
-        param_dict: A dictionary produce by the ParamResolver mapping parameter
-            keys to actual parameter values that produced this result.
-        reptition_id: An id used to identify repetitions within runs for
+        param_dict: A dictionary produced by the ParamResolver mapping
+            parameter keys to actual parameter values that produced this
+            result.
+        repetition_id: An id used to identify repetitions within runs for
             a fixed param_dict.
     """
 
@@ -250,8 +251,23 @@ class TrialContext(cirq.study.TrialContext):
         return (self.param_dict == other.param_dict
                 and self.repetition_id == other.repetition_id)
 
-    def __neq__(self, other):
+    def __ne__(self, other):
         return not self == other
+
+    __hash__ = None
+
+    def __str__(self):
+        lines = []
+        if self.repetition_id is not None:
+            lines.append('repetition_id={}'.format(self.repetition_id))
+        for key, val in self.param_dict.items():
+            lines.append('{}={}'.format(key, val))
+        return ' '.join(lines)
+
+    def __repr__(self):
+        return 'TrialContext(param_dict={!r}, repetition_id={!r})'.format(
+            self.param_dict,
+            self.repetition_id)
 
 
 class StepResult:
@@ -363,5 +379,5 @@ class TrialResult(cirq.study.TrialResult):
         keyed_bitstrings = [
             (key, bitstring(val)) for key, val in self.measurements.items()
         ]
-        return '\n'.join('{}: {}'.format(repr(key), val)
-                         for key, val in sorted(keyed_bitstrings))
+        return ' '.join('{}={}'.format(key, val)
+                        for key, val in sorted(keyed_bitstrings))
