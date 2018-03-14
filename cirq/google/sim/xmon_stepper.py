@@ -30,7 +30,7 @@ from typing import Any, Dict, List, Union, Tuple
 
 import numpy as np
 
-from cirq.sim.google import mem_manager
+from cirq.google.sim import mem_manager
 
 
 I_PI_OVER_2 = 0.5j * np.pi

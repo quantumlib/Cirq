@@ -21,7 +21,7 @@ import pytest
 
 import numpy as np
 
-from cirq.sim.google import mem_manager
+from cirq.google.sim import mem_manager
 
 
 def get_shared_mem(handle: int) -> np.ndarray:

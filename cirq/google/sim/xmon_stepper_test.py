@@ -17,7 +17,7 @@
 import numpy as np
 import pytest
 
-from cirq.sim.google import xmon_stepper
+from cirq.google.sim import xmon_stepper
 
 
 def test_no_thread_pool():
