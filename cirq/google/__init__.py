@@ -27,6 +27,7 @@ from cirq.google.eject_z import (
     EjectZ,
 )
 from cirq.google.known_devices import (
+    Bristlecone,
     Foxtail,
 )
 from cirq.google.merge_interactions import (

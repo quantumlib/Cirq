@@ -8,11 +8,11 @@ option java_multiple_files = true;
 
 // Identifies a qubit.
 message Qubit {
-  // X position in grid.
-  int32 x = 1;
+  // row number in grid.
+  int32 row = 1;
 
-  // Y position in grid.
-  int32 y = 2;
+  // column number in grid.
+  int32 col = 2;
 }
 
 // A number specified as a constant plus an optional parameter lookup.

@@ -53,7 +53,9 @@ class Options:
             of qubits or more. The default is 10.
     """
 
-    def __init__(self, num_shards: int=None, min_qubits_before_shard: int=10):
+    def __init__(self,
+                 num_shards: int=None,
+                 min_qubits_before_shard: int=10) -> None:
         """Simulator options constructor.
 
         Args:
@@ -239,7 +241,7 @@ class TrialContext(cirq.study.TrialContext):
             a fixed param_dict.
     """
 
-    def __init__(self, param_dict: Dict, repetition_id: int = None):
+    def __init__(self, param_dict: Dict, repetition_id: int = None) -> None:
         self.param_dict = param_dict
         self.repetition_id = repetition_id
 
@@ -284,7 +286,7 @@ class StepResult:
             self,
             stepper: Stepper,
             qubit_map: Dict,
-            measurements: DefaultDict):
+            measurements: DefaultDict) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
@@ -365,7 +367,7 @@ class TrialResult(cirq.study.TrialResult):
             the trial finishes.
     """
 
-    def __init__(self, final_step_result: StepResult):
+    def __init__(self, final_step_result: StepResult) -> None:
         self.measurements = final_step_result.measurements
         # TODO(dabacon): This should be optional, since it can be rather big.
         self.final_state = final_step_result.state()

@@ -9,7 +9,7 @@ class Duration:
     def __init__(self,
                  *positional_args,
                  picos: Union[int, float] = 0,
-                 nanos: Union[int, float] = 0):
+                 nanos: Union[int, float] = 0) -> None:
         """Initializes a Duration with a time specified in ns and/or ps.
 
         If both picos and nanos are specified, their contributions are added.

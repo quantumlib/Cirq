@@ -32,7 +32,7 @@ class XmonDevice(Device):
                  measurement_duration: Duration,
                  exp_w_duration: Duration,
                  exp_11_duration: Duration,
-                 qubits: Iterable[XmonQubit]):
+                 qubits: Iterable[XmonQubit]) -> None:
         """Initializes the description of an xmon device.
 
         Args:
@@ -49,10 +49,10 @@ class XmonDevice(Device):
     def neighbors_of(self, qubit: XmonQubit):
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
-            XmonQubit(qubit.x + 1, qubit.y),
-            XmonQubit(qubit.x - 1, qubit.y),
-            XmonQubit(qubit.x, qubit.y + 1),
-            XmonQubit(qubit.x, qubit.y - 1),
+            XmonQubit(qubit.row + 1, qubit.col),
+            XmonQubit(qubit.row - 1, qubit.col),
+            XmonQubit(qubit.row, qubit.col + 1),
+            XmonQubit(qubit.row, qubit.col - 1),
         ]
         return [e for e in possibles if e in self.qubits]
 
@@ -134,12 +134,12 @@ class XmonDevice(Device):
         diagram = TextDiagramDrawer()
 
         for q in self.qubits:
-            diagram.write(q.x, q.y, str(q))
+            diagram.write(q.col, q.row, str(q))
             for q2 in self.neighbors_of(q):
-                if q2.x != q.x:
-                    diagram.horizontal_line(q.y, q.x, q2.x)
+                if q2.col != q.col:
+                    diagram.horizontal_line(q.row, q.col, q2.col)
                 else:
-                    diagram.vertical_line(q.x, q.y, q2.y)
+                    diagram.vertical_line(q.col, q.row, q2.row)
 
         return diagram.render(
             horizontal_spacing=3,

@@ -21,7 +21,7 @@ from cirq.circuits.optimization_pass import PointOptimizer
 class DropNegligible(PointOptimizer):
     """An optimization pass that removes operations with tiny effects."""
 
-    def __init__(self, tolerance: float = 1e-8):
+    def __init__(self, tolerance: float = 1e-8) -> None:
         self.tolerance = tolerance
 
     def optimize_at(self, circuit, index, op):

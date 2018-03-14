@@ -33,8 +33,7 @@ class _TurnGate(gate_features.ExtrapolatableGate,
                 gate_features.BoundedEffectGate,
                 gate_features.AsciiDiagrammableGate):
 
-    def __init__(self, *positional_args,
-                 half_turns: float = 1.0):
+    def __init__(self, *positional_args, half_turns: float = 1.0) -> None:
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 
@@ -77,8 +76,7 @@ class Rot11Gate(_TurnGate,
   A ParameterizedCZGate guaranteed to not be using the parameter key field.
   """
 
-    def __init__(self, *positional_args,
-                 half_turns: float=1.0):
+    def __init__(self, *positional_args, half_turns: float=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -93,8 +91,7 @@ class Rot11Gate(_TurnGate,
 class RotXGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args,
-                 half_turns: float = 1.0):
+    def __init__(self, *positional_args, half_turns: float = 1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -113,8 +110,7 @@ class RotXGate(_TurnGate, gate_features.SingleQubitGate):
 class RotYGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args,
-                 half_turns: float = 1.0):
+    def __init__(self, *positional_args, half_turns: float = 1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -134,8 +130,7 @@ class RotYGate(_TurnGate, gate_features.SingleQubitGate):
 class RotZGate(_TurnGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args,
-                 half_turns: float = 1.0):
+    def __init__(self, *positional_args, half_turns: float = 1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -153,7 +148,7 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
 class MeasurementGate(gate_features.AsciiDiagrammableGate):
     """Indicates that a qubit should be measured, and where the result goes."""
 
-    def __init__(self, key: str = '', invert_result=False):
+    def __init__(self, key: str = '', invert_result=False) -> None:
         self.key = key
         self.invert_result = invert_result
 
