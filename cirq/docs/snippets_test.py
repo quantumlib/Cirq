@@ -1,11 +1,12 @@
 from typing import List, Dict
 
 import os
+import pytest
 import re
 import sys
 
 
-def test_readme_code_snippets_execute():
+def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
     readme_path = os.path.join(
         os.path.dirname(__file__),  # Start at this file's directory.
@@ -15,7 +16,7 @@ def test_readme_code_snippets_execute():
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
 
-def test_docs_code_snippets_execute():
+def test_can_run_docs_code_snippets():
     docs_folder = os.path.dirname(__file__)
     for filename in os.listdir(docs_folder):
         if not filename.endswith('.md'):
@@ -31,12 +32,8 @@ def test_docs_code_snippets_execute():
 def assert_file_has_working_code_snippets(path: str, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
-    try:
-        with open(path, 'r') as f:
-            content = f.read()
-    except IOError:
-        # File not found. Not great.. but no need to test that it runs!
-        return
+    with open(path, 'r') as f:
+        content = f.read()
 
     # Find snippets of code, and execute them. They should finish.
     snippets = re.findall("\n```python(.*?)\n```\n",
@@ -108,7 +105,7 @@ def assert_expected_lines_present_in_order(expected_lines: List[str],
 def find_expected_outputs(snippet: str) -> List[str]:
     """Finds expected output lines within a snippet.
 
-    Expected output must be annotated with a leading '# prints' or '# prints:'.
+    Expected output must be annotated with a leading '# prints'.
     Lines below '# prints' must start with '# ' or be just '#' and not indent
     any more than that in order to add an expected line. As soon as a line
     breaks this pattern, expected output recording cuts off.
@@ -131,10 +128,7 @@ def find_expected_outputs(snippet: str) -> List[str]:
                 printing = False
         elif line.startswith(start_key):
             rest = line[len(start_key):]
-            if rest.startswith(':'):
-                expected.append(rest[1:])
-                printing = True
-            elif not rest.strip():
+            if not rest.strip():
                 printing = True
 
     return expected
@@ -142,3 +136,75 @@ def find_expected_outputs(snippet: str) -> List[str]:
 
 def _indent(lines: List[str]) -> str:
     return '\t' + '\n'.join(lines).replace('\n', '\n\t')
+
+
+def test_find_expected_outputs():
+    assert find_expected_outputs("""
+# prints
+# abc
+
+# def
+    """) == ['abc']
+
+    assert find_expected_outputs("""
+lorem ipsum
+
+# prints
+#   abc
+
+a wondrous collection
+
+# prints
+# def
+# ghi
+    """) == ['  abc', 'def', 'ghi']
+
+    assert find_expected_outputs("""
+a wandering adventurer
+
+# prints something like
+#  prints
+#prints
+# pants
+# trance
+    """) == []
+
+
+def test_assert_expected_lines_present_in_order():
+    assert_expected_lines_present_in_order(
+        expected_lines=[],
+        actual_lines=[])
+
+    assert_expected_lines_present_in_order(
+        expected_lines=[],
+        actual_lines=['abc'])
+
+    assert_expected_lines_present_in_order(
+        expected_lines=['abc'],
+        actual_lines=['abc'])
+
+    with pytest.raises(AssertionError):
+        assert_expected_lines_present_in_order(
+            expected_lines=['abc'],
+            actual_lines=[])
+
+    assert_expected_lines_present_in_order(
+        expected_lines=['abc', 'def'],
+        actual_lines=['abc', 'def'])
+
+    assert_expected_lines_present_in_order(
+        expected_lines=['abc', 'def'],
+        actual_lines=['abc', 'interruption', 'def'])
+
+    with pytest.raises(AssertionError):
+        assert_expected_lines_present_in_order(
+            expected_lines=['abc', 'def'],
+            actual_lines=['def', 'abc'])
+
+    assert_expected_lines_present_in_order(
+        expected_lines=['abc    '],
+        actual_lines=['abc'])
+
+    assert_expected_lines_present_in_order(
+        expected_lines=['abc'],
+        actual_lines=['abc      '])

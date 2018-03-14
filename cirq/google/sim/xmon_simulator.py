@@ -104,8 +104,8 @@ class Simulator(Executor):
                 1), and have a dtype of np.complex64.
 
         Returns:
-            A tuple (context, result) where context is the TrailContext for
-                performing this run and result is the TrailResult containing
+            A tuple (context, result) where context is the TrialContext for
+                performing this run and result is the TrialResult containing
                 the results of this run.
         """
         if isinstance(program, Schedule):
@@ -232,8 +232,9 @@ class TrialContext(cirq.study.TrialContext):
     """The context that generated the result.
 
     Attributes:
-        param_dict: A dictionary produce by the ParamResolver mapping parameter
-            keys to actual parameter values that produced this result.
+        param_dict: A dictionary produced by the ParamResolver mapping
+            parameter keys to actual parameter values that produced this
+            result.
         repetition_id: An id used to identify repetitions within runs for
             a fixed param_dict.
     """
