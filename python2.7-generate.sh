@@ -45,3 +45,8 @@ files_to_update=$(find ${out} | grep "\.py$" | grep -v "_pb2\.py$")
 for file in ${files_to_update}; do
     sed -i '1s/^/# coding=utf-8\n/' ${file}
 done
+
+# Whenever a __str__ method is defined, delegate to __unicode__.
+for file in ${files_to_update}; do
+      sed -i "s/^\(\s\+\?\)def __str__(self):/\1def __str__(self):\n\1    return unicode(self).encode('utf-8')\n\n\1def __unicode__(self):/" ${file}
+done
