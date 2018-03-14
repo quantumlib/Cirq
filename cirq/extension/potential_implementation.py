@@ -15,7 +15,7 @@
 
 from typing import Optional, Type, TypeVar
 
-T_DESIRED = TypeVar('TDesired')
+T_DESIRED = TypeVar('T_DESIRED')
 
 
 class PotentialImplementation:
