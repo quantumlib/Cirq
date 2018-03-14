@@ -27,7 +27,7 @@ class QubitId:
 class NamedQubit(QubitId):
     """A qubit identified by name."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
     def __str__(self):
@@ -58,7 +58,7 @@ class Gate:
     """
 
     # noinspection PyMethodMayBeStatic
-    def validate_args(self, qubits: Sequence[QubitId]) -> type(None):
+    def validate_args(self, qubits: Sequence[QubitId]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
         Does no checks by default. Child classes can override.
@@ -92,7 +92,7 @@ class InterchangeableQubitsGate:
 class Operation:
     """An application of a gate to a collection of qubits."""
 
-    def __init__(self, gate: Gate, qubits: Sequence[QubitId]):
+    def __init__(self, gate: Gate, qubits: Sequence[QubitId]) -> None:
         self.gate = gate
         self.qubits = tuple(qubits)
 

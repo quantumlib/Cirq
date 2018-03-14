@@ -104,7 +104,7 @@ class Exp11Gate(XmonGate,
     """A two-qubit interaction that phases the amplitude of the 11 state."""
 
     def __init__(self, *positional_args,
-                 half_turns: Union[ParameterizedValue, float]=1):
+                 half_turns: Union[ParameterizedValue, float]=1) -> None:
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 
@@ -171,7 +171,7 @@ class ExpWGate(XmonGate,
 
     def __init__(self, *positional_args,
                  half_turns: Union[ParameterizedValue, float]=1,
-                 axis_half_turns: Union[ParameterizedValue, float]=0):
+                 axis_half_turns: Union[ParameterizedValue, float]=0) -> None:
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
         self.axis_half_turns = _canonicalize_half_turns(axis_half_turns)
@@ -283,7 +283,7 @@ class ExpZGate(XmonGate,
     """A rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *positional_args,
-                 half_turns: Union[ParameterizedValue, float]=1):
+                 half_turns: Union[ParameterizedValue, float]=1) -> None:
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 

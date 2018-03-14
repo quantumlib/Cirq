@@ -70,7 +70,7 @@ class _ReversedReversibleCompositeGate(gate_features.CompositeGate,
                                        gate_features.ReversibleGate):
     """A reversed reversible composite gate."""
 
-    def __init__(self, forward_form: ReversibleCompositeGate):
+    def __init__(self, forward_form: ReversibleCompositeGate) -> None:
         self.forward_form = forward_form
 
     def inverse(self) -> ReversibleCompositeGate:

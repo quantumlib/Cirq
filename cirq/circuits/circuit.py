@@ -27,7 +27,7 @@ from cirq.ops import QubitId
 class Circuit(object):
     """A mutable list of groups of operations to apply to some qubits."""
 
-    def __init__(self, moments: Iterable[Moment] = ()):
+    def __init__(self, moments: Iterable[Moment] = ()) -> None:
         """Initializes a circuit.
 
         Args:

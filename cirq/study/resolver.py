@@ -31,7 +31,7 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __init__(self, param_dict: Dict[str, float]):
+    def __init__(self, param_dict: Dict[str, float]) -> None:
         self.param_dict = param_dict
         self._param_hash = hash(frozenset(param_dict.items()))
 
