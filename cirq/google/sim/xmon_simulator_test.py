@@ -27,7 +27,7 @@ from cirq.google import (
 )
 from cirq.ops.common_gates import CNOT, X
 from cirq.schedules import moment_by_moment_schedule
-from cirq.sim.google import xmon_simulator
+from cirq.google.sim import xmon_simulator
 from cirq.study import ExecutorStudy, ParameterizedValue
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace

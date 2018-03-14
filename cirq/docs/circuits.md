@@ -156,9 +156,9 @@ identified by the index of the ``Moment`` (in the ``Circuit``) where
 the insertion is requested to be placed at (in the case of ``append``
 this means inserting at the ``Moment`` at an index one greater than
 the maximum moment index in the ``Circuit``). There are four such
-strategies: ``EARLIST``, ``NEW``, ``INLINE`` and ``NEW_THEN_INLINE``.
+strategies: ``EARLIEST``, ``NEW``, ``INLINE`` and ``NEW_THEN_INLINE``.
 
-``EARLIST`` is define as
+``EARLIEST`` is define as
 
 > EARLIEST: Scans backward from the insert location until a moment 
 with operations touching qubits affected by the operation to insert
