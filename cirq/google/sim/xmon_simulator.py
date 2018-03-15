@@ -196,7 +196,7 @@ def simulator_iterator(
     expand = ExpandComposite()
     convert = ConvertToXmonGates(ignore_failures=False)
     drop = DropEmptyMoments()
-    
+
     circuit_copy = Circuit(circuit.moments)
     expand.optimize_circuit(circuit_copy)
     convert.optimize_circuit(circuit_copy)
