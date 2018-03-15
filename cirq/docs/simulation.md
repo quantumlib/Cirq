@@ -151,7 +151,7 @@ a map from the ``ParameterizedValue`` key to its assigned
 value (plus any offset also set in the ``ParameterizedValue``).
 
 ```python
-from cirq.study import ParameterizedValue, ParamResolver
+from cirq import ParameterizedValue, ParamResolver
 val = ParameterizedValue('x')
 rot_w_gate = ExpWGate(half_turns=val)
 circuit = Circuit()

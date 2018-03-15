@@ -19,7 +19,7 @@ from cirq.devices import Device
 from cirq.google import xmon_gates
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.time import Duration
+from cirq.value import Duration
 
 
 from cirq.circuits import TextDiagramDrawer

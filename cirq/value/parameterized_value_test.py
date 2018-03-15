@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.study import ParameterizedValue
+from cirq.value import ParameterizedValue
 from cirq.testing import EqualsTester
 
 

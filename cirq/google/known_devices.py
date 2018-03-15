@@ -16,7 +16,7 @@ from typing import Dict, List, Set, Tuple
 
 from cirq.google.xmon_device import XmonDevice
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.time import Duration
+from cirq.value import Duration
 
 
 def _parse_device(s: str) -> Tuple[List[XmonQubit], Dict[str, Set[XmonQubit]]]:

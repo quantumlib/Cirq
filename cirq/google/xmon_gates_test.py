@@ -20,7 +20,7 @@ from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleGate
-from cirq.study import ParameterizedValue
+from cirq.value import ParameterizedValue
 from cirq.testing import EqualsTester
 
 

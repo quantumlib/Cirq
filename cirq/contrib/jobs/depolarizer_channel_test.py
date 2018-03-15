@@ -17,8 +17,8 @@ from cirq import ops
 from cirq.contrib.jobs import DepolarizerChannel
 from cirq.contrib.jobs import Job
 from cirq.google import xmon_gates
-from cirq.study.parameterized_value import ParameterizedValue
 from cirq.study.sweeps import Points
+from cirq.value import ParameterizedValue
 
 
 def test_depolarizer_no_errors():

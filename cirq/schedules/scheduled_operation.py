@@ -14,7 +14,7 @@
 
 from cirq import ops
 from cirq.devices import Device
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
 
 
 class ScheduledOperation:
