@@ -35,9 +35,11 @@ import numpy as np
 
 import cirq
 from cirq.circuits import Circuit, ExpandComposite
-from cirq.google import xmon_gates, xmon_gate_ext
+from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.ops import raw_types
 from cirq.schedules import Schedule
+from cirq.google import xmon_gates
+from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
 from cirq.study import Executor
 from cirq.study.resolver import ParamResolver
@@ -179,6 +181,10 @@ def simulator_iterator(
 
     Yields:
         StepResults from simulating a Moment of the Circuit.
+
+    Raises:
+        TypeError: if the circuit contains gates that are not XmonGates or
+            composite gates made of XmonGates.
     """
     circuit_qubits = circuit.qubits()
     if qubits is not None:
@@ -187,9 +193,14 @@ def simulator_iterator(
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    opt = ExpandComposite()
+    expand = ExpandComposite()
+    convert = ConvertToXmonGates(ignore_failures=False)
+    drop = DropEmptyMoments()
+
     circuit_copy = Circuit(circuit.moments)
-    opt.optimize_circuit(circuit_copy)
+    expand.optimize_circuit(circuit_copy)
+    convert.optimize_circuit(circuit_copy)
+    drop.optimize_circuit(circuit_copy)
     with Stepper(
         num_qubits=len(qubits),
         num_prefix_qubits=options.num_prefix_qubits,
@@ -199,7 +210,7 @@ def simulator_iterator(
             measurements = defaultdict(list)
             phase_map = {}
             for op in moment.operations:
-                gate = xmon_gate_ext.try_cast(op.gate, xmon_gates.XmonGate)
+                gate = op.gate
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
                     phase_map[(index,)] = param_resolver.value_of(

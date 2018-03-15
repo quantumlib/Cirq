@@ -180,11 +180,17 @@ T = Z**0.25
 
 
 class HGate(gate_features.SingleQubitGate,
+            gate_features.CompositeGate,
             gate_features.AsciiDiagrammableGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
     def ascii_wire_symbols(self):
         return 'H',
+
+    def default_decompose(self, qubits):
+        q = qubits[0]
+        yield Y(q)**0.5
+        yield X(q)
 
     def matrix(self):
         """See base class."""
