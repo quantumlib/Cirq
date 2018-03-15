@@ -15,7 +15,8 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import Tuple, Callable, List, TypeVar
+from typing import Set  # pylint: disable=unused-import
+from typing import Callable, List, Tuple, TypeVar
 
 import numpy as np
 
@@ -38,15 +39,15 @@ def _group_similar(items: List[T],
   Returns:
     A list of groups of items.
   """
-    groups = []
-    used = set()
+    groups = []  # type: List[List[T]]
+    used = set()  # type: Set[int]
     for i in range(len(items)):
         if i not in used:
-            group = [i]
+            group = [items[i]]
             for j in range(i + 1, len(items)):
                 if j not in used and comparer(items[i], items[j]):
                     used.add(j)
-                    group.append(j)
+                    group.append(items[j])
             groups.append(group)
     return groups
 

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
-from typing import List, Union
+from typing import Iterable, List, TYPE_CHECKING, Union
 
 from sortedcontainers import SortedListWithKey
 
@@ -22,6 +21,9 @@ from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.time import Duration, Timestamp
+
+if TYPE_CHECKING:
+    from cirq.ops import Operation  # pylint: disable=unused-import
 
 
 class Schedule:
@@ -180,7 +182,7 @@ class Schedule:
         operations that are scheduled at the same time in the same Moment.
         """
         circuit = Circuit()
-        ops = []
+        ops = []  # type: List[Operation]
         time = None  # type: Timestamp
         for so in self.scheduled_operations:
             if so.time != time:

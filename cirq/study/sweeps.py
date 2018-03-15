@@ -18,7 +18,7 @@ def _check_duplicate_keys(sweeps):
 
 class Sweep(metaclass=abc.ABCMeta):
     def __mul__(self, other: 'Sweep') -> 'Sweep':
-        factors = []
+        factors = []  # type: List[Sweep]
         if isinstance(self, Product):
             factors.extend(self.factors)
         else:
@@ -32,13 +32,13 @@ class Sweep(metaclass=abc.ABCMeta):
         return Product(*factors)
 
     def __add__(self, other: 'Sweep') -> 'Sweep':
-        sweeps = []
+        sweeps = []  # type: List[Sweep]
         if isinstance(self, Zip):
             sweeps.extend(self.sweeps)
         else:
             sweeps.append(self)
         if isinstance(other, Zip):
-            sweeps.extend(other.factors)
+            sweeps.extend(other.sweeps)
         elif isinstance(other, Sweep):
             sweeps.append(other)
         else:
@@ -120,9 +120,6 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        if not self.factors:
-            return
-
         def _gen(factors):
             if not factors:
                 yield ()
