@@ -158,8 +158,8 @@ class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
         pass
 
 
-class SingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
-    """A gate that applies a known constant effect to one qubit."""
+class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to exactly one qubit."""
 
     def validate_args(self, qubits):
         if len(qubits) != 1:
@@ -168,8 +168,8 @@ class SingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-class TwoQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
-    """A gate that applies a known constant effect two qubits."""
+class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to exactly two qubits."""
 
     def validate_args(self, qubits):
         if len(qubits) != 2:
