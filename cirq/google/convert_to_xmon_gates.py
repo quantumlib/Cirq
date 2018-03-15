@@ -20,6 +20,7 @@ from cirq.circuits.optimization_pass import PointOptimizer
 
 
 class ConvertToXmonGates(PointOptimizer):
+    """Pointwise converts a circuit to XmonGates if possible."""
 
     def __init__(self, ignore_failures=True):
         self.ignore_failures = ignore_failures
