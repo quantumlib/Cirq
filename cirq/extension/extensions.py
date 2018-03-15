@@ -54,7 +54,7 @@ class Extensions:
                  desired_type: Type[T_DESIRED],
                  actual_type: Type[T_ACTUAL],
                  conversion: Callable[[T_ACTUAL], T_DESIRED],
-                 include_sub_types: bool = True,
+                 also_add_inherited_conversions: bool = True,
                  overwrite_existing: bool = False) -> None:
         """Adds a way to turn one type of thing into another.
 
@@ -65,20 +65,22 @@ class Extensions:
                 has, and returns a value that is an instance of the type the
                 casting caller wants (or else acts like an instance of that
                 type; it may not literally be an instance).
-            include_sub_types: Whether or not to use the same conversion method
-                to convert from the given actual type to desired types that are
-                subtypes of the given desired type (unless they are also
-                subtypes of the actual type).
+            also_add_inherited_conversions: Whether or not to also use the
+                given conversion method to convert from the given actual type
+                to desired types that the given desired type derives from
+                (unless instances of the actual type are already instances of
+                the alternate desired types).
             overwrite_existing: Normally, this method will fail if a redundant
-                conversion is specified. If this argument is set to True, the
-                method will instead overwrite existing entries.
+                conversion is specified, either directly or via an inheritance
+                relation. If this argument is set to True, the existing
+                conversions are overwritten instead.
         """
         all_desired_types = [desired_type]
-        if include_sub_types:
+        if also_add_inherited_conversions:
             all_desired_types.extend(
-                e
-                for e in desired_type.__mro__[1:]
-                if not issubclass(actual_type, e))
+                other_desired_type
+                for other_desired_type in inspect.getmro(desired_type)[1:]
+                if not issubclass(actual_type, other_desired_type))
 
         if not overwrite_existing:
             for t in all_desired_types:
