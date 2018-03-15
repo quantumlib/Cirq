@@ -24,7 +24,6 @@ from cirq import (
     schedules,
     study,
     testing,
-    time,
 )
 
 # Also flatten some of the sub-modules.
@@ -124,7 +123,6 @@ from cirq.schedules import (
 from cirq.study import (
     Executor,
     ExecutorStudy,
-    ParameterizedValue,
     ParamResolver,
     StudyInterface,
     TrialContext,
@@ -133,8 +131,9 @@ from cirq.study import (
     TrialResultMeta,
 )
 
-from cirq.time import (
+from cirq.value import (
     Duration,
+    ParameterizedValue,
     Timestamp,
 )
 

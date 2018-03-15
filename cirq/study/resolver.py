@@ -16,7 +16,7 @@
 
 from typing import Dict, Union
 
-from cirq.study import ParameterizedValue
+from cirq.value import ParameterizedValue
 
 
 class ParamResolver(object):

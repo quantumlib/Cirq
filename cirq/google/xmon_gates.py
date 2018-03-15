@@ -14,16 +14,16 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-import abc
 from typing import Union
 
+import abc
 import numpy as np
 
 from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.study.parameterized_value import ParameterizedValue
+from cirq.value import ParameterizedValue
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
