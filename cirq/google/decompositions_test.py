@@ -300,50 +300,50 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
 
 
 @pytest.mark.parametrize('max_partial_cz_depth,max_full_cz_depth,effect', [
-    [0, 0, np.eye(4)],
-    [0, 0, np.array([
+    (0, 0, np.eye(4)),
+    (0, 0, np.array([
         [0, 0, 0, 1],
         [0, 0, 1, 0],
         [0, 1, 0, 0],
         [1, 0, 0, 0j],
-    ])],
-    [0, 0, (ops.CZ**0.00000001).matrix()],
+    ])),
+    (0, 0, (ops.CZ**0.00000001).matrix()),
 
-    [0.5, 2, (ops.CZ**0.5).matrix()],
+    (0.5, 2, (ops.CZ**0.5).matrix()),
 
-    [1, 1, ops.CZ.matrix()],
-    [1, 1, ops.CNOT.matrix()],
-    [1, 1, np.array([
+    (1, 1, ops.CZ.matrix()),
+    (1, 1, ops.CNOT.matrix()),
+    (1, 1, np.array([
         [1, 0, 0, 1j],
         [0, 1, 1j, 0],
         [0, 1j, 1, 0],
         [1j, 0, 0, 1],
-    ]) * np.sqrt(0.5)],
-    [1, 1, np.array([
+    ]) * np.sqrt(0.5)),
+    (1, 1, np.array([
         [1, 0, 0, -1j],
         [0, 1, -1j, 0],
         [0, -1j, 1, 0],
         [-1j, 0, 0, 1],
-    ]) * np.sqrt(0.5)],
-    [1, 1, np.array([
+    ]) * np.sqrt(0.5)),
+    (1, 1, np.array([
         [1, 0, 0, 1j],
         [0, 1, -1j, 0],
         [0, -1j, 1, 0],
         [1j, 0, 0, 1],
-    ]) * np.sqrt(0.5)],
+    ]) * np.sqrt(0.5)),
 
-    [1.5, 3, linalg.map_eigenvalues(ops.SWAP.matrix(),
-                                    lambda e: complex(e)**0.5)],
+    (1.5, 3, linalg.map_eigenvalues(ops.SWAP.matrix(),
+                                    lambda e: complex(e)**0.5)),
 
-    [2, 2, ops.SWAP.matrix().dot(ops.CZ.matrix())],
+    (2, 2, ops.SWAP.matrix().dot(ops.CZ.matrix())),
 
-    [3, 3, ops.SWAP.matrix()],
-    [3, 3, np.array([
+    (3, 3, ops.SWAP.matrix()),
+    (3, 3, np.array([
         [0, 0, 0, 1],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
         [1, 0, 0, 0j],
-    ])],
+    ])),
 ] + [
     (1, 2, _random_single_partial_cz_effect()) for _ in range(10)
 ] + [

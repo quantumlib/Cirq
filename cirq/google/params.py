@@ -1,3 +1,5 @@
+from typing import cast
+
 from cirq.api.google.v1 import params_pb2
 from cirq.study.sweeps import (
     Linspace, Points, Product, SingleParameterSweep, Sweep, Unit, Zip,
@@ -12,12 +14,12 @@ def sweep_to_proto(
     if msg is None:
         msg = params_pb2.ParameterSweep()
     for factor in sweep.factors:
-        _sweep_zip_to_proto(factor, msg=msg.sweep.factors.add())
+        _sweep_zip_to_proto(cast(Zip, factor), msg=msg.sweep.factors.add())
     return msg
 
 
 
-def _to_zip_product(sweep: Sweep) -> Sweep:
+def _to_zip_product(sweep: Sweep) -> Product:
     """Converts sweep to a product of zips of single sweeps, if possible."""
     if not isinstance(sweep, Product):
         sweep = Product(sweep)
@@ -25,7 +27,7 @@ def _to_zip_product(sweep: Sweep) -> Sweep:
         factors = [f if isinstance(f, Zip) else Zip(f) for f in sweep.factors]
         sweep = Product(*factors)
     for factor in sweep.factors:
-        for term in factor.sweeps:
+        for term in cast(Zip, factor).sweeps:
             if not isinstance(term, SingleParameterSweep):
                 raise ValueError('cannot convert to zip-product form: {}'
                                  .format(sweep))
@@ -37,8 +39,9 @@ def _sweep_zip_to_proto(
         msg: params_pb2.ParameterSweepZip) -> params_pb2.ParameterSweepZip:
     if msg is None:
         msg = params_pb2.ParameterSweepZip()
-    for sweep in sweep.sweeps:
-        _single_param_sweep_to_proto(sweep, msg=msg.sweeps.add())
+    for s in sweep.sweeps:
+        _single_param_sweep_to_proto(cast(SingleParameterSweep, s),
+                                     msg=msg.sweeps.add())
     return msg
 
 

@@ -52,7 +52,7 @@ class EqualsTester:
         assert group_items
 
         # Check that group items are equivalent to each other.
-        for v1, v2 in itertools.product(group_items, repeat=2):
+        for v1, v2 in itertools.product(group_items, group_items):
             # Binary operators should always work.
             assert v1 == v2
             assert not v1 != v2
