@@ -25,13 +25,14 @@ from cirq.devices import UnconstrainedDevice
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
+from cirq.google.sim import xmon_simulator
 from cirq.ops.common_gates import CNOT, X
 from cirq.schedules import moment_by_moment_schedule
-from cirq.google.sim import xmon_simulator
-from cirq.study import ExecutorStudy, ParameterizedValue
+from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
 from cirq.testing import EqualsTester
+from cirq.value import ParameterizedValue
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
