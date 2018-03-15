@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from cirq.devices.device import Device
-from cirq.time import Duration
+from cirq.value import Duration
 
 
 class _UnconstrainedDeviceType(Device):

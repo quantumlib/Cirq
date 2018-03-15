@@ -20,7 +20,7 @@ from cirq.circuits import Circuit
 from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
 
 if TYPE_CHECKING:
     from cirq.ops import Operation  # pylint: disable=unused-import

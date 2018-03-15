@@ -1,8 +1,8 @@
 import pytest
 
-from cirq.study import ParameterizedValue
 from cirq.study.sweeps import Linspace, Points, Unit
 from cirq.testing import EqualsTester
+from cirq.value import ParameterizedValue
 
 
 def test_product_duplicate_keys():

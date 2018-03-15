@@ -27,15 +27,16 @@ from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
 from cirq.google.sim import xmon_simulator
-from cirq.ops import raw_types
 from cirq.ops import op_tree
+from cirq.ops import raw_types
 from cirq.ops.common_gates import CNOT, H, X, Z
 from cirq.ops.gate_features import CompositeGate, SingleQubitGate
 from cirq.schedules import moment_by_moment_schedule
-from cirq.study import ExecutorStudy, ParameterizedValue
+from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
 from cirq.testing import EqualsTester
+from cirq.value import ParameterizedValue
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)

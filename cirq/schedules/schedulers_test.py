@@ -21,7 +21,7 @@ from cirq.devices import Device
 from cirq.schedules import (
     Schedule, ScheduledOperation, moment_by_moment_schedule,
 )
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
 
 
 class LineQubit:

@@ -18,7 +18,7 @@ from cirq import ops
 from cirq.devices import UnconstrainedDevice
 from cirq.schedules import ScheduledOperation, Schedule
 from cirq.testing import EqualsTester
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
 
 
 def test_equality():
