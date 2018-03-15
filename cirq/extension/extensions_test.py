@@ -149,3 +149,110 @@ def test_try_cast_potential_implementation():
 
     assert e.try_cast(o, OtherType) is None
     assert e.try_cast(u, OtherType) is None
+
+
+def test_add_cast():
+    e = extension.Extensions()
+
+    assert e.try_cast(UnrelatedType(), DesiredType) is None
+    e.add_cast(desired_type=DesiredType,
+               actual_type=UnrelatedType,
+               conversion=lambda e: 'unrelated')
+    assert e.try_cast(UnrelatedType(), DesiredType) == 'unrelated'
+
+
+class Grandparent:
+    pass
+
+
+class Parent(Grandparent):
+    pass
+
+
+class Neighbor(Grandparent):
+    pass
+
+
+class Child(Parent):
+    pass
+
+
+class Cousin(Neighbor):
+    pass
+
+
+def test_add_cast_include_subtypes():
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: 'boo',
+               include_sub_types=True)
+    e2 = extension.Extensions()
+    e2.add_cast(desired_type=Cousin,
+                actual_type=Child,
+                conversion=lambda _: 'boo',
+                include_sub_types=False)
+
+    c = Child()
+    assert e.try_cast(c, Child) is c
+    assert e.try_cast(c, Parent) is c
+    assert e.try_cast(c, Grandparent) is c
+    assert e.try_cast(c, object) is c
+    assert e.try_cast(c, Neighbor) == 'boo'
+    assert e.try_cast(c, Cousin) == 'boo'
+
+    assert e2.try_cast(c, Child) is c
+    assert e2.try_cast(c, Parent) is c
+    assert e2.try_cast(c, Grandparent) is c
+    assert e2.try_cast(c, object) is c
+    assert e2.try_cast(c, Neighbor) is None
+    assert e2.try_cast(c, Cousin) == 'boo'
+
+
+def test_add_cast_redundant():
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: 'boo',
+               include_sub_types=False,
+               overwrite_existing=False)
+    with pytest.raises(ValueError):
+        e.add_cast(desired_type=Cousin,
+                   actual_type=Child,
+                   conversion=lambda _: 'soup',
+                   include_sub_types=False,
+                   overwrite_existing=False)
+    assert e.try_cast(Child(), Cousin) == 'boo'
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: 'raw',
+               include_sub_types=False,
+               overwrite_existing=True)
+    assert e.try_cast(Child(), Cousin) == 'raw'
+
+
+def test_add_cast_redundant_including_subtypes():
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Neighbor,
+               actual_type=Child,
+               conversion=lambda _: 'boo',
+               include_sub_types=True,
+               overwrite_existing=False)
+    with pytest.raises(ValueError):
+        e.add_cast(desired_type=Cousin,
+                   actual_type=Child,
+                   conversion=lambda _: 'soup',
+                   include_sub_types=True,
+                   overwrite_existing=False)
+    assert e.try_cast(Child(), Neighbor) == 'boo'
+    assert e.try_cast(Child(), Cousin) is None
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: 'fork',
+               include_sub_types=True,
+               overwrite_existing=True)
+    assert e.try_cast(Child(), Neighbor) == 'fork'
+    assert e.try_cast(Child(), Cousin) == 'fork'

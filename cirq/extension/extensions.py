@@ -48,7 +48,57 @@ class Extensions:
             {}
             if desired_to_actual_to_wrapper is None
             else desired_to_actual_to_wrapper
-        )  # type: Dict[Any, Dict[Any, Callable[[Any], Any]]]
+        )  # type: Dict[Type[Any], Dict[Type[Any], Callable[[Any], Any]]]
+
+    def add_cast(self,
+                 desired_type: Type[T_DESIRED],
+                 actual_type: Type[T_ACTUAL],
+                 conversion: Callable[[T_ACTUAL], T_DESIRED],
+                 include_sub_types: bool = True,
+                 overwrite_existing: bool = False) -> None:
+        """Adds a way to turn one type of thing into another.
+
+        Args:
+            desired_type: The type that the casting caller wants.
+            actual_type: The type of the value that the casting caller has.
+            conversion: A function that takes the value the casting  caller
+                has, and returns a value that is an instance of the type the
+                casting caller wants (or else acts like an instance of that
+                type; it may not literally be an instance).
+            include_sub_types: Whether or not to use the same conversion method
+                to convert from the given actual type to desired types that are
+                subtypes of the given desired type (unless they are also
+                subtypes of the actual type).
+            overwrite_existing: Normally, this method will fail if a redundant
+                conversion is specified. If this argument is set to True, the
+                method will instead overwrite existing entries.
+        """
+        all_desired_types = [desired_type]
+        if include_sub_types:
+            all_desired_types.extend(
+                e
+                for e in desired_type.__mro__[1:]
+                if not issubclass(actual_type, e))
+
+        if not overwrite_existing:
+            for t in all_desired_types:
+                if self._have(t, actual_type):
+                    raise ValueError(
+                        'Already have a way to cast {} into {}.'.format(
+                            actual_type, t))
+
+        for t in all_desired_types:
+            if t not in self._desired_to_actual_to_wrapper:
+                self._desired_to_actual_to_wrapper[t] = {}
+            self._desired_to_actual_to_wrapper[t][actual_type] = conversion
+
+    def _have(self,
+              desired_type: Type[T_DESIRED],
+              actual_type: Type[T_ACTUAL]) -> bool:
+        return (
+            desired_type in self._desired_to_actual_to_wrapper and
+            actual_type in self._desired_to_actual_to_wrapper[desired_type]
+        )
 
     def can_cast(self,
                  actual_value: T_ACTUAL,
@@ -65,9 +115,8 @@ class Extensions:
         return self.try_cast(actual_value, desired_type) is not None
 
     def try_cast(self,
-             actual_value: T_ACTUAL,
-             desired_type: Type[T_DESIRED]
-             ) -> Optional[T_DESIRED]:
+                 actual_value: T_ACTUAL,
+                 desired_type: Type[T_DESIRED]) -> Optional[T_DESIRED]:
         """Represents the given value as the desired type, if possible.
 
         Returns None if no wrapper method is found, and the value isn't already
