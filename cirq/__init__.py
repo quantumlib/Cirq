@@ -45,6 +45,11 @@ from cirq.devices import (
     UnconstrainedDevice,
 )
 
+from cirq.extension import (
+    Extensions,
+    PotentialImplementation
+)
+
 from cirq.linalg import (
     allclose_up_to_global_phase,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
