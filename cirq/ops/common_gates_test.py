@@ -14,10 +14,9 @@
 
 import numpy as np
 import pytest
-from google.protobuf import message, text_format
 
 from cirq import linalg
-from cirq import ops, ParameterizedValue, Extensions
+from cirq import ops, ParameterizedValue
 from cirq.testing import EqualsTester
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
