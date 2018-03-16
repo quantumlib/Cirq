@@ -29,8 +29,7 @@ import functools
 import math
 
 from collections import defaultdict
-from typing import (Callable, DefaultDict, Dict, Iterator, List, Sequence,
-                    Tuple, Union)
+from typing import DefaultDict, Dict, Iterator, List, Sequence, Union
 
 import numpy as np
 

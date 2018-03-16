@@ -35,7 +35,6 @@ from cirq.schedules import moment_by_moment_schedule
 from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
-from cirq.testing import EqualsTester
 from cirq.value import ParameterizedValue
 
 Q1 = XmonQubit(0, 0)
