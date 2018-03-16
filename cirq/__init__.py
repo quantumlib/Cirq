@@ -130,8 +130,6 @@ from cirq.study import (
     ExecutorStudy,
     ParamResolver,
     StudyInterface,
-    TrialContext,
-    TrialContextMeta,
     TrialResult,
     TrialResultMeta,
 )

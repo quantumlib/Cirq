@@ -44,7 +44,7 @@ then simply calling ``run``:
 ```python
 from cirq.google import Simulator
 simulator = Simulator()
-context, result = simulator.run(circuit)
+result = simulator.run(circuit)
 
 print(result)
 # prints something like
@@ -60,7 +60,7 @@ The actual measurement results here depend on the seeding
 ``numpy.random_seed``) Another run, can result in a different
 set of measurement results:
 ```python
-context, result = simulator.run(circuit)
+result = simulator.run(circuit)
 
 print(result)
 # prints something like
@@ -76,11 +76,11 @@ but also the state (wave-function) at the end of the simulation:
 import numpy as np
 circuit = Circuit()
 circuit.append(basic_circuit(False))    
-context, result = simulator.run(circuit, qubits=[q0, q1])
+result = simulator.run(circuit, qubits=[q0, q1])
 
-print(np.around(result.final_state, 3))
+print(np.around(result.final_states[0], 3))
 # prints
-# [-0.5-0.j  -0. +0.5j -0. +0.5j -0.5+0.j ]
+# [-0.5-0. j -0. +0.5j -0. +0.5j -0.5+0. j]
 ```
 
 Note that the xmon simulator uses numpy's ``float32`` precision
@@ -158,14 +158,14 @@ circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
-    context, result = simulator.run(circuit, param_resolver=resolver)
-    print(context, np.around(result.final_state, 2))
+    result = simulator.run(circuit, param_resolver=resolver)
+    print(np.around(result.final_states[0], 2))
 # prints
-# x=0.0 [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-# x=0.25 [ 0.85+0.j    0.  +0.35j  0.  +0.35j -0.15+0.j  ]
-# x=0.5 [ 0.5+0.j   0. +0.5j  0. +0.5j -0.5+0.j ]
-# x=0.75 [ 0.15+0.j    0.  +0.35j  0.  +0.35j -0.85+0.j  ]
-# x=1.0 [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
+# [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+# [ 0.85+0.  j  0.  +0.35j  0.  +0.35j -0.15+0.  j]
+# [ 0.5+0. j  0. +0.5j  0. +0.5j -0.5+0. j]
+# [ 0.15+0.  j  0.  +0.35j  0.  +0.35j -0.85+0.  j]
+# [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
 ```
 Here we see that the ``ParameterizedValue`` is used in two 
 gates, and then the resolver provide this value at run time.
@@ -191,8 +191,8 @@ study = ExecutorStudy(executor=simulator,
                       program=circuit,
                       param_resolvers=resolvers,
                       repetitions=2)
-for context, result in study.run_study():
-    print(context, result)
+for result in study.run_study():
+    print(result)
 # prints something like
 # repetition_id=0 x=0.0 q0=0 q1=0
 # repetition_id=1 x=0.0 q0=0 q1=0

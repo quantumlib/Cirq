@@ -39,15 +39,13 @@ class StudyInterface(metaclass=abc.ABCMeta):
     """An interface for running repeated trials over different parameters."""
 
     @abc.abstractmethod
-    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrialResult']]:
+    def run_study(self) -> Iterable['TrialResult']:
         """Runs the study.
 
         Returns:
-            An iterable of tuples. Each element represents a single run of the
-            executor, a trial. The tuple is of the form (context, result)
-            where context is a TrialContext, describing the settings for this
-            trial, and result is a TrialResult, describing the results of the
-            trial.
+            An iterable of results, each representing a single run of the
+            executor, a trial. A trial may itself involve multiple repetitions
+            for the same set of circuit parameters.
         """
 
 
@@ -71,25 +69,20 @@ class ExecutorStudy(StudyInterface):
         self.repetitions = repetitions
         self.executor_kwags = executor_kwags
 
-    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrialResult']]:
+    def run_study(self) -> Iterable['TrialResult']:
         """Runs the study for all parameters and repetitions.
 
         Returns:
-            An iterable of tuples. Each element represents a single run of the
-            executor, a trial. The tuple is of the form (context, result)
-            where context is a TrialContext, describing the settings for this
-            trial, and result is a TrialResult, describing the results of the
-            trial.
+            An iterable of trial results for each parameter setting.
         """
         trial_results = []
         for param_resolver in self.param_resolvers:
-            for rep_id in range(self.repetitions):
-                (context, result) = self.executor.run(
-                    program=self.program,
-                    param_resolver=param_resolver,
-                    **self.executor_kwags)
-                context.repetition_id = rep_id
-                trial_results.append((context, result))
+            result = self.executor.run(
+                program=self.program,
+                param_resolver=param_resolver,
+                repetitions=self.repetitions,
+                **self.executor_kwags)
+            trial_results.append(result)
         return trial_results
 
 
@@ -104,8 +97,9 @@ class Executor(metaclass=abc.ABCMeta):
     def run(
             self,
             program: Union[Circuit, Schedule],
-            param_resolver: ParamResolver
-    ) -> Tuple['TrialContext', 'TrialResult']:
+            param_resolver: ParamResolver,
+            repetitions: int
+    ) -> 'TrialResult':
         """Run the program using the parameters described in the ParamResolver.
 
         Args:
@@ -114,37 +108,10 @@ class Executor(metaclass=abc.ABCMeta):
             param_resolver: Resolves parameters in the program.
 
         Returns:
-            (context, result): A tuple of TrialContext and TrialResult objects
-                describing the context that generated the result, and the
-                result, respectively.
+            Results of the given run of the circuit.
         """
 
         # TODO(dabacon): Async run.
-
-
-class TrialContextMeta(type):
-    """Metaclass that asserts param_dict and repetition_id attributes exist."""
-
-    def __call__(cls, *args, **kwargs):
-        obj = type.__call__(cls, *args, **kwargs)
-        if not hasattr(obj, 'param_dict'):
-            raise NotImplementedError(
-                'TrialContext subclasses must have a param_dict attribute.')
-        if not hasattr(obj, 'repetition_id'):
-            raise NotImplementedError(
-                'TrialContext subclasses must have a repetition_id attribute.')
-        return obj
-
-
-class TrialContext(metaclass=TrialContextMeta):
-    """The context of for a single execution (trial).
-
-    Attributes:
-        param_dict: A dictionary produced by a ParamResolver mapping parameter
-            keys to actual parameter values that produced this result.
-        repetition_id: An integer labeling the repetition (repetition for a
-            fixed param_dict).
-    """
 
 
 class TrialResultMeta(type):
@@ -152,6 +119,12 @@ class TrialResultMeta(type):
 
     def __call__(cls, *args, **kwargs):
         obj = type.__call__(cls, *args, **kwargs)
+        if not hasattr(obj, 'params'):
+            raise NotImplementedError(
+                'TrialResult subclasses must have a params attribute.')
+        if not hasattr(obj, 'repetitions'):
+            raise NotImplementedError(
+                'TrialResult subclasses must have a repetitions attribute.')
         if not hasattr(obj, 'measurements'):
             raise NotImplementedError(
                 'TrialResult subclasses must have a measurements attribute.')
@@ -162,7 +135,11 @@ class TrialResult(metaclass=TrialResultMeta):
     """The results of a single execution (trial).
 
     Attributes:
+        params: A ParamResolver of settings used for this result.
+        repetitions: Number of repetitions included in this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being simulated.
+            results. The value for each key is a 2-D array of booleans, with
+            the first index running over the repetitions, and the second index
+            running over the occurrences of measurement gates with this key in
+            the circuit that was simulated.
     """

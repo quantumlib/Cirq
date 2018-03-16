@@ -53,6 +53,5 @@ from cirq.google.sim import (
     Options,
     Simulator,
     StepResult,
-    TrialContext,
     TrialResult,
 )

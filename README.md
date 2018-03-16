@@ -33,7 +33,7 @@ print(circuit)
 simulator = cirq.google.Simulator()
 results = []
 for _ in range(10):
-    _, result = simulator.run(circuit)
+    result = simulator.run(circuit)
     results.append('1' if result.measurements['result'][0] else '0')
 print("Simulated measurement results:")
 print(''.join(results))

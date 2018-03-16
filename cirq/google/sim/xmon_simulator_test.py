@@ -71,17 +71,6 @@ def large_circuit():
     return circuit
 
 
-def test_trial_context_eq():
-    eq = EqualsTester()
-    eq.add_equality_group(xmon_simulator.TrialContext({}),
-                          xmon_simulator.TrialContext({}, None))
-    eq.add_equality_group(xmon_simulator.TrialContext({}, 0))
-    eq.add_equality_group(xmon_simulator.TrialContext({}, 1))
-    eq.add_equality_group(xmon_simulator.TrialContext({'a': 1}, 0))
-    eq.add_equality_group(xmon_simulator.TrialContext({'b': 1}, 0))
-    eq.add_equality_group(xmon_simulator.TrialContext({'a': 2}, 0))
-
-
 def test_xmon_options_negative_num_shards():
     with pytest.raises(AssertionError):
         xmon_simulator.Options(num_shards=-1)
@@ -98,10 +87,6 @@ def test_xmon_options():
     assert options.min_qubits_before_shard == 0
 
 
-def assert_empty_context(context):
-    assert xmon_simulator.TrialContext(param_dict={}) == context
-
-
 def run(simulator, circuit, scheduler, **kw):
     if scheduler is None:
         program = circuit
@@ -116,9 +101,8 @@ SCHEDULERS = [None, moment_by_moment_schedule]
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_no_results(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, basic_circuit(), scheduler)
+    result = run(simulator, basic_circuit(), scheduler)
     assert len(result.measurements) == 0
-    assert_empty_context(context)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -130,29 +114,24 @@ def test_run(scheduler):
          XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, circuit, scheduler)
+    result = run(simulator, circuit, scheduler)
     assert result.measurements == {'a': [False], 'b': [False]}
-    assert_empty_context(context)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, basic_circuit(), scheduler,
-                          qubits=[Q1, Q2])
-    np.testing.assert_almost_equal(result.final_state,
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
+    np.testing.assert_almost_equal(result.final_states[0],
                                    np.array([-0.5j, 0.5, -0.5, 0.5j]))
-    assert_empty_context(context)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state_different_order_of_qubits(scheduler):
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, basic_circuit(), scheduler,
-                          qubits=[Q2, Q1])
-    np.testing.assert_almost_equal(result.final_state,
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q2, Q1])
+    np.testing.assert_almost_equal(result.final_states[0],
                                    np.array([-0.5j, -0.5, 0.5, 0.5j]))
-    assert_empty_context(context)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -160,11 +139,10 @@ def test_consistent_seeded_run_sharded(scheduler):
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    context, result = run(simulator, circuit, scheduler)
-    assert result.measurements == {
-        'meas': [True, False, False, True, False, False, True, False, False,
-                 False]}
-    assert_empty_context(context)
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(
+        result.measurements['meas'],
+        [[True, False, False, True, False, False, True, False, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -172,13 +150,13 @@ def test_consistent_seeded_run_no_sharding(scheduler):
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    _, result = run(simulator,
-                    circuit,
-                    scheduler,
-                    options=xmon_simulator.Options(num_shards=1))
-    assert result.measurements == {
-        'meas': [True, False, False, True, False, False, True, False, False,
-                 False]}
+    result = run(simulator,
+                 circuit,
+                 scheduler,
+                 options=xmon_simulator.Options(num_shards=1))
+    np.testing.assert_equal(
+        result.measurements['meas'],
+        [[True, False, False, True, False, False, True, False, False, False]])
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_no_sharing_few_qubits(scheduler):
@@ -190,9 +168,9 @@ def test_run_no_sharing_few_qubits(scheduler):
 
     simulator = xmon_simulator.Simulator()
     options = xmon_simulator.Options(min_qubits_before_shard=0)
-    context, result = run(simulator, circuit, scheduler, options=options)
-    assert result.measurements == {'a': [False], 'b': [False]}
-    assert_empty_context(context)
+    result = run(simulator, circuit, scheduler, options=options)
+    np.testing.assert_equal(result.measurements['a'], [[False]])
+    np.testing.assert_equal(result.measurements['b'], [[False]])
 
 
 def test_moment_steps_no_results():
@@ -261,9 +239,10 @@ def compute_gate(circuit, resolver, num_qubits=1):
     simulator = xmon_simulator.Simulator()
     gate = []
     for initial_state in range(1 << num_qubits):
-        _, result = simulator.run(circuit, initial_state=initial_state,
-                                       param_resolver=resolver)
-        gate.append(result.final_state)
+        result = simulator.run(circuit,
+                               initial_state=initial_state,
+                               param_resolver=resolver)
+        gate.append(result.final_states[0])
     return np.array(gate).transpose()
 
 
@@ -346,8 +325,8 @@ def test_param_resolver_param_dict(offset):
     resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
-    context, _ = simulator.run(circuit, param_resolver=resolver)
-    assert context.param_dict == {'a': 0.5}
+    result = simulator.run(circuit, param_resolver=resolver)
+    assert result.params.param_dict == {'a': 0.5}
 
 
 def test_run_study():
@@ -361,8 +340,8 @@ def test_run_study():
     executor = ExecutorStudy(
         xmon_simulator.Simulator(), circuit, sweep, repetitions=1)
 
-    for i, (context, result) in enumerate(executor.run_study()):
-        assert context.param_dict['a'] == i
+    for i, result in enumerate(executor.run_study()):
+        assert result.params['a'] == i
         assert result.measurements['m'] == [i%2 != 0]
 
 
@@ -374,8 +353,8 @@ def test_composite_gates(scheduler):
     circuit.append([m(Q1), m(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    _, result = run(simulator, circuit, scheduler)
-    assert result.measurements['a'] == [True, True]
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[True, True]])
 
 
 class UnsupportedGate(SingleQubitGate):
@@ -395,7 +374,7 @@ def test_unsupported_gate(scheduler):
 
     simulator = xmon_simulator.Simulator()
     with pytest.raises(TypeError, msg="UnsupportedGate"):
-        _, _ = run(simulator, circuit, scheduler)
+        _ = run(simulator, circuit, scheduler)
 
 
 class UnsupportedCompositeGate(SingleQubitGate, CompositeGate):
@@ -421,7 +400,7 @@ def test_unsupported_gate_composite(scheduler):
 
     simulator = xmon_simulator.Simulator()
     with pytest.raises(TypeError, msg="UnsupportedGate"):
-        _, _ = run(simulator, circuit, scheduler)
+        _ = run(simulator, circuit, scheduler)
 
 
 def test_measurement_order():
@@ -430,8 +409,8 @@ def test_measurement_order():
         X(Q1),
         XmonMeasurementGate().on(Q1),
     )
-    _, result = xmon_simulator.Simulator().run(circuit)
-    assert result.measurements[''] == [False, True]
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''], [[False, True]])
 
 
 def test_inverted_measurement():
@@ -443,5 +422,6 @@ def test_inverted_measurement():
         X(Q1),
         XmonMeasurementGate(invert_result=True)(Q1))
 
-    _, result = xmon_simulator.Simulator().run(circuit)
-    assert result.measurements[''] == [False, True, False, True]
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''],
+                            [[False, True, False, True]])
