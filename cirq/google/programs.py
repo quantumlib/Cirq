@@ -4,7 +4,7 @@ from cirq.api.google.v1 import operations_pb2
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
-from cirq.time import Timestamp
+from cirq.value import Timestamp
 
 
 def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:

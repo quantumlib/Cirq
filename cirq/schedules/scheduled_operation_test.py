@@ -15,7 +15,7 @@
 from cirq import ops
 from cirq.schedules import ScheduledOperation
 from cirq.testing import EqualsTester
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
 
 
 def test_init():

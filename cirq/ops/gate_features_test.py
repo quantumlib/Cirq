@@ -115,29 +115,6 @@ def test_self_inverse_reverse():
     assert r.inverse() is r
 
 
-def test_single_qubit_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = gate_features.SingleQubitGate()
-
-
-def test_single_qubit_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(gate_features.SingleQubitGate):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_single_qubit_gate_is_abstract_can_implement():
-    class Included(gate_features.SingleQubitGate):
-        def matrix(self):
-            pass
-
-    assert isinstance(Included(),
-                      gate_features.SingleQubitGate)
-
-
 def test_single_qubit_gate_validate_args():
     class Dummy(gate_features.SingleQubitGate):
         def matrix(self):
@@ -153,20 +130,6 @@ def test_single_qubit_gate_validate_args():
         g.validate_args([])
     with pytest.raises(ValueError):
         g.validate_args([q1, q2])
-
-
-def test_two_qubit_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = gate_features.TwoQubitGate()
-
-
-def test_two_qubit_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(gate_features.TwoQubitGate):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
 
 
 def test_two_qubit_gate_is_abstract_can_implement():

@@ -30,7 +30,7 @@ from typing import Any, Dict, List, Union, Tuple
 
 import numpy as np
 
-from cirq.sim.google import mem_manager
+from cirq.google.sim import mem_manager
 
 
 I_PI_OVER_2 = 0.5j * np.pi
@@ -66,7 +66,7 @@ class Stepper(object):
         num_qubits: int,
         num_prefix_qubits: int = None,
         initial_state: Union[int, np.ndarray] = 0,
-        min_qubits_before_shard: int = 13):
+        min_qubits_before_shard: int = 13) -> None:
         """Construct a new Simulator.
 
         Args:

@@ -15,7 +15,7 @@
 from cirq import circuits
 from cirq import ops
 from cirq.google import ExpZGate, MergeInteractions, MergeRotations
-from cirq.study import ParameterizedValue
+from cirq.value import ParameterizedValue
 
 
 def assert_optimizes(before, after):

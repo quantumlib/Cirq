@@ -14,7 +14,7 @@
 
 """The circuit data structure for the sequenced phase."""
 
-from typing import List, Optional, Set, Dict, Callable, Any, Iterable
+from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Set
 
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -27,7 +27,7 @@ from cirq.ops import QubitId
 class Circuit(object):
     """A mutable list of groups of operations to apply to some qubits."""
 
-    def __init__(self, moments: Iterable[Moment] = ()):
+    def __init__(self, moments: Iterable[Moment] = ()) -> None:
         """Initializes a circuit.
 
         Args:
@@ -104,7 +104,7 @@ class Circuit(object):
 
     def prev_moment_operating_on(
             self,
-            qubits: List[ops.QubitId],
+            qubits: Sequence[ops.QubitId],
             end_moment_index: Optional[int] = None,
             max_distance: Optional[int] = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.

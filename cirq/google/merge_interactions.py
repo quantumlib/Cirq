@@ -31,7 +31,7 @@ class MergeInteractions(PointOptimizer):
                  insert_strategy: InsertStrategy = InsertStrategy.INLINE,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 extensions: Extensions = Extensions()):
+                 extensions: Extensions = Extensions()) -> None:
         self.insert_strategy = insert_strategy
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs

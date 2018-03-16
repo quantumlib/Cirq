@@ -21,8 +21,8 @@ from cirq.circuits.circuit import Circuit
 from cirq.circuits.circuit import Moment
 from cirq.contrib.jobs import Job
 from cirq.google import xmon_gates
-from cirq.study.parameterized_value import ParameterizedValue
 from cirq.study.sweeps import Points, Zip
+from cirq.value import ParameterizedValue
 
 
 class DepolarizerChannel(object):

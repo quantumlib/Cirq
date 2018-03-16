@@ -20,13 +20,13 @@ import numpy as np
 class Tolerance:
     """Specifies thresholds for doing approximate equality."""
 
-    ZERO = None
-    DEFAULT = None
+    ZERO = None  # type: Tolerance
+    DEFAULT = None  # type: Tolerance
 
     def __init__(self,
                  rtol: float = 1e-5,
                  atol: float = 1e-8,
-                 equal_nan: bool = False):
+                 equal_nan: bool = False) -> None:
         """Initializes a Tolerance instance with the specified parameters.
 
         Notes:

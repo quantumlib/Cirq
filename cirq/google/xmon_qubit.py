@@ -20,29 +20,29 @@ from cirq.ops import QubitId
 class XmonQubit(QubitId):
     """A qubit at a location on an xmon chip."""
 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
 
     def is_adjacent(self, other: 'XmonQubit'):
-        return abs(self.x - other.x) + abs(self.y - other.y) == 1
+        return abs(self.row - other.row) + abs(self.col - other.col) == 1
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.x == other.x and self.y == other.y
+        return self.row == other.row and self.col == other.col
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((XmonQubit, self.x, self.y))
+        return hash((XmonQubit, self.row, self.col))
 
     def __repr__(self):
-        return 'XmonQubit({}, {})'.format(self.x, self.y)
+        return 'XmonQubit({}, {})'.format(self.row, self.col)
 
     def __str__(self):
-        return '({}, {})'.format(self.x, self.y)
+        return '({}, {})'.format(self.row, self.col)
 
     @staticmethod
     def try_parse_from_ascii(text):
@@ -55,10 +55,10 @@ class XmonQubit(QubitId):
             self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
         if out is None:
             out = operations_pb2.Qubit()
-        out.x = self.x
-        out.y = self.y
+        out.row = self.row
+        out.col = self.col
         return out
 
     @staticmethod
     def from_proto(q: operations_pb2.Qubit) -> 'XmonQubit':
-        return XmonQubit(x=q.x, y=q.y)
+        return XmonQubit(row=q.row, col=q.col)

@@ -20,7 +20,7 @@ from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleGate
-from cirq.study import ParameterizedValue
+from cirq.value import ParameterizedValue
 from cirq.testing import EqualsTester
 
 
@@ -57,8 +57,8 @@ def test_measurement_to_proto():
         """
         measurement {
             target {
-                x: 2
-                y: 3
+                row: 2
+                col: 3
             }
             key: "test"
         }
@@ -88,8 +88,8 @@ def test_z_to_proto():
         """
         exp_z {
             target {
-                x: 2
-                y: 3
+                row: 2
+                col: 3
             }
             half_turns {
                 raw: 0.5
@@ -122,12 +122,12 @@ def test_cz_to_proto():
         """
         exp_11 {
             target1 {
-                x: 2
-                y: 3
+                row: 2
+                col: 3
             }
             target2 {
-                x: 4
-                y: 5
+                row: 4
+                col: 5
             }
             half_turns {
                 raw: 0.5
@@ -188,8 +188,8 @@ def test_w_to_proto():
         """
         exp_w {
             target {
-                x: 2
-                y: 3
+                row: 2
+                col: 3
             }
             axis_half_turns {
                 raw: 1

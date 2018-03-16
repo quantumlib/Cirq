@@ -35,10 +35,12 @@ import numpy as np
 
 import cirq
 from cirq.circuits import Circuit, ExpandComposite
-from cirq.google import xmon_gates, xmon_gate_ext
+from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.ops import raw_types
 from cirq.schedules import Schedule
-from cirq.sim.google.xmon_stepper import Stepper
+from cirq.google import xmon_gates
+from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
+from cirq.google.sim.xmon_stepper import Stepper
 from cirq.study import Executor
 from cirq.study.resolver import ParamResolver
 
@@ -53,7 +55,9 @@ class Options:
             of qubits or more. The default is 10.
     """
 
-    def __init__(self, num_shards: int=None, min_qubits_before_shard: int=10):
+    def __init__(self,
+                 num_shards: int=None,
+                 min_qubits_before_shard: int=10) -> None:
         """Simulator options constructor.
 
         Args:
@@ -104,8 +108,8 @@ class Simulator(Executor):
                 1), and have a dtype of np.complex64.
 
         Returns:
-            A tuple (context, result) where context is the TrailContext for
-                performing this run and result is the TrailResult containing
+            A tuple (context, result) where context is the TrialContext for
+                performing this run and result is the TrialResult containing
                 the results of this run.
         """
         if isinstance(program, Schedule):
@@ -177,6 +181,10 @@ def simulator_iterator(
 
     Yields:
         StepResults from simulating a Moment of the Circuit.
+
+    Raises:
+        TypeError: if the circuit contains gates that are not XmonGates or
+            composite gates made of XmonGates.
     """
     circuit_qubits = circuit.qubits()
     if qubits is not None:
@@ -185,9 +193,14 @@ def simulator_iterator(
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    opt = ExpandComposite()
+    expand = ExpandComposite()
+    convert = ConvertToXmonGates(ignore_failures=False)
+    drop = DropEmptyMoments()
+
     circuit_copy = Circuit(circuit.moments)
-    opt.optimize_circuit(circuit_copy)
+    expand.optimize_circuit(circuit_copy)
+    convert.optimize_circuit(circuit_copy)
+    drop.optimize_circuit(circuit_copy)
     with Stepper(
         num_qubits=len(qubits),
         num_prefix_qubits=options.num_prefix_qubits,
@@ -197,7 +210,7 @@ def simulator_iterator(
             measurements = defaultdict(list)
             phase_map = {}
             for op in moment.operations:
-                gate = xmon_gate_ext.try_cast(op.gate, xmon_gates.XmonGate)
+                gate = op.gate
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
                     phase_map[(index,)] = param_resolver.value_of(
@@ -232,13 +245,14 @@ class TrialContext(cirq.study.TrialContext):
     """The context that generated the result.
 
     Attributes:
-        param_dict: A dictionary produce by the ParamResolver mapping parameter
-            keys to actual parameter values that produced this result.
-        reptition_id: An id used to identify repetitions within runs for
+        param_dict: A dictionary produced by the ParamResolver mapping
+            parameter keys to actual parameter values that produced this
+            result.
+        repetition_id: An id used to identify repetitions within runs for
             a fixed param_dict.
     """
 
-    def __init__(self, param_dict: Dict, repetition_id: int = None):
+    def __init__(self, param_dict: Dict, repetition_id: int = None) -> None:
         self.param_dict = param_dict
         self.repetition_id = repetition_id
 
@@ -248,8 +262,23 @@ class TrialContext(cirq.study.TrialContext):
         return (self.param_dict == other.param_dict
                 and self.repetition_id == other.repetition_id)
 
-    def __neq__(self, other):
+    def __ne__(self, other):
         return not self == other
+
+    __hash__ = None
+
+    def __str__(self):
+        lines = []
+        if self.repetition_id is not None:
+            lines.append('repetition_id={}'.format(self.repetition_id))
+        for key, val in self.param_dict.items():
+            lines.append('{}={}'.format(key, val))
+        return ' '.join(lines)
+
+    def __repr__(self):
+        return 'TrialContext(param_dict={!r}, repetition_id={!r})'.format(
+            self.param_dict,
+            self.repetition_id)
 
 
 class StepResult:
@@ -268,7 +297,7 @@ class StepResult:
             self,
             stepper: Stepper,
             qubit_map: Dict,
-            measurements: DefaultDict):
+            measurements: DefaultDict) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
@@ -349,7 +378,7 @@ class TrialResult(cirq.study.TrialResult):
             the trial finishes.
     """
 
-    def __init__(self, final_step_result: StepResult):
+    def __init__(self, final_step_result: StepResult) -> None:
         self.measurements = final_step_result.measurements
         # TODO(dabacon): This should be optional, since it can be rather big.
         self.final_state = final_step_result.state()
@@ -361,5 +390,5 @@ class TrialResult(cirq.study.TrialResult):
         keyed_bitstrings = [
             (key, bitstring(val)) for key, val in self.measurements.items()
         ]
-        return '\n'.join('{}: {}'.format(repr(key), val)
-                         for key, val in sorted(keyed_bitstrings))
+        return ' '.join('{}={}'.format(key, val)
+                        for key, val in sorted(keyed_bitstrings))

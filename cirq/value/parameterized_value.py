@@ -23,7 +23,8 @@ class ParameterizedValue:
             to the constant offset.
     """
 
-    def __new__(cls, key: str = '', val: float = 0):
+    def __new__(cls, key: str = '', val: float = 0
+                ) -> Union['ParameterizedValue', float]:
         """Constructs a ParameterizedValue representing val + param(key).
 
         Args:
@@ -38,7 +39,7 @@ class ParameterizedValue:
             return val
         return super().__new__(cls)
 
-    def __init__(self, key: str = '', val: float = 0):
+    def __init__(self, key: str = '', val: float = 0) -> None:
         """Initializes a ParameterizedValue representing val + param(key).
 
         Args:

@@ -17,7 +17,7 @@ import sys
 import pytest
 
 from cirq.testing import EqualsTester
-from cirq.time import Duration
+from cirq.value import Duration
 
 
 def test_init():

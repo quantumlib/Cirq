@@ -22,10 +22,8 @@ from cirq import (
     linalg,
     ops,
     schedules,
-    sim,
     study,
     testing,
-    time,
 )
 
 # Also flatten some of the sub-modules.
@@ -45,6 +43,11 @@ from cirq.circuits import (
 from cirq.devices import (
     Device,
     UnconstrainedDevice,
+)
+
+from cirq.extension import (
+    Extensions,
+    PotentialImplementation
 )
 
 from cirq.linalg import (
@@ -125,7 +128,6 @@ from cirq.schedules import (
 from cirq.study import (
     Executor,
     ExecutorStudy,
-    ParameterizedValue,
     ParamResolver,
     StudyInterface,
     TrialContext,
@@ -134,8 +136,9 @@ from cirq.study import (
     TrialResultMeta,
 )
 
-from cirq.time import (
+from cirq.value import (
     Duration,
+    ParameterizedValue,
     Timestamp,
 )
 

@@ -17,7 +17,7 @@ import pytest
 from cirq import ops
 from cirq.google import XmonDevice, ExpZGate, ExpWGate, Exp11Gate, XmonQubit
 from cirq.schedules import Schedule, ScheduledOperation
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
 
 
 def square_device(width, height, holes=()):

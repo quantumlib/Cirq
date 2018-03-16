@@ -2,7 +2,7 @@
 
 from typing import Union
 
-from cirq.time.duration import Duration
+from cirq.value.duration import Duration
 
 
 class Timestamp:
@@ -13,7 +13,7 @@ class Timestamp:
     def __init__(self,
                  *positional_args,
                  picos: Union[int, float] = 0,
-                 nanos: Union[int, float] = 0):
+                 nanos: Union[int, float] = 0) -> None:
         """Initializes a Timestamp with a time specified in ns and/or ps.
 
         The time is relative to some unspecified "time zero". If both picos and

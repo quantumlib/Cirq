@@ -81,13 +81,13 @@ moment0 = cirq.circuits.Moment([cz01, x2])
 moment1 = cirq.circuits.Moment([cz12])
 circuit = cirq.circuits.Circuit((moment0, moment1))
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints the ascii diagram for the circuit:
-# (0, 0): ---Z-------
-#            |
-# (0, 1): ---Z---Z---
-#                |
-# (0, 2): ---X---Z---
+# (0, 0): ───Z───────
+#            │
+# (0, 1): ───Z───Z───
+#                │
+# (0, 2): ───X───Z───
 ```
 Again, note that this is only one way to construct a ``Circuit``
 but illustrates the concept that a ``Circuit`` is an iterable
@@ -108,25 +108,25 @@ q0, q1, q2 = [cirq.google.XmonQubit(i, 0) for i in range(3)]
 circuit = cirq.circuits.Circuit()
 circuit.append([CZ(q0, q1), H(q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---Z---
-#            |
-# (1, 0): ---Z---
+# (0, 0): ───Z───
+#            │
+# (1, 0): ───Z───
 # 
-# (2, 0): ---H---
+# (2, 0): ───H───
 ```
 This appended an entire new moment to the qubit, which we can continue to do,
 ```python
 circuit.append([H(q0), CZ(q1, q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---Z---H---
-#            |
-# (1, 0): ---Z---Z---
-#                |
-# (2, 0): ---H---Z---
+# (0, 0): ───Z───H───
+#            │
+# (1, 0): ───Z───Z───
+#                │
+# (2, 0): ───H───Z───
 ```
 
 In these two examples, we have appending full moments, what happens when we
@@ -135,13 +135,13 @@ append all of these at once?
 circuit = cirq.circuits.Circuit()
 circuit.append([CZ(q0, q1), H(q2), H(q0), CZ(q1, q2)])
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---Z---H---
-#            |
-# (1, 0): ---Z---Z---
-#                |
-# (2, 0): ---H---Z---
+# (0, 0): ───Z───H───
+#            │
+# (1, 0): ───Z───Z───
+#                │
+# (2, 0): ───H───Z───
 ```
 We see that here we have again created two ``Moments``. How did ``Circuit``
 know how to do this?  ``Circuit's`` ``append`` method (and its cousin
@@ -156,9 +156,9 @@ identified by the index of the ``Moment`` (in the ``Circuit``) where
 the insertion is requested to be placed at (in the case of ``append``
 this means inserting at the ``Moment`` at an index one greater than
 the maximum moment index in the ``Circuit``). There are four such
-strategies: ``EARLIST``, ``NEW``, ``INLINE`` and ``NEW_THEN_INLINE``.
+strategies: ``EARLIEST``, ``NEW``, ``INLINE`` and ``NEW_THEN_INLINE``.
 
-``EARLIST`` is define as
+``EARLIEST`` is define as
 
 > EARLIEST: Scans backward from the insert location until a moment 
 with operations touching qubits affected by the operation to insert
@@ -174,13 +174,13 @@ circuit = cirq.circuits.Circuit()
 circuit.append([CZ(q0, q1)])
 circuit.append([H(q0), H(q2)], strategy=InsertStrategy.EARLIEST)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---Z---H---
-#            |
-# (1, 0): ---Z-------
+# (0, 0): ───Z───H───
+#            │
+# (1, 0): ───Z───────
 # 
-# (2, 0): ---H-------
+# (2, 0): ───H───────
 ```
 After creating the first momemnt with a ``CZ`` gate, the second append
 usese the ``EARLIST`` strategy.  The ``H`` on ``q0`` cannot slide back, 
@@ -192,13 +192,13 @@ Contrast this with the ``NEW`` ``InsertStrategy``:
 circuit = cirq.circuits.Circuit()
 circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.NEW)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---H-----------
+# (0, 0): ───H───────────
 #
-# (1, 0): -------H-------
+# (1, 0): ───────H───────
 #
-# (2, 0): -----------H---
+# (2, 0): ───────────H───
 ```
 Here every operator processed by the append ends up in a new moment.
 ``NEW`` is most useful when you are inserting a single operation and
@@ -213,16 +213,16 @@ operation to insert, a new moment is created instead.
 
 ```python
 circuit = cirq.circuits.Circuit()
-circuit.append([CZ(q2, q3)])
+circuit.append([CZ(q1, q2)])
 circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): -------Z---H---
-#                |
-# (1, 0): ---Z---Z-------
-#            |
-# (2, 0): ---Z---H-------
+# (0, 0): ───────Z───H───
+#                │
+# (1, 0): ───Z───Z───────
+#            │
+# (2, 0): ───Z───H───────
 ```
 After an initial ``CZ`` between the second and third qubit, we try to
 insert 3 ``Operations``.  We see that the ``CZ`` on the first two 
@@ -241,13 +241,13 @@ circuit = cirq.circuits.Circuit()
 circuit.append([H(q0)])
 circuit.append([CZ(q1,q2), H(q0)], strategy=InsertStrategy.NEW_THEN_INLINE)
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints
-# (0, 0): ---H---H---
+# (0, 0): ───H───H───
 #
-# (1, 0): -------Z---
-#                |
-# (2, 0): -------Z---
+# (1, 0): ───────Z───
+#                │
+# (2, 0): ───────Z───
 ```
 The first append creates a single moment with a ``H`` on the first qubit.
 Then the append with the ``NEW_THEN_INLINE`` strategy begins by
@@ -269,29 +269,29 @@ we have supplied a list can also take more than just ``list`s.
 Example:
 ```python
 def my_layer():
-  yield CZ(q0, q1)
-  yield [H(q) for q in (q0, q1, q2)]
-  yield [CZ(q1, q2)]
-  yield [H(q0), [CZ(q1, q2)]]  
+    yield CZ(q0, q1)
+    yield [H(q) for q in (q0, q1, q2)]
+    yield [CZ(q1, q2)]
+    yield [H(q0), [CZ(q1, q2)]]
 
 circuit = cirq.circuits.Circuit()
 circuit.append(my_layer())
 
 for x in my_layer():
-    print(x.gate)
+    print(x)
 # prints
 # ZZ((0, 0), (1, 0))
 # [Operation(H, (XmonQubit(0, 0),)), Operation(H, (XmonQubit(1, 0),)), Operation(H, (XmonQubit(2, 0),))]
 # [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]
 # [Operation(H, (XmonQubit(0, 0),)), [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]]
 
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 # prints 
-# (0, 0): ---Z---H---H-------
-#            |
-# (1, 0): ---Z---H---Z---Z---
-#                    |   |
-# (2, 0): -------H---Z---Z---
+# (0, 0): ───Z───H───H───────
+#            │
+# (1, 0): ───Z───H───Z───Z───
+#                    │   │
+# (2, 0): ───────H───Z───Z───
 ```
 Recall that in Python functions that have a ``yield`` are *generators*.
 Generators are functions that act as *iterators*.  Above we see

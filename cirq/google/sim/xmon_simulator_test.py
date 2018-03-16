@@ -16,6 +16,7 @@
 
 import cmath
 import math
+from typing import Sequence
 
 import numpy as np
 import pytest
@@ -25,12 +26,17 @@ from cirq.devices import UnconstrainedDevice
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
-from cirq.ops.common_gates import CNOT, X
+from cirq.google.sim import xmon_simulator
+from cirq.ops import op_tree
+from cirq.ops import raw_types
+from cirq.ops.common_gates import CNOT, H, X, Z
+from cirq.ops.gate_features import CompositeGate, SingleQubitGate
 from cirq.schedules import moment_by_moment_schedule
-from cirq.sim.google import xmon_simulator
-from cirq.study import ExecutorStudy, ParameterizedValue
+from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
+from cirq.testing import EqualsTester
+from cirq.value import ParameterizedValue
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -63,6 +69,17 @@ def large_circuit():
         circuit.append(
             XmonMeasurementGate(key='meas')(qubits[i]))
     return circuit
+
+
+def test_trial_context_eq():
+    eq = EqualsTester()
+    eq.add_equality_group(xmon_simulator.TrialContext({}),
+                          xmon_simulator.TrialContext({}, None))
+    eq.add_equality_group(xmon_simulator.TrialContext({}, 0))
+    eq.add_equality_group(xmon_simulator.TrialContext({}, 1))
+    eq.add_equality_group(xmon_simulator.TrialContext({'a': 1}, 0))
+    eq.add_equality_group(xmon_simulator.TrialContext({'b': 1}, 0))
+    eq.add_equality_group(xmon_simulator.TrialContext({'a': 2}, 0))
 
 
 def test_xmon_options_negative_num_shards():
@@ -359,6 +376,52 @@ def test_composite_gates(scheduler):
     simulator = xmon_simulator.Simulator()
     _, result = run(simulator, circuit, scheduler)
     assert result.measurements['a'] == [True, True]
+
+
+class UnsupportedGate(SingleQubitGate):
+
+    def matrix(self) -> np.ndarray:
+        return np.ndarray([[1, 0], [0, 1j]])
+
+    def __repr__(self):
+        return "UnsupportedGate"
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_unsupported_gate(scheduler):
+    circuit = Circuit()
+    gate = UnsupportedGate()
+    circuit.append([H(Q1), gate(Q2)])
+
+    simulator = xmon_simulator.Simulator()
+    with pytest.raises(TypeError, msg="UnsupportedGate"):
+        _, _ = run(simulator, circuit, scheduler)
+
+
+class UnsupportedCompositeGate(SingleQubitGate, CompositeGate):
+
+    def matrix(self) -> np.ndarray:
+        return np.ndarray([[1, 0], [0, -1j]])
+
+    def __repr__(self):
+        return "UnsupportedCompositeGate"
+
+    def default_decompose(
+        self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
+        qubit = qubits[0]
+        yield Z(qubit)
+        yield UnsupportedGate(qubit)
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_unsupported_gate_composite(scheduler):
+    circuit = Circuit()
+    gate = UnsupportedGate()
+    circuit.append([H(Q1), gate(Q2)])
+
+    simulator = xmon_simulator.Simulator()
+    with pytest.raises(TypeError, msg="UnsupportedGate"):
+        _, _ = run(simulator, circuit, scheduler)
 
 
 def test_measurement_order():

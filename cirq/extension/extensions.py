@@ -16,12 +16,13 @@
 
 import inspect
 
-from typing import Dict, Type, Callable, TypeVar, Union, Optional
+from typing import Any  # pylint: disable=unused-import
+from typing import Callable, Dict, Optional, Type, TypeVar
 
 from cirq.extension.potential_implementation import PotentialImplementation
 
-T_ACTUAL = TypeVar('TActual')
-T_DESIRED = TypeVar('TDesired')
+T_ACTUAL = TypeVar('T_ACTUAL')
+T_DESIRED = TypeVar('T_DESIRED')
 
 
 class Extensions:
@@ -31,7 +32,8 @@ class Extensions:
             self,
             desired_to_actual_to_wrapper: Optional[Dict[
                 Type[T_DESIRED],
-                Dict[Type[T_ACTUAL], Callable[[T_ACTUAL], T_DESIRED]]]]=None):
+                Dict[Type[T_ACTUAL], Callable[[T_ACTUAL], T_DESIRED]]]]=None
+            ) -> None:
         """Specifies extensions.
 
         Args:
@@ -45,7 +47,8 @@ class Extensions:
         self._desired_to_actual_to_wrapper = (
             {}
             if desired_to_actual_to_wrapper is None
-            else desired_to_actual_to_wrapper)
+            else desired_to_actual_to_wrapper
+        )  # type: Dict[Any, Dict[Any, Callable[[Any], Any]]]
 
     def can_cast(self,
                  actual_value: T_ACTUAL,
@@ -64,7 +67,7 @@ class Extensions:
     def try_cast(self,
              actual_value: T_ACTUAL,
              desired_type: Type[T_DESIRED]
-             ) -> Union[type(None), T_DESIRED]:
+             ) -> Optional[T_DESIRED]:
         """Represents the given value as the desired type, if possible.
 
         Returns None if no wrapper method is found, and the value isn't already

@@ -39,14 +39,14 @@ class StudyInterface(metaclass=abc.ABCMeta):
     """An interface for running repeated trials over different parameters."""
 
     @abc.abstractmethod
-    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrailResult']]:
+    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrialResult']]:
         """Runs the study.
 
         Returns:
             An iterable of tuples. Each element represents a single run of the
             executor, a trial. The tuple is of the form (context, result)
             where context is a TrialContext, describing the settings for this
-            trial, and result is a TrailResult, describing the results of the
+            trial, and result is a TrialResult, describing the results of the
             trial.
         """
 
@@ -64,21 +64,21 @@ class ExecutorStudy(StudyInterface):
             program: Union[Circuit, Schedule],
             param_resolvers: Iterable[ParamResolver] = None,
             repetitions: int = 0,
-            **executor_kwags: Dict):
+            **executor_kwags: Dict) -> None:
         self.executor = executor
         self.program = program
         self.param_resolvers = param_resolvers or [ParamResolver({})]
         self.repetitions = repetitions
         self.executor_kwags = executor_kwags
 
-    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrailResult']]:
+    def run_study(self) -> Iterable[Tuple['TrialContext', 'TrialResult']]:
         """Runs the study for all parameters and repetitions.
 
         Returns:
             An iterable of tuples. Each element represents a single run of the
             executor, a trial. The tuple is of the form (context, result)
             where context is a TrialContext, describing the settings for this
-            trial, and result is a TrailResult, describing the results of the
+            trial, and result is a TrialResult, describing the results of the
             trial.
         """
         trial_results = []
@@ -114,7 +114,7 @@ class Executor(metaclass=abc.ABCMeta):
             param_resolver: Resolves parameters in the program.
 
         Returns:
-            (context, result): A tuple of TrailContext and TrialResult objects
+            (context, result): A tuple of TrialContext and TrialResult objects
                 describing the context that generated the result, and the
                 result, respectively.
         """
@@ -140,7 +140,7 @@ class TrialContext(metaclass=TrialContextMeta):
     """The context of for a single execution (trial).
 
     Attributes:
-        param_dict: A dictionary produce by a ParamResolver mapping parameter
+        param_dict: A dictionary produced by a ParamResolver mapping parameter
             keys to actual parameter values that produced this result.
         repetition_id: An integer labeling the repetition (repetition for a
             fixed param_dict).
