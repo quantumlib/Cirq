@@ -149,3 +149,117 @@ def test_try_cast_potential_implementation():
 
     assert e.try_cast(o, OtherType) is None
     assert e.try_cast(u, OtherType) is None
+
+
+def test_add_cast():
+    e = extension.Extensions()
+    d = DesiredType()
+
+    assert e.try_cast(UnrelatedType(), DesiredType) is None
+    e.add_cast(desired_type=DesiredType,
+               actual_type=UnrelatedType,
+               conversion=lambda _: d)
+    assert e.try_cast(UnrelatedType(), DesiredType) is d
+
+
+class Grandparent:
+    pass
+
+
+class Parent(Grandparent):
+    pass
+
+
+class Aunt(Grandparent):
+    pass
+
+
+class Child(Parent):
+    pass
+
+
+class Cousin(Aunt):
+    pass
+
+
+def test_add_cast_include_subtypes():
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: 'boo',
+               also_add_inherited_conversions=True)
+    e2 = extension.Extensions()
+    e2.add_cast(desired_type=Cousin,
+                actual_type=Child,
+                conversion=lambda _: 'boo',
+                also_add_inherited_conversions=False)
+
+    c = Child()
+    assert e.try_cast(c, Child) is c
+    assert e.try_cast(c, Parent) is c
+    assert e.try_cast(c, Grandparent) is c
+    assert e.try_cast(c, object) is c
+    assert e.try_cast(c, Aunt) == 'boo'
+    assert e.try_cast(c, Cousin) == 'boo'
+
+    assert e2.try_cast(c, Child) is c
+    assert e2.try_cast(c, Parent) is c
+    assert e2.try_cast(c, Grandparent) is c
+    assert e2.try_cast(c, object) is c
+    assert e2.try_cast(c, Aunt) is None
+    assert e2.try_cast(c, Cousin) == 'boo'
+
+
+def test_add_cast_redundant():
+    o1 = Cousin()
+    o2 = Cousin()
+    o3 = Cousin()
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: o1,
+               also_add_inherited_conversions=False,
+               overwrite_existing=False)
+    with pytest.raises(ValueError):
+        e.add_cast(desired_type=Cousin,
+                   actual_type=Child,
+                   conversion=lambda _: o2,
+                   also_add_inherited_conversions=False,
+                   overwrite_existing=False)
+    assert e.try_cast(Child(), Cousin) is o1
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: o3,
+               also_add_inherited_conversions=False,
+               overwrite_existing=True)
+    assert e.try_cast(Child(), Cousin) is o3
+
+
+def test_add_cast_redundant_including_subtypes():
+    o1 = Cousin()
+    o2 = Cousin()
+    o3 = Cousin()
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Aunt,
+               actual_type=Child,
+               conversion=lambda _: o1,
+               also_add_inherited_conversions=True,
+               overwrite_existing=False)
+    with pytest.raises(ValueError):
+        e.add_cast(desired_type=Cousin,
+                   actual_type=Child,
+                   conversion=lambda _: o2,
+                   also_add_inherited_conversions=True,
+                   overwrite_existing=False)
+    assert e.try_cast(Child(), Aunt) is o1
+    assert e.try_cast(Child(), Cousin) is None
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: o3,
+               also_add_inherited_conversions=True,
+               overwrite_existing=True)
+    assert e.try_cast(Child(), Aunt) is o3
+    assert e.try_cast(Child(), Cousin) is o3
