@@ -33,7 +33,7 @@ def test_can_run_docs_code_snippets():
 def assert_file_has_working_code_snippets(path: str, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
-    with open(path, 'r') as f:
+    with open(path, encoding='utf-8') as f:
         content = f.read()
 
     # Find snippets of code, and execute them. They should finish.
