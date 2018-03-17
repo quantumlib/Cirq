@@ -269,12 +269,13 @@ print("abc")
 # abc
         """, {})
 
-    with pytest.raises(AssertionError):
-        assert_code_snippet_executes_correctly("""
+    if sys.version_info[0] >= 3:  # Our print capture only works in python 3.
+        with pytest.raises(AssertionError):
+            assert_code_snippet_executes_correctly("""
 print("abc")
 # prints
 # def
-            """, {})
+                """, {})
 
     assert_code_snippet_executes_correctly("""
 # raises ZeroDivisionError
@@ -291,7 +292,7 @@ a = 1 / 0
 print("123")
 
 # raises SyntaxError
-print "123")
+print "abc")
         """, {})
 
     with pytest.raises(AssertionError):
