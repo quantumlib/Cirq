@@ -21,8 +21,6 @@ from cirq.study.study import (
     Executor,
     ExecutorStudy,
     StudyInterface,
-    TrialContext,
-    TrialContextMeta,
     TrialResult,
     TrialResultMeta,
 )
