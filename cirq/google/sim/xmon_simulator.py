@@ -29,7 +29,7 @@ import functools
 import math
 
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterator, Sequence, Tuple, Union
+from typing import DefaultDict, Dict, Iterator, List, Sequence, Union
 
 import numpy as np
 
@@ -87,10 +87,11 @@ class Simulator(Executor):
             self,
             program: Union[Circuit, Schedule],
             param_resolver: ParamResolver = None,
+            repetitions: int = 1,
             options: Options = None,
             qubits: Sequence[raw_types.QubitId] = None,
             initial_state: Union[int, np.ndarray] = 0,
-    ) -> Tuple['TrialContext', 'TrialResult']:
+    ) -> 'TrialResult':
         """Simulates the entire supplied Circuit.
 
         Args:
@@ -108,21 +109,30 @@ class Simulator(Executor):
                 1), and have a dtype of np.complex64.
 
         Returns:
-            A tuple (context, result) where context is the TrialContext for
-                performing this run and result is the TrialResult containing
-                the results of this run.
+            Results for this run.
         """
         if isinstance(program, Schedule):
             program = program.to_circuit()
         param_resolver = param_resolver or ParamResolver({})
-        all_step_results = self.moment_steps(program, options or Options(),
-                                             qubits,
-                                             initial_state, param_resolver)
-        context = TrialContext(param_resolver.param_dict)
-        final_step_result = functools.reduce(
-            StepResult.merge_measurements_with,
-            all_step_results)
-        return context, TrialResult(final_step_result)
+        measurements = {}  # type: Dict[str, List[np.ndarray]]
+        final_states = {}  # type: Dict[str, np.ndarray]
+        for i in range(repetitions):
+            all_step_results = self.moment_steps(program, options or Options(),
+                                                 qubits,
+                                                 initial_state, param_resolver)
+            final_step_result = functools.reduce(
+                StepResult.merge,
+                all_step_results)
+            for k, v in final_step_result.measurements.items():
+                if k not in measurements:
+                    measurements[k] = []
+                measurements[k].append(np.array(v, dtype=bool))
+            final_states[i] = final_step_result.state()
+        return TrialResult(
+            param_resolver,
+            repetitions,
+            measurements={k: np.array(v) for k, v in measurements.items()},
+            final_states=final_states)
 
     def moment_steps(
             self,
@@ -241,46 +251,6 @@ def simulator_iterator(
             yield StepResult(stepper, qubit_map, measurements)
 
 
-class TrialContext(cirq.study.TrialContext):
-    """The context that generated the result.
-
-    Attributes:
-        param_dict: A dictionary produced by the ParamResolver mapping
-            parameter keys to actual parameter values that produced this
-            result.
-        repetition_id: An id used to identify repetitions within runs for
-            a fixed param_dict.
-    """
-
-    def __init__(self, param_dict: Dict, repetition_id: int = None) -> None:
-        self.param_dict = param_dict
-        self.repetition_id = repetition_id
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return (self.param_dict == other.param_dict
-                and self.repetition_id == other.repetition_id)
-
-    def __ne__(self, other):
-        return not self == other
-
-    __hash__ = None
-
-    def __str__(self):
-        lines = []
-        if self.repetition_id is not None:
-            lines.append('repetition_id={}'.format(self.repetition_id))
-        for key, val in self.param_dict.items():
-            lines.append('{}={}'.format(key, val))
-        return ' '.join(lines)
-
-    def __repr__(self):
-        return 'TrialContext(param_dict={!r}, repetition_id={!r})'.format(
-            self.param_dict,
-            self.repetition_id)
-
-
 class StepResult:
     """Results of a step of the simulator.
 
@@ -344,8 +314,8 @@ class StepResult:
         """
         self._stepper.reset_state(state)
 
-    def merge_measurements_with(self,
-                                last_result: 'StepResult') -> 'StepResult':
+    @staticmethod
+    def merge(a: 'StepResult', b: 'StepResult') -> 'StepResult':
         """Merges measurement results of last_result into a new Result.
 
         The measurement results are merges such that measurements with duplicate
@@ -353,18 +323,19 @@ class StepResult:
         results.
 
         Args:
-            last_result: A Result whose measurement results will be the
-                base into which the current Result's measurement results
-                are merged.
+            a: First result to merge.
+            b: Second result to merge.
 
         Returns:
-            A new Result, but with merged measurements.
+            A new StepResult with merged measurements.
         """
-        new_measurements = defaultdict(list)
-        for d in [self.measurements, last_result.measurements]:
-            for key, result_list in d.items():
-                new_measurements[key].extend(result_list)
-        return StepResult(self._stepper, self.qubit_map, new_measurements)
+        new_measurements = {}  # type: Dict[str, np.ndarray]
+        for d in [a.measurements, b.measurements]:
+            for key, results in d.items():
+                if key not in new_measurements:
+                    new_measurements[key] = []
+                new_measurements[key].extend(results)
+        return StepResult(a._stepper, a.qubit_map, new_measurements)
 
 
 class TrialResult(cirq.study.TrialResult):
@@ -378,10 +349,15 @@ class TrialResult(cirq.study.TrialResult):
             the trial finishes.
     """
 
-    def __init__(self, final_step_result: StepResult) -> None:
-        self.measurements = final_step_result.measurements
-        # TODO(dabacon): This should be optional, since it can be rather big.
-        self.final_state = final_step_result.state()
+    def __init__(self,
+                 params: ParamResolver,
+                 repetitions: int,
+                 measurements: Dict[str, np.ndarray],
+                 final_states: List[np.ndarray] = None) -> None:
+        self.params = params
+        self.repetitions = repetitions
+        self.measurements = measurements
+        self.final_states = final_states
 
     def __str__(self):
         def bitstring(vals):

@@ -16,7 +16,7 @@
 
 import itertools
 
-import collections
+import numpy as np
 import pytest
 
 from cirq import study
@@ -42,12 +42,12 @@ def test_study_repetitions():
 
     study = ExecutorStudy(executor=sim, program=circuit, repetitions=10)
     all_trials = study.run_study()
-    assert len(all_trials) == 10
-    for context, result in all_trials:
-        assert context.param_dict == {}
-        assert result.measurements == {'q1': [True], 'q2': [True]}
-    # All repetition ids are used.
-    assert set(range(10)) == {c.repetition_id for c,_ in all_trials}
+    assert len(all_trials) == 1
+    for result in all_trials:
+        assert result.params.param_dict == {}
+        assert result.repetitions == 10
+        np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
+        np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
 
 
 def test_study_parameters():
@@ -62,15 +62,15 @@ def test_study_parameters():
                           repetitions=1)
     all_trials = study.run_study()
     assert len(all_trials) == 4
-    for context, result in all_trials:
-        expected = {'q1': [context.param_dict['a'] == 1],
-                    'q2': [context.param_dict['b'] == 1]}
-        assert expected == result.measurements
+    for result in all_trials:
+        assert result.repetitions == 1
+        expect_a = result.params['a'] == 1
+        expect_b = result.params['b'] == 1
+        np.testing.assert_equal(result.measurements['q1'], [[expect_a]])
+        np.testing.assert_equal(result.measurements['q2'], [[expect_b]])
     # All parameters explored.
     assert (set(itertools.product([0, 1], [0, 1]))
-            == {(c.param_dict['a'], c.param_dict['b']) for c, _ in all_trials})
-    # And they always have a single repetition.
-    assert 4 * [0] == [c.repetition_id for c,_ in all_trials]
+            == {(r.params['a'], r.params['b']) for r in all_trials})
 
 
 def test_study_param_and_reps():
@@ -84,17 +84,17 @@ def test_study_param_and_reps():
                           param_resolvers=resolvers,
                           repetitions=3)
     all_trials = study.run_study()
-    assert len(all_trials) == 3 * 4
-    for context, result in all_trials:
-        expected = {'q1': [context.param_dict['a'] == 1],
-                    'q2': [context.param_dict['b'] == 1]}
-        assert expected == result.measurements
+    assert len(all_trials) == 4
+    for result in all_trials:
+        assert result.repetitions == 3
+        expect_a = result.params['a'] == 1
+        expect_b = result.params['b'] == 1
+        np.testing.assert_equal(result.measurements['q1'], [[expect_a]] * 3)
+        np.testing.assert_equal(result.measurements['q2'], [[expect_b]] * 3)
     # All parameters explored.
-    comb = list(itertools.product([0, 1], [0, 1]))
-    # And we see the results exactly as many times as expected.
-    expected = collections.Counter(comb * 3)
-    assert expected == collections.Counter(
-        (c.param_dict['a'], c.param_dict['b']) for c, _ in all_trials)
+    # All parameters explored.
+    assert (set(itertools.product([0, 1], [0, 1]))
+            == {(r.params['a'], r.params['b']) for r in all_trials})
 
 
 
@@ -106,9 +106,9 @@ def test_study_executor_kwargs():
                           initial_state=3)
     all_trials = study.run_study()
     assert len(all_trials ) == 1
-    _, result = all_trials[0]
-    assert result.measurements == {'q1': [False], 'q2': [False]}
-
+    result = all_trials[0]
+    np.testing.assert_equal(result.measurements['q1'], [[False]])
+    np.testing.assert_equal(result.measurements['q2'], [[False]])
 
 
 class BadResult(study.TrialResult):
@@ -118,21 +118,3 @@ class BadResult(study.TrialResult):
 def test_bad_result():
     with pytest.raises(NotImplementedError):
         BadResult()
-
-
-class BadContext(study.TrialContext):
-    param_dict = {}
-
-
-def test_context_missing_repetitions():
-    with pytest.raises(NotImplementedError):
-        BadContext()
-
-
-class EvenWorseContext(study.TrialContext):
-    pass
-
-
-def test_context_missing_all_attributes():
-    with pytest.raises(NotImplementedError):
-        EvenWorseContext()
