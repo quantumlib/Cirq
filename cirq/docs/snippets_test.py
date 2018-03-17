@@ -1,3 +1,4 @@
+import inspect
 import sys
 from typing import List, Dict
 
@@ -57,7 +58,27 @@ def assert_code_snippets_run_in_sequence(snippets: List[str],
         exec('import cirq', state)
 
     for snippet in snippets:
-        assert_code_snippet_runs_and_prints_expected(snippet, state)
+        assert_code_snippet_executes_correctly(snippet, state)
+
+
+def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
+    """Executes a snippet and compares output / errors to annotations."""
+
+    raises_annotation = re.search("# raises\s*(\S*)", snippet)
+    if raises_annotation is None:
+        before = snippet
+        after = None
+        expected_failure = None
+    else:
+        before = snippet[:raises_annotation.start()]
+        after = snippet[raises_annotation.start():]
+        expected_failure = raises_annotation.group(1)
+        if not expected_failure:
+            raise AssertionError('No error type specified for # raises line.')
+
+    assert_code_snippet_runs_and_prints_expected(before, state)
+    if expected_failure is not None:
+        assert_code_snippet_fails(after, state, expected_failure)
 
 
 def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
@@ -79,6 +100,23 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
     except:
         print('SNIPPET: \n' + _indent([snippet]))
         raise
+
+
+def assert_code_snippet_fails(snippet: str,
+                              state: Dict,
+                              expected_failure_type: str):
+    try:
+        exec(snippet, state)
+    except Exception as ex:
+        actual_failure_types = [e.__name__ for e in inspect.getmro(type(ex))]
+        if expected_failure_type not in actual_failure_types:
+            raise AssertionError(
+                'Expected snippet to raise a {}, but it raised a {}.'.format(
+                    expected_failure_type,
+                    ' -> '.join(actual_failure_types)))
+        return
+
+    raise AssertionError('Expected snippet to fail, but it ran to completion.')
 
 
 def assert_expected_lines_present_in_order(expected_lines: List[str],
@@ -209,3 +247,61 @@ def test_assert_expected_lines_present_in_order():
     assert_expected_lines_present_in_order(
         expected_lines=['abc'],
         actual_lines=['abc      '])
+
+
+def test_assert_code_snippet_executes_correctly():
+    assert_code_snippet_executes_correctly("a = 1", {})
+    assert_code_snippet_executes_correctly("a = b", {'b': 1})
+
+    s = {}
+    assert_code_snippet_executes_correctly("a = 1", s)
+    assert s['a'] == 1
+
+    with pytest.raises(NameError):
+        assert_code_snippet_executes_correctly("a = b", {})
+
+    with pytest.raises(SyntaxError):
+        assert_code_snippet_executes_correctly("a = ;", {})
+
+    assert_code_snippet_executes_correctly("""
+print("abc")
+# prints
+# abc
+        """, {})
+
+    with pytest.raises(AssertionError):
+        assert_code_snippet_executes_correctly("""
+print("abc")
+# prints
+# def
+            """, {})
+
+    assert_code_snippet_executes_correctly("""
+# raises ZeroDivisionError
+a = 1 / 0
+    """, {})
+
+    assert_code_snippet_executes_correctly("""
+# raises ArithmeticError
+a = 1 / 0
+        """, {})
+
+    assert_code_snippet_executes_correctly("""
+# prints 123
+print("123")
+
+# raises SyntaxError
+print "123")
+        """, {})
+
+    with pytest.raises(AssertionError):
+        assert_code_snippet_executes_correctly("""
+# raises ValueError
+a = 1 / 0
+            """, {})
+
+    with pytest.raises(AssertionError):
+        assert_code_snippet_executes_correctly("""
+# raises
+a = 1
+            """, {})
