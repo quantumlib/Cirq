@@ -31,12 +31,19 @@ class Schedule:
 
     Supports schedule[time] point lookups and
         schedule[inclusive_start_time:exclusive_end_time] slice lookups.
+
+
+    Attributes:
+        device: The hardware this will schedule on.
+        scheduled_operations: A SortedListWithKey containing the
+            ScheduledOperations for this schedule. The key is the start time
+            of the ScheduledOperation.
     """
 
     def __init__(self,
-                 device: Device,
-                 scheduled_operations: Iterable[ScheduledOperation] = ()
-                 ) -> None:
+            device: Device,
+            scheduled_operations: Iterable[ScheduledOperation] = ()
+            ) -> None:
         """Initializes a new schedule.
 
         Args:
@@ -62,12 +69,12 @@ class Schedule:
     __hash__ = None
 
     def query(self,
-              *positional_args,
-              time: Timestamp,
-              duration: Duration = Duration(),
-              qubits: Iterable[QubitId] = None,
-              include_query_end_time=False,
-              include_op_end_times=False) -> List[ScheduledOperation]:
+        *positional_args,
+        time: Timestamp,
+        duration: Duration = Duration(),
+        qubits: Iterable[QubitId] = None,
+        include_query_end_time=False,
+        include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:
@@ -124,7 +131,7 @@ class Schedule:
         return self.query(time=item, include_query_end_time=True)
 
     def operations_happening_at_same_time_as(
-            self, scheduled_operation: ScheduledOperation
+        self, scheduled_operation: ScheduledOperation
     ) -> List[ScheduledOperation]:
         """Finds operations happening at the same time as the given operation.
 
