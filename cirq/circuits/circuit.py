@@ -151,7 +151,8 @@ class Circuit(object):
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
-    def operation_at(self, qubit: ops.QubitId,
+    def operation_at(self,
+                     qubit: ops.QubitId,
                      moment_index: int) -> Optional[ops.Operation]:
         """Finds the operation on a qubit within a moment, if any.
 
@@ -264,6 +265,48 @@ class Circuit(object):
             if strategy is InsertStrategy.NEW_THEN_INLINE:
                 strategy = InsertStrategy.INLINE
         return k
+
+    def insert_inline_into_range(self,
+                                 operations: ops.OP_TREE,
+                                 inline_start: int,
+                                 inline_end: int) -> int:
+        """Writes operations inline into an area of the circuit.
+
+        Args:
+            inline_start: The start of the range (inclusive) to write the
+                given operations into.
+            inline_end: The end of the range (exclusive) to write the given
+                operations into. If there are still operations remaining,
+                new moments are created to fit them.
+            operations: An operation or tree of operations to insert.
+
+        Returns:
+            An insertion index that will place operations after the operations
+            that were inserted by this method.
+
+        Raises:
+            IndexError: Bad inline_start and/or inline_end.
+        """
+        if not 0 <= inline_start < inline_end <= len(self.moments):
+            raise IndexError('Bad insert indices: [{}, {})'.format(
+                inline_start, inline_end))
+
+        operations = list(ops.flatten_op_tree(operations))
+        i = inline_start
+        op_index = 0
+        while op_index < len(operations):
+            op = operations[op_index]
+            while i < inline_end and self.moments[i].operates_on(op.qubits):
+                i += 1
+            if i >= inline_end:
+                break
+            self.moments[i] = self.moments[i].with_operation(op)
+            op_index += 1
+
+        if op_index >= len(operations):
+            return inline_end
+
+        return self.insert(inline_end, operations[op_index:])
 
     def append(
             self,

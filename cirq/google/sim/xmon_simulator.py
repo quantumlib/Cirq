@@ -204,7 +204,7 @@ def simulator_iterator(
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     expand = ExpandComposite()
-    convert = ConvertToXmonGates(ignore_failures=False)
+    convert = ConvertToXmonGates(ignore_cast_failures=False)
     drop = DropEmptyMoments()
 
     circuit_copy = Circuit(circuit.moments)
@@ -219,7 +219,7 @@ def simulator_iterator(
         for moment in circuit_copy.moments:
             measurements = defaultdict(list)
             phase_map = {}
-            for op in moment.operations:
+            for op in moment.ordered_operations():
                 gate = op.gate
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
