@@ -35,7 +35,10 @@ class ParamResolver(object):
         self.param_dict = param_dict
         self._param_hash = hash(frozenset(param_dict.items()))
 
-    def value_of(self, parameterized_value: Union[ParameterizedValue, float]):
+    def value_of(
+            self,
+            parameterized_value: Union[ParameterizedValue, float, str]
+    ) -> float:
         """Resolves a ParameterizedValue to its assigned value.
 
         Args:
@@ -48,11 +51,16 @@ class ParamResolver(object):
             If the parameterized_value is a is a key plus a float, then this
             will return the assigned value for the key plus the float (offset).
         """
+        if isinstance(parameterized_value, str):
+            return self.param_dict[parameterized_value]
         if isinstance(parameterized_value, ParameterizedValue):
             return (
                 self.param_dict[ParameterizedValue.key_of(parameterized_value)]
                 + ParameterizedValue.val_of(parameterized_value))
         return parameterized_value
+
+    def __getitem__(self, key):
+        return self.value_of(key)
 
     def __hash__(self):
         return self._param_hash
