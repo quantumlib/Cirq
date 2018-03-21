@@ -1,8 +1,3 @@
-"""TODO(ashalynd): DO NOT SUBMIT without one-line documentation for bernstein-vasirani.
-
-TODO(ashalynd): DO NOT SUBMIT without a detailed description of bernstein-vasirani.
-"""
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
