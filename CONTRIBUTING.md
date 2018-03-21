@@ -29,10 +29,14 @@ compiler and the virtual environment:
 ```bash
 sudo apt-get install protobuf-compiler virtualenv
 ```
+Next step is setting Cirq home directory:
+```bash
+CIRQ_HOME=<path-to-your-github-clone>
+```
 Then you can run the following, which assumes you are in the directory
 where your changes are made:
 ```bash
-./continuous_integration/test-pull-request.sh
+${CIRQ_HOME}/continuous_integration/test-pull-request.sh
 ```
 Reviewers will run these tests before your code is submitted to ensure
 that the tests are not broken.  This ad hoc system is in place until
