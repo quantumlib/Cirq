@@ -29,10 +29,16 @@ compiler and the virtual environment:
 ```bash
 sudo apt-get install protobuf-compiler virtualenv
 ```
+Next step is setting Cirq home directory. Assuming that you are in the
+root directory of Cirq:
+```bash
+CIRQ_HOME="`pwd`"
+```
 Then you can run the following, which assumes you are in the directory
 where your changes are made:
 ```bash
-./continuous_integration/test-pull-request.sh
+${CIRQ_HOME}/continuous-integration/pylint-pull-request.sh
+${CIRQ_HOME}/continuous-integration/test-pull-request.sh
 ```
 Reviewers will run these tests before your code is submitted to ensure
 that the tests are not broken.  This ad hoc system is in place until
