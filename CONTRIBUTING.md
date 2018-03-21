@@ -37,8 +37,8 @@ CIRQ_HOME="`pwd`"
 Then you can run the following, which assumes you are in the directory
 where your changes are made:
 ```bash
-${CIRQ_HOME}/continuous_integration/pylint-pull-request.sh
-${CIRQ_HOME}/continuous_integration/test-pull-request.sh
+${CIRQ_HOME}/continuous-integration/pylint-pull-request.sh
+${CIRQ_HOME}/continuous-integration/test-pull-request.sh
 ```
 Reviewers will run these tests before your code is submitted to ensure
 that the tests are not broken.  This ad hoc system is in place until
