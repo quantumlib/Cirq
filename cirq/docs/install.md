@@ -88,6 +88,15 @@ to run the following with no errors
 at any time. To re-enter this environment follow the instructions in 
 step 4.   
 
+**Matplotlib note**
+
+If you get an ```ImportError: No module named 'tkinter'``` on ```import matplotlib.pyplot```,
+install python3-tk via ```apt``` instead of ```pip3```:
+
+```bash
+$ sudo apt-get install python3-tk
+```
+
 ### Install on Windows
 
 TODO
