@@ -2,7 +2,7 @@ import pytest
 
 from cirq.study.sweeps import Linspace, Points, Unit
 from cirq.testing import EqualsTester
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 def test_product_duplicate_keys():
@@ -54,7 +54,7 @@ def test_product():
 
 
 def _values(sweep, key):
-    p = ParameterizedValue(key)
+    p = Symbol(key)
     return [resolver.value_of(p) for resolver in sweep]
 
 
