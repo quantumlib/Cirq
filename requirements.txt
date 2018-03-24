@@ -4,5 +4,7 @@ mypy
 numpy
 pylint
 pytest
+pytest-cov
 protobuf
+requests
 sortedcontainers
