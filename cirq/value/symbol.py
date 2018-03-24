@@ -17,7 +17,6 @@ class Symbol:
     """A constant plus the runtime value of a parameter with a given key.
 
     Attributes:
-        val: The constant offset.
         name: The non-empty name of a parameter to lookup at runtime and add
             to the constant offset.
     """
