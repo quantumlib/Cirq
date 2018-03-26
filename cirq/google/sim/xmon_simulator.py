@@ -34,7 +34,6 @@ from typing import Dict, Iterator, List, Sequence, Union
 
 import numpy as np
 
-import cirq
 from cirq.circuits import Circuit, ExpandComposite
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.ops import raw_types
