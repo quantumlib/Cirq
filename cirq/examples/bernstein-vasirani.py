@@ -54,12 +54,7 @@ def bv(n_qubits,
   H_layer = [(cirq.ops.H).on(qubit) for qubit in qubits]
   circuit.append(H_layer)
   # 4. Apply the inner-product oracle
-  O_layer = []
-  for i in range(n_qubits):
-    if a & (1 << i):
-      O_layer.append((cirq.ops.Z).on(qubits[i]))
-    else:
-      pass # identity
+  O_layer = [cirq.Z(qubits[i]) for i in range(n_qubits) if a & (1 << i)]
   circuit.append(O_layer)
   # 5. Apply Hadamard gates to the outputs
   circuit.append(H_layer)
@@ -68,16 +63,17 @@ def bv(n_qubits,
                   for i, qubit in enumerate(qubits)])
 
   # 7. Debug step
-  print(circuit.to_text_diagram())
+  print(circuit)
   # 8. Run and collect results
-  simulator = cirq.google.sim.xmon_simulator.Simulator()
+  simulator = cirq.google.Simulator()
   results = collections.Counter()
   for k in range(NUM_SHOTS):
-        next_result = ""
         result = simulator.run(circuit)
-        print('%sth run, results: %s' % (k, sorted(list(result.measurements.items()))))
-        for i in range(n_qubits):
-          next_result +='1' if result.measurements['result %s' % str(i)][0] else '0'
+        print('%sth run, results: %s' % (
+            k, sorted(list(result.measurements.items()))))
+        next_result = ''.join([str(int(
+            result.measurements['result %s' % i][0]))
+                               for i in range(n_qubits)])
         results[next_result]+=1
   return results
 
