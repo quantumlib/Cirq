@@ -332,8 +332,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
         [1j, 0, 0, 1],
     ]) * np.sqrt(0.5)),
 
-    (1.5, 3, linalg.map_eigenvalues(ops.SWAP.matrix(),
-                                    lambda e: complex(e)**0.5)),
+    (1.5, 3, linalg.map_eigenvalues(ops.SWAP.matrix(), lambda e: e**0.5)),
 
     (2, 2, ops.SWAP.matrix().dot(ops.CZ.matrix())),
 

@@ -29,7 +29,8 @@ import functools
 import math
 
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterator, List, Sequence, Union
+from typing import Tuple  # pylint: disable=unused-import
+from typing import Dict, Iterator, List, Sequence, Union
 
 import numpy as np
 
@@ -41,7 +42,7 @@ from cirq.schedules import Schedule
 from cirq.google import xmon_gates
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
-from cirq.study import Executor
+from cirq.study import Executor, TrialResult as TrialResultBase
 from cirq.study.resolver import ParamResolver
 
 
@@ -115,8 +116,8 @@ class Simulator(Executor):
             program = program.to_circuit()
         param_resolver = param_resolver or ParamResolver({})
         measurements = {}  # type: Dict[str, List[np.ndarray]]
-        final_states = {}  # type: Dict[str, np.ndarray]
-        for i in range(repetitions):
+        final_states = []  # type: List[np.ndarray]
+        for _ in range(repetitions):
             all_step_results = self.moment_steps(program, options or Options(),
                                                  qubits,
                                                  initial_state, param_resolver)
@@ -127,7 +128,7 @@ class Simulator(Executor):
                 if k not in measurements:
                     measurements[k] = []
                 measurements[k].append(np.array(v, dtype=bool))
-            final_states[i] = final_step_result.state()
+            final_states.append(final_step_result.state())
         return TrialResult(
             param_resolver,
             repetitions,
@@ -217,8 +218,8 @@ def simulator_iterator(
         initial_state=initial_state,
         min_qubits_before_shard=options.min_qubits_before_shard) as stepper:
         for moment in circuit_copy.moments:
-            measurements = defaultdict(list)
-            phase_map = {}
+            measurements = {}  # type: Dict[str, List[bool]]
+            phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
                 gate = op.gate
                 if isinstance(gate, xmon_gates.ExpZGate):
@@ -242,6 +243,8 @@ def simulator_iterator(
                     result = stepper.simulate_measurement(index)
                     if gate.invert_result:
                         result = not result
+                    if gate.key not in measurements:
+                        measurements[gate.key] = []
                     measurements[gate.key].append(result)
                 else:
                     raise TypeError(
@@ -267,7 +270,7 @@ class StepResult:
             self,
             stepper: Stepper,
             qubit_map: Dict,
-            measurements: DefaultDict) -> None:
+            measurements: Dict[str, List[bool]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
@@ -338,7 +341,7 @@ class StepResult:
         return StepResult(a._stepper, a.qubit_map, new_measurements)
 
 
-class TrialResult(cirq.study.TrialResult):
+class TrialResult(TrialResultBase):
     """Results of a single run of an executor.
 
     Attributes:

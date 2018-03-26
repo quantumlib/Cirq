@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+from typing import cast
 
 from cirq import ops
 from cirq.circuits import Circuit
@@ -79,7 +80,7 @@ class _TestDevice(Device):
 
         if len(operation.qubits) == 2:
             p, q = operation.qubits
-            if not p.is_adjacent(q):
+            if not cast(LineQubit, p).is_adjacent(q):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -100,7 +101,8 @@ class _TestDevice(Device):
         if isinstance(other_op.gate, ops.HGate):
             return False
         return any(
-            q.is_adjacent(p) for q in cz_op.qubits for p in other_op.qubits)
+            cast(LineQubit, q).is_adjacent(p)
+            for q in cz_op.qubits for p in other_op.qubits)
 
     def validate_circuit(self, circuit):
         for moment in circuit.moments:

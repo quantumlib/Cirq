@@ -104,7 +104,7 @@ class Stepper(object):
         self._pool_open = False
 
     def _init_shared_mem(self, initial_state: int):
-        self._shared_mem_dict = {}
+        self._shared_mem_dict = {}  # type: Dict[str, int]
         self.init_z_vects()
         self._init_scratch()
         self._init_state(initial_state)

@@ -1,11 +1,16 @@
 import inspect
 import sys
-from typing import List, Dict
+from typing import Dict, List, TYPE_CHECKING
 
 import os
 import re
 
 import pytest
+
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Any
 
 
 def test_can_run_readme_code_snippets():
@@ -52,7 +57,7 @@ def assert_code_snippets_run_in_sequence(snippets: List[str],
     snippet will be visible in later snippets.
     """
 
-    state = {}
+    state = {}  # type: Dict[str, Any]
 
     if assume_import:
         exec('import cirq', state)
@@ -83,7 +88,7 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
 
 def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
     """Executes a snippet and compares captured output to annotated output."""
-    output_lines = []
+    output_lines = []  # type: List[str]
     expected_outputs = find_expected_outputs(snippet)
 
     def print_capture(*values, sep=' '):

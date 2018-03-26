@@ -163,6 +163,7 @@ class Exp11Gate(XmonGate,
 
 
 class ExpWGate(XmonGate,
+               ops.SingleQubitGate,
                ops.AsciiDiagrammableGate,
                ops.PhaseableGate,
                ops.BoundedEffectGate,
@@ -277,6 +278,7 @@ class ExpWGate(XmonGate,
 
 
 class ExpZGate(XmonGate,
+               ops.SingleQubitGate,
                ops.AsciiDiagrammableGate,
                ops.PhaseableGate,
                PotentialImplementation):
