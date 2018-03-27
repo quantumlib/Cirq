@@ -14,7 +14,7 @@
 
 import pytest
 
-from cirq import ops, ParameterizedValue
+from cirq import ops, Symbol
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
@@ -615,17 +615,13 @@ def test_to_text_diagram_parameterized_value():
     c = Circuit.from_ops(
         PGate(1).on(q),
         PGate(2).on(q),
-        PGate(ParameterizedValue('a')).on(q),
-        PGate(ParameterizedValue('a', 1)).on(q),
-        PGate(ParameterizedValue('%$&#*(')).on(q),
-        PGate(ParameterizedValue('%$&#*(', 1)).on(q),
+        PGate(Symbol('a')).on(q),
+        PGate(Symbol('%$&#*(')).on(q),
     )
     assert str(c).strip() in [
-        "cube: ───P───P^2───P^a───P^(1+a)───P^param('%$&#*(')───P^(1+param('%$"
-        "&#*('))───",
+        "cube: ───P───P^2───P^a───P^Symbol('%$&#*(')───",
 
-        "cube: ───P───P^2───P^a───P^(1+a)───P^param(u'%$&#*(')───P^(1+param(u'"
-        "%$&#*('))───",
+        "cube: ───P───P^2───P^a───P^Symbol(u'%$&#*(')───",
     ]
 
 
