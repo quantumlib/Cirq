@@ -15,7 +15,7 @@
 from cirq import circuits
 from cirq import ops
 from cirq.google import ExpZGate, MergeInteractions, MergeRotations
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 def assert_optimizes(before, after):
@@ -56,13 +56,13 @@ def test_ignores_czs_separated_by_parameterized():
         before=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
             circuits.Moment([ExpZGate(
-                half_turns=ParameterizedValue('boo'))(q0)]),
+                half_turns=Symbol('boo'))(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment([ops.CZ(q0, q1)]),
             circuits.Moment([ExpZGate(
-                half_turns=ParameterizedValue('boo'))(q0)]),
+                half_turns=Symbol('boo'))(q0)]),
             circuits.Moment([ops.CZ(q0, q1)]),
         ]))
 

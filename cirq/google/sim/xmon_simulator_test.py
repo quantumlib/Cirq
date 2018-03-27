@@ -35,7 +35,7 @@ from cirq.schedules import moment_by_moment_schedule
 from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -245,14 +245,13 @@ def compute_gate(circuit, resolver, num_qubits=1):
     return np.array(gate).transpose()
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_w_half_turns(offset):
+def test_param_resolver_exp_w_half_turns():
     exp_w = ExpWGate(
-        half_turns=ParameterizedValue('a', offset),
+        half_turns=Symbol('a'),
         axis_half_turns=0.0)
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -260,27 +259,25 @@ def test_param_resolver_exp_w_half_turns(offset):
                                              [amp * 1j, amp]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_w_axis_half_turns(offset):
+def test_param_resolver_exp_w_axis_half_turns():
     exp_w = ExpWGate(
-        half_turns=1.0, axis_half_turns=ParameterizedValue('a', offset))
+        half_turns=1.0, axis_half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(result,
                                    np.array([[0, 1],
                                              [-1, 0]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_w_multiple_params(offset):
+def test_param_resolver_exp_w_multiple_params():
     exp_w = ExpWGate(
-        half_turns=ParameterizedValue('a', offset),
-        axis_half_turns=ParameterizedValue('b', offset))
+        half_turns=Symbol('a'),
+        axis_half_turns=Symbol('b'))
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset, 'b': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5, 'b': 0.5})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -288,12 +285,11 @@ def test_param_resolver_exp_w_multiple_params(offset):
                                              [-amp, amp]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_z_half_turns(offset):
-    exp_z = ExpZGate(half_turns=ParameterizedValue('a', offset))
+def test_param_resolver_exp_z_half_turns():
+    exp_z = ExpZGate(half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_z(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(
         result,
@@ -301,12 +297,11 @@ def test_param_resolver_exp_z_half_turns(offset):
                   [0, cmath.exp(-1j * math.pi * 0.25)]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_11_half_turns(offset):
-    exp_11 = Exp11Gate(half_turns=ParameterizedValue('a', offset))
+def test_param_resolver_exp_11_half_turns():
+    exp_11 = Exp11Gate(half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_11(Q1, Q2))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver, num_qubits=2)
     # Slight hack: doesn't depend on order of qubits.
     np.testing.assert_almost_equal(
@@ -314,10 +309,9 @@ def test_param_resolver_exp_11_half_turns(offset):
         np.diag([1, 1, 1, cmath.exp(1j * math.pi * 0.5)]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_param_dict(offset):
+def test_param_resolver_param_dict():
     exp_w = ExpWGate(
-        half_turns=ParameterizedValue('a', offset),
+        half_turns=Symbol('a'),
         axis_half_turns=0.0)
     circuit = Circuit()
     circuit.append(exp_w(Q1))
@@ -330,7 +324,7 @@ def test_param_resolver_param_dict(offset):
 
 def test_run_study():
     circuit = Circuit.from_ops(
-        ExpWGate(half_turns=ParameterizedValue('a')).on(Q1),
+        ExpWGate(half_turns=Symbol('a')).on(Q1),
         XmonMeasurementGate('m').on(Q1),
     )
 
