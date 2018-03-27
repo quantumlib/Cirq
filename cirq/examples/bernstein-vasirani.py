@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import collections
-import sys
 import random
 from absl import app
 from absl import flags
@@ -24,9 +23,10 @@ FLAGS = flags.FLAGS
 NUM_SHOTS = 10
 NUM_QUBITS = 16
 
-def bv(n_qubits:int,
-       a:str,
-       shots:int=NUM_SHOTS):
+def bv(n_qubits: int,
+       a: str,
+       shots: int = NUM_SHOTS
+       ) -> collections.Counter:
   """Creates and executes the circuit for Bernstein-Vazirani algorithm.
 
   Args:
@@ -44,7 +44,7 @@ def bv(n_qubits:int,
   # 2. Create a circuit (qubits start in the |0> state).
   circuit = cirq.circuits.Circuit()
   # 3. Apply Hadamard gates to the inputs.
-  H_layer = [(cirq.ops.H).on(qubit) for qubit in qubits]
+  H_layer = [cirq.H(qubit) for qubit in qubits]
   circuit.append(H_layer)
   # 4. Apply the inner-product oracle
   O_layer = [cirq.Z(qubits[i]) for i in range(n_qubits) if a & (1 << i)]
@@ -62,10 +62,10 @@ def bv(n_qubits:int,
   results = collections.Counter()
   for k in range(NUM_SHOTS):
         result = simulator.run(circuit)
-        print('%sth run, results: %s' % (
+        print('{0}sth run, results: {1}'.format(
             k, sorted(list(result.measurements.items()))))
         next_result = ''.join([str(int(
-            result.measurements['result %s' % i][0]))
+            result.measurements['result {}'.format(i)][0]))
                                for i in range(n_qubits)])
         results[next_result]+=1
   return results
@@ -84,9 +84,9 @@ def main(argv):
   n_qubits = NUM_QUBITS
   a = random.randrange(2**n_qubits - 1)
   a_bitstring = bin(a)[2:].zfill(n_qubits)
-  print('Expected bitstring: %s' % a_bitstring)
+  print('Expected bitstring: {}'.format(a_bitstring))
   results = bv(n_qubits, a)
-  print('Results: %s' % results)
+  print('Results: {}'.format(results))
   print('Returned bitstring: ', results.most_common(1)[0])
 
 if __name__ == '__main__':
