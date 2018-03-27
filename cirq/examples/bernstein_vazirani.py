@@ -25,6 +25,10 @@ NUM_SHOTS = 10
 NUM_QUBITS = 16
 
 
+def bitstring(bits):
+    return ''.join(str(int(b)) for b in bits)
+
+
 def bv(n_qubits: int,
        a: int,
        shots: int = NUM_SHOTS
@@ -63,7 +67,7 @@ def bv(n_qubits: int,
     simulator = cirq.google.Simulator()
     result = simulator.run(circuit, repetitions=NUM_SHOTS)
     result_bits = result.measurements['result']  # 2D array of (rep, qubit)
-    result_strs = [''.join(str(int(b)) for b in bits) for bits in result_bits]
+    result_strs = [bitstring(bits) for bits in result_bits]
     return collections.Counter(result_strs)
 
 
@@ -82,7 +86,8 @@ def main(argv):
     del argv  # Unused.
     n_qubits = NUM_QUBITS
     a = random.randrange(2**n_qubits - 1)
-    a_bitstring = bin(a)[2:].zfill(n_qubits)
+    a_bits = [bool(a & (1 << i)) for i in range(n_qubits)]
+    a_bitstring = bitstring(a_bits)
     print('Expected bitstring: {}'.format(a_bitstring))
     results = bv(n_qubits, a)
     print('Results: {}'.format(results))
