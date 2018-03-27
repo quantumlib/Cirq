@@ -26,7 +26,7 @@ NUM_QUBITS = 16
 
 
 def bv(n_qubits: int,
-       a: str,
+       a: int,
        shots: int = NUM_SHOTS
        ) -> collections.Counter:
     """Creates and executes the circuit for Bernstein-Vazirani algorithm.
@@ -54,23 +54,18 @@ def bv(n_qubits: int,
     # 5. Apply Hadamard gates to the outputs
     circuit.append(H_layer)
     # 6. Apply measurement layer
-    circuit.append([cirq.ops.MeasurementGate('result {}'.format(i)).on(qubit)
-                    for i, qubit in enumerate(qubits)])
+    circuit.append(cirq.ops.MeasurementGate('result').on(qubit)
+                   for i, qubit in enumerate(qubits))
 
     # 7. Debug step
     print(circuit)
     # 8. Run and collect results
     simulator = cirq.google.Simulator()
-    results = collections.Counter()
-    for k in range(NUM_SHOTS):
-        result = simulator.run(circuit)
-        print('{0}sth run, results: {1}'.format(
-            k, sorted(list(result.measurements.items()))))
-        next_result = ''.join([str(int(
-            result.measurements['result {}'.format(i)][0]))
-                               for i in range(n_qubits)])
-        results[next_result] += 1
-    return results
+    result = simulator.run(circuit, repetitions=NUM_SHOTS)
+    result_bits = result.measurements['result']  # 2D array of (rep, qubit)
+    result_strs = [''.join(str(int(b)) for b in bits) for bits in result_bits]
+    return collections.Counter(result_strs)
+
 
 
 def main(argv):
