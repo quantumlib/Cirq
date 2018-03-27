@@ -102,7 +102,7 @@ def test_point_optimizer_can_write_new_gates_inline():
         cirq.Moment([cirq.X(x)]),
         cirq.Moment([cirq.X(x), cirq.X(y)]),
         cirq.Moment([cirq.X(y), cirq.X(z)]),
-        cirq.Moment([cirq.X(x), cirq.X(y)]),
+        cirq.Moment([cirq.X(y), cirq.X(x)]),
         cirq.Moment([cirq.X(y), cirq.X(z)]),
-        cirq.Moment([cirq.X(y), cirq.X(z)]),
+        cirq.Moment([cirq.X(z), cirq.X(y)]),
     ])

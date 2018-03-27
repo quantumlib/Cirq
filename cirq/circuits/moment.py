@@ -44,20 +44,14 @@ class Moment(object):
         Raises:
             ValueError: A qubit appears more than once.
         """
-        ops = tuple(operations)
+        self.operations = tuple(operations)
 
         # Check that operations don't overlap.
-        affected_qubits = [q for op in ops for q in op.qubits]
+        affected_qubits = [q for op in self.operations for q in op.qubits]
         self.qubits = frozenset(affected_qubits)
         if len(affected_qubits) != len(self.qubits):
             raise ValueError(
                 'Overlapping operations: {}'.format(ops))
-
-        self.operations = frozenset(ops)
-
-    def ordered_operations(self) -> List[ops.Operation]:
-        """Picks an arbitrary (but consistent) order for operations."""
-        return sorted(self.operations, key=lambda op: str(op.qubits))
 
     def operates_on(self, qubits: Iterable[ops.QubitId]) -> bool:
         """Determines if the moment has operations touching the given qubits.
@@ -80,7 +74,7 @@ class Moment(object):
         Returns:
             The new moment.
         """
-        return Moment(tuple(self.operations) + (operation,))
+        return Moment(self.operations + (operation,))
 
     def without_operations_touching(self, qubits: Iterable[ops.QubitId]):
         """Returns an equal moment, but without ops on the given qubits.

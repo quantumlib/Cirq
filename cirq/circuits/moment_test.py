@@ -60,9 +60,9 @@ def test_equality():
     eq.add_equality_group(Moment([ops.X(b)]))
     eq.add_equality_group(Moment([ops.Y(a)]))
 
-    # Equality doesn't depend on order.
-    eq.add_equality_group(Moment([ops.X(a), ops.X(b)]),
-                          Moment([ops.X(b), ops.X(a)]))
+    # Equality depends on order.
+    eq.add_equality_group(Moment([ops.X(a), ops.X(b)]))
+    eq.add_equality_group(Moment([ops.X(b), ops.X(a)]))
 
     # Two qubit gates.
     eq.make_equality_pair(lambda: Moment([ops.CZ(c, d)]))

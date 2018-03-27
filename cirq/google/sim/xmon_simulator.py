@@ -219,7 +219,7 @@ def simulator_iterator(
         for moment in circuit_copy.moments:
             measurements = defaultdict(list)
             phase_map = {}
-            for op in moment.ordered_operations():
+            for op in moment.operations:
                 gate = op.gate
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
