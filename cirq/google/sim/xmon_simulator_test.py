@@ -382,7 +382,7 @@ class UnsupportedCompositeGate(SingleQubitGate, CompositeGate):
         self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
         qubit = qubits[0]
         yield Z(qubit)
-        yield UnsupportedGate(qubit)
+        yield UnsupportedGate().on(qubit)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)

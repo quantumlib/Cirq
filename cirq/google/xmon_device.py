@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
+from typing import Iterable, cast
 
 from cirq import ops
 from cirq.devices import Device
@@ -91,7 +91,7 @@ class XmonDevice(Device):
 
         if len(operation.qubits) == 2:
             p, q = operation.qubits
-            if not p.is_adjacent(q):
+            if not cast(XmonQubit, p).is_adjacent(q):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -103,7 +103,7 @@ class XmonDevice(Device):
         # Adjacent ExpW operations may be doable.
         # For now we will play it conservatively.
 
-        return any(q.is_adjacent(p)
+        return any(cast(XmonQubit, q).is_adjacent(cast(XmonQubit, p))
                    for q in exp11_op.qubits
                    for p in other_op.qubits)
 
