@@ -217,7 +217,7 @@ def simulator_iterator(
         initial_state=initial_state,
         min_qubits_before_shard=options.min_qubits_before_shard) as stepper:
         for moment in circuit_copy.moments:
-            measurements = {}  # type: Dict[str, List[bool]]
+            measurements = defaultdict(list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
                 gate = op.gate
@@ -242,8 +242,6 @@ def simulator_iterator(
                     result = stepper.simulate_measurement(index)
                     if gate.invert_result:
                         result = not result
-                    if gate.key not in measurements:
-                        measurements[gate.key] = []
                     measurements[gate.key].append(result)
                 else:
                     raise TypeError(
