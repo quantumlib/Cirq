@@ -14,8 +14,7 @@
 
 """The circuit data structure for the sequenced phase."""
 
-from typing import (
-    Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence, Set)
+from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
 
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
