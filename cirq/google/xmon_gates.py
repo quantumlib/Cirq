@@ -168,6 +168,7 @@ class Exp11Gate(XmonGate,
 
 
 class ExpWGate(XmonGate,
+               ops.SingleQubitGate,
                ops.AsciiDiagrammableGate,
                ops.PhaseableGate,
                ops.BoundedEffectGate,
@@ -284,6 +285,7 @@ class ExpWGate(XmonGate,
 
 
 class ExpZGate(XmonGate,
+               ops.SingleQubitGate,
                ops.AsciiDiagrammableGate,
                PotentialImplementation):
     """A rotation around the Z axis of the Bloch sphere."""

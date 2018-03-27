@@ -17,12 +17,12 @@
 
 import collections
 
-from typing import Iterable, Union, Callable
+from typing import Any, Iterable, Union, Callable
 
 from cirq.ops.raw_types import Operation
 
 
-OP_TREE = Union[Operation, Iterable['OP_TREE']]
+OP_TREE = Union[Operation, Iterable[Any]]
 """The recursive type consumed by circuit builder methods.
 
 An OP_TREE is a contract, not a class. The basic idea is that, if the input can
@@ -35,6 +35,12 @@ For example:
 - A list of tuples of operations is an OP_TREE.
 - A list with a mix of operations and lists of operations is an OP_TREE.
 - A generator yielding operations is an OP_TREE.
+
+Note: once mypy has support for recursive types we can define this as:
+
+OP_TREE = Union[Operation, Iterable['OP_TREE']]
+
+See: https://github.com/python/mypy/issues/731
 """
 
 
