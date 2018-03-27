@@ -55,3 +55,7 @@ from cirq.google.sim import (
     StepResult,
     TrialResult,
 )
+from cirq.google.engine import (
+    Engine,
+    Options as EngineOptions,
+)
