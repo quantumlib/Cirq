@@ -25,8 +25,7 @@ class Symbol:
         """Initializes a Symbol with the given name.
 
         Args:
-            name: The name of a parameter. Because of the implementation of new,
-                this will never be the empty string.
+            name: The name of a parameter.
         """
         self.name = name
 
