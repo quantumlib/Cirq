@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
 import sys
 import random
@@ -23,22 +19,19 @@ from absl import app
 from absl import flags
 
 import cirq
-import cirq.google
-if sys.version_info < (3, 5):
-  raise Exception('Please use Python version 3.5 or greater.')
 
 FLAGS = flags.FLAGS
 NUM_SHOTS = 10
 NUM_QUBITS = 16
 
-def bv(n_qubits,
-       a,
-       shots=NUM_SHOTS):
+def bv(n_qubits:int,
+       a:str,
+       shots:int=NUM_SHOTS):
   """Creates and executes the circuit for Bernstein-Vazirani algorithm.
 
   Args:
-    n_qubits: integer < 30, number of qubits in the simulated curcuit.
-    a: integer < 2^n_qubits, representing the unknown bit string.
+    n_qubits: integer < 30, number of qubits in the simulated circuit.
+    a: integer < 2**n_qubits, representing the unknown bit string.
     circuit_name: string to identify the circuit
     device: type of the device used
     shots: number of times the circuit has been executed.
@@ -59,7 +52,7 @@ def bv(n_qubits,
   # 5. Apply Hadamard gates to the outputs
   circuit.append(H_layer)
   # 6. Apply measurement layer
-  circuit.append([cirq.ops.MeasurementGate('result %s' % str(i)).on(qubit)
+  circuit.append([cirq.ops.MeasurementGate('result {}'.format(i)).on(qubit)
                   for i, qubit in enumerate(qubits)])
 
   # 7. Debug step
