@@ -97,7 +97,7 @@ class Simulator(Executor):
         Args:
             program: The circuit to simulate.
             param_resolver: A ParamResolver for determining values of
-                ParameterizedValues.
+                Symbols.
             options: Options configuring the simulation.
             qubits: If specified this list of qubits will be used to define
                 a canonical ordering of the qubits. This canonical ordering
@@ -155,7 +155,7 @@ class Simulator(Executor):
                 case it must be the correct size, be normalized (an L2 norm of
                 1), and have a dtype of np.complex64.
             param_resolver: A ParamResolver for determining values of
-                ParameterizedValues.
+                Symbols.
 
         Returns:
             SimulatorIterator that steps through the simulation, simulating
@@ -187,7 +187,7 @@ def simulator_iterator(
         initial_state: If an int, the state is set to the computational
             basis state corresponding corresponding to this state.
         param_resolver: A ParamResolver for determining values ofs
-            ParameterizedValues.
+            Symbols.
 
     Yields:
         StepResults from simulating a Moment of the Circuit.

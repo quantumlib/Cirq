@@ -143,16 +143,15 @@ the gate to an ``XmonGate`` (TODO(dabacon): not implemented yet).
 ### Parameterized Values and Studies
 
 In addition to circuit gates with fixed values, Cirq also 
-supports gates which can have ``ParameterizedValue`` (see
+supports gates which can have ``Symbol`` value (see
 [Gates](gates.md)). These are values that can be resolved
 at *run-time*. For simulators these values are resolved by
 providing a ``ParamResolver``.  A ``ParamResolver`` provides
-a map from the ``ParameterizedValue`` key to its assigned
-value (plus any offset also set in the ``ParameterizedValue``).
+a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-from cirq import ParameterizedValue, ParamResolver
-val = ParameterizedValue('x')
+from cirq import Symbol, ParamResolver
+val = Symbol('x')
 rot_w_gate = ExpWGate(half_turns=val)
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
@@ -167,12 +166,11 @@ for y in range(5):
 # [ 0.15+0.j    0.  +0.35j  0.  +0.35j -0.85+0.j  ]
 # [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
 ```
-Here we see that the ``ParameterizedValue`` is used in two 
-gates, and then the resolver provide this value at run time.
-Also note that we now see the use of the ``TrialContext`` 
-returned as the first tuple from ``run``: it contains the
-``param_dict`` describing what values were actually used
-in resolving the ``ParameterizedValues``.   
+Here we see that the ``Symbol`` is used in two gates, and then the resolver
+provide this value at run time.
+Also note that we now see the use of the ``TrialContext`` returned as the first
+tuple from ``run``: it contains the ``param_dict`` describing what values were
+actually used in resolving the ``Symbol``s.
 
 Parameterized values are most useful in defining what we call a
 ``Study``.  A ``Study`` is a collection of trials, where each 

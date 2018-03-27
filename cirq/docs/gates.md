@@ -148,10 +148,8 @@ as ``XmonGates`` via an extension or composite gates.  Some
 of these are our old friends:
 
 **RotXGate**, **RotYGate**, **RotZGate**, **Rot11Gate**. 
-These are non-parameterized gates corresponding to the 
-Pauli rotations or (in the case of ``Rot11Gate`` a two
-qubit rotation).  When not using ``ParameterizedValue``s
-prefer to use these gates.
+These are gates corresponding to the  Pauli rotations or
+(in the case of ``Rot11Gate`` a two qubit rotation).
 
 Our old friends the Paulis: **X**, **Y**, and **Z**. 
 Some other two qubit fiends, **CZ** the controlled-Z gate,
