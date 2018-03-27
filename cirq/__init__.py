@@ -137,7 +137,7 @@ from cirq.study import (
 
 from cirq.value import (
     Duration,
-    ParameterizedValue,
+    Symbol,
     Timestamp,
 )
 

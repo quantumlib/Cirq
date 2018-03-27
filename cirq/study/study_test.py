@@ -24,7 +24,7 @@ from cirq.circuits import Circuit
 from cirq.google import Simulator, XmonQubit, ExpWGate, XmonMeasurementGate
 from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 def bit_flip_circuit(flip0, flip1):
@@ -52,7 +52,7 @@ def test_study_repetitions():
 
 def test_study_parameters():
     sim = Simulator()
-    circuit = bit_flip_circuit(ParameterizedValue('a'), ParameterizedValue('b'))
+    circuit = bit_flip_circuit(Symbol('a'), Symbol('b'))
 
     resolvers = [ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
@@ -75,7 +75,7 @@ def test_study_parameters():
 
 def test_study_param_and_reps():
     sim = Simulator()
-    circuit = bit_flip_circuit(ParameterizedValue('a'), ParameterizedValue('b'))
+    circuit = bit_flip_circuit(Symbol('a'), Symbol('b'))
 
     resolvers = [ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
