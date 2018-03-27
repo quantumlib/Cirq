@@ -14,7 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Iterable, List
+from typing import Iterable
 
 from cirq import ops
 
