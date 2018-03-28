@@ -1,7 +1,7 @@
-import abc
 import collections
 from typing import Iterator, List, Sequence, Tuple
 
+from cirq import abc
 from cirq.study.resolver import ParamResolver
 
 
