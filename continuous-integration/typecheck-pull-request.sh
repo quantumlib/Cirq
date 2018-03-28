@@ -62,7 +62,7 @@ deactivate
 echo
 if [ "${outcome}" -eq 0 ]; then
   echo "Outcome: PASSED"
-  set_status "success" "Typecheck passed."
+  set_status "success" "Typecheck passed!"
 else
   echo -e "Outcome: \e[31mFAILED\e[0m"
   set_status "failure" "Typecheck failed."
