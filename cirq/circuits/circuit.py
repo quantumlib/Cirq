@@ -264,16 +264,16 @@ class Circuit(object):
                 strategy = InsertStrategy.INLINE
         return k
 
-    def insert_inline_into_range(self,
-                                 operations: ops.OP_TREE,
-                                 inline_start: int,
-                                 inline_end: int) -> int:
+    def insert_into_range(self,
+                          operations: ops.OP_TREE,
+                          start: int,
+                          end: int) -> int:
         """Writes operations inline into an area of the circuit.
 
         Args:
-            inline_start: The start of the range (inclusive) to write the
+            start: The start of the range (inclusive) to write the
                 given operations into.
-            inline_end: The end of the range (exclusive) to write the given
+            end: The end of the range (exclusive) to write the given
                 operations into. If there are still operations remaining,
                 new moments are created to fit them.
             operations: An operation or tree of operations to insert.
@@ -285,26 +285,26 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= inline_start < inline_end <= len(self.moments):
+        if not 0 <= start < end <= len(self.moments):
             raise IndexError('Bad insert indices: [{}, {})'.format(
-                inline_start, inline_end))
+                start, end))
 
         operations = list(ops.flatten_op_tree(operations))
-        i = inline_start
+        i = start
         op_index = 0
         while op_index < len(operations):
             op = operations[op_index]
-            while i < inline_end and self.moments[i].operates_on(op.qubits):
+            while i < end and self.moments[i].operates_on(op.qubits):
                 i += 1
-            if i >= inline_end:
+            if i >= end:
                 break
             self.moments[i] = self.moments[i].with_operation(op)
             op_index += 1
 
         if op_index >= len(operations):
-            return inline_end
+            return end
 
-        return self.insert(inline_end, operations[op_index:])
+        return self.insert(end, operations[op_index:])
 
     def append(
             self,

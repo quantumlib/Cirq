@@ -37,10 +37,22 @@ class OptimizationPass:
 
 
 class PointOptimizationSummary:
+    """A description of a local optimization to perform."""
+
     def __init__(self,
                  clear_span: int,
                  clear_qubits: List[ops.QubitId],
                  new_operations: ops.OP_TREE):
+        """
+        Args:
+            clear_span: Defines the range of moments to affect. Specifically,
+                refers to the indices in range(start, start+clear_span) where
+                start is an index known from surrounding context.
+            clear_qubits: Defines the set of qubits that should be cleared
+                with each affected moment.
+            new_operations: The operations to replace the cleared out
+                operations with.
+        """
         self.new_operations = tuple(ops.flatten_op_tree(new_operations))
         self.clear_span = clear_span
         self.clear_qubits = tuple(clear_qubits)
@@ -77,7 +89,14 @@ class PointOptimizer:
                         index: int,
                         op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
-        """Rewrites the given circuit to improve it, focusing on one spot.
+        """Describes how to change operations near the given location.
+
+        For example, this method could realize that the given operation is an
+        X gate and that in the very next moment there is a Z gate. It would
+        indicate that they should be combined into a Y gate by returning
+        PointOptimizationSummary(clear_span=2,
+                                 clear_qubits=op.qubits,
+                                 new_operations=cirq.Y(op.qubits[0]))
 
         Args:
             circuit: The circuit to improve.
@@ -85,7 +104,8 @@ class PointOptimizer:
             op: The operation to focus improvements upon.
 
         Returns:
-            The optimization to perform.
+            A description of the optimization to perform, or else None if no
+            change should be made.
         """
         pass
 
@@ -113,7 +133,7 @@ class PointOptimizer:
                 circuit.clear_operations_touching(
                     opt.clear_qubits,
                     [e for e in range(i, i + opt.clear_span)])
-                next_insert_index = circuit.insert_inline_into_range(
+                next_insert_index = circuit.insert_into_range(
                     opt.new_operations, i, i + opt.clear_span)
 
                 # Prevent redundant optimizations.
