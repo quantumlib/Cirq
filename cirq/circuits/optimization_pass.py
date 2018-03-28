@@ -13,12 +13,11 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import Optional, List
+from typing import List, Optional
 
-import abc
 from collections import defaultdict
 
-from cirq import ops
+from cirq import abc, ops
 from cirq.circuits.circuit import Circuit
 
 

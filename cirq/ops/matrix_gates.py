@@ -56,8 +56,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
                     self, qubits))
 
     def extrapolate_effect(self, factor: float):
-        new_mat = linalg.map_eigenvalues(self.matrix(),
-                                         lambda e: complex(e)**factor)
+        new_mat = linalg.map_eigenvalues(self.matrix(), lambda e: e**factor)
         return SingleQubitMatrixGate(new_mat)
 
     def trace_distance_bound(self):
@@ -134,8 +133,7 @@ class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
                     self, qubits))
 
     def extrapolate_effect(self, factor: float):
-        new_mat = linalg.map_eigenvalues(self.matrix(),
-                                         lambda e: complex(e)**factor)
+        new_mat = linalg.map_eigenvalues(self.matrix(), lambda e: e**factor)
         return TwoQubitMatrixGate(new_mat)
 
     def phase_by(self, phase_turns: float, qubit_index: int):

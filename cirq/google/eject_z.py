@@ -14,7 +14,7 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, cast
 
 from cirq import ops
 from cirq.circuits import Circuit, InsertStrategy, OptimizationPass
@@ -117,7 +117,7 @@ class EjectZ(OptimizationPass):
                 Also the index of where the effects of the Z gates should end
                 up.
         """
-        lost_phase_turns = 0
+        lost_phase_turns = 0.0
 
         for i in range(start, drain):
             op = circuit.operation_at(qubit, i)
@@ -129,7 +129,7 @@ class EjectZ(OptimizationPass):
             elif isinstance(op.gate, ExpZGate):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
-                lost_phase_turns += op.gate.half_turns / 2
+                lost_phase_turns += cast(float, op.gate.half_turns) / 2
 
             elif isinstance(op.gate, ops.PhaseableGate):
                 # Adjust phaseable gates to account for the lost phase.
@@ -157,12 +157,11 @@ class EjectZ(OptimizationPass):
         # Drain type: another Z gate.
         op = circuit.operation_at(qubit, drain)
         if isinstance(op.gate, ExpZGate):
+            half_turns = cast(float, op.gate.half_turns) + accumulated_phase * 2
             circuit.clear_operations_touching([qubit], [drain])
             circuit.insert(
                 drain + 1,
-                ExpZGate(
-                    half_turns=op.gate.half_turns + accumulated_phase * 2).on(
-                        qubit),
+                ExpZGate(half_turns=half_turns).on(qubit),
                 InsertStrategy.INLINE)
             return
 

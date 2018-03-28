@@ -14,7 +14,7 @@
 
 """The circuit data structure for the sequenced phase."""
 
-from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Set
+from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
 
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -93,14 +93,13 @@ class Circuit(object):
         Raises:
           ValueError: negative max_distance.
         """
+        max_circuit_distance = len(self.moments) - start_moment_index
         if max_distance is None:
-            max_distance = float('inf')
+            max_distance = max_circuit_distance
         elif max_distance < 0:
             raise ValueError('Negative max_distance: {}'.format(max_distance))
-
-        # Don't bother searching indices past the end of the list.
-        max_distance = int(
-            min(max_distance, len(self.moments) - start_moment_index))
+        else:
+            max_distance = min(max_distance, max_circuit_distance)
 
         return self._first_moment_operating_on(
             qubits,
@@ -128,16 +127,15 @@ class Circuit(object):
         Raises:
             ValueError: negative max_distance.
         """
-        if max_distance is None:
-            max_distance = float('inf')
-        elif max_distance < 0:
-            raise ValueError('Negative max_distance: {}'.format(max_distance))
-
         if end_moment_index is None:
             end_moment_index = len(self.moments)
 
-        # Don't bother searching indices past the start of the list.
-        max_distance = min(end_moment_index, max_distance)
+        if max_distance is None:
+            max_distance = len(self.moments)
+        elif max_distance < 0:
+            raise ValueError('Negative max_distance: {}'.format(max_distance))
+        else:
+            max_distance = min(end_moment_index, max_distance)
 
         # Don't bother searching indices past the end of the list.
         if end_moment_index > len(self.moments):
@@ -320,7 +318,7 @@ class Circuit(object):
         """
         self.insert(len(self.moments), operation_tree, strategy)
 
-    def qubits(self) -> Set[QubitId]:
+    def qubits(self) -> FrozenSet[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
 

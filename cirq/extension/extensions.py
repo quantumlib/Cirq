@@ -48,7 +48,7 @@ class Extensions:
             {}
             if desired_to_actual_to_wrapper is None
             else desired_to_actual_to_wrapper
-        )  # type: Dict[Type[Any], Dict[Type[Any], Callable[[Any], Any]]]
+        )  # type: Dict[Type[Any], Dict[Any, Callable[[Any], Any]]]
 
     def add_cast(self,
                  desired_type: Type[T_DESIRED],

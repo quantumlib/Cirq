@@ -1,6 +1,6 @@
 """A typed location in time that supports picosecond accuracy."""
 
-from typing import Union
+from typing import Union, overload
 
 from cirq.value.duration import Duration
 
@@ -32,7 +32,7 @@ class Timestamp:
             # Try to preserve type information.
             self._picos = nanos * 1000 if nanos else picos
 
-    def raw_picos(self) -> int:
+    def raw_picos(self) -> float:
         """The timestamp's location in picoseconds from arbitrary time zero."""
         return self._picos
 
@@ -44,12 +44,22 @@ class Timestamp:
     def __radd__(self, other) -> 'Timestamp':
         return self.__add__(other)
 
-    def __sub__(self, other) -> Union['Timestamp', Duration]:
+    # pylint: disable=function-redefined
+    @overload
+    def __sub__(self, other: 'Timestamp') -> Duration:
+        pass
+
+    @overload
+    def __sub__(self, other: Duration) -> 'Timestamp':
+        pass
+
+    def __sub__(self, other):
         if isinstance(other, Duration):
             return Timestamp(picos=self._picos - other.total_picos())
         if isinstance(other, type(self)):
             return Duration(picos=self._picos - other._picos)
         return NotImplemented
+    # pylint: enable=function-redefined
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

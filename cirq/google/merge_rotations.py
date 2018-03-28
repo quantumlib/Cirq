@@ -82,5 +82,5 @@ class MergeRotations(PointOptimizer):
         for op in gates:
             matrix = np.dot(op.matrix(), matrix)
 
-        gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
-        return [gate(qubit) for gate in gates]
+        out_gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
+        return [gate(qubit) for gate in out_gates]

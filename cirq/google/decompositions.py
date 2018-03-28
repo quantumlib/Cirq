@@ -16,7 +16,7 @@
 
 import cmath
 import math
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, cast
 
 import numpy as np
 
@@ -144,7 +144,10 @@ def single_qubit_matrix_to_native_gates(
         ExpWGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
         ops.RotZGate(half_turns=2 * total_z_turn)
     ]
-    result = [g for g in result if g.trace_distance_bound() > tolerance]
+    result = [
+        g for g in result
+        if cast(ops.BoundedEffectGate, g).trace_distance_bound() > tolerance
+    ]
 
     # Special case: XY half-turns can absorb Z rotations.
     if len(result) == 2 and abs(xy_turn) >= 0.5 - tolerance:

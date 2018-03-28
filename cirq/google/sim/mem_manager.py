@@ -14,8 +14,8 @@
 
 """Global level manager of shared numpy arrays."""
 
-import multiprocessing
 import warnings
+from multiprocessing import Lock, RawArray  # type: ignore
 
 import numpy as np
 
@@ -39,7 +39,7 @@ class SharedMemManager(object):
         return cls._instance
 
     def __init__(self):
-        self._lock = multiprocessing.Lock()
+        self._lock = Lock()
         self._current = 0
         self._count = 0
         self._arrays = SharedMemManager._INITIAL_SIZE * [None]
@@ -74,7 +74,7 @@ class SharedMemManager(object):
             self._get_next_free()
 
             # pylint: disable=protected-access
-            raw_arr = multiprocessing.RawArray(c_arr._type_, c_arr)
+            raw_arr = RawArray(c_arr._type_, c_arr)
             self._arrays[self._current] = raw_arr
 
             self._count += 1

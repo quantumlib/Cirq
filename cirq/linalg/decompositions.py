@@ -116,7 +116,7 @@ def map_eigenvalues(
     """
     vals, vecs = _perp_eigendecompose(matrix, tolerance)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
-    out_vals = np.vectorize(func)(vals)
+    out_vals = np.vectorize(func)(vals.astype(complex))
 
     total = np.zeros(shape=matrix.shape)
     for piece, val in zip(pieces, out_vals):
