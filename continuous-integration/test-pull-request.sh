@@ -36,7 +36,7 @@
 
 set -e
 own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-github_context="pytest (manual)"
+github_context="pytest by maintainer"
 source "${own_directory}/load-pull-request-content.sh"
 
 function clean_up_catch () {
