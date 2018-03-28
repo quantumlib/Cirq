@@ -22,35 +22,37 @@ import re
 import string
 import time
 from collections import defaultdict
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import numpy as np
 import oauth2client
 from apiclient.discovery import build
 from google.protobuf.json_format import MessageToDict
 
-import cirq
 from cirq.circuits import Circuit, ExpandComposite
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.devices import Device
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.programs import schedule_to_proto
 from cirq.schedules import Schedule, moment_by_moment_schedule
-from cirq.study import Executor
+from cirq.study import Executor, TrialResult
 from cirq.study.resolver import ParamResolver
 from cirq.api.google.v1 import program_pb2
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 
-class Options:
+
+class EngineOptions:
     """Options for the Engine.
     """
 
-    def __init__(self,
-        credentials: oauth2client.client.Credentials = None,
-        project_id: str = None, program_id: str = None, job_id: str = None,
-        gcs_prefix: str = None, gcs_program: str = None,
-        gcs_results: str = None) -> None:
+    def __init__(self, project_id: str,
+                 credentials: Optional[oauth2client.client.Credentials] = None,
+                 program_id: Optional[str] = None,
+                 job_id: Optional[str] = None,
+                 gcs_prefix: Optional[str] = None,
+                 gcs_program: Optional[str] = None,
+                 gcs_results: Optional[str] = None) -> None:
         """Engine options for running the Engine. At a minimum requires
         project_id and either gcs_prefix or gcs_program and gcs_results.
 
@@ -67,10 +69,8 @@ class Options:
             gcs_program: Explicit override for the program storage location.
             gcs_results: Explicit override for the results storage location.
         """
-        self.credentials = credentials
-        if not project_id:
-            raise TypeError('project_id is required')
         self.project_id = project_id
+        self.credentials = credentials
         self.program_id = program_id or 'prog-%s' % ''.join(
             random.choice(string.ascii_uppercase + string.digits) for _ in
             range(6))
@@ -84,22 +84,21 @@ class Options:
         self.gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
             '/') else gcs_prefix + '/'
         self.gcs_program = gcs_program or '%scirq/%s-program' % (
-            gcs_prefix, program_id)
+            self.gcs_prefix, self.program_id)
         self.gcs_results = gcs_results or '%scirq/%s-%s-results' % (
-            gcs_prefix, program_id, job_id)
+            self.gcs_prefix, self.program_id, self.job_id)
 
 
 class Engine(Executor):
     """Executor for Google Quantum Engine
     """
 
-    def __init__(self, api: str = 'quantum', version: str = 'v1alpha1',
-        api_key: str = None, discovery_url: str = None) -> None:
+    def __init__(self, api_key: str, api: str = 'quantum',
+                 version: str = 'v1alpha1',
+                 discovery_url: Optional[str] = None) -> None:
+        self.api_key = api_key
         self.api = api
         self.version = version
-        if not api_key:
-            raise TypeError('api_key is required to connect to Quantum Engine')
-        self.api_key = api_key
         self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
                                                '$discovery/rest'
                                                '?version={apiVersion}&key=%s')
@@ -109,26 +108,26 @@ class Engine(Executor):
         program: Union[Circuit, Schedule],
         param_resolver: ParamResolver = None,
         repetitions: int = 1,
-        options: Options = None,
+        options: EngineOptions = None,
         device: Device = None,
         priority: int = 50,
-    ) -> 'TrialResult':
+    ) -> 'EngineTrialResult':
         """Runs the entire supplied Circuit or Schedule via Google Quantum
          Engine.
 
         Args:
-            program: The circuit to simulate.
+            program: The circuit to execute.
             param_resolver: A ParamResolver for determining values of
                 ParameterizedValues.
             repetitions: The number of circuit repetitions to run.
-            options: Options configuring the simulation.
+            options: Options configuring the engine.
             device: The device on which to run.
             priority: The priority to run at, 0-100.
 
         Returns:
             Results for this run.
         """
-        if not priority in range(100):
+        if not 0 <= priority < 100:
             raise TypeError('priority must be between 0 and 100')
 
         # Convert to a schedule.
@@ -217,13 +216,13 @@ class Engine(Executor):
                 v = list(itertools.islice(bits, keymap['size']))
                 measurements[keymap['key']].append(np.array(v, dtype=bool))
 
-        return TrialResult(
+        return EngineTrialResult(
             params=param_resolver,
             repetitions=repetitions,
             measurements=dict(measurements))
 
 
-class TrialResult(cirq.study.TrialResult):
+class EngineTrialResult(TrialResult):
     """Results of a single run of an executor.
 
     Attributes:
