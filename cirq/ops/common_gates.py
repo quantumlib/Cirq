@@ -16,9 +16,9 @@
 import math
 from typing import Union, Tuple
 
-import abc
 import numpy as np
 
+from cirq import abc
 from cirq.extension import PotentialImplementation
 from cirq.ops import gate_features
 from cirq.ops.raw_types import InterchangeableQubitsGate
