@@ -23,6 +23,7 @@ import string
 import time
 from collections import defaultdict
 from typing import Dict, Optional, Union
+from typing import List  # pylint: disable=unused-import
 
 import numpy as np
 import oauth2client
@@ -130,8 +131,10 @@ class Engine(Executor):
         if not 0 <= priority < 100:
             raise TypeError('priority must be between 0 and 100')
 
-        # Convert to a schedule.
-        if isinstance(program, Circuit):
+        if isinstance(program, Schedule):
+            schedule = program
+        else:
+            # Convert to a schedule.
             expand = ExpandComposite()
             convert = ConvertToXmonGates(ignore_failures=False)
             drop = DropEmptyMoments()
@@ -141,7 +144,7 @@ class Engine(Executor):
             convert.optimize_circuit(circuit_copy)
             drop.optimize_circuit(circuit_copy)
 
-            program = moment_by_moment_schedule(device, circuit_copy)
+            schedule = moment_by_moment_schedule(device, circuit_copy)
 
         service = build(self.api, self.version,
                         discoveryServiceUrl=self.discovery_url % (
@@ -150,7 +153,7 @@ class Engine(Executor):
 
         proto_program = program_pb2.Program()
         proto_program.parameter_sweeps.add().repetitions = repetitions
-        proto_program.operations.extend(list(schedule_to_proto(program)))
+        proto_program.operations.extend(list(schedule_to_proto(schedule)))
 
         code = {
             '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
@@ -208,7 +211,7 @@ class Engine(Executor):
 
         # Only a single sweep is supported for now
         sweep_results = response['result']['sweepResults'][0]
-        measurements = defaultdict(list)
+        measurements = defaultdict(list)  # type: Dict[str, List[np.ndarray]]
         bits = as_bits(base64.standard_b64decode(
             sweep_results['parameterizedResults'][0]['measurementResults']))
         for _ in range(sweep_results['repetitions']):

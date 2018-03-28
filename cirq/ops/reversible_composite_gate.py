@@ -14,8 +14,7 @@
 
 """Implements the inverse() method of a CompositeGate & ReversibleGate."""
 
-import abc
-
+from cirq import abc
 from cirq.extension import Extensions
 from cirq.ops import gate_features, op_tree, raw_types
 

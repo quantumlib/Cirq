@@ -16,10 +16,9 @@
 
 from typing import Union
 
-import abc
 import numpy as np
 
-from cirq import ops
+from cirq import abc, ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
 from cirq.google.xmon_qubit import XmonQubit

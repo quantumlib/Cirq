@@ -14,10 +14,9 @@
 
 """Defines the OptimizationPass type."""
 
-import abc
 from typing import Optional
 
-from cirq import ops
+from cirq import abc, ops
 from cirq.circuits import Circuit
 
 
