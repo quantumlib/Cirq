@@ -27,9 +27,9 @@ Example use:
     # the reptition id, and result contains the program's results.
 """
 
-import abc
-from typing import Dict, Iterable, Union
+from typing import Any, Iterable, Union
 
+from cirq import abc
 from cirq.circuits import Circuit
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver
@@ -62,7 +62,7 @@ class ExecutorStudy(StudyInterface):
             program: Union[Circuit, Schedule],
             param_resolvers: Iterable[ParamResolver] = None,
             repetitions: int = 0,
-            **executor_kwags: Dict) -> None:
+            **executor_kwags: Any) -> None:
         self.executor = executor
         self.program = program
         self.param_resolvers = param_resolvers or [ParamResolver({})]
@@ -77,7 +77,7 @@ class ExecutorStudy(StudyInterface):
         """
         trial_results = []
         for param_resolver in self.param_resolvers:
-            result = self.executor.run(
+            result = self.executor.run(  # type: ignore
                 program=self.program,
                 param_resolver=param_resolver,
                 repetitions=self.repetitions,

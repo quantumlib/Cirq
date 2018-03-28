@@ -22,7 +22,7 @@ from cirq.circuits.circuit import Moment
 from cirq.contrib.jobs import Job
 from cirq.google import xmon_gates
 from cirq.study.sweeps import Points, Zip
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 class DepolarizerChannel(object):
@@ -47,7 +47,7 @@ class DepolarizerChannel(object):
         realizations: Number of simulations to create.
     """
 
-    # Prefix for ParameterizedValues related to error simulation
+    # Prefix for symbols related to error simulation
     _parameter_name = 'error_parameter'
 
     def __init__(self, probability=0.001, realizations=1):
@@ -101,7 +101,7 @@ class DepolarizerChannel(object):
                 if any(errors):
                     key = self._parameter_name + str(error_number)
                     error_gates.append(xmon_gates.ExpZGate(
-                        half_turns=ParameterizedValue(key=key)).on(q))
+                        half_turns=Symbol(key)).on(q))
                     error_sweep += Points(key, list(errors * 1.0))
                     error_number += 1
 

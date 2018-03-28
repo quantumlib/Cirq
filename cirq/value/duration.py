@@ -27,7 +27,7 @@ class Duration:
             # Try to preserve type information.
             self._picos = nanos * 1000 if nanos else picos
 
-    def total_picos(self) -> int:
+    def total_picos(self) -> float:
         """Returns the number of picoseconds that the duration spans."""
         return self._picos
 

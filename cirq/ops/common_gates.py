@@ -16,23 +16,24 @@
 import math
 from typing import Union, Tuple
 
-import abc
 import numpy as np
 
+from cirq import abc
 from cirq.extension import PotentialImplementation
 from cirq.ops import gate_features
 from cirq.ops.raw_types import InterchangeableQubitsGate
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 def _canonicalize_half_turns(
-        half_turns: Union[ParameterizedValue, float]
-) -> Union[ParameterizedValue, float]:
-    v = ParameterizedValue.val_of(half_turns)
-    v %= 2
-    if v > 1:
-        v -= 2
-    return ParameterizedValue(ParameterizedValue.key_of(half_turns), v)
+        half_turns: Union[Symbol, float]
+) -> Union[Symbol, float]:
+    if isinstance(half_turns, Symbol):
+        return half_turns
+    half_turns %= 2
+    if half_turns > 1:
+        half_turns -= 2
+    return half_turns
 
 
 class _TurnGate(gate_features.BoundedEffectGate,
@@ -47,7 +48,7 @@ class _TurnGate(gate_features.BoundedEffectGate,
 
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[ParameterizedValue, float] = 1.0) -> None:
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 
@@ -82,9 +83,9 @@ class _TurnGate(gate_features.BoundedEffectGate,
         return hash((type(self), self.half_turns))
 
     def trace_distance_bound(self):
-        if isinstance(self.half_turns, ParameterizedValue):
+        if isinstance(self.half_turns, Symbol):
             return 1
-        return abs(ParameterizedValue.val_of(self.half_turns)) * 3.5
+        return abs(self.half_turns) * 3.5
 
     def try_cast_to(self, desired_type):
         if (desired_type in [gate_features.ExtrapolatableGate,
@@ -100,7 +101,7 @@ class _TurnGate(gate_features.BoundedEffectGate,
         pass
 
     def has_matrix(self) -> bool:
-        return not isinstance(self.half_turns, ParameterizedValue)
+        return not isinstance(self.half_turns, Symbol)
 
     def matrix(self) -> np.ndarray:
         if not self.has_matrix():
@@ -108,7 +109,7 @@ class _TurnGate(gate_features.BoundedEffectGate,
         return self._matrix_impl_assuming_unparameterized()
 
     def can_extrapolate_effect(self) -> bool:
-        return not isinstance(self.half_turns, ParameterizedValue)
+        return not isinstance(self.half_turns, Symbol)
 
     def extrapolate_effect(self, factor) -> '_TurnGate':
         if not self.can_extrapolate_effect():
@@ -126,7 +127,7 @@ class Rot11Gate(_TurnGate,
 
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[float, ParameterizedValue]=1.0) -> None:
+                 half_turns: Union[float, Symbol]=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -143,7 +144,7 @@ class RotXGate(_TurnGate, gate_features.SingleQubitGate):
 
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[float, ParameterizedValue]=1.0) -> None:
+                 half_turns: Union[float, Symbol]=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -161,7 +162,7 @@ class RotYGate(_TurnGate, gate_features.SingleQubitGate):
 
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[float, ParameterizedValue]=1.0) -> None:
+                 half_turns: Union[float, Symbol]=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
@@ -180,7 +181,7 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
 
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[float, ParameterizedValue]=1.0) -> None:
+                 half_turns: Union[float, Symbol]=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
 

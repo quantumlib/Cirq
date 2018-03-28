@@ -51,10 +51,11 @@ class ExpandComposite(PointOptimizer):
         op: ops.Operation) -> Optional[int]:
         decomposition = self._decompose(op)
         if decomposition is op:
-            return
+            return None
 
         circuit.clear_operations_touching(op.qubits, (index, ))
-        circuit.insert(index, decomposition, strategy=self.insert_strategy)
+        return circuit.insert(
+            index, decomposition, strategy=self.insert_strategy)
 
     def _decompose(self, op):
         """Recursively decompose a composite into an OP_TREE of constituents."""
