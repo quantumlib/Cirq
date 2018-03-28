@@ -14,13 +14,13 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, cast
 
 from cirq import ops
 from cirq.circuits import Circuit, InsertStrategy, OptimizationPass
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 class EjectZ(OptimizationPass):
@@ -77,7 +77,7 @@ class EjectZ(OptimizationPass):
                 # Unparameterized Zs start optimization ranges.
                 if (isinstance(op.gate, ExpZGate) and
                         not isinstance(op.gate.half_turns,
-                                       ParameterizedValue)):
+                                       Symbol)):
                     start_z = i
                     prev_z = None
 
@@ -86,14 +86,10 @@ class EjectZ(OptimizationPass):
                 yield start_z, i
                 start_z = None
 
-            elif isinstance(op.gate, ExpZGate):
-                if isinstance(op.gate.half_turns, ParameterizedValue):
-                    # Parameterized Z gates can't move, but can drain.
-                    yield start_z, i
-                    start_z = None
-                else:
-                    # Could be a drain. Depends if an unphaseable gate follows.
-                    prev_z = i
+            elif (isinstance(op.gate, ExpZGate) and
+                  not isinstance(op.gate.half_turns, Symbol)):
+                # Could be a drain. Depends if an unphaseable gate follows.
+                prev_z = i
 
             elif not isinstance(op.gate, ops.PhaseableGate):
                 # Unphaseable gates force earlier draining.
@@ -121,7 +117,7 @@ class EjectZ(OptimizationPass):
                 Also the index of where the effects of the Z gates should end
                 up.
         """
-        lost_phase_turns = 0
+        lost_phase_turns = 0.0
 
         for i in range(start, drain):
             op = circuit.operation_at(qubit, i)
@@ -133,7 +129,7 @@ class EjectZ(OptimizationPass):
             elif isinstance(op.gate, ExpZGate):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
-                lost_phase_turns += op.gate.half_turns / 2
+                lost_phase_turns += cast(float, op.gate.half_turns) / 2
 
             elif isinstance(op.gate, ops.PhaseableGate):
                 # Adjust phaseable gates to account for the lost phase.

@@ -35,8 +35,8 @@ def _parse_device(s: str) -> Tuple[List[XmonQubit], Dict[str, Set[XmonQubit]]]:
         on that measurement line.
     """
     lines = s.strip().split('\n')
-    qubits = []
-    measurement_lines = {}
+    qubits = []  # type: List[XmonQubit]
+    measurement_lines = {}  # type: Dict[str, Set[XmonQubit]]
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':

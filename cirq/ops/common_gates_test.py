@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 from cirq import linalg
-from cirq import ops, ParameterizedValue
+from cirq import ops, Symbol
 from cirq.testing import EqualsTester
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
@@ -37,10 +37,8 @@ def test_cz_eq():
     eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
     eq.add_equality_group(ops.Rot11Gate(half_turns=3.5),
                           ops.Rot11Gate(half_turns=-0.5))
-    eq.add_equality_group(
-        ops.Rot11Gate(half_turns=ParameterizedValue('a', 3.5)),
-        ops.Rot11Gate(half_turns=ParameterizedValue('a', 1.5)))
-    eq.add_equality_group(ops.Rot11Gate(half_turns=ParameterizedValue('a')))
+    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('a')))
+    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('b')))
     eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0))
     eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0.5))
 
@@ -138,7 +136,7 @@ def test_x_matrix():
 
 def test_runtime_types_of_rot_gates():
     for gate_type in [ops.Rot11Gate, ops.RotXGate, ops.RotYGate, ops.RotZGate]:
-        p = gate_type(half_turns=ParameterizedValue('a'))
+        p = gate_type(half_turns=Symbol('a'))
         assert p.try_cast_to(ops.KnownMatrixGate) is None
         assert p.try_cast_to(ops.ExtrapolatableGate) is None
         assert p.try_cast_to(ops.SelfInverseGate) is None

@@ -147,7 +147,7 @@ class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect on the state is known to be below some threshold."""
 
     @abc.abstractmethod
-    def trace_distance_bound(self) -> np.ndarray:
+    def trace_distance_bound(self) -> float:
         """A maximum on the trace distance between this gate's input/output.
 
         Approximations that overestimate are permitted. Even ones that exceed
