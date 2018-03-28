@@ -13,12 +13,17 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from collections import defaultdict
 
 from cirq import abc, ops
 from cirq.circuits.circuit import Circuit
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.ops import QubitId
+    from typing import Dict
 
 
 class OptimizationPass:
@@ -42,7 +47,7 @@ class PointOptimizationSummary:
     def __init__(self,
                  clear_span: int,
                  clear_qubits: List[ops.QubitId],
-                 new_operations: ops.OP_TREE):
+                 new_operations: ops.OP_TREE) -> None:
         """
         Args:
             clear_span: Defines the range of moments to affect. Specifically,
@@ -110,7 +115,7 @@ class PointOptimizer:
         pass
 
     def optimize_circuit(self, circuit: Circuit):
-        walls = defaultdict(lambda: 0)
+        walls = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
         while i < len(circuit.moments):  # Note: circuit may mutate as we go.
             for op in circuit.moments[i].operations:

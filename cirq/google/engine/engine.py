@@ -136,7 +136,7 @@ class Engine(Executor):
         else:
             # Convert to a schedule.
             expand = ExpandComposite()
-            convert = ConvertToXmonGates(ignore_failures=False)
+            convert = ConvertToXmonGates(ignore_cast_failures=False)
             drop = DropEmptyMoments()
 
             circuit_copy = Circuit(program.moments)
