@@ -9,6 +9,9 @@ valid and will not cause any type issues at runtime. We want to use this for the
 Extension mechanism which allows to attempt to cast an object to a given
 (possibly abstract) type.
 
+Mypy's check for abstract types is very naive, so we can trick it by using this
+module instead of importing abc directly from the standard library.
+
 See https://github.com/python/mypy/issues/4717
 """
 
