@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
 from typing import TYPE_CHECKING
 
+from cirq import abc
 from cirq.value import Duration
 
 

@@ -135,4 +135,4 @@ class Operation:
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
-        return (self.gate ** power).on(*self.qubits)
+        return (self.gate ** power).on(*self.qubits)  # type: ignore

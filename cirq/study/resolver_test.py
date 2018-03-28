@@ -17,16 +17,14 @@
 import itertools
 
 from cirq.study import resolver
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 def test_value_of():
     r = resolver.ParamResolver({'a': 0.5, 'b': 0.1})
-    assert r.value_of(ParameterizedValue('a', 0.0)) == 0.5
-    assert r.value_of(ParameterizedValue('a', 0.1)) == 0.5 + 0.1
-    assert r.value_of(ParameterizedValue('', 0.5)) == 0.5
-    assert r.value_of(ParameterizedValue('b', 0.0)) == 0.1
-    assert r.value_of(ParameterizedValue('', 0.3)) == 0.3
+    assert r.value_of(Symbol('a')) == 0.5
+    assert r.value_of(0.5) == 0.5
+    assert r.value_of(Symbol('b')) == 0.1
     assert r.value_of(0.3) == 0.3
 
 

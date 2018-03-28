@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, List, TYPE_CHECKING, Union
+from typing import Iterable, List, TYPE_CHECKING, Union, cast
 
 from sortedcontainers import SortedListWithKey
 
@@ -127,7 +127,9 @@ class Schedule:
         if isinstance(item, slice):
             if item.step:
                 raise ValueError('Step not supported.')
-            return self.query(time=item.start, duration=item.stop - item.start)
+            start = cast(Timestamp, item.start)
+            stop = cast(Timestamp, item.stop)
+            return self.query(time=start, duration=stop - start)
         return self.query(time=item, include_query_end_time=True)
 
     def operations_happening_at_same_time_as(
