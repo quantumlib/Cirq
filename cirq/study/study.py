@@ -27,9 +27,9 @@ Example use:
     # the reptition id, and result contains the program's results.
 """
 
-import abc
 from typing import Dict, Iterable, Union
 
+from cirq import abc
 from cirq.circuits import Circuit
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver
