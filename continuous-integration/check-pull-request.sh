@@ -20,6 +20,6 @@
 set -e
 own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-$own_directory/pylint-pull-request.sh $@
-$own_directory/typecheck-pull-request.sh $@
-$own_directory/test-pull-request.sh $@
+bash ${own_directory}/pylint-pull-request.sh $@
+bash ${own_directory}/typecheck-pull-request.sh $@
+bash ${own_directory}/test-pull-request.sh $@
