@@ -34,59 +34,16 @@
 # Requires that virtualenv has been installed.
 
 
-pull_id=${1}
-access_token=${2:-${CIRQ_GITHUB_ACCESS_TOKEN}}
-
-if [ -z "${pull_id}" ]; then
-  echo "No pull request id given, using local files."
-else
-  if [ -z "${access_token}" ]; then
-    echo "No access token given. Won't update github status."
-  fi
-fi
-
-function set_status () {
-  state=$1
-  desc=$2
-  if [ -n "${pull_id}" ] && [ -n "${access_token}" ]; then
-    json='{
-            "state": "'${state}'",
-            "description": "'${desc}'",
-            "context": "pytest (manual)"
-        }'
-    url="https://api.github.com/repos/quantumlib/cirq/statuses/${commit_id}?access_token=${access_token}"
-    curl --silent -d "${json}" -X POST "${url}" > /dev/null
-  fi
-}
-
-work_dir="$(mktemp -d '/tmp/test-cirq-XXXXXXXX')"
 set -e
-function clean_up_finally () {
-  rm -rf "${work_dir}"
-}
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+github_context="pytest by maintainer"
+source "${own_directory}/load-pull-request-content.sh"
+
 function clean_up_catch () {
   echo "FAILED TO COMPLETE"
   set_status "error" "Script failed."
 }
-trap clean_up_finally EXIT ERR
 trap clean_up_catch ERR
-
-# Get content to test.
-if [ -z "${pull_id}" ]; then
-  origin=$(git rev-parse --show-toplevel)
-  cp -r "${origin}"/* "${work_dir}"
-  cd "${work_dir}"
-else
-  echo "Fetching pull request #${pull_id}..."
-  branch="pull/${pull_id}/head"
-  origin="git@github.com:quantumlib/cirq.git"
-  cd "${work_dir}"
-  git init --quiet
-  git fetch git@github.com:quantumlib/cirq.git pull/${pull_id}/head --depth=1 --quiet
-  commit_id="$(git rev-parse FETCH_HEAD)"
-  git checkout "${commit_id}" --quiet
-  set_status "pending" "Running..."
-fi
 
 # Run python 3.5 tests.
 echo
@@ -119,10 +76,9 @@ deactivate
 # Report result.
 echo
 if [ "${outcome_v35}" -eq 0 ] && [ "${outcome_v27}" -eq 0 ]; then
+  echo "Outcome: PASSED"
   set_status "success" "Tests passed!"
-  echo "Outcome: SUCCESS"
 else
+  echo -e "Outcome: \e[31mFAILED\e[0m"
   set_status "failure" "Tests failed."
-  echo "Outcome: FAILURE"
 fi
-

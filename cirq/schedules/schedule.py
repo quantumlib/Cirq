@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
-from typing import List, Union
+from typing import Iterable, List, TYPE_CHECKING, Union, cast
 
 from sortedcontainers import SortedListWithKey
 
+from cirq.circuits import Circuit
 from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
-from cirq.time import Duration, Timestamp
+from cirq.value import Duration, Timestamp
+
+if TYPE_CHECKING:
+    from cirq.ops import Operation  # pylint: disable=unused-import
 
 
 class Schedule:
@@ -28,11 +31,19 @@ class Schedule:
 
     Supports schedule[time] point lookups and
         schedule[inclusive_start_time:exclusive_end_time] slice lookups.
+
+
+    Attributes:
+        device: The hardware this will schedule on.
+        scheduled_operations: A SortedListWithKey containing the
+            ScheduledOperations for this schedule. The key is the start time
+            of the ScheduledOperation.
     """
 
     def __init__(self,
-                 device: Device,
-                 scheduled_operations: Iterable[ScheduledOperation] = ()):
+            device: Device,
+            scheduled_operations: Iterable[ScheduledOperation] = ()
+            ) -> None:
         """Initializes a new schedule.
 
         Args:
@@ -47,13 +58,23 @@ class Schedule:
         self._max_duration = max(
             [e.duration for e in self.scheduled_operations] or [Duration()])
 
+    def __eq__(self, other):
+        if not isinstance(other, Schedule):
+            return NotImplemented
+        return self.scheduled_operations == other.scheduled_operations
+
+    def __ne__(self, other):
+        return not self == other
+
+    __hash__ = None
+
     def query(self,
-              *positional_args,
-              time: Timestamp,
-              duration: Duration = Duration(),
-              qubits: Iterable[QubitId] = None,
-              include_query_end_time=False,
-              include_op_end_times=False) -> List[ScheduledOperation]:
+        *positional_args,
+        time: Timestamp,
+        duration: Duration = Duration(),
+        qubits: Iterable[QubitId] = None,
+        include_query_end_time=False,
+        include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:
@@ -106,11 +127,13 @@ class Schedule:
         if isinstance(item, slice):
             if item.step:
                 raise ValueError('Step not supported.')
-            return self.query(time=item.start, duration=item.stop - item.start)
+            start = cast(Timestamp, item.start)
+            stop = cast(Timestamp, item.stop)
+            return self.query(time=start, duration=stop - start)
         return self.query(time=item, include_query_end_time=True)
 
     def operations_happening_at_same_time_as(
-            self, scheduled_operation: ScheduledOperation
+        self, scheduled_operation: ScheduledOperation
     ) -> List[ScheduledOperation]:
         """Finds operations happening at the same time as the given operation.
 
@@ -139,8 +162,8 @@ class Schedule:
                                 duration=scheduled_operation.duration,
                                 qubits=scheduled_operation.operation.qubits)
         if collisions:
-            raise ValueError('{} collided with {}'.format(scheduled_operation,
-                                                          collisions))
+            raise ValueError('Operation {} has collisions: {}'.format(
+                scheduled_operation.operation, collisions))
         self.scheduled_operations.add(scheduled_operation)
         self._max_duration = max(self._max_duration,
                                  scheduled_operation.duration)
@@ -161,10 +184,21 @@ class Schedule:
         except ValueError:
             return False
 
-    def __str__(self):
-        return '\n'.join(str(e) for e in self.scheduled_operations)
+    def to_circuit(self) -> Circuit:
+        """Convert the schedule to a circuit.
 
-    def __repr__(self):
-        return 'Schedule(device={}, scheduled_operations=[{}])'.format(
-            repr(self.device),
-            ',\n\t'.join(repr(e) for e in self.scheduled_operations))
+        This discards most timing information from the schedule, but does place
+        operations that are scheduled at the same time in the same Moment.
+        """
+        circuit = Circuit()
+        ops = []  # type: List[Operation]
+        time = None  # type: Timestamp
+        for so in self.scheduled_operations:
+            if so.time != time:
+                circuit.append(ops)
+                ops = [so.operation]
+                time = so.time
+            else:
+                ops.append(so.operation)
+        circuit.append(ops)
+        return circuit

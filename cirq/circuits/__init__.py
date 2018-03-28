@@ -14,14 +14,28 @@
 
 """Types and methods related to building and optimizing sequenced circuits."""
 
-from cirq.circuits.ascii import *
-from cirq.circuits.drop_negligible import *
-from cirq.circuits.drop_empty_moments import *
-from cirq.circuits.circuit import *
-from cirq.circuits.eject_z import *
-from cirq.circuits.insert_strategy import *
-from cirq.circuits.merge_interactions import *
-from cirq.circuits.merge_rotations import *
-from cirq.circuits.moment import *
-from cirq.circuits.optimization_pass import *
-from cirq.circuits.util import *
+from cirq.circuits.text_diagram_drawer import (
+    TextDiagramDrawer,
+)
+from cirq.circuits.circuit import (
+    Circuit,
+)
+from cirq.circuits.drop_empty_moments import (
+    DropEmptyMoments,
+)
+from cirq.circuits.drop_negligible import (
+    DropNegligible,
+)
+from cirq.circuits.expand_composite import (
+    ExpandComposite,
+)
+from cirq.circuits.insert_strategy import (
+    InsertStrategy,
+)
+from cirq.circuits.moment import (
+    Moment,
+)
+from cirq.circuits.optimization_pass import (
+    OptimizationPass,
+    PointOptimizer,
+)

@@ -5,7 +5,7 @@ circuits and running them against quantum computers and simulators.
 
 ## Installation
 
-Follow these [instructions](docs/install.md).
+Follow these [instructions](cirq/docs/install.md).
 
 ## Hello Qubit
 
@@ -15,26 +15,24 @@ A simple example to get you up and running:
 import cirq
 
 # Define a qubit.
-qubit = cirq.ops.QubitLoc(0, 0)
+qubit = cirq.google.XmonQubit(0, 0)
 
 # Create a circuit (qubits start in the |0> state).
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([
     # Square root of NOT.
-    cirq.ops.ExpWGate(half_turns=0.5).on(qubit),
+    cirq.X(qubit)**0.5,
 
     # Measurement.
-    cirq.ops.MeasurementGate('result').on(qubit)
+    cirq.MeasurementGate('result').on(qubit)
 ])
 print("Circuit:")
-print(cirq.circuits.to_ascii(circuit))
+print(circuit)
 
-# Now simulate the circuit and print out the measurment result.
-simulator = cirq.sim.google.xmon_simulator.Simulator()
-results = []
-for _ in range(10):
-    result = simulator.run(circuit).measurements['result'][0]
-    results.append('1' if result else '0')
+# Now simulate the circuit and print out the measurement result.
+simulator = cirq.google.Simulator()
+result = simulator.run(circuit, repetitions=10)
+results = [str(int(b)) for b in result.measurements['result'][:, 0]]
 print("Simulated measurement results:")
 print(''.join(results))
 ```
@@ -43,7 +41,7 @@ Example output:
 
 ```
 Circuit:
-(0, 0): ---X^0.5---M---
+(0, 0): ───X^0.5───M───
 
 Simulated measurement results:
 1110111010
@@ -51,8 +49,13 @@ Simulated measurement results:
 
 ## Documentation
 
-See [here](docs/documentation.md).
+See [here](cirq/docs/table_of_contents.md) or jump straight to the
+[tutorial](cirq/docs/tutorial.md)
 
 ## Contributing
 
-We welcome contributions. Please follow [these](CONTRIBUTING) guidelines.
+We welcome contributions. Please follow these [guidelines](CONTRIBUTING.md).
+
+## Disclaimer
+
+Copyright 2018 The Cirq Developers. This is not an official Google product.

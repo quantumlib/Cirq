@@ -17,11 +17,11 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-import abc
-
-import numpy as np
 from typing import Sequence, Tuple
 
+import numpy as np
+
+from cirq import abc
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 
@@ -32,7 +32,6 @@ class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def inverse(self) -> 'ReversibleGate':
         """Returns a gate with an exactly opposite effect."""
-        pass
 
 
 class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
@@ -48,7 +47,6 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
         Returns:
             A gate equivalent to applying the receiving gate 'factor' times.
         """
-        pass
 
     def __pow__(self, power: float) -> 'ExtrapolatableGate':
         """Extrapolates the effect of the gate.
@@ -96,7 +94,6 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Args:
             qubits: The qubits the operation should be applied to.
         """
-        pass
 
 
 class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -105,7 +102,6 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def matrix(self) -> np.ndarray:
         """The unitary matrix of the operation this gate applies."""
-        pass
 
 
 class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -119,7 +115,6 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def ascii_wire_symbols(self) -> Tuple[str, ...]:
         """The symbols that should be shown on the gate's qubits (in order)."""
-        pass
 
 
 class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -130,23 +125,21 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
                  qubit_index: int) -> 'PhaseableGate':
         """Returns a phased version of the gate.
 
-          Args:
-              phase_turns: The amount to phase the gate, in fractions of a
-                  whole turn.
-              qubit_index: The index of the target qubit the phasing applies
-                  to.
+        Args:
+            phase_turns: The amount to phase the gate, in fractions of a whole
+                turn.
+            qubit_index: The index of the target qubit the phasing applies to.
 
-          Returns:
-              The phased gate.
-          """
-        pass
+        Returns:
+            The phased gate.
+        """
 
 
 class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect on the state is known to be below some threshold."""
 
     @abc.abstractmethod
-    def trace_distance_bound(self) -> np.ndarray:
+    def trace_distance_bound(self) -> float:
         """A maximum on the trace distance between this gate's input/output.
 
         Approximations that overestimate are permitted. Even ones that exceed
@@ -154,11 +147,10 @@ class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
         when deciding whether to keep gates, so only the behavior near 0 is
         important.
         """
-        pass
 
 
-class ConstantSingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
-    """A gate that applies a known constant effect to one qubit."""
+class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to exactly one qubit."""
 
     def validate_args(self, qubits):
         if len(qubits) != 1:
@@ -167,16 +159,11 @@ class ConstantSingleQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-class ConstantAdjacentTwoQubitGate(KnownMatrixGate, metaclass=abc.ABCMeta):
-    """A gate that applies a known constant effect to adjacent qubits."""
+class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to exactly two qubits."""
 
     def validate_args(self, qubits):
         if len(qubits) != 2:
             raise ValueError(
                 'Two-qubit gate not applied to two qubits: {}({})'.
-                format(self, qubits))
-
-        if not qubits[0].is_adjacent(qubits[1]):
-            raise ValueError(
-                'Two-qubit gate applied to non-adjacent qubits: {}({})'.
                 format(self, qubits))

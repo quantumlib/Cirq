@@ -14,12 +14,13 @@
 
 """Implements the inverse() method of a CompositeGate & ReversibleGate."""
 
-import abc
-
+from cirq import abc
+from cirq.extension import Extensions
 from cirq.ops import gate_features, op_tree, raw_types
 
 
-def _reverse_operation(operation: raw_types.Operation) -> raw_types.Operation:
+def _reverse_operation(operation: raw_types.Operation,
+                       extensions: Extensions) -> raw_types.Operation:
     """Returns the inverse of an operation, if possible.
 
     Args:
@@ -31,23 +32,27 @@ def _reverse_operation(operation: raw_types.Operation) -> raw_types.Operation:
     Raises:
         ValueError: The operation's gate isn't reversible.
     """
-    if isinstance(operation.gate, gate_features.ReversibleGate):
-        return raw_types.Operation(operation.gate.inverse(), operation.qubits)
-    raise ValueError('Not reversible: {}'.format(operation))
+    gate = extensions.try_cast(operation.gate, gate_features.ReversibleGate)
+    if gate is None:
+        raise ValueError('Not reversible: {}'.format(operation))
+    return raw_types.Operation(gate.inverse(), operation.qubits)
 
 
-def inverse_of_invertable_op_tree(root: op_tree.OP_TREE) -> op_tree.OP_TREE:
+def inverse_of_invertable_op_tree(root: op_tree.OP_TREE,
+                                  extensions: Extensions = Extensions()
+                                  ) -> op_tree.OP_TREE:
     """Generates OP_TREE inverses.
 
     Args:
         root: An operation tree containing only invertable operations.
+        extensions: For caller-provided implementations of gate inverses.
 
     Returns:
         An OP_TREE that performs the inverse operation of the given OP_TREE.
     """
     return op_tree.transform_op_tree(
         root=root,
-        op_transformation=_reverse_operation,
+        op_transformation=lambda e: _reverse_operation(e, extensions),
         iter_transformation=lambda e: reversed(list(e)))
 
 
@@ -64,7 +69,7 @@ class _ReversedReversibleCompositeGate(gate_features.CompositeGate,
                                        gate_features.ReversibleGate):
     """A reversed reversible composite gate."""
 
-    def __init__(self, forward_form: ReversibleCompositeGate):
+    def __init__(self, forward_form: ReversibleCompositeGate) -> None:
         self.forward_form = forward_form
 
     def inverse(self) -> ReversibleCompositeGate:

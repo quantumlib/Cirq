@@ -1,5 +1,3 @@
-# coding=utf-8
-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +15,10 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
+from typing import Set  # pylint: disable=unused-import
+from typing import Callable, List, Tuple, TypeVar
+
 import numpy as np
-from typing import Tuple, Callable, List, TypeVar
 
 from cirq.linalg import combinators
 from cirq.linalg import diagonalize
@@ -39,15 +39,15 @@ def _group_similar(items: List[T],
   Returns:
     A list of groups of items.
   """
-    groups = []
-    used = set()
+    groups = []  # type: List[List[T]]
+    used = set()  # type: Set[int]
     for i in range(len(items)):
         if i not in used:
-            group = [i]
+            group = [items[i]]
             for j in range(i + 1, len(items)):
                 if j not in used and comparer(items[i], items[j]):
                     used.add(j)
-                    group.append(j)
+                    group.append(items[j])
             groups.append(group)
     return groups
 
@@ -116,7 +116,7 @@ def map_eigenvalues(
     """
     vals, vecs = _perp_eigendecompose(matrix, tolerance)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
-    out_vals = np.vectorize(func)(vals)
+    out_vals = np.vectorize(func)(vals.astype(complex))
 
     total = np.zeros(shape=matrix.shape)
     for piece, val in zip(pieces, out_vals):

@@ -14,26 +14,47 @@
 
 """The circuit data structure for the sequenced phase."""
 
-import itertools
-
-from typing import Iterable, List, Optional, Set
+from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
 
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.extension import Extensions
 from cirq.ops import QubitId
 
 
 class Circuit(object):
-    """A mutable list of groups of operations to apply to some qubits."""
+    """A mutable list of groups of operations to apply to some qubits.
 
-    def __init__(self, moments: Iterable[Moment] = ()):
+    Attributes:
+      moments: A list of the Moments of the circuit.
+    """
+
+    def __init__(self, moments: Iterable[Moment] = ()) -> None:
         """Initializes a circuit.
 
         Args:
             moments: The initial list of moments defining the circuit.
         """
         self.moments = list(moments)
+
+    @staticmethod
+    def from_ops(*operations: ops.OP_TREE,
+                 strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE
+                 ) -> 'Circuit':
+        """Creates an empty circuit and appends the given operations.
+
+        Args:
+            operations: The operations to append to the new circuit.
+            strategy: How to append the operations.
+
+        Returns:
+            The constructed circuit containing the operations.
+        """
+        result = Circuit()
+        result.append(operations, strategy)
+        return result
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -72,14 +93,13 @@ class Circuit(object):
         Raises:
           ValueError: negative max_distance.
         """
+        max_circuit_distance = len(self.moments) - start_moment_index
         if max_distance is None:
-            max_distance = float('inf')
+            max_distance = max_circuit_distance
         elif max_distance < 0:
             raise ValueError('Negative max_distance: {}'.format(max_distance))
-
-        # Don't bother searching indices past the end of the list.
-        max_distance = int(
-            min(max_distance, len(self.moments) - start_moment_index))
+        else:
+            max_distance = min(max_distance, max_circuit_distance)
 
         return self._first_moment_operating_on(
             qubits,
@@ -87,7 +107,7 @@ class Circuit(object):
 
     def prev_moment_operating_on(
             self,
-            qubits: List[ops.QubitId],
+            qubits: Sequence[ops.QubitId],
             end_moment_index: Optional[int] = None,
             max_distance: Optional[int] = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
@@ -107,16 +127,15 @@ class Circuit(object):
         Raises:
             ValueError: negative max_distance.
         """
-        if max_distance is None:
-            max_distance = float('inf')
-        elif max_distance < 0:
-            raise ValueError('Negative max_distance: {}'.format(max_distance))
-
         if end_moment_index is None:
             end_moment_index = len(self.moments)
 
-        # Don't bother searching indices past the start of the list.
-        max_distance = min(end_moment_index, max_distance)
+        if max_distance is None:
+            max_distance = len(self.moments)
+        elif max_distance < 0:
+            raise ValueError('Negative max_distance: {}'.format(max_distance))
+        else:
+            max_distance = min(end_moment_index, max_distance)
 
         # Don't bother searching indices past the end of the list.
         if end_moment_index > len(self.moments):
@@ -183,7 +202,8 @@ class Circuit(object):
             ValueError: Unrecognized append strategy.
         """
 
-        if strategy is InsertStrategy.NEW:
+        if (strategy is InsertStrategy.NEW or
+                strategy is InsertStrategy.NEW_THEN_INLINE):
             self.moments.insert(splitter_index, Moment())
             return splitter_index
 
@@ -213,8 +233,7 @@ class Circuit(object):
             self,
             index: int,
             operation_tree: ops.OP_TREE,
-            strategy: InsertStrategy =
-            InsertStrategy.EARLIEST) -> int:
+            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """Inserts operations into the middle of the circuit.
 
         Args:
@@ -240,13 +259,14 @@ class Circuit(object):
                 self.moments.append(Moment())
             self.moments[p] = self.moments[p].with_operation(op)
             k = max(k, p + 1)
+            if strategy is InsertStrategy.NEW_THEN_INLINE:
+                strategy = InsertStrategy.INLINE
         return k
 
     def append(
             self,
             operation_tree: ops.OP_TREE,
-            strategy: InsertStrategy =
-            InsertStrategy.EARLIEST):
+            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:
@@ -255,7 +275,7 @@ class Circuit(object):
         """
         self.insert(len(self.moments), operation_tree, strategy)
 
-    def qubits(self) -> Set[QubitId]:
+    def qubits(self) -> FrozenSet[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
 
@@ -264,5 +284,144 @@ class Circuit(object):
         return 'Circuit([{}])'.format(','.join(moment_lines))
 
     def __str__(self):
-        moment_lines = ('\n    ' + str(moment) for moment in self.moments)
-        return 'Circuit [{}\n]'.format(''.join(moment_lines))
+        return self.to_text_diagram()
+
+    def to_text_diagram(
+            self,
+            ext: Extensions = Extensions(),
+            use_unicode_characters: bool = True,
+            transpose: bool = False,
+            qubit_order_key: Callable[[ops.QubitId], Any] = None) -> str:
+        """Returns text containing a diagram describing the circuit.
+
+        Args:
+            ext: For extending gates to implement AsciiDiagrammableGate.
+            use_unicode_characters: Activates the use of cleaner-looking
+                unicode box-drawing characters for lines.
+            transpose: Arranges the wires vertically instead of horizontally.
+            qubit_order_key: Transforms each qubit into a key that determines
+                how the qubits are ordered in the diagram. Qubits with lower
+                keys come first. Defaults to the qubit's __str__, but augmented
+                so that lexicographic ordering will respect the order of
+                integers within the string (e.g. "name10" will come after
+                "name2").
+
+        Returns:
+            The ascii diagram.
+        """
+        if qubit_order_key is None:
+            qubit_order_key = _str_lexicographic_respecting_int_order
+
+        qubits = {
+            q
+            for moment in self.moments for op in moment.operations
+            for q in op.qubits
+        }
+        ordered_qubits = sorted(qubits, key=qubit_order_key)
+        qubit_map = {ordered_qubits[i]: i for i in range(len(ordered_qubits))}
+
+        diagram = TextDiagramDrawer()
+        for q, i in qubit_map.items():
+            diagram.write(0, i, str(q) + ('' if transpose else ': '))
+
+        for moment in [Moment()] * 2 + self.moments + [Moment()]:
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram)
+
+        w = diagram.width()
+        for i in qubit_map.values():
+            diagram.horizontal_line(i, 0, w)
+
+        if transpose:
+            return diagram.transpose().render(
+                crossing_char='─' if use_unicode_characters else '-',
+                use_unicode_characters=use_unicode_characters)
+        return diagram.render(
+            crossing_char='┼' if use_unicode_characters else '|',
+            horizontal_spacing=3,
+            use_unicode_characters=use_unicode_characters)
+
+
+def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
+                                        ) -> Iterable[str]:
+    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
+    if ascii_gate is not None:
+        return ascii_gate.ascii_wire_symbols()
+    name = repr(op.gate)
+    if len(op.qubits) == 1:
+        return [name]
+    return ['{}:{}'.format(name, i) for i in range(len(op.qubits))]
+
+
+def _get_operation_text_diagram_exponent(op: ops.Operation,
+                                         ext: Extensions) -> Optional[str]:
+    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
+    if ascii_gate is None:
+        return None
+    exponent = ascii_gate.ascii_exponent()
+    if exponent == 1:
+        return None
+    if isinstance(exponent, float):
+        return repr(exponent)
+    s = str(exponent)
+    if '+' in s or ' ' in s or '-' in s[1:]:
+        return '({})'.format(exponent)
+    return s
+
+
+def _draw_moment_in_diagram(moment: Moment,
+                            ext: Extensions,
+                            qubit_map: Dict[ops.QubitId, int],
+                            out_diagram: TextDiagramDrawer):
+    if not moment.operations:
+        return []
+
+    x0 = out_diagram.width()
+    for op in moment.operations:
+        indices = [qubit_map[q] for q in op.qubits]
+        y1 = min(indices)
+        y2 = max(indices)
+
+        # Find an available column.
+        x = x0
+        while any(out_diagram.content_present(x, y)
+                  for y in range(y1, y2 + 1)):
+            x += 1
+
+        # Draw vertical line linking the gate's qubits.
+        if y2 > y1:
+            out_diagram.vertical_line(x, y1, y2)
+
+        # Print gate qubit labels.
+        symbols = _get_operation_text_diagram_symbols(op, ext)
+        for s, q in zip(symbols, op.qubits):
+            out_diagram.write(x, qubit_map[q], s)
+
+        # Add an exponent to the first label.
+        exponent = _get_operation_text_diagram_exponent(op, ext)
+        if exponent is not None:
+            out_diagram.write(x, y1, '^' + exponent)
+
+
+def _str_lexicographic_respecting_int_order(value):
+    """0-pads digits in a string to hack int order into lexicographic order."""
+    s = str(value)
+
+    was_on_digits = False
+    last_transition = 0
+    output = []
+
+    def dump(k):
+        chunk = s[last_transition:k]
+        if was_on_digits:
+            chunk = chunk.rjust(8, '0')
+        output.append(chunk)
+
+    for i in range(len(s)):
+        on_digits = s[i].isdigit()
+        if was_on_digits != on_digits:
+            dump(i)
+            was_on_digits = on_digits
+            last_transition = i
+
+    dump(len(s))
+    return ''.join(output)

@@ -18,9 +18,10 @@
 class InsertStrategy(object):
     """Indicates preferences on how to add multiple operations to a circuit."""
 
-    NEW = None
-    INLINE = None
-    EARLIEST = None
+    NEW = None  # type: InsertStrategy
+    NEW_THEN_INLINE = None  # type: InsertStrategy
+    INLINE = None  # type: InsertStrategy
+    EARLIEST = None  # type: InsertStrategy
 
     def __init__(self, name, doc):
         self.name = name
@@ -38,6 +39,13 @@ InsertStrategy.NEW = InsertStrategy(
     """
     Always creates a new moment at the desired insert location, and adds the
     operation to insert into that moment.
+    """)
+
+InsertStrategy.NEW_THEN_INLINE = InsertStrategy(
+    'NEW_THEN_INLINE',
+    """
+    Creates a new moment at the desired insert location for the first
+    operation, but then switches to inserting operations inline.
     """)
 
 InsertStrategy.INLINE = InsertStrategy(

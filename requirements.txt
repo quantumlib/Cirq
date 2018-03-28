@@ -1,6 +1,9 @@
 3to2
 absl-py
+google-api-python-client
+mypy
 numpy
+pylint
 pytest
 protobuf
 sortedcontainers

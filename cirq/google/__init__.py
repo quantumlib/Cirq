@@ -12,6 +12,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.known_devices import *
-from cirq.google.xmon_device import *
-from cirq.google.xmon_scheduler import *
+from cirq.google.convert_to_xmon_gates import (
+    ConvertToXmonGates,
+    xmon_gate_ext,
+)
+from cirq.google.decompositions import (
+    controlled_op_to_native_gates,
+    is_negligible_turn,
+    single_qubit_matrix_to_native_gates,
+    single_qubit_op_to_framed_phase_form,
+    two_qubit_matrix_to_native_gates,
+)
+from cirq.google.eject_z import (
+    EjectZ,
+)
+from cirq.google.known_devices import (
+    Bristlecone,
+    Foxtail,
+)
+from cirq.google.merge_interactions import (
+    MergeInteractions,
+)
+from cirq.google.merge_rotations import (
+    MergeRotations,
+)
+from cirq.google.xmon_device import (
+    XmonDevice,
+)
+from cirq.google.xmon_gates import (
+    Exp11Gate,
+    ExpWGate,
+    ExpZGate,
+    XmonGate,
+    XmonMeasurementGate,
+)
+from cirq.google.xmon_qubit import (
+    XmonQubit,
+)
+from cirq.google.sim import (
+    Options,
+    Simulator,
+    StepResult,
+    TrialResult,
+)
+from cirq.google.engine import (
+    Engine,
+    EngineOptions,
+    EngineTrialResult,
+)

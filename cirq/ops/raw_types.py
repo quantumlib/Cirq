@@ -24,32 +24,28 @@ class QubitId:
     pass
 
 
-class QubitLoc(QubitId):
-    """A qubit at a location."""
+class NamedQubit(QubitId):
+    """A qubit identified by name."""
 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, name: str) -> None:
+        self.name = name
 
-    def is_adjacent(self, other: 'QubitLoc'):
-        return abs(self.x - other.x) + abs(self.y - other.y) == 1
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return 'NamedQubit({})'.format(repr(self.name))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.x == other.x and self.y == other.y
+        return self.name == other.name
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((QubitLoc, self.x, self.y))
-
-    def __repr__(self):
-        return 'QubitLoc({}, {})'.format(self.x, self.y)
-
-    def __str__(self):
-        return '{}_{}'.format(self.x, self.y)
+        return hash((NamedQubit, self.name))
 
 
 class Gate:
@@ -62,7 +58,7 @@ class Gate:
     """
 
     # noinspection PyMethodMayBeStatic
-    def validate_args(self, qubits: Sequence[QubitId]) -> type(None):
+    def validate_args(self, qubits: Sequence[QubitId]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
         Does no checks by default. Child classes can override.
@@ -88,10 +84,15 @@ class Gate:
         return self.on(*args)
 
 
+class InterchangeableQubitsGate:
+    """Indicates operations should be equal under any qubit permutation."""
+    pass
+
+
 class Operation:
     """An application of a gate to a collection of qubits."""
 
-    def __init__(self, gate: Gate, qubits: Sequence[QubitId]):
+    def __init__(self, gate: Gate, qubits: Sequence[QubitId]) -> None:
         self.gate = gate
         self.qubits = tuple(qubits)
 
@@ -103,12 +104,35 @@ class Operation:
                                ', '.join(str(e) for e in self.qubits))
 
     def __hash__(self):
-        return hash((Operation, self.gate, self.qubits))
+        q = self.qubits
+        if isinstance(self.gate, InterchangeableQubitsGate):
+            q = frozenset(q)
+        return hash((Operation, self.gate, q))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.gate == other.gate and self.qubits == other.qubits
+        q1, q2 = self.qubits, other.qubits
+        if isinstance(self.gate, InterchangeableQubitsGate):
+            q1 = frozenset(q1)
+            q2 = frozenset(q2)
+        return self.gate == other.gate and q1 == q2
 
     def __ne__(self, other):
         return not self == other
+
+    def __pow__(self, power: float) -> 'Operation':
+        """Raise gate to a power, then reapply to the same qubits.
+
+        Only works if the gate implements gate_features.ExtrapolatableGate.
+        For extrapolatable gate G this means the following two are equivalent:
+
+            (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
+
+        Args:
+            power: The amount to scale the gate's effect by.
+
+        Returns:
+            A new operation on the same qubits with the scaled gate.
+        """
+        return (self.gate ** power).on(*self.qubits)  # type: ignore

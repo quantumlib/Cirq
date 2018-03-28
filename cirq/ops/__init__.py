@@ -15,10 +15,55 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
-from cirq.ops.common_gates import *
-from cirq.ops.gate_features import *
-from cirq.ops.matrix_gates import *
-from cirq.ops.native_gates import *
-from cirq.ops.op_tree import *
-from cirq.ops.raw_types import *
-from cirq.ops.reversible_composite_gate import *
+from cirq.ops.common_gates import (
+    CNOT,
+    CNotGate,
+    CZ,
+    H,
+    HGate,
+    MeasurementGate,
+    Rot11Gate,
+    RotXGate,
+    RotYGate,
+    RotZGate,
+    S,
+    SWAP,
+    SwapGate,
+    T,
+    X,
+    Y,
+    Z,
+)
+from cirq.ops.gate_features import (
+    AsciiDiagrammableGate,
+    BoundedEffectGate,
+    CompositeGate,
+    ExtrapolatableGate,
+    KnownMatrixGate,
+    PhaseableGate,
+    ReversibleGate,
+    SelfInverseGate,
+    SingleQubitGate,
+    TwoQubitGate,
+)
+from cirq.ops.matrix_gates import (
+    SingleQubitMatrixGate,
+    TwoQubitMatrixGate,
+)
+from cirq.ops.op_tree import (
+    OP_TREE,
+    flatten_op_tree,
+    freeze_op_tree,
+    transform_op_tree,
+)
+from cirq.ops.raw_types import (
+    Gate,
+    InterchangeableQubitsGate,
+    NamedQubit,
+    Operation,
+    QubitId,
+)
+from cirq.ops.reversible_composite_gate import (
+    inverse_of_invertable_op_tree,
+    ReversibleCompositeGate,
+)

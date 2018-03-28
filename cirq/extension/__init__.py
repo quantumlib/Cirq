@@ -14,4 +14,9 @@
 
 """Ways to wrap values so that they match desired interfaces."""
 
-from cirq.extension.extensions import *
+from cirq.extension.extensions import (
+    Extensions,
+)
+from cirq.extension.potential_implementation import (
+    PotentialImplementation
+)
