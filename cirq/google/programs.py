@@ -51,6 +51,48 @@ def schedule_from_proto(
     return Schedule(device, scheduled_ops)
 
 
+def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
+    """Pack measurement results into a byte string.
+
+    Args:
+        measurements: A sequence of tuples, one for each measurement, consisting
+            of a string key and an array of boolean data. The data should be
+            a 2-D array indexed by (repetition, qubit_index). All data for all
+            measurements must have the same number of repetitions.
+
+    Returns:
+        Packed bytes, as described in the unpack_results docstring below.
+
+    Raises:
+        ValueError if the measurement data do not have the compatible shapes.
+    """
+    if not measurements:
+        return b''
+
+    shapes = [(key, np.shape(data)) for key, data in measurements]
+    if not all(len(shape) == 2 for _, shape in shapes):
+        raise ValueError("Expected 2-D data: shapes={}".format(shapes))
+
+    reps = shapes[0][1][0]
+    if not all(shape[0] == reps for _, shape in shapes):
+        raise ValueError(
+            "Expected same reps for all keys: shapes={}".format(shapes))
+
+    bits = np.hstack(np.asarray(data, dtype=bool) for _, data in measurements)
+    bits = bits.reshape(-1)
+
+    # Pad length to multiple of 8 if needed.
+    remainder = len(bits) % 8
+    if remainder:
+        bits = np.pad(bits, (0, 8 - remainder), 'constant')
+
+    # Pack in little-endian bit order.
+    bits = bits.reshape((-1, 8))[:, ::-1]
+    byte_arr = np.packbits(bits, axis=1).reshape(-1)
+
+    return byte_arr.tobytes()
+
+
 def unpack_results(
         data: bytes,
         repetitions: int,
