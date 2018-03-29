@@ -16,12 +16,10 @@
 """
 
 import base64
-import itertools
 import random
 import re
 import string
 import time
-from collections import defaultdict
 from typing import Dict, Optional, Union
 from typing import List  # pylint: disable=unused-import
 
@@ -34,7 +32,7 @@ from cirq.circuits import Circuit, ExpandComposite
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.devices import Device
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
-from cirq.google.programs import schedule_to_proto
+from cirq.google.programs import schedule_to_proto, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import Executor, TrialResult
 from cirq.study.resolver import ParamResolver
@@ -200,29 +198,20 @@ class Engine(Executor):
         response = service.projects().programs().jobs().getResult(
             parent=response['name']).execute()
 
-        # Convert from base64 encoded <rep-1><rep-2>...
-        # where each repetition is
-        # <key0-0>..<key0-i>..<key0-{key0-size}><key1-0>...
-        # to {<key>: [repetition][values]}
-        def as_bits(result: bytes):
-            for b in result:
-                for i in range(8):
-                    yield bool(b & (1 << i))
-
         # Only a single sweep is supported for now
         sweep_results = response['result']['sweepResults'][0]
-        measurements = defaultdict(list)  # type: Dict[str, List[np.ndarray]]
-        bits = as_bits(base64.standard_b64decode(
-            sweep_results['parameterizedResults'][0]['measurementResults']))
-        for _ in range(sweep_results['repetitions']):
-            for keymap in sweep_results['measurementKeys']:
-                v = list(itertools.islice(bits, keymap['size']))
-                measurements[keymap['key']].append(np.array(v, dtype=bool))
+        repetitions = sweep_results['repetitions']
+        key_sizes=[(m['key'], m['size'])
+                   for m in sweep_results['measurementKeys']]
+        data = base64.standard_b64decode(
+            sweep_results['parameterizedResults'][0]['measurementResults'])
+
+        measurements = unpack_results(data, repetitions, key_sizes)
 
         return EngineTrialResult(
             params=param_resolver,
             repetitions=repetitions,
-            measurements=dict(measurements))
+            measurements=measurements)
 
 
 class EngineTrialResult(TrialResult):
