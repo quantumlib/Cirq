@@ -16,12 +16,10 @@
 """
 
 import base64
-import itertools
 import random
 import re
 import string
 import time
-from collections import defaultdict
 from typing import Dict, Optional, Union
 from typing import List  # pylint: disable=unused-import
 
