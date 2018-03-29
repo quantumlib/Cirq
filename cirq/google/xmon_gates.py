@@ -99,6 +99,9 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
         op.measurement.key = self.key
         return op
 
+    def __repr__(self):
+        return 'XmonMeasurementGate({})'.format(repr(self.key))
+
 
 class Exp11Gate(XmonGate,
                 ops.AsciiDiagrammableGate,
@@ -302,8 +305,10 @@ class ExpZGate(XmonGate,
         return 'Z',
 
     def ascii_exponent(self):
-        if self.half_turns in [-0.5, -0.25, 0.25, 0.5]:
+        if self.half_turns in [0.25, 0.5]:
             return 1
+        if self.half_turns in [-0.5, -0.25]:
+            return -1
         return self.half_turns
 
     def try_cast_to(self, desired_type):
@@ -328,6 +333,11 @@ class ExpZGate(XmonGate,
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
         return ops.RotZGate(half_turns=self.half_turns).matrix()
+
+    def trace_distance_bound(self):
+        if isinstance(self.half_turns, Symbol):
+            return 1
+        return abs(self.half_turns) * 3.5
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:

@@ -255,7 +255,7 @@ class Stepper(object):
                 args.append(kwargs)
             self._pool.map(_reset_state, args)
 
-    def simulate_phases(self, phase_map: Dict[Tuple[int], float]):
+    def simulate_phases(self, phase_map: Dict[Tuple[int, ...], float]):
         """Simulate a set of phase gates on the xmon architecture.
 
         Args:

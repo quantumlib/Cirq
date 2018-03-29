@@ -135,14 +135,9 @@ class Engine(Executor):
             schedule = program
         else:
             # Convert to a schedule.
-            expand = ExpandComposite()
-            convert = ConvertToXmonGates(ignore_cast_failures=False)
-            drop = DropEmptyMoments()
-
             circuit_copy = Circuit(program.moments)
-            expand.optimize_circuit(circuit_copy)
-            convert.optimize_circuit(circuit_copy)
-            drop.optimize_circuit(circuit_copy)
+            ConvertToXmonGates().optimize_circuit(circuit_copy)
+            DropEmptyMoments().optimize_circuit(circuit_copy)
 
             schedule = moment_by_moment_schedule(device, circuit_copy)
 

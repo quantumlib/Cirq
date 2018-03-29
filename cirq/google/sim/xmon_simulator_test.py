@@ -29,8 +29,12 @@ from cirq.google import (
 from cirq.google.sim import xmon_simulator
 from cirq.ops import op_tree
 from cirq.ops import raw_types
-from cirq.ops.common_gates import CNOT, H, X, Z
-from cirq.ops.gate_features import CompositeGate, SingleQubitGate
+from cirq.ops.common_gates import CNOT, H, X, Z, CZ, SWAP
+from cirq.ops.gate_features import (
+    CompositeGate,
+    SingleQubitGate,
+    KnownMatrixGate,
+)
 from cirq.schedules import moment_by_moment_schedule
 from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
@@ -418,3 +422,50 @@ def test_inverted_measurement():
     result = xmon_simulator.Simulator().run(circuit)
     np.testing.assert_equal(result.measurements[''],
                             [[False, True, False, True]])
+
+
+def test_unknown_composite_two_qubit_gate():
+    class FSwapGate(CompositeGate):
+        def default_decompose(self, qubits: Sequence[raw_types.QubitId]):
+            return [SWAP.on(*qubits), CZ.on(*qubits)]
+
+    circuit = Circuit.from_ops(
+        X.on(Q1),
+        H.on(Q2),
+        FSwapGate().on(Q1, Q2),
+        H.on(Q1),
+        X.on(Q2),
+        XmonMeasurementGate().on(Q1),
+        XmonMeasurementGate().on(Q2),
+    )
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''],
+                            [[True, False]])
+
+
+def test_unknown_two_qubit_gate_with_known_matrix():
+    class DoubleNot(KnownMatrixGate):
+        def matrix(self):
+            return np.kron(X.matrix(), X.matrix())
+
+    circuit = Circuit.from_ops(
+        DoubleNot().on(Q1, Q2),
+        XmonMeasurementGate().on(Q1),
+        XmonMeasurementGate().on(Q2),
+    )
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''],
+                            [[True, True]])
+
+
+def test_circuit():
+    circuit = Circuit.from_ops(
+        ExpWGate(half_turns=-0.5).on(Q1),
+        ExpZGate(half_turns=-0.5).on(Q1),
+        ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(Q1),
+        ExpZGate(half_turns=0.5).on(Q1),
+        XmonMeasurementGate().on(Q1),
+    )
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''],
+                            [[True]])

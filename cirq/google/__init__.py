@@ -14,7 +14,6 @@
 
 from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,
-    xmon_gate_ext,
 )
 from cirq.google.decompositions import (
     controlled_op_to_native_gates,
@@ -38,6 +37,9 @@ from cirq.google.merge_rotations import (
 )
 from cirq.google.xmon_device import (
     XmonDevice,
+)
+from cirq.google.xmon_gate_extensions import (
+    xmon_gate_ext,
 )
 from cirq.google.xmon_gates import (
     Exp11Gate,

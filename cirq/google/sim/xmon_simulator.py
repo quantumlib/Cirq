@@ -25,22 +25,21 @@ A simple example:
     results = sim.run(circuit)
 """
 
-import functools
 import math
-
-from collections import defaultdict
-from typing import Tuple  # pylint: disable=unused-import
 from typing import Dict, Iterator, List, Sequence, Union
+from typing import Tuple  # pylint: disable=unused-import
 
+import functools
 import numpy as np
+from collections import defaultdict
 
-from cirq.circuits import Circuit, ExpandComposite
+from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
-from cirq.ops import raw_types
-from cirq.schedules import Schedule
 from cirq.google import xmon_gates
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
+from cirq.ops import raw_types
+from cirq.schedules import Schedule
 from cirq.study import Executor, TrialResult as TrialResultBase
 from cirq.study.resolver import ParamResolver
 
@@ -203,14 +202,11 @@ def simulator_iterator(
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    expand = ExpandComposite()
-    convert = ConvertToXmonGates(ignore_cast_failures=False)
-    drop = DropEmptyMoments()
 
     circuit_copy = Circuit(circuit.moments)
-    expand.optimize_circuit(circuit_copy)
-    convert.optimize_circuit(circuit_copy)
-    drop.optimize_circuit(circuit_copy)
+    ConvertToXmonGates().optimize_circuit(circuit_copy)
+    DropEmptyMoments().optimize_circuit(circuit_copy)
+    print(circuit_copy)
     with Stepper(
         num_qubits=len(qubits),
         num_prefix_qubits=options.num_prefix_qubits,
@@ -244,9 +240,8 @@ def simulator_iterator(
                         result = not result
                     measurements[gate.key].append(result)
                 else:
-                    raise TypeError(
-                        'Gate %s is not a gate supported by the xmon simulator.'
-                        % gate)
+                    raise TypeError('{!r} is not supported by the '
+                                    'xmon simulator.'.format(gate))
             stepper.simulate_phases(phase_map)
             yield StepResult(stepper, qubit_map, measurements)
 
