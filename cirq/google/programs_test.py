@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from cirq.examples import generate_supremacy_circuit
 from cirq.google import Foxtail, programs
@@ -40,6 +41,57 @@ def make_bytes(s: str) -> bytes:
     if idx:
         buf.append(byte)
     return bytearray(buf)
+
+
+def test_pack_results():
+    measurements = [
+        ('a',
+         np.array([
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 0, 1],
+            [1, 1, 0],])),
+        ('b',
+         np.array([
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+            [0, 0],
+            [0, 1],
+            [1, 0],])),
+    ]
+    data = programs.pack_results(measurements)
+    expected = make_bytes("""
+        000 00
+        001 01
+        010 10
+        011 11
+        100 00
+        101 01
+        110 10
+
+        000 00 -- padding
+    """)
+    assert data == expected
+
+
+def test_pack_results_no_measurements():
+    assert programs.pack_results([]) == b''
+
+
+def test_pack_results_incompatible_shapes():
+    def bools(*shape):
+        return np.zeros(shape, dtype=bool)
+
+    with pytest.raises(ValueError):
+        programs.pack_results([('a', bools(10))])
+
+    with pytest.raises(ValueError):
+        programs.pack_results([('a', bools(7, 3)), ('b', bools(8, 2))])
 
 
 def test_unpack_results():
