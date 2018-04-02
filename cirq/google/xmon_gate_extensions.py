@@ -26,7 +26,6 @@ xmon_gate_ext = Extensions(desired_to_actual_to_wrapper={
         ops.RotZGate: lambda e: xmon_gates.ExpZGate(half_turns=e.half_turns),
         ops.Rot11Gate: lambda e: xmon_gates.Exp11Gate(half_turns=e.half_turns),
         ops.MeasurementGate: lambda e: xmon_gates.XmonMeasurementGate(
-            key=e.key,
-            invert_result=e.invert_result),
+            key=e.key),
     }
 })

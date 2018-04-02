@@ -156,3 +156,10 @@ def test_runtime_types_of_rot_gates():
         assert c.matrix() is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
+
+
+def test_measurement_eq():
+  eq = EqualsTester()
+  eq.add_equality_group(ops.MeasurementGate(''))
+  eq.add_equality_group(ops.MeasurementGate('a'))
+  eq.add_equality_group(ops.MeasurementGate('b'))

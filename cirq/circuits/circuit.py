@@ -345,6 +345,17 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
                                         ) -> Iterable[str]:
     ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
     if ascii_gate is not None:
+        wire_symbols = ascii_gate.ascii_wire_symbols()
+        if len(op.qubits) == len(wire_symbols):
+            return wire_symbols
+        elif len(wire_symbols) == 1:
+            return len(op.qubits) * wire_symbols
+        else:
+            raise ValueError(
+                'Multi-qubit operation with AsciiDiagrammableGate {} that '
+                'requires {} qubits but found {} qubits'.format(
+                    repr(op.gate), len(wire_symbols), len(op.qubits)))
+
         return ascii_gate.ascii_wire_symbols()
     name = repr(op.gate)
     if len(op.qubits) == 1:

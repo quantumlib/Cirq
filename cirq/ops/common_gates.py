@@ -197,11 +197,11 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
 
 
 class MeasurementGate(gate_features.AsciiDiagrammableGate):
-    """Indicates that a qubit should be measured, and where the result goes."""
+    """Indicates that qubits should be measured plus a key to identify results.
+    """
 
-    def __init__(self, key: str = '', invert_result=False) -> None:
+    def __init__(self, key: str = '') -> None:
         self.key = key
-        self.invert_result = invert_result
 
     def ascii_wire_symbols(self):
         return 'M',
