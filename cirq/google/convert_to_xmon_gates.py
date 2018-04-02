@@ -29,7 +29,9 @@ from cirq.google.xmon_gates import XmonGate
 class ConvertToXmonGates(PointOptimizer):
     """Attempts to convert strange gates into XmonGates."""
 
-    def __init__(self, extensions: Extensions=None, ignore_failures=False):
+    def __init__(self,
+                 extensions: Extensions=None,
+                 ignore_failures=False) -> None:
         """
         Args:
             extensions: The extensions instance to use when trying to

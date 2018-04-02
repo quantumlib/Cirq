@@ -25,13 +25,13 @@ A simple example:
     results = sim.run(circuit)
 """
 
+from collections import defaultdict
 import math
 from typing import Dict, Iterator, List, Sequence, Union
 from typing import Tuple  # pylint: disable=unused-import
 
 import functools
 import numpy as np
-from collections import defaultdict
 
 from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments

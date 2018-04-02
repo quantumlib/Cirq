@@ -28,7 +28,7 @@ import oauth2client
 from apiclient.discovery import build
 from google.protobuf.json_format import MessageToDict
 
-from cirq.circuits import Circuit, ExpandComposite
+from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.devices import Device
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
