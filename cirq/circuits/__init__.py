@@ -38,4 +38,5 @@ from cirq.circuits.moment import (
 from cirq.circuits.optimization_pass import (
     OptimizationPass,
     PointOptimizer,
+    PointOptimizationSummary,
 )
