@@ -204,7 +204,7 @@ def simulator_iterator(
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     expand = ExpandComposite()
-    convert = ConvertToXmonGates(ignore_failures=False)
+    convert = ConvertToXmonGates(ignore_cast_failures=False)
     drop = DropEmptyMoments()
 
     circuit_copy = Circuit(circuit.moments)
