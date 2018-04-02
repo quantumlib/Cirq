@@ -37,10 +37,10 @@ message ParameterizedResult {
   // The results of a single run of the program should consist of bits for
   // each of the measurement gates. To order these bits we use the
   // measurement_keys field of the SweepResult. This is an ordered list of
-  // measurement keys plus a list of the qubits that the measurement acts on.
-  // We use the ordering of the measurement_keys and then the ordering of the
-  // qubits to define the order of the bit string for a single run of the
-  // measurement.
+  // measurement keys, each of which includes a list of qubits that the
+  // measurement acts on. We use the ordering of the measurement_keys and then
+  // the ordering of the qubits to define the order of the bit string for a
+  // single run of the measurement.
   //
   // If the keys are (k_i), for i \in {0, 1, ..., m-1}, and the measurement
   // acts on qubits q_{i,0}, q_{i,1}, ..., q_{i,n_i-1} (so that ith key
