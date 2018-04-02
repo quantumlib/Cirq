@@ -55,6 +55,36 @@ def test_depolarizer_all_errors():
     assert allerrors.transform_job(cnot) == cnot_then_z
 
 
+def test_depolarizer_different_gate():
+    q1 = ops.QubitId()
+    q2 = ops.QubitId()
+    cnot = Job(circuits.Circuit([
+        circuits.Moment([ops.CNOT(q1, q2)]),
+        ]))
+    allerrors = DepolarizerChannel(probability=1.0, depolarizing_gates=
+                                   [xmon_gates.ExpZGate(),
+                                    xmon_gates.ExpWGate()])
+    p0 = Symbol(DepolarizerChannel._parameter_name + '0')
+    p1 = Symbol(DepolarizerChannel._parameter_name + '1')
+    p2 = Symbol(DepolarizerChannel._parameter_name + '2')
+    p3 = Symbol(DepolarizerChannel._parameter_name + '3')
+
+    error_sweep = (Points(p0.name, [1.0]) + Points(p1.name, [1.0])
+                   + Points(p2.name, [1.0]) + Points(p3.name, [1.0]))
+
+    cnot_then_z = Job(
+        circuits.Circuit([
+            circuits.Moment([ops.CNOT(q1, q2)]),
+            circuits.Moment([xmon_gates.ExpZGate(half_turns=p0).on(q1),
+                             xmon_gates.ExpZGate(half_turns=p1).on(q2)]),
+            circuits.Moment([xmon_gates.ExpWGate(half_turns=p2).on(q1),
+                             xmon_gates.ExpWGate(half_turns=p3).on(q2)])
+        ]),
+        cnot.sweep * error_sweep)
+
+    assert allerrors.transform_job(cnot) == cnot_then_z
+
+
 def test_depolarizer_multiple_realizations():
     q1 = ops.QubitId()
     q2 = ops.QubitId()

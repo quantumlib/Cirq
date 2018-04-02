@@ -15,6 +15,7 @@
 """Error simulator that adds randomly activated error gates after every moment.
 """
 
+import copy
 import numpy as np
 
 from cirq.circuits.circuit import Circuit
@@ -33,8 +34,11 @@ class DepolarizerChannel(object):
     noise by decohering random qubits at each step.  This transform
     is intended only for classical simulations only.
 
-    This class currently only supports adding a Pauli-Z gate at
-    each step.
+    This class currently defaults to adding a Pauli-Z gate at
+    each step but the gate set to add is configurable.  Note that
+    all gates must be XmonGates or have a half_turns parameter
+    that will be overwritten by this class with a parameterized
+    value.
 
     If the job already contains a parameter sweep, this will create
     the error sweep as a cartesian product (i.e. a "factor") of the
@@ -45,14 +49,17 @@ class DepolarizerChannel(object):
     Attributes:
         probability: Probability of a qubit being affected in a given moment
         realizations: Number of simulations to create.
+        depolarizing_gates: A list of XmonGates to include at every moment.
     """
 
     # Prefix for symbols related to error simulation
     _parameter_name = 'error_parameter'
 
-    def __init__(self, probability=0.001, realizations=1):
+    def __init__(self, probability=0.001, realizations=1,
+                 depolarizing_gates=(xmon_gates.ExpZGate(),)):
         self.p = probability
         self.realizations = realizations
+        self.depolarizing_gates = depolarizing_gates
 
     def transform_job(self, job):
         """Creates a new job object with depolarizing channel.
@@ -95,21 +102,23 @@ class DepolarizerChannel(object):
         for moment in circuit.moments:
             moments.append(moment)
 
-            error_gates = []
-            for q in qubit_list:
-                errors = np.random.random(self.realizations) < self.p
-                if any(errors):
-                    key = self._parameter_name + str(error_number)
-                    error_gates.append(xmon_gates.ExpZGate(
-                        half_turns=Symbol(key)).on(q))
-                    error_sweep += Points(key, list(errors * 1.0))
-                    error_number += 1
+            for gate in self.depolarizing_gates:
+                error_gates = []
+                for q in qubit_list:
+                    errors = np.random.random(self.realizations) < self.p
+                    if any(errors):
+                        key = self._parameter_name + str(error_number)
+                        new_error_gate = copy.deepcopy(gate)
+                        new_error_gate.half_turns = Symbol(key)
+                        error_gates.append(new_error_gate.on(q))
+                        error_sweep += Points(key, list(errors * 1.0))
+                        error_number += 1
 
-            if error_gates:
-                moments.append(Moment(error_gates))
+                if error_gates:
+                    moments.append(Moment(error_gates))
 
         sweep = job.sweep
-        if len(error_sweep):
+        if error_sweep:
             sweep *= error_sweep
 
         return Job(Circuit(moments), sweep, job.repetitions)
