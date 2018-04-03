@@ -66,6 +66,7 @@ class SharedMemManager(object):
             raise ValueError(
                 'Array has unsupported dtype {}.'.format(arr.dtype))
 
+        # pylint: disable=protected-access
         raw_arr = RawArray(c_arr._type_, c_arr)
 
         with self._lock:
@@ -74,7 +75,6 @@ class SharedMemManager(object):
 
             self._get_next_free()
 
-            # pylint: disable=protected-access
             self._arrays[self._current] = raw_arr
 
             self._count += 1
