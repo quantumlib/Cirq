@@ -423,7 +423,7 @@ def test_inverted_measurement(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_inverted_measurement(scheduler):
+def test_inverted_measurement_multiple_qubits(scheduler):
     circuit = Circuit.from_ops(
         XmonMeasurementGate('a', invert_mask=(False, True))(Q1, Q2),
         XmonMeasurementGate('b', invert_mask=(True, False))(Q1, Q2),
