@@ -13,28 +13,30 @@
 # limitations under the License.
 
 from cirq import ops
-from cirq.circuits import InsertStrategy
+from cirq.circuits.optimization_pass import PointOptimizer, \
+    PointOptimizationSummary
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_gates import XmonGate
-from cirq.circuits.optimization_pass import PointOptimizer
 
 
 class ConvertToXmonGates(PointOptimizer):
     """Pointwise converts a circuit to XmonGates if possible."""
 
-    def __init__(self, ignore_failures=True):
-        self.ignore_failures = ignore_failures
+    def __init__(self, ignore_cast_failures=True):
+        self.ignore_cast_failures = ignore_cast_failures
 
-    def optimize_at(self, circuit, index, op):
-        if self.ignore_failures:
+    def optimization_at(self, circuit, index, op):
+        if self.ignore_cast_failures:
             c = xmon_gate_ext.try_cast(op.gate, XmonGate)
             if c is None:
-                return
+                return None
         else:
             c = xmon_gate_ext.cast(op.gate, XmonGate)
 
-        if c is not op.gate:
-            circuit.clear_operations_touching(op.qubits, [index])
-            return circuit.insert(index,
-                                  ops.Operation(c, op.qubits),
-                                  strategy=InsertStrategy.INLINE)
+        if c is op.gate:
+            return None
+
+        return PointOptimizationSummary(
+            clear_span=1,
+            new_operations=ops.Operation(c, op.qubits),
+            clear_qubits=op.qubits)

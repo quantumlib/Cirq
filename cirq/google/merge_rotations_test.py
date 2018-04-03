@@ -41,17 +41,17 @@ def assert_optimizes(before, after, optimizer=None):
 
 
 def test_leaves_singleton():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(0.000001)
     q = ops.QubitId()
     c = circuits.Circuit([circuits.Moment([ops.X(q)])])
 
-    m.optimize_at(c, 0, c.operation_at(q, 0))
+    m.optimization_at(c, 0, c.operation_at(q, 0))
 
     assert c == circuits.Circuit([circuits.Moment([ops.X(q)])])
 
 
 def test_combines_sequence():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(0.000001)
     q = ops.QubitId()
     c = circuits.Circuit([
         circuits.Moment([ops.X(q)**0.5]),
@@ -59,13 +59,10 @@ def test_combines_sequence():
         circuits.Moment([ops.X(q)**-0.5]),
     ])
 
-    m.optimize_at(c, 0, c.operation_at(q, 0))
-
-    assert c == circuits.Circuit([
-        circuits.Moment([ops.Y(q)**0.5]),
-        circuits.Moment(),
-        circuits.Moment(),
-    ])
+    assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
+            circuits.PointOptimizationSummary(clear_span=3,
+                                              clear_qubits=[q],
+                                              new_operations=ops.Y(q)**0.5))
 
 
 def test_removes_identity_sequence():
@@ -81,7 +78,7 @@ def test_removes_identity_sequence():
 
 
 def test_stopped_at_2qubit():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(0.000001)
     q = ops.QubitId()
     q2 = ops.QubitId()
     c = circuits.Circuit([
@@ -93,27 +90,21 @@ def test_stopped_at_2qubit():
         circuits.Moment([ops.H(q)]),
     ])
 
-    m.optimize_at(c, 0, c.operation_at(q, 0))
-
-    assert c == circuits.Circuit([
-        circuits.Moment(),
-        circuits.Moment(),
-        circuits.Moment(),
-        circuits.Moment(),
-        circuits.Moment([ops.CZ(q, q2)]),
-        circuits.Moment([ops.H(q)]),
-    ])
+    assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
+            circuits.PointOptimizationSummary(clear_span=4,
+                                              clear_qubits=[q],
+                                              new_operations=[]))
 
 
 def test_ignores_2qubit_target():
-    m = MergeRotations(circuits.InsertStrategy.INLINE, 0.000001)
+    m = MergeRotations(0.000001)
     q = ops.QubitId()
     q2 = ops.QubitId()
     c = circuits.Circuit([
         circuits.Moment([ops.CZ(q, q2)]),
     ])
 
-    m.optimize_at(c, 0, c.operation_at(q, 0))
+    m.optimization_at(c, 0, c.operation_at(q, 0))
 
     assert c == circuits.Circuit([circuits.Moment([ops.CZ(q, q2)])])
 

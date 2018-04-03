@@ -15,7 +15,10 @@
 """An optimization pass that removes operations with tiny effects."""
 
 from cirq import ops
-from cirq.circuits.optimization_pass import PointOptimizer
+from cirq.circuits.optimization_pass import (
+    PointOptimizer,
+    PointOptimizationSummary,
+)
 
 
 class DropNegligible(PointOptimizer):
@@ -24,7 +27,11 @@ class DropNegligible(PointOptimizer):
     def __init__(self, tolerance: float = 1e-8) -> None:
         self.tolerance = tolerance
 
-    def optimize_at(self, circuit, index, op):
-        if (isinstance(op.gate, ops.BoundedEffectGate) and
+    def optimization_at(self, circuit, index, op):
+        if not (isinstance(op.gate, ops.BoundedEffectGate) and
                 op.gate.trace_distance_bound() <= self.tolerance):
-            circuit.clear_operations_touching(op.qubits, [index])
+            return None
+        return PointOptimizationSummary(
+            clear_span=1,
+            new_operations=(),
+            clear_qubits=op.qubits)
