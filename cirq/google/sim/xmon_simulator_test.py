@@ -408,6 +408,34 @@ def test_measurement_qubit_order(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_inverted_measurement(scheduler):
+    circuit = Circuit.from_ops(
+        XmonMeasurementGate('a', invert_mask=(False,))(Q1),
+        X(Q1),
+        XmonMeasurementGate('b', invert_mask=(False,))(Q1),
+        XmonMeasurementGate('c', invert_mask=(True,))(Q1),
+        X(Q1),
+        XmonMeasurementGate('d', invert_mask=(True,))(Q1))
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    assert {'a': [[False]], 'b': [[True]], 'c': [[False]],
+            'd': [[True]]} == result.measurements
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_inverted_measurement(scheduler):
+    circuit = Circuit.from_ops(
+        XmonMeasurementGate('a', invert_mask=(False, True))(Q1, Q2),
+        XmonMeasurementGate('b', invert_mask=(True, False))(Q1, Q2),
+        XmonMeasurementGate('c', invert_mask=(True, False))(Q2, Q1))
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[False, True]])
+    np.testing.assert_equal(result.measurements['b'], [[True, False]])
+    np.testing.assert_equal(result.measurements['c'], [[True, False]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_multiple_measurements(scheduler):
   circuit = Circuit()
   measa = XmonMeasurementGate('a')
@@ -420,6 +448,20 @@ def test_measurement_multiple_measurements(scheduler):
   result = run(simulator, circuit, scheduler)
   np.testing.assert_equal(result.measurements['a'], [[True, False]])
   np.testing.assert_equal(result.measurements['b'], [[False, False]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_multiple_measurements_qubit_order(scheduler):
+    circuit = Circuit()
+    measa = XmonMeasurementGate('a')
+    measb = XmonMeasurementGate('b')
+    circuit.append(X(Q1))
+    circuit.append([measa.on(Q1, Q2)])
+    circuit.append([measb.on(Q2, Q1)])
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[True, False]])
+    np.testing.assert_equal(result.measurements['b'], [[False, True]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)

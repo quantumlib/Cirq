@@ -160,6 +160,9 @@ def test_runtime_types_of_rot_gates():
 
 def test_measurement_eq():
   eq = EqualsTester()
-  eq.add_equality_group(ops.MeasurementGate(''))
+  eq.add_equality_group(ops.MeasurementGate(''),
+                        ops.MeasurementGate('', invert_mask=None))
   eq.add_equality_group(ops.MeasurementGate('a'))
+  eq.add_equality_group(ops.MeasurementGate('a', invert_mask=(True,)))
+  eq.add_equality_group(ops.MeasurementGate('a', invert_mask=(False,)))
   eq.add_equality_group(ops.MeasurementGate('b'))

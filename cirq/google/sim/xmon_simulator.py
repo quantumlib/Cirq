@@ -242,9 +242,12 @@ def simulator_iterator(
                         axis_half_turns=param_resolver.value_of(
                             gate.axis_half_turns))
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
-                    for qubit in op.qubits:
+                    invert_mask = gate.invert_mask or len(op.qubits) * [False]
+                    for qubit, invert in zip(op.qubits, invert_mask):
                         index = qubit_map[qubit]
                         result = stepper.simulate_measurement(index)
+                        if invert:
+                            result = not result
                         measurements[gate.key].append(result)
                 else:
                     raise TypeError(
