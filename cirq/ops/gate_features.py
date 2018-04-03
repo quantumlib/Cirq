@@ -105,7 +105,7 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose constant non-parameterized effect has a known matrix."""
+    """A gate which can be nicely represented in an ASCII diagram."""
 
     # noinspection PyMethodMayBeStatic
     def ascii_exponent(self) -> float:
@@ -114,7 +114,15 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def ascii_wire_symbols(self) -> Tuple[str, ...]:
-        """The symbols that should be shown on the gate's qubits (in order)."""
+        """The symbols that should be shown on the gate's qubits (in order).
+
+        If the gate always acts on the same number of qubits, then the size
+        of the returned tuple should be equal to this number of qubits.
+        If the gate acts on a variable number of qubits, then a single
+        symbol should be used, and this will be repeated across the operation.
+        It is an error to have more than a single symbol in the case that
+        the gate acts on a variable number of qubits.
+        """
 
 
 class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):

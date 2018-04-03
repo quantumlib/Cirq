@@ -17,10 +17,10 @@
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
 the circuit are either an XmonGate or are CompositeGate which can be
-decomposed into XmonGates.
+decomposed into XmonGates. Measurement gates must all have unique string keys.
 
 A simple example:
-    circuit = Circuit([Moment(X(q1), X(q2)), Moment(CZ(q1, q2)])
+    circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])
     sim = Simulator()
     results = sim.run(circuit)
 """
@@ -203,6 +203,8 @@ def simulator_iterator(
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
+
+    # TODO: Use one optimization pass.
     expand = ExpandComposite()
     convert = ConvertToXmonGates(ignore_cast_failures=False)
     drop = DropEmptyMoments()
@@ -211,6 +213,8 @@ def simulator_iterator(
     expand.optimize_circuit(circuit_copy)
     convert.optimize_circuit(circuit_copy)
     drop.optimize_circuit(circuit_copy)
+    validate_unique_measurement_keys(circuit_copy)
+
     with Stepper(
         num_qubits=len(qubits),
         num_prefix_qubits=options.num_prefix_qubits,
@@ -238,17 +242,30 @@ def simulator_iterator(
                         axis_half_turns=param_resolver.value_of(
                             gate.axis_half_turns))
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
-                    index = qubit_map[op.qubits[0]]
-                    result = stepper.simulate_measurement(index)
-                    if gate.invert_result:
-                        result = not result
-                    measurements[gate.key].append(result)
+                    invert_mask = gate.invert_mask or len(op.qubits) * (False,)
+                    for qubit, invert in zip(op.qubits, invert_mask):
+                        index = qubit_map[qubit]
+                        result = stepper.simulate_measurement(index)
+                        if invert:
+                            result = not result
+                        measurements[gate.key].append(result)
                 else:
                     raise TypeError(
                         'Gate %s is not a gate supported by the xmon simulator.'
                         % gate)
             stepper.simulate_phases(phase_map)
             yield StepResult(stepper, qubit_map, measurements)
+
+
+def validate_unique_measurement_keys(circuit):
+    keys = set()
+    for moment in circuit.moments:
+        for op in moment.operations:
+            if isinstance(op.gate, xmon_gates.XmonMeasurementGate):
+                key = op.gate.key
+                if key in keys:
+                    raise ValueError('Repeated Measurement key {}'.format(key))
+                keys.add(key)
 
 
 class StepResult:
@@ -259,8 +276,7 @@ class StepResult:
             of this qubit for a canonical ordering. This canonical ordering is
             used to define the state (see the state() method).
         measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being simulated.
+            results, ordered by the qubits that the measurement operates on.
     """
 
     def __init__(
@@ -343,8 +359,7 @@ class TrialResult(TrialResultBase):
 
     Attributes:
         measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being simulated.
+            results ordered by the qubits acted upon by the measurement gate.
         final_state: The final state (wave function) of the system after
             the trial finishes.
     """
