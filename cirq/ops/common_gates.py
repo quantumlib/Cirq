@@ -206,7 +206,7 @@ class MeasurementGate(gate_features.AsciiDiagrammableGate):
         inverting should be done.
     """
 
-    def __init__(self, key: str = '', invert_mask: Tuple[Any] = None) -> None:
+    def __init__(self, key: str = '', invert_mask: Tuple[bool] = None) -> None:
         self.key = key
         self.invert_mask = invert_mask
 
