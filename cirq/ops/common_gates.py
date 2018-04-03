@@ -14,7 +14,7 @@
 
 """Quantum gates that are commonly used in the literature."""
 import math
-from typing import Any, Union, Tuple
+from typing import Union, Tuple
 
 import numpy as np
 
