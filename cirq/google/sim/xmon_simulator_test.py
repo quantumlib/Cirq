@@ -39,6 +39,7 @@ from cirq.value import Symbol
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
+Q3 = XmonQubit(2, 0)
 
 
 def basic_circuit():
@@ -64,9 +65,7 @@ def large_circuit():
         circuit.append(
             [sqrt_x(qubit) for qubit in qubits if np.random.random() < 0.5])
         circuit.append([cz(qubits[i], qubits[i + 1]) for i in range(9)])
-    for i in range(10):
-        circuit.append(
-            XmonMeasurementGate(key='meas')(qubits[i]))
+    circuit.append([XmonMeasurementGate(key='meas')(*qubits)])
     return circuit
 
 
@@ -343,7 +342,7 @@ def test_composite_gates(scheduler):
     circuit = Circuit()
     circuit.append([X(Q1), CNOT(Q1, Q2)])
     m = XmonMeasurementGate('a')
-    circuit.append([m(Q1), m(Q2)])
+    circuit.append([m(Q1, Q2)])
 
     simulator = xmon_simulator.Simulator()
     result = run(simulator, circuit, scheduler)
@@ -396,25 +395,80 @@ def test_unsupported_gate_composite(scheduler):
         _ = run(simulator, circuit, scheduler)
 
 
-def test_measurement_order():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_qubit_order(scheduler):
+  circuit = Circuit()
+  meas = XmonMeasurementGate()
+  circuit.append(X(Q2))
+  circuit.append(X(Q1))
+  circuit.append([meas.on(Q1, Q3, Q2)])
+  simulator = xmon_simulator.Simulator()
+  result = run(simulator, circuit, scheduler)
+  np.testing.assert_equal(result.measurements[''], [[True, False, True]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_inverted_measurement(scheduler):
     circuit = Circuit.from_ops(
-        XmonMeasurementGate().on(Q1),
+        XmonMeasurementGate('a', invert_mask=(False,))(Q1),
         X(Q1),
-        XmonMeasurementGate().on(Q1),
-    )
-    result = xmon_simulator.Simulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''], [[False, True]])
+        XmonMeasurementGate('b', invert_mask=(False,))(Q1),
+        XmonMeasurementGate('c', invert_mask=(True,))(Q1),
+        X(Q1),
+        XmonMeasurementGate('d', invert_mask=(True,))(Q1))
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    assert {'a': [[False]], 'b': [[True]], 'c': [[False]],
+            'd': [[True]]} == result.measurements
 
 
-def test_inverted_measurement():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_inverted_measurement_multiple_qubits(scheduler):
     circuit = Circuit.from_ops(
-        XmonMeasurementGate(invert_result=False)(Q1),
-        X(Q1),
-        XmonMeasurementGate(invert_result=False)(Q1),
-        XmonMeasurementGate(invert_result=True)(Q1),
-        X(Q1),
-        XmonMeasurementGate(invert_result=True)(Q1))
+        XmonMeasurementGate('a', invert_mask=(False, True))(Q1, Q2),
+        XmonMeasurementGate('b', invert_mask=(True, False))(Q1, Q2),
+        XmonMeasurementGate('c', invert_mask=(True, False))(Q2, Q1))
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[False, True]])
+    np.testing.assert_equal(result.measurements['b'], [[True, False]])
+    np.testing.assert_equal(result.measurements['c'], [[True, False]])
 
-    result = xmon_simulator.Simulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''],
-                            [[False, True, False, True]])
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_multiple_measurements(scheduler):
+  circuit = Circuit()
+  measa = XmonMeasurementGate('a')
+  measb = XmonMeasurementGate('b')
+  circuit.append(X(Q1))
+  circuit.append([measa.on(Q1, Q2)])
+  circuit.append(X(Q1))
+  circuit.append([measb.on(Q1, Q2)])
+  simulator = xmon_simulator.Simulator()
+  result = run(simulator, circuit, scheduler)
+  np.testing.assert_equal(result.measurements['a'], [[True, False]])
+  np.testing.assert_equal(result.measurements['b'], [[False, False]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_multiple_measurements_qubit_order(scheduler):
+    circuit = Circuit()
+    measa = XmonMeasurementGate('a')
+    measb = XmonMeasurementGate('b')
+    circuit.append(X(Q1))
+    circuit.append([measa.on(Q1, Q2)])
+    circuit.append([measb.on(Q2, Q1)])
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[True, False]])
+    np.testing.assert_equal(result.measurements['b'], [[False, True]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_keys_repeat(scheduler):
+    circuit = Circuit()
+    meas = XmonMeasurementGate('a')
+    circuit.append([meas.on(Q1), X.on(Q1), X.on(Q2), meas.on(Q2)])
+    simulator = xmon_simulator.Simulator()
+    with pytest.raises(ValueError, message='Repeated Measurement key a'):
+        run(simulator, circuit, scheduler)
