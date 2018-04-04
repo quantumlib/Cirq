@@ -185,8 +185,8 @@ circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 circuit.append([XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)])
 results = simulator.run(program=circuit,
-                      params=resolvers,
-                      repetitions=2)
+                        params=resolvers,
+                        repetitions=2)
 for result in results:
     print(result)
 # prints something like

@@ -50,9 +50,9 @@ class EngineTrialResult(TrialResult):
     """
 
     def __init__(self,
-        params: ParamResolver,
-        repetitions: int,
-        measurements: Dict[str, np.ndarray]) -> None:
+                 params: ParamResolver,
+                 repetitions: int,
+                 measurements: Dict[str, np.ndarray]) -> None:
         self.params = params
         self.repetitions = repetitions
         self.measurements = measurements
@@ -73,12 +73,12 @@ class EngineOptions:
     """
 
     def __init__(self, project_id: str,
-        credentials: Optional[oauth2client.client.Credentials] = None,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        gcs_prefix: Optional[str] = None,
-        gcs_program: Optional[str] = None,
-        gcs_results: Optional[str] = None) -> None:
+                 credentials: Optional[oauth2client.client.Credentials] = None,
+                 program_id: Optional[str] = None,
+                 job_id: Optional[str] = None,
+                 gcs_prefix: Optional[str] = None,
+                 gcs_program: Optional[str] = None,
+                 gcs_results: Optional[str] = None) -> None:
         """Engine options for running the Engine. At a minimum requires
         project_id and either gcs_prefix or gcs_program and gcs_results.
 
@@ -120,8 +120,8 @@ class Engine:
     """
 
     def __init__(self, api_key: str, api: str = 'quantum',
-        version: str = 'v1alpha1',
-        discovery_url: Optional[str] = None) -> None:
+                 version: str = 'v1alpha1',
+                 discovery_url: Optional[str] = None) -> None:
         self.api_key = api_key
         self.api = api
         self.version = version
