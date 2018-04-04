@@ -46,8 +46,7 @@ class EngineTrialResult(TrialResult):
 
     Attributes:
         measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being executed.
+            results ordered by the qubits acted upon by the measurement gate.
     """
 
     def __init__(self,
@@ -164,7 +163,7 @@ class Engine:
                 raise TypeError('device is required when running a circuit')
             # Convert to a schedule.
             expand = ExpandComposite()
-            convert = ConvertToXmonGates(ignore_failures=False)
+            convert = ConvertToXmonGates(ignore_cast_failures=False)
             drop = DropEmptyMoments()
 
             circuit_copy = Circuit(program.moments)

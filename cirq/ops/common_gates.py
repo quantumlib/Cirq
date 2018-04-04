@@ -122,8 +122,8 @@ class Rot11Gate(_TurnGate,
                 InterchangeableQubitsGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
-  A ParameterizedCZGate guaranteed to not be using the parameter key field.
-  """
+    A ParameterizedCZGate guaranteed to not be using the parameter key field.
+    """
 
     def __init__(self,
                  *positional_args,
@@ -197,28 +197,36 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
 
 
 class MeasurementGate(gate_features.AsciiDiagrammableGate):
-    """Indicates that a qubit should be measured, and where the result goes."""
+    """Indicates that qubits should be measured plus a key to identify results.
 
-    def __init__(self, key: str = '', invert_result=False) -> None:
+    Params:
+        key: The string key of the measurement.
+        invert_mask: A list of Truthy or Falsey values indicating whether
+        the corresponding qubits should be flipped. None indicates no
+        inverting should be done.
+    """
+
+    def __init__(self, key: str = '', invert_mask: Tuple[bool] = None) -> None:
         self.key = key
-        self.invert_result = invert_result
+        self.invert_mask = invert_mask
 
     def ascii_wire_symbols(self):
         return 'M',
 
     def __repr__(self):
-        return 'MeasurementGate({})'.format(repr(self.key))
+        return 'MeasurementGate({}, {})'.format(repr(self.key),
+                                                repr(self.invert_mask))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.key == other.key
+        return self.key == other.key and self.invert_mask == other.invert_mask
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((MeasurementGate, self.key))
+        return hash((MeasurementGate, self.key, self.invert_mask))
 
 
 X = RotXGate()  # Pauli X gate.

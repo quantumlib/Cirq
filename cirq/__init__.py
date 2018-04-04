@@ -36,6 +36,7 @@ from cirq.circuits import (
     InsertStrategy,
     Moment,
     OptimizationPass,
+    PointOptimizationSummary,
     PointOptimizer,
     TextDiagramDrawer,
 )

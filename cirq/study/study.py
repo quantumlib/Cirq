@@ -72,8 +72,7 @@ class TrialResult(metaclass=TrialResultMeta):
         measurements: A dictionary from measurement gate key to measurement
             results. The value for each key is a 2-D array of booleans, with
             the first index running over the repetitions, and the second index
-            running over the occurrences of measurement gates with this key in
-            the circuit that was simulated.
+            running over the qubits for the corresponding measurements.
     """
 
 

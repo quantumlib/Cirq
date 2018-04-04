@@ -39,8 +39,7 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
 
     circuit.append(_make_random_single_qubit_op_layer(device, randint))
     if measure:
-        circuit.append(google.XmonMeasurementGate().on(q)
-                       for q in device.qubits)
+        circuit.append([google.XmonMeasurementGate().on(*device.qubits)])
 
     return circuit
 

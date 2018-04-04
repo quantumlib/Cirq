@@ -149,7 +149,8 @@ class Circuit(object):
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
-    def operation_at(self, qubit: ops.QubitId,
+    def operation_at(self,
+                     qubit: ops.QubitId,
                      moment_index: int) -> Optional[ops.Operation]:
         """Finds the operation on a qubit within a moment, if any.
 
@@ -263,6 +264,48 @@ class Circuit(object):
                 strategy = InsertStrategy.INLINE
         return k
 
+    def insert_into_range(self,
+                          operations: ops.OP_TREE,
+                          start: int,
+                          end: int) -> int:
+        """Writes operations inline into an area of the circuit.
+
+        Args:
+            start: The start of the range (inclusive) to write the
+                given operations into.
+            end: The end of the range (exclusive) to write the given
+                operations into. If there are still operations remaining,
+                new moments are created to fit them.
+            operations: An operation or tree of operations to insert.
+
+        Returns:
+            An insertion index that will place operations after the operations
+            that were inserted by this method.
+
+        Raises:
+            IndexError: Bad inline_start and/or inline_end.
+        """
+        if not 0 <= start < end <= len(self.moments):
+            raise IndexError('Bad insert indices: [{}, {})'.format(
+                start, end))
+
+        operations = list(ops.flatten_op_tree(operations))
+        i = start
+        op_index = 0
+        while op_index < len(operations):
+            op = operations[op_index]
+            while i < end and self.moments[i].operates_on(op.qubits):
+                i += 1
+            if i >= end:
+                break
+            self.moments[i] = self.moments[i].with_operation(op)
+            op_index += 1
+
+        if op_index >= len(operations):
+            return end
+
+        return self.insert(end, operations[op_index:])
+
     def append(
             self,
             operation_tree: ops.OP_TREE,
@@ -345,6 +388,17 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
                                         ) -> Iterable[str]:
     ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
     if ascii_gate is not None:
+        wire_symbols = ascii_gate.ascii_wire_symbols()
+        if len(op.qubits) == len(wire_symbols):
+            return wire_symbols
+        elif len(wire_symbols) == 1:
+            return len(op.qubits) * wire_symbols
+        else:
+            raise ValueError(
+                'Multi-qubit operation with AsciiDiagrammableGate {} that '
+                'requires {} qubits but found {} qubits'.format(
+                    repr(op.gate), len(wire_symbols), len(op.qubits)))
+
         return ascii_gate.ascii_wire_symbols()
     name = repr(op.gate)
     if len(op.qubits) == 1:
