@@ -295,9 +295,11 @@ class CNotGate(gate_features.AsciiDiagrammableGate,
 CNOT = CNotGate()  # Controlled Not Gate.
 
 
-class SwapGate(gate_features.CompositeGate,
+class SwapGate(gate_features.AsciiDiagrammableGate,
+               gate_features.CompositeGate,
                gate_features.KnownMatrixGate,
-               gate_features.TwoQubitGate):
+               gate_features.TwoQubitGate,
+               InterchangeableQubitsGate):
     """Swaps two qubits."""
 
     def matrix(self):
@@ -316,6 +318,9 @@ class SwapGate(gate_features.CompositeGate,
 
     def __repr__(self):
         return 'SWAP'
+
+    def ascii_wire_symbols(self):
+        return '×', '×'
 
 
 SWAP = SwapGate()  # Exchanges two qubits' states.
