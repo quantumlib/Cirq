@@ -18,9 +18,11 @@ from cirq.study.resolver import (
     ParamResolver,
 )
 from cirq.study.study import (
-    Executor,
-    ExecutorStudy,
-    StudyInterface,
+    Study,
+    Sweepable,
     TrialResult,
-    TrialResultMeta,
+)
+from cirq.study.sweeps import (
+    Points,
+    Sweep,
 )

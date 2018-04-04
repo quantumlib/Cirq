@@ -44,7 +44,7 @@ then simply calling ``run``:
 ```python
 from cirq.google import Simulator
 simulator = Simulator()
-result = simulator.run(circuit)
+result = simulator.run(circuit)[0]
 
 print(result)
 # prints something like
@@ -60,7 +60,7 @@ The actual measurement results here depend on the seeding
 ``numpy.random_seed``) Another run, can result in a different
 set of measurement results:
 ```python
-result = simulator.run(circuit)
+result = simulator.run(circuit)[0]
 
 print(result)
 # prints something like
@@ -76,7 +76,7 @@ but also the state (wave-function) at the end of the simulation:
 import numpy as np
 circuit = Circuit()
 circuit.append(basic_circuit(False))    
-result = simulator.run(circuit, qubits=[q0, q1])
+result = simulator.run(circuit, qubits=[q0, q1])[0]
 
 print(np.around(result.final_states[0], 3))
 # prints
@@ -157,7 +157,7 @@ circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
-    result = simulator.run(circuit, param_resolver=resolver)
+    result = simulator.run(circuit, params=resolver)[0]
     print(np.around(result.final_states[0], 2))
 # prints
 # [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
@@ -180,16 +180,14 @@ may be run repeatedly.  Running a study returns one
 values and repetitions (which are reported as the ``repetition_id``
 in the ``TrialContext`` object).  Example:
 ```python
-from cirq.study import ExecutorStudy
 resolvers = [ParamResolver({'x': y / 2.0}) for y in range(3)]
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 circuit.append([XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)])
-study = ExecutorStudy(executor=simulator,
-                      program=circuit,
-                      param_resolvers=resolvers,
+results = simulator.run(program=circuit,
+                      params=resolvers,
                       repetitions=2)
-for result in study.run_study():
+for result in results:
     print(result)
 # prints something like
 # repetition_id=0 x=0.0 q0=0 q1=0
@@ -199,7 +197,7 @@ for result in study.run_study():
 # repetition_id=0 x=1.0 q0=1 q1=1
 # repetition_id=1 x=1.0 q0=1 q1=1
 ```
-where we see that different repetitons for the case that the 
+where we see that different repetitions for the case that the
 qubit has been rotated into a superposition over computational
 basis states yield different measurement results per run.
 

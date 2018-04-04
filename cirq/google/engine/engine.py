@@ -20,25 +20,53 @@ import random
 import re
 import string
 import time
-from typing import Dict, Optional, Union
-from typing import List  # pylint: disable=unused-import
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import oauth2client
 from apiclient.discovery import build
 from google.protobuf.json_format import MessageToDict
 
+from cirq.api.google.v1 import program_pb2
 from cirq.circuits import Circuit, ExpandComposite
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.devices import Device
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
+from cirq.google.params import sweep_to_proto
 from cirq.google.programs import schedule_to_proto, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
-from cirq.study import Executor, TrialResult
-from cirq.study.resolver import ParamResolver
-from cirq.api.google.v1 import program_pb2
+from cirq.study import ParamResolver, Study, Sweep, Sweepable, TrialResult
+from cirq.study.sweeps import Points, Unit, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
+
+
+class EngineTrialResult(TrialResult):
+    """Results of a single run of an executor.
+
+    Attributes:
+        measurements: A dictionary from measurement gate key to measurement
+            results. If a key is reused, the measurement values are returned
+            in the order they appear in the Circuit being executed.
+    """
+
+    def __init__(self,
+        params: ParamResolver,
+        repetitions: int,
+        measurements: Dict[str, np.ndarray]) -> None:
+        self.params = params
+        self.repetitions = repetitions
+        self.measurements = measurements
+
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        keyed_bitstrings = [
+            (key, bitstring(val)) for key, val in self.measurements.items()
+        ]
+        return ' '.join('{}={}'.format(key, val)
+                        for key, val in sorted(keyed_bitstrings))
 
 
 class EngineOptions:
@@ -46,12 +74,12 @@ class EngineOptions:
     """
 
     def __init__(self, project_id: str,
-                 credentials: Optional[oauth2client.client.Credentials] = None,
-                 program_id: Optional[str] = None,
-                 job_id: Optional[str] = None,
-                 gcs_prefix: Optional[str] = None,
-                 gcs_program: Optional[str] = None,
-                 gcs_results: Optional[str] = None) -> None:
+        credentials: Optional[oauth2client.client.Credentials] = None,
+        program_id: Optional[str] = None,
+        job_id: Optional[str] = None,
+        gcs_prefix: Optional[str] = None,
+        gcs_program: Optional[str] = None,
+        gcs_results: Optional[str] = None) -> None:
         """Engine options for running the Engine. At a minimum requires
         project_id and either gcs_prefix or gcs_program and gcs_results.
 
@@ -82,19 +110,19 @@ class EngineOptions:
                             '<bucket name and optional object prefix>/"')
         self.gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
             '/') else gcs_prefix + '/'
-        self.gcs_program = gcs_program or '%scirq/%s-program' % (
-            self.gcs_prefix, self.program_id)
-        self.gcs_results = gcs_results or '%scirq/%s-%s-results' % (
+        self.gcs_program = gcs_program or '%sprograms/%s/%s' % (
+            self.gcs_prefix, self.program_id, self.program_id)
+        self.gcs_results = gcs_results or '%sprograms/%s/jobs/%s' % (
             self.gcs_prefix, self.program_id, self.job_id)
 
 
-class Engine(Executor):
+class Engine:
     """Executor for Google Quantum Engine
     """
 
     def __init__(self, api_key: str, api: str = 'quantum',
-                 version: str = 'v1alpha1',
-                 discovery_url: Optional[str] = None) -> None:
+        version: str = 'v1alpha1',
+        discovery_url: Optional[str] = None) -> None:
         self.api_key = api_key
         self.api = api
         self.version = version
@@ -104,24 +132,26 @@ class Engine(Executor):
 
     def run(
         self,
-        program: Union[Circuit, Schedule],
-        param_resolver: ParamResolver = None,
+        program: Union[Circuit, Schedule, Study],
+        device: Device = None,
+        params: Sweepable = None,
         repetitions: int = 1,
         options: EngineOptions = None,
-        device: Device = None,
         priority: int = 50,
-    ) -> 'EngineTrialResult':
+        target_route: str = '/xmonsim',
+    ) -> List[EngineTrialResult]:
         """Runs the entire supplied Circuit or Schedule via Google Quantum
          Engine.
 
         Args:
-            program: The circuit to execute.
-            param_resolver: A ParamResolver for determining values of
-                ParameterizedValues.
+            program: The circuit, schedule, or study to execute.
+            device: The device on which to run a circuit. Required only if
+                program is a Circuit.
+            params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
             options: Options configuring the engine.
-            device: The device on which to run.
             priority: The priority to run at, 0-100.
+            target_route: The engine route to run against.
 
         Returns:
             Results for this run.
@@ -129,9 +159,9 @@ class Engine(Executor):
         if not 0 <= priority < 100:
             raise TypeError('priority must be between 0 and 100')
 
-        if isinstance(program, Schedule):
-            schedule = program
-        else:
+        if isinstance(program, Circuit):
+            if not device:
+                raise TypeError('device is required when running a circuit')
             # Convert to a schedule.
             expand = ExpandComposite()
             convert = ConvertToXmonGates(ignore_failures=False)
@@ -143,6 +173,24 @@ class Engine(Executor):
             drop.optimize_circuit(circuit_copy)
 
             schedule = moment_by_moment_schedule(device, circuit_copy)
+            sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        elif isinstance(program, Schedule):
+            schedule = program
+            sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+            if device:
+                raise TypeError(
+                    'device can not be provided when running a schedule')
+        elif isinstance(program, Study):
+            schedule = program.schedule
+            sweeps = program.sweeps
+            if device:
+                raise TypeError(
+                    'device can not be provided when running a study')
+            if params:
+                raise TypeError(
+                    'params can not be provided when running a study')
+        else:
+            raise TypeError('Unexpected execution type')
 
         service = build(self.api, self.version,
                         discoveryServiceUrl=self.discovery_url % (
@@ -150,7 +198,10 @@ class Engine(Executor):
                         credentials=options.credentials)
 
         proto_program = program_pb2.Program()
-        proto_program.parameter_sweeps.add().repetitions = repetitions
+        for sweep in sweeps:
+            sweep_proto = proto_program.parameter_sweeps.add()
+            sweep_to_proto(sweep, sweep_proto)
+            sweep_proto.repetitions = repetitions
         proto_program.operations.extend(list(schedule_to_proto(schedule)))
 
         code = {
@@ -176,8 +227,7 @@ class Engine(Executor):
             },
             'scheduling_config': {
                 'priority': priority,
-                # TODO get route from device
-                'target_route': '/xmonsim'
+                'target_route': target_route
             },
         }
         response = service.projects().programs().jobs().create(
@@ -198,45 +248,35 @@ class Engine(Executor):
         response = service.projects().programs().jobs().getResult(
             parent=response['name']).execute()
 
-        # Only a single sweep is supported for now
-        sweep_results = response['result']['sweepResults'][0]
-        repetitions = sweep_results['repetitions']
-        key_sizes=[(m['key'], m['size'])
-                   for m in sweep_results['measurementKeys']]
-        data = base64.standard_b64decode(
-            sweep_results['parameterizedResults'][0]['measurementResults'])
+        trial_results = []
+        for sweep_result in response['result']['sweepResults']:
+            sweep_repetitions = sweep_result['repetitions']
+            key_sizes = [(m['key'], m['size'])
+                         for m in sweep_result['measurementKeys']]
+            for result in sweep_result['parameterizedResults']:
+                data = base64.standard_b64decode(result['measurementResults'])
+                measurements = unpack_results(data, sweep_repetitions,
+                                              key_sizes)
 
-        measurements = unpack_results(data, repetitions, key_sizes)
+                trial_results.append(EngineTrialResult(
+                    params=ParamResolver(result.get('params', {})),
+                    repetitions=sweep_repetitions,
+                    measurements=measurements))
+        return trial_results
 
-        return EngineTrialResult(
-            params=param_resolver,
-            repetitions=repetitions,
-            measurements=measurements)
+
+def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
+    if isinstance(sweepable, ParamResolver):
+        return [_resolver_to_sweep(sweepable)]
+    elif isinstance(sweepable, list):
+        return [_resolver_to_sweep(p) for p in sweepable]
+    elif isinstance(sweepable, Sweep):
+        return [sweepable]
+    else:
+        raise TypeError('Unexpected Sweepable')
 
 
-class EngineTrialResult(TrialResult):
-    """Results of a single run of an executor.
-
-    Attributes:
-        measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being executed.
-    """
-
-    def __init__(self,
-        params: ParamResolver,
-        repetitions: int,
-        measurements: Dict[str, np.ndarray]) -> None:
-        self.params = params
-        self.repetitions = repetitions
-        self.measurements = measurements
-
-    def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        keyed_bitstrings = [
-            (key, bitstring(val)) for key, val in self.measurements.items()
-        ]
-        return ' '.join('{}={}'.format(key, val)
-                        for key, val in sorted(keyed_bitstrings))
+def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
+    return Zip(*[Points(key, [value]) for key, value in
+                 resolver.param_dict.items()]) if len(
+        resolver.param_dict) else Unit

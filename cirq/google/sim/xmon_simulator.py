@@ -41,8 +41,7 @@ from cirq.schedules import Schedule
 from cirq.google import xmon_gates
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
-from cirq.study import Executor, TrialResult as TrialResultBase
-from cirq.study.resolver import ParamResolver
+from cirq.study import ParamResolver, Study, Sweep, Sweepable, TrialResult
 
 
 class Options:
@@ -80,24 +79,56 @@ class Options:
         self.min_qubits_before_shard = min_qubits_before_shard
 
 
-class Simulator(Executor):
+class SimulatorTrialResult(TrialResult):
+    """Results of a single run of an executor.
+
+    Attributes:
+        measurements: A dictionary from measurement gate key to measurement
+            results. If a key is reused, the measurement values are returned
+            in the order they appear in the Circuit being simulated.
+        final_state: The final state (wave function) of the system after
+            the trial finishes.
+    """
+
+    def __init__(self,
+        params: ParamResolver,
+        repetitions: int,
+        measurements: Dict[str, np.ndarray],
+        final_states: List[np.ndarray] = None) -> None:
+        self.params = params
+        self.repetitions = repetitions
+        self.measurements = measurements
+        self.final_states = final_states
+
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        keyed_bitstrings = [
+            (key, bitstring(val)) for key, val in self.measurements.items()
+        ]
+        return ' '.join('{}={}'.format(key, val)
+                        for key, val in sorted(keyed_bitstrings))
+
+
+class Simulator:
     """Simulator for Xmon class quantum circuits."""
 
     def run(
             self,
-            program: Union[Circuit, Schedule],
-            param_resolver: ParamResolver = None,
+            program: Union[Circuit, Schedule, Study],
+            params: Sweepable = None,
             repetitions: int = 1,
             options: Options = None,
             qubits: Sequence[raw_types.QubitId] = None,
             initial_state: Union[int, np.ndarray] = 0,
-    ) -> 'TrialResult':
+    ) -> List[SimulatorTrialResult]:
         """Simulates the entire supplied Circuit.
 
         Args:
-            program: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
+            program: The circuit, schedule, or study to simulate.
+            params: Parameters to run with the program.
+            repetitions: The number of repetitions to simulate.
             options: Options configuring the simulation.
             qubits: If specified this list of qubits will be used to define
                 a canonical ordering of the qubits. This canonical ordering
@@ -111,28 +142,55 @@ class Simulator(Executor):
         Returns:
             Results for this run.
         """
-        if isinstance(program, Schedule):
-            program = program.to_circuit()
-        param_resolver = param_resolver or ParamResolver({})
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-        final_states = []  # type: List[np.ndarray]
-        for _ in range(repetitions):
-            all_step_results = self.moment_steps(program, options or Options(),
-                                                 qubits,
-                                                 initial_state, param_resolver)
-            final_step_result = functools.reduce(
-                StepResult.merge,
-                all_step_results)
-            for k, v in final_step_result.measurements.items():
-                if k not in measurements:
-                    measurements[k] = []
-                measurements[k].append(np.array(v, dtype=bool))
-            final_states.append(final_step_result.state())
-        return TrialResult(
-            param_resolver,
-            repetitions,
-            measurements={k: np.array(v) for k, v in measurements.items()},
-            final_states=final_states)
+        if isinstance(program, Study):
+            if params:
+                raise TypeError(
+                    'params can not be provided when running a study')
+            circuit = program.schedule.to_circuit()
+            param_resolvers = sum([list(s) for s in program.sweeps], [])
+        elif isinstance(program, Schedule):
+            circuit = program.to_circuit()
+            param_resolvers = self._to_resolvers(params or ParamResolver({}))
+        elif isinstance(program, Circuit):
+            circuit = program
+            param_resolvers = self._to_resolvers(params or ParamResolver({}))
+        else:
+            raise TypeError('Unexpected program type')
+
+        trial_results = []  # type: List[SimulatorTrialResult]
+        for param_resolver in param_resolvers:
+            measurements = {}  # type: Dict[str, List[np.ndarray]]
+            final_states = []  # type: List[np.ndarray]
+            for _ in range(repetitions):
+                all_step_results = self.moment_steps(circuit,
+                                                     options or Options(),
+                                                     qubits,
+                                                     initial_state,
+                                                     param_resolver)
+                final_step_result = functools.reduce(
+                    StepResult.merge,
+                    all_step_results)
+                for k, v in final_step_result.measurements.items():
+                    if k not in measurements:
+                        measurements[k] = []
+                    measurements[k].append(np.array(v, dtype=bool))
+                final_states.append(final_step_result.state())
+            trial_results.append(SimulatorTrialResult(
+                param_resolver,
+                repetitions,
+                measurements={k: np.array(v) for k, v in measurements.items()},
+                final_states=final_states))
+        return trial_results
+
+    def _to_resolvers(self, sweepable: Sweepable) -> List[ParamResolver]:
+        if isinstance(sweepable, ParamResolver):
+            return [sweepable]
+        elif isinstance(sweepable, list):
+            return sweepable
+        elif isinstance(sweepable, Sweep):
+            return list(sweepable)
+        else:
+            raise TypeError('Unexpected Sweepable type')
 
     def moment_steps(
             self,
@@ -336,35 +394,3 @@ class StepResult:
                     new_measurements[key] = []
                 new_measurements[key].extend(results)
         return StepResult(a._stepper, a.qubit_map, new_measurements)
-
-
-class TrialResult(TrialResultBase):
-    """Results of a single run of an executor.
-
-    Attributes:
-        measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being simulated.
-        final_state: The final state (wave function) of the system after
-            the trial finishes.
-    """
-
-    def __init__(self,
-                 params: ParamResolver,
-                 repetitions: int,
-                 measurements: Dict[str, np.ndarray],
-                 final_states: List[np.ndarray] = None) -> None:
-        self.params = params
-        self.repetitions = repetitions
-        self.measurements = measurements
-        self.final_states = final_states
-
-    def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        keyed_bitstrings = [
-            (key, bitstring(val)) for key, val in self.measurements.items()
-        ]
-        return ' '.join('{}={}'.format(key, val)
-                        for key, val in sorted(keyed_bitstrings))
