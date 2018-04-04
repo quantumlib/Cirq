@@ -20,7 +20,8 @@ import random
 import re
 import string
 import time
-from typing import Dict, List, Optional, Union
+from collections import Iterable
+from typing import Dict, List, Optional, Union, cast
 
 import numpy as np
 import oauth2client
@@ -35,7 +36,7 @@ from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto
 from cirq.google.programs import schedule_to_proto, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
-from cirq.study import ParamResolver, Study, Sweep, Sweepable, TrialResult
+from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 from cirq.study.sweeps import Points, Unit, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
@@ -129,21 +130,46 @@ class Engine:
                                                '$discovery/rest'
                                                '?version={apiVersion}&key=%s')
 
-    def run(
-        self,
-        program: Union[Circuit, Schedule, Study],
-        device: Device = None,
-        params: Sweepable = None,
-        repetitions: int = 1,
-        options: EngineOptions = None,
-        priority: int = 50,
-        target_route: str = '/xmonsim',
+    def run(self,
+            circuit: Circuit,
+            device: Device,
+            param_resolver: ParamResolver = ParamResolver({}),
+            repetitions: int = 1,
+            options: EngineOptions = None,
+            priority: int = 50,
+            target_route: str = '/xmonsim',
+    ) -> EngineTrialResult:
+        """Simulates the entire supplied Circuit.
+
+        Args:
+            circuit: The circuit to simulate.
+            device: The device on which to run the circuit.
+            param_resolver: Parameters to run with the program.
+            repetitions: The number of repetitions to simulate.
+            options: Options configuring the simulation.
+            priority: The priority to run at, 0-100.
+            target_route: The engine route to run against.
+
+        Returns:
+            Results for this run.
+        """
+        return self.run_sweep(circuit, device, [param_resolver], repetitions,
+                              options, priority, target_route)[0]
+
+    def run_sweep(self,
+                  program: Union[Circuit, Schedule],
+                  device: Device = None,
+                  params: Sweepable = None,
+                  repetitions: int = 1,
+                  options: EngineOptions = None,
+                  priority: int = 50,
+                  target_route: str = '/xmonsim',
     ) -> List[EngineTrialResult]:
         """Runs the entire supplied Circuit or Schedule via Google Quantum
          Engine.
 
         Args:
-            program: The circuit, schedule, or study to execute.
+            program: The circuit or schedule to execute.
             device: The device on which to run a circuit. Required only if
                 program is a Circuit.
             params: Parameters to run with the program.
@@ -172,24 +198,15 @@ class Engine:
             drop.optimize_circuit(circuit_copy)
 
             schedule = moment_by_moment_schedule(device, circuit_copy)
-            sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
         elif isinstance(program, Schedule):
-            schedule = program
-            sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
             if device:
                 raise TypeError(
                     'device can not be provided when running a schedule')
-        elif isinstance(program, Study):
-            schedule = program.schedule
-            sweeps = program.sweeps
-            if device:
-                raise TypeError(
-                    'device can not be provided when running a study')
-            if params:
-                raise TypeError(
-                    'params can not be provided when running a study')
+            schedule = program
         else:
             raise TypeError('Unexpected execution type')
+
+        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
 
         service = build(self.api, self.version,
                         discoveryServiceUrl=self.discovery_url % (
@@ -267,10 +284,16 @@ class Engine:
 def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, ParamResolver):
         return [_resolver_to_sweep(sweepable)]
-    elif isinstance(sweepable, list):
-        return [_resolver_to_sweep(p) for p in sweepable]
     elif isinstance(sweepable, Sweep):
         return [sweepable]
+    elif isinstance(sweepable, Iterable):
+        iterable = cast(Iterable, sweepable)
+        if isinstance(next(iter(iterable)), Sweep):
+            sweeps = iterable
+            return list(sweeps)
+        else:
+            resolvers = iterable
+            return [_resolver_to_sweep(p) for p in resolvers]
     else:
         raise TypeError('Unexpected Sweepable')
 

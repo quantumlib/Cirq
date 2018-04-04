@@ -31,7 +31,7 @@ print(circuit)
 
 # Now simulate the circuit and print out the measurement result.
 simulator = cirq.google.Simulator()
-result = simulator.run(circuit, repetitions=10)[0]
+result = simulator.run(circuit, repetitions=10)
 results = [str(int(b)) for b in result.measurements['result'][:, 0]]
 print("Simulated measurement results:")
 print(''.join(results))

@@ -35,8 +35,7 @@ from cirq.ops.common_gates import CNOT, H, X, Z
 from cirq.ops.gate_features import CompositeGate, SingleQubitGate
 from cirq.schedules import moment_by_moment_schedule
 from cirq.study.resolver import ParamResolver
-from cirq.study.study import Study
-from cirq.study.sweeps import Linspace, Points
+from cirq.study.sweeps import Linspace
 from cirq.value import Symbol
 
 Q1 = XmonQubit(0, 0)
@@ -101,9 +100,8 @@ SCHEDULERS = [None, moment_by_moment_schedule]
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_no_results(scheduler):
     simulator = xmon_simulator.Simulator()
-    results = run(simulator, basic_circuit(), scheduler)
-    assert len(results) == 1
-    assert len(results[0].measurements) == 0
+    result = run(simulator, basic_circuit(), scheduler)
+    assert len(result.measurements) == 0
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -115,14 +113,14 @@ def test_run(scheduler):
          XmonMeasurementGate(key='b')(Q2),])
 
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     assert result.measurements == {'a': [False], 'b': [False]}
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])[0]
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_states[0],
                                    np.array([-0.5j, 0.5, -0.5, 0.5j]))
 
@@ -130,7 +128,7 @@ def test_run_state(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state_different_order_of_qubits(scheduler):
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, basic_circuit(), scheduler, qubits=[Q2, Q1])[0]
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q2, Q1])
     np.testing.assert_almost_equal(result.final_states[0],
                                    np.array([-0.5j, -0.5, 0.5, 0.5j]))
 
@@ -140,7 +138,7 @@ def test_consistent_seeded_run_sharded(scheduler):
     circuit = large_circuit()
 
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(
         result.measurements['meas'],
         [[True, False, False, True, False, False, True, False, False, False]])
@@ -154,7 +152,7 @@ def test_consistent_seeded_run_no_sharding(scheduler):
     result = run(simulator,
                  circuit,
                  scheduler,
-                 options=xmon_simulator.Options(num_shards=1))[0]
+                 options=xmon_simulator.Options(num_shards=1))
     np.testing.assert_equal(
         result.measurements['meas'],
         [[True, False, False, True, False, False, True, False, False, False]])
@@ -169,7 +167,7 @@ def test_run_no_sharing_few_qubits(scheduler):
 
     simulator = xmon_simulator.Simulator()
     options = xmon_simulator.Options(min_qubits_before_shard=0)
-    result = run(simulator, circuit, scheduler, options=options)[0]
+    result = run(simulator, circuit, scheduler, options=options)
     np.testing.assert_equal(result.measurements['a'], [[False]])
     np.testing.assert_equal(result.measurements['b'], [[False]])
 
@@ -242,7 +240,7 @@ def compute_gate(circuit, resolver, num_qubits=1):
     for initial_state in range(1 << num_qubits):
         result = simulator.run(circuit,
                                initial_state=initial_state,
-                               params=resolver)[0]
+                               param_resolver=resolver)
         gate.append(result.final_states[0])
     return np.array(gate).transpose()
 
@@ -320,11 +318,11 @@ def test_param_resolver_param_dict():
     resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
-    result = simulator.run(circuit, params=resolver)[0]
+    result = simulator.run(circuit, resolver)
     assert result.params.param_dict == {'a': 0.5}
 
 
-def test_run_study():
+def test_run_circuit_sweep():
     circuit = Circuit.from_ops(
         ExpWGate(half_turns=Symbol('a')).on(Q1),
         XmonMeasurementGate('m').on(Q1),
@@ -334,7 +332,24 @@ def test_run_study():
     simulator = xmon_simulator.Simulator()
 
     for i, result in enumerate(
-        simulator.run(circuit, params=sweep, repetitions=1)):
+                        simulator.run_sweep(circuit, sweep, repetitions=1)):
+        assert result.params['a'] == i
+        assert result.measurements['m'] == [i % 2 != 0]
+
+
+def test_run_circuit_sweeps():
+    circuit = Circuit.from_ops(
+        ExpWGate(half_turns=Symbol('a')).on(Q1),
+        XmonMeasurementGate('m').on(Q1),
+    )
+
+    sweep = Linspace('a', 0, 5, 6)
+    sweep2 = Linspace('a', 6, 10, 5)
+    simulator = xmon_simulator.Simulator()
+
+    for i, result in enumerate(
+                        simulator.run_sweep(circuit, [sweep, sweep2],
+                                            repetitions=1)):
         assert result.params['a'] == i
         assert result.measurements['m'] == [i % 2 != 0]
 
@@ -347,7 +362,7 @@ def test_composite_gates(scheduler):
     circuit.append([m(Q1, Q2)])
 
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[True, True]])
 
 
@@ -399,14 +414,14 @@ def test_unsupported_gate_composite(scheduler):
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_qubit_order(scheduler):
-  circuit = Circuit()
-  meas = XmonMeasurementGate()
-  circuit.append(X(Q2))
-  circuit.append(X(Q1))
-  circuit.append([meas.on(Q1, Q3, Q2)])
-  simulator = xmon_simulator.Simulator()
-  result = run(simulator, circuit, scheduler)[0]
-  np.testing.assert_equal(result.measurements[''], [[True, False, True]])
+    circuit = Circuit()
+    meas = XmonMeasurementGate()
+    circuit.append(X(Q2))
+    circuit.append(X(Q1))
+    circuit.append([meas.on(Q1, Q3, Q2)])
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements[''], [[True, False, True]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -419,7 +434,7 @@ def test_inverted_measurement(scheduler):
         X(Q1),
         XmonMeasurementGate('d', invert_mask=(True,))(Q1))
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     assert {'a': [[False]], 'b': [[True]], 'c': [[False]],
             'd': [[True]]} == result.measurements
 
@@ -431,7 +446,7 @@ def test_inverted_measurement_multiple_qubits(scheduler):
         XmonMeasurementGate('b', invert_mask=(True, False))(Q1, Q2),
         XmonMeasurementGate('c', invert_mask=(True, False))(Q2, Q1))
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[False, True]])
     np.testing.assert_equal(result.measurements['b'], [[True, False]])
     np.testing.assert_equal(result.measurements['c'], [[True, False]])
@@ -447,7 +462,7 @@ def test_measurement_multiple_measurements(scheduler):
     circuit.append(X(Q1))
     circuit.append([measb.on(Q1, Q2)])
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[True, False]])
     np.testing.assert_equal(result.measurements['b'], [[False, False]])
 
@@ -461,7 +476,7 @@ def test_measurement_multiple_measurements_qubit_order(scheduler):
     circuit.append([measa.on(Q1, Q2)])
     circuit.append([measb.on(Q2, Q1)])
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, circuit, scheduler)[0]
+    result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[True, False]])
     np.testing.assert_equal(result.measurements['b'], [[False, True]])
 
@@ -489,13 +504,11 @@ def test_circuit_repetitions():
     sim = xmon_simulator.Simulator()
     circuit = bit_flip_circuit(1, 1)
 
-    all_trials = sim.run(circuit, repetitions=10)
-    assert len(all_trials) == 1
-    for result in all_trials:
-        assert result.params.param_dict == {}
-        assert result.repetitions == 10
-        np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
-        np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
+    result = sim.run(circuit, repetitions=10)
+    assert result.params.param_dict == {}
+    assert result.repetitions == 10
+    np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
+    np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
 
 
 def test_circuit_parameters():
@@ -505,7 +518,7 @@ def test_circuit_parameters():
     resolvers = [ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
 
-    all_trials = sim.run(circuit, params=resolvers, repetitions=1)
+    all_trials = sim.run_sweep(circuit, params=resolvers, repetitions=1)
     assert len(all_trials) == 4
     for result in all_trials:
         assert result.repetitions == 1
@@ -525,7 +538,7 @@ def test_circuit_param_and_reps():
     resolvers = [ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
 
-    all_trials = sim.run(circuit, params=resolvers, repetitions=3)
+    all_trials = sim.run_sweep(circuit, params=resolvers, repetitions=3)
     assert len(all_trials) == 4
     for result in all_trials:
         assert result.repetitions == 3
@@ -535,30 +548,5 @@ def test_circuit_param_and_reps():
         np.testing.assert_equal(result.measurements['q2'], [[expect_b]] * 3)
     # All parameters explored.
     # All parameters explored.
-    assert (set(itertools.product([0, 1], [0, 1]))
-            == {(r.params['a'], r.params['b']) for r in all_trials})
-
-
-def test_schedule():
-    sim = xmon_simulator.Simulator()
-    circuit = bit_flip_circuit(1, 1)
-
-    all_trials = sim.run(
-        moment_by_moment_schedule(UnconstrainedDevice, circuit))
-    assert len(all_trials) == 1
-    for result in all_trials:
-        assert result.params.param_dict == {}
-        assert result.repetitions == 1
-        np.testing.assert_equal(result.measurements['q1'], [[True]])
-        np.testing.assert_equal(result.measurements['q2'], [[True]])
-
-
-def test_study():
-    sim = xmon_simulator.Simulator()
-    circuit = bit_flip_circuit(Symbol('a'), Symbol('b'))
-
-    all_trials = sim.run(Study(
-        moment_by_moment_schedule(UnconstrainedDevice, circuit),
-        [Points('a', range(2)) * Points('b', range(2))]))
     assert (set(itertools.product([0, 1], [0, 1]))
             == {(r.params['a'], r.params['b']) for r in all_trials})

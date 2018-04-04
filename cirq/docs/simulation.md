@@ -44,7 +44,7 @@ then simply calling ``run``:
 ```python
 from cirq.google import Simulator
 simulator = Simulator()
-result = simulator.run(circuit)[0]
+result = simulator.run(circuit)
 
 print(result)
 # prints something like
@@ -60,7 +60,7 @@ The actual measurement results here depend on the seeding
 ``numpy.random_seed``) Another run, can result in a different
 set of measurement results:
 ```python
-result = simulator.run(circuit)[0]
+result = simulator.run(circuit)
 
 print(result)
 # prints something like
@@ -76,7 +76,7 @@ but also the state (wave-function) at the end of the simulation:
 import numpy as np
 circuit = Circuit()
 circuit.append(basic_circuit(False))    
-result = simulator.run(circuit, qubits=[q0, q1])[0]
+result = simulator.run(circuit, qubits=[q0, q1])
 
 print(np.around(result.final_states[0], 3))
 # prints
@@ -157,7 +157,7 @@ circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
-    result = simulator.run(circuit, params=resolver)[0]
+    result = simulator.run(circuit, resolver)
     print(np.around(result.final_states[0], 2))
 # prints
 # [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
@@ -184,9 +184,9 @@ resolvers = [ParamResolver({'x': y / 2.0}) for y in range(3)]
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 circuit.append([XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)])
-results = simulator.run(program=circuit,
-                        params=resolvers,
-                        repetitions=2)
+results = simulator.run_sweep(program=circuit,
+                              params=resolvers,
+                              repetitions=2)
 for result in results:
     print(result)
 # prints something like

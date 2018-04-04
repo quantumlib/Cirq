@@ -17,33 +17,8 @@
 
 from typing import Iterable, Union
 
-from cirq.schedules import Schedule
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Sweep
-
-
-class Study:
-    """An interface for running repeated trials over different parameters."""
-
-    def __init__(self, schedule: Schedule, sweeps: Iterable[Sweep]) -> None:
-        """Initializes a circuit.
-
-        Args:
-            schedule: A schedule of operations and timing to run.
-            sweeps: ParameterSweeps to execute with the schedule.
-        """
-        self.schedule = schedule
-        self.sweeps = list(sweeps)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.schedule == other.schedule and self.sweeps == other.sweeps
-
-    def __ne__(self, other):
-        return not self == other
-
-    __hash__ = None
 
 
 class TrialResultMeta(type):
@@ -76,4 +51,5 @@ class TrialResult(metaclass=TrialResultMeta):
     """
 
 
-Sweepable = Union[ParamResolver, Iterable[ParamResolver], Sweep]
+Sweepable = Union[
+    ParamResolver, Iterable[ParamResolver], Sweep, Iterable[Sweep]]

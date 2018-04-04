@@ -128,7 +128,6 @@ from cirq.schedules import (
 
 from cirq.study import (
     ParamResolver,
-    Study,
     TrialResult,
 )
 

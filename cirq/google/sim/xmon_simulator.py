@@ -28,9 +28,9 @@ A simple example:
 import functools
 import math
 
-from collections import defaultdict
+from collections import defaultdict, Iterable
 from typing import Tuple  # pylint: disable=unused-import
-from typing import Dict, Iterator, List, Sequence, Union
+from typing import Dict, Iterator, List, Sequence, Union, cast
 
 import numpy as np
 
@@ -41,7 +41,7 @@ from cirq.schedules import Schedule
 from cirq.google import xmon_gates
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
-from cirq.study import ParamResolver, Study, Sweep, Sweepable, TrialResult
+from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
 
 class Options:
@@ -90,10 +90,10 @@ class SimulatorTrialResult(TrialResult):
     """
 
     def __init__(self,
-        params: ParamResolver,
-        repetitions: int,
-        measurements: Dict[str, np.ndarray],
-        final_states: List[np.ndarray] = None) -> None:
+                 params: ParamResolver,
+                 repetitions: int,
+                 measurements: Dict[str, np.ndarray],
+                 final_states: List[np.ndarray] = None) -> None:
         self.params = params
         self.repetitions = repetitions
         self.measurements = measurements
@@ -114,19 +114,19 @@ class Simulator:
     """Simulator for Xmon class quantum circuits."""
 
     def run(
-            self,
-            program: Union[Circuit, Schedule, Study],
-            params: Sweepable = None,
-            repetitions: int = 1,
-            options: Options = None,
-            qubits: Sequence[raw_types.QubitId] = None,
-            initial_state: Union[int, np.ndarray] = 0,
-    ) -> List[SimulatorTrialResult]:
+        self,
+        circuit: Circuit,
+        param_resolver: ParamResolver = ParamResolver({}),
+        repetitions: int = 1,
+        options: Options = None,
+        qubits: Sequence[raw_types.QubitId] = None,
+        initial_state: Union[int, np.ndarray] = 0,
+    ) -> SimulatorTrialResult:
         """Simulates the entire supplied Circuit.
 
         Args:
-            program: The circuit, schedule, or study to simulate.
-            params: Parameters to run with the program.
+            circuit: The circuit to simulate.
+            param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             options: Options configuring the simulation.
             qubits: If specified this list of qubits will be used to define
@@ -141,20 +141,41 @@ class Simulator:
         Returns:
             Results for this run.
         """
-        if isinstance(program, Study):
-            if params:
-                raise TypeError(
-                    'params can not be provided when running a study')
-            circuit = program.schedule.to_circuit()
-            param_resolvers = sum([list(s) for s in program.sweeps], [])
-        elif isinstance(program, Schedule):
-            circuit = program.to_circuit()
-            param_resolvers = self._to_resolvers(params or ParamResolver({}))
-        elif isinstance(program, Circuit):
-            circuit = program
-            param_resolvers = self._to_resolvers(params or ParamResolver({}))
-        else:
-            raise TypeError('Unexpected program type')
+        return self.run_sweep(circuit, [param_resolver], repetitions, options,
+                              qubits, initial_state)[0]
+
+    def run_sweep(
+            self,
+            program: Union[Circuit, Schedule],
+            params: Sweepable = ParamResolver({}),
+            repetitions: int = 1,
+            options: Options = None,
+            qubits: Sequence[raw_types.QubitId] = None,
+            initial_state: Union[int, np.ndarray] = 0,
+    ) -> List[SimulatorTrialResult]:
+        """Simulates the entire supplied Circuit.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+            repetitions: The number of repetitions to simulate.
+            options: Options configuring the simulation.
+            qubits: If specified this list of qubits will be used to define
+                a canonical ordering of the qubits. This canonical ordering
+                is used to define the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding corresponding to this state. Otherwise
+                if this is a np.ndarray it is the full initial state. In this
+                case it must be the correct size, be normalized (an L2 norm of
+                1), and have a dtype of np.complex64.
+
+        Returns:
+            List of trial results for this run, one for each possible parameter
+            resolver.
+        """
+        circuit = program if isinstance(program,
+                                        Circuit) else program.to_circuit()
+        param_resolvers = self._to_resolvers(params or ParamResolver({}))
 
         trial_results = []  # type: List[SimulatorTrialResult]
         for param_resolver in param_resolvers:
@@ -184,12 +205,14 @@ class Simulator:
     def _to_resolvers(self, sweepable: Sweepable) -> List[ParamResolver]:
         if isinstance(sweepable, ParamResolver):
             return [sweepable]
-        elif isinstance(sweepable, list):
-            return sweepable
         elif isinstance(sweepable, Sweep):
             return list(sweepable)
-        else:
-            raise TypeError('Unexpected Sweepable type')
+        elif isinstance(sweepable, Iterable):
+            iterable = cast(Iterable, sweepable)
+            return list(iterable) if isinstance(next(iter(iterable)),
+                                                ParamResolver) else sum(
+                [list(s) for s in iterable], [])
+        raise TypeError('Unexpected Sweepable type')
 
     def moment_steps(
             self,

@@ -65,7 +65,7 @@ def bv(n_qubits: int,
     print(circuit)
     # 8. Run and collect results
     simulator = cirq.google.Simulator()
-    result = simulator.run(circuit, repetitions=NUM_SHOTS)[0]
+    result = simulator.run(circuit, repetitions=NUM_SHOTS)
     result_bits = result.measurements['result']  # 2D array of (rep, qubit)
     result_strs = [bitstring(bits) for bits in result_bits]
     return collections.Counter(result_strs)

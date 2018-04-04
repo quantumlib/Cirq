@@ -18,7 +18,6 @@ from cirq.study.resolver import (
     ParamResolver,
 )
 from cirq.study.study import (
-    Study,
     Sweepable,
     TrialResult,
 )

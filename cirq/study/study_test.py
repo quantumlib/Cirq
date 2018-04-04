@@ -17,21 +17,6 @@
 import pytest
 
 from cirq import study
-from cirq.devices import UnconstrainedDevice
-from cirq.schedules import Schedule
-from cirq.study import Points, Study
-from cirq.testing import EqualsTester
-
-
-def test_equality():
-    eq = EqualsTester()
-    s = Schedule(UnconstrainedDevice)
-
-    eq.add_equality_group(Study(s, [Points('a', [1])]),
-                          Study(s, [Points('a', [1])]))
-
-    eq.add_equality_group(Study(s, [Points('a', [2])]),
-                          Study(s, [Points('a', [2])]))
 
 
 class BadResult(study.TrialResult):
