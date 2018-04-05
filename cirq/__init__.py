@@ -127,12 +127,8 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
-    Executor,
-    ExecutorStudy,
     ParamResolver,
-    StudyInterface,
     TrialResult,
-    TrialResultMeta,
 )
 
 from cirq.value import (
