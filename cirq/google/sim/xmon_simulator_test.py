@@ -22,6 +22,7 @@ import numpy as np
 import pytest
 
 from cirq.circuits import Circuit
+from cirq.linalg import allclose_up_to_global_phase
 from cirq.devices import UnconstrainedDevice
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
@@ -29,7 +30,7 @@ from cirq.google import (
 from cirq.google.sim import xmon_simulator
 from cirq.ops import op_tree
 from cirq.ops import raw_types
-from cirq.ops.common_gates import CNOT, H, X, Z
+from cirq.ops.common_gates import CNOT, H, X, Y, Z, CZ
 from cirq.ops.gate_features import CompositeGate, SingleQubitGate
 from cirq.schedules import moment_by_moment_schedule
 from cirq.study import ExecutorStudy
@@ -43,7 +44,7 @@ Q3 = XmonQubit(2, 0)
 
 
 def basic_circuit():
-    sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    sqrt_x = ExpWGate(half_turns=-0.5, axis_half_turns=0.0)
     z = ExpZGate()
     cz = Exp11Gate()
     circuit = Circuit()
@@ -121,7 +122,7 @@ def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
     result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_states[0],
-                                   np.array([-0.5j, 0.5, -0.5, 0.5j]))
+                                   np.array([0.5j, -0.5, 0.5, -0.5j]))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -129,7 +130,7 @@ def test_run_state_different_order_of_qubits(scheduler):
     simulator = xmon_simulator.Simulator()
     result = run(simulator, basic_circuit(), scheduler, qubits=[Q2, Q1])
     np.testing.assert_almost_equal(result.final_states[0],
-                                   np.array([-0.5j, -0.5, 0.5, 0.5j]))
+                                   np.array([0.5j, 0.5, -0.5, -0.5j]))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -205,7 +206,7 @@ def test_moment_steps_state():
                                    np.array([[0.5, 0.5j, 0.5j, -0.5],
                                              [0.5, 0.5j, 0.5j, 0.5],
                                              [-0.5, 0.5j, 0.5j, -0.5],
-                                             [-0.5j, 0.5, -0.5, 0.5j]]))
+                                             [0.5j, -0.5, 0.5, -0.5j]]))
 
 
 def test_moment_steps_set_state():
@@ -250,7 +251,7 @@ def test_param_resolver_exp_w_half_turns():
         axis_half_turns=0.0)
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5})
+    resolver = ParamResolver({'a': -0.5})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -266,8 +267,8 @@ def test_param_resolver_exp_w_axis_half_turns():
     resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(result,
-                                   np.array([[0, 1],
-                                             [-1, 0]]))
+                                   np.array([[0, -1],
+                                             [1, 0]]))
 
 
 def test_param_resolver_exp_w_multiple_params():
@@ -276,7 +277,7 @@ def test_param_resolver_exp_w_multiple_params():
         axis_half_turns=Symbol('b'))
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5, 'b': 0.5})
+    resolver = ParamResolver({'a': -0.5, 'b': 0.5})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -288,7 +289,7 @@ def test_param_resolver_exp_z_half_turns():
     exp_z = ExpZGate(half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_z(Q1))
-    resolver = ParamResolver({'a': 0.5})
+    resolver = ParamResolver({'a': -0.5})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(
         result,
@@ -472,3 +473,97 @@ def test_measurement_keys_repeat(scheduler):
     simulator = xmon_simulator.Simulator()
     with pytest.raises(ValueError, message='Repeated Measurement key a'):
         run(simulator, circuit, scheduler)
+
+
+def test_handedness_of_xmon_exp_x_gate():
+    circuit = Circuit.from_ops(ExpWGate(half_turns=0.5).on(Q1))
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, -1j]) * np.sqrt(0.5))
+
+
+def test_handedness_of_xmon_exp_y_gate():
+    circuit = Circuit.from_ops(ExpWGate(half_turns=0.5,
+                                        axis_half_turns=0.5).on(Q1))
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, 1]) * np.sqrt(0.5))
+
+
+def test_handedness_of_xmon_exp_z_gate():
+    circuit = Circuit.from_ops(H(Q1), ExpZGate(half_turns=0.5).on(Q1))
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, 1j]) * np.sqrt(0.5))
+
+
+def test_handedness_of_xmon_exp_11_gate():
+    circuit = Circuit.from_ops(H(Q1),
+                               H(Q2),
+                               Exp11Gate(half_turns=0.5).on(Q1, Q2))
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1, Q2]))[-1]
+    print(np.round(result.state(), 3))
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, 1, 1, 1j]) / 2)
+
+
+def test_handedness_of_x_gate():
+    circuit = Circuit.from_ops(X(Q1)**0.5)
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, -1j]) * np.sqrt(0.5))
+
+
+def test_handedness_of_y_gate():
+    circuit = Circuit.from_ops(Y(Q1)**0.5)
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, 1]) * np.sqrt(0.5))
+
+
+def test_handedness_of_z_gate():
+    circuit = Circuit.from_ops(H(Q1), Z(Q1)**0.5)
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, 1j]) * np.sqrt(0.5))
+
+
+def test_handedness_of_cz_gate():
+    circuit = Circuit.from_ops(H(Q1),
+                               H(Q2),
+                               CZ(Q1, Q2)**0.5)
+    simulator = xmon_simulator.Simulator()
+    result = list(simulator.moment_steps(circuit, qubits=[Q1, Q2]))[-1]
+    assert allclose_up_to_global_phase(result.state(),
+                                       np.array([1, 1, 1, 1j]) / 2)
+
+
+def test_handedness_of_basic_gates():
+    circuit = Circuit.from_ops(
+        X(Q1)**-0.5,
+        Z(Q1)**-0.5,
+        Y(Q1)**0.5,
+        XmonMeasurementGate().on(Q1),
+    )
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''],
+                            [[True]])
+
+
+def test_handedness_of_xmon_gates():
+    circuit = Circuit.from_ops(
+        ExpWGate(half_turns=-0.5).on(Q1),
+        ExpZGate(half_turns=-0.5).on(Q1),
+        ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(Q1),
+        XmonMeasurementGate().on(Q1),
+    )
+    result = xmon_simulator.Simulator().run(circuit)
+    np.testing.assert_equal(result.measurements[''],
+                            [[True]])

@@ -41,9 +41,9 @@ class Stepper(object):
 
     Xmons have a natural gate set made up of
 
-    * Single qubit phase gates, exp(i t Z)
+    * Single qubit phase gates, exp(-i t Z)
     * Single qubit gates about a operation in the Pauli X/Y plane,
-      exp(i t (cos(theta) X + sin(theta)Y)
+      exp(-i t (cos(theta) X + sin(theta) Y)
     * Two qubit phase gates exp(i t |11><11|)
 
     This stepper will do sharded simulation of the wave function using
@@ -63,10 +63,10 @@ class Stepper(object):
     """
 
     def __init__(self,
-        num_qubits: int,
-        num_prefix_qubits: int = None,
-        initial_state: Union[int, np.ndarray] = 0,
-        min_qubits_before_shard: int = 13) -> None:
+                 num_qubits: int,
+                 num_prefix_qubits: int = None,
+                 initial_state: Union[int, np.ndarray] = 0,
+                 min_qubits_before_shard: int = 13) -> None:
         """Construct a new Simulator.
 
         Args:
@@ -281,12 +281,14 @@ class Stepper(object):
         # Exponentiate the phases and add them into the state.
         self._pool.map(_apply_scratch_as_phase, self._shard_num_args())
 
-    def simulate_w(self, index: int, half_turns: float,
-        axis_half_turns: float):
+    def simulate_w(self,
+                   index: int,
+                   half_turns: float,
+                   axis_half_turns: float):
         """Simulate a single qubit rotation gate about a X + b Y.
 
-        The gate simulated is cos(pi half_turns) I + i sin (2 pi half_turns) *
-        (cos (pi axis_half_turns) X + sin(pi axis_half_turns) Y)
+        The gate simulated is U = exp(-i pi/2 W half_turns)
+            where W = cos(pi axis_half_turns) X + sin(pi axis_half_turns) Y
 
         Args:
           index: The qubit to act on.
@@ -396,21 +398,21 @@ def _clear_scratch(args: Dict[str, Any]):
 
 
 def _single_qubit_accumulate_into_scratch(args: Dict[str, Any]):
-    """Accumuates single qubit phase gates into the scratch shards."""
+    """Accumulates single qubit phase gates into the scratch shards."""
     index = args['indices'][0]
     shard_num = args['shard_num']
     half_turns = args['half_turns']
     num_shard_qubits = args['num_shard_qubits']
     scratch = _scratch_shard(args)
 
-    # ExpZ = exp(i pi Z half_turns / 2).
+    # ExpZ = exp(-i pi Z half_turns / 2).
     if index >= num_shard_qubits:
         # Acts on prefix qubits.
         sign = 1 - 2 * _kth_bit(shard_num, index - num_shard_qubits)
-        scratch += half_turns * sign
+        scratch -= half_turns * sign
     else:
         # Acts on shard qubits.
-        scratch += half_turns * _pm_vects(args)[index]
+        scratch -= half_turns * _pm_vects(args)[index]
 
 
 def _one_projector(args: Dict[str, Any], index: int) -> np.ndarray:
@@ -429,7 +431,7 @@ def _two_qubit_accumulate_into_scratch(args: Dict[str, Any]):
     scratch = _scratch_shard(args)
 
     projector = _one_projector(args, index0) * _one_projector(args, index1)
-    # Exp11 = exp(i pi |11><11| half_turns), but we accumulate phases as
+    # Exp11 = exp(-i pi |11><11| half_turns), but we accumulate phases as
     # pi / 2.
     scratch += 2 * half_turns * projector
 
@@ -453,8 +455,8 @@ def _w_within_shard(args: Dict[str, Any]):
     reshape_tuple = (2 ** (num_shard_qubits - 1 - index), 2, 2 ** index)
     perm_state = np.reshape(
         np.reshape(state, reshape_tuple)[:, ::-1, :], shard_size)
-    cos = np.cos(0.5 * np.pi * half_turns)
-    sin = np.sin(0.5 * np.pi * half_turns)
+    cos = np.cos(-0.5 * np.pi * half_turns)
+    sin = np.sin(-0.5 * np.pi * half_turns)
 
     cos_axis = np.cos(np.pi * axis_half_turns)
     sin_axis = np.sin(np.pi * axis_half_turns)
@@ -478,8 +480,8 @@ def _w_between_shards(args: Dict[str, Any]):
     perm_state = mem_manager.SharedMemManager.get_array(
         args['state_handle']).view(np.complex64)[perm_index]
 
-    cos = np.cos(0.5 * np.pi * half_turns)
-    sin = np.sin(0.5 * np.pi * half_turns)
+    cos = np.cos(-0.5 * np.pi * half_turns)
+    sin = np.sin(-0.5 * np.pi * half_turns)
 
     cos_axis = np.cos(np.pi * axis_half_turns)
     sin_axis = np.sin(np.pi * axis_half_turns)
