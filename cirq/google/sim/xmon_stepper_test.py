@@ -25,7 +25,7 @@ def test_no_thread_pool():
     result = pool.map(lambda x: x + 1, range(10))
     assert result == [x + 1 for x in range(10)]
     # No ops.
-    pool.close()
+    pool.terminate()
     pool.join()
 
 

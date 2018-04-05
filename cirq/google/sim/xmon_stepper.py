@@ -183,7 +183,8 @@ class Stepper(object):
         return self
 
     def __exit__(self, *args):
-        self._pool.close()
+        # Terminate is safe here since all work should have been completed.
+        self._pool.terminate()
         self._pool.join()
         self._pool_open = False
 
@@ -536,8 +537,9 @@ class ThreadlessPool(object):
         assert chunksize is None, 'Chunking not supported by SimplePool'
         return [func(x) for x in iterable]
 
-    def close(self):
+    def terminate(self):
         pass
 
     def join(self):
         pass
+
