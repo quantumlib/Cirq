@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq.circuits import Circuit
 from cirq.google import Simulator, XmonQubit, ExpWGate, XmonMeasurementGate
-from cirq.study import ExecutorStudy, visualize
+from cirq.study import visualize
 
 
 def test_plot_state_histogram():
@@ -34,12 +34,10 @@ def test_plot_state_histogram():
     circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
     circuit.append([XmonMeasurementGate(key='q0')(q0),
                     XmonMeasurementGate(key='q1')(q1)])
-    study = ExecutorStudy(executor=simulator,
-                          program=circuit,
-                          repetitions=5)
-    trials = study.run_study()
+    results = simulator.run_sweep(program=circuit,
+                                  repetitions=5)
 
-    values_plotted = visualize.plot_state_histogram(trials[0])
+    values_plotted = visualize.plot_state_histogram(results[0])
     expected_values = [0., 0., 0., 5.]
 
     np.testing.assert_equal(values_plotted, expected_values)

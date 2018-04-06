@@ -17,21 +17,21 @@
 import numpy as np
 import matplotlib.pyplot as pl
 
-def plot_state_histogram(trial):
-    """Plot the state histogram from a single trial with repetitions.
+def plot_state_histogram(result):
+    """Plot the state histogram from a single result with repetitions.
 
     States is a bitstring representation of all the qubit states in a single
-    trial.
+    result.
     Currently this function assumes each measurement gate applies to only
     a single qubit.
 
     Args:
-        trial: Instance of study.TrialResult.
+        result: Instance of SimulatorTrialResult.
 
     Returns:
         list of values plotted on the y-axis.
     """
-    num_qubits = len(trial.measurements.keys())
+    num_qubits = len(result.measurements.keys())
     states = 2**num_qubits
     values = np.zeros(states)
 
@@ -40,10 +40,10 @@ def plot_state_histogram(trial):
     # Convert this to an array of repetitions, each with an array of booleans.
     # e.g. {q1: array([[True, True]]), q2: array([[False, False]])}
     #      --> array([[True, False], [True, False]])
-    measurement_by_trial = np.array([
-        v.transpose()[0] for k, v in trial.measurements.items()]).transpose()
+    measurement_by_result = np.array([
+        v.transpose()[0] for k, v in result.measurements.items()]).transpose()
 
-    for meas in measurement_by_trial:
+    for meas in measurement_by_result:
         # Convert each array of booleans to a string representation.
         # e.g. [True, False] -> [1, 0] -> '10' -> 2
         state_ind = int(''.join([str(x) for x in [int(x) for x in meas]]), 2)
