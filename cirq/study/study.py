@@ -12,106 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines studies and related classes.
-
-Studies can be used to run repeated trials against different program
-paramters and number of repetitions.
-
-Example use:
-    sim = Simulator()
-    circuit = my_circuit()
-
-    study = ExecutorStudy(executor=sim, program=circuit, repetitions=10)
-    all_trials = study.run_study()
-    # all_trials is a list of 10 (context, result) where context contains
-    # the reptition id, and result contains the program's results.
+"""Defines a study.
 """
 
-from typing import Any, Iterable, Union
+from typing import Iterable, Union
 
-from cirq import abc
-from cirq.circuits import Circuit
-from cirq.schedules import Schedule
-from cirq.study import ParamResolver
-
-
-class StudyInterface(metaclass=abc.ABCMeta):
-    """An interface for running repeated trials over different parameters."""
-
-    @abc.abstractmethod
-    def run_study(self) -> Iterable['TrialResult']:
-        """Runs the study.
-
-        Returns:
-            An iterable of results, each representing a single run of the
-            executor, a trial. A trial may itself involve multiple repetitions
-            for the same set of circuit parameters.
-        """
-
-
-class ExecutorStudy(StudyInterface):
-    """A study is a collection of repeated trials run by an executor.
-
-    Here an Executor runs a single quantum program within a context of
-    each individual trials.
-    """
-
-    def __init__(
-            self,
-            executor: 'Executor',
-            program: Union[Circuit, Schedule],
-            param_resolvers: Iterable[ParamResolver] = None,
-            repetitions: int = 0,
-            **executor_kwags: Any) -> None:
-        self.executor = executor
-        self.program = program
-        self.param_resolvers = param_resolvers or [ParamResolver({})]
-        self.repetitions = repetitions
-        self.executor_kwags = executor_kwags
-
-    def run_study(self) -> Iterable['TrialResult']:
-        """Runs the study for all parameters and repetitions.
-
-        Returns:
-            An iterable of trial results for each parameter setting.
-        """
-        trial_results = []
-        for param_resolver in self.param_resolvers:
-            result = self.executor.run(  # type: ignore
-                program=self.program,
-                param_resolver=param_resolver,
-                repetitions=self.repetitions,
-                **self.executor_kwags)
-            trial_results.append(result)
-        return trial_results
-
-
-class Executor(metaclass=abc.ABCMeta):
-    """Encapsulates running a Circuit or Scheduler for fixed parameters.
-
-    Executors are used to run a single quantum program for a fixed
-    context of parameter values.
-    """
-
-    @abc.abstractmethod
-    def run(
-            self,
-            program: Union[Circuit, Schedule],
-            param_resolver: ParamResolver,
-            repetitions: int
-    ) -> 'TrialResult':
-        """Run the program using the parameters described in the ParamResolver.
-
-        Args:
-            program: Either the Circuit or Schedule to run. Some executors
-                only support one of these types.
-            param_resolver: Resolves parameters in the program.
-
-        Returns:
-            Results of the given run of the circuit.
-        """
-
-        # TODO(dabacon): Async run.
+from cirq.study.resolver import ParamResolver
+from cirq.study.sweeps import Sweep
 
 
 class TrialResultMeta(type):
@@ -142,3 +49,7 @@ class TrialResult(metaclass=TrialResultMeta):
             the first index running over the repetitions, and the second index
             running over the qubits for the corresponding measurements.
     """
+
+
+Sweepable = Union[
+    ParamResolver, Iterable[ParamResolver], Sweep, Iterable[Sweep]]

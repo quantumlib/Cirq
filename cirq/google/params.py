@@ -10,11 +10,12 @@ def sweep_to_proto(
         sweep: Sweep,
         msg: params_pb2.ParameterSweep = None) -> params_pb2.ParameterSweep:
     """Converts sweep into an equivalent protobuf representation."""
-    sweep = _to_zip_product(sweep)
     if msg is None:
         msg = params_pb2.ParameterSweep()
-    for factor in sweep.factors:
-        _sweep_zip_to_proto(cast(Zip, factor), msg=msg.sweep.factors.add())
+    if not sweep == Unit:
+        sweep = _to_zip_product(sweep)
+        for factor in sweep.factors:
+            _sweep_zip_to_proto(cast(Zip, factor), msg=msg.sweep.factors.add())
     return msg
 
 
