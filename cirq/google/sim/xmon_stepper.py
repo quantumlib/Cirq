@@ -178,7 +178,7 @@ class Stepper(object):
 
     def __enter__(self):
         self._pool = (multiprocessing.Pool(processes=self._num_shards)
-                      if self._num_qubits > 1 else ThreadlessPool())
+                      if self._num_prefix_qubits > 1 else ThreadlessPool())
         self._pool_open = True
         return self
 
