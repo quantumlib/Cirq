@@ -50,14 +50,32 @@ def test_measurement_eq():
     eq.make_equality_pair(lambda: XmonMeasurementGate('b'))
 
 
-def test_measurement_to_proto():
+def test_single_qubit_measurement_to_proto():
     assert proto_matches_text(
         XmonMeasurementGate('test').to_proto(XmonQubit(2, 3)),
         """
         measurement {
-            target {
+            targets {
                 row: 2
                 col: 3
+            }
+            key: "test"
+        }
+        """)
+
+
+def test_multi_qubit_measurement_to_proto():
+    assert proto_matches_text(
+        XmonMeasurementGate('test').to_proto(XmonQubit(2, 3), XmonQubit(3, 4)),
+        """
+        measurement {
+            targets {
+                row: 2
+                col: 3
+            }
+            targets {
+                row: 3
+                col: 4
             }
             key: "test"
         }

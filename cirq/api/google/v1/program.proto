@@ -31,27 +31,27 @@ message ParameterizedResult {
   // across all of the repetitions for the set of parameters given the
   // params field.
   //
-  // The result of a single measurement gate is a single bit. Every Program
-  // has a fixed set of measurement gates. These gates are labeled by a key
-  // (this key may be repeated). The results of a single run of the program
-  // should consist of bits for each of the measurement gates. To order these
-  // bits we use the measurement_keys field of the SweepResult. This is an
-  // ordered list of measurement keys along with the number of times this
-  // measurement key appears in the program (this is the size field in
-  // MeasurementKey). We use the ordering of the measurement_keys field to
-  // define the bit string a single run of the measurement. That is, if the
-  // keys (k_i) and sizes (s_i) are given by the list
-  //   (k_0,s_0),(k_1,s_1), ..., (k_{m-1},s_{m-1}),
-  // (for m different measurement keys), then the bit string for these
-  // measurements is defined as
-  //   r_0[0] r_0[1] ... r_0[s_0-1] r_1[0] r_1[1] ... r_1[s_1-1] ...
-  //   ... r_{m-1}[0] r_{m-1}[1] ... r_{m-1}[s_{m-1}-1]
-  // Here r_i are the measurement results for the ith key (order defined by
-  // measurement_keys). Since the ith key can appear s_i times, r_i is a
-  // length s_i bit string, and r_i[j] is the jth bit in this string.
-  // The order of each r_i bit string (of size s_i) follows the order in which
-  // the measurements are specified in the program (recall that this is for a
-  // fixed measurement key).
+  // The result of a measurement gate is a list of bits, one for each qubit
+  // that has been measured. Every Program has a fixed set of measurement gates.
+  // These gates are labeled by a key (this key is unique across the Program).
+  // The results of a single run of the program should consist of bits for
+  // each of the measurement gates. To order these bits we use the
+  // measurement_keys field of the SweepResult. This is an ordered list of
+  // measurement keys, each of which includes a list of qubits that the
+  // measurement acts on. We use the ordering of the measurement_keys and then
+  // the ordering of the qubits to define the order of the bit string for a
+  // single run of the measurement.
+  //
+  // If the keys are (k_i), for i \in {0, 1, ..., m-1}, and the measurement
+  // acts on qubits q_{i,0}, q_{i,1}, ..., q_{i,n_i-1} (so that ith key
+  // corresponds to n_i qubits), then the measurements bit results are
+  // defined as
+  //  r_0[0] r_0[1] ... r_0[n_i-1] r_1[0] r_1[1] ... r_1[n_1-1] ...
+  //   ... r_{m-1}[0] r_{m-1}[1] ... r_{m-1}[n_{m-1}-1]
+  // Here r_i are the measurement result for the ith key (order defined by
+  // measurement keys).  Since the ith key has n_i qubits, r_i is a length
+  // n_i bit string, and r_i[j] is the jth bit in this string (order
+  // following the list order of the qubits).
   //
   // The above describes a bit string for a single run of a program with
   // fixed parameters. This program however may be repeated, the number
@@ -69,17 +69,14 @@ message ParameterizedResult {
   bytes measurement_results = 2;
 }
 
-// A message which represents a measurement key, along with the number of
-// measurements that are associated with this key.
+// A message which represents a measurement key, along with the qubits
+// upon which the measurement acts.
 message MeasurementKey {
   // The measurement key.
   string key = 1;
 
-  // The number of measurements operations in a Program. This is not the number
-  // of measurements across all of the ParameterSweeps, but instead is simply
-  // the number of times that the measurement with a given key appears in
-  // the list of operations in a program.
-  int32 size = 2;
+  // The qubits upon which this measurement is performed.
+  repeated Qubit qubits = 2;
 }
 
 // The measurement results for a particular ParameterSweep.
@@ -89,15 +86,10 @@ message SweepResult {
   // in the measurement results.
   int32 repetitions = 1;
 
-  // A list of measurement keys (string) along with the number of measurements
-  // for each of these keys. The size of the measurement key is the total
-  // number of measurements with that key in the list of operations for
-  // the Program.
-  //
-  // The measurement keys in the repeated list are all unique: if a measurement
-  // with the same key is repeated the bit results will come back in the order
-  // the gate appears in the Program. See the measurement_results field
-  // for documentation on this ordering.
+  // A list of measurement keys (string) along with the qubits that have been
+  // measured. The size of the measurement key is the total number of
+  // measurements in the list of operations for the Program. The measurement
+  // keys are all unique.
   repeated MeasurementKey measurement_keys = 2;
 
   // The results along with the parameters that generated these results.

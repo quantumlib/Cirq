@@ -57,7 +57,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
             meas = op.measurement
             return XmonMeasurementGate(
                 key=meas.key
-            ).on(qubit(meas.target))
+            ).on(*[qubit(q) for q in meas.targets])
         else:
             raise ValueError('invalid operation: {}'.format(op))
 
@@ -87,15 +87,15 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
 
 
 class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
-    """Indicates that a qubit should be measured, and where the result goes."""
+    """Indicates that qubits should be measured, and where the result goes."""
 
     def to_proto(self, *qubits):
-        if len(qubits) != 1:
-            raise ValueError('Wrong number of qubits.')
+        if len(qubits) == 0:
+            raise ValueError('Measurement gate on no qubits.')
 
-        q = qubits[0]
         op = operations_pb2.Operation()
-        q.to_proto(op.measurement.target)
+        for q in qubits:
+            q.to_proto(op.measurement.targets.add())
         op.measurement.key = self.key
         return op
 

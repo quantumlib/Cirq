@@ -15,8 +15,7 @@
 import numpy as np
 import pytest
 
-from cirq import linalg
-from cirq import ops, Symbol
+from cirq import ops, Symbol, linalg, Circuit
 from cirq.testing import EqualsTester
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
@@ -156,3 +155,49 @@ def test_runtime_types_of_rot_gates():
         assert c.matrix() is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
+
+
+def test_measurement_eq():
+    eq = EqualsTester()
+    eq.add_equality_group(ops.MeasurementGate(''),
+                        ops.MeasurementGate('', invert_mask=None))
+    eq.add_equality_group(ops.MeasurementGate('a'))
+    eq.add_equality_group(ops.MeasurementGate('a', invert_mask=(True,)))
+    eq.add_equality_group(ops.MeasurementGate('a', invert_mask=(False,)))
+    eq.add_equality_group(ops.MeasurementGate('b'))
+
+
+def test_interchangeable_qubit_eq():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = ops.NamedQubit('c')
+    eq = EqualsTester()
+
+    eq.add_equality_group(ops.SWAP(a, b), ops.SWAP(b, a))
+    eq.add_equality_group(ops.SWAP(a, c))
+
+    eq.add_equality_group(ops.CZ(a, b), ops.CZ(b, a))
+    eq.add_equality_group(ops.CZ(a, c))
+
+    eq.add_equality_group(ops.CNOT(a, b))
+    eq.add_equality_group(ops.CNOT(b, a))
+    eq.add_equality_group(ops.CNOT(a, c))
+
+
+def test_text_diagrams():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    circuit = Circuit.from_ops(
+        ops.SWAP(a, b),
+        ops.X(a),
+        ops.Y(a),
+        ops.Z(a),
+        ops.CZ(a, b),
+        ops.CNOT(a, b),
+        ops.CNOT(b, a),
+        ops.H(a))
+    assert circuit.to_text_diagram().strip() == """
+a: ───×───X───Y───Z───Z───@───X───H───
+      │               │   │   │
+b: ───×───────────────Z───X───@───────
+    """.strip()

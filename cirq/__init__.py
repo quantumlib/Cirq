@@ -127,12 +127,12 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
-    Executor,
-    ExecutorStudy,
     ParamResolver,
-    StudyInterface,
     TrialResult,
-    TrialResultMeta,
+)
+
+from cirq.study.visualize import (
+    plot_state_histogram,
 )
 
 from cirq.value import (
