@@ -15,11 +15,13 @@
 """Tests for xmon_simulator."""
 
 import cmath
+import itertools
 import math
 from typing import Sequence
 
 import numpy as np
 import pytest
+
 
 from cirq.circuits import Circuit
 from cirq.devices import UnconstrainedDevice
@@ -32,13 +34,13 @@ from cirq.ops import raw_types
 from cirq.ops.common_gates import CNOT, H, X, Z
 from cirq.ops.gate_features import CompositeGate, SingleQubitGate
 from cirq.schedules import moment_by_moment_schedule
-from cirq.study import ExecutorStudy
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
+Q3 = XmonQubit(2, 0)
 
 
 def basic_circuit():
@@ -64,9 +66,7 @@ def large_circuit():
         circuit.append(
             [sqrt_x(qubit) for qubit in qubits if np.random.random() < 0.5])
         circuit.append([cz(qubits[i], qubits[i + 1]) for i in range(9)])
-    for i in range(10):
-        circuit.append(
-            XmonMeasurementGate(key='meas')(qubits[i]))
+    circuit.append([XmonMeasurementGate(key='meas')(*qubits)])
     return circuit
 
 
@@ -245,14 +245,13 @@ def compute_gate(circuit, resolver, num_qubits=1):
     return np.array(gate).transpose()
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_w_half_turns(offset):
+def test_param_resolver_exp_w_half_turns():
     exp_w = ExpWGate(
-        half_turns=ParameterizedValue('a', offset),
+        half_turns=Symbol('a'),
         axis_half_turns=0.0)
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -260,27 +259,25 @@ def test_param_resolver_exp_w_half_turns(offset):
                                              [amp * 1j, amp]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_w_axis_half_turns(offset):
+def test_param_resolver_exp_w_axis_half_turns():
     exp_w = ExpWGate(
-        half_turns=1.0, axis_half_turns=ParameterizedValue('a', offset))
+        half_turns=1.0, axis_half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(result,
                                    np.array([[0, 1],
                                              [-1, 0]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_w_multiple_params(offset):
+def test_param_resolver_exp_w_multiple_params():
     exp_w = ExpWGate(
-        half_turns=ParameterizedValue('a', offset),
-        axis_half_turns=ParameterizedValue('b', offset))
+        half_turns=Symbol('a'),
+        axis_half_turns=Symbol('b'))
     circuit = Circuit()
     circuit.append(exp_w(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset, 'b': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5, 'b': 0.5})
     result = compute_gate(circuit, resolver)
     amp = 1.0 / math.sqrt(2)
     np.testing.assert_almost_equal(result,
@@ -288,12 +285,11 @@ def test_param_resolver_exp_w_multiple_params(offset):
                                              [-amp, amp]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_z_half_turns(offset):
-    exp_z = ExpZGate(half_turns=ParameterizedValue('a', offset))
+def test_param_resolver_exp_z_half_turns():
+    exp_z = ExpZGate(half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_z(Q1))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
     np.testing.assert_almost_equal(
         result,
@@ -301,12 +297,11 @@ def test_param_resolver_exp_z_half_turns(offset):
                   [0, cmath.exp(-1j * math.pi * 0.25)]]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_exp_11_half_turns(offset):
-    exp_11 = Exp11Gate(half_turns=ParameterizedValue('a', offset))
+def test_param_resolver_exp_11_half_turns():
+    exp_11 = Exp11Gate(half_turns=Symbol('a'))
     circuit = Circuit()
     circuit.append(exp_11(Q1, Q2))
-    resolver = ParamResolver({'a': 0.5 - offset})
+    resolver = ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver, num_qubits=2)
     # Slight hack: doesn't depend on order of qubits.
     np.testing.assert_almost_equal(
@@ -314,34 +309,49 @@ def test_param_resolver_exp_11_half_turns(offset):
         np.diag([1, 1, 1, cmath.exp(1j * math.pi * 0.5)]))
 
 
-@pytest.mark.parametrize('offset', (0.0, 0.2))
-def test_param_resolver_param_dict(offset):
+def test_param_resolver_param_dict():
     exp_w = ExpWGate(
-        half_turns=ParameterizedValue('a', offset),
+        half_turns=Symbol('a'),
         axis_half_turns=0.0)
     circuit = Circuit()
     circuit.append(exp_w(Q1))
     resolver = ParamResolver({'a': 0.5})
 
     simulator = xmon_simulator.Simulator()
-    result = simulator.run(circuit, param_resolver=resolver)
+    result = simulator.run(circuit, resolver)
     assert result.params.param_dict == {'a': 0.5}
 
 
-def test_run_study():
+def test_run_circuit_sweep():
     circuit = Circuit.from_ops(
-        ExpWGate(half_turns=ParameterizedValue('a')).on(Q1),
+        ExpWGate(half_turns=Symbol('a')).on(Q1),
         XmonMeasurementGate('m').on(Q1),
     )
 
     sweep = Linspace('a', 0, 10, 11)
+    simulator = xmon_simulator.Simulator()
 
-    executor = ExecutorStudy(
-        xmon_simulator.Simulator(), circuit, sweep, repetitions=1)
-
-    for i, result in enumerate(executor.run_study()):
+    for i, result in enumerate(
+                        simulator.run_sweep(circuit, sweep, repetitions=1)):
         assert result.params['a'] == i
-        assert result.measurements['m'] == [i%2 != 0]
+        assert result.measurements['m'] == [i % 2 != 0]
+
+
+def test_run_circuit_sweeps():
+    circuit = Circuit.from_ops(
+        ExpWGate(half_turns=Symbol('a')).on(Q1),
+        XmonMeasurementGate('m').on(Q1),
+    )
+
+    sweep = Linspace('a', 0, 5, 6)
+    sweep2 = Linspace('a', 6, 10, 5)
+    simulator = xmon_simulator.Simulator()
+
+    for i, result in enumerate(
+                        simulator.run_sweep(circuit, [sweep, sweep2],
+                                            repetitions=1)):
+        assert result.params['a'] == i
+        assert result.measurements['m'] == [i % 2 != 0]
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -349,7 +359,7 @@ def test_composite_gates(scheduler):
     circuit = Circuit()
     circuit.append([X(Q1), CNOT(Q1, Q2)])
     m = XmonMeasurementGate('a')
-    circuit.append([m(Q1), m(Q2)])
+    circuit.append([m(Q1, Q2)])
 
     simulator = xmon_simulator.Simulator()
     result = run(simulator, circuit, scheduler)
@@ -388,7 +398,7 @@ class UnsupportedCompositeGate(SingleQubitGate, CompositeGate):
         self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
         qubit = qubits[0]
         yield Z(qubit)
-        yield UnsupportedGate(qubit)
+        yield UnsupportedGate().on(qubit)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -402,25 +412,141 @@ def test_unsupported_gate_composite(scheduler):
         _ = run(simulator, circuit, scheduler)
 
 
-def test_measurement_order():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_qubit_order(scheduler):
+    circuit = Circuit()
+    meas = XmonMeasurementGate()
+    circuit.append(X(Q2))
+    circuit.append(X(Q1))
+    circuit.append([meas.on(Q1, Q3, Q2)])
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements[''], [[True, False, True]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_inverted_measurement(scheduler):
     circuit = Circuit.from_ops(
-        XmonMeasurementGate().on(Q1),
+        XmonMeasurementGate('a', invert_mask=(False,))(Q1),
         X(Q1),
-        XmonMeasurementGate().on(Q1),
-    )
-    result = xmon_simulator.Simulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''], [[False, True]])
+        XmonMeasurementGate('b', invert_mask=(False,))(Q1),
+        XmonMeasurementGate('c', invert_mask=(True,))(Q1),
+        X(Q1),
+        XmonMeasurementGate('d', invert_mask=(True,))(Q1))
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    assert {'a': [[False]], 'b': [[True]], 'c': [[False]],
+            'd': [[True]]} == result.measurements
 
 
-def test_inverted_measurement():
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_inverted_measurement_multiple_qubits(scheduler):
     circuit = Circuit.from_ops(
-        XmonMeasurementGate(invert_result=False)(Q1),
-        X(Q1),
-        XmonMeasurementGate(invert_result=False)(Q1),
-        XmonMeasurementGate(invert_result=True)(Q1),
-        X(Q1),
-        XmonMeasurementGate(invert_result=True)(Q1))
+        XmonMeasurementGate('a', invert_mask=(False, True))(Q1, Q2),
+        XmonMeasurementGate('b', invert_mask=(True, False))(Q1, Q2),
+        XmonMeasurementGate('c', invert_mask=(True, False))(Q2, Q1))
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[False, True]])
+    np.testing.assert_equal(result.measurements['b'], [[True, False]])
+    np.testing.assert_equal(result.measurements['c'], [[True, False]])
 
-    result = xmon_simulator.Simulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''],
-                            [[False, True, False, True]])
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_multiple_measurements(scheduler):
+    circuit = Circuit()
+    measa = XmonMeasurementGate('a')
+    measb = XmonMeasurementGate('b')
+    circuit.append(X(Q1))
+    circuit.append([measa.on(Q1, Q2)])
+    circuit.append(X(Q1))
+    circuit.append([measb.on(Q1, Q2)])
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[True, False]])
+    np.testing.assert_equal(result.measurements['b'], [[False, False]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_multiple_measurements_qubit_order(scheduler):
+    circuit = Circuit()
+    measa = XmonMeasurementGate('a')
+    measb = XmonMeasurementGate('b')
+    circuit.append(X(Q1))
+    circuit.append([measa.on(Q1, Q2)])
+    circuit.append([measb.on(Q2, Q1)])
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, circuit, scheduler)
+    np.testing.assert_equal(result.measurements['a'], [[True, False]])
+    np.testing.assert_equal(result.measurements['b'], [[False, True]])
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_measurement_keys_repeat(scheduler):
+    circuit = Circuit()
+    meas = XmonMeasurementGate('a')
+    circuit.append([meas.on(Q1), X.on(Q1), X.on(Q2), meas.on(Q2)])
+    simulator = xmon_simulator.Simulator()
+    with pytest.raises(ValueError, message='Repeated Measurement key a'):
+        run(simulator, circuit, scheduler)
+
+
+def bit_flip_circuit(flip0, flip1):
+    q1, q2 = XmonQubit(0, 0), XmonQubit(0, 1)
+    g1, g2 = ExpWGate(half_turns=flip0)(q1), ExpWGate(half_turns=flip1)(q2)
+    m1, m2 = XmonMeasurementGate('q1')(q1), XmonMeasurementGate('q2')(q2)
+    circuit = Circuit()
+    circuit.append([g1, g2, m1, m2])
+    return circuit
+
+
+def test_circuit_repetitions():
+    sim = xmon_simulator.Simulator()
+    circuit = bit_flip_circuit(1, 1)
+
+    result = sim.run(circuit, repetitions=10)
+    assert result.params.param_dict == {}
+    assert result.repetitions == 10
+    np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
+    np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
+
+
+def test_circuit_parameters():
+    sim = xmon_simulator.Simulator()
+    circuit = bit_flip_circuit(Symbol('a'), Symbol('b'))
+
+    resolvers = [ParamResolver({'a': b1, 'b': b2})
+                 for b1 in range(2) for b2 in range(2)]
+
+    all_trials = sim.run_sweep(circuit, params=resolvers, repetitions=1)
+    assert len(all_trials) == 4
+    for result in all_trials:
+        assert result.repetitions == 1
+        expect_a = result.params['a'] == 1
+        expect_b = result.params['b'] == 1
+        np.testing.assert_equal(result.measurements['q1'], [[expect_a]])
+        np.testing.assert_equal(result.measurements['q2'], [[expect_b]])
+    # All parameters explored.
+    assert (set(itertools.product([0, 1], [0, 1]))
+            == {(r.params['a'], r.params['b']) for r in all_trials})
+
+
+def test_circuit_param_and_reps():
+    sim = xmon_simulator.Simulator()
+    circuit = bit_flip_circuit(Symbol('a'), Symbol('b'))
+
+    resolvers = [ParamResolver({'a': b1, 'b': b2})
+                 for b1 in range(2) for b2 in range(2)]
+
+    all_trials = sim.run_sweep(circuit, params=resolvers, repetitions=3)
+    assert len(all_trials) == 4
+    for result in all_trials:
+        assert result.repetitions == 3
+        expect_a = result.params['a'] == 1
+        expect_b = result.params['b'] == 1
+        np.testing.assert_equal(result.measurements['q1'], [[expect_a]] * 3)
+        np.testing.assert_equal(result.measurements['q2'], [[expect_b]] * 3)
+    # All parameters explored.
+    # All parameters explored.
+    assert (set(itertools.product([0, 1], [0, 1]))
+            == {(r.params['a'], r.params['b']) for r in all_trials})

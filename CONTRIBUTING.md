@@ -22,19 +22,40 @@ use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
 
-Our code reviews also (currently) require the reviewer to run tests for
-your pull request.  To insure that these tests pass, you should run
-these tests locally. To do this, you must first install the protobuf
-compiler and the virtual environment:
+Our code reviews currently require a maintainer to run tests and other checks
+against your pull request.
+This manual continuous integration system will be in place until Cirq is
+released publicly, at which point we will switch to an automated system
+(e.g Travis-CI).
+
+To ensure that the continuous integration checks will pass, you can run them
+locally.
+To do this, you must first install `protobuf-compiler` and `virtualenv`:
+
 ```bash
 sudo apt-get install protobuf-compiler virtualenv
 ```
-Then you can run the following, which assumes you are in the directory
-where your changes are made:
+
+Next, from the root directory of your clone of cirq's repository, run the
+continuous integration scripts:
+
 ```bash
-./continuous_integration/test-pull-request.sh
+# run linting and unit tests against local code
+bash continuous-integration/pylint-pull-request.sh
+bash continuous-integration/test-pull-request.sh
 ```
-Reviewers will run these tests before your code is submitted to ensure
-that the tests are not broken.  This ad hoc system is in place until
-Cirq is released publically when a continuous testing system will
-be put in place.
+
+These scripts will test and lint your local changes to the code.
+If you wish to run the scripts against a pull request on cirq's github
+repository, you can pass in the pull-request number as an argument to the
+scripts:
+
+```bash
+# download a temporary copy of pull request #214 and run tests against it
+bash continuous-integration/test-pull-request.sh 214
+```
+
+Note that these are the same scripts run by maintainers in order to set the
+pass/fail status indicators on github.
+If you aren't a maintainer (or are but don't provide an access token argument)
+the status-setting code will simply be skipped.

@@ -12,6 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Apis for running quantum programs remotely."""
+from cirq.value import Symbol
+from cirq.testing import EqualsTester
 
-from cirq.api import google
+
+def test_parameterized_value_init():
+    assert Symbol('a').name == 'a'
+    assert Symbol('b').name == 'b'
+
+
+def test_parameterized_value_eq():
+    eq = EqualsTester()
+    eq.add_equality_group(Symbol('a'))
+    eq.make_equality_pair(lambda: Symbol('rr'))

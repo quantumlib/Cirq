@@ -36,6 +36,7 @@ from cirq.circuits import (
     InsertStrategy,
     Moment,
     OptimizationPass,
+    PointOptimizationSummary,
     PointOptimizer,
     TextDiagramDrawer,
 )
@@ -126,12 +127,8 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
-    Executor,
-    ExecutorStudy,
     ParamResolver,
-    StudyInterface,
     TrialResult,
-    TrialResultMeta,
 )
 
 from cirq.study.visualize import (
@@ -140,7 +137,7 @@ from cirq.study.visualize import (
 
 from cirq.value import (
     Duration,
-    ParameterizedValue,
+    Symbol,
     Timestamp,
 )
 

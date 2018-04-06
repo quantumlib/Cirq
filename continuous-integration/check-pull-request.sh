@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Apis for running quantum programs remotely."""
 
-from cirq.api import google
+# This script runs all defined checks against a pull request or local code.
+
+set -e
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+bash ${own_directory}/pylint-pull-request.sh $@
+bash ${own_directory}/typecheck-pull-request.sh $@
+bash ${own_directory}/test-pull-request.sh $@

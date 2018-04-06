@@ -14,7 +14,7 @@
 
 import pytest
 
-from cirq import ops, ParameterizedValue
+from cirq import ops, Symbol
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
@@ -599,6 +599,46 @@ def test_to_text_diagram_extended_gate():
         """.strip()
 
 
+def test_to_text_diagram_multi_qubit_gate():
+    q1 = ops.NamedQubit('(0, 0)')
+    q2 = ops.NamedQubit('(0, 1)')
+    q3 = ops.NamedQubit('(0, 2)')
+    c = Circuit([Moment([ops.MeasurementGate('msg').on(q1, q2, q3)])])
+    assert c.to_text_diagram().strip() == """
+(0, 0): ───M───
+           │
+(0, 1): ───M───
+           │
+(0, 2): ───M───
+    """.strip()
+    assert c.to_text_diagram(use_unicode_characters=False).strip() == """
+(0, 0): ---M---
+           |
+(0, 1): ---M---
+           |
+(0, 2): ---M---
+    """.strip()
+    print(c.to_text_diagram(transpose=True))
+    assert c.to_text_diagram(transpose=True).strip() == """
+(0, 0) (0, 1) (0, 2)
+│      │      │
+M──────M──────M
+│      │      │
+    """.strip()
+
+
+def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
+    class BadGate(ops.AsciiDiagrammableGate):
+        def ascii_wire_symbols(self):
+            return ("a", "a",)
+    q1 = ops.NamedQubit('(0, 0)')
+    q2 = ops.NamedQubit('(0, 1)')
+    q3 = ops.NamedQubit('(0, 2)')
+    c = Circuit([Moment([BadGate().on(q1, q2, q3)])])
+    with pytest.raises(ValueError, match='BadGate'):
+        c.to_text_diagram()
+
+
 def test_to_text_diagram_parameterized_value():
     q = ops.NamedQubit('cube')
 
@@ -615,17 +655,13 @@ def test_to_text_diagram_parameterized_value():
     c = Circuit.from_ops(
         PGate(1).on(q),
         PGate(2).on(q),
-        PGate(ParameterizedValue('a')).on(q),
-        PGate(ParameterizedValue('a', 1)).on(q),
-        PGate(ParameterizedValue('%$&#*(')).on(q),
-        PGate(ParameterizedValue('%$&#*(', 1)).on(q),
+        PGate(Symbol('a')).on(q),
+        PGate(Symbol('%$&#*(')).on(q),
     )
     assert str(c).strip() in [
-        "cube: ───P───P^2───P^a───P^(1+a)───P^param('%$&#*(')───P^(1+param('%$"
-        "&#*('))───",
+        "cube: ───P───P^2───P^a───P^Symbol('%$&#*(')───",
 
-        "cube: ───P───P^2───P^a───P^(1+a)───P^param(u'%$&#*(')───P^(1+param(u'"
-        "%$&#*('))───",
+        "cube: ───P───P^2───P^a───P^Symbol(u'%$&#*(')───",
     ]
 
 

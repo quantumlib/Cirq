@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Apis for running quantum programs remotely."""
+"""Client for running on Google's Quantum Engine.
+"""
 
-from cirq.api import google
+from cirq.google.engine.engine import (
+  Engine,
+  EngineOptions,
+  EngineTrialResult,
+)

@@ -14,8 +14,12 @@
 
 """Tests for the expand composite optimization pass."""
 
-from cirq.circuits import (Circuit, DropEmptyMoments, ExpandComposite,
-                           InsertStrategy, Moment)
+from cirq.circuits import (
+    Circuit,
+    DropEmptyMoments,
+    ExpandComposite,
+    InsertStrategy,
+)
 from cirq.extension import Extensions
 from cirq.ops import CNOT, CNotGate, CompositeGate, CZ, QubitId, SWAP, X, Y, Z
 
@@ -24,8 +28,10 @@ def assert_equal_mod_empty(expected, actual):
     drop_empty = DropEmptyMoments()
     drop_empty.optimize_circuit(actual)
     if expected != actual:
-        print("expected: ", expected)
-        print("actual: ", actual)
+        print('EXPECTED')
+        print(expected)
+        print('ACTUAL')
+        print(actual)
     assert expected == actual
 
 
@@ -80,14 +86,18 @@ def test_multiple_composite_default():
 
 def test_mix_composite_non_composite():
     q0, q1 = QubitId(), QubitId()
-    cnot = CNOT(q0, q1)
-    circuit = Circuit()
-    circuit.append([X(q0), cnot, X(q1)])
+
+    actual = Circuit.from_ops(X(q0), CNOT(q0, q1), X(q1))
     opt = ExpandComposite()
-    opt.optimize_circuit(circuit)
-    expected = Circuit()
-    expected.append([X(q0), Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5, X(q1)])
-    assert_equal_mod_empty(expected, circuit)
+    opt.optimize_circuit(actual)
+
+    expected = Circuit.from_ops(X(q0),
+                                Y(q1) ** -0.5,
+                                CZ(q0, q1),
+                                Y(q1) ** 0.5,
+                                X(q1),
+                                strategy=InsertStrategy.NEW)
+    assert_equal_mod_empty(expected, actual)
 
 
 def test_recursive_composite():
@@ -98,12 +108,15 @@ def test_recursive_composite():
 
     opt = ExpandComposite()
     opt.optimize_circuit(circuit)
-    expected = Circuit()
-    expected.append([Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5])
-    expected.append([Y(q0) ** -0.5, CZ(q1, q0), Y(q0) ** 0.5],
-                    strategy=InsertStrategy.INLINE)
-    expected.append([Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5],
-                    strategy=InsertStrategy.INLINE)
+    expected = Circuit().from_ops(Y(q1) ** -0.5,
+                                  CZ(q0, q1),
+                                  Y(q1) ** 0.5,
+                                  Y(q0) ** -0.5,
+                                  CZ(q1, q0),
+                                  Y(q0) ** 0.5,
+                                  Y(q1) ** -0.5,
+                                  CZ(q0, q1),
+                                  Y(q1) ** 0.5)
     assert_equal_mod_empty(expected, circuit)
 
 
@@ -148,47 +161,3 @@ def test_recursive_composite_extension_overrides():
     expected.append([Z(q0), Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5, Z(q0)],
                     strategy=InsertStrategy.INLINE)
     assert_equal_mod_empty(expected, circuit)
-
-
-def test_earliest_insert_strategy():
-    # Fills empty moment.
-    q0, q1 = QubitId(), QubitId()
-    circuit = Circuit([Moment()])
-    cnot = CNOT(q0, q1)
-    circuit.append(cnot)
-
-    opt = ExpandComposite(insert_strategy=InsertStrategy.EARLIEST)
-    opt.optimize_circuit(circuit)
-    expected = Circuit()
-    expected.append([Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5])
-    assert_equal_mod_empty(expected, circuit)
-
-
-def test_new_insert_strategy():
-    q0, q1 = QubitId(), QubitId()
-    circuit = Circuit([Moment()])
-    cnot = CNOT(q0, q1)
-    circuit.append(cnot)
-
-    opt = ExpandComposite(insert_strategy=InsertStrategy.NEW)
-    opt.optimize_circuit(circuit)
-    expected = Circuit([Moment([Y(q1) ** -0.5]),
-                        Moment([CZ(q0, q1)]),
-                        Moment([Y(q1) ** 0.5])])
-    assert_equal_mod_empty(expected, circuit)
-
-
-def test_inline_insert_strategy():
-    q0, q1 = QubitId(), QubitId()
-    circuit = Circuit([Moment()])
-    cnot = CNOT(q0, q1)
-    circuit.append(cnot)
-
-    opt = ExpandComposite(insert_strategy=InsertStrategy.INLINE)
-    opt.optimize_circuit(circuit)
-    expected = Circuit([Moment()])
-    expected.append([Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5],
-                    strategy=InsertStrategy.EARLIEST)
-    expected.moments.append(Moment())
-    # Preserves empty moment.
-    assert expected == circuit
