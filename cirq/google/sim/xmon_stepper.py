@@ -178,12 +178,13 @@ class Stepper(object):
 
     def __enter__(self):
         self._pool = (multiprocessing.Pool(processes=self._num_shards)
-                      if self._num_qubits > 1 else ThreadlessPool())
+                      if self._num_prefix_qubits > 1 else ThreadlessPool())
         self._pool_open = True
         return self
 
     def __exit__(self, *args):
-        self._pool.close()
+        # Terminate is safe here since all work should have been completed.
+        self._pool.terminate()
         self._pool.join()
         self._pool_open = False
 
@@ -538,8 +539,9 @@ class ThreadlessPool(object):
         assert chunksize is None, 'Chunking not supported by SimplePool'
         return [func(x) for x in iterable]
 
-    def close(self):
+    def terminate(self):
         pass
 
     def join(self):
         pass
+

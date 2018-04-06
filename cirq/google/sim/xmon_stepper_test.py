@@ -25,7 +25,7 @@ def test_no_thread_pool():
     result = pool.map(lambda x: x + 1, range(10))
     assert result == [x + 1 for x in range(10)]
     # No ops.
-    pool.close()
+    pool.terminate()
     pool.join()
 
 
@@ -33,6 +33,11 @@ def test_no_thread_pool_no_chunking():
     pool = xmon_stepper.ThreadlessPool()
     with pytest.raises(AssertionError):
         pool.map(lambda x: x + 1, range(10), chunksize=1)
+
+
+def test_uses_threadless_pool_for_few_qubits():
+    with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=4) as s:
+        assert isinstance(s._pool, xmon_stepper.ThreadlessPool)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
