@@ -77,6 +77,12 @@ follow these [guidelines](../../CONTRIBUTING.md). See these
 [instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 for installing git.  
 
+Install python3-tk separately using ```apt-get```, required by matplotlib:
+
+```bash
+$ sudo apt-get install python3-tk
+```
+
 6. You should now be able use Cirq. To confirm this you should be able
 to run the following with no errors
 ```bash
@@ -87,15 +93,6 @@ to run the following with no errors
 7. You can leave the virtual environment by typing ```deactivate```
 at any time. To re-enter this environment follow the instructions in 
 step 4.   
-
-**Matplotlib note**
-
-If you get an ```ImportError: No module named 'tkinter'``` on ```import matplotlib.pyplot```,
-install python3-tk via ```apt``` instead of ```pip3```:
-
-```bash
-$ sudo apt-get install python3-tk
-```
 
 ### Install on Windows
 

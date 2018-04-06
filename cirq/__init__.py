@@ -134,6 +134,10 @@ from cirq.study import (
     TrialResultMeta,
 )
 
+from cirq.study.visualize import (
+    plot_state_histogram,
+)
+
 from cirq.value import (
     Duration,
     ParameterizedValue,

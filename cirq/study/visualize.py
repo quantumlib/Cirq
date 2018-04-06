@@ -27,6 +27,9 @@ def plot_state_histogram(trial):
 
     Args:
         trial: Instance of study.TrialResult.
+
+    Returns:
+        list of values plotted on the y-axis.
     """
     num_qubits = len(trial.measurements.keys())
     states = 2**num_qubits
@@ -51,3 +54,5 @@ def plot_state_histogram(trial):
     pl.xlabel('qubit state')
     pl.ylabel('result count')
     pl.show()
+
+    return values

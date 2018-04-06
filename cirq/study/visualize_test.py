@@ -14,8 +14,7 @@
 
 """Tests for visualize."""
 
-import matplotlib
-matplotlib.use('PDF')
+from matplotlib import pyplot as pl
 import numpy as np
 
 from cirq.circuits import Circuit
@@ -24,8 +23,7 @@ from cirq.study import ExecutorStudy, visualize
 
 
 def test_plot_state_histogram():
-     
-
+    pl.switch_backend('PDF')
     simulator = Simulator()
 
     rot_w_gate = ExpWGate(half_turns=1.)
