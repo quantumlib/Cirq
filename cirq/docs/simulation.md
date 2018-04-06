@@ -80,7 +80,7 @@ result = simulator.run(circuit, qubits=[q0, q1])
 
 print(np.around(result.final_states[0], 3))
 # prints
-# [-0.5-0.j  -0. +0.5j -0. +0.5j -0.5+0.j ]
+# [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
 
 Note that the xmon simulator uses numpy's ``float32`` precision
@@ -161,10 +161,10 @@ for y in range(5):
     print(np.around(result.final_states[0], 2))
 # prints
 # [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-# [ 0.85+0.j    0.  +0.35j  0.  +0.35j -0.15+0.j  ]
-# [ 0.5+0.j   0. +0.5j  0. +0.5j -0.5+0.j ]
-# [ 0.15+0.j    0.  +0.35j  0.  +0.35j -0.85+0.j  ]
-# [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
+# [ 0.85+0.j    0.  -0.35j  0.  -0.35j -0.15+0.j  ]
+# [ 0.5+0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
+# [ 0.15+0.j    0.  -0.35j  0.  -0.35j -0.85+0.j  ]
+# [ 0.+0.j  0.-0.j  0.-0.j -1.+0.j]
 ```
 Here we see that the ``Symbol`` is used in two gates, and then the resolver
 provide this value at run time.
