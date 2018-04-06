@@ -35,6 +35,11 @@ def test_no_thread_pool_no_chunking():
         pool.map(lambda x: x + 1, range(10), chunksize=1)
 
 
+def test_uses_threadless_pool_for_few_qubits():
+    with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=4) as s:
+        assert isinstance(s._pool, xmon_stepper.ThreadlessPool)
+
+
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_initial_state_computational_basis(num_prefix_qubits):
     for initial_state in range(2 ** 3):
