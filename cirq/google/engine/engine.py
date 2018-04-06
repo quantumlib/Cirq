@@ -25,7 +25,7 @@ from typing import Dict, List, Optional, Union, cast
 
 import numpy as np
 import oauth2client
-from apiclient.discovery import build
+from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
 from cirq.api.google.v1 import program_pb2
@@ -131,11 +131,11 @@ class Engine:
                                                '?version={apiVersion}&key=%s')
 
     def run(self,
+            options: EngineOptions,
             circuit: Circuit,
             device: Device,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
-            options: EngineOptions = None,
             priority: int = 50,
             target_route: str = '/xmonsim',
     ) -> EngineTrialResult:
@@ -153,16 +153,16 @@ class Engine:
         Returns:
             Results for this run.
         """
-        return self.run_sweep(circuit, device, [param_resolver], repetitions,
-                              options, priority, target_route)[0]
+        return self.run_sweep(options, circuit, device, [param_resolver],
+                              repetitions, priority, target_route)[0]
 
     def run_sweep(self,
+                  options: EngineOptions,
                   program: Union[Circuit, Schedule],
                   device: Device = None,
                   params: Sweepable = None,
                   repetitions: int = 1,
-                  options: EngineOptions = None,
-                  priority: int = 50,
+                  priority: int = 500,
                   target_route: str = '/xmonsim',
     ) -> List[EngineTrialResult]:
         """Runs the entire supplied Circuit or Schedule via Google Quantum
@@ -181,8 +181,8 @@ class Engine:
         Returns:
             Results for this run.
         """
-        if not 0 <= priority < 100:
-            raise TypeError('priority must be between 0 and 100')
+        if not 0 <= priority < 1000:
+            raise TypeError('priority must be between 0 and 1000')
 
         if isinstance(program, Circuit):
             if not device:
@@ -208,10 +208,10 @@ class Engine:
 
         sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
 
-        service = build(self.api, self.version,
-                        discoveryServiceUrl=self.discovery_url % (
-                            self.api_key,),
-                        credentials=options.credentials)
+        service = discovery.build(self.api, self.version,
+                                  discoveryServiceUrl=self.discovery_url % (
+                                      self.api_key,),
+                                  credentials=options.credentials)
 
         proto_program = program_pb2.Program()
         for sweep in sweeps:
@@ -267,7 +267,7 @@ class Engine:
         trial_results = []
         for sweep_result in response['result']['sweepResults']:
             sweep_repetitions = sweep_result['repetitions']
-            key_sizes = [(m['key'], m['size'])
+            key_sizes = [(m['key'], len(m['qubits']))
                          for m in sweep_result['measurementKeys']]
             for result in sweep_result['parameterizedResults']:
                 data = base64.standard_b64decode(result['measurementResults'])
@@ -275,7 +275,8 @@ class Engine:
                                               key_sizes)
 
                 trial_results.append(EngineTrialResult(
-                    params=ParamResolver(result.get('params', {})),
+                    params=ParamResolver(
+                        result.get('params', {}).get('assignments', {})),
                     repetitions=sweep_repetitions,
                     measurements=measurements))
         return trial_results
