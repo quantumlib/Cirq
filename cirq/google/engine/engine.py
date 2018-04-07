@@ -29,7 +29,7 @@ from apiclient.discovery import build
 from google.protobuf.json_format import MessageToDict
 
 from cirq.api.google.v1 import program_pb2
-from cirq.circuits import Circuit, ExpandComposite
+from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.devices import Device
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
@@ -188,14 +188,9 @@ class Engine:
             if not device:
                 raise TypeError('device is required when running a circuit')
             # Convert to a schedule.
-            expand = ExpandComposite()
-            convert = ConvertToXmonGates(ignore_cast_failures=False)
-            drop = DropEmptyMoments()
-
             circuit_copy = Circuit(program.moments)
-            expand.optimize_circuit(circuit_copy)
-            convert.optimize_circuit(circuit_copy)
-            drop.optimize_circuit(circuit_copy)
+            ConvertToXmonGates().optimize_circuit(circuit_copy)
+            DropEmptyMoments().optimize_circuit(circuit_copy)
 
             schedule = moment_by_moment_schedule(device, circuit_copy)
         elif isinstance(program, Schedule):
