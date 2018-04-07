@@ -401,7 +401,7 @@ def test_measurement_bit_flip(num_prefix_qubits):
         for i in range(3):
             assert s.simulate_measurement(i)
             expected = np.zeros(2 ** 3, dtype=np.complex64)
-            # Single qubit operation is jX, so we pick up a -j here.
+            # Single qubit operation is jX, so we pick up a j here.
             expected[7] = 1.0j
             np.testing.assert_almost_equal(s.current_state, expected)
 
