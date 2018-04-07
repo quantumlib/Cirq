@@ -364,7 +364,10 @@ class Circuit(object):
         total = np.identity(1 << n)
         for moment in self.moments:
             for op in moment.operations:
-                mat = _operation_to_unitary_matrix(op, n, qubit_map.__getitem__, ext)
+                mat = _operation_to_unitary_matrix(op,
+                                                   n,
+                                                   qubit_map.__getitem__,
+                                                   ext)
                 total = np.matmul(mat, total)
         return total
 
