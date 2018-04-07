@@ -21,9 +21,7 @@ import numpy as np
 import pytest
 
 from cirq.google import decompositions
-from cirq import linalg
-from cirq import ops
-from cirq import testing
+from cirq import circuits, linalg, ops, testing
 
 
 def cis(x: float):
@@ -34,30 +32,10 @@ def inv_unit(x: complex) -> complex:
     return cis(-cmath.phase(x))
 
 
-def _operation_to_matrix(operation, qubits):
-    # All qubits operation.
-    if operation.qubits == tuple(qubits):
-        return operation.gate.matrix()
-    if operation.qubits == tuple(qubits[::-1]) and isinstance(
-            operation.gate, ops.Rot11Gate):
-        return operation.gate.matrix()
-
-    # Single qubit operation.
-    for i in range(len(qubits)):
-        if operation.qubits == (qubits[i],):
-            m = operation.gate.matrix()
-            below = np.eye(1 << i)
-            above = np.eye(1 << (len(qubits) - i - 1))
-            return linalg.kron(above, m, below)
-
-    raise NotImplementedError(str(operation))
-
-
 def _operations_to_matrix(operations, qubits):
-    m = np.eye(1 << len(qubits), dtype=np.complex128)
-    for op in operations:
-        m = _operation_to_matrix(op, qubits).dot(m)
-    return m
+    return circuits.Circuit.from_ops(operations).to_unitary_matrix(
+        qubit_order_key=qubits.index,
+        qubits_that_should_be_present=qubits)
 
 
 def _gates_to_matrix(gates):

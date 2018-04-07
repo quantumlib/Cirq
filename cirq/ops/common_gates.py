@@ -274,9 +274,9 @@ class CNotGate(gate_features.AsciiDiagrammableGate,
     def matrix(self):
         """See base class."""
         return np.array([[1, 0, 0, 0],
-                         [0, 1, 0, 0],
                          [0, 0, 0, 1],
-                         [0, 0, 1, 0]])
+                         [0, 0, 1, 0],
+                         [0, 1, 0, 0]])
 
     def ascii_wire_symbols(self):
         return '@', 'X'
