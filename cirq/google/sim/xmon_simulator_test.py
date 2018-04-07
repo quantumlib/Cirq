@@ -22,14 +22,13 @@ from typing import Sequence
 import numpy as np
 import pytest
 
-
 from cirq.circuits import Circuit
-from cirq.linalg import allclose_up_to_global_phase
 from cirq.devices import UnconstrainedDevice
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
 from cirq.google.sim import xmon_simulator
+from cirq.linalg import allclose_up_to_global_phase
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 from cirq.ops.common_gates import CNOT, H, X, Y, Z, CZ
