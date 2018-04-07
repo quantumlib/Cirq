@@ -1,5 +1,5 @@
 import json
-from typing import List, cast, Generator, Tuple, Any, Iterable
+from typing import List, cast, Tuple, Any, Iterable
 
 from cirq import ops, circuits
 from cirq.contrib.quirk.line_qubit import LineQubit
