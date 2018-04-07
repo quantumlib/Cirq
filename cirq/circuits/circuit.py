@@ -331,9 +331,12 @@ class Circuit(object):
     def __str__(self):
         return self.to_text_diagram()
 
-    def to_unitary_matrix(self,
-                          qubit_order_key: Callable[[QubitId], Any]=None,
-                          ext: Extensions=None) -> np.ndarray:
+    def to_unitary_matrix(
+            self,
+            qubit_order_key: Callable[[QubitId], Any]=None,
+            qubits_that_should_be_present: Iterable[QubitId] = (),
+            ignore_terminal_measurements=True,
+            ext: Extensions=None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -342,6 +345,12 @@ class Circuit(object):
                 ordering would be the last argument given to np.kron.
             ext: The extensions to use when attempting to cast gates into
                 KnownMatrixGate instances.
+            qubits_that_should_be_present: Qubits that may or may not appear
+                in operations within the circuit, but that should be included
+                regardless when generating the matrix.
+            ignore_terminal_measurements: When set, measurements at the end of
+                the circuit are ignored instead of causing the conversion to
+                fail.
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -353,20 +362,33 @@ class Circuit(object):
                 by a Symbol, etc.
         """
 
+        def is_ignorable_measurement(moment_index, operation):
+            if not ignore_terminal_measurements:
+                return False
+            if not isinstance(operation.gate, ops.MeasurementGate):
+                return False
+            if self.next_moment_operating_on(operation.qubits,
+                                             moment_index + 1) is not None:
+                return False
+            return True
+
         if qubit_order_key is None:
             qubit_order_key = _str_lexicographic_respecting_int_order
         if ext is None:
             ext = Extensions()
-        qs = sorted(self.qubits(), key=qubit_order_key)
+        qs = sorted(self.qubits().union(qubits_that_should_be_present),
+                    key=qubit_order_key)
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
         n = len(qubit_map)
-        total = np.identity(1 << n)
-        for moment in self.moments:
+        total = np.eye(1 << n)
+        for k, moment in enumerate(self.moments):
             for op in moment.operations:
+                if is_ignorable_measurement(k, op):
+                    continue
                 mat = _operation_to_unitary_matrix(op,
                                                    n,
-                                                   qubit_map.__getitem__,
+                                                   qubit_map,
                                                    ext)
                 total = np.matmul(mat, total)
         return total
@@ -524,18 +546,18 @@ def _str_lexicographic_respecting_int_order(value):
 
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_count: int,
-                                 qubit_map: Callable[[QubitId], int],
+                                 qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
     known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))
     sub_mat = known_matrix_gate.matrix()
-    bit_locs = [qubit_map(q) for q in op.qubits]
+    bit_locs = [qubit_map[q] for q in op.qubits]
     over_mask = ~sum(1 << b for b in bit_locs)
 
     result = np.zeros(shape=(1 << qubit_count, 1 << qubit_count),
-                      dtype=np.complex64)
+                      dtype=np.complex128)
     for i in range(1 << qubit_count):
         sub_i = sum(_moved_bit(i, b, k) for k, b in enumerate(bit_locs))
         over_i = i & over_mask

@@ -140,7 +140,7 @@ class Exp11Gate(XmonGate,
     def matrix(self):
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
-        return ops.RotZGate(half_turns=self.half_turns).matrix()
+        return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
     def ascii_wire_symbols(self):
         return 'Z', 'Z'
