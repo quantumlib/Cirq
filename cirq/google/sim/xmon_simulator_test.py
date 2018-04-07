@@ -645,3 +645,37 @@ def test_circuit_param_and_reps():
     # All parameters explored.
     assert (set(itertools.product([0, 1], [0, 1]))
             == {(r.params['a'], r.params['b']) for r in all_trials})
+
+
+def assert_simulated_states_match_circuit_matrix(circuit):
+    qubits = [Q1, Q2]
+    matrix = circuit.to_unitary_matrix(qubits_that_should_be_present=qubits)
+    simulator = xmon_simulator.Simulator()
+    for i in range(matrix.shape[0]):
+        col = matrix[:, i]
+        result = list(simulator.moment_steps(circuit,
+                                             initial_state=i,
+                                             qubits=qubits))[-1]
+        assert allclose_up_to_global_phase(col,
+                                           result.state(),
+                                           atol=0.00001)
+
+
+def test_compare_simulator_states_to_gate_matrices():
+    assert_simulated_states_match_circuit_matrix(
+        Circuit.from_ops(CNOT(Q1, Q2)))
+
+    assert_simulated_states_match_circuit_matrix(
+        Circuit.from_ops(Z(Q1)**0.5, Z(Q2)))
+
+    assert_simulated_states_match_circuit_matrix(
+        Circuit.from_ops(X(Q1)**0.5))
+
+    assert_simulated_states_match_circuit_matrix(
+        Circuit.from_ops(Y(Q2)**(1/3)))
+
+    assert_simulated_states_match_circuit_matrix(
+        Circuit.from_ops(H(Q2)))
+
+    assert_simulated_states_match_circuit_matrix(
+        Circuit.from_ops(CZ(Q1, Q2)**0.5))
