@@ -16,6 +16,8 @@
 
 from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
 
+import numpy as np
+
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
@@ -329,12 +331,49 @@ class Circuit(object):
     def __str__(self):
         return self.to_text_diagram()
 
+    def to_unitary_matrix(self,
+                          qubit_order_key: Callable[[QubitId], Any]=None,
+                          ext: Extensions=None) -> np.ndarray:
+        """Converts the circuit into a unitary matrix, if possible.
+
+        Args:
+            qubit_order_key: Determines the qubit order, which determines the
+                ordering of the resulting matrix. The first qubit in the
+                ordering would be the last argument given to np.kron.
+            ext: The extensions to use when attempting to cast gates into
+                KnownMatrixGate instances.
+
+        Returns:
+            A (possibly gigantic) 2d numpy array corresponding to a matrix
+            equivalent to the circuit's effect on a quantum state.
+
+        Raises:
+            TypeError: The circuit contains gates that don't have a known
+                unitary matrix, such as measurement gates, gates parameterized
+                by a Symbol, etc.
+        """
+
+        if qubit_order_key is None:
+            qubit_order_key = _str_lexicographic_respecting_int_order
+        if ext is None:
+            ext = Extensions()
+        qs = sorted(self.qubits(), key=qubit_order_key)
+        qubit_map = {i: q
+                     for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
+        n = len(qubit_map)
+        total = np.identity(1 << n)
+        for moment in self.moments:
+            for op in moment.operations:
+                mat = _operation_to_unitary_matrix(op, n, qubit_map.__getitem__, ext)
+                total = np.matmul(mat, total)
+        return total
+
     def to_text_diagram(
             self,
             ext: Extensions = Extensions(),
             use_unicode_characters: bool = True,
             transpose: bool = False,
-            qubit_order_key: Callable[[ops.QubitId], Any] = None) -> str:
+            qubit_order_key: Callable[[QubitId], Any] = None) -> str:
         """Returns text containing a diagram describing the circuit.
 
         Args:
@@ -399,7 +438,6 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
                 'requires {} qubits but found {} qubits'.format(
                     repr(op.gate), len(wire_symbols), len(op.qubits)))
 
-        return ascii_gate.ascii_wire_symbols()
     name = repr(op.gate)
     if len(op.qubits) == 1:
         return [name]
@@ -424,7 +462,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
-                            qubit_map: Dict[ops.QubitId, int],
+                            qubit_map: Dict[QubitId, int],
                             out_diagram: TextDiagramDrawer):
     if not moment.operations:
         return []
@@ -479,3 +517,32 @@ def _str_lexicographic_respecting_int_order(value):
 
     dump(len(s))
     return ''.join(output)
+
+
+def _operation_to_unitary_matrix(op: ops.Operation,
+                                 qubit_count: int,
+                                 qubit_map: Callable[[QubitId], int],
+                                 ext: Extensions) -> np.ndarray:
+    known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+    if known_matrix_gate is None:
+        raise TypeError(
+            'Operation without a known matrix: {!r}'.format(op))
+    sub_mat = known_matrix_gate.matrix()
+    bit_locs = [qubit_map(q) for q in op.qubits]
+    over_mask = ~sum(1 << b for b in bit_locs)
+
+    result = np.zeros(shape=(1 << qubit_count, 1 << qubit_count),
+                      dtype=np.complex64)
+    for i in range(1 << qubit_count):
+        sub_i = sum(_moved_bit(i, b, k) for k, b in enumerate(bit_locs))
+        over_i = i & over_mask
+
+        for sub_j in range(sub_mat.shape[1]):
+            j = sum(_moved_bit(sub_j, k, b) for k, b in enumerate(bit_locs))
+            result[i, over_i | j] = sub_mat[sub_i, sub_j]
+
+    return result
+
+
+def _moved_bit(val: int, at: int, to: int) -> int:
+    return ((val >> at) & 1) << to
