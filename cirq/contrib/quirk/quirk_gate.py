@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 import numpy as np
 
@@ -8,7 +8,7 @@ from cirq.google.xmon_gates import ExpZGate, Exp11Gate, ExpWGate
 
 
 class QuirkGate(ops.Gate):
-    def __init__(self, *keys: Any, can_merge: bool=True):
+    def __init__(self, *keys: Any, can_merge: bool=True) -> None:
         self.keys = keys
         self.can_merge = can_merge
 
@@ -21,7 +21,7 @@ def same_half_turns(a1: float, a2: float) -> bool:
     return abs(d) < 0.001
 
 
-def angle_to_exponent(t):
+def angle_to_exponent_key(t: Union[float, Symbol]) -> Optional[str]:
     if isinstance(t, Symbol):
         return '^t'
 
@@ -43,32 +43,32 @@ def angle_to_exponent(t):
     return None
 
 
-def z_to_known(gate: ExpZGate) -> Optional[QuirkGate]:
-    e = angle_to_exponent(gate.half_turns)
+def z_to_known(gate: Union[ExpZGate, ops.RotZGate]) -> Optional[QuirkGate]:
+    e = angle_to_exponent_key(gate.half_turns)
     if e is None:
         return None
     return QuirkGate('Z' + e)
 
 
-def x_to_known(gate: ops.RotXGate) -> Optional[QuirkGate]:
-    e = angle_to_exponent(gate.half_turns)
+def x_to_known(gate: Union[ops.RotXGate, ExpWGate]) -> Optional[QuirkGate]:
+    e = angle_to_exponent_key(gate.half_turns)
     if e is None:
         return None
     return QuirkGate('X' + e)
 
 
-def y_to_known(gate: ops.RotYGate) -> Optional[QuirkGate]:
-    e = angle_to_exponent(gate.half_turns)
+def y_to_known(gate: Union[ops.RotYGate, ExpWGate]) -> Optional[QuirkGate]:
+    e = angle_to_exponent_key(gate.half_turns)
     if e is None:
         return None
     return QuirkGate('Y' + e)
 
 
-def cz_to_known(gate: Exp11Gate) -> Optional[QuirkGate]:
-    z = z_to_known(gate)
-    if z is not None:
-        return QuirkGate('•', z.keys[0], can_merge=False)
-    return None
+def cz_to_known(gate: Union[ops.Rot11Gate, Exp11Gate]) -> Optional[QuirkGate]:
+    e = angle_to_exponent_key(gate.half_turns)
+    if e is None:
+        return None
+    return QuirkGate('•', 'Z' + e, can_merge=False)
 
 
 def w_to_known(gate: ExpWGate) -> Optional[QuirkGate]:

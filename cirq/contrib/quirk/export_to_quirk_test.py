@@ -51,7 +51,6 @@ def test_cz_cnot_split_cols():
 def test_various_known_gate_types():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = cirq.NamedQubit('c')
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.X(a)**0.25,

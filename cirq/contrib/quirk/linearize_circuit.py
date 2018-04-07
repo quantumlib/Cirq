@@ -7,7 +7,8 @@ from cirq.value import sorting_str
 
 
 class QubitMapper(OptimizationPass):
-    def __init__(self, qubit_map: Callable[[ops.QubitId], ops.QubitId]):
+    def __init__(self, qubit_map: Callable[[ops.QubitId], ops.QubitId]
+                 ) -> None:
         self.qubit_map = qubit_map
 
     def map_operation(self, operation: ops.Operation) -> ops.Operation:
