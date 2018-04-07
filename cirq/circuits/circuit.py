@@ -388,7 +388,7 @@ class Circuit(object):
                     continue
                 mat = _operation_to_unitary_matrix(op,
                                                    n,
-                                                   qubit_map.__getitem__,
+                                                   qubit_map,
                                                    ext)
                 total = np.matmul(mat, total)
         return total
@@ -546,14 +546,14 @@ def _str_lexicographic_respecting_int_order(value):
 
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_count: int,
-                                 qubit_map: Callable[[QubitId], int],
+                                 qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
     known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))
     sub_mat = known_matrix_gate.matrix()
-    bit_locs = [qubit_map(q) for q in op.qubits]
+    bit_locs = [qubit_map[q] for q in op.qubits]
     over_mask = ~sum(1 << b for b in bit_locs)
 
     result = np.zeros(shape=(1 << qubit_count, 1 << qubit_count),

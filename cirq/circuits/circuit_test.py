@@ -688,7 +688,7 @@ def test_operation_to_unitary_matrix():
 
     m = _operation_to_unitary_matrix(ops.X(a),
                                      1,
-                                     {a: 0}.__getitem__,
+                                     {a: 0},
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [0, 1],
@@ -697,7 +697,7 @@ def test_operation_to_unitary_matrix():
 
     m = _operation_to_unitary_matrix(ops.X(a),
                                      2,
-                                     {a: 0}.__getitem__,
+                                     {a: 0},
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [0, 1, 0, 0],
@@ -708,7 +708,7 @@ def test_operation_to_unitary_matrix():
 
     m = _operation_to_unitary_matrix(ops.X(a),
                                      2,
-                                     {a: 1}.__getitem__,
+                                     {a: 1},
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [0, 0, 1, 0],
@@ -719,7 +719,7 @@ def test_operation_to_unitary_matrix():
 
     m = _operation_to_unitary_matrix(ops.CNOT(a, b),
                                      2,
-                                     {a: 0, b: 1}.__getitem__,
+                                     {a: 0, b: 1},
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [1, 0, 0, 0],
@@ -730,7 +730,7 @@ def test_operation_to_unitary_matrix():
 
     m = _operation_to_unitary_matrix(ops.CNOT(a, b),
                                      2,
-                                     {a: 1, b: 0}.__getitem__,
+                                     {a: 1, b: 0},
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [1, 0, 0, 0],
