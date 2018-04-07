@@ -618,7 +618,6 @@ def test_to_text_diagram_multi_qubit_gate():
            |
 (0, 2): ---M---
     """.strip()
-    print(c.to_text_diagram(transpose=True))
     assert c.to_text_diagram(transpose=True).strip() == """
 (0, 0) (0, 1) (0, 2)
 │      │      │
@@ -724,9 +723,9 @@ def test_operation_to_unitary_matrix():
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [1, 0, 0, 0],
-        [0, 1, 0, 0],
         [0, 0, 0, 1],
         [0, 0, 1, 0],
+        [0, 1, 0, 0],
     ]))
 
     m = _operation_to_unitary_matrix(ops.CNOT(a, b),
@@ -735,9 +734,9 @@ def test_operation_to_unitary_matrix():
                                      ex)
     assert allclose_up_to_global_phase(m, np.array([
         [1, 0, 0, 0],
+        [0, 1, 0, 0],
         [0, 0, 0, 1],
         [0, 0, 1, 0],
-        [0, 1, 0, 0],
     ]))
 
 
@@ -754,7 +753,7 @@ def test_circuit_to_unitary_matrix():
     ]))
 
     # Single qubit gates and two qubit gate.
-    c = Circuit.from_ops(ops.X(a), ops.Z(b), ops.CNOT(a, b))
+    c = Circuit.from_ops(ops.X(a), ops.Z(b), ops.CNOT(b, a))
     assert allclose_up_to_global_phase(c.to_unitary_matrix(), np.array([
         [0, 1, 0, 0],
         [1, 0, 0, 0],
@@ -764,6 +763,16 @@ def test_circuit_to_unitary_matrix():
 
     # Measurement gate has no corresponding matrix.
     c = Circuit.from_ops(ops.MeasurementGate()(a))
+    with pytest.raises(TypeError):
+        _ = c.to_unitary_matrix(ignore_terminal_measurements=False)
+
+    # Ignoring terminal measurements.
+    c = Circuit.from_ops(ops.MeasurementGate()(a))
+    assert allclose_up_to_global_phase(c.to_unitary_matrix(),
+                                       np.eye(2))
+
+    # Non-terminal measurements are not ignored.
+    c = Circuit.from_ops(ops.MeasurementGate()(a), ops.X(a))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
 
@@ -775,4 +784,7 @@ def test_circuit_to_unitary_matrix():
     ex.add_cast(desired_type=ops.KnownMatrixGate,
                 actual_type=ops.MeasurementGate,
                 conversion=lambda _: IdentityGate())
-    assert np.alltrue(c.to_unitary_matrix(ext=ex) == np.eye(2))
+    c = Circuit.from_ops(ops.MeasurementGate()(a))
+    assert allclose_up_to_global_phase(
+        c.to_unitary_matrix(ext=ex, ignore_terminal_measurements=False),
+        np.eye(2))
