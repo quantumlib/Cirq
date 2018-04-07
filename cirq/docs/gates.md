@@ -125,10 +125,10 @@ later describes the angle of the operator that is being
 rotated about in the ``XY`` plane.  In particular if we define
 ``W(theta) = cos(pi theta) X + sin (pi theta) Y`` then
 ``axis_half_turns`` is ``theta``.  And the full gate is
-``exp(i pi half_turns W(axis_half_turns) / 2)``.
+``exp(-i pi half_turns W(axis_half_turns) / 2)``.
 
 **ExpZGate** This gate is a rotation about the Pauli ``Z``
-axis.  The gate is ``exp(i pi Z half_turns / 2)`` where
+axis.  The gate is ``exp(-i pi Z half_turns / 2)`` where
 ``half_turns`` is the supplied parameter.  Note that in 
 quantum computing hardware, this gate is often compiled
 out of the circuit (TODO: explain this in more detail)

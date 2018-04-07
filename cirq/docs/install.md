@@ -77,6 +77,12 @@ follow these [guidelines](../../CONTRIBUTING.md). See these
 [instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 for installing git.  
 
+Install python3-tk separately using ```apt-get```, required by matplotlib:
+
+```bash
+$ sudo apt-get install python3-tk
+```
+
 6. You should now be able use Cirq. To confirm this you should be able
 to run the following with no errors
 ```bash
