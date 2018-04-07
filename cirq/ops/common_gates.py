@@ -38,6 +38,7 @@ def _canonicalize_half_turns(
 
 class _TurnGate(gate_features.BoundedEffectGate,
                 gate_features.AsciiDiagrammableGate,
+                gate_features.ExtrapolatableGate,
                 PotentialImplementation):
     """A gate with exactly two eigenvalues.
 
