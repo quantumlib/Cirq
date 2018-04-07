@@ -27,7 +27,21 @@ from cirq.google.xmon_gates import XmonGate
 
 
 class ConvertToXmonGates(PointOptimizer):
-    """Attempts to convert strange gates into XmonGates."""
+    """Attempts to convert strange gates into XmonGates.
+
+    First, checks if the given extensions are able to cast the gate into an
+        XmonGate instance.
+
+    Second, checks if the given extensions are able to cast the gate into a
+        CompositeGate instance. If so, recurses on the decomposition.
+
+    Third, checks if the given extensions are able to cast the gate into a
+        KnownMatrixGate instance. If so, and the gate is a 1-qubit or 2-qubit
+        gate, then performs circuit synthesis of the operation.
+
+    Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
+        Otherwise raises a TypeError.
+    """
 
     def __init__(self,
                  extensions: Extensions=None,
