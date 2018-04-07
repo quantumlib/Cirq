@@ -24,6 +24,7 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
 from cirq.ops import QubitId
+from cirq.value import sorting_str
 
 
 class Circuit(object):
@@ -373,7 +374,7 @@ class Circuit(object):
             return True
 
         if qubit_order_key is None:
-            qubit_order_key = _str_lexicographic_respecting_int_order
+            qubit_order_key = sorting_str
         if ext is None:
             ext = Extensions()
         qs = sorted(self.qubits().union(qubits_that_should_be_present),
@@ -417,7 +418,7 @@ class Circuit(object):
             The ascii diagram.
         """
         if qubit_order_key is None:
-            qubit_order_key = _str_lexicographic_respecting_int_order
+            qubit_order_key = sorting_str
 
         qubits = {
             q
@@ -517,31 +518,6 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _get_operation_text_diagram_exponent(op, ext)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
-
-
-def _str_lexicographic_respecting_int_order(value):
-    """0-pads digits in a string to hack int order into lexicographic order."""
-    s = str(value)
-
-    was_on_digits = False
-    last_transition = 0
-    output = []
-
-    def dump(k):
-        chunk = s[last_transition:k]
-        if was_on_digits:
-            chunk = chunk.rjust(8, '0')
-        output.append(chunk)
-
-    for i in range(len(s)):
-        on_digits = s[i].isdigit()
-        if was_on_digits != on_digits:
-            dump(i)
-            was_on_digits = on_digits
-            last_transition = i
-
-    dump(len(s))
-    return ''.join(output)
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
