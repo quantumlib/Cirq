@@ -36,9 +36,9 @@ class _FlipGate(ops.ReversibleGate):
         return hash((_FlipGate, self.val))
 
 
-def test_inverse_of_invertable_op_tree():
+def test_inverse_of_invertible_op_tree():
     def rev_freeze(root):
-        return ops.freeze_op_tree(ops.inverse_of_invertable_op_tree(root))
+        return ops.freeze_op_tree(ops.inverse_of_invertible_op_tree(root))
 
     operations = [
         ops.Operation(_FlipGate(i), [ops.NamedQubit(str(i))])
