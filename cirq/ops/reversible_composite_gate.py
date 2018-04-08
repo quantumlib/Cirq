@@ -39,7 +39,7 @@ def _reverse_operation(operation: raw_types.Operation,
 
 
 def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
-                                  extensions: Extensions = Extensions()
+                                  extensions: Extensions = None
                                   ) -> op_tree.OP_TREE:
     """Generates OP_TREE inverses.
 
@@ -50,6 +50,8 @@ def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
     Returns:
         An OP_TREE that performs the inverse operation of the given OP_TREE.
     """
+    if extensions is None:
+        extensions = Extensions()
     return op_tree.transform_op_tree(
         root=root,
         op_transformation=lambda e: _reverse_operation(e, extensions),
