@@ -20,10 +20,10 @@ from cirq.value import Symbol
 
 def assert_optimizes(before, after):
     pre_optimizations = [
-        ConvertToXmonGates(),
+        ConvertToXmonGates(ignore_failures=True)
     ]
     followup_optimizations = [
-        ConvertToXmonGates(),
+        ConvertToXmonGates(ignore_failures=True),
         circuits.DropEmptyMoments()
     ]
 

@@ -89,7 +89,7 @@ class _TurnGate(gate_features.BoundedEffectGate,
 
     def try_cast_to(self, desired_type):
         if (desired_type in [gate_features.ExtrapolatableGate,
-                             gate_features.SelfInverseGate] and
+                             gate_features.ReversibleGate] and
                 self.can_extrapolate_effect()):
             return self
         if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
@@ -240,6 +240,7 @@ T = Z**0.25
 
 class HGate(gate_features.AsciiDiagrammableGate,
             gate_features.CompositeGate,
+            gate_features.SelfInverseGate,
             gate_features.KnownMatrixGate,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
@@ -274,9 +275,9 @@ class CNotGate(gate_features.AsciiDiagrammableGate,
     def matrix(self):
         """See base class."""
         return np.array([[1, 0, 0, 0],
-                         [0, 1, 0, 0],
                          [0, 0, 0, 1],
-                         [0, 0, 1, 0]])
+                         [0, 0, 1, 0],
+                         [0, 1, 0, 0]])
 
     def ascii_wire_symbols(self):
         return '@', 'X'
@@ -297,6 +298,7 @@ CNOT = CNotGate()  # Controlled Not Gate.
 
 class SwapGate(gate_features.AsciiDiagrammableGate,
                gate_features.CompositeGate,
+               gate_features.SelfInverseGate,
                gate_features.KnownMatrixGate,
                gate_features.TwoQubitGate,
                InterchangeableQubitsGate):

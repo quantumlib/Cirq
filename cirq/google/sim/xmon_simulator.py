@@ -25,22 +25,21 @@ A simple example:
     results = sim.run(circuit)
 """
 
-import functools
-import math
-
 from collections import defaultdict, Iterable
-from typing import Tuple  # pylint: disable=unused-import
+import math
 from typing import Dict, Iterator, List, Sequence, Union, cast
+from typing import Tuple  # pylint: disable=unused-import
 
+import functools
 import numpy as np
 
-from cirq.circuits import Circuit, ExpandComposite
+from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
-from cirq.ops import raw_types
-from cirq.schedules import Schedule
 from cirq.google import xmon_gates
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
+from cirq.ops import raw_types
+from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
 
@@ -85,7 +84,7 @@ class SimulatorTrialResult(TrialResult):
     Attributes:
         measurements: A dictionary from measurement gate key to measurement
             results ordered by the qubits acted upon by the measurement gate.
-        final_state: The final state (wave function) of the system after
+        final_states: The final states (wave function) of the system after
             the trial finishes.
     """
 
@@ -133,10 +132,10 @@ class Simulator:
                 a canonical ordering of the qubits. This canonical ordering
                 is used to define the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state. Otherwise
-                if this is a np.ndarray it is the full initial state. In this
-                case it must be the correct size, be normalized (an L2 norm of
-                1), and have a dtype of np.complex64.
+                basis state corresponding corresponding to this state.
+                Otherwise  if this is a np.ndarray it is the full initial
+                state. In this case it must be the correct size, be normalized
+                (an L2 norm of 1), and have a dtype of np.complex64.
 
         Returns:
             Results for this run.
@@ -164,10 +163,10 @@ class Simulator:
                 a canonical ordering of the qubits. This canonical ordering
                 is used to define the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state. Otherwise
-                if this is a np.ndarray it is the full initial state. In this
-                case it must be the correct size, be normalized (an L2 norm of
-                1), and have a dtype of np.complex64.
+                basis state corresponding corresponding to this state.
+                Otherwise if this is a np.ndarray it is the full initial state.
+                In this case it must be the correct size, be normalized (an L2
+                norm of 1), and have a dtype of np.complex64.
 
         Returns:
             List of trial results for this run, one for each possible parameter
@@ -230,10 +229,10 @@ class Simulator:
                 a canonical ordering of the qubits. This canonical ordering
                 is used to define the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state. Otherwise
-                if this is a np.ndarray it is the full initial state. In this
-                case it must be the correct size, be normalized (an L2 norm of
-                1), and have a dtype of np.complex64.
+                basis state corresponding corresponding to this state.
+                Otherwise if this is a np.ndarray it is the full initial state.
+                In this case it must be the correct size, be normalized (an L2
+                norm of 1), and have a dtype of np.complex64.
             param_resolver: A ParamResolver for determining values of
                 Symbols.
 
@@ -285,21 +284,16 @@ def simulator_iterator(
     qubit_map = {q: i for i, q in enumerate(qubits)}
 
     # TODO: Use one optimization pass.
-    expand = ExpandComposite()
-    convert = ConvertToXmonGates(ignore_cast_failures=False)
-    drop = DropEmptyMoments()
-
     circuit_copy = Circuit(circuit.moments)
-    expand.optimize_circuit(circuit_copy)
-    convert.optimize_circuit(circuit_copy)
-    drop.optimize_circuit(circuit_copy)
+    ConvertToXmonGates().optimize_circuit(circuit_copy)
+    DropEmptyMoments().optimize_circuit(circuit_copy)
     validate_unique_measurement_keys(circuit_copy)
 
-    with Stepper(
-        num_qubits=len(qubits),
-        num_prefix_qubits=options.num_prefix_qubits,
-        initial_state=initial_state,
-        min_qubits_before_shard=options.min_qubits_before_shard) as stepper:
+    with Stepper(num_qubits=len(qubits),
+                 num_prefix_qubits=options.num_prefix_qubits,
+                 initial_state=initial_state,
+                 min_qubits_before_shard=options.min_qubits_before_shard
+                 ) as stepper:
         for moment in circuit_copy.moments:
             measurements = defaultdict(list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
@@ -330,9 +324,8 @@ def simulator_iterator(
                             result = not result
                         measurements[gate.key].append(result)
                 else:
-                    raise TypeError(
-                        'Gate %s is not a gate supported by the xmon simulator.'
-                        % gate)
+                    raise TypeError('{!r} is not supported by the '
+                                    'xmon simulator.'.format(gate))
             stepper.simulate_phases(phase_map)
             yield StepResult(stepper, qubit_map, measurements)
 
@@ -414,9 +407,9 @@ class StepResult:
     def merge(a: 'StepResult', b: 'StepResult') -> 'StepResult':
         """Merges measurement results of last_result into a new Result.
 
-        The measurement results are merges such that measurements with duplicate
-        keys have the results of last_result before those of this objects
-        results.
+        The measurement results are merges such that measurements with
+        duplicate keys have the results of last_result before those of this
+        objects' results.
 
         Args:
             a: First result to merge.
@@ -425,7 +418,7 @@ class StepResult:
         Returns:
             A new StepResult with merged measurements.
         """
-        new_measurements = {}  # type: Dict[str, np.ndarray]
+        new_measurements = {}  # type: Dict[str, list]
         for d in [a.measurements, b.measurements]:
             for key, results in d.items():
                 if key not in new_measurements:
