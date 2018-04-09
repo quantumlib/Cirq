@@ -21,7 +21,7 @@ qubit = cirq.google.XmonQubit(0, 0)
 circuit = cirq.Circuit()
 circuit.append([
     # Square root of NOT.
-    cirq.X(qubit)**0.5,
+    cirq.X.on(qubit)**0.5,
 
     # Measurement.
     cirq.MeasurementGate('result').on(qubit)

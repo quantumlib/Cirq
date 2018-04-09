@@ -14,12 +14,11 @@
 
 """An optimizer that expands CompositeGates into their constituent gates."""
 
-from typing import Optional
-
 from cirq import ops
-from cirq.circuits import Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.optimization_pass import PointOptimizer
+from cirq.circuits.optimization_pass import (
+    PointOptimizer,
+    PointOptimizationSummary,
+)
 from cirq.extension import Extensions
 
 
@@ -34,31 +33,27 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-        insert_strategy: InsertStrategy = InsertStrategy.INLINE,
-        composite_gate_extension: Extensions = Extensions()) -> None:
+                 composite_gate_extension: Extensions = Extensions()) -> None:
         """Construct the optimization pass.
 
         Args:
-            insert_strategy: The InsertionStrategy used in inserting
-                the new gates into the circuit.
             composite_gate_extension: An extension that that can be used
                 to supply or override a CompositeGate decomposition.
         """
-        self.insert_strategy = insert_strategy
         self.extension = composite_gate_extension
 
-    def optimize_at(self, circuit: Circuit, index: int,
-        op: ops.Operation) -> Optional[int]:
+    def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
         if decomposition is op:
             return None
 
-        circuit.clear_operations_touching(op.qubits, (index, ))
-        return circuit.insert(
-            index, decomposition, strategy=self.insert_strategy)
+        return PointOptimizationSummary(
+            clear_span=1,
+            clear_qubits=op.qubits,
+            new_operations=decomposition)
 
     def _decompose(self, op):
-        """Recursively decompose a composite into an OP_TREE of constituents."""
+        """Recursively decompose composite gates into an OP_TREE of gates."""
         composite_gate = self.extension.try_cast(op.gate, ops.CompositeGate)
         if composite_gate is None:
             return op

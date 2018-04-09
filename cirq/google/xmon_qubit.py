@@ -53,6 +53,7 @@ class XmonQubit(QubitId):
 
     def to_proto(
             self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
+        """Return the proto form, mutating supplied form if supplied."""
         if out is None:
             out = operations_pb2.Qubit()
         out.row = self.row

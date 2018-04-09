@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to performing linear algebra.
-
-Focuses on methods useful for analyzing and optimizing quantum circuits.
-Avoids duplicating functionality present in numpy.
-"""
+"""Apis for running quantum programs remotely."""
 
 from cirq.api import google
