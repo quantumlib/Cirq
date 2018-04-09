@@ -33,9 +33,6 @@ cp -r cirq ${out}/cirq
 3to2 ${out}/cirq -w > /dev/null 2> /dev/null
 find ${out}/cirq | grep "\.py\.bak$" | xargs rm -f
 
-# Remove tests that are not python 2.7 compatible.
-rm ${out}/cirq/google/engine/engine_test.py
-
 # Build protobufs.
 proto_dir=${out}/cirq/api/google/v1
 find ${proto_dir} | grep '_pb2\.py' | xargs rm -f

@@ -14,7 +14,6 @@
 
 """Tests for engine."""
 
-from unittest import mock
 import numpy as np
 import pytest
 
@@ -27,6 +26,7 @@ from cirq.devices import UnconstrainedDevice
 from cirq.google.engine.engine import Engine, EngineOptions
 from cirq.schedules.schedulers import moment_by_moment_schedule
 from cirq.study import ParamResolver, Points
+from cirq.testing.python3_mock import python3_mock_test, mock
 
 _A_RESULT = program_pb2.Result(
     sweep_results=[program_pb2.SweepResult(repetitions=1, measurement_keys=[
@@ -52,7 +52,7 @@ _RESULTS = program_pb2.Result(
                     measurement_results=b'01')])])
 
 
-@mock.patch.object(discovery, 'build')
+@python3_mock_test(discovery, 'build')
 def test_run_circuit(build):
     service = mock.Mock()
     build.return_value = service
@@ -86,7 +86,7 @@ def test_run_circuit(build):
     assert jobs.getResult().execute.call_count == 1
 
 
-@mock.patch.object(discovery, 'build')
+@python3_mock_test(discovery, 'build')
 def test_run_circuit_failed(build):
     service = mock.Mock()
     build.return_value = service
@@ -108,7 +108,7 @@ def test_run_circuit_failed(build):
             UnconstrainedDevice)
 
 
-@mock.patch.object(discovery, 'build')
+@python3_mock_test(discovery, 'build')
 def test_run_sweep_params(build):
     service = mock.Mock()
     build.return_value = service
@@ -151,7 +151,7 @@ def test_run_sweep_params(build):
     assert jobs.getResult().execute.call_count == 1
 
 
-@mock.patch.object(discovery, 'build')
+@python3_mock_test(discovery, 'build')
 def test_run_sweep_sweeps(build):
     service = mock.Mock()
     build.return_value = service
