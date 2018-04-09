@@ -14,6 +14,8 @@
 
 import collections
 import random
+from typing import List
+
 from absl import app
 from absl import flags
 
@@ -29,41 +31,50 @@ def bitstring(bits):
     return ''.join(str(int(b)) for b in bits)
 
 
-def bv(n_qubits: int,
-       a: int,
-       shots: int = NUM_SHOTS
-       ) -> collections.Counter:
+def bv_circuit(qubits: List[cirq.QubitId], a: int) -> cirq.Circuit:
+    """Creates a circuit for the Bernstein-Vazirani algorithm.
+
+    Args:
+        qubits: list of qubits in the circuit.
+        a: integer < 2**len(qubits), representing the unknown bit string.
+
+    Returns:
+        Result object, containing measurement data after the circuit has run.
+    """
+    # 1. Create a circuit (qubits start in the |0> state).
+    circuit = cirq.Circuit()
+    # 2. Apply Hadamard gates to the inputs.
+    H_layer = [cirq.H(qubit) for qubit in qubits]
+    circuit.append(H_layer)
+    # 3. Apply the inner-product oracle
+    O_layer = [cirq.Z(qubit) for i, qubit in enumerate(qubits) if a & (1 << i)]
+    circuit.append(O_layer)
+    # 4. Apply Hadamard gates to the outputs
+    circuit.append(H_layer)
+    # 5. Apply measurement layer
+    circuit.append(cirq.ops.MeasurementGate('result').on(qubit)
+                   for qubit in qubits)
+    return circuit
+
+
+def bv(n_qubits: int, a: int, shots: int = NUM_SHOTS) -> collections.Counter:
     """Creates and executes the circuit for Bernstein-Vazirani algorithm.
 
     Args:
         n_qubits: integer < 30, number of qubits in the simulated circuit.
         a: integer < 2**n_qubits, representing the unknown bit string.
-        circuit_name: string to identify the circuit
-        device: type of the device used
         shots: number of times the circuit has been executed.
 
     Returns:
         Result object, containing measurement data after the circuit has run.
     """
-    # 1. Define a sequence of qubits.
+    # Generate the circuit.
     qubits = [cirq.google.XmonQubit(0, x) for x in range(n_qubits)]
-    # 2. Create a circuit (qubits start in the |0> state).
-    circuit = cirq.circuits.Circuit()
-    # 3. Apply Hadamard gates to the inputs.
-    H_layer = [cirq.H(qubit) for qubit in qubits]
-    circuit.append(H_layer)
-    # 4. Apply the inner-product oracle
-    O_layer = [cirq.Z(qubits[i]) for i in range(n_qubits) if a & (1 << i)]
-    circuit.append(O_layer)
-    # 5. Apply Hadamard gates to the outputs
-    circuit.append(H_layer)
-    # 6. Apply measurement layer
-    circuit.append(cirq.ops.MeasurementGate('result').on(qubit)
-                   for i, qubit in enumerate(qubits))
+    circuit = bv_circuit(qubits, a)
 
-    # 7. Debug step
     print(circuit)
-    # 8. Run and collect results
+
+    # Simulate and return results.
     simulator = cirq.google.Simulator()
     result = simulator.run(circuit, repetitions=NUM_SHOTS)
     result_bits = result.measurements['result']  # 2D array of (rep, qubit)
