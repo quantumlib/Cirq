@@ -28,6 +28,13 @@ else:
 
 
 def python3_mock_test(target, method):
+    """A decorator for tests that need to mock.patch.object() which is not
+     supported in Python 2.7. The test only executes if running Python 3.
+
+    Args:
+        target: Target to patch.
+        method: The name of the method to mock.
+    """
     if sys.version_info >= (3,):
         return mock.patch.object(target, method)
     else:
