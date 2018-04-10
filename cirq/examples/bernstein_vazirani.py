@@ -14,7 +14,7 @@
 
 import collections
 import random
-from typing import List
+from typing import Sequence
 
 from absl import app
 from absl import flags
@@ -31,7 +31,7 @@ def bitstring(bits):
     return ''.join(str(int(b)) for b in bits)
 
 
-def bv_circuit(qubits: List[cirq.QubitId], a: int) -> cirq.Circuit:
+def bv_circuit(qubits: Sequence[cirq.QubitId], a: int) -> cirq.Circuit:
     """Creates a circuit for the Bernstein-Vazirani algorithm.
 
     Args:
