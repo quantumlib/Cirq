@@ -333,10 +333,10 @@ class Circuit(object):
 
     def to_unitary_matrix(
             self,
-            qubit_order_key: Callable[[QubitId], Any]=None,
+            qubit_order_key: Callable[[QubitId], Any] = None,
             qubits_that_should_be_present: Iterable[QubitId] = (),
-            ignore_terminal_measurements=True,
-            ext: Extensions=None) -> np.ndarray:
+            ignore_terminal_measurements = True,
+            ext: Extensions = None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -395,7 +395,7 @@ class Circuit(object):
 
     def to_text_diagram(
             self,
-            ext: Extensions = Extensions(),
+            ext: Extensions = None,
             use_unicode_characters: bool = True,
             transpose: bool = False,
             qubit_order_key: Callable[[QubitId], Any] = None) -> str:
@@ -418,6 +418,9 @@ class Circuit(object):
         """
         if qubit_order_key is None:
             qubit_order_key = _str_lexicographic_respecting_int_order
+
+        if ext is None:
+            ext = Extensions()
 
         qubits = {
             q

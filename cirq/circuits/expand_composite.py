@@ -33,7 +33,7 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-                 composite_gate_extension: Extensions = Extensions()) -> None:
+                 composite_gate_extension: Extensions = None) -> None:
         """Construct the optimization pass.
 
         Args:
@@ -54,7 +54,9 @@ class ExpandComposite(PointOptimizer):
 
     def _decompose(self, op):
         """Recursively decompose composite gates into an OP_TREE of gates."""
-        composite_gate = self.extension.try_cast(op.gate, ops.CompositeGate)
+        composite_gate = None
+        if not self.extension is None:
+            composite_gate = self.extension.try_cast(op.gate, ops.CompositeGate)
         if composite_gate is None:
             return op
         return (self._decompose(op) for op in
