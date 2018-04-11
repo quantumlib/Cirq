@@ -36,7 +36,7 @@ To do this, you must first install `protobuf-compiler` and `virtualenv`:
 sudo apt-get install protobuf-compiler virtualenv
 ```
 
-If you are using python3, also must also install `python3-tk`:
+If you are using python3, you must also install `python3-tk`:
 
 ```bash
 sudo apt-get install python3-tk
