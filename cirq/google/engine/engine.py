@@ -74,7 +74,6 @@ class EngineOptions:
     """
 
     def __init__(self, project_id: str,
-                 credentials: Optional[oauth2client.client.Credentials] = None,
                  program_id: Optional[str] = None,
                  job_id: Optional[str] = None,
                  gcs_prefix: Optional[str] = None,
@@ -84,7 +83,6 @@ class EngineOptions:
         project_id and either gcs_prefix or gcs_program and gcs_results.
 
         Args:
-            credentials: Credentials to use.
             project_id: The project id string of the Google Cloud Project to
                 use.
             program_id: Id of the program to create, defaults to a random
@@ -97,7 +95,6 @@ class EngineOptions:
             gcs_results: Explicit override for the results storage location.
         """
         self.project_id = project_id
-        self.credentials = credentials
         self.program_id = program_id or 'prog-%s' % ''.join(
             random.choice(string.ascii_uppercase + string.digits) for _ in
             range(6))
@@ -122,13 +119,30 @@ class Engine:
 
     def __init__(self, api_key: str, api: str = 'quantum',
                  version: str = 'v1alpha1',
-                 discovery_url: Optional[str] = None) -> None:
+                 discovery_url: Optional[str] = None,
+                 credentials: Optional[oauth2client.client.Credentials] = None
+    ) -> None:
+        """Engine service client.
+
+        Args:
+            api_key: API key to use to retrieve discovery doc.
+            api: API name.
+            version: API version.
+            discovery_url: Discovery url to use.
+            credentials: Credentials to use.
+        """
         self.api_key = api_key
         self.api = api
         self.version = version
         self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
                                                '$discovery/rest'
                                                '?version={apiVersion}&key=%s')
+        self.credentials = credentials
+        self.service = discovery.build(self.api, self.version,
+                                       discoveryServiceUrl=(
+                                           self.discovery_url % (
+                                               self.api_key,)),
+                                       credentials=credentials)
 
     def run(self,
             options: EngineOptions,
@@ -153,8 +167,8 @@ class Engine:
         Returns:
             Results for this run.
         """
-        return self.run_sweep(options, circuit, device, [param_resolver],
-                              repetitions, priority, target_route)[0]
+        return list(self.run_sweep(options, circuit, device, [param_resolver],
+                                   repetitions, priority, target_route))[0]
 
     def run_sweep(self,
                   options: EngineOptions,
@@ -164,7 +178,7 @@ class Engine:
                   repetitions: int = 1,
                   priority: int = 500,
                   target_route: str = '/xmonsim',
-    ) -> List[EngineTrialResult]:
+    ) -> 'EngineJob':
         """Runs the entire supplied Circuit or Schedule via Google Quantum
          Engine.
 
@@ -203,11 +217,6 @@ class Engine:
 
         sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
 
-        service = discovery.build(self.api, self.version,
-                                  discoveryServiceUrl=self.discovery_url % (
-                                      self.api_key,),
-                                  credentials=options.credentials)
-
         proto_program = program_pb2.Program()
         for sweep in sweeps:
             sweep_proto = proto_program.parameter_sweeps.add()
@@ -226,7 +235,7 @@ class Engine:
             'code': code,
         }
 
-        response = service.projects().programs().create(
+        response = self.service.projects().programs().create(
             parent='projects/%s' % options.project_id, body=request).execute()
 
         request = {
@@ -241,24 +250,18 @@ class Engine:
                 'target_route': target_route
             },
         }
-        response = service.projects().programs().jobs().create(
+        response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()
 
-        for _ in range(1000):
-            if response['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
-                                                        'CANCELLED']:
-                break
-            time.sleep(0.5)
-            response = service.projects().programs().jobs().get(
-                name=response['name']).execute()
+        return EngineJob(response, self)
 
-        if response['executionStatus']['state'] != 'SUCCESS':
-            raise RuntimeError('Job %s did not succeed. It is in state %s.' % (
-                response['name'], response['executionStatus']['state']))
+    def get_job(self, job_resource_name) -> Dict:
+        return self.service.projects().programs().jobs().get(
+            name=job_resource_name).execute()
 
-        response = service.projects().programs().jobs().getResult(
-            parent=response['name']).execute()
-
+    def get_job_results(self, job_resource_name) -> List[EngineTrialResult]:
+        response = self.service.projects().programs().jobs().getResult(
+            parent=job_resource_name).execute()
         trial_results = []
         for sweep_result in response['result']['sweepResults']:
             sweep_repetitions = sweep_result['repetitions']
@@ -275,6 +278,64 @@ class Engine:
                     repetitions=sweep_repetitions,
                     measurements=measurements))
         return trial_results
+
+    def cancel_job(self, job_resource_name):
+        self.service.projects().programs().jobs().cancel(
+            name=job_resource_name, body={}).execute()
+
+
+class EngineJob:
+    """A job running on the engine.
+
+    Attributes:
+      job_resource_name: The full resource name of the engine job.
+    """
+
+    def __init__(self,
+        job: Dict,
+        engine: Engine) -> None:
+        """A job submitted to the engine.
+
+        Args:
+            job: A full Job Dict.
+            engine: Engine connected to the job.
+        """
+        self._job = job
+        self._engine = engine
+        self.job_resource_name = job['name']
+        self._results = None
+
+    def _update_job(self):
+        if not self._job['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
+                                                         'CANCELLED']:
+            self._job = self._engine.get_job(self.job_resource_name)
+        return self._job
+
+    def state(self):
+        return self._update_job()['executionStatus']['state']
+
+    def cancel(self):
+        self._engine.cancel_job(self.job_resource_name)
+
+    def results(self) -> List[EngineTrialResult]:
+        if not self._results:
+            job = self._update_job()
+            for _ in range(1000):
+                if job['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
+                                                       'CANCELLED']:
+                    break
+                time.sleep(0.5)
+                job = self._update_job()
+            if job['executionStatus']['state'] != 'SUCCESS':
+                raise RuntimeError(
+                    'Job %s did not succeed. It is in state %s.' % (
+                        job['name'], job['executionStatus']['state']))
+            self._results = self._engine.get_job_results(
+                self.job_resource_name)
+        return self._results
+
+    def __iter__(self):
+        return self.results().__iter__()
 
 
 def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
