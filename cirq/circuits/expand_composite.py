@@ -40,7 +40,7 @@ class ExpandComposite(PointOptimizer):
             composite_gate_extension: An extension that that can be used
                 to supply or override a CompositeGate decomposition.
         """
-        self.extension = composite_gate_extension
+        self.extension = (composite_gate_extension or Extensions())
 
     def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
