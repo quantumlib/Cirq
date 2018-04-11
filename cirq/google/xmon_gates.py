@@ -104,7 +104,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
-                ops.AsciiDiagrammableGate,
+                ops.TextDiagrammableGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
                 PotentialImplementation):
@@ -142,10 +142,12 @@ class Exp11Gate(XmonGate,
             raise ValueError("Don't have a known matrix.")
         return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'Z', 'Z'
 
-    def ascii_exponent(self):
+    def text_diagram_exponent(self):
         return self.half_turns
 
     def __str__(self):
@@ -171,7 +173,7 @@ class Exp11Gate(XmonGate,
 
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
-               ops.AsciiDiagrammableGate,
+               ops.TextDiagrammableGate,
                ops.PhaseableGate,
                ops.BoundedEffectGate,
                PotentialImplementation):
@@ -242,18 +244,20 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         if self.axis_half_turns == 0:
             return 'X',
         if self.axis_half_turns == 0.5:
             return 'Y',
         return 'W({})'.format(self.axis_half_turns),
 
-    def ascii_exponent(self):
+    def text_diagram_exponent(self):
         return self.half_turns
 
     def __str__(self):
-        base = self.ascii_wire_symbols()[0]
+        base = self.text_diagram_wire_symbols()[0]
         if self.half_turns == 1:
             return base
         return '{}^{}'.format(base, self.half_turns)
@@ -288,7 +292,7 @@ class ExpWGate(XmonGate,
 
 class ExpZGate(XmonGate,
                ops.SingleQubitGate,
-               ops.AsciiDiagrammableGate,
+               ops.TextDiagrammableGate,
                PotentialImplementation):
     """A rotation around the Z axis of the Bloch sphere."""
 
@@ -297,14 +301,16 @@ class ExpZGate(XmonGate,
         assert not positional_args
         self.half_turns = _canonicalize_half_turns(half_turns)
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         if self.half_turns in [-0.25, 0.25]:
             return 'T'
         if self.half_turns in [-0.5, 0.5]:
             return 'S'
         return 'Z',
 
-    def ascii_exponent(self):
+    def text_diagram_exponent(self):
         if self.half_turns in [0.25, 0.5]:
             return 1
         if self.half_turns in [-0.5, -0.25]:

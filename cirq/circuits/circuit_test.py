@@ -581,16 +581,18 @@ def test_to_text_diagram_extended_gate():
             """.strip()
 
     # Succeeds with extension.
-    class FGateAsAscii(ops.AsciiDiagrammableGate):
+    class FGateAsText(ops.TextDiagrammableGate):
         def __init__(self, f_gate):
             self.f_gate = f_gate
 
-        def ascii_wire_symbols(self):
+        def text_diagram_wire_symbols(self,
+                                      qubit_count=None,
+                                      use_unicode_characters=True):
             return 'F'
 
     diagram = c.to_text_diagram(Extensions({
-        ops.AsciiDiagrammableGate: {
-           FGate: FGateAsAscii
+        ops.TextDiagrammableGate: {
+           FGate: FGateAsText
         }
     }), use_unicode_characters=False)
 
@@ -627,8 +629,10 @@ M──────M──────M
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
-    class BadGate(ops.AsciiDiagrammableGate):
-        def ascii_wire_symbols(self):
+    class BadGate(ops.TextDiagrammableGate):
+        def text_diagram_wire_symbols(self,
+                                      qubit_count=None,
+                                      use_unicode_characters=True):
             return 'a', 'a'
     q1 = ops.NamedQubit('(0, 0)')
     q2 = ops.NamedQubit('(0, 1)')
@@ -641,14 +645,16 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 def test_to_text_diagram_parameterized_value():
     q = ops.NamedQubit('cube')
 
-    class PGate(ops.AsciiDiagrammableGate):
+    class PGate(ops.TextDiagrammableGate):
         def __init__(self, val):
             self.val = val
 
-        def ascii_wire_symbols(self):
+        def text_diagram_wire_symbols(self,
+                                      qubit_count=None,
+                                      use_unicode_characters=True):
             return 'P',
 
-        def ascii_exponent(self):
+        def text_diagram_exponent(self):
             return self.val
 
     c = Circuit.from_ops(

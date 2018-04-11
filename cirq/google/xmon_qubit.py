@@ -44,13 +44,6 @@ class XmonQubit(QubitId):
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
-    @staticmethod
-    def try_parse_from_ascii(text):
-        if re.match('\\(\\s*\\d+,\\s*\\d+\\s*\\)', text):
-            a, b = text[1:-1].split(',')
-            return XmonQubit(int(a.strip()), int(b.strip()))
-        return None
-
     def to_proto(
             self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
         """Return the proto form, mutating supplied form if supplied."""
