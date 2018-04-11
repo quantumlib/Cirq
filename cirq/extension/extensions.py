@@ -32,7 +32,9 @@ class Extensions:
             self,
             desired_to_actual_to_wrapper: Optional[Dict[
                 Type[T_DESIRED],
-                Dict[Type[T_ACTUAL], Callable[[T_ACTUAL], T_DESIRED]]]]=None
+                Dict[Type[T_ACTUAL],
+                     Callable[[T_ACTUAL],
+                              Optional[T_DESIRED]]]]]=None
             ) -> None:
         """Specifies extensions.
 
@@ -48,12 +50,12 @@ class Extensions:
             {}
             if desired_to_actual_to_wrapper is None
             else desired_to_actual_to_wrapper
-        )  # type: Dict[Type[Any], Dict[Any, Callable[[Any], Any]]]
+        )  # type: Dict[Type[Any], Dict[Any, Callable[[Any], Optional[Any]]]]
 
     def add_cast(self,
                  desired_type: Type[T_DESIRED],
                  actual_type: Type[T_ACTUAL],
-                 conversion: Callable[[T_ACTUAL], T_DESIRED],
+                 conversion: Callable[[T_ACTUAL], Optional[T_DESIRED]],
                  also_add_inherited_conversions: bool = True,
                  overwrite_existing: bool = False) -> None:
         """Adds a way to turn one type of thing into another.
@@ -139,7 +141,9 @@ class Extensions:
             for actual_type in inspect.getmro(type(actual_value)):
                 wrapper = actual_to_wrapper.get(actual_type)
                 if wrapper:
-                    return wrapper(actual_value)
+                    wrapped = wrapper(actual_value)
+                    if wrapped is not None:
+                        return wrapped
 
         if isinstance(actual_value, desired_type):
             return actual_value
