@@ -341,7 +341,7 @@ class Stepper(object):
         if state.size != 1 << self._num_qubits:
             raise ValueError(
                 'state state has incorrect size. Expected %s but was %s.' %
-                (state.size, 1 << self._num_qubits))
+                (1 << self._num_qubits, state.size))
         if state.dtype != np.complex64:
             raise ValueError(
                 'Reset state has invalid dtype. Expected %s but was %s' % (
