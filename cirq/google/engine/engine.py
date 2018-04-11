@@ -303,7 +303,7 @@ class EngineJob:
         self._job = job
         self._engine = engine
         self.job_resource_name = job['name']
-        self._results = None
+        self._results = None # type: List[EngineTrialResult]
 
     def _update_job(self):
         if not self._job['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
