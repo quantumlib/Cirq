@@ -37,7 +37,7 @@ class MergeInteractions(PointOptimizer):
                  extensions: Extensions = None) -> None:
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
-        self.extensions = (extensions or Extensions())
+        self.extensions = extensions or Extensions()
 
     def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 2:
