@@ -22,7 +22,7 @@ from cirq.contrib.qcircuit_diagrammable_gate import (
 
 
 class _QCircuitQubit(ops.QubitId):
-    def __init__(self, sub: ops.QubitId):
+    def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
 
     def __str__(self):
@@ -42,7 +42,7 @@ class _QCircuitQubit(ops.QubitId):
 
 
 class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
-    def __init__(self, sub: QCircuitDiagrammableGate):
+    def __init__(self, sub: QCircuitDiagrammableGate) -> None:
         self.sub = sub
 
     def text_diagram_exponent(self):

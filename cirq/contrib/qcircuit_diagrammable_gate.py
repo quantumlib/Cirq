@@ -43,7 +43,7 @@ def _escape_text_for_latex(text):
 
 
 class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammableGate):
-    def __init__(self, *symbols):
+    def __init__(self, *symbols) -> None:
         self.symbols = symbols
 
     def qcircuit_wire_symbols(self, qubit_count=None):
@@ -51,7 +51,7 @@ class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammableGate):
 
 
 class _WrappedSymbolsQCircuitGate(QCircuitDiagrammableGate):
-    def __init__(self, sub: ops.TextDiagrammableGate):
+    def __init__(self, sub: ops.TextDiagrammableGate) -> None:
         self.sub = sub
 
     def qcircuit_wire_symbols(self, qubit_count=None):
@@ -64,7 +64,7 @@ class _WrappedSymbolsQCircuitGate(QCircuitDiagrammableGate):
 
 
 class _FallbackQCircuitSymbolsGate(QCircuitDiagrammableGate):
-    def __init__(self, sub: ops.Gate):
+    def __init__(self, sub: ops.Gate) -> None:
         self.sub = sub
 
     def qcircuit_wire_symbols(self, qubit_count=None):
