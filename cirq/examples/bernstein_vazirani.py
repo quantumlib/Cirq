@@ -52,8 +52,7 @@ def bv_circuit(qubits: Sequence[cirq.QubitId], a: int) -> cirq.Circuit:
     # 4. Apply Hadamard gates to the outputs
     circuit.append(H_layer)
     # 5. Apply measurement layer
-    circuit.append(cirq.ops.MeasurementGate('result').on(qubit)
-                   for qubit in qubits)
+    circuit.append(cirq.ops.MeasurementGate('result').on(*qubits))
     return circuit
 
 
