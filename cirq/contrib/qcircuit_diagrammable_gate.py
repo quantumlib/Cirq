@@ -30,15 +30,13 @@ def _escape_text_for_latex(text):
                .replace('\\', '\\textbackslash{}')
                .replace('^', '\\textasciicircum{}')
                .replace('~', '\\textasciitilde{}')
-               .replace('#', '/#')
                .replace('_', '\\_')
-               .replace('{', '/{')
-               .replace('}', '/}')
-               .replace('$', '/$')
-               .replace('%', '/%')
-               .replace('&', '/&')
-               .replace('#', '/#')
-               .replace('#', '/#'))
+               .replace('{', '\\{')
+               .replace('}', '\\}')
+               .replace('$', '\\$')
+               .replace('%', '\\%')
+               .replace('&', '\\&')
+               .replace('#', '\\#'))
     return '\\text{' + escaped + '}'
 
 
