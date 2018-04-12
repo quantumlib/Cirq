@@ -125,10 +125,11 @@ def test_run_sweep_params(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_RESULTS)}
 
-    results = Engine(api_key="key").run_sweep(
+    job = Engine(api_key="key").run_sweep(
         EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
         moment_by_moment_schedule(UnconstrainedDevice, Circuit()),
         params=[ParamResolver({'a': 1}), ParamResolver({'a': 2})])
+    results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
@@ -168,10 +169,11 @@ def test_run_sweep_sweeps(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_RESULTS)}
 
-    results = Engine(api_key="key").run_sweep(
+    job = Engine(api_key="key").run_sweep(
         EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
         moment_by_moment_schedule(UnconstrainedDevice, Circuit()),
         params=Points('a', [1, 2]))
+    results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
@@ -193,7 +195,8 @@ def test_run_sweep_sweeps(build):
     assert jobs.getResult().execute.call_count == 1
 
 
-def test_bad_priority():
+@python3_mock_test(discovery, 'build')
+def test_bad_priority(build):
     with pytest.raises(TypeError, match='priority must be between 0 and 1000'):
         Engine(api_key="key").run(
             EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
@@ -201,3 +204,28 @@ def test_bad_priority():
             UnconstrainedDevice,
             priority=1001)
 
+
+@python3_mock_test(discovery, 'build')
+def test_cancel(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'}
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'READY'}}
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'CANCELLED'}}
+
+    job = Engine(api_key="key").run_sweep(
+        EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
+        Circuit(), device=UnconstrainedDevice)
+    job.cancel()
+    assert job.job_resource_name == ('projects/project-id/programs/test/'
+                                     'jobs/test')
+    assert job.state() == 'CANCELLED'
+    assert jobs.cancel.call_args[1][
+               'name'] == 'projects/project-id/programs/test/jobs/test'
