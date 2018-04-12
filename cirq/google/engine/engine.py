@@ -20,6 +20,7 @@ import random
 import re
 import string
 import time
+import urllib.parse
 from collections import Iterable
 from typing import Dict, List, Optional, Union, cast
 
@@ -40,6 +41,7 @@ from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 from cirq.study.sweeps import Points, Unit, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
+TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 
 
 class EngineTrialResult(TrialResult):
@@ -95,32 +97,22 @@ class EngineOptions:
             gcs_results: Explicit override for the results storage location.
         """
         self.project_id = project_id
-        self.program_id = program_id or 'prog-%s' % ''.join(
-            random.choice(string.ascii_uppercase + string.digits) for _ in
-            range(6))
-        self.job_id = job_id or 'job-0'
-        if not gcs_prefix and (not gcs_program or not gcs_results):
-            raise TypeError('Either gcs_prefix must be provided or both'
-                            ' gcs_program and gcs_results are required.')
-        if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
-            raise TypeError('gcs_prefix must be of the form "gs://'
-                            '<bucket name and optional object prefix>/"')
-        self.gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
-            '/') else gcs_prefix + '/'
-        self.gcs_program = gcs_program or '%sprograms/%s/%s' % (
-            self.gcs_prefix, self.program_id, self.program_id)
-        self.gcs_results = gcs_results or '%sprograms/%s/jobs/%s' % (
-            self.gcs_prefix, self.program_id, self.job_id)
+        self.program_id = program_id
+        self.job_id = job_id
+        self.gcs_prefix = gcs_prefix
+        self.gcs_program = gcs_program
+        self.gcs_results = gcs_results
 
 
 class Engine:
-    """Executor for Google Quantum Engine
+    """Executor for Google Quantum Engine.
     """
 
     def __init__(self, api_key: str, api: str = 'quantum',
                  version: str = 'v1alpha1',
                  discovery_url: Optional[str] = None,
-                 credentials: Optional[oauth2client.client.Credentials] = None
+                 credentials: Optional[oauth2client.client.Credentials] = None,
+                 gcs_prefix: Optional[str] = None
     ) -> None:
         """Engine service client.
 
@@ -138,11 +130,13 @@ class Engine:
                                                '$discovery/rest'
                                                '?version={apiVersion}&key=%s')
         self.credentials = credentials
-        self.service = discovery.build(self.api, self.version,
-                                       discoveryServiceUrl=(
-                                           self.discovery_url % (
-                                               self.api_key,)),
-                                       credentials=credentials)
+        self.gcs_prefix = gcs_prefix
+        self.service = discovery.build(
+            self.api,
+            self.version,
+            discoveryServiceUrl=self.discovery_url % urllib.parse.quote_plus(
+                self.api_key),
+            credentials=credentials)
 
     def run(self,
             options: EngineOptions,
@@ -195,6 +189,29 @@ class Engine:
         Returns:
             Results for this run.
         """
+        # Check and compute engine options.
+        gcs_prefix = options.gcs_prefix or self.gcs_prefix
+        gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
+            '/') else gcs_prefix + '/'
+        if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
+            raise TypeError('gcs_prefix must be of the form "gs://'
+                            '<bucket name and optional object prefix>/"')
+        if not gcs_prefix and (not options.gcs_program or
+                               not options.gcs_results):
+            raise TypeError('Either gcs_prefix must be provided or both'
+                            ' gcs_program and gcs_results are required.')
+
+        project_id = options.project_id
+        program_id = options.program_id or 'prog-%s' % ''.join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in
+            range(6))
+        job_id = options.job_id or 'job-0'
+        gcs_program = options.gcs_program or '%sprograms/%s/%s' % (
+            gcs_prefix, program_id, program_id)
+        gcs_results = options.gcs_results or '%sprograms/%s/jobs/%s' % (
+            gcs_prefix, program_id, job_id)
+
+        # Check program to run and program parameters.
         if not 0 <= priority < 1000:
             raise TypeError('priority must be between 0 and 1000')
 
@@ -215,34 +232,32 @@ class Engine:
         else:
             raise TypeError('Unexpected execution type')
 
+        # Create program.
         sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
-
         proto_program = program_pb2.Program()
         for sweep in sweeps:
             sweep_proto = proto_program.parameter_sweeps.add()
             sweep_to_proto(sweep, sweep_proto)
             sweep_proto.repetitions = repetitions
         proto_program.operations.extend(list(schedule_to_proto(schedule)))
-
         code = {
             '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
         code.update(MessageToDict(proto_program))
-
         request = {
-            'name': 'projects/%s/programs/%s' % (options.project_id,
-                                                 options.program_id,),
-            'gcs_code_location': {'uri': options.gcs_program, },
+            'name': 'projects/%s/programs/%s' % (project_id,
+                                                 program_id,),
+            'gcs_code_location': {'uri': gcs_program, },
             'code': code,
         }
-
         response = self.service.projects().programs().create(
-            parent='projects/%s' % options.project_id, body=request).execute()
+            parent='projects/%s' % project_id, body=request).execute()
 
+        # Create job.
         request = {
-            'name': '%s/jobs/%s' % (response['name'], options.job_id),
+            'name': '%s/jobs/%s' % (response['name'], job_id),
             'output_config': {
                 'gcs_results_location': {
-                    'uri': options.gcs_results
+                    'uri': gcs_results
                 }
             },
             'scheduling_config': {
@@ -253,7 +268,9 @@ class Engine:
         response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()
 
-        return EngineJob(response, self)
+        return EngineJob(
+            EngineOptions(project_id, program_id, job_id, gcs_prefix,
+                          gcs_program, gcs_results), response, self)
 
     def get_job(self, job_resource_name) -> Dict:
         return self.service.projects().programs().jobs().get(
@@ -288,26 +305,29 @@ class EngineJob:
     """A job running on the engine.
 
     Attributes:
+      engine_options: The engine options used for the job.
       job_resource_name: The full resource name of the engine job.
     """
 
     def __init__(self,
+        engine_options: EngineOptions,
         job: Dict,
         engine: Engine) -> None:
         """A job submitted to the engine.
 
         Args:
+            engine_options: The EngineOptions used to create the job.
             job: A full Job Dict.
             engine: Engine connected to the job.
         """
+        self.engine_options = engine_options
         self._job = job
         self._engine = engine
         self.job_resource_name = job['name']
-        self._results = None # type: List[EngineTrialResult]
+        self._results = None  # type: List[EngineTrialResult]
 
     def _update_job(self):
-        if not self._job['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
-                                                         'CANCELLED']:
+        if self._job['executionStatus']['state'] not in TERMINAL_STATES:
             self._job = self._engine.get_job(self.job_resource_name)
         return self._job
 
@@ -321,8 +341,7 @@ class EngineJob:
         if not self._results:
             job = self._update_job()
             for _ in range(1000):
-                if job['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
-                                                       'CANCELLED']:
+                if job['executionStatus']['state'] in TERMINAL_STATES:
                     break
                 time.sleep(0.5)
                 job = self._update_job()
