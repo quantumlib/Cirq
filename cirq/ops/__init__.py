@@ -64,6 +64,6 @@ from cirq.ops.raw_types import (
     QubitId,
 )
 from cirq.ops.reversible_composite_gate import (
-    inverse_of_invertable_op_tree,
+    inverse_of_invertible_op_tree,
     ReversibleCompositeGate,
 )
