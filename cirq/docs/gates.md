@@ -102,12 +102,12 @@ take an ``Extension`` which allows for overriding the
 ``CompositeGate``.  An example of this is for in 
 ``Simulators`` where an optional 
 
-#### AsciiDiagramableGate
+#### TextDiagrammableGate
 
-Ascii diagrams of ``Circuits`` are actually quite useful for 
-visualizing the moment structure of a ``Circuit``. In order
-for this to display in a compact form, it is best practice
-to implement his feature.
+Text diagrams of ``Circuits`` are actually quite useful for
+visualizing the moment structure of a ``Circuit``. Gates that
+implement this feature can specify compact representations to
+use in the diagram (e.g. '×' instead of 'SWAP').
 
 ### XmonGates
 
