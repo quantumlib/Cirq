@@ -17,7 +17,7 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Sequence, Tuple, Optional
+from typing import Optional, Sequence, Tuple, Type, Union
 
 import numpy as np
 
@@ -94,6 +94,48 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Args:
             qubits: The qubits the operation should be applied to.
         """
+
+
+    @classmethod
+    def from_gates(cls: Type,
+        gates: Union[Sequence[raw_types.Gate], Sequence[
+            Tuple[raw_types.Gate, Tuple[int]]]]) -> 'CompositeGate':
+        """Returns a CompositeGate which decomposes into the given gates.
+
+        Args:
+            gates: Either a sequence of gates or a sequences of (gate, indices)
+                tuples, where indices is a tuple of qubit indices (ints). The
+                first is used when decomposing a gate into a series of gates
+                that all act on the same number of qubits. The second is used
+                when decomposing a gate into a series of gates that may act on
+                differing number of qubits. In this later case the indices
+                is a tuple of qubit indices, describing which qubit the gate
+                acts on.
+
+        Returns:
+            A CompositeGate with a default_decompose that applies the
+            given gates in sequence.
+        """
+        return _CompositeGateImpl(gates)
+
+
+class _CompositeGateImpl(CompositeGate):
+    """Implementation of CompositeGate which uses specific sequence of gates."""
+
+    def __init__(self, gates: Union[Sequence[raw_types.Gate], Sequence[
+        Tuple[raw_types.Gate, Tuple[int]]]]) -> None:
+        self.gates = gates
+
+    def default_decompose(
+        self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
+        decomposition = []
+        for x in self.gates:
+            if isinstance(x, raw_types.Gate):
+                decomposition.append(x(*qubits))
+            else:
+                gate, indices = x
+                decomposition.append(gate(*map(qubits.__getitem__, indices)))
+        return decomposition
 
 
 class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):

@@ -138,7 +138,8 @@ for getting it to work with the simulator:
 * Define it directly as an ``XmonGate``.
 * Provide a ``CompositeGate`` made up of ``XmonGates``.
 * Supply an ``Exentension`` to the simulator which converts
-the gate to an ``XmonGate`` (TODO(dabacon): not implemented yet). 
+the gate to an ``XmonGate`` or to a ``CompositeGate`` which 
+itself can be decomposed in ``XmonGates``. 
 
 ### Parameterized Values and Studies
 
