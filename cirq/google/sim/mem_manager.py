@@ -66,15 +66,15 @@ class SharedMemManager(object):
             raise ValueError(
                 'Array has unsupported dtype {}.'.format(arr.dtype))
 
-        with self._lock:
+        # pylint: disable=protected-access
+        raw_arr = RawArray(c_arr._type_, c_arr)
 
+        with self._lock:
             if self._count >= len(self._arrays):
                 self._arrays += len(self._arrays) * [None]
 
             self._get_next_free()
 
-            # pylint: disable=protected-access
-            raw_arr = RawArray(c_arr._type_, c_arr)
             self._arrays[self._current] = raw_arr
 
             self._count += 1
@@ -82,10 +82,11 @@ class SharedMemManager(object):
         return self._current
 
     def _get_next_free(self):
-        previous_current = self._current
+        loop_count = 0
         while self._arrays[self._current] is not None:
             self._current = (self._current + 1) % len(self._arrays)
-            if previous_current == self._current:
+            loop_count += 1
+            if loop_count == len(self._arrays):
                 raise RuntimeError(
                     'Cannot find free space to allocate new array.')
 

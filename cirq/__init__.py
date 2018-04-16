@@ -36,6 +36,7 @@ from cirq.circuits import (
     InsertStrategy,
     Moment,
     OptimizationPass,
+    PointOptimizationSummary,
     PointOptimizer,
     TextDiagramDrawer,
 )
@@ -77,7 +78,6 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    AsciiDiagrammableGate,
     BoundedEffectGate,
     CNOT,
     CNotGate,
@@ -90,7 +90,7 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse_of_invertable_op_tree,
+    inverse_of_invertible_op_tree,
     KnownMatrixGate,
     MeasurementGate,
     NamedQubit,
@@ -111,6 +111,7 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
+    TextDiagrammableGate,
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,
@@ -126,12 +127,12 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
-    Executor,
-    ExecutorStudy,
     ParamResolver,
-    StudyInterface,
     TrialResult,
-    TrialResultMeta,
+)
+
+from cirq.study.visualize import (
+    plot_state_histogram,
 )
 
 from cirq.value import (

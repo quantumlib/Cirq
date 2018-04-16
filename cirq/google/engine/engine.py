@@ -16,213 +16,32 @@
 """
 
 import base64
-import itertools
 import random
 import re
 import string
 import time
-from collections import defaultdict
-from typing import Dict, Optional, Union
-from typing import List  # pylint: disable=unused-import
+import urllib.parse
+from collections import Iterable
+from typing import Dict, List, Optional, Union, cast
 
 import numpy as np
 import oauth2client
-from apiclient.discovery import build
+from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
-from cirq.circuits import Circuit, ExpandComposite
+from cirq.api.google.v1 import program_pb2
+from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.devices import Device
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
-from cirq.google.programs import schedule_to_proto
+from cirq.google.params import sweep_to_proto
+from cirq.google.programs import schedule_to_proto, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
-from cirq.study import Executor, TrialResult
-from cirq.study.resolver import ParamResolver
-from cirq.api.google.v1 import program_pb2
+from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
+from cirq.study.sweeps import Points, Unit, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
-
-
-class EngineOptions:
-    """Options for the Engine.
-    """
-
-    def __init__(self, project_id: str,
-                 credentials: Optional[oauth2client.client.Credentials] = None,
-                 program_id: Optional[str] = None,
-                 job_id: Optional[str] = None,
-                 gcs_prefix: Optional[str] = None,
-                 gcs_program: Optional[str] = None,
-                 gcs_results: Optional[str] = None) -> None:
-        """Engine options for running the Engine. At a minimum requires
-        project_id and either gcs_prefix or gcs_program and gcs_results.
-
-        Args:
-            credentials: Credentials to use.
-            project_id: The project id string of the Google Cloud Project to
-                use.
-            program_id: Id of the program to create, defaults to a random
-                version of 'prog-ABCD'.
-            job_id: Id of the job to create, defaults to 'job-0'.
-            gcs_prefix: Google Cloud Storage bucket and object prefix to use for
-                storing programs and results. The bucket will be created if
-                needed. Must be in the form "gs://bucket-name/object-prefix/".
-            gcs_program: Explicit override for the program storage location.
-            gcs_results: Explicit override for the results storage location.
-        """
-        self.project_id = project_id
-        self.credentials = credentials
-        self.program_id = program_id or 'prog-%s' % ''.join(
-            random.choice(string.ascii_uppercase + string.digits) for _ in
-            range(6))
-        self.job_id = job_id or 'job-0'
-        if not gcs_prefix and (not gcs_program or not gcs_results):
-            raise TypeError('Either gcs_prefix must be provided or both'
-                            ' gcs_program and gcs_results are required.')
-        if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
-            raise TypeError('gcs_prefix must be of the form "gs://'
-                            '<bucket name and optional object prefix>/"')
-        self.gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
-            '/') else gcs_prefix + '/'
-        self.gcs_program = gcs_program or '%scirq/%s-program' % (
-            self.gcs_prefix, self.program_id)
-        self.gcs_results = gcs_results or '%scirq/%s-%s-results' % (
-            self.gcs_prefix, self.program_id, self.job_id)
-
-
-class Engine(Executor):
-    """Executor for Google Quantum Engine
-    """
-
-    def __init__(self, api_key: str, api: str = 'quantum',
-                 version: str = 'v1alpha1',
-                 discovery_url: Optional[str] = None) -> None:
-        self.api_key = api_key
-        self.api = api
-        self.version = version
-        self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
-                                               '$discovery/rest'
-                                               '?version={apiVersion}&key=%s')
-
-    def run(
-        self,
-        program: Union[Circuit, Schedule],
-        param_resolver: ParamResolver = None,
-        repetitions: int = 1,
-        options: EngineOptions = None,
-        device: Device = None,
-        priority: int = 50,
-    ) -> 'EngineTrialResult':
-        """Runs the entire supplied Circuit or Schedule via Google Quantum
-         Engine.
-
-        Args:
-            program: The circuit to execute.
-            param_resolver: A ParamResolver for determining values of
-                ParameterizedValues.
-            repetitions: The number of circuit repetitions to run.
-            options: Options configuring the engine.
-            device: The device on which to run.
-            priority: The priority to run at, 0-100.
-
-        Returns:
-            Results for this run.
-        """
-        if not 0 <= priority < 100:
-            raise TypeError('priority must be between 0 and 100')
-
-        if isinstance(program, Schedule):
-            schedule = program
-        else:
-            # Convert to a schedule.
-            expand = ExpandComposite()
-            convert = ConvertToXmonGates(ignore_failures=False)
-            drop = DropEmptyMoments()
-
-            circuit_copy = Circuit(program.moments)
-            expand.optimize_circuit(circuit_copy)
-            convert.optimize_circuit(circuit_copy)
-            drop.optimize_circuit(circuit_copy)
-
-            schedule = moment_by_moment_schedule(device, circuit_copy)
-
-        service = build(self.api, self.version,
-                        discoveryServiceUrl=self.discovery_url % (
-                            self.api_key,),
-                        credentials=options.credentials)
-
-        proto_program = program_pb2.Program()
-        proto_program.parameter_sweeps.add().repetitions = repetitions
-        proto_program.operations.extend(list(schedule_to_proto(schedule)))
-
-        code = {
-            '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
-        code.update(MessageToDict(proto_program))
-
-        request = {
-            'name': 'projects/%s/programs/%s' % (options.project_id,
-                                                 options.program_id,),
-            'gcs_code_location': {'uri': options.gcs_program, },
-            'code': code,
-        }
-
-        response = service.projects().programs().create(
-            parent='projects/%s' % options.project_id, body=request).execute()
-
-        request = {
-            'name': '%s/jobs/%s' % (response['name'], options.job_id),
-            'output_config': {
-                'gcs_results_location': {
-                    'uri': options.gcs_results
-                }
-            },
-            'scheduling_config': {
-                'priority': priority,
-                # TODO get route from device
-                'target_route': '/pysim'
-            },
-        }
-        response = service.projects().programs().jobs().create(
-            parent=response['name'], body=request).execute()
-
-        for _ in range(1000):
-            if response['executionStatus']['state'] in ['SUCCESS', 'FAILURE',
-                                                        'CANCELLED']:
-                break
-            time.sleep(0.5)
-            response = service.projects().programs().jobs().get(
-                name=response['name']).execute()
-
-        if response['executionStatus']['state'] != 'SUCCESS':
-            raise RuntimeError('Job %s did not succeed. It is in state %s.' % (
-                response['name'], response['executionStatus']['state']))
-
-        response = service.projects().programs().jobs().getResult(
-            parent=response['name']).execute()
-
-        # Convert from base64 encoded <rep-1><rep-2>...
-        # where each repetition is
-        # <key0-0>..<key0-i>..<key0-{key0-size}><key1-0>...
-        # to {<key>: [repetition][values]}
-        def as_bits(result: bytes):
-            for b in result:
-                for i in range(8):
-                    yield bool(b & (1 << i))
-
-        # Only a single sweep is supported for now
-        sweep_results = response['result']['sweepResults'][0]
-        measurements = defaultdict(list)  # type: Dict[str, List[np.ndarray]]
-        bits = as_bits(base64.standard_b64decode(
-            sweep_results['parameterizedResults'][0]['measurementResults']))
-        for _ in range(sweep_results['repetitions']):
-            for keymap in sweep_results['measurementKeys']:
-                v = list(itertools.islice(bits, keymap['size']))
-                measurements[keymap['key']].append(np.array(v, dtype=bool))
-
-        return EngineTrialResult(
-            params=param_resolver,
-            repetitions=repetitions,
-            measurements=dict(measurements))
+TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 
 
 class EngineTrialResult(TrialResult):
@@ -230,14 +49,13 @@ class EngineTrialResult(TrialResult):
 
     Attributes:
         measurements: A dictionary from measurement gate key to measurement
-            results. If a key is reused, the measurement values are returned
-            in the order they appear in the Circuit being executed.
+            results ordered by the qubits acted upon by the measurement gate.
     """
 
     def __init__(self,
-        params: ParamResolver,
-        repetitions: int,
-        measurements: Dict[str, np.ndarray]) -> None:
+                 params: ParamResolver,
+                 repetitions: int,
+                 measurements: Dict[str, np.ndarray]) -> None:
         self.params = params
         self.repetitions = repetitions
         self.measurements = measurements
@@ -251,3 +69,312 @@ class EngineTrialResult(TrialResult):
         ]
         return ' '.join('{}={}'.format(key, val)
                         for key, val in sorted(keyed_bitstrings))
+
+
+class EngineOptions:
+    """Options for the Engine.
+    """
+
+    def __init__(self, project_id: str,
+                 program_id: Optional[str] = None,
+                 job_id: Optional[str] = None,
+                 gcs_prefix: Optional[str] = None,
+                 gcs_program: Optional[str] = None,
+                 gcs_results: Optional[str] = None) -> None:
+        """Engine options for running the Engine. At a minimum requires
+        project_id and either gcs_prefix or gcs_program and gcs_results.
+
+        Args:
+            project_id: The project id string of the Google Cloud Project to
+                use.
+            program_id: Id of the program to create, defaults to a random
+                version of 'prog-ABCD'.
+            job_id: Id of the job to create, defaults to 'job-0'.
+            gcs_prefix: Google Cloud Storage bucket and object prefix to use for
+                storing programs and results. The bucket will be created if
+                needed. Must be in the form "gs://bucket-name/object-prefix/".
+            gcs_program: Explicit override for the program storage location.
+            gcs_results: Explicit override for the results storage location.
+        """
+        self.project_id = project_id
+        self.program_id = program_id
+        self.job_id = job_id
+        self.gcs_prefix = gcs_prefix
+        self.gcs_program = gcs_program
+        self.gcs_results = gcs_results
+
+
+class Engine:
+    """Executor for Google Quantum Engine.
+    """
+
+    def __init__(self, api_key: str, api: str = 'quantum',
+                 version: str = 'v1alpha1',
+                 discovery_url: Optional[str] = None,
+                 credentials: Optional[oauth2client.client.Credentials] = None,
+                 gcs_prefix: Optional[str] = None
+    ) -> None:
+        """Engine service client.
+
+        Args:
+            api_key: API key to use to retrieve discovery doc.
+            api: API name.
+            version: API version.
+            discovery_url: Discovery url to use.
+            credentials: Credentials to use.
+        """
+        self.api_key = api_key
+        self.api = api
+        self.version = version
+        self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
+                                               '$discovery/rest'
+                                               '?version={apiVersion}&key=%s')
+        self.credentials = credentials
+        self.gcs_prefix = gcs_prefix
+        self.service = discovery.build(
+            self.api,
+            self.version,
+            discoveryServiceUrl=self.discovery_url % urllib.parse.quote_plus(
+                self.api_key),
+            credentials=credentials)
+
+    def run(self,
+            options: EngineOptions,
+            circuit: Circuit,
+            device: Device,
+            param_resolver: ParamResolver = ParamResolver({}),
+            repetitions: int = 1,
+            priority: int = 50,
+            target_route: str = '/xmonsim',
+    ) -> EngineTrialResult:
+        """Simulates the entire supplied Circuit.
+
+        Args:
+            circuit: The circuit to simulate.
+            device: The device on which to run the circuit.
+            param_resolver: Parameters to run with the program.
+            repetitions: The number of repetitions to simulate.
+            options: Options configuring the simulation.
+            priority: The priority to run at, 0-100.
+            target_route: The engine route to run against.
+
+        Returns:
+            Results for this run.
+        """
+        return list(self.run_sweep(options, circuit, device, [param_resolver],
+                                   repetitions, priority, target_route))[0]
+
+    def run_sweep(self,
+                  options: EngineOptions,
+                  program: Union[Circuit, Schedule],
+                  device: Device = None,
+                  params: Sweepable = None,
+                  repetitions: int = 1,
+                  priority: int = 500,
+                  target_route: str = '/xmonsim',
+    ) -> 'EngineJob':
+        """Runs the entire supplied Circuit or Schedule via Google Quantum
+         Engine.
+
+        Args:
+            program: The circuit or schedule to execute.
+            device: The device on which to run a circuit. Required only if
+                program is a Circuit.
+            params: Parameters to run with the program.
+            repetitions: The number of circuit repetitions to run.
+            options: Options configuring the engine.
+            priority: The priority to run at, 0-100.
+            target_route: The engine route to run against.
+
+        Returns:
+            Results for this run.
+        """
+        # Check and compute engine options.
+        gcs_prefix = options.gcs_prefix or self.gcs_prefix
+        gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
+            '/') else gcs_prefix + '/'
+        if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
+            raise TypeError('gcs_prefix must be of the form "gs://'
+                            '<bucket name and optional object prefix>/"')
+        if not gcs_prefix and (not options.gcs_program or
+                               not options.gcs_results):
+            raise TypeError('Either gcs_prefix must be provided or both'
+                            ' gcs_program and gcs_results are required.')
+
+        project_id = options.project_id
+        program_id = options.program_id or 'prog-%s' % ''.join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in
+            range(6))
+        job_id = options.job_id or 'job-0'
+        gcs_program = options.gcs_program or '%sprograms/%s/%s' % (
+            gcs_prefix, program_id, program_id)
+        gcs_results = options.gcs_results or '%sprograms/%s/jobs/%s' % (
+            gcs_prefix, program_id, job_id)
+
+        # Check program to run and program parameters.
+        if not 0 <= priority < 1000:
+            raise TypeError('priority must be between 0 and 1000')
+
+        if isinstance(program, Circuit):
+            if not device:
+                raise TypeError('device is required when running a circuit')
+            # Convert to a schedule.
+            circuit_copy = Circuit(program.moments)
+            ConvertToXmonGates().optimize_circuit(circuit_copy)
+            DropEmptyMoments().optimize_circuit(circuit_copy)
+
+            schedule = moment_by_moment_schedule(device, circuit_copy)
+        elif isinstance(program, Schedule):
+            if device:
+                raise TypeError(
+                    'device can not be provided when running a schedule')
+            schedule = program
+        else:
+            raise TypeError('Unexpected execution type')
+
+        # Create program.
+        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        proto_program = program_pb2.Program()
+        for sweep in sweeps:
+            sweep_proto = proto_program.parameter_sweeps.add()
+            sweep_to_proto(sweep, sweep_proto)
+            sweep_proto.repetitions = repetitions
+        proto_program.operations.extend(list(schedule_to_proto(schedule)))
+        code = {
+            '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
+        code.update(MessageToDict(proto_program))
+        request = {
+            'name': 'projects/%s/programs/%s' % (project_id,
+                                                 program_id,),
+            'gcs_code_location': {'uri': gcs_program, },
+            'code': code,
+        }
+        response = self.service.projects().programs().create(
+            parent='projects/%s' % project_id, body=request).execute()
+
+        # Create job.
+        request = {
+            'name': '%s/jobs/%s' % (response['name'], job_id),
+            'output_config': {
+                'gcs_results_location': {
+                    'uri': gcs_results
+                }
+            },
+            'scheduling_config': {
+                'priority': priority,
+                'target_route': target_route
+            },
+        }
+        response = self.service.projects().programs().jobs().create(
+            parent=response['name'], body=request).execute()
+
+        return EngineJob(
+            EngineOptions(project_id, program_id, job_id, gcs_prefix,
+                          gcs_program, gcs_results), response, self)
+
+    def get_job(self, job_resource_name) -> Dict:
+        return self.service.projects().programs().jobs().get(
+            name=job_resource_name).execute()
+
+    def get_job_results(self, job_resource_name) -> List[EngineTrialResult]:
+        response = self.service.projects().programs().jobs().getResult(
+            parent=job_resource_name).execute()
+        trial_results = []
+        for sweep_result in response['result']['sweepResults']:
+            sweep_repetitions = sweep_result['repetitions']
+            key_sizes = [(m['key'], len(m['qubits']))
+                         for m in sweep_result['measurementKeys']]
+            for result in sweep_result['parameterizedResults']:
+                data = base64.standard_b64decode(result['measurementResults'])
+                measurements = unpack_results(data, sweep_repetitions,
+                                              key_sizes)
+
+                trial_results.append(EngineTrialResult(
+                    params=ParamResolver(
+                        result.get('params', {}).get('assignments', {})),
+                    repetitions=sweep_repetitions,
+                    measurements=measurements))
+        return trial_results
+
+    def cancel_job(self, job_resource_name):
+        self.service.projects().programs().jobs().cancel(
+            name=job_resource_name, body={}).execute()
+
+
+class EngineJob:
+    """A job running on the engine.
+
+    Attributes:
+      engine_options: The engine options used for the job.
+      job_resource_name: The full resource name of the engine job.
+    """
+
+    def __init__(self,
+        engine_options: EngineOptions,
+        job: Dict,
+        engine: Engine) -> None:
+        """A job submitted to the engine.
+
+        Args:
+            engine_options: The EngineOptions used to create the job.
+            job: A full Job Dict.
+            engine: Engine connected to the job.
+        """
+        self.engine_options = engine_options
+        self._job = job
+        self._engine = engine
+        self.job_resource_name = job['name']
+        self._results = None  # type: List[EngineTrialResult]
+
+    def _update_job(self):
+        if self._job['executionStatus']['state'] not in TERMINAL_STATES:
+            self._job = self._engine.get_job(self.job_resource_name)
+        return self._job
+
+    def state(self):
+        return self._update_job()['executionStatus']['state']
+
+    def cancel(self):
+        self._engine.cancel_job(self.job_resource_name)
+
+    def results(self) -> List[EngineTrialResult]:
+        if not self._results:
+            job = self._update_job()
+            for _ in range(1000):
+                if job['executionStatus']['state'] in TERMINAL_STATES:
+                    break
+                time.sleep(0.5)
+                job = self._update_job()
+            if job['executionStatus']['state'] != 'SUCCESS':
+                raise RuntimeError(
+                    'Job %s did not succeed. It is in state %s.' % (
+                        job['name'], job['executionStatus']['state']))
+            self._results = self._engine.get_job_results(
+                self.job_resource_name)
+        return self._results
+
+    def __iter__(self):
+        return self.results().__iter__()
+
+
+def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
+    if isinstance(sweepable, ParamResolver):
+        return [_resolver_to_sweep(sweepable)]
+    elif isinstance(sweepable, Sweep):
+        return [sweepable]
+    elif isinstance(sweepable, Iterable):
+        iterable = cast(Iterable, sweepable)
+        if isinstance(next(iter(iterable)), Sweep):
+            sweeps = iterable
+            return list(sweeps)
+        else:
+            resolvers = iterable
+            return [_resolver_to_sweep(p) for p in resolvers]
+    else:
+        raise TypeError('Unexpected Sweepable')
+
+
+def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
+    return Zip(*[Points(key, [value]) for key, value in
+                 resolver.param_dict.items()]) if len(
+        resolver.param_dict) else Unit

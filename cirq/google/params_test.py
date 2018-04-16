@@ -160,6 +160,10 @@ def test_param_sweep_size_versus_gen(param_sweep):
 
 @pytest.mark.parametrize('sweep,expected', [
     (
+        Unit,
+        Unit
+    ),
+    (
         Linspace('a', 0, 10, 25),
         Product(Zip(Linspace('a', 0, 10, 25)))
     ),

@@ -20,10 +20,11 @@ def test_leaves_big():
     m = circuits.DropNegligible(0.001)
     q = ops.QubitId()
     c = circuits.Circuit([circuits.Moment([ops.Z(q)**0.1])])
+    assert m.optimization_at(c, 0, c.operation_at(q, 0)) is None
 
-    m.optimize_at(c, 0, c.operation_at(q, 0))
-
-    assert c == circuits.Circuit([circuits.Moment([ops.Z(q)**0.1])])
+    d = circuits.Circuit(c.moments)
+    m.optimize_circuit(d)
+    assert d == c
 
 
 def test_clears_small():
@@ -31,23 +32,24 @@ def test_clears_small():
     q = ops.QubitId()
     c = circuits.Circuit([circuits.Moment([ops.Z(q)**0.000001])])
 
-    m.optimize_at(c, 0, c.operation_at(q, 0))
+    assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
+            circuits.PointOptimizationSummary(clear_span=1,
+                                              clear_qubits=[q],
+                                              new_operations=[]))
 
+    m.optimize_circuit(c)
     assert c == circuits.Circuit([circuits.Moment()])
 
 
 def test_clears_known_empties_even_at_zero_tolerance():
-    m = circuits.DropNegligible(0)
+    m = circuits.DropNegligible(0.001)
     q = ops.QubitId()
     q2 = ops.QubitId()
-    c = circuits.Circuit([
-        circuits.Moment([ops.Z(q)**0]),
-        circuits.Moment([ops.Y(q)**0]),
-        circuits.Moment([ops.X(q)**0]),
-        circuits.Moment([ops.CZ(q, q2)**0]),
-    ])
+    c = circuits.Circuit.from_ops(
+        ops.Z(q)**0,
+        ops.Y(q)**0.0000001,
+        ops.X(q)**-0.0000001,
+        ops.CZ(q, q2)**0)
 
-    for i in range(len(c.moments)):
-        m.optimize_at(c, i, c.operation_at(q, i))
-
+    m.optimize_circuit(c)
     assert c == circuits.Circuit([circuits.Moment()] * 4)

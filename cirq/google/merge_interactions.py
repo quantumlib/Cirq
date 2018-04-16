@@ -19,7 +19,11 @@ from typing import List, Tuple, Optional
 import numpy as np
 
 from cirq import ops
-from cirq.circuits import Circuit, InsertStrategy, PointOptimizer
+from cirq.circuits import (
+    Circuit,
+    PointOptimizer,
+    PointOptimizationSummary,
+)
 from cirq.extension import Extensions
 from cirq.google.decompositions import two_qubit_matrix_to_native_gates
 
@@ -28,23 +32,21 @@ class MergeInteractions(PointOptimizer):
     """Combines adjacent constant single-qubit rotations."""
 
     def __init__(self,
-                 insert_strategy: InsertStrategy = InsertStrategy.INLINE,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 extensions: Extensions = Extensions()) -> None:
-        self.insert_strategy = insert_strategy
+                 extensions: Extensions = None) -> None:
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
-        self.extensions = extensions
+        self.extensions = extensions or Extensions()
 
-    def optimize_at(self, circuit, index, op):
+    def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 2:
-            return
+            return None
 
         interaction_count, indices, matrix = (
             self._scan_two_qubit_ops_into_matrix(circuit, index, op.qubits))
         if interaction_count <= 1:
-            return
+            return None
 
         # Find a max-3-cz construction.
         operations = two_qubit_matrix_to_native_gates(
@@ -55,9 +57,11 @@ class MergeInteractions(PointOptimizer):
             self.tolerance)
 
         # TODO: don't replace if there's no benefit in CZ depth.
-        # Replace the operation.
-        circuit.clear_operations_touching(op.qubits, indices)
-        return circuit.insert(index + 1, operations, self.insert_strategy)
+
+        return PointOptimizationSummary(
+            clear_span=max(indices) + 1 - index,
+            clear_qubits=op.qubits,
+            new_operations=operations)
 
     def _op_to_matrix(self,
                       op: ops.Operation,

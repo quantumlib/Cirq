@@ -19,7 +19,11 @@ from typing import Iterable, List, Tuple
 import numpy as np
 
 from cirq import ops
-from cirq.circuits import Circuit, InsertStrategy, PointOptimizer
+from cirq.circuits import (
+    Circuit,
+    PointOptimizer,
+    PointOptimizationSummary,
+)
 from cirq.extension import Extensions
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.google.xmon_gates import XmonGate
@@ -29,14 +33,12 @@ class MergeRotations(PointOptimizer):
     """Combines adjacent constant single-qubit rotations."""
 
     def __init__(self,
-                 insert_strategy: InsertStrategy = InsertStrategy.INLINE,
                  tolerance: float = 1e-8,
                  extensions = None) -> None:
-        self.insert_strategy = insert_strategy
         self.tolerance = tolerance
         self.extensions = extensions or Extensions()
 
-    def optimize_at(self, circuit, index, op):
+    def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 1:
             return
 
@@ -46,10 +48,12 @@ class MergeRotations(PointOptimizer):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        circuit.clear_operations_touching(op.qubits, indices)
-        return circuit.insert(index + 1,
-                              self._merge_rotations(op.qubits[0], gates),
-                              self.insert_strategy)
+        operations = self._merge_rotations(op.qubits[0], gates)
+
+        return PointOptimizationSummary(
+            clear_span=max(indices) + 1 - index,
+            clear_qubits=op.qubits,
+            new_operations=operations)
 
     def _scan_single_qubit_ops(
             self,

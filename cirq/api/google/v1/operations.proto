@@ -28,7 +28,7 @@ message ParameterizedFloat {
 
 // A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
 //
-// This gate is exp(i * pi * W(theta) * t / 2) where
+// This gate is exp(-i * pi * W(theta) * t / 2) where
 //   W(theta) = cos(pi * theta) X + sin(pi * theta) Y
 // or in matrix form
 //   W(theta) = [[0, cos(pi * theta) - i sin(pi * theta)],
@@ -53,7 +53,7 @@ message ExpW {
 
 // A single-qubit rotation around the Z axis of the Bloch sphere.
 //
-// This gate is exp(i * pi * Z * t / 2) where Z is the Pauli Z matrix,
+// This gate is exp(-i * pi * Z * t / 2) where Z is the Pauli Z matrix,
 //   Z = [[1, 0], [0, -1]]
 message ExpZ {
   // The qubit to rotate.
@@ -79,12 +79,13 @@ message Exp11 {
   ParameterizedFloat half_turns = 3;
 }
 
-// A single qubit measurement in the computational basis (|0>, |1>).
+// A multi-qubit measurement in the computational basis (|0>, |1>).
 message Measurement {
-  // The qubit to measure.
-  Qubit target = 1;
+  // The qubits to measure.
+  repeated Qubit targets = 1;
 
   // The key that this measurement's bit will be grouped under.
+  // Measurement keys must be unique across the circuit.
   string key = 2;
 }
 
