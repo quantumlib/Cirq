@@ -35,6 +35,7 @@ import numpy as np
 
 from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
+from cirq.extension import Extensions
 from cirq.google import xmon_gates
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
@@ -120,6 +121,7 @@ class Simulator:
         options: Options = None,
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray] = 0,
+        extensions : Extensions = None,
     ) -> SimulatorTrialResult:
         """Simulates the entire supplied Circuit.
 
@@ -136,12 +138,15 @@ class Simulator:
                 Otherwise  if this is a np.ndarray it is the full initial
                 state. In this case it must be the correct size, be normalized
                 (an L2 norm of 1), and have a dtype of np.complex64.
+            extensions: Extensions that will be applied while trying to
+                decompose the circuit's gates into XmonGates. If None, this uses
+                the default of ConvertToXmonGates.
 
         Returns:
             Results for this run.
         """
         return self.run_sweep(circuit, [param_resolver], repetitions, options,
-                              qubits, initial_state)[0]
+                              qubits, initial_state, extensions)[0]
 
     def run_sweep(
             self,
@@ -151,6 +156,7 @@ class Simulator:
             options: Options = None,
             qubits: Sequence[raw_types.QubitId] = None,
             initial_state: Union[int, np.ndarray] = 0,
+            extensions: Extensions = None
     ) -> List[SimulatorTrialResult]:
         """Simulates the entire supplied Circuit.
 
@@ -167,6 +173,9 @@ class Simulator:
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
                 norm of 1), and have a dtype of np.complex64.
+            extensions: Extensions that will be applied while trying to
+                decompose the circuit's gates into XmonGates. If None, this uses
+                the default of xmon_gate_ext.
 
         Returns:
             List of trial results for this run, one for each possible parameter
@@ -185,7 +194,8 @@ class Simulator:
                                                      options or Options(),
                                                      qubits,
                                                      initial_state,
-                                                     param_resolver)
+                                                     param_resolver,
+                                                     extensions)
                 final_step_result = functools.reduce(
                     StepResult.merge,
                     all_step_results)
@@ -219,7 +229,8 @@ class Simulator:
             options: 'Options' = None,
             qubits: Sequence[raw_types.QubitId] = None,
             initial_state: Union[int, np.ndarray]=0,
-            param_resolver: ParamResolver = None) -> Iterator['StepResult']:
+            param_resolver: ParamResolver = None,
+            extensions: Extensions = None) -> Iterator['StepResult']:
         """Returns an iterator of XmonStepResults for each moment simulated.
 
         Args:
@@ -235,6 +246,9 @@ class Simulator:
                 norm of 1), and have a dtype of np.complex64.
             param_resolver: A ParamResolver for determining values of
                 Symbols.
+            extensions: Extensions that will be applied while trying to
+                decompose the circuit's gates into XmonGates. If None, this
+                uses the default of xmon_gate_ext.
 
         Returns:
             SimulatorIterator that steps through the simulation, simulating
@@ -242,7 +256,7 @@ class Simulator:
         """
         param_resolver = param_resolver or ParamResolver({})
         return simulator_iterator(program, options or Options(), qubits,
-                                  initial_state, param_resolver)
+                                  initial_state, param_resolver, extensions)
 
 
 def simulator_iterator(
@@ -250,7 +264,8 @@ def simulator_iterator(
         options: 'Options' = Options(),
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray]=0,
-        param_resolver: ParamResolver = ParamResolver({})
+        param_resolver: ParamResolver = ParamResolver({}),
+        extensions: Extensions = None,
 ) -> Iterator['StepResult']:
     """Iterator over TrialResults from Moments of a Circuit.
 
@@ -267,6 +282,9 @@ def simulator_iterator(
             basis state corresponding corresponding to this state.
         param_resolver: A ParamResolver for determining values ofs
             Symbols.
+        extensions: Extensions that will be applied while trying to decompose
+            the circuit's gates into XmonGates. If None, this uses the default
+            of xmon_gate_ext.
 
     Yields:
         StepResults from simulating a Moment of the Circuit.
@@ -285,7 +303,7 @@ def simulator_iterator(
 
     # TODO: Use one optimization pass.
     circuit_copy = Circuit(circuit.moments)
-    ConvertToXmonGates().optimize_circuit(circuit_copy)
+    ConvertToXmonGates(extensions).optimize_circuit(circuit_copy)
     DropEmptyMoments().optimize_circuit(circuit_copy)
     validate_unique_measurement_keys(circuit_copy)
 
