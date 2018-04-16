@@ -335,7 +335,7 @@ class Circuit(object):
             self,
             qubit_order_key: Callable[[QubitId], Any] = None,
             qubits_that_should_be_present: Iterable[QubitId] = (),
-            ignore_terminal_measurements = True,
+            ignore_terminal_measurements: bool = True,
             ext: Extensions = None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
