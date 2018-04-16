@@ -78,7 +78,6 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    AsciiDiagrammableGate,
     BoundedEffectGate,
     CNOT,
     CNotGate,
@@ -112,6 +111,7 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
+    TextDiagrammableGate,
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,

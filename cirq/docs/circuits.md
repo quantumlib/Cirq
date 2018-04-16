@@ -82,7 +82,7 @@ moment1 = cirq.circuits.Moment([cz12])
 circuit = cirq.circuits.Circuit((moment0, moment1))
 
 print(circuit)
-# prints the ascii diagram for the circuit:
+# prints the text diagram for the circuit:
 # (0, 0): ───Z───────
 #            │
 # (0, 1): ───Z───Z───
