@@ -200,10 +200,12 @@ class Simulator:
                     qubits,
                     initial_state,
                     param_resolver)
+                step_result = None
                 for step_result in all_step_results:
                     for k, v in step_result.measurements.items():
                         measurements[k].append(np.array(v, dtype=bool))
-                final_states.append(step_result.state())
+                if step_result:
+                    final_states.append(step_result.state())
             trial_results.append(SimulatorTrialResult(
                 param_resolver,
                 repetitions,
