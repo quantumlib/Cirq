@@ -93,7 +93,7 @@ class TextDiagramDrawer:
                vertical_spacing: int = 1,
                crossing_char: str = None,
                use_unicode_characters: bool = True) -> str:
-        """Outputs ascii text containing the ascii diagram."""
+        """Outputs text containing the diagram."""
 
         pipe = '│' if use_unicode_characters else '|'
         dash = '─' if use_unicode_characters else '-'

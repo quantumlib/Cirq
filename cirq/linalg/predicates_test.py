@@ -344,6 +344,10 @@ def test_commutes_tolerance():
 
 def test_allclose_up_to_global_phase():
     assert predicates.allclose_up_to_global_phase(
+        np.array([1]),
+        np.array([1j]))
+
+    assert predicates.allclose_up_to_global_phase(
         np.array([[1]]),
         np.array([[1]]))
     assert predicates.allclose_up_to_global_phase(

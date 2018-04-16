@@ -176,25 +176,26 @@ def allclose_up_to_global_phase(
     """Determines if a ~= b * exp(i t) for some t.
 
     Args:
-        a: A matrix.
-        b: Another matrix.
+        a: A numpy array.
+        b: Another numpy array.
         rtol: Relative error tolerance.
         atol: Absolute error tolerance.
         equal_nan: Whether or not NaN entries should be considered equal to
             other NaN entries.
     """
 
-    n = a.shape[0]
+    if a.shape == b.shape:
+        # Find the entry with the largest magnitude in the desired matrix.
+        k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
+        dephase_a = abs(a[k]) / a[k] if a[k] else 1
+        dephase_b = abs(b[k]) / b[k] if b[k] else 1
 
-    # Find the entry with the largest magnitude in the desired matrix.
-    k = max(((i, j) for i in range(n) for j in range(n)),
-            key=lambda t: abs(b[t]))
-    dephase_a = abs(a[k]) / a[k] if a[k] else 1
-    dephase_b = abs(b[k]) / b[k] if b[k] else 1
-
-    # Zero the phase at this entry in both matrices.
-    corrected_a = a * dephase_a
-    corrected_b = b * dephase_b
+        # Zero the phase at this entry in both matrices.
+        corrected_a = a * dephase_a
+        corrected_b = b * dephase_b
+    else:
+        corrected_a = a
+        corrected_b = b
 
     # Should now be equivalent.
     return np.allclose(a=corrected_a,

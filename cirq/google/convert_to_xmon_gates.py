@@ -13,28 +13,99 @@
 # limitations under the License.
 
 from cirq import ops
-from cirq.circuits import InsertStrategy
+from cirq.circuits.optimization_pass import (
+    PointOptimizationSummary,
+    PointOptimizer,
+)
+from cirq.extension import Extensions
+from cirq.google.decompositions import (
+    single_qubit_matrix_to_native_gates,
+    two_qubit_matrix_to_native_gates,
+)
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_gates import XmonGate
-from cirq.circuits.optimization_pass import PointOptimizer
 
 
 class ConvertToXmonGates(PointOptimizer):
-    """Pointwise converts a circuit to XmonGates if possible."""
+    """Attempts to convert strange gates into XmonGates.
 
-    def __init__(self, ignore_failures=True):
+    First, checks if the given extensions are able to cast the gate into an
+        XmonGate instance.
+
+    Second, checks if the given extensions are able to cast the gate into a
+        CompositeGate instance. If so, recurses on the decomposition.
+
+    Third, checks if the given extensions are able to cast the gate into a
+        KnownMatrixGate instance. If so, and the gate is a 1-qubit or 2-qubit
+        gate, then performs circuit synthesis of the operation.
+
+    Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
+        Otherwise raises a TypeError.
+    """
+
+    def __init__(self,
+                 extensions: Extensions=None,
+                 ignore_failures=False) -> None:
+        """
+        Args:
+            extensions: The extensions instance to use when trying to
+                cast gates to known types. Defaults to the standard xmon
+                gate extension.
+            ignore_failures: If set, gates that fail to convert are forwarded
+                unchanged. If not set, conversion failures raise a TypeError.
+        """
+        self.extensions = extensions or xmon_gate_ext
         self.ignore_failures = ignore_failures
 
-    def optimize_at(self, circuit, index, op):
-        if self.ignore_failures:
-            c = xmon_gate_ext.try_cast(op.gate, XmonGate)
-            if c is None:
-                return
-        else:
-            c = xmon_gate_ext.cast(op.gate, XmonGate)
+    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
+        # Already supported?
+        if isinstance(op.gate, XmonGate):
+            return op
 
-        if c is not op.gate:
-            circuit.clear_operations_touching(op.qubits, [index])
-            return circuit.insert(index,
-                                  ops.Operation(c, op.qubits),
-                                  strategy=InsertStrategy.INLINE)
+        # Maybe we know how to wrap it?
+        xmon = self.extensions.try_cast(op.gate, XmonGate)
+        if xmon is not None:
+            return xmon.on(*op.qubits)
+
+        # Provides a decomposition?
+        composite = self.extensions.try_cast(op.gate, ops.CompositeGate)
+        if composite is not None:
+            return composite.default_decompose(op.qubits)
+
+        # Known matrix?
+        mat = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
+        if mat is not None and len(op.qubits) == 1:
+            gates = single_qubit_matrix_to_native_gates(mat.matrix())
+            return [g.on(op.qubits[0]) for g in gates]
+        if mat is not None and len(op.qubits) == 2:
+            return two_qubit_matrix_to_native_gates(
+                op.qubits[0],
+                op.qubits[1],
+                mat.matrix(),
+                allow_partial_czs=True)
+
+        # Just let it be?
+        if self.ignore_failures:
+            return op
+
+        raise TypeError("Don't know how to work with {!r}. "
+                        "It isn't an XmonGate, "
+                        "1-qubit KnownMatrixGate, "
+                        "2-qubit KnownMatrixGate, "
+                        "or CompositeGate.".format(op))
+
+    def convert(self, op: ops.Operation) -> ops.OP_TREE:
+        converted = self._convert_one(op)
+        if converted is op:
+            return converted
+        return [self.convert(e) for e in ops.flatten_op_tree(converted)]
+
+    def optimization_at(self, circuit, index, op):
+        converted = self.convert(op)
+        if converted is op:
+            return None
+
+        return PointOptimizationSummary(
+            clear_span=1,
+            new_operations=converted,
+            clear_qubits=op.qubits)

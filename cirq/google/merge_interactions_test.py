@@ -33,8 +33,10 @@ def assert_optimizes(before, after):
         post.optimize_circuit(after)
 
     if before != after:
-        print("before:", before)
-        print("after:", after)
+        print('ACTUAL')
+        print(before)
+        print('EXPECTED')
+        print(after)
     assert before == after
 
 

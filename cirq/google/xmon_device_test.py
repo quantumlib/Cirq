@@ -15,7 +15,9 @@
 import pytest
 
 from cirq import ops
-from cirq.google import XmonDevice, ExpZGate, ExpWGate, Exp11Gate, XmonQubit
+from cirq.circuits import Circuit
+from cirq.google import (ExpWGate, ExpZGate, Exp11Gate, XmonDevice,
+                         XmonMeasurementGate, XmonQubit)
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Duration, Timestamp
 
@@ -57,6 +59,14 @@ def test_validate_operation_adjacent_qubits():
         d.validate_operation(ops.Operation(
             Exp11Gate(),
             (XmonQubit(0, 0), XmonQubit(2, 0))))
+
+
+def test_validate_measurement_non_adjacent_qubits_ok():
+    d = square_device(3, 3)
+
+    d.validate_operation(ops.Operation(
+        XmonMeasurementGate(),
+        (XmonQubit(0, 0), XmonQubit(2, 0))))
 
 
 def test_validate_operation_existing_qubits():
@@ -132,3 +142,29 @@ def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
             Exp11Gate().on(p1, p2), Timestamp(), d),
     ])
     d.validate_schedule(s)
+
+
+def test_validate_circuit_repeat_measurement_keys():
+    d = square_device(3, 3)
+
+    circuit = Circuit()
+    circuit.append([XmonMeasurementGate('a').on(XmonQubit(0, 0)),
+                    XmonMeasurementGate('a').on(XmonQubit(0, 1))])
+
+    with pytest.raises(ValueError, message='Measurement key a repeated'):
+        d.validate_circuit(circuit)
+
+
+def test_validate_schedule_repeat_measurement_keys():
+    d = square_device(3, 3)
+
+    s = Schedule(d, [
+        ScheduledOperation.op_at_on(
+            XmonMeasurementGate('a').on(XmonQubit(0, 0)), Timestamp(), d),
+        ScheduledOperation.op_at_on(
+            XmonMeasurementGate('a').on(XmonQubit(0, 1)), Timestamp(), d),
+
+    ])
+
+    with pytest.raises(ValueError, message='Measurement key a repeated'):
+        d.validate_schedule(s)
