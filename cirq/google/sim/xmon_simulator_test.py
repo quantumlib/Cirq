@@ -119,6 +119,13 @@ def test_run(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_empty_circuit(scheduler):
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, Circuit(), scheduler)
+    assert len(result.measurements) == 0
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
     result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
