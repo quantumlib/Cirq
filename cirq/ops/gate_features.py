@@ -17,7 +17,7 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Sequence, Tuple, Type, Union
+from typing import Optional, Sequence, Tuple, Type, Union
 
 import numpy as np
 
@@ -146,16 +146,19 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """The unitary matrix of the operation this gate applies."""
 
 
-class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate which can be nicely represented in an ASCII diagram."""
+class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate which can be nicely represented in a text diagram."""
 
     # noinspection PyMethodMayBeStatic
-    def ascii_exponent(self) -> float:
+    def text_diagram_exponent(self) -> float:
         """The exponent to modify the gate symbol with. 1 means no modifier."""
         return 1
 
     @abc.abstractmethod
-    def ascii_wire_symbols(self) -> Tuple[str, ...]:
+    def text_diagram_wire_symbols(self,
+                                  qubit_count: Optional[int] = None,
+                                  use_unicode_characters: bool = True
+                                  ) -> Tuple[str, ...]:
         """The symbols that should be shown on the gate's qubits (in order).
 
         If the gate always acts on the same number of qubits, then the size
@@ -164,6 +167,20 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         symbol should be used, and this will be repeated across the operation.
         It is an error to have more than a single symbol in the case that
         the gate acts on a variable number of qubits.
+
+        Args:
+            qubit_count: The number of qubits the gate is being applied to, if
+                this information is known by the caller.
+            use_unicode_characters: If true, the wire symbols are permitted to
+                include unicode characters (as long as they work well in fixed
+                width fonts). If false, use only ascii characters. ASCII is
+                preferred in cases where UTF8 support is done poorly, or where
+                the fixed-width font being used to show the diagrams does not
+                properly handle unicode characters.
+
+        Returns:
+             A tuple containing symbols to place on each of the qubit wires
+             touched by the gate.
         """
 
 

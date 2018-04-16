@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 
 from cirq.api.google.v1 import operations_pb2
 from cirq.ops import QubitId
@@ -43,13 +42,6 @@ class XmonQubit(QubitId):
 
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
-
-    @staticmethod
-    def try_parse_from_ascii(text):
-        if re.match('\\(\\s*\\d+,\\s*\\d+\\s*\\)', text):
-            a, b = text[1:-1].split(',')
-            return XmonQubit(int(a.strip()), int(b.strip()))
-        return None
 
     def to_proto(
             self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:

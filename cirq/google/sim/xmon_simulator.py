@@ -25,12 +25,11 @@ A simple example:
     results = sim.run(circuit)
 """
 
-from collections import defaultdict, Iterable
 import math
-from typing import Dict, Iterator, List, Sequence, Union, cast
+from collections import defaultdict, Iterable
+from typing import Dict, Iterator, List, Sequence, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
 
-import functools
 import numpy as np
 
 from cirq.circuits import Circuit
@@ -187,26 +186,24 @@ class Simulator:
                                         Circuit) else program.to_circuit()
         param_resolvers = self._to_resolvers(params or ParamResolver({}))
 
+        xmon_circuit, keys = self._to_xmon_circuit(circuit,
+                                                   extensions or xmon_gate_ext)
         trial_results = []  # type: List[SimulatorTrialResult]
         for param_resolver in param_resolvers:
-            measurements = {}  # type: Dict[str, List[np.ndarray]]
+            measurements = {
+                k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
             final_states = []  # type: List[np.ndarray]
             for _ in range(repetitions):
-                all_step_results = self.moment_steps(
-                    circuit,
+                all_step_results = simulator_iterator(
+                    xmon_circuit,
                     options or Options(),
                     qubits,
                     initial_state,
-                    param_resolver,
-                    extensions or xmon_gate_ext)
-                final_step_result = functools.reduce(
-                    StepResult.merge,
-                    all_step_results)
-                for k, v in final_step_result.measurements.items():
-                    if k not in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=bool))
-                final_states.append(final_step_result.state())
+                    param_resolver)
+                for step_result in all_step_results:
+                    for k, v in step_result.measurements.items():
+                        measurements[k].append(np.array(v, dtype=bool))
+                final_states.append(step_result.state())
             trial_results.append(SimulatorTrialResult(
                 param_resolver,
                 repetitions,
@@ -258,9 +255,19 @@ class Simulator:
             each moment and returning a StepResult for each moment.
         """
         param_resolver = param_resolver or ParamResolver({})
-        return simulator_iterator(program, options or Options(), qubits,
-                                  initial_state, param_resolver,
-                                  extensions or xmon_gate_ext)
+        xmon_circuit, _ = self._to_xmon_circuit(program,
+                                                extensions or xmon_gate_ext)
+        return simulator_iterator(xmon_circuit, options or Options(), qubits,
+                                  initial_state, param_resolver)
+
+    def _to_xmon_circuit(self, circuit: Circuit,
+        extensions: Extensions = None) -> Tuple[Circuit, Set[str]]:
+        # TODO: Use one optimization pass.
+        xmon_circuit = Circuit(circuit.moments)
+        ConvertToXmonGates(extensions).optimize_circuit(xmon_circuit)
+        DropEmptyMoments().optimize_circuit(xmon_circuit)
+        keys = find_measurement_keys(xmon_circuit)
+        return xmon_circuit, keys
 
 
 def simulator_iterator(
@@ -269,7 +276,6 @@ def simulator_iterator(
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray]=0,
         param_resolver: ParamResolver = ParamResolver({}),
-        extensions: Extensions = None,
 ) -> Iterator['StepResult']:
     """Iterator over TrialResults from Moments of a Circuit.
 
@@ -277,7 +283,7 @@ def simulator_iterator(
     Simulator and use methods on that object to get an iterator.
 
     Args:
-        circuit: The circuit to simulate.
+        circuit: The circuit to simulate; must contain xmon gates only.
         options: Options configuring the simulation.
         qubits: If specified this list of qubits will be used to define
             a canonical ordering of the qubits. This canonical ordering
@@ -286,9 +292,6 @@ def simulator_iterator(
             basis state corresponding corresponding to this state.
         param_resolver: A ParamResolver for determining values ofs
             Symbols.
-        extensions: Extensions that will be applied while trying to decompose
-            the circuit's gates into XmonGates. If None, this uses the default
-            of xmon_gate_ext.
 
     Yields:
         StepResults from simulating a Moment of the Circuit.
@@ -305,19 +308,12 @@ def simulator_iterator(
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
 
-    # TODO: Use one optimization pass.
-    circuit_copy = Circuit(circuit.moments)
-    ConvertToXmonGates(extensions or xmon_gate_ext).optimize_circuit(
-        circuit_copy)
-    DropEmptyMoments().optimize_circuit(circuit_copy)
-    validate_unique_measurement_keys(circuit_copy)
-
     with Stepper(num_qubits=len(qubits),
                  num_prefix_qubits=options.num_prefix_qubits,
                  initial_state=initial_state,
                  min_qubits_before_shard=options.min_qubits_before_shard
                  ) as stepper:
-        for moment in circuit_copy.moments:
+        for moment in circuit.moments:
             measurements = defaultdict(list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
@@ -353,8 +349,8 @@ def simulator_iterator(
             yield StepResult(stepper, qubit_map, measurements)
 
 
-def validate_unique_measurement_keys(circuit):
-    keys = set()
+def find_measurement_keys(circuit: Circuit) -> Set[str]:
+    keys = set()  # type: Set[str]
     for moment in circuit.moments:
         for op in moment.operations:
             if isinstance(op.gate, xmon_gates.XmonMeasurementGate):
@@ -362,6 +358,7 @@ def validate_unique_measurement_keys(circuit):
                 if key in keys:
                     raise ValueError('Repeated Measurement key {}'.format(key))
                 keys.add(key)
+    return keys
 
 
 class StepResult:
@@ -425,26 +422,3 @@ class StepResult:
             dtype.
         """
         self._stepper.reset_state(state)
-
-    @staticmethod
-    def merge(a: 'StepResult', b: 'StepResult') -> 'StepResult':
-        """Merges measurement results of last_result into a new Result.
-
-        The measurement results are merges such that measurements with
-        duplicate keys have the results of last_result before those of this
-        objects' results.
-
-        Args:
-            a: First result to merge.
-            b: Second result to merge.
-
-        Returns:
-            A new StepResult with merged measurements.
-        """
-        new_measurements = {}  # type: Dict[str, list]
-        for d in [a.measurements, b.measurements]:
-            for key, results in d.items():
-                if key not in new_measurements:
-                    new_measurements[key] = []
-                new_measurements[key].extend(results)
-        return StepResult(a._stepper, a.qubit_map, new_measurements)

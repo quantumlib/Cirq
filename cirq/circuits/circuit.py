@@ -402,10 +402,10 @@ class Circuit(object):
         """Returns text containing a diagram describing the circuit.
 
         Args:
-            ext: For extending gates to implement AsciiDiagrammableGate.
-            use_unicode_characters: Activates the use of cleaner-looking
-                unicode box-drawing characters for lines.
-            transpose: Arranges the wires vertically instead of horizontally.
+            ext: For extending gates to implement TextDiagrammableGate.
+            use_unicode_characters: Determines if unicode characters are
+                allowed (as opposed to ascii-only diagrams).
+            transpose: Arranges qubit wires vertically instead of horizontally.
             qubit_order_key: Transforms each qubit into a key that determines
                 how the qubits are ordered in the diagram. Qubits with lower
                 keys come first. Defaults to the qubit's __str__, but augmented
@@ -414,7 +414,43 @@ class Circuit(object):
                 "name2").
 
         Returns:
-            The ascii diagram.
+            The text diagram.
+        """
+
+        diagram = self.to_text_diagram_drawer(
+            ext=ext,
+            qubit_name_suffix='' if transpose else ': ',
+            qubit_order_key=qubit_order_key)
+
+        if transpose:
+            return diagram.transpose().render(
+                crossing_char='─' if use_unicode_characters else '-',
+                use_unicode_characters=use_unicode_characters)
+        return diagram.render(
+            crossing_char='┼' if use_unicode_characters else '|',
+            horizontal_spacing=3,
+            use_unicode_characters=use_unicode_characters)
+
+    def to_text_diagram_drawer(
+            self,
+            ext: Extensions = Extensions(),
+            qubit_name_suffix: str = '',
+            qubit_order_key: Callable[[QubitId], Any] = None
+    ) -> TextDiagramDrawer:
+        """Returns a TextDiagramDrawer with the circuit drawn into it.
+
+        Args:
+            ext: For extending gates to implement TextDiagrammableGate.
+            qubit_name_suffix: Appended to qubit names in the diagram.
+            qubit_order_key: Transforms each qubit into a key that determines
+                how the qubits are ordered in the diagram. Qubits with lower
+                keys come first. Defaults to the qubit's __str__, but augmented
+                so that lexicographic ordering will respect the order of
+                integers within the string (e.g. "name10" will come after
+                "name2").
+
+        Returns:
+            The TextDiagramDrawer instance.
         """
         if qubit_order_key is None:
             qubit_order_key = _str_lexicographic_respecting_int_order
@@ -432,7 +468,7 @@ class Circuit(object):
 
         diagram = TextDiagramDrawer()
         for q, i in qubit_map.items():
-            diagram.write(0, i, str(q) + ('' if transpose else ': '))
+            diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
             _draw_moment_in_diagram(moment, ext, qubit_map, diagram)
@@ -441,28 +477,21 @@ class Circuit(object):
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
 
-        if transpose:
-            return diagram.transpose().render(
-                crossing_char='─' if use_unicode_characters else '-',
-                use_unicode_characters=use_unicode_characters)
-        return diagram.render(
-            crossing_char='┼' if use_unicode_characters else '|',
-            horizontal_spacing=3,
-            use_unicode_characters=use_unicode_characters)
+        return diagram
 
 
 def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
                                         ) -> Iterable[str]:
-    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
-    if ascii_gate is not None:
-        wire_symbols = ascii_gate.ascii_wire_symbols()
+    text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
+    if text_diagram_gate is not None:
+        wire_symbols = text_diagram_gate.text_diagram_wire_symbols()
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
             return len(op.qubits) * wire_symbols
         else:
             raise ValueError(
-                'Multi-qubit operation with AsciiDiagrammableGate {} that '
+                'Multi-qubit operation with TextDiagrammableGate {} that '
                 'requires {} qubits but found {} qubits'.format(
                     repr(op.gate), len(wire_symbols), len(op.qubits)))
 
@@ -474,10 +503,10 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
 
 def _get_operation_text_diagram_exponent(op: ops.Operation,
                                          ext: Extensions) -> Optional[str]:
-    ascii_gate = ext.try_cast(op.gate, ops.AsciiDiagrammableGate)
-    if ascii_gate is None:
+    text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
+    if text_diagram_gate is None:
         return None
-    exponent = ascii_gate.ascii_exponent()
+    exponent = text_diagram_gate.text_diagram_exponent()
     if exponent == 1:
         return None
     if isinstance(exponent, float):

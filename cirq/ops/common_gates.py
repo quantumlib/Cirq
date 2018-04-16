@@ -37,7 +37,7 @@ def _canonicalize_half_turns(
 
 
 class _TurnGate(gate_features.BoundedEffectGate,
-                gate_features.AsciiDiagrammableGate,
+                gate_features.TextDiagrammableGate,
                 PotentialImplementation):
     """A gate with exactly two eigenvalues.
 
@@ -53,10 +53,13 @@ class _TurnGate(gate_features.BoundedEffectGate,
         self.half_turns = _canonicalize_half_turns(half_turns)
 
     @abc.abstractmethod
-    def ascii_wire_symbols(self) -> Tuple[str, ...]:
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True
+                                  ) -> Tuple[str, ...]:
         pass
 
-    def ascii_exponent(self):
+    def text_diagram_exponent(self):
         return self.half_turns
 
     def __pow__(self, power: float) -> '_TurnGate':
@@ -66,7 +69,7 @@ class _TurnGate(gate_features.BoundedEffectGate,
         return self.extrapolate_effect(-1)
 
     def __repr__(self):
-        base = ''.join(self.ascii_wire_symbols())
+        base = ''.join(self.text_diagram_wire_symbols())
         if self.half_turns == 1:
             return base
         return '{}**{}'.format(base, repr(self.half_turns))
@@ -131,7 +134,9 @@ class Rot11Gate(_TurnGate,
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'Z', 'Z'
 
     def _matrix_impl_assuming_unparameterized(self):
@@ -148,7 +153,9 @@ class RotXGate(_TurnGate, gate_features.SingleQubitGate):
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'X',
 
     def _matrix_impl_assuming_unparameterized(self):
@@ -166,7 +173,9 @@ class RotYGate(_TurnGate, gate_features.SingleQubitGate):
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'Y',
 
     def _matrix_impl_assuming_unparameterized(self):
@@ -185,7 +194,9 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'Z',
 
     def phase_by(self, phase_turns, qubit_index):
@@ -196,7 +207,7 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
         return np.diag([1, np.exp(1j * np.pi * self.half_turns)])
 
 
-class MeasurementGate(gate_features.AsciiDiagrammableGate):
+class MeasurementGate(gate_features.TextDiagrammableGate):
     """Indicates that qubits should be measured plus a key to identify results.
 
     Params:
@@ -210,7 +221,9 @@ class MeasurementGate(gate_features.AsciiDiagrammableGate):
         self.key = key
         self.invert_mask = invert_mask
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'M',
 
     def __repr__(self):
@@ -238,14 +251,16 @@ S = Z**0.5
 T = Z**0.25
 
 
-class HGate(gate_features.AsciiDiagrammableGate,
+class HGate(gate_features.TextDiagrammableGate,
             gate_features.CompositeGate,
             gate_features.SelfInverseGate,
             gate_features.KnownMatrixGate,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return 'H',
 
     def default_decompose(self, qubits):
@@ -265,7 +280,7 @@ class HGate(gate_features.AsciiDiagrammableGate,
 H = HGate()  # Hadamard gate.
 
 
-class CNotGate(gate_features.AsciiDiagrammableGate,
+class CNotGate(gate_features.TextDiagrammableGate,
                gate_features.CompositeGate,
                gate_features.KnownMatrixGate,
                gate_features.SelfInverseGate,
@@ -279,7 +294,9 @@ class CNotGate(gate_features.AsciiDiagrammableGate,
                          [0, 0, 1, 0],
                          [0, 1, 0, 0]])
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
         return '@', 'X'
 
     def default_decompose(self, qubits):
@@ -296,7 +313,7 @@ class CNotGate(gate_features.AsciiDiagrammableGate,
 CNOT = CNotGate()  # Controlled Not Gate.
 
 
-class SwapGate(gate_features.AsciiDiagrammableGate,
+class SwapGate(gate_features.TextDiagrammableGate,
                gate_features.CompositeGate,
                gate_features.SelfInverseGate,
                gate_features.KnownMatrixGate,
@@ -321,7 +338,11 @@ class SwapGate(gate_features.AsciiDiagrammableGate,
     def __repr__(self):
         return 'SWAP'
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True):
+        if not use_unicode_characters:
+            return 'swap', 'swap'
         return '×', '×'
 
 
