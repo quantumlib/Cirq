@@ -37,6 +37,7 @@ from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.extension import Extensions
 from cirq.google import xmon_gates
+from cirq.google import xmon_gate_ext
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim.xmon_stepper import Stepper
 from cirq.ops import raw_types
@@ -140,13 +141,14 @@ class Simulator:
                 (an L2 norm of 1), and have a dtype of np.complex64.
             extensions: Extensions that will be applied while trying to
                 decompose the circuit's gates into XmonGates. If None, this uses
-                the default of ConvertToXmonGates.
+                the default of xmon_gate_ext.
 
         Returns:
             Results for this run.
         """
         return self.run_sweep(circuit, [param_resolver], repetitions, options,
-                              qubits, initial_state, extensions)[0]
+                              qubits, initial_state,
+                              extensions or xmon_gate_ext)[0]
 
     def run_sweep(
             self,
@@ -190,12 +192,13 @@ class Simulator:
             measurements = {}  # type: Dict[str, List[np.ndarray]]
             final_states = []  # type: List[np.ndarray]
             for _ in range(repetitions):
-                all_step_results = self.moment_steps(circuit,
-                                                     options or Options(),
-                                                     qubits,
-                                                     initial_state,
-                                                     param_resolver,
-                                                     extensions)
+                all_step_results = self.moment_steps(
+                    circuit,
+                    options or Options(),
+                    qubits,
+                    initial_state,
+                    param_resolver,
+                    extensions or xmon_gate_ext)
                 final_step_result = functools.reduce(
                     StepResult.merge,
                     all_step_results)
@@ -256,7 +259,8 @@ class Simulator:
         """
         param_resolver = param_resolver or ParamResolver({})
         return simulator_iterator(program, options or Options(), qubits,
-                                  initial_state, param_resolver, extensions)
+                                  initial_state, param_resolver,
+                                  extensions or xmon_gate_ext)
 
 
 def simulator_iterator(
@@ -303,7 +307,8 @@ def simulator_iterator(
 
     # TODO: Use one optimization pass.
     circuit_copy = Circuit(circuit.moments)
-    ConvertToXmonGates(extensions).optimize_circuit(circuit_copy)
+    ConvertToXmonGates(extensions or xmon_gate_ext).optimize_circuit(
+        circuit_copy)
     DropEmptyMoments().optimize_circuit(circuit_copy)
     validate_unique_measurement_keys(circuit_copy)
 
