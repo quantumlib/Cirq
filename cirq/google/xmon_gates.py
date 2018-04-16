@@ -87,7 +87,10 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
 
 
 class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
-    """Indicates that qubits should be measured, and where the result goes."""
+    """Indicates that qubits should be measured, and where the result goes.
+
+    This measurement is done in the computational basis.
+    """
 
     def to_proto(self, *qubits):
         if len(qubits) == 0:
@@ -108,7 +111,17 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
                 PotentialImplementation):
-    """A two-qubit interaction that phases the amplitude of the 11 state."""
+    """A two-qubit interaction that phases the amplitude of the 11 state.
+
+    This gate is exp(i * pi * |11><11|  * half_turn).
+
+    Note that this half_turn parameter is such that a full turn is the
+    identity matrix, in contrast to the single qubit gates, where a full
+    turn is minus identity. The single qubit half-turn gates are defined
+    so that a full turn corresponds to a rotation on the Bloch sphere of a
+    360 degree rotation. For two qubit gates, there isn't a Bloch sphere,
+    so the half_turn corresponds to half of a full rotation in U(4).
+    """
 
     def __init__(self, *positional_args,
                  half_turns: Union[Symbol, float]=1) -> None:
@@ -177,7 +190,23 @@ class ExpWGate(XmonGate,
                ops.PhaseableGate,
                ops.BoundedEffectGate,
                PotentialImplementation):
-    """A rotation around an axis in the XY plane of the Bloch sphere."""
+    """A rotation around an axis in the XY plane of the Bloch sphere.
+
+    This gate is exp(-i * pi * W(axis_half_turn) * half_turn / 2) where
+        W(theta) = cos(pi * theta) X + sin(pi * theta) Y
+     or in matrix form
+       W(theta) = [[0, cos(pi * theta) - i sin(pi * theta)],
+                   [cos(pi * theta) + i sin(pi * theta), 0]]
+
+    Note the half_turn nomenclature here comes from viewing this as a rotation
+    on the Bloch sphere. Two half_turns correspond to a rotation in the
+    bloch sphere of 360 degrees. Note that this is minus identity, not
+    just identity.  Similarly the axis_half_turns refers thinking of rotating
+    the Bloch operator, starting with the operator pointing along the X
+    direction. An axis_half_turn of 1 corresponds to the operator pointing
+    along the -X direction while an axis_half_turn of 0.5 correspond to
+    an operator pointing along the Y direction.
+    """
 
     def __init__(self, *positional_args,
                  half_turns: Union[Symbol, float]=1,
@@ -294,7 +323,16 @@ class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammableGate,
                PotentialImplementation):
-    """A rotation around the Z axis of the Bloch sphere."""
+    """A rotation around the Z axis of the Bloch sphere.
+
+    This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
+        Z = [[1, 0],
+             [0, -1]]
+
+    Note the half_turn nomenclature here comes from viewing this as a rotation
+    on the Bloch sphere. Two half_turns correspond to a rotation in the
+    bloch sphere of 360 degrees.
+    """
 
     def __init__(self, *positional_args,
                  half_turns: Union[Symbol, float]=1) -> None:
