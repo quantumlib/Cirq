@@ -1,6 +1,8 @@
 3to2
 absl-py
+google-api-python-client
 mypy
+matplotlib
 numpy
 pylint
 pytest

@@ -22,7 +22,7 @@ Cirq, qubits are represented by subclasses of the ``QubitId``
 base class. Different subclasses of ``QubitId`` can be used 
 for different purposes.  For example the qubits that Google's
 Xmon devices use are often arranged on the vertices of a 
-square grid.  For this the the class ``XmonQubit``
+square grid.  For this the class ``XmonQubit``
 subclasses ``QubitId``.   For example, we can create
 a 3 by 3 grid of qubits using
 ```python

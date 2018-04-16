@@ -80,7 +80,7 @@ result = simulator.run(circuit, qubits=[q0, q1])
 
 print(np.around(result.final_states[0], 3))
 # prints
-# [-0.5-0.j  -0. +0.5j -0. +0.5j -0.5+0.j ]
+# [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
 
 Note that the xmon simulator uses numpy's ``float32`` precision
@@ -143,36 +143,34 @@ the gate to an ``XmonGate`` (TODO(dabacon): not implemented yet).
 ### Parameterized Values and Studies
 
 In addition to circuit gates with fixed values, Cirq also 
-supports gates which can have ``ParameterizedValue`` (see
+supports gates which can have ``Symbol`` value (see
 [Gates](gates.md)). These are values that can be resolved
 at *run-time*. For simulators these values are resolved by
 providing a ``ParamResolver``.  A ``ParamResolver`` provides
-a map from the ``ParameterizedValue`` key to its assigned
-value (plus any offset also set in the ``ParameterizedValue``).
+a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-from cirq import ParameterizedValue, ParamResolver
-val = ParameterizedValue('x')
+from cirq import Symbol, ParamResolver
+val = Symbol('x')
 rot_w_gate = ExpWGate(half_turns=val)
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
-    result = simulator.run(circuit, param_resolver=resolver)
+    result = simulator.run(circuit, resolver)
     print(np.around(result.final_states[0], 2))
 # prints
 # [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-# [ 0.85+0.j    0.  +0.35j  0.  +0.35j -0.15+0.j  ]
-# [ 0.5+0.j   0. +0.5j  0. +0.5j -0.5+0.j ]
-# [ 0.15+0.j    0.  +0.35j  0.  +0.35j -0.85+0.j  ]
-# [ 0.+0.j  0.+0.j  0.+0.j -1.+0.j]
+# [ 0.85+0.j    0.  -0.35j  0.  -0.35j -0.15+0.j  ]
+# [ 0.5+0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
+# [ 0.15+0.j    0.  -0.35j  0.  -0.35j -0.85+0.j  ]
+# [ 0.+0.j  0.-0.j  0.-0.j -1.+0.j]
 ```
-Here we see that the ``ParameterizedValue`` is used in two 
-gates, and then the resolver provide this value at run time.
-Also note that we now see the use of the ``TrialContext`` 
-returned as the first tuple from ``run``: it contains the
-``param_dict`` describing what values were actually used
-in resolving the ``ParameterizedValues``.   
+Here we see that the ``Symbol`` is used in two gates, and then the resolver
+provide this value at run time.
+Also note that we now see the use of the ``TrialContext`` returned as the first
+tuple from ``run``: it contains the ``param_dict`` describing what values were
+actually used in resolving the ``Symbol``s.
 
 Parameterized values are most useful in defining what we call a
 ``Study``.  A ``Study`` is a collection of trials, where each 
@@ -182,16 +180,14 @@ may be run repeatedly.  Running a study returns one
 values and repetitions (which are reported as the ``repetition_id``
 in the ``TrialContext`` object).  Example:
 ```python
-from cirq.study import ExecutorStudy
 resolvers = [ParamResolver({'x': y / 2.0}) for y in range(3)]
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 circuit.append([XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)])
-study = ExecutorStudy(executor=simulator,
-                      program=circuit,
-                      param_resolvers=resolvers,
-                      repetitions=2)
-for result in study.run_study():
+results = simulator.run_sweep(program=circuit,
+                              params=resolvers,
+                              repetitions=2)
+for result in results:
     print(result)
 # prints something like
 # repetition_id=0 x=0.0 q0=0 q1=0
@@ -201,7 +197,7 @@ for result in study.run_study():
 # repetition_id=0 x=1.0 q0=1 q1=1
 # repetition_id=1 x=1.0 q0=1 q1=1
 ```
-where we see that different repetitons for the case that the 
+where we see that different repetitions for the case that the
 qubit has been rotated into a superposition over computational
 basis states yield different measurement results per run.
 

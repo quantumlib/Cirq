@@ -1,4 +1,6 @@
 absl-py
+google-api-python-client
+matplotlib
 numpy
 protobuf
 pytest

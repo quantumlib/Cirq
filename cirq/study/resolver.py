@@ -16,14 +16,15 @@
 
 from typing import Dict, Union
 
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 class ParamResolver(object):
-    """Resolves a ParameterizedValue to an actual value.
+    """Resolves a Symbol to an actual value.
 
-    A ParameterizedValue is a parameter key (str) plus an offset float. A
-    ParamResolver is an object that can be used to assign values for these keys.
+    A Symbol is a wrapped parameter name (str). A ParamResolver is an object
+    that can be used to assign values for these keys.
+
     ParamResolvers are hashable.
 
     Attributes:
@@ -37,13 +38,12 @@ class ParamResolver(object):
 
     def value_of(
             self,
-            parameterized_value: Union[ParameterizedValue, float, str]
+            value: Union[Symbol, float, str]
     ) -> float:
-        """Resolves a ParameterizedValue to its assigned value.
+        """Resolves a Symbol or symbol name or float to its assigned value.
 
         Args:
-            parameterized_value: The ParameterizedValue to resolve or a float
-                to be returned directly.
+            value: The Symbol or float or name to resolve into just a float.
 
         Returns:
             The value of the parameter as resolved by this resolver. If the
@@ -51,13 +51,11 @@ class ParamResolver(object):
             If the parameterized_value is a is a key plus a float, then this
             will return the assigned value for the key plus the float (offset).
         """
-        if isinstance(parameterized_value, str):
-            return self.param_dict[parameterized_value]
-        if isinstance(parameterized_value, ParameterizedValue):
-            return (
-                self.param_dict[ParameterizedValue.key_of(parameterized_value)]
-                + ParameterizedValue.val_of(parameterized_value))
-        return parameterized_value
+        if isinstance(value, str):
+            return self.param_dict[value]
+        if isinstance(value, Symbol):
+            return self.param_dict[value.name]
+        return value
 
     def __getitem__(self, key):
         return self.value_of(key)

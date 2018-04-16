@@ -17,23 +17,21 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-import abc
 from typing import Sequence, Tuple
 
 import numpy as np
 
+from cirq import abc
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 
 
-class ReversibleGate(raw_types.Gate,
-                     metaclass=abc.ABCMeta):
+class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way."""
 
     @abc.abstractmethod
     def inverse(self) -> 'ReversibleGate':
         """Returns a gate with an exactly opposite effect."""
-        pass
 
 
 class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
@@ -49,7 +47,6 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
         Returns:
             A gate equivalent to applying the receiving gate 'factor' times.
         """
-        pass
 
     def __pow__(self, power: float) -> 'ExtrapolatableGate':
         """Extrapolates the effect of the gate.
@@ -97,7 +94,6 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Args:
             qubits: The qubits the operation should be applied to.
         """
-        pass
 
 
 class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -106,11 +102,10 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def matrix(self) -> np.ndarray:
         """The unitary matrix of the operation this gate applies."""
-        pass
 
 
 class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose constant non-parameterized effect has a known matrix."""
+    """A gate which can be nicely represented in an ASCII diagram."""
 
     # noinspection PyMethodMayBeStatic
     def ascii_exponent(self) -> float:
@@ -119,8 +114,15 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def ascii_wire_symbols(self) -> Tuple[str, ...]:
-        """The symbols that should be shown on the gate's qubits (in order)."""
-        pass
+        """The symbols that should be shown on the gate's qubits (in order).
+
+        If the gate always acts on the same number of qubits, then the size
+        of the returned tuple should be equal to this number of qubits.
+        If the gate acts on a variable number of qubits, then a single
+        symbol should be used, and this will be repeated across the operation.
+        It is an error to have more than a single symbol in the case that
+        the gate acts on a variable number of qubits.
+        """
 
 
 class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -131,23 +133,21 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
                  qubit_index: int) -> 'PhaseableGate':
         """Returns a phased version of the gate.
 
-          Args:
-              phase_turns: The amount to phase the gate, in fractions of a
-                  whole turn.
-              qubit_index: The index of the target qubit the phasing applies
-                  to.
+        Args:
+            phase_turns: The amount to phase the gate, in fractions of a whole
+                turn.
+            qubit_index: The index of the target qubit the phasing applies to.
 
-          Returns:
-              The phased gate.
-          """
-        pass
+        Returns:
+            The phased gate.
+        """
 
 
 class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect on the state is known to be below some threshold."""
 
     @abc.abstractmethod
-    def trace_distance_bound(self) -> np.ndarray:
+    def trace_distance_bound(self) -> float:
         """A maximum on the trace distance between this gate's input/output.
 
         Approximations that overestimate are permitted. Even ones that exceed
@@ -155,7 +155,6 @@ class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
         when deciding whether to keep gates, so only the behavior near 0 is
         important.
         """
-        pass
 
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):

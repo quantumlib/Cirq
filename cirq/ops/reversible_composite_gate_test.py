@@ -36,9 +36,9 @@ class _FlipGate(ops.ReversibleGate):
         return hash((_FlipGate, self.val))
 
 
-def test_inverse_of_invertable_op_tree():
+def test_inverse_of_invertible_op_tree():
     def rev_freeze(root):
-        return ops.freeze_op_tree(ops.inverse_of_invertable_op_tree(root))
+        return ops.freeze_op_tree(ops.inverse_of_invertible_op_tree(root))
 
     operations = [
         ops.Operation(_FlipGate(i), [ops.NamedQubit(str(i))])
@@ -104,3 +104,25 @@ def test_enforces_abstract():
             pass
 
     assert isinstance(Included(), ops.ReversibleCompositeGate)
+
+
+def test_works_with_basic_gates():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    basics = [ops.X(a),
+              ops.Y(a)**0.5,
+              ops.Z(a),
+              ops.CZ(a, b)**-0.25,
+              ops.CNOT(a, b),
+              ops.H(b),
+              ops.SWAP(a, b)]
+    assert list(ops.inverse_of_invertible_op_tree(basics)) == [
+        ops.SWAP(a, b),
+        ops.H(b),
+        ops.CNOT(a, b),
+        ops.CZ(a, b)**0.25,
+        ops.Z(a),
+        ops.Y(a)**-0.5,
+        ops.X(a),
+    ]

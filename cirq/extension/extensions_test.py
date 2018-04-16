@@ -263,3 +263,17 @@ def test_add_cast_redundant_including_subtypes():
                overwrite_existing=True)
     assert e.try_cast(Child(), Aunt) is o3
     assert e.try_cast(Child(), Cousin) is o3
+
+
+def test_add_potential_cast():
+    a = Aunt()
+    c1 = Child()
+    c2 = Child()
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Aunt,
+               actual_type=Child,
+               conversion=lambda e: a if e is c1 else None)
+
+    assert e.try_cast(c1, Aunt) is a
+    assert e.try_cast(c2, Aunt) is None

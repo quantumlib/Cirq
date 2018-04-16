@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
+from typing import Iterable, cast
 
 from cirq import ops
 from cirq.devices import Device
@@ -89,9 +89,10 @@ class XmonDevice(Device):
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
 
-        if len(operation.qubits) == 2:
+        if (len(operation.qubits) == 2
+            and not isinstance(operation.gate, xmon_gates.XmonMeasurementGate)):
             p, q = operation.qubits
-            if not p.is_adjacent(q):
+            if not cast(XmonQubit, p).is_adjacent(q):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -103,7 +104,7 @@ class XmonDevice(Device):
         # Adjacent ExpW operations may be doable.
         # For now we will play it conservatively.
 
-        return any(q.is_adjacent(p)
+        return any(cast(XmonQubit, q).is_adjacent(cast(XmonQubit, p))
                    for q in exp11_op.qubits
                    for p in other_op.qubits)
 
@@ -122,13 +123,26 @@ class XmonDevice(Device):
                             scheduled_operation, other))
 
     def validate_circuit(self, circuit):
+        measurement_keys = set()
         for moment in circuit.moments:
             for operation in moment.operations:
                 self.validate_operation(operation)
+                self.verify_new_measurement_key(operation, measurement_keys)
 
     def validate_schedule(self, schedule):
+        measurement_keys = set()
         for scheduled_operation in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, scheduled_operation)
+            self.verify_new_measurement_key(
+                scheduled_operation.operation, measurement_keys)
+
+    def verify_new_measurement_key(self, operation, previous_keys):
+        if isinstance(operation.gate, xmon_gates.XmonMeasurementGate):
+            if operation.gate.key in previous_keys:
+                raise ValueError('Measurement key {} repeated'.format(
+                    operation.gate.key))
+            else:
+                previous_keys.add(operation.gate.key)
 
     def __str__(self):
         diagram = TextDiagramDrawer()

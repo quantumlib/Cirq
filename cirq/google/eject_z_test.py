@@ -15,15 +15,15 @@
 from cirq import circuits
 from cirq import ops
 from cirq.google import ExpZGate, ConvertToXmonGates, EjectZ
-from cirq.value import ParameterizedValue
+from cirq.value import Symbol
 
 
 def assert_optimizes(before, after):
     pre_optimizations = [
-        ConvertToXmonGates(),
+        ConvertToXmonGates(ignore_failures=True)
     ]
     followup_optimizations = [
-        ConvertToXmonGates(),
+        ConvertToXmonGates(ignore_failures=True),
         circuits.DropEmptyMoments()
     ]
 
@@ -178,18 +178,18 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         ]))
 
 
-def test_parameterized_as_source_and_sink():
+def test_symbols_block():
     q = ops.QubitId()
     assert_optimizes(
         before=circuits.Circuit([
             circuits.Moment([ExpZGate(half_turns=1)(q)]),
             circuits.Moment([ExpZGate(
-                half_turns=ParameterizedValue('a', 0.5))(q)]),
+                half_turns=Symbol('a'))(q)]),
             circuits.Moment([ExpZGate(half_turns=0.25)(q)]),
         ]),
         after=circuits.Circuit([
-            circuits.Moment(),
+            circuits.Moment([ExpZGate(half_turns=1)(q)]),
             circuits.Moment([ExpZGate(
-                half_turns=ParameterizedValue('a', 1.5))(q)]),
+                half_turns=Symbol('a'))(q)]),
             circuits.Moment([ExpZGate(half_turns=0.25)(q)]),
         ]))

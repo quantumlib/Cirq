@@ -24,8 +24,7 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
                                seed: int = None, measure: bool = True,
                                ) -> cirq.Circuit:
 
-    r = random if seed is None else random.Random(seed)
-    randint = r.randint
+    randint = random.randint if seed is None else random.Random(seed).randint
 
     circuit = cirq.Circuit()
 
@@ -40,8 +39,7 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
 
     circuit.append(_make_random_single_qubit_op_layer(device, randint))
     if measure:
-        circuit.append(google.XmonMeasurementGate().on(q)
-                       for q in device.qubits)
+        circuit.append([google.XmonMeasurementGate().on(*device.qubits)])
 
     return circuit
 
