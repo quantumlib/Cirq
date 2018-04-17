@@ -13,55 +13,58 @@
 # limitations under the License.
 
 from absl import app
-from absl import flags
 
 import cirq
 import numpy as np
 
-FLAGS = flags.FLAGS
 GRID_LENGTH = 2
 GRID_WIDTH = 2
 
 def cz_and_swap(q0, q1, rot):
-  yield (cirq.ops.CZ**(rot)).on(q0, q1)
-  yield cirq.ops.SWAP(q0,q1)
+    yield cirq.CZ(q0, q1)**rot
+    yield cirq.SWAP(q0,q1)
 
 
-def qft_circuit(grid_length, grid_width):
+def qft_circuit():
 
-  # Define a sequence of qubits.
-  qubits = [cirq.google.XmonQubit(x, y) for x in range(grid_length) for y in range(grid_width)]
+    # Define a sequence of qubits.
 
-  # Create a qft circuit for 2*2 planar qubit architecture.
-  circuit = cirq.circuits.Circuit()
-  circuit.append((cirq.ops.H).on(qubits[0]))
-  circuit.append(cz_and_swap(qubits[0],qubits[1], 0.5))
-  circuit.append(cz_and_swap(qubits[1],qubits[2], 0.25))
-  circuit.append((cirq.ops.H).on(qubits[0]))
-  circuit.append(cz_and_swap(qubits[0],qubits[1], 0.5))
-  circuit.append(cz_and_swap(qubits[2],qubits[3], 0.125))
-  circuit.append(cz_and_swap(qubits[1],qubits[2], 0.25))
-  circuit.append((cirq.ops.H).on(qubits[0]))
-  circuit.append(cz_and_swap(qubits[0],qubits[1], 0.5))
-  circuit.append((cirq.ops.H).on(qubits[0]))
+    a,b,c,d = [cirq.google.XmonQubit(x, y) for x in range(GRID_LENGTH) for y in range(GRID_WIDTH)]
 
-  # Debug step
-  print(circuit.to_text_diagram())
+    # Create a qft circuit for 2*2 planar qubit architecture.
+    circuit = cirq.Circuit.from_ops(
+        cirq.H(a),
+        cz_and_swap(a, b, 0.5),
+        cz_and_swap(b, c, 0.25),
+        cirq.H(a),
+        cz_and_swap(a, b, 0.5),
+        cz_and_swap(c, d, 0.125),
+        cz_and_swap(b, c, 0.25),
+        cirq.H(a),
+        cz_and_swap(a, b, 0.5),
+        cirq.H(a),
+    )
 
-  # Run and collect results
-  simulator = cirq.google.Simulator()
-  result = simulator.run(circuit)
-  print(np.around(result.final_states[0], 3))
+    # Debug step
+    print(circuit)
+
+    return circuit
 
 
 def main(argv):
-  """Demonstrates Quantum Fourier transform.
-  Args:
-    argv: unused.
-  """
-  del argv  # Unused.
-  qft_circuit(GRID_LENGTH, GRID_WIDTH)
+    """Demonstrates Quantum Fourier transform.
+    Args:
+      argv: unused.
+    """
+    del argv  # Unused.
+
+    qft_circuit = qft_circuit()
+
+    # Run and collect results
+    simulator = cirq.google.Simulator()
+    result = simulator.run(qft_circuit)
+    print(np.around(result.final_states[0], 3))
 
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)
