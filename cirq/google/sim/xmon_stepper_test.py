@@ -594,3 +594,32 @@ def test_shard_for_more_prefix_qubits_than_qubits():
         expected = np.zeros(2 ** 2, dtype=np.complex64)
         expected[0] = 1.0
         np.testing.assert_almost_equal(expected, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_precision(num_prefix_qubits):
+    # 25 random W's followed by their inverses on five qubits.
+    # Floating point epsilon is about 1e-7.
+    # Each qubits error will add across gates on that qubit, but it is like a
+    # random walk, so error should be about sqrt(25) per qubit.
+    # 2e-6.
+    with xmon_stepper.Stepper(num_qubits=5,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        half_turns_list = [np.random.rand() for _ in range(25)]
+        axis_half_turns_list = [np.random.rand() for _ in range(25)]
+
+        for half_turns, axis_half_turns in zip(half_turns_list,
+                                               axis_half_turns_list):
+            for index in range(5):
+                s.simulate_w(index=index, axis_half_turns=axis_half_turns,
+                             half_turns=half_turns)
+        for half_turns, axis_half_turns in zip(half_turns_list[::-1],
+                                               axis_half_turns_list[::-1]):
+            for index in range(5):
+                s.simulate_w(index=index, axis_half_turns=axis_half_turns,
+                             half_turns=-half_turns)
+        expected = np.zeros(2 ** 5, dtype=np.complex64)
+        expected[0] = 1.0
+        # asserts that abs value of arrays is < 1.5 * 10^(-decimal)
+        np.testing.assert_almost_equal(expected, s.current_state, decimal=6)
