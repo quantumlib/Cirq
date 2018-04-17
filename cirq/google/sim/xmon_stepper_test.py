@@ -385,7 +385,22 @@ def test_measurement(num_prefix_qubits):
                               num_prefix_qubits=num_prefix_qubits,
                               min_qubits_before_shard=0) as s:
         for i in range(3):
-            assert not s.simulate_measurement(i)
+            assert not s.simulate_measurement(i)[0]
+            expected = np.zeros(2 ** 3, dtype=np.complex64)
+            expected[0] = 1.0
+            np.testing.assert_almost_equal(s.current_state, expected)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_measurement_repetitions(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        for i in range(3):
+            for x in s.simulate_measurement(i, repetitions=3,
+                                            collapse_state=False):
+                assert not x
+            # Does not change state.
             expected = np.zeros(2 ** 3, dtype=np.complex64)
             expected[0] = 1.0
             np.testing.assert_almost_equal(s.current_state, expected)
@@ -399,7 +414,25 @@ def test_measurement_bit_flip(num_prefix_qubits):
         for i in range(3):
             s.simulate_w(i, 1.0, 0)
         for i in range(3):
-            assert s.simulate_measurement(i)
+            assert s.simulate_measurement(i)[0]
+            expected = np.zeros(2 ** 3, dtype=np.complex64)
+            # Single qubit operation is jX, so we pick up a j here.
+            expected[7] = 1.0j
+            np.testing.assert_almost_equal(s.current_state, expected)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_measurement_bit_flip_repetitions(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        for i in range(3):
+            s.simulate_w(i, 1.0, 0)
+        for i in range(3):
+            for x in s.simulate_measurement(i, repetitions=3,
+                                            collapse_state=False):
+                assert x
+            # Should not change state.
             expected = np.zeros(2 ** 3, dtype=np.complex64)
             # Single qubit operation is jX, so we pick up a j here.
             expected[7] = 1.0j
@@ -420,19 +453,61 @@ def test_measurement_state_update(num_prefix_qubits):
         two_qubit_state = np.kron(single_qubit_state, single_qubit_state)
         expected = np.kron(two_qubit_state, single_qubit_state).flatten()
         np.testing.assert_almost_equal(expected, s.current_state)
-        assert not s.simulate_measurement(0)
+        assert not s.simulate_measurement(0)[0]
         # Check state after collapse of first qubit state.
         expected = np.kron(two_qubit_state, np.array([1, 0])).flatten()
         np.testing.assert_almost_equal(expected, s.current_state)
-        assert not s.simulate_measurement(1)
+        assert not s.simulate_measurement(1)[0]
         # Check state after collapse of second qubit state.
         expected = np.kron(single_qubit_state,
                            np.array([1, 0, 0, 0])).flatten()
         np.testing.assert_almost_equal(expected, s.current_state, decimal=6)
-        assert s.simulate_measurement(2)
+        assert s.simulate_measurement(2)[0]
         expected = np.array([0, 0, 0, 0, 1j, 0, 0, 0])
         # Check final state after collapse of third qubit state.
         np.testing.assert_almost_equal(expected, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_measurement_repetitions_does_not_update_state(num_prefix_qubits):
+    np.random.seed(3)
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        # 1/sqrt(2)(I+iX) gate.
+        for i in range(3):
+            s.simulate_w(i, -0.5, 0)
+        # Check state before measurements.
+        single_qubit_state = np.array([1, 1j]) / np.sqrt(2)
+        two_qubit_state = np.kron(single_qubit_state, single_qubit_state)
+        expected = np.kron(two_qubit_state, single_qubit_state).flatten()
+        np.testing.assert_almost_equal(expected, s.current_state)
+        # Three repetitions of measurement of zeroth qubit.
+        for x, e in zip(s.simulate_measurement(0, 3, False),
+                        [False, False, True]):
+            assert x == e
+        # Check that the state does not change.
+        np.testing.assert_almost_equal(expected, s.current_state)
+        # Three repetitions of measurement of first qubit.
+        for x, e in zip(s.simulate_measurement(1, 3, False), 3 * [False]):
+            assert x == e
+        # Check that the state does not change.
+        np.testing.assert_almost_equal(expected, s.current_state)
+        # Three repetitions of measurement of first qubit.
+        for x, e in zip(s.simulate_measurement(2, 3, False), 3 * [True]):
+            assert x == e
+        # Check that the state does not change.
+        np.testing.assert_almost_equal(expected, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_measurement_repetitions_but_requests_collapse(num_prefix_qubits):
+    np.random.seed(3)
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        with pytest.raises(ValueError, match='collapse state requested'):
+            s.simulate_measurement(0, 3, True)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -458,7 +533,7 @@ def test_measurement_randomness_sanity(num_prefix_qubits):
 
 def assert_measurements(s, results):
     for i, result in enumerate(results):
-        assert result == s.simulate_measurement(i)
+        assert result == s.simulate_measurement(i)[0]
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -492,7 +567,7 @@ def test_non_context_manager(num_prefix_qubits):
                                             dtype=np.complex64))
     stepper.__exit__()
 
-    result = stepper.simulate_measurement(0)
+    result = stepper.simulate_measurement(0)[0]
     assert result
     stepper.__exit__()
 
