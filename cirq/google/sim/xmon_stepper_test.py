@@ -599,7 +599,7 @@ def test_shard_for_more_prefix_qubits_than_qubits():
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_precision(num_prefix_qubits):
     # 25 random W's followed by their inverses on five qubits.
-    # Floating point epsilon is about 1e-7.
+    # The floating point epsilon for np.float32 is about 1e-7.
     # Each qubits error will add across gates on that qubit, but it is like a
     # random walk, so error should be about sqrt(25) per qubit.
     # 2e-6.
