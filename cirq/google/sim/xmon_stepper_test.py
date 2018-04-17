@@ -598,17 +598,17 @@ def test_shard_for_more_prefix_qubits_than_qubits():
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_precision(num_prefix_qubits):
-    # 25 random W's followed by their inverses on five qubits.
+    # 16 random W's followed by their inverses on five qubits.
     # The floating point epsilon for np.float32 is about 1e-7.
     # Floating point epsilon is about 1e-7.
     # Each qubits error will add across gates on that qubit, but it is like a
-    # random walk, so error should be about sqrt(25) per qubit.
+    # random walk, so error should be about sqrt(16) per qubit.
     # 2e-6.
     with xmon_stepper.Stepper(num_qubits=5,
                               num_prefix_qubits=num_prefix_qubits,
                               min_qubits_before_shard=0) as s:
-        half_turns_list = [np.random.rand() for _ in range(25)]
-        axis_half_turns_list = [np.random.rand() for _ in range(25)]
+        half_turns_list = [np.random.rand() for _ in range(16)]
+        axis_half_turns_list = [np.random.rand() for _ in range(16)]
 
         for half_turns, axis_half_turns in zip(half_turns_list,
                                                axis_half_turns_list):
