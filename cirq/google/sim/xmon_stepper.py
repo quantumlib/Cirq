@@ -313,6 +313,13 @@ class Stepper(object):
             # W gate is within a shard.
             self._pool.map(_w_within_shard, args)
 
+        # Normalize after every w.
+        norm = np.sum(self._pool.map(_norm, args))
+        args = self._shard_num_args({
+            'norm': norm
+        })
+        self._pool.map(_renorm, args)
+
     def simulate_measurement(self, index: int) -> bool:
         """Simulates a single qubit measurement in the computational basis.
 
@@ -505,6 +512,20 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
     state = _state_shard(args) * _one_projector(args, index)
     norm = np.linalg.norm(state)
     return norm * norm
+
+
+def _norm(args: Dict[str, Any]) -> float:
+    """Returns the norm for each state shard."""
+    state = _state_shard(args)
+    norm = np.linalg.norm(state)
+    return norm * norm
+
+
+def _renorm(args: Dict[str, Any]):
+    """Renormalizes the state using the norm arg."""
+    state = _state_shard(args)
+    # If our gate is so bad that we have norm of zero, we have bigger problems.
+    state /= args['norm']
 
 
 def _collapse_state(args: Dict[str, Any]):
