@@ -603,7 +603,7 @@ def test_precision(num_prefix_qubits):
     # Floating point epsilon is about 1e-7.
     # Each qubits error will add across gates on that qubit, but it is like a
     # random walk, so error should be about sqrt(16) per qubit.
-    # 2e-6.
+    # The total error should then be about 2e-6.
     with xmon_stepper.Stepper(num_qubits=5,
                               num_prefix_qubits=num_prefix_qubits,
                               min_qubits_before_shard=0) as s:
