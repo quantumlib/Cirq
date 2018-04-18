@@ -34,14 +34,25 @@ def highlight(text: str, color_code: int, bold: bool=False) -> str:
 
 def run(*cmd, **kwargs) -> str:
     """Run a shell command and return the output as a string."""
+    print('run', cmd, kwargs, file=sys.stderr)
     output = subprocess.check_output(cmd, **kwargs)
     if not isinstance(output, str):
         output = output.decode()
     return output.strip()
 
 
+def run_with_stdout_into_stderr(*cmd, **kwargs) -> subprocess.CompletedProcess:
+    """Run a shell command and forward all its outputs into stderr."""
+    print('run', cmd, kwargs, file=sys.stderr)
+    return subprocess.run(cmd,
+                          **kwargs,
+                          stdout=sys.stderr,
+                          stderr=sys.stderr)
+
+
 def run_forward_into_std(*cmd, **kwargs) -> subprocess.CompletedProcess:
     """Run a shell command and forward its outputs into stdout/stderr."""
+    print('run', cmd, kwargs, file=sys.stderr)
     return subprocess.run(cmd,
                           **kwargs,
                           stdout=sys.stdout,
@@ -151,21 +162,86 @@ def github_set_status_indicator(repository_organization: str,
             response.status_code, response.content))
 
 
-class ComparableCommits:
-    """A pair of commit ids to compare."""
-
+class GithubRepository:
     def __init__(self,
+                 organization: str,
+                 name: str,
+                 access_token: Optional[str]):
+        self.organization = organization
+        self.name = name
+        self.access_token = access_token
+
+    def as_remote(self) -> str:
+        return 'git@github.com:{}/{}.git'.format(self.organization,
+                                                 self.name)
+
+
+class PreparedEnv:
+    def __init__(self,
+                 repository: Optional[GithubRepository],
                  actual_commit_id: str,
-                 compare_commit_id: str):
+                 compare_commit_id: str,
+                 destination_directory: Optional[str],
+                 virtual_env_path: Optional[str]):
+        self.repository = repository
         self.actual_commit_id = actual_commit_id
         self.compare_commit_id = compare_commit_id
         if self.compare_commit_id == self.actual_commit_id:
             self.compare_commit_id += '~1'
 
+        self.destination_directory = destination_directory
+        self.virtual_env_path = virtual_env_path
+
+    def report_status(self,
+                      state: str,
+                      description: str,
+                      context: str,
+                      target_url: Optional[str] = None):
+        """Sets a commit status indicator on github, if running from a PR.
+
+        If not running from a PR (i.e. repository is None), then just prints
+        to stderr.
+
+        Args:
+            state: The state of the status indicator.
+                Must be 'error', 'failure', 'pending', or 'success'.
+            description: A summary of why the state is what it is,
+                e.g. '5 lint errors' or 'tests passed!'.
+            context: The name of the status indicator, e.g. 'pytest' or 'lint'.
+            target_url: Optional location where additional details about the
+                status can be found, e.g. an online test results page.
+
+        Raises:
+            ValueError: Not one of the allowed states.
+            IOError: The HTTP post request failed, or the response didn't have
+                a 201 code indicating success in the expected way.
+        """
+
+        print(repr(('report_status',
+                    context,
+                    state,
+                    description,
+                    target_url)), file=sys.stderr)
+
+        if (self.repository is not None and
+                self.repository.access_token is not None):
+            github_set_status_indicator(
+                repository_organization=self.repository.organization,
+                repository_name=self.repository.name,
+                repository_access_token=self.repository.access_token,
+                commit_id=self.actual_commit_id,
+                state=state,
+                description=description,
+                context=context,
+                target_url=target_url)
+        else:
+            print('(no access token; skipped reporting status to github)',
+                  file=sys.stderr)
+
 
 def git_fetch_for_comparison(remote: str,
                              actual_branch: str,
-                             compare_branch: str) -> ComparableCommits:
+                             compare_branch: str) -> PreparedEnv:
     """Fetches two branches including their common ancestor.
 
     Limits the depth of the fetch to avoid unnecessary work. Scales up the
@@ -183,39 +259,35 @@ def git_fetch_for_comparison(remote: str,
         a the id of a commit to compare against (e.g. for when doing incremental
         checks).
     """
-    actual_id = ''
-    base_id = ''
+    actual_id = None
+    base_id = None
     for depth in [10, 100, 1000, None]:
         depth = '' if depth is None else '--depth={}'.format(depth)
 
-        run('git', 'fetch', remote, actual_branch, depth, '--quiet')
+        run('git', 'fetch', remote, actual_branch, depth)
         actual_id = run('git', 'rev-parse', 'FETCH_HEAD')
 
-        run('git', 'fetch', remote, compare_branch, depth, '--quiet')
+        run('git', 'fetch', remote, compare_branch, depth)
         base_id = run('git', 'rev-parse', 'FETCH_HEAD')
 
         try:
             common_ancestor_id = run('git', 'merge-base', actual_id, base_id)
-            return ComparableCommits(actual_id, common_ancestor_id)
+            return PreparedEnv(None, actual_id, common_ancestor_id, None, None)
         except subprocess.CalledProcessError:
             # No common ancestor. We need to dig deeper.
             pass
 
-    return ComparableCommits(actual_id, base_id)
+    return PreparedEnv(None, actual_id, base_id, None, None)
 
 
 def fetch_github_pull_request(destination_directory: str,
-                              repository_organization: str,
-                              repository_name: str,
-                              pull_request_number: int) -> ComparableCommits:
+                              repository: GithubRepository,
+                              pull_request_number: int) -> PreparedEnv:
     """Uses content from github to create a dir for testing and comparisons.
 
     Args:
         destination_directory: The location to fetch the contents into.
-        repository_organization: The github organization or account that the
-            repository that the commit lives under.
-        repository_name: The name of the github repository (not including
-            the account name) that the commit lives under.
+        repository: The github repository that the commit lives under.
         pull_request_number: The id of the pull request to clone. If None, then
             the master branch is cloned instead.
 
@@ -224,18 +296,23 @@ def fetch_github_pull_request(destination_directory: str,
     """
 
     branch = 'pull/{}/head'.format(pull_request_number)
-    remote = 'git@github.com:{}/{}.git'.format(repository_organization,
-                                               repository_name)
     os.chdir(destination_directory)
-    run('git', 'init', '--quiet')
-    result = git_fetch_for_comparison(remote=remote,
+    print('chdir', destination_directory, file=sys.stderr)
+
+    run('git', 'init')
+    result = git_fetch_for_comparison(remote=repository.as_remote(),
                                       actual_branch=branch,
                                       compare_branch='master')
-    run('git', 'checkout', result.actual_commit_id, '--quiet')
-    return result
+    run('git', 'branch', 'compare_commit', result.compare_commit_id)
+    run('git', 'checkout', '-b', 'actual_commit', result.actual_commit_id)
+    return PreparedEnv(repository=repository,
+                       actual_commit_id=result.actual_commit_id,
+                       compare_commit_id=result.compare_commit_id,
+                       destination_directory=destination_directory,
+                       virtual_env_path=None)
 
 
-def fetch_local_files(destination_directory: str) -> ComparableCommits:
+def fetch_local_files(destination_directory: str) -> PreparedEnv:
     """Uses local files to create a directory for testing and comparisons.
 
     Args:
@@ -247,6 +324,8 @@ def fetch_local_files(destination_directory: str) -> ComparableCommits:
     shutil.rmtree(destination_directory)
     shutil.copytree(get_repo_root(), destination_directory)
     os.chdir(destination_directory)
+    print('chdir', destination_directory, file=sys.stderr)
+
     run('git', 'commit', '-a', '-m', 'working changes', '--allow-empty')
     run('find',
         '|', 'grep', '\\.pyc$',
@@ -258,87 +337,91 @@ def fetch_local_files(destination_directory: str) -> ComparableCommits:
         shell=True)
     commit_id = run('git', 'rev-parse', 'HEAD')
     compare_id = run('git', 'merge-base', commit_id, 'master')
-    return ComparableCommits(commit_id, compare_id)
+    return PreparedEnv(repository=None,
+                       actual_commit_id=commit_id,
+                       compare_commit_id=compare_id,
+                       destination_directory=destination_directory,
+                       virtual_env_path=None)
 
 
 def prepare_temporary_test_environment(
         destination_directory: str,
-        repository_organization: str,
-        repository_name: str,
+        repository: GithubRepository,
         pull_request_number: Optional[int],
         env_name: str = 'test_virtualenv',
-        python_binary_path: str = "/usr/bin/python3.5") -> ComparableCommits:
+        python_path: str = "/usr/bin/python3.5") -> PreparedEnv:
     """Prepares a temporary test environment at the (existing empty) directory.
 
     Args:
         destination_directory: The location to put files. The caller is
             responsible for deleting the directory, whether or not this method
              succeeds or fails.
-        repository_organization: The github organization of the repository
-            to download content from, if a pull request number is given.
-        repository_name: The name of the github repository
-            to download content from, if a pull request number is given.
+        repository: The github repository to download content from, if a pull
+            request number is given.
         pull_request_number: If set, test content is fetched from github.
             Otherwise copies of local files are used.
-        env_name:
-        python_binary_path:
+        env_name: The name to use for the virtual environment.
+        python_path: Location of the python binary to use within the
+            virtual environment.
 
     Returns:
         Commit ids corresponding to content to test/compare.
     """
-
     # Fetch content.
     if pull_request_number is not None:
         commit_ids = fetch_github_pull_request(
             destination_directory=destination_directory,
-            repository_organization=repository_organization,
-            repository_name=repository_name,
+            repository=repository,
             pull_request_number=pull_request_number)
     else:
         commit_ids = fetch_local_files(
             destination_directory=destination_directory)
-    os.chdir(destination_directory)
 
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
-    run('virtualenv', '--quiet', '-p', python_binary_path, env_path)
-    run('source', '{}/bin/activate'.format(env_path))
-    run('pip', 'install', '--quiet', '-r', 'requirements.txt')
+    run_with_stdout_into_stderr('virtualenv', '-p', python_path, env_path)
 
-    return commit_ids
+    pip_path = os.path.join(env_path, 'bin', 'pip')
+    run_with_stdout_into_stderr(pip_path, 'install', '-r', 'requirements.txt')
 
-
-def do_in_temporary_test_environment(
-        test_method: Callable[[str, str, str], TResult],
-        repository_organization: str,
-        repository_name: str,
-        pull_request_number: Optional[int] = None) -> TResult:
-    """Prepares a temporary test environment and invokes a method within it.
-
-    Args:
-        test_method: The method to invoke while the environment is ready.
-        repository_organization: The github organization of the repository
-            to download content from, if a pull request number is given.
-        repository_name: The name of the github repository
-            to download content from, if a pull request number is given.
-        pull_request_number: If set, test content is fetched from github.
-            Otherwise copies of local files are used.
-
-    Returns:
-        Whatever the test_method returned.
-    """
-    test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(repository_name))
-
-    try:
-        commit_ids = prepare_temporary_test_environment(
-            destination_directory=test_dir,
-            repository_organization=repository_organization,
-            repository_name=repository_name,
-            pull_request_number=pull_request_number)
-
-        return test_method(
-            test_dir,
-            commit_ids.actual_commit_id,
-            commit_ids.compare_commit_id)
-    finally:
-        shutil.rmtree(test_dir)
+    return PreparedEnv(repository,
+                       commit_ids.actual_commit_id,
+                       commit_ids.compare_commit_id,
+                       destination_directory,
+                       env_path)
+#
+#
+# def do_in_temporary_test_environment(
+#         test_method: Callable[[str, str, str], TResult],
+#         repository_organization: str,
+#         repository_name: str,
+#         pull_request_number: Optional[int] = None) -> TResult:
+#     """Prepares a temporary test environment and invokes a method within it.
+#
+#     Args:
+#         test_method: The method to invoke while the environment is ready.
+#         repository_organization: The github organization of the repository
+#             to download content from, if a pull request number is given.
+#         repository_name: The name of the github repository
+#             to download content from, if a pull request number is given.
+#         pull_request_number: If set, test content is fetched from github.
+#             Otherwise copies of local files are used.
+#
+#     Returns:
+#         Whatever the test_method returned.
+#     """
+#     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(repository_name))
+#
+#     try:
+#         commit_ids = prepare_temporary_test_environment(
+#             destination_directory=test_dir,
+#             repository_organization=repository_organization,
+#             repository_name=repository_name,
+#             pull_request_number=pull_request_number)
+#
+#         return test_method(
+#             test_dir,
+#             commit_ids.actual_commit_id,
+#             commit_ids.compare_commit_id)
+#     finally:
+#         shutil.rmtree(test_dir)

@@ -199,11 +199,11 @@ def do_test(root: str, commit_id: str, compare_id: str) -> Tuple[int, str]:
     # Trigger pytest to produce coverage output.
     try:
         print('Running pytest with --cov...')
-        git_shell_tools.run_forward_into_std(
-            'pytest',
-            os.path.join(root, 'cirq'),
-            '--cov',
-            '--cov-report=annotate')
+        # git_shell_tools.run_forward_into_std(
+        #     'pytest',
+        #     os.path.join(root, 'cirq'),
+        #     '--cov',
+        #     '--cov-report=annotate')
     except subprocess.CalledProcessError:
         # The tests failed. But we can still try to compute coverage.
         pass
