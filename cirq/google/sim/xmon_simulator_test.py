@@ -81,10 +81,19 @@ def test_xmon_options_negative_min_qubits_before_shard():
         xmon_simulator.Options(min_qubits_before_shard=-1)
 
 
+def test_moment_steps_does_not_support_options_optimizer_for_end_measurements():
+    options = xmon_simulator.Options(optimize_for_end_measurements=True)
+    simulator = xmon_simulator.Simulator()
+    with pytest.raises(ValueError):
+        simulator.moment_steps(basic_circuit(), options)
+
+
 def test_xmon_options():
-    options = xmon_simulator.Options(num_shards=3, min_qubits_before_shard=0)
+    options = xmon_simulator.Options(num_shards=3, min_qubits_before_shard=0,
+                                     optimize_for_end_measurements=True)
     assert options.num_prefix_qubits == 1
     assert options.min_qubits_before_shard == 0
+    assert options.optimize_for_end_measurements
 
 
 def run(simulator, circuit, scheduler, **kw):
@@ -197,7 +206,7 @@ def test_moment_steps():
     results = []
     for step in simulator.moment_steps(circuit):
         results.append(step)
-    expected = [{}, {}, {}, {}, {'a': [False], 'b': [False]}]
+    expected = [{}, {}, {}, {}, {'a': [[False]], 'b': [[False]]}]
     assert len(results) == len(expected)
     assert all(a.measurements == b for a, b in zip(results, expected))
 
@@ -632,6 +641,45 @@ def test_circuit_repetitions():
     assert result.repetitions == 10
     np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
     np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_circuit_repetitions_optimized(scheduler):
+    circuit = Circuit()
+    meas = XmonMeasurementGate()
+    circuit.append(X(Q1))
+    circuit.append([meas.on(Q1, Q2)])
+    simulator = xmon_simulator.Simulator()
+    options = xmon_simulator.Options(optimize_for_end_measurements=True)
+    result = run(simulator, circuit, scheduler, repetitions=3, options=options)
+    np.testing.assert_equal(result.measurements[''], [[True, False]] * 3)
+    assert len(result.final_states) == 0
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_optimized_but_measurement_not_at_end(scheduler):
+    circuit = Circuit()
+    meas = XmonMeasurementGate()
+    circuit.append(X(Q1))
+    circuit.append([meas.on(Q1, Q2)])
+    circuit.append(X(Q1))
+    simulator = xmon_simulator.Simulator()
+    options = xmon_simulator.Options(optimize_for_end_measurements=True)
+    with pytest.raises(ValueError, match='measurements'):
+        simulator.run(circuit, options=options, repetitions=3)
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_sweeps_optimized_but_measurement_not_at_end(scheduler):
+    circuit = Circuit()
+    meas = XmonMeasurementGate()
+    circuit.append(X(Q1))
+    circuit.append([meas.on(Q1, Q2)])
+    circuit.append(X(Q1))
+    simulator = xmon_simulator.Simulator()
+    options = xmon_simulator.Options(optimize_for_end_measurements=True)
+    with pytest.raises(ValueError, match='measurements'):
+        simulator.run_sweep(circuit, options=options, repetitions=3)
 
 
 def test_circuit_parameters():

@@ -23,6 +23,10 @@ A simple example:
     circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])
     sim = Simulator()
     results = sim.run(circuit)
+
+Simulations are configured using an Options container. Of particular note is
+that if all measurements are the end of a Circuit, considerable time savings
+can be had by setting optimizer_for_end_measurements to True.
 """
 
 import math
@@ -52,11 +56,18 @@ class Options:
             raised to this value number of qubits.
         min_qubits_before_shard: Sharding will be done only for this number
             of qubits or more. The default is 10.
+        optimize_for_end_measurements: Whether or not to optimize the
+            simulation for the case that all of the measurements are not
+            followed by other gates (even other measurements). In this case
+            no final_states will be produced, but the simulation will only run
+            the measurements repeatedly, potentially saving considerable
+            computation.
     """
 
     def __init__(self,
-                 num_shards: int=None,
-                 min_qubits_before_shard: int=10) -> None:
+                 num_shards: int = None,
+                 min_qubits_before_shard: int = 10,
+                 optimize_for_end_measurements: bool = False) -> None:
         """Simulator options constructor.
 
         Args:
@@ -66,6 +77,12 @@ class Options:
                 to the number of CPUs.
             min_qubits_before_shard: Sharding will be done only for this number
                 of qubits or more. The default is 10.
+            optimize_for_end_measurements: Whether or not to optimize the
+                simulation for the case that all of the measurements are not
+                followed by other gates (even other measurements). In this case
+                no final_states will be produced, but the simulation will only
+                run the measurements repeatedly, potentially saving considerable
+                computation.
         """
         assert num_shards is None or num_shards > 0, (
             "Num_shards cannot be less than 1.")
@@ -78,11 +95,15 @@ class Options:
             'Min_qubit_before_shard must be positive.')
         self.min_qubits_before_shard = min_qubits_before_shard
 
+        self.optimize_for_end_measurements = optimize_for_end_measurements
+
 
 class SimulatorTrialResult(TrialResult):
     """Results of a single run of an executor.
 
     Attributes:
+        params: The ParamResolver used for this trial.
+        repetition: The number of repetitions for this trial.
         measurements: A dictionary from measurement gate key to measurement
             results ordered by the qubits acted upon by the measurement gate.
         final_states: The final states (wave function) of the system after
@@ -144,6 +165,11 @@ class Simulator:
 
         Returns:
             Results for this run.
+
+        Raises:
+            ValueError: if Options has optimizer_for_end_measurements True,
+                but the circuit has measurements which are not at the end of
+                the circuit.
         """
         return self.run_sweep(circuit, [param_resolver], repetitions, options,
                               qubits, initial_state,
@@ -181,30 +207,38 @@ class Simulator:
         Returns:
             List of trial results for this run, one for each possible parameter
             resolver.
+
+        Raises:
+            ValueError: if Options has optimizer_for_end_measurements True,
+                but the circuit has measurements which are not at the end of
+                the circuit.
         """
         circuit = program if isinstance(program,
                                         Circuit) else program.to_circuit()
         param_resolvers = self._to_resolvers(params or ParamResolver({}))
 
-        xmon_circuit, keys = self._to_xmon_circuit(circuit,
-                                                   extensions or xmon_gate_ext)
+        xmon_circuit = self._to_xmon_circuit(circuit,
+                                             extensions or xmon_gate_ext)
+        optimize = options.optimize_for_end_measurements if options else False
+        keys = self._find_measurement_keys(xmon_circuit, optimize)
         trial_results = []  # type: List[SimulatorTrialResult]
         for param_resolver in param_resolvers:
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
             final_states = []  # type: List[np.ndarray]
-            for _ in range(repetitions):
+            for _ in range(1 if optimize else repetitions):
                 all_step_results = simulator_iterator(
                     xmon_circuit,
                     options or Options(),
                     qubits,
                     initial_state,
-                    param_resolver)
+                    param_resolver,
+                    repetitions if optimize else 1)
                 step_result = None
                 for step_result in all_step_results:
                     for k, v in step_result.measurements.items():
-                        measurements[k].append(np.array(v, dtype=bool))
-                if step_result:
+                        measurements[k].extend(np.array(v, dtype=bool))
+                if step_result and not optimize:
                     final_states.append(step_result.state())
             trial_results.append(SimulatorTrialResult(
                 param_resolver,
@@ -255,21 +289,46 @@ class Simulator:
         Returns:
             SimulatorIterator that steps through the simulation, simulating
             each moment and returning a StepResult for each moment.
+
+        Raises:
+            ValueError: if it is requested to optimize_for_end_measurements
+                in the passed in Options.
         """
         param_resolver = param_resolver or ParamResolver({})
-        xmon_circuit, _ = self._to_xmon_circuit(program,
-                                                extensions or xmon_gate_ext)
+        xmon_circuit = self._to_xmon_circuit(program,
+                                             extensions or xmon_gate_ext)
+        if options is not None and options.optimize_for_end_measurements:
+            raise ValueError(
+                'Cannot use moment_steps with optimizer_for_end_measurements.')
         return simulator_iterator(xmon_circuit, options or Options(), qubits,
                                   initial_state, param_resolver)
 
-    def _to_xmon_circuit(self, circuit: Circuit,
-        extensions: Extensions = None) -> Tuple[Circuit, Set[str]]:
+    def _to_xmon_circuit(
+        self, circuit: Circuit, extensions: Extensions = None) -> Circuit:
         # TODO: Use one optimization pass.
         xmon_circuit = Circuit(circuit.moments)
         ConvertToXmonGates(extensions).optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
-        keys = find_measurement_keys(xmon_circuit)
-        return xmon_circuit, keys
+        return xmon_circuit
+
+    def _find_measurement_keys(
+        self, circuit: Circuit, check_measurements_at_end: bool) -> Set[str]:
+        keys = set()  # type: Set[str]
+        for index, moment in enumerate(circuit.moments):
+            for op in moment.operations:
+                if isinstance(op.gate, xmon_gates.XmonMeasurementGate):
+                    if (check_measurements_at_end and
+                        circuit.next_moment_operating_on(op.qubits, index + 1)
+                            is not None):
+                        raise ValueError(
+                            'Circuit has measurements not at end of Circuit.')
+                    key = op.gate.key
+                    if key in keys:
+                        raise ValueError(
+                            'Repeated Measurement key {}'.format(key))
+                    keys.add(key)
+        return keys
+
 
 
 def simulator_iterator(
@@ -278,6 +337,7 @@ def simulator_iterator(
         qubits: Sequence[raw_types.QubitId] = None,
         initial_state: Union[int, np.ndarray]=0,
         param_resolver: ParamResolver = ParamResolver({}),
+        measurement_repetitions: int = 1
 ) -> Iterator['StepResult']:
     """Iterator over TrialResults from Moments of a Circuit.
 
@@ -294,7 +354,10 @@ def simulator_iterator(
             basis state corresponding corresponding to this state.
         param_resolver: A ParamResolver for determining values ofs
             Symbols.
-
+        measurement_repetitions: If not 1, then measurements will be repeated
+            this many times, and the state will not be updated for these
+            measurement results. It is an error to pass a value other than 1 if
+            measurements do not occur only at the end of the circuit.
     Yields:
         StepResults from simulating a Moment of the Circuit.
 
@@ -316,7 +379,8 @@ def simulator_iterator(
                  min_qubits_before_shard=options.min_qubits_before_shard
                  ) as stepper:
         for moment in circuit.moments:
-            measurements = defaultdict(list)  # type: Dict[str, List[bool]]
+            measurements = defaultdict(
+                list)  # type: Dict[str, List[List[bool]]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
                 gate = op.gate
@@ -338,29 +402,27 @@ def simulator_iterator(
                             gate.axis_half_turns))
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     invert_mask = gate.invert_mask or len(op.qubits) * (False,)
+                    temp_measurements = []
                     for qubit, invert in zip(op.qubits, invert_mask):
                         index = qubit_map[qubit]
-                        result = stepper.simulate_measurement(index)
+                        result = stepper.simulate_measurement(
+                            index,
+                            measurement_repetitions,
+                            not options.optimize_for_end_measurements)
                         if invert:
-                            result = not result
-                        measurements[gate.key].append(result)
+                            result = [not x for x in result]
+                        # Make list of lists.
+                        temp_measurements.extend([result])
+                    # Measurements are ordered by qubit then by repetition,
+                    # reverse this.
+                    reordered = list(map(list, zip(
+                        *temp_measurements)))  # type: List[List[bool]]
+                    measurements[gate.key] = reordered
                 else:
                     raise TypeError('{!r} is not supported by the '
                                     'xmon simulator.'.format(gate))
             stepper.simulate_phases(phase_map)
             yield StepResult(stepper, qubit_map, measurements)
-
-
-def find_measurement_keys(circuit: Circuit) -> Set[str]:
-    keys = set()  # type: Set[str]
-    for moment in circuit.moments:
-        for op in moment.operations:
-            if isinstance(op.gate, xmon_gates.XmonMeasurementGate):
-                key = op.gate.key
-                if key in keys:
-                    raise ValueError('Repeated Measurement key {}'.format(key))
-                keys.add(key)
-    return keys
 
 
 class StepResult:
@@ -371,14 +433,16 @@ class StepResult:
             of this qubit for a canonical ordering. This canonical ordering is
             used to define the state (see the state() method).
         measurements: A dictionary from measurement gate key to measurement
-            results, ordered by the qubits that the measurement operates on.
+            results. The results are ordered by the number of
+            measurement_repetitions and then by the qubits that the measurement
+            operates on.
     """
 
     def __init__(
             self,
             stepper: Stepper,
             qubit_map: Dict,
-            measurements: Dict[str, List[bool]]) -> None:
+            measurements: Dict[str, List[List[bool]]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper

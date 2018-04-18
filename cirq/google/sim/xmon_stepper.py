@@ -26,7 +26,7 @@ from __future__ import unicode_literals
 import math
 import multiprocessing
 
-from typing import Any, Dict, List, Union, Tuple
+from typing import Any, Dict, List, Union, Sequence, Tuple
 
 import numpy as np
 
@@ -50,10 +50,10 @@ class Stepper(object):
     python's multiprocessing module.
 
     This stepper can be used like a context manager:
-      with Stepper(num_qubits=3) as s:
-        s.simulate_phases((1, 0.25))
-        s.simulate_w(2, 0.25, 0.25)
-        ...
+        with Stepper(num_qubits=3) as s:
+            s.simulate_phases((1, 0.25))
+            s.simulate_w(2, 0.25, 0.25)
+            ...
     In this case the stepper will shut down the multiprocessing pool upon
     exiting the with context.
 
@@ -70,20 +70,21 @@ class Stepper(object):
         """Construct a new Simulator.
 
         Args:
-          num_qubits: The number of qubits to simulate.
-          num_prefix_qubits: The wavefunction of the qubits is sharded into
-            (2 ** num_prefix_qubits) parts. If this is None, then this will
-            shard over the nearest power of two below the cpu count. If less
-            than 10 qubits are being simulated then no sharding is done,
-            depending on whether the shard_for_small_num_qubits is set or not.
-          initial_state: If this is an int, then this is the state to initialize
-            the stepper to, expressed as an integer of the computational basis.
-            Integer to bitwise indices is little endian. Otherwise if this is
-            a np.ndarray it is the full initial state and this must be the
-            correct size, normalized (an L2 norm of 1), and have dtype of
-            np.complex64.
-          min_qubits_before_shard: Sharding will be done only for this number
-            of qubits or more. The default is 13.
+            num_qubits: The number of qubits to simulate.
+            num_prefix_qubits: The wavefunction of the qubits is sharded into
+                (2 ** num_prefix_qubits) parts. If this is None, then this will
+                shard over the nearest power of two below the cpu count. If less
+                than 10 qubits are being simulated then no sharding is done,
+                depending on whether the shard_for_small_num_qubits is set or
+                not.
+            initial_state: If this is an int, then this is the state to
+                initialize the stepper to, expressed as an integer of the
+                computational basis. Integer to bitwise indices is little
+                endian. Otherwise if this is a np.ndarray it is the full
+                initial state and this must be the correct size, normalized
+                (an L2 norm of 1), and have dtype of np.complex64.
+            min_qubits_before_shard: Sharding will be done only for this number
+                of qubits or more. The default is 13.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -117,9 +118,9 @@ class Stepper(object):
         operators acting on the all ones vector. The column-th row corresponds
         to the Pauli Z acting on the columnth-qubit.  Example for three shard
         qubits:
-           [[1, -1, 1, -1, 1, -1, 1, -1],
-            [1, 1, -1, -1, 1, 1, -1, -1],
-            [1, 1, 1, 1, -1, -1, -1, -1]]
+            [[1, -1, 1, -1, 1, -1, 1, -1],
+             [1, 1, -1, -1, 1, 1, -1, -1],
+             [1, 1, 1, 1, -1, -1, -1, -1]]
         The zero one vectors are the pm vectors with 1 replacing -1 and 0
         replacing 1.
 
@@ -196,14 +197,14 @@ class Stepper(object):
         shards, the number of shard qubits, and the supplied constant dict.
 
         Args:
-          constant_dict: Dictionary that will be updated to every element of the
-            returned list of dictionaries.
+            constant_dict: Dictionary that will be updated to every element of
+                the returned list of dictionaries.
 
         Returns:
-          A list of dictionaries. Each dictionary is constant except for the
-          'shard_num' key which ranges from 0 to number of shards - 1.  Included
-          keys are 'num_shards' and 'num_shard_qubits' along with all the
-          keys in constant_dict.
+            A list of dictionaries. Each dictionary is constant except for the
+            'shard_num' key which ranges from 0 to number of shards - 1.
+            Included keys are 'num_shards' and 'num_shard_qubits' along with
+            all the keys in constant_dict.
         """
         args = []
         for shard_num in range(self._num_shards):
@@ -260,13 +261,13 @@ class Stepper(object):
         """Simulate a set of phase gates on the xmon architecture.
 
         Args:
-          phase_map: A map from a tuple of indices to a value, one for each
-            phase gate being simulated. If the tuple key has one index, then
-            this is a Z phase gate on the index-th qubit with a rotation angle
-            of pi times the value of the map. If the tuple key has two
-            indices, then this is a |11> phasing gate, acting on the qubits at
-            the two indices, and a rotation angle of pi times the value of
-            the map.
+            phase_map: A map from a tuple of indices to a value, one for each
+                phase gate being simulated. If the tuple key has one index, then
+                this is a Z phase gate on the index-th qubit with a rotation
+                angle of pi times the value of the map. If the tuple key has two
+                indices, then this is a |11> phasing gate, acting on the qubits
+                at the two indices, and a rotation angle of pi times the value
+                of the map.
         """
         if not self._pool_open:
             self.__enter__()
@@ -292,10 +293,11 @@ class Stepper(object):
             where W = cos(pi axis_half_turns) X + sin(pi axis_half_turns) Y
 
         Args:
-          index: The qubit to act on.
-          half_turns: The amount of the overall rotation, see the formula above.
-          axis_half_turns: The angle between the pauli X and Y operators,
-            see the formula above.
+            index: The qubit to act on.
+            half_turns: The amount of the overall rotation, see the formula
+                above.
+            axis_half_turns: The angle between the pauli X and Y operators,
+                see the formula above.
         """
         if not self._pool_open:
             self.__enter__()
@@ -320,27 +322,43 @@ class Stepper(object):
         })
         self._pool.map(_renorm, args)
 
-    def simulate_measurement(self, index: int) -> bool:
+    def simulate_measurement(
+        self,
+        index: int,
+        repetitions: int = 1,
+        collapse_state=True) -> Sequence[bool]:
         """Simulates a single qubit measurement in the computational basis.
 
         Args:
-          index: Which qubit is measured.
+            index: Which qubit is measured.
+            repetitions: Number of times to repeat the measurement.
+            collapse_state: Whether or not to collapse the state after the
+                measurement. If repetitions is not 1, then setting this to True
+                is an error.
 
         Returns:
-          True iff the measurement result corresponds to the |1> state.
+            A sequence of measurement results, where True is the measurement
+            result corresponding to the |1> state.
+
+        Raises:
+            ValueError: if repetitions is not 1, but state collapse is
+                requested.
         """
+        if repetitions != 1 and collapse_state:
+            raise ValueError(
+                'Repetitions was not 1, but collapse state requested.')
         if not self._pool_open:
             self.__enter__()
         args = self._shard_num_args({'index': index})
         prob_one = np.sum(self._pool.map(_one_prob_per_shard, args))
-        result = (np.random.random() <= prob_one)
-
-        args = self._shard_num_args({
-            'index': index,
-            'result': result,
-            'prob_one': prob_one
-        })
-        self._pool.map(_collapse_state, args)
+        result = [np.random.random() <= prob_one for _ in range(repetitions)]
+        if collapse_state:
+            args = self._shard_num_args({
+                'index': index,
+                'result': result[0],
+                'prob_one': prob_one
+            })
+            self._pool.map(_collapse_state, args)
         return result
 
     def _check_state(self, state: np.ndarray):
@@ -534,7 +552,7 @@ def _collapse_state(args: Dict[str, Any]):
     theory.
 
     Args:
-      args: The args from shard_num_args.
+        args: The args from shard_num_args.
     """
     index = args['index']
     result = args['result']
