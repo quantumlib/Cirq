@@ -51,12 +51,12 @@ class Options:
         num_prefix_qubits: Sharding of the wave function is performed over 2
             raised to this value number of qubits.
         min_qubits_before_shard: Sharding will be done only for this number
-            of qubits or more. The default is 10.
+            of qubits or more. The default is 18.
     """
 
     def __init__(self,
                  num_shards: int=None,
-                 min_qubits_before_shard: int=10) -> None:
+                 min_qubits_before_shard: int=18) -> None:
         """Simulator options constructor.
 
         Args:
@@ -65,7 +65,7 @@ class Options:
                 be used which is the smallest power of two less than or equal
                 to the number of CPUs.
             min_qubits_before_shard: Sharding will be done only for this number
-                of qubits or more. The default is 10.
+                of qubits or more. The default is 18.
         """
         assert num_shards is None or num_shards > 0, (
             "Num_shards cannot be less than 1.")
