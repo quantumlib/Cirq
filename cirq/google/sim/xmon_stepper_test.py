@@ -14,7 +14,6 @@
 
 """Tests for xmon_simulator."""
 
-import multiprocessing
 import numpy as np
 import pytest
 
