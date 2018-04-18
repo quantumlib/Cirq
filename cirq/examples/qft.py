@@ -12,59 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from absl import app
-
 import cirq
 import numpy as np
 
-GRID_LENGTH = 2
-GRID_WIDTH = 2
-
-def cz_and_swap(q0, q1, rot):
+def _cz_and_swap(q0, q1, rot):
     yield cirq.CZ(q0, q1)**rot
     yield cirq.SWAP(q0,q1)
 
+# Create a quantum fourier transform circuit for 2*2 planar qubit architecture.
+def generate_2x2_grid_qft_circuit() -> cirq.Circuit:
 
-def qft_circuit():
+    # Define a 2*2 square grid of qubits.
+    a,b,c,d = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0, 1), cirq.google.XmonQubit(1, 0), cirq.google.XmonQubit(1, 1)]
 
-    # Define a sequence of qubits.
-
-    a,b,c,d = [cirq.google.XmonQubit(x, y) for x in range(GRID_LENGTH) for y in range(GRID_WIDTH)]
-
-    # Create a qft circuit for 2*2 planar qubit architecture.
     circuit = cirq.Circuit.from_ops(
         cirq.H(a),
-        cz_and_swap(a, b, 0.5),
-        cz_and_swap(b, c, 0.25),
+        _cz_and_swap(a, b, 0.5),
+        _cz_and_swap(b, c, 0.25),
+        _cz_and_swap(c, d, 0.125),
         cirq.H(a),
-        cz_and_swap(a, b, 0.5),
-        cz_and_swap(c, d, 0.125),
-        cz_and_swap(b, c, 0.25),
+        _cz_and_swap(a, b, 0.5),
+        _cz_and_swap(b, c, 0.25),
         cirq.H(a),
-        cz_and_swap(a, b, 0.5),
+        _cz_and_swap(a, b, 0.5),
         cirq.H(a),
+        strategy=cirq.InsertStrategy.EARLIEST
     )
-
-    # Debug step
-    print(circuit)
-
     return circuit
 
 
-def main(argv):
+if __name__ == '__main__':
     """Demonstrates Quantum Fourier transform.
-    Args:
-      argv: unused.
     """
-    del argv  # Unused.
 
-    qft_circuit = qft_circuit()
+    qft_circuit = generate_2x2_grid_qft_circuit()
+
+    # Debug step
+    print(qft_circuit)
 
     # Run and collect results
     simulator = cirq.google.Simulator()
     result = simulator.run(qft_circuit)
     print(np.around(result.final_states[0], 3))
-
-
-if __name__ == '__main__':
-    app.run(main)
