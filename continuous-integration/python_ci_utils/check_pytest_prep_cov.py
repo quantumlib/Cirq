@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
 
-import subprocess
+import re
 
 import os.path
 
@@ -29,22 +30,33 @@ class TestAndPrepareCoverageCheck(check.Check):
         return 'pytest by maintainer'
 
     def perform_check_py2(self, env: env_tools.PreparedEnv):
-        TestAndPrepareCoverageCheck._common_run_helper(env, coverage=False)
+        return TestAndPrepareCoverageCheck._common_run_helper(env,
+                                                              coverage=False)
 
     def perform_check(self, env: env_tools.PreparedEnv):
-        TestAndPrepareCoverageCheck._common_run_helper(env, coverage=True)
+        return TestAndPrepareCoverageCheck._common_run_helper(env,
+                                                              coverage=True)
 
     @staticmethod
-    def _common_run_helper(env: env_tools.PreparedEnv, coverage: bool):
+    def _common_run_helper(env: env_tools.PreparedEnv,
+                           coverage: bool) -> Tuple[bool, str]:
         pytest_path = os.path.join(env.virtual_env_path, 'bin', 'pytest')
         target_path = os.path.join(env.destination_directory, 'cirq')
-        try:
-            result = env_tools.sub_run(pytest_path,
-                                       target_path,
-                                       '--cov' if coverage else '',
-                                       capture_stdout=True,
-                                       raise_error_if_process_fails=False)
-            print(result)
-        except subprocess.CalledProcessError:
+        result = env_tools.sub_run(
+            pytest_path,
+            target_path,
+            '--cov' if coverage else '',
+            '--cov-report=annotate' if coverage else '',
+            capture_stdout=True,
+            raise_error_if_process_fails=False)
+
+        output = result[0]
+        passed = result[2] == 0
+        if passed:
+            return True, 'Tests passed!'
+
+        last_line = [e for e in output.split('\n') if e.strip()][-1]
+        fail_match = re.match('.+=== (\d+) failed', last_line)
+        if fail_match is None:
             return False, 'Tests failed.'
-        return True, 'Tests passed!'
+        return False, '{} tests failed.'.format(fail_match.group(1))

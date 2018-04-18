@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import shutil
 import sys
 import tempfile
@@ -26,9 +26,12 @@ REPO_NAME = 'cirq'
 
 
 def main():
-    pull_request_number = None if len(sys.argv) == 1 else int(sys.argv[1])
+    pull_request_number = None if len(sys.argv) < 2 else int(sys.argv[1])
     checks = all_checks.ALL_CHECKS
-    access_token = None
+    access_token = None if len(sys.argv) < 3 else int(sys.argv[2])
+    if access_token is None:
+        access_token = os.getenv('CIRQ_GITHUB_ACCESS_TOKEN')
+
     # pull_request_number = 222
 
     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(REPO_NAME))
@@ -42,10 +45,9 @@ def main():
                 access_token=access_token),
             pull_request_number=pull_request_number)
 
-        env2 = env
-        # env2 = env_tools.derive_temporary_python2_environment(
-        #     destination_directory=test_dir_2,
-        #     python3_environment=env)
+        env2 = env_tools.derive_temporary_python2_environment(
+            destination_directory=test_dir_2,
+            python3_environment=env)
 
         results = [(check.context(), check.run_and_report(env, env2))
                    for check in checks]

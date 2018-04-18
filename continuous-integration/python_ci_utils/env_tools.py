@@ -477,23 +477,23 @@ def prepare_temporary_test_environment(
     """
     # Fetch content.
     if pull_request_number is not None:
-        commit_ids = fetch_github_pull_request(
+        env = fetch_github_pull_request(
             destination_directory=destination_directory,
             repository=repository,
             pull_request_number=pull_request_number)
     else:
-        commit_ids = fetch_local_files(
+        env = fetch_local_files(
             destination_directory=destination_directory)
 
     # Create virtual environment.
-    env_path = os.path.join(destination_directory, env_name)
+    env_path = os.path.join(env.destination_directory, env_name)
     create_virtual_env(env_path=env_path,
                        python_path=python_path)
 
-    return PreparedEnv(repository=repository,
-                       actual_commit_id=commit_ids.actual_commit_id,
-                       compare_commit_id=commit_ids.compare_commit_id,
-                       destination_directory=destination_directory,
+    return PreparedEnv(repository=env.repository,
+                       actual_commit_id=env.actual_commit_id,
+                       compare_commit_id=env.compare_commit_id,
+                       destination_directory=env.destination_directory,
                        virtual_env_path=env_path)
 
 
