@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
-import subprocess
 from typing import Dict, Tuple, List
 
 import os.path
 import re
-import sys
 
-from python_ci_utils import git_shell_tools
+from python_ci_utils import env_tools
 
 IGNORED_FILE_PATTERNS = [
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
@@ -107,13 +105,16 @@ def get_incremental_uncovered_lines(abs_path: str,
     if not os.path.isfile(abs_path):
         return []
 
-    unified_diff_lines = git_shell_tools.run_lines(
+    unified_diff_lines_str = env_tools.output_of(
         'git',
         'diff',
         '--unified=0',
         base_commit,
         actual_commit,
         abs_path)
+    unified_diff_lines = [e
+                          for e in unified_diff_lines_str.split('\n')
+                          if e.strip()]
 
     touched_lines = diff_to_new_interesting_lines(unified_diff_lines)
 
@@ -195,23 +196,9 @@ def is_applicable_python_file(rel_path: str) -> bool:
             not any(re.search(pat, rel_path) for pat in IGNORED_FILE_PATTERNS))
 
 
-def do_test(root: str, commit_id: str, compare_id: str) -> Tuple[int, str]:
-    # Trigger pytest to produce coverage output.
-    try:
-        print('Running pytest with --cov...')
-        # git_shell_tools.run_forward_into_std(
-        #     'pytest',
-        #     os.path.join(root, 'cirq'),
-        #     '--cov',
-        #     '--cov-report=annotate')
-    except subprocess.CalledProcessError:
-        # The tests failed. But we can still try to compute coverage.
-        pass
-    print()
-
+def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
     # Build context from environment.
-    changed_files = git_shell_tools.get_changed_files_between(
-        compare_id, commit_id)
+    changed_files = env_tools.get_changed_files(env)
 
     # Find/print lines that were changed but aren't covered.
     uncovered_count = 0
@@ -220,74 +207,33 @@ def do_test(root: str, commit_id: str, compare_id: str) -> Tuple[int, str]:
             continue
 
         uncovered_lines = get_incremental_uncovered_lines(
-            os.path.join(root, changed_file),
-            compare_id,
-            commit_id)
+            os.path.join(env.destination_directory, changed_file),
+            env.compare_commit_id,
+            env.actual_commit_id)
 
         if uncovered_lines:
             uncovered_count += len(uncovered_lines)
-            print(git_shell_tools.highlight(
+            print(env_tools.highlight(
                 '************* {} ({} uncovered)'.format(
                     changed_file,
                     len(uncovered_lines)),
-                color_code=git_shell_tools.RED))
+                color_code=env_tools.RED))
         for index, line, reason in uncovered_lines:
             print('Line {} {} but not covered: {}'.format(
-                git_shell_tools.highlight(str(index).rjust(4),
-                                          color_code=git_shell_tools.BOLD),
+                env_tools.highlight(str(index).rjust(4),
+                                    color_code=env_tools.BOLD),
                 reason,
-                git_shell_tools.highlight(line,
-                                          color_code=git_shell_tools.YELLOW)))
+                env_tools.highlight(line,
+                                    color_code=env_tools.YELLOW)))
 
     # Inform of aggregate result.
     print()
     if uncovered_count:
-        print(git_shell_tools.highlight(
+        print(env_tools.highlight(
             'Found {} uncovered touched lines.'.format(uncovered_count),
-            color_code=git_shell_tools.RED))
+            color_code=env_tools.RED))
     else:
-        print(git_shell_tools.highlight('All touched lines covered',
-                                        color_code=git_shell_tools.GREEN))
+        print(env_tools.highlight('All touched lines covered',
+                                  color_code=env_tools.GREEN))
     print()
-    return uncovered_count, commit_id
-
-
-def main():
-    state = 'pending'
-    description = ''
-
-    access_token = ''
-    try:
-        uncovered_count, commit_id = git_shell_tools.do_in_temporary_test_environment(
-            do_test,
-            repository_organization='quantumlib',
-            repository_name='cirq')
-
-        # Report result to github.
-        if uncovered_count:
-            state = 'failure'
-            description = '{} changed lines not covered'.format(
-                uncovered_count)
-        else:
-            state = 'success'
-            description = 'All covered!'
-
-    except:
-        commit_id = None  # TODO: get this out somehow
-        state = 'error'
-        description = 'testing script failed'
-        raise
-
-    # git_shell_tools.github_set_status_indicator(
-    #     repository_organization='quantumlib',
-    #     repository_name='cirq',
-    #     repository_access_token=access_token,
-    #     commit_id=commit_id,
-    #     state=state,
-    #     description=description,
-    #     context='pytest (manual)',
-    #     target_url=None)
-
-
-if __name__ == '__main__':
-    main()
+    return uncovered_count

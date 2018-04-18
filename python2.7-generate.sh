@@ -22,15 +22,18 @@
 
 set -e
 
-out='python2.7-output'
+out=${1}
 
-# Clean output directory.
-rm -rf ${out}
+if [ -z "${out}" ]; then
+  echo -e "\e[31mNo output directory given.\e[0m"
+  exit 1
+fi
+
 mkdir ${out}
 
 # Copy into output directory and convert in-place.
 cp -r cirq ${out}/cirq
-3to2 ${out}/cirq -w > /dev/null 2> /dev/null
+3to2 ${out}/cirq -w >/dev/null
 find ${out}/cirq | grep "\.py\.bak$" | xargs rm -f
 
 # Build protobufs.
