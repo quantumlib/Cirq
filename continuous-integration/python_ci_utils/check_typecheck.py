@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import subprocess
+import re
 
 import os.path
 
@@ -26,19 +26,23 @@ class TypeCheck(check.Check):
         return 'typecheck by maintainer'
 
     def perform_check(self, env: env_tools.PreparedEnv):
-        pylint_path = os.path.join(env.virtual_env_path, 'bin', 'pylint')
-        target_path = os.path.join(env.destination_directory, 'cirq')
-        try:
-            result = env_tools.sub_run(
-                pylint_path,
-                target_path,
-                '--reports=no',
-                '--score=no',
-                '--output-format=colorized',
-                '--rcfile=continuous-integration/.pylintrc',
-                capture_stdout=True,
-                raise_error_if_process_fails=False)
-            print(result)
-        except subprocess.CalledProcessError:
-            return False, 'Lint.'
-        return True, 'No lint here!'
+        mypy_path = os.path.join(env.virtual_env_path, 'bin', 'mypy')
+        files = list(env_tools.get_unhidden_ungenerated_python_files(
+            env.destination_directory))
+        result = env_tools.sub_run(
+            mypy_path,
+            '--config-file={}'.format(os.path.join(
+                env.destination_directory,
+                'continuous-integration',
+                'mypy.ini')),
+            *files,
+            capture_stdout=True,
+            raise_error_if_process_fails=False)
+
+        output = result[0]
+        passed = result[2] == 0
+        if passed:
+            return True, 'Types look good!'
+        issue_count = len([e for e in output.split('\n') if e.strip()])
+
+        return False, '{} issues'.format(issue_count)

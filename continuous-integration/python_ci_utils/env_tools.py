@@ -15,11 +15,12 @@
 import asyncio
 import subprocess
 import sys
-from typing import List, Optional, TypeVar, Tuple
+from typing import List, Optional, TypeVar, Tuple, Iterable, Union
 
 import os
-import requests
 import shutil
+
+import requests
 
 BOLD = 1
 DIM = 2
@@ -33,7 +34,7 @@ class GithubRepository:
     def __init__(self,
                  organization: str,
                  name: str,
-                 access_token: Optional[str]):
+                 access_token: Optional[str]) -> None:
         self.organization = organization
         self.name = name
         self.access_token = access_token
@@ -49,7 +50,7 @@ class PreparedEnv:
                  actual_commit_id: str,
                  compare_commit_id: str,
                  destination_directory: Optional[str],
-                 virtual_env_path: Optional[str]):
+                 virtual_env_path: Optional[str]) -> None:
         self.repository = repository
         self.actual_commit_id = actual_commit_id
         self.compare_commit_id = compare_commit_id
@@ -254,6 +255,26 @@ def get_changed_files(env: PreparedEnv) -> List[str]:
     return [e for e in out.split('\n') if e.strip()]
 
 
+def get_unhidden_ungenerated_python_files(directory) -> Iterable[str]:
+    """Iterates through relevant python files within the given directory.
+
+    Args:
+        directory: The top-level directory to explore.
+
+    Yields:
+        File paths.
+    """
+    for dirpath, dirnames, filenames in os.walk(directory, topdown=True):
+        if os.path.split(dirpath)[-1].startswith('.'):
+            dirnames.clear()
+            continue
+
+        for filename in filenames:
+            path = os.path.join(dirpath, filename)
+            if path.endswith('.py') and not path.endswith('_pb2.py'):
+                yield path
+
+
 def github_set_status_indicator(repository_organization: str,
                                 repository_name: str,
                                 repository_access_token: str,
@@ -332,12 +353,12 @@ def git_fetch_for_comparison(remote: str,
     actual_id = None
     base_id = None
     for depth in [10, 100, 1000, None]:
-        depth = '' if depth is None else '--depth={}'.format(depth)
+        depth_str = '' if depth is None else '--depth={}'.format(depth)
 
-        sub_run('git', 'fetch', remote, actual_branch, depth)
+        sub_run('git', 'fetch', remote, actual_branch, depth_str)
         actual_id = output_of('git', 'rev-parse', 'FETCH_HEAD')
 
-        sub_run('git', 'fetch', remote, compare_branch, depth)
+        sub_run('git', 'fetch', remote, compare_branch, depth_str)
         base_id = output_of('git', 'rev-parse', 'FETCH_HEAD')
 
         try:
@@ -435,7 +456,7 @@ def prepare_temporary_test_environment(
         destination_directory: str,
         repository: GithubRepository,
         pull_request_number: Optional[int],
-        env_name: str = 'test_virtualenv',
+        env_name: str = '.test_virtualenv',
         python_path: str = "/usr/bin/python3.5") -> PreparedEnv:
     """Prepares a temporary test environment at the (existing empty) directory.
 
@@ -479,7 +500,7 @@ def prepare_temporary_test_environment(
 def derive_temporary_python2_environment(
         destination_directory: str,
         python3_environment: PreparedEnv,
-        env_name: str = 'test_virtualenv_py2',
+        env_name: str = '.test_virtualenv_py2',
         python_path: str = "/usr/bin/python2.7") -> PreparedEnv:
 
     shutil.rmtree(destination_directory)

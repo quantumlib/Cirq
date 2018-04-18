@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import subprocess
+
+import pytest
+
 from python_ci_utils import env_tools
 
 

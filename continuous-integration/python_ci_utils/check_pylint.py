@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import subprocess
 
 import os.path
@@ -27,20 +28,26 @@ class LintCheck(check.Check):
 
     def perform_check(self, env: env_tools.PreparedEnv):
         pylint_path = os.path.join(env.virtual_env_path, 'bin', 'pylint')
-        target_path = os.path.join(env.destination_directory, 'cirq')
-        try:
-            result = env_tools.sub_run(
-                pylint_path,
-                target_path,
-                '--reports=no',
-                '--score=no',
-                '--output-format=colorized',
-                '--rcfile={}'.format(os.path.join(env.destination_directory,
-                                                  'continuous-integration',
-                                                  '.pylintrc')),
-                capture_stdout=True,
-                raise_error_if_process_fails=False)
-            print(result)
-        except subprocess.CalledProcessError:
-            return False, 'Lint.'
-        return True, 'No lint here!'
+        files = list(env_tools.get_unhidden_ungenerated_python_files(
+            env.destination_directory))
+        result = env_tools.sub_run(
+            pylint_path,
+            '--reports=no',
+            '--score=no',
+            '--output-format=colorized',
+            '--rcfile={}'.format(os.path.join(env.destination_directory,
+                                              'continuous-integration',
+                                              '.pylintrc')),
+            *files,
+            capture_stdout=True,
+            raise_error_if_process_fails=False)
+
+        output = result[0]
+        passed = result[2] == 0
+        if passed:
+            return True, 'No lint here!'
+        file_line_count = len(re.findall(r'\*' * 10, output))
+        total_line_count = len([e for e in output.split('\n') if e.strip()])
+        issue_count = total_line_count - file_line_count
+
+        return False, '{} issues'.format(issue_count)

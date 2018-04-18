@@ -42,9 +42,10 @@ def main():
                 access_token=access_token),
             pull_request_number=pull_request_number)
 
-        env2 = env_tools.derive_temporary_python2_environment(
-            destination_directory=test_dir_2,
-            python3_environment=env)
+        env2 = env
+        # env2 = env_tools.derive_temporary_python2_environment(
+        #     destination_directory=test_dir_2,
+        #     python3_environment=env)
 
         results = [(check.context(), check.run_and_report(env, env2))
                    for check in checks]
