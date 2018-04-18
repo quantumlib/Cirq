@@ -35,9 +35,18 @@ def test_no_thread_pool_no_chunking():
         pool.map(lambda x: x + 1, range(10), chunksize=1)
 
 
-def test_uses_threadless_pool_for_few_qubits():
+def test_uses_threadless_pool():
+    # Fewer qubits than min_qubits_before_shard, uses ThreadlessPool.
     with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=4) as s:
         assert isinstance(s._pool, xmon_stepper.ThreadlessPool)
+    # No minimum, but num_prefix_qubits is 0, uses ThreadlessPool.
+    with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=0,
+                          num_prefix_qubits=0) as s:
+        assert isinstance(s._pool, xmon_stepper.ThreadlessPool)
+    # No minimum, but num_prefix_qubits is 1, does not use ThreadlessPool.
+    with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=0,
+                              num_prefix_qubits=1) as s:
+        assert not isinstance(s._pool, xmon_stepper.ThreadlessPool)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))

@@ -66,7 +66,7 @@ class Stepper(object):
                  num_qubits: int,
                  num_prefix_qubits: int = None,
                  initial_state: Union[int, np.ndarray] = 0,
-                 min_qubits_before_shard: int = 13) -> None:
+                 min_qubits_before_shard: int = 18) -> None:
         """Construct a new Simulator.
 
         Args:
@@ -83,7 +83,7 @@ class Stepper(object):
             correct size, normalized (an L2 norm of 1), and have dtype of
             np.complex64.
           min_qubits_before_shard: Sharding will be done only for this number
-            of qubits or more. The default is 13.
+            of qubits or more. The default is 18.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -178,7 +178,7 @@ class Stepper(object):
 
     def __enter__(self):
         self._pool = (multiprocessing.Pool(processes=self._num_shards)
-                      if self._num_prefix_qubits > 1 else ThreadlessPool())
+                      if self._num_prefix_qubits > 0 else ThreadlessPool())
         self._pool_open = True
         return self
 
@@ -564,4 +564,3 @@ class ThreadlessPool(object):
 
     def join(self):
         pass
-
