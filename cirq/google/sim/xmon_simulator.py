@@ -379,7 +379,8 @@ def simulator_iterator(
                  min_qubits_before_shard=options.min_qubits_before_shard
                  ) as stepper:
         for moment in circuit.moments:
-            measurements = defaultdict(list)  # type: Dict[str, List[bool]]
+            measurements = defaultdict(
+                list)  # type: Dict[str, List[List[bool]]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
                 gate = op.gate
@@ -412,10 +413,10 @@ def simulator_iterator(
                             result = [not x for x in result]
                         # Make list of lists.
                         temp_measurements.extend([result])
-                        # measurements[gate.key].extend([result])
                     # Measurements are ordered by qubit then by repetition,
-                    # reverse this and flatten.
-                    reordered = list(map(list, zip(*temp_measurements)))
+                    # reverse this.
+                    reordered = list(map(list, zip(
+                        *temp_measurements)))  # type: List[List[bool]]
                     measurements[gate.key] = reordered
                 else:
                     raise TypeError('{!r} is not supported by the '
@@ -432,15 +433,16 @@ class StepResult:
             of this qubit for a canonical ordering. This canonical ordering is
             used to define the state (see the state() method).
         measurements: A dictionary from measurement gate key to measurement
-            results. The results are ordered by the qubits that the measurement
-            operates on, and then ordered by number of measurement_repetitions.
+            results. The results are ordered by the number of
+            measurement_repetitions and then by the qubits that the measurement
+            operates on.
     """
 
     def __init__(
             self,
             stepper: Stepper,
             qubit_map: Dict,
-            measurements: Dict[str, List[bool]]) -> None:
+            measurements: Dict[str, List[List[bool]]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or defaultdict(list)
         self._stepper = stepper
