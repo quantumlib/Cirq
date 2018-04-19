@@ -33,7 +33,8 @@ class Circuit(object):
       moments: A list of the Moments of the circuit.
     """
 
-    def __init__(self, moments: Iterable[Moment] = (), precision: int = 3) -> None:
+    def __init__(self, moments: Iterable[Moment] = (),
+                 precision: int = 3) -> None:
         """Initializes a circuit.
 
         Args:
@@ -473,7 +474,8 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, self.precision)
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram,
+                                    self.precision)
 
         w = diagram.width()
         for i in qubit_map.values():
