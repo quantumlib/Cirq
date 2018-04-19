@@ -15,7 +15,7 @@
 import asyncio
 import subprocess
 import sys
-from typing import List, Optional, TypeVar, Tuple, Iterable, Union, Callable
+from typing import List, Optional, TypeVar, Tuple, Iterable, Callable
 
 import os
 import shutil
