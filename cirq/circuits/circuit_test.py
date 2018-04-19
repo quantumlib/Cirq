@@ -100,6 +100,50 @@ def test_append_multiple():
     ])
 
 
+def test_slice():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = Circuit([
+        Moment([ops.H(a), ops.H(b)]),
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.H(b)]),
+    ])
+    assert c[0:1] == Circuit([Moment([ops.H(a), ops.H(b)]),])
+    assert c[::2] == Circuit([Moment([ops.H(a), ops.H(b)]), Moment([ops.H(b)])])
+    assert c[0:1:2] == Circuit([Moment([ops.H(a), ops.H(b)]),])
+    assert c[1:3:] == Circuit([Moment([ops.CZ(a, b)]), Moment([ops.H(b)]),])
+    assert c[::-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)]),
+                               Moment([ops.H(a), ops.H(b)])])
+    assert c[3:0:-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)])])
+    assert c[0:2:-1] == Circuit()
+
+
+def test_container_methods():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = Circuit([
+        Moment([ops.H(a), ops.H(b)]),
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.H(b)]),
+    ])
+    assert list(c) == list(c.moments)
+    # __iter__
+    assert list(iter(c)) == list(c.moments)
+    # __reversed__ for free.
+    assert list(reversed(c)) == list(reversed(c.moments))
+    # __contains__ for free.
+    assert Moment([ops.H(b)]) in c
+
+    assert len(c) == 3
+
+
+def test_bad_index():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = Circuit([Moment([ops.H(a), ops.H(b)]),])
+    with pytest.raises(TypeError):
+        _ = c['string']
+
 def test_append_strategies():
     a = ops.QubitId()
     b = ops.QubitId()
