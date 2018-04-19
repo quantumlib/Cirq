@@ -15,7 +15,7 @@
 import asyncio
 import subprocess
 import sys
-from typing import List, Optional, TypeVar, Tuple, Iterable, Union
+from typing import List, Optional, TypeVar, Tuple, Iterable, Union, Callable
 
 import os
 import shutil
@@ -457,7 +457,9 @@ def prepare_temporary_test_environment(
         repository: GithubRepository,
         pull_request_number: Optional[int],
         env_name: str = '.test_virtualenv',
-        python_path: str = "/usr/bin/python3.5") -> PreparedEnv:
+        python_path: str = '/usr/bin/python3.5',
+        commit_ids_known_callback: Callable[[PreparedEnv], None] = None
+) -> PreparedEnv:
     """Prepares a temporary test environment at the (existing empty) directory.
 
     Args:
@@ -471,6 +473,8 @@ def prepare_temporary_test_environment(
         env_name: The name to use for the virtual environment.
         python_path: Location of the python binary to use within the
             virtual environment.
+        commit_ids_known_callback: A method to call when the actual commit id
+            being tested is known, before the virtual environment is ready.
 
     Returns:
         Commit ids corresponding to content to test/compare.
@@ -484,6 +488,9 @@ def prepare_temporary_test_environment(
     else:
         env = fetch_local_files(
             destination_directory=destination_directory)
+
+    if commit_ids_known_callback is not None:
+        commit_ids_known_callback(env)
 
     # Create virtual environment.
     env_path = os.path.join(env.destination_directory, env_name)

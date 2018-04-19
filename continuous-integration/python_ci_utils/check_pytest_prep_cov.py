@@ -29,6 +29,9 @@ class TestAndPrepareCoverageCheck(check.Check):
     def context(self):
         return 'pytest by maintainer'
 
+    def needs_python2_env(self):
+        return True
+
     def perform_check_py2(self, env: env_tools.PreparedEnv):
         return TestAndPrepareCoverageCheck._common_run_helper(env,
                                                               coverage=False)

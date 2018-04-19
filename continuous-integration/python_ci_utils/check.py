@@ -62,9 +62,12 @@ class Check(metaclass=abc.ABCMeta):
             return result1
         return result2
 
+    def needs_python2_env(self):
+        return False
+
     def run_and_report(self,
                        env: env_tools.PreparedEnv,
-                       env_py2: env_tools.PreparedEnv
+                       env_py2: Optional[env_tools.PreparedEnv]
                        ) -> Tuple[bool, str, Optional[Exception]]:
         """Evaluates this check in python 3 and 2.7, and reports to github.
 
@@ -88,9 +91,15 @@ class Check(metaclass=abc.ABCMeta):
         try:
             os.chdir(env.destination_directory)
             result1 = self.perform_check(env)
-            os.chdir(env_py2.destination_directory)
-            result2 = self.perform_check_py2(env_py2)
+
+            if env_py2 is not None:
+                os.chdir(env_py2.destination_directory)
+                result2 = self.perform_check_py2(env_py2)
+            else:
+                result2 = result1
+
             success, message = Check._merge_result(result1, result2)
+
         except Exception as ex:
             env.report_status('error', 'Unexpected error.', self.context())
             return False, 'Unexpected error.', ex

@@ -25,14 +25,17 @@ REPO_ORGANIZATION = 'quantumlib'
 REPO_NAME = 'cirq'
 
 
+def report_pending(env, checks):
+    for check in checks:
+        env.report_status('pending', 'Preparing...', check.context())
+
+
 def main():
     pull_request_number = None if len(sys.argv) < 2 else int(sys.argv[1])
     checks = all_checks.ALL_CHECKS
     access_token = None if len(sys.argv) < 3 else int(sys.argv[2])
     if access_token is None:
         access_token = os.getenv('CIRQ_GITHUB_ACCESS_TOKEN')
-
-    # pull_request_number = 222
 
     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(REPO_NAME))
     test_dir_2 = tempfile.mkdtemp(prefix='test-{}-py2-'.format(REPO_NAME))
@@ -43,14 +46,20 @@ def main():
                 organization=REPO_ORGANIZATION,
                 name=REPO_NAME,
                 access_token=access_token),
-            pull_request_number=pull_request_number)
+            pull_request_number=pull_request_number,
+            commit_ids_known_callback=lambda env: report_pending(env, checks))
 
-        env2 = env_tools.derive_temporary_python2_environment(
-            destination_directory=test_dir_2,
-            python3_environment=env)
+        env2 = None
 
-        results = [(check.context(), check.run_and_report(env, env2))
-                   for check in checks]
+        results = []
+        for check in checks:
+            if check.needs_python2_env() and env2 is None:
+                env2 = env_tools.derive_temporary_python2_environment(
+                    destination_directory=test_dir_2,
+                    python3_environment=env)
+            result = check.context(), check.run_and_report(env, env2)
+            results.append(result)
+
     finally:
         shutil.rmtree(test_dir)
         shutil.rmtree(test_dir_2)
