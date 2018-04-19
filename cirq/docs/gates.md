@@ -100,14 +100,15 @@ One thing about ``CompositeGates`` is that sometimes you want
 to modify the decomposition.  Algorithms that allow this can
 take an ``Extension`` which allows for overriding the 
 ``CompositeGate``.  An example of this is for in 
-``Simulators`` where an optional 
+``Simulators`` where an optional extension can be supplied
+that can be used to override the CompositeGate.
 
-#### AsciiDiagramableGate
+#### TextDiagrammableGate
 
-Ascii diagrams of ``Circuits`` are actually quite useful for 
-visualizing the moment structure of a ``Circuit``. In order
-for this to display in a compact form, it is best practice
-to implement his feature.
+Text diagrams of ``Circuits`` are actually quite useful for
+visualizing the moment structure of a ``Circuit``. Gates that
+implement this feature can specify compact representations to
+use in the diagram (e.g. '×' instead of 'SWAP').
 
 ### XmonGates
 
@@ -135,7 +136,7 @@ out of the circuit (TODO: explain this in more detail)
 
 **Exp11Gate** This is a two qubit gate and is a rotation
 about the ``|11><11|`` projector.  It takes a single parameter 
-``half_turns`` and is the gate ``exp(i pi 11 half_turns)``.
+``half_turns`` and is the gate ``exp(i pi |11><11| half_turns)``.
 
 **XmonMeasurementGate** This is a single qubit measurement
 in the computational basis. 

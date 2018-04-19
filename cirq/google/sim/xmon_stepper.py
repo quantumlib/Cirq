@@ -66,7 +66,7 @@ class Stepper(object):
                  num_qubits: int,
                  num_prefix_qubits: int = None,
                  initial_state: Union[int, np.ndarray] = 0,
-                 min_qubits_before_shard: int = 13) -> None:
+                 min_qubits_before_shard: int = 18) -> None:
         """Construct a new Simulator.
 
         Args:
@@ -83,7 +83,7 @@ class Stepper(object):
             correct size, normalized (an L2 norm of 1), and have dtype of
             np.complex64.
           min_qubits_before_shard: Sharding will be done only for this number
-            of qubits or more. The default is 13.
+            of qubits or more. The default is 18.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -178,7 +178,7 @@ class Stepper(object):
 
     def __enter__(self):
         self._pool = (multiprocessing.Pool(processes=self._num_shards)
-                      if self._num_prefix_qubits > 1 else ThreadlessPool())
+                      if self._num_prefix_qubits > 0 else ThreadlessPool())
         self._pool_open = True
         return self
 
@@ -312,6 +312,13 @@ class Stepper(object):
         else:
             # W gate is within a shard.
             self._pool.map(_w_within_shard, args)
+
+        # Normalize after every w.
+        norm = np.sum(self._pool.map(_norm, args))
+        args = self._shard_num_args({
+            'norm': norm
+        })
+        self._pool.map(_renorm, args)
 
     def simulate_measurement(self, index: int) -> bool:
         """Simulates a single qubit measurement in the computational basis.
@@ -507,6 +514,19 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
     return norm * norm
 
 
+def _norm(args: Dict[str, Any]) -> float:
+    """Returns the norm for each state shard."""
+    state = _state_shard(args)
+    return np.dot(state, np.conjugate(state))
+
+
+def _renorm(args: Dict[str, Any]):
+    """Renormalizes the state using the norm arg."""
+    state = _state_shard(args)
+    # If our gate is so bad that we have norm of zero, we have bigger problems.
+    state /= args['norm']
+
+
 def _collapse_state(args: Dict[str, Any]):
     """Projects state shards onto the appropriate post measurement state.
 
@@ -544,4 +564,3 @@ class ThreadlessPool(object):
 
     def join(self):
         pass
-

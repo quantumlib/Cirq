@@ -24,6 +24,7 @@ import pytest
 
 from cirq.circuits import Circuit
 from cirq.devices import UnconstrainedDevice
+from cirq.extension import Extensions
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
@@ -115,6 +116,13 @@ def test_run(scheduler):
     simulator = xmon_simulator.Simulator()
     result = run(simulator, circuit, scheduler)
     assert result.measurements == {'a': [False], 'b': [False]}
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_empty_circuit(scheduler):
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, Circuit(), scheduler)
+    assert len(result.measurements) == 0
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -410,6 +418,27 @@ def test_unsupported_gate_composite(scheduler):
     simulator = xmon_simulator.Simulator()
     with pytest.raises(TypeError, msg="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_extensions(scheduler):
+    # We test that an extension is being applied, by created an incorrect
+    # gate with an extension.
+
+    class WrongH(CompositeGate):
+        def default_decompose(
+            self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
+            return X(Q1)
+
+    extensions = Extensions(desired_to_actual_to_wrapper=
+                            {CompositeGate: {H: lambda e: WrongH()}})
+
+    circuit = Circuit()
+    circuit.append([WrongH()(Q1)])
+
+    simulator = xmon_simulator.Simulator()
+    results =  simulator.run(circuit, qubits=[Q1], extensions=extensions)
+    np.testing.assert_almost_equal(results.final_states[0], np.array([0, -1j]))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)

@@ -12,11 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for contributions.
-
-Any contributions not ready for full production can be put in a subdirectory in
-this package.
-"""
-
-from cirq.contrib import jobs
-from cirq.contrib.qcircuit_diagram import circuit_to_latex_using_qcircuit
+"""Define version number here and read it from setup.py automatically"""
+__version__ = "0.2-dev"
