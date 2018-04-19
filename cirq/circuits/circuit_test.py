@@ -687,6 +687,27 @@ def test_to_text_diagram_custom_order():
     """.strip()
 
 
+def test_overly_precise_diagram():
+    # Test default precision of 3
+    qa = ops.NamedQubit('a')
+    c = Circuit([Moment([ops.X(qa)**0.12345678])])
+    diagram = c.to_text_diagram(use_unicode_characters=False)
+    assert diagram.strip() == """
+a: ---X^0.123---
+    """.strip()
+
+
+def test_diagram_custom_precision():
+    # Test default precision of 3
+    qa = ops.NamedQubit('a')
+    c = Circuit([Moment([ops.X(qa)**0.12341234])], precision=5)
+    diagram = c.to_text_diagram(use_unicode_characters=False)
+    assert diagram.strip() == """
+a: ---X^0.12341---
+    """.strip()
+
+
+
 def test_operation_to_unitary_matrix():
     ex = Extensions()
     a = ops.NamedQubit('a')

@@ -33,13 +33,15 @@ class Circuit(object):
       moments: A list of the Moments of the circuit.
     """
 
-    def __init__(self, moments: Iterable[Moment] = ()) -> None:
+    def __init__(self, moments: Iterable[Moment] = (), precision: int = 3) -> None:
         """Initializes a circuit.
 
         Args:
             moments: The initial list of moments defining the circuit.
+            precision: Number of digits to display in text diagram
         """
         self.moments = list(moments)
+        self.precision = precision
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
@@ -471,7 +473,7 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram)
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, self.precision)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -502,7 +504,8 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
 
 
 def _get_operation_text_diagram_exponent(op: ops.Operation,
-                                         ext: Extensions) -> Optional[str]:
+                                         ext: Extensions,
+                                         precision: int) -> Optional[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is None:
         return None
@@ -510,7 +513,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
     if exponent == 1:
         return None
     if isinstance(exponent, float):
-        return repr(exponent)
+      return '{{:.{}}}'.format(precision).format(exponent)
     s = str(exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:
         return '({})'.format(exponent)
@@ -520,7 +523,8 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
                             qubit_map: Dict[QubitId, int],
-                            out_diagram: TextDiagramDrawer):
+                            out_diagram: TextDiagramDrawer,
+                            precision: int):
     if not moment.operations:
         return []
 
@@ -546,7 +550,7 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the first label.
-        exponent = _get_operation_text_diagram_exponent(op, ext)
+        exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
 
