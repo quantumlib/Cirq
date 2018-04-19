@@ -206,6 +206,8 @@ class Simulator:
                         measurements[k].append(np.array(v, dtype=bool))
                 if step_result:
                     final_states.append(step_result.state())
+                else:
+                    final_states.append(initial_state)
             trial_results.append(SimulatorTrialResult(
                 param_resolver,
                 repetitions,
