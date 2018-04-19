@@ -20,6 +20,7 @@ import re
 from python_ci_utils import env_tools
 
 IGNORED_FILE_PATTERNS = [
+    r'^continuous-integration/python_ci_utils/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
 ]
 IGNORED_LINE_PATTERNS = [

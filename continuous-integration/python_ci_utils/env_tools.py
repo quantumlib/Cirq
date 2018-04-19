@@ -251,6 +251,7 @@ def get_changed_files(env: PreparedEnv) -> List[str]:
         '--name-only',
         env.compare_commit_id,
         env.actual_commit_id,
+        silent=True,
         cwd=env.destination_directory)
     return [e for e in out.split('\n') if e.strip()]
 

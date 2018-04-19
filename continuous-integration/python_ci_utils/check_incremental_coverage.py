@@ -28,4 +28,4 @@ class IncrementalCoverageCheck(check.Check):
         uncovered_count = incremental_coverage.check_for_uncovered_lines(env)
         if not uncovered_count:
             return True, 'All covered!'
-        return False, '{} changed uncovered lines'.format(uncovered_count)
+        return False, '{} touched uncovered lines'.format(uncovered_count)
