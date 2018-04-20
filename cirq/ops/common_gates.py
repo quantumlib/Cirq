@@ -39,12 +39,12 @@ def _canonicalize_half_turns(
 class TurnGate(gate_features.BoundedEffectGate,
                gate_features.TextDiagrammableGate,
                PotentialImplementation):
-    """A gate with exactly two eigenvalues within a two-dimensional subspace.
+    """A gate with two active eigenvalues.
 
-    Extrapolating the gate phases one eigenspace relative to the other, with
-    half_turns=1 corresponding to the point where the relative phase factor is
-    exactly -1. Outside of this two-dimensional space, the gate acts as the
-    identity.
+    TurnGates have a direct sum decomposition I \oplus U, where I is the
+    identity and U has exactly two eigenvalues. Extrapolating the gate phases
+    one eigenspace of U relative to the other, with half_turns=1 corresponding
+    to the point where the relative phase factor is exactly -1.
     """
 
     def __init__(self,
