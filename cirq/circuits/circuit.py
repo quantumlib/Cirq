@@ -33,8 +33,7 @@ class Circuit(object):
       moments: A list of the Moments of the circuit.
     """
 
-    def __init__(self, moments: Iterable[Moment] = (),
-                 precision: int = 3) -> None:
+    def __init__(self, moments: Iterable[Moment] = ()) -> None:
         """Initializes a circuit.
 
         Args:
@@ -42,7 +41,6 @@ class Circuit(object):
             precision: Number of digits to display in text diagram
         """
         self.moments = list(moments)
-        self.precision = precision
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
@@ -401,6 +399,7 @@ class Circuit(object):
             ext: Extensions = None,
             use_unicode_characters: bool = True,
             transpose: bool = False,
+            precision: int = 4,
             qubit_order_key: Callable[[QubitId], Any] = None) -> str:
         """Returns text containing a diagram describing the circuit.
 
@@ -423,6 +422,7 @@ class Circuit(object):
         diagram = self.to_text_diagram_drawer(
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
+            precision,
             qubit_order_key=qubit_order_key)
 
         if transpose:
@@ -438,6 +438,7 @@ class Circuit(object):
             self,
             ext: Extensions = Extensions(),
             qubit_name_suffix: str = '',
+            precision: int = 4,
             qubit_order_key: Callable[[QubitId], Any] = None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
@@ -474,8 +475,7 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram,
-                                    self.precision)
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, precision)
 
         w = diagram.width()
         for i in qubit_map.values():
