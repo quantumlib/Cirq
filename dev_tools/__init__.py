@@ -12,21 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import find_packages, setup
-
-# This reads the __version__ variable from cirq/_version.py
-exec(open('cirq/_version.py').read())
-
-# Read in requirements.txt
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
-
-setup(
-    name='cirq',
-    version=__version__,
-    url='http://github.com/quantumlib/cirq',
-    author='The Cirq Developers',
-    install_requires=requirements,
-    license='Apache 2',
-    packages=find_packages(),
-    package_data={'cirq.api.google.v1': ['*.proto']})
+"""Tooling useful when developing (e.g. scripts to run tests)."""
