@@ -41,7 +41,7 @@ class TurnGate(gate_features.BoundedEffectGate,
                PotentialImplementation):
     """A gate with two active eigenvalues.
 
-    TurnGates have a direct sum decomposition I \oplus U, where I is the
+    TurnGates have a direct sum decomposition I ⊕ U, where I is the
     identity and U has exactly two eigenvalues. Extrapolating the gate phases
     one eigenspace of U relative to the other, with half_turns=1 corresponding
     to the point where the relative phase factor is exactly -1.
