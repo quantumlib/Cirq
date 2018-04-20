@@ -18,11 +18,6 @@ This class should not be used directly, see instead Simulator in the
 xmon_simulator class.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import math
 import multiprocessing
 
@@ -156,18 +151,9 @@ class Stepper(object):
 
     def _init_state(self, initial_state: Union[int, np.ndarray]):
         """Initializes a the shard wavefunction and sets the initial state."""
-        if isinstance(initial_state, int):
-            state = np.zeros((self._num_shards, self._shard_size),
-                             dtype=np.complex64)
-            shard_num = initial_state // self._shard_size
-            state[shard_num][initial_state % self._shard_size] = 1.0
-        elif isinstance(initial_state, np.ndarray):
-            self._check_state(initial_state)
-            state = np.resize(initial_state,
-                              (self._num_shards, self._shard_size))
-        else:
-            raise TypeError('Initial_state is not an int or np.ndarray.')
-
+        state = np.reshape(
+            decode_initial_state(initial_state, self._num_qubits),
+            (self._num_shards, self._shard_size))
         state_handle = mem_manager.SharedMemManager.create_array(
             state.view(dtype=np.float32))
         self._shared_mem_dict['state_handle'] = state_handle
@@ -245,7 +231,7 @@ class Stepper(object):
             self._pool.map(_reset_state,
                            self._shard_num_args({'reset_state': reset_state}))
         elif isinstance(reset_state, np.ndarray):
-            self._check_state(reset_state)
+            check_state(reset_state, self._num_qubits)
             args = []
             for kwargs in self._shard_num_args():
                 shard_num = kwargs['shard_num']
@@ -343,22 +329,45 @@ class Stepper(object):
         self._pool.map(_collapse_state, args)
         return result
 
-    def _check_state(self, state: np.ndarray):
-        """Validates that the given state is a valid wave function."""
-        if state.size != 1 << self._num_qubits:
-            raise ValueError(
-                'state state has incorrect size. Expected %s but was %s.' %
-                (1 << self._num_qubits, state.size))
-        if state.dtype != np.complex64:
-            raise ValueError(
-                'Reset state has invalid dtype. Expected %s but was %s' % (
-                    np.complex64, state.dtype))
-        norm = np.sum(np.abs(state) ** 2)
-        if not np.isclose(norm, 1):
-            raise ValueError(
-                'Initial state is not normalized instead had norm %s' % norm
-            )
 
+def decode_initial_state(initial_state: Union[int, np.ndarray],
+    num_qubits: int) -> np.ndarray:
+    """Verifies the initial_state is valid and converts it to ndarray form."""
+    if isinstance(initial_state, np.ndarray):
+        if len(initial_state) != 2 ** num_qubits:
+            raise ValueError(
+                'initial state was of size {} but expected state for {} qubits'
+                    .format(len(initial_state), num_qubits))
+        state = initial_state
+    elif isinstance(initial_state, int):
+        if initial_state < 0:
+            raise ValueError('initial_state must be positive')
+        elif initial_state >= 2 ** num_qubits:
+            raise ValueError(
+                'initial state was {} but expected state for {} qubits'.format(
+                    initial_state, num_qubits))
+        else:
+            state = np.zeros(2 ** num_qubits, dtype=np.complex64)
+            state[initial_state] = 1.0
+    else:
+        raise TypeError('initial_state was not of type int or ndarray')
+    check_state(state, num_qubits)
+    return state
+
+
+def check_state(state: np.ndarray, num_qubits: int):
+    """Validates that the given state is a valid wave function."""
+    if state.size != 1 << num_qubits:
+      raise ValueError(
+          'State has incorrect size. Expected {} but was {}.'.format(
+            1 << num_qubits, state.size))
+    if state.dtype != np.complex64:
+        raise ValueError(
+            'State has invalid dtype. Expected {} but was {}'.format(
+                np.complex64, state.dtype))
+    norm = np.sum(np.abs(state) ** 2)
+    if not np.isclose(norm, 1):
+        raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
 def _state_shard(args: Dict[str, Any]) -> np.ndarray:
