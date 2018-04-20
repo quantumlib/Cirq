@@ -399,7 +399,7 @@ class Circuit(object):
             ext: Extensions = None,
             use_unicode_characters: bool = True,
             transpose: bool = False,
-            precision: int = 4,
+            precision: int = 3,
             qubit_order_key: Callable[[QubitId], Any] = None) -> str:
         """Returns text containing a diagram describing the circuit.
 
@@ -422,7 +422,7 @@ class Circuit(object):
         diagram = self.to_text_diagram_drawer(
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
-            precision,
+            precision = precision,
             qubit_order_key=qubit_order_key)
 
         if transpose:
@@ -438,7 +438,7 @@ class Circuit(object):
             self,
             ext: Extensions = Extensions(),
             qubit_name_suffix: str = '',
-            precision: int = 4,
+            precision: int = 3,
             qubit_order_key: Callable[[QubitId], Any] = None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
