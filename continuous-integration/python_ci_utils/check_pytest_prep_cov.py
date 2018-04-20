@@ -17,6 +17,7 @@ import re
 
 import os.path
 
+from dev_tools import shell_tools
 from python_ci_utils import env_tools, check
 
 
@@ -45,13 +46,13 @@ class TestAndPrepareCoverageCheck(check.Check):
                            coverage: bool) -> Tuple[bool, str]:
         pytest_path = os.path.join(env.virtual_env_path, 'bin', 'pytest')
         target_path = os.path.join(env.destination_directory, 'cirq')
-        result = env_tools.sub_run(
+        result = shell_tools.run_cmd(
             pytest_path,
             target_path,
             '--cov' if coverage else '',
             '--cov-report=annotate' if coverage else '',
-            capture_stdout=True,
-            raise_error_if_process_fails=False)
+            out=shell_tools.TeeCapture(),
+            raise_on_fail=False)
 
         output = result[0]
         passed = result[2] == 0

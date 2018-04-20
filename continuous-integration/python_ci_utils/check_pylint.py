@@ -17,6 +17,7 @@ import re
 import os.path
 
 from python_ci_utils import env_tools, check
+from dev_tools import shell_tools
 
 
 class LintCheck(check.Check):
@@ -29,7 +30,7 @@ class LintCheck(check.Check):
         pylint_path = os.path.join(env.virtual_env_path, 'bin', 'pylint')
         files = list(env_tools.get_unhidden_ungenerated_python_files(
             env.destination_directory))
-        result = env_tools.sub_run(
+        result = shell_tools.run_cmd(
             pylint_path,
             '--reports=no',
             '--score=no',
@@ -38,8 +39,8 @@ class LintCheck(check.Check):
                                               'continuous-integration',
                                               '.pylintrc')),
             *files,
-            capture_stdout=True,
-            raise_error_if_process_fails=False)
+            out=shell_tools.TeeCapture(),
+            raise_on_fail=False)
 
         output = result[0]
         passed = result[2] == 0

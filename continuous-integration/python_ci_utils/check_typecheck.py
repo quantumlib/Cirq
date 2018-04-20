@@ -14,6 +14,7 @@
 
 import os.path
 
+from dev_tools import shell_tools
 from python_ci_utils import env_tools, check
 
 
@@ -27,15 +28,15 @@ class TypeCheck(check.Check):
         mypy_path = os.path.join(env.virtual_env_path, 'bin', 'mypy')
         files = list(env_tools.get_unhidden_ungenerated_python_files(
             env.destination_directory))
-        result = env_tools.sub_run(
+        result = shell_tools.run_cmd(
             mypy_path,
             '--config-file={}'.format(os.path.join(
                 env.destination_directory,
                 'continuous-integration',
                 'mypy.ini')),
             *files,
-            capture_stdout=True,
-            raise_error_if_process_fails=False)
+            out=shell_tools.TeeCapture(),
+            raise_on_fail=False)
 
         output = result[0]
         passed = result[2] == 0
