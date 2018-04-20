@@ -38,7 +38,6 @@ class Circuit(object):
 
         Args:
             moments: The initial list of moments defining the circuit.
-            precision: Number of digits to display in text diagram
         """
         self.moments = list(moments)
 
@@ -408,6 +407,7 @@ class Circuit(object):
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
+            precision: Number of digits to display in text diagram
             qubit_order_key: Transforms each qubit into a key that determines
                 how the qubits are ordered in the diagram. Qubits with lower
                 keys come first. Defaults to the qubit's __str__, but augmented
