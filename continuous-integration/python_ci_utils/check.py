@@ -87,14 +87,15 @@ class Check(metaclass=abc.ABCMeta):
             check. The caller is responsible for propagating this error
             appropriately.
         """
-        env.report_status('pending', 'Running...', self.context())
+        env.report_status_to_github('pending', 'Running...', self.context())
         try:
             os.chdir(env.destination_directory)
             result1 = self.perform_check(env)
 
             if env_py2 is not None and result1[0]:
-                env.report_status('pending',
-                                  'Running (py2)...', self.context())
+                env.report_status_to_github('pending',
+                                            'Running (py2)...',
+                                            self.context())
                 os.chdir(env_py2.destination_directory)
                 result2 = self.perform_check_py2(env_py2)
             else:
@@ -103,10 +104,12 @@ class Check(metaclass=abc.ABCMeta):
             success, message = Check._merge_result(result1, result2)
 
         except Exception as ex:
-            env.report_status('error', 'Unexpected error.', self.context())
+            env.report_status_to_github('error',
+                                        'Unexpected error.',
+                                        self.context())
             return False, 'Unexpected error.', ex
 
-        env.report_status(
+        env.report_status_to_github(
             'success' if success else 'failure',
             message,
             self.context())

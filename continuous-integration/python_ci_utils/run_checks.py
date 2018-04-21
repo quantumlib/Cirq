@@ -27,7 +27,7 @@ REPO_NAME = 'cirq'
 
 def report_pending(env, checks):
     for check in checks:
-        env.report_status('pending', 'Preparing...', check.context())
+        env.report_status_to_github('pending', 'Preparing...', check.context())
 
 
 def main():

@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import subprocess
 import sys
 from typing import List, Optional, TypeVar, Iterable, Callable
 
 import os
 import shutil
 
-import requests
-from dev_tools import shell_tools
+from dev_tools import shell_tools, git_env_tools
+from dev_tools.github_repository import GithubRepository
+from dev_tools.prepared_env import PreparedEnv
 
 BOLD = 1
 DIM = 2
@@ -28,83 +28,6 @@ RED = 31
 GREEN = 32
 YELLOW = 33
 TResult = TypeVar('TResult')
-
-
-class GithubRepository:
-    def __init__(self,
-                 organization: str,
-                 name: str,
-                 access_token: Optional[str]) -> None:
-        self.organization = organization
-        self.name = name
-        self.access_token = access_token
-
-    def as_remote(self) -> str:
-        return 'git@github.com:{}/{}.git'.format(self.organization,
-                                                 self.name)
-
-
-class PreparedEnv:
-    def __init__(self,
-                 repository: Optional[GithubRepository],
-                 actual_commit_id: str,
-                 compare_commit_id: str,
-                 destination_directory: Optional[str],
-                 virtual_env_path: Optional[str]) -> None:
-        self.repository = repository
-        self.actual_commit_id = actual_commit_id
-        self.compare_commit_id = compare_commit_id
-        if self.compare_commit_id == self.actual_commit_id:
-            self.compare_commit_id += '~1'
-
-        self.destination_directory = destination_directory
-        self.virtual_env_path = virtual_env_path
-
-    def report_status(self,
-                      state: str,
-                      description: str,
-                      context: str,
-                      target_url: Optional[str] = None):
-        """Sets a commit status indicator on github, if running from a PR.
-
-        If not running from a PR (i.e. repository is None), then just prints
-        to stderr.
-
-        Args:
-            state: The state of the status indicator.
-                Must be 'error', 'failure', 'pending', or 'success'.
-            description: A summary of why the state is what it is,
-                e.g. '5 lint errors' or 'tests passed!'.
-            context: The name of the status indicator, e.g. 'pytest' or 'lint'.
-            target_url: Optional location where additional details about the
-                status can be found, e.g. an online test results page.
-
-        Raises:
-            ValueError: Not one of the allowed states.
-            IOError: The HTTP post request failed, or the response didn't have
-                a 201 code indicating success in the expected way.
-        """
-
-        print(repr(('report_status',
-                    context,
-                    state,
-                    description,
-                    target_url)), file=sys.stderr)
-
-        if (self.repository is not None and
-                self.repository.access_token is not None):
-            github_set_status_indicator(
-                repository_organization=self.repository.organization,
-                repository_name=self.repository.name,
-                repository_access_token=self.repository.access_token,
-                commit_id=self.actual_commit_id,
-                state=state,
-                description=description,
-                context=context,
-                target_url=target_url)
-        else:
-            print('(no access token; skipped reporting status to github)',
-                  file=sys.stderr)
 
 
 def highlight(text: str, color_code: int, bold: bool=False) -> str:
@@ -131,30 +54,6 @@ def py_files(files: List[str]) -> List[str]:
             if f.endswith('.py') and not f.endswith('_pb2.py')]
 
 
-def get_repo_root() -> str:
-    """Get the root of the current git repository."""
-    return shell_tools.output_of('git', 'rev-parse', '--show-toplevel')
-
-
-def get_changed_files(env: PreparedEnv) -> List[str]:
-    """Get the files changed on one git branch, since diverging from another.
-
-    Args:
-        env: The environment to run in.
-
-    Returns:
-        List[str]: File paths of changed files, relative to the git repo root.
-    """
-    out = shell_tools.output_of(
-        'git',
-        'diff',
-        '--name-only',
-        env.compare_commit_id,
-        env.actual_commit_id,
-        cwd=env.destination_directory)
-    return [e for e in out.split('\n') if e.strip()]
-
-
 def get_unhidden_ungenerated_python_files(directory) -> Iterable[str]:
     """Iterates through relevant python files within the given directory.
 
@@ -173,173 +72,6 @@ def get_unhidden_ungenerated_python_files(directory) -> Iterable[str]:
             path = os.path.join(dirpath, filename)
             if path.endswith('.py') and not path.endswith('_pb2.py'):
                 yield path
-
-
-def github_set_status_indicator(repository_organization: str,
-                                repository_name: str,
-                                repository_access_token: str,
-                                commit_id: str,
-                                state: str,
-                                description: str,
-                                context: str,
-                                target_url: Optional[str] = None) -> None:
-    """Sets a commit status indicator on github.
-
-    Args:
-        repository_organization: The github organization or account that the
-            repository that the commit lives under.
-        repository_name: The name of the github repository (not including
-            the account name) that the commit lives under.
-        repository_access_token: An access token generated by a github account
-            with permission to update commit statuses on the target repository.
-        commit_id: A hash that identities the commit to set a status on.
-        state: The state of the status indicator. Must be 'error', 'failure',
-            'pending', or 'success'.
-        description: A summary of why the state is what it is,
-            e.g. '5 lint errors' or 'tests passed!'.
-        context: The name of the status indicator, e.g. 'pytest' or 'coverage'.
-        target_url: Optional location where additional details about the status
-            can be found, e.g. an online test results page.
-
-    Raises:
-        ValueError: Not one of the allowed states.
-        IOError: The HTTP post request failed, or the response didn't have a
-            201 code indicating success in the expected way.
-    """
-    if state not in ['error', 'failure', 'pending', 'success']:
-        raise ValueError('Unrecognized state: {!r}'.format(state))
-
-    payload = {
-        'state': state,
-        'description': description,
-        'context': context,
-    }
-    if target_url is not None:
-        payload['target_url'] = target_url
-
-    url = ("https://api.github.com/repos/{}/{}/statuses/{}?access_token={}"
-           .format(repository_organization,
-                   repository_name,
-                   commit_id,
-                   repository_access_token))
-
-    response = requests.post(url, json=payload)
-
-    if response.status_code != 201:
-        raise IOError('Request failed. Code: {}. Content: {}.'.format(
-            response.status_code, response.content))
-
-
-def git_fetch_for_comparison(remote: str,
-                             actual_branch: str,
-                             compare_branch: str) -> PreparedEnv:
-    """Fetches two branches including their common ancestor.
-
-    Limits the depth of the fetch to avoid unnecessary work. Scales up the
-    depth exponentially and tries again when the initial guess is not deep
-    enough.
-
-    Args:
-        remote: The location of the remote repository, in a format that the
-            git command will understand.
-        actual_branch: A remote branch or ref to fetch,
-        compare_branch: Another remote branch or ref to fetch,
-
-    Returns:
-        A ComparableCommits containing the commit id of the actual branch and
-        a the id of a commit to compare against (e.g. for when doing incremental
-        checks).
-    """
-    actual_id = None
-    base_id = None
-    for depth in [10, 100, 1000, None]:
-        depth_str = '' if depth is None else '--depth={}'.format(depth)
-
-        shell_tools.run_cmd('git', 'fetch', remote, actual_branch, depth_str)
-        actual_id = shell_tools.output_of('git', 'rev-parse', 'FETCH_HEAD')
-
-        shell_tools.run_cmd('git', 'fetch', remote, compare_branch, depth_str)
-        base_id = shell_tools.output_of('git', 'rev-parse', 'FETCH_HEAD')
-
-        try:
-            common_ancestor_id = shell_tools.output_of(
-                'git',
-                'merge-base',
-                actual_id,
-                base_id)
-            return PreparedEnv(None, actual_id, common_ancestor_id, None, None)
-        except subprocess.CalledProcessError:
-            # No common ancestor. We need to dig deeper.
-            pass
-
-    return PreparedEnv(None, actual_id, base_id, None, None)
-
-
-def fetch_github_pull_request(destination_directory: str,
-                              repository: GithubRepository,
-                              pull_request_number: int) -> PreparedEnv:
-    """Uses content from github to create a dir for testing and comparisons.
-
-    Args:
-        destination_directory: The location to fetch the contents into.
-        repository: The github repository that the commit lives under.
-        pull_request_number: The id of the pull request to clone. If None, then
-            the master branch is cloned instead.
-
-    Returns:
-        Commit ids corresponding to content to test/compare.
-    """
-
-    branch = 'pull/{}/head'.format(pull_request_number)
-    os.chdir(destination_directory)
-    print('chdir', destination_directory, file=sys.stderr)
-
-    shell_tools.run_cmd('git', 'init', out=sys.stderr)
-    result = git_fetch_for_comparison(remote=repository.as_remote(),
-                                      actual_branch=branch,
-                                      compare_branch='master')
-    shell_tools.run_cmd(
-        'git', 'branch', 'compare_commit', result.compare_commit_id)
-    shell_tools.run_cmd(
-        'git', 'checkout', '-b', 'actual_commit', result.actual_commit_id)
-    return PreparedEnv(repository=repository,
-                       actual_commit_id=result.actual_commit_id,
-                       compare_commit_id=result.compare_commit_id,
-                       destination_directory=destination_directory,
-                       virtual_env_path=None)
-
-
-def fetch_local_files(destination_directory: str) -> PreparedEnv:
-    """Uses local files to create a directory for testing and comparisons.
-
-    Args:
-        destination_directory: The directory where the copied files should go.
-
-    Returns:
-        Commit ids corresponding to content to test/compare.
-    """
-    shutil.rmtree(destination_directory)
-    shutil.copytree(get_repo_root(), destination_directory)
-    os.chdir(destination_directory)
-    print('chdir', destination_directory, file=sys.stderr)
-
-    shell_tools.run_cmd(
-        'git',
-        'commit',
-        '-a',
-        '-m', 'working changes',
-        '--allow-empty',
-        out=sys.stderr)
-    shell_tools.run_shell(r'find | grep \.pyc$ | xargs rm -f')
-    shell_tools.run_shell('find | grep __pycache__ | xargs rmdir')
-    commit_id = shell_tools.output_of('git', 'rev-parse', 'HEAD')
-    compare_id = shell_tools.output_of(
-        'git', 'merge-base', commit_id, 'master')
-    return PreparedEnv(repository=None,
-                       actual_commit_id=commit_id,
-                       compare_commit_id=compare_id,
-                       destination_directory=destination_directory,
-                       virtual_env_path=None)
 
 
 def create_virtual_env(python_path, env_path):
@@ -379,12 +111,12 @@ def prepare_temporary_test_environment(
     """
     # Fetch content.
     if pull_request_number is not None:
-        env = fetch_github_pull_request(
+        env = git_env_tools.fetch_github_pull_request(
             destination_directory=destination_directory,
             repository=repository,
             pull_request_number=pull_request_number)
     else:
-        env = fetch_local_files(
+        env = git_env_tools.fetch_local_files(
             destination_directory=destination_directory)
 
     if commit_ids_known_callback is not None:
