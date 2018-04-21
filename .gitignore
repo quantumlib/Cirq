@@ -5,3 +5,7 @@ __pycache__
 .idea/*
 # ignore cache
 .cache/*
+# ignore coverage files
+*.py,cover
+*.coverage
+*.coverage.*
