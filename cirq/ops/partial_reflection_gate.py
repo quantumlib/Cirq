@@ -37,14 +37,14 @@ def _canonicalize_half_turns(
 class PartialReflectionGate(gate_features.BoundedEffectGate,
                             gate_features.TextDiagrammableGate,
                             PotentialImplementation):
-    """A gate with two active eigenvalues.
+    """A gate with two eigenvalues differing by a relative phase.
 
-    PartialReflectionGates have a direct sum decomposition I ⊕ U, where I is the
-    identity and U has exactly two eigenvalues. Extrapolating the gate phases
+    A PartialReflectionGate has a direct sum decomposition I ⊕ U or simply U,
+    where I is the identity and U has exactly two eigenvalues which differ by a
+    relative phase equal to exp(i pi half_turns). Extrapolating the gate phases
     one eigenspace of U relative to the other, with half_turns=1 corresponding
     to the point where the relative phase factor is exactly -1.
     """
-
     def __init__(self,
                  *positional_args,
                  half_turns: Union[Symbol, float] = 1.0) -> None:
