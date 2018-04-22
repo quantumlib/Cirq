@@ -36,12 +36,12 @@ def _canonicalize_half_turns(
     return half_turns
 
 
-class TurnGate(gate_features.BoundedEffectGate,
+class PartialReflectionGate(gate_features.BoundedEffectGate,
                gate_features.TextDiagrammableGate,
                PotentialImplementation):
     """A gate with two active eigenvalues.
 
-    TurnGates have a direct sum decomposition I ⊕ U, where I is the
+    PartialReflectionGates have a direct sum decomposition I ⊕ U, where I is the
     identity and U has exactly two eigenvalues. Extrapolating the gate phases
     one eigenspace of U relative to the other, with half_turns=1 corresponding
     to the point where the relative phase factor is exactly -1.
@@ -63,10 +63,10 @@ class TurnGate(gate_features.BoundedEffectGate,
     def text_diagram_exponent(self):
         return self.half_turns
 
-    def __pow__(self, power: float) -> 'TurnGate':
+    def __pow__(self, power: float) -> 'PartialReflectionGate':
         return self.extrapolate_effect(power)
 
-    def inverse(self) -> 'TurnGate':
+    def inverse(self) -> 'PartialReflectionGate':
         return self.extrapolate_effect(-1)
 
     def __repr__(self):
@@ -115,13 +115,13 @@ class TurnGate(gate_features.BoundedEffectGate,
     def can_extrapolate_effect(self) -> bool:
         return not isinstance(self.half_turns, Symbol)
 
-    def extrapolate_effect(self, factor) -> 'TurnGate':
+    def extrapolate_effect(self, factor) -> 'PartialReflectionGate':
         if not self.can_extrapolate_effect():
             raise ValueError("Parameterized. Don't have a known matrix.")
         return type(self)(half_turns=self.half_turns * factor)
 
 
-class Rot11Gate(TurnGate,
+class Rot11Gate(PartialReflectionGate,
                 gate_features.TwoQubitGate,
                 InterchangeableQubitsGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
@@ -145,7 +145,7 @@ class Rot11Gate(TurnGate,
         return np.diag([1, 1, 1, np.exp(1j * np.pi * self.half_turns)])
 
 
-class RotXGate(TurnGate, gate_features.SingleQubitGate):
+class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self,
@@ -165,7 +165,7 @@ class RotXGate(TurnGate, gate_features.SingleQubitGate):
                          [1 - c, 1 + c]]) / 2
 
 
-class RotYGate(TurnGate, gate_features.SingleQubitGate):
+class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
     def __init__(self,
@@ -186,7 +186,7 @@ class RotYGate(TurnGate, gate_features.SingleQubitGate):
                          [1j + s - c*1j, 1 + s*1j + c]]) / 2
 
 
-class RotZGate(TurnGate, gate_features.SingleQubitGate):
+class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self,
