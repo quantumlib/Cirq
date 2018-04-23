@@ -12,4 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tooling useful when developing (e.g. scripts to run tests)."""
+"""Tooling useful when developing (e.g. scripts to run tests).
+
+These tools use shell commands, and so are not portable between operating
+systems. Currently they assume that the system is based on Debian Linux.
+"""
