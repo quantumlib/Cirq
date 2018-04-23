@@ -50,8 +50,8 @@ def test_reflection_matrix_sign_preference_under_perturbation():
     # Sqrt should behave well when phased by less than 90 degrees.
     # (When rotating by more it's ambiguous. For example, 181 = 91*2 = -89*2.)
     for perturbation in [0, 0.1, -0.1, 0.3, -0.3, 0.49, -0.49]:
-        px = x * (-1)**perturbation
-        expected_sqrt_px = sqrt_x * (-1)**(perturbation / 2)
+        px = x * complex(-1)**perturbation
+        expected_sqrt_px = sqrt_x * complex(-1)**(perturbation / 2)
         sqrt_px = reflection_matrix_pow(px, 0.5)
         np.testing.assert_allclose(np.dot(sqrt_px, sqrt_px), px, atol=1e-10)
         np.testing.assert_allclose(sqrt_px, expected_sqrt_px, atol=1e-10)

@@ -40,7 +40,7 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
 
     # Raise the matrix to a power by raising its eigencomponents to that power.
     pos_factor = phase**(exponent - 1)
-    neg_factor = pos_factor * (-1)**exponent
+    neg_factor = pos_factor * complex(-1)**exponent
     pos_part_raised = pos_factor * pos_part
     neg_part_raised = neg_part * neg_factor
     return pos_part_raised + neg_part_raised
