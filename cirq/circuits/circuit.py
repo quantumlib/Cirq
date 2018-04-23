@@ -484,11 +484,13 @@ class Circuit(object):
         return diagram
 
 
-def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
-                                        ) -> Iterable[str]:
+def _get_operation_text_diagram_symbols(op: ops.Operation,
+                                        ext: Extensions,
+                                        precision: int) -> Iterable[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is not None:
-        wire_symbols = text_diagram_gate.text_diagram_wire_symbols()
+        wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
+            precision=precision)
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
@@ -547,7 +549,7 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        symbols = _get_operation_text_diagram_symbols(op, ext)
+        symbols = _get_operation_text_diagram_symbols(op, ext, precision)
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 

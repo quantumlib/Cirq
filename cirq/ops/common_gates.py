@@ -55,7 +55,8 @@ class _TurnGate(gate_features.BoundedEffectGate,
     @abc.abstractmethod
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True
+                                  use_unicode_characters=True,
+                                  precision=3
                                   ) -> Tuple[str, ...]:
         pass
 
@@ -136,7 +137,8 @@ class Rot11Gate(_TurnGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'Z', 'Z'
 
     def _matrix_impl_assuming_unparameterized(self):
@@ -155,7 +157,8 @@ class RotXGate(_TurnGate, gate_features.SingleQubitGate):
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'X',
 
     def _matrix_impl_assuming_unparameterized(self):
@@ -175,7 +178,8 @@ class RotYGate(_TurnGate, gate_features.SingleQubitGate):
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'Y',
 
     def _matrix_impl_assuming_unparameterized(self):
@@ -196,7 +200,8 @@ class RotZGate(_TurnGate, gate_features.SingleQubitGate):
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'Z',
 
     def phase_by(self, phase_turns, qubit_index):
@@ -223,7 +228,8 @@ class MeasurementGate(gate_features.TextDiagrammableGate):
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'M',
 
     def __repr__(self):
@@ -260,7 +266,8 @@ class HGate(gate_features.TextDiagrammableGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'H',
 
     def default_decompose(self, qubits):
@@ -296,7 +303,8 @@ class CNotGate(gate_features.TextDiagrammableGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return '@', 'X'
 
     def default_decompose(self, qubits):
@@ -340,7 +348,8 @@ class SwapGate(gate_features.TextDiagrammableGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         if not use_unicode_characters:
             return 'swap', 'swap'
         return '×', '×'
