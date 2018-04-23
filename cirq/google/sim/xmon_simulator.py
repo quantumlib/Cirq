@@ -38,7 +38,7 @@ from cirq.extension import Extensions
 from cirq.google import xmon_gates
 from cirq.google import xmon_gate_ext
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
-from cirq.google.sim.xmon_stepper import Stepper
+from cirq.google.sim import xmon_stepper
 from cirq.ops import raw_types
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
@@ -137,7 +137,7 @@ class Simulator:
                 basis state corresponding corresponding to this state.
                 Otherwise  if this is a np.ndarray it is the full initial
                 state. In this case it must be the correct size, be normalized
-                (an L2 norm of 1), and have a dtype of np.complex64.
+                (an L2 norm of 1), and be safely castable to a np.complex64.
             extensions: Extensions that will be applied while trying to
                 decompose the circuit's gates into XmonGates. If None, this uses
                 the default of xmon_gate_ext.
@@ -173,7 +173,7 @@ class Simulator:
                 basis state corresponding corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
-                norm of 1), and have a dtype of np.complex64.
+                norm of 1), and be safely castable to a np.complex64.
             extensions: Extensions that will be applied while trying to
                 decompose the circuit's gates into XmonGates. If None, this uses
                 the default of xmon_gate_ext.
@@ -206,6 +206,13 @@ class Simulator:
                         measurements[k].append(np.array(v, dtype=bool))
                 if step_result:
                     final_states.append(step_result.state())
+                else:
+                    # Empty circuit, so final state should be initial state.
+                    num_qubits = max(len(circuit.qubits()),
+                                     len(qubits) if qubits else 0)
+                    final_states.append(
+                        xmon_stepper.decode_initial_state(initial_state,
+                                                          num_qubits))
             trial_results.append(SimulatorTrialResult(
                 param_resolver,
                 repetitions,
@@ -245,7 +252,7 @@ class Simulator:
                 basis state corresponding corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
-                norm of 1), and have a dtype of np.complex64.
+                norm of 1), and be safely castable to a np.complex64.
             param_resolver: A ParamResolver for determining values of
                 Symbols.
             extensions: Extensions that will be applied while trying to
@@ -292,6 +299,9 @@ def simulator_iterator(
             is used to define the wave function.
         initial_state: If an int, the state is set to the computational
             basis state corresponding corresponding to this state.
+            Otherwise if this is a np.ndarray it is the full initial state.
+            In this case it must be the correct size, be normalized (an L2
+            norm of 1), and be safely castable to a np.complex64.
         param_resolver: A ParamResolver for determining values ofs
             Symbols.
 
@@ -309,8 +319,10 @@ def simulator_iterator(
     else:
         qubits = list(circuit_qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
+    if isinstance(initial_state, np.ndarray):
+        initial_state = initial_state.astype(dtype=np.complex64, casting='safe')
 
-    with Stepper(num_qubits=len(qubits),
+    with xmon_stepper.Stepper(num_qubits=len(qubits),
                  num_prefix_qubits=options.num_prefix_qubits,
                  initial_state=initial_state,
                  min_qubits_before_shard=options.min_qubits_before_shard
@@ -376,7 +388,7 @@ class StepResult:
 
     def __init__(
             self,
-            stepper: Stepper,
+            stepper: xmon_stepper.Stepper,
             qubit_map: Dict,
             measurements: Dict[str, List[bool]]) -> None:
         self.qubit_map = qubit_map or {}
