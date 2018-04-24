@@ -53,7 +53,7 @@ virtualenv --quiet -p "${py35}" "${work_dir}/cirq3.5"
 source "${work_dir}/cirq3.5/bin/activate"
 pip install --quiet -r requirements.txt
 set +e
-pytest --quiet cirq
+pytest --quiet "${work_dir}"
 outcome_v35=$?
 set -e
 deactivate

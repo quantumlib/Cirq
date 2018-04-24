@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The circuit data structure for the sequenced phase."""
+"""The circuit data structure.
+
+Circuits consist of a list of Moments, each Moment made up of a set of
+Operations. Each Operation is a Gate that acts on some Qubits, for a given
+Moment the Operations must all act on distinct Qubits.
+"""
 
 from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
+from typing import Union
 
 import numpy as np
 
@@ -29,8 +35,30 @@ from cirq.ops import QubitId
 class Circuit(object):
     """A mutable list of groups of operations to apply to some qubits.
 
+    Methods returning information about the circuit:
+        next_moment_operating_on
+        prev_moment_operating_on
+        operation_on
+        qubits
+        to_unitary_matrix
+        to_text_diagram
+        to_text_diagram_drawer
+
+    Methods for mutation:
+        insert
+        append
+        insert_into_range
+        clear_operations_touching
+
+    Circuits can also be iterated over,
+        for moment in circuit:
+            ...
+    and sliced,
+        circuit[1:3] is a new Circuit made up of two moments, the first being
+            circuit[1] and the second being circuit[2].
+
     Attributes:
-      moments: A list of the Moments of the circuit.
+        moments: A list of the Moments of the circuit.
     """
 
     def __init__(self, moments: Iterable[Moment] = ()) -> None:
@@ -65,6 +93,28 @@ class Circuit(object):
 
     def __ne__(self, other):
         return not self == other
+
+    def __getitem__(self, key: Union[int, slice]) -> Union['Circuit', Moment]:
+        if isinstance(key, slice):
+            return Circuit(self.moments[key])
+        if isinstance(key, int):
+            return self.moments[key]
+        else:
+            raise TypeError(
+                '__getitem__ called with key not of type slice or int.')
+
+    def __len__(self):
+        return len(self.moments)
+
+    def __iter__(self):
+        return iter(self.moments)
+
+    def __repr__(self):
+        moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
+        return 'Circuit([{}])'.format(','.join(moment_lines))
+
+    def __str__(self):
+        return self.to_text_diagram()
 
     __hash__ = None
 
@@ -171,21 +221,6 @@ class Circuit(object):
             if qubit in op.qubits:
                 return op
         return None
-
-    def clear_operations_touching(self, qubits: Iterable[ops.QubitId],
-                                  moment_indices: Iterable[int]):
-        """Clears operations that are touching given qubits at given moments.
-
-        Args:
-            qubits: The qubits to check for operations on.
-            moment_indices: The indices of moments to check for operations
-                within.
-        """
-        qubits = frozenset(qubits)
-        for k in moment_indices:
-            if 0 <= k < len(self.moments):
-                self.moments[k] = self.moments[k].without_operations_touching(
-                    qubits)
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -320,16 +355,24 @@ class Circuit(object):
         """
         self.insert(len(self.moments), operation_tree, strategy)
 
+    def clear_operations_touching(self, qubits: Iterable[ops.QubitId],
+        moment_indices: Iterable[int]):
+        """Clears operations that are touching given qubits at given moments.
+
+        Args:
+            qubits: The qubits to check for operations on.
+            moment_indices: The indices of moments to check for operations
+                within.
+        """
+        qubits = frozenset(qubits)
+        for k in moment_indices:
+            if 0 <= k < len(self.moments):
+                self.moments[k] = self.moments[k].without_operations_touching(
+                    qubits)
+
     def qubits(self) -> FrozenSet[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
-
-    def __repr__(self):
-        moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
-        return 'Circuit([{}])'.format(','.join(moment_lines))
-
-    def __str__(self):
-        return self.to_text_diagram()
 
     def to_unitary_matrix(
             self,
