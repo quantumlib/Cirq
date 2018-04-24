@@ -33,7 +33,7 @@ class Symbol:
 
     def __str__(self):
         return (self.name
-                if is_valid_identifier(self)
+                if self.is_valid_identifier()
                 else repr(self))
 
     def __repr__(self):
