@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
+
 import numpy as np
 
 from cirq.ops.partial_reflection_gate import PartialReflectionGate
@@ -20,8 +22,13 @@ from cirq.value import Symbol
 
 
 class DummyGate(PartialReflectionGate):
+
+    def _with_half_turns(self, half_turns: Union[Symbol, float] = 1.0):
+        return DummyGate(half_turns=half_turns)
+
     def text_diagram_wire_symbols(self):
         return 'D'
+
     def _matrix_impl_assuming_unparameterized(self):
         return np.array([[np.exp(1j * np.pi * self.half_turns / 2), 0],
                          [0, np.exp(-1j * np.pi * self.half_turns / 2)]])
@@ -53,5 +60,5 @@ def test_partial_reflection_gate_inverse():
     assert DummyGate(half_turns=0.25).inverse() == DummyGate(half_turns=-0.25)
 
 
-def test_partial_reflection_gate_repr():
-    assert repr(DummyGate(half_turns=.25)) == 'D**0.25'
+def test_partial_reflection_gate_str():
+    assert str(DummyGate(half_turns=.25)) == 'D**0.25'

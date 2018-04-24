@@ -56,6 +56,13 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         self.half_turns = _canonicalize_half_turns(half_turns)
 
     @abc.abstractmethod
+    def _with_half_turns(self,
+                         half_turns: Union[Symbol, float] = 1.0
+                         ) -> 'PartialReflectionGate':
+        """Initialize an instance by specifying the number of half-turns."""
+        pass
+
+    @abc.abstractmethod
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
                                   use_unicode_characters=True
@@ -120,4 +127,4 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
     def extrapolate_effect(self, factor) -> 'PartialReflectionGate':
         if not self.can_extrapolate_effect():
             raise ValueError("Parameterized. Don't have a known matrix.")
-        return type(self)(half_turns=self.half_turns * factor)
+        return self._with_half_turns(half_turns=self.half_turns * factor)

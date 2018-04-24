@@ -38,6 +38,11 @@ class Rot11Gate(PartialReflectionGate,
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
+    def _with_half_turns(self,
+                         half_turns: Union[Symbol, float] = 1.0
+                         ) -> 'Rot11Gate':
+        return Rot11Gate(half_turns=half_turns)
+
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
                                   use_unicode_characters=True):
@@ -56,6 +61,11 @@ class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
                  half_turns: Union[float, Symbol]=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
+
+    def _with_half_turns(self,
+                         half_turns: Union[Symbol, float] = 1.0
+                         ) -> 'RotXGate':
+        return RotXGate(half_turns=half_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -77,6 +87,11 @@ class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
         assert not positional_args
         super().__init__(half_turns=half_turns)
 
+    def _with_half_turns(self,
+                         half_turns: Union[Symbol, float] = 1.0
+                         ) -> 'RotYGate':
+        return RotYGate(half_turns=half_turns)
+
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
                                   use_unicode_characters=True):
@@ -97,6 +112,11 @@ class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
                  half_turns: Union[float, Symbol]=1.0) -> None:
         assert not positional_args
         super().__init__(half_turns=half_turns)
+
+    def _with_half_turns(self,
+                         half_turns: Union[Symbol, float] = 1.0
+                         ) -> 'RotZGate':
+        return RotZGate(half_turns=half_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
