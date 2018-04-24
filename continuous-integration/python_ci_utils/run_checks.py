@@ -13,21 +13,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Set
+
 import os
 import shutil
 import sys
 import tempfile
 
-from python_ci_utils import env_tools, all_checks
+from python_ci_utils import env_tools, all_checks, check
 
 
 REPO_ORGANIZATION = 'quantumlib'
 REPO_NAME = 'cirq'
 
 
-def report_pending(env, checks):
-    for check in checks:
-        env.report_status_to_github('pending', 'Preparing...', check.context())
+def report_pending(env, checks, out_still_pending: Set[check.Check]):
+    for c in checks:
+        env.report_status_to_github('pending', 'Preparing...', c.context())
+        out_still_pending.add(c)
 
 
 def main():
@@ -39,6 +43,8 @@ def main():
 
     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(REPO_NAME))
     test_dir_2 = tempfile.mkdtemp(prefix='test-{}-py2-'.format(REPO_NAME))
+    currently_pending = set()
+    env = None
     try:
         env = env_tools.prepare_temporary_test_environment(
             destination_directory=test_dir,
@@ -47,22 +53,29 @@ def main():
                 name=REPO_NAME,
                 access_token=access_token),
             pull_request_number=pull_request_number,
-            commit_ids_known_callback=lambda env: report_pending(env, checks))
+            commit_ids_known_callback=
+                lambda e: report_pending(e, checks, currently_pending))
 
         env2 = None
 
         results = []
-        for check in checks:
-            if check.needs_python2_env() and env2 is None:
+        for c in checks:
+            if c.needs_python2_env() and env2 is None:
                 env2 = env_tools.derive_temporary_python2_environment(
                     destination_directory=test_dir_2,
                     python3_environment=env)
-            result = check.context(), check.run_and_report(env, env2)
+            currently_pending.remove(c)
+            result = c.context(), c.run_and_report(env, env2)
             results.append(result)
 
     finally:
         shutil.rmtree(test_dir)
         shutil.rmtree(test_dir_2)
+        for c in currently_pending:
+            if env is not None:
+                env.report_status_to_github('error',
+                                            'Unexpected error.',
+                                            c.context())
 
     print("ALL CHECK RESULTS")
     for result in results:

@@ -16,6 +16,7 @@ from typing import Tuple
 import re
 
 import os.path
+import sys
 
 from dev_tools import shell_tools
 from python_ci_utils import env_tools, check
@@ -51,8 +52,9 @@ class TestAndPrepareCoverageCheck(check.Check):
             target_path,
             '--cov' if coverage else '',
             '--cov-report=annotate' if coverage else '',
-            out=shell_tools.TeeCapture(),
-            raise_on_fail=False)
+            out=shell_tools.TeeCapture(sys.stdout),
+            raise_on_fail=False,
+            log_run_to_stderr=False)
 
         output = result[0]
         passed = result[2] == 0

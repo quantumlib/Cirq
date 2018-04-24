@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os.path
+import sys
 
 from dev_tools import shell_tools
 from python_ci_utils import env_tools, check
@@ -35,8 +36,9 @@ class TypeCheck(check.Check):
                 'continuous-integration',
                 'mypy.ini')),
             *files,
-            out=shell_tools.TeeCapture(),
-            raise_on_fail=False)
+            out=shell_tools.TeeCapture(sys.stdout),
+            raise_on_fail=False,
+            log_run_to_stderr=False)
 
         output = result[0]
         passed = result[2] == 0
