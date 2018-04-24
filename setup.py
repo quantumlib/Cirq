@@ -15,6 +15,7 @@
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
+__version__ = None
 exec(open('cirq/_version.py').read())
 
 # Read in requirements.txt
