@@ -441,6 +441,7 @@ class Circuit(object):
             ext: Extensions = None,
             use_unicode_characters: bool = True,
             transpose: bool = False,
+            precision: int = 3,
             qubit_order_key: Callable[[QubitId], Any] = None) -> str:
         """Returns text containing a diagram describing the circuit.
 
@@ -449,6 +450,7 @@ class Circuit(object):
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
+            precision: Number of digits to display in text diagram
             qubit_order_key: Transforms each qubit into a key that determines
                 how the qubits are ordered in the diagram. Qubits with lower
                 keys come first. Defaults to the qubit's __str__, but augmented
@@ -463,6 +465,7 @@ class Circuit(object):
         diagram = self.to_text_diagram_drawer(
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
+            precision = precision,
             qubit_order_key=qubit_order_key)
 
         if transpose:
@@ -478,6 +481,7 @@ class Circuit(object):
             self,
             ext: Extensions = Extensions(),
             qubit_name_suffix: str = '',
+            precision: int = 3,
             qubit_order_key: Callable[[QubitId], Any] = None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
@@ -514,7 +518,7 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram)
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, precision)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -523,11 +527,13 @@ class Circuit(object):
         return diagram
 
 
-def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
-                                        ) -> Iterable[str]:
+def _get_operation_text_diagram_symbols(op: ops.Operation,
+                                        ext: Extensions,
+                                        precision: int) -> Iterable[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is not None:
-        wire_symbols = text_diagram_gate.text_diagram_wire_symbols()
+        wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
+            precision=precision)
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
@@ -545,7 +551,8 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
 
 
 def _get_operation_text_diagram_exponent(op: ops.Operation,
-                                         ext: Extensions) -> Optional[str]:
+                                         ext: Extensions,
+                                         precision: int) -> Optional[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is None:
         return None
@@ -553,7 +560,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
     if exponent == 1:
         return None
     if isinstance(exponent, float):
-        return repr(exponent)
+      return '{{:.{}}}'.format(precision).format(exponent)
     s = str(exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:
         return '({})'.format(exponent)
@@ -563,7 +570,8 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
                             qubit_map: Dict[QubitId, int],
-                            out_diagram: TextDiagramDrawer):
+                            out_diagram: TextDiagramDrawer,
+                            precision: int):
     if not moment.operations:
         return []
 
@@ -584,12 +592,12 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        symbols = _get_operation_text_diagram_symbols(op, ext)
+        symbols = _get_operation_text_diagram_symbols(op, ext, precision)
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the first label.
-        exponent = _get_operation_text_diagram_exponent(op, ext)
+        exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
 
