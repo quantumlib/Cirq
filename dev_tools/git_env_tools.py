@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import subprocess
-import sys
-
 import os
 import shutil
+import subprocess
+import sys
 
 from dev_tools import shell_tools, github_repository, prepared_env
 
