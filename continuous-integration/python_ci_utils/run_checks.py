@@ -53,8 +53,8 @@ def main():
                 name=REPO_NAME,
                 access_token=access_token),
             pull_request_number=pull_request_number,
-            commit_ids_known_callback=
-                lambda e: report_pending(e, checks, currently_pending))
+            commit_ids_known_callback=lambda e:
+                report_pending(e, checks, currently_pending))
 
         env2 = None
 
@@ -69,8 +69,8 @@ def main():
             results.append(result)
 
     finally:
-        shutil.rmtree(test_dir)
-        shutil.rmtree(test_dir_2)
+        shutil.rmtree(test_dir, ignore_errors=True)
+        shutil.rmtree(test_dir_2, ignore_errors=True)
         for c in currently_pending:
             if env is not None:
                 env.report_status_to_github('error',
