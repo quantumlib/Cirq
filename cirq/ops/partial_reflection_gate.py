@@ -37,13 +37,17 @@ def _canonicalize_half_turns(
 class PartialReflectionGate(gate_features.BoundedEffectGate,
                             gate_features.TextDiagrammableGate,
                             PotentialImplementation):
-    """A gate with two eigenvalues differing by a relative phase.
+    """An interpolated reflection operation.
 
+    A reflection operation is an operation that has exactly two eigenvalues
+    which differ by 180 degrees (i.e. equal x and -x for some x).
+    For an interpolated reflection operation, the eigenvalues differ by a
+    relative phase not necessarily equal to 180 degrees.
     A PartialReflectionGate has a direct sum decomposition I ⊕ U or simply U,
-    where I is the identity and U has exactly two eigenvalues which differ by a
-    relative phase equal to exp(i pi half_turns). Extrapolating the gate phases
-    one eigenspace of U relative to the other, with half_turns=1 corresponding
-    to the point where the relative phase factor is exactly -1.
+    where I is the identity and U is an interpolated reflection operation.
+    Extrapolating the gate phases one eigenspace of U relative to the other,
+    with half_turns=1 corresponding to the point where U is a reflection
+    operation (i.e., the relative phase is exactly -1).
     """
     def __init__(self,
                  *positional_args,
@@ -67,7 +71,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
     def inverse(self) -> 'PartialReflectionGate':
         return self.extrapolate_effect(-1)
 
-    def __repr__(self):
+    def __str__(self):
         base = ''.join(self.text_diagram_wire_symbols())
         if self.half_turns == 1:
             return base
