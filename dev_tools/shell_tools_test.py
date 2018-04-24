@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import subprocess
-
-import pytest
 import os
 import sys
+
+import pytest
 
 from dev_tools import shell_tools
 
