@@ -18,6 +18,7 @@ import os.path
 import re
 
 from python_ci_utils import env_tools
+from dev_tools import shell_tools
 
 IGNORED_FILE_PATTERNS = [
     r'^continuous-integration/python_ci_utils/.+',  # Environment-heavy code.
@@ -118,7 +119,7 @@ def get_incremental_uncovered_lines(abs_path: str,
     if not os.path.isfile(abs_path):
         return []
 
-    unified_diff_lines_str = env_tools.output_of(
+    unified_diff_lines_str = shell_tools.output_of(
         'git',
         'diff',
         '--unified=0',
@@ -211,7 +212,7 @@ def is_applicable_python_file(rel_path: str) -> bool:
 
 def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
     # Build context from environment.
-    changed_files = env_tools.get_changed_files(env)
+    changed_files = env.get_changed_files()
 
     # Find/print lines that were changed but aren't covered.
     uncovered_count = 0
