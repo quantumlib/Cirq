@@ -157,7 +157,8 @@ class Exp11Gate(XmonGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'Z', 'Z'
 
     def text_diagram_exponent(self):
@@ -275,12 +276,13 @@ class ExpWGate(XmonGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         if self.axis_half_turns == 0:
             return 'X',
         if self.axis_half_turns == 0.5:
             return 'Y',
-        return 'W({})'.format(self.axis_half_turns),
+        return 'W({{:.{}}})'.format(precision).format(self.axis_half_turns),
 
     def text_diagram_exponent(self):
         return self.half_turns
@@ -341,7 +343,8 @@ class ExpZGate(XmonGate,
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
-                                  use_unicode_characters=True):
+                                  use_unicode_characters=True,
+                                  precision=3):
         if self.half_turns in [-0.25, 0.25]:
             return 'T'
         if self.half_turns in [-0.5, 0.5]:

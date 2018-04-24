@@ -497,7 +497,7 @@ def test_unsupported_gate(scheduler):
     circuit.append([H(Q1), gate(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    with pytest.raises(TypeError, msg="UnsupportedGate"):
+    with pytest.raises(TypeError, message="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
 
 
@@ -523,7 +523,7 @@ def test_unsupported_gate_composite(scheduler):
     circuit.append([H(Q1), gate(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    with pytest.raises(TypeError, msg="UnsupportedGate"):
+    with pytest.raises(TypeError, message="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
 
 

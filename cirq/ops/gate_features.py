@@ -157,7 +157,8 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def text_diagram_wire_symbols(self,
                                   qubit_count: Optional[int] = None,
-                                  use_unicode_characters: bool = True
+                                  use_unicode_characters: bool = True,
+                                  precision: int = 3
                                   ) -> Tuple[str, ...]:
         """The symbols that should be shown on the gate's qubits (in order).
 
@@ -177,6 +178,8 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 preferred in cases where UTF8 support is done poorly, or where
                 the fixed-width font being used to show the diagrams does not
                 properly handle unicode characters.
+            precision: The number of digits after the decimal to show in the
+                text diagram.
 
         Returns:
              A tuple containing symbols to place on each of the qubit wires
