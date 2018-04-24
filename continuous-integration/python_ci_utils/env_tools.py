@@ -142,12 +142,14 @@ def derive_temporary_python2_environment(
 
     shutil.rmtree(destination_directory)
     os.chdir(python3_environment.destination_directory)
+    input_directory = python3_environment.destination_directory
     conversion_script_path = os.path.join(
         python3_environment.destination_directory,
         'python2.7-generate.sh')
     shell_tools.run_cmd('bash',
                         conversion_script_path,
                         destination_directory,
+                        input_directory,
                         out=sys.stderr)
     os.chdir(destination_directory)
 
