@@ -15,7 +15,7 @@
 import asyncio
 import subprocess
 import sys
-from typing import Optional, Tuple, Union, IO
+from typing import Optional, Tuple, Union, IO, Any
 
 import collections
 
@@ -26,7 +26,7 @@ class TeeCapture:
     If out_pipe is None, the caller just wants to capture output without
     writing it to anything in particular.
     """
-    def __init__(self, out_pipe: Optional[IO[str]] = None):
+    def __init__(self, out_pipe: Optional[IO[str]] = None) -> None:
         self.out_pipe = out_pipe
 
 
@@ -59,7 +59,7 @@ async def _async_forward(async_chunks: collections.AsyncIterable,
 
 
 async def _async_wait_for_process(
-        future_process: asyncio.Future,
+        future_process: Any,
         out: Optional[Union[TeeCapture, IO[str]]] = sys.stdout,
         err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr
 ) -> Tuple[Optional[str], Optional[str], int]:
