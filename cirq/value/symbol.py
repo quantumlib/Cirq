@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from keyword import iskeyword
 
+_identifier_pattern = '[a-zA-Z_][a-zA-Z0-9_]*$'
 
 class Symbol:
     """A constant plus the runtime value of a parameter with a given key.
@@ -51,4 +53,12 @@ class Symbol:
         return hash((Symbol, self.name))
 
     def is_valid_identifier(self):
-        return self.name.isidentifier() and not iskeyword(self.name)
+        if not self.name:
+            return False
+        if iskeyword(self.name) or self.name == 'None':
+            return False
+        if hasattr(self.name, 'isidentifier'): # Python 3
+            return self.name.isidentifier()
+        else: # Python 2
+            return re.match(_identifier_pattern, self.name)
+
