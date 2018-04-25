@@ -13,9 +13,13 @@
 # limitations under the License.
 
 
-from typing import Any, Callable, Iterable, Tuple, Optional
+from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar
 
 from cirq.ops import raw_types
+
+
+TInternalQubit = TypeVar('TInternalQubit')
+TExternalQubit = TypeVar('TExternalQubit')
 
 
 class Basis:
@@ -91,8 +95,8 @@ class Basis:
         return self._explicit_func(qubits)
 
     def map(self,
-            internalize: Callable[[raw_types.QubitId], raw_types.QubitId],
-            externalize: Callable[[raw_types.QubitId], raw_types.QubitId]
+            internalize: Callable[[TExternalQubit], TInternalQubit],
+            externalize: Callable[[TInternalQubit], TExternalQubit]
             ) -> 'Basis':
         """Transforms the Basis so that it applies to wrapped qubits.
 

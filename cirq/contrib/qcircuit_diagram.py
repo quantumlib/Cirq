@@ -131,9 +131,13 @@ def circuit_to_latex_using_qcircuit(
     if ext is None:
         ext = extension.Extensions()
     qcircuit = _wrap_circuit(circuit, ext)
+
+    # Note: can't be a lambda because we need the type hint.
+    def get_sub(q: _QCircuitQubit) -> ops.QubitId:
+        return q.sub
+
     diagram = qcircuit.to_text_diagram_drawer(
         ext,
         qubit_name_suffix='',
-        basis=basis.map(internalize=lambda e: e.sub,
-                        externalize=_QCircuitQubit))
+        basis=basis.map(internalize=get_sub, externalize=_QCircuitQubit))
     return _render(diagram)
