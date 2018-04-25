@@ -45,7 +45,7 @@ def test_sorted_by_default_sorting_key():
     assert sorted(reversed(actual), key=default_sorting_key) == actual
 
 
-def test_default_basis():
+def test_default():
     a2 = NamedQubit('a2')
     a10 = NamedQubit('a10')
     b = NamedQubit('b')
@@ -53,7 +53,7 @@ def test_default_basis():
     assert QubitOrder.DEFAULT.order_for([a10, a2, b]) == (a2, a10, b)
 
 
-def test_explicit_basis():
+def test_explicit():
     a2 = NamedQubit('a2')
     a10 = NamedQubit('a10')
     b = NamedQubit('b')
@@ -67,7 +67,7 @@ def test_explicit_basis():
         _ = q.order_for([NamedQubit('c')])
 
 
-def test_explicit_basis_with_fallback():
+def test_explicit_with_fallback():
     a2 = NamedQubit('a2')
     a10 = NamedQubit('a10')
     b = NamedQubit('b')
@@ -79,7 +79,7 @@ def test_explicit_basis_with_fallback():
     assert q.order_for([a10, a2]) == (b, a2, a10)
 
 
-def test_sorted_by_basis():
+def test_sorted_by():
     a = NamedQubit('2')
     b = NamedQubit('10')
     c = NamedQubit('-5')

@@ -113,8 +113,6 @@ class QubitOrder:
         raise ValueError(
             "Don't know how to interpret <{}> as a Basis.".format(val))
 
-
-
     def map(self,
             internalize: Callable[[TExternalQubit], TInternalQubit],
             externalize: Callable[[TInternalQubit], TExternalQubit]

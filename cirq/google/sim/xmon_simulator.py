@@ -187,6 +187,7 @@ class Simulator:
         xmon_circuit, keys = self._to_xmon_circuit(circuit,
                                                    extensions or xmon_gate_ext)
         trial_results = []  # type: List[SimulatorTrialResult]
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
@@ -206,9 +207,7 @@ class Simulator:
                     final_states.append(step_result.state())
                 else:
                     # Empty circuit, so final state should be initial state.
-                    num_qubits = len(
-                        ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-                            circuit.qubits()))
+                    num_qubits = len(qubit_order.order_for(circuit.qubits()))
                     final_states.append(
                         xmon_stepper.decode_initial_state(initial_state,
                                                           num_qubits))
