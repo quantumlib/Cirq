@@ -32,12 +32,6 @@ class Rot11Gate(PartialReflectionGate,
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
     """
 
-    def __init__(self,
-                 *positional_args,
-                 half_turns: Union[float, Symbol]=1.0) -> None:
-        assert not positional_args
-        super().__init__(half_turns=half_turns)
-
     def _with_half_turns(self,
                          half_turns: Union[Symbol, float] = 1.0
                          ) -> 'Rot11Gate':
@@ -49,19 +43,13 @@ class Rot11Gate(PartialReflectionGate,
                                   precision=3):
         return 'Z', 'Z'
 
-    def _matrix_impl_assuming_unparameterized(self):
+    def _uninterpolated_reflection_matrix(self):
         """See base class."""
-        return np.diag([1, 1, 1, np.exp(1j * np.pi * self.half_turns)])
+        return np.diag([1, 1, 1, -1])
 
 
 class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
-
-    def __init__(self,
-                 *positional_args,
-                 half_turns: Union[float, Symbol]=1.0) -> None:
-        assert not positional_args
-        super().__init__(half_turns=half_turns)
 
     def _with_half_turns(self,
                          half_turns: Union[Symbol, float] = 1.0
@@ -74,20 +62,12 @@ class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
                                   precision=3):
         return 'X',
 
-    def _matrix_impl_assuming_unparameterized(self):
-        c = np.exp(1j * np.pi * self.half_turns)
-        return np.array([[1 + c, 1 - c],
-                         [1 - c, 1 + c]]) / 2
+    def _uninterpolated_reflection_matrix(self):
+        return np.array([[0, 1], [1, 0]])
 
 
 class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
-
-    def __init__(self,
-                 *positional_args,
-                 half_turns: Union[float, Symbol]=1.0) -> None:
-        assert not positional_args
-        super().__init__(half_turns=half_turns)
 
     def _with_half_turns(self,
                          half_turns: Union[Symbol, float] = 1.0
@@ -100,21 +80,12 @@ class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
                                   precision=3):
         return 'Y',
 
-    def _matrix_impl_assuming_unparameterized(self):
-        s = np.sin(np.pi * self.half_turns)
-        c = np.cos(np.pi * self.half_turns)
-        return np.array([[1 + s*1j + c, c*1j - s - 1j],
-                         [1j + s - c*1j, 1 + s*1j + c]]) / 2
+    def _uninterpolated_reflection_matrix(self):
+        return np.array([[0, -1j], [1j, 0]])
 
 
 class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
-
-    def __init__(self,
-                 *positional_args,
-                 half_turns: Union[float, Symbol]=1.0) -> None:
-        assert not positional_args
-        super().__init__(half_turns=half_turns)
 
     def _with_half_turns(self,
                          half_turns: Union[Symbol, float] = 1.0
@@ -130,9 +101,8 @@ class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
     def phase_by(self, phase_turns, qubit_index):
         return self
 
-    def _matrix_impl_assuming_unparameterized(self):
-        """See base class."""
-        return np.diag([1, np.exp(1j * np.pi * self.half_turns)])
+    def _uninterpolated_reflection_matrix(self):
+        return np.diag([1, -1])
 
 
 class MeasurementGate(gate_features.TextDiagrammableGate):

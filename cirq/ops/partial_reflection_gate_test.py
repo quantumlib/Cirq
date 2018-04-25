@@ -29,9 +29,8 @@ class DummyGate(PartialReflectionGate):
     def text_diagram_wire_symbols(self):
         return 'D'
 
-    def _matrix_impl_assuming_unparameterized(self):
-        return np.array([[np.exp(1j * np.pi * self.half_turns / 2), 0],
-                         [0, np.exp(-1j * np.pi * self.half_turns / 2)]])
+    def _uninterpolated_reflection_matrix(self):
+        return np.diag([1, -1])
 
 
 def test_partial_reflection_gate_init():

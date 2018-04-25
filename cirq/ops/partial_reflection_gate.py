@@ -19,6 +19,7 @@ import numpy as np
 
 from cirq import abc
 from cirq.extension import PotentialImplementation
+from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features
 from cirq.value import Symbol
 
@@ -110,8 +111,14 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return super().try_cast_to(desired_type)
 
     @abc.abstractmethod
-    def _matrix_impl_assuming_unparameterized(self) -> np.ndarray:
+    def _uninterpolated_reflection_matrix(self) -> np.ndarray:
+        """The reflection matrix corresponding to half_turns=1."""
         pass
+
+    def _matrix_impl_assuming_unparameterized(self) -> np.ndarray:
+        """The interpolated matrix."""
+        return reflection_matrix_pow(
+                self._uninterpolated_reflection_matrix(), self.half_turns)
 
     def has_matrix(self) -> bool:
         return not isinstance(self.half_turns, Symbol)
