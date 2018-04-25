@@ -43,7 +43,7 @@ class Rot11Gate(PartialReflectionGate,
                                   precision=3):
         return 'Z', 'Z'
 
-    def _uninterpolated_reflection_matrix(self):
+    def _reflection_matrix(self):
         """See base class."""
         return np.diag([1, 1, 1, -1])
 
@@ -62,7 +62,7 @@ class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
                                   precision=3):
         return 'X',
 
-    def _uninterpolated_reflection_matrix(self):
+    def _reflection_matrix(self):
         return np.array([[0, 1], [1, 0]])
 
 
@@ -80,7 +80,7 @@ class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
                                   precision=3):
         return 'Y',
 
-    def _uninterpolated_reflection_matrix(self):
+    def _reflection_matrix(self):
         return np.array([[0, -1j], [1j, 0]])
 
 
@@ -101,7 +101,7 @@ class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
     def phase_by(self, phase_turns, qubit_index):
         return self
 
-    def _uninterpolated_reflection_matrix(self):
+    def _reflection_matrix(self):
         return np.diag([1, -1])
 
 

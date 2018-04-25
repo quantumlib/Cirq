@@ -111,22 +111,15 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return super().try_cast_to(desired_type)
 
     @abc.abstractmethod
-    def _uninterpolated_reflection_matrix(self) -> np.ndarray:
+    def _reflection_matrix(self) -> np.ndarray:
         """The reflection matrix corresponding to half_turns=1."""
         pass
 
-    def _matrix_impl_assuming_unparameterized(self) -> np.ndarray:
-        """The interpolated matrix."""
-        return reflection_matrix_pow(
-                self._uninterpolated_reflection_matrix(), self.half_turns)
-
-    def has_matrix(self) -> bool:
-        return not isinstance(self.half_turns, Symbol)
-
     def matrix(self) -> np.ndarray:
-        if not self.has_matrix():
+        if isinstance(self.half_turns, Symbol):
             raise ValueError("Parameterized. Don't have a known matrix.")
-        return self._matrix_impl_assuming_unparameterized()
+        return reflection_matrix_pow(
+                self._reflection_matrix(), self.half_turns)
 
     def can_extrapolate_effect(self) -> bool:
         return not isinstance(self.half_turns, Symbol)

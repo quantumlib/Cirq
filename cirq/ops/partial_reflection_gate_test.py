@@ -29,7 +29,7 @@ class DummyGate(PartialReflectionGate):
     def text_diagram_wire_symbols(self):
         return 'D'
 
-    def _uninterpolated_reflection_matrix(self):
+    def _reflection_matrix(self):
         return np.diag([1, -1])
 
 
