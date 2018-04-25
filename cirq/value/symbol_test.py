@@ -23,10 +23,10 @@ def test_parameterized_value_init():
 def test_string_representation():
     assert str(Symbol('a1')) == 'a1'
     assert str(Symbol('_b23_')) == '_b23_'
-    assert str(Symbol('1a')) == "Symbol('1a')"
-    assert str(Symbol('&%#')) == "Symbol('&%#')"
-    assert str(Symbol('')) == "Symbol('')"
-    assert str(Symbol('if')) == "Symbol('if')"
+    assert str(Symbol('1a')) == 'Symbol(%s)' % repr('1a')
+    assert str(Symbol('&%#')) == 'Symbol(%s)' % repr('&%#')
+    assert str(Symbol('')) == 'Symbol(%s)' % repr('')
+    assert str(Symbol('if')) == 'Symbol(%s)' % repr('if')
 
 def test_parameterized_value_eq():
     eq = EqualsTester()
