@@ -126,11 +126,118 @@ def test_run_empty_circuit(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_initial_state_empty_circuit_qubits_specified(scheduler):
+    simulator = xmon_simulator.Simulator()
+
+    result = run(simulator, Circuit(), scheduler, qubits = [Q1, Q1])
+    np.testing.assert_almost_equal(result.final_states[0],
+                                   np.array([1.0, 0.0, 0.0, 0.0]))
+
+    result = run(simulator, Circuit(), scheduler, qubits=[Q1, Q1],
+                 initial_state=1)
+    np.testing.assert_almost_equal(result.final_states[0],
+                                   np.array([0.0, 1.0, 0.0, 0.0]))
+
+    result = run(simulator, Circuit(), scheduler, qubits=[Q1, Q1],
+                 initial_state=np.array([0.0, 1.0, 0.0, 0.0],
+                                        dtype=np.complex64))
+    np.testing.assert_almost_equal(result.final_states[0],
+                                   np.array([0.0, 1.0, 0.0, 0.0]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_invalid_initial_state_empty_circuit_qubits_specified(scheduler):
+    simulator = xmon_simulator.Simulator()
+
+    with pytest.raises(ValueError):
+        _ = run(simulator, Circuit(), scheduler, qubits=[Q1, Q1],
+                initial_state=-1)
+
+    with pytest.raises(ValueError):
+        _ = run(simulator, Circuit(), scheduler, qubits=[Q1, Q1],
+                initial_state=100)
+
+    with pytest.raises(ValueError):
+        _ = run(simulator, Circuit(), scheduler, qubits=[Q1, Q1],
+                initial_state=np.array([0.0, 1.0], dtype=np.complex64))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_initial_state_empty_circuit_qubits_not_specified(scheduler):
+    simulator = xmon_simulator.Simulator()
+
+    result = run(simulator, Circuit(), scheduler)
+    np.testing.assert_almost_equal(result.final_states[0], np.array([1.0]))
+
+    result = run(simulator, Circuit(), scheduler, initial_state=0)
+    np.testing.assert_almost_equal(result.final_states[0], np.array([1.0]))
+
+    result = run(simulator, Circuit(), scheduler,
+                 initial_state=np.array([1], dtype=np.complex64))
+    np.testing.assert_almost_equal(result.final_states[0], np.array([1.0]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_invalid_initial_state_empty_circuit_qubits_not_specified(scheduler):
+    simulator = xmon_simulator.Simulator()
+
+    with pytest.raises(ValueError):
+        _ = run(simulator, Circuit(), scheduler, initial_state=2)
+
+    with pytest.raises(ValueError):
+        _ = run(simulator, Circuit(), scheduler,
+                 initial_state=np.array([2], dtype=np.complex64))
+
+    with pytest.raises(ValueError):
+        _ = run(simulator, Circuit(), scheduler,
+                initial_state=np.array([1, 0], dtype=np.complex64))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_state(scheduler):
     simulator = xmon_simulator.Simulator()
     result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_states[0],
                                    np.array([0.5j, -0.5, 0.5, -0.5j]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_initial_state_int(scheduler):
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2],
+                 initial_state=1)
+    np.testing.assert_almost_equal(result.final_states[0],
+                                   np.array([0.5, 0.5j, 0.5j, 0.5]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_initial_state_ndarray(scheduler):
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2],
+                 initial_state=np.array([0.0, 1.0, 0.0, 0.0],
+                                        dtype=np.complex64))
+    np.testing.assert_almost_equal(result.final_states[0],
+                                   np.array([0.5, 0.5j, 0.5j, 0.5]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_initial_state_ndarray_upconvert(scheduler):
+    simulator = xmon_simulator.Simulator()
+    result = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2],
+                 initial_state=np.array([0.0, 1.0, 0.0, 0.0],
+                                        dtype=np.float32))
+    np.testing.assert_almost_equal(result.final_states[0],
+                                   np.array([0.5, 0.5j, 0.5j, 0.5]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_run_initial_state_ndarray_not_upconvertable(scheduler):
+    simulator = xmon_simulator.Simulator()
+
+    with pytest.raises(TypeError):
+        _ = run(simulator, basic_circuit(), scheduler, qubits=[Q1, Q2],
+                initial_state=np.array([0.0, 1.0, 0.0, 0.0],
+                                       dtype=np.float128))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -390,7 +497,7 @@ def test_unsupported_gate(scheduler):
     circuit.append([H(Q1), gate(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    with pytest.raises(TypeError, msg="UnsupportedGate"):
+    with pytest.raises(TypeError, message="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
 
 
@@ -416,7 +523,7 @@ def test_unsupported_gate_composite(scheduler):
     circuit.append([H(Q1), gate(Q2)])
 
     simulator = xmon_simulator.Simulator()
-    with pytest.raises(TypeError, msg="UnsupportedGate"):
+    with pytest.raises(TypeError, message="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
 
 

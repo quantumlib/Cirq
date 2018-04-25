@@ -18,6 +18,7 @@ from cirq import ops, Symbol, allclose_up_to_global_phase
 from cirq.circuits.circuit import Circuit, _operation_to_unitary_matrix
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
+from cirq.google import ExpWGate
 from cirq.testing import EqualsTester
 from cirq.extension import Extensions
 
@@ -99,6 +100,50 @@ def test_append_multiple():
         Moment([ops.X(a), ops.X(b)]),
     ])
 
+
+def test_slice():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = Circuit([
+        Moment([ops.H(a), ops.H(b)]),
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.H(b)]),
+    ])
+    assert c[0:1] == Circuit([Moment([ops.H(a), ops.H(b)]),])
+    assert c[::2] == Circuit([Moment([ops.H(a), ops.H(b)]), Moment([ops.H(b)])])
+    assert c[0:1:2] == Circuit([Moment([ops.H(a), ops.H(b)]),])
+    assert c[1:3:] == Circuit([Moment([ops.CZ(a, b)]), Moment([ops.H(b)]),])
+    assert c[::-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)]),
+                               Moment([ops.H(a), ops.H(b)])])
+    assert c[3:0:-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)])])
+    assert c[0:2:-1] == Circuit()
+
+
+def test_container_methods():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = Circuit([
+        Moment([ops.H(a), ops.H(b)]),
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.H(b)]),
+    ])
+    assert list(c) == list(c.moments)
+    # __iter__
+    assert list(iter(c)) == list(c.moments)
+    # __reversed__ for free.
+    assert list(reversed(c)) == list(reversed(c.moments))
+    # __contains__ for free.
+    assert Moment([ops.H(b)]) in c
+
+    assert len(c) == 3
+
+
+def test_bad_index():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    c = Circuit([Moment([ops.H(a), ops.H(b)]),])
+    with pytest.raises(TypeError):
+        _ = c['string']
 
 def test_append_strategies():
     a = ops.QubitId()
@@ -587,7 +632,8 @@ def test_to_text_diagram_extended_gate():
 
         def text_diagram_wire_symbols(self,
                                       qubit_count=None,
-                                      use_unicode_characters=True):
+                                      use_unicode_characters=True,
+                                      precision=3):
             return 'F'
 
     diagram = c.to_text_diagram(Extensions({
@@ -632,7 +678,8 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
     class BadGate(ops.TextDiagrammableGate):
         def text_diagram_wire_symbols(self,
                                       qubit_count=None,
-                                      use_unicode_characters=True):
+                                      use_unicode_characters=True,
+                                      precision=3):
             return 'a', 'a'
     q1 = ops.NamedQubit('(0, 0)')
     q2 = ops.NamedQubit('(0, 1)')
@@ -651,7 +698,8 @@ def test_to_text_diagram_parameterized_value():
 
         def text_diagram_wire_symbols(self,
                                       qubit_count=None,
-                                      use_unicode_characters=True):
+                                      use_unicode_characters=True,
+                                      precision=3):
             return 'P',
 
         def text_diagram_exponent(self):
@@ -684,6 +732,35 @@ def test_to_text_diagram_custom_order():
 4: ---X---
 
 2: ---X---
+    """.strip()
+
+
+def test_overly_precise_diagram():
+    # Test default precision of 3
+    qa = ops.NamedQubit('a')
+    c = Circuit([Moment([ops.X(qa)**0.12345678])])
+    diagram = c.to_text_diagram(use_unicode_characters=False)
+    assert diagram.strip() == """
+a: ---X^0.123---
+    """.strip()
+
+
+def test_diagram_custom_precision():
+    qa = ops.NamedQubit('a')
+    c = Circuit([Moment([ops.X(qa)**0.12341234])])
+    diagram = c.to_text_diagram(use_unicode_characters=False, precision=5)
+    assert diagram.strip() == """
+a: ---X^0.12341---
+    """.strip()
+
+
+def test_diagram_wgate():
+    qa = ops.NamedQubit('a')
+    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    c = Circuit([Moment([test_wgate.on(qa)])])
+    diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
+    assert diagram.strip() == """
+a: ---W(0.43)^0.12---
     """.strip()
 
 

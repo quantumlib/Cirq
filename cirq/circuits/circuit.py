@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The circuit data structure for the sequenced phase."""
+"""The circuit data structure.
+
+Circuits consist of a list of Moments, each Moment made up of a set of
+Operations. Each Operation is a Gate that acts on some Qubits, for a given
+Moment the Operations must all act on distinct Qubits.
+"""
 
 from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
+from typing import Union
 
 import numpy as np
 
@@ -29,8 +35,30 @@ from cirq.ops import QubitId
 class Circuit(object):
     """A mutable list of groups of operations to apply to some qubits.
 
+    Methods returning information about the circuit:
+        next_moment_operating_on
+        prev_moment_operating_on
+        operation_on
+        qubits
+        to_unitary_matrix
+        to_text_diagram
+        to_text_diagram_drawer
+
+    Methods for mutation:
+        insert
+        append
+        insert_into_range
+        clear_operations_touching
+
+    Circuits can also be iterated over,
+        for moment in circuit:
+            ...
+    and sliced,
+        circuit[1:3] is a new Circuit made up of two moments, the first being
+            circuit[1] and the second being circuit[2].
+
     Attributes:
-      moments: A list of the Moments of the circuit.
+        moments: A list of the Moments of the circuit.
     """
 
     def __init__(self, moments: Iterable[Moment] = ()) -> None:
@@ -65,6 +93,28 @@ class Circuit(object):
 
     def __ne__(self, other):
         return not self == other
+
+    def __getitem__(self, key: Union[int, slice]) -> Union['Circuit', Moment]:
+        if isinstance(key, slice):
+            return Circuit(self.moments[key])
+        if isinstance(key, int):
+            return self.moments[key]
+        else:
+            raise TypeError(
+                '__getitem__ called with key not of type slice or int.')
+
+    def __len__(self):
+        return len(self.moments)
+
+    def __iter__(self):
+        return iter(self.moments)
+
+    def __repr__(self):
+        moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
+        return 'Circuit([{}])'.format(','.join(moment_lines))
+
+    def __str__(self):
+        return self.to_text_diagram()
 
     __hash__ = None
 
@@ -171,21 +221,6 @@ class Circuit(object):
             if qubit in op.qubits:
                 return op
         return None
-
-    def clear_operations_touching(self, qubits: Iterable[ops.QubitId],
-                                  moment_indices: Iterable[int]):
-        """Clears operations that are touching given qubits at given moments.
-
-        Args:
-            qubits: The qubits to check for operations on.
-            moment_indices: The indices of moments to check for operations
-                within.
-        """
-        qubits = frozenset(qubits)
-        for k in moment_indices:
-            if 0 <= k < len(self.moments):
-                self.moments[k] = self.moments[k].without_operations_touching(
-                    qubits)
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -320,16 +355,24 @@ class Circuit(object):
         """
         self.insert(len(self.moments), operation_tree, strategy)
 
+    def clear_operations_touching(self, qubits: Iterable[ops.QubitId],
+        moment_indices: Iterable[int]):
+        """Clears operations that are touching given qubits at given moments.
+
+        Args:
+            qubits: The qubits to check for operations on.
+            moment_indices: The indices of moments to check for operations
+                within.
+        """
+        qubits = frozenset(qubits)
+        for k in moment_indices:
+            if 0 <= k < len(self.moments):
+                self.moments[k] = self.moments[k].without_operations_touching(
+                    qubits)
+
     def qubits(self) -> FrozenSet[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
-
-    def __repr__(self):
-        moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
-        return 'Circuit([{}])'.format(','.join(moment_lines))
-
-    def __str__(self):
-        return self.to_text_diagram()
 
     def to_unitary_matrix(
             self,
@@ -398,6 +441,7 @@ class Circuit(object):
             ext: Extensions = None,
             use_unicode_characters: bool = True,
             transpose: bool = False,
+            precision: int = 3,
             qubit_order_key: Callable[[QubitId], Any] = None) -> str:
         """Returns text containing a diagram describing the circuit.
 
@@ -406,6 +450,7 @@ class Circuit(object):
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
+            precision: Number of digits to display in text diagram
             qubit_order_key: Transforms each qubit into a key that determines
                 how the qubits are ordered in the diagram. Qubits with lower
                 keys come first. Defaults to the qubit's __str__, but augmented
@@ -420,6 +465,7 @@ class Circuit(object):
         diagram = self.to_text_diagram_drawer(
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
+            precision = precision,
             qubit_order_key=qubit_order_key)
 
         if transpose:
@@ -435,6 +481,7 @@ class Circuit(object):
             self,
             ext: Extensions = Extensions(),
             qubit_name_suffix: str = '',
+            precision: int = 3,
             qubit_order_key: Callable[[QubitId], Any] = None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
@@ -471,7 +518,7 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram)
+            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, precision)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -480,11 +527,13 @@ class Circuit(object):
         return diagram
 
 
-def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
-                                        ) -> Iterable[str]:
+def _get_operation_text_diagram_symbols(op: ops.Operation,
+                                        ext: Extensions,
+                                        precision: int) -> Iterable[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is not None:
-        wire_symbols = text_diagram_gate.text_diagram_wire_symbols()
+        wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
+            precision=precision)
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
@@ -502,7 +551,8 @@ def _get_operation_text_diagram_symbols(op: ops.Operation, ext: Extensions
 
 
 def _get_operation_text_diagram_exponent(op: ops.Operation,
-                                         ext: Extensions) -> Optional[str]:
+                                         ext: Extensions,
+                                         precision: int) -> Optional[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is None:
         return None
@@ -510,7 +560,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
     if exponent == 1:
         return None
     if isinstance(exponent, float):
-        return repr(exponent)
+      return '{{:.{}}}'.format(precision).format(exponent)
     s = str(exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:
         return '({})'.format(exponent)
@@ -520,7 +570,8 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
                             qubit_map: Dict[QubitId, int],
-                            out_diagram: TextDiagramDrawer):
+                            out_diagram: TextDiagramDrawer,
+                            precision: int):
     if not moment.operations:
         return []
 
@@ -541,12 +592,12 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        symbols = _get_operation_text_diagram_symbols(op, ext)
+        symbols = _get_operation_text_diagram_symbols(op, ext, precision)
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the first label.
-        exponent = _get_operation_text_diagram_exponent(op, ext)
+        exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
 
