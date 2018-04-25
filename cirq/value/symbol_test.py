@@ -20,6 +20,13 @@ def test_parameterized_value_init():
     assert Symbol('a').name == 'a'
     assert Symbol('b').name == 'b'
 
+def test_string_representation():
+    assert str(Symbol('a1')) == 'a1'
+    assert str(Symbol('_b23_')) == '_b23_'
+    assert str(Symbol('1a')) == 'Symbol(%s)' % repr('1a')
+    assert str(Symbol('&%#')) == 'Symbol(%s)' % repr('&%#')
+    assert str(Symbol('')) == 'Symbol(%s)' % repr('')
+    assert str(Symbol('if')) == 'Symbol(%s)' % repr('if')
 
 def test_parameterized_value_eq():
     eq = EqualsTester()
