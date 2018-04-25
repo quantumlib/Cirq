@@ -23,10 +23,9 @@ def test_parameterized_value_init():
 def test_string_representation():
     assert str(Symbol('a1')) == 'a1'
     assert str(Symbol('_b23_')) == '_b23_'
-    assert str(Symbol('1a')) == 'Symbol({!r})'.format('1a')
-    assert str(Symbol('&%#')) == 'Symbol({!r})'.format('&%#')
-    assert str(Symbol('')) == 'Symbol({!r})'.format('')
-    assert str(Symbol('if')) == 'Symbol({!r})'.format('if')
+    assert str(Symbol('1a')) == 'Symbol("{}")'.format('1a')
+    assert str(Symbol('&%#')) == 'Symbol("{}")'.format('&%#')
+    assert str(Symbol('')) == 'Symbol("{}")'.format('')
 
 def test_parameterized_value_eq():
     eq = EqualsTester()

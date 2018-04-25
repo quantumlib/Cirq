@@ -711,11 +711,7 @@ def test_to_text_diagram_parameterized_value():
         PGate(Symbol('a')).on(q),
         PGate(Symbol('%$&#*(')).on(q),
     )
-    assert str(c).strip() in [
-        "cube: ───P───P^2───P^a───P^Symbol('%$&#*(')───",
-
-        "cube: ───P───P^2───P^a───P^Symbol(u'%$&#*(')───",
-    ]
+    assert str(c).strip() == 'cube: ───P───P^2───P^a───P^Symbol("%$&#*(")───'
 
 
 def test_to_text_diagram_custom_order():
