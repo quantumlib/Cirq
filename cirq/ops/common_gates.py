@@ -47,6 +47,9 @@ class Rot11Gate(PartialReflectionGate,
         """See base class."""
         return np.diag([1, 1, 1, -1])
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
@@ -65,6 +68,9 @@ class RotXGate(PartialReflectionGate, gate_features.SingleQubitGate):
     def _reflection_matrix(self):
         return np.array([[0, 1], [1, 0]])
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
@@ -82,6 +88,9 @@ class RotYGate(PartialReflectionGate, gate_features.SingleQubitGate):
 
     def _reflection_matrix(self):
         return np.array([[0, -1j], [1j, 0]])
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
@@ -103,6 +112,9 @@ class RotZGate(PartialReflectionGate, gate_features.SingleQubitGate):
 
     def _reflection_matrix(self):
         return np.diag([1, -1])
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 class MeasurementGate(gate_features.TextDiagrammableGate):
