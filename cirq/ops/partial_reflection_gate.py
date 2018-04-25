@@ -65,8 +65,9 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
 
     @abc.abstractmethod
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True
+                                  qubit_count = None,
+                                  use_unicode_characters = True,
+                                  precision: int = 3
                                   ) -> Tuple[str, ...]:
         pass
 
