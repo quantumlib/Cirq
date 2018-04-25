@@ -15,34 +15,50 @@
 # limitations under the License.
 
 # Uses the 3to2 tool to automatically translate cirq's python 3 code into
-# python 2 code. Output goes into the directory 'python2.7-generated'. If that
-# directory already exists, it will be deleted first.
-
-# Assumes the current working directory is the root of cirq's git repository.
+# python 2 code. Code is read from the given input directory (second command
+# line argument) and written to the given output directory (first command line
+# argument). The input directory defaults to the current working directory. The
+# output directory defaults to "python2.7-output" in the current working
+# directory.
 
 set -e
 
-out='python2.7-output'
+out_dir=${1:-"$(pwd)/python2.7-output"}
+in_dir=${2:-$(pwd)}
 
-# Clean output directory.
-rm -rf ${out}
-mkdir ${out}
+if [ -z "${in_dir}" ]; then
+  echo -e "\e[31mNo input directory given.\e[0m"
+  exit 1
+fi
+if [ -z "${out_dir}" ]; then
+  echo -e "\e[31mNo output directory given.\e[0m"
+  exit 1
+fi
+
+mkdir ${out_dir}
+
+function print_cached_err () {
+  cat "${out_dir}/err_tmp.log" 1>&2
+  rm -rf "${out_dir}"
+}
+touch "${out_dir}/err_tmp.log"
+trap print_cached_err ERR
 
 # Copy into output directory and convert in-place.
-cp -r cirq ${out}/cirq
-3to2 ${out}/cirq -w > /dev/null 2> /dev/null
-find ${out}/cirq | grep "\.py\.bak$" | xargs rm -f
+cp -r "${in_dir}/cirq" "${out_dir}/cirq"
+3to2 "${out_dir}/cirq" -w >/dev/null 2> "${out_dir}/err_tmp.log"
+find "${out_dir}/cirq" | grep "\.py\.bak$" | xargs rm -f
 
 # Build protobufs.
-proto_dir=${out}/cirq/api/google/v1
+proto_dir="${out_dir}/cirq/api/google/v1"
 find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
-protoc -I=${out} --python_out=${out} ${proto_dir}/*.proto
+protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
 
-cp python2.7-requirements.txt ${out}/requirements.txt
-cp README.md ${out}/README.md
+cp "${in_dir}/python2.7-requirements.txt" "${out_dir}/requirements.txt"
+cp "${in_dir}/README.md" "${out_dir}/README.md"
 
 # Mark every file as using utf8 encoding.
-files_to_update=$(find ${out} | grep "\.py$" | grep -v "_pb2\.py$")
+files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")
 for file in ${files_to_update}; do
     sed -i '1s/^/# coding=utf-8\n/' ${file}
 done
@@ -51,3 +67,5 @@ done
 for file in ${files_to_update}; do
       sed -i "s/^\(\s\+\?\)def __str__(self):/\1def __str__(self):\n\1    return unicode(self).encode('utf-8')\n\n\1def __unicode__(self):/" ${file}
 done
+
+rm -f "${out_dir}/err_tmp.log"
