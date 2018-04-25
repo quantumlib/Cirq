@@ -115,6 +115,9 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         """The reflection matrix corresponding to half_turns=1."""
         pass
 
+    def has_matrix(self) -> bool:
+        return not isinstance(self.half_turns, Symbol)
+
     def matrix(self) -> np.ndarray:
         if isinstance(self.half_turns, Symbol):
             raise ValueError("Parameterized. Don't have a known matrix.")
