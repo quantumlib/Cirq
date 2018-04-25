@@ -99,6 +99,15 @@ class SimulatorTrialResult(TrialResult):
         self.measurements = measurements
         self.final_states = final_states
 
+    def __repr__(self):
+        return ('SimulatorTrialResult(params={!r}, '
+                'repetitions={!r}, '
+                'measurements={!r}, '
+                'final_states={!r})').format(self.params,
+                                             self.repetitions,
+                                             self.measurements,
+                                             self.final_states)
+
     def __str__(self):
         def bitstring(vals):
             return ''.join('1' if v else '0' for v in vals)
