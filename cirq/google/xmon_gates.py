@@ -282,7 +282,10 @@ class ExpWGate(XmonGate,
             return 'X',
         if self.axis_half_turns == 0.5:
             return 'Y',
-        return 'W({{:.{}}})'.format(precision).format(self.axis_half_turns),
+        if precision is not None:
+            return 'W({{:.{}}})'.format(precision).format(self.axis_half_turns),
+        else:
+            return 'W({})'.format(self.axis_half_turns),
 
     def text_diagram_exponent(self):
         return self.half_turns

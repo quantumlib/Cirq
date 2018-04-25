@@ -559,7 +559,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
     exponent = text_diagram_gate.text_diagram_exponent()
     if exponent == 1:
         return None
-    if isinstance(exponent, float):
+    if isinstance(exponent, float) and precision is not None:
       return '{{:.{}}}'.format(precision).format(exponent)
     s = str(exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:

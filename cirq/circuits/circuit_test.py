@@ -745,6 +745,16 @@ a: ---X^0.123---
     """.strip()
 
 
+def test_none_precision_diagram():
+    # Test default precision of 3
+    qa = ops.NamedQubit('a')
+    c = Circuit([Moment([ops.X(qa)**0.12345678])])
+    diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
+    assert diagram.strip() == """
+a: ---X^0.12345678---
+    """.strip()
+
+
 def test_diagram_custom_precision():
     qa = ops.NamedQubit('a')
     c = Circuit([Moment([ops.X(qa)**0.12341234])])
@@ -761,6 +771,16 @@ def test_diagram_wgate():
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
     assert diagram.strip() == """
 a: ---W(0.43)^0.12---
+    """.strip()
+
+
+def test_diagram_wgate_none_precision():
+    qa = ops.NamedQubit('a')
+    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    c = Circuit([Moment([test_wgate.on(qa)])])
+    diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
+    assert diagram.strip() == """
+a: ---W(0.43214321)^0.12341234---
     """.strip()
 
 
