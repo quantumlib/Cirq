@@ -119,7 +119,7 @@ class Simulator:
         param_resolver: ParamResolver = ParamResolver({}),
         repetitions: int = 1,
         options: Options = None,
-        basis: ops.Basis = ops.Basis.DEFAULT,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
         extensions: Extensions = None,
     ) -> SimulatorTrialResult:
@@ -130,7 +130,7 @@ class Simulator:
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             options: Options configuring the simulation.
-            basis: Determines the canonical ordering of the qubits used to
+            qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state.
@@ -145,7 +145,7 @@ class Simulator:
             Results for this run.
         """
         return self.run_sweep(circuit, [param_resolver], repetitions, options,
-                              basis, initial_state,
+                              qubit_order, initial_state,
                               extensions or xmon_gate_ext)[0]
 
     def run_sweep(
@@ -154,7 +154,7 @@ class Simulator:
             params: Sweepable = ParamResolver({}),
             repetitions: int = 1,
             options: Options = None,
-            basis: ops.Basis = ops.Basis.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
             extensions: Extensions = None
     ) -> List[SimulatorTrialResult]:
@@ -165,7 +165,7 @@ class Simulator:
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             options: Options configuring the simulation.
-            basis: Determines the canonical ordering of the qubits used to
+            qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state.
@@ -195,7 +195,7 @@ class Simulator:
                 all_step_results = simulator_iterator(
                     xmon_circuit,
                     options or Options(),
-                    basis,
+                    qubit_order,
                     initial_state,
                     param_resolver)
                 step_result = None
@@ -206,8 +206,9 @@ class Simulator:
                     final_states.append(step_result.state())
                 else:
                     # Empty circuit, so final state should be initial state.
-                    num_qubits = len(basis.explicit_order_for(
-                        circuit.qubits()))
+                    num_qubits = len(
+                        ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+                            circuit.qubits()))
                     final_states.append(
                         xmon_stepper.decode_initial_state(initial_state,
                                                           num_qubits))
@@ -234,7 +235,7 @@ class Simulator:
             self,
             program: Circuit,
             options: 'Options' = None,
-            basis: ops.Basis = ops.Basis.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray]=0,
             param_resolver: ParamResolver = None,
             extensions: Extensions = None) -> Iterator['StepResult']:
@@ -243,7 +244,7 @@ class Simulator:
         Args:
             program: The Circuit to simulate.
             options: Options configuring the simulation.
-            basis: Determines the canonical ordering of the qubits used to
+            qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state.
@@ -265,7 +266,7 @@ class Simulator:
                                                 extensions or xmon_gate_ext)
         return simulator_iterator(xmon_circuit,
                                   options or Options(),
-                                  basis,
+                                  qubit_order,
                                   initial_state,
                                   param_resolver)
 
@@ -283,7 +284,7 @@ class Simulator:
 def simulator_iterator(
         circuit: Circuit,
         options: 'Options' = Options(),
-        basis: ops.Basis = ops.Basis.DEFAULT,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray]=0,
         param_resolver: ParamResolver = ParamResolver({}),
 ) -> Iterator['StepResult']:
@@ -295,7 +296,7 @@ def simulator_iterator(
     Args:
         circuit: The circuit to simulate; must contain xmon gates only.
         options: Options configuring the simulation.
-        basis: Determines the canonical ordering of the qubits used to
+        qubit_order: Determines the canonical ordering of the qubits used to
             define the order of amplitudes in the wave function.
         initial_state: If this is an int, the state is set to the computational
             basis state corresponding corresponding to the integer. Note that
@@ -315,7 +316,8 @@ def simulator_iterator(
         TypeError: if the circuit contains gates that are not XmonGates or
             composite gates made of XmonGates.
     """
-    qubits = basis.explicit_order_for(circuit.qubits())
+    qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+        circuit.qubits())
     qubit_map = {q: i for i, q in enumerate(qubits)}
     if isinstance(initial_state, np.ndarray):
         initial_state = initial_state.astype(dtype=np.complex64,

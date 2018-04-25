@@ -7,15 +7,15 @@
 #     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an "AS IS" qubit_order,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
 import pytest
 
-from cirq.ops.basis import default_sorting_key
-from cirq.ops import Basis, NamedQubit
+from cirq.ops.qubit_order import default_sorting_key
+from cirq.ops import QubitOrder, NamedQubit
 
 
 def test_default_sorting_key():
@@ -49,8 +49,8 @@ def test_default_basis():
     a2 = NamedQubit('a2')
     a10 = NamedQubit('a10')
     b = NamedQubit('b')
-    assert Basis.DEFAULT.explicit_order_for([]) == ()
-    assert Basis.DEFAULT.explicit_order_for([a10, a2, b]) == (a2, a10, b)
+    assert QubitOrder.DEFAULT.order_for([]) == ()
+    assert QubitOrder.DEFAULT.order_for([a10, a2, b]) == (a2, a10, b)
 
 
 def test_explicit_basis():
@@ -58,25 +58,25 @@ def test_explicit_basis():
     a10 = NamedQubit('a10')
     b = NamedQubit('b')
     with pytest.raises(ValueError):
-        _ = Basis.explicit([b, b])
-    basis = Basis.explicit([a10, a2, b])
-    assert basis.explicit_order_for([b]) == (a10, a2, b)
-    assert basis.explicit_order_for([a2]) == (a10, a2, b)
-    assert basis.explicit_order_for([]) == (a10, a2, b)
+        _ = QubitOrder.explicit([b, b])
+    q = QubitOrder.explicit([a10, a2, b])
+    assert q.order_for([b]) == (a10, a2, b)
+    assert q.order_for([a2]) == (a10, a2, b)
+    assert q.order_for([]) == (a10, a2, b)
     with pytest.raises(ValueError):
-        _ = basis.explicit_order_for([NamedQubit('c')])
+        _ = q.order_for([NamedQubit('c')])
 
 
 def test_explicit_basis_with_fallback():
     a2 = NamedQubit('a2')
     a10 = NamedQubit('a10')
     b = NamedQubit('b')
-    basis = Basis.explicit([b], fallback=Basis.DEFAULT)
-    assert basis.explicit_order_for([]) == (b,)
-    assert basis.explicit_order_for([b]) == (b,)
-    assert basis.explicit_order_for([b, a2]) == (b, a2)
-    assert basis.explicit_order_for([a2]) == (b, a2)
-    assert basis.explicit_order_for([a10, a2]) == (b, a2, a10)
+    q = QubitOrder.explicit([b], fallback=QubitOrder.DEFAULT)
+    assert q.order_for([]) == (b,)
+    assert q.order_for([b]) == (b,)
+    assert q.order_for([b, a2]) == (b, a2)
+    assert q.order_for([a2]) == (b, a2)
+    assert q.order_for([a10, a2]) == (b, a2, a10)
 
 
 def test_sorted_by_basis():
@@ -84,18 +84,34 @@ def test_sorted_by_basis():
     b = NamedQubit('10')
     c = NamedQubit('-5')
 
-    basis = Basis.sorted_by(lambda e: -int(str(e)))
-    assert basis.explicit_order_for([]) == ()
-    assert basis.explicit_order_for([a]) == (a,)
-    assert basis.explicit_order_for([a, b]) == (b, a)
-    assert basis.explicit_order_for([a, b, c]) == (b, a, c)
+    q = QubitOrder.sorted_by(lambda e: -int(str(e)))
+    assert q.order_for([]) == ()
+    assert q.order_for([a]) == (a,)
+    assert q.order_for([a, b]) == (b, a)
+    assert q.order_for([a, b, c]) == (b, a, c)
 
 
 def test_map():
     b = NamedQubit('b!')
-    basis = Basis.explicit([NamedQubit('b')]).map(
+    q = QubitOrder.explicit([NamedQubit('b')]).map(
         internalize=lambda e: NamedQubit(e.name[:-1]),
         externalize=lambda e: NamedQubit(e.name + '!'))
 
-    assert basis.explicit_order_for([]) == (b,)
-    assert basis.explicit_order_for([b]) == (b,)
+    assert q.order_for([]) == (b,)
+    assert q.order_for([b]) == (b,)
+
+
+def test_qubit_order_or_list():
+    b = NamedQubit('b')
+
+    implied_by_list = QubitOrder.as_qubit_order([b])
+    assert implied_by_list.order_for([]) == (b,)
+
+    implied_by_generator = QubitOrder.as_qubit_order(
+        NamedQubit(e.name + '!') for e in [b])
+    assert implied_by_generator.order_for([]) == (NamedQubit('b!'),)
+    assert implied_by_generator.order_for([]) == (NamedQubit('b!'),)
+
+    ordered = QubitOrder.sorted_by(repr)
+    passed_through = QubitOrder.as_qubit_order(ordered)
+    assert ordered is passed_through

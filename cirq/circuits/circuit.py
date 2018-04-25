@@ -377,14 +377,14 @@ class Circuit(object):
 
     def to_unitary_matrix(
             self,
-            basis: ops.Basis = ops.Basis.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[QubitId] = (),
             ignore_terminal_measurements: bool = True,
             ext: Extensions = None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
-            basis: Determines how qubits are ordered when passing matrices
+            qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
             ext: The extensions to use when attempting to cast gates into
                 KnownMatrixGate instances.
@@ -417,7 +417,7 @@ class Circuit(object):
 
         if ext is None:
             ext = Extensions()
-        qs = basis.explicit_order_for(
+        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
@@ -440,7 +440,7 @@ class Circuit(object):
             use_unicode_characters: bool = True,
             transpose: bool = False,
             precision: int = 3,
-            basis: ops.Basis = ops.Basis.DEFAULT) -> str:
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
         """Returns text containing a diagram describing the circuit.
 
         Args:
@@ -449,7 +449,7 @@ class Circuit(object):
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to display in text diagram
-            basis: Determines how qubits are ordered in the diagram.
+            qubit_order: Determines how qubits are ordered in the diagram.
 
         Returns:
             The text diagram.
@@ -459,7 +459,7 @@ class Circuit(object):
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
             precision=precision,
-            basis=basis)
+            qubit_order=qubit_order)
 
         if transpose:
             return diagram.transpose().render(
@@ -475,7 +475,7 @@ class Circuit(object):
             ext: Extensions = Extensions(),
             qubit_name_suffix: str = '',
             precision: int = 3,
-            basis: ops.Basis = ops.Basis.DEFAULT
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -483,7 +483,7 @@ class Circuit(object):
             ext: For extending gates to implement TextDiagrammableGate.
             qubit_name_suffix: Appended to qubit names in the diagram.
             precision: Number of digits to use when representing numbers.
-            basis: Determines how qubits are ordered in the diagram.
+            qubit_order: Determines how qubits are ordered in the diagram.
 
         Returns:
             The TextDiagramDrawer instance.
@@ -491,7 +491,8 @@ class Circuit(object):
         if ext is None:
             ext = Extensions()
 
-        qubits = basis.explicit_order_for(self.qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         diagram = TextDiagramDrawer()

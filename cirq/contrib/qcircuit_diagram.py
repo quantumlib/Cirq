@@ -118,7 +118,7 @@ def _wrap_circuit(circuit: circuits.Circuit,
 def circuit_to_latex_using_qcircuit(
         circuit: circuits.Circuit,
         ext: extension.Extensions = None,
-        basis: ops.Basis = ops.Basis.DEFAULT) -> str:
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
     Args:
@@ -126,7 +126,7 @@ def circuit_to_latex_using_qcircuit(
         ext: Extensions used when attempting to cast gates into
             QCircuitDiagrammableGate instances (before falling back to the
             default wrapping methods).
-        basis: Determines the order of qubit wires in the diagram.
+        qubit_order: Determines the order of qubit wires in the diagram.
 
     Returns:
         Latex code for the diagram.
@@ -142,5 +142,6 @@ def circuit_to_latex_using_qcircuit(
     diagram = qcircuit.to_text_diagram_drawer(
         ext,
         qubit_name_suffix='',
-        basis=basis.map(internalize=get_sub, externalize=_QCircuitQubit))
+        qubit_order=ops.QubitOrder.as_qubit_order(qubit_order).map(
+            internalize=get_sub, externalize=_QCircuitQubit))
     return _render(diagram)

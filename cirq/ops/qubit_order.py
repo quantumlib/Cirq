@@ -13,7 +13,9 @@
 # limitations under the License.
 
 
-from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar
+from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar, Union
+
+import collections
 
 from cirq.ops import raw_types
 
@@ -22,7 +24,7 @@ TInternalQubit = TypeVar('TInternalQubit')
 TExternalQubit = TypeVar('TExternalQubit')
 
 
-class Basis:
+class QubitOrder:
     """Defines the kronecker product order of qubits."""
 
     def __init__(self, explicit_func: Callable[[Iterable[raw_types.QubitId]],
@@ -30,12 +32,12 @@ class Basis:
                  ) -> None:
         self._explicit_func = explicit_func
 
-    DEFAULT = None  # type: Basis
+    DEFAULT = None  # type: QubitOrder
     """A basis that orders qubits based on their names."""
 
     @staticmethod
     def explicit(fixed_qubits: Iterable[raw_types.QubitId],
-                 fallback: Optional['Basis']=None) -> 'Basis':
+                 fallback: Optional['QubitOrder']=None) -> 'QubitOrder':
         """A basis that contains exactly the given qubits in the given order.
 
         Args:
@@ -61,12 +63,12 @@ class Basis:
             if not fallback:
                 raise ValueError(
                     'Unexpected extra qubits: {}.'.format(remaining))
-            return result + fallback.explicit_order_for(remaining)
+            return result + fallback.order_for(remaining)
 
-        return Basis(func)
+        return QubitOrder(func)
 
     @staticmethod
-    def sorted_by(key: Callable[[raw_types.QubitId], Any]) -> 'Basis':
+    def sorted_by(key: Callable[[Any], Any]) -> 'QubitOrder':
         """A basis that orders qubits ascending based on a key function.
 
         Args:
@@ -77,10 +79,10 @@ class Basis:
         Returns:
             A basis that orders qubits ascending based on a key function.
         """
-        return Basis(lambda qubits: tuple(sorted(qubits, key=key)))
+        return QubitOrder(lambda qubits: tuple(sorted(qubits, key=key)))
 
-    def explicit_order_for(self, qubits: Iterable[raw_types.QubitId]
-                           ) -> Tuple[raw_types.QubitId, ...]:
+    def order_for(self, qubits: Iterable[raw_types.QubitId]
+                  ) -> Tuple[raw_types.QubitId, ...]:
         """Returns a qubit tuple ordered corresponding to the basis.
 
         Args:
@@ -94,10 +96,29 @@ class Basis:
         """
         return self._explicit_func(qubits)
 
+    @staticmethod
+    def as_qubit_order(val: 'QubitOrderOrList') -> 'QubitOrder':
+        """Converts a value into a basis.
+
+        Args:
+            val: An iterable or a basis.
+
+        Returns:
+            The basis implied by the value.
+        """
+        if isinstance(val, collections.Iterable):
+            return QubitOrder.explicit(val)
+        if isinstance(val, QubitOrder):
+            return val
+        raise ValueError(
+            "Don't know how to interpret <{}> as a Basis.".format(val))
+
+
+
     def map(self,
             internalize: Callable[[TExternalQubit], TInternalQubit],
             externalize: Callable[[TInternalQubit], TExternalQubit]
-            ) -> 'Basis':
+            ) -> 'QubitOrder':
         """Transforms the Basis so that it applies to wrapped qubits.
 
         Args:
@@ -114,16 +135,16 @@ class Basis:
 
         def func(qubits):
             unwrapped_qubits = [internalize(q) for q in qubits]
-            unwrapped_result = self.explicit_order_for(unwrapped_qubits)
+            unwrapped_result = self.order_for(unwrapped_qubits)
             return tuple(externalize(q) for q in unwrapped_result)
 
-        return Basis(func)
+        return QubitOrder(func)
 
 
 def default_sorting_key(value: Any) -> str:
     """A str method with hacks to support better lexicographic ordering.
 
-    These strings are not intended to be human readable.
+    The output strings are not intended to be human readable.
 
     The returned string will have digit-runs zero-padded up to at least 8
     digits. That way, instead of 'a10' coming before 'a2', 'a000010' will come
@@ -156,4 +177,8 @@ def default_sorting_key(value: Any) -> str:
     return ''.join(chunks)
 
 
-Basis.DEFAULT = Basis.sorted_by(default_sorting_key)
+QubitOrder.DEFAULT = QubitOrder.sorted_by(default_sorting_key)
+
+QubitOrderOrList = Union[
+    QubitOrder,
+    Iterable[raw_types.QubitId]]

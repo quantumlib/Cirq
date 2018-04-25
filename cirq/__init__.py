@@ -78,7 +78,8 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    Basis,
+    QubitOrder,
+    QubitOrderOrList,
     BoundedEffectGate,
     CNOT,
     CNotGate,

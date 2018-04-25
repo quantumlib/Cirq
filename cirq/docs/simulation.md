@@ -76,16 +76,17 @@ but also the state (wave-function) at the end of the simulation:
 import numpy as np
 circuit = Circuit()
 circuit.append(basic_circuit(False))    
-result = simulator.run(circuit, basis=cirq.Basis.explicit([q0, q1]))
+result = simulator.run(circuit, qubit_order=[q0, q1])
 
 print(np.around(result.final_states[0], 3))
 # prints
 # [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
 
-Note that the basis argument can usually be omitted. By default, the basis
-contains every qubit touched by the circuit ordered ascending by their
-name (i.e. what their `__str__` method returns).
+The qubit_order argument determines the ordering of some results, such as the
+amplitudes if the final wave function. qubit_order is optional, and can include
+qubits not actually in the circuit. When omitted, qubits are ordered ascending
+by their name (i.e. what their `__str__` method returns).
 
 
 Note that the xmon simulator uses numpy's ``float32`` precision
