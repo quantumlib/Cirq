@@ -22,7 +22,8 @@ class Basis:
     """Defines the kronecker product order of qubits."""
 
     def __init__(self, explicit_func: Callable[[Iterable[raw_types.QubitId]],
-                                               Tuple[raw_types.QubitId, ...]]):
+                                               Tuple[raw_types.QubitId, ...]]
+                 ) -> None:
         self._explicit_func = explicit_func
 
     DEFAULT = None  # type: Basis

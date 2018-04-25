@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Optional
+from typing import Optional
 
 from cirq import abc, circuits, extension, ops
 from cirq.contrib.qcircuit_diagrammable_gate import (
@@ -32,7 +32,7 @@ class _QCircuitQubit(ops.QubitId):
     def __eq__(self, other):
         if not isinstance(other, _QCircuitQubit):
             return NotImplemented
-        return self.sub == other.sub
+        return self.sub == other
 
     def __ne__(self, other):
         return not self == other

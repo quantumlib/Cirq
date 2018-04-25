@@ -19,7 +19,7 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
+from typing import Dict, FrozenSet, Iterable, Optional, Sequence
 from typing import Union
 
 import numpy as np
