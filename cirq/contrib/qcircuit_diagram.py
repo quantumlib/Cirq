@@ -25,6 +25,9 @@ class _QCircuitQubit(ops.QubitId):
     def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
 
+    def __repr__(self):
+        return '_QCircuitQubit({!r})'.format(self.sub)
+
     def __str__(self):
         # TODO: If qubit name ends with digits, turn them into subscripts.
         return '\\lstick{\\text{' + str(self.sub) + '}}&'
@@ -32,7 +35,7 @@ class _QCircuitQubit(ops.QubitId):
     def __eq__(self, other):
         if not isinstance(other, _QCircuitQubit):
             return NotImplemented
-        return self.sub == other
+        return self.sub == other.sub
 
     def __ne__(self, other):
         return not self == other
