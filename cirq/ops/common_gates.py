@@ -14,7 +14,7 @@
 
 """Quantum gates that are commonly used in the literature."""
 import math
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 
 import numpy as np
 
@@ -222,7 +222,9 @@ class MeasurementGate(gate_features.TextDiagrammableGate):
         inverting should be done.
     """
 
-    def __init__(self, key: str = '', invert_mask: Tuple[bool] = None) -> None:
+    def __init__(self,
+                 key: str = '',
+                 invert_mask: Optional[Tuple[bool, ...]] = None) -> None:
         self.key = key
         self.invert_mask = invert_mask
 

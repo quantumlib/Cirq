@@ -13,7 +13,7 @@ implementation in terms of this basic gate set.
 Here is a simple circuit
 ```python
 import cirq
-from cirq.circuits import Circuit
+from cirq import Circuit
 from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit
 
 q0 = XmonQubit(0, 0)
@@ -76,12 +76,17 @@ but also the state (wave-function) at the end of the simulation:
 import numpy as np
 circuit = Circuit()
 circuit.append(basic_circuit(False))    
-result = simulator.run(circuit, qubits=[q0, q1])
+result = simulator.run(circuit, basis=cirq.Basis.explicit([q0, q1]))
 
 print(np.around(result.final_states[0], 3))
 # prints
 # [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
+
+Note that the basis argument can usually be omitted. By default, the basis
+contains every qubit touched by the circuit ordered ascending by their
+name (i.e. what their `__str__` method returns).
+
 
 Note that the xmon simulator uses numpy's ``float32`` precision
 (which is ``complex64`` for complex numbers). Also note that
@@ -104,7 +109,7 @@ over a ``Moment`` by ``Moment`` simulation.  This is the method
 ```python
 circuit = Circuit()
 circuit.append(basic_circuit())    
-for i, step in enumerate(simulator.moment_steps(circuit, qubits=[q0, q1])):
+for i, step in enumerate(simulator.moment_steps(circuit)):
     print('state at step %d: %s' % (i, np.around(step.state(), 3)))
 # prints something like
 # state at step 0: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]

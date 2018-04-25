@@ -724,8 +724,9 @@ def test_to_text_diagram_custom_order():
     qc = ops.NamedQubit('4')
 
     c = Circuit([Moment([ops.X(qa), ops.X(qb), ops.X(qc)])])
-    diagram = c.to_text_diagram(qubit_order_key=lambda e: int(str(e)) % 3,
-                                use_unicode_characters=False)
+    diagram = c.to_text_diagram(
+        basis=ops.Basis.sorted_by(lambda e: int(str(e)) % 3),
+        use_unicode_characters=False)
     assert diagram.strip() == """
 3: ---X---
 

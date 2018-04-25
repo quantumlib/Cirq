@@ -15,6 +15,9 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.basis import (
+    Basis,
+)
 from cirq.ops.common_gates import (
     CNOT,
     CNotGate,

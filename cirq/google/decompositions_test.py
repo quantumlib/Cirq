@@ -34,7 +34,7 @@ def inv_unit(x: complex) -> complex:
 
 def _operations_to_matrix(operations, qubits):
     return circuits.Circuit.from_ops(operations).to_unitary_matrix(
-        qubit_order_key=qubits.index,
+        basis=ops.Basis.explicit(qubits),
         qubits_that_should_be_present=qubits)
 
 
