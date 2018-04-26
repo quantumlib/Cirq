@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from typing import List, cast, Tuple, Any, Iterable
 
 from cirq import ops, circuits
@@ -14,9 +15,9 @@ from cirq.contrib.quirk.quirk_gate import (
 def _try_convert_to_quirk_gate(gate: ops.Gate,
                                prefer_unknown_gate_to_failure: bool
                                ) -> QuirkGate:
-    cast = quirk_gate_ext.try_cast(gate, QuirkGate)
-    if cast is not None:
-        return cast
+    quirk_gate = quirk_gate_ext.try_cast(gate, QuirkGate)
+    if quirk_gate is not None:
+        return quirk_gate
     known_matrix_gate = quirk_gate_ext.try_cast(gate, ops.KnownMatrixGate)
     if known_matrix_gate is not None:
         raw = single_qubit_matrix_gate(known_matrix_gate)
@@ -41,7 +42,27 @@ def _to_quirk_cols(op: ops.Operation,
 
 
 def circuit_to_quirk_url(circuit: circuits.Circuit,
-                         prefer_unknown_gate_to_failure: bool=False) -> str:
+                         prefer_unknown_gate_to_failure: bool=False,
+                         escape_url=True) -> str:
+    """Returns a Quirk URL for the given circuit.
+
+    Args:
+        circuit: The circuit to open in Quirk.
+        prefer_unknown_gate_to_failure: If not set, gates that fail to convert
+            will cause this function to raise an error. If set, a URL
+            containing bad gates will be generated. (Quirk will open the URL,
+            and replace the bad gates with parse errors, but still get the rest
+            of the circuit.)
+        escape_url: If set, the generated URL will have special characters such
+            as quotes escaped using %. This makes it possible to paste the URL
+            into forums and the command line and etc and have it properly
+            parse. If not set, the generated URL will be more compact and human
+            readable (and can still be pasted directly into a browser's address
+            bar).
+
+    Returns:
+
+    """
     circuit = circuits.Circuit(circuit.moments)
     linearize_circuit_qubits(circuit)
 
@@ -64,7 +85,11 @@ def circuit_to_quirk_url(circuit: circuits.Circuit,
                         merged_col[i] = col[i]
             cols.append(merged_col)
 
-    return 'http://algassert.com/quirk#circuit={}'.format(
-        json.JSONEncoder(ensure_ascii=False,
-                         separators=(',', ':'),
-                         sort_keys=True).encode({'cols': cols}))
+    circuit_json = json.JSONEncoder(ensure_ascii=False,
+                                    separators=(',', ':'),
+                                    sort_keys=True).encode({'cols': cols})
+    if escape_url:
+        suffix = urllib.parse.quote(circuit_json)
+    else:
+        suffix = circuit_json
+    return 'http://algassert.com/quirk#circuit={}'.format(suffix)

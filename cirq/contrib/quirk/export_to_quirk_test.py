@@ -23,9 +23,12 @@ def test_x_z_same_col():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(cirq.X(a), cirq.Z(b))
-    assert circuit_to_quirk_url(circuit) == """
+    assert circuit_to_quirk_url(circuit, escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[["X","Z"]]}
     """.strip()
+    assert circuit_to_quirk_url(circuit) == (
+        'http://algassert.com/quirk#circuit='
+        '%7B%22cols%22%3A%5B%5B%22X%22%2C%22Z%22%5D%5D%7D')
 
 
 def test_x_cnot_split_cols():
@@ -33,7 +36,7 @@ def test_x_cnot_split_cols():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b), cirq.X(c))
-    assert circuit_to_quirk_url(circuit) == """
+    assert circuit_to_quirk_url(circuit, escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[["•","X"],[1,1,"X"]]}
     """.strip()
 
@@ -43,7 +46,7 @@ def test_cz_cnot_split_cols():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b), cirq.CZ(b, c))
-    assert circuit_to_quirk_url(circuit) == """
+    assert circuit_to_quirk_url(circuit, escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[["•","X"],[1,"•","Z"]]}
     """.strip()
 
@@ -67,7 +70,7 @@ def test_various_known_gate_types():
         cirq.CNOT(b, a),
         cirq.CZ(a, b),
     )
-    assert circuit_to_quirk_url(circuit) == """
+    assert circuit_to_quirk_url(circuit, escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[
             ["X"],
             ["X^¼"],
@@ -91,7 +94,7 @@ def test_unrecognized_single_qubit_gate_with_matrix():
     circuit = cirq.Circuit.from_ops(
         cirq.X(a)**0.2731,
     )
-    assert circuit_to_quirk_url(circuit) == """
+    assert circuit_to_quirk_url(circuit, escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[[{
             "id":"?",
             "matrix":"{
@@ -110,7 +113,10 @@ def test_unknown_gate():
     circuit = cirq.Circuit.from_ops(UnknownGate()(a))
     with pytest.raises(TypeError):
         _ = circuit_to_quirk_url(circuit)
+    with pytest.raises(TypeError):
+        _ = circuit_to_quirk_url(circuit, escape_url=False)
     assert circuit_to_quirk_url(circuit,
-                                prefer_unknown_gate_to_failure=True) == """
+                                prefer_unknown_gate_to_failure=True,
+                                escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[["UNKNOWN"]]}
     """.strip()

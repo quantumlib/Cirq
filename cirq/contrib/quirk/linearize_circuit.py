@@ -25,11 +25,10 @@ class QubitMapper(OptimizationPass):
 
 def linearize_circuit_qubits(
         circuit: circuits.Circuit,
-        qubit_order_key: Callable[[ops.QubitId], str] = None
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
         ) -> None:
-    if qubit_order_key is None:
-        qubit_order_key = sorting_str
+    qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+        circuit.qubits())
     qubit_map = {q: LineQubit(i)
-                 for i, q in enumerate(sorted(circuit.qubits(),
-                                              key=qubit_order_key))}
+                 for i, q in enumerate(qubits)}
     QubitMapper(qubit_map.__getitem__).optimize_circuit(circuit)
