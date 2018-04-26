@@ -272,6 +272,10 @@ class Engine:
             EngineOptions(project_id, program_id, job_id, gcs_prefix,
                           gcs_program, gcs_results), response, self)
 
+    def get_program(self, program_resource_name) -> Dict:
+        return self.service.projects().programs().get(
+            name=program_resource_name).execute()
+
     def get_job(self, job_resource_name) -> Dict:
         return self.service.projects().programs().jobs().get(
             name=job_resource_name).execute()
@@ -296,9 +300,78 @@ class Engine:
                     measurements=measurements))
         return trial_results
 
-    def cancel_job(self, job_resource_name):
+    def cancel_job(self, job_resource_name: str):
         self.service.projects().programs().jobs().cancel(
             name=job_resource_name, body={}).execute()
+
+    def _set_program_labels(self, program_resource_name: str,
+                            labels: Dict[str, str], fingerprint: str):
+        self.service.projects().programs().patch(
+            name=program_resource_name,
+            body={'name': program_resource_name, 'labels': labels,
+                  'labelFingerprint': fingerprint},
+            updateMask='labels').execute()
+
+    def set_program_labels(self, program_resource_name: str,
+                           labels: Dict[str, str]):
+        job = self.get_program(program_resource_name)
+        self._set_program_labels(program_resource_name, labels,
+                                 job.get('labelFingerprint', ''))
+
+    def add_program_labels(self, program_resource_name: str,
+                           labels: Dict[str, str]):
+        job = self.get_program(program_resource_name)
+        old_labels = job.get('labels', {})
+        new_labels = old_labels.copy()
+        new_labels.update(labels)
+        if new_labels != old_labels:
+            fingerprint = job.get('labelFingerprint', '')
+            self._set_program_labels(program_resource_name, new_labels,
+                                     fingerprint)
+
+    def remove_program_labels(self, program_resource_name: str,
+                              label_keys: List[str]):
+        job = self.get_program(program_resource_name)
+        old_labels = job.get('labels', {})
+        new_labels = old_labels.copy()
+        for key in label_keys:
+            new_labels.pop(key, None)
+        if new_labels != old_labels:
+            fingerprint = job.get('labelFingerprint', '')
+            self._set_program_labels(program_resource_name, new_labels,
+                                     fingerprint)
+
+    def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
+                        fingerprint: str):
+        self.service.projects().programs().jobs().patch(
+            name=job_resource_name,
+            body={'name': job_resource_name, 'labels': labels,
+                  'labelFingerprint': fingerprint},
+            updateMask='labels').execute()
+
+    def set_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
+        job = self.get_job(job_resource_name)
+        self._set_job_labels(job_resource_name, labels,
+                             job.get('labelFingerprint', ''))
+
+    def add_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
+        job = self.get_job(job_resource_name)
+        old_labels = job.get('labels', {})
+        new_labels = old_labels.copy()
+        new_labels.update(labels)
+        if new_labels != old_labels:
+            fingerprint = job.get('labelFingerprint', '')
+            self._set_job_labels(job_resource_name, new_labels, fingerprint)
+
+    def remove_job_labels(self, job_resource_name: str, label_keys: List[str]):
+        job = self.get_job(job_resource_name)
+        old_labels = job.get('labels', {})
+        new_labels = old_labels.copy()
+        for key in label_keys:
+            new_labels.pop(key, None)
+        if new_labels != old_labels:
+            fingerprint = job.get('labelFingerprint', '')
+            self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
 
 class EngineJob:
@@ -324,6 +397,7 @@ class EngineJob:
         self._job = job
         self._engine = engine
         self.job_resource_name = job['name']
+        self.program_resource_name = self.job_resource_name.split('/jobs')[0]
         self._results = None  # type: List[EngineTrialResult]
 
     def _update_job(self):
