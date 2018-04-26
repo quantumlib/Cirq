@@ -1,8 +1,10 @@
-from cirq import ops
+from cirq.ops import raw_types
 
 
-class LineQubit(ops.QubitId):
-    def __init__(self, x):
+class LineQubit(raw_types.QubitId):
+    """A qubit on a 1d lattice with nearest-neighbor connectivity."""
+
+    def __init__(self, x: int):
         self.x = x
 
     def is_adjacent(self, other: 'LineQubit'):

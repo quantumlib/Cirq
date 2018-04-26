@@ -7,6 +7,3 @@ from cirq.value.symbol import (
 from cirq.value.timestamp import (
     Timestamp,
 )
-from cirq.value.util import (
-    sorting_str,
-)

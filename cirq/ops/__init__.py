@@ -15,10 +15,6 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
-from cirq.ops.qubit_order import (
-    QubitOrder,
-    QubitOrderOrList,
-)
 from cirq.ops.common_gates import (
     CNOT,
     CNotGate,
@@ -49,6 +45,13 @@ from cirq.ops.gate_features import (
     SingleQubitGate,
     TextDiagrammableGate,
     TwoQubitGate,
+)
+from cirq.ops.qubit_order import (
+    QubitOrder,
+    QubitOrderOrList,
+)
+from cirq.ops.line_qubit import (
+    LineQubit,
 )
 from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
