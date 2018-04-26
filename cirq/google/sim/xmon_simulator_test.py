@@ -875,3 +875,19 @@ def test_compare_simulator_states_to_gate_matrices():
 
     assert_simulated_states_match_circuit_matrix_by_basis(
         Circuit.from_ops(CZ(Q1, Q2)**0.5))
+
+
+def test_simulator_trial_result_repr():
+    v = xmon_simulator.SimulatorTrialResult(
+        params=ParamResolver({'a': 2}),
+        repetitions=2,
+        measurements={'m': np.array([1, 2])},
+        final_states=[np.array([0, 1, 0, 0])])
+
+    python2 = ("SimulatorTrialResult("
+               "params=ParamResolver({u'a': 2}), "
+               "repetitions=2, "
+               "measurements={u'm': array([1, 2])}, "
+               "final_states=[array([0, 1, 0, 0])])")
+    python3 = python2.replace("u'", "'")
+    assert repr(v) in [python2, python3]
