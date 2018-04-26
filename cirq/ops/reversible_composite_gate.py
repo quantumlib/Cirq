@@ -38,18 +38,20 @@ def _reverse_operation(operation: raw_types.Operation,
     return raw_types.Operation(gate.inverse(), operation.qubits)
 
 
-def inverse_of_invertable_op_tree(root: op_tree.OP_TREE,
-                                  extensions: Extensions = Extensions()
+def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
+                                  extensions: Extensions = None
                                   ) -> op_tree.OP_TREE:
     """Generates OP_TREE inverses.
 
     Args:
-        root: An operation tree containing only invertable operations.
+        root: An operation tree containing only invertible operations.
         extensions: For caller-provided implementations of gate inverses.
 
     Returns:
         An OP_TREE that performs the inverse operation of the given OP_TREE.
     """
+    if extensions is None:
+        extensions = Extensions()
     return op_tree.transform_op_tree(
         root=root,
         op_transformation=lambda e: _reverse_operation(e, extensions),
@@ -76,5 +78,5 @@ class _ReversedReversibleCompositeGate(gate_features.CompositeGate,
         return self.forward_form
 
     def default_decompose(self, qubits):
-        return inverse_of_invertable_op_tree(
+        return inverse_of_invertible_op_tree(
             self.forward_form.default_decompose(qubits))

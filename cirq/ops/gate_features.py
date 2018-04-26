@@ -17,7 +17,7 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Sequence, Tuple
+from typing import Optional, Sequence, Tuple, Type, Union
 
 import numpy as np
 
@@ -96,6 +96,48 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
 
+    @classmethod
+    def from_gates(cls: Type,
+        gates: Union[Sequence[raw_types.Gate], Sequence[
+            Tuple[raw_types.Gate, Tuple[int]]]]) -> 'CompositeGate':
+        """Returns a CompositeGate which decomposes into the given gates.
+
+        Args:
+            gates: Either a sequence of gates or a sequences of (gate, indices)
+                tuples, where indices is a tuple of qubit indices (ints). The
+                first is used when decomposing a gate into a series of gates
+                that all act on the same number of qubits. The second is used
+                when decomposing a gate into a series of gates that may act on
+                differing number of qubits. In this later case the indices
+                is a tuple of qubit indices, describing which qubit the gate
+                acts on.
+
+        Returns:
+            A CompositeGate with a default_decompose that applies the
+            given gates in sequence.
+        """
+        return _CompositeGateImpl(gates)
+
+
+class _CompositeGateImpl(CompositeGate):
+    """Implementation of CompositeGate which uses specific sequence of gates."""
+
+    def __init__(self, gates: Union[Sequence[raw_types.Gate], Sequence[
+        Tuple[raw_types.Gate, Tuple[int]]]]) -> None:
+        self.gates = gates
+
+    def default_decompose(
+        self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
+        decomposition = []
+        for x in self.gates:
+            if isinstance(x, raw_types.Gate):
+                decomposition.append(x(*qubits))
+            else:
+                gate, indices = x
+                decomposition.append(gate(*map(qubits.__getitem__, indices)))
+        return decomposition
+
+
 class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose constant non-parameterized effect has a known matrix."""
 
@@ -104,16 +146,20 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """The unitary matrix of the operation this gate applies."""
 
 
-class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate which can be nicely represented in an ASCII diagram."""
+class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate which can be nicely represented in a text diagram."""
 
     # noinspection PyMethodMayBeStatic
-    def ascii_exponent(self) -> float:
+    def text_diagram_exponent(self) -> float:
         """The exponent to modify the gate symbol with. 1 means no modifier."""
         return 1
 
     @abc.abstractmethod
-    def ascii_wire_symbols(self) -> Tuple[str, ...]:
+    def text_diagram_wire_symbols(self,
+                                  qubit_count: Optional[int] = None,
+                                  use_unicode_characters: bool = True,
+                                  precision: int = 3
+                                  ) -> Tuple[str, ...]:
         """The symbols that should be shown on the gate's qubits (in order).
 
         If the gate always acts on the same number of qubits, then the size
@@ -122,6 +168,22 @@ class AsciiDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         symbol should be used, and this will be repeated across the operation.
         It is an error to have more than a single symbol in the case that
         the gate acts on a variable number of qubits.
+
+        Args:
+            qubit_count: The number of qubits the gate is being applied to, if
+                this information is known by the caller.
+            use_unicode_characters: If true, the wire symbols are permitted to
+                include unicode characters (as long as they work well in fixed
+                width fonts). If false, use only ascii characters. ASCII is
+                preferred in cases where UTF8 support is done poorly, or where
+                the fixed-width font being used to show the diagrams does not
+                properly handle unicode characters.
+            precision: The number of digits after the decimal to show in the
+                text diagram.
+
+        Returns:
+             A tuple containing symbols to place on each of the qubit wires
+             touched by the gate.
         """
 
 

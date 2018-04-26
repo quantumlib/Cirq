@@ -40,7 +40,7 @@ via the ``on`` method itself or via ``()`` and doing this
 turns the ``Gate`` into an ``Operation``.
 ```python
 # This is an Pauli X gate.
-x_gate = cirq.ops.X 
+x_gate = cirq.X 
 # Applying it to the qubit at location (0, 0) (defined above)
 # turns it into an operation.
 x_op = x_gate(qubits[0])
@@ -57,9 +57,9 @@ related to the actual scheduling of the operations on a quantum
 computer, or via a simulator, though it can be.  For example, here
 is a Moment in which Pauli X and a CZ gate operate on three qubits:
 ```python
-cz = cirq.ops.CZ(qubits[0], qubits[1])
-x = cirq.ops.X(qubits[2])
-moment = cirq.circuits.Moment([x, cz])
+cz = cirq.CZ(qubits[0], qubits[1])
+x = cirq.X(qubits[2])
+moment = cirq.Moment([x, cz])
 
 print(moment)
 # prints "X((0, 2)) and ZZ((0, 0), (0, 1))"
@@ -74,15 +74,15 @@ conceptually, contains the first ``Operations`` that will be
 applied.  Here, for example, is a simple circuit made up of
 two moments
 ```python
-cz01 = cirq.ops.CZ(qubits[0], qubits[1])
-x2 = cirq.ops.X(qubits[2])
-cz12 = cirq.ops.CZ(qubits[1], qubits[2])
-moment0 = cirq.circuits.Moment([cz01, x2])
-moment1 = cirq.circuits.Moment([cz12])
-circuit = cirq.circuits.Circuit((moment0, moment1))
+cz01 = cirq.CZ(qubits[0], qubits[1])
+x2 = cirq.X(qubits[2])
+cz12 = cirq.CZ(qubits[1], qubits[2])
+moment0 = cirq.Moment([cz01, x2])
+moment1 = cirq.Moment([cz12])
+circuit = cirq.Circuit((moment0, moment1))
 
 print(circuit)
-# prints the ascii diagram for the circuit:
+# prints the text diagram for the circuit:
 # (0, 0): ───Z───────
 #            │
 # (0, 1): ───Z───Z───
@@ -105,7 +105,7 @@ appending onto the ``Circuit``.
 ```python
 from cirq.ops import CZ, H
 q0, q1, q2 = [cirq.google.XmonQubit(i, 0) for i in range(3)]
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q0, q1), H(q2)])
 
 print(circuit)
@@ -132,7 +132,7 @@ print(circuit)
 In these two examples, we have appending full moments, what happens when we
 append all of these at once?
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q0, q1), H(q2), H(q0), CZ(q1, q2)])
 
 print(circuit)
@@ -170,7 +170,7 @@ and then use ``EARLIEST`` the ``Operation`` can slide back to this
 first ``Moment`` if there is space:
 ```python
 from cirq.circuits import InsertStrategy
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q0, q1)])
 circuit.append([H(q0), H(q2)], strategy=InsertStrategy.EARLIEST)
 
@@ -189,7 +189,7 @@ while the ``H`` on ``q2`` can and so ends up in the first ``Moment``.
 Contrast this with the ``NEW`` ``InsertStrategy``:
 > NEW: Every operation that is inserted is created in a new moment.
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.NEW)
 
 print(circuit)
@@ -212,7 +212,7 @@ an existing operation affecting any of the qubits touched by the
 operation to insert, a new moment is created instead.
 
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([CZ(q1, q2)])
 circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
 
@@ -237,7 +237,7 @@ location for the first operation, but then switches to inserting
 operations according to INLINE.
 
 ```python
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append([H(q0)])
 circuit.append([CZ(q1,q2), H(q0)], strategy=InsertStrategy.NEW_THEN_INLINE)
 
@@ -274,7 +274,7 @@ def my_layer():
     yield [CZ(q1, q2)]
     yield [H(q0), [CZ(q1, q2)]]
 
-circuit = cirq.circuits.Circuit()
+circuit = cirq.Circuit()
 circuit.append(my_layer())
 
 for x in my_layer():
@@ -312,3 +312,41 @@ flattened into a list of operations, then the input is an
 A very nice pattern emerges from this structure: define
 *generators* for sub-circuits, which can vary by size
 or ``Operation`` parameters. 
+
+Another useful method is to construct a ``Circuit`` fully formed
+from an ``OP_TREE`` via the static method ``from_ops`` (which takes
+an insertion strategy as a parameter):
+```python
+circuit = cirq.Circuit.from_ops(H(q0), H(q1))
+print(circuit)
+# prints
+# (0, 0): ───H───
+# 
+# (1, 0): ───H───
+```
+
+#### Slicing and Iterating over Circuits
+
+``Circuits`` can be iterated over and sliced. When they are iterated
+over each item in the iteration is a moment:
+```python
+circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1))
+for moment in circuit:
+    print(moment)
+# prints
+# H((0, 0))
+# ZZ((0, 0), (1, 0))
+```
+Slicing a ``Circuit`` on the other hand, produces a new ``Circuit`` 
+with only the moments corresponding to the slice:
+```python
+circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
+print(circuit[1:3])
+# prints
+# (0, 0): ───Z───────
+#            │
+# (1, 0): ───Z───H───
+```
+Especially useful is dropping the last moment (which is often just
+measurements): ``circuit[:-1]``, or reversing a circuit: 
+``circuit[::-1]``.

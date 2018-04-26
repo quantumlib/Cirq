@@ -51,3 +51,6 @@ from cirq.linalg.predicates import (
 from cirq.linalg.tolerance import (
     Tolerance,
 )
+from cirq.linalg.transformations import (
+    reflection_matrix_pow,
+)

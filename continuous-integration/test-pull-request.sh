@@ -53,7 +53,7 @@ virtualenv --quiet -p "${py35}" "${work_dir}/cirq3.5"
 source "${work_dir}/cirq3.5/bin/activate"
 pip install --quiet -r requirements.txt
 set +e
-pytest --quiet cirq
+pytest --quiet "${work_dir}"
 outcome_v35=$?
 set -e
 deactivate
@@ -66,7 +66,7 @@ virtualenv --quiet -p "${py27}" "${work_dir}/cirq2.7"
 source "${work_dir}/cirq2.7/bin/activate"
 pip install --quiet -r python2.7-requirements.txt
 pip install --quiet 3to2
-bash python2.7-generate.sh "${work_dir}/python2.7-output"
+bash python2.7-generate.sh "${work_dir}/python2.7-output" "${work_dir}"
 set +e
 pytest --quiet "${work_dir}/python2.7-output/cirq"
 outcome_v27=$?

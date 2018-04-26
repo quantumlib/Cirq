@@ -67,11 +67,6 @@ class ConvertToXmonGates(PointOptimizer):
         if xmon is not None:
             return xmon.on(*op.qubits)
 
-        # Provides a decomposition?
-        composite = self.extensions.try_cast(op.gate, ops.CompositeGate)
-        if composite is not None:
-            return composite.default_decompose(op.qubits)
-
         # Known matrix?
         mat = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
         if mat is not None and len(op.qubits) == 1:
@@ -83,6 +78,11 @@ class ConvertToXmonGates(PointOptimizer):
                 op.qubits[1],
                 mat.matrix(),
                 allow_partial_czs=True)
+
+        # Provides a decomposition?
+        composite = self.extensions.try_cast(op.gate, ops.CompositeGate)
+        if composite is not None:
+            return composite.default_decompose(op.qubits)
 
         # Just let it be?
         if self.ignore_failures:

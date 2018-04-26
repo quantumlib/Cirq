@@ -78,7 +78,8 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    AsciiDiagrammableGate,
+    QubitOrder,
+    QubitOrderOrList,
     BoundedEffectGate,
     CNOT,
     CNotGate,
@@ -91,7 +92,7 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse_of_invertable_op_tree,
+    inverse_of_invertible_op_tree,
     KnownMatrixGate,
     MeasurementGate,
     NamedQubit,
@@ -112,6 +113,7 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
+    TextDiagrammableGate,
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,
@@ -141,6 +143,8 @@ from cirq.value import (
     Timestamp,
 )
 
-# Import examples last, because they reference this top-level package.
-
+# Import examples second-to-last, because they reference this top-level package.
 from cirq import examples
+
+# Import version last since it is a relative import.
+from ._version import __version__

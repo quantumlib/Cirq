@@ -35,9 +35,18 @@ def test_no_thread_pool_no_chunking():
         pool.map(lambda x: x + 1, range(10), chunksize=1)
 
 
-def test_uses_threadless_pool_for_few_qubits():
+def test_uses_threadless_pool():
+    # Fewer qubits than min_qubits_before_shard, uses ThreadlessPool.
     with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=4) as s:
         assert isinstance(s._pool, xmon_stepper.ThreadlessPool)
+    # No minimum, but num_prefix_qubits is 0, uses ThreadlessPool.
+    with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=0,
+                          num_prefix_qubits=0) as s:
+        assert isinstance(s._pool, xmon_stepper.ThreadlessPool)
+    # No minimum, but num_prefix_qubits is 1, does not use ThreadlessPool.
+    with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=0,
+                              num_prefix_qubits=1) as s:
+        assert not isinstance(s._pool, xmon_stepper.ThreadlessPool)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -594,3 +603,71 @@ def test_shard_for_more_prefix_qubits_than_qubits():
         expected = np.zeros(2 ** 2, dtype=np.complex64)
         expected[0] = 1.0
         np.testing.assert_almost_equal(expected, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_precision(num_prefix_qubits):
+    # 25 random W's followed by their inverses on five qubits.
+    # The floating point epsilon for np.float32 is about 1e-7.
+    # Floating point epsilon is about 1e-7.
+    # Each qubits error will add across gates on that qubit, but it is like a
+    # random walk, so error should be about 2 * sqrt(25) per qubit.
+    # The total error should then be about 5e-6.
+    with xmon_stepper.Stepper(num_qubits=5,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        half_turns_list = [np.random.rand() for _ in range(25)]
+        axis_half_turns_list = [np.random.rand() for _ in range(25)]
+
+        for half_turns, axis_half_turns in zip(half_turns_list,
+                                               axis_half_turns_list):
+            for index in range(5):
+                s.simulate_w(index=index, axis_half_turns=axis_half_turns,
+                             half_turns=half_turns)
+        for half_turns, axis_half_turns in zip(half_turns_list[::-1],
+                                               axis_half_turns_list[::-1]):
+            for index in range(5):
+                s.simulate_w(index=index, axis_half_turns=axis_half_turns,
+                             half_turns=-half_turns)
+        expected = np.zeros(2 ** 5, dtype=np.complex64)
+        expected[0] = 1.0
+        # asserts that abs value of arrays is < 1.5 * 10^(-decimal)
+        np.testing.assert_almost_equal(expected, s.current_state, decimal=5)
+
+
+def test_decode_initial_state():
+    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(
+        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),
+        np.array([1.0, 0.0, 0.0, 0.0]))
+    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(
+        np.array([0.0, 1.0, 0.0, 0.0], dtype=np.complex64), 2),
+        np.array([0.0, 1.0, 0.0, 0.0]))
+    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(0, 2),
+        np.array([1.0, 0.0, 0.0, 0.0]))
+    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(1, 2),
+                                   np.array([0.0, 1.0, 0.0, 0.0]))
+
+
+def test_invalid_decode_initial_state():
+    with pytest.raises(ValueError):
+        _ = xmon_stepper.decode_initial_state(
+            np.array([1.0, 0.0], dtype=np.complex64), 2)
+    with pytest.raises(ValueError):
+        _ = xmon_stepper.decode_initial_state(-1, 2)
+    with pytest.raises(ValueError):
+        _ = xmon_stepper.decode_initial_state(5, 2)
+    with pytest.raises(TypeError):
+        _ = xmon_stepper.decode_initial_state('not an int', 2)
+
+
+def test_check_state():
+    xmon_stepper.check_state(np.array([0.5, 0.5, 0.5, 0.5], dtype=np.complex64),
+                             2)
+    with pytest.raises(ValueError):
+        xmon_stepper.check_state(np.array([1, 1], dtype=np.complex64), 2)
+    with pytest.raises(ValueError):
+        xmon_stepper.check_state(
+            np.array([1.0, 0.2, 0.0, 0.0], dtype=np.complex64), 2)
+    with pytest.raises(ValueError):
+        xmon_stepper.check_state(
+            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), 2)

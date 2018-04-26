@@ -15,6 +15,10 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.qubit_order import (
+    QubitOrder,
+    QubitOrderOrList,
+)
 from cirq.ops.common_gates import (
     CNOT,
     CNotGate,
@@ -35,7 +39,6 @@ from cirq.ops.common_gates import (
     Z,
 )
 from cirq.ops.gate_features import (
-    AsciiDiagrammableGate,
     BoundedEffectGate,
     CompositeGate,
     ExtrapolatableGate,
@@ -44,6 +47,7 @@ from cirq.ops.gate_features import (
     ReversibleGate,
     SelfInverseGate,
     SingleQubitGate,
+    TextDiagrammableGate,
     TwoQubitGate,
 )
 from cirq.ops.matrix_gates import (
@@ -64,6 +68,6 @@ from cirq.ops.raw_types import (
     QubitId,
 )
 from cirq.ops.reversible_composite_gate import (
-    inverse_of_invertable_op_tree,
+    inverse_of_invertible_op_tree,
     ReversibleCompositeGate,
 )
