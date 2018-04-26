@@ -11,20 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import numpy as np
 
 import cirq
-from cirq.circuits.optimization_pass import (
-    PointOptimizationSummary,
-    PointOptimizer,
-)
-from cirq.extension import Extensions
-from cirq.google.decompositions import (
-    single_qubit_matrix_to_native_gates,
-    two_qubit_matrix_to_native_gates,
-)
-from cirq.google.xmon_gate_extensions import xmon_gate_ext
-from cirq.google.xmon_gates import XmonGate
 
 
 class OtherX(cirq.KnownMatrixGate, cirq.CompositeGate):
