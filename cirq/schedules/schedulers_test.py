@@ -62,7 +62,7 @@ class _TestDevice(Device):
 
         if len(operation.qubits) == 2:
             p, q = operation.qubits
-            if not cast(ops.LineQubit, p).is_adjacent(q):
+            if not cast(ops.LineQubit, p).is_adjacent(cast(ops.LineQubit, q)):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -72,19 +72,19 @@ class _TestDevice(Device):
         self.validate_operation(op)
         if isinstance(op.gate, ops.Rot11Gate):
             for other in schedule.operations_happening_at_same_time_as(
-                scheduled_operation):
+                    scheduled_operation):
                 if self.check_if_cz_adjacent(op, other.operation):
                     raise ValueError('Adjacent CZ operations: {} vs {}'.format(
                         scheduled_operation, other))
 
     def check_if_cz_adjacent(self,
-        cz_op: ops.Operation,
-        other_op: ops.Operation):
+                             cz_op: ops.Operation,
+                             other_op: ops.Operation):
         if isinstance(other_op.gate, ops.HGate):
             return False
-        return any(
-            cast(ops.LineQubit, q).is_adjacent(p)
-            for q in cz_op.qubits for p in other_op.qubits)
+        return any(cast(ops.LineQubit, q).is_adjacent(cast(ops.LineQubit, p))
+                   for q in cz_op.qubits
+                   for p in other_op.qubits)
 
     def validate_circuit(self, circuit):
         for moment in circuit.moments:
