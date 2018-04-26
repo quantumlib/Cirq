@@ -26,25 +26,6 @@ from cirq.schedules import (
 from cirq.value import Duration, Timestamp
 
 
-class LineQubit:
-    def __init__(self, x) -> None:
-        self.x = x
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.x == other.x
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((LineQubit, self.x))
-
-    def is_adjacent(self, other):
-        return abs(self.x - other.x) == 1
-
-
 class _TestDevice(Device):
     """A device for testing that only supports H and CZ gates on 10 qubits.
 
@@ -55,7 +36,7 @@ class _TestDevice(Device):
     """
 
     def __init__(self):
-        self.qubits = [LineQubit(x) for x in range(10)]
+        self.qubits = [ops.LineQubit(x) for x in range(10)]
 
     def duration_of(self, operation: ops.Operation) -> Duration:
         g = operation.gate
@@ -74,14 +55,14 @@ class _TestDevice(Device):
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, LineQubit):
+            if not isinstance(q, ops.LineQubit):
                 raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
 
         if len(operation.qubits) == 2:
             p, q = operation.qubits
-            if not cast(LineQubit, p).is_adjacent(q):
+            if not cast(ops.LineQubit, p).is_adjacent(q):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -102,7 +83,7 @@ class _TestDevice(Device):
         if isinstance(other_op.gate, ops.HGate):
             return False
         return any(
-            cast(LineQubit, q).is_adjacent(p)
+            cast(ops.LineQubit, q).is_adjacent(p)
             for q in cz_op.qubits for p in other_op.qubits)
 
     def validate_circuit(self, circuit):
