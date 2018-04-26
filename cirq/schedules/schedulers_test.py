@@ -27,7 +27,7 @@ from cirq.value import Duration, Timestamp
 
 
 class LineQubit:
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         self.x = x
 
     def __eq__(self, other):

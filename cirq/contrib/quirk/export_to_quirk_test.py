@@ -97,10 +97,12 @@ def test_various_known_gate_types():
 
 def test_various_unknown_gate_types():
     a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(
         cirq.X(a)**(1/5),
         cirq.Y(a)**(1/5),
         cirq.Z(a)**(1/5),
+        cirq.CZ(a, b)**(1/5),
         cirq.google.ExpWGate(axis_half_turns=0.25)(a),
         cirq.google.ExpWGate(half_turns=1, axis_half_turns=cirq.Symbol('r'))(a)
     )
@@ -121,6 +123,7 @@ def test_various_unknown_gate_types():
             [{"id":"?",
               "matrix":"{{1.0+0.0i,0.0+0.0i},
                          {0.0+0.0i,0.8090169943749475+0.5877852522924731i}}"}],
+            ["UNKNOWN", "UNKNOWN"],
             [{"id":"?",
               "matrix":"{{0.0+6.123233995736766e-17i,
                           0.7071067811865476+0.7071067811865475i},
