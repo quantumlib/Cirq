@@ -42,7 +42,7 @@ class QubitOrder:
 
         Args:
             fixed_qubits: The qubits in basis order.
-            fallback: A fallback basis to use for extra qubits not in the
+            fallback: A fallback order to use for extra qubits not in the
                 fixed_qubits list. Extra qubits will always come after the
                 fixed_qubits, but will be ordered based on the fallback. If no
                 fallback is specified, a ValueError is raised when extra qubits
@@ -54,7 +54,7 @@ class QubitOrder:
         result = tuple(fixed_qubits)
         if len(set(result)) < len(result):
             raise ValueError(
-                'Qubits appear in basis twice: {}.'.format(result))
+                'Qubits appear in fixed_order twice: {}.'.format(result))
 
         def func(qubits):
             remaining = set(qubits) - set(fixed_qubits)
