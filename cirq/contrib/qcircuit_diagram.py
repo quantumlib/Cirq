@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Optional
+from typing import Optional
 
 from cirq import abc, circuits, extension, ops
 from cirq.contrib.qcircuit_diagrammable_gate import (
@@ -24,6 +24,9 @@ from cirq.contrib.qcircuit_diagrammable_gate import (
 class _QCircuitQubit(ops.QubitId):
     def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
+
+    def __repr__(self):
+        return '_QCircuitQubit({!r})'.format(self.sub)
 
     def __str__(self):
         # TODO: If qubit name ends with digits, turn them into subscripts.
@@ -115,7 +118,7 @@ def _wrap_circuit(circuit: circuits.Circuit,
 def circuit_to_latex_using_qcircuit(
         circuit: circuits.Circuit,
         ext: extension.Extensions = None,
-        qubit_order_key: Callable[[ops.QubitId], Any] = None) -> str:
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
     Args:
@@ -123,7 +126,7 @@ def circuit_to_latex_using_qcircuit(
         ext: Extensions used when attempting to cast gates into
             QCircuitDiagrammableGate instances (before falling back to the
             default wrapping methods).
-        qubit_order_key: Determines the order of qubit wires in the diagram.
+        qubit_order: Determines the order of qubit wires in the diagram.
 
     Returns:
         Latex code for the diagram.
@@ -131,10 +134,14 @@ def circuit_to_latex_using_qcircuit(
     if ext is None:
         ext = extension.Extensions()
     qcircuit = _wrap_circuit(circuit, ext)
+
+    # Note: can't be a lambda because we need the type hint.
+    def get_sub(q: _QCircuitQubit) -> ops.QubitId:
+        return q.sub
+
     diagram = qcircuit.to_text_diagram_drawer(
         ext,
         qubit_name_suffix='',
-        qubit_order_key=(None
-                         if qubit_order_key is None
-                         else lambda e: qubit_order_key(e.sub)))
+        qubit_order=ops.QubitOrder.as_qubit_order(qubit_order).map(
+            internalize=get_sub, externalize=_QCircuitQubit))
     return _render(diagram)

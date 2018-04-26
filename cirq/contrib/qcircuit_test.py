@@ -33,7 +33,7 @@ def test_teleportation_diagram():
 
     diagram = circuit_to_latex_using_qcircuit(
         circuit,
-        qubit_order_key=[ali, car, bob].index)
+        qubit_order=ops.QubitOrder.explicit([ali, car, bob]))
     assert diagram.strip() == """
 \\Qcircuit @R=1em @C=0.75em { \\\\ 
  \\lstick{\\text{alice}}& \\qw &\\qw & \\gate{\\text{X}^{0.5}} \\qw & \\control \\qw & \\gate{\\text{H}} \\qw & \\meter \\qw &\\qw & \\control \\qw &\\qw\\\\

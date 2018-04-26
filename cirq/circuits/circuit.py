@@ -19,7 +19,7 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Callable, Dict, FrozenSet, Iterable, Optional, Sequence
+from typing import Dict, FrozenSet, Iterable, Optional, Sequence
 from typing import Union
 
 import numpy as np
@@ -355,8 +355,9 @@ class Circuit(object):
         """
         self.insert(len(self.moments), operation_tree, strategy)
 
-    def clear_operations_touching(self, qubits: Iterable[ops.QubitId],
-        moment_indices: Iterable[int]):
+    def clear_operations_touching(self,
+                                  qubits: Iterable[ops.QubitId],
+                                  moment_indices: Iterable[int]):
         """Clears operations that are touching given qubits at given moments.
 
         Args:
@@ -376,16 +377,15 @@ class Circuit(object):
 
     def to_unitary_matrix(
             self,
-            qubit_order_key: Callable[[QubitId], Any] = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[QubitId] = (),
             ignore_terminal_measurements: bool = True,
             ext: Extensions = None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
-            qubit_order_key: Determines the qubit order, which determines the
-                ordering of the resulting matrix. The first qubit in the
-                ordering would be the last argument given to np.kron.
+            qubit_order: Determines how qubits are ordered when passing matrices
+                into np.kron.
             ext: The extensions to use when attempting to cast gates into
                 KnownMatrixGate instances.
             qubits_that_should_be_present: Qubits that may or may not appear
@@ -415,12 +415,10 @@ class Circuit(object):
                 return False
             return True
 
-        if qubit_order_key is None:
-            qubit_order_key = _str_lexicographic_respecting_int_order
         if ext is None:
             ext = Extensions()
-        qs = sorted(self.qubits().union(qubits_that_should_be_present),
-                    key=qubit_order_key)
+        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
         n = len(qubit_map)
@@ -442,7 +440,7 @@ class Circuit(object):
             use_unicode_characters: bool = True,
             transpose: bool = False,
             precision: int = 3,
-            qubit_order_key: Callable[[QubitId], Any] = None) -> str:
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
         """Returns text containing a diagram describing the circuit.
 
         Args:
@@ -451,12 +449,7 @@ class Circuit(object):
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to display in text diagram
-            qubit_order_key: Transforms each qubit into a key that determines
-                how the qubits are ordered in the diagram. Qubits with lower
-                keys come first. Defaults to the qubit's __str__, but augmented
-                so that lexicographic ordering will respect the order of
-                integers within the string (e.g. "name10" will come after
-                "name2").
+            qubit_order: Determines how qubits are ordered in the diagram.
 
         Returns:
             The text diagram.
@@ -465,8 +458,8 @@ class Circuit(object):
         diagram = self.to_text_diagram_drawer(
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
-            precision = precision,
-            qubit_order_key=qubit_order_key)
+            precision=precision,
+            qubit_order=qubit_order)
 
         if transpose:
             return diagram.transpose().render(
@@ -482,36 +475,25 @@ class Circuit(object):
             ext: Extensions = Extensions(),
             qubit_name_suffix: str = '',
             precision: int = 3,
-            qubit_order_key: Callable[[QubitId], Any] = None
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
             ext: For extending gates to implement TextDiagrammableGate.
             qubit_name_suffix: Appended to qubit names in the diagram.
-            qubit_order_key: Transforms each qubit into a key that determines
-                how the qubits are ordered in the diagram. Qubits with lower
-                keys come first. Defaults to the qubit's __str__, but augmented
-                so that lexicographic ordering will respect the order of
-                integers within the string (e.g. "name10" will come after
-                "name2").
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the diagram.
 
         Returns:
             The TextDiagramDrawer instance.
         """
-        if qubit_order_key is None:
-            qubit_order_key = _str_lexicographic_respecting_int_order
-
         if ext is None:
             ext = Extensions()
 
-        qubits = {
-            q
-            for moment in self.moments for op in moment.operations
-            for q in op.qubits
-        }
-        ordered_qubits = sorted(qubits, key=qubit_order_key)
-        qubit_map = {ordered_qubits[i]: i for i in range(len(ordered_qubits))}
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.qubits())
+        qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         diagram = TextDiagramDrawer()
         for q, i in qubit_map.items():
