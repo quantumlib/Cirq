@@ -27,11 +27,12 @@ A simple example:
 
 import math
 from collections import defaultdict, Iterable
-from typing import Dict, Iterator, List, Sequence, Set, Union, cast
+from typing import Dict, Iterator, List, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
+from cirq import ops
 from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
 from cirq.extension import Extensions
@@ -39,7 +40,6 @@ from cirq.google import xmon_gates
 from cirq.google import xmon_gate_ext
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim import xmon_stepper
-from cirq.ops import raw_types
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
@@ -128,9 +128,9 @@ class Simulator:
         param_resolver: ParamResolver = ParamResolver({}),
         repetitions: int = 1,
         options: Options = None,
-        qubits: Sequence[raw_types.QubitId] = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
-        extensions : Extensions = None,
+        extensions: Extensions = None,
     ) -> SimulatorTrialResult:
         """Simulates the entire supplied Circuit.
 
@@ -139,23 +139,22 @@ class Simulator:
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             options: Options configuring the simulation.
-            qubits: If specified this list of qubits will be used to define
-                a canonical ordering of the qubits. This canonical ordering
-                is used to define the wave function.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state.
                 Otherwise  if this is a np.ndarray it is the full initial
                 state. In this case it must be the correct size, be normalized
                 (an L2 norm of 1), and be safely castable to a np.complex64.
             extensions: Extensions that will be applied while trying to
-                decompose the circuit's gates into XmonGates. If None, this uses
-                the default of xmon_gate_ext.
+                decompose the circuit's gates into XmonGates. If None, this
+                uses the default of xmon_gate_ext.
 
         Returns:
             Results for this run.
         """
         return self.run_sweep(circuit, [param_resolver], repetitions, options,
-                              qubits, initial_state,
+                              qubit_order, initial_state,
                               extensions or xmon_gate_ext)[0]
 
     def run_sweep(
@@ -164,7 +163,7 @@ class Simulator:
             params: Sweepable = ParamResolver({}),
             repetitions: int = 1,
             options: Options = None,
-            qubits: Sequence[raw_types.QubitId] = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
             extensions: Extensions = None
     ) -> List[SimulatorTrialResult]:
@@ -175,17 +174,16 @@ class Simulator:
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             options: Options configuring the simulation.
-            qubits: If specified this list of qubits will be used to define
-                a canonical ordering of the qubits. This canonical ordering
-                is used to define the wave function.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
                 norm of 1), and be safely castable to a np.complex64.
             extensions: Extensions that will be applied while trying to
-                decompose the circuit's gates into XmonGates. If None, this uses
-                the default of xmon_gate_ext.
+                decompose the circuit's gates into XmonGates. If None, this
+                uses the default of xmon_gate_ext.
 
         Returns:
             List of trial results for this run, one for each possible parameter
@@ -198,6 +196,7 @@ class Simulator:
         xmon_circuit, keys = self._to_xmon_circuit(circuit,
                                                    extensions or xmon_gate_ext)
         trial_results = []  # type: List[SimulatorTrialResult]
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
@@ -206,7 +205,7 @@ class Simulator:
                 all_step_results = simulator_iterator(
                     xmon_circuit,
                     options or Options(),
-                    qubits,
+                    qubit_order,
                     initial_state,
                     param_resolver)
                 step_result = None
@@ -217,8 +216,7 @@ class Simulator:
                     final_states.append(step_result.state())
                 else:
                     # Empty circuit, so final state should be initial state.
-                    num_qubits = max(len(circuit.qubits()),
-                                     len(qubits) if qubits else 0)
+                    num_qubits = len(qubit_order.order_for(circuit.qubits()))
                     final_states.append(
                         xmon_stepper.decode_initial_state(initial_state,
                                                           num_qubits))
@@ -245,7 +243,7 @@ class Simulator:
             self,
             program: Circuit,
             options: 'Options' = None,
-            qubits: Sequence[raw_types.QubitId] = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray]=0,
             param_resolver: ParamResolver = None,
             extensions: Extensions = None) -> Iterator['StepResult']:
@@ -254,9 +252,8 @@ class Simulator:
         Args:
             program: The Circuit to simulate.
             options: Options configuring the simulation.
-            qubits: If specified this list of qubits will be used to define
-                a canonical ordering of the qubits. This canonical ordering
-                is used to define the wave function.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
                 basis state corresponding corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
@@ -275,11 +272,15 @@ class Simulator:
         param_resolver = param_resolver or ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(program,
                                                 extensions or xmon_gate_ext)
-        return simulator_iterator(xmon_circuit, options or Options(), qubits,
-                                  initial_state, param_resolver)
+        return simulator_iterator(xmon_circuit,
+                                  options or Options(),
+                                  qubit_order,
+                                  initial_state,
+                                  param_resolver)
 
     def _to_xmon_circuit(self, circuit: Circuit,
-        extensions: Extensions = None) -> Tuple[Circuit, Set[str]]:
+                         extensions: Extensions = None
+                         ) -> Tuple[Circuit, Set[str]]:
         # TODO: Use one optimization pass.
         xmon_circuit = Circuit(circuit.moments)
         ConvertToXmonGates(extensions).optimize_circuit(xmon_circuit)
@@ -291,7 +292,7 @@ class Simulator:
 def simulator_iterator(
         circuit: Circuit,
         options: 'Options' = Options(),
-        qubits: Sequence[raw_types.QubitId] = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray]=0,
         param_resolver: ParamResolver = ParamResolver({}),
 ) -> Iterator['StepResult']:
@@ -303,12 +304,14 @@ def simulator_iterator(
     Args:
         circuit: The circuit to simulate; must contain xmon gates only.
         options: Options configuring the simulation.
-        qubits: If specified this list of qubits will be used to define
-            a canonical ordering of the qubits. This canonical ordering
-            is used to define the wave function.
-        initial_state: If an int, the state is set to the computational
-            basis state corresponding corresponding to this state.
-            Otherwise if this is a np.ndarray it is the full initial state.
+        qubit_order: Determines the canonical ordering of the qubits used to
+            define the order of amplitudes in the wave function.
+        initial_state: If this is an int, the state is set to the computational
+            basis state corresponding corresponding to the integer. Note that
+            the low bit of the integer corresponds to the value of the first
+            qubit as determined by the basis argument.
+
+            If this is a np.ndarray it is the full initial state.
             In this case it must be the correct size, be normalized (an L2
             norm of 1), and be safely castable to a np.complex64.
         param_resolver: A ParamResolver for determining values ofs
@@ -321,21 +324,19 @@ def simulator_iterator(
         TypeError: if the circuit contains gates that are not XmonGates or
             composite gates made of XmonGates.
     """
-    circuit_qubits = circuit.qubits()
-    if qubits is not None:
-        assert set(circuit_qubits) <= set(qubits), (
-            'Qubits given to simulator were not those in supplied Circuit.')
-    else:
-        qubits = list(circuit_qubits)
+    qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+        circuit.qubits())
     qubit_map = {q: i for i, q in enumerate(qubits)}
     if isinstance(initial_state, np.ndarray):
-        initial_state = initial_state.astype(dtype=np.complex64, casting='safe')
+        initial_state = initial_state.astype(dtype=np.complex64,
+                                             casting='safe')
 
-    with xmon_stepper.Stepper(num_qubits=len(qubits),
-                 num_prefix_qubits=options.num_prefix_qubits,
-                 initial_state=initial_state,
-                 min_qubits_before_shard=options.min_qubits_before_shard
-                 ) as stepper:
+    with xmon_stepper.Stepper(
+            num_qubits=len(qubits),
+            num_prefix_qubits=options.num_prefix_qubits,
+            initial_state=initial_state,
+            min_qubits_before_shard=options.min_qubits_before_shard
+    ) as stepper:
         for moment in circuit.moments:
             measurements = defaultdict(list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
