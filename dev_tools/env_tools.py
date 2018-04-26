@@ -37,24 +37,23 @@ def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
             continue
 
         for filename in filenames:
-            path = os.path.join(dirpath, filename)
-            if path.endswith('.py') and not path.endswith('_pb2.py'):
-                yield path
+            if filename.endswith('.py') and not filename.endswith('_pb2.py'):
+                yield os.path.join(dirpath, filename)
 
 
-def create_virtual_env(env_path: str,
+def create_virtual_env(venv_path: str,
                        requirements_path: str,
                        python_path: str) -> None:
     """Creates a new virtual environment and then installs dependencies.
 
     Args:
-        env_path: Where to put the virtual environment's state.
+        venv_path: Where to put the virtual environment's state.
         requirements_path: Location of the requirements file to -r install.
         python_path: The python binary to use.
     """
-    shell_tools.run_cmd('virtualenv', '-p', python_path, env_path,
+    shell_tools.run_cmd('virtualenv', '-p', python_path, venv_path,
                         out=sys.stderr)
-    pip_path = os.path.join(env_path, 'bin', 'pip')
+    pip_path = os.path.join(venv_path, 'bin', 'pip')
     shell_tools.run_cmd(pip_path, 'install', '-r', requirements_path,
                         out=sys.stderr)
 
@@ -80,7 +79,7 @@ def prepare_temporary_test_environment(
         env_name: The name to use for the virtual environment.
         python_path: Location of the python binary to use within the
             virtual environment.
-        commit_ids_known_callback: A method to call when the actual commit id
+        commit_ids_known_callback: A function to call when the actual commit id
             being tested is known, before the virtual environment is ready.
 
     Returns:
@@ -102,7 +101,7 @@ def prepare_temporary_test_environment(
     # Create virtual environment.
     env_path = os.path.join(env.destination_directory, env_name)
     req_path = os.path.join(env.destination_directory, 'requirements.txt')
-    create_virtual_env(env_path=env_path,
+    create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path)
 
@@ -146,7 +145,7 @@ def derive_temporary_python2_environment(
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
     req_path = os.path.join(destination_directory, 'requirements.txt')
-    create_virtual_env(env_path=env_path,
+    create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path)
 
