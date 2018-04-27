@@ -58,7 +58,10 @@ class Circuit(object):
             circuit[1] and the second being circuit[2];
     and concatenated,
         circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
-            followed by the moments in circuit2.
+            followed by the moments in circuit2;
+    and multiplied by an integer,
+        circuit * k is a new Circuit made up of the moments in circuit repeated
+            k times.
 
     Attributes:
         moments: A list of the Moments of the circuit.
