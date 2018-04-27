@@ -199,7 +199,7 @@ class Zip(Sweep):
         return ' + '.join(str(s) for s in self.sweeps)
 
 
-class SingleParameterSweep(Sweep):
+class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
     def __init__(self, key: str) -> None:
@@ -230,7 +230,7 @@ class SingleParameterSweep(Sweep):
         pass
 
 
-class Points(SingleParameterSweep):
+class Points(SingleSweep):
     """A simple sweep with explicit values."""
 
     def __init__(self, key: str, points: Sequence[float]) -> None:
@@ -250,7 +250,7 @@ class Points(SingleParameterSweep):
         return 'Points({!r}, {!r})'.format(self.key, self.points)
 
 
-class Linspace(SingleParameterSweep):
+class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
     def __init__(self, key, start, stop, length) -> None:

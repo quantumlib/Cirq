@@ -144,7 +144,7 @@ def test_run_sweep_params(build):
     assert len(sweeps) == 2
     for i, v in enumerate([1, 2]):
         assert sweeps[i]['repetitions'] == 1
-        assert sweeps[i]['sweep']['factors'][0]['sweeps'][0]['sweepPoints'][
+        assert sweeps[i]['sweep']['factors'][0]['sweeps'][0]['points'][
                    'points'] == [v]
     assert jobs.create.call_args[1][
                'parent'] == 'projects/project-id/programs/test'
@@ -187,7 +187,7 @@ def test_run_sweep_sweeps(build):
     sweeps = programs.create.call_args[1]['body']['code']['parameterSweeps']
     assert len(sweeps) == 1
     assert sweeps[0]['repetitions'] == 1
-    assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['sweepPoints'][
+    assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['points'][
                'points'] == [1, 2]
     assert jobs.create.call_args[1][
                'parent'] == 'projects/project-id/programs/test'
