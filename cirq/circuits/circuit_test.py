@@ -148,6 +148,11 @@ def test_concatenate():
         Moment([ops.X(a), ops.X(b)])
     ])
 
+    with pytest.raises(TypeError):
+        _ = c + 'a'
+    with pytest.raises(TypeError):
+        c += 'a'
+
 
 def test_multiply():
     a = ops.QubitId()
@@ -167,6 +172,13 @@ def test_multiply():
     assert d == Circuit([Moment([ops.X(a)]),
                          Moment([ops.X(a)]),
                          Moment([ops.X(a)])])
+
+    with pytest.raises(TypeError):
+        _ = c * 'a'
+    with pytest.raises(TypeError):
+        _ = 'a' * c
+    with pytest.raises(TypeError):
+        c *= 'a'
 
 
 def test_container_methods():
