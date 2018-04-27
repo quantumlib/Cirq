@@ -117,6 +117,22 @@ class Circuit(object):
             return NotImplemented
         return Circuit(self.moments + other.moments)
 
+    def __imul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        self.moments *= repetitions
+        return self
+
+    def __mul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return Circuit(self.moments * repetitions)
+
+    def __rmul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return self * repetitions
+
     def __len__(self):
         return len(self.moments)
 
