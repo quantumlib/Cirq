@@ -160,6 +160,7 @@ def test_multiply():
     assert d * 2 == Circuit([Moment([ops.X(a)]),
                              Moment([ops.X(a)])])
     assert 1 * c == Circuit()
+    assert -1 * d == Circuit()
     assert 1 * d == Circuit([Moment([ops.X(a)])])
 
     d *= 3
