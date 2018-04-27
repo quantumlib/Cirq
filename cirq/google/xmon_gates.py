@@ -65,12 +65,13 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     def parameterized_value_from_proto(
         message: operations_pb2.ParameterizedFloat
     ) -> Union[Symbol, float]:
-        if not message.parameter_key:
+        which = message.WhichOneof('value')
+        if which == 'raw':
             return message.raw
-        # TODO: change proto to use a oneof
-        if message.raw != 0:
-            raise ValueError('ParameterizedValue has a symbol and a constant.')
-        return Symbol(message.parameter_key)
+        elif which == 'parameter_key':
+            return Symbol(message.parameter_key)
+        else:
+            raise ValueError('No value specified for parameterized float.')
 
     @staticmethod
     def parameterized_value_to_proto(
