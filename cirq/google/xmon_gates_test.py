@@ -36,8 +36,7 @@ def test_parameterized_value_from_proto():
     assert from_proto(m1) == 5
 
     with pytest.raises(ValueError):
-        m2 = operations_pb2.ParameterizedFloat(raw=5, parameter_key='a')
-        assert from_proto(m2) == 5
+        from_proto(operations_pb2.ParameterizedFloat())
 
     m3 = operations_pb2.ParameterizedFloat(parameter_key='rr')
     assert from_proto(m3) == Symbol('rr')
