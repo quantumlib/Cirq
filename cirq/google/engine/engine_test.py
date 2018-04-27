@@ -229,3 +229,63 @@ def test_cancel(build):
     assert job.state() == 'CANCELLED'
     assert jobs.cancel.call_args[1][
                'name'] == 'projects/project-id/programs/test/jobs/test'
+
+@python3_mock_test(discovery, 'build')
+def test_program_labels(build):
+    program_name = 'projects/my-proj/programs/my-prog'
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    engine = Engine(api_key="key")
+
+    def body():
+        return programs.patch.call_args[1]['body']
+
+    programs.get().execute.return_value = {'labels': {'a': '1', 'b': '1'}}
+    engine.add_program_labels(program_name, {'a': '2', 'c': '1'})
+
+    assert body()['labels'] == {'a': '2', 'b': '1', 'c': '1'}
+    assert body()['labelFingerprint'] == ''
+
+    programs.get().execute.return_value = {'labels': {'a': '1', 'b': '1'},
+                                           'labelFingerprint': 'abcdef'}
+    engine.set_program_labels(program_name, {'s': '1', 'p': '1'})
+    assert body()['labels'] == {'s': '1', 'p': '1'}
+    assert body()['labelFingerprint'] == 'abcdef'
+
+    programs.get().execute.return_value = {'labels': {'a': '1', 'b': '1'},
+                                           'labelFingerprint': 'abcdef'}
+    engine.remove_program_labels(program_name, ['a', 'c'])
+    assert body()['labels'] == {'b': '1'}
+    assert body()['labelFingerprint'] == 'abcdef'
+
+
+@python3_mock_test(discovery, 'build')
+def test_job_labels(build):
+    job_name = 'projects/my-proj/programs/my-prog/jobs/my-job'
+    service = mock.Mock()
+    build.return_value = service
+    jobs = service.projects().programs().jobs()
+    engine = Engine(api_key="key")
+
+    def body():
+      return jobs.patch.call_args[1]['body']
+
+    jobs.get().execute.return_value = {'labels': {'a': '1', 'b': '1'}}
+    engine.add_job_labels(job_name, {'a': '2', 'c': '1'})
+
+    assert body()['labels'] == {'a': '2', 'b': '1', 'c': '1'}
+    assert body()['labelFingerprint'] == ''
+
+    jobs.get().execute.return_value = {'labels': {'a': '1', 'b': '1'},
+                                       'labelFingerprint': 'abcdef'}
+    engine.set_job_labels(job_name, {'s': '1', 'p': '1'})
+    assert body()['labels'] == {'s': '1', 'p': '1'}
+    assert body()['labelFingerprint'] == 'abcdef'
+
+    jobs.get().execute.return_value = {'labels': {'a': '1', 'b': '1'},
+                                       'labelFingerprint': 'abcdef'}
+    engine.remove_job_labels(job_name, ['a', 'c'])
+    assert body()['labels'] == {'b': '1'}
+    assert body()['labelFingerprint'] == 'abcdef'
+
