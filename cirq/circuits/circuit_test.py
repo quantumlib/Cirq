@@ -119,6 +119,40 @@ def test_slice():
     assert c[0:2:-1] == Circuit()
 
 
+def test_concatenate():
+    a = ops.QubitId()
+    b = ops.QubitId()
+
+    c = Circuit()
+    d = Circuit([Moment([ops.X(b)])])
+    e = Circuit([Moment([ops.X(a), ops.X(b)])])
+
+    d += c
+    assert d == Circuit([Moment([ops.X(b)])])
+
+    d = c + d
+    assert d == Circuit([Moment([ops.X(b)])])
+
+    d = d + c
+    assert d == Circuit([Moment([ops.X(b)])])
+
+    c += d
+    assert c == Circuit([Moment([ops.X(b)])])
+
+    f = e + d
+    assert f == Circuit([
+        Moment([ops.X(a), ops.X(b)]),
+        Moment([ops.X(b)])
+    ])
+
+    f += e
+    assert f == Circuit([
+        Moment([ops.X(a), ops.X(b)]),
+        Moment([ops.X(b)]),
+        Moment([ops.X(a), ops.X(b)])
+    ])
+
+
 def test_container_methods():
     a = ops.QubitId()
     b = ops.QubitId()
