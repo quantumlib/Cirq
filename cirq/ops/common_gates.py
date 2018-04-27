@@ -41,7 +41,7 @@ class Rot11Gate(PartialReflectionGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
-        return 'Z', 'Z'
+        return '@', 'Z'
 
     def _reflection_matrix(self):
         """See base class."""

@@ -197,7 +197,7 @@ def test_text_diagrams():
         ops.CNOT(b, a),
         ops.H(a))
     assert circuit.to_text_diagram().strip() == """
-a: ───×───X───Y───Z───Z───@───X───H───
+a: ───×───X───Y───Z───@───@───X───H───
       │               │   │   │
 b: ───×───────────────Z───X───@───────
     """.strip()
