@@ -711,11 +711,7 @@ def test_to_text_diagram_parameterized_value():
         PGate(Symbol('a')).on(q),
         PGate(Symbol('%$&#*(')).on(q),
     )
-    assert str(c).strip() in [
-        "cube: ───P───P^2───P^a───P^Symbol('%$&#*(')───",
-
-        "cube: ───P───P^2───P^a───P^Symbol(u'%$&#*(')───",
-    ]
+    assert str(c).strip() == 'cube: ───P───P^2───P^a───P^Symbol("%$&#*(")───'
 
 
 def test_to_text_diagram_custom_order():
@@ -724,8 +720,9 @@ def test_to_text_diagram_custom_order():
     qc = ops.NamedQubit('4')
 
     c = Circuit([Moment([ops.X(qa), ops.X(qb), ops.X(qc)])])
-    diagram = c.to_text_diagram(qubit_order_key=lambda e: int(str(e)) % 3,
-                                use_unicode_characters=False)
+    diagram = c.to_text_diagram(
+        qubit_order=ops.QubitOrder.sorted_by(lambda e: int(str(e)) % 3),
+        use_unicode_characters=False)
     assert diagram.strip() == """
 3: ---X---
 
