@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cirq/api/google/v1/params.proto',
   package='cirq.api.google.v1',
   syntax='proto3',
-  serialized_pb=_b('\n\x1f\x63irq/api/google/v1/params.proto\x12\x12\x63irq.api.google.v1\"b\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12;\n\x05sweep\x18\x02 \x01(\x0b\x32,.cirq.api.google.v1.ParameterSweepZipProduct\"R\n\x18ParameterSweepZipProduct\x12\x36\n\x07\x66\x61\x63tors\x18\x01 \x03(\x0b\x32%.cirq.api.google.v1.ParameterSweepZip\"M\n\x11ParameterSweepZip\x12\x38\n\x06sweeps\x18\x01 \x03(\x0b\x32(.cirq.api.google.v1.SingleParameterSweep\"\xad\x01\n\x14SingleParameterSweep\x12\x16\n\x0eparameter_name\x18\x01 \x01(\t\x12\x37\n\x0csweep_points\x18\x02 \x01(\x0b\x32\x1f.cirq.api.google.v1.SweepPointsH\x00\x12;\n\x0esweep_linspace\x18\x03 \x01(\x0b\x32!.cirq.api.google.v1.SweepLinspaceH\x00\x42\x07\n\x05sweep\"\x1d\n\x0bSweepPoints\x12\x0e\n\x06points\x18\x01 \x03(\x02\"L\n\rSweepLinspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\"\x8c\x01\n\rParameterDict\x12G\n\x0b\x61ssignments\x18\x01 \x03(\x0b\x32\x32.cirq.api.google.v1.ParameterDict.AssignmentsEntry\x1a\x32\n\x10\x41ssignmentsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x42.\n\x1d\x63om.google.cirq.api.google.v1B\x0bParamsProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1f\x63irq/api/google/v1/params.proto\x12\x12\x63irq.api.google.v1\"V\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12/\n\x05sweep\x18\x02 \x01(\x0b\x32 .cirq.api.google.v1.ProductSweep\"=\n\x0cProductSweep\x12-\n\x07\x66\x61\x63tors\x18\x01 \x03(\x0b\x32\x1c.cirq.api.google.v1.ZipSweep\";\n\x08ZipSweep\x12/\n\x06sweeps\x18\x01 \x03(\x0b\x32\x1f.cirq.api.google.v1.SingleSweep\"\x8d\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.api.google.v1.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v1.LinspaceH\x00\x42\x07\n\x05sweep\"\x18\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\"\x8c\x01\n\rParameterDict\x12G\n\x0b\x61ssignments\x18\x01 \x03(\x0b\x32\x32.cirq.api.google.v1.ParameterDict.AssignmentsEntry\x1a\x32\n\x10\x41ssignmentsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x42.\n\x1d\x63om.google.cirq.api.google.v1B\x0bParamsProtoP\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -60,19 +60,19 @@ _PARAMETERSWEEP = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=55,
-  serialized_end=153,
+  serialized_end=141,
 )
 
 
-_PARAMETERSWEEPZIPPRODUCT = _descriptor.Descriptor(
-  name='ParameterSweepZipProduct',
-  full_name='cirq.api.google.v1.ParameterSweepZipProduct',
+_PRODUCTSWEEP = _descriptor.Descriptor(
+  name='ProductSweep',
+  full_name='cirq.api.google.v1.ProductSweep',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='factors', full_name='cirq.api.google.v1.ParameterSweepZipProduct.factors', index=0,
+      name='factors', full_name='cirq.api.google.v1.ProductSweep.factors', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -90,20 +90,20 @@ _PARAMETERSWEEPZIPPRODUCT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=155,
-  serialized_end=237,
+  serialized_start=143,
+  serialized_end=204,
 )
 
 
-_PARAMETERSWEEPZIP = _descriptor.Descriptor(
-  name='ParameterSweepZip',
-  full_name='cirq.api.google.v1.ParameterSweepZip',
+_ZIPSWEEP = _descriptor.Descriptor(
+  name='ZipSweep',
+  full_name='cirq.api.google.v1.ZipSweep',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='sweeps', full_name='cirq.api.google.v1.ParameterSweepZip.sweeps', index=0,
+      name='sweeps', full_name='cirq.api.google.v1.ZipSweep.sweeps', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -121,34 +121,34 @@ _PARAMETERSWEEPZIP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=239,
-  serialized_end=316,
+  serialized_start=206,
+  serialized_end=265,
 )
 
 
-_SINGLEPARAMETERSWEEP = _descriptor.Descriptor(
-  name='SingleParameterSweep',
-  full_name='cirq.api.google.v1.SingleParameterSweep',
+_SINGLESWEEP = _descriptor.Descriptor(
+  name='SingleSweep',
+  full_name='cirq.api.google.v1.SingleSweep',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='parameter_name', full_name='cirq.api.google.v1.SingleParameterSweep.parameter_name', index=0,
+      name='parameter_key', full_name='cirq.api.google.v1.SingleSweep.parameter_key', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='sweep_points', full_name='cirq.api.google.v1.SingleParameterSweep.sweep_points', index=1,
+      name='points', full_name='cirq.api.google.v1.SingleSweep.points', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='sweep_linspace', full_name='cirq.api.google.v1.SingleParameterSweep.sweep_linspace', index=2,
+      name='linspace', full_name='cirq.api.google.v1.SingleSweep.linspace', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -166,23 +166,23 @@ _SINGLEPARAMETERSWEEP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='sweep', full_name='cirq.api.google.v1.SingleParameterSweep.sweep',
+      name='sweep', full_name='cirq.api.google.v1.SingleSweep.sweep',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=319,
-  serialized_end=492,
+  serialized_start=268,
+  serialized_end=409,
 )
 
 
-_SWEEPPOINTS = _descriptor.Descriptor(
-  name='SweepPoints',
-  full_name='cirq.api.google.v1.SweepPoints',
+_POINTS = _descriptor.Descriptor(
+  name='Points',
+  full_name='cirq.api.google.v1.Points',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='points', full_name='cirq.api.google.v1.SweepPoints.points', index=0,
+      name='points', full_name='cirq.api.google.v1.Points.points', index=0,
       number=1, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -200,34 +200,34 @@ _SWEEPPOINTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=494,
-  serialized_end=523,
+  serialized_start=411,
+  serialized_end=435,
 )
 
 
-_SWEEPLINSPACE = _descriptor.Descriptor(
-  name='SweepLinspace',
-  full_name='cirq.api.google.v1.SweepLinspace',
+_LINSPACE = _descriptor.Descriptor(
+  name='Linspace',
+  full_name='cirq.api.google.v1.Linspace',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='first_point', full_name='cirq.api.google.v1.SweepLinspace.first_point', index=0,
+      name='first_point', full_name='cirq.api.google.v1.Linspace.first_point', index=0,
       number=1, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='last_point', full_name='cirq.api.google.v1.SweepLinspace.last_point', index=1,
+      name='last_point', full_name='cirq.api.google.v1.Linspace.last_point', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='num_points', full_name='cirq.api.google.v1.SweepLinspace.num_points', index=2,
+      name='num_points', full_name='cirq.api.google.v1.Linspace.num_points', index=2,
       number=3, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -245,8 +245,8 @@ _SWEEPLINSPACE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=525,
-  serialized_end=601,
+  serialized_start=437,
+  serialized_end=508,
 )
 
 
@@ -283,8 +283,8 @@ _PARAMETERDICT_ASSIGNMENTSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=694,
-  serialized_end=744,
+  serialized_start=601,
+  serialized_end=651,
 )
 
 _PARAMETERDICT = _descriptor.Descriptor(
@@ -313,29 +313,29 @@ _PARAMETERDICT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=604,
-  serialized_end=744,
+  serialized_start=511,
+  serialized_end=651,
 )
 
-_PARAMETERSWEEP.fields_by_name['sweep'].message_type = _PARAMETERSWEEPZIPPRODUCT
-_PARAMETERSWEEPZIPPRODUCT.fields_by_name['factors'].message_type = _PARAMETERSWEEPZIP
-_PARAMETERSWEEPZIP.fields_by_name['sweeps'].message_type = _SINGLEPARAMETERSWEEP
-_SINGLEPARAMETERSWEEP.fields_by_name['sweep_points'].message_type = _SWEEPPOINTS
-_SINGLEPARAMETERSWEEP.fields_by_name['sweep_linspace'].message_type = _SWEEPLINSPACE
-_SINGLEPARAMETERSWEEP.oneofs_by_name['sweep'].fields.append(
-  _SINGLEPARAMETERSWEEP.fields_by_name['sweep_points'])
-_SINGLEPARAMETERSWEEP.fields_by_name['sweep_points'].containing_oneof = _SINGLEPARAMETERSWEEP.oneofs_by_name['sweep']
-_SINGLEPARAMETERSWEEP.oneofs_by_name['sweep'].fields.append(
-  _SINGLEPARAMETERSWEEP.fields_by_name['sweep_linspace'])
-_SINGLEPARAMETERSWEEP.fields_by_name['sweep_linspace'].containing_oneof = _SINGLEPARAMETERSWEEP.oneofs_by_name['sweep']
+_PARAMETERSWEEP.fields_by_name['sweep'].message_type = _PRODUCTSWEEP
+_PRODUCTSWEEP.fields_by_name['factors'].message_type = _ZIPSWEEP
+_ZIPSWEEP.fields_by_name['sweeps'].message_type = _SINGLESWEEP
+_SINGLESWEEP.fields_by_name['points'].message_type = _POINTS
+_SINGLESWEEP.fields_by_name['linspace'].message_type = _LINSPACE
+_SINGLESWEEP.oneofs_by_name['sweep'].fields.append(
+  _SINGLESWEEP.fields_by_name['points'])
+_SINGLESWEEP.fields_by_name['points'].containing_oneof = _SINGLESWEEP.oneofs_by_name['sweep']
+_SINGLESWEEP.oneofs_by_name['sweep'].fields.append(
+  _SINGLESWEEP.fields_by_name['linspace'])
+_SINGLESWEEP.fields_by_name['linspace'].containing_oneof = _SINGLESWEEP.oneofs_by_name['sweep']
 _PARAMETERDICT_ASSIGNMENTSENTRY.containing_type = _PARAMETERDICT
 _PARAMETERDICT.fields_by_name['assignments'].message_type = _PARAMETERDICT_ASSIGNMENTSENTRY
 DESCRIPTOR.message_types_by_name['ParameterSweep'] = _PARAMETERSWEEP
-DESCRIPTOR.message_types_by_name['ParameterSweepZipProduct'] = _PARAMETERSWEEPZIPPRODUCT
-DESCRIPTOR.message_types_by_name['ParameterSweepZip'] = _PARAMETERSWEEPZIP
-DESCRIPTOR.message_types_by_name['SingleParameterSweep'] = _SINGLEPARAMETERSWEEP
-DESCRIPTOR.message_types_by_name['SweepPoints'] = _SWEEPPOINTS
-DESCRIPTOR.message_types_by_name['SweepLinspace'] = _SWEEPLINSPACE
+DESCRIPTOR.message_types_by_name['ProductSweep'] = _PRODUCTSWEEP
+DESCRIPTOR.message_types_by_name['ZipSweep'] = _ZIPSWEEP
+DESCRIPTOR.message_types_by_name['SingleSweep'] = _SINGLESWEEP
+DESCRIPTOR.message_types_by_name['Points'] = _POINTS
+DESCRIPTOR.message_types_by_name['Linspace'] = _LINSPACE
 DESCRIPTOR.message_types_by_name['ParameterDict'] = _PARAMETERDICT
 
 ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), dict(
@@ -345,40 +345,40 @@ ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_me
   ))
 _sym_db.RegisterMessage(ParameterSweep)
 
-ParameterSweepZipProduct = _reflection.GeneratedProtocolMessageType('ParameterSweepZipProduct', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERSWEEPZIPPRODUCT,
+ProductSweep = _reflection.GeneratedProtocolMessageType('ProductSweep', (_message.Message,), dict(
+  DESCRIPTOR = _PRODUCTSWEEP,
   __module__ = 'cirq.api.google.v1.params_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.ParameterSweepZipProduct)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.ProductSweep)
   ))
-_sym_db.RegisterMessage(ParameterSweepZipProduct)
+_sym_db.RegisterMessage(ProductSweep)
 
-ParameterSweepZip = _reflection.GeneratedProtocolMessageType('ParameterSweepZip', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERSWEEPZIP,
+ZipSweep = _reflection.GeneratedProtocolMessageType('ZipSweep', (_message.Message,), dict(
+  DESCRIPTOR = _ZIPSWEEP,
   __module__ = 'cirq.api.google.v1.params_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.ParameterSweepZip)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.ZipSweep)
   ))
-_sym_db.RegisterMessage(ParameterSweepZip)
+_sym_db.RegisterMessage(ZipSweep)
 
-SingleParameterSweep = _reflection.GeneratedProtocolMessageType('SingleParameterSweep', (_message.Message,), dict(
-  DESCRIPTOR = _SINGLEPARAMETERSWEEP,
+SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), dict(
+  DESCRIPTOR = _SINGLESWEEP,
   __module__ = 'cirq.api.google.v1.params_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.SingleParameterSweep)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.SingleSweep)
   ))
-_sym_db.RegisterMessage(SingleParameterSweep)
+_sym_db.RegisterMessage(SingleSweep)
 
-SweepPoints = _reflection.GeneratedProtocolMessageType('SweepPoints', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEPPOINTS,
+Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), dict(
+  DESCRIPTOR = _POINTS,
   __module__ = 'cirq.api.google.v1.params_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.SweepPoints)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.Points)
   ))
-_sym_db.RegisterMessage(SweepPoints)
+_sym_db.RegisterMessage(Points)
 
-SweepLinspace = _reflection.GeneratedProtocolMessageType('SweepLinspace', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEPLINSPACE,
+Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), dict(
+  DESCRIPTOR = _LINSPACE,
   __module__ = 'cirq.api.google.v1.params_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.SweepLinspace)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.Linspace)
   ))
-_sym_db.RegisterMessage(SweepLinspace)
+_sym_db.RegisterMessage(Linspace)
 
 ParameterDict = _reflection.GeneratedProtocolMessageType('ParameterDict', (_message.Message,), dict(
 
