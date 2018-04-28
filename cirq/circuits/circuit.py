@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -582,31 +582,6 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
-
-
-def _str_lexicographic_respecting_int_order(value):
-    """0-pads digits in a string to hack int order into lexicographic order."""
-    s = str(value)
-
-    was_on_digits = False
-    last_transition = 0
-    output = []
-
-    def dump(k):
-        chunk = s[last_transition:k]
-        if was_on_digits:
-            chunk = chunk.rjust(8, '0')
-        output.append(chunk)
-
-    for i in range(len(s)):
-        on_digits = s[i].isdigit()
-        if was_on_digits != on_digits:
-            dump(i)
-            was_on_digits = on_digits
-            last_transition = i
-
-    dump(len(s))
-    return ''.join(output)
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
