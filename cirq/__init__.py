@@ -78,8 +78,6 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    QubitOrder,
-    QubitOrderOrList,
     BoundedEffectGate,
     CNOT,
     CNotGate,
@@ -94,10 +92,13 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
     KnownMatrixGate,
+    LineQubit,
     MeasurementGate,
     NamedQubit,
     OP_TREE,
     Operation,
+    QubitOrder,
+    QubitOrderOrList,
     ReversibleCompositeGate,
     ReversibleGate,
     PhaseableGate,
