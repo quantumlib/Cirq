@@ -45,13 +45,13 @@ def test_cz_eq():
 def test_cz_str():
     assert str(ops.Rot11Gate()) == 'CZ'
     assert str(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
-    assert str(ops.Rot11Gate(half_turns=-0.3)) == 'CZ**-0.3'
+    assert str(ops.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
 
 
 def test_cz_repr():
     assert repr(ops.Rot11Gate()) == 'CZ'
     assert repr(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
-    assert repr(ops.Rot11Gate(half_turns=-0.3)) == 'CZ**-0.3'
+    assert repr(ops.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
 
 
 def test_cz_extrapolate():
