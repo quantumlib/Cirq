@@ -120,6 +120,30 @@ def test_recursive_composite():
     assert_equal_mod_empty(expected, circuit)
 
 
+def test_recursive_expansion_depth_limit():
+    class AGate(CompositeGate):
+        def default_decompose(self, qubits):
+            yield B.on(*qubits)
+    class BGate(CompositeGate):
+        def default_decompose(self, qubits):
+            yield A.on(*qubits)
+    A = AGate()
+    B = BGate()
+    q = QubitId()
+
+    circuit = Circuit.from_ops(A(q), B(q))
+    opt = ExpandComposite(depth=1)
+    opt.optimize_circuit(circuit)
+    expected = Circuit.from_ops(B(q), A(q))
+    assert_equal_mod_empty(expected, circuit)
+
+    circuit = Circuit.from_ops(A(q), B(q))
+    opt = ExpandComposite(depth=2)
+    opt.optimize_circuit(circuit)
+    expected = Circuit.from_ops(A(q), B(q))
+    assert_equal_mod_empty(expected, circuit)
+
+
 class OtherCNot(CNotGate):
 
     def default_decompose(self, qubits):
