@@ -41,11 +41,17 @@ class Rot11Gate(PartialReflectionGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
-        return 'Z', 'Z'
+        return '@', 'Z'
 
     def _reflection_matrix(self):
         """See base class."""
         return np.diag([1, 1, 1, -1])
+
+    def __str__(self):
+        base = 'CZ'
+        if self.half_turns == 1:
+            return base
+        return '{}**{}'.format(base, repr(self.half_turns))
 
     def __repr__(self) -> str:
         return self.__str__()
