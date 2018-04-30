@@ -67,18 +67,19 @@ class Stepper(object):
         Args:
           num_qubits: The number of qubits to simulate.
           num_prefix_qubits: The wavefunction of the qubits is sharded into
-            (2 ** num_prefix_qubits) parts. If this is None, then this will
-            shard over the nearest power of two below the cpu count. If less
-            than 10 qubits are being simulated then no sharding is done,
-            depending on whether the shard_for_small_num_qubits is set or not.
-          initial_state: If this is an int, then this is the state to initialize
-            the stepper to, expressed as an integer of the computational basis.
-            Integer to bitwise indices is little endian. Otherwise if this is
-            a np.ndarray it is the full initial state and this must be the
-            correct size, normalized (an L2 norm of 1), and have dtype of
-            np.complex64.
+              (2 ** num_prefix_qubits) parts. If this is None, then this will
+              shard over the nearest power of two below the cpu count. If less
+              than 10 qubits are being simulated then no sharding is done,
+              depending on whether the shard_for_small_num_qubits is set or
+              not.
+          initial_state: If this is an int, then this is the state to
+              initialize the stepper to, expressed as an integer of the
+              computational basis. Integer to bitwise indices is little endian.
+              Otherwise if this is a np.ndarray it is the full initial state
+              and this must be the correct size, normalized (an L2 norm of 1),
+              and have dtype of np.complex64.
           min_qubits_before_shard: Sharding will be done only for this number
-            of qubits or more. The default is 18.
+              of qubits or more. The default is 18.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -97,6 +98,7 @@ class Stepper(object):
         # TODO(dabacon): This could be parallelized.
         self._init_shared_mem(initial_state)
         self._pool_open = False
+        self._pool = None  # type: Union[ThreadlessPool, multiprocessing.Pool]
 
     def _init_shared_mem(self, initial_state: int):
         self._shared_mem_dict = {}  # type: Dict[str, int]
@@ -110,7 +112,7 @@ class Stepper(object):
         There are two types of vectors here, a zero one vectors and a pm
         (plus/minus) vectors. The pm vectors have rows that are Pauli Z
         operators acting on the all ones vector. The column-th row corresponds
-        to the Pauli Z acting on the columnth-qubit.  Example for three shard
+        to the Pauli Z acting on the column'th-qubit.  Example for three shard
         qubits:
            [[1, -1, 1, -1, 1, -1, 1, -1],
             [1, 1, -1, -1, 1, 1, -1, -1],
@@ -118,14 +120,14 @@ class Stepper(object):
         The zero one vectors are the pm vectors with 1 replacing -1 and 0
         replacing 1.
 
-        There are number of shard qubit zero one vectors and each of these is of
-        size equal to the shard size. For the zero one vectors, the ith one of
-        these vectors has a  kth index value that is equal to 1 if the ith bit
-        of k is set and zero otherwise. The vector directly encode the
-        little-endian binary deigits of its index in the list:
-        v[j][i] = (i >> j) & 1. For the pm vectors, the ith one of these vectors
-        has a  kth index value that is equal to -1 if the ith bit of k is set
-        and 1 otherwise.
+        There are number of shard qubit zero one vectors and each of these is
+        of size equal to the shard size. For the zero one vectors, the ith one
+        of these vectors has a  kth index value that is equal to 1 if the i'th
+        bit of k is set and zero otherwise. The vector directly encode the
+        little-endian binary digits of its index in the list:
+        v[j][i] = (i >> j) & 1. For the pm vectors, the ith one of these
+        vectors has a  k'th index value that is equal to -1 if the i'th bit of
+        k is set and 1 otherwise.
         """
         shard_size = 2 ** self._num_shard_qubits
 
@@ -174,22 +176,23 @@ class Stepper(object):
         self._pool.join()
         self._pool_open = False
 
-    def _shard_num_args(
-        self, constant_dict: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def _shard_num_args(self,
+                        constant_dict: Dict[str, Any] = None
+                        ) -> List[Dict[str, Any]]:
         """Helper that returns a list of dicts including a num_shard entry.
 
         The dict for each entry also includes shared_mem_dict, the number of
         shards, the number of shard qubits, and the supplied constant dict.
 
         Args:
-          constant_dict: Dictionary that will be updated to every element of the
-            returned list of dictionaries.
+            constant_dict: Dictionary that will be updated to every element of
+                the returned list of dictionaries.
 
         Returns:
-          A list of dictionaries. Each dictionary is constant except for the
-          'shard_num' key which ranges from 0 to number of shards - 1.  Included
-          keys are 'num_shards' and 'num_shard_qubits' along with all the
-          keys in constant_dict.
+            A list of dictionaries. Each dictionary is constant except for the
+            'shard_num' key which ranges from 0 to number of shards - 1.
+            Included keys are 'num_shards' and 'num_shard_qubits' along with
+            all the keys in constant_dict.
         """
         args = []
         for shard_num in range(self._num_shards):
@@ -279,9 +282,10 @@ class Stepper(object):
 
         Args:
           index: The qubit to act on.
-          half_turns: The amount of the overall rotation, see the formula above.
+          half_turns: The amount of the overall rotation, see the formula
+              above.
           axis_half_turns: The angle between the pauli X and Y operators,
-            see the formula above.
+              see the formula above.
         """
         if not self._pool_open:
             self.__enter__()
@@ -319,7 +323,7 @@ class Stepper(object):
             self.__enter__()
         args = self._shard_num_args({'index': index})
         prob_one = np.sum(self._pool.map(_one_prob_per_shard, args))
-        result = (np.random.random() <= prob_one)
+        result = bool(np.random.random() <= prob_one)
 
         args = self._shard_num_args({
             'index': index,
@@ -331,13 +335,14 @@ class Stepper(object):
 
 
 def decode_initial_state(initial_state: Union[int, np.ndarray],
-    num_qubits: int) -> np.ndarray:
+                         num_qubits: int) -> np.ndarray:
     """Verifies the initial_state is valid and converts it to ndarray form."""
     if isinstance(initial_state, np.ndarray):
         if len(initial_state) != 2 ** num_qubits:
             raise ValueError(
-                'initial state was of size {} but expected state for {} qubits'
-                    .format(len(initial_state), num_qubits))
+                'initial state was of size {} '
+                'but expected state for {} qubits'.format(
+                    len(initial_state), num_qubits))
         state = initial_state
     elif isinstance(initial_state, int):
         if initial_state < 0:
@@ -358,9 +363,9 @@ def decode_initial_state(initial_state: Union[int, np.ndarray],
 def check_state(state: np.ndarray, num_qubits: int):
     """Validates that the given state is a valid wave function."""
     if state.size != 1 << num_qubits:
-      raise ValueError(
-          'State has incorrect size. Expected {} but was {}.'.format(
-            1 << num_qubits, state.size))
+        raise ValueError(
+            'State has incorrect size. Expected {} but was {}.'.format(
+                1 << num_qubits, state.size))
     if state.dtype != np.complex64:
         raise ValueError(
             'State has invalid dtype. Expected {} but was {}'.format(
@@ -387,7 +392,8 @@ def _pm_vects(args: Dict[str, Any]) -> np.ndarray:
 
 
 def _zero_one_vects(args: Dict[str, Any]) -> np.ndarray:
-    return mem_manager.SharedMemManager.get_array(args['zero_one_vects_handle'])
+    return mem_manager.SharedMemManager.get_array(
+        args['zero_one_vects_handle'])
 
 
 def _kth_bit(x: int, k: int) -> int:
@@ -406,7 +412,6 @@ def _reset_state(args: Dict[str, Any]):
             _state_shard(args)[reset_state % shard_size] = 1.0
     else:
         np.copyto(_state_shard(args), reset_state)
-
 
 
 def _clear_scratch(args: Dict[str, Any]):
@@ -432,7 +437,7 @@ def _single_qubit_accumulate_into_scratch(args: Dict[str, Any]):
         scratch -= half_turns * _pm_vects(args)[index]
 
 
-def _one_projector(args: Dict[str, Any], index: int) -> np.ndarray:
+def _one_projector(args: Dict[str, Any], index: int) -> Union[int, np.ndarray]:
     """Returns a projector onto the |1> subspace of the index-th qubit."""
     num_shard_qubits = args['num_shard_qubits']
     shard_num = args['shard_num']
@@ -454,7 +459,8 @@ def _two_qubit_accumulate_into_scratch(args: Dict[str, Any]):
 
 
 def _apply_scratch_as_phase(args: Dict[str, Any]):
-    """Takes scratch shards and applies them as exponentiated phase to state."""
+    """Takes scratch shards and applies them as exponentiated phase to state.
+    """
     state = _state_shard(args)
     state *= np.exp(I_PI_OVER_2 * _scratch_shard(args))
 
@@ -515,7 +521,8 @@ def _copy_scratch_to_state(args: Dict[str, Any]):
 
 
 def _one_prob_per_shard(args: Dict[str, Any]) -> float:
-    """Returns the probability of getting a one measurement on a state shard."""
+    """Returns the probability of getting a one measurement on a state shard.
+    """
     index = args['index']
 
     state = _state_shard(args) * _one_projector(args, index)
@@ -526,7 +533,7 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
 def _norm(args: Dict[str, Any]) -> float:
     """Returns the norm for each state shard."""
     state = _state_shard(args)
-    return np.dot(state, np.conjugate(state))
+    return float(np.dot(state, np.conjugate(state)))
 
 
 def _renorm(args: Dict[str, Any]):
@@ -551,8 +558,8 @@ def _collapse_state(args: Dict[str, Any]):
 
     state = _state_shard(args)
     normalization = np.sqrt(prob_one if result else 1 - prob_one)
-    state *= (_one_projector(args, index) * result
-        + (1 - _one_projector(args, index)) * (1 - result))
+    state *= (_one_projector(args, index) * result +
+              (1 - _one_projector(args, index)) * (1 - result))
     state /= normalization
 
 
@@ -564,6 +571,7 @@ class ThreadlessPool(object):
     repeatedly.
     """
 
+    # noinspection PyMethodMayBeStatic
     def map(self, func, iterable, chunksize=None):
         assert chunksize is None, 'Chunking not supported by SimplePool'
         return [func(x) for x in iterable]
