@@ -28,3 +28,24 @@ def test_is_adjacent():
     assert LineQubit(2).is_adjacent(LineQubit(3))
     assert not LineQubit(1).is_adjacent(LineQubit(3))
     assert not LineQubit(2).is_adjacent(LineQubit(0))
+
+
+def test_range():
+    assert LineQubit.range(0) == []
+    assert LineQubit.range(1) == [LineQubit(0)]
+    assert LineQubit.range(2) == [LineQubit(0), LineQubit(1)]
+    assert LineQubit.range(5) == [
+        LineQubit(0),
+        LineQubit(1),
+        LineQubit(2),
+        LineQubit(3),
+        LineQubit(4),
+    ]
+
+    assert LineQubit.range(0, 0) == []
+    assert LineQubit.range(0, 1) == [LineQubit(0)]
+    assert LineQubit.range(1, 4) == [LineQubit(1), LineQubit(2), LineQubit(3)]
+
+    assert LineQubit.range(3, 1, -1) == [LineQubit(3), LineQubit(2)]
+    assert LineQubit.range(3, 5, -1) == []
+    assert LineQubit.range(1, 5, 2) == [LineQubit(1), LineQubit(3)]
