@@ -32,7 +32,8 @@ def _accept(random_sample: float, cost_diff: float,
 
     Returns:
         Tuple of boolean and float, with boolean equal to True if solution is
-        accepted, and False otherwise. The float value is acceptance probability.
+        accepted, and False otherwise. The float value is acceptance
+        probability.
     """
     exponent = -cost_diff / temp
     if exponent >= 0.0:
@@ -51,34 +52,36 @@ def anneal_minimize(
         temp_final: float = 1e-6,
         cooling_factor: float = 0.99,
         repeat: float = 100,
-        trace_func: Callable[[T, float, float, float, bool], type(None)] = None) -> T:
+        trace_func: Callable[
+            [T, float, float, float, bool], type(None)] = None) -> T:
     """Minimize solution using Simulated Annealing meta-heuristic.
 
     Args:
         initial: Initial solution of type T to the problem.
-        cost_func: Callable which takes current solution of type T, evaluates it and
-            returns float with the cost estimate. The better solution is, the lower
-            resulting value should be; negative values are allowed.
-        move_func: Callable which takes current solution of type T and returns a new
-            solution candidate of type T which is random iteration over input
-            solution. The input solution, which is argument to this callback should
-            not be mutated.
-        random_sample: Callable which gives uniformly sampled random value from the
-            [0, 1) interval on each call.
+        cost_func: Callable which takes current solution of type T, evaluates it
+            and returns float with the cost estimate. The better solution is,
+            the lower resulting value should be; negative values are allowed.
+        move_func: Callable which takes current solution of type T and returns a
+            new solution candidate of type T which is random iteration over
+            input solution. The input solution, which is argument to this
+            callback should not be mutated.
+        random_sample: Callable which gives uniformly sampled random value from
+            the [0, 1) interval on each call.
         temp_initial: Optional initial temperature for simulated annealing
             optimization. Scale of this value is cost_func-dependent.
-        temp_final: Optional final temperature for simulated annealing optimization,
-            where search should be stopped. Scale of this value is
+        temp_final: Optional final temperature for simulated annealing
+            optimization, where search should be stopped. Scale of this value is
             cost_func-dependent.
-        cooling_factor: Optional factor to be applied to the current temperature and
-            give the new temperature, this must be strictly greater than 0 and
-            strictly lower than 1.
-        repeat: Optional number of iterations to perform at each given temperature.
-        trace_func: Optional callback for tracing simulated annealing progress. This
-            is going to be called at each algorithm step for the arguments: solution
-            candidate (T), current temperature (float), candidate cost (float),
-            probability of accepting candidate (float), and acceptance decision
-            (boolean).
+        cooling_factor: Optional factor to be applied to the current temperature
+            and give the new temperature, this must be strictly greater than 0
+            and strictly lower than 1.
+        repeat: Optional number of iterations to perform at each given
+            temperature.
+        trace_func: Optional callback for tracing simulated annealing progress.
+            This is going to be called at each algorithm step for the arguments:
+            solution candidate (T), current temperature (float), candidate cost
+            (float), probability of accepting candidate (float), and acceptance
+            decision (boolean).
 
     Returns:
         The best solution found.
@@ -110,7 +113,8 @@ def anneal_minimize(
                 best = cand
                 best_cost = cand_cost
 
-            accepted, probability = _accept(random_sample(), cand_cost - sol_cost,
+            accepted, probability = _accept(random_sample(),
+                                            cand_cost - sol_cost,
                                             temp)
             if accepted:
                 sol = cand
