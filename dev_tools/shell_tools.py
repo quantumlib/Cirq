@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,30 @@ import sys
 from typing import Optional, Tuple, Union, IO, Any
 
 import collections
+
+
+BOLD = 1
+DIM = 2
+RED = 31
+GREEN = 32
+YELLOW = 33
+
+
+def highlight(text: str, color_code: int, bold: bool=False) -> str:
+    """Wraps the given string with terminal color codes.
+
+    Args:
+        text: The content to highlight.
+        color_code: The color to highlight with, e.g. 'shelltools.RED'.
+        bold: Whether to bold the content in addition to coloring.
+
+    Returns:
+        The highlighted string.
+    """
+    return '{}\033[{}m{}\033[0m'.format(
+        '\033[1m' if bold else '',
+        color_code,
+        text,)
 
 
 class TeeCapture:

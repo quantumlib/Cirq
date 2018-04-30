@@ -1,3 +1,16 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import collections
 from typing import Iterator, List, Sequence, Tuple
 
@@ -186,7 +199,7 @@ class Zip(Sweep):
         return ' + '.join(str(s) for s in self.sweeps)
 
 
-class SingleParameterSweep(Sweep):
+class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
     def __init__(self, key: str) -> None:
@@ -217,7 +230,7 @@ class SingleParameterSweep(Sweep):
         pass
 
 
-class Points(SingleParameterSweep):
+class Points(SingleSweep):
     """A simple sweep with explicit values."""
 
     def __init__(self, key: str, points: Sequence[float]) -> None:
@@ -237,7 +250,7 @@ class Points(SingleParameterSweep):
         return 'Points({!r}, {!r})'.format(self.key, self.points)
 
 
-class Linspace(SingleParameterSweep):
+class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
     def __init__(self, key, start, stop, length) -> None:

@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -117,6 +117,68 @@ def test_slice():
                                Moment([ops.H(a), ops.H(b)])])
     assert c[3:0:-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)])])
     assert c[0:2:-1] == Circuit()
+
+
+def test_concatenate():
+    a = ops.QubitId()
+    b = ops.QubitId()
+
+    c = Circuit()
+    d = Circuit([Moment([ops.X(b)])])
+    e = Circuit([Moment([ops.X(a), ops.X(b)])])
+
+    assert c + d == Circuit([Moment([ops.X(b)])])
+    assert d + c == Circuit([Moment([ops.X(b)])])
+    assert e + d == Circuit([
+        Moment([ops.X(a), ops.X(b)]),
+        Moment([ops.X(b)])
+    ])
+
+    d += c
+    assert d == Circuit([Moment([ops.X(b)])])
+
+    c += d
+    assert c == Circuit([Moment([ops.X(b)])])
+
+    f = e + d
+    f += e
+    assert f == Circuit([
+        Moment([ops.X(a), ops.X(b)]),
+        Moment([ops.X(b)]),
+        Moment([ops.X(a), ops.X(b)])
+    ])
+
+    with pytest.raises(TypeError):
+        _ = c + 'a'
+    with pytest.raises(TypeError):
+        c += 'a'
+
+
+def test_multiply():
+    a = ops.QubitId()
+
+    c = Circuit()
+    d = Circuit([Moment([ops.X(a)])])
+
+    assert c * 0 == Circuit()
+    assert d * 0 == Circuit()
+    assert d * 2 == Circuit([Moment([ops.X(a)]),
+                             Moment([ops.X(a)])])
+    assert 1 * c == Circuit()
+    assert -1 * d == Circuit()
+    assert 1 * d == Circuit([Moment([ops.X(a)])])
+
+    d *= 3
+    assert d == Circuit([Moment([ops.X(a)]),
+                         Moment([ops.X(a)]),
+                         Moment([ops.X(a)])])
+
+    with pytest.raises(TypeError):
+        _ = c * 'a'
+    with pytest.raises(TypeError):
+        _ = 'a' * c
+    with pytest.raises(TypeError):
+        c *= 'a'
 
 
 def test_container_methods():
@@ -550,7 +612,7 @@ def test_to_text_diagram_teleportation_to_diagram():
     assert c.to_text_diagram().strip() == """
 (0, 0): ───H───@───────────X───────M───@───────────
                │           │           │
-(0, 1): ───────X───────────┼───────────X───────Z───
+(0, 1): ───────X───────────┼───────────X───────@───
                            │                   │
 (1, 0): ───────────X^0.5───@───H───M───────@───┼───
                                            │   │
@@ -559,7 +621,7 @@ def test_to_text_diagram_teleportation_to_diagram():
     assert c.to_text_diagram(use_unicode_characters=False).strip() == """
 (0, 0): ---H---@-----------X-------M---@-----------
                |           |           |
-(0, 1): -------X-----------|-----------X-------Z---
+(0, 1): -------X-----------|-----------X-------@---
                            |                   |
 (1, 0): -----------X^0.5---@---H---M-------@---|---
                                            |   |
@@ -586,7 +648,7 @@ M      |      M      |
 |      |      |      |
 |      |      @------X
 |      |      |      |
-|      Z-------------Z
+|      @-------------Z
 |      |      |      |
         """.strip()
 

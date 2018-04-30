@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -98,6 +98,15 @@ class SimulatorTrialResult(TrialResult):
         self.repetitions = repetitions
         self.measurements = measurements
         self.final_states = final_states
+
+    def __repr__(self):
+        return ('SimulatorTrialResult(params={!r}, '
+                'repetitions={!r}, '
+                'measurements={!r}, '
+                'final_states={!r})').format(self.params,
+                                             self.repetitions,
+                                             self.measurements,
+                                             self.final_states)
 
     def __str__(self):
         def bitstring(vals):

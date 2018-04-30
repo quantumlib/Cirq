@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,7 +55,13 @@ class Circuit(object):
             ...
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
-            circuit[1] and the second being circuit[2].
+            circuit[1] and the second being circuit[2];
+    and concatenated,
+        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
+            followed by the moments in circuit2;
+    and multiplied by an integer,
+        circuit * k is a new Circuit made up of the moments in circuit repeated
+            k times.
 
     Attributes:
         moments: A list of the Moments of the circuit.
@@ -102,6 +108,33 @@ class Circuit(object):
         else:
             raise TypeError(
                 '__getitem__ called with key not of type slice or int.')
+
+    def __iadd__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        self.moments += other.moments
+        return self
+
+    def __add__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return Circuit(self.moments + other.moments)
+
+    def __imul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        self.moments *= repetitions
+        return self
+
+    def __mul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return Circuit(self.moments * repetitions)
+
+    def __rmul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return self * repetitions
 
     def __len__(self):
         return len(self.moments)
@@ -584,31 +617,6 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
-
-
-def _str_lexicographic_respecting_int_order(value):
-    """0-pads digits in a string to hack int order into lexicographic order."""
-    s = str(value)
-
-    was_on_digits = False
-    last_transition = 0
-    output = []
-
-    def dump(k):
-        chunk = s[last_transition:k]
-        if was_on_digits:
-            chunk = chunk.rjust(8, '0')
-        output.append(chunk)
-
-    for i in range(len(s)):
-        on_digits = s[i].isdigit()
-        if was_on_digits != on_digits:
-            dump(i)
-            was_on_digits = on_digits
-            last_transition = i
-
-    dump(len(s))
-    return ''.join(output)
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
