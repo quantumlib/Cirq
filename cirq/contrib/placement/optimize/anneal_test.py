@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import math
-import pytest
 
 from cirq.contrib.placement.optimize import anneal
 
