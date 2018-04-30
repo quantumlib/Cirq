@@ -511,7 +511,8 @@ class Circuit(object):
 
 def _get_operation_text_diagram_symbols(op: ops.Operation,
                                         ext: Extensions,
-                                        precision: Optional[int]) -> Iterable[str]:
+                                        precision: Optional[int]
+                                        ) -> Iterable[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is not None:
         wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
@@ -534,7 +535,8 @@ def _get_operation_text_diagram_symbols(op: ops.Operation,
 
 def _get_operation_text_diagram_exponent(op: ops.Operation,
                                          ext: Extensions,
-                                         precision: Optional[int]) -> Optional[str]:
+                                         precision: Optional[int]
+                                         ) -> Optional[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is None:
         return None
