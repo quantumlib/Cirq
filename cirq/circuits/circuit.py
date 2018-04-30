@@ -55,7 +55,13 @@ class Circuit(object):
             ...
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
-            circuit[1] and the second being circuit[2].
+            circuit[1] and the second being circuit[2];
+    and concatenated,
+        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
+            followed by the moments in circuit2;
+    and multiplied by an integer,
+        circuit * k is a new Circuit made up of the moments in circuit repeated
+            k times.
 
     Attributes:
         moments: A list of the Moments of the circuit.
@@ -102,6 +108,33 @@ class Circuit(object):
         else:
             raise TypeError(
                 '__getitem__ called with key not of type slice or int.')
+
+    def __iadd__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        self.moments += other.moments
+        return self
+
+    def __add__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return Circuit(self.moments + other.moments)
+
+    def __imul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        self.moments *= repetitions
+        return self
+
+    def __mul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return Circuit(self.moments * repetitions)
+
+    def __rmul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return self * repetitions
 
     def __len__(self):
         return len(self.moments)
