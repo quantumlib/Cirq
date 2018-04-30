@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
     def text_diagram_wire_symbols(self,
                                   qubit_count = None,
                                   use_unicode_characters = True,
-                                  precision: int = 3
+                                  precision = 3
                                   ) -> Tuple[str, ...]:
         pass
 

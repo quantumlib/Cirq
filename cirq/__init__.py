@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,8 +78,6 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    QubitOrder,
-    QubitOrderOrList,
     BoundedEffectGate,
     CNOT,
     CNotGate,
@@ -94,10 +92,13 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
     KnownMatrixGate,
+    LineQubit,
     MeasurementGate,
     NamedQubit,
     OP_TREE,
     Operation,
+    QubitOrder,
+    QubitOrderOrList,
     ReversibleCompositeGate,
     ReversibleGate,
     PhaseableGate,

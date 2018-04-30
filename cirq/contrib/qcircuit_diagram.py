@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
     def text_diagram_wire_symbols(self,
                                   qubit_count: Optional[int] = None,
                                   use_unicode_characters: bool = True,
-                                  precision: int = 3):
+                                  precision: Optional[int] = 3):
         return self.sub.qcircuit_wire_symbols(qubit_count)
 
 

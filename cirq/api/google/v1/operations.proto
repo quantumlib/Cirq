@@ -17,13 +17,14 @@ message Qubit {
 
 // A number specified as a constant plus an optional parameter lookup.
 message ParameterizedFloat {
-  // A constant value.
-  // If a parameter key is also specified, then this is an offset.
-  float raw = 1;
+  oneof value {
+    // A constant value.
+    float raw = 1;
 
-  // A variable value stored under some parameter key.
-  // Leave empty to not use a parameter lookup and just use the raw value.
-  string parameter_key = 2;
+    // A variable value stored under some parameter key.
+    // This cannot be the empty string.
+    string parameter_key = 2;
+  }
 }
 
 // A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
