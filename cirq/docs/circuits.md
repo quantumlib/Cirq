@@ -62,7 +62,7 @@ x = cirq.X(qubits[2])
 moment = cirq.Moment([x, cz])
 
 print(moment)
-# prints "X((0, 2)) and ZZ((0, 0), (0, 1))"
+# prints "X((0, 2)) and CZ((0, 0), (0, 1))"
 ```
 Note that is not the only way to construct moments, nor even the 
 typical method, but illustrates that a ``Moment`` is just a
@@ -83,9 +83,9 @@ circuit = cirq.Circuit((moment0, moment1))
 
 print(circuit)
 # prints the text diagram for the circuit:
-# (0, 0): ───Z───────
+# (0, 0): ───@───────
 #            │
-# (0, 1): ───Z───Z───
+# (0, 1): ───Z───@───
 #                │
 # (0, 2): ───X───Z───
 ```
@@ -110,7 +110,7 @@ circuit.append([CZ(q0, q1), H(q2)])
 
 print(circuit)
 # prints
-# (0, 0): ───Z───
+# (0, 0): ───@───
 #            │
 # (1, 0): ───Z───
 # 
@@ -122,9 +122,9 @@ circuit.append([H(q0), CZ(q1, q2)])
 
 print(circuit)
 # prints
-# (0, 0): ───Z───H───
+# (0, 0): ───@───H───
 #            │
-# (1, 0): ───Z───Z───
+# (1, 0): ───Z───@───
 #                │
 # (2, 0): ───H───Z───
 ```
@@ -137,9 +137,9 @@ circuit.append([CZ(q0, q1), H(q2), H(q0), CZ(q1, q2)])
 
 print(circuit)
 # prints
-# (0, 0): ───Z───H───
+# (0, 0): ───@───H───
 #            │
-# (1, 0): ───Z───Z───
+# (1, 0): ───Z───@───
 #                │
 # (2, 0): ───H───Z───
 ```
@@ -176,7 +176,7 @@ circuit.append([H(q0), H(q2)], strategy=InsertStrategy.EARLIEST)
 
 print(circuit)
 # prints
-# (0, 0): ───Z───H───
+# (0, 0): ───@───H───
 #            │
 # (1, 0): ───Z───────
 # 
@@ -218,9 +218,9 @@ circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
 
 print(circuit)
 # prints
-# (0, 0): ───────Z───H───
+# (0, 0): ───────@───H───
 #                │
-# (1, 0): ───Z───Z───────
+# (1, 0): ───@───Z───────
 #            │
 # (2, 0): ───Z───H───────
 ```
@@ -245,7 +245,7 @@ print(circuit)
 # prints
 # (0, 0): ───H───H───
 #
-# (1, 0): ───────Z───
+# (1, 0): ───────@───
 #                │
 # (2, 0): ───────Z───
 ```
@@ -280,16 +280,16 @@ circuit.append(my_layer())
 for x in my_layer():
     print(x)
 # prints
-# ZZ((0, 0), (1, 0))
+# CZ((0, 0), (1, 0))
 # [Operation(H, (XmonQubit(0, 0),)), Operation(H, (XmonQubit(1, 0),)), Operation(H, (XmonQubit(2, 0),))]
-# [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]
-# [Operation(H, (XmonQubit(0, 0),)), [Operation(ZZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]]
+# [Operation(CZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]
+# [Operation(H, (XmonQubit(0, 0),)), [Operation(CZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]]
 
 print(circuit)
 # prints 
-# (0, 0): ───Z───H───H───────
+# (0, 0): ───@───H───H───────
 #            │
-# (1, 0): ───Z───H───Z───Z───
+# (1, 0): ───Z───H───@───@───
 #                    │   │
 # (2, 0): ───────H───Z───Z───
 ```
@@ -335,7 +335,7 @@ for moment in circuit:
     print(moment)
 # prints
 # H((0, 0))
-# ZZ((0, 0), (1, 0))
+# CZ((0, 0), (1, 0))
 ```
 Slicing a ``Circuit`` on the other hand, produces a new ``Circuit`` 
 with only the moments corresponding to the slice:
@@ -343,7 +343,7 @@ with only the moments corresponding to the slice:
 circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
 print(circuit[1:3])
 # prints
-# (0, 0): ───Z───────
+# (0, 0): ───@───────
 #            │
 # (1, 0): ───Z───H───
 ```

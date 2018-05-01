@@ -42,6 +42,18 @@ def test_cz_eq():
     eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0.5))
 
 
+def test_cz_str():
+    assert str(ops.Rot11Gate()) == 'CZ'
+    assert str(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
+    assert str(ops.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
+
+
+def test_cz_repr():
+    assert repr(ops.Rot11Gate()) == 'CZ'
+    assert repr(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
+    assert repr(ops.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
+
+
 def test_cz_extrapolate():
     assert ops.Rot11Gate(
         half_turns=1).extrapolate_effect(0.5) == ops.Rot11Gate(half_turns=0.5)
@@ -197,7 +209,7 @@ def test_text_diagrams():
         ops.CNOT(b, a),
         ops.H(a))
     assert circuit.to_text_diagram().strip() == """
-a: ───×───X───Y───Z───Z───@───X───H───
+a: ───×───X───Y───Z───@───@───X───H───
       │               │   │   │
 b: ───×───────────────Z───X───@───────
     """.strip()
