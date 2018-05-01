@@ -18,6 +18,7 @@ from cirq import ops
 from cirq.circuits import Circuit
 from cirq.google import (ExpWGate, ExpZGate, Exp11Gate, XmonDevice,
                          XmonMeasurementGate, XmonQubit)
+from cirq.testing import EqualsTester
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Duration, Timestamp
 
@@ -168,3 +169,11 @@ def test_validate_schedule_repeat_measurement_keys():
 
     with pytest.raises(ValueError, message='Measurement key a repeated'):
         d.validate_schedule(s)
+
+
+def test_xmon_device_eq():
+    eq = EqualsTester()
+    eq.make_equality_pair(lambda: square_device(3, 3))
+    eq.make_equality_pair(lambda: square_device(3, 3, holes=[XmonQubit(1, 1)]))
+    eq.make_equality_pair(lambda: XmonDevice(Duration(nanos=1), Duration(nanos=2), Duration(nanos=3), []))
+    eq.make_equality_pair(lambda: XmonDevice(Duration(nanos=1), Duration(nanos=1), Duration(nanos=1), []))
