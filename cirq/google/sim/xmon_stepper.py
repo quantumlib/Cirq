@@ -98,7 +98,7 @@ class Stepper(object):
         # TODO(dabacon): This could be parallelized.
         self._init_shared_mem(initial_state)
         self._pool_open = False
-        self._pool = None  # type: Union[ThreadlessPool, multiprocessing.Pool]
+        self._pool = None  # type: Union[ThreadlessPool, Any]
 
     def _init_shared_mem(self, initial_state: int):
         self._shared_mem_dict = {}  # type: Dict[str, int]
@@ -533,7 +533,7 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
 def _norm(args: Dict[str, Any]) -> float:
     """Returns the norm for each state shard."""
     state = _state_shard(args)
-    return float(np.dot(state, np.conjugate(state)))
+    return float(np.real(np.dot(state, np.conjugate(state))))
 
 
 def _renorm(args: Dict[str, Any]):
