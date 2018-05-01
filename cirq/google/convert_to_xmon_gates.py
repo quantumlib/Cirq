@@ -33,11 +33,11 @@ class ConvertToXmonGates(PointOptimizer):
         XmonGate instance.
 
     Second, checks if the given extensions are able to cast the gate into a
-        CompositeGate instance. If so, recurses on the decomposition.
-
-    Third, checks if the given extensions are able to cast the gate into a
         KnownMatrixGate instance. If so, and the gate is a 1-qubit or 2-qubit
         gate, then performs circuit synthesis of the operation.
+
+    Third, checks if the given extensions are able to cast the gate into a
+        CompositeGate instance. If so, recurses on the decomposition.
 
     Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
