@@ -20,6 +20,7 @@ xmon_simulator class.
 
 import math
 import multiprocessing
+import multiprocessing.dummy as dummy
 
 from typing import Any, Dict, List, Union, Tuple
 
@@ -45,10 +46,10 @@ class Stepper(object):
     python's multiprocessing module.
 
     This stepper can be used like a context manager:
-      with Stepper(num_qubits=3) as s:
-        s.simulate_phases((1, 0.25))
-        s.simulate_w(2, 0.25, 0.25)
-        ...
+        with Stepper(num_qubits=3) as s:
+            s.simulate_phases((1, 0.25))
+            s.simulate_w(2, 0.25, 0.25)
+            ...
     In this case the stepper will shut down the multiprocessing pool upon
     exiting the with context.
 
@@ -61,25 +62,30 @@ class Stepper(object):
                  num_qubits: int,
                  num_prefix_qubits: int = None,
                  initial_state: Union[int, np.ndarray] = 0,
-                 min_qubits_before_shard: int = 18) -> None:
+                 min_qubits_before_shard: int = 18,
+                 use_processes=False) -> None:
         """Construct a new Simulator.
 
         Args:
-          num_qubits: The number of qubits to simulate.
-          num_prefix_qubits: The wavefunction of the qubits is sharded into
-              (2 ** num_prefix_qubits) parts. If this is None, then this will
-              shard over the nearest power of two below the cpu count. If less
-              than 10 qubits are being simulated then no sharding is done,
-              depending on whether the shard_for_small_num_qubits is set or
-              not.
-          initial_state: If this is an int, then this is the state to
-              initialize the stepper to, expressed as an integer of the
-              computational basis. Integer to bitwise indices is little endian.
-              Otherwise if this is a np.ndarray it is the full initial state
-              and this must be the correct size, normalized (an L2 norm of 1),
-              and have dtype of np.complex64.
-          min_qubits_before_shard: Sharding will be done only for this number
-              of qubits or more. The default is 18.
+            num_qubits: The number of qubits to simulate.
+            num_prefix_qubits: The wavefunction of the qubits is sharded into
+                (2 ** num_prefix_qubits) parts. If this is None, then this will
+                shard over the nearest power of two below the cpu count. If less
+                than 10 qubits are being simulated then no sharding is done,
+                depending on whether the shard_for_small_num_qubits is set or
+                not.
+            initial_state: If this is an int, then this is the state to
+                initialize the stepper to, expressed as an integer of the
+                computational basis. Integer to bitwise indices is little
+                endian. Otherwise if this is a np.ndarray it is the full initial
+                state and this must be the correct size, normalized (an L2 norm
+                of 1),
+                and have dtype of np.complex64.
+            min_qubits_before_shard: Sharding will be done only for this number
+                of qubits or more. The default is 18.
+            use_processes: Whether or not to use processes instead of threads.
+                For very long and large simulations, processes can outperform
+                threads.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -99,6 +105,7 @@ class Stepper(object):
         self._init_shared_mem(initial_state)
         self._pool_open = False
         self._pool = None  # type: Union[ThreadlessPool, Any]
+        self._pool_fn = multiprocessing.Pool if use_processes else dummy.Pool
 
     def _init_shared_mem(self, initial_state: int):
         self._shared_mem_dict = {}  # type: Dict[str, int]
@@ -114,9 +121,9 @@ class Stepper(object):
         operators acting on the all ones vector. The column-th row corresponds
         to the Pauli Z acting on the column'th-qubit.  Example for three shard
         qubits:
-           [[1, -1, 1, -1, 1, -1, 1, -1],
-            [1, 1, -1, -1, 1, 1, -1, -1],
-            [1, 1, 1, 1, -1, -1, -1, -1]]
+             [[1, -1, 1, -1, 1, -1, 1, -1],
+              [1, 1, -1, -1, 1, 1, -1, -1],
+              [1, 1, 1, 1, -1, -1, -1, -1]]
         The zero one vectors are the pm vectors with 1 replacing -1 and 0
         replacing 1.
 
@@ -165,7 +172,7 @@ class Stepper(object):
             mem_manager.SharedMemManager.free_array(handle)
 
     def __enter__(self):
-        self._pool = (multiprocessing.Pool(processes=self._num_shards)
+        self._pool = (self._pool_fn(processes=self._num_shards)
                       if self._num_prefix_qubits > 0 else ThreadlessPool())
         self._pool_open = True
         return self
@@ -218,10 +225,10 @@ class Stepper(object):
 
         Args:
             reset_state: If this is an int, then this is the state to reset
-            the stepper to, expressed as an integer of the computational basis.
-            Integer to bitwise indices is little endian. Otherwise if this is
-            a np.ndarray this must be the correct size, be normalized (L2 norm
-            of 1), and have dtype of np.complex64.
+                the stepper to, expressed as an integer of the computational
+                basis. Integer to bitwise indices is little endian. Otherwise
+                if this is a np.ndarray this must be the correct size, be
+                normalized (L2 norm of 1), and have dtype of np.complex64.
 
         Raises:
             ValueError if the state is incorrectly sized or not of the correct
@@ -249,13 +256,13 @@ class Stepper(object):
         """Simulate a set of phase gates on the xmon architecture.
 
         Args:
-          phase_map: A map from a tuple of indices to a value, one for each
-            phase gate being simulated. If the tuple key has one index, then
-            this is a Z phase gate on the index-th qubit with a rotation angle
-            of pi times the value of the map. If the tuple key has two
-            indices, then this is a |11> phasing gate, acting on the qubits at
-            the two indices, and a rotation angle of pi times the value of
-            the map.
+            phase_map: A map from a tuple of indices to a value, one for each
+                phase gate being simulated. If the tuple key has one index, then
+                this is a Z phase gate on the index-th qubit with a rotation
+                angle of pi times the value of the map. If the tuple key has two
+                indices, then this is a |11> phasing gate, acting on the qubits
+                at the two indices, and a rotation angle of pi times the value
+                of the map.
         """
         if not self._pool_open:
             self.__enter__()
@@ -314,10 +321,10 @@ class Stepper(object):
         """Simulates a single qubit measurement in the computational basis.
 
         Args:
-          index: Which qubit is measured.
+            index: Which qubit is measured.
 
         Returns:
-          True iff the measurement result corresponds to the |1> state.
+            True iff the measurement result corresponds to the |1> state.
         """
         if not self._pool_open:
             self.__enter__()
@@ -550,7 +557,7 @@ def _collapse_state(args: Dict[str, Any]):
     theory.
 
     Args:
-      args: The args from shard_num_args.
+        args: The args from shard_num_args.
     """
     index = args['index']
     result = args['result']

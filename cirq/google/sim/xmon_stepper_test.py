@@ -14,6 +14,7 @@
 
 """Tests for xmon_simulator."""
 
+import multiprocessing.pool as pool
 import numpy as np
 import pytest
 
@@ -47,6 +48,15 @@ def test_uses_threadless_pool():
     with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=0,
                               num_prefix_qubits=1) as s:
         assert not isinstance(s._pool, xmon_stepper.ThreadlessPool)
+
+
+def test_use_processes():
+  with xmon_stepper.Stepper(num_qubits=10, min_qubits_before_shard=4,
+                            use_processes=True) as s:
+    assert isinstance(s._pool, pool.Pool)
+  with xmon_stepper.Stepper(num_qubits=10, min_qubits_before_shard=4,
+                            use_processes=False) as s:
+    assert isinstance(s._pool, pool.ThreadPool)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -506,14 +516,16 @@ def test_non_context_manager(num_prefix_qubits):
     stepper.__exit__()
 
 
-@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
-def test_large_circuit_unitary(num_prefix_qubits):
+@pytest.mark.parametrize(('num_prefix_qubits', 'use_processes'),
+                         ((0, True), (0, False), (2, True), (2, False)))
+def test_large_circuit_unitary(num_prefix_qubits, use_processes):
     moments = random_moments(5, 40)
     columns = []
     with xmon_stepper.Stepper(num_qubits=5,
                               num_prefix_qubits=num_prefix_qubits,
                               initial_state=0,
-                              min_qubits_before_shard=0) as s:
+                              min_qubits_before_shard=0,
+                              use_processes=use_processes) as s:
         for initial_state in range(2 ** 5):
             s.reset_state(initial_state)
             for moment in moments:

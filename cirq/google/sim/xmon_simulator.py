@@ -52,11 +52,15 @@ class Options:
             raised to this value number of qubits.
         min_qubits_before_shard: Sharding will be done only for this number
             of qubits or more. The default is 18.
+        use_processes: Whether or not to use processes instead of threads.
+            For very long and large simulations, processes can outperform
+            threads.
     """
 
     def __init__(self,
                  num_shards: int=None,
-                 min_qubits_before_shard: int=18) -> None:
+                 min_qubits_before_shard: int=18,
+                 use_processes: bool=False) -> None:
         """Simulator options constructor.
 
         Args:
@@ -66,6 +70,9 @@ class Options:
                 to the number of CPUs.
             min_qubits_before_shard: Sharding will be done only for this number
                 of qubits or more. The default is 18.
+            use_processes: Whether or not to use processes instead of threads.
+                For very long and large simulations, processes can outperform
+                threads.
         """
         assert num_shards is None or num_shards > 0, (
             "Num_shards cannot be less than 1.")
@@ -77,6 +84,7 @@ class Options:
         assert min_qubits_before_shard >= 0, (
             'Min_qubit_before_shard must be positive.')
         self.min_qubits_before_shard = min_qubits_before_shard
+        self.use_processes = use_processes
 
 
 class SimulatorTrialResult(TrialResult):
@@ -335,7 +343,8 @@ def simulator_iterator(
             num_qubits=len(qubits),
             num_prefix_qubits=options.num_prefix_qubits,
             initial_state=initial_state,
-            min_qubits_before_shard=options.min_qubits_before_shard
+            min_qubits_before_shard=options.min_qubits_before_shard,
+            use_processes=options.use_processes
     ) as stepper:
         for moment in circuit.moments:
             measurements = defaultdict(list)  # type: Dict[str, List[bool]]
