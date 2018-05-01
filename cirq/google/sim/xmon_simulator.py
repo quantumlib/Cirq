@@ -326,7 +326,7 @@ def simulator_iterator(
     """
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
         circuit.qubits())
-    qubit_map = {q: i for i, q in enumerate(qubits)}
+    qubit_map = {q: i for i, q in enumerate(reversed(qubits))}
     if isinstance(initial_state, np.ndarray):
         initial_state = initial_state.astype(dtype=np.complex64,
                                              casting='safe')
@@ -414,10 +414,10 @@ class StepResult:
         binary vectors using little endian.
 
         Example:
-             qubit_map: {Qubit0: 2, Qubit1: 1, Qubit 2: 0}
+             qubit_map: {QubitA: 2, QubitB: 1, QubitC: 0}
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
-               |   | Qubit0 | Qubit1 | Qubit2 |
+               |   | QubitA | QubitB | QubitC |
                +---+--------+--------+--------+
                | 0 |   0    |   0    |   0    |
                | 1 |   0    |   0    |   1    |

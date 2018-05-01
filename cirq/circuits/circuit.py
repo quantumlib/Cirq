@@ -628,7 +628,7 @@ def _operation_to_unitary_matrix(op: ops.Operation,
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))
     sub_mat = known_matrix_gate.matrix()
-    bit_locs = [qubit_map[q] for q in op.qubits]
+    bit_locs = [qubit_count - qubit_map[q] - 1 for q in op.qubits]
     over_mask = ~sum(1 << b for b in bit_locs)
 
     result = np.zeros(shape=(1 << qubit_count, 1 << qubit_count),
