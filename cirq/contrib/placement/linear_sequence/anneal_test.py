@@ -1,0 +1,318 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import numpy as np
+
+from unittest.mock import ANY, patch
+from typing import Iterable, List
+
+from cirq.google import XmonDevice, XmonQubit
+from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
+from cirq.contrib.placement.linear_sequence.anneal import AnnealSequenceSearch, \
+    anneal_sequence
+from cirq.value import Duration
+
+
+def _create_device(qubits: Iterable[XmonQubit]):
+    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0),
+                      qubits)
+
+
+@patch('cirq.contrib.placement.optimize.anneal_minimize')
+def test_search_calls_anneal_minimize(anneal_minimize):
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    seqs = [[q00, q01]]
+    edges = {(q00, q01)}
+    anneal_minimize.return_value = seqs, edges
+
+    assert AnnealSequenceSearch(_create_device([])).search() == seqs
+    anneal_minimize.assert_called_once_with(ANY, ANY, ANY, ANY, trace_func=ANY)
+
+
+def test_quadratic_sum_cost_calculates_quadratic_cost():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q02 = XmonQubit(0, 2)
+    q03 = XmonQubit(0, 3)
+
+    def calculate_cost(seqs: List[List[XmonQubit]]):
+        qubits = []
+        for seq in seqs:
+            qubits += seq
+        return AnnealSequenceSearch(_create_device(qubits))._quadratic_sum_cost(
+            (seqs, None))
+
+    assert np.isclose(calculate_cost([[q00]]), -1.0)
+    assert np.isclose(calculate_cost([[q00, q01]]), -1.0)
+    assert np.isclose(calculate_cost([[q00], [q01]]), -(0.5 ** 2 + 0.5 ** 2))
+    assert np.isclose(calculate_cost([[q00], [q01, q02, q03]]),
+                      -(0.25 ** 2 + 0.75 ** 2))
+
+
+def test_force_edges_active_move_does_not_change_input():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q10 = XmonQubit(1, 0)
+    q11 = XmonQubit(1, 1)
+    search = AnnealSequenceSearch(_create_device([q00, q01, q10, q11]))
+    seqs, edges = search._create_initial_solution()
+    seqs_copy, edges_copy = list(seqs), edges.copy()
+    search._force_edges_active_move((seqs, edges))
+    assert seqs == seqs_copy
+    assert edges == edges_copy
+
+
+def test_force_edges_active_move_calls_force_edge_active_move():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q10 = XmonQubit(1, 0)
+    q11 = XmonQubit(1, 1)
+    search = AnnealSequenceSearch(_create_device([q00, q01, q10, q11]))
+    with patch.object(search,
+                      '_force_edge_active_move') as force_edge_active_move:
+        search._force_edges_active_move(search._create_initial_solution())
+        force_edge_active_move.assert_called_with(ANY)
+
+
+def test_force_edge_active_move_does_not_change_input():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q10 = XmonQubit(1, 0)
+    q11 = XmonQubit(1, 1)
+    search = AnnealSequenceSearch(_create_device([q00, q01, q10, q11]))
+    seqs, edges = search._create_initial_solution()
+    seqs_copy, edges_copy = list(seqs), edges.copy()
+    search._force_edge_active_move((seqs, edges))
+    assert seqs_copy == seqs
+    assert edges_copy == edges
+
+
+def test_force_edge_active_move_calls_force_edge_active():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q10 = XmonQubit(1, 0)
+    q11 = XmonQubit(1, 1)
+    q02 = XmonQubit(0, 2)
+    q12 = XmonQubit(1, 2)
+    device = _create_device([q00, q01, q10, q11, q02, q12])
+    search = AnnealSequenceSearch(device)
+    with patch.object(search, '_force_edge_active') as force_edge_active:
+        solution = search._create_initial_solution()
+        search._force_edge_active_move(solution)
+        force_edge_active.assert_called_once_with(ANY, ANY, ANY)
+
+        _, args, _ = force_edge_active.mock_calls[0]
+        seqs, edge, _ = args
+
+        # Verify that edge is not active edge, on some sequence.
+        for seq in seqs:
+            for i in range(1, len(seq)):
+                assert not (seq[i - 1] == edge[0] and seq[i] == edge[1])
+                assert not (seq[i - 1] == edge[1] and seq[i] == edge[0])
+
+        # Verify that edge is a valid edge
+        assert edge[0] in chip_as_adjacency_list(device)[edge[1]]
+
+
+def test_force_edge_active_creates_valid_solution_different_sequnces():
+    q00, q10, q20, q30 = [XmonQubit(x, 0) for x in range(4)]
+    q01, q11, q21, q31 = [XmonQubit(x, 1) for x in range(4)]
+    qubits = [q00, q10, q20, q30, q01, q11, q21, q31]
+    search = AnnealSequenceSearch(_create_device(qubits))
+
+    # +-+-+-+ -> +-+-+-+
+    #            |
+    # +-+-+-+    +-+-+-+
+    assert search._force_edge_active(
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
+        (q00, q01), lambda: True) == [[q30, q20, q10, q00, q01, q11, q21, q31]]
+
+    # +-+-+-+ -> +-+-+-+
+    #                  |
+    # +-+-+-+    +-+-+-+
+    assert search._force_edge_active(
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
+        (q30, q31), lambda: True) == [[q00, q10, q20, q30, q31, q21, q11, q01]]
+
+    # +-+-+-+ -> + +-+-+
+    #              |
+    # +-+-+-+    + +-+-+
+    assert search._force_edge_active(
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
+        (q10, q11), lambda: True) == [[q30, q20, q10, q11, q21, q31], [q00],
+                                      [q01]]
+
+    # +-+-+-+ -> +-+ +-+
+    #              |
+    # +-+-+-+    +-+ +-+
+    assert search._force_edge_active(
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
+        (q10, q11), lambda: False) == [[q00, q10, q11, q01], [q20, q30],
+                                       [q21, q31]]
+
+
+def test_force_edge_active_creates_valid_solution_single_sequence():
+    q00, q10, q20, q30 = [XmonQubit(x, 0) for x in range(4)]
+    q01, q11, q21, q31 = [XmonQubit(x, 1) for x in range(4)]
+    c = [q00, q10, q20, q30, q01, q11, q21, q31]
+    search = AnnealSequenceSearch(_create_device(c))
+
+    # +-+-+-+ -> +-+-+ +
+    # |          |     |
+    # +-+-+-+    +-+-+-+
+    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
+                                     (q30, q31), lambda: True) == [
+               [q20, q10, q00, q01, q11, q21, q31, q30]]
+
+    # +-+-+-+ -> +-+-+ +
+    # |          |     |
+    # +-+-+-+    +-+-+ +
+    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
+                                     (q30, q31), lambda: False) == [[q30, q31],
+                                                                    [q20, q10,
+                                                                     q00, q01,
+                                                                     q11, q21]]
+
+    # +-+-+-+ -> +-+ +-+
+    # |          |   |
+    # +-+-+-+    +-+-+ +
+    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
+                                     (q20, q21), lambda: True) == [
+               [q10, q00, q01, q11, q21, q20, q30], [q31]]
+
+    # +-+-+-+ -> +-+ +-+
+    # |          |   |
+    # +-+-+-+    +-+ +-+
+    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
+                                     (q20, q21), lambda: False) == [
+               [q30, q20, q21, q31], [q10, q00, q01, q11]]
+
+    # +-+-+-+ -> +-+ +-+
+    # |          |   |
+    # +-+-+ +    +-+-+ +
+    assert search._force_edge_active(
+        [[q30, q20, q10, q00, q01, q11, q21], [q31]],
+        (q20, q21), lambda: True) == [[q31],
+                                      [q10, q00, q01, q11, q21, q20, q30]]
+
+    # +-+-+-+ -> +-+ +-+
+    # |          |   |
+    # +-+-+ +    +-+ + +
+    assert search._force_edge_active(
+        [[q30, q20, q10, q00, q01, q11, q21], [q31]],
+        (q20, q21), lambda: False) == [[q31], [q30, q20, q21],
+                                       [q10, q00, q01, q11]]
+
+    # +-+-+ + -> +-+ + +
+    # |          |   |
+    # +-+-+-+    +-+-+ +
+    assert search._force_edge_active(
+        [[q20, q10, q00, q01, q11, q21, q31], [q30]],
+        (q20, q21), lambda: True) == [[q30], [q10, q00, q01, q11, q21, q20],
+                                      [q31]]
+
+    # +-+-+ + -> +-+ + +
+    # |          |   |
+    # +-+-+-+    +-+ +-+
+    assert search._force_edge_active(
+        [[q20, q10, q00, q01, q11, q21, q31], [q30]],
+        (q20, q21), lambda: False) == [[q30], [q20, q21, q31],
+                                       [q10, q00, q01, q11]]
+
+
+def test_create_initial_solution_creates_valid_solution():
+    def check_chip(qubits: List[XmonQubit]):
+        _verify_valid_state(qubits,
+                            AnnealSequenceSearch(_create_device(
+                                qubits))._create_initial_solution())
+
+    q00, q01, q02 = [XmonQubit(0, x) for x in range(3)]
+    q10, q11, q12 = [XmonQubit(1, x) for x in range(3)]
+
+    check_chip([q00, q10])
+    check_chip([q00, q10, q01])
+    check_chip([q00, q10, q01])
+    check_chip([q00, q10, q01, q11])
+    check_chip([q00, q10, q02, q12])
+    check_chip([q00, q10, q11, q02])
+    check_chip([q00, q10, q02])
+    check_chip([q00, q10, q01, q11, q02, q12])
+
+
+def test_normalize_edge_normalizes():
+    q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
+    q10, q11 = XmonQubit(1, 0), XmonQubit(1, 1)
+    search = AnnealSequenceSearch(_create_device([]))
+
+    assert search._normalize_edge((q00, q01)) == (q00, q01)
+    assert search._normalize_edge((q01, q00)) == (q00, q01)
+
+    assert search._normalize_edge((q01, q10)) == (q01, q10)
+    assert search._normalize_edge((q10, q01)) == (q01, q10)
+
+    assert search._normalize_edge((q00, q11)) == (q00, q11)
+    assert search._normalize_edge((q11, q00)) == (q00, q11)
+
+
+def test_choose_random_edge_chooses():
+    q00, q11, q22 = [XmonQubit(x, x) for x in range(3)]
+    e0, e1, e2 = (q00, q11), (q11, q22), (q22, q00)
+    search = AnnealSequenceSearch(_create_device([]))
+    assert search._choose_random_edge(set()) is None
+    assert search._choose_random_edge({e0}) == e0
+    assert search._choose_random_edge({e0, e1, e2}) in [e0, e1, e2]
+
+
+def _verify_valid_state(qubits: List[XmonQubit],
+                        state: AnnealSequenceSearch._STATE):
+    seqs, edges = state
+    search = AnnealSequenceSearch(_create_device(qubits))
+    c_adj = chip_as_adjacency_list(_create_device(qubits))
+
+    # Check if every edge is normalized
+    for e in edges:
+        assert search._normalize_edge(e) == e
+
+    # Check if every edge is valid
+    for n0, n1 in edges:
+        assert n0 in c_adj[n1]
+
+    # Check if every edge is present
+    for n0 in c_adj:
+        for n1 in c_adj[n0]:
+            assert (n0, n1) in edges or (n1, n0) in edges
+
+    c_set = set(qubits)
+
+    # Check if every node in the sequences appears exactly once
+    for seq in seqs:
+        for n in seq:
+            c_set.remove(n)
+
+    # Check that no node is missing
+    assert not c_set
+
+
+@patch('cirq.contrib.placement.linear_sequence.anneal.AnnealSequenceSearch')
+def test_anneal_sequence_calls(search):
+    q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
+    device = _create_device([q00, q01])
+    method_opts = dict()
+    seed = 1
+    search_instance = search.return_value
+
+    anneal_sequence(device, method_opts, None, seed)
+    search.assert_called_once_with(device, seed)
+    search_instance.search.assert_called_once_with(method_opts, None)
