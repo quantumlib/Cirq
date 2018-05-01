@@ -14,7 +14,11 @@
 
 """A testing class with utilities for checking linear algebra."""
 
+from typing import Optional
+
 import numpy as np
+
+from cirq import linalg
 
 
 def random_unitary(dim: int) -> np.ndarray:
@@ -55,3 +59,38 @@ def random_special_orthogonal(dim: int) -> np.ndarray:
     if np.linalg.det(m) < 0:
         m[0, :] *= -1
     return m
+
+
+def assert_allclose_up_to_global_phase(
+        actual: np.ndarray,
+        desired: np.ndarray,
+        rtol: float = 1e-7,
+        atol: float = 0,
+        equal_nan: bool = True,
+        err_msg: Optional[str] = '',
+        verbose: bool = True) -> None:
+    """Checks if a ~= b * exp(i t) for some t.
+
+    Args:
+        actual: A numpy array.
+        desired: Another numpy array.
+        rtol: Relative error tolerance.
+        atol: Absolute error tolerance.
+        equal_nan: Whether or not NaN entries should be considered equal to
+            other NaN entries.
+        err_msg: The error message to be printed in case of failure.
+        verbose: If True, the conflicting values are appended to the error
+            message.
+
+    Raises:
+        AssertionError: The matrices aren't nearly equal up to global phase.
+    """
+    actual, desired = linalg.canonicalize_global_phase_of_pair(actual, desired)
+    np.testing.assert_allclose(
+        actual=actual,
+        desired=desired,
+        rtol=rtol,
+        atol=atol,
+        equal_nan=equal_nan,
+        err_msg=err_msg,
+        verbose=verbose)

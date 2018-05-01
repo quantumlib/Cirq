@@ -14,6 +14,8 @@
 
 """Utility methods for transforming matrices."""
 
+from typing import Tuple
+
 import numpy as np
 
 
@@ -44,3 +46,32 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     pos_part_raised = pos_factor * pos_part
     neg_part_raised = neg_part * neg_factor
     return pos_part_raised + neg_part_raised
+
+
+def canonicalize_global_phase_of_pair(a: np.ndarray,
+                                      b: np.ndarray
+                                      ) -> Tuple[np.ndarray, np.ndarray]:
+    """Phases the given matrices so that they agree on the phase of one entry.
+
+    To maximize precision, a large entry is chosen when computing the local
+    phase difference between the two matrices.
+
+    Args:
+        a: A numpy array.
+        b: Another numpy array.
+
+    Returns:
+        A tuple (a', b') where a' == b' implies a == b*exp(i t) for some t.
+    """
+
+    # Not much point when they have different shapes.
+    if a.shape != b.shape:
+        return a, b
+
+    # Find the entry with the largest magnitude in one of the matrices.
+    k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
+    dephase_a = abs(a[k]) / a[k] if a[k] else 1
+    dephase_b = abs(b[k]) / b[k] if b[k] else 1
+
+    # Zero the phase at this entry in both matrices.
+    return a * dephase_a, b * dephase_b

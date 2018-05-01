@@ -14,7 +14,10 @@
 
 import numpy as np
 
-from cirq.linalg.transformations import reflection_matrix_pow
+from cirq.linalg.transformations import (
+    reflection_matrix_pow,
+    canonicalize_global_phase_of_pair,
+)
 
 
 def test_reflection_matrix_pow_consistent_results():
@@ -55,3 +58,11 @@ def test_reflection_matrix_sign_preference_under_perturbation():
         sqrt_px = reflection_matrix_pow(px, 0.5)
         np.testing.assert_allclose(np.dot(sqrt_px, sqrt_px), px, atol=1e-10)
         np.testing.assert_allclose(sqrt_px, expected_sqrt_px, atol=1e-10)
+
+
+def test_canonicalize_global_phase_of_pair():
+    a = np.array([[5, 4], [3, -2]])
+    b = np.array([[0.000001, 0], [0, 1j]])
+    c, d = canonicalize_global_phase_of_pair(a, b)
+    np.testing.assert_allclose(c, -a)
+    np.testing.assert_allclose(d, b * -1j)
