@@ -17,6 +17,7 @@
 import numpy as np
 
 from cirq.linalg.tolerance import Tolerance
+from cirq.linalg.transformations import canonicalize_global_phase_of_pair
 
 
 def is_diagonal(
@@ -184,22 +185,7 @@ def allclose_up_to_global_phase(
             other NaN entries.
     """
 
-    if a.shape == b.shape:
-        # Find the entry with the largest magnitude in the desired matrix.
-        k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
-        dephase_a = abs(a[k]) / a[k] if a[k] else 1
-        dephase_b = abs(b[k]) / b[k] if b[k] else 1
-
-        # Zero the phase at this entry in both matrices.
-        corrected_a = a * dephase_a
-        corrected_b = b * dephase_b
-    else:
-        corrected_a = a
-        corrected_b = b
+    a, b = canonicalize_global_phase_of_pair(a, b)
 
     # Should now be equivalent.
-    return np.allclose(a=corrected_a,
-                       b=corrected_b,
-                       rtol=rtol,
-                       atol=atol,
-                       equal_nan=equal_nan)
+    return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)

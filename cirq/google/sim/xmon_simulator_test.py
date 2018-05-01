@@ -23,22 +23,22 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.circuits import Circuit
-from cirq.devices import UnconstrainedDevice
-from cirq.extension import Extensions
+from cirq import (
+    Circuit,
+    CompositeGate,
+    Extensions,
+    SingleQubitGate,
+    Symbol,
+    UnconstrainedDevice,
+)
 from cirq.google import (
     ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
 )
 from cirq.google.sim import xmon_simulator
-from cirq.linalg import allclose_up_to_global_phase
-from cirq.ops import op_tree
-from cirq.ops import raw_types
 from cirq.ops.common_gates import CNOT, H, X, Y, Z, CZ
-from cirq.ops.gate_features import CompositeGate, SingleQubitGate
 from cirq.schedules import moment_by_moment_schedule
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
-from cirq.value import Symbol
 
 Q1 = XmonQubit(0, 0)
 Q2 = XmonQubit(1, 0)
@@ -587,8 +587,7 @@ class UnsupportedCompositeGate(SingleQubitGate, CompositeGate):
         return "UnsupportedCompositeGate"
 
     def default_decompose(self,
-                          qubits: Sequence[raw_types.QubitId]
-                          ) -> op_tree.OP_TREE:
+                          qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         qubit = qubits[0]
         yield Z(qubit)
         yield UnsupportedGate().on(qubit)
@@ -611,13 +610,12 @@ def test_extensions():
 
     class WrongH(CompositeGate):
         def default_decompose(self,
-                              qubits: Sequence[raw_types.QubitId]
-                              ) -> op_tree.OP_TREE:
+                              qubits: Sequence[cirq.QubitId]
+                              ) -> cirq.OP_TREE:
             return X(Q1)
 
-    extensions = Extensions(desired_to_actual_to_wrapper={
-        CompositeGate: {H: lambda e: WrongH()}
-    })
+    extensions = Extensions(
+        desired_to_actual_to_wrapper={CompositeGate: {H: lambda e: WrongH()}})
 
     circuit = Circuit()
     circuit.append([WrongH()(Q1)])
@@ -710,8 +708,9 @@ def test_handedness_of_xmon_exp_x_gate():
     circuit = Circuit.from_ops(ExpWGate(half_turns=0.5).on(Q1))
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, -1j]) * np.sqrt(0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, -1j]) * np.sqrt(0.5))
 
 
 def test_handedness_of_xmon_exp_y_gate():
@@ -719,16 +718,18 @@ def test_handedness_of_xmon_exp_y_gate():
                                         axis_half_turns=0.5).on(Q1))
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, 1]) * np.sqrt(0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, 1]) * np.sqrt(0.5))
 
 
 def test_handedness_of_xmon_exp_z_gate():
     circuit = Circuit.from_ops(H(Q1), ExpZGate(half_turns=0.5).on(Q1))
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, 1j]) * np.sqrt(0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, 1j]) * np.sqrt(0.5))
 
 
 def test_handedness_of_xmon_exp_11_gate():
@@ -738,32 +739,37 @@ def test_handedness_of_xmon_exp_11_gate():
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
     print(np.round(result.state(), 3))
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, 1, 1, 1j]) / 2)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, 1, 1, 1j]) / 2,
+        atol=1e-7)
 
 
 def test_handedness_of_x_gate():
     circuit = Circuit.from_ops(X(Q1)**0.5)
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, -1j]) * np.sqrt(0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, -1j]) * np.sqrt(0.5))
 
 
 def test_handedness_of_y_gate():
     circuit = Circuit.from_ops(Y(Q1)**0.5)
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, 1]) * np.sqrt(0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, 1]) * np.sqrt(0.5))
 
 
 def test_handedness_of_z_gate():
     circuit = Circuit.from_ops(H(Q1), Z(Q1)**0.5)
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, 1j]) * np.sqrt(0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, 1j]) * np.sqrt(0.5))
 
 
 def test_handedness_of_cz_gate():
@@ -772,8 +778,10 @@ def test_handedness_of_cz_gate():
                                CZ(Q1, Q2)**0.5)
     simulator = xmon_simulator.Simulator()
     result = list(simulator.moment_steps(circuit))[-1]
-    assert allclose_up_to_global_phase(result.state(),
-                                       np.array([1, 1, 1, 1j]) / 2)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        result.state(),
+        np.array([1, 1, 1, 1j]) / 2,
+        atol=1e-7)
 
 
 def test_handedness_of_basic_gates():
@@ -870,9 +878,10 @@ def assert_simulated_states_match_circuit_matrix_by_basis(circuit):
             circuit,
             initial_state=i,
             qubit_order=basis))[-1]
-        assert allclose_up_to_global_phase(col,
-                                           result.state(),
-                                           atol=0.00001)
+        cirq.testing.assert_allclose_up_to_global_phase(
+            col,
+            result.state(),
+            atol=1e-5)
 
 
 def test_compare_simulator_states_to_gate_matrices():
