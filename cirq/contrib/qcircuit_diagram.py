@@ -54,7 +54,7 @@ class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
     def text_diagram_wire_symbols(self,
                                   qubit_count: Optional[int] = None,
                                   use_unicode_characters: bool = True,
-                                  precision: int = 3):
+                                  precision: Optional[int] = 3):
         return self.sub.qcircuit_wire_symbols(qubit_count)
 
 
