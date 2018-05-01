@@ -21,8 +21,8 @@ from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_qubit import XmonQubit
 from cirq.value import Duration
 
-
 from cirq.circuits import TextDiagramDrawer
+
 
 class XmonDevice(Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.
@@ -90,7 +90,8 @@ class XmonDevice(Device):
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
 
         if (len(operation.qubits) == 2
-            and not isinstance(operation.gate, xmon_gates.XmonMeasurementGate)):
+                and not isinstance(operation.gate,
+                                   xmon_gates.XmonMeasurementGate)):
             p, q = operation.qubits
             if not cast(XmonQubit, p).is_adjacent(q):
                 raise ValueError(
@@ -159,3 +160,18 @@ class XmonDevice(Device):
             horizontal_spacing=3,
             vertical_spacing=2,
             use_unicode_characters=True)
+
+    def __eq__(self, other):
+        if not isinstance(other, (XmonDevice, type(self))):
+            return NotImplemented
+        return self._measurement_duration == other._measurement_duration and \
+               self._exp_w_duration == other._exp_w_duration and \
+               self._exp_z_duration == other._exp_z_duration and \
+               self.qubits == other.qubits
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((XmonDevice, self._measurement_duration,
+                     self._exp_w_duration, self._exp_z_duration, self.qubits))
