@@ -17,8 +17,8 @@ def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
     readme_path = os.path.join(
         os.path.dirname(__file__),  # Start at this file's directory.
-        '..', '..', 'cirq', 'docs',  # Hacky check that we're under cirq/docs/.
-        '..', '..', 'README.md')     # Get the readme two levels up.
+        '..', 'docs',  # Hacky check that we're under docs/.
+        '..', 'README.md')     # Get the readme two levels up.
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
