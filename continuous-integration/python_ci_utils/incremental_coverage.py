@@ -25,7 +25,11 @@ IGNORED_FILE_PATTERNS = [
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
 ]
 IGNORED_LINE_PATTERNS = [
-    r'^else:$',  # Always redundant w.r.t. other lines.
+    # Imports often uncovered due to version checks and type checking blocks.
+    r'^import .+$',
+    r'^from .+ import .+$',
+    # Else lines are redundant w.r.t. other lines.
+    r'^else:$',
 ]
 
 
