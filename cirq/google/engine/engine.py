@@ -398,7 +398,7 @@ class EngineJob:
         self._engine = engine
         self.job_resource_name = job['name']
         self.program_resource_name = self.job_resource_name.split('/jobs')[0]
-        self._results = None  # type: List[EngineTrialResult]
+        self._results = None  # type: Optional[List[EngineTrialResult]]
 
     def _update_job(self):
         if self._job['executionStatus']['state'] not in TERMINAL_STATES:
