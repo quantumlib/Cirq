@@ -14,7 +14,7 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
@@ -57,12 +57,13 @@ class MergeRotations(PointOptimizer):
 
     def _scan_single_qubit_ops(
             self,
-            circuit: Circuit, index: int,
+            circuit: Circuit,
+            index: Optional[int],
             qubit: ops.QubitId) -> Tuple[List[int], List[ops.Gate]]:
         gates = []
         indices = []
         while index is not None:
-            op = circuit.operation_at(qubit, index)
+            op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
             gate = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)

@@ -14,7 +14,7 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, cast
 
 import numpy as np
 
@@ -104,7 +104,7 @@ class MergeInteractions(PointOptimizer):
     def _scan_two_qubit_ops_into_matrix(
             self,
             circuit: Circuit,
-            index: int,
+            index: Optional[int],
             qubits: Tuple[ops.QubitId, ...]
     ) -> Tuple[int, List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
@@ -132,15 +132,17 @@ class MergeInteractions(PointOptimizer):
         while index is not None:
             operations = {circuit.operation_at(q, index) for q in qubits}
             op_data = [
-                self._op_to_matrix(op, qubits) for op in
-                operations if op
+                self._op_to_matrix(op, qubits)
+                for op in operations
+                if op
             ]
 
             # Stop at any non-constant or non-local interaction.
             if any(e is None for e in op_data):
                 break
+            present_op_data = cast(List[Tuple[np.ndarray, bool]], op_data)
 
-            for op_mat, interacts in op_data:
+            for op_mat, interacts in present_op_data:
                 product = np.dot(op_mat, product)
                 if interacts:
                     interaction_count += 1
