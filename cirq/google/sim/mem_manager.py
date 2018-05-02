@@ -30,7 +30,7 @@ class SharedMemManager(object):
 
     _INITIAL_SIZE = 1024
 
-    _instance = None
+    _instance = None  # type: SharedMemManager
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
