@@ -92,10 +92,11 @@ class AnnealSequenceSearch(object):
           state: Search state, not mutated.
 
         Returns:
-          Cost which is minus the normalized quadratic sum of each linear sequence
-          section in the state. This promotes single, long linear sequence solutions
-          and converges to number -1. The solution with a lowest cost consists of
-          every node being a single sequence and is always less than 0.
+          Cost which is minus the normalized quadratic sum of each linear
+          sequence section in the state. This promotes single, long linear
+          sequence solutions and converges to number -1. The solution with a
+          lowest cost consists of every node being a single sequence and is
+          always less than 0.
         """
         cost = 0.0
         total_len = float(len(self._c))
@@ -111,8 +112,8 @@ class AnnealSequenceSearch(object):
           state: Search state, not mutated.
 
         Returns:
-          New search state which consists of incremental changes of the original
-          state.
+          New search state which consists of incremental changes of the
+          original state.
         """
         for _ in range(self._rand.randint(1, 4)):
             state = self._force_edge_active_move(state)
@@ -122,14 +123,15 @@ class AnnealSequenceSearch(object):
         """Move which forces a random edge to appear on some sequence.
 
         This move chooses random edge from the edges which do not belong to any
-        sequence and modifies state in such a way, that this chosen edge appears on
-        some sequence of the search state.
+        sequence and modifies state in such a way, that this chosen edge
+        appears on some sequence of the search state.
 
         Args:
           state: Search state, not mutated.
 
         Returns:
-          New search state with one of the unused edges appearing in some sequence.
+          New search state with one of the unused edges appearing in some
+          sequence.
         """
         seqs, edges = state
         unused_edges = edges.copy()
@@ -179,8 +181,9 @@ class AnnealSequenceSearch(object):
         s0, i0, j0 = sequence_and_index(seqs, n0)
         s1, i1, j1 = sequence_and_index(seqs, n1)
 
-        # Handle case when nodes belong to different linear sequences, separately
-        # from the case where they belong to a single linear sequence.
+        # Handle case when nodes belong to different linear sequences,
+        # separately from the case where they belong to a single linear
+        # sequence.
         if i0 != i1:
 
             # Split s0 and s1 in two parts: s0 in parts before n0, and after n0
@@ -191,15 +194,17 @@ class AnnealSequenceSearch(object):
             del seqs[max(i0, i1)]
             del seqs[min(i0, i1)]
 
-            # Choose part of s0 which will be attached to n0, and make sure it can be
-            # attached in the end.
-            c0 = 0 if not part[0][1] else 1 if not part[0][0] else sample_bool()
+            # Choose part of s0 which will be attached to n0, and make sure it
+            # can be attached in the end.
+            c0 = 0 if not part[0][1] else 1 if not part[0][
+                0] else sample_bool()
             if c0:
                 part[0][c0].reverse()
 
-            # Choose part of s1 which will be attached to n1, and make sure it can be
-            # attached in the beginning.
-            c1 = 0 if not part[1][1] else 1 if not part[1][0] else sample_bool()
+            # Choose part of s1 which will be attached to n1, and make sure it
+            # can be attached in the beginning.
+            c1 = 0 if not part[1][1] else 1 if not part[1][
+                0] else sample_bool()
             if not c1:
                 part[1][c1].reverse()
 
@@ -218,9 +223,9 @@ class AnnealSequenceSearch(object):
                 j0, j1 = j1, j0
                 n0, n1 = n1, n0
 
-            # Split sequence in three parts, without nodes n0 an n1 present: head
-            # might end with n0, inner might begin with n0 and end with n1, tail might
-            # begin with n1.
+            # Split sequence in three parts, without nodes n0 an n1 present:
+            # head might end with n0, inner might begin with n0 and end with
+            # n1, tail might begin with n1.
             head = s0[:j0]
             inner = s0[j0 + 1:j1]
             tail = s0[j1 + 1:]
@@ -228,7 +233,8 @@ class AnnealSequenceSearch(object):
             # Remove original sequence from sequences list.
             del seqs[i0]
 
-            # Either append edge to inner section, or attach it between head and tail.
+            # Either append edge to inner section, or attach it between head
+            # and tail.
             if sample_bool():
                 # Append edge either before or after inner section.
                 if sample_bool():
@@ -273,7 +279,8 @@ class AnnealSequenceSearch(object):
                         # Expand current sequence.
                         seq.append(node)
                     else:
-                        # Create new sequence, there is no connection between nodes.
+                        # Create new sequence, there is no connection between
+                        # nodes.
                         seqs.append(seq)
                         seq = [node]
                 prev = node
@@ -301,15 +308,16 @@ class AnnealSequenceSearch(object):
     def _normalize_edge(self, edge: EDGE) -> EDGE:
         """Gives unique representative of the edge.
 
-        Two edges are equivalent if they form an edge between the same nodes. This
-        method returns representative of this edge which can be compared using
-        equality operator later.
+        Two edges are equivalent if they form an edge between the same nodes.
+        This method returns representative of this edge which can be compared
+        using equality operator later.
 
         Args:
           edge: Edge to normalize.
 
         Returns:
-          Normalized edge  with lexicographicaly lower node on the first position.
+          Normalized edge  with lexicographicaly lower node on the first
+          position.
         """
 
         def lower(n: XmonQubit, m: XmonQubit) -> bool:
@@ -340,14 +348,16 @@ class AnnealSequenceSearch(object):
 def anneal_sequence(
         device: XmonDevice,
         method_opts: dict = None,
-        trace_func: Callable[[List[List[XmonQubit]], float, float, float, bool],
-                             None] = None,
+        trace_func: Callable[
+            [List[List[XmonQubit]], float, float, float, bool],
+            None] = None,
         seed: int = None) -> List[List[XmonQubit]]:
     """Linearized sequence search using simulated annealing method.
 
     Args:
       device: Chip description.
-      method_opts: Optional dictionary with search parameters. Not yet supported.
+      method_opts: Optional dictionary with search parameters. Not yet
+        supported.
       trace_func: Optional callable which will be called for each simulated
         annealing step with arguments: solution candidate (list of linear
         sequences on the chip), current temperature (float), candidate cost

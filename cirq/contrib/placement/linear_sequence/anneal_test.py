@@ -19,8 +19,8 @@ from typing import Iterable, List
 
 from cirq.google import XmonDevice, XmonQubit
 from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
-from cirq.contrib.placement.linear_sequence.anneal import AnnealSequenceSearch, \
-    anneal_sequence
+from cirq.contrib.placement.linear_sequence.anneal import \
+    AnnealSequenceSearch, anneal_sequence
 from cirq.value import Duration
 
 
@@ -51,7 +51,8 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
         qubits = []
         for seq in seqs:
             qubits += seq
-        return AnnealSequenceSearch(_create_device(qubits))._quadratic_sum_cost(
+        return AnnealSequenceSearch(
+            _create_device(qubits))._quadratic_sum_cost(
             (seqs, None))
 
     assert np.isclose(calculate_cost([[q00]]), -1.0)
@@ -172,31 +173,35 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
     # +-+-+-+ -> +-+-+ +
     # |          |     |
     # +-+-+-+    +-+-+-+
-    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
-                                     (q30, q31), lambda: True) == [
+    assert search._force_edge_active(
+        [[q30, q20, q10, q00, q01, q11, q21, q31]],
+        (q30, q31), lambda: True) == [
                [q20, q10, q00, q01, q11, q21, q31, q30]]
 
     # +-+-+-+ -> +-+-+ +
     # |          |     |
     # +-+-+-+    +-+-+ +
-    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
-                                     (q30, q31), lambda: False) == [[q30, q31],
-                                                                    [q20, q10,
-                                                                     q00, q01,
-                                                                     q11, q21]]
+    assert search._force_edge_active(
+        [[q30, q20, q10, q00, q01, q11, q21, q31]],
+        (q30, q31), lambda: False) == [[q30, q31],
+                                       [q20, q10,
+                                        q00, q01,
+                                        q11, q21]]
 
     # +-+-+-+ -> +-+ +-+
     # |          |   |
     # +-+-+-+    +-+-+ +
-    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
-                                     (q20, q21), lambda: True) == [
+    assert search._force_edge_active(
+        [[q30, q20, q10, q00, q01, q11, q21, q31]],
+        (q20, q21), lambda: True) == [
                [q10, q00, q01, q11, q21, q20, q30], [q31]]
 
     # +-+-+-+ -> +-+ +-+
     # |          |   |
     # +-+-+-+    +-+ +-+
-    assert search._force_edge_active([[q30, q20, q10, q00, q01, q11, q21, q31]],
-                                     (q20, q21), lambda: False) == [
+    assert search._force_edge_active(
+        [[q30, q20, q10, q00, q01, q11, q21, q31]],
+        (q20, q21), lambda: False) == [
                [q30, q20, q21, q31], [q10, q00, q01, q11]]
 
     # +-+-+-+ -> +-+ +-+
