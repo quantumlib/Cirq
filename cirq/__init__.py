@@ -131,6 +131,9 @@ from cirq.schedules import (
 
 from cirq.study import (
     ParamResolver,
+    Points,
+    Sweep,
+    Sweepable,
     TrialResult,
 )
 
