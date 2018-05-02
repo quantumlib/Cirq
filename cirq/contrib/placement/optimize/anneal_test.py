@@ -70,4 +70,5 @@ def test_anneal_minimize_calls_trace_func():
         lambda s: 'better', lambda: 1.0, 1.0, 0.5, 0.5, 1,
         trace_func=trace_func)
 
-    trace_func.assert_has_calls([call('initial', 1.0, 1.0, 1.0, True), call('better', 1.0, 0.0, 1.0, True)])
+    trace_func.assert_has_calls([call('initial', 1.0, 1.0, 1.0, True),
+                                 call('better', 1.0, 0.0, 1.0, True)])
