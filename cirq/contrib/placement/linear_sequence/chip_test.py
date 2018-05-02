@@ -14,8 +14,8 @@
 
 from typing import Iterable
 
-from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list, \
-    yx_cmp, above, below, right_of, left_of
+from cirq.contrib.placement.linear_sequence.chip import \
+    chip_as_adjacency_list, yx_cmp, above, below, right_of, left_of
 from cirq.google import XmonDevice, XmonQubit
 from cirq.value import Duration
 

@@ -69,7 +69,7 @@ def right_of(qubit: XmonQubit) -> XmonQubit:
 
 
 def yx_cmp(n: XmonQubit, m: XmonQubit) -> int:
-    """Qubits comparator that compares first by second and then first coordinate.
+    """Comparator that compares first by second and then first coordinate.
 
     Args:
       n: Left operand.
