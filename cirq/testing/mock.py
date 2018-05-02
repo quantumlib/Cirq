@@ -15,6 +15,6 @@
 import sys
 
 if sys.version_info < (3,):
-    import mock
+    import mock # pylint: disable=unused-import
 else:
     from unittest import mock
