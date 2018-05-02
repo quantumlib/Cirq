@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, cast
 
 import os.path
 import re
 
-from python_ci_utils import env_tools
-from dev_tools import shell_tools
+from dev_tools import env_tools, shell_tools
 
 IGNORED_FILE_PATTERNS = [
     r'^continuous-integration/python_ci_utils/.+',  # Environment-heavy code.
@@ -224,34 +223,35 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
         if not is_applicable_python_file(changed_file):
             continue
 
+        base_path = cast(str, env.destination_directory)
         uncovered_lines = get_incremental_uncovered_lines(
-            os.path.join(env.destination_directory, changed_file),
+            os.path.join(base_path, changed_file),
             env.compare_commit_id,
             env.actual_commit_id)
 
         if uncovered_lines:
             uncovered_count += len(uncovered_lines)
-            print(env_tools.highlight(
+            print(shell_tools.highlight(
                 '************* {} ({} uncovered)'.format(
                     changed_file,
                     len(uncovered_lines)),
-                color_code=env_tools.RED))
+                color_code=shell_tools.RED))
         for index, line, reason in uncovered_lines:
             print('Line {} {} but not covered: {}'.format(
-                env_tools.highlight(str(index).rjust(4),
-                                    color_code=env_tools.BOLD),
+                shell_tools.highlight(str(index).rjust(4),
+                                      color_code=shell_tools.BOLD),
                 reason,
-                env_tools.highlight(line,
-                                    color_code=env_tools.YELLOW)))
+                shell_tools.highlight(line,
+                                      color_code=shell_tools.YELLOW)))
 
     # Inform of aggregate result.
     print()
     if uncovered_count:
-        print(env_tools.highlight(
+        print(shell_tools.highlight(
             'Found {} uncovered touched lines.'.format(uncovered_count),
-            color_code=env_tools.RED))
+            color_code=shell_tools.RED))
     else:
-        print(env_tools.highlight('All touched lines covered',
-                                  color_code=env_tools.GREEN))
+        print(shell_tools.highlight('All touched lines covered',
+                                    color_code=shell_tools.GREEN))
     print()
     return uncovered_count

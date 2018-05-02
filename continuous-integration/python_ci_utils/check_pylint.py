@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import cast
 
 import re
 
 import os.path
 import sys
 
-from python_ci_utils import env_tools, check
-from dev_tools import shell_tools
+from dev_tools import env_tools, shell_tools
+from python_ci_utils import check
 
 
 class LintCheck(check.Check):
@@ -27,18 +28,22 @@ class LintCheck(check.Check):
     def context(self):
         return 'pylint by maintainer'
 
-    def perform_check(self, env: env_tools.PreparedEnv):
-        pylint_path = os.path.join(env.virtual_env_path, 'bin', 'pylint')
-        files = list(env_tools.get_unhidden_ungenerated_python_files(
-            env.destination_directory))
+    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
+        base_path = cast(str, env.destination_directory)
+        venv_path = cast(str, env.virtual_env_path)
+        pylint_path = os.path.join(venv_path, 'bin', 'pylint')
+        rc_path = os.path.join(base_path,
+                               'continuous-integration',
+                               '.pylintrc')
+        files = list(
+            env_tools.get_unhidden_ungenerated_python_files(base_path))
+
         result = shell_tools.run_cmd(
             pylint_path,
             '--reports=no',
             '--score=no',
             '--output-format=colorized',
-            '--rcfile={}'.format(os.path.join(env.destination_directory,
-                                              'continuous-integration',
-                                              '.pylintrc')),
+            '--rcfile={}'.format(rc_path),
             *files,
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,

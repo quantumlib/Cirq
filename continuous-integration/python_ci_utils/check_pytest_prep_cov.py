@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
+from typing import Tuple, cast
 
 import re
 
 import os.path
 import sys
 
-from dev_tools import shell_tools
-from python_ci_utils import env_tools, check
+from dev_tools import env_tools, shell_tools
+from python_ci_utils import check
 
 
 class TestAndPrepareCoverageCheck(check.Check):
@@ -34,22 +34,31 @@ class TestAndPrepareCoverageCheck(check.Check):
     def needs_python2_env(self):
         return True
 
-    def perform_check_py2(self, env: env_tools.PreparedEnv):
-        return TestAndPrepareCoverageCheck._common_run_helper(env,
-                                                              coverage=False)
+    def perform_check_py2(self, env: env_tools.PreparedEnv, verbose: bool):
+        return TestAndPrepareCoverageCheck._common_run_helper(
+            env,
+            coverage=False,
+            verbose=verbose)
 
-    def perform_check(self, env: env_tools.PreparedEnv):
-        return TestAndPrepareCoverageCheck._common_run_helper(env,
-                                                              coverage=True)
+    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
+        return TestAndPrepareCoverageCheck._common_run_helper(
+            env,
+            coverage=True,
+            verbose=verbose)
 
     @staticmethod
     def _common_run_helper(env: env_tools.PreparedEnv,
-                           coverage: bool) -> Tuple[bool, str]:
-        pytest_path = os.path.join(env.virtual_env_path, 'bin', 'pytest')
-        target_path = os.path.join(env.destination_directory, 'cirq')
+                           coverage: bool,
+                           verbose: bool) -> Tuple[bool, str]:
+        base_path = cast(str, env.destination_directory)
+        venv_path = cast(str, env.virtual_env_path)
+
+        pytest_path = os.path.join(venv_path, 'bin', 'pytest')
+        target_path = os.path.join(base_path, 'cirq')
         result = shell_tools.run_cmd(
             pytest_path,
             target_path,
+            '' if verbose else '--quiet',
             '--cov' if coverage else '',
             '--cov-report=annotate' if coverage else '',
             out=shell_tools.TeeCapture(sys.stdout),

@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from python_ci_utils import env_tools, incremental_coverage, check
+from dev_tools import env_tools
+from python_ci_utils import incremental_coverage, check
 
 
 class IncrementalCoverageCheck(check.Check):
@@ -24,7 +25,7 @@ class IncrementalCoverageCheck(check.Check):
     def context(self):
         return 'incremental coverage by maintainer'
 
-    def perform_check(self, env: env_tools.PreparedEnv):
+    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         uncovered_count = incremental_coverage.check_for_uncovered_lines(env)
         if not uncovered_count:
             return True, 'All covered!'

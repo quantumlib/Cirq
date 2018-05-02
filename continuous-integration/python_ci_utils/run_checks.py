@@ -21,7 +21,8 @@ import shutil
 import sys
 import tempfile
 
-from python_ci_utils import env_tools, all_checks, check
+from python_ci_utils import all_checks, check
+from dev_tools import env_tools, shell_tools
 
 
 REPO_ORGANIZATION = 'quantumlib'
@@ -34,12 +35,26 @@ def report_pending(env, checks, out_still_pending: Set[check.Check]):
         out_still_pending.add(c)
 
 
-def main():
-    pull_request_number = None if len(sys.argv) < 2 else int(sys.argv[1])
-    checks = all_checks.ALL_CHECKS
-    access_token = None if len(sys.argv) < 3 else int(sys.argv[2])
+def parse_args():
+    args = sys.argv
+    verbose = '--verbose' in args
+
+    positionals = [arg for arg in args if not arg.startswith('-')]
+    pull_request_number = None if len(positionals) < 2 else int(positionals[1])
+    access_token = None if len(positionals) < 3 else int(positionals[2])
     if access_token is None:
         access_token = os.getenv('CIRQ_GITHUB_ACCESS_TOKEN')
+    return pull_request_number, access_token, verbose
+
+
+def main():
+    pull_request_number, access_token, verbose = parse_args()
+    if pull_request_number is None:
+        print(shell_tools.highlight(
+            'No pull request number given. Using local files.',
+            shell_tools.YELLOW))
+        print()
+    checks = all_checks.ALL_CHECKS
 
     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(REPO_NAME))
     test_dir_2 = tempfile.mkdtemp(prefix='test-{}-py2-'.format(REPO_NAME))
@@ -54,7 +69,8 @@ def main():
                 access_token=access_token),
             pull_request_number=pull_request_number,
             commit_ids_known_callback=lambda e:
-                report_pending(e, checks, currently_pending))
+                report_pending(e, checks, currently_pending),
+            verbose=verbose)
 
         env2 = None
 
@@ -63,9 +79,18 @@ def main():
             if c.needs_python2_env() and env2 is None:
                 env2 = env_tools.derive_temporary_python2_environment(
                     destination_directory=test_dir_2,
-                    python3_environment=env)
+                    python3_environment=env,
+                    verbose=verbose)
             currently_pending.remove(c)
-            result = c.context(), c.run_and_report(env, env2)
+            print()
+            print(shell_tools.highlight('Running ' + c.context(),
+                                        shell_tools.GREEN))
+            result = c.context(), c.run_and_report(env, env2, verbose)
+            print(shell_tools.highlight('Finished ' + c.context(),
+                                        shell_tools.GREEN))
+            print(result)
+            print()
+            print()
             results.append(result)
 
     finally:
@@ -77,6 +102,7 @@ def main():
                                             'Unexpected error.',
                                             c.context())
 
+    print()
     print("ALL CHECK RESULTS")
     for result in results:
         print(result)

@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import cast
 
 import os.path
 import sys
 
-from dev_tools import shell_tools
-from python_ci_utils import env_tools, check
+from dev_tools import env_tools, shell_tools
+from python_ci_utils import check
 
 
 class TypeCheck(check.Check):
@@ -25,16 +26,19 @@ class TypeCheck(check.Check):
     def context(self):
         return 'typecheck by maintainer'
 
-    def perform_check(self, env: env_tools.PreparedEnv):
-        mypy_path = os.path.join(env.virtual_env_path, 'bin', 'mypy')
+    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
+        base_path = cast(str, env.destination_directory)
+        venv_path = cast(str, env.virtual_env_path)
+        config_path = os.path.join(base_path,
+                                   'continuous-integration',
+                                   'mypy.ini')
+        mypy_path = os.path.join(venv_path, 'bin', 'mypy')
         files = list(env_tools.get_unhidden_ungenerated_python_files(
-            env.destination_directory))
+            base_path))
+
         result = shell_tools.run_cmd(
             mypy_path,
-            '--config-file={}'.format(os.path.join(
-                env.destination_directory,
-                'continuous-integration',
-                'mypy.ini')),
+            '--config-file={}'.format(config_path),
             *files,
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,

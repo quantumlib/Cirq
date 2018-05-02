@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, cast
 
 import abc
 import os.path
 
-from python_ci_utils import env_tools
+from dev_tools import env_tools
 
 
 class Check(metaclass=abc.ABCMeta):
@@ -29,23 +29,28 @@ class Check(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def perform_check(self, env: env_tools.PreparedEnv) -> Tuple[bool, str]:
+    def perform_check(self,
+                      env: env_tools.PreparedEnv,
+                      verbose: bool) -> Tuple[bool, str]:
         """Evaluates the status check and returns a pass/fail with message.
 
         Args:
             env: Describes a prepared python 3 environment in which to run.
+            verbose: When set, more progress output is produced.
 
         Returns:
             A tuple containing a pass/fail boolean and then a details message.
         """
         pass
 
-    def perform_check_py2(self, env: env_tools.PreparedEnv
-                          ) -> Optional[Tuple[bool, str]]:
+    def perform_check_py2(self,
+                          env: env_tools.PreparedEnv,
+                          verbose: bool) -> Optional[Tuple[bool, str]]:
         """Evaluates the status check in python 2.7, if appropriate.
 
         Args:
             env: Describes a prepared python 2.7 environment in which to run.
+            verbose: When set, more progress output is produced.
 
         Returns:
             A tuple containing a pass/fail boolean and then a details message,
@@ -67,7 +72,8 @@ class Check(metaclass=abc.ABCMeta):
 
     def run_and_report(self,
                        env: env_tools.PreparedEnv,
-                       env_py2: Optional[env_tools.PreparedEnv]
+                       env_py2: Optional[env_tools.PreparedEnv],
+                       verbose: bool,
                        ) -> Tuple[bool, str, Optional[Exception]]:
         """Evaluates this check in python 3 and 2.7, and reports to github.
 
@@ -77,6 +83,7 @@ class Check(metaclass=abc.ABCMeta):
         Args:
             env: A prepared python 3 environment.
             env_py2: A prepared python 2.7 environment.
+            verbose: When set, more progress output is produced.
 
         Returns:
             A (success, message, error) tuple. The success element is True if
@@ -89,15 +96,15 @@ class Check(metaclass=abc.ABCMeta):
         """
         env.report_status_to_github('pending', 'Running...', self.context())
         try:
-            os.chdir(env.destination_directory)
-            result1 = self.perform_check(env)
+            os.chdir(cast(str, env.destination_directory))
+            result1 = self.perform_check(env, verbose=verbose)
 
             if env_py2 is not None and result1[0]:
                 env.report_status_to_github('pending',
                                             'Running (py2)...',
                                             self.context())
-                os.chdir(env_py2.destination_directory)
-                result2 = self.perform_check_py2(env_py2)
+                os.chdir(cast(str, env_py2.destination_directory))
+                result2 = self.perform_check_py2(env_py2, verbose=verbose)
             else:
                 result2 = result1
 
