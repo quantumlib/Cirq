@@ -47,7 +47,7 @@ class Job(object):
     def __ne__(self, other):
         return not self == other
 
-    __hash__ = None
+    __hash__ = None  # type: ignore
 
     def __repr__(self):
         return "Job(%s,%s,%s)" % (self.circuit, self.sweep, self.repetitions)
