@@ -51,7 +51,7 @@ def anneal_minimize(
         temp_initial: float = 1.0e-2,
         temp_final: float = 1e-6,
         cooling_factor: float = 0.99,
-        repeat: float = 100,
+        repeat: int = 100,
         trace_func: Callable[
             [T, float, float, float, bool], type(None)] = None) -> T:
     """Minimize solution using Simulated Annealing meta-heuristic.
