@@ -16,8 +16,8 @@ from typing import Dict, List, Tuple
 
 from cirq.google import XmonDevice, XmonQubit
 
+
 EDGE = Tuple[XmonQubit, XmonQubit]
-"""Type definition for edge formed by neighboring qubits."""
 
 
 def above(qubit: XmonQubit) -> XmonQubit:
