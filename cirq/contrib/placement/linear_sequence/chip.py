@@ -100,7 +100,7 @@ def chip_as_adjacency_list(device: XmonDevice) -> Dict[
       given qubit.
     """
     c_set = set(device.qubits)
-    c_adj = {}
+    c_adj = {} # type: Dict[XmonQubit, List[XmonQubit]] 
     for n in device.qubits:
         c_adj[n] = []
         for m in [above(n), left_of(n), below(n), right_of(n)]:
