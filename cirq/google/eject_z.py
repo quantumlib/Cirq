@@ -155,7 +155,7 @@ class EjectZ(OptimizationPass):
             return
 
         # Drain type: another Z gate.
-        op = circuit.operation_at(qubit, drain)
+        op = cast(ops.Operation, circuit.operation_at(qubit, drain))
         if isinstance(op.gate, ExpZGate):
             half_turns = cast(float, op.gate.half_turns) + accumulated_phase * 2
             circuit.clear_operations_touching([qubit], [drain])

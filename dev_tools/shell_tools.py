@@ -15,7 +15,7 @@
 import asyncio
 import subprocess
 import sys
-from typing import Optional, Tuple, Union, IO, Any
+from typing import Optional, Tuple, Union, IO, Any, cast
 
 import collections
 
@@ -76,10 +76,10 @@ async def _async_forward(async_chunks: collections.AsyncIterable,
             chunk = chunk.decode()
         if out_pipe:
             print(chunk, file=out_pipe, end='')
-        if capture:
+        if chunks is not None:
             chunks.append(chunk)
 
-    return ''.join(chunks) if capture else None
+    return ''.join(chunks) if chunks is not None else None
 
 
 async def _async_wait_for_process(
@@ -233,10 +233,10 @@ def output_of(*cmd: str, **kwargs) -> str:
          subprocess.CalledProcessError: The process returned a non-zero error
             code and raise_on_fail was set.
     """
-    result = run_cmd(*cmd,
-                     log_run_to_stderr=False,
-                     out=TeeCapture(),
-                     **kwargs)[0]
+    result = cast(str, run_cmd(*cmd,
+                               log_run_to_stderr=False,
+                               out=TeeCapture(),
+                               **kwargs)[0])
 
     # Strip final newline.
     if result.endswith('\n'):

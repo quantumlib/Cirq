@@ -45,8 +45,8 @@ def _git_fetch_for_comparison(remote: str,
         a the id of a commit to compare against (e.g. for when doing incremental
         checks).
     """
-    actual_id = None
-    base_id = None
+    actual_id = ''
+    base_id = ''
     for depth in [10, 100, 1000, None]:
         depth_str = '' if depth is None else '--depth={}'.format(depth)
 

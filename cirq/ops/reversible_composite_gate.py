@@ -50,11 +50,10 @@ def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
     Returns:
         An OP_TREE that performs the inverse operation of the given OP_TREE.
     """
-    if extensions is None:
-        extensions = Extensions()
+    ext = extensions or Extensions()
     return op_tree.transform_op_tree(
         root=root,
-        op_transformation=lambda e: _reverse_operation(e, extensions),
+        op_transformation=lambda e: _reverse_operation(e, ext),
         iter_transformation=lambda e: reversed(list(e)))
 
 
