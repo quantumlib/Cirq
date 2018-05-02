@@ -23,6 +23,8 @@ from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.value import Duration, Timestamp
 
 if TYPE_CHECKING:
+    from typing import Optional  # pylint: disable=unused-import
+
     from cirq.ops import Operation  # pylint: disable=unused-import
 
 
@@ -66,7 +68,7 @@ class Schedule:
     def __ne__(self, other):
         return not self == other
 
-    __hash__ = None
+    __hash__ = None  # type: ignore
 
     def query(self,
         *positional_args,
@@ -192,7 +194,7 @@ class Schedule:
         """
         circuit = Circuit()
         ops = []  # type: List[Operation]
-        time = None  # type: Timestamp
+        time = None  # type: Optional[Timestamp]
         for so in self.scheduled_operations:
             if so.time != time:
                 circuit.append(ops)

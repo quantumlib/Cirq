@@ -1,3 +1,5 @@
+from typing import List
+
 from cirq.ops import raw_types
 
 
@@ -11,6 +13,18 @@ class LineQubit(raw_types.QubitId):
     def is_adjacent(self, other: 'LineQubit') -> bool:
         """Determines if two line qubits are adjacent."""
         return abs(self.x - other.x) == 1
+
+    @staticmethod
+    def range(*range_args) -> List['LineQubit']:
+        """Returns a range of line qubits.
+
+        Args:
+            *range_args: Same arguments as python's built-in range method.
+
+        Returns:
+            A list of line qubits.
+        """
+        return [LineQubit(i) for i in range(*range_args)]
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
