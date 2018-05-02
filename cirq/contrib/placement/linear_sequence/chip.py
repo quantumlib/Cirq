@@ -79,10 +79,9 @@ def yx_cmp(n: XmonQubit, m: XmonQubit) -> int:
       0 if qubits are equal, negative number if qubit n is less than m, and
       positive otherwise.
     """
-    if n.col != m.col:
-        return (n.col > m.col) - (n.col < m.col)
-    else:
-        return (n.row > m.row) - (n.row < m.row)
+    a = (n.col, n.row)
+    b = (m.col, m.row)
+    return (a > b) - (a < b)
 
 
 def chip_as_adjacency_list(device: XmonDevice) -> Dict[

@@ -15,6 +15,7 @@
 import math
 
 from cirq.contrib.placement.optimize import anneal
+from cirq.testing.mock import mock
 
 
 def test_accept_accepts():
@@ -49,3 +50,25 @@ def test_anneal_minimize_keeps_when_worse_and_discarded():
     assert anneal.anneal_minimize(
         'initial', lambda s: 0.0 if s == 'initial' else 1.0,
         lambda s: 'better', lambda: 0.9, 1.0, 0.5, 0.5, 1) == 'initial'
+
+
+def test_anneal_minimize_raises_when_wrong_cooling_factor():
+    try:
+        anneal.anneal_minimize(
+            'initial', lambda s: 1.0 if s == 'initial' else 0.0,
+            lambda s: 'better', lambda: 1.0, 1.0, 0.5, 2.0, 1)
+    except ValueError:
+        return
+    assert False
+
+
+def test_anneal_minimize_calls_trace_func():
+    trace_func = mock.Mock()
+
+    anneal.anneal_minimize(
+        'initial', lambda s: 1.0 if s == 'initial' else 0.0,
+        lambda s: 'better', lambda: 1.0, 1.0, 0.5, 0.5, 1,
+        trace_func=trace_func)
+
+    trace_func.assert_has_calls([mock.call('initial', 1.0, 1.0, 1.0, True),
+                                 mock.call('better', 1.0, 0.0, 1.0, True)])
