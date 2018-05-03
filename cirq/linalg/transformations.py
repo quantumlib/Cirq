@@ -48,13 +48,14 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     return pos_part_raised + neg_part_raised
 
 
-def canonicalize_global_phase_of_pair(a: np.ndarray,
-                                      b: np.ndarray
-                                      ) -> Tuple[np.ndarray, np.ndarray]:
+def match_global_phase(a: np.ndarray,
+                       b: np.ndarray
+                       ) -> Tuple[np.ndarray, np.ndarray]:
     """Phases the given matrices so that they agree on the phase of one entry.
 
-    To maximize precision, a large entry is chosen when computing the local
-    phase difference between the two matrices.
+    To maximize precision, the position with the largest entry from one of the
+    matrices is used when attempting to compute the phase difference between
+    the two matrices.
 
     Args:
         a: A numpy array.
@@ -70,8 +71,18 @@ def canonicalize_global_phase_of_pair(a: np.ndarray,
 
     # Find the entry with the largest magnitude in one of the matrices.
     k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
-    dephase_a = abs(a[k]) / a[k] if a[k] else 1
-    dephase_b = abs(b[k]) / b[k] if b[k] else 1
+
+    def dephase(v):
+        r = np.real(v)
+        i = np.imag(v)
+
+        # Avoid introducing floating point error when axis-aligned.
+        if i == 0:
+            return -1 if r < 0 else 1
+        if r == 0:
+            return 1j if i < 0 else -1j
+
+        return np.exp(-1j * np.arctan2(i, r))
 
     # Zero the phase at this entry in both matrices.
-    return a * dephase_a, b * dephase_b
+    return a * dephase(a[k]), b * dephase(b[k])

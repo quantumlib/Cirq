@@ -689,7 +689,8 @@ def test_handedness_of_xmon_exp_x_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, -1j]) * np.sqrt(0.5))
+        np.array([1, -1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_y_gate():
@@ -699,7 +700,8 @@ def test_handedness_of_xmon_exp_y_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1]) * np.sqrt(0.5))
+        np.array([1, 1]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_z_gate():
@@ -708,7 +710,8 @@ def test_handedness_of_xmon_exp_z_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1j]) * np.sqrt(0.5))
+        np.array([1, 1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_11_gate():
@@ -730,7 +733,8 @@ def test_handedness_of_x_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, -1j]) * np.sqrt(0.5))
+        np.array([1, -1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_y_gate():
@@ -739,7 +743,8 @@ def test_handedness_of_y_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1]) * np.sqrt(0.5))
+        np.array([1, 1]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_z_gate():
@@ -748,7 +753,8 @@ def test_handedness_of_z_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1j]) * np.sqrt(0.5))
+        np.array([1, 1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_cz_gate():
