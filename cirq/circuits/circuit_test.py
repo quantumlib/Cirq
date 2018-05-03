@@ -14,7 +14,8 @@
 import numpy as np
 import pytest
 
-from cirq import ops, Symbol, allclose_up_to_global_phase
+import cirq
+from cirq import ops, Symbol
 from cirq.circuits.circuit import Circuit, _operation_to_unitary_matrix
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
@@ -852,7 +853,7 @@ def test_operation_to_unitary_matrix():
                                      1,
                                      {a: 0},
                                      ex)
-    assert allclose_up_to_global_phase(m, np.array([
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [0, 1],
         [1, 0],
     ]))
@@ -861,7 +862,7 @@ def test_operation_to_unitary_matrix():
                                      2,
                                      {a: 0},
                                      ex)
-    assert allclose_up_to_global_phase(m, np.array([
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [0, 1, 0, 0],
         [1, 0, 0, 0],
         [0, 0, 0, 1],
@@ -872,7 +873,7 @@ def test_operation_to_unitary_matrix():
                                      2,
                                      {a: 1},
                                      ex)
-    assert allclose_up_to_global_phase(m, np.array([
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [0, 0, 1, 0],
         [0, 0, 0, 1],
         [1, 0, 0, 0],
@@ -883,7 +884,7 @@ def test_operation_to_unitary_matrix():
                                      2,
                                      {a: 0, b: 1},
                                      ex)
-    assert allclose_up_to_global_phase(m, np.array([
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [1, 0, 0, 0],
         [0, 0, 0, 1],
         [0, 0, 1, 0],
@@ -894,7 +895,7 @@ def test_operation_to_unitary_matrix():
                                      2,
                                      {a: 1, b: 0},
                                      ex)
-    assert allclose_up_to_global_phase(m, np.array([
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 0, 1],
@@ -907,7 +908,8 @@ def test_circuit_to_unitary_matrix():
     a = ops.NamedQubit('a')
     b = ops.NamedQubit('b')
     c = Circuit.from_ops(ops.X(a), ops.Z(b))
-    assert allclose_up_to_global_phase(c.to_unitary_matrix(), np.array([
+    m = c.to_unitary_matrix()
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [0, 1, 0, 0],
         [1, 0, 0, 0],
         [0, 0, 0, -1],
@@ -916,7 +918,8 @@ def test_circuit_to_unitary_matrix():
 
     # Single qubit gates and two qubit gate.
     c = Circuit.from_ops(ops.X(a), ops.Z(b), ops.CNOT(b, a))
-    assert allclose_up_to_global_phase(c.to_unitary_matrix(), np.array([
+    m = c.to_unitary_matrix()
+    cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [0, 1, 0, 0],
         [1, 0, 0, 0],
         [0, 0, -1, 0],
@@ -930,8 +933,9 @@ def test_circuit_to_unitary_matrix():
 
     # Ignoring terminal measurements.
     c = Circuit.from_ops(ops.MeasurementGate()(a))
-    assert allclose_up_to_global_phase(c.to_unitary_matrix(),
-                                       np.eye(2))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        c.to_unitary_matrix(),
+        np.eye(2))
 
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(ops.MeasurementGate()(a), ops.X(a))
@@ -947,6 +951,6 @@ def test_circuit_to_unitary_matrix():
                 actual_type=ops.MeasurementGate,
                 conversion=lambda _: IdentityGate())
     c = Circuit.from_ops(ops.MeasurementGate()(a))
-    assert allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
         c.to_unitary_matrix(ext=ex, ignore_terminal_measurements=False),
         np.eye(2))
