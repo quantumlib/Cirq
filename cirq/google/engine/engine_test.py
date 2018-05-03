@@ -26,7 +26,7 @@ from cirq.devices import UnconstrainedDevice
 from cirq.google.engine.engine import Engine, EngineOptions
 from cirq.schedules.schedulers import moment_by_moment_schedule
 from cirq.study import ParamResolver, Points
-from cirq.testing.python3_mock import python3_mock_test, mock
+from cirq.testing.mock import mock
 
 _A_RESULT = program_pb2.Result(
     sweep_results=[program_pb2.SweepResult(repetitions=1, measurement_keys=[
@@ -52,7 +52,7 @@ _RESULTS = program_pb2.Result(
                     measurement_results=b'01')])])
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_run_circuit(build):
     service = mock.Mock()
     build.return_value = service
@@ -86,7 +86,7 @@ def test_run_circuit(build):
     assert jobs.getResult().execute.call_count == 1
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_run_circuit_failed(build):
     service = mock.Mock()
     build.return_value = service
@@ -108,7 +108,7 @@ def test_run_circuit_failed(build):
             UnconstrainedDevice)
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_run_sweep_params(build):
     service = mock.Mock()
     build.return_value = service
@@ -152,7 +152,7 @@ def test_run_sweep_params(build):
     assert jobs.getResult().execute.call_count == 1
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_run_sweep_sweeps(build):
     service = mock.Mock()
     build.return_value = service
@@ -195,7 +195,7 @@ def test_run_sweep_sweeps(build):
     assert jobs.getResult().execute.call_count == 1
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
     with pytest.raises(TypeError, match='priority must be between 0 and 1000'):
         Engine(api_key="key").run(
@@ -205,7 +205,7 @@ def test_bad_priority(build):
             priority=1001)
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_cancel(build):
     service = mock.Mock()
     build.return_value = service
@@ -230,7 +230,7 @@ def test_cancel(build):
     assert jobs.cancel.call_args[1][
                'name'] == 'projects/project-id/programs/test/jobs/test'
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_program_labels(build):
     program_name = 'projects/my-proj/programs/my-prog'
     service = mock.Mock()
@@ -260,7 +260,7 @@ def test_program_labels(build):
     assert body()['labelFingerprint'] == 'abcdef'
 
 
-@python3_mock_test(discovery, 'build')
+@mock.patch.object(discovery, 'build')
 def test_job_labels(build):
     job_name = 'projects/my-proj/programs/my-prog/jobs/my-job'
     service = mock.Mock()

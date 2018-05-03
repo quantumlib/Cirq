@@ -11,3 +11,5 @@ __pycache__
 *.py,cover
 *.coverage
 *.coverage.*
+# packaging
+*.egg-info/
