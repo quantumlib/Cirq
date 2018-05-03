@@ -1,3 +1,17 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import inspect
 import sys
 from typing import Dict, List, TYPE_CHECKING
@@ -17,8 +31,8 @@ def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
     readme_path = os.path.join(
         os.path.dirname(__file__),  # Start at this file's directory.
-        '..', '..', 'cirq', 'docs',  # Hacky check that we're under cirq/docs/.
-        '..', '..', 'README.md')     # Get the readme two levels up.
+        '..', 'docs',  # Hacky check that we're under docs/.
+        '..', 'README.md')     # Get the readme one level up.
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
@@ -83,6 +97,7 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
 
     assert_code_snippet_runs_and_prints_expected(before, state)
     if expected_failure is not None:
+        assert after is not None
         assert_code_snippet_fails(after, state, expected_failure)
 
 

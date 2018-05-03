@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, Iterable, Sequence, Tuple
+from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -20,6 +20,9 @@ from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
+
+if TYPE_CHECKING:
+    from typing import Optional  # pylint: disable=unused-import
 
 
 def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
@@ -32,9 +35,9 @@ def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
     Yields:
         operations_pb2.Operation
     """
-    last_time_picos = None  # type: int
+    last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        gate = xmon_gate_ext.try_cast(so.operation.gate, xmon_gates.XmonGate)
+        gate = xmon_gate_ext.cast(so.operation.gate, xmon_gates.XmonGate)
         op = gate.to_proto(*so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
