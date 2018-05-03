@@ -83,6 +83,7 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
 
     assert_code_snippet_runs_and_prints_expected(before, state)
     if expected_failure is not None:
+        assert after is not None
         assert_code_snippet_fails(after, state, expected_failure)
 
 
