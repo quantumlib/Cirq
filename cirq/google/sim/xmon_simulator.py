@@ -417,7 +417,9 @@ class StepResult:
         The state is returned in the computational basis with these basis
         states defined by the qubit_map. In particular the value in the
         qubit_map is the index of the qubit, and these are translated into
-        binary vectors using little endian.
+        binary vectors where the last qubit is the 1s bit of the index, the
+        second-to-last is the 2s bit of the index, and so forth (i.e. big
+        endian ordering).
 
         Example:
              qubit_map: {QubitA: 2, QubitB: 1, QubitC: 0}
