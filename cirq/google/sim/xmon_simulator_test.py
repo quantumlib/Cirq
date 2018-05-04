@@ -290,6 +290,32 @@ def test_initial_state_identity(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_initial_state_consistency(scheduler):
+
+    def blip(k, n):
+        buf = np.zeros(n, dtype=np.complex64)
+        buf[k] = 1
+        return buf
+
+    simulator = xmon_simulator.Simulator()
+    for i in range(8):
+        int_result = run(simulator,
+                         Circuit(),
+                         scheduler,
+                         initial_state=i,
+                         qubit_order=[Q1, Q2, Q3]).final_states[0]
+
+        array_result = run(simulator,
+                           Circuit(),
+                           scheduler,
+                           initial_state=blip(i, 8),
+                           qubit_order=[Q1, Q2, Q3]).final_states[0]
+
+        np.testing.assert_allclose(int_result, blip(i, 8))
+        np.testing.assert_allclose(int_result, array_result)
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_initial_state_ndarray(scheduler):
     simulator = xmon_simulator.Simulator()
     result = run(simulator, basic_circuit(), scheduler,
