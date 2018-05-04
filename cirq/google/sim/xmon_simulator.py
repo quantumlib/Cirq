@@ -422,7 +422,7 @@ class StepResult:
         endian ordering).
 
         Example:
-             qubit_map: {QubitA: 2, QubitB: 1, QubitC: 0}
+             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
                |   | QubitA | QubitB | QubitC |
