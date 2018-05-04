@@ -195,6 +195,43 @@ def test_qubit_order_to_wavefunction_order_matches_np_kron(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
+def test_bit_flip_order_to_wavefunction_order_matches_np_kron(scheduler):
+    simulator = xmon_simulator.Simulator()
+
+    result = run(simulator,
+                 Circuit.from_ops(X(Q1)),
+                 scheduler,
+                 qubit_order=[Q1, Q2, Q3])
+    assert cirq.allclose_up_to_global_phase(
+        result.final_states[0],
+        np.array([0, 0, 0, 0, 1, 0, 0, 0]))
+
+    result = run(simulator,
+                 Circuit.from_ops(X(Q3)),
+                 scheduler,
+                 qubit_order=[Q1, Q2, Q3])
+    assert cirq.allclose_up_to_global_phase(
+        result.final_states[0],
+        np.array([0, 1, 0, 0, 0, 0, 0, 0]))
+
+    result = run(simulator,
+                 Circuit.from_ops(X(Q3)),
+                 scheduler,
+                 qubit_order=[Q3, Q2, Q1])
+    assert cirq.allclose_up_to_global_phase(
+        result.final_states[0],
+        np.array([0, 0, 0, 0, 1, 0, 0, 0]))
+
+    result = run(simulator,
+                 Circuit.from_ops(X(Q3)),
+                 scheduler,
+                 qubit_order=[Q2, Q3, Q1])
+    assert cirq.allclose_up_to_global_phase(
+        result.final_states[0],
+        np.array([0, 0, 1, 0, 0, 0, 0, 0]))
+
+
+@pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_invalid_initial_state_empty_circuit_qubits_specified(scheduler):
     simulator = xmon_simulator.Simulator()
 
