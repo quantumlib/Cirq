@@ -149,7 +149,7 @@ class Circuit(object):
     def __str__(self):
         return self.to_text_diagram()
 
-    __hash__ = None
+    __hash__ = None  # type: ignore
 
     def _first_moment_operating_on(self, qubits: Iterable[ops.QubitId],
                                    indices: Iterable[int]) -> Optional[int]:
@@ -483,7 +483,6 @@ class Circuit(object):
         Returns:
             The text diagram.
         """
-
         diagram = self.to_text_diagram_drawer(
             ext=ext,
             qubit_name_suffix='' if transpose else ': ',
@@ -501,7 +500,7 @@ class Circuit(object):
 
     def to_text_diagram_drawer(
             self,
-            ext: Extensions = Extensions(),
+            ext: Extensions = None,
             qubit_name_suffix: str = '',
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT

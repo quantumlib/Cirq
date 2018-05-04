@@ -17,7 +17,7 @@
 import numpy as np
 
 from cirq.linalg.tolerance import Tolerance
-from cirq.linalg.transformations import canonicalize_global_phase_of_pair
+from cirq.linalg.transformations import match_global_phase
 
 
 def is_diagonal(
@@ -185,7 +185,7 @@ def allclose_up_to_global_phase(
             other NaN entries.
     """
 
-    a, b = canonicalize_global_phase_of_pair(a, b)
+    a, b = match_global_phase(a, b)
 
     # Should now be equivalent.
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)

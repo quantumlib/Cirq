@@ -85,7 +85,7 @@ def assert_allclose_up_to_global_phase(
     Raises:
         AssertionError: The matrices aren't nearly equal up to global phase.
     """
-    actual, desired = linalg.canonicalize_global_phase_of_pair(actual, desired)
+    actual, desired = linalg.match_global_phase(actual, desired)
     np.testing.assert_allclose(
         actual=actual,
         desired=desired,

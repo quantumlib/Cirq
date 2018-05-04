@@ -15,7 +15,7 @@
 import os
 import shutil
 import sys
-from typing import Optional, Iterable, Callable
+from typing import Optional, Iterable, Callable, cast
 
 from dev_tools import shell_tools, git_env_tools
 from dev_tools.github_repository import GithubRepository
@@ -99,8 +99,9 @@ def prepare_temporary_test_environment(
         commit_ids_known_callback(env)
 
     # Create virtual environment.
-    env_path = os.path.join(env.destination_directory, env_name)
-    req_path = os.path.join(env.destination_directory, 'requirements.txt')
+    base_path = cast(str, env.destination_directory)
+    env_path = os.path.join(base_path, env_name)
+    req_path = os.path.join(base_path, 'requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path)
@@ -130,10 +131,10 @@ def derive_temporary_python2_environment(
     """
 
     shutil.rmtree(destination_directory)
-    os.chdir(python3_environment.destination_directory)
-    input_directory = python3_environment.destination_directory
+    input_directory = cast(str, python3_environment.destination_directory)
+    os.chdir(input_directory)
     conversion_script_path = os.path.join(
-        python3_environment.destination_directory,
+        input_directory,
         'python2.7-generate.sh')
     shell_tools.run_cmd('bash',
                         conversion_script_path,

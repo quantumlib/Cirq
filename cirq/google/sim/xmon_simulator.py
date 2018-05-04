@@ -80,11 +80,14 @@ class Options:
 
 
 class SimulatorTrialResult(TrialResult):
-    """Results of a single run of an executor.
+    """Results of a simulation run.
 
     Attributes:
         measurements: A dictionary from measurement gate key to measurement
-            results ordered by the qubits acted upon by the measurement gate.
+            results. Measurement results are a list of lists (a numpy ndarray),
+            the first list corresponding to the repetition, and the second is
+            the actual boolean measurement results (ordered by the qubits acted
+            the measurement gate.)
         final_states: The final states (wave function) of the system after
             the trial finishes.
     """
@@ -112,12 +115,15 @@ class SimulatorTrialResult(TrialResult):
         def bitstring(vals):
             return ''.join('1' if v else '0' for v in vals)
 
-        keyed_bitstrings = [
-            (key, bitstring(val)) for key, val in self.measurements.items()
-        ]
-        return ' '.join('{}={}'.format(key, val)
-                        for key, val in sorted(keyed_bitstrings))
+        results_by_rep = (sorted([(key, bitstring(val[i])) for key, val in
+                                  self.measurements.items()]) for i in
+                          range(self.repetitions))
+        str_by_rep = (' '.join(
+            '{}={}'.format(key, val) for key, val in result) for result in
+            results_by_rep)
 
+        return '\n'.join('repetition {} : {}'.format(i, result) for i, result in
+                         enumerate(str_by_rep))
 
 class Simulator:
     """Simulator for Xmon class quantum circuits."""

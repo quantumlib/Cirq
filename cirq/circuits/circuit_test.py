@@ -110,10 +110,12 @@ def test_slice():
         Moment([ops.CZ(a, b)]),
         Moment([ops.H(b)]),
     ])
-    assert c[0:1] == Circuit([Moment([ops.H(a), ops.H(b)]),])
-    assert c[::2] == Circuit([Moment([ops.H(a), ops.H(b)]), Moment([ops.H(b)])])
-    assert c[0:1:2] == Circuit([Moment([ops.H(a), ops.H(b)]),])
-    assert c[1:3:] == Circuit([Moment([ops.CZ(a, b)]), Moment([ops.H(b)]),])
+    assert c[0:1] == Circuit([Moment([ops.H(a), ops.H(b)])])
+    assert c[::2] == Circuit([
+        Moment([ops.H(a), ops.H(b)]), Moment([ops.H(b)])
+    ])
+    assert c[0:1:2] == Circuit([Moment([ops.H(a), ops.H(b)])])
+    assert c[1:3:] == Circuit([Moment([ops.CZ(a, b)]), Moment([ops.H(b)])])
     assert c[::-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)]),
                                Moment([ops.H(a), ops.H(b)])])
     assert c[3:0:-1] == Circuit([Moment([ops.H(b)]), Moment([ops.CZ(a, b)])])
@@ -204,7 +206,7 @@ def test_container_methods():
 def test_bad_index():
     a = ops.QubitId()
     b = ops.QubitId()
-    c = Circuit([Moment([ops.H(a), ops.H(b)]),])
+    c = Circuit([Moment([ops.H(a), ops.H(b)])])
     with pytest.raises(TypeError):
         _ = c['string']
 
@@ -873,9 +875,6 @@ def test_operation_to_unitary_matrix():
     m = _operation_to_unitary_matrix(ops.X(a),
                                      {a: 1, b: 0},
                                      ex)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        m,
-        np.kron(np.eye(2), ops.X.matrix()))
     cirq.testing.assert_allclose_up_to_global_phase(m, np.array([
         [0, 1, 0, 0],
         [1, 0, 0, 0],

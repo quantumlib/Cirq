@@ -710,7 +710,8 @@ def test_handedness_of_xmon_exp_x_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, -1j]) * np.sqrt(0.5))
+        np.array([1, -1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_y_gate():
@@ -720,7 +721,8 @@ def test_handedness_of_xmon_exp_y_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1]) * np.sqrt(0.5))
+        np.array([1, 1]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_z_gate():
@@ -729,7 +731,8 @@ def test_handedness_of_xmon_exp_z_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1j]) * np.sqrt(0.5))
+        np.array([1, 1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_11_gate():
@@ -751,7 +754,8 @@ def test_handedness_of_x_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, -1j]) * np.sqrt(0.5))
+        np.array([1, -1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_y_gate():
@@ -760,7 +764,8 @@ def test_handedness_of_y_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1]) * np.sqrt(0.5))
+        np.array([1, 1]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_z_gate():
@@ -769,7 +774,8 @@ def test_handedness_of_z_gate():
     result = list(simulator.moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
-        np.array([1, 1j]) * np.sqrt(0.5))
+        np.array([1, 1j]) * np.sqrt(0.5),
+        atol=1e-7)
 
 
 def test_handedness_of_cz_gate():
@@ -908,13 +914,41 @@ def test_simulator_trial_result_repr():
     v = xmon_simulator.SimulatorTrialResult(
         params=ParamResolver({'a': 2}),
         repetitions=2,
-        measurements={'m': np.array([1, 2])},
+        measurements={'m': np.array([[1, 2]])},
         final_states=[np.array([0, 1, 0, 0])])
 
     python2 = ("SimulatorTrialResult("
                "params=ParamResolver({u'a': 2}), "
                "repetitions=2, "
-               "measurements={u'm': array([1, 2])}, "
+               "measurements={u'm': array([[1, 2]])}, "
                "final_states=[array([0, 1, 0, 0])])")
     python3 = python2.replace("u'", "'")
     assert repr(v) in [python2, python3]
+
+
+def test_simulator_trial_result_str():
+    a = cirq.google.XmonQubit(0, 0)
+    b = cirq.google.XmonQubit(0, 1)
+    c = cirq.google.XmonQubit(0, 2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.CNOT(a, b),
+        cirq.MeasurementGate('a')(a),
+        cirq.MeasurementGate('b')(b),
+        cirq.MeasurementGate('c')(c)
+    )
+    result = cirq.google.Simulator().run(circuit)
+    assert str(result) == "repetition 0 : a=1 b=1 c=0"
+
+
+def test_simulator_trial_result_str_repetitions():
+    a = cirq.google.XmonQubit(0, 0)
+    b = cirq.google.XmonQubit(0, 1)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.CNOT(a, b),
+        cirq.MeasurementGate('a')(a),
+        cirq.MeasurementGate('b')(b)
+    )
+    result = cirq.google.Simulator().run(circuit, repetitions=2)
+    assert str(result) == 'repetition 0 : a=1 b=1\nrepetition 1 : a=1 b=1'
