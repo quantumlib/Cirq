@@ -227,7 +227,7 @@ def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
     operations = decompositions.controlled_op_to_native_gates(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
-    intended_effect = linalg.kron_with_controls(mat, linalg.CONTROL_TAG)
+    intended_effect = linalg.kron_with_controls(linalg.CONTROL_TAG, mat)
     assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 

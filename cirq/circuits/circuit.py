@@ -454,16 +454,12 @@ class Circuit(object):
             self.qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
-        n = len(qubit_map)
-        total = np.eye(1 << n)
+        total = np.eye(1 << len(qubit_map))
         for k, moment in enumerate(self.moments):
             for op in moment.operations:
                 if is_ignorable_measurement(k, op):
                     continue
-                mat = _operation_to_unitary_matrix(op,
-                                                   n,
-                                                   qubit_map,
-                                                   ext)
+                mat = _operation_to_unitary_matrix(op, qubit_map, ext)
                 total = np.matmul(mat, total)
         return total
 
@@ -619,7 +615,6 @@ def _draw_moment_in_diagram(moment: Moment,
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
-                                 qubit_count: int,
                                  qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
     known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
@@ -627,7 +622,8 @@ def _operation_to_unitary_matrix(op: ops.Operation,
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))
     sub_mat = known_matrix_gate.matrix()
-    bit_locs = [qubit_map[q] for q in op.qubits]
+    qubit_count = len(qubit_map)
+    bit_locs = [qubit_count - qubit_map[q] - 1 for q in op.qubits][::-1]
     over_mask = ~sum(1 << b for b in bit_locs)
 
     result = np.zeros(shape=(1 << qubit_count, 1 << qubit_count),

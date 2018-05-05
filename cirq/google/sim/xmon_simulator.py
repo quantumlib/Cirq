@@ -80,11 +80,14 @@ class Options:
 
 
 class SimulatorTrialResult(TrialResult):
-    """Results of a single run of an executor.
+    """Results of a simulation run.
 
     Attributes:
         measurements: A dictionary from measurement gate key to measurement
-            results ordered by the qubits acted upon by the measurement gate.
+            results. Measurement results are a list of lists (a numpy ndarray),
+            the first list corresponding to the repetition, and the second is
+            the actual boolean measurement results (ordered by the qubits acted
+            the measurement gate.)
         final_states: The final states (wave function) of the system after
             the trial finishes.
     """
@@ -112,12 +115,15 @@ class SimulatorTrialResult(TrialResult):
         def bitstring(vals):
             return ''.join('1' if v else '0' for v in vals)
 
-        keyed_bitstrings = [
-            (key, bitstring(val)) for key, val in self.measurements.items()
-        ]
-        return ' '.join('{}={}'.format(key, val)
-                        for key, val in sorted(keyed_bitstrings))
+        results_by_rep = (sorted([(key, bitstring(val[i])) for key, val in
+                                  self.measurements.items()]) for i in
+                          range(self.repetitions))
+        str_by_rep = (' '.join(
+            '{}={}'.format(key, val) for key, val in result) for result in
+            results_by_rep)
 
+        return '\n'.join('repetition {} : {}'.format(i, result) for i, result in
+                         enumerate(str_by_rep))
 
 class Simulator:
     """Simulator for Xmon class quantum circuits."""
@@ -326,7 +332,7 @@ def simulator_iterator(
     """
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
         circuit.qubits())
-    qubit_map = {q: i for i, q in enumerate(qubits)}
+    qubit_map = {q: i for i, q in enumerate(reversed(qubits))}
     if isinstance(initial_state, np.ndarray):
         initial_state = initial_state.astype(dtype=np.complex64,
                                              casting='safe')
@@ -411,13 +417,15 @@ class StepResult:
         The state is returned in the computational basis with these basis
         states defined by the qubit_map. In particular the value in the
         qubit_map is the index of the qubit, and these are translated into
-        binary vectors using little endian.
+        binary vectors where the last qubit is the 1s bit of the index, the
+        second-to-last is the 2s bit of the index, and so forth (i.e. big
+        endian ordering).
 
         Example:
-             qubit_map: {Qubit0: 2, Qubit1: 1, Qubit 2: 0}
+             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
-               |   | Qubit0 | Qubit1 | Qubit2 |
+               |   | QubitA | QubitB | QubitC |
                +---+--------+--------+--------+
                | 0 |   0    |   0    |   0    |
                | 1 |   0    |   0    |   1    |
