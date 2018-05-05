@@ -105,7 +105,8 @@ def prepare_temporary_test_environment(
             pull_request_number=pull_request_number)
     else:
         env = git_env_tools.fetch_local_files(
-            destination_directory=destination_directory)
+            destination_directory=destination_directory,
+            verbose=verbose)
 
     if commit_ids_known_callback is not None:
         commit_ids_known_callback(env)

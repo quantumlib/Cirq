@@ -106,35 +106,47 @@ def fetch_github_pull_request(destination_directory: str,
         virtual_env_path=None)
 
 
-def fetch_local_files(destination_directory: str) -> prepared_env.PreparedEnv:
+def fetch_local_files(destination_directory: str,
+                      verbose: bool) -> prepared_env.PreparedEnv:
     """Uses local files to create a directory for testing and comparisons.
 
     Args:
         destination_directory: The directory where the copied files should go.
+        verbose: When set, more progress output is produced.
 
     Returns:
         Commit ids corresponding to content to test/compare.
     """
-    shutil.rmtree(destination_directory)
-    shutil.copytree(get_repo_root(), destination_directory)
-    os.chdir(destination_directory)
-    print('chdir', destination_directory, file=sys.stderr)
+    staging_dir = destination_directory + '-staging'
+    try:
+        shutil.copytree(get_repo_root(), staging_dir)
+        os.chdir(staging_dir)
+        print('chdir', staging_dir, file=sys.stderr)
+
+        shell_tools.run_cmd(
+            'git',
+            'commit',
+            '-a',
+            '-m', 'working changes',
+            '--allow-empty',
+            None if verbose else '--quiet',
+            out=sys.stderr)
+        cur_commit = shell_tools.output_of('git', 'rev-parse', 'HEAD')
+
+        os.chdir(destination_directory)
+        print('chdir', destination_directory, file=sys.stderr)
+        shell_tools.run_cmd('git', 'init', out=sys.stderr)
+        result = _git_fetch_for_comparison(staging_dir, cur_commit, 'master')
+    finally:
+        shutil.rmtree(staging_dir, ignore_errors=True)
 
     shell_tools.run_cmd(
-        'git',
-        'commit',
-        '-a',
-        '-m', 'working changes',
-        '--allow-empty',
-        out=sys.stderr)
-    shell_tools.run_shell(r'find | grep \.pyc$ | xargs rm -f')
-    shell_tools.run_shell('find | grep __pycache__ | xargs rmdir')
-    commit_id = shell_tools.output_of('git', 'rev-parse', 'HEAD')
-    compare_id = shell_tools.output_of(
-        'git', 'merge-base', commit_id, 'master')
+        'git', 'branch', 'compare_commit', result.compare_commit_id)
+    shell_tools.run_cmd(
+        'git', 'checkout', '-b', 'actual_commit', result.actual_commit_id)
     return prepared_env.PreparedEnv(
         repository=None,
-        actual_commit_id=commit_id,
-        compare_commit_id=compare_id,
+        actual_commit_id=result.actual_commit_id,
+        compare_commit_id=result.compare_commit_id,
         destination_directory=destination_directory,
         virtual_env_path=None)
