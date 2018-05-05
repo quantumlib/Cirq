@@ -22,6 +22,9 @@ class IncrementalCoverageCheck(check.Check):
     This check must run after the pytest check, because that check is what
     computes the coverage files used by this check.
     """
+    def command_line_switch(self):
+        return 'incremental-coverage'
+
     def context(self):
         return 'incremental coverage by maintainer'
 

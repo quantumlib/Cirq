@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple, cast
+from typing import cast
 
 import re
 
@@ -28,28 +28,14 @@ class TestAndPrepareCoverageCheck(check.Check):
     As a side effect, produces coverage files used by the coverage checks.
     """
 
+    def command_line_switch(self):
+        return 'pytest'
+
     def context(self):
         return 'pytest by maintainer'
 
-    def needs_python2_env(self):
-        return True
-
-    def perform_check_py2(self, env: env_tools.PreparedEnv, verbose: bool):
-        return TestAndPrepareCoverageCheck._common_run_helper(
-            env,
-            coverage=False,
-            verbose=verbose)
-
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
-        return TestAndPrepareCoverageCheck._common_run_helper(
-            env,
-            coverage=True,
-            verbose=verbose)
-
-    @staticmethod
-    def _common_run_helper(env: env_tools.PreparedEnv,
-                           coverage: bool,
-                           verbose: bool) -> Tuple[bool, str]:
+        do_coverage = True
         base_path = cast(str, env.destination_directory)
         venv_path = cast(str, env.virtual_env_path)
 
@@ -58,14 +44,14 @@ class TestAndPrepareCoverageCheck(check.Check):
         result = shell_tools.run_cmd(
             pytest_path,
             target_path,
-            '' if verbose else '--quiet',
-            '--cov' if coverage else '',
-            '--cov-report=annotate' if coverage else '',
+            None if verbose else '--quiet',
+            '--cov' if do_coverage else '',
+            '--cov-report=annotate' if do_coverage else '',
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,
-            log_run_to_stderr=False)
+            log_run_to_stderr=verbose)
 
-        output = result[0]
+        output = cast(str, result[0])
         passed = result[2] == 0
         if passed:
             return True, 'Tests passed!'

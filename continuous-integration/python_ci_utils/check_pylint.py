@@ -25,6 +25,9 @@ from python_ci_utils import check
 class LintCheck(check.Check):
     """Checks if the code is up to snuff."""
 
+    def command_line_switch(self):
+        return 'pylint'
+
     def context(self):
         return 'pylint by maintainer'
 
@@ -47,9 +50,9 @@ class LintCheck(check.Check):
             *files,
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,
-            log_run_to_stderr=False)
+            log_run_to_stderr=verbose)
 
-        output = result[0]
+        output = cast(str, result[0])
         passed = result[2] == 0
         if passed:
             return True, 'No lint here!'

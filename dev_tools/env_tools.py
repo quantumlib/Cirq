@@ -54,7 +54,7 @@ def create_virtual_env(venv_path: str,
         verbose: When set, more progress output is produced.
     """
     shell_tools.run_cmd('virtualenv',
-                        '' if verbose else '--quiet',
+                        None if verbose else '--quiet',
                         '-p',
                         python_path,
                         venv_path,
@@ -62,7 +62,7 @@ def create_virtual_env(venv_path: str,
     pip_path = os.path.join(venv_path, 'bin', 'pip')
     shell_tools.run_cmd(pip_path,
                         'install',
-                        '' if verbose else '--quiet',
+                        None if verbose else '--quiet',
                         '-r',
                         requirements_path,
                         out=sys.stderr)

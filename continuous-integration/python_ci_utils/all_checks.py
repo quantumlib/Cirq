@@ -15,14 +15,23 @@
 from python_ci_utils import (
     check_incremental_coverage,
     check_pylint,
-    check_pytest_prep_cov,
+    check_pytest_v2,
+    check_pytest_with_coverage,
     check_typecheck,
 )
 
 
+pylint = check_pylint.LintCheck()
+typecheck = check_typecheck.TypeCheck()
+pytest = check_pytest_with_coverage.TestAndPrepareCoverageCheck()
+pytest_v2 = check_pytest_v2.Py2TestCheck()
+incremental_coverage = check_incremental_coverage.IncrementalCoverageCheck(
+    pytest)
+
 ALL_CHECKS = [
-    check_pylint.LintCheck(),
-    check_typecheck.TypeCheck(),
-    check_pytest_prep_cov.TestAndPrepareCoverageCheck(),
-    check_incremental_coverage.IncrementalCoverageCheck()
+    pylint,
+    typecheck,
+    pytest,
+    incremental_coverage,
+    pytest_v2,
 ]

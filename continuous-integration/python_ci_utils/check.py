@@ -23,6 +23,14 @@ from dev_tools import env_tools
 class Check(metaclass=abc.ABCMeta):
     """A status check that can performed in a python environment."""
 
+    def __init__(self, *dependencies):
+        self.dependencies = dependencies
+
+    @abc.abstractmethod
+    def command_line_switch(self):
+        """Used to identify this check from the command line."""
+        pass
+
     @abc.abstractmethod
     def context(self) -> str:
         """The name of this status check, as shown on github."""
@@ -42,30 +50,6 @@ class Check(metaclass=abc.ABCMeta):
             A tuple containing a pass/fail boolean and then a details message.
         """
         pass
-
-    def perform_check_py2(self,
-                          env: env_tools.PreparedEnv,
-                          verbose: bool) -> Optional[Tuple[bool, str]]:
-        """Evaluates the status check in python 2.7, if appropriate.
-
-        Args:
-            env: Describes a prepared python 2.7 environment in which to run.
-            verbose: When set, more progress output is produced.
-
-        Returns:
-            A tuple containing a pass/fail boolean and then a details message,
-            or else None if this check does not need to pass on code that has
-            been automatically translated into python 2.
-        """
-        return None
-
-    @staticmethod
-    def _merge_result(result1: Tuple[bool, str],
-                      result2: Optional[Tuple[bool, str]]
-                      ) -> Tuple[bool, str]:
-        if result2 is None or not result1[0] or result2[0]:
-            return result1
-        return result2
 
     def needs_python2_env(self):
         return False
@@ -96,19 +80,10 @@ class Check(metaclass=abc.ABCMeta):
         """
         env.report_status_to_github('pending', 'Running...', self.context())
         try:
-            os.chdir(cast(str, env.destination_directory))
-            result1 = self.perform_check(env, verbose=verbose)
-
-            if env_py2 is not None and result1[0]:
-                env.report_status_to_github('pending',
-                                            'Running (py2)...',
-                                            self.context())
-                os.chdir(cast(str, env_py2.destination_directory))
-                result2 = self.perform_check_py2(env_py2, verbose=verbose)
-            else:
-                result2 = result1
-
-            success, message = Check._merge_result(result1, result2)
+            chosen_env = cast(env_tools.PreparedEnv,
+                              env_py2 if self.needs_python2_env() else env)
+            os.chdir(cast(str, chosen_env.destination_directory))
+            success, message = self.perform_check(chosen_env, verbose=verbose)
 
         except Exception as ex:
             env.report_status_to_github('error',

@@ -38,23 +38,35 @@ def report_pending(env, checks, out_still_pending: Set[check.Check]):
 def parse_args():
     args = sys.argv
     verbose = '--verbose' in args
+    only = [e.split('--only=')[1]
+            for e in args
+            if e.startswith('--only=')]
+    checks = all_checks.ALL_CHECKS
+    if only:
+        checks = [e for e in checks if e.command_line_switch() in only]
+        if len(checks) != len(only):
+            raise ValueError('Bad selection. Options are ' +
+                             ', '.join(e.command_line_switch()
+                                       for e in all_checks.ALL_CHECKS))
+        checks = [d
+                  for c in checks
+                  for d in [c] + list(c.dependencies)]
 
     positionals = [arg for arg in args if not arg.startswith('-')]
     pull_request_number = None if len(positionals) < 2 else int(positionals[1])
     access_token = None if len(positionals) < 3 else int(positionals[2])
     if access_token is None:
         access_token = os.getenv('CIRQ_GITHUB_ACCESS_TOKEN')
-    return pull_request_number, access_token, verbose
+    return pull_request_number, access_token, verbose, checks
 
 
 def main():
-    pull_request_number, access_token, verbose = parse_args()
+    pull_request_number, access_token, verbose, checks = parse_args()
     if pull_request_number is None:
         print(shell_tools.highlight(
             'No pull request number given. Using local files.',
             shell_tools.YELLOW))
         print()
-    checks = all_checks.ALL_CHECKS
 
     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(REPO_NAME))
     test_dir_2 = tempfile.mkdtemp(prefix='test-{}-py2-'.format(REPO_NAME))

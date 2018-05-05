@@ -20,6 +20,7 @@
 set -e
 own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-bash ${own_directory}/pylint-pull-request.sh $@
-bash ${own_directory}/typecheck-pull-request.sh $@
-bash ${own_directory}/test-pull-request.sh $@
+cd ${own_directory}
+PYTHONPATH=$(git rev-parse --show-toplevel):${own_directory}:${PYTHONPATH}
+
+python3 ${own_directory}/python_ci_utils/run_checks.py $@
