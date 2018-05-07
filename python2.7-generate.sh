@@ -46,8 +46,9 @@ trap print_cached_err ERR
 
 # Copy into output directory and convert in-place.
 cp -r "${in_dir}/cirq" "${out_dir}/cirq"
-3to2 "${out_dir}/cirq" -w >/dev/null 2> "${out_dir}/err_tmp.log"
-find "${out_dir}/cirq" | grep "\.py\.bak$" | xargs rm -f
+cp -r "${in_dir}/docs" "${out_dir}/docs"
+3to2 "${out_dir}" -w >/dev/null 2> "${out_dir}/err_tmp.log"
+find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 
 # Build protobufs.
 proto_dir="${out_dir}/cirq/api/google/v1"
