@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2018 The Cirq Developers
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,13 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# This script runs all defined checks against a pull request or local code.
-
-set -e
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-cd ${own_directory}
-PYTHONPATH=$(git rev-parse --show-toplevel):${own_directory}:${PYTHONPATH}
-
-python3 ${own_directory}/python_ci_utils/run_checks.py $@
+OWN_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PYTHONPATH=${OWN_DIRECTORY}:${PYTHONPATH}
+python3 ${OWN_DIRECTORY}/python_ci_utils/incremental_coverage.py

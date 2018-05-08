@@ -43,18 +43,28 @@ def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
 
 def create_virtual_env(venv_path: str,
                        requirements_path: str,
-                       python_path: str) -> None:
+                       python_path: str,
+                       verbose: bool) -> None:
     """Creates a new virtual environment and then installs dependencies.
 
     Args:
         venv_path: Where to put the virtual environment's state.
         requirements_path: Location of the requirements file to -r install.
         python_path: The python binary to use.
+        verbose: When set, more progress output is produced.
     """
-    shell_tools.run_cmd('virtualenv', '-p', python_path, venv_path,
+    shell_tools.run_cmd('virtualenv',
+                        None if verbose else '--quiet',
+                        '-p',
+                        python_path,
+                        venv_path,
                         out=sys.stderr)
     pip_path = os.path.join(venv_path, 'bin', 'pip')
-    shell_tools.run_cmd(pip_path, 'install', '-r', requirements_path,
+    shell_tools.run_cmd(pip_path,
+                        'install',
+                        None if verbose else '--quiet',
+                        '-r',
+                        requirements_path,
                         out=sys.stderr)
 
 
@@ -62,6 +72,7 @@ def prepare_temporary_test_environment(
         destination_directory: str,
         repository: GithubRepository,
         pull_request_number: Optional[int],
+        verbose: bool,
         env_name: str = '.test_virtualenv',
         python_path: str = '/usr/bin/python3.5',
         commit_ids_known_callback: Callable[[PreparedEnv], None] = None
@@ -76,6 +87,7 @@ def prepare_temporary_test_environment(
             request number is given.
         pull_request_number: If set, test content is fetched from github.
             Otherwise copies of local files are used.
+        verbose: When set, more progress output is produced.
         env_name: The name to use for the virtual environment.
         python_path: Location of the python binary to use within the
             virtual environment.
@@ -93,7 +105,8 @@ def prepare_temporary_test_environment(
             pull_request_number=pull_request_number)
     else:
         env = git_env_tools.fetch_local_files(
-            destination_directory=destination_directory)
+            destination_directory=destination_directory,
+            verbose=verbose)
 
     if commit_ids_known_callback is not None:
         commit_ids_known_callback(env)
@@ -104,7 +117,8 @@ def prepare_temporary_test_environment(
     req_path = os.path.join(base_path, 'requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
-                       requirements_path=req_path)
+                       requirements_path=req_path,
+                       verbose=verbose)
 
     return PreparedEnv(repository=env.repository,
                        actual_commit_id=env.actual_commit_id,
@@ -116,6 +130,7 @@ def prepare_temporary_test_environment(
 def derive_temporary_python2_environment(
         destination_directory: str,
         python3_environment: PreparedEnv,
+        verbose: bool,
         env_name: str = '.test_virtualenv_py2',
         python_path: str = "/usr/bin/python2.7") -> PreparedEnv:
     """Creates a python 2.7 environment starting from a prepared python 3 one.
@@ -123,6 +138,7 @@ def derive_temporary_python2_environment(
     Args:
         destination_directory: Where to put the python 2 environment.
         python3_environment: The prepared environment to start from.
+        verbose: When set, more progress output is produced.
         env_name: The name to use for the virtualenv directory.
         python_path: The python binary to use.
 
@@ -148,7 +164,8 @@ def derive_temporary_python2_environment(
     req_path = os.path.join(destination_directory, 'requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
-                       requirements_path=req_path)
+                       requirements_path=req_path,
+                       verbose=verbose)
 
     return PreparedEnv(repository=python3_environment.repository,
                        actual_commit_id=python3_environment.actual_commit_id,
