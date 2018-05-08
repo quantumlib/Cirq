@@ -12,18 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods for running studies (repeated trials)."""
+"""Defines which types are Sweepable."""
 
-from cirq.study.resolver import (
-    ParamResolver,
-)
-from cirq.study.study import (
-    TrialResult,
-)
-from cirq.study.sweepable import (
-    Sweepable,
-)
-from cirq.study.sweeps import (
-    Points,
-    Sweep,
-)
+from typing import Iterable, Union
+
+from cirq.study.resolver import ParamResolver
+from cirq.study.sweeps import Sweep
+
+
+Sweepable = Union[
+    ParamResolver, Iterable[ParamResolver], Sweep, Iterable[Sweep]]
