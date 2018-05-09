@@ -15,6 +15,7 @@ Welcome to Cirq's documentation!
     gates
     simulation
     schedules
+    api
     advanced
 
 Reference

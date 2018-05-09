@@ -22,4 +22,6 @@ cd "$repo_root"
 pip install -r docs/requirements.txt
 
 cd docs/
+# Remove any previous built docs.
+rm -rf _build reference
 make html

@@ -54,6 +54,7 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
@@ -180,3 +181,7 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+
+# Generate subpages for reference docs automatically.
+# http://www.sphinx-doc.org/en/master/ext/autosummary.html#generating-stub-pages-automatically
+autosummary_generate = True
