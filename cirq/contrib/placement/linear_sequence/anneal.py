@@ -164,7 +164,8 @@ class AnnealSequenceSearch(object):
                 for j in range(len(seqs[i])):
                     if node == seqs[i][j]:
                         return seqs[i], i, j
-            raise ValueError
+
+            raise ValueError("Given node does not appear on any sequence")
 
         n0, n1 = edge
 
@@ -338,7 +339,7 @@ class AnnealSequenceSearch(object):
                 return e
             index -= 1
 
-        raise ValueError
+        raise ValueError("Edge at index %d cannot be found" % index)
 
 
 def anneal_sequence(
