@@ -106,7 +106,7 @@ async def _async_wait_for_process(
     return output, err_output, process.returncode
 
 
-def run_cmd(*cmd: str,
+def run_cmd(*cmd: Optional[str],
             out: Optional[Union[TeeCapture, IO[str]]] = sys.stdout,
             err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr,
             raise_on_fail: bool = True,
@@ -145,19 +145,20 @@ def run_cmd(*cmd: str,
          subprocess.CalledProcessError: The process returned a non-zero error
             code and raise_on_fail was set.
     """
+    kept_cmd = [cast(str, e) for e in cmd if e is not None]
     if log_run_to_stderr:
         print('run:', cmd, file=sys.stderr)
     result = asyncio.get_event_loop().run_until_complete(
         _async_wait_for_process(
             asyncio.create_subprocess_exec(
-                *cmd,
+                *kept_cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 **kwargs),
             out,
             err))
     if raise_on_fail and result[2]:
-        raise subprocess.CalledProcessError(result[2], cmd)
+        raise subprocess.CalledProcessError(result[2], kept_cmd)
     return result
 
 
@@ -216,7 +217,7 @@ def run_shell(cmd: str,
     return result
 
 
-def output_of(*cmd: str, **kwargs) -> str:
+def output_of(*cmd: Optional[str], **kwargs) -> str:
     """Invokes a subprocess and returns its output as a string.
 
     Args:

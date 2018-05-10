@@ -81,16 +81,14 @@ class PreparedEnv:
         if state not in ['error', 'failure', 'pending', 'success']:
             raise ValueError('Unrecognized state: {!r}'.format(state))
 
+        if self.repository is None or self.repository.access_token is None:
+            return
+
         print(repr(('report_status',
                     context,
                     state,
                     description,
                     target_url)), file=sys.stderr)
-
-        if self.repository is None or self.repository.access_token is None:
-            print('(no access token; skipped reporting status to github)',
-                  file=sys.stderr)
-            return
 
         payload = {
             'state': state,
