@@ -2,4 +2,4 @@ recommonmark >= 0.4.0
 Sphinx
 sphinx_rtd_theme
 
--e .
+-e ..

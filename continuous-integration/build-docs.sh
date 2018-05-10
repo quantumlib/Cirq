@@ -18,10 +18,13 @@ set -e
 own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 repo_root="$( cd "$own_directory/.." && pwd )"
 
-cd "$repo_root"
-pip install -r docs/requirements.txt
+if [ -d "$repo_root/docs/_build" ] ; then
+  echo "'$repo_root/docs/_build' directory still exists." >&2
+  echo "Remove the _build directory before continuing." >&2
+  exit 1
+fi
 
-cd docs/
-# Remove any previous built docs.
-rm -rf _build reference
+cd "$repo_root/docs"
+pip install -r requirements.txt
 make html
+
