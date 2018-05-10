@@ -13,12 +13,12 @@
 # limitations under the License.
 
 from typing import Iterable
-from unittest.mock import call, patch
 
-from cirq.contrib.placement.linear_sequence.greedy import GreedySequenceSearch, \
-    MinimalConnectivityGreedySequenceSearch, LargestAreaGreedySequenceSearch, \
-    greedy_sequence
+from cirq.contrib.placement.linear_sequence.greedy import \
+    GreedySequenceSearch, MinimalConnectivityGreedySequenceSearch, \
+    LargestAreaGreedySequenceSearch, greedy_sequence
 from cirq.google import XmonDevice, XmonQubit
+from cirq.testing.mock import mock
 from cirq.value import Duration
 
 
@@ -31,7 +31,7 @@ def test_get_or_search_calls_find_sequence_once():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     search = GreedySequenceSearch(_create_device([q00, q01]), q00)
-    with patch.object(search, '_find_sequence') as find_sequence:
+    with mock.patch.object(search, '_find_sequence') as find_sequence:
         sequence = [q00, q01]
         find_sequence.return_value = sequence
 
@@ -49,13 +49,13 @@ def test_find_sequence_assembles_head_and_tail():
     qubits = [q00, q01, q02]
     start = q01
     search = GreedySequenceSearch(_create_device(qubits), start)
-    with patch.object(search, '_sequence_search') as sequence_search:
+    with mock.patch.object(search, '_sequence_search') as sequence_search:
         head = [q01, q00]
         tail = [q01, q02]
         sequence_search.side_effect = [tail, head]
         assert search._find_sequence() == qubits
         sequence_search.assert_has_calls(
-            [call(start, []), call(start, tail)])
+            [mock.call(start, []), mock.call(start, tail)])
 
 
 def test_find_sequence_calls_expand_sequence():
@@ -65,8 +65,8 @@ def test_find_sequence_calls_expand_sequence():
     qubits = [q00, q01, q02]
     start = q01
     search = GreedySequenceSearch(_create_device(qubits), start)
-    with patch.object(
-            search, '_sequence_search') as sequence_search, patch.object(
+    with mock.patch.object(
+            search, '_sequence_search') as sequence_search, mock.patch.object(
         search, '_expand_sequence') as expand_sequence:
         head = [q01, q00]
         tail = [q01, q02]
@@ -83,12 +83,12 @@ def test_search_sequence_calls_choose_next_qubit():
     qubits = [q00, q01, q02]
     search = GreedySequenceSearch(_create_device(qubits), q01)
 
-    with patch.object(search, '_choose_next_qubit') as choose_next_qubit:
+    with mock.patch.object(search, '_choose_next_qubit') as choose_next_qubit:
         choose_next_qubit.return_value = None
         search._sequence_search(q01, [])
         choose_next_qubit.assert_called_once_with(q01, {q01})
 
-    with patch.object(search, '_choose_next_qubit') as choose_next_qubit:
+    with mock.patch.object(search, '_choose_next_qubit') as choose_next_qubit:
         choose_next_qubit.return_value = None
         search._sequence_search(q01, [q00])
         choose_next_qubit.assert_called_once_with(q01, {q00, q01})
@@ -101,7 +101,7 @@ def test_search_sequence_assembles_sequence():
     qubits = [q00, q01, q02]
     search = GreedySequenceSearch(_create_device(qubits), q01)
 
-    with patch.object(search, '_choose_next_qubit') as choose_next_qubit:
+    with mock.patch.object(search, '_choose_next_qubit') as choose_next_qubit:
         choose_next_qubit.side_effect = [q01, q02, None]
         assert search._sequence_search(q00, []) == [q00, q01, q02]
 
@@ -196,7 +196,8 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q10, q11]
     start = q00
     search = GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02]) == [q00, q10, q11, q01, q02]
+    assert search._expand_sequence([q00, q01, q02]) == [q00, q10, q11, q01,
+                                                        q02]
 
     # +    ->  +
     # |        |
@@ -206,7 +207,8 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q11, q12]
     start = q00
     search = GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02]) == [q00, q01, q11, q12, q02]
+    assert search._expand_sequence([q00, q01, q02]) == [q00, q01, q11, q12,
+                                                        q02]
 
     # +    ->  +
     # |        |
@@ -218,7 +220,8 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q03, q11, q12]
     start = q00
     search = GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02, q03]) == [q00, q01, q11, q12,
+    assert search._expand_sequence([q00, q01, q02, q03]) == [q00, q01, q11,
+                                                             q12,
                                                              q02, q03]
 
     # + +  ->  +-+
@@ -233,12 +236,15 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q03, q04, q10, q11, q13, q14]
     start = q00
     search = GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02, q03, q04]) == [q00, q10, q11,
-                                                                  q01, q02, q03,
-                                                                  q13, q14, q04]
+    assert search._expand_sequence([q00, q01, q02, q03, q04]) == [q00, q10,
+                                                                  q11,
+                                                                  q01, q02,
+                                                                  q03,
+                                                                  q13, q14,
+                                                                  q04]
 
 
-def test_sequence_search_chooses_minimal():
+def test_minimal_sequence_search_chooses_minimal():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     q20 = XmonQubit(2, 0)
@@ -252,7 +258,7 @@ def test_sequence_search_chooses_minimal():
     assert search._choose_next_qubit(q10, {q10}) == q00
 
 
-def test_sequence_search_does_not_use_used():
+def test_minimal_sequence_search_does_not_use_used():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     q20 = XmonQubit(2, 0)
@@ -266,7 +272,7 @@ def test_sequence_search_does_not_use_used():
     assert search._choose_next_qubit(q10, {q00, q10}) == q20
 
 
-def test_sequence_search_returns_none_for_single_node():
+def test_minimal_sequence_search_returns_none_for_single_node():
     q00 = XmonQubit(0, 0)
     qubits = [q00]
     search = MinimalConnectivityGreedySequenceSearch(_create_device(qubits),
@@ -274,7 +280,7 @@ def test_sequence_search_returns_none_for_single_node():
     assert search._choose_next_qubit(q00, {q00}) is None
 
 
-def test_sequence_search_returns_none_when_blocked():
+def test_minimal_sequence_search_returns_none_when_blocked():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     qubits = [q00, q10]
@@ -283,7 +289,7 @@ def test_sequence_search_returns_none_when_blocked():
     assert search._choose_next_qubit(q10, {q00, q10}) is None
 
 
-def test_sequence_search_traverses_grid():
+def test_minimal_sequence_search_traverses_grid():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     q11 = XmonQubit(1, 1)
@@ -307,7 +313,7 @@ def test_sequence_search_traverses_grid():
     assert search._choose_next_qubit(q50, {q20, q30, q40, q50}) is None
 
 
-def test_sequence_search_chooses_largest():
+def test_largest_sequence_search_chooses_largest():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     q20 = XmonQubit(2, 0)
@@ -320,7 +326,7 @@ def test_sequence_search_chooses_largest():
     assert search._choose_next_qubit(q10, {q10}) == q20
 
 
-def test_sequence_search_does_not_use_used():
+def test_largest_sequence_search_does_not_use_used():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     q20 = XmonQubit(2, 0)
@@ -333,7 +339,7 @@ def test_sequence_search_does_not_use_used():
     assert search._choose_next_qubit(q10, {q10, q20}) == q00
 
 
-def test_sequence_search_traverses_grid():
+def test_largest_sequence_search_traverses_grid():
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     q11 = XmonQubit(1, 1)
@@ -357,7 +363,7 @@ def test_sequence_search_traverses_grid():
     assert search._choose_next_qubit(q42, {q20, q30, q40, q41, q42}) is None
 
 
-def test_collect_unused_collects_all_for_empty():
+def test_largest_collect_unused_collects_all_for_empty():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q02 = XmonQubit(0, 2)
@@ -369,7 +375,7 @@ def test_collect_unused_collects_all_for_empty():
     assert search._collect_unused(start, {start}) == set(qubits)
 
 
-def test_collect_unused_collects():
+def test_largest_collect_unused_collects():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q02 = XmonQubit(0, 2)
@@ -380,7 +386,7 @@ def test_collect_unused_collects():
     assert search._collect_unused(start, {q00, q01}) == {q01, q02, q12}
 
 
-def test_collect_stops_on_used():
+def test_largest_collect_stops_on_used():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q02 = XmonQubit(0, 2)
@@ -397,10 +403,10 @@ def test_collect_stops_on_used():
                                                            q03}
 
 
-@patch(
-    'cirq.contrib.placement.linear_sequence.greedy.LargestAreaGreedySequenceSearch')
-@patch(
-    'cirq.contrib.placement.linear_sequence.greedy.MinimalConnectivityGreedySequenceSearch')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+            'LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+            'MinimalConnectivityGreedySequenceSearch')
 def test_greedy_sequence_calls_all(largest, minimal):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -414,10 +420,10 @@ def test_greedy_sequence_calls_all(largest, minimal):
     minimal_instance.get_or_search.assert_called_once_with()
 
 
-@patch(
-    'cirq.contrib.placement.linear_sequence.greedy.LargestAreaGreedySequenceSearch')
-@patch(
-    'cirq.contrib.placement.linear_sequence.greedy.MinimalConnectivityGreedySequenceSearch')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+            'LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+            'MinimalConnectivityGreedySequenceSearch')
 def test_greedy_sequence_returns_longest(largest, minimal):
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
@@ -428,10 +434,10 @@ def test_greedy_sequence_returns_longest(largest, minimal):
     assert greedy_sequence(_create_device([])) == [sequence_long]
 
 
-@patch(
-    'cirq.contrib.placement.linear_sequence.greedy.LargestAreaGreedySequenceSearch')
-@patch(
-    'cirq.contrib.placement.linear_sequence.greedy.MinimalConnectivityGreedySequenceSearch')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+            'LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+            'MinimalConnectivityGreedySequenceSearch')
 def test_greedy_sequence_returns_empty_when_empty(largest, minimal):
     largest.return_value.get_or_search.return_value = []
     minimal.return_value.get_or_search.return_value = []

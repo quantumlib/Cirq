@@ -15,9 +15,9 @@
 import abc
 import collections
 
-from typing import Dict, List, Set
-from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list, \
-    yx_cmp
+from typing import Dict, List, Optional, Set
+from cirq.contrib.placement.linear_sequence.chip import \
+    chip_as_adjacency_list, yx_cmp
 from cirq.google import XmonDevice, XmonQubit
 
 
@@ -28,7 +28,7 @@ class GreedySequenceSearch(object):
     method.
     """
 
-    def __init__(self, device: XmonDevice, start: XmonQubit):
+    def __init__(self, device: XmonDevice, start: XmonQubit) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -44,7 +44,7 @@ class GreedySequenceSearch(object):
         self._c = device.qubits
         self._c_adj = chip_as_adjacency_list(device)
         self._start = start
-        self._sequence = None
+        self._sequence = None  # type: Optional[List[XmonQubit]]
 
     def get_or_search(self) -> List[XmonQubit]:
         """Starts the search or gives previously calculated sequence.
@@ -58,7 +58,7 @@ class GreedySequenceSearch(object):
 
     @abc.abstractmethod
     def _choose_next_qubit(self, qubit: XmonQubit,
-                           used: Set[XmonQubit]) -> XmonQubit:
+                           used: Set[XmonQubit]) -> Optional[XmonQubit]:
         """Selects next qubit on the linear sequence.
 
         Args:
@@ -110,7 +110,7 @@ class GreedySequenceSearch(object):
         """
         used = set(current)
         seq = []
-        n = start
+        n = start  # type: Optional[XmonQubit]
         while n is not None:
             # Append qubit n to the sequence and mark it is as visited.
             seq.append(n)
@@ -139,7 +139,7 @@ class GreedySequenceSearch(object):
         return seq
 
     def _find_path_between(self, p: XmonQubit, q: XmonQubit,
-                           used: Set[XmonQubit]) -> List[XmonQubit]:
+                           used: Set[XmonQubit]) -> Optional[List[XmonQubit]]:
         """Searches for continuous sequence between two qubits.
 
         This method runs two BFS algorithms in palarel (alternating variable s
@@ -166,8 +166,9 @@ class GreedySequenceSearch(object):
             return path
 
         other = {p: q, q: p}
-        parents = {p: dict(), q: dict()}
-        visited = {p: set(), q: set()}
+        parents = {p: dict(), q: dict()}  \
+            # type: Dict[XmonQubit, Dict[XmonQubit, XmonQubit]]
+        visited = {p: set(), q: set()}  # type: Dict[XmonQubit, Set[XmonQubit]]
 
         queue = collections.deque([(p, p), (q, q)])
 
@@ -199,11 +200,11 @@ class MinimalConnectivityGreedySequenceSearch(GreedySequenceSearch):
     available neighbours in each step.
     """
 
-    def __init__(self, c: XmonDevice, start: XmonQubit):
+    def __init__(self, c: XmonDevice, start: XmonQubit) -> None:
         GreedySequenceSearch.__init__(self, c, start)
 
     def _choose_next_qubit(self, qubit: XmonQubit,
-                           used: Set[XmonQubit]) -> XmonQubit:
+                           used: Set[XmonQubit]) -> Optional[XmonQubit]:
         best = None
         best_size = None
         for m in self._c_adj[qubit]:
@@ -222,12 +223,12 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
     part of the chip, when this qubit is added to the sequence.
     """
 
-    def __init__(self, c: XmonDevice, start: XmonQubit):
+    def __init__(self, c: XmonDevice, start: XmonQubit) -> None:
         GreedySequenceSearch.__init__(self, c, start)
 
     def _choose_next_qubit(self, qubit: XmonQubit,
-                           used: Set[XmonQubit]) -> XmonQubit:
-        analyzed = set()
+                           used: Set[XmonQubit]) -> Optional[XmonQubit]:
+        analyzed = set()  # type: Set[XmonQubit]
         best = None
         best_size = None
         for m in self._c_adj[qubit]:
@@ -264,7 +265,7 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
                 if m not in used and m not in visited:
                     collect(m, visited)
 
-        visited = set()
+        visited = set()  # type: Set[XmonQubit]
         collect(start, visited)
         return visited
 
