@@ -34,7 +34,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Cirq'
-copyright = '2018, The Cirq Developers'
+copyright = '2018, The Cirq Developers'  # pylint: disable=redefined-builtin
 author = 'The Cirq Developers'
 
 # The short X.Y version
