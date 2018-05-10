@@ -296,7 +296,7 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
     Returns:
         A list of operations implementing the matrix.
     """
-    _, (a1, a0), (x, y, z), (b1, b0) = linalg.kak_decomposition(
+    _, (a0, a1), (x, y, z), (b0, b1) = linalg.kak_decomposition(
         mat,
         linalg.Tolerance(atol=tolerance))
 
@@ -346,8 +346,8 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
 
         return _xx_interaction_via_full_czs(q0, q1, x)
 
-    pre = [do_single_on(b1, q1), do_single_on(b0, q0)]
-    post = [do_single_on(a1, q1), do_single_on(a0, q0)]
+    pre = [do_single_on(b0, q0), do_single_on(b1, q1)]
+    post = [do_single_on(a0, q0), do_single_on(a1, q1)]
 
     return list(ops.flatten_op_tree([
         pre,

@@ -210,9 +210,9 @@ class CNotGate(gate_features.TextDiagrammableGate,
     def matrix(self):
         """See base class."""
         return np.array([[1, 0, 0, 0],
+                         [0, 1, 0, 0],
                          [0, 0, 0, 1],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0]])
+                         [0, 0, 1, 0]])
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,

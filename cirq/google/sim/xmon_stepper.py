@@ -74,10 +74,17 @@ class Stepper(object):
               not.
           initial_state: If this is an int, then this is the state to
               initialize the stepper to, expressed as an integer of the
-              computational basis. Integer to bitwise indices is little endian.
-              Otherwise if this is a np.ndarray it is the full initial state
+              computational basis. The 1s bit of the integer determines the
+              values of the last qubit, the 2s bit determines the value of the
+              second-to-last-qubit, and so forth. This sounds odd, but it
+              matches how people write numbers: the smallest value digit goes
+              last.
+              Otherwise, if this is a np.ndarray it is the full initial state
               and this must be the correct size, normalized (an L2 norm of 1),
-              and have dtype of np.complex64.
+              and have dtype of np.complex64. An array with zeroes everywhere,
+              except for a 1 at index k, is equivalent to state prepared when
+              the initial state is set to the integer k.
+
           min_qubits_before_shard: Sharding will be done only for this number
               of qubits or more. The default is 18.
         """

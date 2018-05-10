@@ -18,8 +18,10 @@ from cirq.study.resolver import (
     ParamResolver,
 )
 from cirq.study.study import (
-    Sweepable,
     TrialResult,
+)
+from cirq.study.sweepable import (
+    Sweepable,
 )
 from cirq.study.sweeps import (
     Points,
