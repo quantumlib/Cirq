@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,15 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simulators specific to Google's quantum hardware.
-"""
+set -e
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+repo_root="$( cd "$own_directory/.." && pwd )"
 
-from cirq.google.sim.xmon_simulator import (
-    Options,
-    Simulator,
-    StepResult,
-    SimulatorTrialResult,
-)
-from cirq.google.sim.xmon_stepper import (
-    Stepper,
-)
+if [ -d "$repo_root/docs/_build" ] ; then
+  echo "'$repo_root/docs/_build' directory still exists." >&2
+  echo "Remove the _build directory before continuing." >&2
+  exit 1
+fi
+
+cd "$repo_root/docs"
+pip install -r requirements.txt
+make html
+

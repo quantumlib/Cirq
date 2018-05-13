@@ -13,3 +13,6 @@ __pycache__
 *.coverage.*
 # packaging
 *.egg-info/
+# Sphinx
+_build
+docs/reference
