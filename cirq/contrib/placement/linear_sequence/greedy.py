@@ -32,11 +32,11 @@ class GreedySequenceSearch(object):
         """Greedy sequence search constructor.
 
         Args:
-          device: Chip description.
-          start: Starting qubit.
+            device: Chip description.
+            start: Starting qubit.
 
         Raises:
-          ValueError: When start qubit is not part of a chip.
+            ValueError: When start qubit is not part of a chip.
         """
         if start not in device.qubits:
             raise ValueError('Starting qubit must be a qubit on the chip')
@@ -50,7 +50,7 @@ class GreedySequenceSearch(object):
         """Starts the search or gives previously calculated sequence.
 
         Returns:
-          The linear qubit sequence found.
+            The linear qubit sequence found.
         """
         if not self._sequence:
             self._sequence = self._find_sequence()
@@ -62,14 +62,15 @@ class GreedySequenceSearch(object):
         """Selects next qubit on the linear sequence.
 
         Args:
-          qubit: Last qubit which is already present on the linear sequence of
-                 qubits.
-          used: Set of forbidden qubits which can not be used.
+            qubit: Last qubit which is already present on the linear sequence
+                   of qubits.
+            used: Set of forbidden qubits which can not be used.
 
-        Returns: Next qubit to be appended to the linear sequence, chosen
-          according to the greedy heursitic method. The returned qubit will be
-          the one passed to the next invocation of this method. Returns None if
-          no more qubits are available and search should stop.
+        Returns:
+            Next qubit to be appended to the linear sequence, chosen according
+            to the greedy heursitic method. The returned qubit will be the one
+            passed to the next invocation of this method. Returns None if no
+            more qubits are available and search should stop.
         """
 
     def _find_sequence(self) -> List[XmonQubit]:
@@ -80,7 +81,7 @@ class GreedySequenceSearch(object):
         returned sequence.
 
         Returns:
-          The longest sequence found by this method.
+            The longest sequence found by this method.
         """
         # Run the first pass and drop starting qubit from the found sequence.
         tail = self._sequence_search(self._start, [])
@@ -100,13 +101,13 @@ class GreedySequenceSearch(object):
         sequences that begin and end on this qubit are searched for.
 
         Args:
-          start: The first qubit, where search should be trigerred from.
-          current: Previously found linear sequence, which qubits are forbidden
-                   to use during the search.
+            start: The first qubit, where search should be trigerred from.
+            current: Previously found linear sequence, which qubits are
+                     forbidden to use during the search.
 
         Returns:
-          Continuous linear sequence that begins with the starting qubit and
-          does not contain any qubits from the current list.
+            Continuous linear sequence that begins with the starting qubit and
+            does not contain any qubits from the current list.
         """
         used = set(current)
         seq = []
@@ -123,11 +124,11 @@ class GreedySequenceSearch(object):
         """Tries to expand given sequence with more qubits.
 
         Args:
-          seq: Linear sequence of qubits.
+            seq: Linear sequence of qubits.
 
         Returns:
-          New continuous linear sequence which contains all the qubits from seq
-          and possibly new qubits inserted in between.
+            New continuous linear sequence which contains all the qubits from
+            seq and possibly new qubits inserted in between.
         """
         i = 1
         while i < len(seq):
@@ -149,13 +150,13 @@ class GreedySequenceSearch(object):
         the search is stopped and new path returned.
 
         Args:
-          p: The first qubit, start of the sequence.
-          q: The second qubit, end of the sequence.
-          used: Set of forbidden qubits which cannot appear on the sequence.
+            p: The first qubit, start of the sequence.
+            q: The second qubit, end of the sequence.
+            used: Set of forbidden qubits which cannot appear on the sequence.
 
         Returns:
-          Continues sequence of qubits with new path between p and q, or None if
-          no path was found.
+            Continues sequence of qubits with new path between p and q, or None
+            if no path was found.
         """
 
         def assemble_path(n: XmonQubit, parent: Dict[XmonQubit, XmonQubit]):
@@ -166,7 +167,7 @@ class GreedySequenceSearch(object):
             return path
 
         other = {p: q, q: p}
-        parents = {p: dict(), q: dict()}  \
+        parents = {p: dict(), q: dict()} \
             # type: Dict[XmonQubit, Dict[XmonQubit, XmonQubit]]
         visited = {p: set(), q: set()}  # type: Dict[XmonQubit, Set[XmonQubit]]
 
@@ -250,13 +251,14 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
         """Lists all the qubits that are reachable from given qubit.
 
         Args:
-          start: The first qubit for which connectivity should be calculated.
-                 Might be a member of used set.
-          used: Already used qubits, which cannot be used during the collection.
+            start: The first qubit for which connectivity should be calculated.
+                   Might be a member of used set.
+            used: Already used qubits, which cannot be used during the
+                  collection.
 
         Returns:
-          Set of qubits that are reachable from starting qubit without
-          traversing any of the used qubits.
+            Set of qubits that are reachable from starting qubit without
+            traversing any of the used qubits.
         """
 
         def collect(n: XmonQubit, visited: Set[XmonQubit]):
@@ -275,11 +277,11 @@ def greedy_sequence(device: XmonDevice,
     """Greedy search for linear sequence of qubits on a chip.
 
     Args:
-      c: Chip description.
-      method_opts: Dictionary with heuristic configuration, unused.
+        c: Chip description.
+        method_opts: Dictionary with heuristic configuration, unused.
 
     Returns:
-      List of linear sequences found on the chip.
+        List of linear sequences found on the chip.
     """
     del method_opts
 
