@@ -42,6 +42,23 @@ def test_search_calls_anneal_minimize(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
+@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+def test_search_converts_trace_func(anneal_minimize):
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    seqs = [[q00, q01]]
+    edges = {(q00, q01)}
+    anneal_minimize.return_value = seqs, edges
+    trace_func = mock.Mock()
+
+    assert AnnealSequenceSearch(_create_device([])).search(
+        trace_func=trace_func) == seqs
+    wrapper_func = anneal_minimize.call_args[1]['trace_func']
+
+    wrapper_func((seqs, edges), 1.0, 2.0, 3.0, True)
+    trace_func.assert_called_once_with(seqs, 1.0, 2.0, 3.0, True)
+
+
 def test_quadratic_sum_cost_calculates_quadratic_cost():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -49,7 +66,7 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
     q03 = XmonQubit(0, 3)
 
     def calculate_cost(seqs: List[List[XmonQubit]]):
-        qubits = [] # type: List[XmonQubit]
+        qubits = []  # type: List[XmonQubit]
         for seq in seqs:
             qubits += seq
         return AnnealSequenceSearch(
@@ -98,6 +115,14 @@ def test_force_edge_active_move_does_not_change_input():
     search._force_edge_active_move((seqs, edges))
     assert seqs_copy == seqs
     assert edges_copy == edges
+
+
+def test_force_edge_active_move_quits_when_no_free_edge():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    search = AnnealSequenceSearch(_create_device([q00, q01]))
+    seqs, edges = search._create_initial_solution()
+    assert search._force_edge_active_move((seqs, edges)) == (seqs, edges)
 
 
 def test_force_edge_active_move_calls_force_edge_active():
@@ -227,6 +252,14 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
         [[q20, q10, q00, q01, q11, q21, q31], [q30]],
         (q20, q21), lambda: True) == [[q30], [q10, q00, q01, q11, q21, q20],
                                       [q31]]
+
+    # +-+-+ + -> +-+-+ +
+    # |          |   |
+    # +-+-+-+    +-+ +-+
+    samples = iter([True, False])
+    assert search._force_edge_active(
+        [[q20, q10, q00, q01, q11, q21, q31], [q30]], (q20, q21),
+        lambda: next(samples)) == [[q30], [q31, q21, q20, q10, q00, q01, q11]]
 
     # +-+-+ + -> +-+ + +
     # |          |   |
