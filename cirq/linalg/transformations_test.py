@@ -14,7 +14,10 @@
 
 import numpy as np
 
-from cirq.linalg.transformations import reflection_matrix_pow
+from cirq.linalg.transformations import (
+    reflection_matrix_pow,
+    match_global_phase,
+)
 
 
 def test_reflection_matrix_pow_consistent_results():
@@ -55,3 +58,41 @@ def test_reflection_matrix_sign_preference_under_perturbation():
         sqrt_px = reflection_matrix_pow(px, 0.5)
         np.testing.assert_allclose(np.dot(sqrt_px, sqrt_px), px, atol=1e-10)
         np.testing.assert_allclose(sqrt_px, expected_sqrt_px, atol=1e-10)
+
+
+def test_match_global_phase():
+    a = np.array([[5, 4], [3, -2]])
+    b = np.array([[0.000001, 0], [0, 1j]])
+    c, d = match_global_phase(a, b)
+    np.testing.assert_allclose(c, -a)
+    np.testing.assert_allclose(d, b * -1j)
+
+
+def test_match_global_phase_zeros():
+    z = np.array([[0, 0], [0, 0]])
+    b = np.array([[1, 1], [1, 1]])
+
+    z1, b1 = match_global_phase(z, b)
+    np.testing.assert_allclose(z, z1)
+    np.testing.assert_allclose(b, b1)
+
+    z2, b2 = match_global_phase(z, b)
+    np.testing.assert_allclose(z, z2)
+    np.testing.assert_allclose(b, b2)
+
+    z3, z4 = match_global_phase(z, z)
+    np.testing.assert_allclose(z, z3)
+    np.testing.assert_allclose(z, z4)
+
+
+def test_match_global_no_float_error_when_axis_aligned():
+    a = np.array([[1, 1.1], [-1.3, np.pi]])
+    a2, _ = match_global_phase(a, a)
+    a3, _ = match_global_phase(a * 1j, a * 1j)
+    a4, _ = match_global_phase(-a, -a)
+    a5, _ = match_global_phase(a * -1j, a * -1j)
+
+    assert np.all(a2 == a)
+    assert np.all(a3 == a)
+    assert np.all(a4 == a)
+    assert np.all(a5 == a)
