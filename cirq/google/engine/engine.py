@@ -25,7 +25,6 @@ from collections import Iterable
 from typing import Dict, List, Optional, Union, cast
 
 import numpy as np
-import oauth2client
 from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
