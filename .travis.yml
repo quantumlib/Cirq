@@ -1,0 +1,19 @@
+sudo: false
+language: python
+matrix:
+  include:
+  - os: linux
+    python: "3.5"
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['gcc-4.9', 'g++-4.9']
+    env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=3.5
+
+before_install:
+  - pip install --upgrade pip setuptools wheel
+
+install:
+  - pip install -r requirements.txt
+
+script: pytest
