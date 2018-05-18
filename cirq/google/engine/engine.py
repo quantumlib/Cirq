@@ -239,10 +239,12 @@ class Engine:
             sweep_proto = proto_program.parameter_sweeps.add()
             sweep_to_proto(sweep, sweep_proto)
             sweep_proto.repetitions = repetitions
-        proto_program.operations.extend(list(schedule_to_proto(schedule)))
+        program_dict = MessageToDict(proto_program)
+        program_dict['operations'] = [MessageToDict(op) for op in
+                                      schedule_to_proto(schedule)]
         code = {
             '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
-        code.update(MessageToDict(proto_program))
+        code.update(program_dict)
         request = {
             'name': 'projects/%s/programs/%s' % (project_id,
                                                  program_id,),

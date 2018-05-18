@@ -12,13 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines a study.
-"""
-
-from typing import Iterable, Union
-
-from cirq.study.resolver import ParamResolver
-from cirq.study.sweeps import Sweep
+"""Defines a study."""
 
 
 class TrialResultMeta(type):
@@ -49,7 +43,3 @@ class TrialResult(metaclass=TrialResultMeta):
             the first index running over the repetitions, and the second index
             running over the qubits for the corresponding measurements.
     """
-
-
-Sweepable = Union[
-    ParamResolver, Iterable[ParamResolver], Sweep, Iterable[Sweep]]

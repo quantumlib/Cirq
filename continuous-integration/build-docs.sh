@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods for running studies (repeated trials)."""
+set -e
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+repo_root="$( cd "$own_directory/.." && pwd )"
 
-from cirq.study.resolver import (
-    ParamResolver,
-)
-from cirq.study.study import (
-    TrialResult,
-)
-from cirq.study.sweepable import (
-    Sweepable,
-)
-from cirq.study.sweeps import (
-    Points,
-    Sweep,
-)
+if [ -d "$repo_root/docs/_build" ] ; then
+  echo "'$repo_root/docs/_build' directory still exists." >&2
+  echo "Remove the _build directory before continuing." >&2
+  exit 1
+fi
+
+cd "$repo_root/docs"
+pip install -r requirements.txt
+make html
+
