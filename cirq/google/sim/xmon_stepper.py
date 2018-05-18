@@ -547,7 +547,7 @@ def _renorm(args: Dict[str, Any]):
     """Renormalizes the state using the norm arg."""
     state = _state_shard(args)
     # If our gate is so bad that we have norm of zero, we have bigger problems.
-    state /= args['norm']
+    state /= np.sqrt(args['norm'])
 
 
 def _collapse_state(args: Dict[str, Any]):
