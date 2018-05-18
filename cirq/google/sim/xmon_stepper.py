@@ -311,9 +311,9 @@ class Stepper(object):
             self._pool.map(_w_within_shard, args)
 
         # Normalize after every w.
-        norm = np.sum(self._pool.map(_norm, args))
+        norm_squared = np.sum(self._pool.map(_norm_squared, args))
         args = self._shard_num_args({
-            'norm': norm
+            'norm_squared': norm_squared
         })
         self._pool.map(_renorm, args)
 
@@ -537,7 +537,7 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
     return norm * norm
 
 
-def _norm(args: Dict[str, Any]) -> float:
+def _norm_squared(args: Dict[str, Any]) -> float:
     """Returns the norm for each state shard."""
     state = _state_shard(args)
     return float(np.real(np.dot(state, np.conjugate(state))))
@@ -547,7 +547,7 @@ def _renorm(args: Dict[str, Any]):
     """Renormalizes the state using the norm arg."""
     state = _state_shard(args)
     # If our gate is so bad that we have norm of zero, we have bigger problems.
-    state /= np.sqrt(args['norm'])
+    state /= np.sqrt(args['norm_squared'])
 
 
 def _collapse_state(args: Dict[str, Any]):
