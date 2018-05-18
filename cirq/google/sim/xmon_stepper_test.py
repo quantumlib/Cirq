@@ -632,7 +632,7 @@ def test_precision(num_prefix_qubits):
         expected = np.zeros(2 ** 5, dtype=np.complex64)
         expected[0] = 1.0
         # asserts that abs value of arrays is < 1.5 * 10^(-decimal)
-        np.testing.assert_almost_equal(expected, s.current_state, decimal=5)
+        np.testing.assert_almost_equal(expected, s.current_state, decimal=6)
 
 
 def test_decode_initial_state():
