@@ -75,7 +75,7 @@ def test_run_circuit(build):
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1', credentials=None,
+    build.assert_called_with('quantum', 'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
@@ -109,6 +109,36 @@ def test_run_circuit_failed(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_default_prefix(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'}
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'READY'}}
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'SUCCESS'}}
+    jobs.getResult().execute.return_value = {
+        'result': MessageToDict(_A_RESULT)}
+
+    result = Engine(api_key="key").run(
+        EngineOptions('org.com:project-id'), Circuit(),
+        UnconstrainedDevice)
+    assert result.repetitions == 1
+    assert result.params.param_dict == {'a': 1}
+    assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
+    build.assert_called_with('quantum', 'v1alpha1',
+                             discoveryServiceUrl=('https://{api}.googleapis.com'
+                                                  '/$discovery/rest?version='
+                                                  '{apiVersion}&key=key'))
+    assert programs.create.call_args[1]['body']['gcs_code_location'][
+        'uri'].startswith('gs://gqe-project-id/programs/')
+
+@mock.patch.object(discovery, 'build')
 def test_run_sweep_params(build):
     service = mock.Mock()
     build.return_value = service
@@ -135,7 +165,7 @@ def test_run_sweep_params(build):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1', credentials=None,
+    build.assert_called_with('quantum', 'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
@@ -179,7 +209,7 @@ def test_run_sweep_sweeps(build):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1', credentials=None,
+    build.assert_called_with('quantum', 'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
@@ -229,6 +259,7 @@ def test_cancel(build):
     assert job.state() == 'CANCELLED'
     assert jobs.cancel.call_args[1][
                'name'] == 'projects/project-id/programs/test/jobs/test'
+
 
 @mock.patch.object(discovery, 'build')
 def test_program_labels(build):
