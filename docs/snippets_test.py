@@ -80,6 +80,77 @@ def assert_code_snippets_run_in_sequence(snippets: List[str],
         assert_code_snippet_executes_correctly(snippet, state)
 
 
+def _canonicalize_printed_line_chunk(chunk: str) -> str:
+    chunk = ' ' + chunk + ' '
+    # Remove sign before zero.
+    chunk = chunk.replace('-0 ', '+0 ')
+    chunk = chunk.replace('-0. ', '+0. ')
+    chunk = chunk.replace('-0j', '+0j')
+    chunk = chunk.replace('-0.j', '+0.j')
+
+    # Remove possibly-redundant + sign.
+    chunk = chunk.replace(' +0. ', ' 0. ')
+    chunk = chunk.replace(' +0.j', ' 0.j')
+
+    # Remove double-spacing.
+    while '  ' in chunk:
+        chunk = chunk.replace('  ', ' ')
+
+    # Remove spaces before imaginary unit.
+    while ' j' in chunk:
+        chunk = chunk.replace(' j', 'j')
+
+    # Remove padding spaces.
+    chunk = chunk.strip()
+
+    if chunk.startswith('+'):
+        chunk = chunk[1:]
+
+    return chunk
+
+
+def canonicalize_printed_line(line: str) -> str:
+    """Remove minor variations between outputs on some systems.
+
+    Basically, numpy is extremely inconsistent about where it puts spaces and
+    minus signs on 0s. This method goes through the line looking for stuff
+    that looks like it came from numpy, and if so then strips out spacing and
+    turns signed zeroes into just zeroes.
+
+    Args:
+        line: The line to canonicalize.
+
+    Returns:
+        The canonicalized line.
+    """
+    prev_end = 0
+    result = []
+    for match in re.finditer(r"\[([^\]]+\.[^\]]*)\]", line):
+        start = match.start() + 1
+        end = match.end() - 1
+        result.append(line[prev_end:start])
+        result.append(_canonicalize_printed_line_chunk(line[start:end]))
+        prev_end = end
+    result.append(line[prev_end:])
+    return ''.join(result).rstrip()
+
+
+def test_canonicalize_printed_line():
+    x = 'first [-0.5-0.j   0. -0.5j] then [-0.  0.]'
+    assert canonicalize_printed_line(x) == (
+        'first [-0.5+0.j 0. -0.5j] then [0. 0.]')
+
+    a = '[-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]'
+    b = '[-0.5-0. j  0. -0.5j  0. -0.5j -0.5+0. j]'
+    assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
+
+    assert len({canonicalize_printed_line(e)
+                for e in ['[-0.]',
+                          '[+0.]',
+                          '[ 0.]',
+                          '[0.]']}) == 1
+
+
 def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
     """Executes a snippet and compares output / errors to annotations."""
 
@@ -145,8 +216,8 @@ def assert_expected_lines_present_in_order(expected_lines: List[str],
 
     It is permitted for there to be extra actual lines between expected lines.
     """
-    expected_lines = [e.rstrip() for e in expected_lines]
-    actual_lines = [e.rstrip() for e in actual_lines]
+    expected_lines = [canonicalize_printed_line(e) for e in expected_lines]
+    actual_lines = [canonicalize_printed_line(e) for e in actual_lines]
 
     i = 0
     for expected in expected_lines:
