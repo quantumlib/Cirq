@@ -19,11 +19,11 @@ from cirq.value import Symbol
 
 
 def assert_optimizes(before, after,
-                     pre_opts=[ConvertToXmonGates(ignore_failures=True)],
-                     post_opts=[
+                     pre_opts=(ConvertToXmonGates(ignore_failures=True),),
+                     post_opts=(
                         ConvertToXmonGates(ignore_failures=True),
                         circuits.DropEmptyMoments(),
-                     ]):
+                     )):
     opt = EjectZ()
 
     for pre in pre_opts:
