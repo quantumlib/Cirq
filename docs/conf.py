@@ -147,7 +147,7 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
-}
+}  # type: ignore
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
