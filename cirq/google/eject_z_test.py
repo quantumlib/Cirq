@@ -18,21 +18,18 @@ from cirq.google import ExpZGate, ConvertToXmonGates, EjectZ
 from cirq.value import Symbol
 
 
-def assert_optimizes(before, after):
-    pre_optimizations = [
-        ConvertToXmonGates(ignore_failures=True)
-    ]
-    followup_optimizations = [
-        ConvertToXmonGates(ignore_failures=True),
-        circuits.DropEmptyMoments()
-    ]
-
+def assert_optimizes(before, after,
+                     pre_opts=[ConvertToXmonGates(ignore_failures=True)],
+                     post_opts=[
+                        ConvertToXmonGates(ignore_failures=True),
+                        circuits.DropEmptyMoments(),
+                     ]):
     opt = EjectZ()
 
-    for pre in pre_optimizations:
+    for pre in pre_opts:
         pre.optimize_circuit(before)
     opt.optimize_circuit(before)
-    for post in followup_optimizations:
+    for post in post_opts:
         post.optimize_circuit(before)
         post.optimize_circuit(after)
 
@@ -89,7 +86,9 @@ def test_early_z_pushed_to_end():
             circuits.Moment(),
             circuits.Moment(),
             circuits.Moment([ops.Z(q)**0.5]),
-        ]))
+        ]),
+        pre_opts=[ConvertToXmonGates(ignore_failures=True)],
+        post_opts=[ConvertToXmonGates(ignore_failures=True)])
 
 
 def test_multi_z_merges():
