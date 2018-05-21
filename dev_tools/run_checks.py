@@ -97,7 +97,7 @@ def main():
             print(shell_tools.highlight('Running ' + c.command_line_switch(),
                                         shell_tools.GREEN))
             result = c.context(), c.run_and_report(env, env2, verbose)
-            print(shell_tools.highlight('Finished ' + c.ccommand_line_switch(),
+            print(shell_tools.highlight('Finished ' + c.command_line_switch(),
                                         shell_tools.GREEN))
             if verbose:
                 print(result)
