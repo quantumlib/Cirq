@@ -25,7 +25,6 @@ from collections import Iterable
 from typing import Dict, List, Optional, Union, cast
 
 import numpy as np
-import oauth2client
 from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
@@ -111,8 +110,8 @@ class Engine:
     def __init__(self, api_key: str, api: str = 'quantum',
                  version: str = 'v1alpha1',
                  discovery_url: Optional[str] = None,
-                 credentials: Optional[oauth2client.client.Credentials] = None,
-                 gcs_prefix: Optional[str] = None
+                 gcs_prefix: Optional[str] = None,
+                 **kwargs
     ) -> None:
         """Engine service client.
 
@@ -129,14 +128,13 @@ class Engine:
         self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
                                                '$discovery/rest'
                                                '?version={apiVersion}&key=%s')
-        self.credentials = credentials
         self.gcs_prefix = gcs_prefix
         self.service = discovery.build(
             self.api,
             self.version,
             discoveryServiceUrl=self.discovery_url % urllib.parse.quote_plus(
                 self.api_key),
-            credentials=credentials)
+            **kwargs)
 
     def run(self,
             options: EngineOptions,
@@ -190,7 +188,10 @@ class Engine:
             Results for this run.
         """
         # Check and compute engine options.
-        gcs_prefix = options.gcs_prefix or self.gcs_prefix
+        gcs_prefix = options.gcs_prefix or self.gcs_prefix or (
+                'gs://gqe-%s/' % options.project_id[
+                                 options.project_id.rfind(
+                                     ':') + 1:])
         gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
             '/') else gcs_prefix + '/'
         if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
@@ -239,10 +240,12 @@ class Engine:
             sweep_proto = proto_program.parameter_sweeps.add()
             sweep_to_proto(sweep, sweep_proto)
             sweep_proto.repetitions = repetitions
-        proto_program.operations.extend(list(schedule_to_proto(schedule)))
+        program_dict = MessageToDict(proto_program)
+        program_dict['operations'] = [MessageToDict(op) for op in
+                                      schedule_to_proto(schedule)]
         code = {
             '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
-        code.update(MessageToDict(proto_program))
+        code.update(program_dict)
         request = {
             'name': 'projects/%s/programs/%s' % (project_id,
                                                  program_id,),
