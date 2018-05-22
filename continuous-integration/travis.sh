@@ -15,5 +15,6 @@
 # limitations under the License.
 
 
+set -e
 export PYTHONPATH=$(pwd)
 python3 dev_tools/run_travis.py
