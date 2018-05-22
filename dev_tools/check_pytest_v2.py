@@ -50,7 +50,7 @@ class Py2TestCheck(check.Check):
         venv_path = cast(str, env.virtual_env_path)
 
         pytest_path = os.path.join(venv_path, 'bin', 'pytest')
-        target_path = os.path.join(base_path, 'cirq')
+        target_path = base_path
         result = shell_tools.run_cmd(
             pytest_path,
             target_path,
