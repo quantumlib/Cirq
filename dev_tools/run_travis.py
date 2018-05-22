@@ -13,12 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
 from dev_tools import shell_tools, all_checks, prepared_env
 
 
 def main():
-    verbose = False
+    verbose = True
     checks = [
         all_checks.pylint,
         all_checks.typecheck,
@@ -26,7 +27,7 @@ def main():
         all_checks.incremental_coverage,
     ]
 
-    env = prepared_env.PreparedEnv(None, 'HEAD', 'master', '.', None)
+    env = prepared_env.PreparedEnv(None, 'HEAD', 'master', os.getcwd(), None)
     results = []
     for c in checks:
         print()
