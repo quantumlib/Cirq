@@ -14,8 +14,6 @@
 from typing import cast
 
 import re
-
-import os.path
 import sys
 
 from dev_tools import env_tools, shell_tools, check
@@ -36,12 +34,9 @@ class TestAndPrepareCoverageCheck(check.Check):
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         do_coverage = True
         base_path = cast(str, env.destination_directory)
-        venv_path = cast(str, env.virtual_env_path)
-
-        pytest_path = os.path.join(venv_path, 'bin', 'pytest')
         target_path = base_path
         result = shell_tools.run_cmd(
-            pytest_path,
+            env.bin('pytest'),
             target_path,
             None if verbose else '--quiet',
             '--cov' if do_coverage else '',

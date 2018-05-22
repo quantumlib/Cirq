@@ -32,8 +32,6 @@ class LintCheck(check.Check):
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         base_path = cast(str, env.destination_directory)
-        venv_path = cast(str, env.virtual_env_path)
-        pylint_path = os.path.join(venv_path, 'bin', 'pylint')
         rc_path = os.path.join(base_path,
                                'continuous-integration',
                                '.pylintrc')
@@ -41,7 +39,7 @@ class LintCheck(check.Check):
             env_tools.get_unhidden_ungenerated_python_files(base_path))
 
         result = shell_tools.run_cmd(
-            pylint_path,
+            env.bin('pylint'),
             '--reports=no',
             '--score=no',
             '--output-format=colorized',
