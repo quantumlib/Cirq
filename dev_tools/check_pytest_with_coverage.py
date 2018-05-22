@@ -36,7 +36,7 @@ class TestAndPrepareCoverageCheck(check.Check):
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         do_coverage = True
         base_path = cast(str, env.destination_directory)
-        target_path = os.path.join(base_path, 'cirq')
+        target_path = base_path
         result = shell_tools.run_cmd(
             env.bin('pytest'),
             target_path,

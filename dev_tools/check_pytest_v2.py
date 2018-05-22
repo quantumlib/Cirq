@@ -47,7 +47,7 @@ class Py2TestCheck(check.Check):
                            coverage: bool,
                            verbose: bool) -> Tuple[bool, str]:
         base_path = cast(str, env.destination_directory)
-        target_path = os.path.join(base_path, 'cirq')
+        target_path = base_path
         result = shell_tools.run_cmd(
             env.bin('pytest'),
             target_path,

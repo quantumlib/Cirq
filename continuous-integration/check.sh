@@ -47,6 +47,6 @@ own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${own_directory}
 cirq_dir=$(git rev-parse --show-toplevel)
 cd ${cirq_dir}
-export PYTHONPATH=${cirq_dir}:${PYTHONPATH}
+export PYTHONPATH=${cirq_dir}
 
 python3 ${cirq_dir}/dev_tools/run_checks.py $@
