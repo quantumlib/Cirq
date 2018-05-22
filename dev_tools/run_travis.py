@@ -13,7 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
+import sys
 
 from dev_tools import shell_tools, all_checks, prepared_env
 
@@ -45,6 +47,9 @@ def main():
     print("ALL CHECK RESULTS")
     for result in results:
         print(result)
+
+    if any(not e[1][1] for e in results):
+        sys.exit(1)
 
 
 if __name__ == '__main__':
