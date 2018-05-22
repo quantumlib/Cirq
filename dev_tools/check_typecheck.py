@@ -30,16 +30,14 @@ class TypeCheck(check.Check):
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         base_path = cast(str, env.destination_directory)
-        venv_path = cast(str, env.virtual_env_path)
         config_path = os.path.join(base_path,
                                    'continuous-integration',
                                    'mypy.ini')
-        mypy_path = os.path.join(venv_path, 'bin', 'mypy')
         files = list(env_tools.get_unhidden_ungenerated_python_files(
             base_path))
 
         result = shell_tools.run_cmd(
-            mypy_path,
+            env.bin('mypy'),
             '--config-file={}'.format(config_path),
             *files,
             out=shell_tools.TeeCapture(sys.stdout),
