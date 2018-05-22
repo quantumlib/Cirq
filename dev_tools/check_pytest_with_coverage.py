@@ -14,8 +14,6 @@
 from typing import cast
 
 import re
-
-import os.path
 import sys
 
 from dev_tools import env_tools, shell_tools, check
