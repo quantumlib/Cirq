@@ -145,6 +145,11 @@ def test_canonicalize_printed_line():
     assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
 
     assert len({canonicalize_printed_line(e)
+                for e in ['[2.2]',
+                          '[+2.2]',
+                          '[ 2.2]']}) == 1
+
+    assert len({canonicalize_printed_line(e)
                 for e in ['[-0.]',
                           '[+0.]',
                           '[ 0.]',
