@@ -231,6 +231,9 @@ class CNotGate(PartialReflectionGate,
         yield CZ(c, t)
         yield Y(t)**0.5
 
+    def __str__(self):
+        return 'CNOT'
+
     def __repr__(self):
         return 'CNOT'
 
