@@ -301,7 +301,13 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
         linalg.Tolerance(atol=tolerance))
 
     def is_trivial_angle(rad: float) -> bool:
-        return abs(rad) < tolerance or abs(rad - np.pi / 4) < tolerance
+        """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
+        be performed with a whole CZ.
+        """
+        # These conditions are sufficient because 0 ≤ x ≤ y ≤ pi/4, and
+        # -π/4 < z ≤ pi/4.
+        # The second abs(rad) accounts for z = -pi/4 + small error
+        return (abs(rad) < tolerance or abs(abs(rad) - np.pi / 4) < tolerance)
 
     def parity_interaction(rads: float,
                            op: Optional[ops.ReversibleGate] = None):
@@ -314,7 +320,7 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
             yield op.on(q0), op.on(q1)
 
         # If rads is pi/4 radians within tolerance, single full-CZ suffices.
-        if abs(rads - (np.pi / 4)) < tolerance:
+        if abs(abs(rads) - (np.pi / 4)) < tolerance:
             yield ops.CZ.on(q0, q1)
         else:
             yield _easy_direction_partial_cz(q0, q1, -2 * h)

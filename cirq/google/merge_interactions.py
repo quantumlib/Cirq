@@ -29,7 +29,7 @@ from cirq.google.decompositions import two_qubit_matrix_to_native_gates
 
 
 class MergeInteractions(PointOptimizer):
-    """Combines adjacent constant single-qubit rotations."""
+    """Combines series of adjacent two-qubit gates."""
 
     def __init__(self,
                  tolerance: float = 1e-8,
