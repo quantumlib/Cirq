@@ -95,9 +95,9 @@ class MergeInteractions(PointOptimizer):
         if op.qubits == (q2, q1):
             return MergeInteractions._flip_kron_order(m), True
         if op.qubits == (q1,):
-            return np.kron(np.eye(2), m), False
-        if op.qubits == (q2,):
             return np.kron(m, np.eye(2)), False
+        if op.qubits == (q2,):
+            return np.kron(np.eye(2), m), False
 
         return None
 
