@@ -279,9 +279,10 @@ class ExpWGate(XmonGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
-        if self.axis_half_turns == 0:
+        e = 0 if precision is None else 10**-precision
+        if abs(self.axis_half_turns) <= e:
             return 'X',
-        if self.axis_half_turns == 0.5:
+        if abs(self.axis_half_turns - 0.5) <= e:
             return 'Y',
         if precision is not None:
             return 'W({{:.{}}})'.format(precision).format(self.axis_half_turns),
