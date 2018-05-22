@@ -15,6 +15,7 @@
 import sys
 from typing import List, Optional
 
+import os
 import requests
 
 from dev_tools import shell_tools, github_repository
@@ -53,6 +54,11 @@ class PreparedEnv:
 
         self.destination_directory = destination_directory
         self.virtual_env_path = virtual_env_path
+
+    def bin(self, program: str) -> str:
+        if self.virtual_env_path is None:
+            return program
+        return os.path.join(self.virtual_env_path, 'bin', program)
 
     def report_status_to_github(self,
                                 state: str,
