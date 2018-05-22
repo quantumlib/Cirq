@@ -16,16 +16,9 @@ from typing import Iterator, List, Sequence, Tuple
 
 from cirq import abc
 from cirq.study.resolver import ParamResolver
-import sys
 
 
 Params = Tuple[Tuple[str, float], ...]
-
-
-def test(a):
-    if a == 4:
-        print("oh no!")
-    return True
 
 
 def _check_duplicate_keys(sweeps):
