@@ -36,8 +36,9 @@ def main():
         print(shell_tools.highlight('Running ' + c.command_line_switch(),
                                     shell_tools.GREEN))
         result = c.context(), c.perform_check(env, verbose=verbose)
-        print(shell_tools.highlight('Finished ' + c.command_line_switch(),
-                                    shell_tools.GREEN))
+        print(shell_tools.highlight(
+            'Finished ' + c.command_line_switch(),
+            shell_tools.GREEN if result[1][0] else shell_tools.RED))
         if verbose:
             print(result)
         print()
@@ -48,7 +49,7 @@ def main():
     for result in results:
         print(result)
 
-    if any(not e[1][1] for e in results):
+    if any(not e[1][0] for e in results):
         sys.exit(1)
 
 
