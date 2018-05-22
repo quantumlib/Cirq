@@ -19,6 +19,7 @@ from cirq.google.sim.xmon_simulator import (
     Options,
     Simulator,
     StepResult,
+    TrialResult,
     SimulatorTrialResult,
 )
 from cirq.google.sim.xmon_stepper import (

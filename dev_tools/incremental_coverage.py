@@ -29,6 +29,8 @@ IGNORED_LINE_PATTERNS = [
     r'^from .+ import .+$',
     # Else lines are redundant w.r.t. other lines.
     r'^else:$',
+    # Lines that are only invoked when running the file as the main file.
+    r'main\(.+'
 ]
 
 

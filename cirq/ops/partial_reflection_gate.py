@@ -107,6 +107,9 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
                              gate_features.ReversibleGate] and
                 self.can_extrapolate_effect()):
             return self
+        if (desired_type in [gate_features.SelfInverseGate] and
+                self.half_turns % 1 == 0):
+            return self
         if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
             return self
         return super().try_cast_to(desired_type)
