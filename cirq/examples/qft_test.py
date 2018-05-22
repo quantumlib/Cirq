@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.examples.supremacy import (
-    generate_supremacy_circuit,
-)
+import cirq
+from cirq.examples import generate_2x2_grid_qft_circuit
 
-from cirq.examples.qft import (
-    generate_2x2_grid_qft_circuit,
-)
+def test_generate_2x2_grid_qft_circuit():
+
+    qft_circuit = generate_2x2_grid_qft_circuit()
+
+    assert len(qft_circuit.moments) == 0
