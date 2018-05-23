@@ -299,64 +299,94 @@ def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
     _, (a0, a1), (x, y, z), (b0, b1) = linalg.kak_decomposition(
         mat,
         linalg.Tolerance(atol=tolerance))
+    return _kak_decomposition_to_native_gates(q0, q1,
+                                              a0, a1, x, y, z, b0, b1,
+                                              allow_partial_czs, tolerance)
 
-    def is_trivial_angle(rad: float) -> bool:
-        """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
-        be performed with a whole CZ.
-        """
-        # These conditions are sufficient because 0 ≤ x ≤ y ≤ pi/4, and
-        # -π/4 < z ≤ pi/4.
-        # The second abs(rad) accounts for z = -pi/4 + small error
-        return (abs(rad) < tolerance or abs(abs(rad) - np.pi / 4) < tolerance)
 
-    def parity_interaction(rads: float,
-                           op: Optional[ops.ReversibleGate] = None):
-        """Yields a ZZ interaction framed by the given operation."""
-        if abs(rads) < tolerance:
-            return
-
-        h = rads * -2 / np.pi
-        if op is not None:
-            yield op.on(q0), op.on(q1)
-
-        # If rads is pi/4 radians within tolerance, single full-CZ suffices.
-        if abs(abs(rads) - (np.pi / 4)) < tolerance:
-            yield ops.CZ.on(q0, q1)
-        else:
-            yield _easy_direction_partial_cz(q0, q1, -2 * h)
-
-        yield ops.Z(q0)**h
-        yield ops.Z(q1)**h
-        if op is not None:
-            yield op.inverse().on(q0), op.inverse().on(q1)
-
-    def do_single_on(u, q):
-        for gate in single_qubit_matrix_to_native_gates(u, tolerance):
-            yield gate(q)
-
-    def non_local_part():
-        """Yields non-local operation of KAK decomposition."""
-
-        if allow_partial_czs or all(is_trivial_angle(e) for e in [x, y, z]):
-            return [
-                parity_interaction(x, ops.Y**-0.5),
-                parity_interaction(y, ops.X**0.5),
-                parity_interaction(z)
-            ]
-
-        if abs(z) >= tolerance:
-            return _xx_yy_zz_interaction_via_full_czs(q0, q1, x, y, z)
-
-        if y >= tolerance:
-            return _xx_yy_interaction_via_full_czs(q0, q1, x, y)
-
-        return _xx_interaction_via_full_czs(q0, q1, x)
-
-    pre = [do_single_on(b0, q0), do_single_on(b1, q1)]
-    post = [do_single_on(a0, q0), do_single_on(a1, q1)]
+def _kak_decomposition_to_native_gates(q0: ops.QubitId,
+                                       q1: ops.QubitId,
+                                       a0: np.ndarray,
+                                       a1: np.ndarray,
+                                       x: float,
+                                       y: float,
+                                       z: float,
+                                       b0: np.ndarray,
+                                       b1: np.ndarray,
+                                       allow_partial_czs: bool,
+                                       tolerance: float = 1e-8
+                                       ) -> List[ops.Operation]:
+    pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
+    post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
 
     return list(ops.flatten_op_tree([
         pre,
-        non_local_part(),
+        _non_local_part(q0, q1, x, y, z, allow_partial_czs, tolerance),
         post,
     ]))
+
+
+def _is_trivial_angle(rad: float, tolerance: float) -> bool:
+    """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
+    be performed with a whole CZ.
+
+    Args:
+        rad: The angle in radians, assumed to be in the range [-pi/4, pi/4]
+    """
+    return abs(rad) < tolerance or abs(abs(rad) - np.pi / 4) < tolerance
+
+
+def _parity_interaction(q0: ops.QubitId,
+                        q1: ops.QubitId,
+                        rads: float,
+                        tolerance: float,
+                        op: Optional[ops.ReversibleGate] = None):
+    """Yields a ZZ interaction framed by the given operation."""
+    if abs(rads) < tolerance:
+        return
+
+    h = rads * -2 / np.pi
+    if op is not None:
+        yield op.on(q0), op.on(q1)
+
+    # If rads is pi/4 radians within tolerance, single full-CZ suffices.
+    if abs(abs(rads) - (np.pi / 4)) < tolerance:
+        yield ops.CZ.on(q0, q1)
+    else:
+        yield _easy_direction_partial_cz(q0, q1, -2 * h)
+
+    yield ops.Z(q0)**h
+    yield ops.Z(q1)**h
+    if op is not None:
+        yield op.inverse().on(q0), op.inverse().on(q1)
+
+
+def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float=1e-8):
+    for gate in single_qubit_matrix_to_native_gates(u, tolerance):
+        yield gate(q)
+
+
+def _non_local_part(q0: ops.QubitId,
+                    q1: ops.QubitId,
+                    x: float,
+                    y: float,
+                    z: float,
+                    allow_partial_czs: bool,
+                    tolerance: float = 1e-8):
+    """Yields non-local operation of KAK decomposition."""
+
+    if (allow_partial_czs or
+        all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):
+        return [
+            _parity_interaction(q0, q1, x, tolerance, ops.Y**-0.5),
+            _parity_interaction(q0, q1, y, tolerance, ops.X**0.5),
+            _parity_interaction(q0, q1, z, tolerance)
+        ]
+
+    if abs(z) >= tolerance:
+        return _xx_yy_zz_interaction_via_full_czs(q0, q1, x, y, z)
+
+    if y >= tolerance:
+        return _xx_yy_interaction_via_full_czs(q0, q1, x, y)
+
+    return _xx_interaction_via_full_czs(q0, q1, x)
