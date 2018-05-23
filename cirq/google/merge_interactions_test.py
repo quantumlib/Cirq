@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import testing
 from cirq import circuits
 from cirq import ops
 from cirq.google import ExpZGate, MergeInteractions, MergeRotations
@@ -38,6 +39,16 @@ def assert_optimizes(before, after):
         print('EXPECTED')
         print(after)
     assert before == after
+
+def assert_optimization_not_broken(circuit):
+    """Check that the unitary matrix for the input circuit is the same (up to
+    global phase and rounding error) as the unitary matrix of the optimized
+    circuit."""
+    u_before = circuit.to_unitary_matrix()
+    MergeInteractions().optimize_circuit(circuit)
+    u_after = circuit.to_unitary_matrix()
+
+    testing.assert_allclose_up_to_global_phase(u_before, u_after, atol=1e-8)
 
 
 def test_clears_paired_cnot():
@@ -84,3 +95,49 @@ def test_ignores_czs_separated_by_outer_cz():
             circuits.Moment([ops.CZ(q00, q10)]),
             circuits.Moment([ops.CZ(q00, q01)]),
         ]))
+
+
+def test_cnots_separated_by_single_gates_correct():
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
+    assert_optimization_not_broken(
+        circuits.Circuit.from_ops(
+            ops.CNOT(q0, q1),
+            ops.H(q1),
+            ops.CNOT(q0, q1),
+        ))
+
+
+def test_czs_separated_by_single_gates_correct():
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
+    assert_optimization_not_broken(
+        circuits.Circuit.from_ops(
+            ops.CZ(q0, q1),
+            ops.X(q1),
+            ops.X(q1),
+            ops.X(q1),
+            ops.CZ(q0, q1),
+        ))
+
+
+def test_inefficient_circuit_correct():
+    t = 0.1
+    v = 0.11
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
+    assert_optimization_not_broken(
+        circuits.Circuit.from_ops(
+            ops.H(q1),
+            ops.CNOT(q0, q1),
+            ops.H(q1),
+            ops.CNOT(q0, q1),
+            ops.CNOT(q1, q0),
+            ops.H(q0),
+            ops.CNOT(q0, q1),
+            ops.Z(q0)**t, ops.Z(q1)**-t,
+            ops.CNOT(q0, q1),
+            ops.H(q0), ops.Z(q1)**v,
+            ops.CNOT(q0, q1),
+            ops.Z(q0)**-v, ops.Z(q1)**-v,
+        ))
