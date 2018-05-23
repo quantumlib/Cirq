@@ -36,6 +36,7 @@ def _canonicalize_half_turns(
 
 
 class PartialReflectionGate(gate_features.BoundedEffectGate,
+                            gate_features.ParameterizableGate,
                             gate_features.TextDiagrammableGate,
                             PotentialImplementation):
     """An interpolated reflection operation.
@@ -135,3 +136,9 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         if not self.can_extrapolate_effect():
             raise ValueError("Parameterized. Don't have a known matrix.")
         return self._with_half_turns(half_turns=self.half_turns * factor)
+
+    def resolve_parameters(self, param_resolver) -> 'PartialReflectionGate':
+        half_turns = self.half_turns
+        if isinstance(half_turns, Symbol):
+            half_turns = param_resolver.value_of(half_turns)
+        return self._with_half_turns(half_turns=half_turns)
