@@ -14,8 +14,6 @@
 from typing import Tuple, cast
 
 import re
-
-import os.path
 import sys
 
 from dev_tools import env_tools, shell_tools, check
@@ -47,12 +45,9 @@ class Py2TestCheck(check.Check):
                            coverage: bool,
                            verbose: bool) -> Tuple[bool, str]:
         base_path = cast(str, env.destination_directory)
-        venv_path = cast(str, env.virtual_env_path)
-
-        pytest_path = os.path.join(venv_path, 'bin', 'pytest')
-        target_path = os.path.join(base_path, 'cirq')
+        target_path = base_path
         result = shell_tools.run_cmd(
-            pytest_path,
+            env.bin('pytest'),
             target_path,
             None if verbose else '--quiet',
             '--cov' if coverage else '',

@@ -200,14 +200,18 @@ class HGate(gate_features.TextDiagrammableGate,
 H = HGate()  # Hadamard gate.
 
 
-class CNotGate(gate_features.TextDiagrammableGate,
+class CNotGate(PartialReflectionGate,
+               gate_features.TextDiagrammableGate,
                gate_features.CompositeGate,
-               gate_features.KnownMatrixGate,
-               gate_features.SelfInverseGate,
                gate_features.TwoQubitGate):
     """A controlled-NOT. Toggle the second qubit when the first qubit is on."""
 
-    def matrix(self):
+    def _with_half_turns(self,
+                         half_turns: Union[Symbol, float] = 1.0
+                         ):
+        return CNotGate(half_turns=half_turns)
+
+    def _reflection_matrix(self):
         """See base class."""
         return np.array([[1, 0, 0, 0],
                          [0, 1, 0, 0],
@@ -226,6 +230,9 @@ class CNotGate(gate_features.TextDiagrammableGate,
         yield Y(t)**-0.5
         yield CZ(c, t)
         yield Y(t)**0.5
+
+    def __str__(self):
+        return 'CNOT'
 
     def __repr__(self):
         return 'CNOT'
