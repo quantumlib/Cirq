@@ -48,6 +48,21 @@ def test_search_calls_anneal_minimize(anneal_minimize):
 
 
 @mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+def test_search_calls_anneal_minimize_reversed(anneal_minimize):
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    seqs = [[q00, q01]]
+    edges = {(q01, q00)}
+    anneal_minimize.return_value = seqs, edges
+
+    assert AnnealSequenceSearch(
+        _create_device([]),
+        seed=0xF00D0001).search() == seqs
+    anneal_minimize.assert_called_once_with(mock.ANY, mock.ANY, mock.ANY,
+                                            mock.ANY, trace_func=mock.ANY)
+
+
+@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
 def test_search_converts_trace_func(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
