@@ -316,6 +316,7 @@ def _kak_decomposition_to_native_gates(q0: ops.QubitId,
                                        allow_partial_czs: bool,
                                        tolerance: float = 1e-8
                                        ) -> List[ops.Operation]:
+    """Assumes that the decomposition is canonical."""
     pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
     post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
 
@@ -349,8 +350,8 @@ def _parity_interaction(q0: ops.QubitId,
     if op is not None:
         yield op.on(q0), op.on(q1)
 
-    # If rads is pi/4 radians within tolerance, single full-CZ suffices.
-    if abs(abs(rads) - (np.pi / 4)) < tolerance:
+    # If rads is ±pi/4 radians within tolerance, single full-CZ suffices.
+    if _is_trivial_angle(rads, tolerance):
         yield ops.CZ.on(q0, q1)
     else:
         yield _easy_direction_partial_cz(q0, q1, -2 * h)
