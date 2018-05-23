@@ -53,8 +53,8 @@ def test_search_calls_anneal_minimize(anneal_minimize):
 def test_search_calls_anneal_minimize_reversed(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
-    seqs = [[q00, q01]]
-    edges = {(q01, q00)}
+    seqs = [[q01, q00]]
+    edges = {(q00, q01)}
     anneal_minimize.return_value = seqs, edges
 
     assert AnnealSequenceSearch(
