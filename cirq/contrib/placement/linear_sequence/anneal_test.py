@@ -15,11 +15,16 @@
 from typing import Iterable, List
 
 import numpy as np
+import pytest
 
 from cirq.google import XmonDevice, XmonQubit
 from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
-from cirq.contrib.placement.linear_sequence.anneal import \
-    _STATE, AnnealSequenceSearch, anneal_sequence
+from cirq.contrib.placement.linear_sequence.anneal import (
+    _STATE,
+    AnnealSequenceSearch,
+    anneal_sequence,
+    index_2d,
+)
 from cirq.testing.mock import mock
 from cirq.value import Duration
 
@@ -354,3 +359,21 @@ def test_anneal_sequence_calls(search):
     anneal_sequence(device, method_opts, None, seed)
     search.assert_called_once_with(device, seed)
     search_instance.search.assert_called_once_with(method_opts, None)
+
+
+def test_index_2d():
+    assert index_2d([[1, 2], [3]], 1) == (0, 0)
+    assert index_2d([[1, 2], [3]], 2) == (0, 1)
+    assert index_2d([[1, 2], [3]], 3) == (1, 0)
+    with pytest.raises(ValueError):
+        _ = index_2d([[1, 2], [3]], 4)
+
+    with pytest.raises(ValueError):
+        _ = index_2d([], 1)
+    with pytest.raises(ValueError):
+        _ = index_2d([[]], 1)
+
+    assert index_2d([[], ['a']], 'a') == (1, 0)
+    assert index_2d([['a', 'a']], 'a') == (0, 0)
+    assert index_2d([['a'], ['a']], 'a') == (0, 0)
+    assert index_2d([['a', 'a'], ['a']], 'a') == (0, 0)
