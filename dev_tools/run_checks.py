@@ -47,9 +47,10 @@ def parse_args():
             raise ValueError('Bad selection. Options are ' +
                              ', '.join(e.command_line_switch()
                                        for e in all_checks.ALL_CHECKS))
-        checks = [d
-                  for c in checks
-                  for d in [c] + list(c.dependencies)]
+        for c in checks:
+            for d in c.dependencies:
+                if d not in checks:
+                    checks.insert(0, d)
 
     positionals = [arg for arg in args if not arg.startswith('-')]
     pull_request_number = None if len(positionals) < 2 else int(positionals[1])
@@ -92,11 +93,12 @@ def main():
                     destination_directory=test_dir_2,
                     python3_environment=env,
                     verbose=verbose)
-            currently_pending.remove(c)
             print()
             print(shell_tools.highlight('Running ' + c.command_line_switch(),
                                         shell_tools.GREEN))
             result = c.context(), c.run_and_report(env, env2, verbose)
+
+            currently_pending.remove(c)
             print(shell_tools.highlight(
                 'Finished ' + c.command_line_switch(),
                 shell_tools.GREEN if result[1][0] else shell_tools.RED))
