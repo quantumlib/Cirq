@@ -10,7 +10,7 @@ Single Qubit Gates
 ~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: reference/
+    :toctree: generated/
 
     H
     X
@@ -21,6 +21,6 @@ Two Quibit Gates
 ~~~~~~~~~~~~~~~~
 
 .. autosummary::
-    :toctree: reference/
+    :toctree: generated/
 
     CNOT
