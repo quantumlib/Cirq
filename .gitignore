@@ -15,4 +15,4 @@ __pycache__
 *.egg-info/
 # Sphinx
 _build
-docs/reference
+docs/generated
