@@ -215,9 +215,29 @@ def test_parameterizable_gate_is_abstract_must_implement():
     with pytest.raises(TypeError):
         _ = Missing()
 
+    # noinspection PyAbstractClass
+    class Missing(gate_features.ParameterizableGate):
+        def is_parameterized(self):
+            pass
+        pass
+
+    with pytest.raises(TypeError):
+        _ = Missing()
+
+    # noinspection PyAbstractClass
+    class Missing(gate_features.ParameterizableGate):
+        def resolve_parameters(self):
+            pass
+        pass
+
+    with pytest.raises(TypeError):
+        _ = Missing()
+
 
 def test_parameterizable_gate_is_abstract_can_implement():
     class Included(gate_features.ParameterizableGate):
+        def is_parameterized(self):
+            pass
         def resolve_parameters(self):
             pass
 
