@@ -15,6 +15,7 @@
 from typing import Union
 
 import numpy as np
+import pytest
 
 import cirq
 from cirq.ops.partial_reflection_gate import PartialReflectionGate
@@ -80,7 +81,8 @@ def test_partial_reflection_gate_str():
 
 def test_partial_reflection_gate_resolve_parameters():
     gate = DummyGate(half_turns=Symbol('a'))
-    assert gate.half_turns == Symbol('a')
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = gate.resolve_parameters(resolver)
     assert resolved_gate.half_turns == 0.1
+    with pytest.raises(ValueError):
+        _ = resolved_gate.resolve_parameters(resolver)
