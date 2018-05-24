@@ -109,6 +109,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
                 not self.is_parameterized()):
             return self
         if (desired_type in [gate_features.SelfInverseGate] and
+                not self.is_parameterized() and
                 self.half_turns % 1 == 0):
             return self
         if (desired_type is gate_features.KnownMatrixGate and
@@ -129,7 +130,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
 
     def extrapolate_effect(self, factor) -> 'PartialReflectionGate':
         if self.is_parameterized():
-            raise ValueError("Parameterized. Don't have a known matrix.")
+            raise ValueError("Parameterized. Don't know how to extrapolate.")
         return self._with_half_turns(half_turns=self.half_turns * factor)
 
     def is_parameterized(self) -> bool:
