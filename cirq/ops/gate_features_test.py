@@ -209,29 +209,23 @@ def test_parameterizable_gate_is_abstract_cant_instantiate():
 
 def test_parameterizable_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ParameterizableGate):
+    class MissingBoth(gate_features.ParameterizableGate):
         pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
     # noinspection PyAbstractClass
-    class Missing(gate_features.ParameterizableGate):
+    class MissingOne(gate_features.ParameterizableGate):
         def is_parameterized(self):
             pass
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
     # noinspection PyAbstractClass
-    class Missing(gate_features.ParameterizableGate):
+    class MissingOtherOne(gate_features.ParameterizableGate):
         def resolve_parameters(self):
             pass
-        pass
 
     with pytest.raises(TypeError):
-        _ = Missing()
+        _ = MissingBoth()
+    with pytest.raises(TypeError):
+        _ = MissingOne()
+    with pytest.raises(TypeError):
+        _ = MissingOtherOne()
 
 
 def test_parameterizable_gate_is_abstract_can_implement():
