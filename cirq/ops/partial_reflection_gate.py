@@ -138,7 +138,5 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
 
     def with_parameters_resolved_by(self,
                                     param_resolver) -> 'PartialReflectionGate':
-        if not self.is_parameterized():
-            raise ValueError("Gate does not have any parameters to resolve.")
         return self._with_half_turns(
                 half_turns=param_resolver.value_of(self.half_turns))

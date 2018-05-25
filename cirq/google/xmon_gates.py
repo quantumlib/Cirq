@@ -108,10 +108,8 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
-                ops.TextDiagrammableGate,
-                ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
-                PotentialImplementation):
+                ops.Rot11Gate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -123,11 +121,6 @@ class Exp11Gate(XmonGate,
     360 degree rotation. For two qubit gates, there isn't a Bloch sphere,
     so the half_turn corresponds to half of a full rotation in U(4).
     """
-
-    def __init__(self, *positional_args,
-                 half_turns: Union[Symbol, float]=1) -> None:
-        assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -143,33 +136,6 @@ class Exp11Gate(XmonGate,
         self.parameterized_value_to_proto(self.half_turns, op.exp_11.half_turns)
         return op
 
-    def try_cast_to(self, desired_type):
-        if desired_type is ops.KnownMatrixGate and self.has_matrix():
-            return self
-        return super().try_cast_to(desired_type)
-
-    def has_matrix(self):
-        return not isinstance(self.half_turns, Symbol)
-
-    def matrix(self):
-        if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
-        return ops.Rot11Gate(half_turns=self.half_turns).matrix()
-
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return 'Z', 'Z'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
-
-    def __str__(self):
-        if self.half_turns == 1:
-            return 'CZ'
-        return self.__repr__()
-
     def __repr__(self):
         return 'Exp11Gate(half_turns={})'.format(
             repr(self.half_turns))
@@ -179,11 +145,8 @@ class Exp11Gate(XmonGate,
             return NotImplemented
         return self.half_turns == other.half_turns
 
-    def __ne__(self, other):
-        return not self == other
-
     def __hash__(self):
-        return hash((ops.Rot11Gate, self.half_turns))
+        return hash((type(self), self.half_turns))
 
 
 class ExpWGate(XmonGate,
@@ -191,6 +154,7 @@ class ExpWGate(XmonGate,
                ops.TextDiagrammableGate,
                ops.PhaseableGate,
                ops.BoundedEffectGate,
+               ops.ParameterizableGate,
                PotentialImplementation):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
@@ -238,7 +202,7 @@ class ExpWGate(XmonGate,
         return op
 
     def try_cast_to(self, desired_type):
-        if desired_type is ops.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrixGate and not self.is_parameterized():
             return self
         if desired_type is ops.ReversibleGate and self.has_inverse():
             return self
@@ -253,13 +217,9 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
-    def has_matrix(self):
-        return (not isinstance(self.half_turns, Symbol) and
-                not isinstance(self.axis_half_turns, Symbol))
-
     def matrix(self):
-        if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
+        if self.is_parameterized():
+            raise ValueError("Parameterized. Don't have a known matrix.")
         phase = ops.RotZGate(half_turns=self.axis_half_turns).matrix()
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
@@ -291,6 +251,15 @@ class ExpWGate(XmonGate,
 
     def text_diagram_exponent(self):
         return self.half_turns
+
+    def is_parameterized(self) -> bool:
+        return (isinstance(self.half_turns, Symbol) or
+                isinstance(self.axis_half_turns, Symbol))
+
+    def with_parameters_resolved_by(self, param_resolver) -> 'ExpWGate':
+        return ExpWGate(
+            half_turns=param_resolver.value_of(self.half_turns),
+            axis_half_turns=param_resolver.value_of(self.axis_half_turns))
 
     def __str__(self):
         base = self.text_diagram_wire_symbols()[0]
@@ -327,9 +296,7 @@ class ExpWGate(XmonGate,
 
 
 class ExpZGate(XmonGate,
-               ops.SingleQubitGate,
-               ops.TextDiagrammableGate,
-               PotentialImplementation):
+               ops.RotZGate):
     """A rotation around the Z axis of the Bloch sphere.
 
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
@@ -340,11 +307,6 @@ class ExpZGate(XmonGate,
     on the Bloch sphere. Two half_turns correspond to a rotation in the
     bloch sphere of 360 degrees.
     """
-
-    def __init__(self, *positional_args,
-                 half_turns: Union[Symbol, float]=1) -> None:
-        assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -362,34 +324,6 @@ class ExpZGate(XmonGate,
         if self.half_turns in [-0.5, -0.25]:
             return -1
         return self.half_turns
-
-    def try_cast_to(self, desired_type):
-        if desired_type is ops.KnownMatrixGate and self.has_matrix():
-            return self
-        if desired_type is ops.ReversibleGate and self.has_inverse():
-            return self
-        return super().try_cast_to(desired_type)
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, Symbol)
-
-    def inverse(self):
-        if not self.has_inverse():
-            raise ValueError("Don't have a known inverse.")
-        return ExpZGate(half_turns=-self.half_turns)
-
-    def has_matrix(self):
-        return not isinstance(self.half_turns, Symbol)
-
-    def matrix(self):
-        if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
-        return ops.RotZGate(half_turns=self.half_turns).matrix()
-
-    def trace_distance_bound(self):
-        if isinstance(self.half_turns, Symbol):
-            return 1
-        return abs(self.half_turns) * 3.5
 
     def to_proto(self, *qubits):
         if len(qubits) != 1:
@@ -417,15 +351,12 @@ class ExpZGate(XmonGate,
             repr(self.half_turns))
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
+        if not isinstance(other, (ops.RotZGate, type(self))):
             return NotImplemented
         return self.half_turns == other.half_turns
 
-    def __ne__(self, other):
-        return not self == other
-
     def __hash__(self):
-        return hash((ExpZGate, self.half_turns))
+        return hash((type(self), self.half_turns))
 
 
 def _canonicalize_half_turns(

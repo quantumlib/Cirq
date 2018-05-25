@@ -20,6 +20,7 @@ from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleGate
+from cirq.study import ParamResolver
 from cirq.value import Symbol
 from cirq.testing import EqualsTester
 
@@ -270,3 +271,13 @@ def test_w_potential_implementation():
                            ReversibleGate)
     assert ex.can_cast(ExpWGate(), KnownMatrixGate)
     assert ex.can_cast(ExpWGate(), ReversibleGate)
+
+
+def test_w_parameterize():
+    parameterized_gate = ExpWGate(half_turns=Symbol('a'),
+                                  axis_half_turns=Symbol('b'))
+    with pytest.raises(ValueError):
+        _ = parameterized_gate.matrix()
+    resolver = ParamResolver({'a': 0.1, 'b': 0.2})
+    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate == ExpWGate(half_turns=0.1, axis_half_turns=0.2)

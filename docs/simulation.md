@@ -34,7 +34,7 @@ circuit.append(basic_circuit())
   
 print(circuit)
 # prints
-# (0, 0): ───X^0.5───Z───X^0.5───M───
+# (0, 0): ───X^0.5───@───X^0.5───M───
 #                    │
 # (1, 0): ───X^0.5───Z───X^0.5───M───
 ```

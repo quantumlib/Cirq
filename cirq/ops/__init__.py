@@ -42,6 +42,7 @@ from cirq.ops.gate_features import (
     CompositeGate,
     ExtrapolatableGate,
     KnownMatrixGate,
+    ParameterizableGate,
     PhaseableGate,
     ReversibleGate,
     SelfInverseGate,

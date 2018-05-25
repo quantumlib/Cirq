@@ -15,7 +15,6 @@
 """Error simulator that adds randomly activated error gates after every moment.
 """
 
-import copy
 import numpy as np
 
 from cirq.circuits.circuit import Circuit
@@ -108,8 +107,12 @@ class DepolarizerChannel(object):
                     errors = np.random.random(self.realizations) < self.p
                     if any(errors):
                         key = self._parameter_name + str(error_number)
-                        new_error_gate = copy.deepcopy(gate)
-                        new_error_gate.half_turns = Symbol(key)
+                        if isinstance(gate, xmon_gates.ExpWGate):
+                            new_error_gate = xmon_gates.ExpWGate(
+                                    half_turns=Symbol(key),
+                                    axis_half_turns=gate.axis_half_turns)
+                        else:
+                            new_error_gate = type(gate)(half_turns=Symbol(key))
                         error_gates.append(new_error_gate.on(q))
                         error_sweep += Points(key, list(errors * 1.0))
                         error_number += 1
