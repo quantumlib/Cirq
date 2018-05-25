@@ -17,7 +17,7 @@ from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar
 
 import collections
 
-from cirq.ops import raw_types
+from cirq.ops import qubit_order_or_list, raw_types
 
 
 TInternalQubit = TypeVar('TInternalQubit')
@@ -97,7 +97,8 @@ class QubitOrder:
         return self._explicit_func(qubits)
 
     @staticmethod
-    def as_qubit_order(val: 'QubitOrderOrList') -> 'QubitOrder':
+    def as_qubit_order(val: qubit_order_or_list.QubitOrderOrList
+                       ) -> 'QubitOrder':
         """Converts a value into a basis.
 
         Args:
