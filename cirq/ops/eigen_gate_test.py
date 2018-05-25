@@ -33,14 +33,14 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
     def _with_exponent(self, exponent=1.0):
         return CExpZinGate(exponent)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self):
         return [
             (0, np.diag([1, 1, 0, 0])),
             (0.5, np.diag([0, 0, 1, 0])),
             (-0.5, np.diag([0, 0, 0, 1])),
         ]
 
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self):
         return 4
 
 

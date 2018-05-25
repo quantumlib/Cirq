@@ -25,7 +25,16 @@ from cirq.value import Symbol
 class EigenGate(gate_features.BoundedEffectGate,
                 gate_features.ParameterizableGate,
                 PotentialImplementation):
-    """A gate with a known eigendecomposition."""
+    """A gate with a known eigendecomposition.
+
+    EigenGate is particularly useful when one wishes for different parts of
+    the same eigenspace to be extrapolated differently. For example, if a gate
+    has a 2-dimensional eigenspace with eigenvalue -1, but one wishes for the
+    square root of the gate to split this eigenspace into a part with
+    eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
+    functionality to be unambiguously specified via the _eigen_components
+    method.
+    """
 
     def __init__(self,
                  *positional_args,
