@@ -7,10 +7,6 @@ matrix:
     env: MODE="normal" REQS="requirements.txt"
   - os: linux
     python: "2.7"
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['protobuf-compiler']
     env: MODE="convert-and-test" REQS="python2.7-requirements.txt"
 
 branches:

@@ -25,10 +25,17 @@ elif [ "${1}" = "convert-and-test" ]; then
     cur_dir=$(pwd)
     out_dir="$(pwd)/python2.7-output"
 
+    # Grab precompiled protobuf compiler v3.5.1
+    curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
+    unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
+    PATH=$(pwd)/protoc3.5/bin:${PATH}
+
+    # Convert code from python3 to python2.7.
     echo "Running 3to2..."
     bash python2.7-generate.sh "${out_dir}" "${cur_dir}"
     echo "Finished conversion."
 
+    # Run tests against converted code.
     export PYTHONPATH=${out_dir}
     pytest ${out_dir}
 
