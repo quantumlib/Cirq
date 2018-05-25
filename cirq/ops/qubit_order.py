@@ -13,11 +13,23 @@
 # limitations under the License.
 
 
-from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Optional,
+    Tuple,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 import collections
 
-from cirq.ops import qubit_order_or_list, raw_types
+from cirq.ops import raw_types
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.ops import qubit_order_or_list
 
 
 TInternalQubit = TypeVar('TInternalQubit')
@@ -97,7 +109,7 @@ class QubitOrder:
         return self._explicit_func(qubits)
 
     @staticmethod
-    def as_qubit_order(val: qubit_order_or_list.QubitOrderOrList
+    def as_qubit_order(val: 'qubit_order_or_list.QubitOrderOrList'
                        ) -> 'QubitOrder':
         """Converts a value into a basis.
 
