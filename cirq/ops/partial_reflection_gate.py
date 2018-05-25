@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Partial reflection gate."""
-from typing import Tuple, Union
+from typing import Tuple, Union, cast
 
 import numpy as np
 
@@ -36,6 +36,7 @@ def _canonicalize_half_turns(
 
 
 class PartialReflectionGate(gate_features.BoundedEffectGate,
+                            gate_features.ParameterizableGate,
                             gate_features.TextDiagrammableGate,
                             PotentialImplementation):
     """An interpolated reflection operation.
@@ -105,12 +106,14 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
     def try_cast_to(self, desired_type):
         if (desired_type in [gate_features.ExtrapolatableGate,
                              gate_features.ReversibleGate] and
-                self.can_extrapolate_effect()):
+                not self.is_parameterized()):
             return self
         if (desired_type in [gate_features.SelfInverseGate] and
+                not self.is_parameterized() and
                 self.half_turns % 1 == 0):
             return self
-        if desired_type is gate_features.KnownMatrixGate and self.has_matrix():
+        if (desired_type is gate_features.KnownMatrixGate and
+                not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type)
 
@@ -119,19 +122,23 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         """The reflection matrix corresponding to half_turns=1."""
         pass
 
-    def has_matrix(self) -> bool:
-        return not isinstance(self.half_turns, Symbol)
-
     def matrix(self) -> np.ndarray:
-        if isinstance(self.half_turns, Symbol):
+        if self.is_parameterized():
             raise ValueError("Parameterized. Don't have a known matrix.")
         return reflection_matrix_pow(
-                self._reflection_matrix(), self.half_turns)
-
-    def can_extrapolate_effect(self) -> bool:
-        return not isinstance(self.half_turns, Symbol)
+                self._reflection_matrix(), cast(float, self.half_turns))
 
     def extrapolate_effect(self, factor) -> 'PartialReflectionGate':
-        if not self.can_extrapolate_effect():
-            raise ValueError("Parameterized. Don't have a known matrix.")
+        if self.is_parameterized():
+            raise ValueError("Parameterized. Don't know how to extrapolate.")
         return self._with_half_turns(half_turns=self.half_turns * factor)
+
+    def is_parameterized(self) -> bool:
+        return isinstance(self.half_turns, Symbol)
+
+    def with_parameters_resolved_by(self,
+                                    param_resolver) -> 'PartialReflectionGate':
+        if not self.is_parameterized():
+            raise ValueError("Gate does not have any parameters to resolve.")
+        return self._with_half_turns(
+                half_turns=param_resolver.value_of(self.half_turns))
