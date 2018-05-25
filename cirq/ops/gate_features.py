@@ -248,9 +248,9 @@ class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """Whether the gate is parameterized."""
 
     @abc.abstractmethod
-    def resolve_parameters(self,
-                           param_resolver: ParamResolver
-                           ) -> 'ParameterizableGate':
+    def with_parameters_resolved_by(self,
+                                    param_resolver: ParamResolver
+                                    ) -> 'ParameterizableGate':
         """Resolve the parameters in the gate.
 
         Returns a gate of the same type, but with all Symbols replaced with

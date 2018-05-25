@@ -217,7 +217,7 @@ def test_parameterizable_gate_is_abstract_must_implement():
             pass
     # noinspection PyAbstractClass
     class MissingOtherOne(gate_features.ParameterizableGate):
-        def resolve_parameters(self):
+        def with_parameters_resolved_by(self):
             pass
 
     with pytest.raises(TypeError):
@@ -232,7 +232,7 @@ def test_parameterizable_gate_is_abstract_can_implement():
     class Included(gate_features.ParameterizableGate):
         def is_parameterized(self):
             pass
-        def resolve_parameters(self):
+        def with_parameters_resolved_by(self):
             pass
 
     assert isinstance(Included(), gate_features.ParameterizableGate)
