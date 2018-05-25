@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar, Union
+from typing import Any, Callable, Iterable, Tuple, Optional, TypeVar
 
 import collections
 
@@ -176,7 +176,3 @@ def default_sorting_key(value: Any) -> str:
 
 
 QubitOrder.DEFAULT = QubitOrder.sorted_by(default_sorting_key)
-
-QubitOrderOrList = Union[
-    QubitOrder,
-    Iterable[raw_types.QubitId]]
