@@ -148,7 +148,7 @@ class Simulator:
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state.
+                basis state corresponding to this state.
                 Otherwise  if this is a np.ndarray it is the full initial
                 state. In this case it must be the correct size, be normalized
                 (an L2 norm of 1), and be safely castable to a np.complex64.
@@ -183,7 +183,7 @@ class Simulator:
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state.
+                basis state corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
                 norm of 1), and be safely castable to a np.complex64.
@@ -261,7 +261,7 @@ class Simulator:
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding corresponding to this state.
+                basis state corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
                 norm of 1), and be safely castable to a np.complex64.
@@ -313,7 +313,7 @@ def simulator_iterator(
         qubit_order: Determines the canonical ordering of the qubits used to
             define the order of amplitudes in the wave function.
         initial_state: If this is an int, the state is set to the computational
-            basis state corresponding corresponding to the integer. Note that
+            basis state corresponding to the integer. Note that
             the low bit of the integer corresponds to the value of the first
             qubit as determined by the basis argument.
 
