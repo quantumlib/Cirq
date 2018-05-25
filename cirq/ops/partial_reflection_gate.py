@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Partial reflection gate."""
-from typing import Tuple, Union
+from typing import Tuple, Union, cast
 
 import numpy as np
 
@@ -126,7 +126,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't have a known matrix.")
         return reflection_matrix_pow(
-                self._reflection_matrix(), self.half_turns)
+                self._reflection_matrix(), cast(float, self.half_turns))
 
     def extrapolate_effect(self, factor) -> 'PartialReflectionGate':
         if self.is_parameterized():
