@@ -4,11 +4,10 @@ matrix:
   include:
   - os: linux
     python: "3.5"
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: ['gcc-4.9', 'g++-4.9', 'python-virtualenv']
-    env: CC=gcc-4.9 CXX=g++-4.9 PYTHON=3.5
+    env: MODE="normal" REQS="requirements.txt"
+  - os: linux
+    python: "2.7"
+    env: MODE="convert-and-test" REQS="python2.7-requirements.txt"
 
 branches:
   only:
@@ -18,6 +17,6 @@ before_install:
   - pip install --upgrade pip setuptools wheel
 
 install:
-  - pip install -r requirements.txt
+  - pip install -r ${REQS}
 
-script: continuous-integration/travis.sh
+script: continuous-integration/travis.sh "${MODE}"

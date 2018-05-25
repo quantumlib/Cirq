@@ -54,7 +54,8 @@ class Py2TestCheck(check.Check):
             '--cov-report=annotate' if coverage else '',
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,
-            log_run_to_stderr=verbose)
+            log_run_to_stderr=verbose,
+            abbreviate_non_option_arguments=True)
 
         output = cast(str, result[0])
         passed = result[2] == 0
