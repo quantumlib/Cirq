@@ -33,17 +33,23 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-                 composite_gate_extension: Extensions = None) -> None:
+                 composite_gate_extension: Extensions = None,
+                 depth: int = None) -> None:
         """Construct the optimization pass.
 
         Args:
             composite_gate_extension: An extension that that can be used
                 to supply or override a CompositeGate decomposition.
+            depth: A limit on the recursion depth with which to expand
+                operations. If None, there is no limit.
         """
         self.extension = composite_gate_extension or Extensions()
+        if depth is not None and depth < 1:
+            raise ValueError('Depth must be at least 1.')
+        self.depth = depth
 
     def optimization_at(self, circuit, index, op):
-        decomposition = self._decompose(op)
+        decomposition = self._decompose(op, self.depth)
         if decomposition is op:
             return None
 
@@ -52,10 +58,15 @@ class ExpandComposite(PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=decomposition)
 
-    def _decompose(self, op):
+    def _decompose(self, op, depth):
         """Recursively decompose composite gates into an OP_TREE of gates."""
+        if depth == 0:
+            return op
         composite_gate = self.extension.try_cast(op.gate, ops.CompositeGate)
         if composite_gate is None:
             return op
-        return (self._decompose(op) for op in
-               composite_gate.default_decompose(op.qubits))
+        if depth is None:
+            return (self._decompose(op, None) for op in
+                    composite_gate.default_decompose(op.qubits))
+        return (self._decompose(op, depth - 1) for op in
+                composite_gate.default_decompose(op.qubits))
