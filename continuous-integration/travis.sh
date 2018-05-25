@@ -16,5 +16,22 @@
 
 
 set -e
-export PYTHONPATH=$(pwd)
-python3 dev_tools/run_travis.py
+if [ "${1}" = "normal" ]; then
+    export PYTHONPATH=$(pwd)
+    python dev_tools/run_travis.py
+
+elif [ "${1}" = "convert-and-test" ]; then
+    cur_dir=$(pwd)
+    out_dir="$(pwd)/python2.7-output"
+
+    echo "Running 3to2..."
+    bash python2.7-generate.sh "${out_dir}" "${cur_dir}"
+    echo "Finished conversion."
+
+    export PYTHONPATH=${out_dir}
+    pytest ${out_dir}
+
+else
+    echo "Unrecognized mode: ${1}"
+    exit 1
+fi
