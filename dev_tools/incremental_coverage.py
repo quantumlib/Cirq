@@ -30,8 +30,11 @@ IGNORED_LINE_PATTERNS = [
     # Else lines are redundant w.r.t. other lines.
     r'^else:$',
     # Lines that are only invoked when running the file as the main file.
-    r'main\(.+'
+    r'^main\(.+$',
+    # Empty method definitions.
+    r'^pass$',
 ]
+EXPLICIT_OPT_OUT_COMMENT = '# coverage: ignore'
 
 
 def diff_to_new_interesting_lines(unified_diff_lines: List[str]
@@ -188,8 +191,14 @@ def line_counts_as_uncovered(line: str,
     else:
         content = line
 
-    # Remove end-of-line comments and surrounding whitespace.
+    # Ignore surrounding whitespace.
     content = content.strip()
+
+    # Check for explicit opt-out.
+    if content.endswith(EXPLICIT_OPT_OUT_COMMENT):
+        return False
+
+    # Ignore end-of-line comments.
     # TODO: avoid # in strings, etc.
     if '#' in content:
         content = content[:content.index('#')].strip()
