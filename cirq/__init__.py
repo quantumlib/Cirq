@@ -84,6 +84,7 @@ from cirq.ops import (
     CNotGate,
     CompositeGate,
     CZ,
+    EigenGate,
     ExtrapolatableGate,
     flatten_op_tree,
     freeze_op_tree,

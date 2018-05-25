@@ -34,6 +34,9 @@ from cirq.ops.common_gates import (
     Y,
     Z,
 )
+from cirq.ops.eigen_gate import (
+    EigenGate,
+)
 from cirq.ops.gate_features import (
     BoundedEffectGate,
     CompositeGate,
