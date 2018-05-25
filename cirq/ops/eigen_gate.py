@@ -86,7 +86,7 @@ class EigenGate(gate_features.BoundedEffectGate,
             None if the exponent should not be canonicalized. Otherwise a float
             indicating the period of the exponent. If the period is p, then a
             given exponent will be shifted by p until it is in the range
-            [-p, p) during initialization.
+            [-p/2, p/2) during initialization.
         """
         pass
 
