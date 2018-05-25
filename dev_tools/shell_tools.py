@@ -15,7 +15,7 @@
 import asyncio
 import subprocess
 import sys
-from typing import Optional, Tuple, Union, IO, Any, cast, List
+from typing import Optional, Tuple, Union, IO, Any, cast
 
 import collections
 
@@ -161,9 +161,9 @@ def run_cmd(*cmd: Optional[str],
          subprocess.CalledProcessError: The process returned a non-zero error
             code and raise_on_fail was set.
     """
-    kept_cmd = [cast(str, e) for e in cmd if e is not None]
+    kept_cmd = tuple(cast(str, e) for e in cmd if e is not None)
     if log_run_to_stderr:
-        cmd_desc = cmd
+        cmd_desc = kept_cmd
         if abbreviate_non_option_arguments:
             cmd_desc = abbreviate_command_arguments_after_switches(cmd_desc)
         print('run:', cmd_desc, file=sys.stderr)
