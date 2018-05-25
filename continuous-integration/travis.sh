@@ -16,6 +16,7 @@
 
 
 set -e
+
 if [ "${1}" = "normal" ]; then
     export PYTHONPATH=$(pwd)
     python dev_tools/run_travis.py
