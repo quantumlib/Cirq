@@ -200,3 +200,39 @@ def test_two_qubit_gate_validate_wrong_number():
         g.validate_args([q1])
     with pytest.raises(ValueError):
         g.validate_args([q1, q2, q3])
+
+
+def test_parameterizable_gate_is_abstract_cant_instantiate():
+    with pytest.raises(TypeError):
+        _ = gate_features.ParameterizableGate()
+
+
+def test_parameterizable_gate_is_abstract_must_implement():
+    # noinspection PyAbstractClass
+    class MissingBoth(gate_features.ParameterizableGate):
+        pass
+    # noinspection PyAbstractClass
+    class MissingOne(gate_features.ParameterizableGate):
+        def is_parameterized(self):
+            pass
+    # noinspection PyAbstractClass
+    class MissingOtherOne(gate_features.ParameterizableGate):
+        def with_parameters_resolved_by(self):
+            pass
+
+    with pytest.raises(TypeError):
+        _ = MissingBoth()
+    with pytest.raises(TypeError):
+        _ = MissingOne()
+    with pytest.raises(TypeError):
+        _ = MissingOtherOne()
+
+
+def test_parameterizable_gate_is_abstract_can_implement():
+    class Included(gate_features.ParameterizableGate):
+        def is_parameterized(self):
+            pass
+        def with_parameters_resolved_by(self):
+            pass
+
+    assert isinstance(Included(), gate_features.ParameterizableGate)

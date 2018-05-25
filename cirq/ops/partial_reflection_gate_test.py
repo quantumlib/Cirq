@@ -15,9 +15,11 @@
 from typing import Union
 
 import numpy as np
+import pytest
 
 import cirq
 from cirq.ops.partial_reflection_gate import PartialReflectionGate
+from cirq.study import ParamResolver
 from cirq.testing import EqualsTester
 from cirq.value import Symbol
 
@@ -75,3 +77,12 @@ def test_partial_reflection_as_self_inverse():
 
 def test_partial_reflection_gate_str():
     assert str(DummyGate(half_turns=.25)) == 'D**0.25'
+
+
+def test_partial_reflection_gate_with_parameters_resolved_by():
+    gate = DummyGate(half_turns=Symbol('a'))
+    resolver = ParamResolver({'a': 0.1})
+    resolved_gate = gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate.half_turns == 0.1
+    with pytest.raises(ValueError):
+        _ = resolved_gate.with_parameters_resolved_by(resolver)
