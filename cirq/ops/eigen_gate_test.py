@@ -27,7 +27,7 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         [0  0  i  0]
         [0  0  0 -i]
     """
-    def __init__(self, quarter_turns: Union[cirq.Symbol, float]):
+    def __init__(self, quarter_turns: Union[cirq.Symbol, float]) -> None:
         super().__init__(exponent=quarter_turns)
 
     def _with_exponent(self, exponent=1.0):
