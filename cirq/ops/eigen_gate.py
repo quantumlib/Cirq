@@ -70,10 +70,10 @@ class EigenGate(gate_features.BoundedEffectGate,
 
             For example, the Pauli X gate's eigen components method would
             return [
-                (0, np.array([[1, 1],
-                              [1, 1]])),
-                (1, np.array([[1, -1],
-                              [-1, 1]])),
+                (0, np.array([[0.5, 0.5],
+                              [0.5, 0.5]])),
+                (1, np.array([[+0.5, -0.5],
+                              [-0.5, +0.5]])),
             ].
         """
         pass
