@@ -244,3 +244,31 @@ def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     assert ops.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
+
+
+def test_repr():
+    assert repr(cirq.X) == 'X'
+    assert repr(cirq.X**0.5) == 'X**0.5'
+
+    assert repr(cirq.Z) == 'Z'
+    assert repr(cirq.Z**0.5) == 'Z**0.5'
+
+    assert repr(cirq.Y) == 'Y'
+    assert repr(cirq.Y**0.5) == 'Y**0.5'
+
+    assert repr(cirq.CNOT) == 'CNOT'
+    assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+
+def test_str():
+    assert str(cirq.X) == 'X'
+    assert str(cirq.X**0.5) == 'X**0.5'
+
+    assert str(cirq.Z) == 'Z'
+    assert str(cirq.Z**0.5) == 'Z**0.5'
+
+    assert str(cirq.Y) == 'Y'
+    assert str(cirq.Y**0.5) == 'Y**0.5'
+
+    assert str(cirq.CNOT) == 'CNOT'
+    assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
