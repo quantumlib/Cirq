@@ -44,16 +44,18 @@ class EigenGate(gate_features.BoundedEffectGate,
         # Canonicalize the exponent.
         period = self._canonical_exponent_period()
         if period is not None and not isinstance(exponent, Symbol):
+            # Shift into [-p/2, +p/2).
             exponent += period / 2
             exponent %= period
             exponent -= period / 2
+            # Prefer (-p/2, +p/2] over [-p/2, +p/2).
+            if exponent <= -period / 2:
+                exponent += period
 
-        self.exponent = exponent
+        self._exponent = exponent
 
     @abc.abstractmethod
-    def _with_exponent(self,
-                       exponent: Union[Symbol, float] = 1.0
-                       ) -> 'EigenGate':
+    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent."""
         pass
 
@@ -86,7 +88,7 @@ class EigenGate(gate_features.BoundedEffectGate,
             None if the exponent should not be canonicalized. Otherwise a float
             indicating the period of the exponent. If the period is p, then a
             given exponent will be shifted by p until it is in the range
-            [-p/2, p/2) during initialization.
+            (-p/2, p/2] during initialization.
         """
         pass
 
@@ -99,22 +101,22 @@ class EigenGate(gate_features.BoundedEffectGate,
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.exponent == other.exponent
+        return self._exponent == other._exponent
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((type(self), self.exponent))
+        return hash((type(self), self._exponent))
 
     def trace_distance_bound(self):
-        if isinstance(self.exponent, Symbol):
+        if isinstance(self._exponent, Symbol):
             return 1
 
         angles = [half_turns for half_turns, _ in self._eigen_components()]
         min_angle = min(angles)
         max_angle = max(angles)
-        return abs((max_angle - min_angle) * self.exponent * 3.5)
+        return abs((max_angle - min_angle) * self._exponent * 3.5)
 
     def try_cast_to(self, desired_type):
         if (desired_type in [gate_features.ExtrapolatableGate,
@@ -123,7 +125,7 @@ class EigenGate(gate_features.BoundedEffectGate,
             return self
         if (desired_type in [gate_features.SelfInverseGate] and
                 not self.is_parameterized() and
-                all(angle * self.exponent % 1 == 0
+                all(angle * self._exponent % 1 == 0
                     for angle, _ in self._eigen_components())):
             return self
         if (desired_type is gate_features.KnownMatrixGate and
@@ -135,18 +137,18 @@ class EigenGate(gate_features.BoundedEffectGate,
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't have a known matrix.")
         return np.sum(
-            np.exp(1j * np.pi * half_turns * self.exponent) * component
+            1j**(half_turns * self._exponent * 2) * component
             for half_turns, component in self._eigen_components()
         )
 
     def extrapolate_effect(self, factor) -> 'EigenGate':
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't know how to extrapolate.")
-        return self._with_exponent(exponent=self.exponent * factor)
+        return self._with_exponent(exponent=self._exponent * factor)
 
     def is_parameterized(self) -> bool:
-        return isinstance(self.exponent, Symbol)
+        return isinstance(self._exponent, Symbol)
 
     def with_parameters_resolved_by(self, param_resolver) -> 'EigenGate':
         return self._with_exponent(
-                exponent=param_resolver.value_of(self.exponent))
+                exponent=param_resolver.value_of(self._exponent))

@@ -30,7 +30,11 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
     def __init__(self, quarter_turns: Union[cirq.Symbol, float]) -> None:
         super().__init__(exponent=quarter_turns)
 
-    def _with_exponent(self, exponent=1.0):
+    @property
+    def exponent(self):
+        return self._exponent
+
+    def _with_exponent(self, exponent):
         return CExpZinGate(exponent)
 
     def _eigen_components(self):
@@ -149,6 +153,13 @@ def test_matrix():
 
     with pytest.raises(ValueError):
         _ = CExpZinGate(cirq.Symbol('a')).matrix()
+
+
+def test_matrix_is_exact_for_quarter_turn():
+    print(CExpZinGate(1).matrix())
+    np.testing.assert_equal(
+        CExpZinGate(1).matrix(),
+        np.diag([1, 1, 1j, -1j]))
 
 
 def test_is_parameterized():

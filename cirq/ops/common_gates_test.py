@@ -15,6 +15,7 @@
 import numpy as np
 import pytest
 
+import cirq
 from cirq import ops, Symbol, linalg, Circuit
 from cirq.testing import EqualsTester
 
@@ -228,3 +229,12 @@ def test_cnot_power():
             [0, 0, 0.5+0.5j, 0.5-0.5j],
             [0, 0, 0.5-0.5j, 0.5+0.5j],
         ]))
+
+    # Matrix must be consistent with decomposition.
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    g = ops.CNOT**0.25
+    cirq.testing.assert_allclose_up_to_global_phase(
+        g.matrix(),
+        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
+        atol=1e-8)
