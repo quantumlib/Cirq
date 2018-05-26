@@ -238,3 +238,9 @@ def test_cnot_power():
         g.matrix(),
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
+
+
+def test_cnot_decomposes_despite_symbol():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    assert ops.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])

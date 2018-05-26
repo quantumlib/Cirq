@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Optional, cast
 
 import numpy as np
 
@@ -81,7 +81,7 @@ class EigenGate(gate_features.BoundedEffectGate,
         pass
 
     @abc.abstractmethod
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized.
 
         Returns:
@@ -136,10 +136,9 @@ class EigenGate(gate_features.BoundedEffectGate,
     def matrix(self) -> np.ndarray:
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't have a known matrix.")
-        return np.sum(
-            1j**(half_turns * self._exponent * 2) * component
-            for half_turns, component in self._eigen_components()
-        )
+        e = cast(float, self._exponent)
+        return np.sum(1j**(half_turns * e * 2) * component
+                      for half_turns, component in self._eigen_components())
 
     def extrapolate_effect(self, factor) -> 'EigenGate':
         if self.is_parameterized():

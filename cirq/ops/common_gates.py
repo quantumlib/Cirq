@@ -19,7 +19,6 @@ from typing import Union, Tuple, Optional
 import numpy as np
 
 from cirq.ops import gate_features, eigen_gate
-from cirq.ops.partial_reflection_gate import PartialReflectionGate
 from cirq.ops.raw_types import InterchangeableQubitsGate
 from cirq.value import Symbol
 
@@ -33,7 +32,9 @@ class Rot11Gate(eigen_gate.EigenGate,
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
     """
 
-    def __init__(self, *positional_args, half_turns: float = 1.0):
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
         assert not positional_args
         super().__init__(exponent=half_turns)
 
@@ -43,14 +44,14 @@ class Rot11Gate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 1])),
         ]
 
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
     def _with_exponent(self, exponent: Union[Symbol, float]) -> 'Rot11Gate':
         return Rot11Gate(half_turns=exponent)
 
     @property
-    def half_turns(self) -> float:
+    def half_turns(self) -> Union[Symbol, float]:
         return self._exponent
 
     def text_diagram_wire_symbols(self,
@@ -73,7 +74,9 @@ class RotXGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args, half_turns: float = 1.0):
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
         assert not positional_args
         super().__init__(exponent=half_turns)
 
@@ -83,14 +86,14 @@ class RotXGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
     def _with_exponent(self, exponent: Union[Symbol, float]) -> 'RotXGate':
         return RotXGate(half_turns=exponent)
 
     @property
-    def half_turns(self) -> float:
+    def half_turns(self) -> Union[Symbol, float]:
         return self._exponent
 
     def text_diagram_wire_symbols(self,
@@ -113,7 +116,9 @@ class RotYGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args, half_turns: float = 1.0):
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
         assert not positional_args
         super().__init__(exponent=half_turns)
 
@@ -123,14 +128,14 @@ class RotYGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
 
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
     def _with_exponent(self, exponent: Union[Symbol, float]) -> 'RotYGate':
         return RotYGate(half_turns=exponent)
 
     @property
-    def half_turns(self) -> float:
+    def half_turns(self) -> Union[Symbol, float]:
         return self._exponent
 
     def text_diagram_wire_symbols(self,
@@ -153,7 +158,9 @@ class RotZGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self, *positional_args, half_turns: float = 1.0):
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
         assert not positional_args
         super().__init__(exponent=half_turns)
 
@@ -163,14 +170,14 @@ class RotZGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
-    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'RotYGate':
+    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'RotZGate':
         return RotZGate(half_turns=exponent)
 
     @property
-    def half_turns(self) -> float:
+    def half_turns(self) -> Union[Symbol, float]:
         return self._exponent
 
     def text_diagram_wire_symbols(self,
@@ -271,14 +278,16 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.TwoQubitGate):
     """A controlled-NOT. Toggle the second qubit when the first qubit is on."""
 
-    def __init__(self, *positional_args, half_turns: float = 1.0):
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
         assert not positional_args
         super().__init__(exponent=half_turns)
 
     def default_decompose(self, qubits):
         c, t = qubits
         yield Y(t)**-0.5
-        yield CZ(c, t)**self.half_turns
+        yield Rot11Gate(half_turns=self.half_turns).on(c, t)
         yield Y(t)**0.5
 
     def _eigen_components(self):
@@ -293,14 +302,14 @@ class CNotGate(eigen_gate.EigenGate,
                           [0, 0, -0.5, 0.5]])),
         ]
 
-    def _canonical_exponent_period(self) -> Union[float, None]:
+    def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
-    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'Rot11Gate':
+    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'CNotGate':
         return CNotGate(half_turns=exponent)
 
     @property
-    def half_turns(self) -> float:
+    def half_turns(self) -> Union[Symbol, float]:
         return self._exponent
 
     def text_diagram_wire_symbols(self,
