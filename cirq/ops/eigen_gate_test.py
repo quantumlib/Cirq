@@ -98,26 +98,28 @@ def test_trace_distance_bound():
 
 
 def test_try_cast_to():
+    ext = cirq.Extensions()
+
     h = CExpZinGate(2)
-    assert h.try_cast_to(cirq.ExtrapolatableGate) is h
-    assert h.try_cast_to(cirq.ReversibleGate) is h
-    assert h.try_cast_to(cirq.SelfInverseGate) is h
-    assert h.try_cast_to(cirq.KnownMatrixGate) is h
-    assert h.try_cast_to(cirq.SingleQubitGate) is None
+    assert h.try_cast_to(cirq.ExtrapolatableGate, ext) is h
+    assert h.try_cast_to(cirq.ReversibleGate, ext) is h
+    assert h.try_cast_to(cirq.SelfInverseGate, ext) is h
+    assert h.try_cast_to(cirq.KnownMatrixGate, ext) is h
+    assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
 
     p = CExpZinGate(0.1)
-    assert p.try_cast_to(cirq.ExtrapolatableGate) is p
-    assert p.try_cast_to(cirq.ReversibleGate) is p
-    assert p.try_cast_to(cirq.SelfInverseGate) is None
-    assert p.try_cast_to(cirq.KnownMatrixGate) is p
-    assert p.try_cast_to(cirq.SingleQubitGate) is None
+    assert p.try_cast_to(cirq.ExtrapolatableGate, ext) is p
+    assert p.try_cast_to(cirq.ReversibleGate, ext) is p
+    assert p.try_cast_to(cirq.SelfInverseGate, ext) is None
+    assert p.try_cast_to(cirq.KnownMatrixGate, ext) is p
+    assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
 
     s = CExpZinGate(cirq.Symbol('a'))
-    assert s.try_cast_to(cirq.ExtrapolatableGate) is None
-    assert s.try_cast_to(cirq.ReversibleGate) is None
-    assert s.try_cast_to(cirq.SelfInverseGate) is None
-    assert s.try_cast_to(cirq.KnownMatrixGate) is None
-    assert s.try_cast_to(cirq.SingleQubitGate) is None
+    assert s.try_cast_to(cirq.ExtrapolatableGate, ext) is None
+    assert s.try_cast_to(cirq.ReversibleGate, ext) is None
+    assert s.try_cast_to(cirq.SelfInverseGate, ext) is None
+    assert s.try_cast_to(cirq.KnownMatrixGate, ext) is None
+    assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
 
 
 def test_matrix():

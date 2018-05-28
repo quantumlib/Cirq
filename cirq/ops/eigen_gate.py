@@ -118,7 +118,7 @@ class EigenGate(gate_features.BoundedEffectGate,
         max_angle = max(angles)
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
-    def try_cast_to(self, desired_type):
+    def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableGate,
                              gate_features.ReversibleGate] and
                 not self.is_parameterized()):
@@ -131,7 +131,7 @@ class EigenGate(gate_features.BoundedEffectGate,
         if (desired_type is gate_features.KnownMatrixGate and
                 not self.is_parameterized()):
             return self
-        return super().try_cast_to(desired_type)
+        return super().try_cast_to(desired_type, ext)
 
     def matrix(self) -> np.ndarray:
         if self.is_parameterized():

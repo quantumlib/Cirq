@@ -13,7 +13,11 @@
 # limitations under the License.
 
 
-from typing import Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq.extension.extensions
 
 T_DESIRED = TypeVar('T_DESIRED')
 
@@ -25,7 +29,9 @@ class PotentialImplementation:
     Extensions uses this as a fallback when trying to cast to a desired type.
     """
 
-    def try_cast_to(self, desired_type: Type[T_DESIRED]
+    def try_cast_to(self,
+                    desired_type: Type[T_DESIRED],
+                    extensions: 'cirq.extension.extensions.Extensions'
                     ) -> Optional[T_DESIRED]:
         """Turns this value into the desired type, if possible.
 
@@ -34,6 +40,10 @@ class PotentialImplementation:
 
         Args:
             desired_type: The type of thing that the caller wants to use.
+            extensions: The extensions instance that is asking us to try to
+                cast ourselves into something as part of its try_cast method.
+                If we need to recursively cast some of our fields in order to
+                cast ourselves, this is the extensions instance we should use.
 
         Returns:
             None if the receiving instance doesn't recognize or can't implement
