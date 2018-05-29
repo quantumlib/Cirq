@@ -15,9 +15,13 @@
 import asyncio
 import subprocess
 import sys
-from typing import Optional, Tuple, Union, IO, Any, cast
+from typing import Optional, Tuple, Union, IO, Any, cast, TYPE_CHECKING
 
 import collections
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List
 
 
 BOLD = 1
@@ -70,7 +74,7 @@ async def _async_forward(async_chunks: collections.AsyncIterable,
     capture = isinstance(out, TeeCapture)
     out_pipe = out.out_pipe if isinstance(out, TeeCapture) else out
 
-    chunks = [] if capture else None
+    chunks = [] if capture else None  # type: Optional[List[str]]
     async for chunk in async_chunks:
         if not isinstance(chunk, str):
             chunk = chunk.decode()

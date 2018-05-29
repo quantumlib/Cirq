@@ -143,10 +143,10 @@ class Exp11Gate(XmonGate,
         self.parameterized_value_to_proto(self.half_turns, op.exp_11.half_turns)
         return op
 
-    def try_cast_to(self, desired_type):
+    def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        return super().try_cast_to(desired_type)
+        return super().try_cast_to(desired_type, ext)
 
     def has_matrix(self):
         return not isinstance(self.half_turns, Symbol)
@@ -237,12 +237,12 @@ class ExpWGate(XmonGate,
         self.parameterized_value_to_proto(self.half_turns, op.exp_w.half_turns)
         return op
 
-    def try_cast_to(self, desired_type):
+    def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
         if desired_type is ops.ReversibleGate and self.has_inverse():
             return self
-        return super().try_cast_to(desired_type)
+        return super().try_cast_to(desired_type, ext)
 
     def has_inverse(self):
         return not isinstance(self.half_turns, Symbol)
@@ -363,12 +363,12 @@ class ExpZGate(XmonGate,
             return -1
         return self.half_turns
 
-    def try_cast_to(self, desired_type):
+    def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
         if desired_type is ops.ReversibleGate and self.has_inverse():
             return self
-        return super().try_cast_to(desired_type)
+        return super().try_cast_to(desired_type, ext)
 
     def has_inverse(self):
         return not isinstance(self.half_turns, Symbol)

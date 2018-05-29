@@ -1,7 +1,7 @@
 3to2
 absl-py
 google-api-python-client
-mypy
+mypy==0.590
 matplotlib
 numpy
 pylint
