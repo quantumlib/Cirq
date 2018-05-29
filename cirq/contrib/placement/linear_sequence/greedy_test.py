@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Iterable
+import pytest
 
 from cirq.contrib.placement.linear_sequence.greedy import \
     GreedySequenceSearch, MinimalConnectivityGreedySequenceSearch, \
@@ -25,6 +26,13 @@ from cirq.value import Duration
 def _create_device(qubits: Iterable[XmonQubit]):
     return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0),
                       qubits)
+
+
+def test_greedy_sequence_search_fails_on_wrong_start_qubit():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    with pytest.raises(ValueError):
+        GreedySequenceSearch(_create_device([q00]), q01)
 
 
 def test_get_or_search_calls_find_sequence_once():
