@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+import numpy as np
 from google.protobuf import message, text_format
 
 from cirq.api.google.v1 import operations_pb2
@@ -128,6 +129,27 @@ def test_z_to_proto():
         """)
 
 
+def test_z_matrix():
+    assert np.allclose(ExpZGate(half_turns=1).matrix(),
+                       np.array([[-1j, 0], [0, 1j]]))
+    assert np.allclose(ExpZGate(half_turns=0.5).matrix(),
+                       np.array([[1 - 1j, 0], [0, 1 + 1j]]) / np.sqrt(2))
+    assert np.allclose(ExpZGate(half_turns=0).matrix(),
+                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(ExpZGate(half_turns=-0.5).matrix(),
+                       np.array([[1 + 1j, 0], [0, 1 - 1j]]) / np.sqrt(2))
+
+
+def test_z_parameterize():
+    parameterized_gate = ExpZGate(half_turns=Symbol('a'))
+    assert parameterized_gate.is_parameterized()
+    with pytest.raises(ValueError):
+        _ = parameterized_gate.matrix()
+    resolver = ParamResolver({'a': 0.1})
+    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate == ExpZGate(half_turns=0.1)
+
+
 def test_cz_eq():
     eq = EqualsTester()
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=0))
@@ -178,6 +200,16 @@ def test_cz_to_proto():
             }
         }
         """)
+
+
+def test_cz_parameterize():
+    parameterized_gate = Exp11Gate(half_turns=Symbol('a'))
+    assert parameterized_gate.is_parameterized()
+    with pytest.raises(ValueError):
+        _ = parameterized_gate.matrix()
+    resolver = ParamResolver({'a': 0.1})
+    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate == Exp11Gate(half_turns=0.1)
 
 
 def test_w_eq():
@@ -276,6 +308,7 @@ def test_w_potential_implementation():
 def test_w_parameterize():
     parameterized_gate = ExpWGate(half_turns=Symbol('a'),
                                   axis_half_turns=Symbol('b'))
+    assert parameterized_gate.is_parameterized()
     with pytest.raises(ValueError):
         _ = parameterized_gate.matrix()
     resolver = ParamResolver({'a': 0.1, 'b': 0.2})
