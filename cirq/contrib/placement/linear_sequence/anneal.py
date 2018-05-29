@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Optional, Tuple, Set
+from typing import Callable, List, Optional, Tuple, Set, Any
 
 import numpy as np
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence.chip import above, right_of, \
-    chip_as_adjacency_list, EDGE
+from cirq.contrib.placement.linear_sequence.chip import (
+    above,
+    right_of,
+    chip_as_adjacency_list,
+    EDGE,
+)
 from cirq.contrib.placement import optimize
 
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
@@ -66,8 +70,8 @@ class AnnealSequenceSearch(object):
         def search_trace(state: _STATE, temp: float,
                          cost: float, probability: float, accepted: bool):
             if trace_func:
-                seqs, _ = state
-                trace_func(seqs, temp, cost, probability, accepted)
+                trace_seqs, _ = state
+                trace_func(trace_seqs, temp, cost, probability, accepted)
 
         seqs, _ = optimize.anneal_minimize(
             self._create_initial_solution(),
@@ -135,15 +139,17 @@ class AnnealSequenceSearch(object):
 
         edge = self._choose_random_edge(unused_edges)
         if not edge:
-            return (seqs, edges)
+            return seqs, edges
 
         return (
-            self._force_edge_active(seqs, edge, lambda: self._rand.randint(2)),
+            self._force_edge_active(seqs,
+                                    edge,
+                                    lambda: bool(self._rand.randint(2))),
             edges)
 
     def _force_edge_active(self, seqs: List[List[XmonQubit]], edge: EDGE,
-                           sample_bool: Callable[[], bool]) -> List[
-        List[XmonQubit]]:
+                           sample_bool: Callable[[], bool]
+                           ) -> List[List[XmonQubit]]:
         """Move which forces given edge to appear on some sequence.
 
         Args:
@@ -156,25 +162,16 @@ class AnnealSequenceSearch(object):
           sequences.
         """
 
-        def sequence_and_index(seqs: List[List[XmonQubit]],
-                               node: XmonQubit) -> Tuple[
-            List[XmonQubit], int, int]:
-
-            for i in range(len(seqs)):
-                for j in range(len(seqs[i])):
-                    if node == seqs[i][j]:
-                        return seqs[i], i, j
-
-            raise ValueError("Given node does not appear on any sequence")
-
         n0, n1 = edge
 
         # Make a copy of original sequences.
         seqs = list(seqs)
 
         # Localize edge nodes within current solution.
-        s0, i0, j0 = sequence_and_index(seqs, n0)
-        s1, i1, j1 = sequence_and_index(seqs, n1)
+        i0, j0 = index_2d(seqs, n0)
+        i1, j1 = index_2d(seqs, n1)
+        s0 = seqs[i0]
+        s1 = seqs[i1]
 
         # Handle case when nodes belong to different linear sequences,
         # separately from the case where they belong to a single linear
@@ -208,10 +205,8 @@ class AnnealSequenceSearch(object):
 
             # Append the left-overs to the solution, if they exist.
             other = [1, 0]
-            if part[0][other[c0]]:
-                seqs.append(part[0][other[c0]])
-            if part[1][other[c1]]:
-                seqs.append(part[1][other[c1]])
+            seqs.append(part[0][other[c0]])
+            seqs.append(part[1][other[c1]])
         else:
             # Swap nodes so that n0 always preceeds n1 on sequence.
             if j0 > j1:
@@ -234,19 +229,16 @@ class AnnealSequenceSearch(object):
                 # Append edge either before or after inner section.
                 if sample_bool():
                     seqs.append(inner + [n1, n0] + head[::-1])
-                    if tail:
-                        seqs.append(tail)
+                    seqs.append(tail)
                 else:
                     seqs.append(tail[::-1] + [n1, n0] + inner)
-                    if head:
-                        seqs.append(head)
+                    seqs.append(head)
             else:
                 # Form a new sequence from head, tail, and new edge.
                 seqs.append(head + [n0, n1] + tail)
-                if inner:
-                    seqs.append(inner)
+                seqs.append(inner)
 
-        return seqs
+        return [e for e in seqs if e]
 
     def _create_initial_solution(self) -> _STATE:
         """Creates initial solution based on the chip description.
@@ -311,15 +303,15 @@ class AnnealSequenceSearch(object):
           edge: Edge to normalize.
 
         Returns:
-          Normalized edge  with lexicographicaly lower node on the first
+          Normalized edge with lexicographically lower node on the first
           position.
         """
 
         def lower(n: XmonQubit, m: XmonQubit) -> bool:
             return n.row < m.row or (n.row == m.row and n.col < m.col)
 
-        n, m = edge
-        return (n, m) if lower(n, m) else (m, n)
+        n1, n2 = edge
+        return (n1, n2) if lower(n1, n2) else (n2, n1)
 
     def _choose_random_edge(self, edges: Set[EDGE]) -> Optional[EDGE]:
         """Picks random edge from the set of edges.
@@ -330,16 +322,13 @@ class AnnealSequenceSearch(object):
         Returns:
           Random edge from the supplied set, or None for empty set.
         """
-        if not edges:
-            return None
-
-        index = self._rand.randint(len(edges))
-        for e in edges:
-            if not index:
-                return e
-            index -= 1
-
-        raise ValueError("Edge at index %d cannot be found" % index)
+        if edges:
+            index = self._rand.randint(len(edges))
+            for e in edges:
+                if not index:
+                    return e
+                index -= 1
+        return None
 
 
 def anneal_sequence(
@@ -366,3 +355,20 @@ def anneal_sequence(
       List of linear sequences on the chip found by simulated annealing method.
     """
     return AnnealSequenceSearch(device, seed).search(method_opts, trace_func)
+
+
+def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:
+    """Finds the first index of a target item within a list of lists.
+
+    Args:
+        seqs: The list of lists to search.
+        target: The item to find.
+
+    Raises:
+        ValueError: Item is not present.
+    """
+    for i in range(len(seqs)):
+        for j in range(len(seqs[i])):
+            if seqs[i][j] == target:
+                return i, j
+    raise ValueError('Item not present.')

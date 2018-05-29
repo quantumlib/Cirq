@@ -1,3 +1,17 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import Optional, Any, Union
 
 import numpy as np
@@ -106,11 +120,21 @@ def single_qubit_matrix_gate(gate: ops.KnownMatrixGate) -> Optional[QuirkGate]:
     if matrix.shape[0] != 2:
         return None
 
+    matrix = matrix.round(6)
     matrix_repr = '{{%s+%si,%s+%si},{%s+%si,%s+%si}}' % (
         np.real(matrix[0, 0]), np.imag(matrix[0, 0]),
         np.real(matrix[1, 0]), np.imag(matrix[1, 0]),
         np.real(matrix[0, 1]), np.imag(matrix[0, 1]),
         np.real(matrix[1, 1]), np.imag(matrix[1, 1]))
+
+    # Clean up.
+    matrix_repr = matrix_repr.replace('+-', '-')
+    matrix_repr = matrix_repr.replace('+0.0i', '')
+    matrix_repr = matrix_repr.replace('.0,', ',')
+    matrix_repr = matrix_repr.replace('.0}', '}')
+    matrix_repr = matrix_repr.replace('.0+', '+')
+    matrix_repr = matrix_repr.replace('.0-', '-')
+
     return QuirkGate({
         'id': '?',
         'matrix': matrix_repr

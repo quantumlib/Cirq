@@ -15,8 +15,11 @@
 from typing import Union
 
 import numpy as np
+import pytest
 
+import cirq
 from cirq.ops.partial_reflection_gate import PartialReflectionGate
+from cirq.study import ParamResolver
 from cirq.testing import EqualsTester
 from cirq.value import Symbol
 
@@ -26,8 +29,8 @@ class DummyGate(PartialReflectionGate):
     def _with_half_turns(self, half_turns: Union[Symbol, float] = 1.0):
         return DummyGate(half_turns=half_turns)
 
-    def text_diagram_wire_symbols(self):
-        return 'D'
+    def text_diagram_wire_symbols(self, **kwargs):
+        return 'D',
 
     def _reflection_matrix(self):
         return np.diag([1, -1])
@@ -59,5 +62,27 @@ def test_partial_reflection_gate_inverse():
     assert DummyGate(half_turns=0.25).inverse() == DummyGate(half_turns=-0.25)
 
 
+def test_partial_reflection_as_self_inverse():
+    ex = cirq.Extensions()
+    h0 = DummyGate(half_turns=0)
+    h1 = DummyGate(half_turns=1)
+
+    assert ex.try_cast(h1, cirq.SelfInverseGate) is h1
+    assert ex.try_cast(h0, cirq.SelfInverseGate) is h0
+    assert ex.try_cast(DummyGate(half_turns=0.5),
+                       cirq.SelfInverseGate) is None
+    assert ex.try_cast(DummyGate(half_turns=-0.5),
+                       cirq.SelfInverseGate) is None
+
+
 def test_partial_reflection_gate_str():
     assert str(DummyGate(half_turns=.25)) == 'D**0.25'
+
+
+def test_partial_reflection_gate_with_parameters_resolved_by():
+    gate = DummyGate(half_turns=Symbol('a'))
+    resolver = ParamResolver({'a': 0.1})
+    resolved_gate = gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate.half_turns == 0.1
+    with pytest.raises(ValueError):
+        _ = resolved_gate.with_parameters_resolved_by(resolver)

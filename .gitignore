@@ -11,3 +11,10 @@ __pycache__
 *.py,cover
 *.coverage
 *.coverage.*
+# packaging
+*.egg-info/
+# Sphinx
+_build
+docs/generated
+# swap files
+*.swp

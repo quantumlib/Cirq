@@ -227,7 +227,7 @@ def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
     operations = decompositions.controlled_op_to_native_gates(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
-    intended_effect = linalg.kron_with_controls(mat, linalg.CONTROL_TAG)
+    intended_effect = linalg.kron_with_controls(linalg.CONTROL_TAG, mat)
     assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
@@ -347,3 +347,38 @@ def test_two_to_native_equivalent_and_bounded_for_known_and_random(
 
     assert_cz_depth_below(operations_with_partial, max_partial_cz_depth, False)
     assert_cz_depth_below(operations_with_full, max_full_cz_depth, True)
+
+
+def test_trivial_parity_interaction_corner_case():
+    q0 = ops.QubitId()
+    q1 = ops.QubitId()
+    nearPi4 = np.pi/4 * 0.99
+    tolerance = 1e-2
+    circuit = circuits.Circuit.from_ops(
+                decompositions._parity_interaction(q0, q1, -nearPi4, tolerance))
+    assert len(circuit) == 2
+
+
+@pytest.mark.parametrize('rad,expected', (lambda err, largeErr: [
+    (np.pi/4, True),
+    (np.pi/4 + err, True),
+    (np.pi/4 + largeErr, False),
+    (np.pi/4 - err, True),
+    (np.pi/4 - largeErr, False),
+    (-np.pi/4, True),
+    (-np.pi/4 + err, True),
+    (-np.pi/4 + largeErr, False),
+    (-np.pi/4 - err, True),
+    (-np.pi/4 - largeErr, False),
+    (0, True),
+    (err, True),
+    (largeErr, False),
+    (-err, True),
+    (-largeErr, False),
+    (np.pi/8, False),
+    (-np.pi/8, False),
+])(1e-8*2/3, 1e-8*4/3))
+def test_is_trivial_angle(rad, expected):
+    tolerance = 1e-8
+    out = decompositions._is_trivial_angle(rad, tolerance)
+    assert out == expected, 'rad = {}'.format(rad)
