@@ -34,6 +34,9 @@ from cirq.ops.common_gates import (
     Y,
     Z,
 )
+from cirq.ops.controlled_gate import (
+    ControlledGate,
+)
 from cirq.ops.eigen_gate import (
     EigenGate,
 )
@@ -42,6 +45,7 @@ from cirq.ops.gate_features import (
     CompositeGate,
     ExtrapolatableGate,
     KnownMatrixGate,
+    ParameterizableGate,
     PhaseableGate,
     ReversibleGate,
     SelfInverseGate,
