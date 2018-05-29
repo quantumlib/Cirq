@@ -202,6 +202,12 @@ def test_cz_to_proto():
         """)
 
 
+def test_cz_potential_implementation():
+    ex = Extensions()
+    assert not ex.can_cast(Exp11Gate(half_turns=Symbol('a')), KnownMatrixGate)
+    assert ex.can_cast(Exp11Gate(), KnownMatrixGate)
+
+
 def test_cz_parameterize():
     parameterized_gate = Exp11Gate(half_turns=Symbol('a'))
     assert parameterized_gate.is_parameterized()
@@ -297,10 +303,8 @@ def test_w_to_proto():
 
 def test_w_potential_implementation():
     ex = Extensions()
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')),
-                           KnownMatrixGate)
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')),
-                           ReversibleGate)
+    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), KnownMatrixGate)
+    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), ReversibleGate)
     assert ex.can_cast(ExpWGate(), KnownMatrixGate)
     assert ex.can_cast(ExpWGate(), ReversibleGate)
 

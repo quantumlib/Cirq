@@ -103,7 +103,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def try_cast_to(self, desired_type):
+    def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableGate,
                              gate_features.ReversibleGate] and
                 not self.is_parameterized()):
@@ -115,7 +115,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         if (desired_type is gate_features.KnownMatrixGate and
                 not self.is_parameterized()):
             return self
-        return super().try_cast_to(desired_type)
+        return super().try_cast_to(desired_type, ext)
 
     @abc.abstractmethod
     def _reflection_matrix(self) -> np.ndarray:
