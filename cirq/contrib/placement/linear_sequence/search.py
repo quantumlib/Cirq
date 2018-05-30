@@ -26,17 +26,18 @@ def search_sequence(device: XmonDevice,
     """Searches for linear sequence of nodes on the grid.
 
     Args:
-      device: Google Xmon device instance.
-      method: Search method to use. Currently only 'greedy' method is supported.
-      method_opts: Search method specific options.
-      seed: Seed for the random number generator used during the search. Not yet
-            implemented.
+        device: Google Xmon device instance.
+        method: Search method to use. Currently only 'greedy' method is
+                supported.
+        method_opts: Search method specific options.
+        seed: Seed for the random number generator used during the search. Not
+              yet implemented.
 
     Returns:
-      Future that gives a list of sequences found upon completion.
+        Future that gives a list of sequences found upon completion.
 
     Raises:
-      ValueError: When unknown search method is requested.
+        ValueError: When unknown search method is requested.
     """
     if method == 'greedy':
         return greedy.greedy_sequence(device, method_opts)
