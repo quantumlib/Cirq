@@ -83,14 +83,23 @@ print(np.around(result.final_states[0], 3))
 # [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
 
-The `qubit_order` argument to `run` determines the ordering of some results,
-such as the amplitudes if the final wave function.
-`qubit_order` is optional, and can include qubits not actually in the circuit.
-When `qubit_order` is omitted, qubits are ordered ascending by their name
-(i.e. what their `__str__` method returns).
+Note that the simulator uses numpy's ``float32`` precision
+(which is ``complex64`` for complex numbers).
 
-The mapping from the order of the qubits to the order of the amplitudes in the
-wave function is the same as the ordering used by `numpy.kron`:
+# Qubit and Amplitude Ordering
+
+The `qubit_order` argument to the simulator's `run` method determines the ordering
+of some results, such as the amplitudes in the final wave function.
+The `qubit_order` argument is optional.
+When it is omitted, qubits are ordered ascending by their name (i.e. what their `__str__` method returns).
+
+The simplest `qubit_order` value you can provide is a list of the qubits in the desired ordered.
+Any qubits from the circuit that aren't in the list will be ordered using the default `__str__` ordering,
+but come after qubits that are in the list.
+Be aware that all qubits in the list are included in the simulation, even if they aren't operated on by the circuit.
+
+The mapping from the order of the qubits to the order of the amplitudes in the wave function can
+be tricky to understand. Basically, it is the same as the ordering used by `numpy.kron`:
 
 ```python
 outside = [1, 10]
@@ -100,9 +109,10 @@ print(np.kron(outside, inside))
 # [ 1 2  10 20]
 ```
 
-In other words, the `k`'th amplitude corresponds to the `k`'th case
-that would be encountered when nesting loops over the possible
-values of each qubit in order:
+More concretely, the `k`'th amplitude in the wavefunction will correspond to the `k`'th case
+that would be encountered when nesting loops over the possible values of each qubit.
+The first qubit's computational basis values are looped over in the outer-most loop, the last qubit's
+computational basis values are looped over in the inner-most loop, etc:
 
 ```python
 i = 0
@@ -117,15 +127,21 @@ for q0 in [0, 1]:
 # amps[3] is for q0=1, q1=1
 ```
 
-Note that the simulator uses numpy's ``float32`` precision
-(which is ``complex64`` for complex numbers).
-In 
-particular if the qubit list is ``[q0, q1, ..., q_{n-1}]``,
-and ``x_{n-1}...x_1x_0`` is the binary expansion of the
-index ``x``, then ``state[x]`` is the value of the state
-corresponding to qubit ``q_i`` being in computational basis
-state ``b_i``
-(So we say that the ordering is *little-endian*.)
+We can check that this is in fact the ordering with a circuit that flips one qubit out of two:
+
+```python
+q_stay = cirq.NamedQubit('q_stay')
+q_flip = cirq.NamedQubit('q_flip')
+c = cirq.Circuit.from_ops(cirq.X(q_flip))
+
+result = simulator.run(c, qubit_order=[q_flip, q_stay])
+print('first qubit in order flipped:')
+print(abs(result.final_states[-1]).round(3))
+
+result = simulator.run(c, qubit_order=[q_stay, q_flip])
+print('second qubit in order flipped:')
+print(abs(result.final_states[-1]).round(3))
+```
 
 ### Stepping through a Circuit
 
