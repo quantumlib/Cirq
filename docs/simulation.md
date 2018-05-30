@@ -23,14 +23,14 @@ def basic_circuit(meas=True):
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     z = ExpZGate()
     cz = Exp11Gate()
-    yield [sqrt_x(q0), sqrt_x(q1)]
-    yield [cz(q0, q1)]
-    yield [sqrt_x(q0), sqrt_x(q1)]
+    yield sqrt_x(q0), sqrt_x(q1)
+    yield cz(q0, q1)]
+    yield sqrt_x(q0), sqrt_x(q1)
     if meas:
-        yield [XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)]
+        yield XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)
    
 circuit = Circuit()
-circuit.append(basic_circuit())    
+circuit.append(basic_circuit())
   
 print(circuit)
 # prints
@@ -39,8 +39,8 @@ print(circuit)
 # (1, 0): ───X^0.5───Z───X^0.5───M───
 ```
 
-We can simulate this by creating an ``xmon_simulator.Simulator`` and 
-then simply calling ``run``:
+We can simulate this by creating a ``cirq.google.Simulator`` and 
+passing the circuit into its ``run`` method:
 ```python
 from cirq.google import Simulator
 simulator = Simulator()
@@ -67,7 +67,7 @@ print(result)
 # q0=1 q1=0
 ```
 
-The Xmon simulator is designed to mimic what running a program
+The simulator is designed to mimic what running a program
 on a quantum computer is actually like. However it does have
 a few features which are useful for debugging and running circuits.
 In particular the result object includes not just the measurement,
@@ -83,21 +83,49 @@ print(np.around(result.final_states[0], 3))
 # [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
 
-The qubit_order argument determines the ordering of some results, such as the
-amplitudes if the final wave function. qubit_order is optional, and can include
-qubits not actually in the circuit. When omitted, qubits are ordered ascending
-by their name (i.e. what their `__str__` method returns).
+The `qubit_order` argument to `run` determines the ordering of some results,
+such as the amplitudes if the final wave function.
+`qubit_order` is optional, and can include qubits not actually in the circuit.
+When `qubit_order` is omitted, qubits are ordered ascending by their name
+(i.e. what their `__str__` method returns).
 
+The mapping from the order of the qubits to the order of the amplitudes in the
+wave function is the same as the ordering used by `numpy.kron`:
 
-Note that the xmon simulator uses numpy's ``float32`` precision
-(which is ``complex64`` for complex numbers). Also note that
-we have supplied a list of ``qubits`` to the ``run`` method.
-This is needed in order to define the order of state.  In 
+```python
+outside = [1, 10]
+inside = [1, 2]
+print(np.kron(outside, inside))
+# prints
+# [ 1 2  10 20]
+```
+
+In other words, the `k`'th amplitude corresponds to the `k`'th case
+that would be encountered when nesting loops over the possible
+values of each qubit in order:
+
+```python
+i = 0
+for q0 in [0, 1]:
+    for q1 in [0, 1]:
+        print('amps[{}] is for q0={}, q1={}'.format(i, q0, q1))
+        i += 1
+# prints
+# amps[0] is for q0=0, q1=0
+# amps[1] is for q0=0, q1=1
+# amps[2] is for q0=1, q1=0
+# amps[3] is for q0=1, q1=1
+```
+
+Note that the simulator uses numpy's ``float32`` precision
+(which is ``complex64`` for complex numbers).
+In 
 particular if the qubit list is ``[q0, q1, ..., q_{n-1}]``,
 and ``x_{n-1}...x_1x_0`` is the binary expansion of the
 index ``x``, then ``state[x]`` is the value of the state
 corresponding to qubit ``q_i`` being in computational basis
-state ``b_i`` (So we say that the ordering is *little-endian*.)
+state ``b_i``
+(So we say that the ordering is *little-endian*.)
 
 ### Stepping through a Circuit
 
