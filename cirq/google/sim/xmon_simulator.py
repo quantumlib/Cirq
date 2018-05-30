@@ -210,7 +210,7 @@ class Simulator:
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
             final_states = []  # type: List[np.ndarray]
             for _ in range(repetitions):
-                all_step_results = simulator_iterator(
+                all_step_results = _simulator_iterator(
                     xmon_circuit,
                     options or Options(),
                     qubit_order,
@@ -280,10 +280,10 @@ class Simulator:
         xmon_circuit, _ = self._to_xmon_circuit(program,
                                                 param_resolver,
                                                 extensions or xmon_gate_ext)
-        return simulator_iterator(xmon_circuit,
-                                  options or Options(),
-                                  qubit_order,
-                                  initial_state)
+        return _simulator_iterator(xmon_circuit,
+                                   options or Options(),
+                                   qubit_order,
+                                   initial_state)
 
 
     def _to_xmon_circuit(self, circuit: Circuit,
@@ -324,7 +324,7 @@ class Simulator:
         return resolved_operations
 
 
-def simulator_iterator(
+def _simulator_iterator(
         circuit: Circuit,
         options: 'Options' = Options(),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
