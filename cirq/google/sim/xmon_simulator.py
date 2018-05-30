@@ -336,7 +336,8 @@ def simulator_iterator(
     Simulator and use methods on that object to get an iterator.
 
     Args:
-        circuit: The circuit to simulate; must contain xmon gates only.
+        circuit: The circuit to simulate. Must contain only xmon gates with no
+            unresolved parameters.
         options: Options configuring the simulation.
         qubit_order: Determines the canonical ordering of the qubits used to
             define the order of amplitudes in the wave function.
