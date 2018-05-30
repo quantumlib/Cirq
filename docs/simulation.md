@@ -21,7 +21,6 @@ q1 = XmonQubit(1, 0)
 
 def basic_circuit(meas=True):
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    z = ExpZGate()
     cz = Exp11Gate()
     yield sqrt_x(q0), sqrt_x(q1)
     yield cz(q0, q1)
@@ -106,7 +105,7 @@ outside = [1, 10]
 inside = [1, 2]
 print(np.kron(outside, inside))
 # prints
-# [ 1 2  10 20]
+# [ 1  2 10 20]
 ```
 
 More concretely, the `k`'th amplitude in the wavefunction will correspond to the `k`'th case
@@ -116,15 +115,15 @@ computational basis values are looped over in the inner-most loop, etc:
 
 ```python
 i = 0
-for q0 in [0, 1]:
-    for q1 in [0, 1]:
-        print('amps[{}] is for q0={}, q1={}'.format(i, q0, q1))
+for first in [0, 1]:
+    for second in [0, 1]:
+        print('amps[{}] is for first={}, second={}'.format(i, first, second))
         i += 1
 # prints
-# amps[0] is for q0=0, q1=0
-# amps[1] is for q0=0, q1=1
-# amps[2] is for q0=1, q1=0
-# amps[3] is for q0=1, q1=1
+# amps[0] is for first=0, second=0
+# amps[1] is for first=0, second=1
+# amps[2] is for first=1, second=0
+# amps[3] is for first=1, second=1
 ```
 
 We can check that this is in fact the ordering with a circuit that flips one qubit out of two:
