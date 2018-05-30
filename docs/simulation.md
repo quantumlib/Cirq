@@ -85,7 +85,7 @@ print(np.around(result.final_states[0], 3))
 Note that the simulator uses numpy's ``float32`` precision
 (which is ``complex64`` for complex numbers).
 
-# Qubit and Amplitude Ordering
+### Qubit and Amplitude Ordering
 
 The `qubit_order` argument to the simulator's `run` method determines the ordering
 of some results, such as the amplitudes in the final wave function.
