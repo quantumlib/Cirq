@@ -12,34 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import patch
+import pytest
 
 from cirq.contrib.placement.linear_sequence.search import search_sequence
+from cirq.testing.mock import mock
 from cirq.google import XmonDevice, XmonQubit
 from cirq.value import Duration
 
 
-def test_anneal_method_calls_anneal_search():
-    with patch(
-            'cirq.contrib.placement.linear_sequence.anneal.anneal_sequence') as anneal_sequence:
-        q00 = XmonQubit(0, 0)
-        q01 = XmonQubit(0, 1)
-        q03 = XmonQubit(0, 3)
-        device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
-                            Duration(nanos=0), qubits=[q00, q01, q03])
-        method_opts = {}
-        seed = 1
-        sequences = [[q00, q01]]
-        anneal_sequence.return_value = sequences
+@mock.patch('cirq.contrib.placement.linear_sequence.anneal.anneal_sequence')
+def test_anneal_method_calls_anneal_search(anneal_sequence):
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    q03 = XmonQubit(0, 3)
+    device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
+                        Duration(nanos=0), qubits=[q00, q01, q03])
+    method_opts = {}
+    seed = 1
+    sequences = [[q00, q01]]
+    anneal_sequence.return_value = sequences
 
-        assert search_sequence(device, 'anneal', method_opts, seed) == sequences
-        anneal_sequence.assert_called_once_with(device, method_opts, seed=seed)
+    assert search_sequence(device, 'anneal', method_opts, seed) == sequences
+    anneal_sequence.assert_called_once_with(device, method_opts, seed=seed)
 
 
-@patch('cirq.contrib.placement.linear_sequence.greedy.greedy_sequence')
+@mock.patch('cirq.contrib.placement.linear_sequence.greedy.greedy_sequence')
 def test_greedy_method_calls_greedy_search(greedy_sequence):
-    # with patch(
-    #         'cirq.contrib.placement.linear_sequence.greedy.greedy_sequence') as greedy_sequence:
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q03 = XmonQubit(0, 3)
@@ -51,3 +49,12 @@ def test_greedy_method_calls_greedy_search(greedy_sequence):
 
     assert search_sequence(device, 'greedy', method_opts) == sequences
     greedy_sequence.assert_called_once_with(device, method_opts)
+
+
+def test_search_fails_on_unknown_method():
+    q00 = XmonQubit(0, 0)
+    q01 = XmonQubit(0, 1)
+    device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
+                        Duration(nanos=0), qubits=[q00, q01])
+    with pytest.raises(ValueError):
+        search_sequence(device, 'dummy')
