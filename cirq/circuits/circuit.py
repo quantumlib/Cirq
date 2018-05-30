@@ -142,6 +142,9 @@ class Circuit(object):
     def __iter__(self):
         return iter(self.moments)
 
+    def iter_ops(self):
+        return (op for moment in self for op in moment.operations)
+
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
         return 'Circuit([{}])'.format(','.join(moment_lines))
