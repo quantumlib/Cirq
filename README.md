@@ -19,7 +19,7 @@ import cirq
 # Define a qubit.
 qubit = cirq.google.XmonQubit(0, 0)
 
-# Create a circuit (qubits start in the |0> state).
+# Create a circuit
 circuit = cirq.Circuit()
 circuit.append([
     # Square root of NOT.
@@ -32,6 +32,7 @@ print("Circuit:")
 print(circuit)
 
 # Now simulate the circuit and print out the measurement result.
+# By default, qubits start in the |0> state.
 simulator = cirq.google.Simulator()
 result = simulator.run(circuit, repetitions=10)
 results = [str(int(b)) for b in result.measurements['result'][:, 0]]
