@@ -24,7 +24,7 @@ def basic_circuit(meas=True):
     z = ExpZGate()
     cz = Exp11Gate()
     yield sqrt_x(q0), sqrt_x(q1)
-    yield cz(q0, q1)]
+    yield cz(q0, q1)
     yield sqrt_x(q0), sqrt_x(q1)
     if meas:
         yield XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)
