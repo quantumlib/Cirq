@@ -134,13 +134,17 @@ q_stay = cirq.NamedQubit('q_stay')
 q_flip = cirq.NamedQubit('q_flip')
 c = cirq.Circuit.from_ops(cirq.X(q_flip))
 
+# first qubit in order flipped
 result = simulator.run(c, qubit_order=[q_flip, q_stay])
-print('first qubit in order flipped:')
 print(abs(result.final_states[-1]).round(3))
+# prints
+# [0. 0. 1. 0.]
 
+# second qubit in order flipped
 result = simulator.run(c, qubit_order=[q_stay, q_flip])
-print('second qubit in order flipped:')
 print(abs(result.final_states[-1]).round(3))
+# prints
+# [0. 1. 0. 0.]
 ```
 
 ### Stepping through a Circuit
