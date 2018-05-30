@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+import numpy as np
 from google.protobuf import message, text_format
 
 from cirq.api.google.v1 import operations_pb2
@@ -20,6 +21,7 @@ from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleGate
+from cirq.study import ParamResolver
 from cirq.value import Symbol
 from cirq.testing import EqualsTester
 
@@ -127,6 +129,27 @@ def test_z_to_proto():
         """)
 
 
+def test_z_matrix():
+    assert np.allclose(ExpZGate(half_turns=1).matrix(),
+                       np.array([[-1j, 0], [0, 1j]]))
+    assert np.allclose(ExpZGate(half_turns=0.5).matrix(),
+                       np.array([[1 - 1j, 0], [0, 1 + 1j]]) / np.sqrt(2))
+    assert np.allclose(ExpZGate(half_turns=0).matrix(),
+                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(ExpZGate(half_turns=-0.5).matrix(),
+                       np.array([[1 + 1j, 0], [0, 1 - 1j]]) / np.sqrt(2))
+
+
+def test_z_parameterize():
+    parameterized_gate = ExpZGate(half_turns=Symbol('a'))
+    assert parameterized_gate.is_parameterized()
+    with pytest.raises(ValueError):
+        _ = parameterized_gate.matrix()
+    resolver = ParamResolver({'a': 0.1})
+    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate == ExpZGate(half_turns=0.1)
+
+
 def test_cz_eq():
     eq = EqualsTester()
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=0))
@@ -177,6 +200,22 @@ def test_cz_to_proto():
             }
         }
         """)
+
+
+def test_cz_potential_implementation():
+    ex = Extensions()
+    assert not ex.can_cast(Exp11Gate(half_turns=Symbol('a')), KnownMatrixGate)
+    assert ex.can_cast(Exp11Gate(), KnownMatrixGate)
+
+
+def test_cz_parameterize():
+    parameterized_gate = Exp11Gate(half_turns=Symbol('a'))
+    assert parameterized_gate.is_parameterized()
+    with pytest.raises(ValueError):
+        _ = parameterized_gate.matrix()
+    resolver = ParamResolver({'a': 0.1})
+    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate == Exp11Gate(half_turns=0.1)
 
 
 def test_w_eq():
@@ -270,7 +309,12 @@ def test_w_potential_implementation():
     assert ex.can_cast(ExpWGate(), ReversibleGate)
 
 
-def test_cz_potential_implementation():
-    ex = Extensions()
-    assert not ex.can_cast(Exp11Gate(half_turns=Symbol('a')), KnownMatrixGate)
-    assert ex.can_cast(Exp11Gate(), KnownMatrixGate)
+def test_w_parameterize():
+    parameterized_gate = ExpWGate(half_turns=Symbol('a'),
+                                  axis_half_turns=Symbol('b'))
+    assert parameterized_gate.is_parameterized()
+    with pytest.raises(ValueError):
+        _ = parameterized_gate.matrix()
+    resolver = ParamResolver({'a': 0.1, 'b': 0.2})
+    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    assert resolved_gate == ExpWGate(half_turns=0.1, axis_half_turns=0.2)

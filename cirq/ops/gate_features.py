@@ -258,7 +258,4 @@ class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
         Returns a gate of the same type, but with all Symbols replaced with
         floats according to the given ParamResolver.
-
-        Raises:
-            ValueError: The gate has no parameters to resolve.
         """
