@@ -19,7 +19,7 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Dict, FrozenSet, Iterable, Optional, Sequence
+from typing import Any, Dict, FrozenSet, Iterable, Optional, Sequence
 from typing import Union
 
 import numpy as np
@@ -150,6 +150,20 @@ class Circuit(object):
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Print ASCII diagram in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('Circuit(...)')
+        else:
+            p.text(self.to_text_diagram())
+
+    def _repr_html_(self) -> str:
+        """Print ASCII diagram in Jupyter notebook without wrapping lines."""
+        return ('<pre style="overflow: auto; white-space: pre;">'
+                + self.to_text_diagram()
+                + '</pre>')
 
     def _first_moment_operating_on(self, qubits: Iterable[ops.QubitId],
                                    indices: Iterable[int]) -> Optional[int]:
