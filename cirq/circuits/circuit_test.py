@@ -992,6 +992,14 @@ def test_circuit_to_unitary_matrix():
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
 
+    # Non-terminal measurements are not ignored (multiple qubits).
+    c = Circuit.from_ops(
+            ops.MeasurementGate()(a),
+            ops.MeasurementGate()(b),
+            ops.CNOT(a, b))
+    with pytest.raises(TypeError):
+        _ = c.to_unitary_matrix()
+
     # Gates without matrix or decomposition raise exception
     class MysteryGate(ops.Gate):
         pass

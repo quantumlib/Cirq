@@ -19,8 +19,8 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Dict, FrozenSet, Iterable, Optional, Sequence
-from typing import Generator, Union
+from typing import Any, Dict, FrozenSet, Generator, Iterable, Iterator
+from typing import Optional, Sequence, Union
 
 import numpy as np
 
@@ -142,7 +142,7 @@ class Circuit(object):
     def __iter__(self):
         return iter(self.moments)
 
-    def iter_ops(self) -> Generator[ops.Operation, None, None]:
+    def iter_ops(self) -> Iterator[ops.Operation]:
         return (op for moment in self for op in moment.operations)
 
     def __repr__(self):
@@ -639,7 +639,7 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # Pass measurement gates through
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)  # type: ops.Gate
         if meas_gate is None:
             meas_gate = op.gate
         if isinstance(meas_gate, ops.MeasurementGate):
@@ -657,9 +657,9 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
                                   ignore_terminal_measurements: bool,
                                   ext: Extensions) -> np.ndarray:
     total = np.eye(1 << len(qubit_map))
-    measured_qubits = set()
+    measured_qubits = set()  # type: Set[QubitId]
     for op in iter_ops:
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)  # type: ops.Gate
         if meas_gate is None:
             meas_gate = op.gate
         if isinstance(meas_gate, ops.MeasurementGate):
