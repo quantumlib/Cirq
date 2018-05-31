@@ -20,7 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from typing import Any, Dict, FrozenSet, Iterable, Optional, Sequence
-from typing import Union
+from typing import Generator, Union
 
 import numpy as np
 
@@ -455,30 +455,17 @@ class Circuit(object):
                 by a Symbol, etc.
         """
 
-        def is_ignorable_measurement(moment_index, operation):
-            if not ignore_terminal_measurements:
-                return False
-            if not isinstance(operation.gate, ops.MeasurementGate):
-                return False
-            if self.next_moment_operating_on(operation.qubits,
-                                             moment_index + 1) is not None:
-                return False
-            return True
-
         if ext is None:
             ext = Extensions()
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
-        total = np.eye(1 << len(qubit_map))
-        for k, moment in enumerate(self.moments):
-            for op in moment.operations:
-                if is_ignorable_measurement(k, op):
-                    continue
-                mat = _operation_to_unitary_matrix(op, qubit_map, ext)
-                total = np.matmul(mat, total)
-        return total
+        matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
+        return _operations_to_unitary_matrix(matrix_ops,
+                                             qubit_map,
+                                             ignore_terminal_measurements,
+                                             ext)
 
     def to_text_diagram(
             self,
@@ -629,6 +616,63 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
+
+
+def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
+                                 ext: Extensions
+                                ) -> Generator[ops.Operation, None, None]:
+    for op in iter_ops:
+        # Check if the operation has a known matrix
+        known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+        if known_matrix_gate is not None:
+            yield op
+            continue
+
+        # If not, check if it has a decomposition
+        composite_gate = ext.try_cast(op.gate, ops.CompositeGate)
+        if composite_gate is not None:
+            # Recurse on composite gate decomposition to get known matrix gates.
+            op_tree = composite_gate.default_decompose(op.qubits)
+            op_list = ops.flatten_op_tree(op_tree)
+            for op in _flatten_to_known_matrix_ops(op_list, ext):
+                yield op
+            continue
+
+        # Pass measurement gates through
+        if isinstance(op.gate, ops.MeasurementGate):
+            yield op
+            continue
+
+        # Otherwise, fail
+        raise TypeError(
+            'Operation without a known matrix or decomposition: {!r}'
+            .format(op))
+
+
+def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
+                                  qubit_map: Dict[QubitId, int],
+                                  ignore_terminal_measurements: bool,
+                                  ext: Extensions) -> np.ndarray:
+    total = np.eye(1 << len(qubit_map))
+    measure_flags = {qubit: False for qubit in qubit_map.keys()}
+    for op in iter_ops:
+        if isinstance(op.gate, ops.MeasurementGate):
+            if not ignore_terminal_measurements:
+                raise TypeError(
+                    'Measurement operation not supported: {!r}'.format(op))
+            for qubit in op.qubits:
+                # Don't need to check if the flag is already set.
+                # Multiple terminal measurements of the same qubit should be
+                # fine.
+                measure_flags[qubit] = True
+            continue
+        for qubit in op.qubits:
+            if measure_flags[qubit]:
+                raise TypeError(
+                    'Operation after measurement: {!r}'.format(op))
+        mat = _operation_to_unitary_matrix(op, qubit_map, ext)
+        total = np.matmul(mat, total)
+    return total
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
