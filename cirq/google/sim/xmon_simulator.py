@@ -53,8 +53,10 @@ class Options:
         min_qubits_before_shard: Sharding will be done only for this number
             of qubits or more. The default is 18.
         use_processes: Whether or not to use processes instead of threads.
-            For very long and large simulations, processes can outperform
-            threads.
+            Processes can improve the performance slightly (varies by machine
+            but on the order of 10 percent faster).  However this varies
+            significantly by architecture, and processes should not be used
+            for interactive use on Windows.
     """
 
     def __init__(self,
@@ -71,8 +73,10 @@ class Options:
             min_qubits_before_shard: Sharding will be done only for this number
                 of qubits or more. The default is 18.
             use_processes: Whether or not to use processes instead of threads.
-                For very long and large simulations, processes can outperform
-                threads.
+                Processes can improve the performance slightly (varies by
+                machine but on the order of 10 percent faster).  However this
+                varies significantly by architecture, and processes should not
+                be used for interactive python use on Windows.
         """
         assert num_shards is None or num_shards > 0, (
             "Num_shards cannot be less than 1.")

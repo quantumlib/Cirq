@@ -169,6 +169,20 @@ def test_reset_state_wrong_dtype(num_prefix_qubits):
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_reset_state_outside_of_context(num_prefix_qubits):
+    with xmon_stepper.Stepper(
+        num_qubits=3,
+        num_prefix_qubits=num_prefix_qubits,
+        initial_state=0,
+        min_qubits_before_shard=0) as s:
+        pass
+    s.reset_state(3)
+    expected = np.zeros(2 ** 3, dtype=np.complex64)
+    expected[3] = 1.0
+    np.testing.assert_almost_equal(expected, s.current_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_w_x0(num_prefix_qubits):
     result = compute_xy_matrix(num_prefix_qubits, 0, -1.0, 0.0)
     expected = 1j * np.array([

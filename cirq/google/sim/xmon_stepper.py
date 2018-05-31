@@ -89,8 +89,10 @@ class Stepper(object):
           min_qubits_before_shard: Sharding will be done only for this number
               of qubits or more. The default is 18.
           use_processes: Whether or not to use processes instead of threads.
-              For very long and large simulations, processes can outperform
-              threads.
+              Processes can improve the performance slightly (varies by machine
+              but on the order of 10 percent faster).  However this varies
+              significantly by architecture, and processes should not be used
+              for interactive python use on Windows.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -220,10 +222,15 @@ class Stepper(object):
     def current_state(self):
         """Returns the current wavefunction."""
         # If the pool has been closed, recreate to calculate state.
+        reentered = False
         if not self._pool_open:
+            reentered = True
             self.__enter__()
-        return np.array(self._pool.map(_state_shard,
-                                       self._shard_num_args())).flatten()
+        state = np.array(self._pool.map(_state_shard,
+                                        self._shard_num_args())).flatten()
+        if reentered:
+            self.__exit__()
+        return state
 
     def reset_state(self, reset_state):
         """Reset the state to the given initial state.
@@ -240,8 +247,10 @@ class Stepper(object):
             dtype.
         """
         # If the pool has been closed, recreate to calculate state.
+        reentered = False
         if not self._pool_open:
             self.__enter__()
+            reentered = True
         if isinstance(reset_state, int):
             self._pool.map(_reset_state,
                            self._shard_num_args({'reset_state': reset_state}))
@@ -256,6 +265,9 @@ class Stepper(object):
                 kwargs['reset_state'] = reset_state[start:end]
                 args.append(kwargs)
             self._pool.map(_reset_state, args)
+        if reentered:
+            self.__exit__()
+
 
     def simulate_phases(self, phase_map: Dict[Tuple[int, ...], float]):
         """Simulate a set of phase gates on the xmon architecture.
