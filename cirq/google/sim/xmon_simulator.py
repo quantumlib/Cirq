@@ -26,8 +26,8 @@ A simple example:
 """
 
 import math
-from collections import defaultdict, Iterable
-from typing import Dict, Iterator, List, Set, Union, cast
+import collections
+from typing import Dict, Iterable, Iterator, List, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
@@ -199,21 +199,22 @@ class Simulator:
                                         Circuit) else program.to_circuit()
         param_resolvers = self._to_resolvers(params or ParamResolver({}))
 
-        xmon_circuit, keys = self._to_xmon_circuit(circuit,
-                                                   extensions or xmon_gate_ext)
         trial_results = []  # type: List[SimulatorTrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
+            xmon_circuit, keys = self._to_xmon_circuit(
+                    circuit,
+                    param_resolver,
+                    extensions or xmon_gate_ext)
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
             final_states = []  # type: List[np.ndarray]
             for _ in range(repetitions):
-                all_step_results = simulator_iterator(
+                all_step_results = _simulator_iterator(
                     xmon_circuit,
                     options or Options(),
                     qubit_order,
-                    initial_state,
-                    param_resolver)
+                    initial_state)
                 step_result = None
                 for step_result in all_step_results:
                     for k, v in step_result.measurements.items():
@@ -238,8 +239,8 @@ class Simulator:
             return [sweepable]
         elif isinstance(sweepable, Sweep):
             return list(sweepable)
-        elif isinstance(sweepable, Iterable):
-            iterable = cast(Iterable, sweepable)
+        elif isinstance(sweepable, collections.Iterable):
+            iterable = cast(collections.Iterable, sweepable)
             return list(iterable) if isinstance(next(iter(iterable)),
                                                 ParamResolver) else sum(
                 [list(s) for s in iterable], [])
@@ -277,30 +278,57 @@ class Simulator:
         """
         param_resolver = param_resolver or ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(program,
+                                                param_resolver,
                                                 extensions or xmon_gate_ext)
-        return simulator_iterator(xmon_circuit,
-                                  options or Options(),
-                                  qubit_order,
-                                  initial_state,
-                                  param_resolver)
+        return _simulator_iterator(xmon_circuit,
+                                   options or Options(),
+                                   qubit_order,
+                                   initial_state)
+
 
     def _to_xmon_circuit(self, circuit: Circuit,
+                         param_resolver: ParamResolver,
                          extensions: Extensions = None
                          ) -> Tuple[Circuit, Set[str]]:
         # TODO: Use one optimization pass.
-        xmon_circuit = Circuit(circuit.moments)
+        xmon_circuit = self._to_circuit_with_parameters_resolved(
+                circuit, param_resolver)
         ConvertToXmonGates(extensions).optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys
 
+    def _to_circuit_with_parameters_resolved(self, circuit: Circuit,
+                                             param_resolver: ParamResolver
+                                             ) -> Circuit:
+        resolved_circuit = Circuit()
+        for moment in circuit.moments:
+            resolved_circuit.append(
+                    self._to_operations_with_parameters_resolved(
+                        moment.operations, param_resolver))
+        return resolved_circuit
 
-def simulator_iterator(
+    def _to_operations_with_parameters_resolved(
+            self,
+            operations: Iterable[ops.Operation],
+            param_resolver: ParamResolver
+            ) -> List[ops.Operation]:
+        resolved_operations = []
+        for op in operations:
+            gate, qubits = op.gate, op.qubits
+            if (isinstance(gate, ops.ParameterizableGate) and
+                    gate.is_parameterized()):
+                gate = gate.with_parameters_resolved_by(param_resolver)
+            resolved_op = ops.Operation(gate, qubits)
+            resolved_operations.append(resolved_op)
+        return resolved_operations
+
+
+def _simulator_iterator(
         circuit: Circuit,
         options: 'Options' = Options(),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray]=0,
-        param_resolver: ParamResolver = ParamResolver({}),
+        initial_state: Union[int, np.ndarray]=0
 ) -> Iterator['StepResult']:
     """Iterator over TrialResults from Moments of a Circuit.
 
@@ -308,7 +336,8 @@ def simulator_iterator(
     Simulator and use methods on that object to get an iterator.
 
     Args:
-        circuit: The circuit to simulate; must contain xmon gates only.
+        circuit: The circuit to simulate. Must contain only xmon gates with no
+            unresolved parameters.
         options: Options configuring the simulation.
         qubit_order: Determines the canonical ordering of the qubits used to
             define the order of amplitudes in the wave function.
@@ -320,8 +349,6 @@ def simulator_iterator(
             If this is a np.ndarray it is the full initial state.
             In this case it must be the correct size, be normalized (an L2
             norm of 1), and be safely castable to a np.complex64.
-        param_resolver: A ParamResolver for determining values ofs
-            Symbols.
 
     Yields:
         StepResults from simulating a Moment of the Circuit.
@@ -344,26 +371,24 @@ def simulator_iterator(
             min_qubits_before_shard=options.min_qubits_before_shard
     ) as stepper:
         for moment in circuit.moments:
-            measurements = defaultdict(list)  # type: Dict[str, List[bool]]
+            measurements = collections.defaultdict(
+                list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
                 gate = op.gate
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
-                    phase_map[(index,)] = param_resolver.value_of(
-                        gate.half_turns)
+                    phase_map[(index,)] = cast(float, gate.half_turns)
                 elif isinstance(gate, xmon_gates.Exp11Gate):
                     index0 = qubit_map[op.qubits[0]]
                     index1 = qubit_map[op.qubits[1]]
-                    phase_map[(index0, index1)] = (
-                        param_resolver.value_of(gate.half_turns))
+                    phase_map[(index0, index1)] = cast(float, gate.half_turns)
                 elif isinstance(gate, xmon_gates.ExpWGate):
                     index = qubit_map[op.qubits[0]]
                     stepper.simulate_w(
                         index=index,
-                        half_turns=param_resolver.value_of(gate.half_turns),
-                        axis_half_turns=param_resolver.value_of(
-                            gate.axis_half_turns))
+                        half_turns=gate.half_turns,
+                        axis_half_turns=gate.axis_half_turns)
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     invert_mask = gate.invert_mask or len(op.qubits) * (False,)
                     for qubit, invert in zip(op.qubits, invert_mask):
@@ -408,7 +433,7 @@ class StepResult:
             qubit_map: Dict,
             measurements: Dict[str, List[bool]]) -> None:
         self.qubit_map = qubit_map or {}
-        self.measurements = measurements or defaultdict(list)
+        self.measurements = measurements or collections.defaultdict(list)
         self._stepper = stepper
 
     def state(self) -> np.ndarray:
