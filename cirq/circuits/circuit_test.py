@@ -857,13 +857,19 @@ def test_text_diagram_jupyter():
     text_expected = circuit.to_text_diagram()
 
     # Test Jupyter console output from
-    text_pretty = ''
     class FakePrinter:
+        def __init__(self):
+            self.text_pretty = ''
         def text(self, to_print):
-            nonlocal text_pretty
-            text_pretty += to_print
-    circuit._repr_pretty_(FakePrinter(), False)
-    assert text_pretty == text_expected
+            self.text_pretty += to_print
+    p = FakePrinter()
+    circuit._repr_pretty_(p, False)
+    assert p.text_pretty == text_expected
+
+    # Test cycle handling
+    p = FakePrinter()
+    circuit._repr_pretty_(p, True)
+    assert p.text_pretty == 'Circuit(...)'
 
     # Test Jupyter notebook html output
     text_html = circuit._repr_html_()
