@@ -846,6 +846,31 @@ a: ---W(0.43214321)^0.12341234---
     """.strip()
 
 
+def test_text_diagram_jupyter():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = ops.NamedQubit('c')
+    circuit = Circuit.from_ops((
+                ops.CNOT(a, b),
+                ops.CNOT(b, c),
+                ops.CNOT(c, a)) * 50)
+    text_expected = circuit.to_text_diagram()
+
+    # Test Jupyter console output from
+    text_pretty = ''
+    class FakePrinter:
+        def text(self, to_print):
+            nonlocal text_pretty
+            text_pretty += to_print
+    circuit._repr_pretty_(FakePrinter(), False)
+    assert text_pretty == text_expected
+
+    # Test Jupyter notebook html output
+    text_html = circuit._repr_html_()
+    # Don't enforce specific html surrounding the diagram content
+    assert text_expected in text_html
+
+
 def test_operation_to_unitary_matrix():
     ex = Extensions()
     a = ops.NamedQubit('a')
