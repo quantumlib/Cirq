@@ -21,26 +21,25 @@ q1 = XmonQubit(1, 0)
 
 def basic_circuit(meas=True):
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    z = ExpZGate()
     cz = Exp11Gate()
-    yield [sqrt_x(q0), sqrt_x(q1)]
-    yield [cz(q0, q1)]
-    yield [sqrt_x(q0), sqrt_x(q1)]
+    yield sqrt_x(q0), sqrt_x(q1)
+    yield cz(q0, q1)
+    yield sqrt_x(q0), sqrt_x(q1)
     if meas:
-        yield [XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)]
+        yield XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)
    
 circuit = Circuit()
-circuit.append(basic_circuit())    
+circuit.append(basic_circuit())
   
 print(circuit)
 # prints
-# (0, 0): ───X^0.5───Z───X^0.5───M───
+# (0, 0): ───X^0.5───@───X^0.5───M───
 #                    │
 # (1, 0): ───X^0.5───Z───X^0.5───M───
 ```
 
-We can simulate this by creating an ``xmon_simulator.Simulator`` and 
-then simply calling ``run``:
+We can simulate this by creating a ``cirq.google.Simulator`` and 
+passing the circuit into its ``run`` method:
 ```python
 from cirq.google import Simulator
 simulator = Simulator()
@@ -67,7 +66,7 @@ print(result)
 # q0=1 q1=0
 ```
 
-The Xmon simulator is designed to mimic what running a program
+The simulator is designed to mimic what running a program
 on a quantum computer is actually like. However it does have
 a few features which are useful for debugging and running circuits.
 In particular the result object includes not just the measurement,
@@ -83,21 +82,69 @@ print(np.around(result.final_states[0], 3))
 # [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
 
-The qubit_order argument determines the ordering of some results, such as the
-amplitudes if the final wave function. qubit_order is optional, and can include
-qubits not actually in the circuit. When omitted, qubits are ordered ascending
-by their name (i.e. what their `__str__` method returns).
+Note that the simulator uses numpy's ``float32`` precision
+(which is ``complex64`` for complex numbers).
 
+### Qubit and Amplitude Ordering
 
-Note that the xmon simulator uses numpy's ``float32`` precision
-(which is ``complex64`` for complex numbers). Also note that
-we have supplied a list of ``qubits`` to the ``run`` method.
-This is needed in order to define the order of state.  In 
-particular if the qubit list is ``[q0, q1, ..., q_{n-1}]``,
-and ``x_{n-1}...x_1x_0`` is the binary expansion of the
-index ``x``, then ``state[x]`` is the value of the state
-corresponding to qubit ``q_i`` being in computational basis
-state ``b_i`` (So we say that the ordering is *little-endian*.)
+The `qubit_order` argument to the simulator's `run` method determines the ordering
+of some results, such as the amplitudes in the final wave function.
+The `qubit_order` argument is optional.
+When it is omitted, qubits are ordered ascending by their name (i.e. what their `__str__` method returns).
+
+The simplest `qubit_order` value you can provide is a list of the qubits in the desired ordered.
+Any qubits from the circuit that aren't in the list will be ordered using the default `__str__` ordering,
+but come after qubits that are in the list.
+Be aware that all qubits in the list are included in the simulation, even if they aren't operated on by the circuit.
+
+The mapping from the order of the qubits to the order of the amplitudes in the wave function can
+be tricky to understand. Basically, it is the same as the ordering used by `numpy.kron`:
+
+```python
+outside = [1, 10]
+inside = [1, 2]
+print(np.kron(outside, inside))
+# prints
+# [ 1  2 10 20]
+```
+
+More concretely, the `k`'th amplitude in the wavefunction will correspond to the `k`'th case
+that would be encountered when nesting loops over the possible values of each qubit.
+The first qubit's computational basis values are looped over in the outer-most loop, the last qubit's
+computational basis values are looped over in the inner-most loop, etc:
+
+```python
+i = 0
+for first in [0, 1]:
+    for second in [0, 1]:
+        print('amps[{}] is for first={}, second={}'.format(i, first, second))
+        i += 1
+# prints
+# amps[0] is for first=0, second=0
+# amps[1] is for first=0, second=1
+# amps[2] is for first=1, second=0
+# amps[3] is for first=1, second=1
+```
+
+We can check that this is in fact the ordering with a circuit that flips one qubit out of two:
+
+```python
+q_stay = cirq.NamedQubit('q_stay')
+q_flip = cirq.NamedQubit('q_flip')
+c = cirq.Circuit.from_ops(cirq.X(q_flip))
+
+# first qubit in order flipped
+result = simulator.run(c, qubit_order=[q_flip, q_stay])
+print(abs(result.final_states[-1]).round(3))
+# prints
+# [0. 0. 1. 0.]
+
+# second qubit in order flipped
+result = simulator.run(c, qubit_order=[q_stay, q_flip])
+print(abs(result.final_states[-1]).round(3))
+# prints
+# [0. 1. 0. 0.]
+```
 
 ### Stepping through a Circuit
 

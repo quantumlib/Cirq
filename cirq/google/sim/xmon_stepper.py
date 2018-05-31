@@ -67,25 +67,30 @@ class Stepper(object):
         """Construct a new Simulator.
 
         Args:
-            num_qubits: The number of qubits to simulate.
-            num_prefix_qubits: The wavefunction of the qubits is sharded into
-                (2 ** num_prefix_qubits) parts. If this is None, then this will
-                shard over the nearest power of two below the cpu count. If less
-                than 10 qubits are being simulated then no sharding is done,
-                depending on whether the shard_for_small_num_qubits is set or
-                not.
-            initial_state: If this is an int, then this is the state to
-                initialize the stepper to, expressed as an integer of the
-                computational basis. Integer to bitwise indices is little
-                endian. Otherwise if this is a np.ndarray it is the full initial
-                state and this must be the correct size, normalized (an L2 norm
-                of 1),
-                and have dtype of np.complex64.
-            min_qubits_before_shard: Sharding will be done only for this number
-                of qubits or more. The default is 18.
-            use_processes: Whether or not to use processes instead of threads.
-                For very long and large simulations, processes can outperform
-                threads.
+          num_qubits: The number of qubits to simulate.
+          num_prefix_qubits: The wavefunction of the qubits is sharded into
+              (2 ** num_prefix_qubits) parts. If this is None, then this will
+              shard over the nearest power of two below the cpu count. If less
+              than 10 qubits are being simulated then no sharding is done,
+              depending on whether the shard_for_small_num_qubits is set or
+              not.
+          initial_state: If this is an int, then this is the state to
+              initialize the stepper to, expressed as an integer of the
+              computational basis. The 1s bit of the integer determines the
+              values of the last qubit, the 2s bit determines the value of the
+              second-to-last-qubit, and so forth. This sounds odd, but it
+              matches how people write numbers: the smallest value digit goes
+              last.
+              Otherwise, if this is a np.ndarray it is the full initial state
+              and this must be the correct size, normalized (an L2 norm of 1),
+              and have dtype of np.complex64. An array with zeroes everywhere,
+              except for a 1 at index k, is equivalent to state prepared when
+              the initial state is set to the integer k.
+          min_qubits_before_shard: Sharding will be done only for this number
+              of qubits or more. The default is 18.
+          use_processes: Whether or not to use processes instead of threads.
+              For very long and large simulations, processes can outperform
+              threads.
         """
         self._num_qubits = num_qubits
         if num_prefix_qubits is None:
@@ -311,9 +316,9 @@ class Stepper(object):
             self._pool.map(_w_within_shard, args)
 
         # Normalize after every w.
-        norm = np.sum(self._pool.map(_norm, args))
+        norm_squared = np.sum(self._pool.map(_norm_squared, args))
         args = self._shard_num_args({
-            'norm': norm
+            'norm_squared': norm_squared
         })
         self._pool.map(_renorm, args)
 
@@ -537,7 +542,7 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
     return norm * norm
 
 
-def _norm(args: Dict[str, Any]) -> float:
+def _norm_squared(args: Dict[str, Any]) -> float:
     """Returns the norm for each state shard."""
     state = _state_shard(args)
     return float(np.real(np.dot(state, np.conjugate(state))))
@@ -547,7 +552,7 @@ def _renorm(args: Dict[str, Any]):
     """Renormalizes the state using the norm arg."""
     state = _state_shard(args)
     # If our gate is so bad that we have norm of zero, we have bigger problems.
-    state /= args['norm']
+    state /= np.sqrt(args['norm_squared'])
 
 
 def _collapse_state(args: Dict[str, Any]):

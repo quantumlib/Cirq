@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2018 The Cirq Developers
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dev_tools import (
+    check_incremental_coverage,
+    check_pylint,
+    check_pytest_v2,
+    check_pytest_with_coverage,
+    check_typecheck,
+)
 
-# This script runs all defined checks against a pull request or local code.
 
-set -e
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pylint = check_pylint.LintCheck()
+typecheck = check_typecheck.TypeCheck()
+pytest = check_pytest_with_coverage.TestAndPrepareCoverageCheck()
+pytest_v2 = check_pytest_v2.Py2TestCheck()
+incremental_coverage = check_incremental_coverage.IncrementalCoverageCheck(
+    pytest)
 
-bash ${own_directory}/pylint-pull-request.sh $@
-bash ${own_directory}/typecheck-pull-request.sh $@
-bash ${own_directory}/test-pull-request.sh $@
+ALL_CHECKS = [
+    pylint,
+    typecheck,
+    pytest,
+    incremental_coverage,
+    pytest_v2,
+]

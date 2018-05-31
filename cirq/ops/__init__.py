@@ -34,11 +34,18 @@ from cirq.ops.common_gates import (
     Y,
     Z,
 )
+from cirq.ops.controlled_gate import (
+    ControlledGate,
+)
+from cirq.ops.eigen_gate import (
+    EigenGate,
+)
 from cirq.ops.gate_features import (
     BoundedEffectGate,
     CompositeGate,
     ExtrapolatableGate,
     KnownMatrixGate,
+    ParameterizableGate,
     PhaseableGate,
     ReversibleGate,
     SelfInverseGate,
@@ -48,6 +55,8 @@ from cirq.ops.gate_features import (
 )
 from cirq.ops.qubit_order import (
     QubitOrder,
+)
+from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,
 )
 from cirq.ops.line_qubit import (

@@ -44,9 +44,9 @@ class EqualsTester:
           *group_items: The items making up the equivalence group.
 
         Raises:
-          AssertError: Items within the group are not equal to each other, or
-              items in another group are equal to items within the new group,
-              or the items violate the equals-implies-same-hash rule.
+            AssertionError: Items within the group are not equal to each other,
+                or items in another group are equal to items within the new
+                group, or the items violate the equals-implies-same-hash rule.
         """
 
         assert group_items
@@ -109,12 +109,12 @@ class EqualsTester:
         pair as a group.
 
         Args:
-          factory: A method for producing independent copies of an item.
+            factory: A method for producing independent copies of an item.
 
         Raises:
-          AssertError: The factory produces items not equal to each other, or
-              items in another group are equal to items from the factory, or
-              the items violate the equal-implies-same-hash rule.
+            AssertionError: The factory produces items not equal to each other,
+                or items in another group are equal to items from the factory,
+                or the items violate the equal-implies-same-hash rule.
         """
         self.add_equality_group(factory(), factory())
 

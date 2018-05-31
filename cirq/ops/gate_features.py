@@ -24,6 +24,7 @@ import numpy as np
 from cirq import abc
 from cirq.ops import op_tree
 from cirq.ops import raw_types
+from cirq.study import ParamResolver
 
 
 class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -237,3 +238,24 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(
                 'Two-qubit gate not applied to two qubits: {}({})'.
                 format(self, qubits))
+
+
+class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that can be parameterized by Symbols."""
+
+    @abc.abstractmethod
+    def is_parameterized(self) -> bool:
+        """Whether the gate is parameterized.
+        
+        Returns True if the gate has any unresolved Symbols and False otherwise.
+        """
+
+    @abc.abstractmethod
+    def with_parameters_resolved_by(self,
+                                    param_resolver: ParamResolver
+                                    ) -> 'ParameterizableGate':
+        """Resolve the parameters in the gate.
+
+        Returns a gate of the same type, but with all Symbols replaced with
+        floats according to the given ParamResolver.
+        """

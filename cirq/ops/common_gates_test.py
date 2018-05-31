@@ -15,6 +15,7 @@
 import numpy as np
 import pytest
 
+import cirq
 from cirq import ops, Symbol, linalg, Circuit
 from cirq.testing import EqualsTester
 
@@ -147,11 +148,14 @@ def test_x_matrix():
 
 def test_runtime_types_of_rot_gates():
     for gate_type in [ops.Rot11Gate, ops.RotXGate, ops.RotYGate, ops.RotZGate]:
+        ext = cirq.Extensions()
+
         p = gate_type(half_turns=Symbol('a'))
-        assert p.try_cast_to(ops.KnownMatrixGate) is None
-        assert p.try_cast_to(ops.ExtrapolatableGate) is None
-        assert p.try_cast_to(ops.ReversibleGate) is None
-        assert p.try_cast_to(ops.BoundedEffectGate) is p
+        assert p.try_cast_to(ops.KnownMatrixGate, ext) is None
+        assert p.try_cast_to(ops.ExtrapolatableGate, ext) is None
+        assert p.try_cast_to(ops.ReversibleGate, ext) is None
+        assert p.try_cast_to(ops.SelfInverseGate, ext) is None
+        assert p.try_cast_to(ops.BoundedEffectGate, ext) is p
         with pytest.raises(ValueError):
             _ = p.matrix()
         with pytest.raises(ValueError):
@@ -160,13 +164,16 @@ def test_runtime_types_of_rot_gates():
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
-        assert c.try_cast_to(ops.KnownMatrixGate) is c
-        assert c.try_cast_to(ops.ExtrapolatableGate) is c
-        assert c.try_cast_to(ops.ReversibleGate) is c
-        assert c.try_cast_to(ops.BoundedEffectGate) is c
+        assert c.try_cast_to(ops.KnownMatrixGate, ext) is c
+        assert c.try_cast_to(ops.ExtrapolatableGate, ext) is c
+        assert c.try_cast_to(ops.ReversibleGate, ext) is c
+        assert c.try_cast_to(ops.BoundedEffectGate, ext) is c
         assert c.matrix() is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
+
+        c = gate_type(half_turns=1)
+        assert c.try_cast_to(ops.SelfInverseGate, ext) is c
 
 
 def test_measurement_eq():
@@ -213,3 +220,57 @@ a: ───×───X───Y───Z───@───@───X──
       │               │   │   │
 b: ───×───────────────Z───X───@───────
     """.strip()
+
+
+def test_cnot_power():
+    np.testing.assert_almost_equal(
+        (ops.CNOT**0.5).matrix(),
+        np.array([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0.5+0.5j, 0.5-0.5j],
+            [0, 0, 0.5-0.5j, 0.5+0.5j],
+        ]))
+
+    # Matrix must be consistent with decomposition.
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    g = ops.CNOT**0.25
+    cirq.testing.assert_allclose_up_to_global_phase(
+        g.matrix(),
+        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
+        atol=1e-8)
+
+
+def test_cnot_decomposes_despite_symbol():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    assert ops.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
+
+
+def test_repr():
+    assert repr(cirq.X) == 'X'
+    assert repr(cirq.X**0.5) == 'X**0.5'
+
+    assert repr(cirq.Z) == 'Z'
+    assert repr(cirq.Z**0.5) == 'Z**0.5'
+
+    assert repr(cirq.Y) == 'Y'
+    assert repr(cirq.Y**0.5) == 'Y**0.5'
+
+    assert repr(cirq.CNOT) == 'CNOT'
+    assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+
+def test_str():
+    assert str(cirq.X) == 'X'
+    assert str(cirq.X**0.5) == 'X**0.5'
+
+    assert str(cirq.Z) == 'Z'
+    assert str(cirq.Z**0.5) == 'Z**0.5'
+
+    assert str(cirq.Y) == 'Y'
+    assert str(cirq.Y**0.5) == 'Y**0.5'
+
+    assert str(cirq.CNOT) == 'CNOT'
+    assert str(cirq.CNOT**0.5) == 'CNOT**0.5'

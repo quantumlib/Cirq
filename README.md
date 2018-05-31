@@ -1,11 +1,13 @@
 # Cirq
 
+[![Build Status](https://travis-ci.com/quantumlib/Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master)](https://travis-ci.com/quantumlib/Cirq)
+
 Cirq is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
 ## Installation
 
-Follow these [instructions](cirq/docs/install.md).
+Follow these [instructions](docs/install.md).
 
 ## Hello Qubit
 
@@ -17,7 +19,7 @@ import cirq
 # Define a qubit.
 qubit = cirq.google.XmonQubit(0, 0)
 
-# Create a circuit (qubits start in the |0> state).
+# Create a circuit
 circuit = cirq.Circuit()
 circuit.append([
     # Square root of NOT.
@@ -30,6 +32,7 @@ print("Circuit:")
 print(circuit)
 
 # Now simulate the circuit and print out the measurement result.
+# By default, qubits start in the |0> state.
 simulator = cirq.google.Simulator()
 result = simulator.run(circuit, repetitions=10)
 results = [str(int(b)) for b in result.measurements['result'][:, 0]]
@@ -49,8 +52,8 @@ Simulated measurement results:
 
 ## Documentation
 
-See [here](cirq/docs/table_of_contents.md) or jump straight to the
-[tutorial](cirq/docs/tutorial.md)
+See [here](docs/table_of_contents.md) or jump straight to the
+[tutorial](docs/tutorial.md)
 
 ## Contributing
 

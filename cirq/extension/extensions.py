@@ -149,7 +149,7 @@ class Extensions:
             return actual_value
 
         if isinstance(actual_value, PotentialImplementation):
-            return actual_value.try_cast_to(desired_type)
+            return actual_value.try_cast_to(desired_type, self)
 
         return None
 

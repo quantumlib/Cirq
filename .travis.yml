@@ -1,0 +1,22 @@
+sudo: false
+language: python
+matrix:
+  include:
+  - os: linux
+    python: "3.5"
+    env: MODE="normal" REQS="requirements.txt"
+  - os: linux
+    python: "2.7"
+    env: MODE="convert-and-test" REQS="python2.7-requirements.txt"
+
+branches:
+  only:
+    - master
+
+before_install:
+  - pip install --upgrade pip setuptools wheel
+
+install:
+  - pip install -r ${REQS}
+
+script: continuous-integration/travis.sh "${MODE}"

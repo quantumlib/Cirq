@@ -56,6 +56,7 @@ from cirq.linalg import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     block_diag,
+    match_global_phase,
     commutes,
     CONTROL_TAG,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
@@ -82,7 +83,9 @@ from cirq.ops import (
     CNOT,
     CNotGate,
     CompositeGate,
+    ControlledGate,
     CZ,
+    EigenGate,
     ExtrapolatableGate,
     flatten_op_tree,
     freeze_op_tree,
@@ -101,6 +104,7 @@ from cirq.ops import (
     QubitOrderOrList,
     ReversibleCompositeGate,
     ReversibleGate,
+    ParameterizableGate,
     PhaseableGate,
     QubitId,
     Rot11Gate,
@@ -147,7 +151,7 @@ from cirq.value import (
     Timestamp,
 )
 
-# Import examples second-to-last, because they reference this top-level package.
+# Import examples before-last, because they reference this top-level package.
 from cirq import examples
 
 # Import version last since it is a relative import.
