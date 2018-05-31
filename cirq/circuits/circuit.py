@@ -620,7 +620,7 @@ def _draw_moment_in_diagram(moment: Moment,
 
 def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
                                  ext: Extensions
-                                ) -> Generator[ops.Operation, None, None]:
+                                 ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
         known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
