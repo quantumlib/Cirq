@@ -992,18 +992,13 @@ def test_circuit_to_unitary_matrix():
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
 
-    # Ignore measurements by turning them into identities.
-    class IdentityGate(ops.KnownMatrixGate):
-        def matrix(self):
-            return np.eye(2)
-    ex = Extensions()
-    ex.add_cast(desired_type=ops.KnownMatrixGate,
-                actual_type=ops.MeasurementGate,
-                conversion=lambda _: IdentityGate())
-    c = Circuit.from_ops(ops.MeasurementGate()(a))
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c.to_unitary_matrix(ext=ex, ignore_terminal_measurements=False),
-        np.eye(2))
+    # Gates without matrix or decomposition raise exception
+    class MysteryGate(ops.Gate):
+        pass
+    c = Circuit.from_ops(MysteryGate()(a, b))
+    with pytest.raises(TypeError):
+        _ = c.to_unitary_matrix()
+
 
 
 def test_simple_circuits_to_unitary_matrix():
@@ -1033,3 +1028,24 @@ def test_simple_circuits_to_unitary_matrix():
         c = Circuit.from_ops(Passthrough()(a, b))
         m = c.to_unitary_matrix()
         cirq.testing.assert_allclose_up_to_global_phase(m, expected)
+
+
+def test_composite_gate_to_unitary_matrix():
+    class CNOT_composite(cirq.CompositeGate):
+        def default_decompose(self, qubits):
+            q0, q1 = qubits
+            return ops.Y(q1)**-0.5, ops.CZ(q0, q1), ops.Y(q1)**0.5
+
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = Circuit.from_ops(
+            ops.X(a),
+            CNOT_composite()(a, b),
+            ops.X(a),
+            ops.MeasurementGate()(a),
+            ops.X(b),
+            ops.MeasurementGate()(b))
+    mat = c.to_unitary_matrix()
+    mat_expected = ops.CNOT.matrix()
+
+    cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected)
