@@ -4,6 +4,7 @@ google-api-python-client
 mypy==0.590
 matplotlib
 numpy
+oauth2client
 pylint
 pytest
 pytest-cov
