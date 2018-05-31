@@ -142,7 +142,7 @@ class Circuit(object):
     def __iter__(self):
         return iter(self.moments)
 
-    def iter_ops(self):
+    def iter_ops(self) -> Generator[ops.Operation, None, None]:
         return (op for moment in self for op in moment.operations)
 
     def __repr__(self):
@@ -639,7 +639,10 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # Pass measurement gates through
-        if isinstance(op.gate, ops.MeasurementGate):
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        if meas_gate is None:
+            meas_gate = op.gate
+        if isinstance(meas_gate, ops.MeasurementGate):
             yield op
             continue
 
@@ -654,22 +657,31 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
                                   ignore_terminal_measurements: bool,
                                   ext: Extensions) -> np.ndarray:
     total = np.eye(1 << len(qubit_map))
-    measure_flags = {qubit: False for qubit in qubit_map.keys()}
+    measured_qubits = set()
     for op in iter_ops:
-        if isinstance(op.gate, ops.MeasurementGate):
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        if meas_gate is None:
+            meas_gate = op.gate
+        if isinstance(meas_gate, ops.MeasurementGate):
             if not ignore_terminal_measurements:
                 raise TypeError(
                     'Measurement operation not supported: {!r}'.format(op))
-            for qubit in op.qubits:
-                # Don't need to check if the flag is already set.
-                # Multiple terminal measurements of the same qubit should be
-                # fine.
-                measure_flags[qubit] = True
+            measured_qubits.update(op.qubits)
             continue
-        for qubit in op.qubits:
-            if measure_flags[qubit]:
+        # Check if any of the op's qubits have been measured
+        measured_and_used = set(op.qubits) & measured_qubits
+        if measured_and_used:
+            if len(measured_and_used) == 1:
+                qubit = next(iter(measured_and_used))
                 raise TypeError(
-                    'Operation after measurement: {!r}'.format(op))
+                    ('Non-terminal measurement on qubit {!r}. '
+                     + 'Was followed by {!r}')
+                    .format(qubit, op))
+            else:
+                raise TypeError(
+                    ('Non-terminal measurement on qubits {!r}. '
+                     + 'Was followed by {!r}')
+                    .format(tuple(measured_and_used), op))
         mat = _operation_to_unitary_matrix(op, qubit_map, ext)
         total = np.matmul(mat, total)
     return total

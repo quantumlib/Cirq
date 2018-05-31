@@ -1049,3 +1049,24 @@ def test_composite_gate_to_unitary_matrix():
     mat_expected = ops.CNOT.matrix()
 
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected)
+
+
+def test_iter_ops():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = Circuit([
+            Moment([]),
+            Moment([ops.X(a), ops.Y(b)]),
+            Moment([]),
+            Moment([ops.CNOT(a, b)]),
+            Moment([ops.Z(b), ops.H(a)]),  # Different qubit order
+            Moment([])])
+
+    expected = [
+        ops.X(a),
+        ops.Y(b),
+        ops.CNOT(a, b),
+        ops.Z(b),
+        ops.H(a)]
+
+    assert list(c.iter_ops()) == expected
