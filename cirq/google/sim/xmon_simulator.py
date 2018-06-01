@@ -140,12 +140,19 @@ class SimulatorTrialResult(TrialResult):
 class Simulator:
     """Simulator for Xmon class quantum circuits."""
 
+    def __init__(self, options: Options = None) -> None:
+        """Construct a Simulator.
+
+        Args:
+            options: Options configuring the simulation.
+        """
+        self.options = options or Options()
+
     def run(
         self,
         circuit: Circuit,
         param_resolver: ParamResolver = ParamResolver({}),
         repetitions: int = 1,
-        options: Options = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
         extensions: Extensions = None,
@@ -156,7 +163,6 @@ class Simulator:
             circuit: The circuit to simulate.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            options: Options configuring the simulation.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
@@ -171,7 +177,7 @@ class Simulator:
         Returns:
             Results for this run.
         """
-        return self.run_sweep(circuit, [param_resolver], repetitions, options,
+        return self.run_sweep(circuit, [param_resolver], repetitions,
                               qubit_order, initial_state,
                               extensions or xmon_gate_ext)[0]
 
@@ -180,7 +186,6 @@ class Simulator:
             program: Union[Circuit, Schedule],
             params: Sweepable = ParamResolver({}),
             repetitions: int = 1,
-            options: Options = None,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
             extensions: Extensions = None
@@ -191,7 +196,6 @@ class Simulator:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            options: Options configuring the simulation.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
@@ -224,7 +228,7 @@ class Simulator:
             for _ in range(repetitions):
                 all_step_results = _simulator_iterator(
                     xmon_circuit,
-                    options or Options(),
+                    self.options,
                     qubit_order,
                     initial_state)
                 step_result = None
