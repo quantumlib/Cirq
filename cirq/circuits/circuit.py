@@ -19,8 +19,8 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Dict, FrozenSet, Iterable, Optional, Sequence
-from typing import Union
+from typing import Any, Dict, FrozenSet, Generator, Iterable, Iterator
+from typing import Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -30,6 +30,10 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
 from cirq.ops import QubitId
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
 
 
 class Circuit(object):
@@ -142,6 +146,9 @@ class Circuit(object):
     def __iter__(self):
         return iter(self.moments)
 
+    def iter_ops(self) -> Iterator[ops.Operation]:
+        return (op for moment in self for op in moment.operations)
+
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
         return 'Circuit([{}])'.format(','.join(moment_lines))
@@ -150,6 +157,20 @@ class Circuit(object):
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Print ASCII diagram in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('Circuit(...)')
+        else:
+            p.text(self.to_text_diagram())
+
+    def _repr_html_(self) -> str:
+        """Print ASCII diagram in Jupyter notebook without wrapping lines."""
+        return ('<pre style="overflow: auto; white-space: pre;">'
+                + self.to_text_diagram()
+                + '</pre>')
 
     def _first_moment_operating_on(self, qubits: Iterable[ops.QubitId],
                                    indices: Iterable[int]) -> Optional[int]:
@@ -438,30 +459,17 @@ class Circuit(object):
                 by a Symbol, etc.
         """
 
-        def is_ignorable_measurement(moment_index, operation):
-            if not ignore_terminal_measurements:
-                return False
-            if not isinstance(operation.gate, ops.MeasurementGate):
-                return False
-            if self.next_moment_operating_on(operation.qubits,
-                                             moment_index + 1) is not None:
-                return False
-            return True
-
         if ext is None:
             ext = Extensions()
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
-        total = np.eye(1 << len(qubit_map))
-        for k, moment in enumerate(self.moments):
-            for op in moment.operations:
-                if is_ignorable_measurement(k, op):
-                    continue
-                mat = _operation_to_unitary_matrix(op, qubit_map, ext)
-                total = np.matmul(mat, total)
-        return total
+        matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
+        return _operations_to_unitary_matrix(matrix_ops,
+                                             qubit_map,
+                                             ignore_terminal_measurements,
+                                             ext)
 
     def to_text_diagram(
             self,
@@ -612,6 +620,75 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
             out_diagram.write(x, y1, '^' + exponent)
+
+
+def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
+                                 ext: Extensions
+                                 ) -> Generator[ops.Operation, None, None]:
+    for op in iter_ops:
+        # Check if the operation has a known matrix
+        known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+        if known_matrix_gate is not None:
+            yield op
+            continue
+
+        # If not, check if it has a decomposition
+        composite_gate = ext.try_cast(op.gate, ops.CompositeGate)
+        if composite_gate is not None:
+            # Recurse on composite gate decomposition to get known matrix gates.
+            op_tree = composite_gate.default_decompose(op.qubits)
+            op_list = ops.flatten_op_tree(op_tree)
+            for op in _flatten_to_known_matrix_ops(op_list, ext):
+                yield op
+            continue
+
+        # Pass measurement gates through
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)  # type: ops.Gate
+        if meas_gate is None:
+            meas_gate = op.gate
+        if isinstance(meas_gate, ops.MeasurementGate):
+            yield op
+            continue
+
+        # Otherwise, fail
+        raise TypeError(
+            'Operation without a known matrix or decomposition: {!r}'
+            .format(op))
+
+
+def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
+                                  qubit_map: Dict[QubitId, int],
+                                  ignore_terminal_measurements: bool,
+                                  ext: Extensions) -> np.ndarray:
+    total = np.eye(1 << len(qubit_map))
+    measured_qubits = set()  # type: Set[QubitId]
+    for op in iter_ops:
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)  # type: ops.Gate
+        if meas_gate is None:
+            meas_gate = op.gate
+        if isinstance(meas_gate, ops.MeasurementGate):
+            if not ignore_terminal_measurements:
+                raise TypeError(
+                    'Measurement operation not supported: {!r}'.format(op))
+            measured_qubits.update(op.qubits)
+            continue
+        # Check if any of the op's qubits have been measured
+        measured_and_used = set(op.qubits) & measured_qubits
+        if measured_and_used:
+            if len(measured_and_used) == 1:
+                qubit = next(iter(measured_and_used))
+                raise TypeError(
+                    ('Non-terminal measurement on qubit {!r}. '
+                     + 'Was followed by {!r}')
+                    .format(qubit, op))
+            else:
+                raise TypeError(
+                    ('Non-terminal measurement on qubits {!r}. '
+                     + 'Was followed by {!r}')
+                    .format(tuple(measured_and_used), op))
+        mat = _operation_to_unitary_matrix(op, qubit_map, ext)
+        total = np.matmul(mat, total)
+    return total
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
