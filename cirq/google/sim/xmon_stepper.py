@@ -18,7 +18,6 @@ This class should not be used directly, see instead Simulator in the
 xmon_simulator class.
 """
 
-import contextlib
 import math
 import multiprocessing
 import multiprocessing.dummy as dummy
@@ -36,7 +35,12 @@ I_PI_OVER_2 = 0.5j * np.pi
 def ensure_pool(func):
     """Decorator that ensures a pool is available for a stepper."""
     def func_wrapper(*args, **kwargs):
-        with args[0] if args[0]._pool is None else contextlib.suppress():
+        if len(args) == 0 or not isinstance(args[0], Stepper):
+            raise Exception('@ensure_pool can only be used on Stepper methods.')
+        if args[0]._pool is None:
+            with args[0]:
+                return func(*args, **kwargs)
+        else:
             return func(*args, **kwargs)
     return func_wrapper
 
@@ -187,7 +191,6 @@ class Stepper(object):
             mem_manager.SharedMemManager.free_array(handle)
 
     def __enter__(self):
-        print('enter')
         if self._pool is None:
             self._pool = (self._pool_fn(processes=self._num_shards)
                           if self._num_prefix_qubits > 0 else ThreadlessPool())
