@@ -4,6 +4,6 @@ google-api-python-client==1.6.7
 matplotlib==2.1.2
 mock==2.0.0
 numpy==1.13.3
-protobuf==3.5.0
+protobuf~=3.5.0
 pytest==3.2.4
 sortedcontainers==1.5.9
