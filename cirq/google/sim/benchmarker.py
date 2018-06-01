@@ -15,6 +15,7 @@
 """Tool to benchmark the xmon_simulator."""
 
 import timeit
+from typing import Any, Dict, List, Tuple # pylint: disable=unused-import
 
 import numpy as np
 from absl import app
@@ -39,9 +40,10 @@ flags.DEFINE_bool('use_processes', False,
                   'Whether or not to us multiprocessing or threads.')
 
 
-def simulate(num_qubits, num_gates, num_prefix_qubits, use_processes):
+def simulate(num_qubits: int, num_gates: int, num_prefix_qubits: int,
+    use_processes: bool) -> None:
     """"Runs the xmon_simulator."""
-    ops = []
+    ops = []  # type: List[Any]
     for _ in range(num_gates):
         which = np.random.choice(['expz', 'expw', 'exp11'])
         if which == 'expw':
@@ -59,7 +61,7 @@ def simulate(num_qubits, num_gates, num_prefix_qubits, use_processes):
                         np.random.random()))
 
     current_moment = num_qubits * [0]
-    moments = [[]]
+    moments = [[]]  # type: List[List[Any]]
 
     for op in ops:
         if op[0] == 'expw' or op[0] == 'expz':
@@ -84,7 +86,7 @@ def simulate(num_qubits, num_gates, num_prefix_qubits, use_processes):
             num_prefix_qubits=num_prefix_qubits,
             use_processes=use_processes) as s:
         for moment in moments:
-            phase_map = {}
+            phase_map = {}  # type: Dict[Tuple, Any]
             for op in moment:
                 if op[0] == 'expz':
                     phase_map[(op[1],)] = op[2]
