@@ -99,10 +99,12 @@ def run(simulator, circuit, scheduler, **kw):
 SCHEDULERS = [None, moment_by_moment_schedule]
 
 
-@pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_no_results(scheduler):
+@pytest.mark.parametrize(('scheduler', 'use_processes'),
+                         zip(SCHEDULERS, (True, False)))
+def test_run_no_results(scheduler, use_processes):
+    options = xmon_simulator.Options(use_processes=use_processes)
     simulator = xmon_simulator.Simulator()
-    result = run(simulator, basic_circuit(), scheduler)
+    result = run(simulator, basic_circuit(), scheduler, options=options)
     assert len(result.measurements) == 0
 
 
