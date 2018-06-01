@@ -701,12 +701,11 @@ def test_check_state():
             np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), 2)
 
 
-class BadClass():
-    @xmon_stepper.ensure_pool
-    def method(self):
-        return 0
-
-
 def test_ensure_pool_on_non_stepper():
+    class BadClass():
+        @xmon_stepper.ensure_pool
+        def method(self):
+            """Trick to not have an uncovered line."""
+
     with pytest.raises(Exception):
         BadClass().method()
