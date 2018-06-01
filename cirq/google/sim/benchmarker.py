@@ -80,9 +80,9 @@ def simulate(num_qubits, num_gates, num_prefix_qubits, use_processes):
             current_moment[index1] = new_moment + 1
 
     with xmon_stepper.Stepper(
-        num_qubits=num_qubits,
-        num_prefix_qubits=num_prefix_qubits,
-        use_processes=use_processes) as s:
+            num_qubits=num_qubits,
+            num_prefix_qubits=num_prefix_qubits,
+            use_processes=use_processes) as s:
         for moment in moments:
             phase_map = {}
             for op in moment:

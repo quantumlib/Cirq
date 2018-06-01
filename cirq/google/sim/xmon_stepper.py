@@ -18,6 +18,7 @@ This class should not be used directly, see instead Simulator in the
 xmon_simulator class.
 """
 
+import contextlib
 import math
 import multiprocessing
 import multiprocessing.dummy as dummy
@@ -30,6 +31,14 @@ from cirq.google.sim import mem_manager
 
 
 I_PI_OVER_2 = 0.5j * np.pi
+
+
+def ensure_pool(func):
+    """Decorator that ensures a pool is available for a stepper."""
+    def func_wrapper(*args, **kwargs):
+        with args[0] if args[0]._pool is None else contextlib.suppress():
+            return func(*args, **kwargs)
+    return func_wrapper
 
 
 class Stepper(object):
@@ -110,7 +119,6 @@ class Stepper(object):
 
         # TODO(dabacon): This could be parallelized.
         self._init_shared_mem(initial_state)
-        self._pool_open = False
         self._pool = None  # type: Union[ThreadlessPool, Any]
         self._pool_fn = multiprocessing.Pool if use_processes else dummy.Pool
 
@@ -179,16 +187,19 @@ class Stepper(object):
             mem_manager.SharedMemManager.free_array(handle)
 
     def __enter__(self):
-        self._pool = (self._pool_fn(processes=self._num_shards)
-                      if self._num_prefix_qubits > 0 else ThreadlessPool())
-        self._pool_open = True
+        print('enter')
+        if self._pool is None:
+            self._pool = (self._pool_fn(processes=self._num_shards)
+                          if self._num_prefix_qubits > 0 else ThreadlessPool())
         return self
 
     def __exit__(self, *args):
         # Terminate is safe here since all work should have been completed.
-        self._pool.terminate()
-        self._pool.join()
-        self._pool_open = False
+        if self._pool is not None:
+            self._pool.terminate()
+            self._pool.join()
+            self._pool = None
+
 
     def _shard_num_args(self,
                         constant_dict: Dict[str, Any] = None
@@ -221,17 +232,14 @@ class Stepper(object):
     @property
     def current_state(self):
         """Returns the current wavefunction."""
-        # If the pool has been closed, recreate to calculate state.
-        reentered = False
-        if not self._pool_open:
-            reentered = True
-            self.__enter__()
-        state = np.array(self._pool.map(_state_shard,
-                                        self._shard_num_args())).flatten()
-        if reentered:
-            self.__exit__()
-        return state
+        return self._current_state()
 
+    @ensure_pool
+    def _current_state(self):
+        return np.array(
+            self._pool.map(_state_shard, self._shard_num_args())).flatten()
+
+    @ensure_pool
     def reset_state(self, reset_state):
         """Reset the state to the given initial state.
 
@@ -246,11 +254,7 @@ class Stepper(object):
             ValueError if the state is incorrectly sized or not of the correct
             dtype.
         """
-        # If the pool has been closed, recreate to calculate state.
-        reentered = False
-        if not self._pool_open:
-            self.__enter__()
-            reentered = True
+        # If the pool has been closed, recreate to calculate state.'
         if isinstance(reset_state, int):
             self._pool.map(_reset_state,
                            self._shard_num_args({'reset_state': reset_state}))
@@ -265,10 +269,9 @@ class Stepper(object):
                 kwargs['reset_state'] = reset_state[start:end]
                 args.append(kwargs)
             self._pool.map(_reset_state, args)
-        if reentered:
-            self.__exit__()
 
 
+    @ensure_pool
     def simulate_phases(self, phase_map: Dict[Tuple[int, ...], float]):
         """Simulate a set of phase gates on the xmon architecture.
 
@@ -281,8 +284,6 @@ class Stepper(object):
                 at the two indices, and a rotation angle of pi times the value
                 of the map.
         """
-        if not self._pool_open:
-            self.__enter__()
         self._pool.map(_clear_scratch, self._shard_num_args())
         # Iterate over the map of phase data.
         for indices, half_turns in phase_map.items():
@@ -295,6 +296,7 @@ class Stepper(object):
         # Exponentiate the phases and add them into the state.
         self._pool.map(_apply_scratch_as_phase, self._shard_num_args())
 
+    @ensure_pool
     def simulate_w(self,
                    index: int,
                    half_turns: float,
@@ -311,8 +313,6 @@ class Stepper(object):
           axis_half_turns: The angle between the pauli X and Y operators,
               see the formula above.
         """
-        if not self._pool_open:
-            self.__enter__()
         args = self._shard_num_args({
             'index': index,
             'half_turns': half_turns,
@@ -334,6 +334,7 @@ class Stepper(object):
         })
         self._pool.map(_renorm, args)
 
+    @ensure_pool
     def simulate_measurement(self, index: int) -> bool:
         """Simulates a single qubit measurement in the computational basis.
 
@@ -343,8 +344,6 @@ class Stepper(object):
         Returns:
             True iff the measurement result corresponds to the |1> state.
         """
-        if not self._pool_open:
-            self.__enter__()
         args = self._shard_num_args({'index': index})
         prob_one = np.sum(self._pool.map(_one_prob_per_shard, args))
         result = bool(np.random.random() <= prob_one)
