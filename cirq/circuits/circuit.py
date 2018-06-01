@@ -20,7 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from typing import Any, Dict, FrozenSet, Generator, Iterable, Iterator
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -30,6 +30,10 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
 from cirq.ops import QubitId
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
 
 
 class Circuit(object):
