@@ -17,7 +17,7 @@
 from cirq.study.resolver import (
     ParamResolver,
 )
-from cirq.study.study import (
+from cirq.study.result import (
     TrialResult,
 )
 from cirq.study.sweepable import (
