@@ -103,8 +103,8 @@ SCHEDULERS = [None, moment_by_moment_schedule]
                          zip(SCHEDULERS, (True, False)))
 def test_run_no_results(scheduler, use_processes):
     options = xmon_simulator.Options(use_processes=use_processes)
-    simulator = xmon_simulator.Simulator()
-    result = run(simulator, basic_circuit(), scheduler, options=options)
+    simulator = xmon_simulator.Simulator(options)
+    result = run(simulator, basic_circuit(), scheduler)
     assert len(result.measurements) == 0
 
 
@@ -410,11 +410,8 @@ def test_consistent_seeded_run_sharded(scheduler):
 def test_consistent_seeded_run_no_sharding(scheduler):
     circuit = large_circuit()
 
-    simulator = xmon_simulator.Simulator()
-    result = run(simulator,
-                 circuit,
-                 scheduler,
-                 options=xmon_simulator.Options(num_shards=1))
+    simulator = xmon_simulator.Simulator(xmon_simulator.Options(num_shards=1))
+    result = run(simulator, circuit, scheduler,)
     np.testing.assert_equal(
         result.measurements['meas'],
         [[True, False, False, True, False, False, True, False, False, False]])
@@ -428,9 +425,9 @@ def test_run_no_sharing_few_qubits(scheduler):
         [XmonMeasurementGate(key='a')(Q1),
          XmonMeasurementGate(key='b')(Q2)])
 
-    simulator = xmon_simulator.Simulator()
-    options = xmon_simulator.Options(min_qubits_before_shard=0)
-    result = run(simulator, circuit, scheduler, options=options)
+    simulator = xmon_simulator.Simulator(
+        xmon_simulator.Options(min_qubits_before_shard=0))
+    result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[False]])
     np.testing.assert_equal(result.measurements['b'], [[False]])
 
