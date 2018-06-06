@@ -94,7 +94,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'sphinx'
 
 
-# -- Options for HTML output -------------------------------------------------
+# -- XmonOptions for HTML output ---------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -123,13 +123,13 @@ html_static_path = ['_static']
 # html_sidebars = {}
 
 
-# -- Options for HTMLHelp output ---------------------------------------------
+# -- XmonOptions for HTMLHelp output -----------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Cirqdoc'
 
 
-# -- Options for LaTeX output ------------------------------------------------
+# -- XmonOptions for LaTeX output --------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -154,7 +154,7 @@ latex_documents = [
 ]
 
 
-# -- Options for manual page output ------------------------------------------
+# -- XmonOptions for manual page output --------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
@@ -164,7 +164,7 @@ man_pages = [
 ]
 
 
-# -- Options for Texinfo output ----------------------------------------------
+# -- XmonOptions for Texinfo output ------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,

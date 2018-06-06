@@ -2,8 +2,8 @@
 
 Cirq comes with a built in Python simulator for testing out
 small circuits.  This simulator can shard its simulation 
-across different processes and so take advantage of multiple
-cores/CPUs.  
+across different processes/threads and so take advantage of
+multiple cores/CPUs.  
 
 Currently the simulator is tailored to the gate set from
 Google's Xmon architecture, but the simulator can be used
@@ -14,7 +14,7 @@ Here is a simple circuit
 ```python
 import cirq
 from cirq import Circuit
-from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit
+from cirq.google import ExpWGate, Exp11Gate, XmonMeasurementGate, XmonQubit
 
 q0 = XmonQubit(0, 0)
 q1 = XmonQubit(1, 0)
@@ -41,18 +41,16 @@ print(circuit)
 We can simulate this by creating a ``cirq.google.Simulator`` and 
 passing the circuit into its ``run`` method:
 ```python
-from cirq.google import Simulator
-simulator = Simulator()
+from cirq.google import XmonSimulator
+simulator = XmonSimulator()
 result = simulator.run(circuit)
 
 print(result)
 # prints something like
 # q0=1 q1=1
 ```
-Run returns a tuple of a context (see below) and a result, which 
-are of type ``TrialContext`` and ``TrialResult``.  As you can see
-the result contains the result of any measurements for the simulation
-run.
+Run returns an ``TrialResult``.  As you can see the result 
+contains the result of any measurements for the simulation run.
 
 The actual measurement results here depend on the seeding 
 ``numpy``s random seed generator. (You can set this using 
@@ -67,17 +65,21 @@ print(result)
 ```
 
 The simulator is designed to mimic what running a program
-on a quantum computer is actually like. However it does have
-a few features which are useful for debugging and running circuits.
-In particular the result object includes not just the measurement,
-but also the state (wave-function) at the end of the simulation:
+on a quantum computer is actually like.  In particular the 
+``run`` methods (``run`` and ``run_sweep``) on the simulator
+do not give access to the wave function of the quantum computer
+(since one doesn't have access to this on the actual quantum
+hardware).  Instead the ``simulate`` methods (``simulate``, 
+``simulate_sweep``, ``simulate_moment_steps``) should be used
+if one wants to debug the circuit and get access to the full
+wave function:
 ```python
 import numpy as np
 circuit = Circuit()
 circuit.append(basic_circuit(False))    
-result = simulator.run(circuit, qubit_order=[q0, q1])
+result = simulator.simulate(circuit, qubit_order=[q0, q1])
 
-print(np.around(result.final_states[0], 3))
+print(np.around(result.final_state, 3))
 # prints
 # [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
 ```
@@ -87,18 +89,22 @@ Note that the simulator uses numpy's ``float32`` precision
 
 ### Qubit and Amplitude Ordering
 
-The `qubit_order` argument to the simulator's `run` method determines the ordering
-of some results, such as the amplitudes in the final wave function.
-The `qubit_order` argument is optional.
-When it is omitted, qubits are ordered ascending by their name (i.e. what their `__str__` method returns).
+The `qubit_order` argument to the simulator's `run` method 
+determines the ordering of some results, such as the 
+amplitudes in the final wave function. The `qubit_order`
+argument is optional. When it is omitted, qubits are ordered
+ascending by their name (i.e. what their `__str__` method returns).
 
-The simplest `qubit_order` value you can provide is a list of the qubits in the desired ordered.
-Any qubits from the circuit that aren't in the list will be ordered using the default `__str__` ordering,
-but come after qubits that are in the list.
-Be aware that all qubits in the list are included in the simulation, even if they aren't operated on by the circuit.
+The simplest `qubit_order` value you can provide is a list of 
+the qubits in the desired ordered. Any qubits from the circuit 
+that are not in the list will be ordered using the 
+default `__str__` ordering, but come after qubits that are in
+the list. Be aware that all qubits in the list are included in
+the simulation, even if they are not operated on by the circuit.
 
-The mapping from the order of the qubits to the order of the amplitudes in the wave function can
-be tricky to understand. Basically, it is the same as the ordering used by `numpy.kron`:
+The mapping from the order of the qubits to the order of the 
+amplitudes in the wave function can be tricky to understand. 
+Basically, it is the same as the ordering used by `numpy.kron`:
 
 ```python
 outside = [1, 10]
@@ -108,10 +114,12 @@ print(np.kron(outside, inside))
 # [ 1  2 10 20]
 ```
 
-More concretely, the `k`'th amplitude in the wavefunction will correspond to the `k`'th case
-that would be encountered when nesting loops over the possible values of each qubit.
-The first qubit's computational basis values are looped over in the outer-most loop, the last qubit's
-computational basis values are looped over in the inner-most loop, etc:
+More concretely, the `k`'th amplitude in the wave function
+will correspond to the `k`'th case that would be encountered 
+when nesting loops over the possible values of each qubit.
+The first qubit's computational basis values are looped over
+in the outer-most loop, the last qubit's computational basis 
+values are looped over in the inner-most loop, etc:
 
 ```python
 i = 0
@@ -126,7 +134,8 @@ for first in [0, 1]:
 # amps[3] is for first=1, second=1
 ```
 
-We can check that this is in fact the ordering with a circuit that flips one qubit out of two:
+We can check that this is in fact the ordering with a 
+circuit that flips one qubit out of two:
 
 ```python
 q_stay = cirq.NamedQubit('q_stay')
@@ -134,14 +143,14 @@ q_flip = cirq.NamedQubit('q_flip')
 c = cirq.Circuit.from_ops(cirq.X(q_flip))
 
 # first qubit in order flipped
-result = simulator.run(c, qubit_order=[q_flip, q_stay])
-print(abs(result.final_states[-1]).round(3))
+result = simulator.simulate(c, qubit_order=[q_flip, q_stay])
+print(abs(result.final_state).round(3))
 # prints
 # [0. 0. 1. 0.]
 
 # second qubit in order flipped
-result = simulator.run(c, qubit_order=[q_stay, q_flip])
-print(abs(result.final_states[-1]).round(3))
+result = simulator.simulate(c, qubit_order=[q_stay, q_flip])
+print(abs(result.final_state).round(3))
 # prints
 # [0. 1. 0. 0.]
 ```
@@ -153,11 +162,11 @@ result of a circuit, but to inspect, or even modify, the
 state of the system at different steps in the circuit.  To
 support this Cirq provides a method to return an iterator
 over a ``Moment`` by ``Moment`` simulation.  This is the method
-``moment_steps``:
+``simulate_moment_steps``:
 ```python
 circuit = Circuit()
 circuit.append(basic_circuit())    
-for i, step in enumerate(simulator.moment_steps(circuit)):
+for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
     print('state at step %d: %s' % (i, np.around(step.state(), 3)))
 # prints something like
 # state at step 0: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]
@@ -167,11 +176,11 @@ for i, step in enumerate(simulator.moment_steps(circuit)):
 ```
 
 The object returned by the ``moment_steps`` iterator is a 
-``StepResult``. This object has the state along with any 
+``XmonStepResult``. This object has the state along with any 
 measurements that occurred **during** that step (so does
 not include measurement results from previous ``Moments``).
-In addition, the``StepResult`` contains ``set_state()`` which 
-can be used to set the ``state``. One can pass a valid 
+In addition, the``XmonStepResult`` contains ``set_state()``
+which  can be used to set the ``state``. One can pass a valid 
 full state to this method by passing a numpy array. Or 
 alternatively one can pass an integer and then the state
 will be set lie entirely in the computation basis state
@@ -211,8 +220,8 @@ circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
-    result = simulator.run(circuit, resolver)
-    print(np.around(result.final_states[0], 2))
+    result = simulator.simulate(circuit, resolver)
+    print(np.around(result.final_state, 2))
 # prints
 # [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
 # [ 0.85+0.j    0.  -0.35j  0.  -0.35j -0.15+0.j  ]
@@ -260,14 +269,13 @@ supported by Google's API.
   
 ### Simulation Configurations and Options
 
-The xmon simulators also contain some extra configuration
-on their ``run`` and ``moment_step`` methods. One of these
-as ``initial_state``.  This can be passed the full wave function
-as a numpy array, or the initial state as the binary expansion
-of a supplied integer (following the order supplied by the qubits
-list). 
+The xmon simulator also contain some extra configuration
+on the simulate commands. One of these is ``initial_state``.  
+This can be passed the full wave function as a numpy array, or 
+the initial state as the binary expansion of a supplied integer 
+(following the order supplied by the qubits list). 
 
-A simulator can also be passed ``Options`` in it's constructor.
+A simulator itself can also be passed ``Options`` in it's constructor.
 These options define some configuration for how the simulator runs.
 For the xmon simulator, these include
 

@@ -52,11 +52,11 @@ from cirq.google.xmon_qubit import (
     XmonQubit,
 )
 from cirq.google.sim import (
-    Options,
-    Simulator,
-    StepResult,
-    TrialResult,
-    SimulatorTrialResult,
+    XmonOptions,
+    XmonSimulator,
+    XmonStepResult,
+    XmonTrialResult,
+    XmonSimulateTrialResult,
 )
 from cirq.google.engine import (
     Engine,
