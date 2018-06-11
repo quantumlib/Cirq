@@ -39,7 +39,7 @@ where you would like to store your local copy of the code.
     ```
 1. Add a remote called ```upstream``` to git.  This remote will represent
 the main git repo for cirq (as opposed to the clone, which you just
-created, which will be the origin remote).  This remote can be used
+created, which will be the ```origin``` remote).  This remote can be used
 to sync your local git repos with the main git repo for cirq.
     ```shell
     git remote add upstream https://github.com/quantumlib/cirq.git
@@ -66,34 +66,33 @@ The process of doing work which you would like to contribute is
 then to
 1. Checkout master and create a new branch from this master
     ```shell
-    git checkout master
-    git checkout -b newbranch 
+    git checkout master -b new_branch_name
     ```
-    where ```newbranch``` is the name of your new branch.
+    where ```new_branch_name``` is the name of your new branch.
 1. Do your work and commit your changes to this branch.
 1. If you have drifted out of sync with the master from the
 main cirq repo you may need to merge in changes.  To do this,
-first update your local master and then merge then merge
-the local master into your branch:
+first update your local master and then merge the local master
+into your branch:
     ```shell
     # Update your local master.
     git fetch upstream
     git checkout master
     git merge upstream/master
     # Merge local master into your branch.
-    git checkout newbranch
+    git checkout new_branch_name
     git merge master
     ```
     You may need to fix merge conflicts for both of these merge
     commands.
 1. Finally, push your change to your clone
     ```shell
-    git push origin newbranch
+    git push origin new_branch_name
     ```
 1. Now when you navigate to the cirq page on github,
 [https://github.com/quantumlib/cirq](https://github.com/quantumlib/cirq)
 you should see the option to create a new pull request from
-your clone process.  Alternatively you can create the pull request
+your clone repository.  Alternatively you can create the pull request
 by navigating to the "Pull requests" tab in the page, and selecting
 the appropriate branches. 
 1. The reviewer will comment on your code and may ask for changes,
@@ -112,7 +111,7 @@ testing framework which runs all of tests in the cirq and docs
 directories. We also perform a coverage check which will determine
 if new code or modified code is covered by the tests. We currently
 will block if the tests do not pass or the coverage of new/modified
-lines goes down.  For the later there may be exceptions for ignoring
+lines goes down.  For the latter there may be exceptions for ignoring
 uncovered lines, please work with your reviewer on this.
 * We also enforce linting (style) standards for python using pylint.
 We do not enforce all linting, for a list of what lint we check,
@@ -127,10 +126,10 @@ version of the code using this conversion.  In essence this means
 we require that the 3.5 code needs to be convertible to 2.7 using
 3to2.
 
-Our continuous testing framework will run checks for tests, coverage,
-and lint for every pull request.  It is best practice to run these
-tests yourself before submitting a pull request.  You can do this
-by running from a shell our checker on your local changes
+Our continuous integration framework will run checks for tests, 
+coverage, and lint for every pull request.  It is best practice to 
+run these tests yourself before submitting a pull request.  You can 
+do this by running from a shell our checker on your local changes
 ```shell
 bash continous-integration/check.sh
 ```
