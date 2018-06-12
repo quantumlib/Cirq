@@ -635,7 +635,7 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
         # If not, check if it has a decomposition
         composite_gate = ext.try_cast(op.gate, ops.CompositeGate)
         if composite_gate is not None:
-            # Recurse on composite gate decomposition to get known matrix gates.
+            # Recurse decomposition to get known matrix gates.
             op_tree = composite_gate.default_decompose(op.qubits)
             op_list = ops.flatten_op_tree(op_tree)
             for op in _flatten_to_known_matrix_ops(op_list, ext):
@@ -643,10 +643,8 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # Pass measurement gates through
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)  # type: ops.Gate
-        if meas_gate is None:
-            meas_gate = op.gate
-        if isinstance(meas_gate, ops.MeasurementGate):
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        if meas_gate is not None:
             yield op
             continue
 
@@ -663,10 +661,8 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
     total = np.eye(1 << len(qubit_map))
     measured_qubits = set()  # type: Set[QubitId]
     for op in iter_ops:
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)  # type: ops.Gate
-        if meas_gate is None:
-            meas_gate = op.gate
-        if isinstance(meas_gate, ops.MeasurementGate):
+        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        if meas_gate is not None:
             if not ignore_terminal_measurements:
                 raise TypeError(
                     'Measurement operation not supported: {!r}'.format(op))

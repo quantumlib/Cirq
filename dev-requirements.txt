@@ -1,0 +1,8 @@
+-r runtime-requirements.txt
+
+3to2~=1.1
+mypy~=0.590
+pylint~=1.9
+pytest~=3.6
+pytest-cov~=2.5
+protobuf~=3.5
