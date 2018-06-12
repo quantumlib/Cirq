@@ -159,14 +159,20 @@ def fetch_local_files(destination_directory: str,
 
         shell_tools.run_cmd(
             'git',
+            'add',
+            '--all',
+            out=sys.stderr,
+            log_run_to_stderr=verbose)
+
+        shell_tools.run_cmd(
+            'git',
             'commit',
-            None if verbose else '--quiet',
-            '-a',
             '-m', 'working changes',
             '--allow-empty',
             None if verbose else '--quiet',
             out=sys.stderr,
             log_run_to_stderr=verbose)
+
         cur_commit = shell_tools.output_of('git', 'rev-parse', 'HEAD')
 
         os.chdir(destination_directory)
