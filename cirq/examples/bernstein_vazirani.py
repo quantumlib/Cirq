@@ -74,7 +74,7 @@ def bv(n_qubits: int, a: int, shots: int = NUM_SHOTS) -> collections.Counter:
     print(circuit)
 
     # Simulate and return results.
-    simulator = cirq.google.Simulator()
+    simulator = cirq.google.XmonSimulator()
     result = simulator.run(circuit, repetitions=NUM_SHOTS)
     result_bits = result.measurements['result']  # 2D array of (rep, qubit)
     result_strs = [bitstring(bits) for bits in result_bits]

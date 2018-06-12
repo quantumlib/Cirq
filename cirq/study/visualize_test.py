@@ -18,13 +18,13 @@ from matplotlib import pyplot as pl
 import numpy as np
 
 from cirq.circuits import Circuit
-from cirq.google import Simulator, XmonQubit, ExpWGate, XmonMeasurementGate
+from cirq.google import XmonSimulator, XmonQubit, ExpWGate, XmonMeasurementGate
 from cirq.study import visualize
 
 
 def test_plot_state_histogram():
     pl.switch_backend('PDF')
-    simulator = Simulator()
+    simulator = XmonSimulator()
 
     rot_w_gate = ExpWGate(half_turns=1.)
 
