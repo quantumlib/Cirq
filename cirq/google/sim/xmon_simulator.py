@@ -145,8 +145,7 @@ class XmonTrialResult(TrialResult):
                          enumerate(str_by_rep))
 
 
-
-class XmonSimulateTrialResult(XmonTrialResult):
+class XmonSimulateTrialResult(TrialResult):
     """Results of a simulation of the XmonSimulator.
 
     Unlike XmonTrialResult these results contain the final state (wave function)
@@ -163,9 +162,9 @@ class XmonSimulateTrialResult(XmonTrialResult):
     """
 
     def __init__(self,
-        params: ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_state: np.ndarray) -> None:
+                 params: ParamResolver,
+                 measurements: Dict[str, np.ndarray],
+                 final_state: np.ndarray) -> None:
         self.params = params
         self.measurements = measurements
         self.final_state = final_state
@@ -305,7 +304,7 @@ class XmonSimulator:
     def simulate(
         self,
         circuit: Circuit,
-        param_resolver: ParamResolver = ParamResolver({}),
+        param_resolver: ParamResolver = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
         extensions: Extensions = None,
@@ -332,6 +331,8 @@ class XmonSimulator:
             XmonSimulateTrialResults for the simulation. Includes the final
             wave function.
         """
+        if param_resolver is None:
+            param_resolver = ParamResolver({})
         return self.simulate_sweep(circuit, [param_resolver], qubit_order,
                                    initial_state,
                                    extensions or xmon_gate_ext)[0]
@@ -398,7 +399,6 @@ class XmonSimulator:
                 measurements=measurements,
                 final_state=final_state))
         return trial_results
-
 
     def simulate_moment_steps(
             self,

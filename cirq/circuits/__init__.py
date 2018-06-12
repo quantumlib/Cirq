@@ -40,3 +40,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
+from cirq.circuits.simulate_circuit_result import (
+    SimulateCircuitResult,
+)

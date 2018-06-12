@@ -1078,3 +1078,61 @@ def test_iter_ops():
         ops.H(a)]
 
     assert list(c.iter_ops()) == expected
+
+
+def test_simulate():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    c = Circuit.from_ops(ops.X(a), ops.CNOT(a, b))
+
+    # Classical operations.
+    assert c.simulate().approx_eq(
+        cirq.SimulateCircuitResult(
+            measurements={},
+            final_state=np.array([0, 0, 0, 1])),
+        atol=1e-6)
+
+    # Custom initial computational basis state.
+    assert c.simulate(initial_state=1).approx_eq(
+        cirq.SimulateCircuitResult(
+            measurements={},
+            final_state=np.array([0, 0, 1, 0])),
+        atol=1e-6)
+
+    # Custom initial vector.
+    assert c.simulate(initial_state=np.array([0, 0.8, 0, -0.6],
+                                             dtype=np.float32)).approx_eq(
+            cirq.SimulateCircuitResult(
+                measurements={},
+                final_state=np.array([0, -0.6, 0.8, 0])),
+            atol=1e-6)
+
+    # Empty Circuit
+    assert Circuit().simulate().approx_eq(
+        cirq.SimulateCircuitResult({}, np.array([1])))
+
+    # Superposing operation.
+    assert Circuit.from_ops(ops.H(a)).simulate().approx_eq(
+        cirq.SimulateCircuitResult(
+            measurements={},
+            final_state=np.array([np.sqrt(0.5), np.sqrt(0.5)])),
+        atol=1e-6)
+
+    # Collapsing measurement samples.
+    c2 = Circuit.from_ops(ops.H(a),
+                          ops.H(b),
+                          ops.CZ(a, b),
+                          ops.MeasurementGate('a').on(a))
+    for _ in range(10):
+        r2 = c2.simulate()
+        if r2.measurements['a'][0]:
+            assert r2.approx_eq(cirq.SimulateCircuitResult(
+                    measurements={'a': np.array([True])},
+                    final_state=np.array([0, 0, np.sqrt(0.5), -np.sqrt(0.5)])),
+                atol=1e-6)
+        else:
+            assert r2.approx_eq(cirq.SimulateCircuitResult(
+                    measurements={'a': np.array([False])},
+                    final_state=np.array([np.sqrt(0.5), np.sqrt(0.5), 0, 0])),
+                atol=1e-6)
