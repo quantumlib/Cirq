@@ -37,16 +37,14 @@ def test_str():
     assert str(multi) == 'measurements: a=11 b=0\nfinal_state: [0 1 0 0]'
 
 
+@cirq.testing.only_test_in_python3
 def test_repr():
     multi = cirq.SimulateCircuitResult(
-        {'a': np.array([True, True]), 'b': np.array([False])},
+        {},
         np.array([0, 1, 0, 0]))
-    expected = ("SimulateCircuitResult(measurements={"
-                "'a': array([ True,  True]), "
-                "'b': array([False])}, "
+    expected = ("SimulateCircuitResult(measurements={}, "
                 "final_state=array([0, 1, 0, 0]))")
-    actual_normalized = repr(multi).replace("u'", "'")
-    assert expected == actual_normalized
+    assert repr(multi) == expected
 
 
 def test_approx_eq():

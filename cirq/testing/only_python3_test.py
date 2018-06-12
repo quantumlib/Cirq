@@ -12,18 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utilities for testing code."""
+import sys
 
-from cirq.testing.equals_tester import (
-    EqualsTester,
-)
-from cirq.testing.lin_alg_utils import (
-    random_orthogonal,
-    random_special_orthogonal,
-    random_special_unitary,
-    random_unitary,
-    assert_allclose_up_to_global_phase,
-)
-from cirq.testing.only_python3_test import (
-    only_test_in_python3,
-)
+
+def only_test_in_python3(func):
+    """A decorator that indicates a test should not execute in python 2."""
+    if sys.version_info.major < 3:
+        return None
+    return func
