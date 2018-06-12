@@ -18,5 +18,5 @@ import sys
 def only_test_in_python3(func):
     """A decorator that indicates a test should not execute in python 2."""
     if sys.version_info.major < 3:
-        return None
+        return None  # coverage: ignore
     return func
