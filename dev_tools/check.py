@@ -20,6 +20,25 @@ import os.path
 from dev_tools import env_tools
 
 
+class CheckResult:
+    """Output of a status check that passed, failed, or error'ed."""
+    def __init__(self,
+                 check: 'Check',
+                 success: bool,
+                 message: str,
+                 unexpected_error: Optional[Exception]) -> None:
+        self.check = check
+        self.success = success
+        self.message = message
+        self.unexpected_error = unexpected_error
+
+    def __str__(self):
+        return str((self.check.context(),
+                    self.success,
+                    self.message,
+                    self.unexpected_error))
+
+
 class Check(metaclass=abc.ABCMeta):
     """A status check that can performed in a python environment."""
 
@@ -58,7 +77,7 @@ class Check(metaclass=abc.ABCMeta):
                        env: env_tools.PreparedEnv,
                        env_py2: Optional[env_tools.PreparedEnv],
                        verbose: bool,
-                       ) -> Tuple[bool, str, Optional[Exception]]:
+                       ) -> CheckResult:
         """Evaluates this check in python 3 and 2.7, and reports to github.
 
         If the prepared environments are not linked to a github repository,
@@ -89,10 +108,10 @@ class Check(metaclass=abc.ABCMeta):
             env.report_status_to_github('error',
                                         'Unexpected error.',
                                         self.context())
-            return False, 'Unexpected error.', ex
+            return CheckResult(self, False, 'Unexpected error.', ex)
 
         env.report_status_to_github(
             'success' if success else 'failure',
             message,
             self.context())
-        return success, message, None
+        return CheckResult(self, success, message, None)
