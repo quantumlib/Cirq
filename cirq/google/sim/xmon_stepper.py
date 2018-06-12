@@ -14,7 +14,7 @@
 
 """Wavefunction simulator specialized to Google's xmon gate set.
 
-This class should not be used directly, see instead Simulator in the
+This class should not be used directly, see instead XmonSimulator in the
 xmon_simulator class.
 """
 
@@ -77,7 +77,7 @@ class Stepper(object):
                  initial_state: Union[int, np.ndarray] = 0,
                  min_qubits_before_shard: int = 18,
                  use_processes=False) -> None:
-        """Construct a new Simulator.
+        """Construct a new XmonSimulator.
 
         Args:
           num_qubits: The number of qubits to simulate.

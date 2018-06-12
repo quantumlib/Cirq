@@ -30,10 +30,6 @@ def test_result_missing_all():
 
 class ResultMissingParams(study.TrialResult):
     @property
-    def repetitions(self):
-        return None  # coverage: ignore
-
-    @property
     def measurements(self):
         return None  # coverage: ignore
 
@@ -43,28 +39,9 @@ def test_result_missing_params():
         ResultMissingParams()
 
 
-class ResultMissingRepetitions(study.TrialResult):
-    @property
-    def params(self):
-        return None
-
-    @property
-    def measurements(self):
-        return None  # coverage: ignore
-
-
-def test_result_missing_repetitions():
-    with pytest.raises(NotImplementedError):
-        ResultMissingRepetitions()
-
-
 class ResultMissingMeasurements(study.TrialResult):
     @property
     def params(self):
-        return None
-
-    @property
-    def repetitions(self):
         return None
 
 

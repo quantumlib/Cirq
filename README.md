@@ -33,7 +33,7 @@ print(circuit)
 
 # Now simulate the circuit and print out the measurement result.
 # By default, qubits start in the |0> state.
-simulator = cirq.google.Simulator()
+simulator = cirq.google.XmonSimulator()
 result = simulator.run(circuit, repetitions=10)
 results = [str(int(b)) for b in result.measurements['result'][:, 0]]
 print("Simulated measurement results:")

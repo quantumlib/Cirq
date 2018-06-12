@@ -66,7 +66,7 @@ def parse_args():
     if only:
         checks = [e for e in checks if e.command_line_switch() in only]
         if len(checks) != len(only):
-            raise ValueError('Bad selection. Options are ' +
+            raise ValueError('Bad selection. XmonOptions are ' +
                              ', '.join(e.command_line_switch()
                                        for e in all_checks.ALL_CHECKS))
     checks = topologically_sorted_checks_with_deps(checks)

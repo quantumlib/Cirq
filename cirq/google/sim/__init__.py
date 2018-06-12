@@ -16,11 +16,11 @@
 """
 
 from cirq.google.sim.xmon_simulator import (
-    Options,
-    Simulator,
-    StepResult,
-    TrialResult,
-    SimulatorTrialResult,
+    XmonOptions,
+    XmonSimulator,
+    XmonStepResult,
+    XmonTrialResult,
+    XmonSimulateTrialResult,
 )
 from cirq.google.sim.xmon_stepper import (
     Stepper,
