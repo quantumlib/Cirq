@@ -152,7 +152,7 @@ class Engine:
             device: The device on which to run the circuit.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            options: Options configuring the simulation.
+            options: EngineOptions configuring the simulation.
             priority: The priority to run at, 0-100.
             target_route: The engine route to run against.
 
@@ -180,7 +180,7 @@ class Engine:
                 program is a Circuit.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            options: Options configuring the engine.
+            options: EngineOptions configuring the engine.
             priority: The priority to run at, 0-100.
             target_route: The engine route to run against.
 
