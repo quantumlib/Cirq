@@ -267,8 +267,8 @@ as a numpy array, or the initial state as the binary expansion
 of a supplied integer (following the order supplied by the qubits
 list). 
 
-A simulator (or a ``Study``) can also be passed ``Options``. These
-options define some configuration for how the simualator runs.
+A simulator can also be passed ``Options`` in it's constructor.
+These options define some configuration for how the simulator runs.
 For the xmon simulator, these include
 
 > **num_shards**: The simulator works by sharding the wave function
