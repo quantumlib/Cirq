@@ -41,10 +41,12 @@ def test_repr():
     multi = cirq.SimulateCircuitResult(
         {'a': np.array([True, True]), 'b': np.array([False])},
         np.array([0, 1, 0, 0]))
-    assert repr(multi) == ("SimulateCircuitResult(measurements={"
-                           "'a': array([ True,  True]), "
-                           "'b': array([False])}, "
-                           "final_state=array([0, 1, 0, 0]))")
+    expected = ("SimulateCircuitResult(measurements={"
+                "'a': array([ True,  True]), "
+                "'b': array([False])}, "
+                "final_state=array([0, 1, 0, 0]))")
+    actual_normalized = repr(multi).replace("u'", "'")
+    assert expected == actual_normalized
 
 
 def test_approx_eq():
