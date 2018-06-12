@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Set
+from typing import Set, List, Iterable
 
 import os
 import shutil
@@ -34,6 +34,28 @@ def report_pending(env, checks, out_still_pending: Set[check.Check]):
         out_still_pending.add(c)
 
 
+def topologically_sorted_checks_with_deps(checks: Iterable[check.Check]
+                                          ) -> List[check.Check]:
+    result = []
+    seen = set()  # type: Set[check.Check]
+
+    def handle(item: check.Check):
+        if item in seen:
+            return
+        seen.add(item)
+
+        # Dependencies first.
+        for dep in item.dependencies:
+            handle(dep)
+
+        result.append(item)
+
+    for e in checks:
+        handle(e)
+
+    return result
+
+
 def parse_args():
     args = sys.argv
     verbose = '--verbose' in args
@@ -47,10 +69,7 @@ def parse_args():
             raise ValueError('Bad selection. XmonOptions are ' +
                              ', '.join(e.command_line_switch()
                                        for e in all_checks.ALL_CHECKS))
-        for c in checks:
-            for d in c.dependencies:
-                if d not in checks:
-                    checks.insert(0, d)
+    checks = topologically_sorted_checks_with_deps(checks)
 
     positionals = [arg for arg in args if not arg.startswith('-')]
     pull_request_number = None if len(positionals) < 2 else int(positionals[1])
@@ -86,26 +105,38 @@ def main():
 
         env2 = None
 
-        results = []
+        check_results = []
+        failures = set()
         for c in checks:
+            # Prepare environment if needed.
             if c.needs_python2_env() and env2 is None:
                 env2 = env_tools.derive_temporary_python2_environment(
                     destination_directory=test_dir_2,
                     python3_environment=env,
                     verbose=verbose)
+
+            # Run the check.
             print()
             print(shell_tools.highlight('Running ' + c.command_line_switch(),
                                         shell_tools.GREEN))
-            result = c.context(), c.run_and_report(env, env2, verbose)
-
-            currently_pending.remove(c)
+            if any(e in failures for e in c.dependencies):
+                failures.add(c)
+                result = check.CheckResult(
+                    c, False, 'Skipped due to dependency failing.', None)
+            else:
+                result = c.run_and_report(env, env2, verbose)
             print(shell_tools.highlight(
                 'Finished ' + c.command_line_switch(),
-                shell_tools.GREEN if result[1][0] else shell_tools.RED))
+                shell_tools.GREEN if result.success else shell_tools.RED))
+
+            # Record results.
+            check_results.append(result)
+            currently_pending.remove(c)
+            if not result.success:
+                failures.add(result.check)
             if verbose:
                 print(result)
             print()
-            results.append(result)
 
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
@@ -118,12 +149,13 @@ def main():
 
     print()
     print("ALL CHECK RESULTS")
-    for result in results:
+    for result in check_results:
         print(result)
 
-    for _, (_, _, error) in results:
-        if error is not None:
-            raise EnvironmentError('At least one check raised.') from error
+    for result in check_results:
+        if result.unexpected_error is not None:
+            raise EnvironmentError('At least one check raised.') from (
+                result.unexpected_error)
 
 
 if __name__ == '__main__':
