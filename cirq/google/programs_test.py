@@ -14,14 +14,24 @@
 import numpy as np
 import pytest
 
-from cirq.examples import generate_supremacy_circuit
+import cirq
 from cirq.google import Foxtail, programs
 from cirq.schedules import moment_by_moment_schedule
 
 
-def test_protobuf_roundtrip():
+def test_protobuf_round_trip():
     device = Foxtail
-    circuit = generate_supremacy_circuit(device, cz_depth=6)
+    circuit = cirq.Circuit.from_ops(
+        [
+            cirq.google.ExpWGate(half_turns=0.5).on(q)
+            for q in device.qubits
+        ],
+        [
+            cirq.google.Exp11Gate().on(q, q2)
+            for q in [cirq.google.XmonQubit(0, 0)]
+            for q2 in device.neighbors_of(q)
+        ]
+    )
     s1 = moment_by_moment_schedule(device, circuit)
 
     protos = list(programs.schedule_to_proto(s1))

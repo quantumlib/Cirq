@@ -66,9 +66,10 @@ def parse_args():
     if only:
         checks = [e for e in checks if e.command_line_switch() in only]
         if len(checks) != len(only):
-            raise ValueError('Bad selection. XmonOptions are ' +
-                             ', '.join(e.command_line_switch()
-                                       for e in all_checks.ALL_CHECKS))
+            print('Bad --only argument. Allowed values {!r}.'.format(
+                    [e.command_line_switch() for e in all_checks.ALL_CHECKS]),
+                file=sys.stderr)
+            sys.exit(1)
     checks = topologically_sorted_checks_with_deps(checks)
 
     positionals = [arg for arg in args if not arg.startswith('-')]

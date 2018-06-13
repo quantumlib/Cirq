@@ -151,8 +151,5 @@ from cirq.value import (
     Timestamp,
 )
 
-# Import examples before-last, because they reference this top-level package.
-from cirq import examples
-
 # Import version last since it is a relative import.
 from ._version import __version__
