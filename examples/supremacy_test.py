@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import cirq
-from cirq.examples import generate_supremacy_circuit
 from cirq.google import Exp11Gate
+from examples.supremacy import generate_supremacy_circuit
 
 
 def test_generate_supremacy_circuit():
