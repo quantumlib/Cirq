@@ -32,6 +32,7 @@ IGNORED_LINE_PATTERNS = [
     r'^else:$',
     # Lines that are only invoked when running the file as the main file.
     r'^main\(.+$',
+    r'^app.run\(main\)$',
     # Empty method definitions.
     r'^pass$',
 ]
