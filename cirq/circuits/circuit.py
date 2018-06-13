@@ -27,12 +27,13 @@ import numpy as np
 from cirq import ops
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
+from cirq.circuits.simulate_circuit_result import SimulateCircuitResult
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
-from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
+    from cirq import study
     from typing import Set
 
 
@@ -425,14 +426,61 @@ class Circuit(object):
                 self.moments[k] = self.moments[k].without_operations_touching(
                     qubits)
 
-    def qubits(self) -> FrozenSet[QubitId]:
+    def qubits(self) -> FrozenSet[ops.QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
+
+    def simulate(self,
+                 *unnamed_args,
+                 extensions: Extensions = None,
+                 initial_state: Union[int, np.ndarray] = 0,
+                 param_resolver: 'study.ParamResolver' = None,
+                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT):
+        """Samples measurements and an output vector for this circuit.
+
+        Args:
+            param_resolver: Specifies how to turn parameterized gates into
+                concrete gates.
+            qubit_order: Determines the canonical ordering of the qubits, which
+                defines the order of amplitudes in the state vector (which is
+                relevant when specifying an initial state and interpreting the
+                output state).
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state.
+                Otherwise  if this is a np.ndarray it is the full initial
+                state. In this case it must be the correct size, be normalized
+                (an L2 norm of 1), and be safely castable to a np.complex64.
+            extensions: Extensions that will be applied while trying to
+                decompose the circuit's gates. If None, defaults to a set of
+                extensions capable of decomposing CompositeGate instances and
+                synthesizing KnownMatrixGate instances applied to 1 or 2
+                qubits.
+
+        Returns:
+            A SimulateCircuitResult storing the final state vector as well as
+            keyed measurement results.
+        """
+
+        assert not unnamed_args
+
+        # Local import to avoid circular dependency.
+        from cirq import google
+
+        result = google.XmonSimulator().simulate(
+            circuit=self,
+            param_resolver=param_resolver,
+            qubit_order=qubit_order,
+            initial_state=initial_state,
+            extensions=extensions)
+
+        return SimulateCircuitResult(
+            measurements=result.measurements,
+            final_state=result.final_state)
 
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[QubitId] = (),
+            qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
             ext: Extensions = None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
@@ -464,7 +512,7 @@ class Circuit(object):
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
-                     for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
+                     for q, i in enumerate(qs)}  # type: Dict[ops.QubitId, int]
         matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
         return _operations_to_unitary_matrix(matrix_ops,
                                              qubit_map,
@@ -589,7 +637,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
-                            qubit_map: Dict[QubitId, int],
+                            qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
                             precision: Optional[int]):
     if not moment.operations:
@@ -655,11 +703,11 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
 
 
 def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
-                                  qubit_map: Dict[QubitId, int],
+                                  qubit_map: Dict[ops.QubitId, int],
                                   ignore_terminal_measurements: bool,
                                   ext: Extensions) -> np.ndarray:
     total = np.eye(1 << len(qubit_map))
-    measured_qubits = set()  # type: Set[QubitId]
+    measured_qubits = set()  # type: Set[ops.QubitId]
     for op in iter_ops:
         meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
         if meas_gate is not None:
@@ -688,7 +736,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
-                                 qubit_map: Dict[QubitId, int],
+                                 qubit_map: Dict[ops.QubitId, int],
                                  ext: Extensions) -> np.ndarray:
     known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
     if known_matrix_gate is None:
