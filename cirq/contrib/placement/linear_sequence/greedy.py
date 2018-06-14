@@ -309,8 +309,8 @@ def greedy_sequence(device: XmonDevice,
     }
 
     sequence = None
-    for method in greedy_search:
-        candidate = greedy_search[method].get_or_search()
+    for algorithm in greedy_search:
+        candidate = greedy_search[algorithm].get_or_search()
         if sequence is None or len(sequence) < len(candidate):
             sequence = candidate
 
