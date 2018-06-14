@@ -22,6 +22,7 @@ from dev_tools import env_tools, shell_tools
 IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
+    r'^setup\.py$',  # Installation code.
 ]
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
@@ -31,6 +32,7 @@ IGNORED_LINE_PATTERNS = [
     r'^else:$',
     # Lines that are only invoked when running the file as the main file.
     r'^main\(.+$',
+    r'^app.run\(main\)$',
     # Empty method definitions.
     r'^pass$',
 ]

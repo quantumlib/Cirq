@@ -26,7 +26,7 @@ def plot_state_histogram(result):
     a single qubit.
 
     Args:
-        result: Instance of SimulatorTrialResult.
+        result: Instance of XmonTrialResult.
 
     Returns:
         list of values plotted on the y-axis.

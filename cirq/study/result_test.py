@@ -12,17 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for studies."""
+"""Tests for results."""
 
 import pytest
 
 from cirq import study
 
 
-class BadResult(study.TrialResult):
+class ResultMissingAll(study.TrialResult):
     pass
 
 
-def test_bad_result():
+def test_result_missing_all():
     with pytest.raises(NotImplementedError):
-        BadResult()
+        ResultMissingAll()
+
+
+class ResultMissingParams(study.TrialResult):
+    @property
+    def measurements(self):
+        return None  # coverage: ignore
+
+
+def test_result_missing_params():
+    with pytest.raises(NotImplementedError):
+        ResultMissingParams()
+
+
+class ResultMissingMeasurements(study.TrialResult):
+    @property
+    def params(self):
+        return None
+
+
+def test_result_missing_measurements():
+    with pytest.raises(NotImplementedError):
+        ResultMissingMeasurements()

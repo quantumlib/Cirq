@@ -55,7 +55,8 @@ proto_dir="${out_dir}/cirq/api/google/v1"
 find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
 protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
 
-cp "${in_dir}/python2.7-requirements.txt" "${out_dir}/requirements.txt"
+cp "${in_dir}/python2.7-runtime-requirements.txt" "${out_dir}/python2.7-runtime-requirements.txt"
+cp "${in_dir}/python2.7-dev-requirements.txt" "${out_dir}/python2.7-dev-requirements.txt"
 cp "${in_dir}/README.md" "${out_dir}/README.md"
 
 # Mark every file as using utf8 encoding.
