@@ -45,7 +45,7 @@ def test_create_unsupported_dtype():
     with pytest.raises(ValueError) as exp:
         complex_arr = np.array([1j])
         mem_manager.SharedMemManager.create_array(complex_arr)
-        assert 'dtype' in str(exp.value)
+    assert 'dtype' in str(exp.value)
 
 
 def test_create_unsupported_type():

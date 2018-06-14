@@ -14,21 +14,19 @@
 
 import pytest
 
-from cirq import ops
-from cirq.testing import EqualsTester
+import cirq
 
 
 def test_gate_calls_validate():
-    class ValiGate(ops.Gate):
-        # noinspection PyMethodMayBeStatic
+    class ValiGate(cirq.Gate):
         def validate_args(self, qubits):
             if len(qubits) == 3:
                 raise ValueError()
 
     g = ValiGate()
-    q00 = ops.QubitId()
-    q01 = ops.QubitId()
-    q10 = ops.QubitId()
+    q00 = cirq.QubitId()
+    q01 = cirq.QubitId()
+    q10 = cirq.QubitId()
 
     _ = g.on(q00)
     _ = g.on(q01)
@@ -42,39 +40,46 @@ def test_gate_calls_validate():
         _ = g(q10, q01, q00)
 
 
-def test_named_qubit():
-    q = ops.NamedQubit('a')
+def test_named_qubit_str():
+    q = cirq.NamedQubit('a')
+    assert q.name == 'a'
     assert str(q) == 'a'
-    assert repr(q) in ["NamedQubit('a')", "NamedQubit(u'a')"]
+
+
+# Python 2 gives a different repr due to unicode strings being prefixed with u.
+@cirq.testing.only_test_in_python3
+def test_named_qubit_repr():
+    q = cirq.NamedQubit('a')
+    assert repr(q) == "NamedQubit('a')"
 
 
 def test_operation_init():
-    q = ops.QubitId()
-    g = ops.Gate()
-    v = ops.Operation(g, (q,))
+    q = cirq.QubitId()
+    g = cirq.Gate()
+    v = cirq.Operation(g, (q,))
     assert v.gate == g
     assert v.qubits == (q,)
 
 
 def test_operation_eq():
-    g1 = ops.Gate()
-    g2 = ops.Gate()
-    r1 = [ops.QubitId()]
-    r2 = [ops.QubitId()]
+    g1 = cirq.Gate()
+    g2 = cirq.Gate()
+    r1 = [cirq.QubitId()]
+    r2 = [cirq.QubitId()]
     r12 = r1 + r2
     r21 = r2 + r1
 
-    eq = EqualsTester()
-    eq.make_equality_pair(lambda: ops.Operation(g1, r1))
-    eq.make_equality_pair(lambda: ops.Operation(g2, r1))
-    eq.make_equality_pair(lambda: ops.Operation(g1, r2))
-    eq.make_equality_pair(lambda: ops.Operation(g1, r12))
-    eq.make_equality_pair(lambda: ops.Operation(g1, r21))
-    eq.add_equality_group(ops.Operation(ops.CZ, r21),
-                          ops.Operation(ops.CZ, r12))
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_pair(lambda: cirq.Operation(g1, r1))
+    eq.make_equality_pair(lambda: cirq.Operation(g2, r1))
+    eq.make_equality_pair(lambda: cirq.Operation(g1, r2))
+    eq.make_equality_pair(lambda: cirq.Operation(g1, r12))
+    eq.make_equality_pair(lambda: cirq.Operation(g1, r21))
+    eq.add_equality_group(cirq.Operation(cirq.CZ, r21),
+                          cirq.Operation(cirq.CZ, r12))
 
 
 def test_operation_pow():
-    Y = ops.Y
-    qubit = ops.QubitId()
+    Y = cirq.Y
+    qubit = cirq.QubitId()
     assert (Y ** 0.5)(qubit) == Y(qubit) ** 0.5

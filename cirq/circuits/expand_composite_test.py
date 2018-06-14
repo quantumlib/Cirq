@@ -28,6 +28,7 @@ def assert_equal_mod_empty(expected, actual):
     drop_empty = DropEmptyMoments()
     drop_empty.optimize_circuit(actual)
     if expected != actual:
+        # coverage: ignore
         print('EXPECTED')
         print(expected)
         print('ACTUAL')

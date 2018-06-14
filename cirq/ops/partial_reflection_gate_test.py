@@ -83,3 +83,17 @@ def test_partial_reflection_gate_with_parameters_resolved_by():
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = gate.with_parameters_resolved_by(resolver)
     assert resolved_gate.half_turns == 0.1
+
+
+def test_partial_reflection_gate_matrix():
+    np.testing.assert_allclose(DummyGate(half_turns=1).matrix(),
+                               np.diag([1, -1]),
+                               atol=1e-8)
+
+    np.testing.assert_allclose(DummyGate(half_turns=0.5).matrix(),
+                               np.diag([1, 1j]),
+                               atol=1e-8)
+
+    np.testing.assert_allclose(DummyGate(half_turns=-0.5).matrix(),
+                               np.diag([1, -1j]),
+                               atol=1e-8)
