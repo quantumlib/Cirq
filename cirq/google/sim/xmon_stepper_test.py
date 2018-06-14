@@ -597,14 +597,6 @@ def random_moments(num_qubits, num_ops):
     return moments
 
 
-def _set_global_state(num_prefix_qubits):
-    """Sets up global state for testing global level methods."""
-    with xmon_stepper.Stepper(num_qubits=3,
-                              num_prefix_qubits=num_prefix_qubits,
-                              min_qubits_before_shard=0):
-        pass
-
-
 def test_num_prefix_none():
     """Sanity check that setting num_prefix to none still shards correctly."""
     with xmon_stepper.Stepper(num_qubits=5, min_qubits_before_shard=0) as s:

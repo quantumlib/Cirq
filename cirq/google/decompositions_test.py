@@ -24,14 +24,6 @@ from cirq.google import decompositions
 from cirq import circuits, linalg, ops, testing
 
 
-def cis(x: float):
-    return cmath.exp(1j * x)
-
-
-def inv_unit(x: complex) -> complex:
-    return cis(-cmath.phase(x))
-
-
 def _operations_to_matrix(operations, qubits):
     return circuits.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=ops.QubitOrder.explicit(qubits),

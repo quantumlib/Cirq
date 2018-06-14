@@ -640,18 +640,6 @@ def test_unsupported_gate(scheduler):
         _ = run(simulator, circuit, scheduler)
 
 
-class UnsupportedCompositeGate(SingleQubitGate, CompositeGate):
-
-    def __repr__(self):
-        return "UnsupportedCompositeGate"
-
-    def default_decompose(self,
-                          qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
-        qubit = qubits[0]
-        yield Z(qubit)
-        yield UnsupportedGate().on(qubit)
-
-
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_unsupported_gate_composite(scheduler):
     circuit = Circuit()
@@ -976,18 +964,18 @@ def test_compare_simulator_states_to_gate_matrices():
         Circuit.from_ops(CZ(Q1, Q2)**0.5))
 
 
+# Python 2 gives a different repr due to unicode strings being prefixed with u.
+@cirq.testing.only_test_in_python3
 def test_simulator_trial_result_repr():
     v = xmon_simulator.XmonTrialResult(
         params=ParamResolver({'a': 2}),
         repetitions=2,
         measurements={'m': np.array([[1, 2]])})
 
-    python2 = ("XmonTrialResult("
-               "params=ParamResolver({u'a': 2}), "
-               "repetitions=2, "
-               "measurements={u'm': array([[1, 2]])})")
-    python3 = python2.replace("u'", "'")
-    assert repr(v) in [python2, python3]
+    assert repr(v) == ("XmonTrialResult("
+                       "params=ParamResolver({'a': 2}), "
+                       "repetitions=2, "
+                       "measurements={'m': array([[1, 2]])})")
 
 
 def test_simulator_trial_result_str():
@@ -1018,18 +1006,19 @@ def test_simulator_trial_result_str_repetitions():
     assert str(result) == 'repetition 0 : a=1 b=1\nrepetition 1 : a=1 b=1'
 
 
+# Python 2 gives a different repr due to unicode strings being prefixed with u.
+@cirq.testing.only_test_in_python3
 def test_simulator_simulate_trial_result_repr():
     v = xmon_simulator.XmonSimulateTrialResult(
         params=ParamResolver({'a': 2}),
         measurements={'m': np.array([1, 2])},
         final_state=np.array([0, 1, 0, 0]))
 
-    python2 = ("XmonSimulateTrialResult("
-               "params=ParamResolver({u'a': 2}), "
-               "measurements={u'm': array([1, 2])}, "
-               "final_state=array([0, 1, 0, 0]))")
-    python3 = python2.replace("u'", "'")
-    assert repr(v) in [python2, python3]
+    assert repr(v) == ("XmonSimulateTrialResult("
+                       "params=ParamResolver({'a': 2}), "
+                       "measurements={'m': array([1, 2])}, "
+                       "final_state=array([0, 1, 0, 0]))")
+
 
 def test_simulator_simulate_trial_result_str():
     a = cirq.google.XmonQubit(0, 0)
