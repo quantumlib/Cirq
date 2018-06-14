@@ -104,11 +104,11 @@ Simulator
 .. autosummary::
     :toctree: generated/
 
-    google.Simulator
-    google.Options
-    google.StepResult
-    google.TrialResult
-    google.SimulatorTrialResult
+    google.XmonSimulator
+    google.XmonOptions
+    google.XmonStepResult
+    google.XmonTrialResult
+    google.XmonSimulateTrialResult
 
 .. _api-google-qubits:
 
