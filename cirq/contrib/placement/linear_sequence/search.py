@@ -15,8 +15,10 @@
 from typing import List
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence import anneal
-from cirq.contrib.placement.linear_sequence import greedy
+
+
+class SequenceSearchMethod:
+    pass
 
 
 def search_sequence(device: XmonDevice,
@@ -39,6 +41,9 @@ def search_sequence(device: XmonDevice,
     Raises:
         ValueError: When unknown search method is requested.
     """
+    from cirq.contrib.placement.linear_sequence import anneal
+    from cirq.contrib.placement.linear_sequence import greedy
+
     if method == 'greedy':
         return greedy.greedy_sequence(device, method_opts)
     elif method == 'anneal':

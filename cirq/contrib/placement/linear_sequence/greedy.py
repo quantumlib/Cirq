@@ -20,7 +20,12 @@ from cirq.contrib.placement.linear_sequence.chip import (
     chip_as_adjacency_list,
     yx_cmp
 )
+from cirq.contrib.placement.linear_sequence import search
 from cirq.google import XmonDevice, XmonQubit
+
+
+class GreedySequenceSearchMethod(search.SequenceSearchMethod):
+    pass
 
 
 class GreedySequenceSearch(object):

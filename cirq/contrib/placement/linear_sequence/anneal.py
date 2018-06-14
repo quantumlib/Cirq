@@ -23,9 +23,14 @@ from cirq.contrib.placement.linear_sequence.chip import (
     chip_as_adjacency_list,
     EDGE,
 )
+from cirq.contrib.placement.linear_sequence import search
 from cirq.contrib.placement import optimize
 
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
+
+
+class AnnealSequenceSearchMethod(search.SequenceSearchMethod):
+    pass
 
 
 class AnnealSequenceSearch(object):
