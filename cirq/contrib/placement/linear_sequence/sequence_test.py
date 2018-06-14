@@ -18,6 +18,10 @@ from cirq.contrib.placement.linear_sequence.sequence import (
 from cirq.google import XmonQubit
 
 
+def test_empty_sequence():
+    assert longest_sequence_index([[]]) == 0
+
+
 def test_single_sequence():
     assert longest_sequence_index([[XmonQubit(0, 0)]]) == 0
 
