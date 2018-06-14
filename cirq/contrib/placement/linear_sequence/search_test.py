@@ -14,7 +14,12 @@
 
 import pytest
 
-from cirq.contrib.placement.linear_sequence.search import search_sequence
+from cirq.contrib.placement.linear_sequence import anneal
+from cirq.contrib.placement.linear_sequence import greedy
+from cirq.contrib.placement.linear_sequence.search import (
+    SequenceSearchMethod,
+    search_sequence
+)
 from cirq.testing.mock import mock
 from cirq.google import XmonDevice, XmonQubit
 from cirq.value import Duration
@@ -27,13 +32,13 @@ def test_anneal_method_calls_anneal_search(anneal_sequence):
     q03 = XmonQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
-    method_opts = {}
+    method = anneal.AnnealSequenceSearchMethod()
     seed = 1
     sequences = [[q00, q01]]
     anneal_sequence.return_value = sequences
 
-    assert search_sequence(device, 'anneal', method_opts, seed) == sequences
-    anneal_sequence.assert_called_once_with(device, method_opts, seed=seed)
+    assert search_sequence(device, method, seed) == sequences
+    anneal_sequence.assert_called_once_with(device, method, seed=seed)
 
 
 @mock.patch('cirq.contrib.placement.linear_sequence.greedy.greedy_sequence')
@@ -43,12 +48,12 @@ def test_greedy_method_calls_greedy_search(greedy_sequence):
     q03 = XmonQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
-    method_opts = {}
+    method = greedy.GreedySequenceSearchMethod()
     sequences = [[q00, q01]]
     greedy_sequence.return_value = sequences
 
-    assert search_sequence(device, 'greedy', method_opts) == sequences
-    greedy_sequence.assert_called_once_with(device, method_opts)
+    assert search_sequence(device, method) == sequences
+    greedy_sequence.assert_called_once_with(device, method)
 
 
 def test_search_fails_on_unknown_method():
@@ -57,4 +62,4 @@ def test_search_fails_on_unknown_method():
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01])
     with pytest.raises(ValueError):
-        search_sequence(device, 'dummy')
+        search_sequence(device, SequenceSearchMethod())

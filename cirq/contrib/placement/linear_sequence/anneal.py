@@ -50,7 +50,7 @@ class AnnealSequenceSearch(object):
 
     def search(
             self,
-            method_opts: dict = None,
+            method: AnnealSequenceSearchMethod,
             trace_func: Callable[
                 [List[List[XmonQubit]], float, float, float, bool],
                 None] = None) -> List[List[XmonQubit]]:
@@ -59,8 +59,7 @@ class AnnealSequenceSearch(object):
         Each call to this method starts new search.
 
         Args:
-          method_opts: Optional dictionary with search parameters. Not yet
-            supported.
+           method: Anneal method specification. Unused.
           trace_func: Optional callable which will be called for each simulated
             annealing step with arguments: solution candidate (list of linear
             sequences on the chip), current temperature (float), candidate cost
@@ -70,7 +69,7 @@ class AnnealSequenceSearch(object):
         Returns:
           List of linear sequences on the chip found by this method.
         """
-        del method_opts
+        del method
 
         def search_trace(state: _STATE, temp: float,
                          cost: float, probability: float, accepted: bool):
@@ -338,7 +337,7 @@ class AnnealSequenceSearch(object):
 
 def anneal_sequence(
         device: XmonDevice,
-        method_opts: dict = None,
+        method: AnnealSequenceSearchMethod,
         trace_func: Callable[
             [List[List[XmonQubit]], float, float, float, bool],
             None] = None,
@@ -347,8 +346,7 @@ def anneal_sequence(
 
     Args:
       device: Chip description.
-      method_opts: Optional dictionary with search parameters. Not yet
-        supported.
+      method: Anneal method specification. Unused.
       trace_func: Optional callable which will be called for each simulated
         annealing step with arguments: solution candidate (list of linear
         sequences on the chip), current temperature (float), candidate cost
@@ -359,7 +357,7 @@ def anneal_sequence(
     Returns:
       List of linear sequences on the chip found by simulated annealing method.
     """
-    return AnnealSequenceSearch(device, seed).search(method_opts, trace_func)
+    return AnnealSequenceSearch(device, seed).search(method, trace_func)
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

@@ -22,8 +22,7 @@ class SequenceSearchMethod:
 
 
 def search_sequence(device: XmonDevice,
-                    method: str,
-                    method_opts: dict = None,
+                    method: SequenceSearchMethod,
                     seed: int = None) -> List[List[XmonQubit]]:
     """Searches for linear sequence of nodes on the grid.
 
@@ -31,7 +30,6 @@ def search_sequence(device: XmonDevice,
         device: Google Xmon device instance.
         method: Search method to use. Currently only 'greedy' method is
                 supported.
-        method_opts: Search method specific options.
         seed: Seed for the random number generator used during the search. Not
               yet implemented.
 
@@ -44,9 +42,9 @@ def search_sequence(device: XmonDevice,
     from cirq.contrib.placement.linear_sequence import anneal
     from cirq.contrib.placement.linear_sequence import greedy
 
-    if method == 'greedy':
-        return greedy.greedy_sequence(device, method_opts)
-    elif method == 'anneal':
-        return anneal.anneal_sequence(device, method_opts, seed=seed)
+    if isinstance(method, greedy.GreedySequenceSearchMethod):
+        return greedy.greedy_sequence(device, method)
+    elif isinstance(method, anneal.AnnealSequenceSearchMethod):
+        return anneal.anneal_sequence(device, method, seed=seed)
     else:
         raise ValueError("Unknown linear sequence search method '%s'" % method)
