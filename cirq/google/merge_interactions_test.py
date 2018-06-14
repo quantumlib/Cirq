@@ -34,11 +34,13 @@ def assert_optimizes(before, after):
         post.optimize_circuit(after)
 
     if before != after:
+        # coverage: ignore
         print('ACTUAL')
         print(before)
         print('EXPECTED')
         print(after)
     assert before == after
+
 
 def assert_optimization_not_broken(circuit):
     """Check that the unitary matrix for the input circuit is the same (up to

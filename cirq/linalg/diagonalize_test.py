@@ -81,6 +81,8 @@ def assertdiagonalized_by(m, p, tol=Tolerance.DEFAULT):
         assert predicates.is_orthogonal(p)
         assert predicates.is_diagonal(d, tol)
     except AssertionError:
+        # coverage: ignore
+
         print("m.round(3)")
         print(np.round(m, 3))
 
@@ -101,6 +103,8 @@ def assert_bidiagonalized_by(m, p, q, tol=Tolerance.DEFAULT):
         assert predicates.is_orthogonal(q)
         assert predicates.is_diagonal(d, tol)
     except AssertionError:
+        # coverage: ignore
+
         print("m.round(3)")
         print(np.round(m, 3))
 
@@ -137,7 +141,7 @@ def assert_bidiagonalized_by(m, p, q, tol=Tolerance.DEFAULT):
     random_symmetric_matrix(k) for k in
     range(1, 10)
 ])
-def testdiagonalize_real_symmetric_matrix(matrix):
+def test_diagonalize_real_symmetric_matrix(matrix):
     p = diagonalize.diagonalize_real_symmetric_matrix(matrix)
     assertdiagonalized_by(matrix, p)
 
@@ -149,7 +153,7 @@ def testdiagonalize_real_symmetric_matrix(matrix):
     np.array([[1, 1j], [1j, 1]]),
     np.array([[3, 1], [7, 3]]),
 ])
-def testdiagonalize_real_symmetric_matrix_fails(matrix):
+def test_diagonalize_real_symmetric_matrix_fails(matrix):
     with pytest.raises(ValueError):
         _ = diagonalize.diagonalize_real_symmetric_matrix(matrix)
 
@@ -171,7 +175,7 @@ def testdiagonalize_real_symmetric_matrix_fails(matrix):
     ([6, 6, 5, 5, 5], random_block_diagonal_symmetric_matrix(2, 3))
     for _ in range(10)
 ])
-def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars(
+def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars(
         s, m):
     m = np.array(m)
     s = np.diag(s)
@@ -189,7 +193,7 @@ def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars(
     ([2, 1, 1], [[1, 3, 0], [3, 6, 0], [0, 0, 1]]),
     ([2, 2, 1], [[-5, 0, 0], [0, 1, 3], [0, 3, 6]]),
 ])
-def test_simultaneousdiagonalize_real_symmetric_matrix_vs_singulars_fail(
+def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars_fail(
         s, m):
     m = np.array(m)
     s = np.diag(s)
