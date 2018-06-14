@@ -115,7 +115,7 @@ def prepare_temporary_test_environment(
     # Create virtual environment.
     base_path = cast(str, env.destination_directory)
     env_path = os.path.join(base_path, env_name)
-    req_path = os.path.join(base_path, 'requirements.txt')
+    req_path = os.path.join(base_path, 'dev-requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path,
@@ -162,7 +162,8 @@ def derive_temporary_python2_environment(
 
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
-    req_path = os.path.join(destination_directory, 'requirements.txt')
+    req_path = os.path.join(destination_directory,
+                            'python2.7-dev-requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path,

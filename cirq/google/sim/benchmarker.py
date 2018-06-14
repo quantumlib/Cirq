@@ -15,6 +15,7 @@
 """Tool to benchmark the xmon_simulator."""
 
 import timeit
+from typing import Any, Dict, List, Tuple # pylint: disable=unused-import
 
 import numpy as np
 from absl import app
@@ -33,11 +34,16 @@ flags.DEFINE_integer('max_num_qubits', 26,
 flags.DEFINE_integer('num_gates', 100, 'The number of gates in the benchmark.')
 flags.DEFINE_integer('num_repetitions', 10,
                      'The number of times to average the benchmark over.')
+flags.DEFINE_integer('num_prefix_qubits', 2,
+                     'The number of prefix qubits to use for sharding.')
+flags.DEFINE_bool('use_processes', False,
+                  'Whether or not to us multiprocessing or threads.')
 
 
-def simulate(num_qubits, num_gates):
+def simulate(num_qubits: int, num_gates: int, num_prefix_qubits: int,
+    use_processes: bool) -> None:
     """"Runs the xmon_simulator."""
-    ops = []
+    ops = []  # type: List[Any]
     for _ in range(num_gates):
         which = np.random.choice(['expz', 'expw', 'exp11'])
         if which == 'expw':
@@ -55,7 +61,7 @@ def simulate(num_qubits, num_gates):
                         np.random.random()))
 
     current_moment = num_qubits * [0]
-    moments = [[]]
+    moments = [[]]  # type: List[List[Any]]
 
     for op in ops:
         if op[0] == 'expw' or op[0] == 'expz':
@@ -76,9 +82,11 @@ def simulate(num_qubits, num_gates):
             current_moment[index1] = new_moment + 1
 
     with xmon_stepper.Stepper(
-        num_qubits=num_qubits, num_prefix_qubits=2) as s:
+            num_qubits=num_qubits,
+            num_prefix_qubits=num_prefix_qubits,
+            use_processes=use_processes) as s:
         for moment in moments:
-            phase_map = {}
+            phase_map = {}  # type: Dict[Tuple, Any]
             for op in moment:
                 if op[0] == 'expz':
                     phase_map[(op[1],)] = op[2]
@@ -90,15 +98,17 @@ def simulate(num_qubits, num_gates):
 
 
 def main(argv):
-    del argv
+    setup = argv[1] if len(argv) == 2 else 'from __main__ import simulate'
     print('num_qubits,seconds per gate')
     for num_qubits in range(FLAGS.min_num_qubits, FLAGS.max_num_qubits + 1):
-        time = timeit.timeit(
-            'simulate(%s, %s)' % (num_qubits, FLAGS.num_gates),
-            'from __main__ import simulate',
-            number=FLAGS.num_repetitions)
-        print('%s,%s' %
-              (num_qubits, time / (FLAGS.num_repetitions * FLAGS.num_gates)))
+      command = 'simulate(%s, %s, %s, %s)' % (
+        num_qubits,
+        FLAGS.num_gates,
+        FLAGS.num_prefix_qubits,
+        FLAGS.use_processes)
+      time = timeit.timeit(command, setup, number=FLAGS.num_repetitions)
+      print('{},{}'.format(num_qubits,
+                           time / (FLAGS.num_repetitions * FLAGS.num_gates)))
 
 
 if __name__ == '__main__':
