@@ -280,7 +280,8 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
 
 
 def greedy_sequence(device: XmonDevice,
-                    method: GreedySequenceSearchMethod) -> List[List[XmonQubit]]:
+                    method: GreedySequenceSearchMethod) -> List[
+    List[XmonQubit]]:
     """Greedy search for linear sequence of qubits on a chip.
 
     Args:
@@ -290,7 +291,6 @@ def greedy_sequence(device: XmonDevice,
     Returns:
         List of linear sequences found on the chip.
     """
-    del method
 
     def lower_left():
         cand = None
