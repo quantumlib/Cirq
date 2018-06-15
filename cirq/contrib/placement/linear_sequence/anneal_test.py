@@ -22,6 +22,7 @@ from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
 from cirq.contrib.placement.linear_sequence.anneal import (
     _STATE,
     AnnealSequenceSearch,
+    AnnealSequenceSearchMethod,
     anneal_sequence,
     index_2d,
 )
@@ -44,7 +45,7 @@ def test_search_calls_anneal_minimize(anneal_minimize):
 
     assert AnnealSequenceSearch(
         _create_device([]),
-        seed=0xF00D0000).search() == seqs
+        seed=0xF00D0000).search(AnnealSequenceSearchMethod()) == seqs
     anneal_minimize.assert_called_once_with(mock.ANY, mock.ANY, mock.ANY,
                                             mock.ANY, trace_func=mock.ANY)
 
@@ -59,7 +60,7 @@ def test_search_calls_anneal_minimize_reversed(anneal_minimize):
 
     assert AnnealSequenceSearch(
         _create_device([]),
-        seed=0xF00D0001).search() == seqs
+        seed=0xF00D0001).search(AnnealSequenceSearchMethod()) == seqs
     anneal_minimize.assert_called_once_with(mock.ANY, mock.ANY, mock.ANY,
                                             mock.ANY, trace_func=mock.ANY)
 
@@ -75,7 +76,8 @@ def test_search_converts_trace_func(anneal_minimize):
 
     assert AnnealSequenceSearch(
         _create_device([]),
-        seed=0xF00D0002).search(trace_func=trace_func) == seqs
+        seed=0xF00D0002).search(AnnealSequenceSearchMethod(),
+                                trace_func=trace_func) == seqs
     wrapper_func = anneal_minimize.call_args[1]['trace_func']
 
     wrapper_func((seqs, edges), 1.0, 2.0, 3.0, True)
@@ -152,7 +154,7 @@ def test_force_edge_active_move_quits_when_no_free_edge():
     q01 = XmonQubit(0, 1)
     search = AnnealSequenceSearch(
         _create_device([q00, q01]),
-        seed = 0xF00D0007)
+        seed=0xF00D0007)
     seqs, edges = search._create_initial_solution()
     assert search._force_edge_active_move((seqs, edges)) == (seqs, edges)
 
@@ -381,13 +383,13 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
 def test_anneal_sequence_calls(search):
     q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
     device = _create_device([q00, q01])
-    method_opts = dict()
+    method = AnnealSequenceSearchMethod()
     seed = 1
     search_instance = search.return_value
 
-    anneal_sequence(device, method_opts, None, seed)
+    anneal_sequence(device, method, None, seed)
     search.assert_called_once_with(device, seed)
-    search_instance.search.assert_called_once_with(method_opts, None)
+    search_instance.search.assert_called_once_with(method, None)
 
 
 def test_index_2d():

@@ -40,8 +40,8 @@ def main():
     print()
     repetitions = 75
     print('Simulating {} repetitions...'.format(repetitions))
-    result = cirq.google.Simulator().run(circuit=circuit,
-                                         repetitions=repetitions)
+    result = cirq.google.XmonSimulator().run(circuit=circuit,
+                                             repetitions=repetitions)
 
     # Collect results.
     a = np.array(result.measurements['a'][:, 0])

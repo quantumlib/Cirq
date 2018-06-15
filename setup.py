@@ -18,8 +18,8 @@ from setuptools import find_packages, setup
 __version__ = None
 exec(open('cirq/_version.py').read())
 
-# Read in requirements.txt
-requirements = open('requirements.txt').readlines()
+# Read in requirements
+requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 setup(

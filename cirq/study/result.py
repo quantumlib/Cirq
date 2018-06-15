@@ -12,20 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines a study."""
+"""Defines trial results."""
 
 
 class TrialResultMeta(type):
-    """Metaclass that asserts measurements attributes exist."""
+    """Metaclass that asserts measurements and params attributes exist."""
 
     def __call__(cls, *args, **kwargs):
         obj = type.__call__(cls, *args, **kwargs)
         if not hasattr(obj, 'params'):
             raise NotImplementedError(
                 'TrialResult subclasses must have a params attribute.')
-        if not hasattr(obj, 'repetitions'):
-            raise NotImplementedError(
-                'TrialResult subclasses must have a repetitions attribute.')
         if not hasattr(obj, 'measurements'):
             raise NotImplementedError(
                 'TrialResult subclasses must have a measurements attribute.')
@@ -37,7 +34,6 @@ class TrialResult(metaclass=TrialResultMeta):
 
     Attributes:
         params: A ParamResolver of settings used for this result.
-        repetitions: Number of repetitions included in this result.
         measurements: A dictionary from measurement gate key to measurement
             results. The value for each key is a 2-D array of booleans, with
             the first index running over the repetitions, and the second index

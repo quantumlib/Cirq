@@ -14,6 +14,7 @@
 
 """Tests for xmon_simulator."""
 
+import multiprocessing.pool as pool
 import numpy as np
 import pytest
 
@@ -47,6 +48,15 @@ def test_uses_threadless_pool():
     with xmon_stepper.Stepper(num_qubits=3, min_qubits_before_shard=0,
                               num_prefix_qubits=1) as s:
         assert not isinstance(s._pool, xmon_stepper.ThreadlessPool)
+
+
+def test_use_processes():
+  with xmon_stepper.Stepper(num_qubits=10, min_qubits_before_shard=4,
+                            use_processes=True) as s:
+    assert isinstance(s._pool, pool.Pool)
+  with xmon_stepper.Stepper(num_qubits=10, min_qubits_before_shard=4,
+                            use_processes=False) as s:
+    assert isinstance(s._pool, pool.ThreadPool)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -156,6 +166,20 @@ def test_reset_state_wrong_dtype(num_prefix_qubits):
             initial_state=0,
             min_qubits_before_shard=0) as s:
             s.reset_state(reset_state)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_reset_state_outside_of_context(num_prefix_qubits):
+    with xmon_stepper.Stepper(
+        num_qubits=3,
+        num_prefix_qubits=num_prefix_qubits,
+        initial_state=0,
+        min_qubits_before_shard=0) as s:
+        pass
+    s.reset_state(3)
+    expected = np.zeros(2 ** 3, dtype=np.complex64)
+    expected[3] = 1.0
+    np.testing.assert_almost_equal(expected, s.current_state)
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
@@ -506,14 +530,16 @@ def test_non_context_manager(num_prefix_qubits):
     stepper.__exit__()
 
 
-@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
-def test_large_circuit_unitary(num_prefix_qubits):
+@pytest.mark.parametrize(('num_prefix_qubits', 'use_processes'),
+                         ((0, True), (0, False), (2, True), (2, False)))
+def test_large_circuit_unitary(num_prefix_qubits, use_processes):
     moments = random_moments(5, 40)
     columns = []
     with xmon_stepper.Stepper(num_qubits=5,
                               num_prefix_qubits=num_prefix_qubits,
                               initial_state=0,
-                              min_qubits_before_shard=0) as s:
+                              min_qubits_before_shard=0,
+                              use_processes=use_processes) as s:
         for initial_state in range(2 ** 5):
             s.reset_state(initial_state)
             for moment in moments:
@@ -569,14 +595,6 @@ def random_moments(num_qubits, num_ops):
             current_moment[index0] = new_moment + 1
             current_moment[index1] = new_moment + 1
     return moments
-
-
-def _set_global_state(num_prefix_qubits):
-    """Sets up global state for testing global level methods."""
-    with xmon_stepper.Stepper(num_qubits=3,
-                              num_prefix_qubits=num_prefix_qubits,
-                              min_qubits_before_shard=0):
-        pass
 
 
 def test_num_prefix_none():
@@ -673,3 +691,13 @@ def test_check_state():
     with pytest.raises(ValueError):
         xmon_stepper.check_state(
             np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), 2)
+
+
+def test_ensure_pool_on_non_stepper():
+    class BadClass():
+        @xmon_stepper.ensure_pool
+        def method(self):
+            """Trick to not have an uncovered line."""
+
+    with pytest.raises(Exception):
+        BadClass().method()

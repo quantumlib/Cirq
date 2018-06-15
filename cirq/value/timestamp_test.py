@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import pytest
 
-from cirq.testing import EqualsTester
-from cirq.value import Duration, Timestamp
+import cirq
+from cirq import Timestamp, Duration
 
 
 def test_init():
@@ -34,7 +32,7 @@ def test_init():
 
 
 def test_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(Timestamp(),
                           Timestamp(picos=0),
                           Timestamp(nanos=0.0))
@@ -68,13 +66,11 @@ def test_cmp():
     assert Timestamp() != Duration()
 
 
-def test_cmp_py3_only():
-    if sys.version_info[0] == 2:
-        # In python 2, comparisons fallback to __cmp__ and don't fail.
-        # But a custom __cmp__ that does fail would result in == failing.
-        # So we throw up our hands and let it be.
-        return
-
+# In python 2, comparisons fallback to __cmp__ and don't fail.
+# But a custom __cmp__ that does fail would result in == failing.
+# So we throw up our hands and let it be.
+@cirq.testing.only_test_in_python3
+def test_cmp_vs_other_type():
     with pytest.raises(TypeError):
         _ = Timestamp() < Duration()
     with pytest.raises(TypeError):

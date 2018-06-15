@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Tuple, List, cast
+from typing import Dict, Tuple, List, cast, Set
 
 import os.path
 import re
@@ -22,6 +22,7 @@ from dev_tools import env_tools, shell_tools
 IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
+    r'^setup\.py$',  # Installation code.
 ]
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
@@ -31,10 +32,11 @@ IGNORED_LINE_PATTERNS = [
     r'^else:$',
     # Lines that are only invoked when running the file as the main file.
     r'^main\(.+$',
+    r'^app.run\(main\)$',
     # Empty method definitions.
     r'^pass$',
 ]
-EXPLICIT_OPT_OUT_COMMENT = '# coverage: ignore'
+EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 
 
 def diff_to_new_interesting_lines(unified_diff_lines: List[str]
@@ -140,13 +142,16 @@ def get_incremental_uncovered_lines(abs_path: str,
 
     touched_lines = diff_to_new_interesting_lines(unified_diff_lines)
 
+    with open(abs_path, 'r') as actual_file:
+        ignored_lines = determine_ignored_lines(actual_file.read())
+
     cover_path = abs_path + ',cover'
     has_cover_file = os.path.isfile(cover_path)
     content_file = cover_path if has_cover_file else abs_path
     with open(content_file, 'r') as annotated_coverage_file:
         return [(i, fix_line_from_coverage_file(line), touched_lines[i])
                 for i, line in enumerate(annotated_coverage_file, start=1)
-                if i in touched_lines
+                if i in touched_lines and i not in ignored_lines
                 if line_counts_as_uncovered(line, has_cover_file)]
 
 
@@ -171,6 +176,42 @@ def line_content_counts_as_uncovered_manual(content: str) -> bool:
     return True
 
 
+def determine_ignored_lines(content: str) -> Set[int]:
+    lines = content.split('\n')
+    result = []  # type: List[int]
+
+    i = 0
+    while i < len(lines):
+        # Drop spacing, including internal spacing within the comment.
+        joined_line = re.sub(r'\s+', '', lines[i])
+
+        if joined_line == EXPLICIT_OPT_OUT_COMMENT:
+            # Ignore the rest of a block.
+            end = naive_find_end_of_scope(lines, i)
+            result.extend(range(i, end))
+            i = end
+        elif joined_line.endswith(EXPLICIT_OPT_OUT_COMMENT):
+            # Ignore a single line.
+            result.append(i)
+            i += 1
+        else:
+            # Don't ignore.
+            i += 1
+
+    # Line numbers start at 1, not 0.
+    return {e + 1 for e in result}
+
+
+def naive_find_end_of_scope(lines: List[str], i: int) -> int:
+    # TODO: deal with line continuations, which may be less indented.
+    line = lines[i]
+    indent = line[:len(line) - len(line.lstrip())]
+    while i < len(lines) and (not lines[i].strip() or
+                              lines[i].startswith(indent)):
+        i += 1
+    return i
+
+
 def line_counts_as_uncovered(line: str,
                              is_from_cover_annotation_file: bool) -> bool:
     """
@@ -193,10 +234,6 @@ def line_counts_as_uncovered(line: str,
 
     # Ignore surrounding whitespace.
     content = content.strip()
-
-    # Check for explicit opt-out.
-    if content.endswith(EXPLICIT_OPT_OUT_COMMENT):
-        return False
 
     # Ignore end-of-line comments.
     # TODO: avoid # in strings, etc.

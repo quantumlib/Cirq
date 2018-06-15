@@ -34,6 +34,7 @@ def assert_optimizes(before, after,
         post.optimize_circuit(after)
 
     if before != after:
+        # coverage: ignore
         print(before)
         print(after)
     assert before == after

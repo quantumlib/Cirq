@@ -4,10 +4,10 @@ matrix:
   include:
   - os: linux
     python: "3.5"
-    env: MODE="normal" REQS="requirements.txt"
+    env: MODE="normal" REQS="dev-requirements.txt"
   - os: linux
     python: "2.7"
-    env: MODE="convert-and-test" REQS="python2.7-requirements.txt"
+    env: MODE="convert-and-test" REQS="python2.7-dev-requirements.txt"
 
 branches:
   only:

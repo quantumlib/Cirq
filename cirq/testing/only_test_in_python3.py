@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for studies."""
-
-import pytest
-
-from cirq import study
+import sys
 
 
-class BadResult(study.TrialResult):
-    pass
+def only_test_in_python3(func):
+    """A decorator that indicates a test should not execute in python 2.
 
-
-def test_bad_result():
-    with pytest.raises(NotImplementedError):
-        BadResult()
+    For example, in python 2 repr('a') is "u'a'" instead of "'a'" when
+    from __future__ import unicode is present (which it will be, since 3to2
+    inserts it for us). This is annoying to work around when testing repr
+    methods, so instead you can just tag the test with this decorator.
+    """
+    if sys.version_info.major < 3:
+        return None  # coverage: ignore
+    return func
