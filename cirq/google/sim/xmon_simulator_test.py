@@ -990,20 +990,20 @@ def test_simulator_trial_result_str():
         cirq.MeasurementGate('c')(c)
     )
     result = cirq.google.XmonSimulator().run(circuit)
-    assert str(result) == "repetition 0 : a=1 b=1 c=0"
+    assert str(result) == "a=1\nb=1\nc=0"
 
 
 def test_simulator_trial_result_str_repetitions():
     a = cirq.google.XmonQubit(0, 0)
     b = cirq.google.XmonQubit(0, 1)
+    c = cirq.google.XmonQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
-        cirq.X(a),
-        cirq.CNOT(a, b),
-        cirq.MeasurementGate('a')(a),
-        cirq.MeasurementGate('b')(b)
+        cirq.X(b),
+        cirq.MeasurementGate('ab')(a, b),
+        cirq.MeasurementGate('c')(c)
     )
-    result = cirq.google.XmonSimulator().run(circuit, repetitions=2)
-    assert str(result) == 'repetition 0 : a=1 b=1\nrepetition 1 : a=1 b=1'
+    result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
+    assert str(result) == "ab=00000, 11111\nc=00000"
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
