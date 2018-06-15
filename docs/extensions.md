@@ -12,14 +12,14 @@ The goal of the extension mechanism is to perform the translatation between what
 Essentially, when library A was written, instead of having code like this:
 
 ```python
-def some_method(reactive_iterable):
+def some_method_in_A(reactive_iterable):
     ...
 ```
 
 It would have code like this:
 
 ```python
-def some_method(value, extensions):
+def some_method_in_A(value, extensions):
     reactive_iterable = extensions.cast(value, ReactiveIterable)
     ...
 ```
@@ -27,13 +27,13 @@ def some_method(value, extensions):
 And then, when you wanted library A to understand a type from library B, you would invoke the method like this:
 
 ```python
-# Earlier.
-ext = cirq.Extensions()
-ext.add_cast(desired_type=ReactiveIterable,
-             actual_type=EventTrampoline,
-             conversion=lambda trampoline: ...)
+def your_code():
+    ext = cirq.Extensions()
+    ext.add_cast(desired_type=ReactiveIterable,
+                 actual_type=EventTrampoline,
+                 conversion=lambda trampoline: ...)
 
-some_method(trampoline, ext)
+    some_method(trampoline, ext)
 ```
 
 And EventTrampolines would be automatically converted into ReactiveIterables even though the people writing libraries A and B never knew about the other library.
