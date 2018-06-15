@@ -2,5 +2,6 @@ absl-py~=0.2
 google-api-python-client~=1.6
 matplotlib~=2.2
 numpy~=1.14
+protobuf~=3.5
 requests~=2.18
 sortedcontainers~=2.0
