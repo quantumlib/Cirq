@@ -47,6 +47,7 @@ def test_generate_supremacy_circuit_seeding():
     assert circuit1 == circuit2
     assert circuit1 != circuit3
 
+
 def test_example_runs_bernstein_vazirani():
     examples.bernstein_vazirani.main(None)
 
@@ -55,5 +56,5 @@ def test_example_runs_hello_qubit():
     examples.hello_qubit.main()
 
 
-def test_example():
+def test_example_runs_bell_inequality():
     examples.bell_inequality.main()
