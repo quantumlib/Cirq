@@ -47,6 +47,7 @@ trap print_cached_err ERR
 # Copy into output directory and convert in-place.
 cp -r "${in_dir}/cirq" "${out_dir}/cirq"
 cp -r "${in_dir}/docs" "${out_dir}/docs"
+cp -r "${in_dir}/examples" "${out_dir}/examples"
 3to2 "${out_dir}" -w >/dev/null 2> "${out_dir}/err_tmp.log"
 find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 
