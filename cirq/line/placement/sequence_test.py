@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.placement.linear_sequence.sequence import (
+from cirq.line.placement.sequence import (
     longest_sequence_index
 )
 from cirq.google import XmonQubit

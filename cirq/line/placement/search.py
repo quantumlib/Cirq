@@ -39,8 +39,8 @@ def search_sequence(device: XmonDevice,
     Raises:
         ValueError: When unknown search method is requested.
     """
-    from cirq.contrib.placement.linear_sequence import anneal
-    from cirq.contrib.placement.linear_sequence import greedy
+    from cirq.line.placement import anneal
+    from cirq.line.placement import greedy
 
     if isinstance(method, greedy.GreedySequenceSearchMethod):
         return greedy.greedy_sequence(device, method)
