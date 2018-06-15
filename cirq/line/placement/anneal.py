@@ -24,7 +24,7 @@ from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     EDGE,
 )
-from cirq.contrib.optimization import anneal
+from cirq.contrib import optimization
 
 
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
@@ -78,7 +78,7 @@ class AnnealSequenceSearch(object):
                 trace_seqs, _ = state
                 trace_func(trace_seqs, temp, cost, probability, accepted)
 
-        seqs, _ = anneal.anneal_minimize(
+        seqs, _ = optimization.anneal_minimize(
             self._create_initial_solution(),
             self._quadratic_sum_cost,
             self._force_edges_active_move,
