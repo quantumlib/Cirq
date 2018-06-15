@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import cirq
-from cirq.google import Exp11Gate
+import examples.bell_inequality
+import examples.bernstein_vazirani
+import examples.hello_qubit
 from examples.supremacy import generate_supremacy_circuit
 
 
@@ -31,7 +34,7 @@ def test_generate_supremacy_circuit():
             op_counts[op] = op_counts.get(op, 0) + 1
     for q1 in device.qubits:
         for q2 in device.neighbors_of(q1):
-            assert op_counts[Exp11Gate().on(q1, q2)] == 1
+            assert op_counts[cirq.google.Exp11Gate().on(q1, q2)] == 1
 
 
 def test_generate_supremacy_circuit_seeding():
@@ -43,3 +46,15 @@ def test_generate_supremacy_circuit_seeding():
 
     assert circuit1 == circuit2
     assert circuit1 != circuit3
+
+
+def test_example_runs_bernstein_vazirani():
+    examples.bernstein_vazirani.main(None)
+
+
+def test_example_runs_hello_qubit():
+    examples.hello_qubit.main()
+
+
+def test_example_runs_bell_inequality():
+    examples.bell_inequality.main()

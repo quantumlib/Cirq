@@ -34,7 +34,7 @@ via.
 
 import math
 import collections
-from typing import Dict, Iterable, Iterator, List, Set, Union, cast
+from typing import Dict, Iterable, Iterator, List, Set, Union, cast, Any
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
@@ -131,19 +131,7 @@ class XmonTrialResult(TrialResult):
                                              self.measurements)
 
     def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        results_by_rep = (sorted([(key, bitstring(val[i])) for key, val in
-                                  self.measurements.items()]) for i in
-                          range(self.repetitions))
-        str_by_rep = (' '.join(
-            '{}={}'.format(key, val) for key, val in result) for result in
-            results_by_rep)
-
-        return '\n'.join('repetition {} : {}'.format(i, result) for i, result in
-                         enumerate(str_by_rep))
-
+        return _keyed_repeated_bitstrings(self.measurements)
 
 
 class XmonSimulateTrialResult(XmonTrialResult):
@@ -645,3 +633,18 @@ class XmonStepResult:
             dtype.
         """
         self._stepper.reset_state(state)
+
+
+def _bitstring(vals: Iterable[Any]) -> str:
+    return ''.join('1' if v else '0' for v in vals)
+
+
+def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
+    keyed_bitstrings = []
+    for key in sorted(vals.keys()):
+        reps = vals[key]
+        n = 0 if len(reps) == 0 else len(reps[0])
+        all_bits = ', '.join([_bitstring(reps[:, i])
+                              for i in range(n)])
+        keyed_bitstrings.append('{}={}'.format(key, all_bits))
+    return '\n'.join(keyed_bitstrings)

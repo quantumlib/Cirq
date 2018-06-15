@@ -2,5 +2,6 @@ absl-py~=0.1
 google-api-python-client~=1.6
 matplotlib~=2.1
 numpy~=1.13
+protobuf~=3.5
 sortedcontainers~=1.5
 typing~=3.6
