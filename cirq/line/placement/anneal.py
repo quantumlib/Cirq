@@ -26,6 +26,7 @@ from cirq.line.placement.chip import (
 )
 from cirq.contrib.optimization import anneal
 
+
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
 
 
