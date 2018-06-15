@@ -35,7 +35,7 @@ def _create_device(qubits: Iterable[XmonQubit]):
                       qubits)
 
 
-@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+@mock.patch('cirq.contrib.optimization.anneal.anneal_minimize')
 def test_search_calls_anneal_minimize(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -50,7 +50,7 @@ def test_search_calls_anneal_minimize(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
-@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+@mock.patch('cirq.contrib.optimization.anneal.anneal_minimize')
 def test_search_calls_anneal_minimize_reversed(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -65,7 +65,7 @@ def test_search_calls_anneal_minimize_reversed(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
-@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+@mock.patch('cirq.contrib.optimization.anneal.anneal_minimize')
 def test_search_converts_trace_func(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
