@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import math
+import pytest
 
 from cirq.contrib.optimization import anneal
 from cirq.testing.mock import mock
@@ -53,13 +54,10 @@ def test_anneal_minimize_keeps_when_worse_and_discarded():
 
 
 def test_anneal_minimize_raises_when_wrong_cooling_factor():
-    try:
+    with pytest.raises(ValueError):
         anneal.anneal_minimize(
             'initial', lambda s: 1.0 if s == 'initial' else 0.0,
             lambda s: 'better', lambda: 1.0, 1.0, 0.5, 2.0, 1)
-    except ValueError:
-        return
-    assert False
 
 
 def test_anneal_minimize_calls_trace_func():
