@@ -15,7 +15,7 @@
 from typing import Iterable
 import pytest
 
-from cirq.contrib.placement.linear_sequence.greedy import (
+from cirq.line.placement.greedy import (
     GreedySequenceSearch,
     GreedySequenceSearchMethod,
     MinimalConnectivityGreedySequenceSearch,
@@ -415,9 +415,8 @@ def test_largest_collect_stops_on_used():
                                                            q03}
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
-            'LargestAreaGreedySequenceSearch')
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
 def test_greedy_sequence_calls_all(largest, minimal):
     q00 = XmonQubit(0, 0)
@@ -432,9 +431,8 @@ def test_greedy_sequence_calls_all(largest, minimal):
     minimal_instance.get_or_search.assert_called_once_with()
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
-            'LargestAreaGreedySequenceSearch')
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
 def test_greedy_sequence_returns_longest(largest, minimal):
     q00 = XmonQubit(0, 0)
@@ -447,9 +445,8 @@ def test_greedy_sequence_returns_longest(largest, minimal):
                            GreedySequenceSearchMethod()) == [sequence_long]
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
-            'LargestAreaGreedySequenceSearch')
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
 def test_greedy_sequence_returns_empty_when_empty(largest, minimal):
     largest.return_value.get_or_search.return_value = []

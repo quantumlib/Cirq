@@ -18,14 +18,14 @@ import numpy as np
 import pytest
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
-from cirq.contrib.placement.linear_sequence.anneal import (
+from cirq.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,
     AnnealSequenceSearchMethod,
     anneal_sequence,
     index_2d,
 )
+from cirq.line.placement.chip import chip_as_adjacency_list
 from cirq.testing.mock import mock
 from cirq.value import Duration
 
@@ -379,7 +379,7 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
 
 
 @mock.patch(
-    'cirq.contrib.placement.linear_sequence.anneal.AnnealSequenceSearch')
+    'cirq.line.placement.anneal.AnnealSequenceSearch')
 def test_anneal_sequence_calls(search):
     q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
     device = _create_device([q00, q01])

@@ -17,13 +17,13 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 import numpy as np
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence.chip import (
+from cirq.line.placement import search
+from cirq.line.placement.chip import (
     above,
     right_of,
     chip_as_adjacency_list,
     EDGE,
 )
-from cirq.contrib.placement.linear_sequence import search
 from cirq.contrib.placement import optimize
 
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
