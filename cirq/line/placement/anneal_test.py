@@ -18,14 +18,14 @@ import numpy as np
 import pytest
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
-from cirq.contrib.placement.linear_sequence.anneal import (
+from cirq.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,
     AnnealSequenceSearchMethod,
     anneal_sequence,
     index_2d,
 )
+from cirq.line.placement.chip import chip_as_adjacency_list
 from cirq.testing.mock import mock
 from cirq.value import Duration
 
@@ -237,6 +237,14 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
         (q30, q31), lambda: True) == [
                [q20, q10, q00, q01, q11, q21, q31, q30]]
 
+    # +-+-+-+ -> +-+-+-+
+    # |          |     |
+    # +-+-+-+    +-+-+ +
+    assert search._force_edge_active(
+        [[q31, q21, q11, q01, q00, q10, q20, q30]],
+        (q30, q31), lambda: True) == [
+               [q21, q11, q01, q00, q10, q20, q30, q31]]
+
     # +-+-+-+ -> +-+-+ +
     # |          |     |
     # +-+-+-+    +-+-+ +
@@ -379,7 +387,7 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
 
 
 @mock.patch(
-    'cirq.contrib.placement.linear_sequence.anneal.AnnealSequenceSearch')
+    'cirq.line.placement.anneal.AnnealSequenceSearch')
 def test_anneal_sequence_calls(search):
     q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
     device = _create_device([q00, q01])

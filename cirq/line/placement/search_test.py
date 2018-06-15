@@ -14,9 +14,8 @@
 
 import pytest
 
-from cirq.contrib.placement.linear_sequence import anneal
-from cirq.contrib.placement.linear_sequence import greedy
-from cirq.contrib.placement.linear_sequence.search import (
+from cirq.line.placement import anneal, greedy
+from cirq.line.placement.search import (
     SequenceSearchMethod,
     search_sequence
 )
@@ -25,7 +24,7 @@ from cirq.google import XmonDevice, XmonQubit
 from cirq.value import Duration
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.anneal.anneal_sequence')
+@mock.patch('cirq.line.placement.anneal.anneal_sequence')
 def test_anneal_method_calls_anneal_search(anneal_sequence):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -41,7 +40,7 @@ def test_anneal_method_calls_anneal_search(anneal_sequence):
     anneal_sequence.assert_called_once_with(device, method, seed=seed)
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.greedy_sequence')
+@mock.patch('cirq.line.placement.greedy.greedy_sequence')
 def test_greedy_method_calls_greedy_search(greedy_sequence):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
