@@ -237,6 +237,14 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
         (q30, q31), lambda: True) == [
                [q20, q10, q00, q01, q11, q21, q31, q30]]
 
+    # +-+-+-+ -> +-+-+-+
+    # |          |     |
+    # +-+-+-+    +-+-+ +
+    assert search._force_edge_active(
+        [[q31, q21, q11, q01, q00, q10, q20, q30]],
+        (q30, q31), lambda: True) == [
+               [q21, q11, q01, q00, q10, q20, q30, q31]]
+
     # +-+-+-+ -> +-+-+ +
     # |          |     |
     # +-+-+-+    +-+-+ +
