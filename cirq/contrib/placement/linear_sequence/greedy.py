@@ -20,7 +20,12 @@ from cirq.contrib.placement.linear_sequence.chip import (
     chip_as_adjacency_list,
     yx_cmp
 )
+from cirq.contrib.placement.linear_sequence import search
 from cirq.google import XmonDevice, XmonQubit
+
+
+class GreedySequenceSearchMethod(search.SequenceSearchMethod):
+    pass
 
 
 class GreedySequenceSearch(object):
@@ -275,17 +280,17 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
 
 
 def greedy_sequence(device: XmonDevice,
-                    method_opts: dict = None) -> List[List[XmonQubit]]:
+                    method: GreedySequenceSearchMethod) -> List[
+    List[XmonQubit]]:
     """Greedy search for linear sequence of qubits on a chip.
 
     Args:
-        c: Chip description.
-        method_opts: Dictionary with heuristic configuration, unused.
+        device: Chip description.
+        method: Greedy method specification, unused.
 
     Returns:
         List of linear sequences found on the chip.
     """
-    del method_opts
 
     def lower_left():
         cand = None
@@ -304,8 +309,8 @@ def greedy_sequence(device: XmonDevice,
     }
 
     sequence = None
-    for method in greedy_search:
-        candidate = greedy_search[method].get_or_search()
+    for algorithm in greedy_search:
+        candidate = greedy_search[algorithm].get_or_search()
         if sequence is None or len(sequence) < len(candidate):
             sequence = candidate
 
