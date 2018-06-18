@@ -16,10 +16,8 @@
 
 As an example, to run a circuit against the xmon simulator
     engine = cirq.google.Engine(api_key='mysecretapikey')
-    options = cirq.google.JobConfig(
-        project_id='my-project-id',
-        gcs_prefix='gs://my-bucket/my-dir/')
-    result = engine.run(options, circuit,repetitions=10)
+    options = cirq.google.JobConfig(project_id='my-project-id')
+    result = engine.run(options, circuit, repetitions=10)
 """
 
 import base64
@@ -55,7 +53,7 @@ class EngineTrialResult(TrialResult):
 
     Attributes:
         params: A ParamResolver of settings used for this result.
-        repetitions: The number of repetitions for this trail.
+        repetitions: The number of repetitions for this trial.
         measurements: A dictionary from measurement gate key to measurement
             results ordered by the qubits acted upon by the measurement gate.
     """
@@ -80,13 +78,13 @@ class EngineTrialResult(TrialResult):
 
 
 class JobConfig:
-    """Configuration for a program and job on to run on Quantum Engine.
+    """Configuration for a program and job to run on Quantum Engine.
 
-    Quantum engine has two resources, a program and a job. Programs live
+    Quantum engine has two resources: programs and jobs. Programs live
     under cloud projects. Every program may have many jobs, which represent
-    scheduled or terminated programs. Job and program resources have string
-    names. This object contains the information necessary to create a program
-    and then create a job on Quantum Engine, hence running the program.
+    scheduled or terminated programs executions. Program and job resources have
+    string names. This object contains the information necessary to create a
+    program and then create a job on Quantum Engine, hence running the program.
     Program ids are of the form
         `projects/project_id/programs/program_id`
     while job ids are of the form
@@ -100,10 +98,9 @@ class JobConfig:
                  gcs_prefix: Optional[str] = None,
                  gcs_program: Optional[str] = None,
                  gcs_results: Optional[str] = None) -> None:
-        """Configurations for a job that is run on Quantum Engine. At a
-        minimum requires project_id and either gcs_prefix (supplied here or
-        in the constructor to the Engine), or both the gcs_program and
-        gcs_results.
+        """Configuration for a job that is run on Quantum Engine.
+
+        Requires project_id.
 
         Args:
             project_id: The project id string of the Google Cloud Project to
@@ -128,18 +125,18 @@ class JobConfig:
 class Engine:
     """Runs programs on Quantum Engine.
 
-    This class has methods for created programs and jobs that execute on
+    This class has methods for creating programs and jobs that execute on
     Quantum Engine:
         run
         run_sweep
 
-    Another class of methods returns information about programs and jobs that
+    Another set of methods return information about programs and jobs that
     have been previously created on the Quantum Engine:
         get_program
         get_job
         get_job_results
 
-    Finally the engine supports updates to existing jobs and programs
+    Finally, the engine has methods to update existing programs and jobs:
         cancel_job
         set_program_labels
         add_program_labels
@@ -340,14 +337,14 @@ class Engine:
                       gcs_program, gcs_results), response, self)
 
     def get_program(self, program_resource_name: str) -> Dict:
-        """Returns metadata about a previously created quantum program.
+        """Returns the previously created quantum program.
 
         Params:
             program_resource_name: A string of the form
                 `projects/project_id/programs/program_id`.
 
         Returns:
-            A dictionary containing the metadata.
+            A dictionary containing the metadata and the program.
         """
         return self.service.projects().programs().get(
             name=program_resource_name).execute()
@@ -482,7 +479,11 @@ class Engine:
 
 
 class EngineJob:
-    """A job schedule to run on the engine.
+    """A job created on Quantum Engine.
+
+    This job may be in a variety of states. It may be scheduling, it may be
+    executing on a machine, or it may have entered a terminal state
+    (either succeeding or failing).
 
     Attributes:
       job_config: The JobConfig used to create the job.

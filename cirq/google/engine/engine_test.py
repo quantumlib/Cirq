@@ -100,8 +100,7 @@ def test_schedule_device_validation_fails(build):
     schedule = Schedule(device=Foxtail, scheduled_operations=[scheduled_op])
 
     with pytest.raises(ValueError):
-        Engine(api_key="key").run(
-            JobConfig('project-id', gcs_prefix='gs://bucket/folder'), schedule)
+        Engine(api_key="key").run(JobConfig('project-id'), schedule)
 
 
 @mock.patch.object(discovery, 'build')
@@ -110,18 +109,15 @@ def test_schedule_and_device_both_not_supported(build):
                                       operation=H.on(NamedQubit("dorothy")))
     schedule = Schedule(device=Foxtail, scheduled_operations=[scheduled_op])
     with pytest.raises(TypeError, match='Device'):
-        Engine(api_key="key").run(
-            JobConfig('project-id', gcs_prefix='gs://bucket/folder'), schedule,
-            device=Foxtail)
+        Engine(api_key="key").run(JobConfig('project-id'), schedule,
+                                  device=Foxtail)
 
 
 @mock.patch.object(discovery, 'build')
 def test_unsupported_program_type(build):
     with pytest.raises(TypeError, match='program'):
         Engine(api_key="key").run(
-            JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
-            program=12,
-            device=Foxtail)
+            JobConfig('project-id'), program=12, device=Foxtail)
 
 
 @mock.patch.object(discovery, 'build')
