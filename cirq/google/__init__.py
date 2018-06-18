@@ -59,7 +59,7 @@ from cirq.google.sim import (
     XmonSimulateTrialResult,
 )
 from cirq.google.engine import (
-    Engine,
-    EngineOptions,
-    EngineTrialResult,
+  Engine,
+  JobConfig,
+  EngineTrialResult,
 )

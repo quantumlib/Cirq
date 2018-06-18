@@ -20,12 +20,10 @@ import pytest
 from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
+from cirq import Circuit, H, moment_by_moment_schedule, NamedQubit, \
+    ParamResolver, Points, Schedule, ScheduledOperation, UnconstrainedDevice
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
-from cirq.circuits import Circuit
-from cirq.devices import UnconstrainedDevice
-from cirq.google.engine.engine import Engine, EngineOptions
-from cirq.schedules.schedulers import moment_by_moment_schedule
-from cirq.study import ParamResolver, Points
+from cirq.google import Engine, Foxtail, JobConfig
 from cirq.testing.mock import mock
 
 _A_RESULT = program_pb2.Result(
@@ -70,7 +68,7 @@ def test_run_circuit(build):
         'result': MessageToDict(_A_RESULT)}
 
     result = Engine(api_key="key").run(
-        EngineOptions('project-id', gcs_prefix='gs://bucket/folder'), Circuit(),
+        JobConfig('project-id', gcs_prefix='gs://bucket/folder'), Circuit(),
         UnconstrainedDevice)
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -84,6 +82,46 @@ def test_run_circuit(build):
                'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
+
+
+@mock.patch.object(discovery, 'build')
+def test_circuit_device_validation_fails(build):
+    circuit = Circuit.from_ops(H.on(NamedQubit("dorothy")))
+    with pytest.raises(ValueError):
+        Engine(api_key="key").run(
+            JobConfig('project-id', gcs_prefix='gs://bucket/folder'), circuit,
+            Foxtail)
+
+
+@mock.patch.object(discovery, 'build')
+def test_schedule_device_validation_fails(build):
+    scheduled_op = ScheduledOperation(time=None, duration=None,
+                       operation=H.on(NamedQubit("dorothy")))
+    schedule = Schedule(device=Foxtail, scheduled_operations=[scheduled_op])
+
+    with pytest.raises(ValueError):
+        Engine(api_key="key").run(
+            JobConfig('project-id', gcs_prefix='gs://bucket/folder'), schedule)
+
+
+@mock.patch.object(discovery, 'build')
+def test_schedule_and_device_both_not_supported(build):
+    scheduled_op = ScheduledOperation(time=None, duration=None,
+                                      operation=H.on(NamedQubit("dorothy")))
+    schedule = Schedule(device=Foxtail, scheduled_operations=[scheduled_op])
+    with pytest.raises(TypeError, match='Device'):
+        Engine(api_key="key").run(
+            JobConfig('project-id', gcs_prefix='gs://bucket/folder'), schedule,
+            device=Foxtail)
+
+
+@mock.patch.object(discovery, 'build')
+def test_unsupported_program_type(build):
+    with pytest.raises(TypeError, match='program'):
+        Engine(api_key="key").run(
+            JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+            program=12,
+            device=Foxtail)
 
 
 @mock.patch.object(discovery, 'build')
@@ -103,7 +141,7 @@ def test_run_circuit_failed(build):
 
     with pytest.raises(RuntimeError, match='It is in state FAILURE'):
         Engine(api_key="key").run(
-            EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
+            JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
             Circuit(),
             UnconstrainedDevice)
 
@@ -126,7 +164,7 @@ def test_default_prefix(build):
         'result': MessageToDict(_A_RESULT)}
 
     result = Engine(api_key="key").run(
-        EngineOptions('org.com:project-id'), Circuit(),
+        JobConfig('org.com:project-id'), Circuit(),
         UnconstrainedDevice)
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -156,7 +194,7 @@ def test_run_sweep_params(build):
         'result': MessageToDict(_RESULTS)}
 
     job = Engine(api_key="key").run_sweep(
-        EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
+        JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         moment_by_moment_schedule(UnconstrainedDevice, Circuit()),
         params=[ParamResolver({'a': 1}), ParamResolver({'a': 2})])
     results = job.results()
@@ -200,7 +238,7 @@ def test_run_sweep_sweeps(build):
         'result': MessageToDict(_RESULTS)}
 
     job = Engine(api_key="key").run_sweep(
-        EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
+        JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         moment_by_moment_schedule(UnconstrainedDevice, Circuit()),
         params=Points('a', [1, 2]))
     results = job.results()
@@ -229,7 +267,7 @@ def test_run_sweep_sweeps(build):
 def test_bad_priority(build):
     with pytest.raises(TypeError, match='priority must be between 0 and 1000'):
         Engine(api_key="key").run(
-            EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
+            JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
             Circuit(),
             UnconstrainedDevice,
             priority=1001)
@@ -251,12 +289,12 @@ def test_cancel(build):
         'executionStatus': {'state': 'CANCELLED'}}
 
     job = Engine(api_key="key").run_sweep(
-        EngineOptions('project-id', gcs_prefix='gs://bucket/folder'),
+        JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         Circuit(), device=UnconstrainedDevice)
     job.cancel()
     assert job.job_resource_name == ('projects/project-id/programs/test/'
                                      'jobs/test')
-    assert job.state() == 'CANCELLED'
+    assert job.status() == 'CANCELLED'
     assert jobs.cancel.call_args[1][
                'name'] == 'projects/project-id/programs/test/jobs/test'
 
