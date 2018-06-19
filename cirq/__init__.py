@@ -78,6 +78,10 @@ from cirq.linalg import (
     Tolerance,
 )
 
+from cirq.line import (
+    LineQubit
+)
+
 from cirq.ops import (
     BoundedEffectGate,
     CNOT,
@@ -95,7 +99,6 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
     KnownMatrixGate,
-    LineQubit,
     MeasurementGate,
     NamedQubit,
     OP_TREE,

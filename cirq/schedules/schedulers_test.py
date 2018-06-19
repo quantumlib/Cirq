@@ -16,7 +16,7 @@ from typing import cast
 
 import pytest
 
-from cirq import ops
+from cirq import ops, line
 from cirq.circuits import Circuit
 from cirq.circuits import Moment
 from cirq.devices import Device
@@ -36,7 +36,7 @@ class _TestDevice(Device):
     """
 
     def __init__(self):
-        self.qubits = [ops.LineQubit(x) for x in range(10)]
+        self.qubits = [line.LineQubit(x) for x in range(10)]
 
     def duration_of(self, operation: ops.Operation) -> Duration:
         g = operation.gate
@@ -55,14 +55,14 @@ class _TestDevice(Device):
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, ops.LineQubit):
+            if not isinstance(q, line.LineQubit):
                 raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
 
         if len(operation.qubits) == 2:
             p, q = operation.qubits
-            if not cast(ops.LineQubit, p).is_adjacent(cast(ops.LineQubit, q)):
+            if not cast(line.LineQubit, p).is_adjacent(cast(line.LineQubit, q)):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -82,7 +82,7 @@ class _TestDevice(Device):
                              other_op: ops.Operation):
         if isinstance(other_op.gate, ops.HGate):
             return False
-        return any(cast(ops.LineQubit, q).is_adjacent(cast(ops.LineQubit, p))
+        return any(cast(line.LineQubit, q).is_adjacent(cast(line.LineQubit, p))
                    for q in cz_op.qubits
                    for p in other_op.qubits)
 
