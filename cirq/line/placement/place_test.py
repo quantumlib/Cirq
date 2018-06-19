@@ -15,7 +15,7 @@
 import pytest
 
 from cirq.line.placement import anneal, greedy
-from cirq.line.placement.search import (
+from cirq.line.placement.place import (
     SequenceSearchMethod,
     search_sequence
 )
