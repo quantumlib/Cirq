@@ -24,6 +24,10 @@ from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     EDGE,
 )
+from cirq.line.placement.sequence import (
+    LinePlacement,
+    LineSequence
+)
 from cirq.contrib import optimization
 
 
@@ -342,7 +346,7 @@ def anneal_sequence(
         trace_func: Callable[
             [List[List[XmonQubit]], float, float, float, bool],
             None] = None,
-        seed: int = None) -> List[List[XmonQubit]]:
+        seed: int = None) -> LinePlacement:
     """Linearized sequence search using simulated annealing method.
 
     Args:
@@ -358,7 +362,8 @@ def anneal_sequence(
     Returns:
       List of linear sequences on the chip found by simulated annealing method.
     """
-    return AnnealSequenceSearch(device, seed).search(method, trace_func)
+    seqs = AnnealSequenceSearch(device, seed).search(method, trace_func)
+    return LinePlacement([LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

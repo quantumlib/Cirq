@@ -22,6 +22,10 @@ from cirq.line.placement.greedy import (
     LargestAreaGreedySequenceSearch,
     greedy_sequence
 )
+from cirq.line.placement.sequence import (
+    LinePlacement,
+    LineSequence
+)
 from cirq.google import XmonDevice, XmonQubit
 from cirq.testing.mock import mock
 from cirq.value import Duration
@@ -442,7 +446,8 @@ def test_greedy_sequence_returns_longest(largest, minimal):
     largest.return_value.get_or_search.return_value = sequence_short
     minimal.return_value.get_or_search.return_value = sequence_long
     assert greedy_sequence(_create_device([]),
-                           GreedySequenceSearchMethod()) == [sequence_long]
+                           GreedySequenceSearchMethod()) == LinePlacement(
+        [LineSequence(sequence_long)])
 
 
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
@@ -452,4 +457,4 @@ def test_greedy_sequence_returns_empty_when_empty(largest, minimal):
     largest.return_value.get_or_search.return_value = []
     minimal.return_value.get_or_search.return_value = []
     assert greedy_sequence(_create_device([]),
-                           GreedySequenceSearchMethod()) == []
+                           GreedySequenceSearchMethod()) == LinePlacement([])

@@ -21,6 +21,10 @@ from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
 )
+from cirq.line.placement.sequence import (
+    LinePlacement,
+    LineSequence
+)
 from cirq.google import XmonDevice, XmonQubit
 
 
@@ -280,8 +284,7 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
 
 
 def greedy_sequence(device: XmonDevice,
-                    method: GreedySequenceSearchMethod) -> List[
-    List[XmonQubit]]:
+                    method: GreedySequenceSearchMethod) -> LinePlacement:
     """Greedy search for linear sequence of qubits on a chip.
 
     Args:
@@ -314,4 +317,4 @@ def greedy_sequence(device: XmonDevice,
         if sequence is None or len(sequence) < len(candidate):
             sequence = candidate
 
-    return [sequence] if sequence else []
+    return LinePlacement([LineSequence(sequence)] if sequence else [])

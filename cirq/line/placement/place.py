@@ -18,7 +18,7 @@ from cirq.google import XmonDevice, XmonQubit
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
 from cirq.line.placement.search_method import SequenceSearchMethod
-
+from cirq.line.placement.sequence import LinePlacement
 
 class LinePlacementOptions:
     """Options to control line placement calculation.
@@ -42,7 +42,7 @@ class LinePlacementOptions:
 
 def place_on_device(device: XmonDevice,
                     options: LinePlacementOptions = LinePlacementOptions()) \
-        -> List[List[XmonQubit]]:
+        -> LinePlacement:
     """Searches for linear sequence of qubits on device.
 
     Args:
