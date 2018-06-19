@@ -31,7 +31,7 @@ class LineSequence:
         return not self == other
 
     def __hash__(self):
-        return hash(self.line)
+        return hash(tuple(self.line))
 
     # TODO: def as_list() -> List[LineQubit]?
 
@@ -51,7 +51,7 @@ class LinePlacement:
         return not self == other
 
     def __hash__(self):
-        return hash(self.lines)
+        return hash(tuple(self.lines))
 
 
 def longest_sequence_index(sequences: List[List[XmonQubit]]) -> Optional[int]:
