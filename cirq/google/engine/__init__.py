@@ -16,7 +16,7 @@
 """
 
 from cirq.google.engine.engine import (
-  Engine,
-  EngineOptions,
-  EngineTrialResult,
+    Engine,
+    JobConfig,
+    EngineTrialResult,
 )

@@ -60,6 +60,6 @@ from cirq.google.sim import (
 )
 from cirq.google.engine import (
     Engine,
-    EngineOptions,
+    JobConfig,
     EngineTrialResult,
 )
