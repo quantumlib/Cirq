@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-
-from cirq.google import XmonDevice, XmonQubit
+from cirq.google import XmonDevice
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
 from cirq.line.placement.search_method import SequenceSearchMethod
