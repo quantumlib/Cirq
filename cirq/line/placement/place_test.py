@@ -17,9 +17,9 @@ import pytest
 from cirq.line.placement import anneal, greedy
 from cirq.line.placement.place import (
     LinePlacementOptions,
-    SequenceSearchMethod,
     place_on_device
 )
+from cirq.line.placement.search_method import SequenceSearchMethod
 from cirq.testing.mock import mock
 from cirq.google import XmonDevice, XmonQubit
 from cirq.value import Duration

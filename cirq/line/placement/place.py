@@ -15,26 +15,25 @@
 from typing import List
 
 from cirq.google import XmonDevice, XmonQubit
-
-
-class SequenceSearchMethod:
-    pass
+from cirq.line.placement import anneal
+from cirq.line.placement import greedy
+from cirq.line.placement.search_method import SequenceSearchMethod
 
 
 class LinePlacementOptions:
     """Options to control line placement calculation.
     """
 
-    from cirq.line.placement import greedy
-
-    def __init__(self, search_method=greedy.GreedySequenceSearchMethod(),
+    def __init__(self,
+                 search_method: SequenceSearchMethod =
+                 greedy.GreedySequenceSearchMethod(),
                  seed=None):
         """Creates options to control line placement calculation.
 
         Args:
-            method: Search method to use. Currently two methods are available:
-                    cirq.line.GreedySequenceSearchMethod and
-                    cirq.line.AnnealSequenceSearchMethod.
+            search_method: Search method to use. Currently two methods are
+                           available: cirq.line.GreedySequenceSearchMethod and
+                           cirq.line.AnnealSequenceSearchMethod.
             seed: Seed for the random number generator used during the search.
         """
         self.search_method = search_method
@@ -56,9 +55,6 @@ def place_on_device(device: XmonDevice,
     Raises:
         ValueError: When unknown search method is requested.
     """
-    from cirq.line.placement import anneal
-    from cirq.line.placement import greedy
-
     if isinstance(options.search_method, greedy.GreedySequenceSearchMethod):
         return greedy.greedy_sequence(device, options.search_method)
     elif isinstance(options.search_method, anneal.AnnealSequenceSearchMethod):
