@@ -59,9 +59,6 @@ from cirq.ops.qubit_order import (
 from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,
 )
-from cirq.ops.line_qubit import (
-    LineQubit,
-)
 from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
