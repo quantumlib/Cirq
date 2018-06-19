@@ -27,7 +27,7 @@ class LinePlacementOptions:
     def __init__(self,
                  search_method: SequenceSearchMethod =
                  greedy.GreedySequenceSearchMethod(),
-                 seed=None):
+                 seed=None) -> None:
         """Creates options to control line placement calculation.
 
         Args:
