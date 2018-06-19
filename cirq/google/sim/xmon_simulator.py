@@ -550,7 +550,7 @@ def _simulator_iterator(
                         result = stepper.simulate_measurement(index)
                         if invert:
                             result = not result
-                        measurements[gate.key].append(result)
+                        measurements[cast(str, gate.key)].append(result)
                 else:
                     raise TypeError('{!r} is not supported by the '
                                     'xmon simulator.'.format(gate))
@@ -563,7 +563,7 @@ def find_measurement_keys(circuit: Circuit) -> Set[str]:
     for moment in circuit.moments:
         for op in moment.operations:
             if isinstance(op.gate, xmon_gates.XmonMeasurementGate):
-                key = op.gate.key
+                key = cast(str, op.gate.key)
                 if key in keys:
                     raise ValueError('Repeated Measurement key {}'.format(key))
                 keys.add(key)

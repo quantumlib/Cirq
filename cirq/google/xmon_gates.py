@@ -14,7 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union, Iterable
+from typing import Union
 
 import numpy as np
 
