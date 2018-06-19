@@ -1,6 +1,6 @@
 ## Extensions
 
-The experimental extension mechanism in cirq is designed to solve a specific kind of compatibility problem, which is best explained by an example.
+The extension mechanism in cirq is designed to solve a specific kind of compatibility problem, which is best explained by an example.
 
 Suppose library A defines a kind of thing called a "ReactiveIterable" and provides many utility methods for reactive iterables.
 Separately, library B has implemented something called an "EventTrampoline".
@@ -37,3 +37,15 @@ def your_code():
 ```
 
 And EventTrampolines would be automatically converted into ReactiveIterables even though the people writing libraries A and B never knew about the other library.
+
+### PotentialImplementation
+
+An important part of the extension mechanism is the ability for classes to say *at runtime* whether or not they support a specific kind of functionality.
+Classes that implement `PotentialImplementation` have a `try_cast(desired_type, extensions)` method that they use to tell a caller whether or not they support some desired functionality.
+
+For example, the `RotZGate` doesn't have a well-defined matrix when the amount of rotation is a symbol instead of a number.
+So it has a `try_cast` method that, when `desired_type` is set to `KnownMatrixgate`, returns `None` when the rotation angle is a symbol.
+Otherwise it returns itself (indicating that its `matrix` method will not raise an error when called).
+
+The `extensions` parameter given to `try_cast` is useful functionality in the callee depends on functionality being present in a dependency.
+For example, `ControlledGate` only has a matrix if the gate it is controlling has a matrix.
