@@ -17,7 +17,7 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 import numpy as np
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.line.placement import search
+from cirq.line.placement import place
 from cirq.line.placement.chip import (
     above,
     right_of,
@@ -30,7 +30,7 @@ from cirq.contrib import optimization
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
 
 
-class AnnealSequenceSearchMethod(search.SequenceSearchMethod):
+class AnnealSequenceSearchMethod(place.SequenceSearchMethod):
     pass
 
 

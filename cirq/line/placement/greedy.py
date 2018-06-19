@@ -16,7 +16,7 @@ import abc
 import collections
 
 from typing import Dict, List, Optional, Set
-from cirq.line.placement import search
+from cirq.line.placement import place
 from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
@@ -24,7 +24,7 @@ from cirq.line.placement.chip import (
 from cirq.google import XmonDevice, XmonQubit
 
 
-class GreedySequenceSearchMethod(search.SequenceSearchMethod):
+class GreedySequenceSearchMethod(place.SequenceSearchMethod):
     pass
 
 
