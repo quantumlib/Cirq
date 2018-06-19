@@ -1078,3 +1078,39 @@ def test_iter_ops():
         ops.H(a)]
 
     assert list(c.iter_ops()) == expected
+
+
+def test_expanding_gate_symbols():
+    class MultiTargetCZ(cirq.TextDiagrammableGate):
+        def text_diagram_wire_symbols(self,
+                                      qubit_count=None,
+                                      use_unicode_characters=True,
+                                      precision=3):
+            if qubit_count is None:
+                return '@'  # coverage: ignore
+            return ('@',) + ('Z',) * (qubit_count - 1)
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    t0 = cirq.Circuit.from_ops(MultiTargetCZ().on(c))
+    t1 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a))
+    t2 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a, b))
+
+    assert t0.to_text_diagram().strip() == """
+c: ───@───
+    """.strip()
+
+    assert t1.to_text_diagram().strip() == """
+a: ───Z───
+      │
+c: ───@───
+    """.strip()
+
+    assert t2.to_text_diagram().strip() == """
+a: ───Z───
+      │
+b: ───Z───
+      │
+c: ───@───
+    """.strip()
