@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import pytest
 import numpy as np
 from google.protobuf import message, text_format
 
+import cirq
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import Extensions
 from cirq.google import (
@@ -23,7 +25,6 @@ from cirq.google import (
 from cirq.ops import KnownMatrixGate, ReversibleGate
 from cirq.study import ParamResolver
 from cirq.value import Symbol
-from cirq.testing import EqualsTester
 
 
 def proto_matches_text(proto: message, expected_as_text: str):
@@ -45,10 +46,15 @@ def test_parameterized_value_from_proto():
 
 
 def test_measurement_eq():
-    eq = EqualsTester()
-    eq.add_equality_group(XmonMeasurementGate(), XmonMeasurementGate(''))
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_pair(lambda: XmonMeasurementGate(key=None))
+    eq.make_equality_pair(lambda: XmonMeasurementGate(key=''))
     eq.make_equality_pair(lambda: XmonMeasurementGate('a'))
     eq.make_equality_pair(lambda: XmonMeasurementGate('b'))
+    eq.make_equality_pair(lambda: XmonMeasurementGate(key='',
+                                                      invert_mask=(True,)))
+    eq.make_equality_pair(lambda: XmonMeasurementGate(key='',
+                                                      invert_mask=(False,)))
 
 
 def test_single_qubit_measurement_to_proto():
@@ -84,7 +90,7 @@ def test_multi_qubit_measurement_to_proto():
 
 
 def test_z_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.make_equality_pair(lambda: ExpZGate(half_turns=0))
     eq.add_equality_group(ExpZGate(),
                           ExpZGate(half_turns=1))
@@ -151,7 +157,7 @@ def test_z_parameterize():
 
 
 def test_cz_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=0))
     eq.add_equality_group(Exp11Gate(),
                           Exp11Gate(half_turns=1))
@@ -219,7 +225,7 @@ def test_cz_parameterize():
 
 
 def test_w_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(ExpWGate(),
                           ExpWGate(half_turns=1, axis_half_turns=0))
     eq.make_equality_pair(
@@ -318,3 +324,17 @@ def test_w_parameterize():
     resolver = ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == ExpWGate(half_turns=0.1, axis_half_turns=0.2)
+
+
+def test_measure_implied_key():
+    q = XmonQubit(0, 0)
+
+    assert XmonMeasurementGate(key='').on(q) == cirq.Operation(
+        gate=XmonMeasurementGate(key=''),
+        qubits=(q,))
+    assert XmonMeasurementGate(key='a').on(q) == cirq.Operation(
+        gate=XmonMeasurementGate(key='a'),
+        qubits=(q,))
+    assert XmonMeasurementGate(key=None).on(q) == cirq.Operation(
+        gate=XmonMeasurementGate(key='(0, 0)'),
+        qubits=(q,))

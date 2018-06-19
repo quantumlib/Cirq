@@ -27,7 +27,7 @@ def test_teleportation_diagram():
         ops.X(ali)**0.5,
         ops.CNOT(ali, car),
         ops.H(ali),
-        [ops.MeasurementGate()(ali), ops.MeasurementGate()(car)],
+        [ops.MEASURE(ali), ops.MEASURE(car)],
         ops.CNOT(car, bob),
         ops.CZ(ali, bob))
 

@@ -675,7 +675,7 @@ def test_extensions():
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_qubit_order(scheduler):
     circuit = Circuit()
-    meas = XmonMeasurementGate()
+    meas = XmonMeasurementGate(key='')
     circuit.append(X(Q2))
     circuit.append(X(Q1))
     circuit.append([meas.on(Q1, Q3, Q2)])
@@ -842,7 +842,7 @@ def test_handedness_of_basic_gates():
         X(Q1)**-0.5,
         Z(Q1)**-0.5,
         Y(Q1)**0.5,
-        XmonMeasurementGate().on(Q1),
+        XmonMeasurementGate(key='').on(Q1),
     )
     result = xmon_simulator.XmonSimulator().run(circuit)
     np.testing.assert_equal(result.measurements[''],
@@ -854,7 +854,7 @@ def test_handedness_of_xmon_gates():
         ExpWGate(half_turns=-0.5).on(Q1),
         ExpZGate(half_turns=-0.5).on(Q1),
         ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(Q1),
-        XmonMeasurementGate().on(Q1),
+        XmonMeasurementGate(key='').on(Q1),
     )
     result = xmon_simulator.XmonSimulator().run(circuit)
     np.testing.assert_equal(result.measurements[''],
@@ -1033,3 +1033,14 @@ def test_simulator_simulate_trial_result_str():
     )
     result = cirq.google.XmonSimulator().simulate(circuit)
     assert str(result) == "a=1 b=1 c=0"
+
+
+def test_simulator_implied_measurement_key():
+    q = cirq.google.XmonQubit(0, 0)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q),
+        cirq.MEASURE(q),
+        cirq.MeasurementGate(key='other')(q),
+    )
+    result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
+    assert str(result) == "(0, 0)=11111\nother=11111"

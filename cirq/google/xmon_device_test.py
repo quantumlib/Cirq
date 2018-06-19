@@ -43,7 +43,7 @@ def test_init():
 
     assert d.qubits == {q00, q01, q10}
     assert d.duration_of(ops.Operation(ExpZGate(), (q00,))) == 0 * ns
-    assert d.duration_of(ops.Operation(ops.MeasurementGate(),
+    assert d.duration_of(ops.Operation(ops.MEASURE,
                                        (q00,))) == ns
     assert d.duration_of(ops.Operation(ExpWGate(), (q00,))) == 2 * ns
     assert d.duration_of(ops.Operation(Exp11Gate(), (q00, q01))) == 3 * ns
@@ -66,7 +66,7 @@ def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
     d.validate_operation(ops.Operation(
-        XmonMeasurementGate(),
+        XmonMeasurementGate(key=''),
         (XmonQubit(0, 0), XmonQubit(2, 0))))
 
 

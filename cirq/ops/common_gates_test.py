@@ -274,3 +274,25 @@ def test_str():
 
     assert str(cirq.CNOT) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+
+def test_measure():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = ops.NamedQubit('c')
+
+    # Empty application.
+    with pytest.raises(ValueError):
+        _ = cirq.MEASURE.on()
+    assert cirq.MEASURE.on(a).gate.key is None
+    _ = cirq.MEASURE.on(a, b)
+    _ = cirq.MEASURE.on(a, b, c)
+
+    # Qubit count vs invert_mask length.
+    _ = cirq.MeasurementGate(None, (True,)).on(a)
+    _ = cirq.MeasurementGate(None, (True, False)).on(a, b)
+    _ = cirq.MeasurementGate(None, (True, False, True)).on(a, b, c)
+    with pytest.raises(ValueError):
+        _ = cirq.MeasurementGate(None, (True, False)).on(a)
+    with pytest.raises(ValueError):
+        _ = cirq.MeasurementGate(None, (True, False, True)).on(a, b)

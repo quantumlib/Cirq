@@ -199,17 +199,25 @@ class MeasurementGate(gate_features.TextDiagrammableGate):
     """Indicates that qubits should be measured plus a key to identify results.
 
     Params:
-        key: The string key of the measurement.
+        key: The string key of the measurement. If this is set to None, then
+            some default key will be used instead (e.g.
+            cirq.google.XmonSimulator will use a comma-separated list of the
+            names of the qubits that the measurement gate was applied to).
         invert_mask: A list of Truthy or Falsey values indicating whether
-        the corresponding qubits should be flipped. None indicates no
-        inverting should be done.
+            the corresponding qubits should be flipped. None indicates no
+            inverting should be done.
     """
 
     def __init__(self,
-                 key: str = '',
+                 key: Optional[str],
                  invert_mask: Optional[Tuple[bool, ...]] = None) -> None:
         self.key = key
         self.invert_mask = invert_mask
+
+    def validate_args(self, qubits):
+        if (self.invert_mask is not None and
+                len(self.invert_mask) > len(qubits)):
+            raise ValueError('len(invert_mask) > len(qubits)')
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -237,6 +245,7 @@ X = RotXGate()  # Pauli X gate.
 Y = RotYGate()  # Pauli Y gate.
 Z = RotZGate()  # Pauli Z gate.
 CZ = Rot11Gate()  # Negates the amplitude of the |11> state.
+MEASURE = MeasurementGate(key=None)  # Measurement with key implied by context.
 
 S = Z**0.5
 T = Z**0.25

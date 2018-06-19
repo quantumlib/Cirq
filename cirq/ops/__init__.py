@@ -21,6 +21,7 @@ from cirq.ops.common_gates import (
     CZ,
     H,
     HGate,
+    MEASURE,
     MeasurementGate,
     Rot11Gate,
     RotXGate,
