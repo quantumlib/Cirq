@@ -1087,7 +1087,7 @@ def test_expanding_gate_symbols():
                                       use_unicode_characters=True,
                                       precision=3):
             if qubit_count is None:
-                return '@'
+                return '@'  # coverage: ignore
             return ('@',) + ('Z',) * (qubit_count - 1)
 
     a = cirq.NamedQubit('a')
