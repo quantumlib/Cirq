@@ -51,7 +51,7 @@ class Moment(object):
         self.qubits = frozenset(affected_qubits)
         if len(affected_qubits) != len(self.qubits):
             raise ValueError(
-                'Overlapping operations: {}'.format(operations))
+                'Overlapping operations: {}'.format(self.operations))
 
     def operates_on(self, qubits: Iterable[ops.QubitId]) -> bool:
         """Determines if the moment has operations touching the given qubits.
