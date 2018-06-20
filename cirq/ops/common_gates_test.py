@@ -314,7 +314,7 @@ def test_measure_each():
     assert cirq.measure_each(a) == [cirq.measure(a)]
     assert cirq.measure_each(a, b) == [cirq.measure(a), cirq.measure(b)]
 
-    assert cirq.measure_each(a, b, key_func=repr) == [
-        cirq.measure(a, key="NamedQubit('a')"),
-        cirq.measure(b, key="NamedQubit('b')")
+    assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [
+        cirq.measure(a, key='a!'),
+        cirq.measure(b, key='b!')
     ]
