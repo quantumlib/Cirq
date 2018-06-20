@@ -30,7 +30,6 @@ from cirq.line.placement.sequence import (
 )
 from cirq.contrib import optimization
 
-
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
 
 
@@ -338,9 +337,8 @@ class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
     """
 
     def __init__(self, trace_func: Callable[
-                [List[List[XmonQubit]], float, float, float, bool],
-                None] = None,
-            seed: int = None):
+        [List[List[XmonQubit]], float, float, float, bool], None] = None,
+                 seed: int = None) -> None:
         """Linearized sequence search using simulated annealing method.
 
         Args:
