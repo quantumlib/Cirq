@@ -217,7 +217,7 @@ def test_parameterizable_gate_is_abstract_must_implement():
             pass
     # noinspection PyAbstractClass
     class MissingOtherOne(gate_features.ParameterizableGate):
-        def with_parameters_resolved_by(self):
+        def with_parameters_resolved_by(self, param_resolver):
             pass
 
     with pytest.raises(TypeError):
@@ -232,7 +232,20 @@ def test_parameterizable_gate_is_abstract_can_implement():
     class Included(gate_features.ParameterizableGate):
         def is_parameterized(self):
             pass
-        def with_parameters_resolved_by(self):
+        def with_parameters_resolved_by(self, param_resolver):
             pass
 
     assert isinstance(Included(), gate_features.ParameterizableGate)
+
+
+def test_on_each():
+    class CustomGate(gate_features.SingleQubitGate):
+        pass
+    a = raw_types.NamedQubit('a')
+    b = raw_types.NamedQubit('b')
+    c = CustomGate()
+
+    assert c.on_each([]) == []
+    assert c.on_each([a]) == [c(a)]
+    assert c.on_each([a, b]) == [c(a), c(b)]
+    assert c.on_each([b, a]) == [c(b), c(a)]
