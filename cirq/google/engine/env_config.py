@@ -37,6 +37,7 @@ def engine_from_environment() -> Engine:
     Raises:
         EnvironmentError: The environment variables are not set.
     """
+    # coverage: ignore
 
     api_key = os.environ[ENV_API_KEY]
     if not api_key:

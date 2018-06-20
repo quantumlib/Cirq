@@ -21,7 +21,6 @@ As an example, to run a circuit against the xmon simulator
 """
 
 import base64
-import os
 import random
 import re
 import string
@@ -124,6 +123,15 @@ class JobConfig:
         self.gcs_program = gcs_program
         self.gcs_results = gcs_results
 
+    def copy(self):
+        return JobConfig(
+            project_id=self.project_id,
+            program_id=self.program_id,
+            job_id=self.job_id,
+            gcs_prefix=self.gcs_prefix,
+            gcs_program=self.gcs_program,
+            gcs_results=self.gcs_results)
+
 
 class Engine:
     """Runs programs on Quantum Engine.
@@ -155,9 +163,9 @@ class Engine:
                  version: str = 'v1alpha1',
                  default_project_id: Optional[str] = None,
                  discovery_url: Optional[str] = None,
-                 gcs_prefix: Optional[str] = None,
+                 default_gcs_prefix: Optional[str] = None,
                  **kwargs
-    ) -> None:
+                 ) -> None:
         """Engine service client.
 
         Args:
@@ -168,7 +176,7 @@ class Engine:
                 specify their own.
             discovery_url: Discovery url for the API. If not supplied, uses
                 Google's default api.googleapis.com endpoint.
-            gcs_prefix: A default gcs_prefix to use.
+            default_gcs_prefix: A default gcs_prefix to use.
         """
         self.api_key = api_key
         self.api = api
@@ -177,7 +185,7 @@ class Engine:
         self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
                                                '$discovery/rest'
                                                '?version={apiVersion}&key=%s')
-        self.gcs_prefix = gcs_prefix
+        self.default_gcs_prefix = default_gcs_prefix
         self.service = discovery.build(
             self.api,
             self.version,
@@ -221,6 +229,97 @@ class Engine:
                                    priority,
                                    target_route))[0]
 
+    def _infer_project_id(self, job_config) -> None:
+        if job_config.project_id is not None:
+            return
+
+        if self.default_project_id is not None:
+            job_config.project_id = self.default_project_id
+            return
+
+        raise ValueError(
+            "Need a cloud project id. "
+            "This engine has default_project_id=None and "
+            "the given JobConfig has project_id=None. "
+            "One or the other must be set.")
+
+    def _infer_gcs_prefix(self,
+                          job_config: JobConfig) -> None:
+        project_id = job_config.project_id
+
+        gcs_prefix = (
+            job_config.gcs_prefix or
+            self.default_gcs_prefix or
+            'gs://gqe-' + project_id[project_id.rfind(':') + 1:]
+        )
+        if gcs_prefix and not gcs_prefix.endswith('/'):
+            gcs_prefix += '/'
+
+        if not gcs_prefix_pattern.match(gcs_prefix):
+            raise ValueError('gcs_prefix must be of the form "gs://'
+                             '<bucket name and optional object prefix>/"')
+
+        job_config.gcs_prefix = gcs_prefix
+
+    def _infer_program_id(self, job_config: JobConfig) -> None:
+        if job_config.program_id is not None:
+            return
+
+        random_digits = [
+            random.choice(string.ascii_uppercase + string.digits)
+            for _ in range(6)
+        ]
+        job_config.program_id = 'prog-' + ''.join(random_digits)
+
+    def _infer_job_id(self, job_config: JobConfig) -> None:
+        if job_config.job_id is None:
+            job_config.job_id = 'job-0'
+
+    def _infer_gcs_program(self, job_config: JobConfig) -> None:
+        if job_config.gcs_program is None:
+            job_config.gcs_program = '{}programs/{}/{}'.format(
+                job_config.gcs_prefix,
+                job_config.program_id,
+                job_config.program_id)
+
+    def _infer_gcs_results(self, job_config: JobConfig) -> None:
+        if job_config.gcs_results is None:
+            job_config.gcs_results = '{}programs/{}/jobs/{}'.format(
+                job_config.gcs_prefix,
+                job_config.program_id,
+                job_config.job_id)
+
+    def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
+        if job_config is None:
+            job_config = JobConfig()
+        job_config = job_config.copy()
+        self._infer_project_id(job_config)
+        self._infer_gcs_prefix(job_config)
+        self._infer_program_id(job_config)
+        self._infer_job_id(job_config)
+        self._infer_gcs_program(job_config)
+        self._infer_gcs_results(job_config)
+        return job_config
+
+    def program_as_schedule(self,
+                            program: Union[Circuit, Schedule],
+                            device: Device = None) -> Schedule:
+        if isinstance(program, Circuit):
+            device = device or UnconstrainedDevice
+            device.validate_circuit(program)
+            circuit_copy = Circuit(program.moments)
+            ConvertToXmonGates().optimize_circuit(circuit_copy)
+            DropEmptyMoments().optimize_circuit(circuit_copy)
+            return moment_by_moment_schedule(device, circuit_copy)
+
+        elif isinstance(program, Schedule):
+            if device:
+                raise ValueError(
+                    'Device can not be provided when running a schedule.')
+            return program
+        else:
+            raise TypeError('Unexpected program type.')
+
     def run_sweep(self,
                   program: Union[Circuit, Schedule],
                   job_config: Optional[JobConfig] = None,
@@ -253,60 +352,13 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             EngineTrialResults, one for each parameter sweep.
         """
-        # Check and compute engine options.
-        if job_config is None:
-            job_config = JobConfig()
-        project_id = job_config.project_id
-        if project_id is None:
-            project_id = self.default_project_id
-        if project_id is None:
-            raise ValueError(
-                "Need a cloud project id. "
-                "This engine has default_project_id=None and "
-                "the given JobConfig has project_id=None. "
-                "One or the other must be set.")
 
-        gcs_prefix = job_config.gcs_prefix or self.gcs_prefix or (
-                'gs://gqe-{}/'.format(project_id[project_id.rfind(':') + 1:]))
-        if gcs_prefix and not gcs_prefix.endswith('/'):
-            gcs_prefix += '/'
-        if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
-            raise TypeError('gcs_prefix must be of the form "gs://'
-                            '<bucket name and optional object prefix>/"')
-        if not gcs_prefix and (not job_config.gcs_program or
-                               not job_config.gcs_results):
-            raise TypeError('Either gcs_prefix must be provided or both'
-                            ' gcs_program and gcs_results are required.')
-
-        program_id = job_config.program_id or 'prog-%s' % ''.join(
-            random.choice(string.ascii_uppercase + string.digits) for _ in
-            range(6))
-        job_id = job_config.job_id or 'job-0'
-        gcs_program = job_config.gcs_program or '%sprograms/%s/%s' % (
-            gcs_prefix, program_id, program_id)
-        gcs_results = job_config.gcs_results or '%sprograms/%s/jobs/%s' % (
-            gcs_prefix, program_id, job_id)
+        job_config = self.implied_job_config(job_config)
+        schedule = self.program_as_schedule(program, device)
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
-            raise TypeError('priority must be between 0 and 1000')
-
-        if isinstance(program, Circuit):
-            device = device or UnconstrainedDevice
-            device.validate_circuit(program)
-            # Convert to a schedule.
-            circuit_copy = Circuit(program.moments)
-            ConvertToXmonGates().optimize_circuit(circuit_copy)
-            DropEmptyMoments().optimize_circuit(circuit_copy)
-            schedule = moment_by_moment_schedule(device, circuit_copy)
-
-        elif isinstance(program, Schedule):
-            if device:
-                raise TypeError(
-                    'Device can not be provided when running a schedule.')
-            schedule = program
-        else:
-            raise TypeError('Unexpected program type.')
+            raise ValueError('priority must be between 0 and 1000')
 
         schedule.device.validate_schedule(schedule)
 
@@ -324,20 +376,21 @@ class Engine:
             '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
         code.update(program_dict)
         request = {
-            'name': 'projects/%s/programs/%s' % (project_id,
-                                                 program_id,),
-            'gcs_code_location': {'uri': gcs_program, },
+            'name': 'projects/%s/programs/%s' % (job_config.project_id,
+                                                 job_config.program_id,),
+            'gcs_code_location': {'uri': job_config.gcs_program},
             'code': code,
         }
         response = self.service.projects().programs().create(
-            parent='projects/%s' % project_id, body=request).execute()
+            parent='projects/%s' % job_config.project_id,
+            body=request).execute()
 
         # Create job.
         request = {
-            'name': '%s/jobs/%s' % (response['name'], job_id),
+            'name': '%s/jobs/%s' % (response['name'], job_config.job_id),
             'output_config': {
                 'gcs_results_location': {
-                    'uri': gcs_results
+                    'uri': job_config.gcs_results
                 }
             },
             'scheduling_config': {
@@ -348,9 +401,7 @@ class Engine:
         response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()
 
-        return EngineJob(
-            JobConfig(project_id, program_id, job_id, gcs_prefix,
-                      gcs_program, gcs_results), response, self)
+        return EngineJob(job_config, response, self)
 
     def get_program(self, program_resource_name: str) -> Dict:
         """Returns the previously created quantum program.
