@@ -245,7 +245,7 @@ class Engine:
 
     def _infer_gcs_prefix(self,
                           job_config: JobConfig) -> None:
-        project_id = job_config.project_id
+        project_id = cast(str, job_config.project_id)
 
         gcs_prefix = (
             job_config.gcs_prefix or
@@ -290,16 +290,16 @@ class Engine:
                 job_config.job_id)
 
     def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
-        if job_config is None:
-            job_config = JobConfig()
-        job_config = job_config.copy()
-        self._infer_project_id(job_config)
-        self._infer_gcs_prefix(job_config)
-        self._infer_program_id(job_config)
-        self._infer_job_id(job_config)
-        self._infer_gcs_program(job_config)
-        self._infer_gcs_results(job_config)
-        return job_config
+        implied_job_config = (JobConfig()
+                              if job_config is None
+                              else job_config.copy())
+        self._infer_project_id(implied_job_config)
+        self._infer_gcs_prefix(implied_job_config)
+        self._infer_program_id(implied_job_config)
+        self._infer_job_id(implied_job_config)
+        self._infer_gcs_program(implied_job_config)
+        self._infer_gcs_results(implied_job_config)
+        return implied_job_config
 
     def program_as_schedule(self,
                             program: Union[Circuit, Schedule],

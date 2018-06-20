@@ -21,6 +21,7 @@ import pytest
 from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
+import cirq
 from cirq import Circuit, H, moment_by_moment_schedule, NamedQubit, \
     ParamResolver, Points, Schedule, ScheduledOperation, UnconstrainedDevice
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
@@ -421,6 +422,7 @@ def test_implied_job_config_gcs_prefix(build):
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://better/'
 
 
+@cirq.testing.only_test_in_python3  # uses re.fullmatch
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config(build):
     eng = Engine(api_key="key")
@@ -431,10 +433,10 @@ def test_implied_job_config(build):
     assert re.fullmatch(r'prog-[0-9A-Z]+', implied.program_id)
     assert implied.job_id == 'job-0'
     assert implied.gcs_prefix == 'gs://gqe-project_id/'
-    assert re.match(
+    assert re.fullmatch(
         r'gs://gqe-project_id/programs/prog-[0-9A-Z]+/prog-[0-9A-Z]+',
         implied.gcs_program)
-    assert re.match(
+    assert re.fullmatch(
         r'gs://gqe-project_id/programs/prog-[0-9A-Z]+/jobs/job-0',
         implied.gcs_results)
 
