@@ -37,17 +37,11 @@ def engine_from_environment() -> Engine:
     Raises:
         EnvironmentError: The environment variables are not set.
     """
-    # coverage: ignore
-
-    api_key = os.environ[ENV_API_KEY]
+    api_key = os.environ.get(ENV_API_KEY)
     if not api_key:
         raise EnvironmentError(
             'Environment variable {} is not set.'.format(ENV_API_KEY))
 
-    default_project_id = os.environ[ENV_DEFAULT_PROJECT_ID]
-    if not default_project_id:
-        raise EnvironmentError(
-            'Environment variable {} is not set.'.format(
-                ENV_DEFAULT_PROJECT_ID))
+    default_project_id = os.environ.get(ENV_DEFAULT_PROJECT_ID)
 
     return Engine(api_key=api_key, default_project_id=default_project_id)
