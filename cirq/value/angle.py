@@ -40,11 +40,7 @@ def chosen_angle_to_canonical_half_turns(
         A number of half turns.
     """
 
-    used = len([1 for e in [half_turns, rads, degs] if e is not None])
-    if used == 0:
-        return default
-
-    if used > 1:
+    if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:
         raise ValueError('Redundant angle specification. '
                          'Use ONE of half_turns, rads, or degs.')
 
@@ -54,7 +50,10 @@ def chosen_angle_to_canonical_half_turns(
     if degs is not None:
         return canonicalize_half_turns(degs / 180)
 
-    return canonicalize_half_turns(half_turns)
+    if half_turns is not None:
+        return canonicalize_half_turns(half_turns)
+
+    return default
 
 
 def canonicalize_half_turns(
