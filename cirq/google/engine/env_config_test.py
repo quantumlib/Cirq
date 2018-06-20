@@ -13,19 +13,10 @@
 # limitations under the License.
 
 import os
-import re
-
-import numpy as np
 import pytest
-
 from apiclient import discovery
-from google.protobuf.json_format import MessageToDict
 
 import cirq
-from cirq import Circuit, H, moment_by_moment_schedule, NamedQubit, \
-    ParamResolver, Points, Schedule, ScheduledOperation, UnconstrainedDevice
-from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
-from cirq.google import Engine, Foxtail, JobConfig
 from cirq.testing.mock import mock
 
 

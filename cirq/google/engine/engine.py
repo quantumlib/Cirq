@@ -172,11 +172,14 @@ class Engine:
             api_key: API key to use to retrieve discovery doc.
             api: API name.
             version: API version.
-            default_project_id: The project_id used in jobs when they don't
-                specify their own.
+            default_project_id: A fallback project_id to use when one isn't
+                specified in the JobConfig given to 'run' methods.
+                See JobConfig for more information on project_id.
             discovery_url: Discovery url for the API. If not supplied, uses
                 Google's default api.googleapis.com endpoint.
-            default_gcs_prefix: A default gcs_prefix to use.
+            default_gcs_prefix: A fallback gcs_prefix to use when one isn't
+                specified in the JobConfig given to 'run' methods.
+                See JobConfig for more information on gcs_prefix.
         """
         self.api_key = api_key
         self.api = api
@@ -243,8 +246,9 @@ class Engine:
             "the given JobConfig has project_id=None. "
             "One or the other must be set.")
 
-    def _infer_gcs_prefix(self,
-                          job_config: JobConfig) -> None:
+    def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
+        if job_config.project_id is None:
+            raise ValueError("Must infer project_id before gcs_prefix.")
         project_id = cast(str, job_config.project_id)
 
         gcs_prefix = (
@@ -276,6 +280,9 @@ class Engine:
             job_config.job_id = 'job-0'
 
     def _infer_gcs_program(self, job_config: JobConfig) -> None:
+        if job_config.gcs_prefix is None:
+            raise ValueError("Must infer gcs_prefix before gcs_program.")
+
         if job_config.gcs_program is None:
             job_config.gcs_program = '{}programs/{}/{}'.format(
                 job_config.gcs_prefix,
@@ -283,6 +290,9 @@ class Engine:
                 job_config.program_id)
 
     def _infer_gcs_results(self, job_config: JobConfig) -> None:
+        if job_config.gcs_prefix is None:
+            raise ValueError("Must infer gcs_prefix before gcs_results.")
+
         if job_config.gcs_results is None:
             job_config.gcs_results = '{}programs/{}/jobs/{}'.format(
                 job_config.gcs_prefix,

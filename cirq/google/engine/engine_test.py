@@ -465,3 +465,22 @@ def test_implied_job_config(build):
     assert implied.gcs_prefix == 'gs://d/'
     assert implied.gcs_program == 'e'
     assert implied.gcs_results == 'f'
+
+
+@mock.patch.object(discovery, 'build')
+def test_bad_job_config_inference_order(build):
+    eng = Engine(api_key="key")
+    config = JobConfig()
+
+    with pytest.raises(ValueError):
+        eng._infer_gcs_prefix(config)
+    config.project_id = 'project'
+
+    with pytest.raises(ValueError):
+        eng._infer_gcs_results(config)
+    with pytest.raises(ValueError):
+        eng._infer_gcs_program(config)
+    eng._infer_gcs_prefix(config)
+
+    eng._infer_gcs_results(config)
+    eng._infer_gcs_program(config)
