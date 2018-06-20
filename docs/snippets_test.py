@@ -191,6 +191,7 @@ def naive_convert_snippet_code_to_python_2(snippet):
     # For stylistic effect, it is often useful to put "..." in the snippets to
     # indicate "other code". In python 3 this works, because three-dots is a
     # literal. In python 2 this literal is instead called Ellipsis.
+    # coverage: ignore
     return snippet.replace('...', 'Ellipsis')
 
 
@@ -199,6 +200,7 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
 
     is_python_3 = sys.version_info[0] >= 3
     if not is_python_3:
+        # coverage: ignore
         snippet = naive_convert_snippet_code_to_python_2(snippet)
 
     output_lines = []  # type: List[str]
