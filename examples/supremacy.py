@@ -48,7 +48,7 @@ def _make_random_single_qubit_op_layer(
         device: google.XmonDevice,
         randint: Callable[[int, int], int]) -> Iterable[cirq.Operation]:
     for q in device.qubits:
-        angle = randint(0, 7) / 4
+        angle = randint(0, 3) / 2
         axis = randint(0, 7) / 4
         if angle:
             yield google.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
