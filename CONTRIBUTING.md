@@ -1,7 +1,8 @@
 # How to Contribute
 
-We'd love to accept your patches and contributions to this project. There are
-just a few small guidelines you need to follow.
+We'd love to accept your patches and contributions to this project.
+We do have some guidelines to follow, covered in this document, but don't worry about (or expect to) get everything right the first time!
+Create a pull request and we'll nudge you in the right direction.
 
 ## Contributor License Agreement
 
@@ -99,40 +100,44 @@ the appropriate branches.
 you can perform these locally, and then push the new commit following
 the same process as above.
 
-## Continuous Testing and Standards
+## Continuous Integration and Standards
 
-As part of creating a pull request we run checks on the pull request 
-to ensure that it does not break Cirq and upholds coding standards
-for the code base. 
+When a pull request is created or updated, various automatic checks will run to ensure that the change won't break Cirq and meets our coding standards.
 
-Our guidelines are 
-* All submitted code should be tested. We currently us a continuous
-testing framework which runs all of tests in the cirq and docs 
-directories. We also perform a coverage check which will determine
-if new code or modified code is covered by the tests. We currently
-will block if the tests do not pass or the coverage of new/modified
-lines goes down.  For the latter there may be exceptions for ignoring
-uncovered lines, please work with your reviewer on this.
-* We also enforce linting (style) standards for python using pylint.
-We do not enforce all linting, for a list of what lint we check,
-see [.pylintrc](continuous-integration/.pylintrc).
-* We use typing annotations and check these using
-[mypy](http://mypy-lang.org/).
-* The code in the Cirq repo is written to be compatible with
-Python 3.5.  However we also support a version compatible with
-Python 2.7.  We use [3to2](https://pypi.org/project/3to2/) to
-perform this conversion, and we run tests against the Python 2.7
-version of the code using this conversion.  In essence this means
-we require that the 3.5 code needs to be convertible to 2.7 using
-3to2.
+The continuous integration tooling checks the following:
 
-Our continuous integration framework will run checks for tests, 
-coverage, and lint for every pull request.  It is best practice to 
-run these tests yourself before submitting a pull request.  You can 
-do this by running from a shell our checker on your local changes
+- **Tests**.
+Existing tests must continue to pass (or be updated) when new changes are introduced.
+We use [pytest](https://docs.pytest.org/en/latest/) to run our tests.
+- **Coverage**.
+Code should be covered by tests.
+We use [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) to compute coverage, and custom tooling to filter down the output to only include new or changed code.
+We don't require 100% coverage, but any uncovered code must be annotated with `# coverage: ignore`.
+To ignore coverage of a single line, place `# coverage: ignore` at the end of the line.
+To ignore coverage for an entire block, start the block with a `# coverage: ignore` comment on its own line.
+- **Lint**.
+Code should meet common style standards for python and be free of error-prone constructs.
+We use [pylint](https://www.pylint.org/) to check for lint.
+To see which lint checks we enforce, see the [continuous-integration/.pylintrc](continuous-integration/.pylintrc) file.
+When pylint produces a false positive, it can be squashed with annotations like `# pylint: disable=unused-import`.
+- **Types**.
+Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
+We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
+When type checking produces a false positive, it can be ignored with annotations like `# type: ignore`.
+- **Python 2 Convertability**.
+Code must avoid constructs which fail to translate to python 2.
+Cirq is written in python 3, but we use [3to2](https://pypi.org/project/3to2/) (and some custom tooling) to automatically translate the code into runnable python 2 code.
+This translation step is not perfect.
+For example, `max([], default=2)` fails to translate.
+We check that the translation worked by testing the translated code against the translated tests.
+Cirq has several utilities to help the translation process along, such as the `@cirq.testing.only_test_in_python3` decorator for tests that check functionality specific to python 3.
+
+If you are on a debian machine, you can run the continuous integration checks for yourself.
+Simply run the following command from a terminal at the root of your clone of cirq's repo, with your local changes:
+
 ```shell
 bash continous-integration/check.sh
 ```
-Note that this command can run only a subset of the checks using the
-```--only``` flag.  This flag value can be ``pylint``,```typecheck```,
-```pytest```, ```pytest2```, or ```incremental-coverage```.
+
+You can run a subset of the checks using the ```--only``` flag.
+This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
