@@ -1,0 +1,71 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import Union, Optional
+
+import numpy as np
+
+from cirq.value import symbol
+
+
+def chosen_angle_to_canonical_half_turns(
+        half_turns: Optional[Union[symbol.Symbol, float]] = None,
+        rads: Optional[float] = None,
+        degs: Optional[float] = None,
+        default: float = 1,
+) -> Union[symbol.Symbol, float]:
+    """Returns a canonicalized half_turns based on the given arguments.
+
+    At most one of half_turns, rads, degs must be specified. If none are
+    specified, the output defaults to half_turns=1.
+
+    Args:
+        half_turns: The number of half turns to rotate by.
+        rads: The number of radians to rotate by.
+        degs: The number of degrees to rotate by
+        default: The half turns angle to use if nothing else is specified.
+
+    Returns:
+        A number of half turns.
+    """
+
+    used = len([1 for e in [half_turns, rads, degs] if e is not None])
+    if used == 0:
+        return default
+
+    if used > 1:
+        raise ValueError('Redundant angle specification. '
+                         'Use ONE of half_turns, rads, or degs.')
+
+    if rads is not None:
+        return canonicalize_half_turns(rads / np.pi)
+
+    if degs is not None:
+        return canonicalize_half_turns(degs / 180)
+
+    return canonicalize_half_turns(half_turns)
+
+
+def canonicalize_half_turns(
+        half_turns: Union[symbol.Symbol, float]
+) -> Union[symbol.Symbol, float]:
+    """Wraps the input into the range (-1, +1]."""
+    if isinstance(half_turns, symbol.Symbol):
+        return half_turns
+    half_turns %= 2
+    if half_turns > 1:
+        half_turns -= 2
+    return half_turns
+
+

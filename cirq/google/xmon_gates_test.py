@@ -87,7 +87,9 @@ def test_z_eq():
     eq = EqualsTester()
     eq.make_equality_pair(lambda: ExpZGate(half_turns=0))
     eq.add_equality_group(ExpZGate(),
-                          ExpZGate(half_turns=1))
+                          ExpZGate(half_turns=1),
+                          ExpZGate(degs=180),
+                          ExpZGate(rads=np.pi))
     eq.make_equality_pair(
         lambda: ExpZGate(half_turns=Symbol('a')))
     eq.make_equality_pair(
@@ -154,7 +156,9 @@ def test_cz_eq():
     eq = EqualsTester()
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=0))
     eq.add_equality_group(Exp11Gate(),
-                          Exp11Gate(half_turns=1))
+                          Exp11Gate(half_turns=1),
+                          Exp11Gate(degs=180),
+                          Exp11Gate(rads=np.pi))
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=Symbol('a')))
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=Symbol('b')))
     eq.add_equality_group(
@@ -221,15 +225,18 @@ def test_cz_parameterize():
 def test_w_eq():
     eq = EqualsTester()
     eq.add_equality_group(ExpWGate(),
-                          ExpWGate(half_turns=1, axis_half_turns=0))
+                          ExpWGate(half_turns=1, axis_half_turns=0),
+                          ExpWGate(degs=180, axis_degs=0),
+                          ExpWGate(rads=np.pi, axis_rads=0))
     eq.make_equality_pair(
         lambda: ExpWGate(half_turns=Symbol('a')))
     eq.make_equality_pair(lambda: ExpWGate(half_turns=0))
     eq.make_equality_pair(
         lambda: ExpWGate(half_turns=0,
                          axis_half_turns=Symbol('a')))
-    eq.make_equality_pair(
-        lambda: ExpWGate(half_turns=0, axis_half_turns=0.5))
+    eq.add_equality_group(
+        ExpWGate(half_turns=0, axis_half_turns=0.5),
+        ExpWGate(half_turns=0, axis_rads=np.pi / 2))
     eq.make_equality_pair(
         lambda: ExpWGate(
             half_turns=Symbol('ab'),

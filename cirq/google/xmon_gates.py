@@ -14,15 +14,14 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 
-from cirq import abc, ops
+from cirq import abc, ops, value
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
 from cirq.google.xmon_qubit import XmonQubit
-from cirq.value import Symbol
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -64,23 +63,23 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def parameterized_value_from_proto(
         message: operations_pb2.ParameterizedFloat
-    ) -> Union[Symbol, float]:
+    ) -> Union[value.Symbol, float]:
         which = message.WhichOneof('value')
         if which == 'raw':
             return message.raw
         elif which == 'parameter_key':
-            return Symbol(message.parameter_key)
+            return value.Symbol(message.parameter_key)
         else:
             raise ValueError('No value specified for parameterized float.')
 
     @staticmethod
     def parameterized_value_to_proto(
-        param: Union[Symbol, float],
+        param: Union[value.Symbol, float],
         out: operations_pb2.ParameterizedFloat = None
     ) -> operations_pb2.ParameterizedFloat:
         if out is None:
             out = operations_pb2.ParameterizedFloat()
-        if isinstance(param, Symbol):
+        if isinstance(param, value.Symbol):
             out.parameter_key = param.name
         else:
             out.raw = float(param)
@@ -126,9 +125,14 @@ class Exp11Gate(XmonGate,
     """
 
     def __init__(self, *positional_args,
-                 half_turns: Union[Symbol, float]=1) -> None:
+                 half_turns: Optional[Union[value.Symbol, float]] = None,
+                 rads: Optional[float] = None,
+                 degs: Optional[float] = None) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        self.half_turns = value.chosen_angle_to_canonical_half_turns(
+            half_turns=half_turns,
+            rads=rads,
+            degs=degs)
 
     def phase_by(self, phase_turns, qubit_index):
         return self
@@ -141,7 +145,8 @@ class Exp11Gate(XmonGate,
         op = operations_pb2.Operation()
         p.to_proto(op.exp_11.target1)
         q.to_proto(op.exp_11.target2)
-        self.parameterized_value_to_proto(self.half_turns, op.exp_11.half_turns)
+        self.parameterized_value_to_proto(self.half_turns,
+                                          op.exp_11.half_turns)
         return op
 
     def try_cast_to(self, desired_type, ext):
@@ -150,7 +155,7 @@ class Exp11Gate(XmonGate,
         return super().try_cast_to(desired_type, ext)
 
     def has_matrix(self):
-        return not isinstance(self.half_turns, Symbol)
+        return not isinstance(self.half_turns, value.Symbol)
 
     def matrix(self):
         if not self.has_matrix():
@@ -187,7 +192,7 @@ class Exp11Gate(XmonGate,
         return hash((Exp11Gate, self.half_turns))
 
     def is_parameterized(self) -> bool:
-        return isinstance(self.half_turns, Symbol)
+        return isinstance(self.half_turns, value.Symbol)
 
     def with_parameters_resolved_by(self, param_resolver) -> 'Exp11Gate':
         return Exp11Gate(half_turns=param_resolver.value_of(self.half_turns))
@@ -219,18 +224,29 @@ class ExpWGate(XmonGate,
     """
 
     def __init__(self, *positional_args,
-                 half_turns: Union[Symbol, float]=1,
-                 axis_half_turns: Union[Symbol, float]=0) -> None:
+                 axis_half_turns: Optional[Union[value.Symbol, float]] = None,
+                 axis_rads: Optional[float] = None,
+                 axis_degs: Optional[float] = None,
+                 half_turns: Optional[Union[value.Symbol, float]] = None,
+                 rads: Optional[float] = None,
+                 degs: Optional[float] = None) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
-        self.axis_half_turns = _canonicalize_half_turns(axis_half_turns)
+        self.half_turns = value.chosen_angle_to_canonical_half_turns(
+            half_turns=half_turns,
+            rads=rads,
+            degs=degs)
+        self.axis_half_turns = value.chosen_angle_to_canonical_half_turns(
+            half_turns=axis_half_turns,
+            rads=axis_rads,
+            degs=axis_degs,
+            default=0)
 
-        if (not isinstance(self.half_turns, Symbol) and
-                not isinstance(self.axis_half_turns, Symbol) and
+        if (not isinstance(self.half_turns, value.Symbol) and
+                not isinstance(self.axis_half_turns, value.Symbol) and
                 not 0 <= self.axis_half_turns < 1):
             # Canonicalize to negative rotation around positive axis.
-            self.half_turns = _canonicalize_half_turns(-self.half_turns)
-            self.axis_half_turns = _canonicalize_half_turns(
+            self.half_turns = value.canonicalize_half_turns(-self.half_turns)
+            self.axis_half_turns = value.canonicalize_half_turns(
                 self.axis_half_turns + 1)
 
     def to_proto(self, *qubits):
@@ -253,7 +269,7 @@ class ExpWGate(XmonGate,
         return super().try_cast_to(desired_type, ext)
 
     def has_inverse(self):
-        return not isinstance(self.half_turns, Symbol)
+        return not isinstance(self.half_turns, value.Symbol)
 
     def inverse(self):
         if not self.has_inverse():
@@ -262,8 +278,8 @@ class ExpWGate(XmonGate,
                         axis_half_turns=self.axis_half_turns)
 
     def has_matrix(self):
-        return (not isinstance(self.half_turns, Symbol) and
-                not isinstance(self.axis_half_turns, Symbol))
+        return (not isinstance(self.half_turns, value.Symbol) and
+                not isinstance(self.axis_half_turns, value.Symbol))
 
     def matrix(self):
         if not self.has_matrix():
@@ -279,7 +295,7 @@ class ExpWGate(XmonGate,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
 
     def trace_distance_bound(self):
-        if isinstance(self.half_turns, Symbol):
+        if isinstance(self.half_turns, value.Symbol):
             return 1
         return abs(self.half_turns) * 3.5
 
@@ -293,7 +309,8 @@ class ExpWGate(XmonGate,
         if abs(self.axis_half_turns - 0.5) <= e:
             return 'Y',
         if precision is not None:
-            return 'W({{:.{}}})'.format(precision).format(self.axis_half_turns),
+            return 'W({{:.{}}})'.format(precision).format(
+                self.axis_half_turns),
         else:
             return 'W({})'.format(self.axis_half_turns),
 
@@ -334,8 +351,8 @@ class ExpWGate(XmonGate,
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
     def is_parameterized(self) -> bool:
-        return (isinstance(self.half_turns, Symbol) or
-                isinstance(self.axis_half_turns, Symbol))
+        return (isinstance(self.half_turns, value.Symbol) or
+                isinstance(self.axis_half_turns, value.Symbol))
 
     def with_parameters_resolved_by(self, param_resolver) -> 'ExpWGate':
         return ExpWGate(
@@ -360,9 +377,14 @@ class ExpZGate(XmonGate,
     """
 
     def __init__(self, *positional_args,
-                 half_turns: Union[Symbol, float]=1) -> None:
+                 half_turns: Optional[Union[value.Symbol, float]] = None,
+                 rads: Optional[float] = None,
+                 degs: Optional[float] = None) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        self.half_turns = value.chosen_angle_to_canonical_half_turns(
+            half_turns=half_turns,
+            rads=rads,
+            degs=degs)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -389,7 +411,7 @@ class ExpZGate(XmonGate,
         return super().try_cast_to(desired_type, ext)
 
     def has_inverse(self):
-        return not isinstance(self.half_turns, Symbol)
+        return not isinstance(self.half_turns, value.Symbol)
 
     def inverse(self):
         if not self.has_inverse():
@@ -397,7 +419,7 @@ class ExpZGate(XmonGate,
         return ExpZGate(half_turns=-self.half_turns)
 
     def has_matrix(self):
-        return not isinstance(self.half_turns, Symbol)
+        return not isinstance(self.half_turns, value.Symbol)
 
     def matrix(self):
         if not self.has_matrix():
@@ -405,7 +427,7 @@ class ExpZGate(XmonGate,
         return np.diag([(-1j)**self.half_turns, 1j**self.half_turns])
 
     def trace_distance_bound(self):
-        if isinstance(self.half_turns, Symbol):
+        if isinstance(self.half_turns, value.Symbol):
             return 1
         return abs(self.half_turns) * 3.5
 
@@ -446,18 +468,7 @@ class ExpZGate(XmonGate,
         return hash((ExpZGate, self.half_turns))
 
     def is_parameterized(self) -> bool:
-        return isinstance(self.half_turns, Symbol)
+        return isinstance(self.half_turns, value.Symbol)
 
     def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))
-
-
-def _canonicalize_half_turns(
-        half_turns: Union[Symbol, float]
-) -> Union[Symbol, float]:
-    if isinstance(half_turns, Symbol):
-        return half_turns
-    half_turns %= 2
-    if half_turns > 1:
-        half_turns -= 2
-    return half_turns

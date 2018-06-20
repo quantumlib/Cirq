@@ -47,7 +47,9 @@ def test_partial_reflection_gate_eq():
     eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('a')))
     eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('b')))
     eq.make_equality_pair(lambda: DummyGate(half_turns=0))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=0.5))
+    eq.add_equality_group(DummyGate(half_turns=0.5),
+                          DummyGate(rads=np.pi / 2),
+                          DummyGate(degs=90))
 
 
 def test_partial_reflection_gate_extrapolate():

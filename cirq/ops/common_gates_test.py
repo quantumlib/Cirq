@@ -32,17 +32,6 @@ def test_cz_init():
     assert ops.Rot11Gate(half_turns=5).half_turns == 1
 
 
-def test_cz_eq():
-    eq = EqualsTester()
-    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
-    eq.add_equality_group(ops.Rot11Gate(half_turns=3.5),
-                          ops.Rot11Gate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('a')))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('b')))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0.5))
-
-
 def test_cz_str():
     assert str(ops.Rot11Gate()) == 'CZ'
     assert str(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
@@ -92,13 +81,28 @@ def test_z_init():
     assert z.half_turns == 1
 
 
-def test_z_eq():
+def test_rot_gates_eq():
     eq = EqualsTester()
+    gates = [
+        ops.RotXGate,
+        ops.RotYGate,
+        ops.RotZGate,
+        ops.CNotGate,
+        ops.Rot11Gate
+    ]
+    for gate in gates:
+        eq.add_equality_group(gate(half_turns=3.5),
+                              gate(half_turns=-0.5),
+                              gate(rads=-np.pi/2),
+                              gate(degs=-90))
+        eq.make_equality_pair(lambda: gate(half_turns=0))
+        eq.make_equality_pair(lambda: gate(half_turns=0.5))
+
+    eq.add_equality_group(ops.RotXGate(), ops.RotXGate(half_turns=1), ops.X)
+    eq.add_equality_group(ops.RotYGate(), ops.RotYGate(half_turns=1), ops.Y)
     eq.add_equality_group(ops.RotZGate(), ops.RotZGate(half_turns=1), ops.Z)
-    eq.add_equality_group(ops.RotZGate(half_turns=3.5),
-                          ops.RotZGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0.5))
+    eq.add_equality_group(ops.CNotGate(), ops.CNotGate(half_turns=1), ops.CNOT)
+    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
 
 
 def test_z_extrapolate():
