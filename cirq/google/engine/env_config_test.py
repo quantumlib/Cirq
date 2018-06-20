@@ -20,37 +20,33 @@ import cirq
 from cirq.testing.mock import mock
 
 
-@mock.patch.dict(os.environ, {})
 @mock.patch.object(discovery, 'build')
-def test_engine_from_environment_nothing_set(build):
-    with pytest.raises(EnvironmentError, match='not set'):
+def test_engine_from_environment(build):
+    # Api key present.
+    with mock.patch.dict(os.environ, {'CIRQ_QUANTUM_ENGINE_API_KEY': 'key!'}):
         eng = cirq.google.engine_from_environment()
+        assert eng.default_project_id is None
+        assert eng.api_key == 'key!'
 
+    # Nothing present.
+    with mock.patch.dict(os.environ, {}):
+        with pytest.raises(EnvironmentError,
+                           match='CIRQ_QUANTUM_ENGINE_API_KEY'):
+            _ = cirq.google.engine_from_environment()
 
-@mock.patch.dict(os.environ, {
-    'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!'
-})
-@mock.patch.object(discovery, 'build')
-def test_engine_from_environment_missing_api_key(build):
-    with pytest.raises(EnvironmentError,
-                       match='CIRQ_QUANTUM_ENGINE_API_KEY'):
-        _ = cirq.google.engine_from_environment()
+    # Default project id present.
+    with mock.patch.dict(os.environ, {
+        'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!'
+    }):
+        with pytest.raises(EnvironmentError,
+                           match='CIRQ_QUANTUM_ENGINE_API_KEY'):
+            _ = cirq.google.engine_from_environment()
 
-
-@mock.patch.dict(os.environ, {'CIRQ_QUANTUM_ENGINE_API_KEY': 'key!'})
-@mock.patch.object(discovery, 'build')
-def test_engine_from_environment_missing_default_project_id(build):
-    eng = cirq.google.engine_from_environment()
-    assert eng.default_project_id is None
-    assert eng.api_key == 'key!'
-
-
-@mock.patch.dict(os.environ, {
-    'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!',
-    'CIRQ_QUANTUM_ENGINE_API_KEY': 'key!',
-})
-@mock.patch.object(discovery, 'build')
-def test_engine_from_environment_all(build):
-    eng = cirq.google.engine_from_environment()
-    assert eng.default_project_id == 'project!'
-    assert eng.api_key == 'key!'
+    # Both present.
+    with mock.patch.dict(os.environ, {
+        'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!',
+        'CIRQ_QUANTUM_ENGINE_API_KEY': 'key!',
+    }):
+        eng = cirq.google.engine_from_environment()
+        assert eng.default_project_id == 'project!'
+        assert eng.api_key == 'key!'

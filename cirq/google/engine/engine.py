@@ -303,12 +303,15 @@ class Engine:
         implied_job_config = (JobConfig()
                               if job_config is None
                               else job_config.copy())
+
+        # Note: inference order is important. Later ones may need earlier ones.
         self._infer_project_id(implied_job_config)
         self._infer_gcs_prefix(implied_job_config)
         self._infer_program_id(implied_job_config)
         self._infer_job_id(implied_job_config)
         self._infer_gcs_program(implied_job_config)
         self._infer_gcs_results(implied_job_config)
+
         return implied_job_config
 
     def program_as_schedule(self,
