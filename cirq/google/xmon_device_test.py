@@ -42,11 +42,11 @@ def test_init():
     q10 = XmonQubit(1, 0)
 
     assert d.qubits == {q00, q01, q10}
-    assert d.duration_of(ops.Operation(ExpZGate(), (q00,))) == 0 * ns
-    assert d.duration_of(ops.Operation(ops.MEASURE,
-                                       (q00,))) == ns
-    assert d.duration_of(ops.Operation(ExpWGate(), (q00,))) == 2 * ns
-    assert d.duration_of(ops.Operation(Exp11Gate(), (q00, q01))) == 3 * ns
+    assert d.duration_of(ExpZGate().on(q00)) == 0 * ns
+    assert d.duration_of(ops.MeasurementGate().on(q00)) == ns
+    assert d.duration_of(ops.MeasurementGate().on(q00, q01)) == ns
+    assert d.duration_of(ExpWGate().on(q00)) == 2 * ns
+    assert d.duration_of(Exp11Gate().on(q00, q01)) == 3 * ns
 
 
 def test_validate_operation_adjacent_qubits():

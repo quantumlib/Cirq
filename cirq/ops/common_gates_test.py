@@ -279,20 +279,42 @@ def test_str():
 def test_measure():
     a = ops.NamedQubit('a')
     b = ops.NamedQubit('b')
-    c = ops.NamedQubit('c')
 
     # Empty application.
     with pytest.raises(ValueError):
-        _ = cirq.MEASURE.on()
-    assert cirq.MEASURE.on(a).gate.key is None
-    _ = cirq.MEASURE.on(a, b)
-    _ = cirq.MEASURE.on(a, b, c)
+        _ = cirq.measure()
 
-    # Qubit count vs invert_mask length.
-    _ = cirq.MeasurementGate(None, (True,)).on(a)
-    _ = cirq.MeasurementGate(None, (True, False)).on(a, b)
-    _ = cirq.MeasurementGate(None, (True, False, True)).on(a, b, c)
+    assert cirq.measure(a) == cirq.MeasurementGate(key='a').on(a)
+    assert cirq.measure(a, b) == cirq.MeasurementGate(key='a,b').on(a, b)
+    assert cirq.measure(b, a) == cirq.MeasurementGate(key='b,a').on(b, a)
+    assert cirq.measure(a, key='b') == cirq.MeasurementGate(key='b').on(a)
+    assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
+        key='a', invert_mask=(True,)).on(a)
+
+
+def test_measurement_qubit_count_vs_mask_length():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = ops.NamedQubit('c')
+
+    _ = cirq.MeasurementGate(invert_mask=(True,)).on(a)
+    _ = cirq.MeasurementGate(invert_mask=(True, False)).on(a, b)
+    _ = cirq.MeasurementGate(invert_mask=(True, False, True)).on(a, b, c)
     with pytest.raises(ValueError):
-        _ = cirq.MeasurementGate(None, (True, False)).on(a)
+        _ = cirq.MeasurementGate(invert_mask=(True, False)).on(a)
     with pytest.raises(ValueError):
-        _ = cirq.MeasurementGate(None, (True, False, True)).on(a, b)
+        _ = cirq.MeasurementGate(invert_mask=(True, False, True)).on(a, b)
+
+
+def test_measure_each():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    assert cirq.measure_each() == []
+    assert cirq.measure_each(a) == [cirq.measure(a)]
+    assert cirq.measure_each(a, b) == [cirq.measure(a), cirq.measure(b)]
+
+    assert cirq.measure_each(a, b, key_func=repr) == [
+        cirq.measure(a, key="NamedQubit('a')"),
+        cirq.measure(b, key="NamedQubit('b')")
+    ]

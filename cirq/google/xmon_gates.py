@@ -93,25 +93,14 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
     This measurement is done in the computational basis.
     """
 
-    def on(self, *qubits):
-        if self.key is not None:
-            return super().on(*qubits)
-
-        # Need a key for the simulator.
-        default_key = ','.join(str(e) for e in qubits)
-        return XmonMeasurementGate(default_key, self.invert_mask).on(*qubits)
-
     def to_proto(self, *qubits):
         if len(qubits) == 0:
             raise ValueError('Measurement gate on no qubits.')
 
-        # Use default key if needed.
-        key = self.on(*qubits).gate.key
-
         op = operations_pb2.Operation()
         for q in qubits:
             q.to_proto(op.measurement.targets.add())
-        op.measurement.key = key
+        op.measurement.key = self.key
         return op
 
     def __repr__(self):

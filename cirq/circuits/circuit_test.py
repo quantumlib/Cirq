@@ -605,8 +605,8 @@ def test_to_text_diagram_teleportation_to_diagram():
         Moment([ops.CNOT(msg, ali)]),
         Moment([ops.H(msg)]),
         Moment(
-            [ops.MEASURE(msg),
-             ops.MEASURE(ali)]),
+            [ops.measure(msg),
+             ops.measure(ali)]),
         Moment([ops.CNOT(ali, bob)]),
         Moment([ops.CNOT(msg, tmp)]),
         Moment([ops.CZ(bob, tmp)]),
@@ -977,25 +977,25 @@ def test_circuit_to_unitary_matrix():
         atol=1e-8)
 
     # Measurement gate has no corresponding matrix.
-    c = Circuit.from_ops(ops.MEASURE(a))
+    c = Circuit.from_ops(ops.measure(a))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix(ignore_terminal_measurements=False)
 
     # Ignoring terminal measurements.
-    c = Circuit.from_ops(ops.MEASURE(a))
+    c = Circuit.from_ops(ops.measure(a))
     cirq.testing.assert_allclose_up_to_global_phase(
         c.to_unitary_matrix(),
         np.eye(2))
 
     # Non-terminal measurements are not ignored.
-    c = Circuit.from_ops(ops.MEASURE(a), ops.X(a))
+    c = Circuit.from_ops(ops.measure(a), ops.X(a))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
 
     # Non-terminal measurements are not ignored (multiple qubits).
     c = Circuit.from_ops(
-            ops.MEASURE(a),
-            ops.MEASURE(b),
+            ops.measure(a),
+            ops.measure(b),
             ops.CNOT(a, b))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
@@ -1050,9 +1050,9 @@ def test_composite_gate_to_unitary_matrix():
             ops.X(a),
             CNOT_composite()(a, b),
             ops.X(a),
-            ops.MEASURE(a),
+            ops.measure(a),
             ops.X(b),
-            ops.MEASURE(b))
+            ops.measure(b))
     mat = c.to_unitary_matrix()
     mat_expected = ops.CNOT.matrix()
 

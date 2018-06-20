@@ -140,12 +140,12 @@ def test_measurement_consumes_zs():
         before=circuits.Circuit([
             circuits.Moment([ops.Z(q)**0.5]),
             circuits.Moment([ops.Z(q)**0.25]),
-            circuits.Moment([ops.MEASURE(q)]),
+            circuits.Moment([ops.measure(q)]),
         ]),
         after=circuits.Circuit([
             circuits.Moment(),
             circuits.Moment(),
-            circuits.Moment([ops.MEASURE(q)]),
+            circuits.Moment([ops.measure(q)]),
         ]))
 
 

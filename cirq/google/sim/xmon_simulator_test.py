@@ -1039,8 +1039,8 @@ def test_simulator_implied_measurement_key():
     q = cirq.google.XmonQubit(0, 0)
     circuit = cirq.Circuit.from_ops(
         cirq.X(q),
-        cirq.MEASURE(q),
-        cirq.MeasurementGate(key='other')(q),
+        cirq.measure(q),
+        cirq.measure(q, key='other'),
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == "(0, 0)=11111\nother=11111"

@@ -326,7 +326,7 @@ def test_w_parameterize():
     assert resolved_gate == ExpWGate(half_turns=0.1, axis_half_turns=0.2)
 
 
-def test_measure_implied_key():
+def test_measure_key_on():
     q = XmonQubit(0, 0)
 
     assert XmonMeasurementGate(key='').on(q) == cirq.Operation(
@@ -334,7 +334,4 @@ def test_measure_implied_key():
         qubits=(q,))
     assert XmonMeasurementGate(key='a').on(q) == cirq.Operation(
         gate=XmonMeasurementGate(key='a'),
-        qubits=(q,))
-    assert XmonMeasurementGate(key=None).on(q) == cirq.Operation(
-        gate=XmonMeasurementGate(key='(0, 0)'),
         qubits=(q,))
