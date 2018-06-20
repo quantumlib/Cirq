@@ -43,8 +43,8 @@ def test_init():
 
     assert d.qubits == {q00, q01, q10}
     assert d.duration_of(ExpZGate().on(q00)) == 0 * ns
-    assert d.duration_of(ops.MeasurementGate().on(q00)) == ns
-    assert d.duration_of(ops.MeasurementGate().on(q00, q01)) == ns
+    assert d.duration_of(ops.measure(q00)) == ns
+    assert d.duration_of(ops.measure(q00, q01)) == ns
     assert d.duration_of(ExpWGate().on(q00)) == 2 * ns
     assert d.duration_of(Exp11Gate().on(q00, q01)) == 3 * ns
 

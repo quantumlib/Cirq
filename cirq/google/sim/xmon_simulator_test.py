@@ -985,9 +985,9 @@ def test_simulator_trial_result_str():
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.CNOT(a, b),
-        cirq.MeasurementGate('a')(a),
-        cirq.MeasurementGate('b')(b),
-        cirq.MeasurementGate('c')(c)
+        cirq.measure(a, key='a'),
+        cirq.measure(b, key='b'),
+        cirq.measure(c, key='c')
     )
     result = cirq.google.XmonSimulator().run(circuit)
     assert str(result) == "a=1\nb=1\nc=0"
@@ -999,8 +999,8 @@ def test_simulator_trial_result_str_repetitions():
     c = cirq.google.XmonQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(b),
-        cirq.MeasurementGate('ab')(a, b),
-        cirq.MeasurementGate('c')(c)
+        cirq.measure(a, b, key='ab'),
+        cirq.measure(c, key='c')
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == "ab=00000, 11111\nc=00000"
@@ -1027,9 +1027,9 @@ def test_simulator_simulate_trial_result_str():
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.CNOT(a, b),
-        cirq.MeasurementGate('a')(a),
-        cirq.MeasurementGate('b')(b),
-        cirq.MeasurementGate('c')(c)
+        cirq.measure(a, key='a'),
+        cirq.measure(b, key='b'),
+        cirq.measure(c, key='c')
     )
     result = cirq.google.XmonSimulator().simulate(circuit)
     assert str(result) == "a=1 b=1 c=0"

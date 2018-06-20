@@ -47,7 +47,6 @@ def test_parameterized_value_from_proto():
 
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_pair(lambda: XmonMeasurementGate(key=None))
     eq.make_equality_pair(lambda: XmonMeasurementGate(key=''))
     eq.make_equality_pair(lambda: XmonMeasurementGate('a'))
     eq.make_equality_pair(lambda: XmonMeasurementGate('b'))

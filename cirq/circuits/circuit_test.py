@@ -716,7 +716,7 @@ def test_to_text_diagram_multi_qubit_gate():
     q1 = ops.NamedQubit('(0, 0)')
     q2 = ops.NamedQubit('(0, 1)')
     q3 = ops.NamedQubit('(0, 2)')
-    c = Circuit([Moment([ops.MeasurementGate('msg').on(q1, q2, q3)])])
+    c = Circuit.from_ops(cirq.measure(q1, q2, q3, key='msg'))
     assert c.to_text_diagram().strip() == """
 (0, 0): ───M───
            │

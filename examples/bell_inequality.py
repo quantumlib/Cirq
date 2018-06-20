@@ -91,10 +91,10 @@ def make_bell_test_circuit() -> cirq.Circuit:
 
     # Then results are recorded.
     circuit.append([
-        cirq.MeasurementGate('a').on(alice),
-        cirq.MeasurementGate('b').on(bob),
-        cirq.MeasurementGate('x').on(alice_referee),
-        cirq.MeasurementGate('y').on(bob_referee),
+        cirq.measure(alice, key='a'),
+        cirq.measure(bob, key='b'),
+        cirq.measure(alice_referee, key='x'),
+        cirq.measure(bob_referee, key='y'),
     ])
 
     return circuit
