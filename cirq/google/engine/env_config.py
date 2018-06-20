@@ -18,8 +18,8 @@ import os
 
 from cirq.google.engine.engine import Engine
 
-ENV_API_KEY = 'QUANTUM_ENGINE_API_KEY'
-ENV_DEFAULT_PROJECT_ID = 'QUANTUM_ENGINE_PROJECT'
+ENV_API_KEY = 'CIRQ_QUANTUM_ENGINE_API_KEY'
+ENV_DEFAULT_PROJECT_ID = 'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'
 
 
 def engine_from_environment() -> Engine:
