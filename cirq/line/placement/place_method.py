@@ -12,24 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+from cirq import abc
 from cirq.google import XmonDevice
-from cirq.line.placement import greedy
-from cirq.line.placement.place_method import LinePlacementMethod
 from cirq.line.placement.sequence import LinePlacement
 
 
-def place_on_device(device: XmonDevice,
-                    method: LinePlacementMethod =
-                            greedy.GreedySequenceSearchMethod()) -> \
-        LinePlacement:
-    """Searches for linear sequence of qubits on device.
+class LinePlacementMethod(metaclass=abc.ABCMeta):
+    """Choice and options for the line placement calculation method.
 
-    Args:
-        device: Google Xmon device instance.
-        method: Line placement method. Defaults to
-                cirq.greedy.GreedySequenceSearchMethod.
-
-    Returns:
-        Line sequences search results.
+    Currently two methods are available: cirq.line.GreedySequenceSearchMethod
+    and cirq.line.AnnealSequenceSearchMethod.
     """
-    return method.place_line(device)
+
+    @abc.abstractmethod
+    def place_line(self, device: XmonDevice) -> LinePlacement:
+        """Runs line sequence search.
+
+        Args:
+            device: Chip description.
+
+        Returns:
+            Linear sequences found on the chip.
+        """
+        pass

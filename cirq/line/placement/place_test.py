@@ -12,59 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
-from cirq.line.placement import anneal, greedy
+from cirq.google import XmonDevice, XmonQubit
+from cirq.line.placement import anneal
+from cirq.line.placement import greedy
 from cirq.line.placement.place import (
-    LinePlacementOptions,
     place_on_device
 )
-from cirq.line.placement.search_method import SequenceSearchMethod
 from cirq.testing.mock import mock
-from cirq.google import XmonDevice, XmonQubit
 from cirq.value import Duration
 
 
-@mock.patch('cirq.line.placement.anneal.anneal_sequence')
-def test_anneal_method_calls_anneal_search(anneal_sequence):
+def test_anneal_method_calls_anneal_search():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q03 = XmonQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
-    search_method = anneal.AnnealSequenceSearchMethod()
-    seed = 1
-    sequences = [[q00, q01]]
-    anneal_sequence.return_value = sequences
+    method = anneal.AnnealSequenceSearchMethod
 
-    assert place_on_device(device,
-                           LinePlacementOptions(search_method=search_method,
-                                                seed=seed)) == sequences
-    anneal_sequence.assert_called_once_with(device, search_method, seed=seed)
+    with mock.patch.object(method, 'place_line') as place_line:
+        sequences = [[q00, q01]]
+        place_line.return_value = sequences
+
+        assert place_on_device(device, method) == sequences
+        place_line.assert_called_once_with(device)
 
 
-@mock.patch('cirq.line.placement.greedy.greedy_sequence')
-def test_greedy_method_calls_greedy_search(greedy_sequence):
+def test_greedy_method_calls_greedy_search():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q03 = XmonQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
-    search_method = greedy.GreedySequenceSearchMethod()
-    sequences = [[q00, q01]]
-    greedy_sequence.return_value = sequences
+    method = greedy.GreedySequenceSearchMethod()
 
-    assert place_on_device(device,
-                           LinePlacementOptions(
-                               search_method=search_method)) == sequences
-    greedy_sequence.assert_called_once_with(device, search_method)
+    with mock.patch.object(method, 'place_line') as place_line:
+        sequences = [[q00, q01]]
+        place_line.return_value = sequences
 
-
-def test_search_fails_on_unknown_method():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
-                        Duration(nanos=0), qubits=[q00, q01])
-    with pytest.raises(ValueError):
-        place_on_device(device, LinePlacementOptions(
-            search_method=SequenceSearchMethod()))
+        assert place_on_device(device, method) == sequences
+        place_line.assert_called_once_with(device)

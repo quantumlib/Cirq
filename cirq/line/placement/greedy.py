@@ -16,7 +16,7 @@ import abc
 import collections
 
 from typing import Dict, List, Optional, Set
-from cirq.line.placement import search_method
+from cirq.line.placement import place_method
 from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
@@ -26,10 +26,6 @@ from cirq.line.placement.sequence import (
     LineSequence
 )
 from cirq.google import XmonDevice, XmonQubit
-
-
-class GreedySequenceSearchMethod(search_method.SequenceSearchMethod):
-    pass
 
 
 class GreedySequenceSearch(object):
@@ -283,38 +279,40 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
         return visited
 
 
-def greedy_sequence(device: XmonDevice,
-                    method: GreedySequenceSearchMethod) -> LinePlacement:
-    """Greedy search for linear sequence of qubits on a chip.
-
-    Args:
-        device: Chip description.
-        method: Greedy method specification, unused.
-
-    Returns:
-        List of linear sequences found on the chip.
+class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
+    """Greedy search method for linear sequence of qubits on a chip.
     """
 
-    def lower_left():
-        cand = None
-        for n in device.qubits:
-            if cand is None or yx_cmp(n, cand) < 0:
-                cand = n
-        return cand
+    def place_line(self, device: XmonDevice) -> LinePlacement:
+        """Runs line sequence search.
 
-    start = lower_left()
+        Args:
+            device: Chip description.
 
-    greedy_search = {
-        'minimal_connectivity':
-            MinimalConnectivityGreedySequenceSearch(device, start),
-        'largest_area':
-            LargestAreaGreedySequenceSearch(device, start)
-    }
+        Returns:
+            Linear sequences found on the chip.
+        """
 
-    sequence = None
-    for algorithm in greedy_search:
-        candidate = greedy_search[algorithm].get_or_search()
-        if sequence is None or len(sequence) < len(candidate):
-            sequence = candidate
+        def lower_left():
+            cand = None
+            for n in device.qubits:
+                if cand is None or yx_cmp(n, cand) < 0:
+                    cand = n
+            return cand
 
-    return LinePlacement([LineSequence(sequence)] if sequence else [])
+        start = lower_left()
+
+        greedy_search = {
+            'minimal_connectivity':
+                MinimalConnectivityGreedySequenceSearch(device, start),
+            'largest_area':
+                LargestAreaGreedySequenceSearch(device, start)
+        }
+
+        sequence = None
+        for algorithm in greedy_search:
+            candidate = greedy_search[algorithm].get_or_search()
+            if sequence is None or len(sequence) < len(candidate):
+                sequence = candidate
+
+        return LinePlacement([LineSequence(sequence)] if sequence else [])
