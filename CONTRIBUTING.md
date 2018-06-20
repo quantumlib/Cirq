@@ -115,7 +115,7 @@ lines goes down.  For the latter there may be exceptions for ignoring
 uncovered lines, please work with your reviewer on this.
 * We also enforce linting (style) standards for python using pylint.
 We do not enforce all linting, for a list of what lint we check,
-see [.pylintrc](continous-integration/.pylintrc).
+see [.pylintrc](continuous-integration/.pylintrc).
 * We use typing annotations and check these using
 [mypy](http://mypy-lang.org/).
 * The code in the Cirq repo is written to be compatible with
