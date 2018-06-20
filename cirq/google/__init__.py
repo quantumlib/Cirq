@@ -59,6 +59,7 @@ from cirq.google.sim import (
     XmonSimulateTrialResult,
 )
 from cirq.google.engine import (
+    engine_from_environment,
     Engine,
     JobConfig,
     EngineTrialResult,

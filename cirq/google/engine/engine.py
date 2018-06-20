@@ -21,6 +21,7 @@ As an example, to run a circuit against the xmon simulator
 """
 
 import base64
+import os
 import random
 import re
 import string
@@ -92,7 +93,7 @@ class JobConfig:
     """
 
     def __init__(self,
-                 project_id: str,
+                 project_id: Optional[str] = None,
                  program_id: Optional[str] = None,
                  job_id: Optional[str] = None,
                  gcs_prefix: Optional[str] = None,
@@ -105,11 +106,13 @@ class JobConfig:
         Args:
             project_id: The project id string of the Google Cloud Project to
                 use. Programs and Jobs will be created under this project id.
+                If this is set to None, the engine's default project id will be
+                used instead. If that also isn't set, calls will fail.
             program_id: Id of the program to create, defaults to a random
                 version of 'prog-ABCD'.
             job_id: Id of the job to create, defaults to 'job-0'.
-            gcs_prefix: Google Cloud Storage bucket and object prefix to use for
-                storing programs and results. The bucket will be created if
+            gcs_prefix: Google Cloud Storage bucket and object prefix to use
+                for storing programs and results. The bucket will be created if
                 needed. Must be in the form "gs://bucket-name/object-prefix/".
             gcs_program: Explicit override for the program storage location.
             gcs_results: Explicit override for the results storage location.
@@ -150,6 +153,7 @@ class Engine:
                  api_key: str,
                  api: str = 'quantum',
                  version: str = 'v1alpha1',
+                 default_project_id: Optional[str] = None,
                  discovery_url: Optional[str] = None,
                  gcs_prefix: Optional[str] = None,
                  **kwargs
@@ -160,12 +164,15 @@ class Engine:
             api_key: API key to use to retrieve discovery doc.
             api: API name.
             version: API version.
+            default_project_id: The project_id used in jobs when they don't
+                specify their own.
             discovery_url: Discovery url for the API. If not supplied, uses
                 Google's default api.googleapis.com endpoint.
             gcs_prefix: A default gcs_prefix to use.
         """
         self.api_key = api_key
         self.api = api
+        self.default_project_id = default_project_id
         self.version = version
         self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
                                                '$discovery/rest'
@@ -179,8 +186,8 @@ class Engine:
             **kwargs)
 
     def run(self,
-            job_config: JobConfig,
             program: Union[Circuit, Schedule],
+            job_config: Optional[JobConfig] = None,
             device: Device = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
@@ -190,9 +197,9 @@ class Engine:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
-            job_config: Configures the names of programs and jobs.
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            job_config: Configures the names of programs and jobs.
             device: The device on which to run a circuit. The circuit will be
                 validated against this device before sending to the engine.
                 If device is None, no validation will be done. Can only be
@@ -206,8 +213,8 @@ class Engine:
         Returns:
             A single EngineTrialResult for this run.
         """
-        return list(self.run_sweep(job_config,
-                                   program,
+        return list(self.run_sweep(program,
+                                   job_config,
                                    device,
                                    [param_resolver],
                                    repetitions,
@@ -215,8 +222,8 @@ class Engine:
                                    target_route))[0]
 
     def run_sweep(self,
-                  job_config: JobConfig,
                   program: Union[Circuit, Schedule],
+                  job_config: Optional[JobConfig] = None,
                   device: Device = None,
                   params: Sweepable = None,
                   repetitions: int = 1,
@@ -229,9 +236,9 @@ class Engine:
         does not block until a result is returned.
 
         Args:
-            job_config: Configures the names of programs and jobs.
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            job_config: Configures the names of programs and jobs.
             device: The device on which to run a circuit. The circuit will be
                 validated against this device before sending to the engine.
                 If device is None, no validation will be done. Can only be
@@ -247,12 +254,22 @@ class Engine:
             EngineTrialResults, one for each parameter sweep.
         """
         # Check and compute engine options.
+        if job_config is None:
+            job_config = JobConfig()
+        project_id = job_config.project_id
+        if project_id is None:
+            project_id = self.default_project_id
+        if project_id is None:
+            raise ValueError(
+                "Need a cloud project id. "
+                "This engine has default_project_id=None and "
+                "the given JobConfig has project_id=None. "
+                "One or the other must be set.")
+
         gcs_prefix = job_config.gcs_prefix or self.gcs_prefix or (
-                'gs://gqe-%s/' % job_config.project_id[
-                                 job_config.project_id.rfind(
-                                     ':') + 1:])
-        gcs_prefix = gcs_prefix if not gcs_prefix or gcs_prefix.endswith(
-            '/') else gcs_prefix + '/'
+                'gs://gqe-{}/'.format(project_id[project_id.rfind(':') + 1:]))
+        if gcs_prefix and not gcs_prefix.endswith('/'):
+            gcs_prefix += '/'
         if gcs_prefix and not gcs_prefix_pattern.match(gcs_prefix):
             raise TypeError('gcs_prefix must be of the form "gs://'
                             '<bucket name and optional object prefix>/"')
@@ -261,7 +278,6 @@ class Engine:
             raise TypeError('Either gcs_prefix must be provided or both'
                             ' gcs_program and gcs_results are required.')
 
-        project_id = job_config.project_id
         program_id = job_config.program_id or 'prog-%s' % ''.join(
             random.choice(string.ascii_uppercase + string.digits) for _ in
             range(6))
@@ -491,9 +507,9 @@ class EngineJob:
     """
 
     def __init__(self,
-        job_config: JobConfig,
-        job: Dict,
-        engine: Engine) -> None:
+                 job_config: JobConfig,
+                 job: Dict,
+                 engine: Engine) -> None:
         """A job submitted to the engine.
 
         Args:
