@@ -37,6 +37,20 @@ class Rot11Gate(eigen_gate.EigenGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: Relative phasing of CZ's eigenstates, in half_turns.
+            rads: Relative phasing of CZ's eigenstates, in radians.
+            degs: Relative phasing of CZ's eigenstates, in degrees.
+        """
         assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
@@ -85,6 +99,20 @@ class RotXGate(eigen_gate.EigenGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The relative phasing of X's eigenstates, in half_turns.
+            rads: The relative phasing of X's eigenstates, in radians.
+            degs: The relative phasing of X's eigenstates, in degrees.
+        """
         assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
@@ -133,6 +161,20 @@ class RotYGate(eigen_gate.EigenGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The relative phasing of Y's eigenstates, in half_turns.
+            rads: The relative phasing of Y's eigenstates, in radians.
+            degs: The relative phasing of Y's eigenstates, in degrees.
+        """
         assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
@@ -181,6 +223,20 @@ class RotZGate(eigen_gate.EigenGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The relative phasing of Z's eigenstates, in half_turns.
+            rads: The relative phasing of Z's eigenstates, in radians.
+            degs: The relative phasing of Z's eigenstates, in degrees.
+        """
         assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
@@ -307,6 +363,20 @@ class CNotGate(eigen_gate.EigenGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: Relative phasing of CNOT's eigenstates, in half_turns.
+            rads: Relative phasing of CNOT's eigenstates, in radians.
+            degs: Relative phasing of CNOT's eigenstates, in degrees.
+        """
         assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,

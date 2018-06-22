@@ -128,6 +128,20 @@ class Exp11Gate(XmonGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The amount of phasing of the 11 state, in half_turns.
+            rads: The amount of phasing of the 11 state, in radians.
+            degs: The amount of phasing of the 11 state, in degrees.
+        """
         assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
@@ -230,6 +244,27 @@ class ExpWGate(XmonGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one rotation angle argument may be specified. At most one axis
+        angle argument may be specified. If more are specified, the result is
+        considered ambiguous and an error is thrown. If no angle argument is
+        given, the default value of one half turn is used.
+
+        The axis angle determines the rotation axis in the XY plane, with 0
+        being positive-ward along X and 90 degrees being positive-ward along Y.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            axis_half_turns: The axis angle in the XY plane, in half_turns.
+            axis_rads: The axis angle in the XY plane, in radians.
+            axis_degs: The axis angle in the XY plane, in degrees.
+            half_turns: The amount to rotate, in half_turns.
+            rads: The amount to rotate, in radians.
+            degs: The amount to rotate, in degrees.
+        """
         assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
@@ -239,7 +274,7 @@ class ExpWGate(XmonGate,
             half_turns=axis_half_turns,
             rads=axis_rads,
             degs=axis_degs,
-            default=0)
+            default=0.0)
 
         if (not isinstance(self.half_turns, value.Symbol) and
                 not isinstance(self.axis_half_turns, value.Symbol) and
@@ -380,6 +415,20 @@ class ExpZGate(XmonGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The relative phasing of Z's eigenstates, in half_turns.
+            rads: The relative phasing of Z's eigenstates, in radians.
+            degs: The relative phasing of Z's eigenstates, in degrees.
+        """
         assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,

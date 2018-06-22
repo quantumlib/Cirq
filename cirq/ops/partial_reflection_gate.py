@@ -44,6 +44,20 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The relative phasing of the eigenstates, in half_turns.
+            rads: The relative phasing of the eigenstates, in radians.
+            degs: The relative phasing of the eigenstates, in degrees.
+        """
         assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,

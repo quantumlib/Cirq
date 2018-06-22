@@ -23,7 +23,7 @@ def chosen_angle_to_canonical_half_turns(
         half_turns: Optional[Union[symbol.Symbol, float]] = None,
         rads: Optional[float] = None,
         degs: Optional[float] = None,
-        default: float = 1,
+        default: float = 1.0,
 ) -> Union[symbol.Symbol, float]:
     """Returns a canonicalized half_turns based on the given arguments.
 
