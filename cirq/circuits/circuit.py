@@ -277,24 +277,24 @@ class Circuit(object):
                 return op
         return None
 
-    def findall(self, op_cond: Callable[[ops.Operation], bool]):
-        """Find all operations that satisfy a given condition.
+    def findall(self, predicate: Callable[[ops.Operation], bool]):
+        """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
         operation satisfies op_cond(operation) is truthy. The indices are
         in order of the moments and then order of the ops within that moment.
 
         Args:
-            op_cond: A method that takes an Operation and returns a Truthy value
-                indicating the operation meets the find condition.
+            predicate: A method that takes an Operation and returns a Truthy
+                value indicating the operation meets the find condition.
 
         Returns:
             An iterator (index, operation)'s that satisfy the op_condition.
         """
         for index, moment in enumerate(self.moments):
             for op in moment.operations:
-                if op_cond(op):
-                    yield (index, op)
+                if predicate(op):
+                    yield index, op
 
     def are_all_measurements_terminal(self):
         is_meas_gate = lambda op: isinstance(op.gate, ops.MeasurementGate)
