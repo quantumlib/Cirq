@@ -43,6 +43,14 @@ class EjectZ(OptimizationPass):
     def __init__(self,
                  tolerance: float = 0.0,
                  ext: extension.Extensions=None) -> None:
+        """
+        Args:
+            tolerance: Maximum absolute error tolerance. The optimization is
+                 permitted to simply drop negligible combinations of Z gates,
+                 with a threshold determined by this tolerance.
+            ext: Extensions object used for determining if gates are phaseable
+                (i.e. if Z gates can pass through them).
+        """
         self.tolerance = tolerance
         self.ext = ext or extension.Extensions()
 
