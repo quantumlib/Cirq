@@ -17,7 +17,7 @@ def main():
     # Create a circuit
     circuit = cirq.Circuit.from_ops(
         cirq.X(qubit)**0.5,  # Square root of NOT.
-        cirq.MeasurementGate('m').on(qubit)  # Measurement.
+        cirq.measure(qubit, key='m')  # Measurement.
     )
     print("Circuit:")
     print(circuit)

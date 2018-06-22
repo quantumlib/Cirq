@@ -77,6 +77,10 @@ class Gate:
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
+        if len(qubits) == 0:
+            raise ValueError(
+                "Applied a gate to an empty set of qubits. Gate: {}".format(
+                    repr(self)))
         self.validate_args(qubits)
         return Operation(self, list(qubits))
 
