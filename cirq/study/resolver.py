@@ -20,7 +20,7 @@ from cirq.value import Symbol
 
 
 class ParamResolver(object):
-    """Resolves a Symbol to an actual value.
+    """Resolves Symbols to actual values.
 
     A Symbol is a wrapped parameter name (str). A ParamResolver is an object
     that can be used to assign values for these keys.
