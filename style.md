@@ -12,7 +12,7 @@ Here we include some extra style guidelines.
 We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8, 
 with the following guidance.  
 
-In Cirq's main implementation codde (not testing code), we prefer importing the full module. This
+In Cirq's main implementation code (not testing code), we prefer importing the full module. This
 aids in mocking during tests.  Thus we prefer
 ```python
 from cirq import ops
@@ -23,7 +23,7 @@ in contrast to
 from cirq.ops import NamedQubit
 qubit = NamedQubit('a')
 ``` 
-or even
+or (the one we would prefer, but doing this causes cyclic dependencies)
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
