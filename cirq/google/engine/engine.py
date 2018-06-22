@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Classes for running against Google's Quantum Engine.
+"""Classes for running against Google's Quantum Cloud Service.
 
-As an example, to run a circuit against the xmon simulator
+As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(api_key='mysecretapikey')
     options = cirq.google.JobConfig(project_id='my-project-id')
     result = engine.run(options, circuit, repetitions=10)
+
+In order to run on must have access to the Quantum Engine API. Access to this
+API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
@@ -49,7 +52,7 @@ TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 
 
 class EngineTrialResult(TrialResult):
-    """Results of a single run against the Engine.
+    """Results of a single run against the Quantum Engine API.
 
     Attributes:
         params: A ParamResolver of settings used for this result.
@@ -78,7 +81,7 @@ class EngineTrialResult(TrialResult):
 
 
 class JobConfig:
-    """Configuration for a program and job to run on Quantum Engine.
+    """Configuration for a program and job to run on the Quantum Engine API.
 
     Quantum engine has two resources: programs and jobs. Programs live
     under cloud projects. Every program may have many jobs, which represent
@@ -123,7 +126,7 @@ class JobConfig:
 
 
 class Engine:
-    """Runs programs on Quantum Engine.
+    """Runs programs via the Quantum Engine API.
 
     This class has methods for creating programs and jobs that execute on
     Quantum Engine:
@@ -479,7 +482,7 @@ class Engine:
 
 
 class EngineJob:
-    """A job created on Quantum Engine.
+    """A job created via the Quantum Engine API.
 
     This job may be in a variety of states. It may be scheduling, it may be
     executing on a machine, or it may have entered a terminal state
