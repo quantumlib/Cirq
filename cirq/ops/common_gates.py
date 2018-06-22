@@ -14,7 +14,7 @@
 
 """Quantum gates that are commonly used in the literature."""
 import math
-from typing import Union, Tuple, Optional, List
+from typing import Union, Tuple, Optional, List, Callable
 
 import numpy as np
 
@@ -237,13 +237,18 @@ class MeasurementGate(gate_features.TextDiagrammableGate):
         return hash((MeasurementGate, self.key, self.invert_mask))
 
 
-def measure(*qubits, key=None, invert_mask=None) -> raw_types.Operation:
+def measure(*qubits: raw_types.QubitId,
+            key: Optional[str] = None,
+            invert_mask: Optional[Tuple[bool, ...]] = None
+            ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
+
+    The qubits are measured in the computational basis.
 
     Args:
         *qubits: The qubits that the measurement gate should measure.
         key: The string key of the measurement. If this is None, it defaults
-            to a comma-separated list of the target qubits' names.
+            to a comma-separated list of the target qubits' str values.
         invert_mask: A list of Truthy or Falsey values indicating whether
             the corresponding qubits should be flipped. None indicates no
             inverting should be done.
@@ -256,8 +261,12 @@ def measure(*qubits, key=None, invert_mask=None) -> raw_types.Operation:
     return MeasurementGate(key, invert_mask).on(*qubits)
 
 
-def measure_each(*qubits, key_func=str) -> List[raw_types.Operation]:
+def measure_each(*qubits: raw_types.QubitId,
+                 key_func: Callable[[raw_types.QubitId], str] = str
+                 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
+
+    The qubits are measured in the computational basis.
 
     Args:
         *qubits: The qubits to measure.
@@ -266,7 +275,6 @@ def measure_each(*qubits, key_func=str) -> List[raw_types.Operation]:
 
     Returns:
         A list of operations individually measuring the given qubits.
-
     """
     return [MeasurementGate(key_func(q)).on(q) for q in qubits]
 
