@@ -42,7 +42,7 @@ class EjectZ(OptimizationPass):
 
     def __init__(self,
                  tolerance: float = 0.0,
-                 ext: extension.Extensions=None):
+                 ext: extension.Extensions=None) -> None:
         self.tolerance = tolerance
         self.ext = ext or extension.Extensions()
 
