@@ -80,6 +80,11 @@ def test_partial_reflection_gate_str():
     assert str(DummyGate(half_turns=.25)) == 'D**0.25'
 
 
+def test_partial_reflection_gate_trace_bound():
+    assert DummyGate(half_turns=.001).trace_distance_bound() < 0.01
+    assert DummyGate(half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
+
+
 def test_partial_reflection_gate_with_parameters_resolved_by():
     gate = DummyGate(half_turns=Symbol('a'))
     resolver = ParamResolver({'a': 0.1})

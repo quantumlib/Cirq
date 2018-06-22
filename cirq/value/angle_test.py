@@ -46,8 +46,11 @@ def test_chosen_angle_to_canonical_half_turns():
 
     with pytest.raises(ValueError):
         _ = cirq.chosen_angle_to_canonical_half_turns(half_turns=0, rads=0)
+    with pytest.raises(ValueError):
         _ = cirq.chosen_angle_to_canonical_half_turns(half_turns=0, degs=0)
+    with pytest.raises(ValueError):
         _ = cirq.chosen_angle_to_canonical_half_turns(degs=0, rads=0)
+    with pytest.raises(ValueError):
         _ = cirq.chosen_angle_to_canonical_half_turns(half_turns=0,
                                                       rads=0,
                                                       degs=0)

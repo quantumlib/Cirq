@@ -15,6 +15,7 @@ import pytest
 import numpy as np
 from google.protobuf import message, text_format
 
+import cirq
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import Extensions
 from cirq.google import (
@@ -325,3 +326,17 @@ def test_w_parameterize():
     resolver = ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == ExpWGate(half_turns=0.1, axis_half_turns=0.2)
+
+
+def test_trace_bound():
+    assert ExpZGate(half_turns=.001).trace_distance_bound() < 0.01
+    assert ExpWGate(half_turns=.001).trace_distance_bound() < 0.01
+    assert ExpZGate(half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
+    assert ExpWGate(half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
+
+
+def test_has_inverse():
+    assert ExpZGate(half_turns=.1).has_inverse()
+    assert ExpWGate(half_turns=.1).has_inverse()
+    assert not ExpZGate(half_turns=cirq.Symbol('a')).has_inverse()
+    assert not ExpWGate(half_turns=cirq.Symbol('a')).has_inverse()
