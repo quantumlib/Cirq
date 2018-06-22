@@ -61,7 +61,7 @@ def _cancel_qubit_phase(m: np.ndarray, k: int) -> None:
 
 def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
     matrix = circuit.to_unitary_matrix()
-    ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit.qubits())
+    ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit.all_qubits())
     for moment in circuit:
         for op in moment.operations:
             if isinstance(op.gate, cirq.MeasurementGate):

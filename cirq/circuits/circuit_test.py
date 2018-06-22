@@ -543,7 +543,7 @@ def test_clear_operations_touching():
     ])
 
 
-def test_qubits():
+def test_all_qubits():
     a = ops.QubitId()
     b = ops.QubitId()
 
@@ -551,24 +551,58 @@ def test_qubits():
         Moment([ops.X(a)]),
         Moment([ops.X(b)]),
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
 
     c = Circuit([
         Moment([ops.X(a)]),
         Moment([ops.X(a)]),
     ])
-    assert c.qubits() == {a}
+    assert c.all_qubits() == {a}
 
     c = Circuit([
         Moment([ops.CZ(a, b)]),
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
 
     c = Circuit([
         Moment([ops.CZ(a, b)]),
         Moment([ops.X(a)])
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
+
+
+def test_all_operations():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    c = Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.X(b)]),
+    ])
+    assert c.all_operations() == [ops.X(a), ops.X(b)]
+
+    c = Circuit([
+        Moment([ops.X(a), ops.X(b)]),
+    ])
+    assert c.all_operations() in [[ops.X(a), ops.X(b)], [ops.X(b), ops.X(a)]]
+
+    c = Circuit([
+        Moment([ops.X(a)]),
+        Moment([ops.X(a)]),
+    ])
+    assert c.all_operations() == [ops.X(a), ops.X(a)]
+
+    c = Circuit([
+        Moment([ops.CZ(a, b)]),
+    ])
+    assert c.all_operations() == [ops.CZ(a, b)]
+
+    c = Circuit([
+        Moment([ops.CZ(a, b)]),
+        Moment([ops.X(a)])
+    ])
+    assert c.all_operations() == [ops.CZ(a, b), ops.X(a)]
+
 
 
 def test_from_ops():

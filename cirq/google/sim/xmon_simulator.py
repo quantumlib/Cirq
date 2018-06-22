@@ -378,7 +378,7 @@ class XmonSimulator:
                 final_state = step_result.state()
             else:
                 # Empty circuit, so final state should be initial state.
-                num_qubits = len(qubit_order.order_for(circuit.qubits()))
+                num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
                 final_state = xmon_stepper.decode_initial_state(initial_state,
                                                                 num_qubits)
             trial_results.append(XmonSimulateTrialResult(
@@ -511,7 +511,7 @@ def _simulator_iterator(
             composite gates made of XmonGates.
     """
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-        circuit.qubits())
+        circuit.all_qubits())
     qubit_map = {q: i for i, q in enumerate(reversed(qubits))}
     if isinstance(initial_state, np.ndarray):
         initial_state = initial_state.astype(dtype=np.complex64,

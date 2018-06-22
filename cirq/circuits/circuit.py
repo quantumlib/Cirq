@@ -19,7 +19,7 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Dict, FrozenSet, Generator, Iterable, Iterator
+from typing import Any, Dict, FrozenSet, Generator, Iterable, Iterator, List
 from typing import Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
@@ -425,9 +425,13 @@ class Circuit(object):
                 self.moments[k] = self.moments[k].without_operations_touching(
                     qubits)
 
-    def qubits(self) -> FrozenSet[QubitId]:
+    def all_qubits(self) -> FrozenSet[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
+
+    def all_operations(self) -> List[ops.Operation]:
+        """Returns the operations applied by this circuit."""
+        return [op for moment in self for op in moment.operations]
 
     def to_unitary_matrix(
             self,
@@ -462,7 +466,7 @@ class Circuit(object):
         if ext is None:
             ext = Extensions()
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.qubits().union(qubits_that_should_be_present))
+            self.all_qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
         matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
@@ -528,7 +532,7 @@ class Circuit(object):
             ext = Extensions()
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.qubits())
+            self.all_qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         diagram = TextDiagramDrawer()
