@@ -99,6 +99,8 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
     KnownMatrixGate,
+    measure,
+    measure_each,
     MeasurementGate,
     NamedQubit,
     OP_TREE,
