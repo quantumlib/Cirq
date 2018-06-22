@@ -33,10 +33,18 @@ class Sweep(metaclass=abc.ABCMeta):
     """A sweep is an iterator over ParamResolvers.
 
     A ParamResolver assigns values to Symbols. For sweeps, each ParamResolver
-    must specify the same Symbols that are resigned.  So a sweep is a way to
+    must specify the same Symbols that are assigned.  So a sweep is a way to
     iterate over a set of different values for a fixed set of Symbols. This is
     useful for a circuit, where there are a fixed set of Symbols, and you want
     to iterate over an assignment of all values to all symbols.
+
+    For example, a sweep can explicitly assign a set of equally spaced points
+    between two endpoints using a Linspace,
+        sweep = Linspace("angle", start=0.0, end=2.0, length=10)
+    This can then be used with a circuit that has an 'angle' Symbol to
+    run simulations multiple simulations, one for each of the values in the
+    sweep
+        result = simulator.run_sweep(program=circuit, params=sweep)
 
     Sweeps support Cartesian and Zip products using the '*' and '+' operators,
     see the Product and Zip documentation.
