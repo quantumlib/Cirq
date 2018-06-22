@@ -14,26 +14,26 @@
 
 """Tests for visualize."""
 
-from matplotlib import pyplot as pl
 import numpy as np
+from matplotlib import pyplot as pl
 
-from cirq.circuits import Circuit
-from cirq.google import XmonSimulator, XmonQubit, ExpWGate, XmonMeasurementGate
+import cirq
+import cirq.google as cg
 from cirq.study import visualize
 
 
 def test_plot_state_histogram():
     pl.switch_backend('PDF')
-    simulator = XmonSimulator()
+    simulator = cg.XmonSimulator()
 
-    rot_w_gate = ExpWGate(half_turns=1.)
+    rot_w_gate = cg.ExpWGate(half_turns=1.)
 
-    q0 = XmonQubit(0, 0)
-    q1 = XmonQubit(1, 0)
-    circuit = Circuit()
+    q0 = cg.XmonQubit(0, 0)
+    q1 = cg.XmonQubit(1, 0)
+    circuit = cirq.Circuit()
     circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
-    circuit.append([XmonMeasurementGate(key='q0')(q0),
-                    XmonMeasurementGate(key='q1')(q1)])
+    circuit.append([cg.XmonMeasurementGate(key='q0')(q0),
+                    cg.XmonMeasurementGate(key='q1')(q1)])
     results = simulator.run_sweep(program=circuit,
                                   repetitions=5)
 
