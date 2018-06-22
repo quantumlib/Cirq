@@ -15,7 +15,7 @@ import collections
 from typing import Iterator, List, Sequence, Tuple
 
 from cirq import abc
-from cirq.study.resolver import ParamResolver
+from cirq.study import resolver
 
 
 Params = Tuple[Tuple[str, float], ...]
@@ -30,6 +30,26 @@ def _check_duplicate_keys(sweeps):
 
 
 class Sweep(metaclass=abc.ABCMeta):
+    """A sweep is an iterator over ParamResolvers.
+
+    A ParamResolver assigns values to Symbols. For sweeps, each ParamResolver
+    must specify the same Symbols that are assigned.  So a sweep is a way to
+    iterate over a set of different values for a fixed set of Symbols. This is
+    useful for a circuit, where there are a fixed set of Symbols, and you want
+    to iterate over an assignment of all values to all symbols.
+
+    For example, a sweep can explicitly assign a set of equally spaced points
+    between two endpoints using a Linspace,
+        sweep = Linspace("angle", start=0.0, end=2.0, length=10)
+    This can then be used with a circuit that has an 'angle' Symbol to
+    run simulations multiple simulations, one for each of the values in the
+    sweep
+        result = simulator.run_sweep(program=circuit, params=sweep)
+
+    Sweeps support Cartesian and Zip products using the '*' and '+' operators,
+    see the Product and Zip documentation.
+    """
+
     def __mul__(self, other: 'Sweep') -> 'Sweep':
         factors = []  # type: List[Sweep]
         if isinstance(self, Product):
@@ -67,23 +87,28 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @abc.abstractproperty
     def keys(self) -> List[str]:
+        """The keys for the all of the Symbols that are resolved."""
         pass
 
     @abc.abstractmethod
     def __len__(self) -> int:
         pass
 
-    def __iter__(self) -> Iterator[ParamResolver]:
+    def __iter__(self) -> Iterator[resolver.ParamResolver]:
         for params in self.param_tuples():
-            yield ParamResolver(collections.OrderedDict(params))
+            yield resolver.ParamResolver(collections.OrderedDict(params))
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
+        """An iterator over (key, value) pairs assigning Symbol key to value."""
         pass
 
 
 class _Unit(Sweep):
-    """A sweep with a single element that assigns no parameter values."""
+    """A sweep with a single element that assigns no parameter values.
+
+    This is useful as a base sweep, instead of special casing None.
+    """
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -108,7 +133,13 @@ Unit = _Unit()  # singleton instance
 
 
 class Product(Sweep):
-    """Cartesian product of one or more sweeps."""
+    """Cartesian product of one or more sweeps.
+
+    If one sweep assigns 'a' to the values 0, 1, 2, and the second sweep
+    assigns 'b' to the values 2, 3, then the product is a sweep that
+    assigns the tuple ('a','b') to all possible combinations of these
+    assignments: (0, 2), (1, 2), (2, 2), (0, 3), (1, 3), (2, 3).
+    """
 
     def __init__(self, *factors: Sweep) -> None:
         _check_duplicate_keys(factors)
@@ -160,10 +191,17 @@ class Product(Sweep):
 
 
 class Zip(Sweep):
-    """Direct sum of one or more sweeps.
+    """Zip product (direct sum) of one or more sweeps.
+
+    If one sweep assigns 'a' to values 0, 1, 2, and the second sweep assigns 'b'
+    to the values 3, 4, 5, then the zip is a sweep that assigns to the
+    tuple ('a', 'b') the pair-wise matched values (0, 3), (1, 4), (2, 5).
 
     When iterating over a Zip, we iterate the individual sweeps in parallel,
-    stopping when the first component sweep stops.
+    stopping when the first component sweep stops. For example if one sweep
+    assigns 'a' to values 0, 1 and the second sweep assigns 'b' to the values
+    3, 4, 5, then the zip is a sweep that assigns to the tuple ('a', 'b') the
+    values (0, 3), (1, 4).
     """
 
     def __init__(self, *sweeps: Sweep) -> None:
@@ -231,7 +269,7 @@ class SingleSweep(Sweep):
 
 
 class Points(SingleSweep):
-    """A simple sweep with explicit values."""
+    """A simple sweep with explicitly supplied values."""
 
     def __init__(self, key: str, points: Sequence[float]) -> None:
         super(Points, self).__init__(key)
@@ -253,7 +291,16 @@ class Points(SingleSweep):
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
-    def __init__(self, key, start, stop, length) -> None:
+    def __init__(
+        self, key: str,
+        start: float,
+        stop: float,
+        length: int) -> None:
+        """Creates a linear-spaced sweep for a given key.
+
+        For the given args, assigns to the list of values
+            start, start + (stop - start) / (length - 1), ..., stop
+        """
         super(Linspace, self).__init__(key)
         self.start = start
         self.stop = stop
