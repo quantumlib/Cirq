@@ -17,7 +17,7 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Optional, Sequence, Tuple, Type, Union
+from typing import Optional, Sequence, Tuple, Type, Union, Iterable
 
 import numpy as np
 
@@ -228,6 +228,17 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(
                 'Single-qubit gate applied to multiple qubits: {}({})'.
                 format(self, qubits))
+
+    def on_each(self, targets: Iterable[raw_types.QubitId]) -> op_tree.OP_TREE:
+        """Returns a list of operations apply this gate to each of the targets.
+
+        Args:
+            targets: The qubits to apply this gate to.
+
+        Returns:
+            Operations applying this gate to the target qubits.
+        """
+        return [self.on(target) for target in targets]
 
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
