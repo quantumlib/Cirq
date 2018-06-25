@@ -49,7 +49,7 @@ def test_generate_supremacy_circuit_seeding():
 
 
 def test_example_runs_bernstein_vazirani():
-    examples.bernstein_vazirani.main(None)
+    examples.bernstein_vazirani.main()
 
 
 def test_example_runs_hello_qubit():

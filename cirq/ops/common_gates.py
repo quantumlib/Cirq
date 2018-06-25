@@ -23,6 +23,7 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 
 
 class Rot11Gate(eigen_gate.EigenGate,
+                gate_features.PhaseableGate,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammableGate,
                 raw_types.InterchangeableQubitsGate):
@@ -68,6 +69,9 @@ class Rot11Gate(eigen_gate.EigenGate,
     def _with_exponent(self,
                        exponent: Union[value.Symbol, float]) -> 'Rot11Gate':
         return Rot11Gate(half_turns=exponent)
+
+    def phase_by(self, phase_turns, qubit_index):
+        return self
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:

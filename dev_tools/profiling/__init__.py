@@ -11,16 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Client for running on Google's Quantum Engine.
-"""
-
-from cirq.google.engine.engine import (
-    Engine,
-    JobConfig,
-    EngineTrialResult,
-)
-
-from cirq.google.engine.env_config import (
-    engine_from_environment,
-)
