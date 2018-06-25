@@ -964,21 +964,7 @@ def test_compare_simulator_states_to_gate_matrices():
         Circuit.from_ops(CZ(Q1, Q2)**0.5))
 
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
-def test_simulator_trial_result_repr():
-    v = xmon_simulator.XmonTrialResult(
-        params=ParamResolver({'a': 2}),
-        repetitions=2,
-        measurements={'m': np.array([[1, 2]])})
-
-    assert repr(v) == ("XmonTrialResult("
-                       "params=ParamResolver({'a': 2}), "
-                       "repetitions=2, "
-                       "measurements={'m': array([[1, 2]])})")
-
-
-def test_simulator_trial_result_str():
+def test_simulator_trial_result():
     a = cirq.google.XmonQubit(0, 0)
     b = cirq.google.XmonQubit(0, 1)
     c = cirq.google.XmonQubit(0, 2)
@@ -990,10 +976,10 @@ def test_simulator_trial_result_str():
         cirq.measure(c, key='c')
     )
     result = cirq.google.XmonSimulator().run(circuit)
-    assert str(result) == "a=1\nb=1\nc=0"
+    assert str(result) == 'a=1\nb=1\nc=0'
 
 
-def test_simulator_trial_result_str_repetitions():
+def test_simulator_trial_repeated_result():
     a = cirq.google.XmonQubit(0, 0)
     b = cirq.google.XmonQubit(0, 1)
     c = cirq.google.XmonQubit(0, 2)
@@ -1003,7 +989,7 @@ def test_simulator_trial_result_str_repetitions():
         cirq.measure(c, key='c')
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
-    assert str(result) == "ab=00000, 11111\nc=00000"
+    assert str(result) == 'ab=00000, 11111\nc=00000'
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
