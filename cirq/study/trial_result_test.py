@@ -76,7 +76,7 @@ def test_histogram():
     })
 
 
-def test_combined_histogram():
+def test_multi_measurement_histogram():
     result = cirq.TrialResult(
         params=cirq.ParamResolver({}),
         repetitions=5,
@@ -89,40 +89,45 @@ def test_combined_histogram():
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
 
-    assert result.combined_histogram(keys=[]) == collections.Counter({
-        (): 5,
+    assert result.multi_measurement_histogram(keys=[]) == collections.Counter(
+        {(): 5})
+    assert (result.multi_measurement_histogram(keys=['ab']) ==
+            collections.Counter({
+                (1,): 4,
+                (2,): 1,
+            }))
+    assert (result.multi_measurement_histogram(keys=['c']) ==
+            collections.Counter({
+                (0,): 3,
+                (1,): 2,
+            }))
+    assert (result.multi_measurement_histogram(keys=['ab', 'c']) ==
+            collections.Counter({
+                (1, 0,): 2,
+                (1, 1,): 2,
+                (2, 0,): 1,
+            }))
+
+    assert result.multi_measurement_histogram(keys=[],
+                                              fold_func=lambda e: None
+                                              ) == collections.Counter({
+        None: 5,
     })
-    assert result.combined_histogram(keys=['ab']) == collections.Counter({
-        (1,): 4,
-        (2,): 1,
+    assert result.multi_measurement_histogram(keys=['ab'],
+                                              fold_func=lambda e: None
+                                              ) == collections.Counter({
+        None: 5,
     })
-    assert result.combined_histogram(keys=['c']) == collections.Counter({
-        (0,): 3,
-        (1,): 2,
-    })
-    assert result.combined_histogram(keys=['ab', 'c']) == collections.Counter({
-        (1, 0,): 2,
-        (1, 1,): 2,
-        (2, 0,): 1,
+    assert result.multi_measurement_histogram(keys=['ab', 'c'],
+                                              fold_func=lambda e: None
+                                              ) == collections.Counter({
+        None: 5,
     })
 
-    assert result.combined_histogram(keys=[], fold_func=lambda e: None
-                                     ) == collections.Counter({
-        None: 5,
-    })
-    assert result.combined_histogram(keys=['ab'], fold_func=lambda e: None
-                                     ) == collections.Counter({
-        None: 5,
-    })
-    assert result.combined_histogram(keys=['ab', 'c'], fold_func=lambda e: None
-                                     ) == collections.Counter({
-        None: 5,
-    })
-
-    assert result.combined_histogram(keys=['ab', 'c'],
-                                     fold_func=lambda e: tuple(tuple(f)
-                                                               for f in e)
-                                     ) == collections.Counter({
+    assert result.multi_measurement_histogram(keys=['ab', 'c'],
+                                              fold_func=lambda e: tuple(
+                                                  tuple(f) for f in e)
+                                              ) == collections.Counter({
         ((False, True), (False,)): 2,
         ((False, True), (True,)): 2,
         ((True, False), (False,)): 1,
