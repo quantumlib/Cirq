@@ -44,7 +44,7 @@ class Circuit(object):
         prev_moment_operating_on
         operation_on
         qubits
-        findall
+        findall_operations
         to_unitary_matrix
         to_text_diagram
         to_text_diagram_drawer
@@ -277,7 +277,7 @@ class Circuit(object):
                 return op
         return None
 
-    def findall(self, predicate: Callable[[ops.Operation], bool]):
+    def findall_operations(self, predicate: Callable[[ops.Operation], bool]):
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -300,7 +300,7 @@ class Circuit(object):
         is_meas_gate = lambda op: isinstance(op.gate, ops.MeasurementGate)
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall(is_meas_gate))
+            in self.findall_operations(is_meas_gate))
 
 
     def _pick_or_create_inserted_op_moment_index(

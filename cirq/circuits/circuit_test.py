@@ -490,7 +490,7 @@ def test_operation_at():
     assert c.operation_at(a, 1) == ops.CZ(a, b)
 
 
-def test_findall():
+def test_findall_operations():
     a = ops.QubitId()
     b = ops.QubitId()
 
@@ -502,34 +502,34 @@ def test_findall():
     is_x = lambda op: isinstance(op.gate, ops.RotXGate)
 
     c = Circuit()
-    assert list(c.findall(is_x)) == []
+    assert list(c.findall_operations(is_x)) == []
 
     c = Circuit.from_ops(xa)
-    assert list(c.findall(is_x)) == [(0, xa)]
+    assert list(c.findall_operations(is_x)) == [(0, xa)]
 
     c = Circuit.from_ops(za)
-    assert list(c.findall(is_x)) == []
+    assert list(c.findall_operations(is_x)) == []
 
     c = Circuit.from_ops([za, zb] * 8)
-    assert list(c.findall(is_x)) == []
+    assert list(c.findall_operations(is_x)) == []
 
     c = Circuit.from_ops(xa, xb)
-    assert list(c.findall(is_x)) == [(0, xa), (0, xb)]
+    assert list(c.findall_operations(is_x)) == [(0, xa), (0, xb)]
 
     c = Circuit.from_ops(xa, zb)
-    assert list(c.findall(is_x)) == [(0, xa)]
+    assert list(c.findall_operations(is_x)) == [(0, xa)]
 
     c = Circuit.from_ops(xa, za)
-    assert list(c.findall(is_x)) == [(0, xa)]
+    assert list(c.findall_operations(is_x)) == [(0, xa)]
 
     c = Circuit.from_ops([xa] * 8)
-    assert list(c.findall(is_x)) == list(enumerate([xa] * 8))
+    assert list(c.findall_operations(is_x)) == list(enumerate([xa] * 8))
 
     c = Circuit.from_ops(za, zb, xa, xb)
-    assert list(c.findall(is_x)) == [(1, xa), (1, xb)]
+    assert list(c.findall_operations(is_x)) == [(1, xa), (1, xb)]
 
     c = Circuit.from_ops(xa, zb, za, xb)
-    assert list(c.findall(is_x)) == [(0, xa), (1, xb)]
+    assert list(c.findall_operations(is_x)) == [(0, xa), (1, xb)]
 
 
 def test_are_all_measurements_terminal():
