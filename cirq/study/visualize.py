@@ -14,10 +14,16 @@
 
 """Tool to visualize the results of a study."""
 
-import numpy as np
-import matplotlib.pyplot as pl
+from typing import TYPE_CHECKING
 
-def plot_state_histogram(result):
+import numpy as np
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.google import XmonTrialResult
+
+
+def plot_state_histogram(result: 'XmonTrialResult') -> np.ndarray:
     """Plot the state histogram from a single result with repetitions.
 
     States is a bitstring representation of all the qubit states in a single
@@ -26,11 +32,17 @@ def plot_state_histogram(result):
     a single qubit.
 
     Args:
-        result: Instance of XmonTrialResult.
+        result: The trial results to plot.
 
     Returns:
-        list of values plotted on the y-axis.
+        The histogram. A list of values plotted on the y-axis.
     """
+
+    # pyplot import is deferred because it requires a system dependency
+    # (python3-tk) that `pip install cirq` can't handle for the user. This
+    # allows cirq to be usable without python3-tk.
+    import matplotlib.pyplot as plt
+
     num_qubits = len(result.measurements.keys())
     states = 2**num_qubits
     values = np.zeros(states)
@@ -50,9 +62,9 @@ def plot_state_histogram(result):
         values[state_ind] += 1
 
     plot_labels = [bin(x)[2:].zfill(num_qubits) for x in range(states)]
-    pl.bar(np.arange(states), values, tick_label=plot_labels)
-    pl.xlabel('qubit state')
-    pl.ylabel('result count')
-    pl.show()
+    plt.bar(np.arange(states), values, tick_label=plot_labels)
+    plt.xlabel('qubit state')
+    plt.ylabel('result count')
+    plt.show()
 
     return values
