@@ -92,7 +92,9 @@ def test_z_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_pair(lambda: ExpZGate(half_turns=0))
     eq.add_equality_group(ExpZGate(),
-                          ExpZGate(half_turns=1))
+                          ExpZGate(half_turns=1),
+                          ExpZGate(degs=180),
+                          ExpZGate(rads=np.pi))
     eq.make_equality_pair(
         lambda: ExpZGate(half_turns=Symbol('a')))
     eq.make_equality_pair(
@@ -159,7 +161,9 @@ def test_cz_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=0))
     eq.add_equality_group(Exp11Gate(),
-                          Exp11Gate(half_turns=1))
+                          Exp11Gate(half_turns=1),
+                          Exp11Gate(degs=180),
+                          Exp11Gate(rads=np.pi))
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=Symbol('a')))
     eq.make_equality_pair(lambda: Exp11Gate(half_turns=Symbol('b')))
     eq.add_equality_group(
@@ -226,15 +230,18 @@ def test_cz_parameterize():
 def test_w_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(ExpWGate(),
-                          ExpWGate(half_turns=1, axis_half_turns=0))
+                          ExpWGate(half_turns=1, axis_half_turns=0),
+                          ExpWGate(degs=180, axis_degs=0),
+                          ExpWGate(rads=np.pi, axis_rads=0))
     eq.make_equality_pair(
         lambda: ExpWGate(half_turns=Symbol('a')))
     eq.make_equality_pair(lambda: ExpWGate(half_turns=0))
     eq.make_equality_pair(
         lambda: ExpWGate(half_turns=0,
                          axis_half_turns=Symbol('a')))
-    eq.make_equality_pair(
-        lambda: ExpWGate(half_turns=0, axis_half_turns=0.5))
+    eq.add_equality_group(
+        ExpWGate(half_turns=0, axis_half_turns=0.5),
+        ExpWGate(half_turns=0, axis_rads=np.pi / 2))
     eq.make_equality_pair(
         lambda: ExpWGate(
             half_turns=Symbol('ab'),
@@ -323,6 +330,20 @@ def test_w_parameterize():
     resolver = ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == ExpWGate(half_turns=0.1, axis_half_turns=0.2)
+
+
+def test_trace_bound():
+    assert ExpZGate(half_turns=.001).trace_distance_bound() < 0.01
+    assert ExpWGate(half_turns=.001).trace_distance_bound() < 0.01
+    assert ExpZGate(half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
+    assert ExpWGate(half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
+
+
+def test_has_inverse():
+    assert ExpZGate(half_turns=.1).has_inverse()
+    assert ExpWGate(half_turns=.1).has_inverse()
+    assert not ExpZGate(half_turns=cirq.Symbol('a')).has_inverse()
+    assert not ExpWGate(half_turns=cirq.Symbol('a')).has_inverse()
 
 
 def test_measure_key_on():
