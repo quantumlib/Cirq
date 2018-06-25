@@ -21,7 +21,7 @@ from cirq.ops import QubitId
 class XmonQubit(QubitId):
     """A qubit at a location on an xmon chip.
 
-    XmonQubits are given a row-major ordering:
+    XmonQubits use row-major ordering:
 
         XmonQubit(0, 0) < XmonQubit(0, 1) < XmonQubit(1, 0) < XmonQubit(1, 1)
     """
