@@ -1,5 +1,6 @@
 -r python2.7-runtime-requirements.txt
 
 3to2~=1.1
+absl-py~=0.2
 mock~=2.0
 pytest~=3.2
