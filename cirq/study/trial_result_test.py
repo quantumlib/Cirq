@@ -59,8 +59,8 @@ def test_histogram():
         })
 
     assert result.histogram(key='ab') == collections.Counter({
-        0b01: 4,
-        0b10: 1
+        1: 4,
+        2: 1
     })
     assert result.histogram(key='ab', fold_func=tuple) == collections.Counter({
         (False, True): 4,
@@ -93,17 +93,17 @@ def test_combined_histogram():
         (): 5,
     })
     assert result.combined_histogram(keys=['ab']) == collections.Counter({
-        (0b01,): 4,
-        (0b10,): 1,
+        (1,): 4,
+        (2,): 1,
     })
     assert result.combined_histogram(keys=['c']) == collections.Counter({
         (0,): 3,
         (1,): 2,
     })
     assert result.combined_histogram(keys=['ab', 'c']) == collections.Counter({
-        (0b01, 0,): 2,
-        (0b01, 1,): 2,
-        (0b10, 0,): 1,
+        (1, 0,): 2,
+        (1, 1,): 2,
+        (2, 0,): 1,
     })
 
     assert result.combined_histogram(keys=[], fold_func=lambda e: None

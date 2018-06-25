@@ -24,7 +24,7 @@ from cirq.study import resolver
 T = TypeVar('T')
 
 
-def _tuple_of_big_endian_int(bit_groups: np.ndarray
+def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
                              ) -> Tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
@@ -38,7 +38,7 @@ def _tuple_of_big_endian_int(bit_groups: np.ndarray
     return tuple(_big_endian_int(bits) for bits in bit_groups)
 
 
-def _big_endian_int(bits: Iterable[bool]) -> int:
+def _big_endian_int(bits: np.ndarray) -> int:
     """Returns the big-endian integer specified by the given bits.
 
     For example, [True, False, False, True, False] becomes binary 10010 which
@@ -90,7 +90,7 @@ class TrialResult:
                  *positional_args,
                  params: resolver.ParamResolver,
                  measurements: Dict[str, np.ndarray],
-                 repetitions: int):
+                 repetitions: int) -> None:
         """
         Args:
             positional_args: Never specified. Forces keyword arguments.
@@ -107,7 +107,8 @@ class TrialResult:
         self.measurements = measurements
         self.repetitions = repetitions
 
-    def combined_histogram(
+    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
+    def combined_histogram(  # type: ignore
             self,
             *positional_args,
             keys: Iterable[str],
@@ -150,17 +151,18 @@ class TrialResult:
             results.
         """
         assert not positional_args
-        keys = tuple(keys)
+        fixed_keys = tuple(keys)
         samples = zip(*[self.measurements[sub_key]
-                        for sub_key in keys])
-        if len(keys) == 0:
-            samples = [[]] * self.repetitions
-        c = collections.Counter()
+                        for sub_key in fixed_keys])
+        if len(fixed_keys) == 0:
+            samples = [()] * self.repetitions
+        c = collections.Counter()  # type: collections.Counter
         for sample in samples:
             c[fold_func(sample)] += 1
         return c
 
-    def histogram(self,
+    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
+    def histogram(self,  # type: ignore
                   *positional_args,
                   key: str,
                   fold_func: Callable[[np.ndarray], T] = _big_endian_int
