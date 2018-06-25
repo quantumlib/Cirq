@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for benchmarker."""
+
+"""Tests for benchmark_xmon_simulator."""
 
 import pytest
 
 from absl import app
 from absl.testing import flagsaver
 
-from cirq.google.sim import benchmarker
+from dev_tools.profiling import benchmark_xmon_simulator
 
 
 def test_sanity_param_combos():
@@ -26,13 +27,17 @@ def test_sanity_param_combos():
         for num_gates in (10, 20):
             for num_prefix_qubits in (0, 2):
                 for use_processes in (True, False):
-                    benchmarker.simulate(num_qubits, num_gates,
-                                         num_prefix_qubits, use_processes)
+                    benchmark_xmon_simulator.simulate(
+                        num_qubits,
+                        num_gates,
+                        num_prefix_qubits,
+                        use_processes)
 
 
 @flagsaver.flagsaver(min_num_qubits=4, max_num_qubits=6)
 def test_main():
     with pytest.raises(SystemExit):
-        app.run(benchmarker.main,
-                argv=(
-                'main', 'from cirq.google.sim.benchmarker import simulate'))
+        app.run(benchmark_xmon_simulator.main, argv=(
+            'main',
+            'from dev_tools.profiling.benchmark_xmon_simulator import simulate'
+        ))
