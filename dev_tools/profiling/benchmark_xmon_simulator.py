@@ -15,7 +15,7 @@
 """Tool to benchmark the xmon_simulator."""
 
 import timeit
-from typing import Any, Dict, List, Tuple # pylint: disable=unused-import
+from typing import Any, Dict, List, Tuple  # pylint: disable=unused-import
 
 import numpy as np
 from absl import app
@@ -40,8 +40,10 @@ flags.DEFINE_bool('use_processes', False,
                   'Whether or not to us multiprocessing or threads.')
 
 
-def simulate(num_qubits: int, num_gates: int, num_prefix_qubits: int,
-    use_processes: bool) -> None:
+def simulate(num_qubits: int,
+             num_gates: int,
+             num_prefix_qubits: int,
+             use_processes: bool) -> None:
     """"Runs the xmon_simulator."""
     ops = []  # type: List[Any]
     for _ in range(num_gates):
@@ -101,14 +103,14 @@ def main(argv):
     setup = argv[1] if len(argv) == 2 else 'from __main__ import simulate'
     print('num_qubits,seconds per gate')
     for num_qubits in range(FLAGS.min_num_qubits, FLAGS.max_num_qubits + 1):
-      command = 'simulate(%s, %s, %s, %s)' % (
-        num_qubits,
-        FLAGS.num_gates,
-        FLAGS.num_prefix_qubits,
-        FLAGS.use_processes)
-      time = timeit.timeit(command, setup, number=FLAGS.num_repetitions)
-      print('{},{}'.format(num_qubits,
-                           time / (FLAGS.num_repetitions * FLAGS.num_gates)))
+        command = 'simulate(%s, %s, %s, %s)' % (
+            num_qubits,
+            FLAGS.num_gates,
+            FLAGS.num_prefix_qubits,
+            FLAGS.use_processes)
+        time = timeit.timeit(command, setup, number=FLAGS.num_repetitions)
+        print('{},{}'.format(num_qubits,
+                             time / (FLAGS.num_repetitions * FLAGS.num_gates)))
 
 
 if __name__ == '__main__':
