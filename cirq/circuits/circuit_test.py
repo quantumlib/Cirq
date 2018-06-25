@@ -584,7 +584,7 @@ def test_all_operations():
     c = Circuit([
         Moment([ops.X(a), ops.X(b)]),
     ])
-    assert c.all_operations() in [[ops.X(a), ops.X(b)], [ops.X(b), ops.X(a)]]
+    assert c.all_operations() == [ops.X(a), ops.X(b)]
 
     c = Circuit([
         Moment([ops.X(a)]),
@@ -603,6 +603,21 @@ def test_all_operations():
     ])
     assert c.all_operations() == [ops.CZ(a, b), ops.X(a)]
 
+    c = Circuit([
+            Moment([]),
+            Moment([ops.X(a), ops.Y(b)]),
+            Moment([]),
+            Moment([ops.CNOT(a, b)]),
+            Moment([ops.Z(b), ops.H(a)]),  # Different qubit order
+            Moment([])])
+
+    assert list(c.all_operations()) == [
+        ops.X(a),
+        ops.Y(b),
+        ops.CNOT(a, b),
+        ops.Z(b),
+        ops.H(a)
+    ]
 
 
 def test_from_ops():
@@ -1091,27 +1106,6 @@ def test_composite_gate_to_unitary_matrix():
     mat_expected = ops.CNOT.matrix()
 
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected)
-
-
-def test_iter_ops():
-    a = ops.NamedQubit('a')
-    b = ops.NamedQubit('b')
-    c = Circuit([
-            Moment([]),
-            Moment([ops.X(a), ops.Y(b)]),
-            Moment([]),
-            Moment([ops.CNOT(a, b)]),
-            Moment([ops.Z(b), ops.H(a)]),  # Different qubit order
-            Moment([])])
-
-    expected = [
-        ops.X(a),
-        ops.Y(b),
-        ops.CNOT(a, b),
-        ops.Z(b),
-        ops.H(a)]
-
-    assert list(c.iter_ops()) == expected
 
 
 def test_expanding_gate_symbols():

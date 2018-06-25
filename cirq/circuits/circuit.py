@@ -146,9 +146,6 @@ class Circuit(object):
     def __iter__(self):
         return iter(self.moments)
 
-    def iter_ops(self) -> Iterator[ops.Operation]:
-        return (op for moment in self for op in moment.operations)
-
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
         return 'Circuit([{}])'.format(','.join(moment_lines))
@@ -429,9 +426,14 @@ class Circuit(object):
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
 
-    def all_operations(self) -> List[ops.Operation]:
-        """Returns the operations applied by this circuit."""
-        return [op for moment in self for op in moment.operations]
+    def all_operations(self) -> Iterator[ops.Operation]:
+        """Iterates over the operations applied by this circuit.
+
+        Operations from earlier moments will be iterated over first. Operations
+        within a moment are iterated in the order they were given to the
+        moment's constructor.
+        """
+        return (op for moment in self for op in moment.operations)
 
     def to_unitary_matrix(
             self,
@@ -469,7 +471,7 @@ class Circuit(object):
             self.all_qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
-        matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
+        matrix_ops = _flatten_to_known_matrix_ops(self.all_operations(), ext)
         return _operations_to_unitary_matrix(matrix_ops,
                                              qubit_map,
                                              ignore_terminal_measurements,
