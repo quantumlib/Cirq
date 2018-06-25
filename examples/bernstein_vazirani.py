@@ -1,8 +1,14 @@
 """Demonstrates the Bernstein-Vazirani algorithm.
 
-The Bernstein-Vazirani algorithm takes a black-box oracle implementing a
-function f(a) = a·factors + bias (mod 2) and solves for 'factors' in a single
-query to the oracle.
+The (non-recursive) Bernstein-Vazirani algorithm takes a black-box oracle
+implementing a function f(a) = a·factors + bias (mod 2), where 'bias' is 0 or 1,
+'a' and 'factors' are vectors with all elements equal to 0 or 1, and the
+algorithm solves for 'factors' in a single query to the oracle.
+
+=== REFERENCE ===
+
+Bernstein, Ethan, and Umesh Vazirani. "Quantum complexity theory."
+SIAM Journal on Computing 26.5 (1997): 1411-1473.
 
 === EXAMPLE OUTPUT ===
 

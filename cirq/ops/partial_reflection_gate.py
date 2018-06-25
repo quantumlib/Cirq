@@ -13,26 +13,14 @@
 # limitations under the License.
 
 """Partial reflection gate."""
-from typing import Tuple, Union, cast
+from typing import Tuple, Union, cast, Optional
 
 import numpy as np
 
-from cirq import abc
+from cirq import abc, value
 from cirq.extension import PotentialImplementation
 from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features
-from cirq.value import Symbol
-
-
-def _canonicalize_half_turns(
-        half_turns: Union[Symbol, float]
-) -> Union[Symbol, float]:
-    if isinstance(half_turns, Symbol):
-        return half_turns
-    half_turns %= 2
-    if half_turns > 1:
-        half_turns -= 2
-    return half_turns
 
 
 class PartialReflectionGate(gate_features.BoundedEffectGate,
@@ -53,13 +41,32 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
     """
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[Symbol, float] = 1.0) -> None:
+                 half_turns: Optional[Union[value.Symbol, float]] = None,
+                 rads: Optional[float] = None,
+                 degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents angle unit confusion by forcing
+                "rads=", "degs=", or "half_turns=".
+            half_turns: The relative phasing of the eigenstates, in half_turns.
+            rads: The relative phasing of the eigenstates, in radians.
+            degs: The relative phasing of the eigenstates, in degrees.
+        """
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        self.half_turns = value.chosen_angle_to_canonical_half_turns(
+            half_turns=half_turns,
+            rads=rads,
+            degs=degs)
 
     @abc.abstractmethod
     def _with_half_turns(self,
-                         half_turns: Union[Symbol, float] = 1.0
+                         half_turns: Union[value.Symbol, float] = 1.0
                          ) -> 'PartialReflectionGate':
         """Initialize an instance by specifying the number of half-turns."""
         pass
@@ -99,7 +106,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return hash((type(self), self.half_turns))
 
     def trace_distance_bound(self):
-        if isinstance(self.half_turns, Symbol):
+        if isinstance(self.half_turns, value.Symbol):
             return 1
         return abs(self.half_turns) * 3.5
 
@@ -134,7 +141,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return self._with_half_turns(half_turns=self.half_turns * factor)
 
     def is_parameterized(self) -> bool:
-        return isinstance(self.half_turns, Symbol)
+        return isinstance(self.half_turns, value.Symbol)
 
     def with_parameters_resolved_by(self,
                                     param_resolver) -> 'PartialReflectionGate':

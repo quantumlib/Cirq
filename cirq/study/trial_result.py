@@ -84,6 +84,8 @@ class TrialResult:
             the first list corresponding to the repetition, and the second is
             the actual boolean measurement results (ordered by the qubits acted
             the measurement gate.)
+        repetitions: The number of times a circuit was sampled to get these
+            results.
     """
 
     def __init__(self,
@@ -108,7 +110,7 @@ class TrialResult:
         self.repetitions = repetitions
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def combined_histogram(  # type: ignore
+    def multi_measurement_histogram(  # type: ignore
             self,
             *positional_args,
             keys: Iterable[str],
@@ -116,6 +118,11 @@ class TrialResult:
                                 T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
+
+        This is a more general version of the 'histogram' method. Instead of
+        only counting how often results occurred for one specific measurement,
+        this method tensors multiple measurement results together and counts
+        how often the combined results occurred.
 
         For example, suppose that:
 
@@ -135,6 +142,11 @@ class TrialResult:
                 (0b100, 0): 2,
                 (0b010, 1): 1
             })
+
+
+        Where '0b100' is binary for '4' and '0b010' is binary for '2'. Notice
+        that the bits are combined in a big-endian way by default, with the
+        first measured qubit determining the highest-value bit.
 
         Args:
             positional_args: Never specified. Forces keyword arguments.
@@ -187,6 +199,10 @@ class TrialResult:
                 0b010: 1
             })
 
+        Where '0b100' is binary for '4' and '0b010' is binary for '2'. Notice
+        that the bits are combined in a big-endian way by default, with the
+        first measured qubit determining the highest-value bit.
+
         Args:
             positional_args: Never specified. Forces keyword arguments.
             key: Keys of measurements to include in the histogram.
@@ -201,7 +217,7 @@ class TrialResult:
             results.
         """
         assert not positional_args
-        return self.combined_histogram(
+        return self.multi_measurement_histogram(
             keys=[key],
             fold_func=lambda e: fold_func(e[0]))
 
