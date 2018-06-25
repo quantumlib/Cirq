@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
+
 from cirq.api.google.v1 import operations_pb2
 from cirq.ops import QubitId
 
@@ -26,13 +28,28 @@ class XmonQubit(QubitId):
     def is_adjacent(self, other: 'XmonQubit'):
         return abs(self.row - other.row) + abs(self.col - other.col) == 1
 
-    def __eq__(self, other):
+    def _compare(self, other, op):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.row == other.row and self.col == other.col
+        return op((self.row, self.col), (other.row, other.col))
+
+    def __eq__(self, other):
+        return self._compare(other, operator.eq)
 
     def __ne__(self, other):
-        return not self == other
+        return self._compare(other, operator.ne)
+
+    def __lt__(self, other):
+        return self._compare(other, operator.lt)
+
+    def __gt__(self, other):
+        return self._compare(other, operator.gt)
+
+    def __le__(self, other):
+        return self._compare(other, operator.le)
+
+    def __ge__(self, other):
+        return self._compare(other, operator.ge)
 
     def __hash__(self):
         return hash((XmonQubit, self.row, self.col))
