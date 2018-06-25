@@ -34,6 +34,24 @@ def test_xmon_qubit_eq():
     eq.make_equality_pair(lambda: XmonQubit(50, 25))
 
 
+def test_xmon_qubit_ordering():
+    assert XmonQubit(0, 0) < XmonQubit(0, 1)
+    assert XmonQubit(0, 0) < XmonQubit(1, 0)
+    assert XmonQubit(0, 0) < XmonQubit(1, 1)
+    assert XmonQubit(0, 0) <= XmonQubit(0, 0)
+    assert XmonQubit(0, 0) <= XmonQubit(0, 1)
+    assert XmonQubit(0, 0) <= XmonQubit(1, 0)
+    assert XmonQubit(0, 0) <= XmonQubit(1, 1)
+
+    assert XmonQubit(1, 1) > XmonQubit(0, 1)
+    assert XmonQubit(1, 1) > XmonQubit(1, 0)
+    assert XmonQubit(1, 1) > XmonQubit(0, 0)
+    assert XmonQubit(1, 1) >= XmonQubit(1, 1)
+    assert XmonQubit(1, 1) >= XmonQubit(0, 1)
+    assert XmonQubit(1, 1) >= XmonQubit(1, 0)
+    assert XmonQubit(1, 1) >= XmonQubit(0, 0)
+
+
 def test_xmon_qubit_is_adjacent():
     assert XmonQubit(0, 0).is_adjacent(XmonQubit(0, 1))
     assert XmonQubit(0, 0).is_adjacent(XmonQubit(0, -1))
