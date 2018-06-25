@@ -177,8 +177,32 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
         assert_code_snippet_fails(after, state, expected_failure)
 
 
+def naive_convert_snippet_code_to_python_2(snippet):
+    """Snippets should run in both python 3 and python 2, with few exceptions.
+
+    For the exceptions, this method smooths things over.
+
+    Args:
+        snippet: The python 3 code snippet.
+
+    Returns:
+        A python 2 version of the snippet.
+    """
+    # For stylistic effect, it is often useful to put "..." in the snippets to
+    # indicate "other code". In python 3 this works, because three-dots is a
+    # literal. In python 2 this literal is instead called Ellipsis.
+    # coverage: ignore
+    return snippet.replace('...', 'Ellipsis')
+
+
 def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
     """Executes a snippet and compares captured output to annotated output."""
+
+    is_python_3 = sys.version_info[0] >= 3
+    if not is_python_3:
+        # coverage: ignore
+        snippet = naive_convert_snippet_code_to_python_2(snippet)
+
     output_lines = []  # type: List[str]
     expected_outputs = find_expected_outputs(snippet)
 
@@ -190,7 +214,7 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
         exec(snippet, state)
 
         # Can't re-assign print in python 2.
-        if sys.version_info[0] >= 3:
+        if is_python_3:
             assert_expected_lines_present_in_order(expected_outputs,
                                                    output_lines)
     except:
