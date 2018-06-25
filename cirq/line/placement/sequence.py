@@ -17,6 +17,43 @@ from typing import List, Optional
 from cirq.google import XmonQubit
 
 
+class LineSequence:
+
+    def __init__(self, line: List[XmonQubit]) -> None:
+        self.line = line
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.line == other.line
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(tuple(self.line))
+
+    # TODO: def as_list() -> List[LineQubit]?
+
+
+
+class LinePlacement:
+
+    def __init__(self, lines: List[LineSequence]) -> None:
+        self.lines = lines
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.lines == other.lines
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(tuple(self.lines))
+
+
 def longest_sequence_index(sequences: List[List[XmonQubit]]) -> Optional[int]:
     """Gives the position of a longest sequence.
 
