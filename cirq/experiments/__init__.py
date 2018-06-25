@@ -11,21 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Types and methods for running studies (repeated trials)."""
-
-from cirq.study.resolver import (
-    ParamResolver,
-)
-from cirq.study.result import (
-    TrialResult,
-)
-from cirq.study.sweepable import (
-    Sweepable,
-)
-from cirq.study.sweeps import (
-    Linspace,
-    Points,
-    Sweep,
-    UNIT_SWEEP,
-)

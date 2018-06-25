@@ -29,7 +29,7 @@ def test_job_equality():
     eq.add_equality_group(Job(),
                           Job(Circuit()),
                           Job(Circuit([])),
-                          Job(Circuit(), sweeps.Unit))
+                          Job(Circuit(), sweeps.UNIT_SWEEP))
 
     # Equivalent circuit, different instances
     eq.add_equality_group(Job(Circuit([Moment([ops.Z(q)])])),
