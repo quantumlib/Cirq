@@ -15,9 +15,16 @@
 from typing import Iterable
 import pytest
 
-from cirq.contrib.placement.linear_sequence.greedy import \
-    GreedySequenceSearch, MinimalConnectivityGreedySequenceSearch, \
-    LargestAreaGreedySequenceSearch, greedy_sequence
+from cirq.line.placement.greedy import (
+    GreedySequenceSearch,
+    GreedySequenceSearchMethod,
+    MinimalConnectivityGreedySequenceSearch,
+    LargestAreaGreedySequenceSearch
+)
+from cirq.line.placement.sequence import (
+    LinePlacement,
+    LineSequence
+)
 from cirq.google import XmonDevice, XmonQubit
 from cirq.testing.mock import mock
 from cirq.value import Duration
@@ -411,42 +418,47 @@ def test_largest_collect_stops_on_used():
                                                            q03}
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
-            'LargestAreaGreedySequenceSearch')
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
-def test_greedy_sequence_calls_all(largest, minimal):
+def test_greedy_search_method_calls_all(largest, minimal):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     qubits = [q00, q01]
     largest_instance = largest.return_value
     minimal_instance = minimal.return_value
-    greedy_sequence(_create_device(qubits))
+
+    method = GreedySequenceSearchMethod()
+    method.place_line(_create_device(qubits))
+
     largest.assert_called_once_with(_create_device(qubits), q00)
     largest_instance.get_or_search.assert_called_once_with()
     minimal.assert_called_once_with(_create_device(qubits), q00)
     minimal_instance.get_or_search.assert_called_once_with()
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
-            'LargestAreaGreedySequenceSearch')
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
-def test_greedy_sequence_returns_longest(largest, minimal):
+def test_greedy_search_method_returns_longest(largest, minimal):
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
     sequence_short = [q00]
     sequence_long = [q00, q10]
     largest.return_value.get_or_search.return_value = sequence_short
     minimal.return_value.get_or_search.return_value = sequence_long
-    assert greedy_sequence(_create_device([])) == [sequence_long]
+
+    method = GreedySequenceSearchMethod()
+    assert method.place_line(_create_device([])) == LinePlacement(
+        [LineSequence(sequence_long)])
 
 
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
-            'LargestAreaGreedySequenceSearch')
-@mock.patch('cirq.contrib.placement.linear_sequence.greedy.'
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
-def test_greedy_sequence_returns_empty_when_empty(largest, minimal):
+def test_greedy_search_method_returns_empty_when_empty(largest, minimal):
     largest.return_value.get_or_search.return_value = []
     minimal.return_value.get_or_search.return_value = []
-    assert greedy_sequence(_create_device([])) == []
+
+    method = GreedySequenceSearchMethod()
+    assert method.place_line(_create_device([])) == LinePlacement([])

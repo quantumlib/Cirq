@@ -17,13 +17,18 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 import numpy as np
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence.chip import (
+from cirq.line.placement import place_method
+from cirq.line.placement.chip import (
     above,
     right_of,
     chip_as_adjacency_list,
     EDGE,
 )
-from cirq.contrib.placement import optimize
+from cirq.line.placement.sequence import (
+    LinePlacement,
+    LineSequence
+)
+from cirq.contrib import optimization
 
 _STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
 
@@ -45,7 +50,6 @@ class AnnealSequenceSearch(object):
 
     def search(
             self,
-            method_opts: dict = None,
             trace_func: Callable[
                 [List[List[XmonQubit]], float, float, float, bool],
                 None] = None) -> List[List[XmonQubit]]:
@@ -54,8 +58,6 @@ class AnnealSequenceSearch(object):
         Each call to this method starts new search.
 
         Args:
-          method_opts: Optional dictionary with search parameters. Not yet
-            supported.
           trace_func: Optional callable which will be called for each simulated
             annealing step with arguments: solution candidate (list of linear
             sequences on the chip), current temperature (float), candidate cost
@@ -65,7 +67,6 @@ class AnnealSequenceSearch(object):
         Returns:
           List of linear sequences on the chip found by this method.
         """
-        del method_opts
 
         def search_trace(state: _STATE, temp: float,
                          cost: float, probability: float, accepted: bool):
@@ -73,7 +74,7 @@ class AnnealSequenceSearch(object):
                 trace_seqs, _ = state
                 trace_func(trace_seqs, temp, cost, probability, accepted)
 
-        seqs, _ = optimize.anneal_minimize(
+        seqs, _ = optimization.anneal_minimize(
             self._create_initial_solution(),
             self._quadratic_sum_cost,
             self._force_edges_active_move,
@@ -331,30 +332,43 @@ class AnnealSequenceSearch(object):
         return None
 
 
-def anneal_sequence(
-        device: XmonDevice,
-        method_opts: dict = None,
-        trace_func: Callable[
-            [List[List[XmonQubit]], float, float, float, bool],
-            None] = None,
-        seed: int = None) -> List[List[XmonQubit]]:
+class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
     """Linearized sequence search using simulated annealing method.
-
-    Args:
-      device: Chip description.
-      method_opts: Optional dictionary with search parameters. Not yet
-        supported.
-      trace_func: Optional callable which will be called for each simulated
-        annealing step with arguments: solution candidate (list of linear
-        sequences on the chip), current temperature (float), candidate cost
-        (float), probability of accepting candidate (float), and acceptance
-        decision (boolean).
-      seed: Optional seed value for random number generator.
-
-    Returns:
-      List of linear sequences on the chip found by simulated annealing method.
     """
-    return AnnealSequenceSearch(device, seed).search(method_opts, trace_func)
+
+    def __init__(self, trace_func: Callable[
+        [List[List[XmonQubit]], float, float, float, bool], None] = None,
+                 seed: int = None) -> None:
+        """Linearized sequence search using simulated annealing method.
+
+        Args:
+            trace_func: Optional callable which will be called for each
+                        simulated annealing step with arguments: solution
+                        candidate (list of linear sequences on the chip),
+                        current temperature (float), candidate cost (float),
+                        probability of accepting candidate (float), and
+                        acceptance decision (boolean).
+            seed: Optional seed value for random number generator.
+
+        Returns:
+            List of linear sequences on the chip found by simulated annealing
+            method.
+        """
+        self.trace_func = trace_func
+        self.seed = seed
+
+    def place_line(self, device: XmonDevice) -> LinePlacement:
+        """Runs line sequence search.
+
+        Args:
+            device: Chip description.
+
+        Returns:
+            List of linear sequences on the chip found by simulated annealing
+            method.
+        """
+        seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
+        return LinePlacement([LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

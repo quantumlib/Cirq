@@ -16,13 +16,9 @@ import collections
 import random
 from typing import Sequence
 
-from absl import app
-from absl import flags
-
 import cirq
 
 
-FLAGS = flags.FLAGS
 NUM_SHOTS = 10
 NUM_QUBITS = 16
 
@@ -52,7 +48,7 @@ def bv_circuit(qubits: Sequence[cirq.QubitId], a: int) -> cirq.Circuit:
     # 4. Apply Hadamard gates to the outputs
     circuit.append(H_layer)
     # 5. Apply measurement layer
-    circuit.append(cirq.ops.MeasurementGate('result').on(*qubits))
+    circuit.append(cirq.measure(*qubits, key='result'))
     return circuit
 
 
@@ -81,19 +77,14 @@ def bv(n_qubits: int, a: int, shots: int = NUM_SHOTS) -> collections.Counter:
     return collections.Counter(result_strs)
 
 
-
-def main(argv):
+def main():
     """Demonstrates Bernstein-Vazirani algorithm.
 
     Generates random number which could be represented with the given number of
     qubits and uses it as the argument for BV circuit.
     Shows that the returned measurement corresponds to the bit representation
     of the generated number.
-
-    Args:
-        argv: unused.
     """
-    del argv  # Unused.
     n_qubits = NUM_QUBITS
     a = random.randrange(2**n_qubits - 1)
     a_bits = [bool(a & (1 << i)) for i in range(n_qubits)]
@@ -105,4 +96,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    app.run(main)
+    main()

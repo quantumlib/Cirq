@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Client for running on Google's Quantum Engine.
-"""
 
-from cirq.google.engine.engine import (
-    Engine,
-    JobConfig,
-    EngineTrialResult,
-)
-
-from cirq.google.engine.env_config import (
-    engine_from_environment,
+from cirq.contrib.optimization.anneal import (
+    anneal_minimize,
 )

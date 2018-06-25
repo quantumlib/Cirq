@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.placement.optimize.anneal import (
-    anneal_minimize,
+from cirq.line.line_qubit import (
+    LineQubit,
 )

@@ -16,28 +16,22 @@ A simple example to get you up and running:
 ```python
 import cirq
 
-# Define a qubit.
+# Pick a qubit.
 qubit = cirq.google.XmonQubit(0, 0)
 
 # Create a circuit
-circuit = cirq.Circuit()
-circuit.append([
-    # Square root of NOT.
-    cirq.X.on(qubit)**0.5,
-
-    # Measurement.
-    cirq.MeasurementGate('result').on(qubit)
-])
+circuit = cirq.Circuit.from_ops(
+    cirq.X(qubit)**0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='m')  # Measurement.
+)
 print("Circuit:")
 print(circuit)
 
-# Now simulate the circuit and print out the measurement result.
-# By default, qubits start in the |0> state.
+# Simulate the circuit several times.
 simulator = cirq.google.XmonSimulator()
-result = simulator.run(circuit, repetitions=10)
-results = [str(int(b)) for b in result.measurements['result'][:, 0]]
-print("Simulated measurement results:")
-print(''.join(results))
+result = simulator.run(circuit, repetitions=20)
+print("Results:")
+print(result)
 ```
 
 Example output:
@@ -45,9 +39,8 @@ Example output:
 ```
 Circuit:
 (0, 0): ───X^0.5───M───
-
-Simulated measurement results:
-1110111010
+Results:
+m=11000111111011001000
 ```
 
 ## Documentation

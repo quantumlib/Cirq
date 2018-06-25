@@ -78,6 +78,10 @@ from cirq.linalg import (
     Tolerance,
 )
 
+from cirq.line import (
+    LineQubit
+)
+
 from cirq.ops import (
     BoundedEffectGate,
     CNOT,
@@ -95,7 +99,8 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
     KnownMatrixGate,
-    LineQubit,
+    measure,
+    measure_each,
     MeasurementGate,
     NamedQubit,
     OP_TREE,
@@ -146,6 +151,8 @@ from cirq.study.visualize import (
 )
 
 from cirq.value import (
+    canonicalize_half_turns,
+    chosen_angle_to_canonical_half_turns,
     Duration,
     Symbol,
     Timestamp,

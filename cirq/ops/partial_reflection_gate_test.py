@@ -47,7 +47,9 @@ def test_partial_reflection_gate_eq():
     eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('a')))
     eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('b')))
     eq.make_equality_pair(lambda: DummyGate(half_turns=0))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=0.5))
+    eq.add_equality_group(DummyGate(half_turns=0.5),
+                          DummyGate(rads=np.pi / 2),
+                          DummyGate(degs=90))
 
 
 def test_partial_reflection_gate_extrapolate():
@@ -76,6 +78,11 @@ def test_partial_reflection_as_self_inverse():
 
 def test_partial_reflection_gate_str():
     assert str(DummyGate(half_turns=.25)) == 'D**0.25'
+
+
+def test_partial_reflection_gate_trace_bound():
+    assert DummyGate(half_turns=.001).trace_distance_bound() < 0.01
+    assert DummyGate(half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
 
 
 def test_partial_reflection_gate_with_parameters_resolved_by():

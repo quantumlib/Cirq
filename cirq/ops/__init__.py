@@ -21,6 +21,8 @@ from cirq.ops.common_gates import (
     CZ,
     H,
     HGate,
+    measure,
+    measure_each,
     MeasurementGate,
     Rot11Gate,
     RotXGate,
@@ -58,9 +60,6 @@ from cirq.ops.qubit_order import (
 )
 from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,
-)
-from cirq.ops.line_qubit import (
-    LineQubit,
 )
 from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,

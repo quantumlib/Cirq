@@ -32,17 +32,6 @@ def test_cz_init():
     assert ops.Rot11Gate(half_turns=5).half_turns == 1
 
 
-def test_cz_eq():
-    eq = EqualsTester()
-    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
-    eq.add_equality_group(ops.Rot11Gate(half_turns=3.5),
-                          ops.Rot11Gate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('a')))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('b')))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0.5))
-
-
 def test_cz_str():
     assert str(ops.Rot11Gate()) == 'CZ'
     assert str(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
@@ -92,13 +81,28 @@ def test_z_init():
     assert z.half_turns == 1
 
 
-def test_z_eq():
+def test_rot_gates_eq():
     eq = EqualsTester()
+    gates = [
+        ops.RotXGate,
+        ops.RotYGate,
+        ops.RotZGate,
+        ops.CNotGate,
+        ops.Rot11Gate
+    ]
+    for gate in gates:
+        eq.add_equality_group(gate(half_turns=3.5),
+                              gate(half_turns=-0.5),
+                              gate(rads=-np.pi/2),
+                              gate(degs=-90))
+        eq.make_equality_pair(lambda: gate(half_turns=0))
+        eq.make_equality_pair(lambda: gate(half_turns=0.5))
+
+    eq.add_equality_group(ops.RotXGate(), ops.RotXGate(half_turns=1), ops.X)
+    eq.add_equality_group(ops.RotYGate(), ops.RotYGate(half_turns=1), ops.Y)
     eq.add_equality_group(ops.RotZGate(), ops.RotZGate(half_turns=1), ops.Z)
-    eq.add_equality_group(ops.RotZGate(half_turns=3.5),
-                          ops.RotZGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0.5))
+    eq.add_equality_group(ops.CNotGate(), ops.CNotGate(half_turns=1), ops.CNOT)
+    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
 
 
 def test_z_extrapolate():
@@ -274,3 +278,47 @@ def test_str():
 
     assert str(cirq.CNOT) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+
+def test_measure():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    # Empty application.
+    with pytest.raises(ValueError):
+        _ = cirq.measure()
+
+    assert cirq.measure(a) == cirq.MeasurementGate(key='a').on(a)
+    assert cirq.measure(a, b) == cirq.MeasurementGate(key='a,b').on(a, b)
+    assert cirq.measure(b, a) == cirq.MeasurementGate(key='b,a').on(b, a)
+    assert cirq.measure(a, key='b') == cirq.MeasurementGate(key='b').on(a)
+    assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
+        key='a', invert_mask=(True,)).on(a)
+
+
+def test_measurement_qubit_count_vs_mask_length():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+    c = ops.NamedQubit('c')
+
+    _ = cirq.MeasurementGate(invert_mask=(True,)).on(a)
+    _ = cirq.MeasurementGate(invert_mask=(True, False)).on(a, b)
+    _ = cirq.MeasurementGate(invert_mask=(True, False, True)).on(a, b, c)
+    with pytest.raises(ValueError):
+        _ = cirq.MeasurementGate(invert_mask=(True, False)).on(a)
+    with pytest.raises(ValueError):
+        _ = cirq.MeasurementGate(invert_mask=(True, False, True)).on(a, b)
+
+
+def test_measure_each():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    assert cirq.measure_each() == []
+    assert cirq.measure_each(a) == [cirq.measure(a)]
+    assert cirq.measure_each(a, b) == [cirq.measure(a), cirq.measure(b)]
+
+    assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [
+        cirq.measure(a, key='a!'),
+        cirq.measure(b, key='b!')
+    ]

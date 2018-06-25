@@ -18,13 +18,13 @@ import numpy as np
 import pytest
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.contrib.placement.linear_sequence.chip import chip_as_adjacency_list
-from cirq.contrib.placement.linear_sequence.anneal import (
+from cirq.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,
-    anneal_sequence,
+    AnnealSequenceSearchMethod,
     index_2d,
 )
+from cirq.line.placement.chip import chip_as_adjacency_list
 from cirq.testing.mock import mock
 from cirq.value import Duration
 
@@ -34,7 +34,7 @@ def _create_device(qubits: Iterable[XmonQubit]):
                       qubits)
 
 
-@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+@mock.patch('cirq.contrib.optimization.anneal_minimize')
 def test_search_calls_anneal_minimize(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -49,7 +49,7 @@ def test_search_calls_anneal_minimize(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
-@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+@mock.patch('cirq.contrib.optimization.anneal_minimize')
 def test_search_calls_anneal_minimize_reversed(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -64,7 +64,7 @@ def test_search_calls_anneal_minimize_reversed(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
-@mock.patch('cirq.contrib.placement.optimize.anneal_minimize')
+@mock.patch('cirq.contrib.optimization.anneal_minimize')
 def test_search_converts_trace_func(anneal_minimize):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
@@ -152,7 +152,7 @@ def test_force_edge_active_move_quits_when_no_free_edge():
     q01 = XmonQubit(0, 1)
     search = AnnealSequenceSearch(
         _create_device([q00, q01]),
-        seed = 0xF00D0007)
+        seed=0xF00D0007)
     seqs, edges = search._create_initial_solution()
     assert search._force_edge_active_move((seqs, edges)) == (seqs, edges)
 
@@ -234,6 +234,14 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
         [[q30, q20, q10, q00, q01, q11, q21, q31]],
         (q30, q31), lambda: True) == [
                [q20, q10, q00, q01, q11, q21, q31, q30]]
+
+    # +-+-+-+ -> +-+-+-+
+    # |          |     |
+    # +-+-+-+    +-+-+ +
+    assert search._force_edge_active(
+        [[q31, q21, q11, q01, q00, q10, q20, q30]],
+        (q30, q31), lambda: True) == [
+               [q21, q11, q01, q00, q10, q20, q30, q31]]
 
     # +-+-+-+ -> +-+-+ +
     # |          |     |
@@ -364,6 +372,7 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
     for n0 in c_adj:
         for n1 in c_adj[n0]:
             assert (n0, n1) in edges or (n1, n0) in edges
+            assert (n0, n1) in edges or (n1, n0) in edges
 
     c_set = set(qubits)
 
@@ -376,18 +385,18 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
     assert not c_set
 
 
-@mock.patch(
-    'cirq.contrib.placement.linear_sequence.anneal.AnnealSequenceSearch')
-def test_anneal_sequence_calls(search):
+@mock.patch('cirq.line.placement.anneal.AnnealSequenceSearch')
+def test_anneal_search_method_calls(search):
     q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
     device = _create_device([q00, q01])
-    method_opts = dict()
     seed = 1
     search_instance = search.return_value
 
-    anneal_sequence(device, method_opts, None, seed)
+    method = AnnealSequenceSearchMethod(None, seed)
+    method.place_line(device)
+
     search.assert_called_once_with(device, seed)
-    search_instance.search.assert_called_once_with(method_opts, None)
+    search_instance.search.assert_called_once_with(None)
 
 
 def test_index_2d():

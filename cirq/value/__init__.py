@@ -20,3 +20,7 @@ from cirq.value.symbol import (
 from cirq.value.timestamp import (
     Timestamp,
 )
+from cirq.value.angle import (
+    canonicalize_half_turns,
+    chosen_angle_to_canonical_half_turns,
+)
