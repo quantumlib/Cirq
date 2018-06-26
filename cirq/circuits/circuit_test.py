@@ -316,28 +316,6 @@ def test_insert_inline_near_start():
     ])
 
 
-def test_operation_at():
-    a = ops.QubitId()
-    b = ops.QubitId()
-
-    c = Circuit()
-    assert c.operation_at(a, 0) is None
-    assert c.operation_at(a, -1) is None
-    assert c.operation_at(a, 102) is None
-
-    c = Circuit([Moment()])
-    assert c.operation_at(a, 0) is None
-
-    c = Circuit([Moment([ops.X(a)])])
-    assert c.operation_at(b, 0) is None
-    assert c.operation_at(a, 1) is None
-    assert c.operation_at(a, 0) == ops.X(a)
-
-    c = Circuit([Moment(), Moment([ops.CZ(a, b)])])
-    assert c.operation_at(a, 0) is None
-    assert c.operation_at(a, 1) == ops.CZ(a, b)
-
-
 def test_next_moment_operating_on():
     a = ops.QubitId()
     b = ops.QubitId()
@@ -488,6 +466,114 @@ def test_prev_moment_operating_on_distance():
 
     # Huge max distances should be handled quickly due to capping.
     assert c.prev_moment_operating_on([a], 1, max_distance=10**100) is None
+
+
+def test_operation_at():
+    a = ops.QubitId()
+    b = ops.QubitId()
+
+    c = Circuit()
+    assert c.operation_at(a, 0) is None
+    assert c.operation_at(a, -1) is None
+    assert c.operation_at(a, 102) is None
+
+    c = Circuit([Moment()])
+    assert c.operation_at(a, 0) is None
+
+    c = Circuit([Moment([ops.X(a)])])
+    assert c.operation_at(b, 0) is None
+    assert c.operation_at(a, 1) is None
+    assert c.operation_at(a, 0) == ops.X(a)
+
+    c = Circuit([Moment(), Moment([ops.CZ(a, b)])])
+    assert c.operation_at(a, 0) is None
+    assert c.operation_at(a, 1) == ops.CZ(a, b)
+
+
+def test_findall_operations():
+    a = ops.QubitId()
+    b = ops.QubitId()
+
+    xa = ops.X.on(a)
+    xb = ops.X.on(b)
+    za = ops.Z.on(a)
+    zb = ops.Z.on(b)
+
+    is_x = lambda op: isinstance(op.gate, ops.RotXGate)
+
+    c = Circuit()
+    assert list(c.findall_operations(is_x)) == []
+
+    c = Circuit.from_ops(xa)
+    assert list(c.findall_operations(is_x)) == [(0, xa)]
+
+    c = Circuit.from_ops(za)
+    assert list(c.findall_operations(is_x)) == []
+
+    c = Circuit.from_ops([za, zb] * 8)
+    assert list(c.findall_operations(is_x)) == []
+
+    c = Circuit.from_ops(xa, xb)
+    assert list(c.findall_operations(is_x)) == [(0, xa), (0, xb)]
+
+    c = Circuit.from_ops(xa, zb)
+    assert list(c.findall_operations(is_x)) == [(0, xa)]
+
+    c = Circuit.from_ops(xa, za)
+    assert list(c.findall_operations(is_x)) == [(0, xa)]
+
+    c = Circuit.from_ops([xa] * 8)
+    assert list(c.findall_operations(is_x)) == list(enumerate([xa] * 8))
+
+    c = Circuit.from_ops(za, zb, xa, xb)
+    assert list(c.findall_operations(is_x)) == [(1, xa), (1, xb)]
+
+    c = Circuit.from_ops(xa, zb, za, xb)
+    assert list(c.findall_operations(is_x)) == [(0, xa), (1, xb)]
+
+
+def test_are_all_measurements_terminal():
+    a = ops.QubitId()
+    b = ops.QubitId()
+
+    xa = ops.X.on(a)
+    xb = ops.X.on(b)
+
+    ma = ops.MeasurementGate().on(a)
+    mb = ops.MeasurementGate().on(b)
+
+    c = Circuit()
+    assert c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(xa, xb)
+    assert c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(ma)
+    assert c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(ma, mb)
+    assert c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(xa, ma)
+    assert c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(xa, ma, xb, mb)
+    assert c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(ma, xa)
+    assert not c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(ma, xa, mb)
+    assert not c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(xa, ma, xb, xa)
+    assert not c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(ma, ma)
+    assert not c.are_all_measurements_terminal()
+
+    c = Circuit.from_ops(xa, ma, xa)
+    assert not c.are_all_measurements_terminal()
 
 
 def test_clear_operations_touching():
@@ -1036,6 +1122,23 @@ def test_circuit_to_unitary_matrix():
         c.to_unitary_matrix(),
         np.eye(2))
 
+    # Ignoring terminal measurements with further ops.
+    c = Circuit.from_ops(ops.Z(a), ops.measure(a), ops.Z(b))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        c.to_unitary_matrix(),
+        np.array([
+            [1, 0, 0, 0],
+            [0, -1, 0, 0],
+            [0, 0, -1, 0],
+            [0, 0, 0, 1]
+        ]))
+
+    # Optionally don't ignoring terminal measurements.
+    c = Circuit.from_ops(ops.measure(a))
+    with pytest.raises(TypeError, match="Terminal"):
+        c.to_unitary_matrix(ignore_terminal_measurements=False),
+
+
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(ops.measure(a), ops.X(a))
     with pytest.raises(TypeError):
@@ -1055,7 +1158,6 @@ def test_circuit_to_unitary_matrix():
     c = Circuit.from_ops(MysteryGate()(a, b))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
-
 
 
 def test_simple_circuits_to_unitary_matrix():

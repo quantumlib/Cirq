@@ -14,16 +14,12 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from cirq.google import XmonTrialResult
+from cirq.study import trial_result
 
 
-def plot_state_histogram(result: 'XmonTrialResult') -> np.ndarray:
+def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
     """Plot the state histogram from a single result with repetitions.
 
     States is a bitstring representation of all the qubit states in a single

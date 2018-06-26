@@ -34,7 +34,7 @@ via.
 
 import math
 import collections
-from typing import Dict, Iterable, Iterator, List, Set, Union, cast, Any
+from typing import Dict, Iterable, Iterator, List, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
@@ -98,46 +98,10 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonTrialResult(TrialResult):
-    """Results of a run of the XmonSimulator.
-
-    These results mimic those that are accessible by the actual quantum
-    hardware, i.e. these results do not contain access to the wave function
-    of the quantum computer.
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        repetitions: Number of repetitions included in this result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a list of lists (a numpy ndarray),
-            the first list corresponding to the repetition, and the second is
-            the actual boolean measurement results (ordered by the qubits acted
-            the measurement gate.)
-    """
-
-    def __init__(self,
-                 params: ParamResolver,
-                 repetitions: int,
-                 measurements: Dict[str, np.ndarray]) -> None:
-        self.params = params
-        self.repetitions = repetitions
-        self.measurements = measurements
-
-    def __repr__(self):
-        return ('XmonTrialResult(params={!r}, '
-                'repetitions={!r}, '
-                'measurements={!r})').format(self.params,
-                                             self.repetitions,
-                                             self.measurements)
-
-    def __str__(self):
-        return _keyed_repeated_bitstrings(self.measurements)
-
-
-class XmonSimulateTrialResult(XmonTrialResult):
+class XmonSimulateTrialResult:
     """Results of a simulation of the XmonSimulator.
 
-    Unlike XmonTrialResult these results contain the final state (wave function)
+    Unlike TrialResult these results contain the final state (wave function)
     of the system.
 
     Attributes:
@@ -151,9 +115,9 @@ class XmonSimulateTrialResult(XmonTrialResult):
     """
 
     def __init__(self,
-        params: ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_state: np.ndarray) -> None:
+                 params: ParamResolver,
+                 measurements: Dict[str, np.ndarray],
+                 final_state: np.ndarray) -> None:
         self.params = params
         self.measurements = measurements
         self.final_state = final_state
@@ -207,7 +171,7 @@ class XmonSimulator:
         repetitions: int = 1,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         extensions: Extensions = None,
-    ) -> XmonTrialResult:
+    ) -> TrialResult:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
 
         If one wants access to the wave function (both setting and getting),
@@ -227,7 +191,7 @@ class XmonSimulator:
                 uses the default of xmon_gate_ext.
 
         Returns:
-            XmonTrialResults for a run.
+            TrialResult for a run.
         """
         return self.run_sweep(circuit, [param_resolver], repetitions,
                               qubit_order, extensions or xmon_gate_ext)[0]
@@ -239,7 +203,7 @@ class XmonSimulator:
             repetitions: int = 1,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             extensions: Extensions = None
-    ) -> List[XmonTrialResult]:
+    ) -> List[TrialResult]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
 
         If one wants access to the wave function (both setting and getting),
@@ -259,14 +223,14 @@ class XmonSimulator:
                 uses the default of xmon_gate_ext.
 
         Returns:
-            List of XmonTrialResults for this run, one for each possible
-            parameter resolver.
+            TrialResult list for this run; one for each possible parameter
+            resolver.
         """
         circuit = (
             program if isinstance(program, Circuit) else program.to_circuit())
         param_resolvers = self._to_resolvers(params or ParamResolver({}))
 
-        trial_results = []  # type: List[XmonTrialResult]
+        trial_results = []  # type: List[TrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
             xmon_circuit, keys = self._to_xmon_circuit(
@@ -284,10 +248,11 @@ class XmonSimulator:
                 for step_result in all_step_results:
                     for k, v in step_result.measurements.items():
                         measurements[k].append(np.array(v, dtype=bool))
-            trial_results.append(XmonTrialResult(
-                param_resolver,
-                repetitions,
-                measurements={k: np.array(v) for k, v in measurements.items()}))
+            trial_results.append(TrialResult(
+                params=param_resolver,
+                repetitions=repetitions,
+                measurements={k: np.array(v) for k, v in measurements.items()}
+            ))
         return trial_results
 
     def simulate(
@@ -633,18 +598,3 @@ class XmonStepResult:
             dtype.
         """
         self._stepper.reset_state(state)
-
-
-def _bitstring(vals: Iterable[Any]) -> str:
-    return ''.join('1' if v else '0' for v in vals)
-
-
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
-    keyed_bitstrings = []
-    for key in sorted(vals.keys()):
-        reps = vals[key]
-        n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join([_bitstring(reps[:, i])
-                              for i in range(n)])
-        keyed_bitstrings.append('{}={}'.format(key, all_bits))
-    return '\n'.join(keyed_bitstrings)

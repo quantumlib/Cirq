@@ -17,13 +17,13 @@
 from cirq.study.resolver import (
     ParamResolver,
 )
-from cirq.study.result import (
-    TrialResult,
-)
 from cirq.study.sweepable import (
     Sweepable,
 )
 from cirq.study.sweeps import (
     Points,
     Sweep,
+)
+from cirq.study.trial_result import (
+    TrialResult,
 )
