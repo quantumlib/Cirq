@@ -32,7 +32,6 @@ import urllib.parse
 from collections import Iterable
 from typing import Dict, List, Optional, Union, cast
 
-import numpy as np
 from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
@@ -49,35 +48,6 @@ from cirq.study.sweeps import Points, UNIT_SWEEP, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
-
-
-class EngineTrialResult(TrialResult):
-    """Results of a single run against the Quantum Engine API.
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        repetitions: The number of repetitions for this trial.
-        measurements: A dictionary from measurement gate key to measurement
-            results ordered by the qubits acted upon by the measurement gate.
-    """
-
-    def __init__(self,
-                 params: ParamResolver,
-                 repetitions: int,
-                 measurements: Dict[str, np.ndarray]) -> None:
-        self.params = params
-        self.repetitions = repetitions
-        self.measurements = measurements
-
-    def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        keyed_bitstrings = [
-            (key, bitstring(val)) for key, val in self.measurements.items()
-        ]
-        return ' '.join('{}={}'.format(key, val)
-                        for key, val in sorted(keyed_bitstrings))
 
 
 class JobConfig:
@@ -207,7 +177,7 @@ class Engine:
             repetitions: int = 1,
             priority: int = 50,
             target_route: str = '/xmonsim',
-    ) -> EngineTrialResult:
+    ) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -225,7 +195,7 @@ class Engine:
             target_route: The engine route to run against.
 
         Returns:
-            A single EngineTrialResult for this run.
+            A single TrialResult for this run.
         """
         return list(self.run_sweep(program,
                                    job_config,
@@ -366,7 +336,7 @@ class Engine:
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
-            EngineTrialResults, one for each parameter sweep.
+            TrialResults, one for each parameter sweep.
         """
 
         job_config = self.implied_job_config(job_config)
@@ -448,8 +418,7 @@ class Engine:
         return self.service.projects().programs().jobs().get(
             name=job_resource_name).execute()
 
-    def get_job_results(self, job_resource_name: str) -> List[
-        EngineTrialResult]:
+    def get_job_results(self, job_resource_name: str) -> List[TrialResult]:
         """Returns the actual results (not metadata) of a completed job.
 
         Params:
@@ -457,7 +426,7 @@ class Engine:
                 `projects/project_id/programs/program_id/jobs/job_id`.
 
         Returns:
-            An iterable over the EngineTrialResult, one per parameter in the
+            An iterable over the TrialResult, one per parameter in the
             parameter sweep.
         """
         response = self.service.projects().programs().jobs().getResult(
@@ -472,7 +441,7 @@ class Engine:
                 measurements = unpack_results(data, sweep_repetitions,
                                               key_sizes)
 
-                trial_results.append(EngineTrialResult(
+                trial_results.append(TrialResult(
                     params=ParamResolver(
                         result.get('params', {}).get('assignments', {})),
                     repetitions=sweep_repetitions,
@@ -589,7 +558,7 @@ class EngineJob:
         self._engine = engine
         self.job_resource_name = job['name']
         self.program_resource_name = self.job_resource_name.split('/jobs')[0]
-        self._results = None  # type: Optional[List[EngineTrialResult]]
+        self._results = None  # type: Optional[List[TrialResult]]
 
     def _update_job(self):
         if self._job['executionStatus']['state'] not in TERMINAL_STATES:
@@ -604,7 +573,7 @@ class EngineJob:
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
 
-    def results(self) -> List[EngineTrialResult]:
+    def results(self) -> List[TrialResult]:
         """Returns the job results, blocking until the job is complete."""
         if not self._results:
             job = self._update_job()
