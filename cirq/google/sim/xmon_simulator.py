@@ -239,6 +239,8 @@ class XmonSimulator:
                     extensions or xmon_gate_ext)
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
+            if xmon_circuit.are_all_measurements_terminal():
+
             for _ in range(repetitions):
                 all_step_results = _simulator_iterator(
                     xmon_circuit,
@@ -446,7 +448,8 @@ def _simulator_iterator(
         circuit: Circuit,
         options: 'XmonOptions' = XmonOptions(),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray]=0
+        initial_state: Union[int, np.ndarray]=0,
+        repetitions: int=1
 ) -> Iterator['XmonStepResult']:
     """Iterator over XmonStepResult from Moments of a Circuit.
 
@@ -467,9 +470,11 @@ def _simulator_iterator(
             If this is a np.ndarray it is the full initial state.
             In this case it must be the correct size, be normalized (an L2
             norm of 1), and be safely castable to a np.complex64.
+        reptitions: If different than 1, measurements will be repeated this
+            many times, and the measurement results will
 
     Yields:
-        StepResults from simulating a Moment of the Circuit.
+        XmonStepResults from simulating a Moment of the Circuit.
 
     Raises:
         TypeError: if the circuit contains gates that are not XmonGates or

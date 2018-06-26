@@ -18,6 +18,7 @@ This class should not be used directly, see instead XmonSimulator in the
 xmon_simulator class.
 """
 
+import itertools
 import math
 import multiprocessing
 import multiprocessing.dummy as dummy
@@ -358,6 +359,30 @@ class Stepper(object):
         })
         self._pool.map(_collapse_state, args)
         return result
+
+    def sample_measurements(
+            self,
+            indices: List[int],
+            repetitions: int=1) -> List[List[bool]]:
+        """Samples from measurements in the computational basis.
+
+        Note that this does not collapse the wave function.
+
+        Args:
+            indices: Which qubits are measured.
+
+        Returns:
+            Measurement results with True corresponding to the |1> state.
+            The outer list is for repetitions, and the inner corresponds to
+            measurements ordered by indices.
+        """
+        tensor = np.reshape(np.abs(self.current_state) ** 2, self._num_qubits * [2])
+        sum_indices = range(len(indices), self._num_qubits)
+        permuted = np.transpose(tensor, indices + sum_indices)
+        probs = np.sum(permuted, axis=sum_indices)
+        return np.random.choice(
+            list(itertools.product([False, True], repeat=len(indices))),
+            size=repetitions, p=probs)
 
 
 def decode_initial_state(initial_state: Union[int, np.ndarray],
