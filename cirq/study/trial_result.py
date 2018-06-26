@@ -14,12 +14,18 @@
 
 """Defines trial results."""
 
-from typing import Iterable, Callable, Tuple, TypeVar, Dict, Any
+from typing import (
+    Iterable, Callable, Tuple, TypeVar, Dict, Any, Union, TYPE_CHECKING,
+)
 
 import collections
 import numpy as np
 
 from cirq.study import resolver
+
+if TYPE_CHECKING:
+    from cirq import ops
+
 
 T = TypeVar('T')
 
@@ -74,6 +80,15 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
     return '\n'.join(keyed_bitstrings)
 
 
+def _as_key(val: Union['ops.QubitId', Iterable['ops.QubitId'], str]) -> str:
+    if isinstance(val, str):
+        return val
+    elif isinstance(val, collections.Iterable):
+        return ','.join(str(e) for e in val)
+    else:
+        return str(val)
+
+
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
 
@@ -113,7 +128,7 @@ class TrialResult:
     def multi_measurement_histogram(  # type: ignore
             self,
             *positional_args,
-            keys: Iterable[str],
+            keys: Iterable[Union['ops.QubitId', Iterable['ops.QubitId'], str]],
             fold_func: Callable[[Tuple[np.ndarray, ...]],
                                 T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
@@ -156,14 +171,17 @@ class TrialResult:
                 keys argument. If this argument is not specified, it defaults
                 to returning tuples of integers, where each integer is the big
                 endian interpretation of the bits a measurement sampled.
-            keys: Keys of measurements to include in the histogram.
+            keys: Keys of measurements to include in the histogram. Keys are
+                strings, but callers may also use a qubit or list of qubits
+                as a key. In that case the key defaults to the qubit names
+                joined by commas.
 
         Returns:
             A counter indicating how often measurements sampled various
             results.
         """
         assert not positional_args
-        fixed_keys = tuple(keys)
+        fixed_keys = tuple(_as_key(k) for k in keys)
         samples = zip(*[self.measurements[sub_key]
                         for sub_key in fixed_keys])
         if len(fixed_keys) == 0:
@@ -176,7 +194,7 @@ class TrialResult:
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def histogram(self,  # type: ignore
                   *positional_args,
-                  key: str,
+                  key: Union[str, 'ops.QubitId', Iterable['ops.QubitId']],
                   fold_func: Callable[[np.ndarray], T] = _big_endian_int
                   ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
@@ -205,7 +223,9 @@ class TrialResult:
 
         Args:
             positional_args: Never specified. Forces keyword arguments.
-            key: Keys of measurements to include in the histogram.
+            key: Key of the measurement to make a histogram of. If this is a
+                qubit, or list of qubits, the key defaults to the qubit names
+                joined by commas.
             fold_func: A function used to convert a sampled measurement result
                 into a countable value. The input is a list of bits sampled
                 together by a measurement. If this argument is not specified,
