@@ -579,29 +579,29 @@ def test_all_operations():
         Moment([ops.X(a)]),
         Moment([ops.X(b)]),
     ])
-    assert c.all_operations() == [ops.X(a), ops.X(b)]
+    assert list(c.all_operations()) == [ops.X(a), ops.X(b)]
 
     c = Circuit([
         Moment([ops.X(a), ops.X(b)]),
     ])
-    assert c.all_operations() == [ops.X(a), ops.X(b)]
+    assert list(c.all_operations()) == [ops.X(a), ops.X(b)]
 
     c = Circuit([
         Moment([ops.X(a)]),
         Moment([ops.X(a)]),
     ])
-    assert c.all_operations() == [ops.X(a), ops.X(a)]
+    assert list(c.all_operations()) == [ops.X(a), ops.X(a)]
 
     c = Circuit([
         Moment([ops.CZ(a, b)]),
     ])
-    assert c.all_operations() == [ops.CZ(a, b)]
+    assert list(c.all_operations()) == [ops.CZ(a, b)]
 
     c = Circuit([
         Moment([ops.CZ(a, b)]),
         Moment([ops.X(a)])
     ])
-    assert c.all_operations() == [ops.CZ(a, b), ops.X(a)]
+    assert list(c.all_operations()) == [ops.CZ(a, b), ops.X(a)]
 
     c = Circuit([
             Moment([]),
