@@ -102,4 +102,4 @@ def test_output_of():
     with pytest.raises(subprocess.CalledProcessError):
         _ = shell_tools.output_of('false')
     assert shell_tools.output_of('echo', 'test') == 'test'
-    assert shell_tools.output_of('pwd', cwd='/tmp') == '/tmp'
+    assert shell_tools.output_of('pwd', cwd='/tmp') in ['/tmp', '/private/tmp']
