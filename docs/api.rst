@@ -3,18 +3,33 @@
 API Reference
 =============
 
-Operations
-----------
-
-Gates
-~~~~~
-
-General Gates
-'''''''''''''
+Circuits
+--------
 
 .. autosummary::
     :toctree: generated/
 
+    Circuit
+    InsertStrategy
+    Moment
+    Schedule
+
+
+Operations
+----------
+
+.. autosummary::
+    :toctree: generated/
+
+    Operation
+
+Gates
+^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    Gate
     MeasurementGate
 
 
@@ -36,6 +51,23 @@ Two Qubit Gates
     :toctree: generated/
 
     CNOT
+    CZ
+
+Qubits
+------
+
+General classes for qubits.
+
+.. autosummary::
+    :toctree: generated/
+
+    QubitId
+    NamedQubit
+
+See also:
+
+* :ref:`Google Qubits <api-google-qubits>`
+
 
 Implementations
 ---------------
@@ -43,7 +75,7 @@ Implementations
 Packages to use specific hardware implementations of quantum circuits.
 
 Google
-~~~~~~
+^^^^^^
 
 Quantum hardware implementation by the Google Quantum AI Lab.
 
@@ -75,6 +107,8 @@ Simulator
     google.XmonSimulator
     google.XmonStepResult
     google.XmonSimulateTrialResult
+
+.. _api-google-qubits:
 
 Qubits
 ''''''
