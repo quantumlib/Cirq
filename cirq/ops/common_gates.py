@@ -483,6 +483,7 @@ CNOT = CNotGate()  # Controlled Not Gate.
 class SwapGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammableGate,
                gate_features.TwoQubitGate,
+               gate_features.CompositeGate,
                raw_types.InterchangeableQubitsGate):
     """Swaps two qubits."""
 
@@ -514,7 +515,8 @@ class SwapGate(eigen_gate.EigenGate,
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
-    def _with_exponent(self, exponent: Union[value.Symbol, float]) -> 'SwapGate':
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'SwapGate':
         return SwapGate(half_turns=exponent)
 
     @property

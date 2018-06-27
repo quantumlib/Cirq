@@ -271,6 +271,7 @@ def test_swap_power():
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
+
 def test_repr():
     assert repr(cirq.X) == 'X'
     assert repr(cirq.X**0.5) == 'X**0.5'
@@ -283,6 +284,9 @@ def test_repr():
 
     assert repr(cirq.CNOT) == 'CNOT'
     assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+    assert repr(cirq.SWAP) == 'SWAP'
+    assert repr(cirq.SWAP ** 0.5) == 'SWAP**0.5'
 
 
 def test_str():
