@@ -37,17 +37,22 @@ def test_can_run_readme_code_snippets():
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
 
-def test_can_run_docs_code_snippets():
+def find_docs_code_snippets_paths():
     docs_folder = os.path.dirname(__file__)
     for filename in os.listdir(docs_folder):
         if not filename.endswith('.md') and not filename.endswith('.rst'):
             continue
-        path = os.path.join(docs_folder, filename)
-        try:
-            assert_file_has_working_code_snippets(path, assume_import=True)
-        except:
-            print('DOCS FILE:\n\t{}'.format(filename))
-            raise
+        yield os.path.join(docs_folder, filename)
+
+
+@pytest.mark.parametrize('path', find_docs_code_snippets_paths())
+def test_can_run_docs_code_snippets(path):
+    filename = os.path.basename(path)
+    try:
+        assert_file_has_working_code_snippets(path, assume_import=True)
+    except:
+        print('DOCS FILE:\n\t{}'.format(filename))
+        raise
 
 
 def find_markdown_code_snippets(content: str) -> List[str]:
