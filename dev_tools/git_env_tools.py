@@ -132,7 +132,7 @@ def fetch_github_pull_request(destination_directory: str,
         result.actual_commit_id,
         log_run_to_stderr=verbose)
     return prepared_env.PreparedEnv(
-        repository=repository,
+        github_repo=repository,
         actual_commit_id=result.actual_commit_id,
         compare_commit_id=result.compare_commit_id,
         destination_directory=destination_directory,
@@ -206,7 +206,7 @@ def fetch_local_files(destination_directory: str,
         result.actual_commit_id,
         log_run_to_stderr=verbose)
     return prepared_env.PreparedEnv(
-        repository=None,
+        github_repo=None,
         actual_commit_id=result.actual_commit_id,
         compare_commit_id=result.compare_commit_id,
         destination_directory=destination_directory,

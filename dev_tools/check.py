@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Optional, cast
+from typing import Tuple, Optional, cast, Set
 
 import abc
 import os.path
 
-from dev_tools import env_tools
+from dev_tools import env_tools, shell_tools
 
 
 class CheckResult:
@@ -33,10 +33,14 @@ class CheckResult:
         self.unexpected_error = unexpected_error
 
     def __str__(self):
-        return str((self.check.context(),
-                    self.success,
-                    self.message,
-                    self.unexpected_error))
+        outcome = ('ERROR' if self.unexpected_error
+            else 'pass' if self.success
+            else 'FAIL')
+        msg = self.unexpected_error if self.unexpected_error else self.message
+        result = '{}: {} ({})'.format(outcome, self.check.context(), msg)
+        return shell_tools.highlight(
+            result,
+            shell_tools.GREEN if self.success else shell_tools.RED)
 
 
 class Check(metaclass=abc.ABCMeta):
@@ -46,7 +50,7 @@ class Check(metaclass=abc.ABCMeta):
         self.dependencies = dependencies
 
     @abc.abstractmethod
-    def command_line_switch(self):
+    def command_line_switch(self) -> str:
         """Used to identify this check from the command line."""
         pass
 
@@ -73,12 +77,53 @@ class Check(metaclass=abc.ABCMeta):
     def needs_python2_env(self):
         return False
 
-    def run_and_report(self,
-                       env: env_tools.PreparedEnv,
-                       env_py2: Optional[env_tools.PreparedEnv],
-                       verbose: bool,
-                       ) -> CheckResult:
-        """Evaluates this check in python 3 and 2.7, and reports to github.
+    def run(self,
+            env: env_tools.PreparedEnv,
+            verbose: bool,
+            previous_failures: Set['Check']) -> CheckResult:
+        """Evaluates this check.
+
+        Args:
+            env: The prepared python environment to run the check in.
+            verbose: When set, more progress output is produced.
+            previous_failures: Checks that have already run and failed.
+
+        Returns:
+            A CheckResult instance.
+        """
+
+        # Skip if a dependency failed.
+        if previous_failures.intersection(self.dependencies):
+            print(shell_tools.highlight(
+                'Skipped ' + self.command_line_switch(),
+                shell_tools.YELLOW))
+            return CheckResult(
+                self, False, 'Skipped due to dependency failing.', None)
+
+        print(shell_tools.highlight(
+            'Running ' + self.command_line_switch(),
+            shell_tools.GREEN))
+        try:
+            success, message = self.perform_check(env, verbose=verbose)
+            result = CheckResult(self, success, message, None)
+        except Exception as ex:
+            result = CheckResult(self, False, 'Unexpected error.', ex)
+
+        print(shell_tools.highlight(
+            'Finished ' + self.command_line_switch(),
+            shell_tools.GREEN if result.success else shell_tools.RED))
+        if verbose:
+            print(result)
+
+        return result
+
+    def pick_env_and_run_and_report(self,
+                                    env: env_tools.PreparedEnv,
+                                    env_py2: Optional[env_tools.PreparedEnv],
+                                    verbose: bool,
+                                    previous_failures: Set['Check']
+                                    ) -> CheckResult:
+        """Evaluates this check in python 3 or 2.7, and reports to github.
 
         If the prepared environments are not linked to a github repository,
         with a known access token, reporting to github is skipped.
@@ -87,31 +132,26 @@ class Check(metaclass=abc.ABCMeta):
             env: A prepared python 3 environment.
             env_py2: A prepared python 2.7 environment.
             verbose: When set, more progress output is produced.
+            previous_failures: Checks that have already run and failed.
 
         Returns:
-            A (success, message, error) tuple. The success element is True if
-            the check passed, and False if the check failed or threw an
-            unexpected exception. The message element is a human-readable
-            blurb of what went right/wrong (used when reporting to github). The
-            error element contains any unexpected exception thrown by the
-            check. The caller is responsible for propagating this error
-            appropriately.
+            A CheckResult instance.
         """
         env.report_status_to_github('pending', 'Running...', self.context())
-        try:
-            chosen_env = cast(env_tools.PreparedEnv,
-                              env_py2 if self.needs_python2_env() else env)
-            os.chdir(cast(str, chosen_env.destination_directory))
-            success, message = self.perform_check(chosen_env, verbose=verbose)
+        chosen_env = cast(env_tools.PreparedEnv,
+                          env_py2 if self.needs_python2_env() else env)
+        os.chdir(cast(str, chosen_env.destination_directory))
 
-        except Exception as ex:
+        result = self.run(chosen_env, verbose, previous_failures)
+
+        if result.unexpected_error is not None:
             env.report_status_to_github('error',
                                         'Unexpected error.',
                                         self.context())
-            return CheckResult(self, False, 'Unexpected error.', ex)
+        else:
+            env.report_status_to_github(
+                'success' if result.success else 'failure',
+                result.message,
+                self.context())
 
-        env.report_status_to_github(
-            'success' if success else 'failure',
-            message,
-            self.context())
-        return CheckResult(self, success, message, None)
+        return result

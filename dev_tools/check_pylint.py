@@ -28,7 +28,7 @@ class LintCheck(check.Check):
         return 'pylint'
 
     def context(self):
-        return 'pylint by maintainer'
+        return 'pylint'
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         base_path = cast(str, env.destination_directory)
