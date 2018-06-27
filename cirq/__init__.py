@@ -153,6 +153,7 @@ from cirq.study.visualize import (
 from cirq.value import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
+    chosen_angle_to_half_turns,
     Duration,
     Symbol,
     Timestamp,
