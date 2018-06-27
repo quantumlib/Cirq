@@ -488,7 +488,7 @@ class SwapGate(eigen_gate.EigenGate,
 
     def __init__(self,
                  *positional_args,
-                 half_turns: Union[Symbol, float] = 1.0) -> None:
+                 half_turns: Union[value.Symbol, float] = 1.0) -> None:
         assert not positional_args
         super().__init__(exponent=half_turns)
 
@@ -518,7 +518,7 @@ class SwapGate(eigen_gate.EigenGate,
         return SwapGate(half_turns=exponent)
 
     @property
-    def half_turns(self) -> Union[Symbol, float]:
+    def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
     def text_diagram_wire_symbols(self,
