@@ -258,6 +258,14 @@ def test_swap_power():
             [0, 0, 0, 1]
         ]))
 
+    # Matrix must be consistent with decomposition.
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    g = ops.SWAP**0.25
+    cirq.testing.assert_allclose_up_to_global_phase(
+        g.matrix(),
+        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
+        atol=1e-8)
 
 def test_repr():
     assert repr(cirq.X) == 'X'

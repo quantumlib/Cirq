@@ -388,6 +388,13 @@ class SwapGate(eigen_gate.EigenGate,
         assert not positional_args
         super().__init__(exponent=half_turns)
 
+    def default_decompose(self, qubits):
+        """See base class."""
+        a, b = qubits
+        yield CNOT(a, b)
+        yield CNOT(b, a) ** self.half_turns
+        yield CNOT(a, b)
+
     def _eigen_components(self):
         return [
             (0, np.array([[1, 0,   0,   0],
@@ -403,7 +410,7 @@ class SwapGate(eigen_gate.EigenGate,
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
-    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'SwapGate':
+    def _with_exponent(self, exponent: Union[value.Symbol, float]) -> 'SwapGate':
         return SwapGate(half_turns=exponent)
 
     @property
