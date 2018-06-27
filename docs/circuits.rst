@@ -223,7 +223,7 @@ Contrast this with the :attr:`~cirq.InsertStrategy.NEW`
 
     print(circuit)
     # prints
-    # (0, 0): ───H───────────
+    # (0, 0): ───H──────────
     #
     # (1, 0): ───────H───────
     #
