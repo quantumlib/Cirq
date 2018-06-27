@@ -67,8 +67,8 @@ def deindent_snippet(snippet: str) -> str:
 
     for line in snippet.split('\n'):
         # The first non-empty line determines the indentation level.
-        if indentation_amount is None and line:
-            leading_whitespace = re.match('\s+', line)
+        if indentation_amount is None and re.match('\s*\S', line):
+            leading_whitespace = re.match('\s*', line)
             if leading_whitespace:
                 indentation_amount = len(leading_whitespace.group(0))
 
