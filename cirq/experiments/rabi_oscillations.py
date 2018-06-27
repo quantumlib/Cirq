@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Dict
-
-import numpy as np
+from typing import Dict
 
 import collections
+import numpy as np
 import random
 
 from cirq import circuits, devices, google, ops, study, value
+from cirq.experiments import bayes
 
 
 def run_rabi_oscillations_on_engine(device: devices.Device,
@@ -51,23 +51,6 @@ def run_rabi_oscillations_on_engine(device: devices.Device,
     return averages
 
 
-def bayesian_log_loss_binomial(zeros: int,
-                               ones: int,
-                               probability_hypothesis: float) -> float:
-    p_one = probability_hypothesis
-    p_zero = 1 - p_one
-    if (zeros and not p_zero) or (ones and not p_one):
-        return -float('inf')
-    t = 0
-    if zeros:
-        t += np.log2(p_zero) * zeros
-    if ones:
-        t += np.log(p_one) * ones
-    return t
-    # entropy = np.log2(p_zero) * p_zero + np.log(p_one) * p_one
-    # expected_log_loss = entropy * (ones + zeros)
-
-
 RabiHypothesis = collections.namedtuple('RabiHypothesis',
                                         ('frequency', 'decay'))
 
@@ -78,43 +61,16 @@ def predicted_p_one(time, rabi_hypothesis):
     return (cycle * decay)**2
 
 
-def bayesian_log_loss_rabi_point(zeros: int,
-                                 ones: int,
-                                 time: float,
-                                 rabi_hypothesis: RabiHypothesis) -> float:
-    p_one = predicted_p_one(time, rabi_hypothesis)
-    return bayesian_log_loss_binomial(zeros,
-                                      ones,
-                                      probability_hypothesis=p_one)
-
-
-def bayesian_log_loss_rabi_full(time_samples: Dict[float, collections.Counter],
-                                rabi_hypothesis: RabiHypothesis) -> float:
-    return sum(
-        bayesian_log_loss_rabi_point(zeros=c[0],
-                                     ones=c[1],
-                                     time=t,
-                                     rabi_hypothesis=rabi_hypothesis)
-        for t, c in time_samples.items()
-    )
-
-
 def bayesian_infer_rabi(time_samples: Dict[float, collections.Counter],
                         prior: Dict[RabiHypothesis, float]
                         ) -> Dict[RabiHypothesis, float]:
-    losses = {
-        hypothesis: bayesian_log_loss_rabi_full(time_samples, hypothesis)
-        for hypothesis, prob in prior.items()
-    }
-    best_loss = max(losses.values())
-
-    denormalized_result = {
-        hypothesis: prob * 2**(losses[hypothesis] - best_loss)
-        for hypothesis, prob in prior.items()
-    }
-
-    total = sum(denormalized_result.values())
-    return {h: p / total for h, p in denormalized_result.items()}
+    return bayes.infer_posterior(
+        predict_log_loss=lambda hyp, exp, out: bayes.binomial_log_loss(
+            zeros=out[0],
+            ones=out[1],
+            p_one=predicted_p_one(time=exp, rabi_hypothesis=hyp)),
+        data=time_samples,
+        prior=prior)
 
 
 def uniform_bounded_rabi_prior(min_frequency: float,
@@ -177,19 +133,18 @@ def main():
     prior = uniform_bounded_rabi_prior(
         min_frequency=0,
         max_frequency=10,
-        num_frequency=100,
+        num_frequency=200,
         min_decay=0,
         max_decay=10,
-        num_decay=30,
+        num_decay=50,
     )
     data = generate_rabi_data_scan(min_time=0, max_time=10, num_time=100,
                                    params=RabiHypothesis(2, 3),
-                                   count=1000)
+                                   count=100)
     posterior = bayesian_infer_rabi(
         time_samples=data,
         prior=prior
     )
-    # print(posterior)
     plot_distribution(posterior)
 
 
