@@ -52,7 +52,7 @@ class Rot11Gate(eigen_gate.EigenGate,
             degs: Relative phasing of CZ's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -117,7 +117,7 @@ class RotXGate(eigen_gate.EigenGate,
             degs: The relative phasing of X's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -179,7 +179,7 @@ class RotYGate(eigen_gate.EigenGate,
             degs: The relative phasing of Y's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -241,7 +241,7 @@ class RotZGate(eigen_gate.EigenGate,
             degs: The relative phasing of Z's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -428,7 +428,7 @@ class CNotGate(eigen_gate.EigenGate,
             degs: Relative phasing of CNOT's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
