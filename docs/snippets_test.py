@@ -58,18 +58,27 @@ def find_markdown_code_snippets(content: str) -> List[str]:
 
 def deindent_snippet(snippet: str) -> str:
     deindented_lines = []
+    indentation_amount = None
+
     for line in snippet.split('\n'):
-        if line.startswith(' ' * 4):
-            deindented_lines.append(line[4:])
+        # The first non-empty line determines the indentation level.
+        if indentation_amount is None and line:
+            leading_whitespace = re.match('\s+', line)
+            if leading_whitespace:
+                indentation_amount = len(leading_whitespace.group(0))
+
+        if line:
+            deindented_lines.append(line[indentation_amount:])
         else:
             deindented_lines.append(line)
     return '\n'.join(deindented_lines)
 
 
 def find_rst_code_snippets(content: str) -> List[str]:
-    snippets = re.findall("\n.. code-block:: python\n(.*?)\n\S",
-                          content,
-                          re.MULTILINE | re.DOTALL)
+    snippets = re.findall(
+        r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)',
+        content,
+        re.MULTILINE | re.DOTALL)
     return [deindent_snippet(snippet) for snippet in snippets]
 
 
@@ -84,6 +93,7 @@ A 3 by 3 grid of qubits using
 The next level up.
 
 .. code-block:: python
+    :emphasize-lines: 3,5
 
     print("hello 1")
 
@@ -91,11 +101,16 @@ The next level up.
         print(f"hello {i}")
 
 More text.
+
+.. code-block:: python
+
+    print("last line")
 """)
 
     assert snippets == [
-        '\nprint("hello world")\n',
-        '\nprint("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n',
+        'print("hello world")\n',
+        'print("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n',
+        'print("last line")\n',
     ]
 
 
