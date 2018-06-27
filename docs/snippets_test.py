@@ -40,7 +40,7 @@ def test_can_run_readme_code_snippets():
 def test_can_run_docs_code_snippets():
     docs_folder = os.path.dirname(__file__)
     for filename in os.listdir(docs_folder):
-        if not filename.endswith('.md'):
+        if not filename.endswith('.md') and not filename.endswith('.rst'):
             continue
         path = os.path.join(docs_folder, filename)
         try:
@@ -50,6 +50,55 @@ def test_can_run_docs_code_snippets():
             raise
 
 
+def find_markdown_code_snippets(content: str) -> List[str]:
+    return re.findall("\n```python(.*?)\n```\n",
+                      content,
+                      re.MULTILINE | re.DOTALL)
+
+
+def deindent_snippet(snippet: str) -> str:
+    deindented_lines = []
+    for line in snippet.split('\n'):
+        if line.startswith(' ' * 4):
+            deindented_lines.append(line[4:])
+        else:
+            deindented_lines.append(line)
+    return '\n'.join(deindented_lines)
+
+
+def find_rst_code_snippets(content: str) -> List[str]:
+    snippets = re.findall("\n.. code-block:: python\n(.*?)\n\S",
+                          content,
+                          re.MULTILINE | re.DOTALL)
+    return [deindent_snippet(snippet) for snippet in snippets]
+
+
+def test_find_rst_code_snippets():
+    snippets = find_rst_code_snippets("""
+A 3 by 3 grid of qubits using
+
+.. code-block:: python
+
+    print("hello world")
+
+The next level up.
+
+.. code-block:: python
+
+    print("hello 1")
+
+    for i in range(10):
+        print(f"hello {i}")
+
+More text.
+""")
+
+    assert snippets == [
+        '\nprint("hello world")\n',
+        '\nprint("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n',
+    ]
+
+
 def assert_file_has_working_code_snippets(path: str, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
@@ -57,9 +106,10 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
         content = f.read()
 
     # Find snippets of code, and execute them. They should finish.
-    snippets = re.findall("\n```python(.*?)\n```\n",
-                          content,
-                          re.MULTILINE | re.DOTALL)
+    if path.endswith('.md'):
+        snippets = find_markdown_code_snippets(content)
+    else:
+        snippets = find_rst_code_snippets(content)
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
