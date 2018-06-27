@@ -29,10 +29,12 @@ square grid.  For this the class :class:`~cirq.google.XmonQubit`
 subclasses :class:`~cirq.QubitId`.   For example, we can create
 a 3 by 3 grid of qubits using
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_initialize_grid]
-    :end-before: [END cirq_circuits_initialize_grid]
+.. code-block:: python
+
+    qubits = [cirq.google.XmonQubit(x, y) for x in range(3) for y in range(3)]
+
+    print(qubits[0])
+    # prints "(0, 0)"
 
 The next level up conceptually is the notion of a :class:`~cirq.Gate`.
 A :class:`~cirq.Gate` represents a physical process that occurs on a
@@ -41,10 +43,16 @@ can be applied *on* to one or more qubits.  This can be done
 via the :meth:`~cirq.Gate.on` method itself or via ``()`` and doing this
 turns the :class:`~cirq.Gate` into an :class:`~cirq.Operation`.
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_gate]
-    :end-before: [END cirq_circuits_gate]
+.. code-block:: python
+
+    # This is an Pauli X gate.
+    x_gate = cirq.X
+    # Applying it to the qubit at location (0, 0) (defined above)
+    # turns it into an operation.
+    x_op = x_gate(qubits[0])
+
+    print(x_op)
+    # prints "X((0, 0))"
 
 A :class:`~cirq.Moment` is quite simply a collection of operations, each of
 which operates on a different set of qubits, and which conceptually
@@ -54,10 +62,14 @@ related to the actual scheduling of the operations on a quantum
 computer, or via a simulator, though it can be.  For example, here
 is a Moment in which Pauli X and a CZ gate operate on three qubits:
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_moment]
-    :end-before: [END cirq_circuits_moment]
+.. code-block:: python
+
+    cz = cirq.CZ(qubits[0], qubits[1])
+    x = cirq.X(qubits[2])
+    moment = cirq.Moment([x, cz])
+
+    print(moment)
+    # prints "X((0, 2)) and CZ((0, 0), (0, 1))"
 
 Note that is not the only way to construct moments, nor even the
 typical method, but illustrates that a :class:`~cirq.Moment` is just a
@@ -69,10 +81,22 @@ conceptually, contains the first ``Operations`` that will be
 applied.  Here, for example, is a simple circuit made up of
 two moments
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_moment_series]
-    :end-before: [END cirq_circuits_moment_series]
+.. code-block:: python
+
+    cz01 = cirq.CZ(qubits[0], qubits[1])
+    x2 = cirq.X(qubits[2])
+    cz12 = cirq.CZ(qubits[1], qubits[2])
+    moment0 = cirq.Moment([cz01, x2])
+    moment1 = cirq.Moment([cz12])
+    circuit = cirq.Circuit((moment0, moment1))
+
+    print(circuit)
+    # prints the text diagram for the circuit:
+    # (0, 0): ───@───────
+    #            │
+    # (0, 1): ───Z───@───
+    #                │
+    # (0, 2): ───X───Z───
 
 Again, note that this is only one way to construct a :class:`~cirq.Circuit`
 but illustrates the concept that a :class:`~cirq.Circuit` is an iterable
@@ -89,25 +113,50 @@ One of the most useful ways to construct a :class:`~cirq.Circuit` is by
 appending onto the :class:`~cirq.Circuit` with the
 :meth:`~cirq.Circuit.append` method.
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_construction_append]
-    :end-before: [END cirq_circuits_construction_append]
+.. code-block:: python
+
+    from cirq.ops import CZ, H
+    q0, q1, q2 = [cirq.google.XmonQubit(i, 0) for i in range(3)]
+    circuit = cirq.Circuit()
+    circuit.append([CZ(q0, q1), H(q2)])
+
+    print(circuit)
+    # prints
+    # (0, 0): ───@───
+    #            │
+    # (1, 0): ───Z───
+    #
+    # (2, 0): ───H───
 
 This appended an entire new moment to the qubit, which we can continue to do,
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_construction_append_more]
-    :end-before: [END cirq_circuits_construction_append_more]
+.. code-block:: python
+
+    circuit.append([H(q0), CZ(q1, q2)])
+
+    print(circuit)
+    # prints
+    # (0, 0): ───@───H───
+    #            │
+    # (1, 0): ───Z───@───
+    #                │
+    # (2, 0): ───H───Z───
 
 In these two examples, we have appending full moments, what happens when we
 append all of these at once?
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_construction_append_all]
-    :end-before: [END cirq_circuits_construction_append_all]
+.. code-block:: python
+
+    circuit = cirq.Circuit()
+    circuit.append([CZ(q0, q1), H(q2), H(q0), CZ(q1, q2)])
+
+    print(circuit)
+    # prints
+    # (0, 0): ───@───H───
+    #            │
+    # (1, 0): ───Z───@───
+    #                │
+    # (2, 0): ───H───Z───
 
 We see that here we have again created two ``Moments``. How did
 :class:`~cirq.Circuit` know how to do this? ``Circuit's``
@@ -141,10 +190,20 @@ For example, if we first create an :class:`~cirq.Operation` in a single moment,
 and then use :attr:`~cirq.InsertStrategy.EARLIEST` the :class:`~cirq.Operation` can slide back to this
 first :class:`~cirq.Moment` if there is space:
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_insert_strategy_earliest]
-    :end-before: [END cirq_circuits_insert_strategy_earliest]
+.. code-block:: python
+
+    from cirq.circuits import InsertStrategy
+    circuit = cirq.Circuit()
+    circuit.append([CZ(q0, q1)])
+    circuit.append([H(q0), H(q2)], strategy=InsertStrategy.EARLIEST)
+
+    print(circuit)
+    # prints
+    # (0, 0): ───@───H───
+    #            │
+    # (1, 0): ───Z───────
+    #
+    # (2, 0): ───H───────
 
 After creating the first momemnt with a :class:`~cirq.CZ` gate, the second
 append usese the :attr:`~cirq.InsertStrategy.EARLIEST` strategy. The
@@ -157,10 +216,18 @@ Contrast this with the :attr:`~cirq.InsertStrategy.NEW`
     :attr:`~cirq.InsertStrategy.NEW`: Every operation that is inserted is
     created in a new moment.
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_insert_strategy_new]
-    :end-before: [END cirq_circuits_insert_strategy_new]
+.. code-block:: python
+
+    circuit = cirq.Circuit()
+    circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.NEW)
+
+    print(circuit)
+    # prints
+    # (0, 0): ───H───────────
+    #
+    # (1, 0): ───────H───────
+    #
+    # (2, 0): ───────────H───
 
 Here every operator processed by the append ends up in a new moment.
 :attr:`~cirq.InsertStrategy.NEW` is most useful when you are inserting a single operation and
@@ -173,10 +240,19 @@ Another strategy is :attr:`~cirq.InsertStrategy.INLINE`:
     there's already an existing operation affecting any of the qubits touched
     by the operation to insert, a new moment is created instead.
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_insert_strategy_inline]
-    :end-before: [END cirq_circuits_insert_strategy_inline]
+.. code-block:: python
+
+    circuit = cirq.Circuit()
+    circuit.append([CZ(q1, q2)])
+    circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
+
+    print(circuit)
+    # prints
+    # (0, 0): ───────@───H───
+    #                │
+    # (1, 0): ───@───Z───────
+    #            │
+    # (2, 0): ───Z───H───────
 
 After an initial :class:`~cirq.CZ` between the second and third qubit, we try
 to insert 3 ``Operations``. We see that the :class:`~cirq.CZ` on the first
@@ -191,10 +267,19 @@ Finally we turn to the default strategy:
     desired insert location for the first operation, but then switches to
     inserting operations according to :attr:`~cirq.InsertStrategy.INLINE`.
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_insert_strategy_new_then_inline]
-    :end-before: [END cirq_circuits_insert_strategy_new_then_inline]
+.. code-block:: python
+
+    circuit = cirq.Circuit()
+    circuit.append([H(q0)])
+    circuit.append([CZ(q1,q2), H(q0)], strategy=InsertStrategy.NEW_THEN_INLINE)
+
+    print(circuit)
+    # prints
+    # (0, 0): ───H───H───
+    #
+    # (1, 0): ───────@───
+    #                │
+    # (2, 0): ───────Z───
 
 The first append creates a single moment with a :class:`~cirq.H` on the first
 qubit. Then the append with the :attr:`~cirq.InsertStrategy.NEW_THEN_INLINE`
@@ -214,15 +299,37 @@ Patterns for Arguments to Append and Insert
 
 Above we have used a series of :meth:`~cirq.Circuit.append` calls with a list
 of different ``Operations`` we are adding to the circuit. But the argument
-where we have supplied a list can also take more than just ``list``
+where we have supplied a list can also take more than just :class:`list`
 values.
 
 Example:
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_op_tree]
-    :end-before: [END cirq_circuits_op_tree]
+.. code-block:: python
+
+    def my_layer():
+        yield CZ(q0, q1)
+        yield [H(q) for q in (q0, q1, q2)]
+        yield [CZ(q1, q2)]
+        yield [H(q0), [CZ(q1, q2)]]
+
+    circuit = cirq.Circuit()
+    circuit.append(my_layer())
+
+    for x in my_layer():
+        print(x)
+    # prints
+    # CZ((0, 0), (1, 0))
+    # [Operation(H, (XmonQubit(0, 0),)), Operation(H, (XmonQubit(1, 0),)), Operation(H, (XmonQubit(2, 0),))]
+    # [Operation(CZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]
+    # [Operation(H, (XmonQubit(0, 0),)), [Operation(CZ, (XmonQubit(1, 0), XmonQubit(2, 0)))]]
+
+    print(circuit)
+    # prints
+    # (0, 0): ───@───H───H───────
+    #            │
+    # (1, 0): ───Z───H───@───@───
+    #                    │   │
+    # (2, 0): ───────H───Z───Z───
 
 Recall that in Python functions that have a ``yield`` are *generators*.
 Generators are functions that act as *iterators*. Above we see that we can
@@ -249,10 +356,14 @@ Another useful method is to construct a :class:`~cirq.Circuit` fully formed
 from an ``OP_TREE`` via the static method :meth:`~cirq.Circuit.from_ops`
 (which takes an insertion strategy as a parameter):
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_from_ops]
-    :end-before: [END cirq_circuits_from_ops]
+.. code-block:: python
+
+    circuit = cirq.Circuit.from_ops(H(q0), H(q1))
+    print(circuit)
+    # prints
+    # (0, 0): ───H───
+    #
+    # (1, 0): ───H───
 
 
 Slicing and Iterating over Circuits
@@ -261,18 +372,26 @@ Slicing and Iterating over Circuits
 ``Circuits`` can be iterated over and sliced. When they are iterated
 over each item in the iteration is a moment:
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_iterate]
-    :end-before: [END cirq_circuits_iterate]
+.. code-block:: python
+
+    circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1))
+    for moment in circuit:
+        print(moment)
+    # prints
+    # H((0, 0))
+    # CZ((0, 0), (1, 0))
 
 Slicing a :class:`~cirq.Circuit` on the other hand, produces a new
 :class:`~cirq.Circuit` with only the moments corresponding to the slice:
 
-.. literalinclude:: ../examples/snippets/circuits_test.py
-    :dedent: 4
-    :start-after: [START cirq_circuits_slice]
-    :end-before: [END cirq_circuits_slice]
+.. code-block:: python
+
+    circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
+    print(circuit[1:3])
+    # prints
+    # (0, 0): ───@───────
+    #            │
+    # (1, 0): ───Z───H───
 
 Especially useful is dropping the last moment (which is often just
 measurements): ``circuit[:-1]``, or reversing a circuit:
