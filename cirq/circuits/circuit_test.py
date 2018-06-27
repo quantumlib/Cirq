@@ -30,12 +30,10 @@ def test_equality():
 
     # Default is empty. Iterables get listed.
     eq.add_equality_group(Circuit(),
-                          Circuit(device=cirq.UnconstrainedDevice),
                           Circuit([]), Circuit(()))
     eq.add_equality_group(
         Circuit([Moment()]),
         Circuit((Moment(),)))
-    eq.add_equality_group(Circuit(device=cirq.google.Foxtail))
 
     # Equality depends on structure and contents.
     eq.add_equality_group(Circuit([Moment([cirq.X(a)])]))
