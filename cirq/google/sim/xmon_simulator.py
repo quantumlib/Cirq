@@ -239,8 +239,6 @@ class XmonSimulator:
                     extensions or xmon_gate_ext)
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
-            if xmon_circuit.are_all_measurements_terminal():
-
             for _ in range(repetitions):
                 all_step_results = _simulator_iterator(
                     xmon_circuit,
