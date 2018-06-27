@@ -252,6 +252,17 @@ def test_cnot_decomposes_despite_symbol():
     assert ops.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
 
 
+def test_swap_power():
+    np.testing.assert_almost_equal(
+        (ops.SWAP**0.5).matrix(),
+        np.array([
+            [1, 0, 0, 0],
+            [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+            [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+            [0, 0, 0, 1]
+        ]))
+
+
 def test_repr():
     assert repr(cirq.X) == 'X'
     assert repr(cirq.X**0.5) == 'X**0.5'

@@ -480,30 +480,39 @@ class CNotGate(eigen_gate.EigenGate,
 CNOT = CNotGate()  # Controlled Not Gate.
 
 
-class SwapGate(gate_features.TextDiagrammableGate,
-               gate_features.CompositeGate,
-               gate_features.SelfInverseGate,
-               gate_features.KnownMatrixGate,
+class SwapGate(eigen_gate.EigenGate,
+               gate_features.TextDiagrammableGate,
                gate_features.TwoQubitGate,
                raw_types.InterchangeableQubitsGate):
     """Swaps two qubits."""
 
-    def matrix(self):
-        """See base class."""
-        return np.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1]])
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[Symbol, float] = 1.0) -> None:
+        assert not positional_args
+        super().__init__(exponent=half_turns)
 
-    def default_decompose(self, qubits):
-        """See base class."""
-        a, b = qubits
-        yield CNOT(a, b)
-        yield CNOT(b, a)
-        yield CNOT(a, b)
+    def _eigen_components(self):
+        return [
+            (0, np.array([[1, 0,   0,   0],
+                          [0, 0.5, 0.5, 0],
+                          [0, 0.5, 0.5, 0],
+                          [0, 0,   0,   1]])),
+            (1, np.array([[0,  0,    0,   0],
+                          [0,  0.5, -0.5, 0],
+                          [0, -0.5,  0.5, 0],
+                          [0,  0,    0,   0]])),
+        ]
 
-    def __repr__(self):
-        return 'SWAP'
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'SwapGate':
+        return SwapGate(half_turns=exponent)
+
+    @property
+    def half_turns(self) -> Union[Symbol, float]:
+        return self._exponent
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -512,6 +521,14 @@ class SwapGate(gate_features.TextDiagrammableGate,
         if not use_unicode_characters:
             return 'swap', 'swap'
         return '×', '×'
+
+    def text_diagram_exponent(self):
+        return self.half_turns
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'SWAP'
+        return 'SWAP**{!r}'.format(self.half_turns)
 
 
 SWAP = SwapGate()  # Exchanges two qubits' states.
