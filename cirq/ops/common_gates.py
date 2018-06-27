@@ -535,7 +535,7 @@ class SwapGate(eigen_gate.EigenGate,
         return self.half_turns
 
     def __repr__(self) -> str:
-        if self.half_turns == 1:
+        if self.half_turns == 1:c
             return 'SWAP'
         return 'SWAP**{!r}'.format(self.half_turns)
 
