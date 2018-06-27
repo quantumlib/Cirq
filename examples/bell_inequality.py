@@ -62,7 +62,7 @@ def main():
     print('Win rate: {}%'.format(win_percent))
 
 
-def make_bell_test_circuit() -> cirq.Circuit:
+def make_bell_test_circuit():
     alice = cirq.google.XmonQubit(0, 0)
     bob = cirq.google.XmonQubit(1, 0)
     alice_referee = cirq.google.XmonQubit(0, 1)

@@ -55,11 +55,10 @@ from cirq.google.sim import (
     XmonOptions,
     XmonSimulator,
     XmonStepResult,
-    XmonTrialResult,
     XmonSimulateTrialResult,
 )
 from cirq.google.engine import (
+    engine_from_environment,
     Engine,
     JobConfig,
-    EngineTrialResult,
 )

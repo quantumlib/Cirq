@@ -18,5 +18,8 @@
 from cirq.google.engine.engine import (
     Engine,
     JobConfig,
-    EngineTrialResult,
+)
+
+from cirq.google.engine.env_config import (
+    engine_from_environment,
 )

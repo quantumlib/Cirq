@@ -1,108 +1,126 @@
-# Copyright 2018 The Cirq Developers
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Demonstrates the Bernstein-Vazirani algorithm.
 
-import collections
+The (non-recursive) Bernstein-Vazirani algorithm takes a black-box oracle
+implementing a function f(a) = a·factors + bias (mod 2), where 'bias' is 0 or 1,
+'a' and 'factors' are vectors with all elements equal to 0 or 1, and the
+algorithm solves for 'factors' in a single query to the oracle.
+
+=== REFERENCE ===
+
+Bernstein, Ethan, and Umesh Vazirani. "Quantum complexity theory."
+SIAM Journal on Computing 26.5 (1997): 1411-1473.
+
+=== EXAMPLE OUTPUT ===
+
+Secret function:
+f(a) = a·<0, 1, 1, 1, 0, 0, 1, 0> + 1 (mod 2)
+Circuit:
+(0, 0): ───────H───────────────────────H───M───
+                                           │
+(1, 0): ───────H───────@───────────────H───M───
+                       │                   │
+(2, 0): ───────H───────┼───@───────────H───M───
+                       │   │               │
+(3, 0): ───────H───────┼───┼───@───────H───M───
+                       │   │   │           │
+(4, 0): ───────H───────┼───┼───┼───────H───M───
+                       │   │   │           │
+(5, 0): ───────H───────┼───┼───┼───────H───M───
+                       │   │   │           │
+(6, 0): ───────H───────┼───┼───┼───@───H───M───
+                       │   │   │   │       │
+(7, 0): ───────H───────┼───┼───┼───┼───H───M───
+                       │   │   │   │
+(8, 0): ───X───H───X───X───X───X───X───────────
+Sampled results:
+Counter({'01110010': 3})
+Most common matches secret factors:
+True
+"""
+
 import random
-from typing import Sequence
-
-from absl import app
-from absl import flags
 
 import cirq
 
 
-FLAGS = flags.FLAGS
-NUM_SHOTS = 10
-NUM_QUBITS = 16
+def main():
+    qubit_count = 8
+    circuit_sample_count = 3
+
+    # Choose qubits to use.
+    input_qubits = [cirq.google.XmonQubit(i, 0) for i in range(qubit_count)]
+    output_qubit = cirq.google.XmonQubit(qubit_count, 0)
+
+    # Pick coefficients for the oracle and create a circuit to query it.
+    secret_bias_bit = random.randint(0, 1)
+    secret_factor_bits = [random.randint(0, 1) for _ in range(qubit_count)]
+    oracle = make_oracle(input_qubits,
+                         output_qubit,
+                         secret_factor_bits,
+                         secret_bias_bit)
+    print('Secret function:\nf(a) = a·<{}> + {} (mod 2)'.format(
+        ', '.join(str(e) for e in secret_factor_bits),
+        secret_bias_bit))
+
+    # Embed the oracle into a special quantum circuit querying it exactly once.
+    circuit = make_bernstein_vazirani_circuit(
+        input_qubits, output_qubit, oracle)
+    print('Circuit:')
+    print(circuit)
+
+    # Sample from the circuit a couple times.
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.run(circuit, repetitions=circuit_sample_count)
+    frequencies = result.histogram(key='result', fold_func=bitstring)
+    print('Sampled results:\n{}'.format(frequencies))
+
+    # Check if we actually found the secret value.
+    most_common_bitstring = frequencies.most_common(1)[0][0]
+    print('Most common matches secret factors:\n{}'.format(
+        most_common_bitstring == bitstring(secret_factor_bits)))
+
+
+def make_oracle(input_qubits,
+                output_qubit,
+                secret_factor_bits,
+                secret_bias_bit):
+    """Gates implementing the function f(a) = a·factors + bias (mod 2)."""
+
+    if secret_bias_bit:
+        yield cirq.X(output_qubit)
+
+    for qubit, bit in zip(input_qubits, secret_factor_bits):
+        if bit:
+            yield cirq.CNOT(qubit, output_qubit)
+
+
+def make_bernstein_vazirani_circuit(input_qubits, output_qubit, oracle):
+    """Solves for factors in f(a) = a·factors + bias (mod 2) with one query."""
+
+    c = cirq.Circuit()
+
+    # Initialize qubits.
+    c.append([
+        cirq.X(output_qubit),
+        cirq.H(output_qubit),
+        cirq.H.on_each(input_qubits),
+    ])
+
+    # Query oracle.
+    c.append(oracle)
+
+    # Measure in X basis.
+    c.append([
+        cirq.H.on_each(input_qubits),
+        cirq.measure(*input_qubits, key='result')
+    ])
+
+    return c
 
 
 def bitstring(bits):
     return ''.join(str(int(b)) for b in bits)
 
 
-def bv_circuit(qubits: Sequence[cirq.QubitId], a: int) -> cirq.Circuit:
-    """Creates a circuit for the Bernstein-Vazirani algorithm.
-
-    Args:
-        qubits: list of qubits in the circuit.
-        a: integer < 2**len(qubits), representing the unknown bit string.
-
-    Returns:
-        Result object, containing measurement data after the circuit has run.
-    """
-    # 1. Create a circuit (qubits start in the |0> state).
-    circuit = cirq.Circuit()
-    # 2. Apply Hadamard gates to the inputs.
-    H_layer = [cirq.H(qubit) for qubit in qubits]
-    circuit.append(H_layer)
-    # 3. Apply the inner-product oracle
-    O_layer = [cirq.Z(qubit) for i, qubit in enumerate(qubits) if a & (1 << i)]
-    circuit.append(O_layer)
-    # 4. Apply Hadamard gates to the outputs
-    circuit.append(H_layer)
-    # 5. Apply measurement layer
-    circuit.append(cirq.measure(*qubits, key='result'))
-    return circuit
-
-
-def bv(n_qubits: int, a: int, shots: int = NUM_SHOTS) -> collections.Counter:
-    """Creates and executes the circuit for Bernstein-Vazirani algorithm.
-
-    Args:
-        n_qubits: integer < 30, number of qubits in the simulated circuit.
-        a: integer < 2**n_qubits, representing the unknown bit string.
-        shots: number of times the circuit has been executed.
-
-    Returns:
-        Result object, containing measurement data after the circuit has run.
-    """
-    # Generate the circuit.
-    qubits = [cirq.google.XmonQubit(0, x) for x in range(n_qubits)]
-    circuit = bv_circuit(qubits, a)
-
-    print(circuit)
-
-    # Simulate and return results.
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.run(circuit, repetitions=NUM_SHOTS)
-    result_bits = result.measurements['result']  # 2D array of (rep, qubit)
-    result_strs = [bitstring(bits) for bits in result_bits]
-    return collections.Counter(result_strs)
-
-
-
-def main(argv):
-    """Demonstrates Bernstein-Vazirani algorithm.
-
-    Generates random number which could be represented with the given number of
-    qubits and uses it as the argument for BV circuit.
-    Shows that the returned measurement corresponds to the bit representation
-    of the generated number.
-
-    Args:
-        argv: unused.
-    """
-    del argv  # Unused.
-    n_qubits = NUM_QUBITS
-    a = random.randrange(2**n_qubits - 1)
-    a_bits = [bool(a & (1 << i)) for i in range(n_qubits)]
-    a_bitstring = bitstring(a_bits)
-    print('Expected bitstring: {}'.format(a_bitstring))
-    results = bv(n_qubits, a)
-    print('Results: {}'.format(results))
-    print('Returned bitstring: ', results.most_common(1)[0])
-
-
 if __name__ == '__main__':
-    app.run(main)
+    main()
