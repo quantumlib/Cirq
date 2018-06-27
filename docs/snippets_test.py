@@ -47,12 +47,7 @@ def find_docs_code_snippets_paths():
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
 def test_can_run_docs_code_snippets(path):
-    filename = os.path.basename(path)
-    try:
-        assert_file_has_working_code_snippets(path, assume_import=True)
-    except:
-        print('DOCS FILE:\n\t{}'.format(filename))
-        raise
+    assert_file_has_working_code_snippets(path, assume_import=True)
 
 
 def find_markdown_code_snippets(content: str) -> List[str]:
