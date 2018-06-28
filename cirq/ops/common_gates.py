@@ -32,8 +32,7 @@ class Rot11Gate(eigen_gate.EigenGate,
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
     """
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -44,14 +43,10 @@ class Rot11Gate(eigen_gate.EigenGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: Relative phasing of CZ's eigenstates, in half_turns.
             rads: Relative phasing of CZ's eigenstates, in radians.
             degs: Relative phasing of CZ's eigenstates, in degrees.
         """
-        assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -97,8 +92,7 @@ class RotXGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -109,14 +103,10 @@ class RotXGate(eigen_gate.EigenGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: The relative phasing of X's eigenstates, in half_turns.
             rads: The relative phasing of X's eigenstates, in radians.
             degs: The relative phasing of X's eigenstates, in degrees.
         """
-        assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -159,8 +149,7 @@ class RotYGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -171,14 +160,10 @@ class RotYGate(eigen_gate.EigenGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: The relative phasing of Y's eigenstates, in half_turns.
             rads: The relative phasing of Y's eigenstates, in radians.
             degs: The relative phasing of Y's eigenstates, in degrees.
         """
-        assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -221,8 +206,7 @@ class RotZGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -233,14 +217,10 @@ class RotZGate(eigen_gate.EigenGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: The relative phasing of Z's eigenstates, in half_turns.
             rads: The relative phasing of Z's eigenstates, in radians.
             degs: The relative phasing of Z's eigenstates, in degrees.
         """
-        assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -408,8 +388,7 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.TwoQubitGate):
     """A controlled-NOT. Toggle the second qubit when the first qubit is on."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -420,14 +399,10 @@ class CNotGate(eigen_gate.EigenGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: Relative phasing of CNOT's eigenstates, in half_turns.
             rads: Relative phasing of CNOT's eigenstates, in radians.
             degs: Relative phasing of CNOT's eigenstates, in degrees.
         """
-        assert not positional_args
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -487,10 +462,8 @@ class SwapGate(eigen_gate.EigenGate,
                raw_types.InterchangeableQubitsGate):
     """Swaps two qubits."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Union[value.Symbol, float] = 1.0) -> None:
-        assert not positional_args
         super().__init__(exponent=half_turns)
 
     def default_decompose(self, qubits):
