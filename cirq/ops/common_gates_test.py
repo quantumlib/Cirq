@@ -252,6 +252,26 @@ def test_cnot_decomposes_despite_symbol():
     assert ops.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
 
 
+def test_swap_power():
+    np.testing.assert_almost_equal(
+        (ops.SWAP**0.5).matrix(),
+        np.array([
+            [1, 0, 0, 0],
+            [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+            [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+            [0, 0, 0, 1]
+        ]))
+
+    # Matrix must be consistent with decomposition.
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    g = ops.SWAP**0.25
+    cirq.testing.assert_allclose_up_to_global_phase(
+        g.matrix(),
+        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
+        atol=1e-8)
+
+
 def test_repr():
     assert repr(cirq.X) == 'X'
     assert repr(cirq.X**0.5) == 'X**0.5'
@@ -264,6 +284,9 @@ def test_repr():
 
     assert repr(cirq.CNOT) == 'CNOT'
     assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+    assert repr(cirq.SWAP) == 'SWAP'
+    assert repr(cirq.SWAP ** 0.5) == 'SWAP**0.5'
 
 
 def test_str():
