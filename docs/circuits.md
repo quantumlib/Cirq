@@ -82,12 +82,12 @@ moment1 = cirq.Moment([cz12])
 circuit = cirq.Circuit((moment0, moment1))
 
 print(circuit)
-# prints the text diagram for the circuit:
+# prints
 # (0, 0): ───@───────
 #            │
-# (0, 1): ───Z───@───
+# (0, 1): ───@───@───
 #                │
-# (0, 2): ───X───Z───
+# (0, 2): ───X───@───
 ```
 Again, note that this is only one way to construct a ``Circuit``
 but illustrates the concept that a ``Circuit`` is an iterable
@@ -112,7 +112,7 @@ print(circuit)
 # prints
 # (0, 0): ───@───
 #            │
-# (1, 0): ───Z───
+# (1, 0): ───@───
 # 
 # (2, 0): ───H───
 ```
@@ -124,9 +124,9 @@ print(circuit)
 # prints
 # (0, 0): ───@───H───
 #            │
-# (1, 0): ───Z───@───
+# (1, 0): ───@───@───
 #                │
-# (2, 0): ───H───Z───
+# (2, 0): ───H───@───
 ```
 
 In these two examples, we have appending full moments, what happens when we
@@ -139,9 +139,9 @@ print(circuit)
 # prints
 # (0, 0): ───@───H───
 #            │
-# (1, 0): ───Z───@───
+# (1, 0): ───@───@───
 #                │
-# (2, 0): ───H───Z───
+# (2, 0): ───H───@───
 ```
 We see that here we have again created two ``Moments``. How did ``Circuit``
 know how to do this?  ``Circuit's`` ``append`` method (and its cousin
@@ -178,7 +178,7 @@ print(circuit)
 # prints
 # (0, 0): ───@───H───
 #            │
-# (1, 0): ───Z───────
+# (1, 0): ───@───────
 # 
 # (2, 0): ───H───────
 ```
@@ -220,9 +220,9 @@ print(circuit)
 # prints
 # (0, 0): ───────@───H───
 #                │
-# (1, 0): ───@───Z───────
+# (1, 0): ───@───@───────
 #            │
-# (2, 0): ───Z───H───────
+# (2, 0): ───@───H───────
 ```
 After an initial ``CZ`` between the second and third qubit, we try to
 insert 3 ``Operations``.  We see that the ``CZ`` on the first two 
@@ -247,7 +247,7 @@ print(circuit)
 #
 # (1, 0): ───────@───
 #                │
-# (2, 0): ───────Z───
+# (2, 0): ───────@───
 ```
 The first append creates a single moment with a ``H`` on the first qubit.
 Then the append with the ``NEW_THEN_INLINE`` strategy begins by
@@ -289,9 +289,9 @@ print(circuit)
 # prints 
 # (0, 0): ───@───H───H───────
 #            │
-# (1, 0): ───Z───H───@───@───
+# (1, 0): ───@───H───@───@───
 #                    │   │
-# (2, 0): ───────H───Z───Z───
+# (2, 0): ───────H───@───@───
 ```
 Recall that in Python functions that have a ``yield`` are *generators*.
 Generators are functions that act as *iterators*.  Above we see
@@ -345,7 +345,7 @@ print(circuit[1:3])
 # prints
 # (0, 0): ───@───────
 #            │
-# (1, 0): ───Z───H───
+# (1, 0): ───@───H───
 ```
 Especially useful is dropping the last moment (which is often just
 measurements): ``circuit[:-1]``, or reversing a circuit: 

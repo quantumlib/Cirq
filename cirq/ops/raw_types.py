@@ -14,7 +14,13 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence
+from typing import Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING
+
+from cirq import abc
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Dict, List
 
 
 class QubitId:
@@ -88,9 +94,12 @@ class Gate:
         return self.on(*args)
 
 
-class InterchangeableQubitsGate:
+class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
     """Indicates operations should be equal under any qubit permutation."""
-    pass
+
+    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+        """Returns a key that differs between non-interchangeable qubits."""
+        return 0
 
 
 class Operation:
@@ -108,19 +117,29 @@ class Operation:
                                ', '.join(str(e) for e in self.qubits))
 
     def __hash__(self):
-        q = self.qubits
-        if isinstance(self.gate, InterchangeableQubitsGate):
-            q = frozenset(q)
-        return hash((Operation, self.gate, q))
+        grouped_qubits = self._group_interchangeable_qubits()
+        return hash((Operation, self.gate, grouped_qubits))
+
+    def _group_interchangeable_qubits(
+            self) -> Tuple[Union[QubitId, Tuple[int, FrozenSet[QubitId]]], ...]:
+
+        if not isinstance(self.gate, InterchangeableQubitsGate):
+            return self.qubits
+
+        groups = {}  # type: Dict[int, List[QubitId]]
+        for i, q in enumerate(self.qubits):
+            k = self.gate.qubit_index_to_equivalence_group_key(i)
+            if k not in groups:
+                groups[k] = []
+            groups[k].append(q)
+        return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        q1, q2 = self.qubits, other.qubits
-        if isinstance(self.gate, InterchangeableQubitsGate):
-            q1 = frozenset(q1)
-            q2 = frozenset(q2)
-        return self.gate == other.gate and q1 == q2
+        grouped_qubits_1 = self._group_interchangeable_qubits()
+        grouped_qubits_2 = other._group_interchangeable_qubits()
+        return self.gate == other.gate and grouped_qubits_1 == grouped_qubits_2
 
     def __ne__(self, other):
         return not self == other

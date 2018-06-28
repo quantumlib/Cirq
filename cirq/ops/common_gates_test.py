@@ -222,7 +222,7 @@ def test_text_diagrams():
     assert circuit.to_text_diagram().strip() == """
 a: ───×───X───Y───Z───@───@───X───H───
       │               │   │   │
-b: ───×───────────────Z───X───@───────
+b: ───×───────────────@───X───@───────
     """.strip()
 
 
