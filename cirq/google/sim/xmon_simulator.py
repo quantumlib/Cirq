@@ -47,6 +47,7 @@ from cirq.google import xmon_gates
 from cirq.google import xmon_gate_ext
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim import xmon_stepper
+from cirq.ops import raw_types
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
@@ -239,15 +240,23 @@ class XmonSimulator:
                     extensions or xmon_gate_ext)
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
-            for _ in range(repetitions):
+            optimize_measurements = xmon_circuit.are_all_measurements_terminal()
+            for _ in range(1 if optimize_measurements else repetitions):
                 all_step_results = _simulator_iterator(
                     xmon_circuit,
                     self.options,
                     qubit_order,
-                    initial_state=0)
+                    initial_state=0,
+                    perform_measurements=not optimize_measurements)
+                step_result = None
                 for step_result in all_step_results:
                     for k, v in step_result.measurements.items():
                         measurements[k].append(np.array(v, dtype=bool))
+                if step_result and optimize_measurements:
+                    measurements = _sample_measurements(
+                        xmon_circuit,
+                        step_result,
+                        repetitions)
             trial_results.append(TrialResult(
                 params=param_resolver,
                 repetitions=repetitions,
@@ -447,7 +456,7 @@ def _simulator_iterator(
         options: 'XmonOptions' = XmonOptions(),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray]=0,
-        repetitions: int=1
+        perform_measurements: bool=True,
 ) -> Iterator['XmonStepResult']:
     """Iterator over XmonStepResult from Moments of a Circuit.
 
@@ -468,8 +477,9 @@ def _simulator_iterator(
             If this is a np.ndarray it is the full initial state.
             In this case it must be the correct size, be normalized (an L2
             norm of 1), and be safely castable to a np.complex64.
-        reptitions: If different than 1, measurements will be repeated this
-            many times, and the measurement results will
+        perform_measurements: Whether or not to perform the measurements in
+            the circuit. Should only be set to False when optimizing for
+            sampling over the measurements.
 
     Yields:
         XmonStepResults from simulating a Moment of the Circuit.
@@ -511,19 +521,38 @@ def _simulator_iterator(
                         index=index,
                         half_turns=gate.half_turns,
                         axis_half_turns=gate.axis_half_turns)
-                elif isinstance(gate, xmon_gates.XmonMeasurementGate):
-                    invert_mask = gate.invert_mask or len(op.qubits) * (False,)
-                    for qubit, invert in zip(op.qubits, invert_mask):
-                        index = qubit_map[qubit]
-                        result = stepper.simulate_measurement(index)
-                        if invert:
-                            result = not result
-                        measurements[cast(str, gate.key)].append(result)
+                elif (isinstance(gate, xmon_gates.XmonMeasurementGate)):
+                    if perform_measurements:
+                        invert_mask = (
+                                gate.invert_mask or len(op.qubits) * (False,))
+                        for qubit, invert in zip(op.qubits, invert_mask):
+                            index = qubit_map[qubit]
+                            result = stepper.simulate_measurement(index)
+                            if invert:
+                                result = not result
+                            measurements[cast(str, gate.key)].append(result)
                 else:
                     raise TypeError('{!r} is not supported by the '
                                     'xmon simulator.'.format(gate))
             stepper.simulate_phases(phase_map)
             yield XmonStepResult(stepper, qubit_map, measurements)
+
+
+def _sample_measurements(
+    circuit: Circuit,
+    step_result: 'XmonStepResult',
+    repetitions: int):
+    is_meas = lambda op: isinstance(op.gate, xmon_gates.XmonMeasurementGate)
+    bounds = {}
+    all_qubits = []
+    current_index = 0
+    for _, op in circuit.findall_operations(is_meas):
+        key = cast(str, op.gate.key)
+        bounds[key] = (current_index, current_index + len(op.qubits))
+        all_qubits.extend(op.qubits)
+        current_index = current_index + len(op.qubits)
+    sample = step_result.sample(all_qubits, repetitions)
+    return {k: [x[v[0]:v[1]] for x in sample] for k,v in bounds.items()}
 
 
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
@@ -601,3 +630,17 @@ class XmonStepResult:
             dtype.
         """
         self._stepper.reset_state(state)
+
+    def sample(self, qubits: List[raw_types.QubitId], repetitions: int=1):
+        """Samples from the wave function at this point in the computation.
+
+        Note that this does not collapse the wave function.
+
+        Returns:
+            Measurement results with True corresponding to the |1> state.
+            The outer list is for repetitions, and the inner corresponds to
+            measurements ordered by the supplied qubits.
+        """
+        return self._stepper.sample_measurements(
+            indices=[self.qubit_map[q] for q in qubits],
+            repetitions=repetitions)

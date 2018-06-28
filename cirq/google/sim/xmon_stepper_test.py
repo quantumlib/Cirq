@@ -508,7 +508,8 @@ def test_sample_little_endian(num_prefix_qubits):
             # We ask for ordering of most significant bit first. This is
             # easier to test against the natural order of itertools.product.
             results.append(s.sample_measurements([2, 1, 0]))
-        expected = [[list(x)] for x in list(itertools.product([False, True], repeat=3))]
+        expected = [[list(x)] for x in
+                    list(itertools.product([False, True], repeat=3))]
         assert results == expected
 
 

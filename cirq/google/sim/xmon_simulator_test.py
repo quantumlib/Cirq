@@ -127,7 +127,8 @@ def test_run(scheduler):
 
     simulator = xmon_simulator.XmonSimulator()
     result = run(simulator, circuit, scheduler)
-    assert result.measurements == {'a': [False], 'b': [False]}
+    np.testing.assert_equal(result.measurements,
+                            {'a': [[True]], 'b': [[False]]})
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -399,7 +400,7 @@ def test_consistent_seeded_run_sharded(scheduler):
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(
         result.measurements['meas'],
-        [[True, False, False, True, False, False, True, False, False, False]])
+        [[False, True, True, True, False, False, True, False, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -411,7 +412,7 @@ def test_consistent_seeded_run_no_sharding(scheduler):
     result = run(simulator, circuit, scheduler,)
     np.testing.assert_equal(
         result.measurements['meas'],
-        [[True, False, False, True, False, False, True, False, False, False]])
+        [[False, True, True, True, False, False, True, False, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -425,7 +426,7 @@ def test_run_no_sharing_few_qubits(scheduler):
     simulator = xmon_simulator.XmonSimulator(
         xmon_simulator.XmonOptions(min_qubits_before_shard=0))
     result = run(simulator, circuit, scheduler)
-    np.testing.assert_equal(result.measurements['a'], [[False]])
+    np.testing.assert_equal(result.measurements['a'], [[True]])
     np.testing.assert_equal(result.measurements['b'], [[False]])
 
 
@@ -591,7 +592,7 @@ def test_run_circuit_sweep():
     for i, result in enumerate(
                         simulator.run_sweep(circuit, sweep, repetitions=1)):
         assert result.params['a'] == i
-        assert result.measurements['m'] == [i % 2 != 0]
+        np.testing.assert_equal(result.measurements['m'], [[i % 2 != 0]])
 
 
 def test_run_circuit_sweeps():
@@ -608,7 +609,7 @@ def test_run_circuit_sweeps():
                         simulator.run_sweep(circuit, [sweep, sweep2],
                                             repetitions=1)):
         assert result.params['a'] == i
-        assert result.measurements['m'] == [i % 2 != 0]
+        np.testing.assert_equal(result.measurements['m'], [[i % 2 != 0]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -695,8 +696,9 @@ def test_inverted_measurement(scheduler):
         XmonMeasurementGate('d', invert_mask=(True,))(Q1))
     simulator = xmon_simulator.XmonSimulator()
     result = run(simulator, circuit, scheduler)
-    assert {'a': [[False]], 'b': [[True]], 'c': [[False]],
-            'd': [[True]]} == result.measurements
+    np.testing.assert_equal(result.measurements,
+                            {'a': [[False]], 'b': [[True]], 'c': [[False]],
+                             'd': [[True]]})
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -845,8 +847,7 @@ def test_handedness_of_basic_gates():
         XmonMeasurementGate(key='').on(Q1),
     )
     result = xmon_simulator.XmonSimulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''],
-                            [[True]])
+    np.testing.assert_equal(result.measurements[''], [[True]])
 
 
 def test_handedness_of_xmon_gates():
@@ -857,8 +858,7 @@ def test_handedness_of_xmon_gates():
         XmonMeasurementGate(key='').on(Q1),
     )
     result = xmon_simulator.XmonSimulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''],
-                            [[True]])
+    np.testing.assert_equal(result.measurements[''], [[True]])
 
 
 def bit_flip_circuit(flip0, flip1):
