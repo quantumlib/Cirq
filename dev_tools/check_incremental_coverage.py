@@ -25,7 +25,7 @@ class IncrementalCoverageCheck(check.Check):
         return 'incremental-coverage'
 
     def context(self):
-        return 'incremental coverage by maintainer'
+        return 'incremental coverage'
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         uncovered_count = incremental_coverage.check_for_uncovered_lines(env)
