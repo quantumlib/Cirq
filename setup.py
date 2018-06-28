@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = None
 exec(open('cirq/_version.py').read())
+
+# Readme file as long_description:
+long_description = io.open('README.rst', encoding='utf-8').read()
 
 # Read in requirements
 requirements = open('runtime-requirements.txt').readlines()

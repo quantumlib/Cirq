@@ -32,7 +32,7 @@ def test_can_run_readme_code_snippets():
     readme_path = os.path.join(
         os.path.dirname(__file__),  # Start at this file's directory.
         '..', 'docs',  # Hacky check that we're under docs/.
-        '..', 'README.md')     # Get the readme one level up.
+        '..', 'README.rst')     # Get the readme one level up.
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
