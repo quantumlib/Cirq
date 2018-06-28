@@ -30,8 +30,10 @@ class XmonQubit(QubitId):
         self.row = row
         self.col = col
 
-    def is_adjacent(self, other: 'XmonQubit'):
-        return abs(self.row - other.row) + abs(self.col - other.col) == 1
+    def is_adjacent(self, other: QubitId) -> bool:
+        """Determines if two qubits are adjacent xmon qubits."""
+        return (isinstance(other, XmonQubit) and
+                abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
     def _compare(self, other, op):
         if not isinstance(other, type(self)):

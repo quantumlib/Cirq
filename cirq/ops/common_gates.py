@@ -52,7 +52,7 @@ class Rot11Gate(eigen_gate.EigenGate,
             degs: Relative phasing of CZ's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -81,7 +81,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
-        return '@', 'Z'
+        return '@', '@'
 
     def text_diagram_exponent(self):
         return self._exponent
@@ -117,7 +117,7 @@ class RotXGate(eigen_gate.EigenGate,
             degs: The relative phasing of X's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -179,7 +179,7 @@ class RotYGate(eigen_gate.EigenGate,
             degs: The relative phasing of Y's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -241,7 +241,7 @@ class RotZGate(eigen_gate.EigenGate,
             degs: The relative phasing of Z's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -428,7 +428,7 @@ class CNotGate(eigen_gate.EigenGate,
             degs: Relative phasing of CNOT's eigenstates, in degrees.
         """
         assert not positional_args
-        super().__init__(exponent=value.chosen_angle_to_canonical_half_turns(
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs))
@@ -480,30 +480,48 @@ class CNotGate(eigen_gate.EigenGate,
 CNOT = CNotGate()  # Controlled Not Gate.
 
 
-class SwapGate(gate_features.TextDiagrammableGate,
-               gate_features.CompositeGate,
-               gate_features.SelfInverseGate,
-               gate_features.KnownMatrixGate,
+class SwapGate(eigen_gate.EigenGate,
+               gate_features.TextDiagrammableGate,
                gate_features.TwoQubitGate,
+               gate_features.CompositeGate,
                raw_types.InterchangeableQubitsGate):
     """Swaps two qubits."""
 
-    def matrix(self):
-        """See base class."""
-        return np.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1]])
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[value.Symbol, float] = 1.0) -> None:
+        assert not positional_args
+        super().__init__(exponent=half_turns)
 
     def default_decompose(self, qubits):
         """See base class."""
         a, b = qubits
         yield CNOT(a, b)
-        yield CNOT(b, a)
+        yield CNOT(b, a) ** self.half_turns
         yield CNOT(a, b)
 
-    def __repr__(self):
-        return 'SWAP'
+    def _eigen_components(self):
+        return [
+            (0, np.array([[1, 0,   0,   0],
+                          [0, 0.5, 0.5, 0],
+                          [0, 0.5, 0.5, 0],
+                          [0, 0,   0,   1]])),
+            (1, np.array([[0,  0,    0,   0],
+                          [0,  0.5, -0.5, 0],
+                          [0, -0.5,  0.5, 0],
+                          [0,  0,    0,   0]])),
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'SwapGate':
+        return SwapGate(half_turns=exponent)
+
+    @property
+    def half_turns(self) -> Union[value.Symbol, float]:
+        return self._exponent
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -512,6 +530,14 @@ class SwapGate(gate_features.TextDiagrammableGate,
         if not use_unicode_characters:
             return 'swap', 'swap'
         return '×', '×'
+
+    def text_diagram_exponent(self):
+        return self.half_turns
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'SWAP'
+        return 'SWAP**{!r}'.format(self.half_turns)
 
 
 SWAP = SwapGate()  # Exchanges two qubits' states.

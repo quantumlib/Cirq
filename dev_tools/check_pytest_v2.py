@@ -29,7 +29,7 @@ class Py2TestCheck(check.Check):
         return 'pytest2'
 
     def context(self):
-        return 'pytest v2.7 by maintainer'
+        return 'pytest v2.7'
 
     def needs_python2_env(self):
         return True

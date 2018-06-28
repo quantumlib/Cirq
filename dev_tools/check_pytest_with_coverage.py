@@ -29,7 +29,7 @@ class TestAndPrepareCoverageCheck(check.Check):
         return 'pytest'
 
     def context(self):
-        return 'pytest by maintainer'
+        return 'pytest'
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         do_coverage = True
