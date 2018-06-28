@@ -15,11 +15,13 @@
 # limitations under the License.
 
 
+# This is the script invoked by travis-ci when running builds.
+
 set -e
 
 if [ "${1}" = "normal" ]; then
     export PYTHONPATH=$(pwd)
-    python dev_tools/run_travis.py
+    python dev_tools/run_simple_checks.py
 
 elif [ "${1}" = "convert-and-test" ]; then
     cur_dir=$(pwd)
