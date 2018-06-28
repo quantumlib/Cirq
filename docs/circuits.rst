@@ -94,9 +94,9 @@ two moments
     # prints the text diagram for the circuit:
     # (0, 0): ───@───────
     #            │
-    # (0, 1): ───Z───@───
+    # (0, 1): ───@───@───
     #                │
-    # (0, 2): ───X───Z───
+    # (0, 2): ───X───@───
 
 Again, note that this is only one way to construct a :class:`~cirq.Circuit`
 but illustrates the concept that a :class:`~cirq.Circuit` is an iterable
@@ -124,7 +124,7 @@ appending onto the :class:`~cirq.Circuit` with the
     # prints
     # (0, 0): ───@───
     #            │
-    # (1, 0): ───Z───
+    # (1, 0): ───@───
     #
     # (2, 0): ───H───
 
@@ -138,9 +138,9 @@ This appended an entire new moment to the qubit, which we can continue to do,
     # prints
     # (0, 0): ───@───H───
     #            │
-    # (1, 0): ───Z───@───
+    # (1, 0): ───@───@───
     #                │
-    # (2, 0): ───H───Z───
+    # (2, 0): ───H───@───
 
 In these two examples, we have appending full moments, what happens when we
 append all of these at once?
@@ -154,9 +154,9 @@ append all of these at once?
     # prints
     # (0, 0): ───@───H───
     #            │
-    # (1, 0): ───Z───@───
+    # (1, 0): ───@───@───
     #                │
-    # (2, 0): ───H───Z───
+    # (2, 0): ───H───@───
 
 We see that here we have again created two ``Moments``. How did
 :class:`~cirq.Circuit` know how to do this? ``Circuit's``
@@ -201,7 +201,7 @@ first :class:`~cirq.Moment` if there is space:
     # prints
     # (0, 0): ───@───H───
     #            │
-    # (1, 0): ───Z───────
+    # (1, 0): ───@───────
     #
     # (2, 0): ───H───────
 
@@ -250,9 +250,9 @@ Another strategy is :attr:`~cirq.InsertStrategy.INLINE`:
     # prints
     # (0, 0): ───────@───H───
     #                │
-    # (1, 0): ───@───Z───────
+    # (1, 0): ───@───@───────
     #            │
-    # (2, 0): ───Z───H───────
+    # (2, 0): ───@───H───────
 
 After an initial :class:`~cirq.CZ` between the second and third qubit, we try
 to insert 3 ``Operations``. We see that the :class:`~cirq.CZ` on the first
@@ -279,7 +279,7 @@ Finally we turn to the default strategy:
     #
     # (1, 0): ───────@───
     #                │
-    # (2, 0): ───────Z───
+    # (2, 0): ───────@───
 
 The first append creates a single moment with a :class:`~cirq.H` on the first
 qubit. Then the append with the :attr:`~cirq.InsertStrategy.NEW_THEN_INLINE`
@@ -327,9 +327,9 @@ Example:
     # prints
     # (0, 0): ───@───H───H───────
     #            │
-    # (1, 0): ───Z───H───@───@───
+    # (1, 0): ───@───H───@───@───
     #                    │   │
-    # (2, 0): ───────H───Z───Z───
+    # (2, 0): ───────H───@───@───
 
 Recall that in Python functions that have a ``yield`` are *generators*.
 Generators are functions that act as *iterators*. Above we see that we can
@@ -391,7 +391,7 @@ Slicing a :class:`~cirq.Circuit` on the other hand, produces a new
     # prints
     # (0, 0): ───@───────
     #            │
-    # (1, 0): ───Z───H───
+    # (1, 0): ───@───H───
 
 Especially useful is dropping the last moment (which is often just
 measurements): ``circuit[:-1]``, or reversing a circuit:

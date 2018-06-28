@@ -14,6 +14,7 @@
 
 import pytest
 
+import cirq
 from cirq.ops import gate_features, raw_types
 
 
@@ -200,6 +201,25 @@ def test_two_qubit_gate_validate_wrong_number():
         g.validate_args([q1])
     with pytest.raises(ValueError):
         g.validate_args([q1, q2, q3])
+
+
+def test_three_qubit_gate_validate():
+    class Dummy(gate_features.ThreeQubitGate):
+        def matrix(self):
+            pass
+
+    g = Dummy()
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    g.validate_args([a, b, c])
+    with pytest.raises(ValueError):
+        g.validate_args([])
+    with pytest.raises(ValueError):
+        g.validate_args([a])
+    with pytest.raises(ValueError):
+        g.validate_args([a, b])
+    with pytest.raises(ValueError):
+        g.validate_args([a, b, c, d])
 
 
 def test_parameterizable_gate_is_abstract_cant_instantiate():

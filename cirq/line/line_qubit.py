@@ -14,19 +14,19 @@
 
 from typing import List
 
-from cirq.ops import raw_types
+from cirq import ops
 
 
-class LineQubit(raw_types.QubitId):
+class LineQubit(ops.QubitId):
     """A qubit on a 1d lattice with nearest-neighbor connectivity."""
 
     def __init__(self, x: int) -> None:
         """Initializes a line qubit at the given x coordinate."""
         self.x = x
 
-    def is_adjacent(self, other: 'LineQubit') -> bool:
-        """Determines if two line qubits are adjacent."""
-        return abs(self.x - other.x) == 1
+    def is_adjacent(self, other: ops.QubitId) -> bool:
+        """Determines if two qubits are adjacent line qubits."""
+        return isinstance(other, LineQubit) and abs(self.x - other.x) == 1
 
     @staticmethod
     def range(*range_args) -> List['LineQubit']:

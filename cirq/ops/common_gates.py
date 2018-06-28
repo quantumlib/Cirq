@@ -81,7 +81,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
-        return '@', 'Z'
+        return '@', '@'
 
     def text_diagram_exponent(self):
         return self._exponent
