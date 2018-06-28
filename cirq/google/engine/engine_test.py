@@ -25,7 +25,7 @@ import cirq
 from cirq import Circuit, H, moment_by_moment_schedule, NamedQubit, \
     ParamResolver, Points, Schedule, ScheduledOperation, UnconstrainedDevice
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
-from cirq.google import Engine, Foxtail, JobConfig
+from cirq.google import Engine, Foxtail, JobConfig, XmonQubit
 from cirq.testing.mock import mock
 
 _A_RESULT = program_pb2.Result(
@@ -90,11 +90,8 @@ def test_run_circuit(build):
 @mock.patch.object(discovery, 'build')
 def test_circuit_device_validation_fails(build):
     circuit = Circuit.from_ops(H.on(NamedQubit("dorothy")))
-    with pytest.raises(ValueError):
-        Engine(api_key="key").run(
-            circuit,
-            JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
-            Foxtail)
+    with pytest.raises(ValueError, match='Unsupported qubit type'):
+        Engine(api_key="key").run(circuit, JobConfig('project-id'), Foxtail)
 
 
 @mock.patch.object(discovery, 'build')
@@ -105,6 +102,29 @@ def test_schedule_device_validation_fails(build):
 
     with pytest.raises(ValueError):
         Engine(api_key="key").run(schedule, JobConfig('project-id'))
+
+
+@mock.patch.object(discovery, 'build')
+def test_circuit_device_validation_passes_non_xmon_gate(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'}
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'READY'}}
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'SUCCESS'}}
+    jobs.getResult().execute.return_value = {
+        'result': MessageToDict(_A_RESULT)}
+
+    circuit = Circuit.from_ops(H.on(XmonQubit(0, 1)))
+    result = Engine(api_key="key").run(circuit, JobConfig('project-id'),
+                                       Foxtail)
+    assert result.repetitions == 1
 
 
 @mock.patch.object(discovery, 'build')
