@@ -16,7 +16,7 @@ from typing import Any, Dict, NamedTuple, Optional, Sequence, Tuple
 
 from cirq import ops
 
-from cirq.contrib.paulistring.pauli import Pauli, PAULI_X, PAULI_Y, PAULI_Z
+from cirq.contrib.paulistring.pauli import Pauli
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
@@ -25,7 +25,19 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 class CliffordGate(ops.CompositeGate,
                    ops.ReversibleGate,
                    ops.TextDiagrammableGate):
-    '''Any single qubit Clifford rotation.'''
+    """Any single qubit Clifford rotation."""
+    I = None  # type: CliffordGate
+    H = None  # type: CliffordGate
+    X = None  # type: CliffordGate
+    Y = None  # type: CliffordGate
+    Z = None  # type: CliffordGate
+    X_sqrt  = None  # type: CliffordGate
+    X_nsqrt = None  # type: CliffordGate
+    Y_sqrt  = None  # type: CliffordGate
+    Y_nsqrt = None  # type: CliffordGate
+    Z_sqrt  = None  # type: CliffordGate
+    Z_nsqrt = None  # type: CliffordGate
+
     def __init__(self,
                  transforms_x_to: Tuple[Pauli, bool],
                  transforms_z_to: Tuple[Pauli, bool],
@@ -41,12 +53,12 @@ class CliffordGate(ops.CompositeGate,
                              .format(rotates_x_to))
         rotates_y_to = rotates_x_to.third(rotates_z_to)
         flips_y = flips_x ^ flips_z ^ (rotates_x_to - rotates_z_to != 1)
-        self._rotation_map = {PAULI_X: PauliTransform(rotates_x_to, flips_x),
-                              PAULI_Y: PauliTransform(rotates_y_to, flips_y),
-                              PAULI_Z: PauliTransform(rotates_z_to, flips_z)}
-        self._inverse_map = {rotates_x_to: PauliTransform(PAULI_X, flips_x),
-                             rotates_y_to: PauliTransform(PAULI_Y, flips_y),
-                             rotates_z_to: PauliTransform(PAULI_Z, flips_z)}
+        self._rotation_map = {Pauli.X: PauliTransform(rotates_x_to, flips_x),
+                              Pauli.Y: PauliTransform(rotates_y_to, flips_y),
+                              Pauli.Z: PauliTransform(rotates_z_to, flips_z)}
+        self._inverse_map = {rotates_x_to: PauliTransform(Pauli.X, flips_x),
+                             rotates_y_to: PauliTransform(Pauli.Y, flips_y),
+                             rotates_z_to: PauliTransform(Pauli.Z, flips_z)}
 
     def transform(self, pauli: Pauli) -> PauliTransform:
         return self._rotation_map[pauli]
@@ -59,9 +71,9 @@ class CliffordGate(ops.CompositeGate,
 
     def _tuple(self) -> Tuple[Any, ...]:
         return (CliffordGate,
-                self.transform(PAULI_X),
-                self.transform(PAULI_Y),
-                self.transform(PAULI_Z))
+                self.transform(Pauli.X),
+                self.transform(Pauli.Y),
+                self.transform(Pauli.Z))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -76,13 +88,13 @@ class CliffordGate(ops.CompositeGate,
 
     def inverse(self) -> 'CliffordGate':
         inverse_map = self._inverse_map
-        return CliffordGate(inverse_map[PAULI_X], inverse_map[PAULI_Z],
+        return CliffordGate(inverse_map[Pauli.X], inverse_map[Pauli.Z],
                             _maps = (inverse_map, self._rotation_map))
 
     def commutes_with_single_qubit_gate(self, gate: 'CliffordGate') -> bool:
-        '''Tests if the two circuits would be equivalent:
-            --self--gate-- and --gate--self--'''
-        for pauli0 in (PAULI_X, PAULI_Z):
+        """Tests if the two circuits would be equivalent up to global phase:
+            --self--gate-- and --gate--self--"""
+        for pauli0 in (Pauli.X, Pauli.Z):
             pauli1, flip1 = self.transform(pauli0)
             pauli2, flip2 = gate.transform(pauli1)
             pauli3, flip3 = self._inverse_map[pauli2]
@@ -96,37 +108,37 @@ class CliffordGate(ops.CompositeGate,
                 and (not self.flips_pauli(pauli) or whole))
 
     def merged_with(self, second: 'CliffordGate') -> 'CliffordGate':
-        '''Returns a CliffordGate such that the circuits
+        """Returns a CliffordGate such that the circuits
             --output-- and --self--second--
-        are equivalent.'''
-        x_intermediate_pauli, x_flip1 = self.transform(PAULI_X)
+        are equivalent up to global phase."""
+        x_intermediate_pauli, x_flip1 = self.transform(Pauli.X)
         x_final_pauli, x_flip2 = second.transform(x_intermediate_pauli)
-        z_intermediate_pauli, z_flip1 = self.transform(PAULI_Z)
+        z_intermediate_pauli, z_flip1 = self.transform(Pauli.Z)
         z_final_pauli, z_flip2 = second.transform(z_intermediate_pauli)
         return CliffordGate((x_final_pauli, x_flip1 ^ x_flip2),
                             (z_final_pauli, z_flip1 ^ z_flip2))
 
     def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         qubit, = qubits
-        if self == CLIFFORD_H:
-            return (ops.H(qubit),)
+        if self == CliffordGate.H:
+            return ops.H(qubit),
         rotations = self.decompose_rotation()
-        return tuple((
-                {PAULI_X: ops.X,
-                 PAULI_Y: ops.Y,
-                 PAULI_Z: ops.Z}[r](qubit) ** (qt / 2)
-                for r, qt in rotations))
+        pauli_gate_map = {Pauli.X: ops.X,
+                          Pauli.Y: ops.Y,
+                          Pauli.Z: ops.Z}
+        return tuple((pauli_gate_map[r](qubit) ** (qt / 2)
+                      for r, qt in rotations))
 
     def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
-        '''Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)
+        """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)
 
-        This is a sequence of zero, one, or two rotations.'''
-        x_rot = self.transform(PAULI_X)
-        y_rot = self.transform(PAULI_Y)
-        z_rot = self.transform(PAULI_Z)
-        whole_arr = (x_rot.to == PAULI_X,
-                     y_rot.to == PAULI_Y,
-                     z_rot.to == PAULI_Z)
+        This is a sequence of zero, one, or two rotations."""
+        x_rot = self.transform(Pauli.X)
+        y_rot = self.transform(Pauli.Y)
+        z_rot = self.transform(Pauli.Z)
+        whole_arr = (x_rot.to == Pauli.X,
+                     y_rot.to == Pauli.Y,
+                     z_rot.to == Pauli.Z)
         num_whole = sum(whole_arr)
         flip_arr = (x_rot.flip,
                     y_rot.flip,
@@ -138,11 +150,11 @@ class CliffordGate(ops.CompositeGate,
                 return []
             else:
                 # 180 rotation about some axis
-                pauli = Pauli(flip_arr.index(False))
+                pauli = Pauli.XYZ[flip_arr.index(False)]
                 return [(pauli, 2)]
         elif num_whole == 1:
             index = whole_arr.index(True)
-            pauli = Pauli(index)
+            pauli = Pauli.XYZ[index]
             flip = flip_arr[index]
             output = []
             if flip:
@@ -158,26 +170,28 @@ class CliffordGate(ops.CompositeGate,
             return output
         elif num_whole == 0:
             # Gate is a 120 degree rotation
-            if x_rot.to == PAULI_Y:
-                return [(PAULI_X, -1 if y_rot.flip else 1),
-                        (PAULI_Z, -1 if x_rot.flip else 1)]
+            if x_rot.to == Pauli.Y:
+                return [(Pauli.X, -1 if y_rot.flip else 1),
+                        (Pauli.Z, -1 if x_rot.flip else 1)]
             else:
-                return [(PAULI_Z, 1 if y_rot.flip else -1),
-                        (PAULI_X, 1 if z_rot.flip else -1)]
-        assert False  # coverage: ignore
+                return [(Pauli.Z, 1 if y_rot.flip else -1),
+                        (Pauli.X, 1 if z_rot.flip else -1)]
+        # coverage: ignore
+        assert False, 'Impossible condition where this gate only rotates one' \
+                      ' Pauli to a different Pauli.'
 
     def single_qubit_gate_after_switching_order(self, gate: 'CliffordGate'
                                                 ) -> 'CliffordGate':
-        '''Returns a CliffordGate such that the circuits
+        """Returns a CliffordGate such that the circuits
             --output--self-- and --self--gate--
-        are equivalent.'''
+        are equivalent up to global phase."""
         return self.merged_with(gate).merged_with(self.inverse())
 
     def __repr__(self):
         return 'CliffordGate(X:{}{!s}, Y:{}{!s}, Z:{}{!s})'.format(
-                '+-'[self.flips_pauli(PAULI_X)], self.rotates_pauli_to(PAULI_X),
-                '+-'[self.flips_pauli(PAULI_Y)], self.rotates_pauli_to(PAULI_Y),
-                '+-'[self.flips_pauli(PAULI_Z)], self.rotates_pauli_to(PAULI_Z))
+                '+-'[self.flips_pauli(Pauli.X)], self.rotates_pauli_to(Pauli.X),
+                '+-'[self.flips_pauli(Pauli.Y)], self.rotates_pauli_to(Pauli.Y),
+                '+-'[self.flips_pauli(Pauli.Z)], self.rotates_pauli_to(Pauli.Z))
 
     def text_diagram_wire_symbols(self,
                                   qubit_count: Optional[int] = None,
@@ -185,17 +199,17 @@ class CliffordGate(ops.CompositeGate,
                                   precision: Optional[int] = 3
                                   ) -> Tuple[str, ...]:
         well_known_map = {
-            CLIFFORD_I: 'I',
-            CLIFFORD_H: 'H',
-            CLIFFORD_X: 'X',
-            CLIFFORD_Y: 'Y',
-            CLIFFORD_Z: 'Z',
-            CLIFFORD_X_sqrt: 'X',
-            CLIFFORD_Y_sqrt: 'Y',
-            CLIFFORD_Z_sqrt: 'Z',
-            CLIFFORD_X_nsqrt: 'X',
-            CLIFFORD_Y_nsqrt: 'Y',
-            CLIFFORD_Z_nsqrt: 'Z',
+            CliffordGate.I: 'I',
+            CliffordGate.H: 'H',
+            CliffordGate.X: 'X',
+            CliffordGate.Y: 'Y',
+            CliffordGate.Z: 'Z',
+            CliffordGate.X_sqrt: 'X',
+            CliffordGate.Y_sqrt: 'Y',
+            CliffordGate.Z_sqrt: 'Z',
+            CliffordGate.X_nsqrt: 'X',
+            CliffordGate.Y_nsqrt: 'Y',
+            CliffordGate.Z_nsqrt: 'Z',
         }
         if self in well_known_map:
             return (well_known_map[self],)
@@ -206,23 +220,23 @@ class CliffordGate(ops.CompositeGate,
                         for r, qt in rotations)),)
 
     def text_diagram_exponent(self) -> float:
-        return {CLIFFORD_X_sqrt: 0.5,
-                CLIFFORD_Y_sqrt: 0.5,
-                CLIFFORD_Z_sqrt: 0.5,
-                CLIFFORD_X_nsqrt: -0.5,
-                CLIFFORD_Y_nsqrt: -0.5,
-                CLIFFORD_Z_nsqrt: -0.5,
+        return {CliffordGate.X_sqrt: 0.5,
+                CliffordGate.Y_sqrt: 0.5,
+                CliffordGate.Z_sqrt: 0.5,
+                CliffordGate.X_nsqrt: -0.5,
+                CliffordGate.Y_nsqrt: -0.5,
+                CliffordGate.Z_nsqrt: -0.5,
                }.get(self, 1)
 
 
-CLIFFORD_I = CliffordGate((PAULI_X, False), (PAULI_Z, False))
-CLIFFORD_H = CliffordGate((PAULI_Z, False), (PAULI_X, False))
-CLIFFORD_X = CliffordGate((PAULI_X, False), (PAULI_Z, True))
-CLIFFORD_Y = CliffordGate((PAULI_X, True),  (PAULI_Z, True))
-CLIFFORD_Z = CliffordGate((PAULI_X, True),  (PAULI_Z, False))
-CLIFFORD_X_sqrt  = CliffordGate((PAULI_X, False), (PAULI_Y, True))
-CLIFFORD_X_nsqrt = CliffordGate((PAULI_X, False), (PAULI_Y, False))
-CLIFFORD_Y_sqrt  = CliffordGate((PAULI_Z, True),  (PAULI_X, False))
-CLIFFORD_Y_nsqrt = CliffordGate((PAULI_Z, False), (PAULI_X, True))
-CLIFFORD_Z_sqrt  = CliffordGate((PAULI_Y, False), (PAULI_Z, False))
-CLIFFORD_Z_nsqrt = CliffordGate((PAULI_Y, True),  (PAULI_Z, False))
+CliffordGate.I = CliffordGate((Pauli.X, False), (Pauli.Z, False))
+CliffordGate.H = CliffordGate((Pauli.Z, False), (Pauli.X, False))
+CliffordGate.X = CliffordGate((Pauli.X, False), (Pauli.Z, True))
+CliffordGate.Y = CliffordGate((Pauli.X, True),  (Pauli.Z, True))
+CliffordGate.Z = CliffordGate((Pauli.X, True),  (Pauli.Z, False))
+CliffordGate.X_sqrt  = CliffordGate((Pauli.X, False), (Pauli.Y, True))
+CliffordGate.X_nsqrt = CliffordGate((Pauli.X, False), (Pauli.Y, False))
+CliffordGate.Y_sqrt  = CliffordGate((Pauli.Z, True),  (Pauli.X, False))
+CliffordGate.Y_nsqrt = CliffordGate((Pauli.Z, False), (Pauli.X, True))
+CliffordGate.Z_sqrt  = CliffordGate((Pauli.Y, False), (Pauli.Z, False))
+CliffordGate.Z_nsqrt = CliffordGate((Pauli.Y, True),  (Pauli.Z, False))

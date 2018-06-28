@@ -13,103 +13,133 @@
 # limitations under the License.
 
 import pytest
+import cirq
 
-from cirq.contrib.paulistring import Pauli, PAULI_X, PAULI_Y, PAULI_Z
+from cirq.contrib.paulistring import Pauli
 
 
 def test_equals():
-    assert Pauli(0) == PAULI_X
-    assert Pauli(1) == PAULI_Y
-    assert Pauli(2) == PAULI_Z
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(Pauli.X)
+    eq.add_equality_group(Pauli.Y)
+    eq.add_equality_group(Pauli.Z)
 
-def test_index_out_of_range():
-    with pytest.raises(IndexError):
-        Pauli(-1)
-    with pytest.raises(IndexError):
-        Pauli(-4)
-    with pytest.raises(IndexError):
-        Pauli(3)
-    with pytest.raises(IndexError):
-        Pauli(4)
-    with pytest.raises(IndexError):
-        Pauli(1000000000)
+def test_singletons():
+    assert Pauli.XYZ[0] == Pauli.X
+    assert Pauli.XYZ[1] == Pauli.Y
+    assert Pauli.XYZ[2] == Pauli.Z
+    assert len(Pauli.XYZ) == 3
+    with pytest.raises(TypeError):
+        Pauli(1, 2)
 
 def test_difference():
-    assert PAULI_X - PAULI_X == 0
-    assert PAULI_X - PAULI_Y == -1
-    assert PAULI_X - PAULI_Z == 1
-    assert PAULI_Y - PAULI_X == 1
-    assert PAULI_Y - PAULI_Y == 0
-    assert PAULI_Y - PAULI_Z == -1
-    assert PAULI_Z - PAULI_X == -1
-    assert PAULI_Z - PAULI_Y == 1
-    assert PAULI_Z - PAULI_Z == 0
+    assert Pauli.X - Pauli.X == 0
+    assert Pauli.X - Pauli.Y == -1
+    assert Pauli.X - Pauli.Z == 1
+    assert Pauli.Y - Pauli.X == 1
+    assert Pauli.Y - Pauli.Y == 0
+    assert Pauli.Y - Pauli.Z == -1
+    assert Pauli.Z - Pauli.X == -1
+    assert Pauli.Z - Pauli.Y == 1
+    assert Pauli.Z - Pauli.Z == 0
+
+def test_gt():
+    assert not Pauli.X > Pauli.X
+    assert not Pauli.X > Pauli.Y
+    assert Pauli.X > Pauli.Z
+    assert Pauli.Y > Pauli.X
+    assert not Pauli.Y > Pauli.Y
+    assert not Pauli.Y > Pauli.Z
+    assert not Pauli.Z > Pauli.X
+    assert Pauli.Z > Pauli.Y
+    assert not Pauli.Z > Pauli.Z
+
+@cirq.testing.only_test_in_python3
+def test_gt_other_type():
+    with pytest.raises(TypeError):
+        Pauli.X > object()
+
+def test_lt():
+    assert not Pauli.X < Pauli.X
+    assert Pauli.X < Pauli.Y
+    assert not Pauli.X < Pauli.Z
+    assert not Pauli.Y < Pauli.X
+    assert not Pauli.Y < Pauli.Y
+    assert Pauli.Y < Pauli.Z
+    assert Pauli.Z < Pauli.X
+    assert not Pauli.Z < Pauli.Y
+    assert not Pauli.Z < Pauli.Z
+
+@cirq.testing.only_test_in_python3
+def test_lt_other_type():
+    with pytest.raises(TypeError):
+        Pauli.X < object()
 
 def test_addition():
-    assert PAULI_X + -3 == PAULI_X
-    assert PAULI_X + -2 == PAULI_Y
-    assert PAULI_X + -1 == PAULI_Z
-    assert PAULI_X + 0 == PAULI_X
-    assert PAULI_X + 1 == PAULI_Y
-    assert PAULI_X + 2 == PAULI_Z
-    assert PAULI_X + 3 == PAULI_X
-    assert PAULI_X + 4 == PAULI_Y
-    assert PAULI_X + 5 == PAULI_Z
-    assert PAULI_X + 6 == PAULI_X
-    assert PAULI_Y + 0 == PAULI_Y
-    assert PAULI_Y + 1 == PAULI_Z
-    assert PAULI_Y + 2 == PAULI_X
-    assert PAULI_Z + 0 == PAULI_Z
-    assert PAULI_Z + 1 == PAULI_X
-    assert PAULI_Z + 2 == PAULI_Y
+    assert Pauli.X + -3 == Pauli.X
+    assert Pauli.X + -2 == Pauli.Y
+    assert Pauli.X + -1 == Pauli.Z
+    assert Pauli.X + 0 == Pauli.X
+    assert Pauli.X + 1 == Pauli.Y
+    assert Pauli.X + 2 == Pauli.Z
+    assert Pauli.X + 3 == Pauli.X
+    assert Pauli.X + 4 == Pauli.Y
+    assert Pauli.X + 5 == Pauli.Z
+    assert Pauli.X + 6 == Pauli.X
+    assert Pauli.Y + 0 == Pauli.Y
+    assert Pauli.Y + 1 == Pauli.Z
+    assert Pauli.Y + 2 == Pauli.X
+    assert Pauli.Z + 0 == Pauli.Z
+    assert Pauli.Z + 1 == Pauli.X
+    assert Pauli.Z + 2 == Pauli.Y
 
 def test_subtraction():
-    assert PAULI_X - -3 == PAULI_X
-    assert PAULI_X - -2 == PAULI_Z
-    assert PAULI_X - -1 == PAULI_Y
-    assert PAULI_X - 0 == PAULI_X
-    assert PAULI_X - 1 == PAULI_Z
-    assert PAULI_X - 2 == PAULI_Y
-    assert PAULI_X - 3 == PAULI_X
-    assert PAULI_X - 4 == PAULI_Z
-    assert PAULI_X - 5 == PAULI_Y
-    assert PAULI_X - 6 == PAULI_X
-    assert PAULI_Y - 0 == PAULI_Y
-    assert PAULI_Y - 1 == PAULI_X
-    assert PAULI_Y - 2 == PAULI_Z
-    assert PAULI_Z - 0 == PAULI_Z
-    assert PAULI_Z - 1 == PAULI_Y
-    assert PAULI_Z - 2 == PAULI_X
+    assert Pauli.X - -3 == Pauli.X
+    assert Pauli.X - -2 == Pauli.Z
+    assert Pauli.X - -1 == Pauli.Y
+    assert Pauli.X - 0 == Pauli.X
+    assert Pauli.X - 1 == Pauli.Z
+    assert Pauli.X - 2 == Pauli.Y
+    assert Pauli.X - 3 == Pauli.X
+    assert Pauli.X - 4 == Pauli.Z
+    assert Pauli.X - 5 == Pauli.Y
+    assert Pauli.X - 6 == Pauli.X
+    assert Pauli.Y - 0 == Pauli.Y
+    assert Pauli.Y - 1 == Pauli.X
+    assert Pauli.Y - 2 == Pauli.Z
+    assert Pauli.Z - 0 == Pauli.Z
+    assert Pauli.Z - 1 == Pauli.Y
+    assert Pauli.Z - 2 == Pauli.X
 
 def test_str():
-    assert str(PAULI_X) == 'X'
-    assert str(PAULI_Y) == 'Y'
-    assert str(PAULI_Z) == 'Z'
+    assert str(Pauli.X) == 'X'
+    assert str(Pauli.Y) == 'Y'
+    assert str(Pauli.Z) == 'Z'
 
 def test_repr():
-    assert repr(PAULI_X) == 'PAULI_X'
-    assert repr(PAULI_Y) == 'PAULI_Y'
-    assert repr(PAULI_Z) == 'PAULI_Z'
+    assert repr(Pauli.X) == 'Pauli.X'
+    assert repr(Pauli.Y) == 'Pauli.Y'
+    assert repr(Pauli.Z) == 'Pauli.Z'
 
 def test_third():
-    assert PAULI_X.third(PAULI_Y) == PAULI_Z
-    assert PAULI_Y.third(PAULI_X) == PAULI_Z
-    assert PAULI_Y.third(PAULI_Z) == PAULI_X
-    assert PAULI_Z.third(PAULI_Y) == PAULI_X
-    assert PAULI_Z.third(PAULI_X) == PAULI_Y
-    assert PAULI_X.third(PAULI_Z) == PAULI_Y
+    assert Pauli.X.third(Pauli.Y) == Pauli.Z
+    assert Pauli.Y.third(Pauli.X) == Pauli.Z
+    assert Pauli.Y.third(Pauli.Z) == Pauli.X
+    assert Pauli.Z.third(Pauli.Y) == Pauli.X
+    assert Pauli.Z.third(Pauli.X) == Pauli.Y
+    assert Pauli.X.third(Pauli.Z) == Pauli.Y
 
-    assert PAULI_X.third(PAULI_X) == PAULI_X
-    assert PAULI_Y.third(PAULI_Y) == PAULI_Y
-    assert PAULI_Z.third(PAULI_Z) == PAULI_Z
+    assert Pauli.X.third(Pauli.X) == Pauli.X
+    assert Pauli.Y.third(Pauli.Y) == Pauli.Y
+    assert Pauli.Z.third(Pauli.Z) == Pauli.Z
 
 def test_commutes_with():
-    assert PAULI_X.commutes_with(PAULI_X)
-    assert not PAULI_X.commutes_with(PAULI_Y)
-    assert not PAULI_X.commutes_with(PAULI_Z)
-    assert not PAULI_Y.commutes_with(PAULI_X)
-    assert PAULI_Y.commutes_with(PAULI_Y)
-    assert not PAULI_Y.commutes_with(PAULI_Z)
-    assert not PAULI_Z.commutes_with(PAULI_X)
-    assert not PAULI_Z.commutes_with(PAULI_Y)
-    assert PAULI_Z.commutes_with(PAULI_Z)
+    assert Pauli.X.commutes_with(Pauli.X)
+    assert not Pauli.X.commutes_with(Pauli.Y)
+    assert not Pauli.X.commutes_with(Pauli.Z)
+    assert not Pauli.Y.commutes_with(Pauli.X)
+    assert Pauli.Y.commutes_with(Pauli.Y)
+    assert not Pauli.Y.commutes_with(Pauli.Z)
+    assert not Pauli.Z.commutes_with(Pauli.X)
+    assert not Pauli.Z.commutes_with(Pauli.Y)
+    assert Pauli.Z.commutes_with(Pauli.Z)

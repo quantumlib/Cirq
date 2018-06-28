@@ -14,22 +14,8 @@
 
 from cirq.contrib.paulistring.pauli import (
     Pauli,
-    PAULI_X,
-    PAULI_Y,
-    PAULI_Z,
 )
 from cirq.contrib.paulistring.clifford_gate import (
     CliffordGate,
     PauliTransform,
-    CLIFFORD_I,
-    CLIFFORD_H,
-    CLIFFORD_X,
-    CLIFFORD_Y,
-    CLIFFORD_Z,
-    CLIFFORD_X_sqrt,
-    CLIFFORD_X_nsqrt,
-    CLIFFORD_Y_sqrt,
-    CLIFFORD_Y_nsqrt,
-    CLIFFORD_Z_sqrt,
-    CLIFFORD_Z_nsqrt,
 )
