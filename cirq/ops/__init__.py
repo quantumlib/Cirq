@@ -53,6 +53,7 @@ from cirq.ops.gate_features import (
     SelfInverseGate,
     SingleQubitGate,
     TextDiagrammableGate,
+    ThreeQubitGate,
     TwoQubitGate,
 )
 from cirq.ops.qubit_order import (
@@ -81,4 +82,11 @@ from cirq.ops.raw_types import (
 from cirq.ops.reversible_composite_gate import (
     inverse_of_invertible_op_tree,
     ReversibleCompositeGate,
+)
+from cirq.ops.three_qubit_gates import (
+    CCX,
+    CCZ,
+    CSWAP,
+    FREDKIN,
+    TOFFOLI,
 )

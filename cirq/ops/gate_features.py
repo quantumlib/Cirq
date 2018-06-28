@@ -251,6 +251,16 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
+class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to exactly three qubits."""
+
+    def validate_args(self, qubits):
+        if len(qubits) != 3:
+            raise ValueError(
+                'Three-qubit gate not applied to three qubits: {}({})'.
+                format(self, qubits))
+
+
 class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that can be parameterized by Symbols."""
 
