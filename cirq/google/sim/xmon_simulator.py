@@ -557,13 +557,13 @@ def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
     """
     is_meas = lambda op: isinstance(op.gate, xmon_gates.XmonMeasurementGate)
     bounds = {}
-    all_qubits = []
+    all_qubits = []  # type: List[raw_types.QubitId]
     current_index = 0
     for _, op in circuit.findall_operations(is_meas):
         key = cast(str, op.gate.key)
         bounds[key] = (current_index, current_index + len(op.qubits))
         all_qubits.extend(op.qubits)
-        current_index = current_index + len(op.qubits)
+        current_index += len(op.qubits)
     sample = step_result.sample(all_qubits, repetitions)
     return {k: [x[v[0]:v[1]] for x in sample] for k,v in bounds.items()}
 
