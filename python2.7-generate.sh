@@ -58,7 +58,7 @@ protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
 
 cp "${in_dir}/python2.7-runtime-requirements.txt" "${out_dir}/python2.7-runtime-requirements.txt"
 cp "${in_dir}/python2.7-dev-requirements.txt" "${out_dir}/python2.7-dev-requirements.txt"
-cp "${in_dir}/README.md" "${out_dir}/README.md"
+cp "${in_dir}/README.rst" "${out_dir}/README.rst"
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")
