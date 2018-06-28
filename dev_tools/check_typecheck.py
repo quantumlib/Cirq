@@ -26,7 +26,7 @@ class TypeCheck(check.Check):
         return 'typecheck'
 
     def context(self):
-        return 'typecheck by maintainer'
+        return 'typecheck'
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         base_path = cast(str, env.destination_directory)

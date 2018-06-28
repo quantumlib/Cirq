@@ -121,7 +121,7 @@ def prepare_temporary_test_environment(
                        requirements_path=req_path,
                        verbose=verbose)
 
-    return PreparedEnv(repository=env.repository,
+    return PreparedEnv(github_repo=env.repository,
                        actual_commit_id=env.actual_commit_id,
                        compare_commit_id=env.compare_commit_id,
                        destination_directory=env.destination_directory,
@@ -169,7 +169,7 @@ def derive_temporary_python2_environment(
                        requirements_path=req_path,
                        verbose=verbose)
 
-    return PreparedEnv(repository=python3_environment.repository,
+    return PreparedEnv(github_repo=python3_environment.repository,
                        actual_commit_id=python3_environment.actual_commit_id,
                        compare_commit_id=python3_environment.compare_commit_id,
                        destination_directory=destination_directory,

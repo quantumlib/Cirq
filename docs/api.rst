@@ -86,8 +86,7 @@ Engine
     :toctree: generated/
 
     google.Engine
-    google.EngineOptions
-    google.EngineTrialResult
+    google.JobConfig
 
 Devices
 '''''''
@@ -104,11 +103,10 @@ Simulator
 .. autosummary::
     :toctree: generated/
 
-    google.Simulator
-    google.Options
-    google.StepResult
-    google.TrialResult
-    google.SimulatorTrialResult
+    google.XmonOptions
+    google.XmonSimulator
+    google.XmonStepResult
+    google.XmonSimulateTrialResult
 
 .. _api-google-qubits:
 
