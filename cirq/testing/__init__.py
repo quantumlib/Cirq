@@ -23,6 +23,7 @@ from cirq.testing.lin_alg_utils import (
     random_special_unitary,
     random_unitary,
     assert_allclose_up_to_global_phase,
+    allclose_up_to_global_phase,
 )
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
