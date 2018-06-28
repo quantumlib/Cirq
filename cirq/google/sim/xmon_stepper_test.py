@@ -582,6 +582,23 @@ def test_sample_repetitions(num_prefix_qubits):
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_negative_repetitions(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        with pytest.raises(ValueError, match='-1'):
+            s.sample_measurements([1], repetitions=-1)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_no_indices(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        np.testing.assert_equal(s.sample_measurements([]), [[]])
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_non_context_manager(num_prefix_qubits):
     np.random.seed(15)
     stepper = xmon_stepper.Stepper(

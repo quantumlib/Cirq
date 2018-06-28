@@ -240,23 +240,22 @@ class XmonSimulator:
                     extensions or xmon_gate_ext)
             measurements = {
                 k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
-            optimize_measurements = xmon_circuit.are_all_measurements_terminal()
-            for _ in range(1 if optimize_measurements else repetitions):
+            optimize_repetitions = xmon_circuit.are_all_measurements_terminal()
+            for _ in range(1 if optimize_repetitions else repetitions):
                 all_step_results = _simulator_iterator(
                     xmon_circuit,
                     self.options,
                     qubit_order,
                     initial_state=0,
-                    perform_measurements=not optimize_measurements)
+                    perform_measurements=not optimize_repetitions)
                 step_result = None
                 for step_result in all_step_results:
                     for k, v in step_result.measurements.items():
                         measurements[k].append(np.array(v, dtype=bool))
-                if step_result and optimize_measurements:
-                    measurements = _sample_measurements(
-                        xmon_circuit,
-                        step_result,
-                        repetitions)
+                if step_result and optimize_repetitions:
+                    measurements = _sample_measurements(xmon_circuit,
+                                                        step_result,
+                                                        repetitions)
             trial_results.append(TrialResult(
                 params=param_resolver,
                 repetitions=repetitions,
@@ -538,10 +537,24 @@ def _simulator_iterator(
             yield XmonStepResult(stepper, qubit_map, measurements)
 
 
-def _sample_measurements(
-    circuit: Circuit,
-    step_result: 'XmonStepResult',
-    repetitions: int):
+def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
+    repetitions: int) -> Dict[str, List]:
+    """Sample from measurements in the given circuit.
+
+    This should only be called if the circuit has only terminal measurements.
+
+    Args:
+        circuit: The circuit to sample from.
+        step_result: The XmonStepResult from which to sample. This should be
+            the step at the end of the circuit.
+        repetitions: The number of time to sample.
+
+    Returns:
+        A dictionary from the measurement keys to the measurement results.
+        These results are lists of lists, with the outer list corresponding to
+        the repetition, and the inner list corresponding to the qubits as
+        ordered in the measurement gate.
+    """
     is_meas = lambda op: isinstance(op.gate, xmon_gates.XmonMeasurementGate)
     bounds = {}
     all_qubits = []

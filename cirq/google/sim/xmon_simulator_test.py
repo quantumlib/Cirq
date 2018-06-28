@@ -17,6 +17,7 @@
 import cmath
 import itertools
 import math
+import time
 from typing import Sequence
 
 import numpy as np
@@ -492,6 +493,23 @@ def test_simulate_moment_steps_set_state_2():
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
 
 
+def test_simulate_moment_steps_sample():
+    np.random.seed(0)
+    circuit = Circuit.from_ops(X(Q1),
+                               XmonMeasurementGate(key='a')(Q1),
+                               XmonMeasurementGate(key='b')(Q2))
+    simulator = xmon_simulator.XmonSimulator()
+    for step in simulator.simulate_moment_steps(circuit, qubit_order=[Q1, Q2]):
+        pass
+    assert [[True]] == step.sample([Q1])
+    assert [[True, False]] == step.sample([Q1, Q2])
+    assert [[False]] == step.sample([Q2])
+
+    assert [[True]] * 3 == step.sample([Q1], 3)
+    assert [[True, False]] * 3 == step.sample([Q1, Q2], 3)
+    assert [[False]] * 3 == step.sample([Q2], 3)
+
+
 def compute_gate(circuit, resolver, num_qubits=1):
     simulator = xmon_simulator.XmonSimulator()
     gate = []
@@ -879,6 +897,19 @@ def test_circuit_repetitions():
     assert result.repetitions == 10
     np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
     np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
+
+
+def test_circuit_repetitions_optimized_regression():
+    sim = xmon_simulator.XmonSimulator()
+    circuit = bit_flip_circuit(1, 1)
+
+    # When not optimized this takes around 20 seconds to run, otherwise it
+    # runs in less than a second.
+    start = time.time()
+    result = sim.run(circuit, repetitions=10000)
+    assert result.repetitions == 10000
+    end = time.time()
+    assert end - start < 1.0
 
 
 def test_circuit_parameters():

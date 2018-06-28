@@ -373,8 +373,19 @@ class Stepper(object):
         Returns:
             Measurement results with True corresponding to the |1> state.
             The outer list is for repetitions, and the inner corresponds to
-            measurements ordered by indices.
+            measurements ordered by the input indices.
+
+        Raises:
+            ValueError if repetitions is less than one.
         """
+        if repetitions < 1:
+            raise ValueError(
+                'Number of repetitions cannot be negative. Was {}'.format(
+
+                    repetitions))
+        if len(indices) == 0:
+            return [[]]
+
         # Calculate probabilities and reshape to tensor of qubits.
         tensor = np.reshape(np.abs(self.current_state) ** 2,
                             self._num_qubits * [2])
