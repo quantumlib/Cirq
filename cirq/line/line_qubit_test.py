@@ -35,6 +35,9 @@ def test_str():
 def test_repr():
     assert repr(LineQubit(5)) == 'LineQubit(5)'
 
+def test_lt():
+    assert LineQubit(0) < LineQubit(1)
+
 
 def test_is_adjacent():
     assert LineQubit(1).is_adjacent(LineQubit(2))

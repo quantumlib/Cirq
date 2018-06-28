@@ -49,6 +49,8 @@ class LineQubit(ops.QubitId):
         return not self == other
 
     def __lt__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
         return self.x < other.x
 
     def __hash__(self):
