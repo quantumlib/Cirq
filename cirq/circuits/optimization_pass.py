@@ -19,6 +19,7 @@ from collections import defaultdict
 
 from cirq import abc, ops
 from cirq.circuits.circuit import Circuit
+from cirq.circuits.insert_strategy import InsertStrategy
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -138,11 +139,16 @@ class PointOptimizer:
                 circuit.clear_operations_touching(
                     opt.clear_qubits,
                     [e for e in range(i, i + opt.clear_span)])
-                next_insert_index = circuit.insert_into_range(
-                    opt.new_operations, i, i + opt.clear_span)
 
-                # Prevent redundant optimizations.
-                for q in opt.clear_qubits:
-                    walls[q] = max(walls[q], next_insert_index)
+                for new_op in ops.flatten_op_tree(opt.new_operations):
+                    start = max(i, max(walls[q] for q in new_op.qubits))
+                    next_moment = circuit.next_moment_operating_on(new_op.qubits, start)
+                    end = len(circuit.moments) if next_moment is None else next_moment
+                    wall = circuit.insert_into_range(new_op, i, end)
+                    for q in new_op.qubits:
+                        walls[q] = max(walls[q], wall)
 
             i += 1
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)
