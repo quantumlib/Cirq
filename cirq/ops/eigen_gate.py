@@ -39,10 +39,8 @@ class EigenGate(gate_features.BoundedEffectGate,
     method.
     """
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  exponent: Union[Symbol, float] = 1.0) -> None:
-        assert not positional_args
 
         # Canonicalize the exponent.
         period = self._canonical_exponent_period()
