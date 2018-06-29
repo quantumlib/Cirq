@@ -17,7 +17,6 @@ import pytest
 from cirq.testing import (
     EqualsTester,
     assert_allclose_up_to_global_phase,
-    allclose_up_to_global_phase
 )
 
 import cirq
@@ -58,24 +57,20 @@ def _all_rotations_xz():
 
 def _all_clifford_gates():
     for trans_x, trans_z in _all_rotations_xz():
-        yield CliffordGate(trans_x, trans_z)
+        yield CliffordGate.from_xz_map(trans_x, trans_z)
 
 
 @pytest.mark.parametrize('pauli,flip_x,flip_z',
     itertools.product(Pauli.XYZ, _bools, _bools))
 def test_init_value_error(pauli, flip_x, flip_z):
     with pytest.raises(ValueError):
-        CliffordGate((pauli, flip_x), (pauli, flip_z))
+        CliffordGate.from_xz_map((pauli, flip_x), (pauli, flip_z))
 
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotations_xz())
 def test_init_success(trans_x, trans_z):
-    gate = CliffordGate(trans_x, trans_z)
+    gate = CliffordGate.from_xz_map(trans_x, trans_z)
     assert gate.transform(Pauli.X) == trans_x
     assert gate.transform(Pauli.Z) == trans_z
-    assert gate.rotates_pauli_to(Pauli.X) == trans_x.to
-    assert gate.rotates_pauli_to(Pauli.Z) == trans_z.to
-    assert gate.flips_pauli(Pauli.X) == trans_x.flip
-    assert gate.flips_pauli(Pauli.Z) == trans_z.flip
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
 
@@ -83,9 +78,8 @@ def test_eq_ne_and_hash():
     eq = EqualsTester()
     eq.add_equality_group(Pauli.X)
     for trans_x, trans_z in _all_rotations_xz():
-        gate1 = CliffordGate(trans_x, trans_z)
-        gate2 = CliffordGate(trans_x, trans_z)
-        eq.add_equality_group(gate1, gate2)
+        gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
+        eq.make_equality_pair(gate_gen)
 
 @pytest.mark.parametrize('gate,rep', (
     (CliffordGate.I,       'CliffordGate(X:+X, Y:+Y, Z:+Z)'),
@@ -157,13 +151,13 @@ def test_commutes_with_single_qubit_gate(gate, other):
                     gate(q0),
                 ).to_unitary_matrix()
     commutes = gate.commutes_with_single_qubit_gate(other)
-    commutes_check = allclose_up_to_global_phase(mat, mat_swap)
+    commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
 @pytest.mark.parametrize('gate,pauli,half_turns',
     itertools.product(_all_clifford_gates(),
                       Pauli.XYZ,
-                      (0.1, 0.25, 0.5, 1, -0.5)))
+                      (0.1, 0.25, 0.5, -0.5)))
 def test_commutes_with_pauli(gate, pauli, half_turns):
     pauli_gates = {Pauli.X: cirq.X,
                    Pauli.Y: cirq.Y,
@@ -178,8 +172,8 @@ def test_commutes_with_pauli(gate, pauli, half_turns):
                     pauli_gate(q0),
                     gate(q0),
                 ).to_unitary_matrix()
-    commutes = gate.commutes_with_pauli(pauli, whole=half_turns == 1)
-    commutes_check = allclose_up_to_global_phase(mat, mat_swap)
+    commutes = gate.commutes_with_pauli(pauli)
+    commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
 @pytest.mark.parametrize('gate,other',
@@ -192,7 +186,7 @@ def test_single_qubit_gate_after_switching_order(gate, other):
                     other(q0),
                 ).to_unitary_matrix()
     mat_swap = cirq.Circuit.from_ops(
-                    gate.single_qubit_gate_after_switching_order(other)(q0),
+                    gate.equivalent_gate_before(other)(q0),
                     gate(q0),
                 ).to_unitary_matrix()
     assert_allclose_up_to_global_phase(mat, mat_swap)
@@ -203,7 +197,8 @@ def test_single_qubit_gate_after_switching_order(gate, other):
     (CliffordGate.X,       'X'),
     (CliffordGate.X_sqrt,  'X'),
     (CliffordGate.X_nsqrt, 'X'),
-    (CliffordGate((Pauli.Y, False), (Pauli.X, True)), 'X^-0.5-Z^0.5')))
+    (CliffordGate.from_xz_map((Pauli.Y, False), (Pauli.X, True)),
+                           'X^-0.5-Z^0.5')))
 def test_text_diagram_wire_symbols(gate, sym):
     assert gate.text_diagram_wire_symbols() == (sym,)
 
@@ -213,7 +208,7 @@ def test_text_diagram_wire_symbols(gate, sym):
     (CliffordGate.X,       1),
     (CliffordGate.X_sqrt,  0.5),
     (CliffordGate.X_nsqrt, -0.5),
-    (CliffordGate((Pauli.Y, False), (Pauli.X, True)), 1)))
+    (CliffordGate.from_xz_map((Pauli.Y, False), (Pauli.X, True)), 1)))
 def test_text_diagram_exponent(gate, exp):
     assert gate.text_diagram_exponent() == exp
 

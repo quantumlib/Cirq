@@ -94,18 +94,3 @@ def assert_allclose_up_to_global_phase(
         equal_nan=equal_nan,
         err_msg=err_msg,
         verbose=verbose)
-
-
-def allclose_up_to_global_phase(
-        actual: np.ndarray,
-        desired: np.ndarray,
-        rtol: float = 1e-7,
-        atol: float = 0,
-        equal_nan: bool = True) -> None:
-    actual, desired = linalg.match_global_phase(actual, desired)
-    return np.allclose(
-        actual,
-        desired,
-        rtol=rtol,
-        atol=atol,
-        equal_nan=equal_nan)
