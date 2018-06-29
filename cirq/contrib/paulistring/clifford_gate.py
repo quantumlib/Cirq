@@ -46,9 +46,16 @@ class CliffordGate(ops.CompositeGate,
 
     @staticmethod
     def from_xz_map(transforms_x_to: Tuple[Pauli, bool],
-                      transforms_z_to: Tuple[Pauli, bool]) -> 'CliffordGate':
-        """Returns a CliffordGate that transforms X to the first arg, Z to the
-        second."""
+                    transforms_z_to: Tuple[Pauli, bool]) -> 'CliffordGate':
+        """Returns a CliffordGate for the specified transforms.  The Y
+        transform is derived from the X and Z.
+
+        Args:
+            transforms_x_to: Which Pauli to transform X to and if it should
+                negate.
+            transforms_z_to: Which Pauli to transform Z to and if it should
+                negate.
+        """
         rotates_x_to, flips_x = transforms_x_to
         rotates_z_to, flips_z = transforms_z_to
         if rotates_x_to == rotates_z_to:
