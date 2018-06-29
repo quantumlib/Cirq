@@ -88,14 +88,12 @@ class TrialResult:
             results.
     """
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  params: resolver.ParamResolver,
                  measurements: Dict[str, np.ndarray],
                  repetitions: int) -> None:
         """
         Args:
-            positional_args: Never specified. Forces keyword arguments.
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
                 results. The value for each key is a 2-D array of booleans,
@@ -104,15 +102,13 @@ class TrialResult:
                 measurements.
             repetitions: The number of times the circuit was sampled.
         """
-        assert not positional_args
         self.params = params
         self.measurements = measurements
         self.repetitions = repetitions
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
-            self,
-            *positional_args,
+            self, *,  # Forces keyword args.
             keys: Iterable[str],
             fold_func: Callable[[Tuple[np.ndarray, ...]],
                                 T] = _tuple_of_big_endian_int
@@ -149,7 +145,6 @@ class TrialResult:
         first measured qubit determining the highest-value bit.
 
         Args:
-            positional_args: Never specified. Forces keyword arguments.
             fold_func: A function used to convert sampled measurement results
                 into countable values. The input is a tuple containing the
                 list of bits measured by each measurement specified by the
@@ -162,7 +157,6 @@ class TrialResult:
             A counter indicating how often measurements sampled various
             results.
         """
-        assert not positional_args
         fixed_keys = tuple(keys)
         samples = zip(*[self.measurements[sub_key]
                         for sub_key in fixed_keys])
@@ -175,7 +169,7 @@ class TrialResult:
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def histogram(self,  # type: ignore
-                  *positional_args,
+                  *,  # Forces keyword args.
                   key: str,
                   fold_func: Callable[[np.ndarray], T] = _big_endian_int
                   ) -> collections.Counter:
@@ -216,7 +210,6 @@ class TrialResult:
             A counter indicating how often a measurement sampled various
             results.
         """
-        assert not positional_args
         return self.multi_measurement_histogram(
             keys=[key],
             fold_func=lambda e: fold_func(e[0]))
