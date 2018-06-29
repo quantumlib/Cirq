@@ -51,8 +51,6 @@ class LineQubit(ops.QubitId):
             return NotImplemented
         return self.x < other.x
 
-    def __le__(self, other
-
     def __hash__(self):
         return hash((LineQubit, self.x))
 

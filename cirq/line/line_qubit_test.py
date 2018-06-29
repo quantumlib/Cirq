@@ -47,29 +47,9 @@ def test_cmp():
     assert LineQubit(0) >= LineQubit(0)
     assert LineQubit(1) >= LineQubit(0)
     with pytest.raises(TypeError):
-        _ = 0 == LineQubit(1)
-    with pytest.raises(TypeError):
-        _ = 0 != LineQubit(1)
-    with pytest.raises(TypeError):
         _ = 0 < LineQubit(1)
-    with pytest.raises(TypeError):
-        _ = 0 > LineQubit(1)
-    with pytest.raises(TypeError):
-        _ = 0 <= LineQubit(1)
-    with pytest.raises(TypeError):
-        _ = 0 >= LineQubit(1)
-    with pytest.raises(NotImplementedError):
-        _ = LineQubit(1) == 0
-    with pytest.raises(NotImplementedError):
-        _ = LineQubit(1) != 0
     with pytest.raises(NotImplementedError):
         _ = LineQubit(1) < 0
-    with pytest.raises(NotImplementedError):
-        _ = LineQubit(1) > 0
-    with pytest.raises(NotImplementedError):
-        _ = LineQubit(1) <= 0
-    with pytest.raises(NotImplementedError):
-        _ = LineQubit(1) >= 0
 
 
 def test_is_adjacent():
