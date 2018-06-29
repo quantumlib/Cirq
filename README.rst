@@ -56,13 +56,13 @@ Documentation
 See
 `here <https://github.com/quantumlib/Cirq/blob/master/docs/table_of_contents.md>`__
 or jump into the
-`tutorial <https://github.com/quantumlib/Cirq/blob/master/docs/tutorial.md>`__
+`tutorial <https://github.com/quantumlib/Cirq/blob/master/docs/tutorial.md>`__.
 
 Contributing
 ------------
 
 We welcome contributions. Please follow these
-`guidelines <https://github.com/quantumlib/cirq/CONTRIBUTING.md>`__
+`guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
 
 Disclaimer
 ----------
