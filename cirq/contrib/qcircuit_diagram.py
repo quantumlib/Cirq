@@ -47,6 +47,7 @@ class _QCircuitQubit(ops.QubitId):
 class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
     def __init__(self, sub: QCircuitDiagrammableGate) -> None:
         self.sub = sub
+        self.right_wire = getattr(sub, 'right_wire', 'q')
 
     def text_diagram_exponent(self):
         return 1
@@ -69,6 +70,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     qw = {(x, y)
           for y, x1, x2 in diagram.horizontal_lines
           for x in range(x1, x2)}
+    qw.difference_update([(x + 1, y) for x, y in diagram.no_right_wires])
 
     rows = []
     for y in range(h):
@@ -84,7 +86,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
             if key in qwx:
                 cell.append('\\qwx ')
             row.append(''.join(cell))
-        rows.append('&'.join(row) + '\qw')
+        rows.append('&'.join(row))
 
     grid = '\\\\\n'.join(rows)
 
@@ -118,7 +120,8 @@ def _wrap_circuit(circuit: circuits.Circuit,
 def circuit_to_latex_using_qcircuit(
         circuit: circuits.Circuit,
         ext: extension.Extensions = None,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        inc_vert_lines: Optional[bool] = True) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
     Args:
@@ -143,5 +146,6 @@ def circuit_to_latex_using_qcircuit(
         ext,
         qubit_name_suffix='',
         qubit_order=ops.QubitOrder.as_qubit_order(qubit_order).map(
-            internalize=get_sub, externalize=_QCircuitQubit))
+            internalize=get_sub, externalize=_QCircuitQubit),
+        inc_vert_lines=inc_vert_lines)
     return _render(diagram)

@@ -543,6 +543,7 @@ class Circuit(object):
             qubit_name_suffix: str = '',
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            inc_vert_lines: Optional[bool] = True
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -574,7 +575,8 @@ class Circuit(object):
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
-                                    precision)
+                                    precision,
+                                    inc_vert_lines)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -633,7 +635,8 @@ def _draw_moment_in_diagram(moment: Moment,
                             use_unicode_characters: bool,
                             qubit_map: Dict[QubitId, int],
                             out_diagram: TextDiagramDrawer,
-                            precision: Optional[int]):
+                            precision: Optional[int],
+                            inc_vert_lines: Optional[bool] = True):
     if not moment.operations:
         return []
 
@@ -649,8 +652,12 @@ def _draw_moment_in_diagram(moment: Moment,
                   for y in range(y1, y2 + 1)):
             x += 1
 
+        # Indicate which positions shouldn't have a connecting line
+        if getattr(op.gate, 'right_wire', 'q') is None:
+            out_diagram.no_right_wires += [(x, y) for y in indices]
+
         # Draw vertical line linking the gate's qubits.
-        if y2 > y1:
+        if inc_vert_lines and (y2 > y1):
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
