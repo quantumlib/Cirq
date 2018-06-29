@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from cirq.testing import EqualsTester
 from cirq import LineQubit
 
@@ -35,8 +37,39 @@ def test_str():
 def test_repr():
     assert repr(LineQubit(5)) == 'LineQubit(5)'
 
-def test_lt():
+def test_cmp():
+    assert LineQubit(0) == LineQubit(0)
+    assert LineQubit(0) != LineQubit(1)
     assert LineQubit(0) < LineQubit(1)
+    assert LineQubit(1) > LineQubit(0)
+    assert LineQubit(0) <= LineQubit(0)
+    assert LineQubit(0) <= LineQubit(1)
+    assert LineQubit(0) >= LineQubit(0)
+    assert LineQubit(1) >= LineQubit(0)
+    with pytest.raises(TypeError):
+        _ = 0 == LineQubit(1)
+    with pytest.raises(TypeError):
+        _ = 0 != LineQubit(1)
+    with pytest.raises(TypeError):
+        _ = 0 < LineQubit(1)
+    with pytest.raises(TypeError):
+        _ = 0 > LineQubit(1)
+    with pytest.raises(TypeError):
+        _ = 0 <= LineQubit(1)
+    with pytest.raises(TypeError):
+        _ = 0 >= LineQubit(1)
+    with pytest.raises(NotImplementedError):
+        _ = LineQubit(1) == 0
+    with pytest.raises(NotImplementedError):
+        _ = LineQubit(1) != 0
+    with pytest.raises(NotImplementedError):
+        _ = LineQubit(1) < 0
+    with pytest.raises(NotImplementedError):
+        _ = LineQubit(1) > 0
+    with pytest.raises(NotImplementedError):
+        _ = LineQubit(1) <= 0
+    with pytest.raises(NotImplementedError):
+        _ = LineQubit(1) >= 0
 
 
 def test_is_adjacent():
