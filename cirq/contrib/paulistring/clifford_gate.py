@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, NamedTuple, Optional, Sequence, Tuple
+from typing import Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union
 
 from cirq import ops
 
@@ -88,6 +88,16 @@ class CliffordGate(ops.CompositeGate,
     def inverse(self) -> 'CliffordGate':
         return CliffordGate(_rotation_map=self._inverse_map,
                             _inverse_map=self._rotation_map)
+
+    def commutes_with(self,
+                      gate_or_pauli: Union['CliffordGate', Pauli]
+                      ) -> bool:
+        if isinstance(gate_or_pauli, CliffordGate):
+            gate = gate_or_pauli
+            return self.commutes_with_single_qubit_gate(gate)
+        else:
+            pauli = gate_or_pauli
+            return self.commutes_with_pauli(pauli)
 
     def commutes_with_single_qubit_gate(self, gate: 'CliffordGate') -> bool:
         """Tests if the two circuits would be equivalent up to global phase:

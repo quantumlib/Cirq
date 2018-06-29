@@ -150,7 +150,7 @@ def test_commutes_with_single_qubit_gate(gate, other):
                     other(q0),
                     gate(q0),
                 ).to_unitary_matrix()
-    commutes = gate.commutes_with_single_qubit_gate(other)
+    commutes = gate.commutes_with(other)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
@@ -172,7 +172,7 @@ def test_commutes_with_pauli(gate, pauli, half_turns):
                     pauli_gate(q0),
                     gate(q0),
                 ).to_unitary_matrix()
-    commutes = gate.commutes_with_pauli(pauli)
+    commutes = gate.commutes_with(pauli)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
