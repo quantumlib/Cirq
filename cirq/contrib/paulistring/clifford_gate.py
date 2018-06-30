@@ -23,7 +23,7 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
 class CliffordGate(ops.CompositeGate,
-                   ops.ReversibleGate,
+                   ops.ReversibleEffect,
                    ops.TextDiagrammableGate):
     """Any single qubit Clifford rotation."""
     I = None  # type: CliffordGate

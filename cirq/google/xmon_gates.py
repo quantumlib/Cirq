@@ -291,7 +291,7 @@ class ExpWGate(XmonGate,
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        if desired_type is ops.ReversibleGate and self.has_inverse():
+        if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
 
@@ -443,7 +443,7 @@ class ExpZGate(XmonGate,
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        if desired_type is ops.ReversibleGate and self.has_inverse():
+        if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
 
