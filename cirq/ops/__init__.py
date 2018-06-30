@@ -50,7 +50,6 @@ from cirq.ops.gate_features import (
     ParameterizableGate,
     PhaseableGate,
     ReversibleEffect,
-    SelfInverseGate,
     SingleQubitGate,
     TextDiagrammableGate,
     ThreeQubitGate,

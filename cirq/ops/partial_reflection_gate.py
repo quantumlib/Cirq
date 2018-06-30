@@ -110,10 +110,6 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
                              gate_features.ReversibleEffect] and
                 not self.is_parameterized()):
             return self
-        if (desired_type in [gate_features.SelfInverseGate] and
-                not self.is_parameterized() and
-                self.half_turns % 1 == 0):
-            return self
         if (desired_type is gate_features.KnownMatrixGate and
                 not self.is_parameterized()):
             return self
