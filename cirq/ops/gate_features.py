@@ -35,18 +35,17 @@ class ReversibleEffect(metaclass=abc.ABCMeta):
         """Returns a gate with an exactly opposite effect."""
 
 
-TSelf_ExtrapolatableGate = TypeVar('TSelf_ExtrapolatableGate',
-                                   bound='ExtrapolatableGate')
+TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
+                                     bound='ExtrapolatableEffect')
 
 
-class ExtrapolatableGate(raw_types.Gate,
-                         ReversibleEffect,
-                         metaclass=abc.ABCMeta):
+class ExtrapolatableEffect(ReversibleEffect,
+                           metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableGate, factor: float
-                           ) -> TSelf_ExtrapolatableGate:
+    def extrapolate_effect(self: TSelf_ExtrapolatableEffect, factor: float
+                           ) -> TSelf_ExtrapolatableEffect:
         """Augments, diminishes, or reverses the effect of the receiving gate.
 
         Args:
@@ -56,8 +55,8 @@ class ExtrapolatableGate(raw_types.Gate,
             A gate equivalent to applying the receiving gate 'factor' times.
         """
 
-    def __pow__(self: TSelf_ExtrapolatableGate, power: float
-                ) -> TSelf_ExtrapolatableGate:
+    def __pow__(self: TSelf_ExtrapolatableEffect, power: float
+                ) -> TSelf_ExtrapolatableEffect:
         """Extrapolates the effect of the gate.
 
         Note that there are cases where (G**a)**b != G**(a*b). For example,
@@ -81,7 +80,7 @@ class ExtrapolatableGate(raw_types.Gate,
         """
         return self.extrapolate_effect(power)
 
-    def inverse(self: TSelf_ExtrapolatableGate) -> TSelf_ExtrapolatableGate:
+    def inverse(self: TSelf_ExtrapolatableEffect) -> TSelf_ExtrapolatableEffect:
         return self.extrapolate_effect(-1)
 
 
