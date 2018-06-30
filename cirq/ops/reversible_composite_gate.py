@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Implements the inverse() method of a CompositeGate & ReversibleGate."""
+from typing import TypeVar, Generic
 
 from cirq import abc
 from cirq.extension import Extensions
@@ -57,23 +58,28 @@ def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
         iter_transformation=lambda e: reversed(list(e)))
 
 
+TOriginal = TypeVar('TOriginal', bound='ReversibleCompositeGate')
+
+
 class ReversibleCompositeGate(gate_features.CompositeGate,
                               gate_features.ReversibleGate,
                               metaclass=abc.ABCMeta):
     """A composite gate that gets decomposed into reversible gates."""
 
-    def inverse(self) -> '_ReversedReversibleCompositeGate':
+    def inverse(self: TOriginal
+                ) -> '_ReversedReversibleCompositeGate[TOriginal]':
         return _ReversedReversibleCompositeGate(self)
 
 
-class _ReversedReversibleCompositeGate(gate_features.CompositeGate,
+class _ReversedReversibleCompositeGate(Generic[TOriginal],
+                                       gate_features.CompositeGate,
                                        gate_features.ReversibleGate):
     """A reversed reversible composite gate."""
 
-    def __init__(self, forward_form: ReversibleCompositeGate) -> None:
+    def __init__(self, forward_form: TOriginal) -> None:
         self.forward_form = forward_form
 
-    def inverse(self) -> ReversibleCompositeGate:
+    def inverse(self) -> TOriginal:
         return self.forward_form
 
     def default_decompose(self, qubits):
