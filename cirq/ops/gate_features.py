@@ -17,7 +17,7 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Optional, Sequence, Tuple, Type, Union, Iterable
+from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar
 
 import numpy as np
 
@@ -35,11 +35,16 @@ class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """Returns a gate with an exactly opposite effect."""
 
 
+TSelf_ExtrapolatableGate = TypeVar('TSelf_ExtrapolatableGate',
+                                   bound='ExtrapolatableGate')
+
+
 class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
-    def extrapolate_effect(self, factor: float) -> 'ExtrapolatableGate':
+    def extrapolate_effect(self: TSelf_ExtrapolatableGate, factor: float
+                           ) -> TSelf_ExtrapolatableGate:
         """Augments, diminishes, or reverses the effect of the receiving gate.
 
         Args:
@@ -49,7 +54,8 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
             A gate equivalent to applying the receiving gate 'factor' times.
         """
 
-    def __pow__(self, power: float) -> 'ExtrapolatableGate':
+    def __pow__(self: TSelf_ExtrapolatableGate, power: float
+                ) -> TSelf_ExtrapolatableGate:
         """Extrapolates the effect of the gate.
 
         Note that there are cases where (G**a)**b != G**(a*b). For example,
@@ -73,7 +79,7 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
         """
         return self.extrapolate_effect(power)
 
-    def inverse(self) -> 'ExtrapolatableGate':
+    def inverse(self: TSelf_ExtrapolatableGate) -> TSelf_ExtrapolatableGate:
         return self.extrapolate_effect(-1)
 
 
@@ -95,7 +101,6 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Args:
             qubits: The qubits the operation should be applied to.
         """
-
 
     @classmethod
     def from_gates(cls: Type,
@@ -188,12 +193,16 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
 
+TSelf_PhaseableGate = TypeVar('TSelf_PhaseableGate', bound='PhaseableGate')
+
+
 class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate whose effect can be phased around the Z axis of target qubits."""
 
     @abc.abstractmethod
-    def phase_by(self, phase_turns: float,
-                 qubit_index: int) -> 'PhaseableGate':
+    def phase_by(self: TSelf_PhaseableGate,
+                 phase_turns: float,
+                 qubit_index: int) -> TSelf_PhaseableGate:
         """Returns a phased version of the gate.
 
         Args:
@@ -261,6 +270,10 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
+TSelf_ParameterizableGate = TypeVar('TSelf_ParameterizableGate',
+                                    bound='ParameterizableGate')
+
+
 class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that can be parameterized by Symbols."""
 
@@ -272,9 +285,9 @@ class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def with_parameters_resolved_by(self,
+    def with_parameters_resolved_by(self: TSelf_ParameterizableGate,
                                     param_resolver: ParamResolver
-                                    ) -> 'ParameterizableGate':
+                                    ) -> TSelf_ParameterizableGate:
         """Resolve the parameters in the gate.
 
         Returns a gate of the same type, but with all Symbols replaced with

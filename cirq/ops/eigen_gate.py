@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Union, List, Optional, cast
+from typing import Tuple, Union, List, Optional, cast, TypeVar
 
 import numpy as np
 
@@ -20,6 +20,9 @@ from cirq import abc
 from cirq.extension import PotentialImplementation
 from cirq.ops import gate_features
 from cirq.value import Symbol
+
+
+TSelf = TypeVar('TSelf', bound='EigenGate')
 
 
 class EigenGate(gate_features.BoundedEffectGate,
@@ -53,7 +56,7 @@ class EigenGate(gate_features.BoundedEffectGate,
         self._exponent = exponent
 
     @abc.abstractmethod
-    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'EigenGate':
+    def _with_exponent(self: TSelf, exponent: Union[Symbol, float]) -> TSelf:
         """Return the same kind of gate, but with a different exponent."""
         pass
 
@@ -90,10 +93,10 @@ class EigenGate(gate_features.BoundedEffectGate,
         """
         pass
 
-    def __pow__(self, power: float) -> 'EigenGate':
+    def __pow__(self: TSelf, power: float) -> TSelf:
         return self.extrapolate_effect(power)
 
-    def inverse(self) -> 'EigenGate':
+    def inverse(self: TSelf) -> TSelf:
         return self.extrapolate_effect(-1)
 
     def __eq__(self, other):
@@ -138,14 +141,15 @@ class EigenGate(gate_features.BoundedEffectGate,
         return np.sum(1j**(half_turns * e * 2) * component
                       for half_turns, component in self._eigen_components())
 
-    def extrapolate_effect(self, factor) -> 'EigenGate':
+    def extrapolate_effect(self: TSelf, factor: float) -> TSelf:
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't know how to extrapolate.")
-        return self._with_exponent(exponent=self._exponent * factor)
+        return self._with_exponent(
+            exponent=cast(float, self._exponent) * factor)
 
     def is_parameterized(self) -> bool:
         return isinstance(self._exponent, Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'EigenGate':
+    def with_parameters_resolved_by(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
