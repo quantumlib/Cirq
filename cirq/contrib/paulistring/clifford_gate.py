@@ -79,7 +79,6 @@ class CliffordGate(ops.CompositeGate,
         """
         rotation_map = CliffordGate._validate_map_input(
                                         1,
-                                        'CliffordGate.from_single_map',
                                         pauli_map_to,
                                         x_to=x_to, y_to=y_to, z_to=z_to)
         (trans_from, (trans_to, flip)), = tuple(rotation_map.items())
@@ -117,7 +116,6 @@ class CliffordGate(ops.CompositeGate,
         """
         rotation_map = CliffordGate._validate_map_input(
                                         2,
-                                        'CliffordGate.from_double_map',
                                         pauli_map_to,
                                         x_to=x_to, y_to=y_to, z_to=z_to)
         (from1, trans1), (from2, trans2) = tuple(rotation_map.items())
@@ -133,7 +131,6 @@ class CliffordGate(ops.CompositeGate,
 
     @staticmethod
     def _validate_map_input(required_transform_count: int,
-                            method_name: str,
                             pauli_map_to: Optional[Dict[Pauli,
                                                         Tuple[Pauli, bool]]],
                             x_to: Optional[Tuple[Pauli, bool]],
@@ -148,8 +145,8 @@ class CliffordGate(ops.CompositeGate,
             raise ValueError('{} can take either pauli_map_to or a combination'
                              ' of x_to, y_to, and z_to but both were given')
         if len(pauli_map_to) != required_transform_count:
-            raise ValueError('{} takes {} transform{} but {} {} given'.format(
-                             method_name, required_transform_count,
+            raise ValueError('Method takes {} transform{} but {} {} given'.format(
+                             required_transform_count,
                              '' if required_transform_count == 1 else 's',
                              len(pauli_map_to),
                              'was' if len(pauli_map_to) == 1 else 'were'))

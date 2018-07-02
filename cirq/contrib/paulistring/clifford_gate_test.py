@@ -104,36 +104,62 @@ def test_init_from_double(trans1, trans2, from1, str_args):
         _assert_not_mirror(gate)
         _assert_no_collision(gate)
 
-@pytest.mark.parametrize('trans,frm,str_args',
+@pytest.mark.parametrize('trans,frm',
     itertools.product(_all_rotations(),
-                      Pauli.XYZ,
-                      _bools))
-def test_init_from_single(trans, frm, str_args):
+                      Pauli.XYZ))
+def test_init_from_single_map_vs_kwargs(trans, frm):
     from_str = str(frm).lower()+'_to'
-    if str_args:
-        # pylint: disable=unexpected-keyword-arg
-        gate = CliffordGate.from_single_map(**{from_str: trans})
-    else:
-        gate = CliffordGate.from_single_map({frm: trans})
+    # pylint: disable=unexpected-keyword-arg
+    gate_kw = CliffordGate.from_single_map(**{from_str: trans})
+    gate_map = CliffordGate.from_single_map({frm: trans})
+    assert gate_kw == gate_map
+
+@pytest.mark.parametrize('trans,frm',
+    ((trans, frm)
+     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     if trans.to != frm))
+def test_init_90rot_from_single(trans, frm):
+    gate = CliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that is decomposes to zero or one gates
     assert len(gate.decompose_rotation()) <= 1
-    if frm != trans.to:
-        # Check that this is a 90 degree rotation gate
-        assert (gate.merged_with(gate).merged_with(gate).merged_with(gate)
-                == CliffordGate.I)
-        # Check that flipping the transform produces the inverse rotation
-        trans_rev = PauliTransform(trans.to, not trans.flip)
-        gate_rev = CliffordGate.from_single_map({frm: trans_rev})
-        assert gate.inverse() == gate_rev
-    elif trans.flip:
-        # Check that this is a 180 degree rotation gate
-        assert gate.merged_with(gate) == CliffordGate.I
-    else:
-        # Check that this is an identity gate
-        assert gate == CliffordGate.I
+    # Check that this is a 90 degree rotation gate
+    assert (gate.merged_with(gate).merged_with(gate).merged_with(gate)
+            == CliffordGate.I)
+    # Check that flipping the transform produces the inverse rotation
+    trans_rev = PauliTransform(trans.to, not trans.flip)
+    gate_rev = CliffordGate.from_single_map({frm: trans_rev})
+    assert gate.inverse() == gate_rev
+
+@pytest.mark.parametrize('trans,frm',
+    ((trans, frm)
+     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     if trans.to == frm and trans.flip))
+def test_init_180rot_from_single(trans, frm):
+    gate = CliffordGate.from_single_map({frm: trans})
+    assert gate.transform(frm) == trans
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
+    # Check that is decomposes to zero or one gates
+    assert len(gate.decompose_rotation()) <= 1
+    # Check that this is a 180 degree rotation gate
+    assert gate.merged_with(gate) == CliffordGate.I
+
+@pytest.mark.parametrize('trans,frm',
+    ((trans, frm)
+     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     if trans.to == frm and not trans.flip))
+def test_init_ident_from_single(trans, frm):
+    gate = CliffordGate.from_single_map({frm: trans})
+    assert gate.transform(frm) == trans
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
+    # Check that is decomposes to zero or one gates
+    assert len(gate.decompose_rotation()) <= 1
+    # Check that this is an identity gate
+    assert gate == CliffordGate.I
 
 def test_init_invalid():
     with pytest.raises(ValueError):
