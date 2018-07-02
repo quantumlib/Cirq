@@ -15,6 +15,21 @@
 import cirq
 import numpy as np
 
+def main():
+    """Demonstrates Quantum Fourier transform.
+    """
+    # Create circuit
+    qft_circuit = generate_2x2_grid_qft_circuit()
+
+    print('Circuit:')
+    print(qft_circuit)
+
+    # Simulate and collect final_state
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.simulate(qft_circuit)
+    print('FinalState')
+    print(np.around(result.final_state, 3))
+    
 def _cz_and_swap(q0, q1, rot):
     yield cirq.CZ(q0, q1)**rot
     yield cirq.SWAP(q0,q1)
@@ -40,21 +55,6 @@ def generate_2x2_grid_qft_circuit():
         strategy=cirq.InsertStrategy.EARLIEST
     )
     return circuit
-
-
-def main():
-    """Demonstrates Quantum Fourier transform.
-    """
-
-    qft_circuit = generate_2x2_grid_qft_circuit()
-
-    # Debug step
-    print(qft_circuit)
-
-    # Simulate and collect final_state
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.simulate(qft_circuit)
-    print(np.around(result.final_state, 3))
 
 if __name__ == '__main__':
     main()
