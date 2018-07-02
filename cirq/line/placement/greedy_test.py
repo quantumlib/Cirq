@@ -449,8 +449,8 @@ def test_greedy_search_method_returns_longest(largest, minimal):
     minimal.return_value.get_or_search.return_value = sequence_long
 
     method = GreedySequenceSearchMethod()
-    assert method.place_line(_create_device([]), []) == LinePlacement([],
-        [LineSequence(sequence_long)])
+    assert method.place_line(_create_device([]), []) == LinePlacement(
+        [LineSequence([], sequence_long)])
 
 
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
@@ -461,4 +461,4 @@ def test_greedy_search_method_returns_empty_when_empty(largest, minimal):
     minimal.return_value.get_or_search.return_value = []
 
     method = GreedySequenceSearchMethod()
-    assert method.place_line(_create_device([]), []) == LinePlacement([], [])
+    assert method.place_line(_create_device([]), []) == LinePlacement([])
