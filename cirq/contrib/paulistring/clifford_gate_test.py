@@ -123,8 +123,8 @@ def test_init_90rot_from_single(trans, frm):
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
-    # Check that is decomposes to zero or one gates
-    assert len(gate.decompose_rotation()) <= 1
+    # Check that it decomposes to one gate
+    assert len(gate.decompose_rotation()) == 1
     # Check that this is a 90 degree rotation gate
     assert (gate.merged_with(gate).merged_with(gate).merged_with(gate)
             == CliffordGate.I)
@@ -142,8 +142,8 @@ def test_init_180rot_from_single(trans, frm):
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
-    # Check that is decomposes to zero or one gates
-    assert len(gate.decompose_rotation()) <= 1
+    # Check that it decomposes to one gate
+    assert len(gate.decompose_rotation()) == 1
     # Check that this is a 180 degree rotation gate
     assert gate.merged_with(gate) == CliffordGate.I
 
@@ -156,8 +156,8 @@ def test_init_ident_from_single(trans, frm):
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
-    # Check that is decomposes to zero or one gates
-    assert len(gate.decompose_rotation()) <= 1
+    # Check that it decomposes to zero gates
+    assert len(gate.decompose_rotation()) == 0
     # Check that this is an identity gate
     assert gate == CliffordGate.I
 
