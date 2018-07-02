@@ -20,9 +20,10 @@ def _cz_and_swap(q0, q1, rot):
     yield cirq.SWAP(q0,q1)
 
 # Create a quantum fourier transform circuit for 2*2 planar qubit architecture.
-def generate_2x2_grid_qft_circuit() -> cirq.Circuit:
-
+# Circuit is adopted from https://arxiv.org/pdf/quant-ph/0402196.pdf
+def generate_2x2_grid_qft_circuit():
     # Define a 2*2 square grid of qubits.
+
     a,b,c,d = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0, 1), cirq.google.XmonQubit(1, 0), cirq.google.XmonQubit(1, 1)]
 
     circuit = cirq.Circuit.from_ops(
@@ -41,7 +42,7 @@ def generate_2x2_grid_qft_circuit() -> cirq.Circuit:
     return circuit
 
 
-if __name__ == '__main__':
+def main():
     """Demonstrates Quantum Fourier transform.
     """
 
@@ -50,7 +51,10 @@ if __name__ == '__main__':
     # Debug step
     print(qft_circuit)
 
-    # Run and collect results
-    simulator = cirq.google.Simulator()
-    result = simulator.run(qft_circuit)
-    print(np.around(result.final_states[0], 3))
+    # Simulate and collect final_state
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.simulate(qft_circuit)
+    print(np.around(result.final_state, 3))
+
+if __name__ == '__main__':
+    main()
