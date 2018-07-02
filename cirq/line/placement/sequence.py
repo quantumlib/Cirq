@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import List, Optional
-
 from cirq.google import XmonQubit
+from cirq.line import LineQubit
 
 
 class LineSequence:
@@ -36,22 +36,26 @@ class LineSequence:
     # TODO: def as_list() -> List[LineQubit]?
 
 
-
 class LinePlacement:
 
-    def __init__(self, lines: List[LineSequence]) -> None:
+    def __init__(self,
+                 qubits: List[LineQubit],
+                 lines: List[LineSequence]) -> None:
+        self.qubits = qubits
         self.lines = lines
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.lines == other.lines
+        return self.qubits == other.qubits and self.lines == other.lines
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash(tuple(self.lines))
+        return hash((tuple(self.qubits), tuple(self.lines)))
+
+
 
 
 def longest_sequence_index(sequences: List[List[XmonQubit]]) -> Optional[int]:

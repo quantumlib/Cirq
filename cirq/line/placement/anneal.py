@@ -17,6 +17,7 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 import numpy as np
 
 from cirq.google import XmonDevice, XmonQubit
+from cirq.line import LineQubit
 from cirq.line.placement import place_method
 from cirq.line.placement.chip import (
     above,
@@ -357,18 +358,21 @@ class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self,
+                   device: XmonDevice,
+                   qubits: List[LineQubit]) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            qubits: List of qubits to find the placement for.
 
         Returns:
             List of linear sequences on the chip found by simulated annealing
             method.
         """
         seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
-        return LinePlacement([LineSequence(seq) for seq in seqs])
+        return LinePlacement(qubits, [LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

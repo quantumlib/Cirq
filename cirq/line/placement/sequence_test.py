@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.line import LineQubit
 from cirq.line.placement.sequence import (
     LinePlacement,
     LineSequence,
@@ -31,11 +32,18 @@ def test_line_sequence_eq():
 
 def test_line_placement_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: LinePlacement([]))
+    eq.make_equality_pair(lambda: LinePlacement([], []))
     eq.make_equality_pair(
-        lambda: LinePlacement([LineSequence([XmonQubit(0, 0)])]))
+        lambda: LinePlacement([], [LineSequence([XmonQubit(0, 0)])]))
     eq.make_equality_pair(
-        lambda: LinePlacement([LineSequence([XmonQubit(0, 0)]),
+        lambda: LinePlacement(LineQubit.range(2),
+                              [LineSequence([XmonQubit(0, 0)])]))
+    eq.make_equality_pair(
+        lambda: LinePlacement([], [LineSequence([XmonQubit(0, 0)]),
+                                   LineSequence([XmonQubit(0, 1)])]))
+    eq.make_equality_pair(
+        lambda: LinePlacement(LineQubit.range(2),
+                              [LineSequence([XmonQubit(0, 0)]),
                                LineSequence([XmonQubit(0, 1)])]))
 
 

@@ -393,7 +393,7 @@ def test_anneal_search_method_calls(search):
     search_instance = search.return_value
 
     method = AnnealSequenceSearchMethod(None, seed)
-    method.place_line(device)
+    method.place_line(device, [])
 
     search.assert_called_once_with(device, seed)
     search_instance.search.assert_called_once_with(None)
