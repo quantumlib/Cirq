@@ -206,7 +206,6 @@ def test_init_invalid():
 
 def test_eq_ne_and_hash():
     eq = EqualsTester()
-    eq.add_equality_group(Pauli.X)
     for trans_x, trans_z in _all_rotation_pairs():
         gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
         eq.make_equality_pair(gate_gen)
