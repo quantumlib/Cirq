@@ -12,6 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Creates and simulates a circuit equivalent to a Bell inequality test.
+
+=== EXAMPLE OUTPUT ===
+
+Circuit:
+(0, 0): ───H───@^0.5───×───H────────────@^0.5─────×───H────────────@^0.5───×───H───
+               │       │                │         │                │       │
+(0, 1): ───────Z───────×───@^0.25───×───Z─────────×───@^0.25───×───Z───────×───────
+                           │        │                 │        │
+(1, 0): ───────────────────Z────────×───@^0.125───×───Z────────×───────────────────
+                                        │         │
+(1, 1): ────────────────────────────────Z─────────×────────────────────────────────
+
+FinalState
+[0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j
+ 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
+"""
+
 import cirq
 import numpy as np
 
@@ -27,6 +45,8 @@ def main():
     # Simulate and collect final_state
     simulator = cirq.google.XmonSimulator()
     result = simulator.simulate(qft_circuit)
+    
+    print()
     print('FinalState')
     print(np.around(result.final_state, 3))
     
