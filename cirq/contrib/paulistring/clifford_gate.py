@@ -145,11 +145,12 @@ class CliffordGate(ops.CompositeGate,
             raise ValueError('{} can take either pauli_map_to or a combination'
                              ' of x_to, y_to, and z_to but both were given')
         if len(pauli_map_to) != required_transform_count:
-            raise ValueError('Method takes {} transform{} but {} {} given'.format(
-                             required_transform_count,
-                             '' if required_transform_count == 1 else 's',
-                             len(pauli_map_to),
-                             'was' if len(pauli_map_to) == 1 else 'were'))
+            raise ValueError('Method takes {} transform{} but {} {} given'
+                             .format(
+                                required_transform_count,
+                                '' if required_transform_count == 1 else 's',
+                                len(pauli_map_to),
+                                'was' if len(pauli_map_to) == 1 else 'were'))
         if (len(set((to for to, _ in pauli_map_to.values())))
             != len(pauli_map_to)):
             raise ValueError('A rotation cannot map two Paulis to the same')
