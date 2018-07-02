@@ -78,31 +78,47 @@ def test_init_from_xz(trans_x, trans_z):
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
 
-@pytest.mark.parametrize('trans1,trans2,from1,str_args',
-    itertools.product(_all_rotations(),
-                      _all_rotations(),
-                      Pauli.XYZ,
-                      _bools))
-def test_init_from_double(trans1, trans2, from1, str_args):
+@pytest.mark.parametrize('trans1,trans2,from1',
+    ((trans1, trans2, from1)
+     for trans1, trans2, from1 in itertools.product(_all_rotations(),
+                                                    _all_rotations(),
+                                                    Pauli.XYZ)
+     if trans1.to != trans2.to))
+def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
     from2 = from1 + 1
     from1_str, from2_str = (str(frm).lower()+'_to' for frm in (from1, from2))
-    def make_gate():
-        if str_args:
-            return CliffordGate.from_double_map(**{from1_str: trans1,
-                                                   from2_str: trans2})
-        else:
-            return CliffordGate.from_double_map({from1: trans1, from2: trans2})
-    if trans1.to == trans2.to:
-        # Test throws on invalid arguments
-        with pytest.raises(ValueError):
-            gate = make_gate()
-    else:
-        # Test initializes what was expected
-        gate = make_gate()
-        assert gate.transform(from1) == trans1
-        assert gate.transform(from2) == trans2
-        _assert_not_mirror(gate)
-        _assert_no_collision(gate)
+    gate_kw = CliffordGate.from_double_map(**{from1_str: trans1,
+                                              from2_str: trans2})
+    gate_map = CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    # Test initializes the same gate
+    assert gate_kw == gate_map
+
+@pytest.mark.parametrize('trans1,trans2,from1',
+    ((trans1, trans2, from1)
+     for trans1, trans2, from1 in itertools.product(_all_rotations(),
+                                                    _all_rotations(),
+                                                    Pauli.XYZ)
+     if trans1.to == trans2.to))
+def test_init_from_double_invalid(trans1, trans2, from1):
+    from2 = from1 + 1
+    # Test throws on invalid arguments
+    with pytest.raises(ValueError):
+        CliffordGate.from_double_map({from1: trans1, from2: trans2})
+
+@pytest.mark.parametrize('trans1,trans2,from1',
+    ((trans1, trans2, from1)
+     for trans1, trans2, from1 in itertools.product(_all_rotations(),
+                                                    _all_rotations(),
+                                                    Pauli.XYZ)
+     if trans1.to != trans2.to))
+def test_init_from_double(trans1, trans2, from1):
+    from2 = from1 + 1
+    gate = CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    # Test initializes what was expected
+    assert gate.transform(from1) == trans1
+    assert gate.transform(from2) == trans2
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
 
 @pytest.mark.parametrize('trans,frm',
     itertools.product(_all_rotations(),
