@@ -18,7 +18,6 @@ from google.protobuf import message, text_format
 
 import cirq
 from cirq.api.google.v1 import operations_pb2
-from cirq.extension import Extensions
 from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
@@ -212,9 +211,8 @@ def test_cz_to_proto():
 
 
 def test_cz_potential_implementation():
-    ex = Extensions()
-    assert not ex.can_cast(Exp11Gate(half_turns=Symbol('a')), KnownMatrixGate)
-    assert ex.can_cast(Exp11Gate(), KnownMatrixGate)
+    assert not cirq.can_cast(KnownMatrixGate, Exp11Gate(half_turns=Symbol('a')))
+    assert cirq.can_cast(KnownMatrixGate, Exp11Gate())
 
 
 def test_cz_parameterize():
@@ -314,11 +312,10 @@ def test_w_to_proto():
 
 
 def test_w_potential_implementation():
-    ex = Extensions()
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), KnownMatrixGate)
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), ReversibleGate)
-    assert ex.can_cast(ExpWGate(), KnownMatrixGate)
-    assert ex.can_cast(ExpWGate(), ReversibleGate)
+    assert not cirq.can_cast(KnownMatrixGate, ExpWGate(half_turns=Symbol('a')))
+    assert not cirq.can_cast(ReversibleGate, ExpWGate(half_turns=Symbol('a')))
+    assert cirq.can_cast(KnownMatrixGate, ExpWGate())
+    assert cirq.can_cast(ReversibleGate, ExpWGate())
 
 
 def test_w_parameterize():

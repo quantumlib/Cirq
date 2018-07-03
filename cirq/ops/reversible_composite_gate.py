@@ -33,7 +33,7 @@ def _reverse_operation(operation: raw_types.Operation,
     Raises:
         ValueError: The operation's gate isn't reversible.
     """
-    gate = extensions.try_cast(operation.gate, gate_features.ReversibleGate)
+    gate = extensions.try_cast(gate_features.ReversibleGate, operation.gate)
     if gate is None:
         raise ValueError('Not reversible: {}'.format(operation))
     return raw_types.Operation(gate.inverse(), operation.qubits)

@@ -68,12 +68,10 @@ def test_partial_reflection_as_self_inverse():
     h0 = DummyGate(half_turns=0)
     h1 = DummyGate(half_turns=1)
 
-    assert ex.try_cast(h1, cirq.SelfInverseGate) is h1
-    assert ex.try_cast(h0, cirq.SelfInverseGate) is h0
-    assert ex.try_cast(DummyGate(half_turns=0.5),
-                       cirq.SelfInverseGate) is None
-    assert ex.try_cast(DummyGate(half_turns=-0.5),
-                       cirq.SelfInverseGate) is None
+    assert ex.try_cast(cirq.SelfInverseGate, h1) is h1
+    assert ex.try_cast(cirq.SelfInverseGate, h0) is h0
+    assert ex.try_cast(cirq.SelfInverseGate, DummyGate(half_turns=0.5)) is None
+    assert ex.try_cast(cirq.SelfInverseGate, DummyGate(half_turns=-0.5)) is None
 
 
 def test_partial_reflection_gate_str():
