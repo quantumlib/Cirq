@@ -22,9 +22,9 @@ from cirq.testing import EqualsTester
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = linalg.kron(H, H)
 QFT2 = np.array([[1, 1, 1, 1],
-               [1, 1j, -1, -1j],
-               [1, -1, 1, -1],
-               [1, -1j, -1, 1j]]) * 0.5
+                 [1, 1j, -1, -1j],
+                 [1, -1, 1, -1],
+                 [1, -1j, -1, 1j]]) * 0.5
 
 
 def test_cz_init():
@@ -179,7 +179,7 @@ def test_runtime_types_of_rot_gates():
 def test_measurement_eq():
     eq = EqualsTester()
     eq.add_equality_group(ops.MeasurementGate(''),
-                        ops.MeasurementGate('', invert_mask=None))
+                          ops.MeasurementGate('', invert_mask=None))
     eq.add_equality_group(ops.MeasurementGate('a'))
     eq.add_equality_group(ops.MeasurementGate('a', invert_mask=(True,)))
     eq.add_equality_group(ops.MeasurementGate('a', invert_mask=(False,)))
@@ -214,11 +214,13 @@ def test_text_diagrams():
         ops.CZ(a, b),
         ops.CNOT(a, b),
         ops.CNOT(b, a),
-        ops.H(a))
+        ops.H(a),
+        ops.ISWAP(a, b),
+        ops.ISWAP(a, b)**-1)
     assert circuit.to_text_diagram().strip() == """
-a: ───×───X───Y───Z───@───@───X───H───
-      │               │   │   │
-b: ───×───────────────@───X───@───────
+a: ───×───X───Y───Z───@───@───X───H───iSwap───iSwap──────
+      │               │   │   │       │       │
+b: ───×───────────────@───X───@───────iSwap───iSwap^-1───
     """.strip()
 
 
@@ -273,7 +275,14 @@ def test_repr():
     assert repr(cirq.X**0.5) == 'X**0.5'
 
     assert repr(cirq.Z) == 'Z'
-    assert repr(cirq.Z**0.5) == 'Z**0.5'
+    assert repr(cirq.Z**0.5) == 'S'
+    assert repr(cirq.Z**0.25) == 'T'
+    assert repr(cirq.Z**0.125) == 'Z**0.125'
+
+    assert repr(cirq.S) == 'S'
+    assert repr(cirq.S**-1) == 'S**-1'
+    assert repr(cirq.T) == 'T'
+    assert repr(cirq.T**-1) == 'T**-1'
 
     assert repr(cirq.Y) == 'Y'
     assert repr(cirq.Y**0.5) == 'Y**0.5'
@@ -290,7 +299,8 @@ def test_str():
     assert str(cirq.X**0.5) == 'X**0.5'
 
     assert str(cirq.Z) == 'Z'
-    assert str(cirq.Z**0.5) == 'Z**0.5'
+    assert str(cirq.Z**0.5) == 'S'
+    assert str(cirq.Z**0.125) == 'Z**0.125'
 
     assert str(cirq.Y) == 'Y'
     assert str(cirq.Y**0.5) == 'Y**0.5'
@@ -341,3 +351,36 @@ def test_measure_each():
         cirq.measure(a, key='a!'),
         cirq.measure(b, key='b!')
     ]
+
+
+def test_iswap_repr():
+    assert repr(cirq.ISWAP) == 'ISWAP'
+    assert repr(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+
+
+def test_iswap_matrix():
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.ISwapGate().matrix(),
+        np.array([[1, 0, 0, 0],
+                  [0, 0, 1j, 0],
+                  [0, 1j, 0, 0],
+                  [0, 0, 0, 1]]))
+
+
+def test_iswap_decompose():
+    a = ops.NamedQubit('a')
+    b = ops.NamedQubit('b')
+
+    original = cirq.ISwapGate(exponent=0.5)
+    decomposed = cirq.Circuit.from_ops(original.default_decompose([a, b]))
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        original.matrix(),
+        decomposed.to_unitary_matrix(),
+        atol=1e-8)
+
+    assert decomposed.to_text_diagram() == """
+a: ───@───H───X───T───X───T^-1───H───@───
+      │       │       │              │
+b: ───X───────@───────@──────────────X───
+    """.strip()

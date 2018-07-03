@@ -247,12 +247,26 @@ class RotZGate(eigen_gate.EigenGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
+        if abs(self.half_turns) == 0.5:
+            return 'S',
+        if abs(self.half_turns) == 0.25:
+            return 'T',
         return 'Z',
 
     def text_diagram_exponent(self):
+        if abs(self.half_turns) in [0.25, 0.5]:
+            return np.sign(self.half_turns)
         return self._exponent
 
     def __repr__(self) -> str:
+        if self.half_turns == 0.25:
+            return 'T'
+        if self.half_turns == -0.25:
+            return 'T**-1'
+        if self.half_turns == 0.5:
+            return 'S'
+        if self.half_turns == -0.5:
+            return 'S**-1'
         if self.half_turns == 1:
             return 'Z'
         return 'Z**{!r}'.format(self.half_turns)
@@ -517,3 +531,73 @@ class SwapGate(eigen_gate.EigenGate,
 
 
 SWAP = SwapGate()  # Exchanges two qubits' states.
+
+
+class ISwapGate(eigen_gate.EigenGate,
+                gate_features.CompositeGate,
+                raw_types.InterchangeableQubitsGate,
+                gate_features.TextDiagrammableGate,
+                gate_features.TwoQubitGate):
+    """Swaps two qubits while phasing |01⟩ and |10⟩ (the swapped subspace) by i.
+
+    Equivalently, the ISWAP operation is the operation with this matrix form:
+
+        ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y))
+                 ≡ [1 0         0         0]
+                   [0 cos(πt)   i·sin(πt) 0]
+                   [0 i·sin(πt) cos(πt)   0]
+                   [0 0         0         1]
+    """
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, np.diag([1, 0, 0, 1])),
+            (+0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0, 0, 0]])),
+            (-0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, -0.5, 0],
+                             [0, -0.5, 0.5, 0],
+                             [0, 0, 0, 0]])),
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 4
+
+    def _with_exponent(self, exponent: Union[value.Symbol, float]
+                       ) -> 'ISwapGate':
+        return ISwapGate(exponent=exponent)
+
+    def default_decompose(self, qubits):
+        a, b = qubits
+
+        yield CNOT(a, b)
+        yield H(a)
+        yield CNOT(b, a)
+        yield S(a)**self.exponent
+        yield CNOT(b, a)
+        yield S(a)**-self.exponent
+        yield H(a)
+        yield CNOT(a, b)
+
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True,
+                                  precision=3):
+        return 'iSwap', 'iSwap'
+
+    def text_diagram_exponent(self):
+        return self.exponent
+
+    def __repr__(self):
+        if self.exponent == 1:
+            return 'ISWAP'
+        return 'ISWAP**{!r}'.format(self.exponent)
+
+
+ISWAP = ISwapGate()  # Swaps two qubits while phasing the swapped subspace by i.

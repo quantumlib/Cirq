@@ -620,8 +620,10 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
     exponent = text_diagram_gate.text_diagram_exponent()
     if exponent == 1:
         return None
+    if exponent == -1:
+        return '-1'
     if isinstance(exponent, float) and precision is not None:
-      return '{{:.{}}}'.format(precision).format(exponent)
+        return '{{:.{}}}'.format(precision).format(exponent)
     s = str(exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:
         return '({})'.format(exponent)
@@ -661,10 +663,10 @@ def _draw_moment_in_diagram(moment: Moment,
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
-        # Add an exponent to the first label.
+        # Add an exponent to the last label.
         exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
-            out_diagram.write(x, y1, '^' + exponent)
+            out_diagram.write(x, y2, '^' + exponent)
 
 
 def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
