@@ -56,7 +56,8 @@ def line_on_device(device: XmonDevice,
                 cirq.greedy.GreedySequenceSearchMethod.
 
     Returns:
-        Line sequences search results.
+        Tuple of qubit sequence and function that maps from LineQubit to
+        XmonQubit.
     """
     line = line_placement_on_device(device, length, method).get().line
     return line, lambda qubit: line[qubit.x - offset]
