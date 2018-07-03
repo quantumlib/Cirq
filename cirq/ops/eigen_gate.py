@@ -121,7 +121,7 @@ class EigenGate(gate_features.BoundedEffectGate,
 
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableGate,
-                             gate_features.ReversibleGate] and
+                             gate_features.ReversibleEffect] and
                 not self.is_parameterized()):
             return self
         if (desired_type in [gate_features.SelfInverseGate] and

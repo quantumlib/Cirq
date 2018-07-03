@@ -22,7 +22,7 @@ from cirq.extension import Extensions
 from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
-from cirq.ops import KnownMatrixGate, ReversibleGate
+from cirq.ops import KnownMatrixGate, ReversibleEffect
 from cirq.study import ParamResolver
 from cirq.value import Symbol
 
@@ -316,9 +316,9 @@ def test_w_to_proto():
 def test_w_potential_implementation():
     ex = Extensions()
     assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), KnownMatrixGate)
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), ReversibleGate)
+    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), ReversibleEffect)
     assert ex.can_cast(ExpWGate(), KnownMatrixGate)
-    assert ex.can_cast(ExpWGate(), ReversibleGate)
+    assert ex.can_cast(ExpWGate(), ReversibleEffect)
 
 
 def test_w_parameterize():

@@ -27,11 +27,11 @@ from cirq.ops import raw_types
 from cirq.study import ParamResolver
 
 
-class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class ReversibleEffect(metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way."""
 
     @abc.abstractmethod
-    def inverse(self) -> 'ReversibleGate':
+    def inverse(self) -> 'ReversibleEffect':
         """Returns a gate with an exactly opposite effect."""
 
 
@@ -39,7 +39,9 @@ TSelf_ExtrapolatableGate = TypeVar('TSelf_ExtrapolatableGate',
                                    bound='ExtrapolatableGate')
 
 
-class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
+class ExtrapolatableGate(raw_types.Gate,
+                         ReversibleEffect,
+                         metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
@@ -83,7 +85,7 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
         return self.extrapolate_effect(-1)
 
 
-class SelfInverseGate(ReversibleGate):
+class SelfInverseGate(ReversibleEffect):
     """A reversible gate that is its own inverse."""
 
     def inverse(self) -> 'SelfInverseGate':
