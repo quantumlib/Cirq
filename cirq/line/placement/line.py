@@ -18,9 +18,9 @@ from cirq.line.placement.place_method import LinePlacementMethod
 from cirq.line.placement.sequence import LinePlacement
 
 
-def place_on_device(device: XmonDevice,
-                    method: LinePlacementMethod =
-                            greedy.GreedySequenceSearchMethod()) -> \
+def line_placement_on_device(device: XmonDevice,
+                             method: LinePlacementMethod =
+                             greedy.GreedySequenceSearchMethod()) -> \
         LinePlacement:
     """Searches for linear sequence of qubits on device.
 
