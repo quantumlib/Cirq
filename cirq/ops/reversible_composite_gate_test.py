@@ -17,7 +17,7 @@ import pytest
 from cirq import ops
 
 
-class _FlipGate(ops.ReversibleGate):
+class _FlipGate(ops.Gate, ops.ReversibleEffect):
     def __init__(self, val):
         self.val = val
 

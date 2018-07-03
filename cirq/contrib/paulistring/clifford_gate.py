@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
+                    cast)
 
 from cirq import ops
 
@@ -23,7 +24,7 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
 class CliffordGate(ops.CompositeGate,
-                   ops.ReversibleGate,
+                   ops.ReversibleEffect,
                    ops.TextDiagrammableGate):
     """Any single qubit Clifford rotation."""
     I = None  # type: CliffordGate
@@ -45,32 +46,116 @@ class CliffordGate(ops.CompositeGate,
         self._inverse_map = _inverse_map
 
     @staticmethod
-    def from_xz_map(transforms_x_to: Tuple[Pauli, bool],
-                    transforms_z_to: Tuple[Pauli, bool]) -> 'CliffordGate':
+    def from_xz_map(x_to: Tuple[Pauli, bool],
+                    z_to: Tuple[Pauli, bool]) -> 'CliffordGate':
         """Returns a CliffordGate for the specified transforms.  The Y
         transform is derived from the X and Z.
 
         Args:
-            transforms_x_to: Which Pauli to transform X to and if it should
-                negate.
-            transforms_z_to: Which Pauli to transform Z to and if it should
-                negate.
+            x_to: Which Pauli to transform X to and if it should negate.
+            z_to: Which Pauli to transform Z to and if it should negate.
         """
-        rotates_x_to, flips_x = transforms_x_to
-        rotates_z_to, flips_z = transforms_z_to
-        if rotates_x_to == rotates_z_to:
-            raise ValueError('A rotation cannot map both X and Z to {!s}.'
-                             .format(rotates_x_to))
-        rotates_y_to = rotates_x_to.third(rotates_z_to)
-        flips_y = flips_x ^ flips_z ^ (rotates_x_to < rotates_z_to)
-        rotation_map = {Pauli.X: PauliTransform(rotates_x_to, flips_x),
-                        Pauli.Y: PauliTransform(rotates_y_to, flips_y),
-                        Pauli.Z: PauliTransform(rotates_z_to, flips_z)}
-        inverse_map = {rotates_x_to: PauliTransform(Pauli.X, flips_x),
-                       rotates_y_to: PauliTransform(Pauli.Y, flips_y),
-                       rotates_z_to: PauliTransform(Pauli.Z, flips_z)}
+        return CliffordGate.from_double_map(x_to=x_to, z_to=z_to)
+
+    @staticmethod
+    def from_single_map(pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]]
+                                      = None,
+                        *,
+                        x_to: Optional[Tuple[Pauli, bool]] = None,
+                        y_to: Optional[Tuple[Pauli, bool]] = None,
+                        z_to: Optional[Tuple[Pauli, bool]] = None
+                        ) -> 'CliffordGate':
+        """Returns a CliffordGate for the specified transform with a 90 or 180
+        degree rotation.
+
+        The arguments are exclusive, only one may be specified.
+
+        Args:
+            pauli_map_to: A dictionary with a single key value pair describing
+                the transform.
+            x_to: The transform from Pauli.X
+            y_to: The transform from Pauli.Y
+            z_to: The transform from Pauli.Z
+        """
+        rotation_map = CliffordGate._validate_map_input(
+                                        1,
+                                        pauli_map_to,
+                                        x_to=x_to, y_to=y_to, z_to=z_to)
+        (trans_from, (trans_to, flip)), = tuple(rotation_map.items())
+        if trans_from == trans_to:
+            trans_from2 = trans_to + 1  # Either +1 or +2 work
+            trans_to2 = trans_from + 1
+            flip2 = False
+        else:
+            trans_from2 = trans_to
+            trans_to2 = trans_from
+            flip2 = not flip
+        rotation_map[trans_from2] = PauliTransform(trans_to2, flip2)
+        return CliffordGate.from_double_map(
+                        cast(Dict[Pauli, Tuple[Pauli, bool]], rotation_map))
+
+    @staticmethod
+    def from_double_map(pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]]
+                                      = None,
+                        *,
+                        x_to: Optional[Tuple[Pauli, bool]] = None,
+                        y_to: Optional[Tuple[Pauli, bool]] = None,
+                        z_to: Optional[Tuple[Pauli, bool]] = None
+                        ) -> 'CliffordGate':
+        """Returns a CliffordGate for the specified transform with a 90 or 180
+        degree rotation.
+
+        Either pauli_map_to or two of (x_to, y_to, z_to) may be specified.
+
+        Args:
+            pauli_map_to: A dictionary with two key value pairs describing
+                two transforms.
+            x_to: The transform from Pauli.X
+            y_to: The transform from Pauli.Y
+            z_to: The transform from Pauli.Z
+        """
+        rotation_map = CliffordGate._validate_map_input(
+                                        2,
+                                        pauli_map_to,
+                                        x_to=x_to, y_to=y_to, z_to=z_to)
+        (from1, trans1), (from2, trans2) = tuple(rotation_map.items())
+        from3 = from1.third(from2)
+        to3 = trans1.to.third(trans2.to)
+        flip3 = (trans1.flip ^ trans2.flip
+                 ^ ((from1 < from2) != (trans1.to < trans2.to)))
+        rotation_map[from3] = PauliTransform(to3, flip3)
+        inverse_map = {to: PauliTransform(frm, flip)
+                       for frm, (to, flip) in rotation_map.items()}
         return CliffordGate(_rotation_map=rotation_map,
                             _inverse_map=inverse_map)
+
+    @staticmethod
+    def _validate_map_input(required_transform_count: int,
+                            pauli_map_to: Optional[Dict[Pauli,
+                                                        Tuple[Pauli, bool]]],
+                            x_to: Optional[Tuple[Pauli, bool]],
+                            y_to: Optional[Tuple[Pauli, bool]],
+                            z_to: Optional[Tuple[Pauli, bool]]
+                            ) -> Dict[Pauli, PauliTransform]:
+        if pauli_map_to is None:
+            pauli_map_to = {p: trans
+                            for p, trans in zip(Pauli.XYZ, (x_to, y_to, z_to))
+                            if trans is not None}
+        elif x_to is not None or y_to is not None or z_to is not None:
+            raise ValueError('{} can take either pauli_map_to or a combination'
+                             ' of x_to, y_to, and z_to but both were given')
+        if len(pauli_map_to) != required_transform_count:
+            raise ValueError('Method takes {} transform{} but {} {} given'
+                             .format(
+                                required_transform_count,
+                                '' if required_transform_count == 1 else 's',
+                                len(pauli_map_to),
+                                'was' if len(pauli_map_to) == 1 else 'were'))
+        if (len(set((to for to, _ in pauli_map_to.values())))
+            != len(pauli_map_to)):
+            raise ValueError('A rotation cannot map two Paulis to the same')
+        return {frm: PauliTransform(to, flip)
+                for frm, (to, flip) in pauli_map_to.items()}
 
     def transform(self, pauli: Pauli) -> PauliTransform:
         return self._rotation_map[pauli]
