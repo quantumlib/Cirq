@@ -70,14 +70,14 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
 
     def _cast_sub_gate(self, desired_type: Type[T_DESIRED]) -> T_DESIRED:
         ext = self.default_extensions or extension.Extensions()
-        cast_sub_gate = ext.try_cast(self.sub_gate, desired_type)
+        cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
         if cast_sub_gate is None:
             raise TypeError('sub_gate is not a {}', desired_type)
         return cast_sub_gate
 
     def try_cast_to(self, desired_type, ext):
         if desired_type in POTENTIALLY_EXPOSED_SUB_TYPES:
-            cast_sub_gate = ext.try_cast(self.sub_gate, desired_type)
+            cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
             if cast_sub_gate is None:
                 return None
             return ControlledGate(cast_sub_gate, ext)

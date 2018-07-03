@@ -28,10 +28,10 @@ from cirq.contrib.quirk.quirk_gate import (
 def _try_convert_to_quirk_gate(gate: ops.Gate,
                                prefer_unknown_gate_to_failure: bool
                                ) -> QuirkGate:
-    quirk_gate = quirk_gate_ext.try_cast(gate, QuirkGate)
+    quirk_gate = quirk_gate_ext.try_cast(QuirkGate, gate)
     if quirk_gate is not None:
         return quirk_gate
-    known_matrix_gate = quirk_gate_ext.try_cast(gate, ops.KnownMatrixGate)
+    known_matrix_gate = quirk_gate_ext.try_cast(ops.KnownMatrixGate, gate)
     if known_matrix_gate is not None:
         raw = single_qubit_matrix_gate(known_matrix_gate)
         if raw is not None:

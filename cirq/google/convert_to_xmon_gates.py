@@ -63,12 +63,12 @@ class ConvertToXmonGates(PointOptimizer):
             return op
 
         # Maybe we know how to wrap it?
-        xmon = self.extensions.try_cast(op.gate, XmonGate)
+        xmon = self.extensions.try_cast(XmonGate, op.gate)
         if xmon is not None:
             return xmon.on(*op.qubits)
 
         # Known matrix?
-        mat = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
+        mat = self.extensions.try_cast(ops.KnownMatrixGate, op.gate)
         if mat is not None and len(op.qubits) == 1:
             gates = single_qubit_matrix_to_native_gates(mat.matrix())
             return [g.on(op.qubits[0]) for g in gates]
@@ -80,7 +80,7 @@ class ConvertToXmonGates(PointOptimizer):
                 allow_partial_czs=True)
 
         # Provides a decomposition?
-        composite = self.extensions.try_cast(op.gate, ops.CompositeGate)
+        composite = self.extensions.try_cast(ops.CompositeGate, op.gate)
         if composite is not None:
             return composite.default_decompose(op.qubits)
 

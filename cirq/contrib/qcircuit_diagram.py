@@ -96,10 +96,10 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 def _wrap_operation(op: ops.Operation,
                     ext: extension.Extensions) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    new_gate = ext.try_cast(op.gate, QCircuitDiagrammableGate)
+    new_gate = ext.try_cast(QCircuitDiagrammableGate, op.gate)
     if new_gate is None:
-        new_gate = fallback_qcircuit_extensions.cast(op.gate,
-                                                     QCircuitDiagrammableGate)
+        new_gate = fallback_qcircuit_extensions.cast(QCircuitDiagrammableGate,
+                                                     op.gate)
     return ops.Operation(_QCircuitGate(new_gate), new_qubits)
 
 
