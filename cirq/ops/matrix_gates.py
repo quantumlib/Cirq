@@ -28,7 +28,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
                             gate_features.PhaseableGate,
-                            gate_features.ExtrapolatableGate,
+                            gate_features.ExtrapolatableEffect,
                             gate_features.BoundedEffectGate):
     """A 1-qubit gate defined by its matrix.
 
@@ -105,7 +105,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
 
 class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
                          gate_features.PhaseableGate,
-                         gate_features.ExtrapolatableGate):
+                         gate_features.ExtrapolatableEffect):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like CZGate, but more expensive and
