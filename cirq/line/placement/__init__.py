@@ -11,3 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from cirq.line.placement.anneal import (
+    AnnealSequenceSearchMethod,
+)
+from cirq.line.placement.greedy import (
+    GreedySequenceSearchMethod,
+)
+from cirq.line.placement.line import (
+    line_placement_on_device,
+)
+from cirq.line.placement.place_method import (
+    LinePlacementMethod,
+)
+from cirq.line.placement.sequence import (
+    LinePlacement,
+    LineSequence
+)
