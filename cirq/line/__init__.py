@@ -21,5 +21,6 @@ from cirq.line.placement import (
     LinePlacement,
     LinePlacementMethod,
     LineSequence,
+    line_on_device,
     line_placement_on_device,
 )

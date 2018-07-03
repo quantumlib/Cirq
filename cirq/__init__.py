@@ -85,6 +85,7 @@ from cirq.line import (
     LinePlacementMethod,
     LineQubit,
     LineSequence,
+    line_on_device,
     line_placement_on_device
 )
 

@@ -19,6 +19,7 @@ from cirq.line.placement.greedy import (
     GreedySequenceSearchMethod,
 )
 from cirq.line.placement.line import (
+    line_on_device,
     line_placement_on_device,
 )
 from cirq.line.placement.place_method import (
