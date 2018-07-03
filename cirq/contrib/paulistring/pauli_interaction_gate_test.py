@@ -121,9 +121,9 @@ def test_text_diagrams():
         PauliInteractionGate(Pauli.Y, True,  Pauli.Z, True )(q0, q1),
         PauliInteractionGate(Pauli.Z, True,  Pauli.Y, True )(q0, q1))
     assert circuit.to_text_diagram().strip() == """
-q0: ───X───[-X]───X──────[-X]───X───Y───@───[-Y]───[-@]───
+q0: ───X───(-X)───X──────(-X)───X───Y───@───(-Y)───(-@)───
        │   │      │      │      │   │   │   │      │
-q1: ───X───X──────[-X]───[-X]───Y───@───Y───[-@]───[-Y]───
+q1: ───X───X──────(-X)───(-X)───Y───@───Y───(-@)───(-Y)───
     """.strip()
 
 @pytest.mark.parametrize('gate,gate_repr', (

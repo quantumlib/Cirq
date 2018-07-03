@@ -94,14 +94,10 @@ class PauliInteractionGate(ops.EigenGate,
                                     half_turns=exponent)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        def yield_components():
-            for q0_index, q1_index in ((0, 0), (0, 1), (1, 0), (1, 1)):
-                q0_comp = pauli_eigen_map[self.pauli0][q0_index ^ self.invert0]
-                q1_comp = pauli_eigen_map[self.pauli1][q1_index ^ self.invert1]
-                component = np.kron(q0_comp, q1_comp)
-                phase = 1 if q0_index and q1_index else 0
-                yield (phase, component)
-        return list(yield_components())
+        comp1 = np.kron(pauli_eigen_map[self.pauli0][not self.invert0],
+                        pauli_eigen_map[self.pauli1][not self.invert1])
+        comp0 = np.eye(4) - comp1
+        return [(0, comp0), (1, comp1)]
 
     def default_decompose(self, qubits: Sequence[ops.QubitId]
                           ) -> ops.op_tree.OP_TREE:
@@ -127,7 +123,7 @@ class PauliInteractionGate(ops.EigenGate,
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
-        l0, l1 = ('[-{}]'.format(l) if inv else l
+        l0, l1 = ('(-{})'.format(l) if inv else l
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
         return l0, l1
 
