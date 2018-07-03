@@ -23,27 +23,19 @@ can be applied to qubits to produce an ``Operation``. We then
 use marker classes for ``Gates`` indicated what additional
 features a ``Gate`` has.  
 
-For example, one feature is ``ReversibleGate``.  A ``Gate``
-that implements this method is required to implement
-the method ``inverse`` which returns the inverse gate.
-Algorithms that then operate on gates can use 
-``isinstance(gate, ReversibleGate)`` to determine whether
-this gate implements this method, and use this method
-in the algorithm. Note that sometimes you have been provided
-a ``Gate`` that does not implement a feature that you care
-about.  For this case we use the notion of an ``Extension``,
-see below.  
+For example, one feature is ``ReversibleEffect``.
+A ``Gate`` that inherits this class is required to implement the method ``inverse`` which returns the inverse gate.
+Algorithms that operate on gates can use ``isinstance(gate, ReversibleEffect)`` to determine whether gates implements ``inverse`` method, and then use it.
+(Note that, even if the gate is not reversible, the algorithm may have been given an ``Extension`` with a cast from the gate to ``ReversibleEffect``.
+See the [extensions documentation](docs/extensions.md) for more information.)
 
 We describe some gate features below.
 
-#### ReversibleGate, SelfInverseGate
+#### ReversibleEffect, SelfInverseGate
 
-As described above a ``ReversibleGate`` implements th
-``inverse`` method which returns a ``Gate`` that is the
-inverse of the given ``Gate``.  ``SelfInverseGate`` is
-a ``Gate`` for which the ``inverse`` is simply the ``Gate``
-itself (so the feature ``SelfInverseGate`` doesn't need
-to implement ``inverse``, it already just returns ``self``.)
+As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gatethat is the inverse of the receiving gate).
+``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
+(so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
 
 #### ExtrapolatableGate
 
