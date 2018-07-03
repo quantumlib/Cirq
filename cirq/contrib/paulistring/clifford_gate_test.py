@@ -48,7 +48,11 @@ def _assert_no_collision(gate) -> None:
     assert trans_z.to != trans_x.to, 'Collision'
 
 
-def _all_rotations_xz():
+def _all_rotations():
+    for pauli, flip, in itertools.product(Pauli.XYZ, _bools):
+        yield PauliTransform(pauli, flip)
+
+def _all_rotation_pairs():
     for px, flip_x, pz, flip_z in itertools.product(Pauli.XYZ, _bools,
                                                     Pauli.XYZ, _bools):
         if px == pz:
@@ -56,7 +60,7 @@ def _all_rotations_xz():
         yield PauliTransform(px, flip_x), PauliTransform(pz, flip_z)
 
 def _all_clifford_gates():
-    for trans_x, trans_z in _all_rotations_xz():
+    for trans_x, trans_z in _all_rotation_pairs():
         yield CliffordGate.from_xz_map(trans_x, trans_z)
 
 
@@ -66,18 +70,143 @@ def test_init_value_error(pauli, flip_x, flip_z):
     with pytest.raises(ValueError):
         CliffordGate.from_xz_map((pauli, flip_x), (pauli, flip_z))
 
-@pytest.mark.parametrize('trans_x,trans_z', _all_rotations_xz())
-def test_init_success(trans_x, trans_z):
+@pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
+def test_init_from_xz(trans_x, trans_z):
     gate = CliffordGate.from_xz_map(trans_x, trans_z)
     assert gate.transform(Pauli.X) == trans_x
     assert gate.transform(Pauli.Z) == trans_z
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
 
+@pytest.mark.parametrize('trans1,trans2,from1',
+    ((trans1, trans2, from1)
+     for trans1, trans2, from1 in itertools.product(_all_rotations(),
+                                                    _all_rotations(),
+                                                    Pauli.XYZ)
+     if trans1.to != trans2.to))
+def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
+    from2 = from1 + 1
+    from1_str, from2_str = (str(frm).lower()+'_to' for frm in (from1, from2))
+    gate_kw = CliffordGate.from_double_map(**{from1_str: trans1,
+                                              from2_str: trans2})
+    gate_map = CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    # Test initializes the same gate
+    assert gate_kw == gate_map
+
+@pytest.mark.parametrize('trans1,trans2,from1',
+    ((trans1, trans2, from1)
+     for trans1, trans2, from1 in itertools.product(_all_rotations(),
+                                                    _all_rotations(),
+                                                    Pauli.XYZ)
+     if trans1.to == trans2.to))
+def test_init_from_double_invalid(trans1, trans2, from1):
+    from2 = from1 + 1
+    # Test throws on invalid arguments
+    with pytest.raises(ValueError):
+        CliffordGate.from_double_map({from1: trans1, from2: trans2})
+
+@pytest.mark.parametrize('trans1,trans2,from1',
+    ((trans1, trans2, from1)
+     for trans1, trans2, from1 in itertools.product(_all_rotations(),
+                                                    _all_rotations(),
+                                                    Pauli.XYZ)
+     if trans1.to != trans2.to))
+def test_init_from_double(trans1, trans2, from1):
+    from2 = from1 + 1
+    gate = CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    # Test initializes what was expected
+    assert gate.transform(from1) == trans1
+    assert gate.transform(from2) == trans2
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
+
+@pytest.mark.parametrize('trans,frm',
+    itertools.product(_all_rotations(),
+                      Pauli.XYZ))
+def test_init_from_single_map_vs_kwargs(trans, frm):
+    from_str = str(frm).lower()+'_to'
+    # pylint: disable=unexpected-keyword-arg
+    gate_kw = CliffordGate.from_single_map(**{from_str: trans})
+    gate_map = CliffordGate.from_single_map({frm: trans})
+    assert gate_kw == gate_map
+
+@pytest.mark.parametrize('trans,frm',
+    ((trans, frm)
+     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     if trans.to != frm))
+def test_init_90rot_from_single(trans, frm):
+    gate = CliffordGate.from_single_map({frm: trans})
+    assert gate.transform(frm) == trans
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
+    # Check that it decomposes to one gate
+    assert len(gate.decompose_rotation()) == 1
+    # Check that this is a 90 degree rotation gate
+    assert (gate.merged_with(gate).merged_with(gate).merged_with(gate)
+            == CliffordGate.I)
+    # Check that flipping the transform produces the inverse rotation
+    trans_rev = PauliTransform(trans.to, not trans.flip)
+    gate_rev = CliffordGate.from_single_map({frm: trans_rev})
+    assert gate.inverse() == gate_rev
+
+@pytest.mark.parametrize('trans,frm',
+    ((trans, frm)
+     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     if trans.to == frm and trans.flip))
+def test_init_180rot_from_single(trans, frm):
+    gate = CliffordGate.from_single_map({frm: trans})
+    assert gate.transform(frm) == trans
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
+    # Check that it decomposes to one gate
+    assert len(gate.decompose_rotation()) == 1
+    # Check that this is a 180 degree rotation gate
+    assert gate.merged_with(gate) == CliffordGate.I
+
+@pytest.mark.parametrize('trans,frm',
+    ((trans, frm)
+     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     if trans.to == frm and not trans.flip))
+def test_init_ident_from_single(trans, frm):
+    gate = CliffordGate.from_single_map({frm: trans})
+    assert gate.transform(frm) == trans
+    _assert_not_mirror(gate)
+    _assert_no_collision(gate)
+    # Check that it decomposes to zero gates
+    assert len(gate.decompose_rotation()) == 0
+    # Check that this is an identity gate
+    assert gate == CliffordGate.I
+
+def test_init_invalid():
+    with pytest.raises(ValueError):
+        CliffordGate.from_single_map()
+    with pytest.raises(ValueError):
+        CliffordGate.from_single_map({})
+    with pytest.raises(ValueError):
+        CliffordGate.from_single_map({Pauli.X: (Pauli.X, False)},
+                                     y_to=(Pauli.Y, False))
+    with pytest.raises(ValueError):
+        CliffordGate.from_single_map({Pauli.X: (Pauli.X, False),
+                                      Pauli.Y: (Pauli.Y, False)})
+    with pytest.raises(ValueError):
+        CliffordGate.from_double_map()
+    with pytest.raises(ValueError):
+        CliffordGate.from_double_map({})
+    with pytest.raises(ValueError):
+        CliffordGate.from_double_map({Pauli.X: (Pauli.X, False)})
+    with pytest.raises(ValueError):
+        CliffordGate.from_double_map(x_to=(Pauli.X, False))
+    with pytest.raises(ValueError):
+        CliffordGate.from_single_map({Pauli.X: (Pauli.Y, False),
+                                      Pauli.Y: (Pauli.Z, False),
+                                      Pauli.Z: (Pauli.X, False)})
+    with pytest.raises(ValueError):
+        CliffordGate.from_single_map({Pauli.X: (Pauli.X, False),
+                                      Pauli.Y: (Pauli.X, False)})
+
 def test_eq_ne_and_hash():
     eq = EqualsTester()
-    eq.add_equality_group(Pauli.X)
-    for trans_x, trans_z in _all_rotations_xz():
+    for trans_x, trans_z in _all_rotation_pairs():
         gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
         eq.make_equality_pair(gate_gen)
 
