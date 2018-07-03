@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Creates and simulates a circuit equivalent to a Bell inequality test.
+"""
+Creates and simulates a circuit for Quantum Fourier Transform(QFT) on a 4 qubit system.
 
+In this example we demonstrate Fourier Transform on (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector  
+To do the same, we prepare the input state of the qubit's as |0000>.
 === EXAMPLE OUTPUT ===
 
 Circuit:
@@ -21,13 +24,16 @@ Circuit:
                │       │                │         │                │       │
 (0, 1): ───────Z───────×───@^0.25───×───Z─────────×───@^0.25───×───Z───────×───────
                            │        │                 │        │
-(1, 0): ───────────────────Z────────×───@^0.125───×───Z────────×───────────────────
-                                        │         │
-(1, 1): ────────────────────────────────Z─────────×────────────────────────────────
+(1, 0): ───────────────────┼────────┼───Z^0.125───×───┼────────┼───────────────────
+                           │        │   │         │   │        │
+(1, 1): ───────────────────Z────────×───@─────────×───Z────────×───────────────────
 
 FinalState
 [0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j
  0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
+ 
+ 
+
 """
 
 import cirq
@@ -59,7 +65,7 @@ def _cz_and_swap(q0, q1, rot):
 def generate_2x2_grid_qft_circuit():
     # Define a 2*2 square grid of qubits.
 
-    a,b,c,d = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0, 1), cirq.google.XmonQubit(1, 0), cirq.google.XmonQubit(1, 1)]
+    a,b,c,d = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0, 1), cirq.google.XmonQubit(1, 1), cirq.google.XmonQubit(1, 0)]
 
     circuit = cirq.Circuit.from_ops(
         cirq.H(a),
