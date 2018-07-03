@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from cirq.google import XmonDevice, XmonQubit
+from cirq.line import LineQubit
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
 from cirq.line.placement.place import (
@@ -25,30 +26,32 @@ from cirq.value import Duration
 def test_anneal_method_calls_anneal_search():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
-    q03 = XmonQubit(0, 3)
+    q02 = XmonQubit(0, 2)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
-                        Duration(nanos=0), qubits=[q00, q01, q03])
+                        Duration(nanos=0), qubits=[q00, q01, q02])
+    qubits = LineQubit.range(2)
     method = anneal.AnnealSequenceSearchMethod
 
     with mock.patch.object(method, 'place_line') as place_line:
         sequences = [[q00, q01]]
         place_line.return_value = sequences
 
-        assert place_on_device(device, method) == sequences
-        place_line.assert_called_once_with(device)
+        assert place_on_device(device, qubits, method) == sequences
+        place_line.assert_called_once_with(device, qubits)
 
 
 def test_greedy_method_calls_greedy_search():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
-    q03 = XmonQubit(0, 3)
+    q02 = XmonQubit(0, 2)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
-                        Duration(nanos=0), qubits=[q00, q01, q03])
+                        Duration(nanos=0), qubits=[q00, q01, q02])
+    qubits = LineQubit.range(2)
     method = greedy.GreedySequenceSearchMethod()
 
     with mock.patch.object(method, 'place_line') as place_line:
         sequences = [[q00, q01]]
         place_line.return_value = sequences
 
-        assert place_on_device(device, method) == sequences
-        place_line.assert_called_once_with(device)
+        assert place_on_device(device, qubits, method) == sequences
+        place_line.assert_called_once_with(device, qubits)

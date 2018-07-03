@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from typing import List
 from cirq import abc
 from cirq.google import XmonDevice
+from cirq.line import LineQubit
 from cirq.line.placement.sequence import LinePlacement
 
 
@@ -26,11 +27,14 @@ class LinePlacementMethod(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self,
+                   device: XmonDevice,
+                   qubits: List[LineQubit]) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            qubits: List of qubits to find the placement for.
 
         Returns:
             Linear sequences found on the chip.

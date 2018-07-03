@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List
 from cirq.google import XmonDevice
+from cirq.line import LineQubit
 from cirq.line.placement import greedy
 from cirq.line.placement.place_method import LinePlacementMethod
 from cirq.line.placement.sequence import LinePlacement
 
 
 def place_on_device(device: XmonDevice,
+                    qubits: List[LineQubit],
                     method: LinePlacementMethod =
                             greedy.GreedySequenceSearchMethod()) -> \
         LinePlacement:
@@ -26,10 +29,11 @@ def place_on_device(device: XmonDevice,
 
     Args:
         device: Google Xmon device instance.
+        qubits: List of qubits to find the placement for.
         method: Line placement method. Defaults to
                 cirq.greedy.GreedySequenceSearchMethod.
 
     Returns:
         Line sequences search results.
     """
-    return method.place_line(device)
+    return method.place_line(device, qubits)
