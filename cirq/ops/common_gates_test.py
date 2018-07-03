@@ -32,17 +32,6 @@ def test_cz_init():
     assert ops.Rot11Gate(half_turns=5).half_turns == 1
 
 
-def test_cz_eq():
-    eq = EqualsTester()
-    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
-    eq.add_equality_group(ops.Rot11Gate(half_turns=3.5),
-                          ops.Rot11Gate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('a')))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=Symbol('b')))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.Rot11Gate(half_turns=0.5))
-
-
 def test_cz_str():
     assert str(ops.Rot11Gate()) == 'CZ'
     assert str(ops.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
@@ -92,13 +81,28 @@ def test_z_init():
     assert z.half_turns == 1
 
 
-def test_z_eq():
+def test_rot_gates_eq():
     eq = EqualsTester()
+    gates = [
+        ops.RotXGate,
+        ops.RotYGate,
+        ops.RotZGate,
+        ops.CNotGate,
+        ops.Rot11Gate
+    ]
+    for gate in gates:
+        eq.add_equality_group(gate(half_turns=3.5),
+                              gate(half_turns=-0.5),
+                              gate(rads=-np.pi/2),
+                              gate(degs=-90))
+        eq.make_equality_pair(lambda: gate(half_turns=0))
+        eq.make_equality_pair(lambda: gate(half_turns=0.5))
+
+    eq.add_equality_group(ops.RotXGate(), ops.RotXGate(half_turns=1), ops.X)
+    eq.add_equality_group(ops.RotYGate(), ops.RotYGate(half_turns=1), ops.Y)
     eq.add_equality_group(ops.RotZGate(), ops.RotZGate(half_turns=1), ops.Z)
-    eq.add_equality_group(ops.RotZGate(half_turns=3.5),
-                          ops.RotZGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0))
-    eq.make_equality_pair(lambda: ops.RotZGate(half_turns=0.5))
+    eq.add_equality_group(ops.CNotGate(), ops.CNotGate(half_turns=1), ops.CNOT)
+    eq.add_equality_group(ops.Rot11Gate(), ops.Rot11Gate(half_turns=1), ops.CZ)
 
 
 def test_z_extrapolate():
@@ -153,8 +157,7 @@ def test_runtime_types_of_rot_gates():
         p = gate_type(half_turns=Symbol('a'))
         assert p.try_cast_to(ops.KnownMatrixGate, ext) is None
         assert p.try_cast_to(ops.ExtrapolatableGate, ext) is None
-        assert p.try_cast_to(ops.ReversibleGate, ext) is None
-        assert p.try_cast_to(ops.SelfInverseGate, ext) is None
+        assert p.try_cast_to(ops.ReversibleEffect, ext) is None
         assert p.try_cast_to(ops.BoundedEffectGate, ext) is p
         with pytest.raises(ValueError):
             _ = p.matrix()
@@ -166,14 +169,11 @@ def test_runtime_types_of_rot_gates():
         c = gate_type(half_turns=0.5)
         assert c.try_cast_to(ops.KnownMatrixGate, ext) is c
         assert c.try_cast_to(ops.ExtrapolatableGate, ext) is c
-        assert c.try_cast_to(ops.ReversibleGate, ext) is c
+        assert c.try_cast_to(ops.ReversibleEffect, ext) is c
         assert c.try_cast_to(ops.BoundedEffectGate, ext) is c
         assert c.matrix() is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
-
-        c = gate_type(half_turns=1)
-        assert c.try_cast_to(ops.SelfInverseGate, ext) is c
 
 
 def test_measurement_eq():
@@ -218,7 +218,7 @@ def test_text_diagrams():
     assert circuit.to_text_diagram().strip() == """
 a: ───×───X───Y───Z───@───@───X───H───
       │               │   │   │
-b: ───×───────────────Z───X───@───────
+b: ───×───────────────@───X───@───────
     """.strip()
 
 
@@ -248,6 +248,26 @@ def test_cnot_decomposes_despite_symbol():
     assert ops.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
 
 
+def test_swap_power():
+    np.testing.assert_almost_equal(
+        (ops.SWAP**0.5).matrix(),
+        np.array([
+            [1, 0, 0, 0],
+            [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+            [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+            [0, 0, 0, 1]
+        ]))
+
+    # Matrix must be consistent with decomposition.
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    g = ops.SWAP**0.25
+    cirq.testing.assert_allclose_up_to_global_phase(
+        g.matrix(),
+        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
+        atol=1e-8)
+
+
 def test_repr():
     assert repr(cirq.X) == 'X'
     assert repr(cirq.X**0.5) == 'X**0.5'
@@ -260,6 +280,9 @@ def test_repr():
 
     assert repr(cirq.CNOT) == 'CNOT'
     assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+    assert repr(cirq.SWAP) == 'SWAP'
+    assert repr(cirq.SWAP ** 0.5) == 'SWAP**0.5'
 
 
 def test_str():

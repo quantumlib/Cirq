@@ -24,19 +24,19 @@ from dev_tools import shell_tools, github_repository
 class PreparedEnv:
     """Details of a local environment that has been prepared for use."""
     def __init__(self,
-                 repository: Optional[github_repository.GithubRepository],
-                 actual_commit_id: str,
+                 github_repo: Optional[github_repository.GithubRepository],
+                 actual_commit_id: Optional[str],
                  compare_commit_id: str,
                  destination_directory: Optional[str],
                  virtual_env_path: Optional[str]) -> None:
         """Initializes a description of a prepared (or desired) environment.
 
         Args:
-            repository: The github repository that the local environment
+            github_repo: The github repository that the local environment
                 corresponds to. Use None if the actual_commit_id corresponds
                 to a commit that isn't actually on github.
             actual_commit_id: Identifies the commit that has been checked out
-                for testing purposes.
+                for testing purposes. Use None for 'local uncommitted changes'.
             compare_commit_id: Identifies a commit that the actual commit can
                 be compared against, e.g. when diffing for incremental checks.
             destination_directory: The location where the environment has been
@@ -46,7 +46,7 @@ class PreparedEnv:
                 that has been prepared for use when testing. If the virtual
                 environment is not prepared yet, this should be None.
         """
-        self.repository = repository
+        self.repository = github_repo
         self.actual_commit_id = actual_commit_id
         self.compare_commit_id = compare_commit_id
         if self.compare_commit_id == self.actual_commit_id:

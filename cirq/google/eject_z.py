@@ -16,11 +16,14 @@
 
 from typing import Iterator, Tuple, cast
 
-from cirq import ops
+from cirq import ops, extension
 from cirq.circuits import Circuit, InsertStrategy, OptimizationPass
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
 from cirq.value import Symbol
+
+
+KNOWN_Z_TYPES = (ExpZGate, ops.RotZGate)
 
 
 class EjectZ(OptimizationPass):
@@ -37,8 +40,19 @@ class EjectZ(OptimizationPass):
     - The end of the circuit, which absorbs phase into a new Z gate.
     """
 
-    def __init__(self, tolerance=0):
+    def __init__(self,
+                 tolerance: float = 0.0,
+                 ext: extension.Extensions=None) -> None:
+        """
+        Args:
+            tolerance: Maximum absolute error tolerance. The optimization is
+                 permitted to simply drop negligible combinations of Z gates,
+                 with a threshold determined by this tolerance.
+            ext: Extensions object used for determining if gates are phaseable
+                (i.e. if Z gates can pass through them).
+        """
         self.tolerance = tolerance
+        self.ext = ext or extension.Extensions()
 
     def optimize_circuit(self, circuit: Circuit):
         qubits = {
@@ -50,21 +64,21 @@ class EjectZ(OptimizationPass):
                                                                      qubit):
                 self._optimize_range(circuit, qubit, start, drain)
 
-    @staticmethod
     def _find_optimization_range_drains(
+            self,
             circuit: Circuit,
             qubit: ops.QubitId) -> Iterator[Tuple[int, int]]:
         """Finds ranges where Z gates can be pushed rightward.
 
-    Args:
-      circuit: The circuit being optimized.
-      qubit: The qubit along which Z operations are being merged.
+        Args:
+            circuit: The circuit being optimized.
+            qubit: The qubit along which Z operations are being merged.
 
-    Yields:
-      (start, drain) tuples. Z gates on the given qubit from moments with
-      indices in the range [start, drain) should all be merged into whatever is
-      at the drain index.
-    """
+        Yields:
+            (start, drain) tuples. Z gates on the given qubit from moments with
+            indices in the range [start, drain) should all be merged into
+            whatever is at the drain index.
+        """
         start_z = None
         prev_z = None
 
@@ -75,23 +89,23 @@ class EjectZ(OptimizationPass):
 
             if start_z is None:
                 # Unparameterized Zs start optimization ranges.
-                if (isinstance(op.gate, ExpZGate) and
+                if (isinstance(op.gate, KNOWN_Z_TYPES) and
                         not isinstance(op.gate.half_turns,
                                        Symbol)):
                     start_z = i
                     prev_z = None
 
-            elif isinstance(op.gate, ops.MeasurementGate):
+            elif self.ext.can_cast(op.gate, ops.MeasurementGate):
                 # Measurement acts like a drain. It destroys phase information.
                 yield start_z, i
                 start_z = None
 
-            elif (isinstance(op.gate, ExpZGate) and
+            elif (isinstance(op.gate, KNOWN_Z_TYPES) and
                   not isinstance(op.gate.half_turns, Symbol)):
                 # Could be a drain. Depends if an unphaseable gate follows.
                 prev_z = i
 
-            elif not isinstance(op.gate, ops.PhaseableGate):
+            elif not self.ext.can_cast(op.gate, ops.PhaseableGate):
                 # Unphaseable gates force earlier draining.
                 if prev_z is not None:
                     yield start_z, prev_z
@@ -126,17 +140,18 @@ class EjectZ(OptimizationPass):
                 # Empty.
                 pass
 
-            elif isinstance(op.gate, ExpZGate):
+            elif isinstance(op.gate, KNOWN_Z_TYPES):
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
                 lost_phase_turns += cast(float, op.gate.half_turns) / 2
 
-            elif isinstance(op.gate, ops.PhaseableGate):
+            elif self.ext.can_cast(op.gate, ops.PhaseableGate):
                 # Adjust phaseable gates to account for the lost phase.
+                phaseable = self.ext.cast(op.gate, ops.PhaseableGate)
                 k = op.qubits.index(qubit)
                 circuit.clear_operations_touching(op.qubits, [i])
                 circuit.insert(i + 1,
-                               op.gate.phase_by(-lost_phase_turns, k).on(
+                               phaseable.phase_by(-lost_phase_turns, k).on(
                                    *op.qubits),
                                InsertStrategy.INLINE)
 

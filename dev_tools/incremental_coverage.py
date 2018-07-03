@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Tuple, List, cast, Set
+from typing import Dict, Tuple, List, cast, Set, Optional
 
 import os.path
 import re
@@ -108,7 +108,7 @@ def fix_line_from_coverage_file(line):
 
 def get_incremental_uncovered_lines(abs_path: str,
                                     base_commit: str,
-                                    actual_commit: str
+                                    actual_commit: Optional[str]
                                     ) -> List[Tuple[int, str, str]]:
     """
     Uses git diff and the annotation files created by
@@ -118,7 +118,7 @@ def get_incremental_uncovered_lines(abs_path: str,
     Args:
         abs_path: The path of a file to look for uncovered lines in.
         base_commit: Old state to diff against.
-        actual_commit: Current state.
+        actual_commit: Current state. Use None to use local uncommitted files.
 
     Returns:
         A list of the indices, content, and reason-for-including of
@@ -135,6 +135,7 @@ def get_incremental_uncovered_lines(abs_path: str,
         '--unified=0',
         base_commit,
         actual_commit,
+        '--',
         abs_path)
     unified_diff_lines = [e
                           for e in unified_diff_lines_str.split('\n')

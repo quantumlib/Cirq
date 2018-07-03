@@ -17,7 +17,7 @@
 import os
 import sys
 
-from dev_tools import shell_tools, all_checks, prepared_env
+from dev_tools import all_checks, prepared_env
 
 
 def main():
@@ -29,27 +29,30 @@ def main():
         all_checks.incremental_coverage,
     ]
 
-    env = prepared_env.PreparedEnv(None, 'HEAD', 'master', os.getcwd(), None)
-    results = []
+    env = prepared_env.PreparedEnv(
+        github_repo=None,
+        actual_commit_id=None,  # local uncommitted files
+        compare_commit_id='master',
+        destination_directory=os.getcwd(),
+        virtual_env_path=None)
+    check_results = []
+    failures = set()
     for c in checks:
         print()
-        print(shell_tools.highlight('Running ' + c.command_line_switch(),
-                                    shell_tools.GREEN))
-        result = c.context(), c.perform_check(env, verbose=verbose)
-        print(shell_tools.highlight(
-            'Finished ' + c.command_line_switch(),
-            shell_tools.GREEN if result[1][0] else shell_tools.RED))
-        if verbose:
-            print(result)
+        result = c.run(env, verbose, failures)
+
+        # Record results.
+        check_results.append(result)
+        if not result.success:
+            failures.add(c)
         print()
-        results.append(result)
 
     print()
     print("ALL CHECK RESULTS")
-    for result in results:
+    for result in check_results:
         print(result)
 
-    if any(not e[1][0] for e in results):
+    if any(not e.success for e in check_results):
         sys.exit(1)
 
 

@@ -32,22 +32,86 @@ def test_can_run_readme_code_snippets():
     readme_path = os.path.join(
         os.path.dirname(__file__),  # Start at this file's directory.
         '..', 'docs',  # Hacky check that we're under docs/.
-        '..', 'README.md')     # Get the readme one level up.
+        '..', 'README.rst')     # Get the readme one level up.
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
 
-def test_can_run_docs_code_snippets():
+def find_docs_code_snippets_paths():
     docs_folder = os.path.dirname(__file__)
     for filename in os.listdir(docs_folder):
-        if not filename.endswith('.md'):
+        if not filename.endswith('.md') and not filename.endswith('.rst'):
             continue
-        path = os.path.join(docs_folder, filename)
-        try:
-            assert_file_has_working_code_snippets(path, assume_import=True)
-        except:
-            print('DOCS FILE:\n\t{}'.format(filename))
-            raise
+        yield os.path.join(docs_folder, filename)
+
+
+@pytest.mark.parametrize('path', find_docs_code_snippets_paths())
+def test_can_run_docs_code_snippets(path):
+    assert_file_has_working_code_snippets(path, assume_import=True)
+
+
+def find_markdown_code_snippets(content: str) -> List[str]:
+    return re.findall("\n```python(.*?)\n```\n",
+                      content,
+                      re.MULTILINE | re.DOTALL)
+
+
+def deindent_snippet(snippet: str) -> str:
+    deindented_lines = []
+    indentation_amount = None
+
+    for line in snippet.split('\n'):
+        # The first non-empty line determines the indentation level.
+        if indentation_amount is None and re.match('\s*\S', line):
+            leading_whitespace = re.match('\s*', line)
+            if leading_whitespace:
+                indentation_amount = len(leading_whitespace.group(0))
+
+        if line:
+            deindented_lines.append(line[indentation_amount:])
+        else:
+            deindented_lines.append(line)
+    return '\n'.join(deindented_lines)
+
+
+def find_rst_code_snippets(content: str) -> List[str]:
+    snippets = re.findall(
+        r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)',
+        content,
+        re.MULTILINE | re.DOTALL)
+    return [deindent_snippet(snippet) for snippet in snippets]
+
+
+def test_find_rst_code_snippets():
+    snippets = find_rst_code_snippets("""
+A 3 by 3 grid of qubits using
+
+.. code-block:: python
+
+    print("hello world")
+
+The next level up.
+
+.. code-block:: python
+    :emphasize-lines: 3,5
+
+    print("hello 1")
+
+    for i in range(10):
+        print(f"hello {i}")
+
+More text.
+
+.. code-block:: python
+
+    print("last line")
+""")
+
+    assert snippets == [
+        'print("hello world")\n',
+        'print("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n',
+        'print("last line")\n',
+    ]
 
 
 def assert_file_has_working_code_snippets(path: str, assume_import: bool):
@@ -57,9 +121,10 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
         content = f.read()
 
     # Find snippets of code, and execute them. They should finish.
-    snippets = re.findall("\n```python(.*?)\n```\n",
-                          content,
-                          re.MULTILINE | re.DOTALL)
+    if path.endswith('.md'):
+        snippets = find_markdown_code_snippets(content)
+    else:
+        snippets = find_rst_code_snippets(content)
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
@@ -177,8 +242,32 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict):
         assert_code_snippet_fails(after, state, expected_failure)
 
 
+def naive_convert_snippet_code_to_python_2(snippet):
+    """Snippets should run in both python 3 and python 2, with few exceptions.
+
+    For the exceptions, this method smooths things over.
+
+    Args:
+        snippet: The python 3 code snippet.
+
+    Returns:
+        A python 2 version of the snippet.
+    """
+    # For stylistic effect, it is often useful to put "..." in the snippets to
+    # indicate "other code". In python 3 this works, because three-dots is a
+    # literal. In python 2 this literal is instead called Ellipsis.
+    # coverage: ignore
+    return snippet.replace('...', 'Ellipsis')
+
+
 def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
     """Executes a snippet and compares captured output to annotated output."""
+
+    is_python_3 = sys.version_info[0] >= 3
+    if not is_python_3:
+        # coverage: ignore
+        snippet = naive_convert_snippet_code_to_python_2(snippet)
+
     output_lines = []  # type: List[str]
     expected_outputs = find_expected_outputs(snippet)
 
@@ -190,7 +279,7 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
         exec(snippet, state)
 
         # Can't re-assign print in python 2.
-        if sys.version_info[0] >= 3:
+        if is_python_3:
             assert_expected_lines_present_in_order(expected_outputs,
                                                    output_lines)
     except:

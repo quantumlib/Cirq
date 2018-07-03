@@ -19,7 +19,7 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Dict, FrozenSet, Generator, Iterable, Iterator
+from typing import Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator
 from typing import Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
@@ -44,6 +44,7 @@ class Circuit(object):
         prev_moment_operating_on
         operation_on
         qubits
+        findall_operations
         to_unitary_matrix
         to_text_diagram
         to_text_diagram_drawer
@@ -276,6 +277,32 @@ class Circuit(object):
                 return op
         return None
 
+    def findall_operations(self, predicate: Callable[[ops.Operation], bool]):
+        """Find the locations of all operations that satisfy a given condition.
+
+        This returns an iterator of (index, operation) tuples where each
+        operation satisfies op_cond(operation) is truthy. The indices are
+        in order of the moments and then order of the ops within that moment.
+
+        Args:
+            predicate: A method that takes an Operation and returns a Truthy
+                value indicating the operation meets the find condition.
+
+        Returns:
+            An iterator (index, operation)'s that satisfy the op_condition.
+        """
+        for index, moment in enumerate(self.moments):
+            for op in moment.operations:
+                if predicate(op):
+                    yield index, op
+
+    def are_all_measurements_terminal(self):
+        is_meas_gate = lambda op: isinstance(op.gate, ops.MeasurementGate)
+        return all(
+            self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
+            in self.findall_operations(is_meas_gate))
+
+
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
             strategy: InsertStrategy) -> int:
@@ -466,6 +493,8 @@ class Circuit(object):
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
         matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
+        if not self.are_all_measurements_terminal():
+            raise TypeError('Circuit contains a non-terminal measurement')
         return _operations_to_unitary_matrix(matrix_ops,
                                              qubit_map,
                                              ignore_terminal_measurements,
@@ -493,6 +522,7 @@ class Circuit(object):
         """
         diagram = self.to_text_diagram_drawer(
             ext=ext,
+            use_unicode_characters=use_unicode_characters,
             qubit_name_suffix='' if transpose else ': ',
             precision=precision,
             qubit_order=qubit_order)
@@ -509,14 +539,17 @@ class Circuit(object):
     def to_text_diagram_drawer(
             self,
             ext: Extensions = None,
+            use_unicode_characters: bool = True,
             qubit_name_suffix: str = '',
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
             ext: For extending gates to implement TextDiagrammableGate.
+            use_unicode_characters: Determines if unicode characters are
+                allowed (as opposed to ascii-only diagrams).
             qubit_name_suffix: Appended to qubit names in the diagram.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
@@ -536,7 +569,12 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, precision)
+            _draw_moment_in_diagram(moment,
+                                    ext,
+                                    use_unicode_characters,
+                                    qubit_map,
+                                    diagram,
+                                    precision)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -547,13 +585,15 @@ class Circuit(object):
 
 def _get_operation_text_diagram_symbols(op: ops.Operation,
                                         ext: Extensions,
+                                        use_unicode_characters: bool,
                                         precision: Optional[int]
                                         ) -> Iterable[str]:
     text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
     if text_diagram_gate is not None:
         wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
-            precision=precision,
-            qubit_count=len(op.qubits))
+            qubit_count=len(op.qubits),
+            use_unicode_characters=use_unicode_characters,
+            precision=precision)
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
@@ -590,6 +630,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
+                            use_unicode_characters: bool,
                             qubit_map: Dict[QubitId, int],
                             out_diagram: TextDiagramDrawer,
                             precision: Optional[int]):
@@ -613,7 +654,10 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        symbols = _get_operation_text_diagram_symbols(op, ext, precision)
+        symbols = _get_operation_text_diagram_symbols(op,
+                                                      ext,
+                                                      use_unicode_characters,
+                                                      precision)
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
@@ -659,30 +703,16 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
                                   qubit_map: Dict[QubitId, int],
                                   ignore_terminal_measurements: bool,
                                   ext: Extensions) -> np.ndarray:
+    # Precondition is that circuit has only terminal measurements.
     total = np.eye(1 << len(qubit_map))
-    measured_qubits = set()  # type: Set[QubitId]
     for op in iter_ops:
         meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
         if meas_gate is not None:
             if not ignore_terminal_measurements:
                 raise TypeError(
-                    'Measurement operation not supported: {!r}'.format(op))
-            measured_qubits.update(op.qubits)
-            continue
-        # Check if any of the op's qubits have been measured
-        measured_and_used = set(op.qubits) & measured_qubits
-        if measured_and_used:
-            if len(measured_and_used) == 1:
-                qubit = next(iter(measured_and_used))
-                raise TypeError(
-                    ('Non-terminal measurement on qubit {!r}. '
-                     + 'Was followed by {!r}')
-                    .format(qubit, op))
-            else:
-                raise TypeError(
-                    ('Non-terminal measurement on qubits {!r}. '
-                     + 'Was followed by {!r}')
-                    .format(tuple(measured_and_used), op))
+                    'Terminal measurement operation but not ignoring these '
+                    'measurements: {!r}'.format(op))
+            continue  # coverage: ignore
         mat = _operation_to_unitary_matrix(op, qubit_map, ext)
         total = np.matmul(mat, total)
     return total

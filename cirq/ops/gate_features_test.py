@@ -14,17 +14,18 @@
 
 import pytest
 
+import cirq
 from cirq.ops import gate_features, raw_types
 
 
 def test_reversible_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ReversibleGate()
+        _ = gate_features.ReversibleEffect()
 
 
 def test_reversible_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ReversibleGate):
+    class Missing(gate_features.ReversibleEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -32,11 +33,11 @@ def test_reversible_gate_is_abstract_must_implement():
 
 
 def test_reversible_gate_is_abstract_can_implement():
-    class Included(gate_features.ReversibleGate):
+    class Included(gate_features.ReversibleEffect):
         def inverse(self):
             pass
 
-    assert isinstance(Included(), gate_features.ReversibleGate)
+    assert isinstance(Included(), gate_features.ReversibleEffect)
 
 
 def test_known_matrix_gate_is_abstract_cant_instantiate():
@@ -133,16 +134,6 @@ def test_composite_gate_from_gate_tuples():
             == composite.default_decompose([q1, q2]))
 
 
-def test_self_inverse_is_not_abstract():
-    assert isinstance(gate_features.SelfInverseGate(),
-                      gate_features.ReversibleGate)
-
-
-def test_self_inverse_reverse():
-    r = gate_features.SelfInverseGate()
-    assert r.inverse() is r
-
-
 def test_single_qubit_gate_validate_args():
     class Dummy(gate_features.SingleQubitGate):
         def matrix(self):
@@ -200,6 +191,25 @@ def test_two_qubit_gate_validate_wrong_number():
         g.validate_args([q1])
     with pytest.raises(ValueError):
         g.validate_args([q1, q2, q3])
+
+
+def test_three_qubit_gate_validate():
+    class Dummy(gate_features.ThreeQubitGate):
+        def matrix(self):
+            pass
+
+    g = Dummy()
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    g.validate_args([a, b, c])
+    with pytest.raises(ValueError):
+        g.validate_args([])
+    with pytest.raises(ValueError):
+        g.validate_args([a])
+    with pytest.raises(ValueError):
+        g.validate_args([a, b])
+    with pytest.raises(ValueError):
+        g.validate_args([a, b, c, d])
 
 
 def test_parameterizable_gate_is_abstract_cant_instantiate():

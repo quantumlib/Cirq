@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import cast
 
+import os
 import re
 import sys
 
@@ -29,18 +30,24 @@ class TestAndPrepareCoverageCheck(check.Check):
         return 'pytest'
 
     def context(self):
-        return 'pytest by maintainer'
+        return 'pytest'
 
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         do_coverage = True
         base_path = cast(str, env.destination_directory)
+        rc_path = os.path.join(base_path,
+                               'continuous-integration',
+                               '.coveragerc')
         target_path = base_path
         result = shell_tools.run_cmd(
             env.bin('pytest'),
             target_path,
             None if verbose else '--quiet',
-            '--cov' if do_coverage else '',
-            '--cov-report=annotate' if do_coverage else '',
+            *([
+                  '--cov',
+                  '--cov-report=annotate',
+                  '--cov-config={}'.format(rc_path)
+              ] if do_coverage else []),
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,
             log_run_to_stderr=verbose)
