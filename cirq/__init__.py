@@ -79,7 +79,13 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    LineQubit
+    AnnealSequenceSearchMethod,
+    GreedySequenceSearchMethod,
+    LinePlacement,
+    LinePlacementMethod,
+    LineQubit,
+    LineSequence,
+    line_placement_on_device
 )
 
 from cirq.ops import (
