@@ -157,6 +157,7 @@ def derive_temporary_python2_environment(
                         conversion_script_path,
                         destination_directory,
                         input_directory,
+                        python3_environment.virtual_env_path,
                         out=sys.stderr)
     os.chdir(destination_directory)
 
