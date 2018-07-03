@@ -107,14 +107,8 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
 
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableGate,
-                             gate_features.ReversibleEffect] and
-                not self.is_parameterized()):
-            return self
-        if (desired_type in [gate_features.SelfInverseGate] and
-                not self.is_parameterized() and
-                self.half_turns % 1 == 0):
-            return self
-        if (desired_type is gate_features.KnownMatrixGate and
+                             gate_features.ReversibleEffect,
+                             gate_features.KnownMatrixGate] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
