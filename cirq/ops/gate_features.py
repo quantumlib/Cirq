@@ -85,13 +85,6 @@ class ExtrapolatableGate(raw_types.Gate,
         return self.extrapolate_effect(-1)
 
 
-class SelfInverseGate(ReversibleEffect):
-    """A reversible gate that is its own inverse."""
-
-    def inverse(self) -> 'SelfInverseGate':
-        return self
-
-
 class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate with a known decomposition into multiple simpler gates."""
 

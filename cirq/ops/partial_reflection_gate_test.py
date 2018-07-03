@@ -65,13 +65,13 @@ def test_partial_reflection_gate_inverse():
 
 def test_partial_reflection_as_self_inverse():
     ex = cirq.Extensions()
+
     h0 = DummyGate(half_turns=0)
     h1 = DummyGate(half_turns=1)
-
-    assert ex.try_cast(cirq.SelfInverseGate, h1) is h1
-    assert ex.try_cast(cirq.SelfInverseGate, h0) is h0
-    assert ex.try_cast(cirq.SelfInverseGate, DummyGate(half_turns=0.5)) is None
-    assert ex.try_cast(cirq.SelfInverseGate, DummyGate(half_turns=-0.5)) is None
+    ha = DummyGate(half_turns=cirq.Symbol('a'))
+    assert ex.try_cast(cirq.ReversibleEffect, h0) is h0
+    assert ex.try_cast(cirq.ReversibleEffect, h1) is h1
+    assert ex.try_cast(cirq.ReversibleEffect, ha) is None
 
 
 def test_partial_reflection_gate_str():

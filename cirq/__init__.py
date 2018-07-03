@@ -124,7 +124,6 @@ from cirq.ops import (
     RotYGate,
     RotZGate,
     S,
-    SelfInverseGate,
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,
