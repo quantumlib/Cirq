@@ -141,3 +141,18 @@ bash continous-integration/check.sh
 
 You can run a subset of the checks using the ```--only``` flag.
 This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
+
+## Troubleshooting
+
+### Syncing with upstream branch.
+
+Symptoms:
+
+```git fetch upstream``` prompts for username / password.
+
+Solution:
+
+- Open ```.git/config``` file.
+- Locate [remote "upstream"] section.
+- Verify that url there is written in the following form:
+```url = ssh://git@github.com/quantumlib/cirq.git```
