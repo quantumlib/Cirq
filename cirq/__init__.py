@@ -112,7 +112,7 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleGate,
+    ReversibleEffect,
     ParameterizableGate,
     PhaseableGate,
     QubitId,
