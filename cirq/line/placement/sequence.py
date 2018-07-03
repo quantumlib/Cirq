@@ -56,21 +56,26 @@ class LinePlacement:
         return hash(tuple(self.lines))
 
     def get(self):
+        """Retrieves the preferred line placement.
+
+        Returns:
+             The preferred, best line placement found.
+
+        Raises:
+            NotFoundError: When no line satisfying requirements was found.
+        """
         best = self.longest()
         if len(best.line) < self.length:
             raise NotFoundError('No line placement with desired length found')
         return best
 
     def longest(self) -> Optional[LineSequence]:
-        """Gives the position of a longest sequence.
-
-        Args:
-            sequences: List of node sequences.
+        """Gives the longest sequence found.
 
         Returns:
-            Index of the longest sequence from the sequences list. If more than one
-            longest sequence exist, the first one is returned. None is returned for
-            empty list.
+            The longest sequence found. If more than one longest sequence
+            exist, the first one is returned. None is returned if there are no
+            sequences found.
         """
         if self.lines:
             return max(self.lines, key=lambda sequence: len(sequence.line))
