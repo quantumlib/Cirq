@@ -23,8 +23,7 @@ class Timestamp:
 
     Supports affine operations against Duration."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  picos: Union[int, float] = 0,
                  nanos: Union[int, float] = 0) -> None:
         """Initializes a Timestamp with a time specified in ns and/or ps.
@@ -36,8 +35,6 @@ class Timestamp:
             picos: How many picoseconds away from time zero?
             nanos: How many nanoseconds away from time zero?
         """
-
-        assert not positional_args
 
         if picos and nanos:
             self._picos = picos + nanos * 1000
