@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from cirq.line.placement.sequence import (
     LinePlacement,
     LineSequence,
@@ -20,8 +22,6 @@ from cirq.line.placement.sequence import (
 from cirq.google import XmonQubit
 from cirq.testing import EqualsTester
 from cirq.testing.mock import mock
-
-import pytest
 
 
 def test_line_sequence_eq():

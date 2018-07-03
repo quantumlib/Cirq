@@ -316,4 +316,5 @@ class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
             if sequence is None or len(sequence) < len(candidate):
                 sequence = candidate
 
-        return LinePlacement(length, [LineSequence(sequence)] if sequence else [])
+        return LinePlacement(length,
+                             [LineSequence(sequence)] if sequence else [])
