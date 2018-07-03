@@ -124,11 +124,6 @@ class EigenGate(gate_features.BoundedEffectGate,
                              gate_features.ReversibleEffect] and
                 not self.is_parameterized()):
             return self
-        if (desired_type in [gate_features.SelfInverseGate] and
-                not self.is_parameterized() and
-                all(angle * self._exponent % 1 == 0
-                    for angle, _ in self._eigen_components())):
-            return self
         if (desired_type is gate_features.KnownMatrixGate and
                 not self.is_parameterized()):
             return self
