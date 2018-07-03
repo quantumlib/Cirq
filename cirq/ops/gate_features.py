@@ -21,7 +21,7 @@ from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar
 
 import numpy as np
 
-from cirq import abc
+from cirq import abc, value
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 from cirq.study import ParamResolver
@@ -158,7 +158,7 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate which can be nicely represented in a text diagram."""
 
     # noinspection PyMethodMayBeStatic
-    def text_diagram_exponent(self) -> float:
+    def text_diagram_exponent(self) -> Union[float, value.Symbol]:
         """The exponent to modify the gate symbol with. 1 means no modifier."""
         return 1
 
