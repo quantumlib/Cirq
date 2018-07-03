@@ -354,7 +354,7 @@ T = Z**0.25
 
 class HGate(gate_features.TextDiagrammableGate,
             gate_features.CompositeGate,
-            gate_features.SelfInverseGate,
+            gate_features.ReversibleEffect,
             gate_features.KnownMatrixGate,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
@@ -369,6 +369,9 @@ class HGate(gate_features.TextDiagrammableGate,
         q = qubits[0]
         yield Y(q)**0.5
         yield X(q)
+
+    def inverse(self):
+        return self
 
     def matrix(self):
         """See base class."""

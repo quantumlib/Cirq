@@ -134,16 +134,6 @@ def test_composite_gate_from_gate_tuples():
             == composite.default_decompose([q1, q2]))
 
 
-def test_self_inverse_is_not_abstract():
-    assert isinstance(gate_features.SelfInverseGate(),
-                      gate_features.ReversibleEffect)
-
-
-def test_self_inverse_reverse():
-    r = gate_features.SelfInverseGate()
-    assert r.inverse() is r
-
-
 def test_single_qubit_gate_validate_args():
     class Dummy(gate_features.SingleQubitGate):
         def matrix(self):

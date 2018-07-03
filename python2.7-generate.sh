@@ -21,11 +21,28 @@
 # output directory defaults to "python2.7-output" in the current working
 # directory.
 
+# Takes three optional arguments:
+#     1. Output directory. Defaults to 'python2.7-output'. Fails if the
+#         directory already exists.
+#     2. Input directory. Defaults to the current directory.
+#     3. Path to the virtual environment to use (for 3to2). Defaults to the
+#         current environment (or none). (This argument is used by scripts that
+#         create test environments.)
+#
+# Example usage:
+#    bash python2.7-generate.sh /tmp/converted-code ./ ~/virtual-envs/cirq3
+
 set -e
 
 out_dir=${1:-"$(pwd)/python2.7-output"}
 in_dir=${2:-$(pwd)}
+venv_dir=${3:-""}
 
+if [ -z "${venv_dir}" ]; then
+  three_to_two_path="3to2"
+else
+  three_to_two_path="${venv_dir}/bin/3to2"
+fi
 if [ -z "${in_dir}" ]; then
   echo -e "\e[31mNo input directory given.\e[0m"
   exit 1
@@ -48,7 +65,7 @@ trap print_cached_err ERR
 cp -r "${in_dir}/cirq" "${out_dir}/cirq"
 cp -r "${in_dir}/docs" "${out_dir}/docs"
 cp -r "${in_dir}/examples" "${out_dir}/examples"
-3to2 "${out_dir}" -w >/dev/null 2> "${out_dir}/err_tmp.log"
+"${three_to_two_path}" "${out_dir}" -w >/dev/null 2> "${out_dir}/err_tmp.log"
 find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 
 # Build protobufs.
