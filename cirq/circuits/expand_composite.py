@@ -57,5 +57,6 @@ class ExpandComposite(PointOptimizer):
         composite_gate = self.extension.try_cast(ops.CompositeGate, op.gate)
         if composite_gate is None:
             return op
-        return (self._decompose(op) for op in
-               composite_gate.default_decompose(op.qubits))
+        op_iter = ops.flatten_op_tree(
+                        composite_gate.default_decompose(op.qubits))
+        return (self._decompose(op) for op in op_iter)

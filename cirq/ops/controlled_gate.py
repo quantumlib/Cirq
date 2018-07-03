@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type
+from typing import Optional, TypeVar, Type, cast
 
 import numpy as np
 
 from cirq import linalg, extension
-from cirq.ops import gate_features
-from cirq.ops import raw_types
+from cirq.ops import raw_types, gate_features
 
 T_DESIRED = TypeVar('T_DESIRED')
 
@@ -27,7 +26,7 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.ExtrapolatableGate,
     gate_features.KnownMatrixGate,
     gate_features.ParameterizableGate,
-    gate_features.ReversibleGate,
+    gate_features.ReversibleEffect,
     gate_features.TextDiagrammableGate,
 )
 
@@ -98,8 +97,9 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleGate)
-        return ControlledGate(cast_sub_gate.inverse(), self.default_extensions)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleEffect)
+        return ControlledGate(cast(raw_types.Gate, cast_sub_gate.inverse()),
+                              self.default_extensions)
 
     def is_parameterized(self) -> bool:
         cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableGate)

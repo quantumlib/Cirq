@@ -21,7 +21,7 @@ from cirq.api.google.v1 import operations_pb2
 from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
-from cirq.ops import KnownMatrixGate, ReversibleGate
+from cirq.ops import KnownMatrixGate, ReversibleEffect
 from cirq.study import ParamResolver
 from cirq.value import Symbol
 
@@ -313,9 +313,9 @@ def test_w_to_proto():
 
 def test_w_potential_implementation():
     assert not cirq.can_cast(KnownMatrixGate, ExpWGate(half_turns=Symbol('a')))
-    assert not cirq.can_cast(ReversibleGate, ExpWGate(half_turns=Symbol('a')))
+    assert not cirq.can_cast(ReversibleEffect, ExpWGate(half_turns=Symbol('a')))
     assert cirq.can_cast(KnownMatrixGate, ExpWGate())
-    assert cirq.can_cast(ReversibleGate, ExpWGate())
+    assert cirq.can_cast(ReversibleEffect, ExpWGate())
 
 
 def test_w_parameterize():

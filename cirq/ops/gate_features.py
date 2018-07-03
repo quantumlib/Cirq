@@ -21,17 +21,17 @@ from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar
 
 import numpy as np
 
-from cirq import abc
+from cirq import abc, value
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 from cirq.study import ParamResolver
 
 
-class ReversibleGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class ReversibleEffect(metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way."""
 
     @abc.abstractmethod
-    def inverse(self) -> 'ReversibleGate':
+    def inverse(self) -> 'ReversibleEffect':
         """Returns a gate with an exactly opposite effect."""
 
 
@@ -39,7 +39,9 @@ TSelf_ExtrapolatableGate = TypeVar('TSelf_ExtrapolatableGate',
                                    bound='ExtrapolatableGate')
 
 
-class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
+class ExtrapolatableGate(raw_types.Gate,
+                         ReversibleEffect,
+                         metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
@@ -83,7 +85,7 @@ class ExtrapolatableGate(ReversibleGate, metaclass=abc.ABCMeta):
         return self.extrapolate_effect(-1)
 
 
-class SelfInverseGate(ReversibleGate):
+class SelfInverseGate(ReversibleEffect):
     """A reversible gate that is its own inverse."""
 
     def inverse(self) -> 'SelfInverseGate':
@@ -156,7 +158,7 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate which can be nicely represented in a text diagram."""
 
     # noinspection PyMethodMayBeStatic
-    def text_diagram_exponent(self) -> float:
+    def text_diagram_exponent(self) -> Union[float, value.Symbol]:
         """The exponent to modify the gate symbol with. 1 means no modifier."""
         return 1
 

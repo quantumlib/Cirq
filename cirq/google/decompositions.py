@@ -341,14 +341,15 @@ def _parity_interaction(q0: ops.QubitId,
                         q1: ops.QubitId,
                         rads: float,
                         tolerance: float,
-                        op: Optional[ops.ReversibleGate] = None):
+                        gate: Optional[ops.ReversibleEffect] = None):
     """Yields a ZZ interaction framed by the given operation."""
     if abs(rads) < tolerance:
         return
 
     h = rads * -2 / np.pi
-    if op is not None:
-        yield op.on(q0), op.on(q1)
+    if gate is not None:
+        g = cast(ops.Gate, gate)
+        yield g.on(q0), g.on(q1)
 
     # If rads is ±pi/4 radians within tolerance, single full-CZ suffices.
     if _is_trivial_angle(rads, tolerance):
@@ -358,8 +359,9 @@ def _parity_interaction(q0: ops.QubitId,
 
     yield ops.Z(q0)**h
     yield ops.Z(q1)**h
-    if op is not None:
-        yield op.inverse().on(q0), op.inverse().on(q1)
+    if gate is not None:
+        g = cast(ops.Gate, gate.inverse())
+        yield g.on(q0), g.on(q1)
 
 
 def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float=1e-8):
@@ -380,9 +382,9 @@ def _non_local_part(q0: ops.QubitId,
         all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):
         return [
             _parity_interaction(q0, q1, x, tolerance,
-                                cast(ops.ReversibleGate, ops.Y**-0.5)),
+                                cast(ops.ReversibleEffect, ops.Y**-0.5)),
             _parity_interaction(q0, q1, y, tolerance,
-                                cast(ops.ReversibleGate, ops.X**0.5)),
+                                cast(ops.ReversibleEffect, ops.X**0.5)),
             _parity_interaction(q0, q1, z, tolerance)
         ]
 
