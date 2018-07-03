@@ -156,9 +156,8 @@ def test_runtime_types_of_rot_gates():
 
         p = gate_type(half_turns=Symbol('a'))
         assert p.try_cast_to(ops.KnownMatrixGate, ext) is None
-        assert p.try_cast_to(ops.ExtrapolatableGate, ext) is None
-        assert p.try_cast_to(ops.ReversibleGate, ext) is None
-        assert p.try_cast_to(ops.SelfInverseGate, ext) is None
+        assert p.try_cast_to(ops.ExtrapolatableEffect, ext) is None
+        assert p.try_cast_to(ops.ReversibleEffect, ext) is None
         assert p.try_cast_to(ops.BoundedEffectGate, ext) is p
         with pytest.raises(ValueError):
             _ = p.matrix()
@@ -169,15 +168,12 @@ def test_runtime_types_of_rot_gates():
 
         c = gate_type(half_turns=0.5)
         assert c.try_cast_to(ops.KnownMatrixGate, ext) is c
-        assert c.try_cast_to(ops.ExtrapolatableGate, ext) is c
-        assert c.try_cast_to(ops.ReversibleGate, ext) is c
+        assert c.try_cast_to(ops.ExtrapolatableEffect, ext) is c
+        assert c.try_cast_to(ops.ReversibleEffect, ext) is c
         assert c.try_cast_to(ops.BoundedEffectGate, ext) is c
         assert c.matrix() is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
-
-        c = gate_type(half_turns=1)
-        assert c.try_cast_to(ops.SelfInverseGate, ext) is c
 
 
 def test_measurement_eq():

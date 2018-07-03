@@ -23,42 +23,30 @@ can be applied to qubits to produce an ``Operation``. We then
 use marker classes for ``Gates`` indicated what additional
 features a ``Gate`` has.  
 
-For example, one feature is ``ReversibleGate``.  A ``Gate``
-that implements this method is required to implement
-the method ``inverse`` which returns the inverse gate.
-Algorithms that then operate on gates can use 
-``isinstance(gate, ReversibleGate)`` to determine whether
-this gate implements this method, and use this method
-in the algorithm. Note that sometimes you have been provided
-a ``Gate`` that does not implement a feature that you care
-about.  For this case we use the notion of an ``Extension``,
-see below.  
+For example, one feature is ``ReversibleEffect``.
+A ``Gate`` that inherits this class is required to implement the method ``inverse`` which returns the inverse gate.
+Algorithms that operate on gates can use ``isinstance(gate, ReversibleEffect)`` to determine whether gates implements ``inverse`` method, and then use it.
+(Note that, even if the gate is not reversible, the algorithm may have been given an ``Extension`` with a cast from the gate to ``ReversibleEffect``.
+See the [extensions documentation](docs/extensions.md) for more information.)
 
 We describe some gate features below.
 
-#### ReversibleGate, SelfInverseGate
+#### ReversibleEffect, SelfInverseGate
 
-As described above a ``ReversibleGate`` implements th
-``inverse`` method which returns a ``Gate`` that is the
-inverse of the given ``Gate``.  ``SelfInverseGate`` is
-a ``Gate`` for which the ``inverse`` is simply the ``Gate``
-itself (so the feature ``SelfInverseGate`` doesn't need
-to implement ``inverse``, it already just returns ``self``.)
+As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gatethat is the inverse of the receiving gate).
+``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
+(so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
 
-#### ExtrapolatableGate
+#### ExtrapolatableEffect
 
-This is a gate which can be scaled *continuously* up 
-or down.  These gates must implement the ``extrapolate_effect``
-method which takes a single parameter ``factor`` which 
-is a float. This factor is simply the amount to scale
-the gate by. Roughly one can think about this as applying the
-``Gate`` ``factor`` times.  Of course there is some 
-sublty in this definion, since ``factor`` is a float, and,
-for example, there are often two ways to define the square
-root of a gate.  It is up to the implementation to 
-define how this works.
+Represents an effect which can be scaled continuously up or down, or negated.
+Implementing gates and operations implement the ``extrapolate_effect`` method, which takes a single float parameter ``factor``.
+This factor is the amount to scale the gate by.
+Roughly, one can think about this as applying the effect ``factor`` times.
+There is some  subtlety in this definition since, for example, there are often two ways to define the square root of a gate.
+It is up to the implementation to define which root is chosen.
 
-The primary use of ``ExtrapolatableGate`` is to allow
+The primary use of ``ExtrapolatableEffect`` is to allow
 easy *powering* of gates.  That is one can define
 for these gates a power
 ```python
@@ -76,9 +64,8 @@ print(sqrt_x.matrix())
 #  [0.5-0.5j 0.5+0.5j]]
 ```
 
-Note that it is often the case that ``(g**a)**b != g**(a * b)``,
-since gates that have rotation angles often normalize these 
-angles.
+The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
+Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the intermediate values normalizing rotation angles into a canonical range.
 
 #### KnownMatrixGate
 

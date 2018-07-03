@@ -47,8 +47,11 @@ from cirq.devices import (
 )
 
 from cirq.extension import (
+    can_cast,
+    cast,
     Extensions,
-    PotentialImplementation
+    PotentialImplementation,
+    try_cast,
 )
 
 from cirq.linalg import (
@@ -93,7 +96,7 @@ from cirq.ops import (
     CSWAP,
     CZ,
     EigenGate,
-    ExtrapolatableGate,
+    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
@@ -112,7 +115,7 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleGate,
+    ReversibleEffect,
     ParameterizableGate,
     PhaseableGate,
     QubitId,
@@ -121,7 +124,6 @@ from cirq.ops import (
     RotYGate,
     RotZGate,
     S,
-    SelfInverseGate,
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,

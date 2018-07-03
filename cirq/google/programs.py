@@ -37,7 +37,7 @@ def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        gate = xmon_gate_ext.cast(so.operation.gate, xmon_gates.XmonGate)
+        gate = xmon_gate_ext.cast(xmon_gates.XmonGate, so.operation.gate)
         op = gate.to_proto(*so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
