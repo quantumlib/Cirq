@@ -86,7 +86,7 @@ class MergeInteractions(PointOptimizer):
         """
         q1, q2 = qubits
 
-        known = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
+        known = self.extensions.try_cast(ops.KnownMatrixGate, op.gate)
         if known is None:
             return None
         m = known.matrix()

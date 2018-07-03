@@ -47,8 +47,11 @@ from cirq.devices import (
 )
 
 from cirq.extension import (
+    can_cast,
+    cast,
     Extensions,
-    PotentialImplementation
+    PotentialImplementation,
+    try_cast,
 )
 
 from cirq.linalg import (
