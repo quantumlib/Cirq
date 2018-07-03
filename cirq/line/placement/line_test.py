@@ -75,8 +75,10 @@ def test_line_on_device_calls_line_placement_on_device(
     sequence = LineSequence([q00, q01])
     placement = LinePlacement(0, [sequence])
     line_placement_on_device.return_value = placement
+
     assert line.line_on_device(device, length, offset, method)[
                0] == sequence.line
+
     line_placement_on_device.assert_called_once_with(device, length, method)
 
 
@@ -90,7 +92,9 @@ def test_line_on_device_creates_mapping(line_placement_on_device):
     sequence = LineSequence([q00, q01])
     placement = LinePlacement(0, [sequence])
     line_placement_on_device.return_value = placement
+
     _, mapping = line.line_on_device(device, length)
+
     qubits = LineQubit.range(2)
     assert mapping(qubits[0]) == q00
     assert mapping(qubits[1]) == q01
@@ -107,7 +111,9 @@ def test_line_on_device_creates_mapping_with_offset(line_placement_on_device):
     sequence = LineSequence([q00, q01])
     placement = LinePlacement(0, [sequence])
     line_placement_on_device.return_value = placement
+
     _, mapping = line.line_on_device(device, length, offset)
+
     qubits = LineQubit.range(1, 3)
     assert mapping(qubits[0]) == q00
     assert mapping(qubits[1]) == q01
