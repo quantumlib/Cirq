@@ -20,12 +20,12 @@ from cirq.ops import gate_features, raw_types
 
 def test_reversible_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ReversibleGate()
+        _ = gate_features.ReversibleEffect()
 
 
 def test_reversible_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ReversibleGate):
+    class Missing(gate_features.ReversibleEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -33,11 +33,11 @@ def test_reversible_gate_is_abstract_must_implement():
 
 
 def test_reversible_gate_is_abstract_can_implement():
-    class Included(gate_features.ReversibleGate):
+    class Included(gate_features.ReversibleEffect):
         def inverse(self):
             pass
 
-    assert isinstance(Included(), gate_features.ReversibleGate)
+    assert isinstance(Included(), gate_features.ReversibleEffect)
 
 
 def test_known_matrix_gate_is_abstract_cant_instantiate():
@@ -136,7 +136,7 @@ def test_composite_gate_from_gate_tuples():
 
 def test_self_inverse_is_not_abstract():
     assert isinstance(gate_features.SelfInverseGate(),
-                      gate_features.ReversibleGate)
+                      gate_features.ReversibleEffect)
 
 
 def test_self_inverse_reverse():
