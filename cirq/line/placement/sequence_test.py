@@ -51,6 +51,14 @@ def test_line_placement_get_calls_longest():
         longest.assert_called_once_with()
 
 
+def test_line_placement_get_raises_for_none():
+    placement = LinePlacement(1, [])
+    with mock.patch.object(placement, 'longest') as longest:
+        longest.return_value = None
+        with pytest.raises(NotFoundError):
+            placement.get()
+
+
 def test_line_placement_get_raises_for_too_short():
     seq = LineSequence([])
     placement = LinePlacement(1, [seq])

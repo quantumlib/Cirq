@@ -65,6 +65,8 @@ class LinePlacement:
             NotFoundError: When no line satisfying requirements was found.
         """
         best = self.longest()
+        if best is None:
+            raise NotFoundError('No line placement found')
         if len(best.line) < self.length:
             raise NotFoundError('No line placement with desired length found')
         return best
