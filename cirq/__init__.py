@@ -93,7 +93,7 @@ from cirq.ops import (
     CSWAP,
     CZ,
     EigenGate,
-    ExtrapolatableGate,
+    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,

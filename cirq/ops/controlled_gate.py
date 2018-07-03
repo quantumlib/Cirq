@@ -23,7 +23,7 @@ T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.BoundedEffectGate,
-    gate_features.ExtrapolatableGate,
+    gate_features.ExtrapolatableEffect,
     gate_features.KnownMatrixGate,
     gate_features.ParameterizableGate,
     gate_features.ReversibleEffect,
@@ -89,9 +89,10 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
     def extrapolate_effect(self, factor) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableEffect)
         new_sub_gate = cast_sub_gate.extrapolate_effect(factor)
-        return ControlledGate(new_sub_gate, self.default_extensions)
+        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
+                              self.default_extensions)
 
     def __pow__(self, power: float) -> 'ControlledGate':
         return self.extrapolate_effect(power)
