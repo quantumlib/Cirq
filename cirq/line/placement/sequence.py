@@ -33,9 +33,6 @@ class LineSequence:
     def __hash__(self):
         return hash(tuple(self.line))
 
-    # TODO: def as_list() -> List[LineQubit]?
-
-
 
 class LinePlacement:
 
@@ -53,18 +50,20 @@ class LinePlacement:
     def __hash__(self):
         return hash(tuple(self.lines))
 
+    def get(self):
+        return self.longest()
 
-def longest_sequence_index(sequences: List[List[XmonQubit]]) -> Optional[int]:
-    """Gives the position of a longest sequence.
+    def longest(self) -> Optional[LineSequence]:
+        """Gives the position of a longest sequence.
 
-    Args:
-        sequences: List of node sequences.
+        Args:
+            sequences: List of node sequences.
 
-    Returns:
-        Index of the longest sequence from the sequences list. If more than one
-        longest sequence exist, the first one is returned. None is returned for
-        empty list.
-    """
-    if sequences:
-        return max(range(len(sequences)), key=lambda i: len(sequences[i]))
-    return None
+        Returns:
+            Index of the longest sequence from the sequences list. If more than one
+            longest sequence exist, the first one is returned. None is returned for
+            empty list.
+        """
+        if self.lines:
+            return max(self.lines, key=lambda sequence: len(sequence.line))
+        return None

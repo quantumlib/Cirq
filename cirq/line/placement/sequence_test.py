@@ -14,11 +14,11 @@
 
 from cirq.line.placement.sequence import (
     LinePlacement,
-    LineSequence,
-    longest_sequence_index
+    LineSequence
 )
 from cirq.google import XmonQubit
 from cirq.testing import EqualsTester
+from cirq.testing.mock import mock
 
 
 def test_line_sequence_eq():
@@ -39,27 +39,43 @@ def test_line_placement_eq():
                                LineSequence([XmonQubit(0, 1)])]))
 
 
-def test_empty_sequence():
-    assert longest_sequence_index([[]]) == 0
+def test_line_placement_get_calls_longest():
+    placement = LinePlacement([])
+    with mock.patch.object(placement, 'longest') as longest:
+        seq = LineSequence([])
+        longest.return_value = seq
+        assert placement.get() == seq
+        longest.assert_called_once_with()
 
 
-def test_single_sequence():
-    assert longest_sequence_index([[XmonQubit(0, 0)]]) == 0
+def test_line_placement_longest_empty_sequence():
+    seq = LineSequence([])
+    assert LinePlacement([seq]).longest() == seq
 
 
-def test_longest_sequence():
+def test_line_placement_longest_single_sequence():
+    seq = LineSequence([XmonQubit(0, 0)])
+    assert LinePlacement([seq]).longest() == seq
+
+
+def test_line_placement_longest_longest_sequence():
     q00, q01, q02, q03 = [XmonQubit(0, x) for x in range(4)]
-    assert longest_sequence_index([[q00], [q01, q02, q03]]) == 1
+    seq1 = LineSequence([q00])
+    seq2 = LineSequence([q01, q02, q03])
+    assert LinePlacement([seq1, seq2]).longest() == seq2
 
 
-def test_multiple_longest_sequences():
+def test_line_placement_longest_multiple_longest_sequences():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q02 = XmonQubit(0, 2)
     q10 = XmonQubit(1, 0)
     q20 = XmonQubit(2, 0)
-    assert longest_sequence_index([[q00], [q01, q02], [q10, q20]]) == 1
+    seq1 = LineSequence([q00])
+    seq2 = LineSequence([q01, q02])
+    seq3 = LineSequence([q10, q20])
+    assert LinePlacement([seq1, seq2, seq3]).longest() == seq2
 
 
-def test_empty_list():
-    assert longest_sequence_index([]) is None
+def test_line_placement_longest_empty_list():
+    assert LinePlacement([]).longest() is None
