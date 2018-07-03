@@ -64,12 +64,12 @@ def test_known_matrix_gate_is_abstract_can_implement():
 
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ExtrapolatableGate()
+        _ = gate_features.ExtrapolatableEffect()
 
 
 def test_extrapolatable_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ExtrapolatableGate):
+    class Missing(gate_features.ExtrapolatableEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -77,11 +77,11 @@ def test_extrapolatable_gate_is_abstract_must_implement():
 
 
 def test_extrapolatable_gate_is_abstract_can_implement():
-    class Included(gate_features.ExtrapolatableGate):
+    class Included(gate_features.ExtrapolatableEffect):
         def extrapolate_effect(self, factor):
             pass
 
-    assert isinstance(Included(), gate_features.ExtrapolatableGate)
+    assert isinstance(Included(), gate_features.ExtrapolatableEffect)
 
 
 def test_composite_gate_is_abstract_cant_instantiate():
