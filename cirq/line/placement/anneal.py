@@ -357,18 +357,19 @@ class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            length: Required line length.
 
         Returns:
             List of linear sequences on the chip found by simulated annealing
             method.
         """
         seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
-        return LinePlacement([LineSequence(seq) for seq in seqs])
+        return LinePlacement(length, [LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

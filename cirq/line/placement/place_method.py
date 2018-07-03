@@ -26,11 +26,12 @@ class LinePlacementMethod(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            length: Required line length.
 
         Returns:
             Linear sequences found on the chip.

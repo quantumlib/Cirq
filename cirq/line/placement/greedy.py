@@ -283,11 +283,12 @@ class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
     """Greedy search method for linear sequence of qubits on a chip.
     """
 
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            length: Required line length.
 
         Returns:
             Linear sequences found on the chip.
@@ -315,4 +316,4 @@ class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
             if sequence is None or len(sequence) < len(candidate):
                 sequence = candidate
 
-        return LinePlacement([LineSequence(sequence)] if sequence else [])
+        return LinePlacement(length, [LineSequence(sequence)] if sequence else [])

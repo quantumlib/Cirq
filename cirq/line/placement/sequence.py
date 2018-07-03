@@ -17,6 +17,10 @@ from typing import List, Optional
 from cirq.google import XmonQubit
 
 
+class NotFoundError(Exception):
+    pass
+
+
 class LineSequence:
 
     def __init__(self, line: List[XmonQubit]) -> None:
@@ -36,7 +40,8 @@ class LineSequence:
 
 class LinePlacement:
 
-    def __init__(self, lines: List[LineSequence]) -> None:
+    def __init__(self, length: int, lines: List[LineSequence]) -> None:
+        self.length = length
         self.lines = lines
 
     def __eq__(self, other):
@@ -51,7 +56,10 @@ class LinePlacement:
         return hash(tuple(self.lines))
 
     def get(self):
-        return self.longest()
+        best = self.longest()
+        if len(best.line) < self.length:
+            raise NotFoundError('No line placement with desired length found')
+        return best
 
     def longest(self) -> Optional[LineSequence]:
         """Gives the position of a longest sequence.

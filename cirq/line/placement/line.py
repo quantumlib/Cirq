@@ -19,6 +19,7 @@ from cirq.line.placement.sequence import LinePlacement
 
 
 def line_placement_on_device(device: XmonDevice,
+                             length: int,
                              method: LinePlacementMethod =
                              greedy.GreedySequenceSearchMethod()) -> \
         LinePlacement:
@@ -26,10 +27,11 @@ def line_placement_on_device(device: XmonDevice,
 
     Args:
         device: Google Xmon device instance.
+        length: Required line length.
         method: Line placement method. Defaults to
                 cirq.greedy.GreedySequenceSearchMethod.
 
     Returns:
         Line sequences search results.
     """
-    return method.place_line(device)
+    return method.place_line(device, length)
