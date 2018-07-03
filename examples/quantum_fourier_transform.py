@@ -13,31 +13,32 @@
 # limitations under the License.
 
 """
-Creates and simulates a circuit for Quantum Fourier Transform(QFT) on a 4 qubit system.
+Creates and simulates a circuit for Quantum Fourier Transform(QFT) 
+on a 4 qubit system.
 
-In this example we demonstrate Fourier Transform on (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector  
-To do the same, we prepare the input state of the qubit's as |0000>.
+In this example we demonstrate Fourier Transform on   
+(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector. To do the same, we prepare
+the input state of the qubit's as |0000>.
 === EXAMPLE OUTPUT ===
 
 Circuit:
-(0, 0): ───H───@^0.5───×───H────────────@^0.5─────×───H────────────@^0.5───×───H───
-               │       │                │         │                │       │
-(0, 1): ───────Z───────×───@^0.25───×───Z─────────×───@^0.25───×───Z───────×───────
-                           │        │                 │        │
-(1, 0): ───────────────────┼────────┼───Z^0.125───×───┼────────┼───────────────────
-                           │        │   │         │   │        │
-(1, 1): ───────────────────Z────────×───@─────────×───Z────────×───────────────────
+(0, 0): ─H───@^0.5───×───H────────────@^0.5─────×───H──────────@^0.5──×─H
+             │       │                │         │               │     │
+(0, 1): ─────Z───────×───@^0.25───×───Z─────────×───@^0.25───×──Z─────×──
+                         │        │                 │        │
+(1, 0): ─────────────────┼────────┼───Z^0.125───×───┼────────┼───────────
+                         │        │   │         │   │        │
+(1, 1): ─────────────────Z────────×───@─────────×───Z────────×───────────
 
 FinalState
 [0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j
  0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
  
- 
 
 """
+import numpy as np
 
 import cirq
-import numpy as np
 
 def main():
     """Demonstrates Quantum Fourier transform.
