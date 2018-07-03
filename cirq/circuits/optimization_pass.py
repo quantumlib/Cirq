@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import List, Optional, TYPE_CHECKING
+from typing import Iterable, Optional, TYPE_CHECKING
 
 from collections import defaultdict
 
@@ -46,7 +46,7 @@ class PointOptimizationSummary:
 
     def __init__(self,
                  clear_span: int,
-                 clear_qubits: List[ops.QubitId],
+                 clear_qubits: Iterable[ops.QubitId],
                  new_operations: ops.OP_TREE) -> None:
         """
         Args:
@@ -85,7 +85,7 @@ class PointOptimizationSummary:
             self.new_operations)
 
 
-class PointOptimizer:
+class PointOptimizer(OptimizationPass):
     """Makes circuit improvements focused on a specific location."""
 
     @abc.abstractmethod

@@ -23,9 +23,9 @@ from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features
 
 
-class PartialReflectionGate(gate_features.BoundedEffectGate,
-                            gate_features.ParameterizableGate,
-                            gate_features.TextDiagrammableGate,
+class PartialReflectionGate(gate_features.TextDiagrammableGate,
+                            gate_features.BoundedEffect,
+                            gate_features.ParameterizableEffect,
                             PotentialImplementation):
     """An interpolated reflection operation.
 

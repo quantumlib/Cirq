@@ -11,45 +11,72 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cirq
 
-from cirq import circuits
-from cirq import ops
+
+def assert_optimizes(optimizer: cirq.OptimizationPass,
+                     initial_circuit: cirq.Circuit,
+                     expected_circuit: cirq.Circuit):
+    circuit = cirq.Circuit(initial_circuit)
+    optimizer.optimize_circuit(circuit)
+    assert circuit == expected_circuit
 
 
 def test_leaves_big():
-    m = circuits.DropNegligible(0.001)
-    q = ops.QubitId()
-    c = circuits.Circuit([circuits.Moment([ops.Z(q)**0.1])])
+    m = cirq.DropNegligible(0.001)
+    q = cirq.QubitId()
+    c = cirq.Circuit([cirq.Moment([cirq.Z(q)**0.1])])
     assert m.optimization_at(c, 0, c.operation_at(q, 0)) is None
 
-    d = circuits.Circuit(c.moments)
+    d = cirq.Circuit(c.moments)
     m.optimize_circuit(d)
     assert d == c
 
 
 def test_clears_small():
-    m = circuits.DropNegligible(0.001)
-    q = ops.QubitId()
-    c = circuits.Circuit([circuits.Moment([ops.Z(q)**0.000001])])
+    m = cirq.DropNegligible(0.001)
+    q = cirq.QubitId()
+    c = cirq.Circuit([cirq.Moment([cirq.Z(q)**0.000001])])
 
     assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
-            circuits.PointOptimizationSummary(clear_span=1,
-                                              clear_qubits=[q],
-                                              new_operations=[]))
+            cirq.PointOptimizationSummary(clear_span=1,
+                                          clear_qubits=[q],
+                                          new_operations=[]))
 
     m.optimize_circuit(c)
-    assert c == circuits.Circuit([circuits.Moment()])
+    assert c == cirq.Circuit([cirq.Moment()])
 
 
 def test_clears_known_empties_even_at_zero_tolerance():
-    m = circuits.DropNegligible(0.001)
-    q = ops.QubitId()
-    q2 = ops.QubitId()
-    c = circuits.Circuit.from_ops(
-        ops.Z(q)**0,
-        ops.Y(q)**0.0000001,
-        ops.X(q)**-0.0000001,
-        ops.CZ(q, q2)**0)
+    m = cirq.DropNegligible(0.001)
+    q = cirq.QubitId()
+    q2 = cirq.QubitId()
+    c = cirq.Circuit.from_ops(
+        cirq.Z(q)**0,
+        cirq.Y(q)**0.0000001,
+        cirq.X(q)**-0.0000001,
+        cirq.CZ(q, q2)**0)
 
     m.optimize_circuit(c)
-    assert c == circuits.Circuit([circuits.Moment()] * 4)
+    assert c == cirq.Circuit([cirq.Moment()] * 4)
+
+
+def test_supports_extensions():
+
+    class DummyGate(cirq.Gate):
+        pass
+
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.BoundedEffect, DummyGate, lambda e: cirq.Z**0.00001)
+    with_ext = cirq.DropNegligible(tolerance=0.001, extensions=ext)
+    without_ext = cirq.DropNegligible(tolerance=0.001)
+
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit.from_ops(DummyGate().on(a))
+    cleared = cirq.Circuit([cirq.Moment()])
+    assert_optimizes(without_ext,
+                     initial_circuit=circuit,
+                     expected_circuit=circuit)
+    assert_optimizes(with_ext,
+                     initial_circuit=circuit,
+                     expected_circuit=cleared)
