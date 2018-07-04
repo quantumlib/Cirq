@@ -363,9 +363,8 @@ def test_symbol_diagrams():
         cirq.google.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
         cirq.google.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
     )
-    print(c.to_text_diagram())
     assert c.to_text_diagram() == """
-(0, 0): ───W(a)^b───@^d───
+(0, 0): ───W(a)^b───@─────
                     │
-(0, 1): ───Z^c──────@─────
+(0, 1): ───Z^c──────@^d───
     """.strip()
