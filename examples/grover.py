@@ -27,8 +27,8 @@ Found a match: True
 
 """
 
-import cirq
 import random
+import cirq
 
 def set_io_qubits(qubit_count):
     """Add the specified number of input and output qubits."""
