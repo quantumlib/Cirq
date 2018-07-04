@@ -103,7 +103,12 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 
 class Operation:
-    """An application of a gate to a collection of qubits."""
+    """An application of a gate to a collection of qubits.
+
+    Attributes:
+        gate: The applied gate.
+        qubits: A sequence of the qubits on which the gate is applied.
+    """
 
     def __init__(self, gate: Gate, qubits: Sequence[QubitId]) -> None:
         self.gate = gate
