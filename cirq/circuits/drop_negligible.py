@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """An optimization pass that removes operations with tiny effects."""
+
 from typing import Optional
 
 from cirq import ops, extension
