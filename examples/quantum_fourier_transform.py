@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
-Creates and simulates a circuit for Quantum Fourier Transform(QFT) 
+Creates and simulates a circuit for Quantum Fourier Transform(QFT)
 on a 4 qubit system.
 
-In this example we demonstrate Fourier Transform on   
+In this example we demonstrate Fourier Transform on
 (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector. To do the same, we prepare
 the input state of the qubit's as |0000>.
 === EXAMPLE OUTPUT ===
@@ -43,10 +44,10 @@ def main():
     """
     # Create circuit
     qft_circuit = generate_2x2_grid_qft_circuit()
-
+    
     print('Circuit:')
     print(qft_circuit)
-
+    
     # Simulate and collect final_state
     simulator = cirq.google.XmonSimulator()
     result = simulator.simulate(qft_circuit)
@@ -64,7 +65,7 @@ def _cz_and_swap(q0, q1, rot):
 def generate_2x2_grid_qft_circuit():
     # Define a 2*2 square grid of qubits.
 
-    a,b,c,d = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0, 1), 
+    a,b,c,d = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0, 1),
                cirq.google.XmonQubit(1, 1), cirq.google.XmonQubit(1, 0)]
 
     circuit = cirq.Circuit.from_ops(
