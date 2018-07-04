@@ -243,14 +243,14 @@ class RotZGate(eigen_gate.EigenGate,
     def text_diagram_wire_symbols(self,
                                   args: gate_features.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
-        if abs(self.half_turns) == 0.5:
-            return 'S',
-        if abs(self.half_turns) == 0.25:
+        if self.half_turns in [-0.25, 0.25]:
             return 'T',
+        if self.half_turns in [-0.5, 0.5]:
+            return 'S',
         return 'Z',
 
     def text_diagram_exponent(self):
-        if abs(self.half_turns) in [0.25, 0.5]:
+        if self.half_turns in [-0.5, -0.25, 0.25, 0.5]:
             return np.sign(self.half_turns)
         return self._exponent
 
