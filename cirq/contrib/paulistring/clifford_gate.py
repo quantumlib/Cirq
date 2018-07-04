@@ -292,10 +292,7 @@ class CliffordGate(ops.CompositeGate,
                 '+-'[self.transform(Pauli.Y).flip], self.transform(Pauli.Y).to,
                 '+-'[self.transform(Pauli.Z).flip], self.transform(Pauli.Z).to)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count: Optional[int] = None,
-                                  use_unicode_characters: bool = True,
-                                  precision: Optional[int] = 3
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         well_known_map = {
             CliffordGate.I: 'I',
@@ -311,12 +308,12 @@ class CliffordGate(ops.CompositeGate,
             CliffordGate.Z_nsqrt: 'Z',
         }
         if self in well_known_map:
-            return (well_known_map[self],)
+            return well_known_map[self],
         else:
             rotations = self.decompose_rotation()
-            return ('-'.join((
-                        str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
-                        for r, qt in rotations)),)
+            return '-'.join((
+                       str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
+                       for r, qt in rotations)),
 
     def text_diagram_exponent(self) -> float:
         return {CliffordGate.X_sqrt: 0.5,
