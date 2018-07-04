@@ -110,7 +110,7 @@ class Exp11Gate(XmonGate,
                 ops.TextDiagrammableGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
-                ops.ParameterizableGate,
+                ops.ParameterizableEffect,
                 PotentialImplementation):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -176,7 +176,7 @@ class Exp11Gate(XmonGate,
                                   qubit_count=None,
                                   use_unicode_characters=True,
                                   precision=3):
-        return '@', 'Z'
+        return '@', '@'
 
     def text_diagram_exponent(self):
         return self.half_turns
@@ -212,8 +212,8 @@ class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammableGate,
                ops.PhaseableGate,
-               ops.BoundedEffectGate,
-               ops.ParameterizableGate,
+               ops.BoundedEffect,
+               ops.ParameterizableEffect,
                PotentialImplementation):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
@@ -331,6 +331,8 @@ class ExpWGate(XmonGate,
                                   use_unicode_characters=True,
                                   precision=3):
         e = 0 if precision is None else 10**-precision
+        if isinstance(self.axis_half_turns, value.Symbol):
+            return 'W({})'.format(self.axis_half_turns),
         if abs(self.axis_half_turns) <= e:
             return 'X',
         if abs(self.axis_half_turns - 0.5) <= e:
@@ -390,7 +392,7 @@ class ExpWGate(XmonGate,
 class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammableGate,
-               ops.ParameterizableGate,
+               ops.ParameterizableEffect,
                PotentialImplementation):
     """A rotation around the Z axis of the Bloch sphere.
 
