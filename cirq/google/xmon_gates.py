@@ -172,8 +172,7 @@ class Exp11Gate(XmonGate,
             raise ValueError("Don't have a known matrix.")
         return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
-    def text_diagram_wire_symbols(self,
-                                  args: ops.TextDiagramSymbolArgs
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         return '@', '@'
 
@@ -325,8 +324,7 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def text_diagram_wire_symbols(self,
-                                  args: ops.TextDiagramSymbolArgs
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         e = 0 if args.precision is None else 10**-args.precision
         if isinstance(self.axis_half_turns, value.Symbol):
@@ -424,8 +422,7 @@ class ExpZGate(XmonGate,
             rads=rads,
             degs=degs)
 
-    def text_diagram_wire_symbols(self,
-                                  args: ops.TextDiagramSymbolArgs
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         if self.half_turns in [-0.25, 0.25]:
             return 'T',

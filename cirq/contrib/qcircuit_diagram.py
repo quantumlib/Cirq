@@ -51,8 +51,7 @@ class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
     def text_diagram_exponent(self):
         return 1
 
-    def text_diagram_wire_symbols(self,
-                                  args: ops.TextDiagramSymbolArgs
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         return self.sub.qcircuit_wire_symbols(args.known_qubit_count)
 
