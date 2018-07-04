@@ -68,9 +68,7 @@ class PartialReflectionGate(gate_features.TextDiagrammableGate,
 
     @abc.abstractmethod
     def text_diagram_wire_symbols(self,
-                                  qubit_count = None,
-                                  use_unicode_characters = True,
-                                  precision = 3
+                                  args: gate_features.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         pass
 
@@ -84,7 +82,8 @@ class PartialReflectionGate(gate_features.TextDiagrammableGate,
         return self.extrapolate_effect(-1)
 
     def __str__(self):
-        base = ''.join(self.text_diagram_wire_symbols())
+        base = ''.join(self.text_diagram_wire_symbols(
+            gate_features.TextDiagramSymbolArgs.UNINFORMED_DEFAULT))
         if self.half_turns == 1:
             return base
         return '{}**{}'.format(base, repr(self.half_turns))
