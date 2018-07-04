@@ -14,6 +14,7 @@
 
 """Tests for xmon_simulator."""
 
+import itertools
 import multiprocessing.pool as pool
 import numpy as np
 import pytest
@@ -492,6 +493,109 @@ def test_measurement_randomness_sanity(num_prefix_qubits):
 def assert_measurements(s, results):
     for i, result in enumerate(results):
         assert result == s.simulate_measurement(i)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_sample_little_endian(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        results = []
+        for x in range(8):
+            # Sets the state in little endian notation, i.e. index 0 corresponds
+            # to the smallest value.
+            s.reset_state(x)
+            # We ask for ordering of most significant bit first. This is
+            # easier to test against the natural order of itertools.product.
+            results.append(s.sample_measurements([2, 1, 0]))
+        expected = [[list(x)] for x in
+                    list(itertools.product([False, True], repeat=3))]
+        assert results == expected
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_sample_partial_indices(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        for index in range(3):
+            for x in range(8):
+                s.reset_state(x)
+                assert s.sample_measurements([index]) == [[
+                    bool(1 & (x >> index))]]
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_sample_partial_indices_order(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        for x in range(8):
+            s.reset_state(x)
+            expected = [[bool(1 & (x >> 2)), bool(1 & (x >> 1))]]
+            assert s.sample_measurements([2, 1]) == expected
+
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_sample_partial_indices_all_orders(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        for perm in itertools.permutations([0, 1, 2]):
+            for x in range(8):
+                s.reset_state(x)
+                expected = [[bool(1 & (x >> p)) for p in perm]]
+                assert s.sample_measurements(perm) == expected
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_sample(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        initial_state = np.zeros(8, dtype=np.complex64)
+        initial_state[0] = 1 / np.sqrt(2)
+        initial_state[2] = 1 / np.sqrt(2)
+        s.reset_state(initial_state)
+        # Full sample only returns non-zero terms.
+        for _ in range(10):
+            assert s.sample_measurements([2, 1, 0]) in [[[False, False, False]],
+                                                        [[False, True, False]]]
+        # Partial sample is correct.
+        for _ in range(10):
+            assert s.sample_measurements([2]) == [[False]]
+            assert s.sample_measurements([0]) == [[False]]
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_sample_repetitions(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        for perm in itertools.permutations([0, 1, 2]):
+            for x in range(8):
+                s.reset_state(x)
+                expected = [[bool(1 & (x >> p)) for p in perm]] * 3
+                result = s.sample_measurements(perm, repetitions=3)
+                assert result == expected
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_negative_repetitions(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        with pytest.raises(ValueError, match='-1'):
+            s.sample_measurements([1], repetitions=-1)
+
+
+@pytest.mark.parametrize('num_prefix_qubits', (0, 2))
+def test_no_indices(num_prefix_qubits):
+    with xmon_stepper.Stepper(num_qubits=3,
+                              num_prefix_qubits=num_prefix_qubits,
+                              min_qubits_before_shard=0) as s:
+        np.testing.assert_equal(s.sample_measurements([]), [[]])
 
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
