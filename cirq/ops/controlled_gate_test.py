@@ -233,14 +233,20 @@ def test_text_diagrammable():
         cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
     assert CY.text_diagram_exponent() == 1
 
+    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_wire_symbols(
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
+    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_exponent() == 0.5
+
     assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Z')
-    assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 0.5
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'S')
+    assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 1
 
 
 def test_text_diagrammable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammableGate, RestrictedGate, lambda _: cirq.S)
+    ext.add_cast(cirq.TextDiagrammableGate,
+                 RestrictedGate,
+                 lambda _: cirq.Y**0.5)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -273,5 +279,6 @@ def test_repr():
 def test_str():
     assert str(cirq.ControlledGate(cirq.X)) == 'CX'
     assert str(cirq.ControlledGate(cirq.Z)) == 'CZ'
-    assert str(cirq.ControlledGate(cirq.S)) == 'CZ**0.5'
-    assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCZ**0.5'
+    assert str(cirq.ControlledGate(cirq.S)) == 'CS'
+    assert str(cirq.ControlledGate(cirq.Z**0.125)) == 'CZ**0.125'
+    assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCS'
