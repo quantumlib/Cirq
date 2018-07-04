@@ -132,6 +132,7 @@ from cirq.ops import (
     SwapGate,
     T,
     TextDiagrammableGate,
+    TextDiagramSymbolArgs,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,

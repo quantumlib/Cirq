@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
+
 import numpy as np
 import pytest
 
@@ -779,11 +781,9 @@ def test_to_text_diagram_extended_gate():
         def __init__(self, f_gate):
             self.f_gate = f_gate
 
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
-            return 'F'
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
+            return 'F',
 
     diagram = c.to_text_diagram(Extensions({
         cirq.TextDiagrammableGate: {
@@ -825,10 +825,8 @@ M──────M──────M
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
     class BadGate(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
             return 'a', 'a'
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
@@ -845,10 +843,8 @@ def test_to_text_diagram_parameterized_value():
         def __init__(self, val):
             self.val = val
 
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
             return 'P',
 
         def text_diagram_exponent(self):
@@ -1182,13 +1178,11 @@ def test_iter_ops():
 
 def test_expanding_gate_symbols():
     class MultiTargetCZ(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
-            if qubit_count is None:
-                return '@'  # coverage: ignore
-            return ('@',) + ('Z',) * (qubit_count - 1)
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
+            if args.known_qubit_count is None:
+                return '@',  # coverage: ignore
+            return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
