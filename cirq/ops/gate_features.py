@@ -197,7 +197,9 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def phase_by(self: TSelf_PhaseableGate,
                  phase_turns: float,
                  qubit_index: int) -> TSelf_PhaseableGate:
-        """Returns a phased version of the gate.
+        """Returns a phased version of the effect.
+
+        For example, an X gate phased by 90 degrees would be a Y gate.
 
         Args:
             phase_turns: The amount to phase the gate, in fractions of a whole
@@ -209,17 +211,23 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
 
-class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect on the state is known to be below some threshold."""
+class BoundedEffect(metaclass=abc.ABCMeta):
+    """An effect with known bounds on how easy it is to detect.
+
+    Used when deciding whether or not an operation is negligible. For example,
+    the trace distance between the states before and after a Z**0.00000001
+    operation is very close to 0, so it would typically be considered
+    negligible.
+    """
 
     @abc.abstractmethod
     def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this gate's input/output.
+        """A maximum on the trace distance between this effect's input/output.
 
-        Approximations that overestimate are permitted. Even ones that exceed
-        1. Underestimates are not permitted. Generally this method is used
-        when deciding whether to keep gates, so only the behavior near 0 is
-        important.
+        Generally this method is used when deciding whether to keep gates, so
+        only the behavior near 0 is important. Approximations that overestimate
+        the maximum trace distance are permitted. Even ones that exceed 1.
+        Underestimates are not permitted.
         """
 
 
@@ -264,26 +272,26 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-TSelf_ParameterizableGate = TypeVar('TSelf_ParameterizableGate',
-                                    bound='ParameterizableGate')
+TSelf_ParameterizableEffect = TypeVar('TSelf_ParameterizableEffect',
+                                      bound='ParameterizableEffect')
 
 
-class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that can be parameterized by Symbols."""
+class ParameterizableEffect(metaclass=abc.ABCMeta):
+    """An effect that can be parameterized by Symbols."""
 
     @abc.abstractmethod
     def is_parameterized(self) -> bool:
-        """Whether the gate is parameterized.
+        """Whether the effect is parameterized.
         
         Returns True if the gate has any unresolved Symbols and False otherwise.
         """
 
     @abc.abstractmethod
-    def with_parameters_resolved_by(self: TSelf_ParameterizableGate,
+    def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
                                     param_resolver: ParamResolver
-                                    ) -> TSelf_ParameterizableGate:
-        """Resolve the parameters in the gate.
+                                    ) -> TSelf_ParameterizableEffect:
+        """Resolve the parameters in the effect.
 
-        Returns a gate of the same type, but with all Symbols replaced with
-        floats according to the given ParamResolver.
+        Returns a gate or operation of the same type, but with all Symbols
+        replaced with floats according to the given ParamResolver.
         """

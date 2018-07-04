@@ -86,7 +86,7 @@ from cirq.line import (
 )
 
 from cirq.ops import (
-    BoundedEffectGate,
+    BoundedEffect,
     CCX,
     CCZ,
     CNOT,
@@ -118,7 +118,7 @@ from cirq.ops import (
     QubitOrderOrList,
     ReversibleCompositeGate,
     ReversibleEffect,
-    ParameterizableGate,
+    ParameterizableEffect,
     PhaseableGate,
     QubitId,
     Rot11Gate,

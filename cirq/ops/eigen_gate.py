@@ -18,15 +18,16 @@ import numpy as np
 
 from cirq import abc
 from cirq.extension import PotentialImplementation
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 from cirq.value import Symbol
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
 
 
-class EigenGate(gate_features.BoundedEffectGate,
-                gate_features.ParameterizableGate,
+class EigenGate(raw_types.Gate,
+                gate_features.BoundedEffect,
+                gate_features.ParameterizableEffect,
                 PotentialImplementation):
     """A gate with a known eigendecomposition.
 
