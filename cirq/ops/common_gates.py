@@ -538,9 +538,10 @@ class ISwapGate(eigen_gate.EigenGate,
                 raw_types.InterchangeableQubitsGate,
                 gate_features.TextDiagrammableGate,
                 gate_features.TwoQubitGate):
-    """Swaps two qubits while phasing |01⟩ and |10⟩ (the swapped subspace) by i.
+    """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.
 
-    Equivalently, the ISWAP operation is the operation with this matrix form:
+    When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
+    generally, this gate's matrix is defined as follows:
 
         ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y))
                  ≡ [1 0         0         0]
