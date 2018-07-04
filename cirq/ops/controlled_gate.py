@@ -22,10 +22,10 @@ from cirq.ops import raw_types, gate_features
 T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.BoundedEffectGate,
+    gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
     gate_features.KnownMatrixGate,
-    gate_features.ParameterizableGate,
+    gate_features.ParameterizableEffect,
     gate_features.ReversibleEffect,
     gate_features.TextDiagrammableGate,
 )
@@ -103,21 +103,22 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
                               self.default_extensions)
 
     def is_parameterized(self) -> bool:
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
         return cast_sub_gate.is_parameterized()
 
     def with_parameters_resolved_by(self, param_resolver) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
         new_sub_gate = cast_sub_gate.with_parameters_resolved_by(
             param_resolver)
-        return ControlledGate(new_sub_gate, self.default_extensions)
+        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
+                              self.default_extensions)
 
     def text_diagram_exponent(self):
         cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammableGate)
         return cast_sub_gate.text_diagram_exponent()
 
     def trace_distance_bound(self):
-        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffectGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
         return cast_sub_gate.trace_distance_bound()
 
     def text_diagram_wire_symbols(self,
