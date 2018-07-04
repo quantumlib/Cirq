@@ -78,7 +78,10 @@ def test_supports_extensions():
 
     ext = cirq.Extensions()
     ext.add_cast(cirq.BoundedEffect, DummyGate, lambda e: cirq.Z**0.00001)
+    big_ext = cirq.Extensions()
+    big_ext.add_cast(cirq.BoundedEffect, DummyGate, lambda e: cirq.Z**0.75)
     with_ext = cirq.DropNegligible(tolerance=0.001, extensions=ext)
+    with_big_ext = cirq.DropNegligible(tolerance=0.001, extensions=big_ext)
     without_ext = cirq.DropNegligible(tolerance=0.001)
 
     a = cirq.NamedQubit('a')
@@ -90,3 +93,6 @@ def test_supports_extensions():
     assert_optimizes(with_ext,
                      initial_circuit=circuit,
                      expected_circuit=cleared)
+    assert_optimizes(with_big_ext,
+                     initial_circuit=circuit,
+                     expected_circuit=circuit)
