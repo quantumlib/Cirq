@@ -24,42 +24,51 @@ def assert_optimizes(optimizer: cirq.OptimizationPass,
 
 
 def test_leaves_big():
-    m = cirq.DropNegligible(0.001)
-    q = cirq.QubitId()
-    c = cirq.Circuit([cirq.Moment([cirq.Z(q)**0.1])])
-    assert m.optimization_at(c, 0, c.operation_at(q, 0)) is None
+    drop = cirq.DropNegligible(0.001)
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit([cirq.Moment([cirq.Z(a)**0.1])])
+    assert drop.optimization_at(circuit, 0, circuit.operation_at(a, 0)) is None
 
-    d = cirq.Circuit(c.moments)
-    m.optimize_circuit(d)
-    assert d == c
+    assert_optimizes(optimizer=drop,
+                     initial_circuit=circuit,
+                     expected_circuit=circuit)
 
 
 def test_clears_small():
-    m = cirq.DropNegligible(0.001)
-    q = cirq.QubitId()
-    c = cirq.Circuit([cirq.Moment([cirq.Z(q)**0.000001])])
+    drop = cirq.DropNegligible(0.001)
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit([cirq.Moment([cirq.Z(a)**0.000001])])
 
-    assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
+    assert (drop.optimization_at(circuit, 0, circuit.operation_at(a, 0)) ==
             cirq.PointOptimizationSummary(clear_span=1,
-                                          clear_qubits=[q],
+                                          clear_qubits=[a],
                                           new_operations=[]))
 
-    m.optimize_circuit(c)
-    assert c == cirq.Circuit([cirq.Moment()])
+    assert_optimizes(optimizer=drop,
+                     initial_circuit=circuit,
+                     expected_circuit=cirq.Circuit([cirq.Moment()]))
 
 
 def test_clears_known_empties_even_at_zero_tolerance():
-    m = cirq.DropNegligible(0.001)
-    q = cirq.QubitId()
-    q2 = cirq.QubitId()
-    c = cirq.Circuit.from_ops(
-        cirq.Z(q)**0,
-        cirq.Y(q)**0.0000001,
-        cirq.X(q)**-0.0000001,
-        cirq.CZ(q, q2)**0)
-
-    m.optimize_circuit(c)
-    assert c == cirq.Circuit([cirq.Moment()] * 4)
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Z(a)**0,
+        cirq.Y(a)**0.0000001,
+        cirq.X(a)**-0.0000001,
+        cirq.CZ(a, b)**0
+    )
+    assert_optimizes(optimizer=cirq.DropNegligible(tolerance=0.001),
+                     initial_circuit=circuit,
+                     expected_circuit=cirq.Circuit([cirq.Moment()] * 4))
+    assert_optimizes(optimizer=cirq.DropNegligible(tolerance=0),
+                     initial_circuit=circuit,
+                     expected_circuit=cirq.Circuit(
+                         [
+                             cirq.Moment(),
+                             cirq.Moment([cirq.Y(a)**0.0000001]),
+                             cirq.Moment([cirq.X(a)**-0.0000001]),
+                             cirq.Moment(),
+                         ]))
 
 
 def test_supports_extensions():
