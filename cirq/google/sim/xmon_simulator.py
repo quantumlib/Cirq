@@ -326,7 +326,6 @@ class XmonSimulator:
         Args:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
@@ -375,7 +374,6 @@ class XmonSimulator:
                 measurements=measurements,
                 final_state=final_state))
         return trial_results
-
 
     def simulate_moment_steps(
             self,
@@ -432,35 +430,43 @@ class XmonSimulator:
                          param_resolver: ParamResolver,
                          extensions: Extensions = None
                          ) -> Tuple[Circuit, Set[str]]:
+        converter = ConvertToXmonGates(extensions)
+        extensions = converter.extensions
+
         # TODO: Use one optimization pass.
         xmon_circuit = self._to_circuit_with_parameters_resolved(
-                circuit, param_resolver)
-        ConvertToXmonGates(extensions).optimize_circuit(xmon_circuit)
+                circuit, param_resolver, extensions)
+        converter.optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys
 
-    def _to_circuit_with_parameters_resolved(self, circuit: Circuit,
-                                             param_resolver: ParamResolver
-                                             ) -> Circuit:
+    def _to_circuit_with_parameters_resolved(
+            self,
+            circuit: Circuit,
+            param_resolver: ParamResolver,
+            extensions: Extensions,
+            ) -> Circuit:
         resolved_circuit = Circuit()
         for moment in circuit.moments:
             resolved_circuit.append(
                     self._to_operations_with_parameters_resolved(
-                        moment.operations, param_resolver))
+                        moment.operations,
+                        param_resolver,
+                        extensions))
         return resolved_circuit
 
     def _to_operations_with_parameters_resolved(
             self,
             operations: Iterable[ops.Operation],
-            param_resolver: ParamResolver
-            ) -> List[ops.Operation]:
+            param_resolver: ParamResolver,
+            extensions) -> List[ops.Operation]:
         resolved_operations = []
         for op in operations:
             gate, qubits = op.gate, op.qubits
-            if (isinstance(gate, ops.ParameterizableGate) and
-                    gate.is_parameterized()):
-                gate = gate.with_parameters_resolved_by(param_resolver)
+            p_gate = extensions.try_cast(ops.ParameterizableEffect, gate)
+            if p_gate is not None and p_gate.is_parameterized():
+                gate = p_gate.with_parameters_resolved_by(param_resolver)
             resolved_op = ops.Operation(gate, qubits)
             resolved_operations.append(resolved_op)
         return resolved_operations

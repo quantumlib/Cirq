@@ -352,3 +352,20 @@ def test_measure_key_on():
     assert XmonMeasurementGate(key='a').on(q) == cirq.Operation(
         gate=XmonMeasurementGate(key='a'),
         qubits=(q,))
+
+
+def test_symbol_diagrams():
+    q00 = cirq.google.XmonQubit(0, 0)
+    q01 = cirq.google.XmonQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a'),
+                             half_turns=cirq.Symbol('b')).on(q00),
+        cirq.google.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
+        cirq.google.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
+    )
+    print(c.to_text_diagram())
+    assert c.to_text_diagram() == """
+(0, 0): ───W(a)^b───@^d───
+                    │
+(0, 1): ───Z^c──────@─────
+    """.strip()
