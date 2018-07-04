@@ -238,30 +238,46 @@ class XmonSimulator:
                     circuit,
                     param_resolver,
                     extensions or xmon_gate_ext)
-            measurements = {
-                k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
-            optimize_repetitions = xmon_circuit.are_all_measurements_terminal()
-            for _ in range(1 if optimize_repetitions else repetitions):
-                all_step_results = _simulator_iterator(
-                    xmon_circuit,
-                    self.options,
-                    qubit_order,
-                    initial_state=0,
-                    perform_measurements=not optimize_repetitions)
-                step_result = None
-                for step_result in all_step_results:
-                    for k, v in step_result.measurements.items():
-                        measurements[k].append(np.array(v, dtype=bool))
-                if step_result and optimize_repetitions:
-                    measurements = _sample_measurements(xmon_circuit,
-                                                        step_result,
-                                                        repetitions)
+            if xmon_circuit.are_all_measurements_terminal():
+                measurements = self._run_sweep_sample(xmon_circuit, repetitions,
+                                                      qubit_order)
+            else:
+                measurements = self._run_sweep_repeat(keys, xmon_circuit,
+                                                      repetitions, qubit_order)
             trial_results.append(TrialResult(
                 params=param_resolver,
                 repetitions=repetitions,
                 measurements={k: np.array(v) for k, v in measurements.items()}
             ))
         return trial_results
+
+    def _run_sweep_repeat(self, keys, circuit, repetitions, qubit_order):
+        measurements = {
+            k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
+        for _ in range(repetitions):
+            all_step_results = _simulator_iterator(
+                circuit,
+                self.options,
+                qubit_order,
+                initial_state=0)
+            for step_result in all_step_results:
+                for k, v in step_result.measurements.items():
+                    measurements[k].append(np.array(v, dtype=bool))
+        return measurements
+
+    def _run_sweep_sample(self, circuit, repetitions, qubit_order):
+        all_step_results = _simulator_iterator(
+            circuit,
+            self.options,
+            qubit_order,
+            initial_state=0,
+            perform_measurements=False)
+        step_result = None
+        for step_result in all_step_results:
+            pass
+        return _sample_measurements(circuit,
+                                    step_result,
+                                    repetitions)
 
     def simulate(
         self,
@@ -546,7 +562,8 @@ def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
     Args:
         circuit: The circuit to sample from.
         step_result: The XmonStepResult from which to sample. This should be
-            the step at the end of the circuit.
+            the step at the end of the circuit. Can be None if no steps were
+            taken.
         repetitions: The number of time to sample.
 
     Returns:
@@ -555,6 +572,8 @@ def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
         the repetition, and the inner list corresponding to the qubits as
         ordered in the measurement gate.
     """
+    if step_result is None:
+        return {}
     is_meas = lambda op: isinstance(op.gate, xmon_gates.XmonMeasurementGate)
     bounds = {}
     all_qubits = []  # type: List[raw_types.QubitId]
@@ -565,7 +584,7 @@ def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
         all_qubits.extend(op.qubits)
         current_index += len(op.qubits)
     sample = step_result.sample(all_qubits, repetitions)
-    return {k: [x[v[0]:v[1]] for x in sample] for k,v in bounds.items()}
+    return {k: [x[s:e] for x in sample] for k,(s, e) in bounds.items()}
 
 
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
