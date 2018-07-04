@@ -359,6 +359,64 @@ class Stepper(object):
         self._pool.map(_collapse_state, args)
         return result
 
+    def sample_measurements(
+            self,
+            indices: List[int],
+            repetitions: int=1) -> List[List[bool]]:
+        """Samples from measurements in the computational basis.
+
+        Note that this does not collapse the wave function.
+
+        Args:
+            indices: Which qubits are measured.
+
+        Returns:
+            Measurement results with True corresponding to the |1> state.
+            The outer list is for repetitions, and the inner corresponds to
+            measurements ordered by the input indices.
+
+        Raises:
+            ValueError if repetitions is less than one.
+        """
+        if repetitions < 1:
+            raise ValueError(
+                'Number of repetitions cannot be negative. Was {}'.format(
+
+                    repetitions))
+        if len(indices) == 0:
+            return [[]]
+
+        # Calculate probabilities and reshape to tensor of qubits.
+        tensor = np.reshape(np.abs(self.current_state) ** 2,
+                            self._num_qubits * [2])
+
+        # Tensor axis order is reverse of index order, so we transpose here.
+        tensor = np.transpose(tensor)
+
+        # Indices that should be summed over.
+        sum_indices = tuple(
+            x for x in range(self._num_qubits) if x not in indices)
+
+        # Sum over those indices, and reshape into a a tensor of len(indices)
+        # qubits.
+        probs = np.reshape(np.sum(tensor, axis=sum_indices), [2] * len(indices))
+
+        # Calculate how the indices not summed over should be reordered.
+        index_map = {v: k for k,v in enumerate(sorted(indices))}
+        perm = [index_map[x] for x in indices]
+        # Apply this permutation to the probabilities and flatten.,
+        probs = np.reshape(np.transpose(probs, perm), -1)
+
+        # We now have the probability vector, correctly ordered, so sample over
+        # it. Note that we us ints here, since numpy's choice does not allow for
+        # choosing from a list of tuples or list of lists.
+        result = np.random.choice(2 ** len(indices), size=repetitions, p=probs)
+        # Convert to bools and note also one final reverse of list to get
+        # ordering correct.
+        return np.transpose(
+            [(1 & (result >> i)).astype(np.bool) for i in range(len(indices))][
+            ::-1]).tolist()
+
 
 def decode_initial_state(initial_state: Union[int, np.ndarray],
                          num_qubits: int) -> np.ndarray:
