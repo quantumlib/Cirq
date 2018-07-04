@@ -136,18 +136,18 @@ def test_try_cast_to():
     # Supported sub features that are not present on sub gate.
     assert CRestricted.try_cast_to(cirq.KnownMatrixGate, ext) is None
     assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.ExtrapolatableGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.TextDiagrammableGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.BoundedEffectGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.ParameterizableGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
+    assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert CY.try_cast_to(cirq.KnownMatrixGate, ext) is not None
     assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
-    assert CY.try_cast_to(cirq.ExtrapolatableGate, ext) is not None
+    assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
     assert CY.try_cast_to(cirq.TextDiagrammableGate, ext) is not None
-    assert CY.try_cast_to(cirq.BoundedEffectGate, ext) is not None
-    assert CY.try_cast_to(cirq.ParameterizableGate, ext) is not None
+    assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
+    assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
     # Extensions stick around after casting.
     ext.add_cast(cirq.KnownMatrixGate, RestrictedGate, lambda _: cirq.X)
@@ -173,7 +173,7 @@ def test_extrapolatable_effect():
 
 def test_extrapolatable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.ExtrapolatableGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.ExtrapolatableEffect, RestrictedGate, lambda _: cirq.X)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -218,7 +218,7 @@ def test_parameterizable():
 
 def test_parameterizable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableGate, RestrictedGate, lambda _: cirq.S)
+    ext.add_cast(cirq.ParameterizableEffect, RestrictedGate, lambda _: cirq.S)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -255,7 +255,7 @@ def test_bounded_effect():
 
 def test_bounded_effect_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.BoundedEffectGate, RestrictedGate, lambda _: cirq.Y)
+    ext.add_cast(cirq.BoundedEffect, RestrictedGate, lambda _: cirq.Y)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 

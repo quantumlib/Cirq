@@ -23,9 +23,9 @@ from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features
 
 
-class PartialReflectionGate(gate_features.BoundedEffectGate,
-                            gate_features.ParameterizableGate,
-                            gate_features.TextDiagrammableGate,
+class PartialReflectionGate(gate_features.TextDiagrammableGate,
+                            gate_features.BoundedEffect,
+                            gate_features.ParameterizableEffect,
                             PotentialImplementation):
     """An interpolated reflection operation.
 
@@ -106,7 +106,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return abs(self.half_turns) * 3.5
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableGate,
+        if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect,
                              gate_features.KnownMatrixGate] and
                 not self.is_parameterized()):
