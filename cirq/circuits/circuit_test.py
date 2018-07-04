@@ -1214,3 +1214,22 @@ b: ───Z───
       │
 c: ───@───
     """.strip()
+
+
+def test_transposed_diagram_exponent_order():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.CZ(a, b)**-0.5,
+        cirq.CZ(a, c)**0.5,
+        cirq.CZ(b, c)**0.125,
+    )
+    assert circuit.to_text_diagram(transpose=True).strip() == """
+0 1      2
+│ │      │
+@─@^-0.5 │
+│ │      │
+@─┼──────@^0.5
+│ │      │
+│ @──────@^0.125
+│ │      │
+    """.strip()

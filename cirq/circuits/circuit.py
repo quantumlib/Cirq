@@ -529,7 +529,7 @@ class Circuit(object):
 
         if transpose:
             return diagram.transpose().render(
-                crossing_char='─' if use_unicode_characters else '-',
+                crossing_char='┼' if use_unicode_characters else '-',
                 use_unicode_characters=use_unicode_characters)
         return diagram.render(
             crossing_char='┼' if use_unicode_characters else '|',
