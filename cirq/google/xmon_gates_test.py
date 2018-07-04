@@ -363,9 +363,23 @@ def test_symbol_diagrams():
         cirq.google.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
         cirq.google.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
     )
-    print(c.to_text_diagram())
     assert c.to_text_diagram() == """
 (0, 0): ───W(a)^b───@^d───
                     │
 (0, 1): ───Z^c──────@─────
+    """.strip()
+
+
+def test_z_diagram_chars():
+    q = cirq.google.XmonQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpZGate().on(q),
+        cirq.google.ExpZGate(half_turns=0.5).on(q),
+        cirq.google.ExpZGate(half_turns=0.25).on(q),
+        cirq.google.ExpZGate(half_turns=0.125).on(q),
+        cirq.google.ExpZGate(half_turns=-0.5).on(q),
+        cirq.google.ExpZGate(half_turns=-0.25).on(q),
+    )
+    assert c.to_text_diagram() == """
+(0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
     """.strip()

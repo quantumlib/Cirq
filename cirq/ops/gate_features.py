@@ -146,6 +146,43 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """The unitary matrix of the operation this gate applies."""
 
 
+class TextDiagramSymbolArgs:
+    """
+    Attributes:
+        known_qubits: The qubits the gate is being applied to. None means this
+            information is not known by the caller.
+        known_qubit_count: The number of qubits the gate is being applied to
+            None means this information is not known by the caller.
+        use_unicode_characters: If true, the wire symbols are permitted to
+            include unicode characters (as long as they work well in fixed
+            width fonts). If false, use only ascii characters. ASCII is
+            preferred in cases where UTF8 support is done poorly, or where
+            the fixed-width font being used to show the diagrams does not
+            properly handle unicode characters.
+        precision: The number of digits after the decimal to show for numbers in
+            the text diagram. None means use full precision.
+    """
+
+    UNINFORMED_DEFAULT = None  # type: TextDiagramSymbolArgs
+
+    def __init__(self,
+                 known_qubits: Optional[Tuple[raw_types.QubitId, ...]],
+                 known_qubit_count: Optional[int],
+                 use_unicode_characters: bool,
+                 precision: Optional[int]) -> None:
+        self.known_qubits = known_qubits
+        self.known_qubit_count = known_qubit_count
+        self.use_unicode_characters = use_unicode_characters
+        self.precision = precision
+
+
+TextDiagramSymbolArgs.UNINFORMED_DEFAULT = TextDiagramSymbolArgs(
+    known_qubits=None,
+    known_qubit_count=None,
+    use_unicode_characters=True,
+    precision=3)
+
+
 class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate which can be nicely represented in a text diagram."""
 
@@ -155,10 +192,7 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return 1
 
     @abc.abstractmethod
-    def text_diagram_wire_symbols(self,
-                                  qubit_count: Optional[int] = None,
-                                  use_unicode_characters: bool = True,
-                                  precision: Optional[int] = 3
+    def text_diagram_wire_symbols(self, args: TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         """The symbols that should be shown on the gate's qubits (in order).
 
@@ -166,20 +200,10 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         of the returned tuple should be equal to this number of qubits.
         If the gate acts on a variable number of qubits, then a single
         symbol should be used, and this will be repeated across the operation.
-        It is an error to have more than a single symbol in the case that
-        the gate acts on a variable number of qubits.
 
         Args:
-            qubit_count: The number of qubits the gate is being applied to, if
-                this information is known by the caller.
-            use_unicode_characters: If true, the wire symbols are permitted to
-                include unicode characters (as long as they work well in fixed
-                width fonts). If false, use only ascii characters. ASCII is
-                preferred in cases where UTF8 support is done poorly, or where
-                the fixed-width font being used to show the diagrams does not
-                properly handle unicode characters.
-            precision: The number of digits after the decimal to show in the
-                text diagram.
+            args: Value class encapsulating the various symbol options, such as
+                whether or not to use unicode characters.
 
         Returns:
              A tuple containing symbols to place on each of the qubit wires

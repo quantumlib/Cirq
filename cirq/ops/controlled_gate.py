@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast
+from typing import Optional, TypeVar, Type, cast, Tuple
 
 import numpy as np
 
@@ -122,14 +122,10 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
         return cast_sub_gate.trace_distance_bound()
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammableGate)
-        sub_symbols = cast_sub_gate.text_diagram_wire_symbols(
-            qubit_count,
-            use_unicode_characters,
-            precision)
+        sub_symbols = cast_sub_gate.text_diagram_wire_symbols(args)
         return ('@',) + sub_symbols
 
     def __str__(self):
