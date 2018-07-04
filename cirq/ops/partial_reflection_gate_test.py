@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, Tuple
 
 import numpy as np
 
@@ -28,7 +28,9 @@ class DummyGate(PartialReflectionGate):
     def _with_half_turns(self, half_turns: Union[Symbol, float] = 1.0):
         return DummyGate(half_turns=half_turns)
 
-    def text_diagram_wire_symbols(self, **kwargs):
+    def text_diagram_wire_symbols(self,
+                                  args: cirq.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return 'D',
 
     def _reflection_matrix(self):

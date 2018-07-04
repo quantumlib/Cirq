@@ -229,11 +229,12 @@ def test_parameterizable_via_extension():
 
 
 def test_text_diagrammable():
-    assert CY.text_diagram_wire_symbols() == ('@', 'Y')
+    assert CY.text_diagram_wire_symbols(
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
     assert CY.text_diagram_exponent() == 1
 
-    assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols() == (
-        '@', 'Z')
+    assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols(
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Z')
     assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 0.5
 
 

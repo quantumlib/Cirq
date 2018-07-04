@@ -14,7 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 
 import numpy as np
 
@@ -173,9 +173,8 @@ class Exp11Gate(XmonGate,
         return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return '@', '@'
 
     def text_diagram_exponent(self):
@@ -327,18 +326,17 @@ class ExpWGate(XmonGate,
         return abs(self.half_turns) * 3.5
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        e = 0 if precision is None else 10**-precision
+                                  args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
+        e = 0 if args.precision is None else 10**-args.precision
         if isinstance(self.axis_half_turns, value.Symbol):
             return 'W({})'.format(self.axis_half_turns),
         if abs(self.axis_half_turns) <= e:
             return 'X',
         if abs(self.axis_half_turns - 0.5) <= e:
             return 'Y',
-        if precision is not None:
-            return 'W({{:.{}}})'.format(precision).format(
+        if args.precision is not None:
+            return 'W({{:.{}}})'.format(args.precision).format(
                 self.axis_half_turns),
         else:
             return 'W({})'.format(self.axis_half_turns),
@@ -347,7 +345,8 @@ class ExpWGate(XmonGate,
         return self.half_turns
 
     def __str__(self):
-        base = self.text_diagram_wire_symbols()[0]
+        base = self.text_diagram_wire_symbols(
+            ops.TextDiagramSymbolArgs.UNINFORMED_DEFAULT)[0]
         if self.half_turns == 1:
             return base
         return '{}^{}'.format(base, self.half_turns)
@@ -426,13 +425,12 @@ class ExpZGate(XmonGate,
             degs=degs)
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         if self.half_turns in [-0.25, 0.25]:
-            return 'T'
+            return 'T',
         if self.half_turns in [-0.5, 0.5]:
-            return 'S'
+            return 'S',
         return 'Z',
 
     def text_diagram_exponent(self):
