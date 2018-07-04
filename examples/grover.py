@@ -5,7 +5,26 @@ The Grover algorithm takes a black-box oracle implementing a function
 ordered sequence of N items using O(sqrt(N)) operations and O(N log(N)) gates,
 with the probability p >= 2/3.
 
-TODO(ashalynd): DO NOT SUBMIT without a detailed description of grover.
+At the moment, only 2-bit sequences (for which one pass through Grover operator
+is enough) are considered.
+
+=== REFERENCE ===
+Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
+https://arxiv.org/pdf/1804.03719.pdf
+
+=== EXAMPLE OUTPUT ===
+Secret bit sequence: [0, 0]
+Circuit:
+(0, 0): ───────H───Z───@───H───X───────@───────X───H───M───
+                       │               │               │
+(1, 0): ───────H───Z───@───H───X───H───X───H───X───H───M───
+                       │
+(2, 0): ───X───H───────X───────────────────────────────────
+Sampled results:
+Counter({'00': 10})
+Most common bitstring: 00
+Found a match: True
+
 """
 
 import cirq
