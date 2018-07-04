@@ -27,8 +27,8 @@ Found a match: True
 
 """
 
-import cirq
 import random
+import cirq
 
 def set_io_qubits(qubit_count):
   input_qubits = [cirq.google.XmonQubit(i, 0) for i in range(qubit_count)]
