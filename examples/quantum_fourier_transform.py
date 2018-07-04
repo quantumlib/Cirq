@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Creates and simulates a circuit for Quantum Fourier Transform(QFT) 
 on a 4 qubit system.
@@ -24,18 +23,17 @@ the input state of the qubit's as |0000>.
 Circuit:
 (0, 0): ─H───@^0.5───×───H────────────@^0.5─────×───H──────────@^0.5──×─H
              │       │                │         │               │     │
-(0, 1): ─────Z───────×───@^0.25───×───Z─────────×───@^0.25───×──Z─────×──
+(0, 1): ─────@───────×───@^0.25───×───@─────────×───@^0.25───×──@─────×──
                          │        │                 │        │
-(1, 0): ─────────────────┼────────┼───Z^0.125───×───┼────────┼───────────
+(1, 0): ─────────────────┼────────┼───@^0.125───×───┼────────┼───────────
                          │        │   │         │   │        │
-(1, 1): ─────────────────Z────────×───@─────────×───Z────────×───────────
+(1, 1): ─────────────────@────────×───@─────────×───@────────×───────────
 
 FinalState
 [0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j
  0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j 0.25+0.j]
- 
-
 """
+
 import numpy as np
 
 import cirq
