@@ -114,10 +114,7 @@ class PauliInteractionGate(ops.EigenGate,
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count: Optional[int] = None,
-                                  use_unicode_characters: bool = True,
-                                  precision: Optional[int] = 3
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         labels = {Pauli.X: 'X', Pauli.Y: 'Y', Pauli.Z: '@'}
         l0 = labels[self.pauli0]

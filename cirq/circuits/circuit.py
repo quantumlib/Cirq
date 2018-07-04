@@ -591,9 +591,11 @@ def _get_operation_text_diagram_symbols(op: ops.Operation,
     text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
     if text_diagram_gate is not None:
         wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
-            qubit_count=len(op.qubits),
-            use_unicode_characters=use_unicode_characters,
-            precision=precision)
+            ops.TextDiagramSymbolArgs(
+                known_qubits=op.qubits,
+                known_qubit_count=len(op.qubits),
+                use_unicode_characters=use_unicode_characters,
+                precision=precision))
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
