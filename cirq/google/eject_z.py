@@ -95,7 +95,7 @@ class EjectZ(OptimizationPass):
                     start_z = i
                     prev_z = None
 
-            elif self.ext.can_cast(op.gate, ops.MeasurementGate):
+            elif self.ext.can_cast(ops.MeasurementGate, op.gate):
                 # Measurement acts like a drain. It destroys phase information.
                 yield start_z, i
                 start_z = None
@@ -105,7 +105,7 @@ class EjectZ(OptimizationPass):
                 # Could be a drain. Depends if an unphaseable gate follows.
                 prev_z = i
 
-            elif not self.ext.can_cast(op.gate, ops.PhaseableGate):
+            elif not self.ext.can_cast(ops.PhaseableGate, op.gate):
                 # Unphaseable gates force earlier draining.
                 if prev_z is not None:
                     yield start_z, prev_z
@@ -145,9 +145,9 @@ class EjectZ(OptimizationPass):
                 circuit.clear_operations_touching([qubit], [i])
                 lost_phase_turns += cast(float, op.gate.half_turns) / 2
 
-            elif self.ext.can_cast(op.gate, ops.PhaseableGate):
+            elif self.ext.can_cast(ops.PhaseableGate, op.gate):
                 # Adjust phaseable gates to account for the lost phase.
-                phaseable = self.ext.cast(op.gate, ops.PhaseableGate)
+                phaseable = self.ext.cast(ops.PhaseableGate, op.gate)
                 k = op.qubits.index(qubit)
                 circuit.clear_operations_touching(op.qubits, [i])
                 circuit.insert(i + 1,

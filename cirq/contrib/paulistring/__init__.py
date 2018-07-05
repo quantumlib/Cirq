@@ -19,3 +19,6 @@ from cirq.contrib.paulistring.clifford_gate import (
     CliffordGate,
     PauliTransform,
 )
+from cirq.contrib.paulistring.pauli_interaction_gate import (
+    PauliInteractionGate,
+)

@@ -588,12 +588,14 @@ def _get_operation_text_diagram_symbols(op: ops.Operation,
                                         use_unicode_characters: bool,
                                         precision: Optional[int]
                                         ) -> Iterable[str]:
-    text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
+    text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
     if text_diagram_gate is not None:
         wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
-            qubit_count=len(op.qubits),
-            use_unicode_characters=use_unicode_characters,
-            precision=precision)
+            ops.TextDiagramSymbolArgs(
+                known_qubits=op.qubits,
+                known_qubit_count=len(op.qubits),
+                use_unicode_characters=use_unicode_characters,
+                precision=precision))
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
@@ -614,7 +616,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
                                          ext: Extensions,
                                          precision: Optional[int]
                                          ) -> Optional[str]:
-    text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
+    text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
     if text_diagram_gate is None:
         return None
     exponent = text_diagram_gate.text_diagram_exponent()
@@ -672,13 +674,13 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
                                  ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
-        known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+        known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
         if known_matrix_gate is not None:
             yield op
             continue
 
         # If not, check if it has a decomposition
-        composite_gate = ext.try_cast(op.gate, ops.CompositeGate)
+        composite_gate = ext.try_cast(ops.CompositeGate, op.gate)
         if composite_gate is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_gate.default_decompose(op.qubits)
@@ -688,7 +690,7 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # Pass measurement gates through
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
         if meas_gate is not None:
             yield op
             continue
@@ -706,7 +708,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
     # Precondition is that circuit has only terminal measurements.
     total = np.eye(1 << len(qubit_map))
     for op in iter_ops:
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
         if meas_gate is not None:
             if not ignore_terminal_measurements:
                 raise TypeError(
@@ -721,7 +723,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
-    known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+    known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))

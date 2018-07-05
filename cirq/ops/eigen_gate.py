@@ -18,15 +18,16 @@ import numpy as np
 
 from cirq import abc
 from cirq.extension import PotentialImplementation
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 from cirq.value import Symbol
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
 
 
-class EigenGate(gate_features.BoundedEffectGate,
-                gate_features.ParameterizableGate,
+class EigenGate(raw_types.Gate,
+                gate_features.BoundedEffect,
+                gate_features.ParameterizableEffect,
                 PotentialImplementation):
     """A gate with a known eigendecomposition.
 
@@ -120,16 +121,9 @@ class EigenGate(gate_features.BoundedEffectGate,
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableGate,
-                             gate_features.ReversibleEffect] and
-                not self.is_parameterized()):
-            return self
-        if (desired_type in [gate_features.SelfInverseGate] and
-                not self.is_parameterized() and
-                all(angle * self._exponent % 1 == 0
-                    for angle, _ in self._eigen_components())):
-            return self
-        if (desired_type is gate_features.KnownMatrixGate and
+        if (desired_type in [gate_features.ExtrapolatableEffect,
+                             gate_features.ReversibleEffect,
+                             gate_features.KnownMatrixGate] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)

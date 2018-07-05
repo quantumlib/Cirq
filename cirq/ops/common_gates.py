@@ -73,9 +73,8 @@ class Rot11Gate(eigen_gate.EigenGate,
         return self._exponent
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return '@', '@'
 
     def text_diagram_exponent(self):
@@ -130,9 +129,8 @@ class RotXGate(eigen_gate.EigenGate,
         return self._exponent
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return 'X',
 
     def text_diagram_exponent(self):
@@ -187,9 +185,8 @@ class RotYGate(eigen_gate.EigenGate,
         return self._exponent
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return 'Y',
 
     def text_diagram_exponent(self):
@@ -244,9 +241,8 @@ class RotZGate(eigen_gate.EigenGate,
         return self._exponent
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return 'Z',
 
     def text_diagram_exponent(self):
@@ -280,9 +276,8 @@ class MeasurementGate(gate_features.TextDiagrammableGate):
             raise ValueError('len(invert_mask) > len(qubits)')
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return 'M',
 
     def __repr__(self):
@@ -354,21 +349,23 @@ T = Z**0.25
 
 class HGate(gate_features.TextDiagrammableGate,
             gate_features.CompositeGate,
-            gate_features.SelfInverseGate,
+            gate_features.ReversibleEffect,
             gate_features.KnownMatrixGate,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return 'H',
 
     def default_decompose(self, qubits):
         q = qubits[0]
         yield Y(q)**0.5
         yield X(q)
+
+    def inverse(self):
+        return self
 
     def matrix(self):
         """See base class."""
@@ -438,9 +435,8 @@ class CNotGate(eigen_gate.EigenGate,
         return self._exponent
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return '@', 'X'
 
     def text_diagram_exponent(self):
@@ -497,10 +493,9 @@ class SwapGate(eigen_gate.EigenGate,
         return self._exponent
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        if not use_unicode_characters:
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
+        if not args.use_unicode_characters:
             return 'swap', 'swap'
         return '×', '×'
 

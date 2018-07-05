@@ -53,7 +53,11 @@ class _WrappedSymbolsQCircuitGate(QCircuitDiagrammableGate):
         self.sub = sub
 
     def qcircuit_wire_symbols(self, qubit_count=None):
-        s = self.sub.text_diagram_wire_symbols()
+        s = self.sub.text_diagram_wire_symbols(ops.TextDiagramSymbolArgs(
+            known_qubit_count=qubit_count,
+            known_qubits=None,
+            use_unicode_characters=True,
+            precision=3))
         s = [_escape_text_for_latex(e) for e in s]
         e = self.sub.text_diagram_exponent()
         if e != 1:

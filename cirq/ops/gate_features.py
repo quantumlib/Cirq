@@ -35,18 +35,17 @@ class ReversibleEffect(metaclass=abc.ABCMeta):
         """Returns a gate with an exactly opposite effect."""
 
 
-TSelf_ExtrapolatableGate = TypeVar('TSelf_ExtrapolatableGate',
-                                   bound='ExtrapolatableGate')
+TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
+                                     bound='ExtrapolatableEffect')
 
 
-class ExtrapolatableGate(raw_types.Gate,
-                         ReversibleEffect,
-                         metaclass=abc.ABCMeta):
+class ExtrapolatableEffect(ReversibleEffect,
+                           metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableGate, factor: float
-                           ) -> TSelf_ExtrapolatableGate:
+    def extrapolate_effect(self: TSelf_ExtrapolatableEffect, factor: float
+                           ) -> TSelf_ExtrapolatableEffect:
         """Augments, diminishes, or reverses the effect of the receiving gate.
 
         Args:
@@ -56,8 +55,8 @@ class ExtrapolatableGate(raw_types.Gate,
             A gate equivalent to applying the receiving gate 'factor' times.
         """
 
-    def __pow__(self: TSelf_ExtrapolatableGate, power: float
-                ) -> TSelf_ExtrapolatableGate:
+    def __pow__(self: TSelf_ExtrapolatableEffect, power: float
+                ) -> TSelf_ExtrapolatableEffect:
         """Extrapolates the effect of the gate.
 
         Note that there are cases where (G**a)**b != G**(a*b). For example,
@@ -81,15 +80,8 @@ class ExtrapolatableGate(raw_types.Gate,
         """
         return self.extrapolate_effect(power)
 
-    def inverse(self: TSelf_ExtrapolatableGate) -> TSelf_ExtrapolatableGate:
+    def inverse(self: TSelf_ExtrapolatableEffect) -> TSelf_ExtrapolatableEffect:
         return self.extrapolate_effect(-1)
-
-
-class SelfInverseGate(ReversibleEffect):
-    """A reversible gate that is its own inverse."""
-
-    def inverse(self) -> 'SelfInverseGate':
-        return self
 
 
 class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -154,6 +146,43 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """The unitary matrix of the operation this gate applies."""
 
 
+class TextDiagramSymbolArgs:
+    """
+    Attributes:
+        known_qubits: The qubits the gate is being applied to. None means this
+            information is not known by the caller.
+        known_qubit_count: The number of qubits the gate is being applied to
+            None means this information is not known by the caller.
+        use_unicode_characters: If true, the wire symbols are permitted to
+            include unicode characters (as long as they work well in fixed
+            width fonts). If false, use only ascii characters. ASCII is
+            preferred in cases where UTF8 support is done poorly, or where
+            the fixed-width font being used to show the diagrams does not
+            properly handle unicode characters.
+        precision: The number of digits after the decimal to show for numbers in
+            the text diagram. None means use full precision.
+    """
+
+    UNINFORMED_DEFAULT = None  # type: TextDiagramSymbolArgs
+
+    def __init__(self,
+                 known_qubits: Optional[Tuple[raw_types.QubitId, ...]],
+                 known_qubit_count: Optional[int],
+                 use_unicode_characters: bool,
+                 precision: Optional[int]) -> None:
+        self.known_qubits = known_qubits
+        self.known_qubit_count = known_qubit_count
+        self.use_unicode_characters = use_unicode_characters
+        self.precision = precision
+
+
+TextDiagramSymbolArgs.UNINFORMED_DEFAULT = TextDiagramSymbolArgs(
+    known_qubits=None,
+    known_qubit_count=None,
+    use_unicode_characters=True,
+    precision=3)
+
+
 class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate which can be nicely represented in a text diagram."""
 
@@ -163,10 +192,7 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return 1
 
     @abc.abstractmethod
-    def text_diagram_wire_symbols(self,
-                                  qubit_count: Optional[int] = None,
-                                  use_unicode_characters: bool = True,
-                                  precision: Optional[int] = 3
+    def text_diagram_wire_symbols(self, args: TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         """The symbols that should be shown on the gate's qubits (in order).
 
@@ -174,20 +200,10 @@ class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         of the returned tuple should be equal to this number of qubits.
         If the gate acts on a variable number of qubits, then a single
         symbol should be used, and this will be repeated across the operation.
-        It is an error to have more than a single symbol in the case that
-        the gate acts on a variable number of qubits.
 
         Args:
-            qubit_count: The number of qubits the gate is being applied to, if
-                this information is known by the caller.
-            use_unicode_characters: If true, the wire symbols are permitted to
-                include unicode characters (as long as they work well in fixed
-                width fonts). If false, use only ascii characters. ASCII is
-                preferred in cases where UTF8 support is done poorly, or where
-                the fixed-width font being used to show the diagrams does not
-                properly handle unicode characters.
-            precision: The number of digits after the decimal to show in the
-                text diagram.
+            args: Value class encapsulating the various symbol options, such as
+                whether or not to use unicode characters.
 
         Returns:
              A tuple containing symbols to place on each of the qubit wires
@@ -205,7 +221,9 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def phase_by(self: TSelf_PhaseableGate,
                  phase_turns: float,
                  qubit_index: int) -> TSelf_PhaseableGate:
-        """Returns a phased version of the gate.
+        """Returns a phased version of the effect.
+
+        For example, an X gate phased by 90 degrees would be a Y gate.
 
         Args:
             phase_turns: The amount to phase the gate, in fractions of a whole
@@ -217,17 +235,23 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
 
-class BoundedEffectGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect on the state is known to be below some threshold."""
+class BoundedEffect(metaclass=abc.ABCMeta):
+    """An effect with known bounds on how easy it is to detect.
+
+    Used when deciding whether or not an operation is negligible. For example,
+    the trace distance between the states before and after a Z**0.00000001
+    operation is very close to 0, so it would typically be considered
+    negligible.
+    """
 
     @abc.abstractmethod
     def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this gate's input/output.
+        """A maximum on the trace distance between this effect's input/output.
 
-        Approximations that overestimate are permitted. Even ones that exceed
-        1. Underestimates are not permitted. Generally this method is used
-        when deciding whether to keep gates, so only the behavior near 0 is
-        important.
+        Generally this method is used when deciding whether to keep gates, so
+        only the behavior near 0 is important. Approximations that overestimate
+        the maximum trace distance are permitted. Even ones that exceed 1.
+        Underestimates are not permitted.
         """
 
 
@@ -272,26 +296,26 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-TSelf_ParameterizableGate = TypeVar('TSelf_ParameterizableGate',
-                                    bound='ParameterizableGate')
+TSelf_ParameterizableEffect = TypeVar('TSelf_ParameterizableEffect',
+                                      bound='ParameterizableEffect')
 
 
-class ParameterizableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that can be parameterized by Symbols."""
+class ParameterizableEffect(metaclass=abc.ABCMeta):
+    """An effect that can be parameterized by Symbols."""
 
     @abc.abstractmethod
     def is_parameterized(self) -> bool:
-        """Whether the gate is parameterized.
+        """Whether the effect is parameterized.
         
         Returns True if the gate has any unresolved Symbols and False otherwise.
         """
 
     @abc.abstractmethod
-    def with_parameters_resolved_by(self: TSelf_ParameterizableGate,
+    def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
                                     param_resolver: ParamResolver
-                                    ) -> TSelf_ParameterizableGate:
-        """Resolve the parameters in the gate.
+                                    ) -> TSelf_ParameterizableEffect:
+        """Resolve the parameters in the effect.
 
-        Returns a gate of the same type, but with all Symbols replaced with
-        floats according to the given ParamResolver.
+        Returns a gate or operation of the same type, but with all Symbols
+        replaced with floats according to the given ParamResolver.
         """
