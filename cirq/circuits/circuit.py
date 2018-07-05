@@ -448,9 +448,9 @@ class Circuit(object):
 
             # rectify frontier
             qubits_start = max(start, min(frontier[q] for q in new_op.qubits))
-            ops_to_push: List[ops.Operation] = []
+            ops_to_push = [] # type: List[ops.Operation]
             for moment in range(qubits_start, op_start):
-                moment_ops_to_push: List[ops.Operation] = []
+                moment_ops_to_push = [] # type: List[ops.Operation]
                 for op in self.moments[moment].operations:
                     if any((q in new_op.qubits) and (frontier[q] <= moment) 
                            for q in op.qubits):
