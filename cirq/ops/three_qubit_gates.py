@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Common quantum gates that target three qubits."""
+from typing import Tuple
 
 import numpy as np
 
@@ -62,9 +63,8 @@ class _CCZGate(gate_features.TextDiagrammableGate,
         return np.diag([1, 1, 1, 1, 1, 1, 1, -1])
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return '@', '@', '@'
 
     def __repr__(self) -> str:
@@ -92,9 +92,8 @@ class _CCXGate(gate_features.TextDiagrammableGate,
                                  np.array([[0, 1], [1, 0]]))
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         return '@', '@', 'X'
 
     def __repr__(self) -> str:
@@ -133,10 +132,9 @@ class _CSwapGate(gate_features.TextDiagrammableGate,
                                  np.diag([1]))
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        if not use_unicode_characters:
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
+        if not args.use_unicode_characters:
             return '@', 'swap', 'swap'
         return '@', '×', '×'
 

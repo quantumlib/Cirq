@@ -12,18 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Union, List, Optional, cast
+from typing import Tuple, Union, List, Optional, cast, TypeVar
 
 import numpy as np
 
 from cirq import abc
 from cirq.extension import PotentialImplementation
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 from cirq.value import Symbol
 
 
-class EigenGate(gate_features.BoundedEffectGate,
-                gate_features.ParameterizableGate,
+TSelf = TypeVar('TSelf', bound='EigenGate')
+
+
+class EigenGate(raw_types.Gate,
+                gate_features.BoundedEffect,
+                gate_features.ParameterizableEffect,
                 PotentialImplementation):
     """A gate with a known eigendecomposition.
 
@@ -53,7 +57,7 @@ class EigenGate(gate_features.BoundedEffectGate,
         self._exponent = exponent
 
     @abc.abstractmethod
-    def _with_exponent(self, exponent: Union[Symbol, float]) -> 'EigenGate':
+    def _with_exponent(self: TSelf, exponent: Union[Symbol, float]) -> TSelf:
         """Return the same kind of gate, but with a different exponent."""
         pass
 
@@ -90,10 +94,10 @@ class EigenGate(gate_features.BoundedEffectGate,
         """
         pass
 
-    def __pow__(self, power: float) -> 'EigenGate':
+    def __pow__(self: TSelf, power: float) -> TSelf:
         return self.extrapolate_effect(power)
 
-    def inverse(self) -> 'EigenGate':
+    def inverse(self: TSelf) -> TSelf:
         return self.extrapolate_effect(-1)
 
     def __eq__(self, other):
@@ -117,16 +121,9 @@ class EigenGate(gate_features.BoundedEffectGate,
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableGate,
-                             gate_features.ReversibleGate] and
-                not self.is_parameterized()):
-            return self
-        if (desired_type in [gate_features.SelfInverseGate] and
-                not self.is_parameterized() and
-                all(angle * self._exponent % 1 == 0
-                    for angle, _ in self._eigen_components())):
-            return self
-        if (desired_type is gate_features.KnownMatrixGate and
+        if (desired_type in [gate_features.ExtrapolatableEffect,
+                             gate_features.ReversibleEffect,
+                             gate_features.KnownMatrixGate] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
@@ -138,14 +135,15 @@ class EigenGate(gate_features.BoundedEffectGate,
         return np.sum(1j**(half_turns * e * 2) * component
                       for half_turns, component in self._eigen_components())
 
-    def extrapolate_effect(self, factor) -> 'EigenGate':
+    def extrapolate_effect(self: TSelf, factor: float) -> TSelf:
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't know how to extrapolate.")
-        return self._with_exponent(exponent=self._exponent * factor)
+        return self._with_exponent(
+            exponent=cast(float, self._exponent) * factor)
 
     def is_parameterized(self) -> bool:
         return isinstance(self._exponent, Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'EigenGate':
+    def with_parameters_resolved_by(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))

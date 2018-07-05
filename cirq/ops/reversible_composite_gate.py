@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements the inverse() method of a CompositeGate & ReversibleGate."""
+"""Implements the inverse() method of a CompositeGate & ReversibleEffect."""
+from typing import TypeVar, Generic, cast
 
 from cirq import abc
 from cirq.extension import Extensions
@@ -32,10 +33,11 @@ def _reverse_operation(operation: raw_types.Operation,
     Raises:
         ValueError: The operation's gate isn't reversible.
     """
-    gate = extensions.try_cast(operation.gate, gate_features.ReversibleGate)
+    gate = extensions.try_cast(gate_features.ReversibleEffect, operation.gate)
     if gate is None:
         raise ValueError('Not reversible: {}'.format(operation))
-    return raw_types.Operation(gate.inverse(), operation.qubits)
+    return raw_types.Operation(cast(raw_types.Gate, gate.inverse()),
+                               operation.qubits)
 
 
 def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
@@ -57,23 +59,28 @@ def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
         iter_transformation=lambda e: reversed(list(e)))
 
 
+TOriginal = TypeVar('TOriginal', bound='ReversibleCompositeGate')
+
+
 class ReversibleCompositeGate(gate_features.CompositeGate,
-                              gate_features.ReversibleGate,
+                              gate_features.ReversibleEffect,
                               metaclass=abc.ABCMeta):
     """A composite gate that gets decomposed into reversible gates."""
 
-    def inverse(self) -> '_ReversedReversibleCompositeGate':
+    def inverse(self: TOriginal
+                ) -> '_ReversedReversibleCompositeGate[TOriginal]':
         return _ReversedReversibleCompositeGate(self)
 
 
-class _ReversedReversibleCompositeGate(gate_features.CompositeGate,
-                                       gate_features.ReversibleGate):
+class _ReversedReversibleCompositeGate(Generic[TOriginal],
+                                       gate_features.CompositeGate,
+                                       gate_features.ReversibleEffect):
     """A reversed reversible composite gate."""
 
-    def __init__(self, forward_form: ReversibleCompositeGate) -> None:
+    def __init__(self, forward_form: TOriginal) -> None:
         self.forward_form = forward_form
 
-    def inverse(self) -> ReversibleCompositeGate:
+    def inverse(self) -> TOriginal:
         return self.forward_form
 
     def default_decompose(self, qubits):

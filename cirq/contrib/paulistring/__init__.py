@@ -12,16 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Ways to wrap values so that they match desired interfaces."""
-
-from cirq.extension.cast import (
-    can_cast,
-    cast,
-    try_cast,
+from cirq.contrib.paulistring.pauli import (
+    Pauli,
 )
-from cirq.extension.extensions import (
-    Extensions,
+from cirq.contrib.paulistring.clifford_gate import (
+    CliffordGate,
+    PauliTransform,
 )
-from cirq.extension.potential_implementation import (
-    PotentialImplementation
+from cirq.contrib.paulistring.pauli_interaction_gate import (
+    PauliInteractionGate,
 )
