@@ -19,7 +19,10 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator
+from collections import defaultdict
+from typing import (Any, Dict, FrozenSet, Callable, 
+                    Generator, Iterable, Iterator, 
+                    List) 
 from typing import Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
@@ -42,7 +45,7 @@ class Circuit(object):
     Methods returning information about the circuit:
         next_moment_operating_on
         prev_moment_operating_on
-        operation_on
+        operation_at
         qubits
         findall_operations
         to_unitary_matrix
@@ -334,6 +337,14 @@ class Circuit(object):
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.NEW)
 
+        if strategy is InsertStrategy.PUSH:
+            if (not self._has_op_at(splitter_index, op.qubits) and
+                    0 <= splitter_index < len(self.moments)):
+                return splitter_index
+
+            return self._pick_or_create_inserted_op_moment_index(
+                splitter_index, op, InsertStrategy.NEW)
+
         if strategy is InsertStrategy.EARLIEST:
             if not self._has_op_at(splitter_index, op.qubits):
                 p = self.prev_moment_operating_on(op.qubits, splitter_index)
@@ -423,6 +434,43 @@ class Circuit(object):
             return end
 
         return self.insert(end, operations[op_index:])
+
+    def insert_at_frontier(self,
+                          operations: ops.OP_TREE,
+                          start: int,
+                          frontier: Dict[QubitId, int]=None
+                          ) -> Dict[QubitId, int]:
+        """Inserts operations inline at frontier."""
+        if frontier is None:
+            frontier = defaultdict(lambda: 0)
+        for new_op in ops.flatten_op_tree(operations):
+            op_start = max(start, max(frontier[q] for q in new_op.qubits))
+
+            # rectify frontier
+            qubits_start = max(start, min(frontier[q] for q in new_op.qubits))
+            ops_to_push: List[ops.Operation] = []
+            for moment in range(qubits_start, op_start):
+                moment_ops_to_push: List[ops.Operation] = []
+                for op in self.moments[moment].operations:
+                    if any((q in new_op.qubits) and (frontier[q] <= moment) 
+                           for q in op.qubits):
+                        moment_ops_to_push.append(op)
+                if moment_ops_to_push:
+                    ops_to_push += moment_ops_to_push
+                    remaining_ops = [
+                        op for op in self.moments[moment].operations 
+                        if op not in ops_to_push]
+                    self.moments[moment] = Moment(remaining_ops)
+            for op in reversed(ops_to_push):
+                self.insert_at_frontier(op, op_start)
+            
+            op_frontier = self.insert(op_start, new_op, InsertStrategy.PUSH)
+            for q in new_op.qubits:
+                frontier[q] = max(op_frontier, frontier[q])
+
+        return frontier
+
+
 
     def append(
             self,
