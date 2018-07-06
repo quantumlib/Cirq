@@ -17,7 +17,7 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 import numpy as np
 
 from cirq.google import XmonDevice, XmonQubit
-from cirq.line.placement import place_method
+from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import (
     above,
     right_of,
@@ -332,7 +332,7 @@ class AnnealSequenceSearch(object):
         return None
 
 
-class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
+class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
     """
 

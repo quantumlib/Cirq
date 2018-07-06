@@ -16,7 +16,7 @@ import abc
 import collections
 
 from typing import Dict, List, Optional, Set
-from cirq.line.placement import place_method
+from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
@@ -279,7 +279,7 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
         return visited
 
 
-class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
+class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip.
     """
 

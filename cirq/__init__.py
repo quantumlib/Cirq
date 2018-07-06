@@ -82,10 +82,10 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    AnnealSequenceSearchMethod,
-    GreedySequenceSearchMethod,
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
     LinePlacement,
-    LinePlacementMethod,
+    LinePlacementStrategy,
     LineQubit,
     LineSequence,
     line_placement_on_device

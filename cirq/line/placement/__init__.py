@@ -13,16 +13,16 @@
 # limitations under the License.
 
 from cirq.line.placement.anneal import (
-    AnnealSequenceSearchMethod,
+    AnnealSequenceSearchStrategy,
 )
 from cirq.line.placement.greedy import (
-    GreedySequenceSearchMethod,
+    GreedySequenceSearchStrategy,
 )
 from cirq.line.placement.line import (
     line_placement_on_device,
 )
-from cirq.line.placement.place_method import (
-    LinePlacementMethod,
+from cirq.line.placement.place_strategy import (
+    LinePlacementStrategy,
 )
 from cirq.line.placement.sequence import (
     LinePlacement,

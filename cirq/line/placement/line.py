@@ -14,14 +14,14 @@
 
 from cirq.google import XmonDevice
 from cirq.line.placement import greedy
-from cirq.line.placement.place_method import LinePlacementMethod
+from cirq.line.placement.place_strategy import LinePlacementStrategy
 from cirq.line.placement.sequence import LinePlacement
 
 
 def line_placement_on_device(device: XmonDevice,
                              length: int,
-                             method: LinePlacementMethod =
-                             greedy.GreedySequenceSearchMethod()) -> \
+                             method: LinePlacementStrategy =
+                             greedy.GreedySequenceSearchStrategy()) -> \
         LinePlacement:
     """Searches for linear sequence of qubits on device.
 
