@@ -19,6 +19,7 @@ from matplotlib import pyplot as pl
 
 import cirq
 import cirq.google as cg
+from cirq.devices import GridQubit
 from cirq.study import visualize
 
 
@@ -28,8 +29,8 @@ def test_plot_state_histogram():
 
     rot_w_gate = cg.ExpWGate(half_turns=1.)
 
-    q0 = cg.GridQubit(0, 0)
-    q1 = cg.GridQubit(1, 0)
+    q0 = GridQubit(0, 0)
+    q1 = GridQubit(1, 0)
     circuit = cirq.Circuit()
     circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
     circuit.append([cg.XmonMeasurementGate(key='q0')(q0),

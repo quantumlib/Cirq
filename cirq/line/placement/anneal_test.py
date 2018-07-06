@@ -17,7 +17,8 @@ from typing import Iterable, List
 import numpy as np
 import pytest
 
-from cirq.google import XmonDevice, GridQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,

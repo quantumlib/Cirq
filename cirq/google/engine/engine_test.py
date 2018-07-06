@@ -23,7 +23,8 @@ from google.protobuf.json_format import MessageToDict
 
 import cirq
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
-from cirq.google import Engine, Foxtail, JobConfig, GridQubit
+from cirq.devices import GridQubit
+from cirq.google import Engine, Foxtail, JobConfig
 from cirq.testing.mock import mock
 
 _A_RESULT = program_pb2.Result(

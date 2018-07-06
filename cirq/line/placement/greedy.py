@@ -25,7 +25,8 @@ from cirq.line.placement.sequence import (
     LinePlacement,
     LineSequence
 )
-from cirq.google import XmonDevice, GridQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 
 
 class GreedySequenceSearch(object):

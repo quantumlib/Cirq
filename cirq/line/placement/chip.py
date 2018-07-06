@@ -14,7 +14,8 @@
 
 from typing import Dict, List, Tuple
 
-from cirq.google import XmonDevice, GridQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 
 
 EDGE = Tuple[GridQubit, GridQubit]

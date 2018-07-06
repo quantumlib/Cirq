@@ -17,7 +17,7 @@ from cirq.line.placement.sequence import (
     LineSequence,
     longest_sequence_index
 )
-from cirq.google import GridQubit
+from cirq.devices import GridQubit
 from cirq.testing import EqualsTester
 
 

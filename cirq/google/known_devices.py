@@ -14,8 +14,8 @@
 
 from typing import Dict, List, Set, Tuple
 
+from cirq.devices import GridQubit
 from cirq.google.xmon_device import XmonDevice
-from cirq.devices.grid_qubit import GridQubit
 from cirq.value import Duration
 
 

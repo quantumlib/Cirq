@@ -16,7 +16,8 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 
 import numpy as np
 
-from cirq.google import XmonDevice, GridQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line.placement import place_method
 from cirq.line.placement.chip import (
     above,

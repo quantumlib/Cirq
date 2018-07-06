@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google import XmonDevice, GridQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
 from cirq.line.placement.place import (

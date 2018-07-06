@@ -14,7 +14,7 @@
 
 from typing import List, Optional
 
-from cirq.google import GridQubit
+from cirq.devices import GridQubit
 
 
 class LineSequence:

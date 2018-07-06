@@ -63,10 +63,10 @@ def main():
 
 
 def make_bell_test_circuit():
-    alice = cirq.google.GridQubit(0, 0)
-    bob = cirq.google.GridQubit(1, 0)
-    alice_referee = cirq.google.GridQubit(0, 1)
-    bob_referee = cirq.google.GridQubit(1, 1)
+    alice = cirq.devices.GridQubit(0, 0)
+    bob = cirq.devices.GridQubit(1, 0)
+    alice_referee = cirq.devices.GridQubit(0, 1)
+    bob_referee = cirq.devices.GridQubit(1, 1)
 
     circuit = cirq.Circuit()
 

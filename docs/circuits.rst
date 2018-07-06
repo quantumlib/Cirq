@@ -25,13 +25,13 @@ Cirq, qubits are represented by subclasses of the :class:`~cirq.QubitId`
 base class. Different subclasses of :class:`~cirq.QubitId` can be used
 for different purposes.  For example the qubits that Google's
 Xmon devices use are often arranged on the vertices of a
-square grid.  For this the class :class:`~cirq.google.GridQubit`
+square grid.  For this the class :class:`~cirq.devices.GridQubit`
 subclasses :class:`~cirq.QubitId`.   For example, we can create
 a 3 by 3 grid of qubits using
 
 .. code-block:: python
 
-    qubits = [cirq.google.GridQubit(x, y) for x in range(3) for y in range(3)]
+    qubits = [cirq.devices.GridQubit(x, y) for x in range(3) for y in range(3)]
 
     print(qubits[0])
     # prints "(0, 0)"
@@ -116,7 +116,7 @@ appending onto the :class:`~cirq.Circuit` with the
 .. code-block:: python
 
     from cirq.ops import CZ, H
-    q0, q1, q2 = [cirq.google.GridQubit(i, 0) for i in range(3)]
+    q0, q1, q2 = [cirq.devices.GridQubit(i, 0) for i in range(3)]
     circuit = cirq.Circuit()
     circuit.append([CZ(q0, q1), H(q2)])
 

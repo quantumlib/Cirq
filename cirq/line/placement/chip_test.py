@@ -14,9 +14,10 @@
 
 from typing import Iterable
 
+from cirq.devices import GridQubit
 from cirq.line.placement.chip import \
     chip_as_adjacency_list, yx_cmp, above, below, right_of, left_of
-from cirq.google import XmonDevice, GridQubit
+from cirq.google import XmonDevice
 from cirq.value import Duration
 
 

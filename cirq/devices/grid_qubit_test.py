@@ -16,7 +16,7 @@ import pytest
 
 from cirq import ops
 from cirq.api.google.v1 import operations_pb2
-from cirq.google import GridQubit
+from cirq.devices import GridQubit
 from cirq.testing import EqualsTester
 
 

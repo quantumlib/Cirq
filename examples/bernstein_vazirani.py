@@ -48,8 +48,8 @@ def main():
     circuit_sample_count = 3
 
     # Choose qubits to use.
-    input_qubits = [cirq.google.GridQubit(i, 0) for i in range(qubit_count)]
-    output_qubit = cirq.google.GridQubit(qubit_count, 0)
+    input_qubits = [cirq.devices.GridQubit(i, 0) for i in range(qubit_count)]
+    output_qubit = cirq.devices.GridQubit(qubit_count, 0)
 
     # Pick coefficients for the oracle and create a circuit to query it.
     secret_bias_bit = random.randint(0, 1)

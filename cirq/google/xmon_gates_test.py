@@ -18,8 +18,9 @@ from google.protobuf import message, text_format
 
 import cirq
 from cirq.api.google.v1 import operations_pb2
+from cirq.devices import GridQubit
 from cirq.google import (
-    XmonGate, GridQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
+    XmonGate, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleEffect
 from cirq.study import ParamResolver
@@ -355,8 +356,8 @@ def test_measure_key_on():
 
 
 def test_symbol_diagrams():
-    q00 = cirq.google.GridQubit(0, 0)
-    q01 = cirq.google.GridQubit(0, 1)
+    q00 = cirq.devices.GridQubit(0, 0)
+    q01 = cirq.devices.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a'),
                              half_turns=cirq.Symbol('b')).on(q00),
@@ -371,7 +372,7 @@ def test_symbol_diagrams():
 
 
 def test_z_diagram_chars():
-    q = cirq.google.GridQubit(0, 1)
+    q = cirq.devices.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpZGate().on(q),
         cirq.google.ExpZGate(half_turns=0.5).on(q),
