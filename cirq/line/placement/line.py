@@ -27,7 +27,7 @@ def line_placement_on_device(device: XmonDevice,
 
     Args:
         device: Google Xmon device instance.
-        length: Required line length.
+        length: Desired number of qubits making up the line.
         method: Line placement method. Defaults to
                 cirq.greedy.GreedySequenceSearchMethod.
 
