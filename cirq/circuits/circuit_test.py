@@ -20,6 +20,8 @@ import cirq
 from cirq.circuits.circuit import Circuit, _operation_to_unitary_matrix
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
+from cirq.circuits.optimization_pass import (PointOptimizer, 
+                                             PointOptimizationSummary)
 from cirq.google import ExpWGate
 from cirq.extension import Extensions
 
@@ -314,6 +316,38 @@ def test_insert_inline_near_start():
         Moment([cirq.Y(a)]),
         Moment(),
     ])
+
+def test_insert_at_frontier():
+
+    class PrependTwoXsAppendOneY(PointOptimizer):
+        """Replaces each multi-qubit gate with a two Zs on the first qubit
+        followed by the gate itself."""
+
+        def optimization_at(self, circuit, index, op):
+            new_ops = (cirq.Z(op.qubits[0]),) * 2 + (op, cirq.Y(op.qubits[0]))
+            return PointOptimizationSummary(clear_span=1,
+                                            clear_qubits=op.qubits,
+                                            new_operations=new_ops)
+
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    z = cirq.NamedQubit('z')
+
+    c = cirq.Circuit.from_ops(
+        cirq.CZ(x, y),
+        cirq.CZ(y, z),
+        cirq.CZ(x, y)
+    )
+
+    PrependTwoXsAppendOneY()(c)
+
+    expected = (cirq.Circuit.from_ops(
+        cirq.Z(x), cirq.Z(x), cirq.CZ(x, y), cirq.Y(x),
+        cirq.Z(y), cirq.Z(y), cirq.CZ(y, z), cirq.Y(y)) + 
+        cirq.Circuit.from_ops(
+            cirq.Z(x), cirq.Z(x), cirq.CZ(x, y), cirq.Y(x)))
+
+    assert c == expected
 
 
 def test_next_moment_operating_on():
