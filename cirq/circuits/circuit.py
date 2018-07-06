@@ -21,8 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from collections import defaultdict
 from typing import (Any, Dict, FrozenSet, Callable, 
-                    Generator, Iterable, Iterator, 
-                    List) 
+                    Generator, Iterable, Iterator)
 from typing import Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
@@ -36,7 +35,7 @@ from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set
+    from typing import Set, List
 
 
 class Circuit(object):
