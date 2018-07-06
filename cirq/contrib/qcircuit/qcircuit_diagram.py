@@ -15,7 +15,7 @@
 from typing import Tuple
 
 from cirq import abc, circuits, extension, ops
-from cirq.contrib.qcircuit_diagrammable_gate import (
+from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
     QCircuitDiagrammableGate,
     fallback_qcircuit_extensions,
 )
