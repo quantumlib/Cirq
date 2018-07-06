@@ -18,7 +18,6 @@ from google.protobuf import message, text_format
 
 import cirq
 from cirq.api.google.v1 import operations_pb2
-from cirq.extension import Extensions
 from cirq.google import (
     XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
@@ -212,9 +211,8 @@ def test_cz_to_proto():
 
 
 def test_cz_potential_implementation():
-    ex = Extensions()
-    assert not ex.can_cast(Exp11Gate(half_turns=Symbol('a')), KnownMatrixGate)
-    assert ex.can_cast(Exp11Gate(), KnownMatrixGate)
+    assert not cirq.can_cast(KnownMatrixGate, Exp11Gate(half_turns=Symbol('a')))
+    assert cirq.can_cast(KnownMatrixGate, Exp11Gate())
 
 
 def test_cz_parameterize():
@@ -314,11 +312,10 @@ def test_w_to_proto():
 
 
 def test_w_potential_implementation():
-    ex = Extensions()
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), KnownMatrixGate)
-    assert not ex.can_cast(ExpWGate(half_turns=Symbol('a')), ReversibleEffect)
-    assert ex.can_cast(ExpWGate(), KnownMatrixGate)
-    assert ex.can_cast(ExpWGate(), ReversibleEffect)
+    assert not cirq.can_cast(KnownMatrixGate, ExpWGate(half_turns=Symbol('a')))
+    assert not cirq.can_cast(ReversibleEffect, ExpWGate(half_turns=Symbol('a')))
+    assert cirq.can_cast(KnownMatrixGate, ExpWGate())
+    assert cirq.can_cast(ReversibleEffect, ExpWGate())
 
 
 def test_w_parameterize():
@@ -355,3 +352,34 @@ def test_measure_key_on():
     assert XmonMeasurementGate(key='a').on(q) == cirq.Operation(
         gate=XmonMeasurementGate(key='a'),
         qubits=(q,))
+
+
+def test_symbol_diagrams():
+    q00 = cirq.google.XmonQubit(0, 0)
+    q01 = cirq.google.XmonQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a'),
+                             half_turns=cirq.Symbol('b')).on(q00),
+        cirq.google.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
+        cirq.google.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
+    )
+    assert c.to_text_diagram() == """
+(0, 0): ───W(a)^b───@─────
+                    │
+(0, 1): ───Z^c──────@^d───
+    """.strip()
+
+
+def test_z_diagram_chars():
+    q = cirq.google.XmonQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpZGate().on(q),
+        cirq.google.ExpZGate(half_turns=0.5).on(q),
+        cirq.google.ExpZGate(half_turns=0.25).on(q),
+        cirq.google.ExpZGate(half_turns=0.125).on(q),
+        cirq.google.ExpZGate(half_turns=-0.5).on(q),
+        cirq.google.ExpZGate(half_turns=-0.25).on(q),
+    )
+    assert c.to_text_diagram() == """
+(0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
+    """.strip()

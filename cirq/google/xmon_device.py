@@ -57,7 +57,7 @@ class XmonDevice(Device):
         return [e for e in possibles if e in self.qubits]
 
     def duration_of(self, operation):
-        g = xmon_gate_ext.try_cast(operation.gate, xmon_gates.XmonGate)
+        g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
         if isinstance(g, xmon_gates.Exp11Gate):
             return self._exp_z_duration
         if isinstance(g, xmon_gates.ExpWGate):

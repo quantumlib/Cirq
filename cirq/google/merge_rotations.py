@@ -66,7 +66,7 @@ class MergeRotations(PointOptimizer):
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            gate = self.extensions.try_cast(op.gate, ops.KnownMatrixGate)
+            gate = self.extensions.try_cast(ops.KnownMatrixGate, op.gate)
             if gate is None:
                 break
             indices.append(index)
