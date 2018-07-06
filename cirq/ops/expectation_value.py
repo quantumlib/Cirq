@@ -6,7 +6,9 @@
 # imports
 import cirq
 import numpy as np
-
+from cirq.google import XmonSimulator, XmonMeasurementGate
+from cirq import Circuit
+from cirq import RotXGate, RotYGate, MeasurementGate
 
 def expectation_value(circuit, operator, method='wavefunction',
                       n_samples=None, measurement=False, repetitions=100, quadratic_z=False):
@@ -95,7 +97,7 @@ def expectation_value(circuit, operator, method='wavefunction',
             # Function to add measurement gates to qubits
             def measurement_gates(circuit, q_dict):
 
-                meas = [cirq.google.XmonMeasurementGate(key='q{}'.format(i)).on(
+                meas = [XmonMeasurementGate(key='q{}'.format(i)).on(
                         qubit) for i, qubit in q_dict.items()]
 
                 circuit.append(meas)
@@ -158,7 +160,7 @@ def expectation_value(circuit, operator, method='wavefunction',
         def measurement_gates(circuit, q_dict):
             # note q_dict is a dictionary with indices and qubits
 
-            meas = [cirq.google.XmonMeasurementGate(key='q{}'.format(i)).on(
+            meas = [XmonMeasurementGate(key='q{}'.format(i)).on(
                     qubit) for i, qubit in q_dict.items()]
 
             circuit.append(meas)
