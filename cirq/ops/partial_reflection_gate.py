@@ -23,9 +23,9 @@ from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features
 
 
-class PartialReflectionGate(gate_features.BoundedEffectGate,
-                            gate_features.ParameterizableGate,
-                            gate_features.TextDiagrammableGate,
+class PartialReflectionGate(gate_features.TextDiagrammableGate,
+                            gate_features.BoundedEffect,
+                            gate_features.ParameterizableEffect,
                             PotentialImplementation):
     """An interpolated reflection operation.
 
@@ -68,9 +68,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
 
     @abc.abstractmethod
     def text_diagram_wire_symbols(self,
-                                  qubit_count = None,
-                                  use_unicode_characters = True,
-                                  precision = 3
+                                  args: gate_features.TextDiagramSymbolArgs
                                   ) -> Tuple[str, ...]:
         pass
 
@@ -84,7 +82,8 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return self.extrapolate_effect(-1)
 
     def __str__(self):
-        base = ''.join(self.text_diagram_wire_symbols())
+        base = ''.join(self.text_diagram_wire_symbols(
+            gate_features.TextDiagramSymbolArgs.UNINFORMED_DEFAULT))
         if self.half_turns == 1:
             return base
         return '{}**{}'.format(base, repr(self.half_turns))
@@ -106,7 +105,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return abs(self.half_turns) * 3.5
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableGate,
+        if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect,
                              gate_features.KnownMatrixGate] and
                 not self.is_parameterized()):

@@ -18,7 +18,7 @@ from cirq.google import XmonDevice
 from cirq.line.placement.sequence import LinePlacement
 
 
-class LinePlacementMethod(metaclass=abc.ABCMeta):
+class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """Choice and options for the line placement calculation method.
 
     Currently two methods are available: cirq.line.GreedySequenceSearchMethod

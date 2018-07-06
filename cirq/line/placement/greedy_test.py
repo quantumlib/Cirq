@@ -17,7 +17,7 @@ import pytest
 
 from cirq.line.placement.greedy import (
     GreedySequenceSearch,
-    GreedySequenceSearchMethod,
+    GreedySequenceSearchStrategy,
     MinimalConnectivityGreedySequenceSearch,
     LargestAreaGreedySequenceSearch
 )
@@ -429,7 +429,7 @@ def test_greedy_search_method_calls_all(largest, minimal):
     largest_instance = largest.return_value
     minimal_instance = minimal.return_value
 
-    method = GreedySequenceSearchMethod()
+    method = GreedySequenceSearchStrategy()
     method.place_line(_create_device(qubits), length)
 
     largest.assert_called_once_with(_create_device(qubits), q00)
@@ -450,7 +450,7 @@ def test_greedy_search_method_returns_longest(largest, minimal):
     largest.return_value.get_or_search.return_value = sequence_short
     minimal.return_value.get_or_search.return_value = sequence_long
 
-    method = GreedySequenceSearchMethod()
+    method = GreedySequenceSearchStrategy()
     assert method.place_line(_create_device([]), length) == LinePlacement(
         length, [LineSequence(sequence_long)])
 
@@ -463,6 +463,6 @@ def test_greedy_search_method_returns_empty_when_empty(largest, minimal):
     minimal.return_value.get_or_search.return_value = []
 
     length = 1
-    method = GreedySequenceSearchMethod()
+    method = GreedySequenceSearchStrategy()
     assert method.place_line(_create_device([]), length) == LinePlacement(
         length, [])

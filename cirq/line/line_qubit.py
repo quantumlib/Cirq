@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 from typing import List
 
 from cirq import ops
 
-
+@functools.total_ordering
 class LineQubit(ops.QubitId):
     """A qubit on a 1d lattice with nearest-neighbor connectivity."""
 
@@ -45,8 +46,15 @@ class LineQubit(ops.QubitId):
             return NotImplemented
         return self.x == other.x
 
+    def __lt__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.x < other.x
+
     def __ne__(self, other):
-        return not self == other
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.x != other.x
 
     def __hash__(self):
         return hash((LineQubit, self.x))

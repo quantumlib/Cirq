@@ -32,7 +32,7 @@ def test_anneal_method_calls_anneal_search():
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q02])
     length = 2
-    method = anneal.AnnealSequenceSearchMethod
+    method = anneal.AnnealSequenceSearchStrategy
 
     with mock.patch.object(method, 'place_line') as place_line:
         sequences = [[q00, q01]]
@@ -50,7 +50,7 @@ def test_greedy_method_calls_greedy_search():
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q02])
     length = 2
-    method = greedy.GreedySequenceSearchMethod()
+    method = greedy.GreedySequenceSearchStrategy()
 
     with mock.patch.object(method, 'place_line') as place_line:
         sequences = [[q00, q01]]

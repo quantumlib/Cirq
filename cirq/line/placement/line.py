@@ -17,20 +17,20 @@ from typing import Callable, List, Tuple
 from cirq.google import XmonDevice, XmonQubit
 from cirq.line import LineQubit
 from cirq.line.placement import greedy
-from cirq.line.placement.place_method import LinePlacementMethod
+from cirq.line.placement.place_strategy import LinePlacementStrategy
 from cirq.line.placement.sequence import LinePlacement
 
 
 def line_placement_on_device(device: XmonDevice,
                              length: int,
-                             method: LinePlacementMethod =
-                             greedy.GreedySequenceSearchMethod()) -> \
+                             method: LinePlacementStrategy =
+                             greedy.GreedySequenceSearchStrategy()) -> \
         LinePlacement:
     """Searches for linear sequence of qubits on device.
 
     Args:
         device: Google Xmon device instance.
-        length: Required line length.
+        length: Desired number of qubits making up the line.
         method: Line placement method. Defaults to
                 cirq.greedy.GreedySequenceSearchMethod.
 

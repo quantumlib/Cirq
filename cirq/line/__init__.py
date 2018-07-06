@@ -16,10 +16,10 @@ from cirq.line.line_qubit import (
     LineQubit,
 )
 from cirq.line.placement import (
-    AnnealSequenceSearchMethod,
-    GreedySequenceSearchMethod,
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
     LinePlacement,
-    LinePlacementMethod,
+    LinePlacementStrategy,
     LineSequence,
     line_on_device,
     line_placement_on_device,

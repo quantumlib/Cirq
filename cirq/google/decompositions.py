@@ -146,7 +146,7 @@ def single_qubit_matrix_to_native_gates(
     ]
     result = [
         g for g in result
-        if cast(ops.BoundedEffectGate, g).trace_distance_bound() > tolerance
+        if cast(ops.BoundedEffect, g).trace_distance_bound() > tolerance
     ]
 
     # Special case: XY half-turns can absorb Z rotations.
