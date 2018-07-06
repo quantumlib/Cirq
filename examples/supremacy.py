@@ -99,7 +99,7 @@ def _make_cz_layer(device: google.XmonDevice, layer_index: int
     shift = (layer_index >> 1) % 4
 
     for q in device.qubits:
-        q2 = google.XmonQubit(q.row + dir_row, q.col + dir_col)
+        q2 = google.GridQubit(q.row + dir_row, q.col + dir_col)
         if q2 not in device.qubits:
             continue  # This edge isn't on the device.
         if (q.row * (2 - dir_row) + q.col * (2 - dir_col)) % 4 != shift:

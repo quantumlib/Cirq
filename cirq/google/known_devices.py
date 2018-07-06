@@ -15,11 +15,11 @@
 from typing import Dict, List, Set, Tuple
 
 from cirq.google.xmon_device import XmonDevice
-from cirq.google.xmon_qubit import XmonQubit
+from cirq.devices.grid_qubit import GridQubit
 from cirq.value import Duration
 
 
-def _parse_device(s: str) -> Tuple[List[XmonQubit], Dict[str, Set[XmonQubit]]]:
+def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
     """Parse ASCIIart device layout into info about qubits and connectivity.
 
     Args:
@@ -35,12 +35,12 @@ def _parse_device(s: str) -> Tuple[List[XmonQubit], Dict[str, Set[XmonQubit]]]:
         on that measurement line.
     """
     lines = s.strip().split('\n')
-    qubits = []  # type: List[XmonQubit]
-    measurement_lines = {}  # type: Dict[str, Set[XmonQubit]]
+    qubits = []  # type: List[GridQubit]
+    measurement_lines = {}  # type: Dict[str, Set[GridQubit]]
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':
-                qubit = XmonQubit(row, col)
+                qubit = GridQubit(row, col)
                 qubits.append(qubit)
                 measurement_line = measurement_lines.setdefault(c, set())
                 measurement_line.add(qubit)

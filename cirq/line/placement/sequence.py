@@ -14,12 +14,12 @@
 
 from typing import List, Optional
 
-from cirq.google import XmonQubit
+from cirq.google import GridQubit
 
 
 class LineSequence:
 
-    def __init__(self, line: List[XmonQubit]) -> None:
+    def __init__(self, line: List[GridQubit]) -> None:
         self.line = line
 
     def __eq__(self, other):
@@ -54,7 +54,7 @@ class LinePlacement:
         return hash(tuple(self.lines))
 
 
-def longest_sequence_index(sequences: List[List[XmonQubit]]) -> Optional[int]:
+def longest_sequence_index(sequences: List[List[GridQubit]]) -> Optional[int]:
     """Gives the position of a longest sequence.
 
     Args:

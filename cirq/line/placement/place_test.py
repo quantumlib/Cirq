@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google import XmonDevice, XmonQubit
+from cirq.google import XmonDevice, GridQubit
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
 from cirq.line.placement.place import (
@@ -23,9 +23,9 @@ from cirq.value import Duration
 
 
 def test_anneal_method_calls_anneal_search():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q03 = XmonQubit(0, 3)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q03 = GridQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
     method = anneal.AnnealSequenceSearchMethod
@@ -39,9 +39,9 @@ def test_anneal_method_calls_anneal_search():
 
 
 def test_greedy_method_calls_greedy_search():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q03 = XmonQubit(0, 3)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q03 = GridQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
     method = greedy.GreedySequenceSearchMethod()

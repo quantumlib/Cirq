@@ -12,7 +12,7 @@ import cirq
 
 def main():
     # Pick a qubit.
-    qubit = cirq.google.XmonQubit(0, 0)
+    qubit = cirq.google.GridQubit(0, 0)
 
     # Create a circuit
     circuit = cirq.Circuit.from_ops(

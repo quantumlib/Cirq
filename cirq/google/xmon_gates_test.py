@@ -19,7 +19,7 @@ from google.protobuf import message, text_format
 import cirq
 from cirq.api.google.v1 import operations_pb2
 from cirq.google import (
-    XmonGate, XmonQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
+    XmonGate, GridQubit, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
 from cirq.ops import KnownMatrixGate, ReversibleEffect
 from cirq.study import ParamResolver
@@ -57,7 +57,7 @@ def test_measurement_eq():
 
 def test_single_qubit_measurement_to_proto():
     assert proto_matches_text(
-        XmonMeasurementGate('test').to_proto(XmonQubit(2, 3)),
+        XmonMeasurementGate('test').to_proto(GridQubit(2, 3)),
         """
         measurement {
             targets {
@@ -71,7 +71,7 @@ def test_single_qubit_measurement_to_proto():
 
 def test_multi_qubit_measurement_to_proto():
     assert proto_matches_text(
-        XmonMeasurementGate('test').to_proto(XmonQubit(2, 3), XmonQubit(3, 4)),
+        XmonMeasurementGate('test').to_proto(GridQubit(2, 3), GridQubit(3, 4)),
         """
         measurement {
             targets {
@@ -106,7 +106,7 @@ def test_z_eq():
 def test_z_to_proto():
     assert proto_matches_text(
         ExpZGate(half_turns=Symbol('k')).to_proto(
-            XmonQubit(2, 3)),
+            GridQubit(2, 3)),
         """
         exp_z {
             target {
@@ -121,7 +121,7 @@ def test_z_to_proto():
 
     assert proto_matches_text(
         ExpZGate(half_turns=0.5).to_proto(
-            XmonQubit(2, 3)),
+            GridQubit(2, 3)),
         """
         exp_z {
             target {
@@ -173,7 +173,7 @@ def test_cz_eq():
 def test_cz_to_proto():
     assert proto_matches_text(
         Exp11Gate(half_turns=Symbol('k')).to_proto(
-            XmonQubit(2, 3), XmonQubit(4, 5)),
+            GridQubit(2, 3), GridQubit(4, 5)),
         """
         exp_11 {
             target1 {
@@ -192,7 +192,7 @@ def test_cz_to_proto():
 
     assert proto_matches_text(
         Exp11Gate(half_turns=0.5).to_proto(
-            XmonQubit(2, 3), XmonQubit(4, 5)),
+            GridQubit(2, 3), GridQubit(4, 5)),
         """
         exp_11 {
             target1 {
@@ -275,7 +275,7 @@ def test_w_to_proto():
     assert proto_matches_text(
         ExpWGate(half_turns=Symbol('k'),
                  axis_half_turns=1).to_proto(
-            XmonQubit(2, 3)),
+            GridQubit(2, 3)),
         """
         exp_w {
             target {
@@ -294,7 +294,7 @@ def test_w_to_proto():
     assert proto_matches_text(
         ExpWGate(half_turns=0.5,
                  axis_half_turns=Symbol('j')).to_proto(
-            XmonQubit(2, 3)),
+            GridQubit(2, 3)),
         """
         exp_w {
             target {
@@ -344,7 +344,7 @@ def test_has_inverse():
 
 
 def test_measure_key_on():
-    q = XmonQubit(0, 0)
+    q = GridQubit(0, 0)
 
     assert XmonMeasurementGate(key='').on(q) == cirq.Operation(
         gate=XmonMeasurementGate(key=''),
@@ -355,8 +355,8 @@ def test_measure_key_on():
 
 
 def test_symbol_diagrams():
-    q00 = cirq.google.XmonQubit(0, 0)
-    q01 = cirq.google.XmonQubit(0, 1)
+    q00 = cirq.google.GridQubit(0, 0)
+    q01 = cirq.google.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a'),
                              half_turns=cirq.Symbol('b')).on(q00),
@@ -371,7 +371,7 @@ def test_symbol_diagrams():
 
 
 def test_z_diagram_chars():
-    q = cirq.google.XmonQubit(0, 1)
+    q = cirq.google.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpZGate().on(q),
         cirq.google.ExpZGate(half_turns=0.5).on(q),
