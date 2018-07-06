@@ -20,12 +20,12 @@ from cirq.ops import gate_features, raw_types
 
 def test_reversible_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ReversibleGate()
+        _ = gate_features.ReversibleEffect()
 
 
 def test_reversible_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ReversibleGate):
+    class Missing(gate_features.ReversibleEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -33,11 +33,11 @@ def test_reversible_gate_is_abstract_must_implement():
 
 
 def test_reversible_gate_is_abstract_can_implement():
-    class Included(gate_features.ReversibleGate):
+    class Included(gate_features.ReversibleEffect):
         def inverse(self):
             pass
 
-    assert isinstance(Included(), gate_features.ReversibleGate)
+    assert isinstance(Included(), gate_features.ReversibleEffect)
 
 
 def test_known_matrix_gate_is_abstract_cant_instantiate():
@@ -64,12 +64,12 @@ def test_known_matrix_gate_is_abstract_can_implement():
 
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ExtrapolatableGate()
+        _ = gate_features.ExtrapolatableEffect()
 
 
 def test_extrapolatable_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.ExtrapolatableGate):
+    class Missing(gate_features.ExtrapolatableEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -77,11 +77,11 @@ def test_extrapolatable_gate_is_abstract_must_implement():
 
 
 def test_extrapolatable_gate_is_abstract_can_implement():
-    class Included(gate_features.ExtrapolatableGate):
+    class Included(gate_features.ExtrapolatableEffect):
         def extrapolate_effect(self, factor):
             pass
 
-    assert isinstance(Included(), gate_features.ExtrapolatableGate)
+    assert isinstance(Included(), gate_features.ExtrapolatableEffect)
 
 
 def test_composite_gate_is_abstract_cant_instantiate():
@@ -132,16 +132,6 @@ def test_composite_gate_from_gate_tuples():
     q2 = raw_types.QubitId()
     assert ([gates[0][0](q1), gates[1][0](q1, q2)]
             == composite.default_decompose([q1, q2]))
-
-
-def test_self_inverse_is_not_abstract():
-    assert isinstance(gate_features.SelfInverseGate(),
-                      gate_features.ReversibleGate)
-
-
-def test_self_inverse_reverse():
-    r = gate_features.SelfInverseGate()
-    assert r.inverse() is r
 
 
 def test_single_qubit_gate_validate_args():
@@ -224,19 +214,19 @@ def test_three_qubit_gate_validate():
 
 def test_parameterizable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.ParameterizableGate()
+        _ = gate_features.ParameterizableEffect()
 
 
 def test_parameterizable_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class MissingBoth(gate_features.ParameterizableGate):
+    class MissingBoth(gate_features.ParameterizableEffect):
         pass
     # noinspection PyAbstractClass
-    class MissingOne(gate_features.ParameterizableGate):
+    class MissingOne(gate_features.ParameterizableEffect):
         def is_parameterized(self):
             pass
     # noinspection PyAbstractClass
-    class MissingOtherOne(gate_features.ParameterizableGate):
+    class MissingOtherOne(gate_features.ParameterizableEffect):
         def with_parameters_resolved_by(self, param_resolver):
             pass
 
@@ -249,13 +239,14 @@ def test_parameterizable_gate_is_abstract_must_implement():
 
 
 def test_parameterizable_gate_is_abstract_can_implement():
-    class Included(gate_features.ParameterizableGate):
+    class Included(gate_features.ParameterizableEffect):
         def is_parameterized(self):
             pass
+
         def with_parameters_resolved_by(self, param_resolver):
             pass
 
-    assert isinstance(Included(), gate_features.ParameterizableGate)
+    assert isinstance(Included(), gate_features.ParameterizableEffect)
 
 
 def test_on_each():

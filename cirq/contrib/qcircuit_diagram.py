@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Tuple
 
 from cirq import abc, circuits, extension, ops
 from cirq.contrib.qcircuit_diagrammable_gate import (
@@ -52,11 +52,9 @@ class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
     def text_diagram_exponent(self):
         return 1
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count: Optional[int] = None,
-                                  use_unicode_characters: bool = True,
-                                  precision: Optional[int] = 3):
-        return self.sub.qcircuit_wire_symbols(qubit_count)
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
+        return self.sub.qcircuit_wire_symbols(args.known_qubit_count)
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -98,10 +96,10 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 def _wrap_operation(op: ops.Operation,
                     ext: extension.Extensions) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    new_gate = ext.try_cast(op.gate, QCircuitDiagrammableGate)
+    new_gate = ext.try_cast(QCircuitDiagrammableGate, op.gate)
     if new_gate is None:
-        new_gate = fallback_qcircuit_extensions.cast(op.gate,
-                                                     QCircuitDiagrammableGate)
+        new_gate = fallback_qcircuit_extensions.cast(QCircuitDiagrammableGate,
+                                                     op.gate)
     return ops.Operation(_QCircuitGate(new_gate), new_qubits)
 
 

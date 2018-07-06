@@ -135,23 +135,23 @@ def test_try_cast_to():
 
     # Supported sub features that are not present on sub gate.
     assert CRestricted.try_cast_to(cirq.KnownMatrixGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.ReversibleGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.ExtrapolatableGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
+    assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.TextDiagrammableGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.BoundedEffectGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.ParameterizableGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
+    assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert CY.try_cast_to(cirq.KnownMatrixGate, ext) is not None
-    assert CY.try_cast_to(cirq.ReversibleGate, ext) is not None
-    assert CY.try_cast_to(cirq.ExtrapolatableGate, ext) is not None
+    assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
+    assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
     assert CY.try_cast_to(cirq.TextDiagrammableGate, ext) is not None
-    assert CY.try_cast_to(cirq.BoundedEffectGate, ext) is not None
-    assert CY.try_cast_to(cirq.ParameterizableGate, ext) is not None
+    assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
+    assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
     # Extensions stick around after casting.
     ext.add_cast(cirq.KnownMatrixGate, RestrictedGate, lambda _: cirq.X)
-    ext.add_cast(cirq.ReversibleGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.X)
     casted = CRestricted.try_cast_to(cirq.KnownMatrixGate, ext)
     assert casted is not None
     assert casted.default_extensions is ext
@@ -173,7 +173,7 @@ def test_extrapolatable_effect():
 
 def test_extrapolatable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.ExtrapolatableGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.ExtrapolatableEffect, RestrictedGate, lambda _: cirq.X)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -197,7 +197,7 @@ def test_reversible():
 
 def test_reversible_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.ReversibleGate, RestrictedGate, lambda _: cirq.S)
+    ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.S)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -218,7 +218,7 @@ def test_parameterizable():
 
 def test_parameterizable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableGate, RestrictedGate, lambda _: cirq.S)
+    ext.add_cast(cirq.ParameterizableEffect, RestrictedGate, lambda _: cirq.S)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -229,17 +229,24 @@ def test_parameterizable_via_extension():
 
 
 def test_text_diagrammable():
-    assert CY.text_diagram_wire_symbols() == ('@', 'Y')
+    assert CY.text_diagram_wire_symbols(
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
     assert CY.text_diagram_exponent() == 1
 
-    assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols() == (
-        '@', 'Z')
-    assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 0.5
+    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_wire_symbols(
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
+    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_exponent() == 0.5
+
+    assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols(
+        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'S')
+    assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 1
 
 
 def test_text_diagrammable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammableGate, RestrictedGate, lambda _: cirq.S)
+    ext.add_cast(cirq.TextDiagrammableGate,
+                 RestrictedGate,
+                 lambda _: cirq.Y**0.5)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -255,7 +262,7 @@ def test_bounded_effect():
 
 def test_bounded_effect_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.BoundedEffectGate, RestrictedGate, lambda _: cirq.Y)
+    ext.add_cast(cirq.BoundedEffect, RestrictedGate, lambda _: cirq.Y)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -272,5 +279,6 @@ def test_repr():
 def test_str():
     assert str(cirq.ControlledGate(cirq.X)) == 'CX'
     assert str(cirq.ControlledGate(cirq.Z)) == 'CZ'
-    assert str(cirq.ControlledGate(cirq.S)) == 'CZ**0.5'
-    assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCZ**0.5'
+    assert str(cirq.ControlledGate(cirq.S)) == 'CS'
+    assert str(cirq.ControlledGate(cirq.Z**0.125)) == 'CZ**0.125'
+    assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCS'

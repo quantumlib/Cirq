@@ -1,20 +1,26 @@
 # ignore compiled python files
 __pycache__
 *.pyc
+
 # ignore idea SDK
 .idea/*
+
 # ignore cache
 .cache/*
 .mypy_cache/*
 .pytest_cache/*
+
 # ignore coverage files
 *.py,cover
 *.coverage
 *.coverage.*
+
 # packaging
 *.egg-info/
+
 # Sphinx
 _build
 docs/generated
+
 # swap files
 *.swp

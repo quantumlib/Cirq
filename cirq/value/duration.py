@@ -19,8 +19,7 @@ from typing import Union
 class Duration:
     """A time delta that supports picosecond accuracy."""
 
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  picos: Union[int, float] = 0,
                  nanos: Union[int, float] = 0) -> None:
         """Initializes a Duration with a time specified in ns and/or ps.
@@ -31,8 +30,6 @@ class Duration:
             picos: A number of picoseconds to add to the time delta.
             nanos: A number of nanoseconds to add to the time delta.
         """
-
-        assert not positional_args
 
         if picos and nanos:
             self._picos = picos + nanos * 1000
