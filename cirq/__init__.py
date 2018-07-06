@@ -105,6 +105,8 @@ from cirq.ops import (
     HGate,
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
+    ISWAP,
+    ISwapGate,
     KnownMatrixGate,
     measure,
     measure_each,
