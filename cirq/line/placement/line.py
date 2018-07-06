@@ -43,21 +43,23 @@ def line_placement_on_device(device: XmonDevice,
 def line_on_device(device: XmonDevice,
                    length: int,
                    offset: int = 0,
-                   method: LinePlacementMethod =
-                           greedy.GreedySequenceSearchMethod()) -> \
+                   method: LinePlacementStrategy =
+                           greedy.GreedySequenceSearchStrategy()) -> \
         Tuple[List[XmonQubit], Callable[[LineQubit], XmonQubit]]:
     """Searches for linear sequence of qubits on device.
 
     Args:
         device: Google Xmon device instance.
-        length: Required line length.
+        length: Desired number of qubits making up the line.
         offset: The first index of line qubit to map on.
         method: Line placement method. Defaults to
                 cirq.greedy.GreedySequenceSearchMethod.
 
     Returns:
-        Tuple of qubit sequence and function that maps from LineQubit to
-        XmonQubit.
+        A list of qubits of the desired length, where qubits adjacent in the
+        list are also adjacent on the device.
+    Raises:
+        NotFoundError: Could not find a line of the given length on the device.
     """
     line = line_placement_on_device(device, length, method).get().line
     return line, lambda qubit: line[qubit.x - offset]
