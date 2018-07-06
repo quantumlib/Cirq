@@ -57,8 +57,10 @@ class EqualsTester:
             assert v1 == v2
             assert not v1 != v2
 
-            # NotImplemented should be consistent.
-            if hasattr(v1, '__eq__') and hasattr(v1, '__ne__'):
+            # __eq__ and __neq__ should both be correct or not implemented.
+            assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
+            # Careful: python2 int doesn't have __eq__ or __ne__.
+            if hasattr(v1, '__eq__'):
                 eq = v1.__eq__(v2)
                 ne = v1.__ne__(v2)
                 assert (eq, ne) in [(True, False),
@@ -72,8 +74,10 @@ class EqualsTester:
                 assert not v1 == v2
                 assert v1 != v2
 
-                # NotImplemented should be consistent.
-                if hasattr(v1, '__eq__') and hasattr(v1, '__ne__'):
+                # __eq__ and __neq__ should both be correct or not implemented.
+                assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
+                # Careful: python2 int doesn't have __eq__ or __ne__.
+                if hasattr(v1, '__eq__'):
                     eq = v1.__eq__(v2)
                     ne = v1.__ne__(v2)
                     assert (eq, ne) in [(False, True),
