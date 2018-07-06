@@ -32,8 +32,11 @@ def test_exponentiate_X():
     results1 = sim.simulate(circuit1)
     results2 = sim.simulate(circuit2)
 
-    np.testing.assert_allclose(np.round(results1.final_state, 4),
-                                      np.round(results2.final_state, 4))
+
+    np.testing.assert_allclose(
+        results1.final_state,
+        results2.final_state,
+        atol=1e-8)
 
 
 def test_exponentiate_Y():
@@ -50,8 +53,11 @@ def test_exponentiate_Y():
     results1 = sim.simulate(circuit1)
     results2 = sim.simulate(circuit2)
 
-    np.testing.assert_allclose(np.round(results1.final_state, 4),
-                                      np.round(results2.final_state, 4))
+
+    np.testing.assert_allclose(
+        results1.final_state,
+        results2.final_state,
+        atol=1e-8)
 
 
 def test_exponentiate_Z():
@@ -68,8 +74,11 @@ def test_exponentiate_Z():
     results1 = sim.simulate(circuit1)
     results2 = sim.simulate(circuit2)
 
-    np.testing.assert_allclose(np.round(results1.final_state, 4), 
-                          np.round(results2.final_state, 4))
+    np.testing.assert_allclose(
+        results1.final_state,
+        results2.final_state,
+        atol=1e-8)
+
 
 def test_exponentiate_XZ():
 
