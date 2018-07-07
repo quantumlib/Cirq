@@ -130,6 +130,21 @@ class CliffordGate(ops.CompositeGate,
                             _inverse_map=inverse_map)
 
     @staticmethod
+    def from_pauli(pauli: Pauli, sqrt: bool = False) -> 'CliffordGate':
+        if sqrt:
+            rotation_map = {pauli:   PauliTransform(pauli, False),
+                            pauli+1: PauliTransform(pauli+2, False),
+                            pauli+2: PauliTransform(pauli+1, True)}
+        else:
+            rotation_map = {pauli:   PauliTransform(pauli, False),
+                            pauli+1: PauliTransform(pauli+1, True),
+                            pauli+2: PauliTransform(pauli+2, True)}
+        inverse_map = {to: PauliTransform(frm, flip)
+                       for frm, (to, flip) in rotation_map.items()}
+        return CliffordGate(_rotation_map=rotation_map,
+                            _inverse_map=inverse_map)
+
+    @staticmethod
     def _validate_map_input(required_transform_count: int,
                             pauli_map_to: Optional[Dict[Pauli,
                                                         Tuple[Pauli, bool]]],
