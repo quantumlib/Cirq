@@ -70,11 +70,11 @@ def test_operation_eq():
     r21 = r2 + r1
 
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r1))
-    eq.make_equality_pair(lambda: cirq.Operation(g2, r1))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r2))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r12))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r21))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r1))
+    eq.make_equality_group(lambda: cirq.Operation(g2, r1))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r2))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r12))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r21))
     eq.add_equality_group(cirq.Operation(cirq.CZ, r21),
                           cirq.Operation(cirq.CZ, r12))
 

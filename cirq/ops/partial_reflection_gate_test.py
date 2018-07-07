@@ -46,9 +46,9 @@ def test_partial_reflection_gate_eq():
     eq = EqualsTester()
     eq.add_equality_group(DummyGate(), DummyGate(half_turns=1))
     eq.add_equality_group(DummyGate(half_turns=3.5), DummyGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('a')))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('b')))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=0))
+    eq.make_equality_group(lambda: DummyGate(half_turns=Symbol('a')))
+    eq.make_equality_group(lambda: DummyGate(half_turns=Symbol('b')))
+    eq.make_equality_group(lambda: DummyGate(half_turns=0))
     eq.add_equality_group(DummyGate(half_turns=0.5),
                           DummyGate(rads=np.pi / 2),
                           DummyGate(degs=90))
