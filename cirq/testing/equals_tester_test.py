@@ -38,6 +38,25 @@ def test_add_equality_group_correct():
     eq.add_equality_group('unrelated')
 
 
+def test_make_equality_group():
+    eq = EqualsTester()
+
+    eq.make_equality_group(lambda: fractions.Fraction(1, 1))
+
+    eq.make_equality_group(lambda: fractions.Fraction(1, 2),
+                           lambda: fractions.Fraction(2, 4))
+
+    eq.make_equality_group(lambda: 2, lambda: 2.0,
+                           lambda: fractions.Fraction(2, 1))
+
+    with pytest.raises(AssertionError):
+        eq.make_equality_group(lambda: 'a', lambda: 'b')
+
+    class Unique: pass
+    with pytest.raises(AssertionError):
+        eq.make_equality_group(lambda: Unique())
+
+
 def test_assert_add_equality_pair():
     eq = EqualsTester()
 
