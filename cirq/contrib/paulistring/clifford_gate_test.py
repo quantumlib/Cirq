@@ -233,7 +233,7 @@ def test_eq_ne_and_hash():
     eq = EqualsTester()
     for trans_x, trans_z in _all_rotation_pairs():
         gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
-        eq.make_equality_pair(gate_gen)
+        eq.make_equality_group(gate_gen)
 
 
 @pytest.mark.parametrize('gate,rep', (

@@ -37,7 +37,7 @@ def test_eq():
                           Timestamp(picos=0),
                           Timestamp(nanos=0.0))
     eq.add_equality_group(Timestamp(picos=1000), Timestamp(nanos=1))
-    eq.make_equality_pair(lambda: Timestamp(picos=-1))
+    eq.make_equality_group(lambda: Timestamp(picos=-1))
 
 
 def test_cmp():
