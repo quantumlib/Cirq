@@ -173,11 +173,11 @@ def test_validate_schedule_repeat_measurement_keys():
 
 def test_xmon_device_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: square_device(3, 3))
-    eq.make_equality_pair(lambda: square_device(3, 3, holes=[XmonQubit(1, 1)]))
-    eq.make_equality_pair(
+    eq.make_equality_group(lambda: square_device(3, 3))
+    eq.make_equality_group(lambda: square_device(3, 3, holes=[XmonQubit(1, 1)]))
+    eq.make_equality_group(
         lambda: XmonDevice(Duration(nanos=1), Duration(nanos=2),
                            Duration(nanos=3), []))
-    eq.make_equality_pair(
+    eq.make_equality_group(
         lambda: XmonDevice(Duration(nanos=1), Duration(nanos=1),
                            Duration(nanos=1), []))
