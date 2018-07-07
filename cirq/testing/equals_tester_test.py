@@ -38,41 +38,22 @@ def test_add_equality_group_correct():
     eq.add_equality_group('unrelated')
 
 
-def test_make_equality_group():
-    eq = EqualsTester()
-
-    eq.make_equality_group(lambda: fractions.Fraction(1, 1))
-
-    eq.make_equality_group(lambda: fractions.Fraction(1, 2),
-                           lambda: fractions.Fraction(2, 4))
-
-    eq.make_equality_group(lambda: 2, lambda: 2.0,
-                           lambda: fractions.Fraction(2, 1))
-
-    with pytest.raises(AssertionError):
-        eq.make_equality_group(lambda: 'a', lambda: 'b')
-
-    class Unique: pass
-    with pytest.raises(AssertionError):
-        eq.make_equality_group(lambda: Unique())
-
-
-def test_assert_add_equality_pair():
+def test_assert_make_equality_group():
     eq = EqualsTester()
 
     with pytest.raises(AssertionError):
-        eq.make_equality_pair(object)
+        eq.make_equality_group(object)
 
-    eq.make_equality_pair(lambda: 1)
-    eq.make_equality_pair(lambda: 2)
+    eq.make_equality_group(lambda: 1)
+    eq.make_equality_group(lambda: 2, lambda: 2.0)
     eq.add_equality_group(3)
 
     with pytest.raises(AssertionError):
         eq.add_equality_group(1)
     with pytest.raises(AssertionError):
-        eq.make_equality_pair(lambda: 1)
+        eq.make_equality_group(lambda: 1)
     with pytest.raises(AssertionError):
-        eq.make_equality_pair(lambda: 3)
+        eq.make_equality_group(lambda: 3)
 
 
 def test_add_equality_group_not_equivalent():
@@ -158,7 +139,7 @@ def test_fails_hash_is_default_and_inconsistent():
             return not self == other
 
     with pytest.raises(AssertionError):
-        eq.make_equality_pair(DefaultHashImplementation)
+        eq.make_equality_group(DefaultHashImplementation)
 
 
 def test_fails_when_ne_is_inconsistent():
@@ -180,7 +161,7 @@ def test_fails_when_ne_is_inconsistent():
             return hash(self.x)
 
     with pytest.raises(AssertionError):
-        eq.make_equality_pair(InconsistentNeImplementation)
+        eq.make_equality_group(InconsistentNeImplementation)
 
 
 def test_fails_when_not_reflexive():

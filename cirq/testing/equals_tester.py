@@ -100,24 +100,6 @@ class EqualsTester:
         # Remember this group, to enable disjoint checks vs later groups.
         self.groups.append(group_items)
 
-    def make_equality_pair(self, factory: Callable[[], Any]):
-        """Tries to add a disjoint (item, item) group to the equality tester.
-
-        Uses the factory method to produce two different objects containing
-        equal items. Asserts that the two object are equal, but not equal to
-        any items in other groups that have been or will be added. Adds the
-        pair as a group.
-
-        Args:
-            factory: A method for producing independent copies of an item.
-
-        Raises:
-            AssertionError: The factory produces items not equal to each other,
-                or items in another group are equal to items from the factory,
-                or the items violate the equal-implies-same-hash rule.
-        """
-        self.add_equality_group(factory(), factory())
-
     def make_equality_group(self, *factories: Callable[[], Any]):
         """Tries to add a disjoint equivalence group to the equality tester.
 
