@@ -21,7 +21,7 @@ import numpy as np
 from cirq import abc, ops, value
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
-from cirq.google.xmon_qubit import XmonQubit
+from cirq.devices.grid_qubit import GridQubit
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -34,7 +34,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def from_proto(op: operations_pb2.Operation) -> ops.Operation:
         param = XmonGate.parameterized_value_from_proto
-        qubit = XmonQubit.from_proto
+        qubit = GridQubit.from_proto
         which = op.WhichOneof('operation')
         if which == 'exp_w':
             exp_w = op.exp_w

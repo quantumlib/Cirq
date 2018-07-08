@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.testing import EqualsTester
+import pytest
+
+from cirq.testing import EqualsTester, only_test_in_python3
 from cirq import LineQubit
 
 
@@ -23,7 +25,7 @@ def test_init():
 
 def test_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: LineQubit(1))
+    eq.make_equality_group(lambda: LineQubit(1))
     eq.add_equality_group(LineQubit(2))
     eq.add_equality_group(LineQubit(0))
 
@@ -34,6 +36,25 @@ def test_str():
 
 def test_repr():
     assert repr(LineQubit(5)) == 'LineQubit(5)'
+
+
+def test_cmp():
+    assert LineQubit(0) == LineQubit(0)
+    assert LineQubit(0) != LineQubit(1)
+    assert LineQubit(0) < LineQubit(1)
+    assert LineQubit(1) > LineQubit(0)
+    assert LineQubit(0) <= LineQubit(0)
+    assert LineQubit(0) <= LineQubit(1)
+    assert LineQubit(0) >= LineQubit(0)
+    assert LineQubit(1) >= LineQubit(0)
+
+
+@only_test_in_python3
+def test_cmp_failure():
+    with pytest.raises(TypeError):
+        _ = 0 < LineQubit(1)
+    with pytest.raises(TypeError):
+        _ = LineQubit(1) < 0
 
 
 def test_is_adjacent():
