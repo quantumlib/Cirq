@@ -448,7 +448,7 @@ def test_greedy_search_method_calls_largest_only(minimal, largest):
     q01 = GridQubit(0, 1)
 
     method = GreedySequenceSearchStrategy('largest_area')
-    method.place_line(_create_device([q00, q01]), 2)
+    method.place_line(2)
 
     largest.return_value.get_or_search.assert_called_once_with()
     minimal.return_value.get_or_search.assert_not_called()
@@ -462,7 +462,7 @@ def test_greedy_search_method_calls_minimal_only(minimal, largest):
     q01 = GridQubit(0, 1)
 
     method = GreedySequenceSearchStrategy('minimal_connectivity')
-    method.place_line(_create_device([q00, q01]), 2)
+    method.place_line(2)
 
     largest.return_value.get_or_search.assert_not_called()
     minimal.return_value.get_or_search.assert_called_once_with()
