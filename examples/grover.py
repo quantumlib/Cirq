@@ -41,8 +41,9 @@ def make_oracle(input_qubits, output_qubit, x_bits):
     # Make oracle.
     # for (1, 1) it's just a Toffoli gate
     # otherwise negate the zero-bits.
-    yield(cirq.Z(q) for (q, bit) in zip(input_qubits, x_bits) if not bit)
+    yield(cirq.X(q) for (q, bit) in zip(input_qubits, x_bits) if not bit)
     yield(cirq.TOFFOLI(input_qubits[0], input_qubits[1], output_qubit))
+    yield(cirq.X(q) for (q, bit) in zip(input_qubits, x_bits) if not bit)
 
 
 def make_grover_circuit(input_qubits, output_qubit, oracle):
