@@ -21,12 +21,16 @@ from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
+    from cirq import study
     from typing import Dict, List
 
 
 LIFTED_POTENTIAL_TYPES = [
     gate_features.ReversibleEffect,
-    gate_features.ExtrapolatableEffect
+    gate_features.ExtrapolatableEffect,
+    gate_features.TextDiagrammable,
+    gate_features.BoundedEffect,
+    gate_features.ParameterizableEffect,
 ]
 
 
@@ -106,6 +110,15 @@ class GateOperation(raw_types.Operation,
                 return self.with_gate(cast_gate)
         return None
 
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        cast_gate = extension.cast(gate_features.TextDiagrammable, self.gate)
+        return cast_gate.text_diagram_info(args)
+
+    def trace_distance_bound(self) -> float:
+        cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
+        return cast_gate.trace_distance_bound()
+
     def inverse(self) -> 'GateOperation':
         cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
         return self.with_gate(cast(raw_types.Gate, cast_gate.inverse()))
@@ -131,3 +144,16 @@ class GateOperation(raw_types.Operation,
             A new operation on the same qubits with the scaled gate.
         """
         return self.extrapolate_effect(power)
+
+    def is_parameterized(self) -> bool:
+        cast_gate = extension.cast(gate_features.ParameterizableEffect,
+                                   self.gate)
+        return cast_gate.is_parameterized()
+
+    def with_parameters_resolved_by(self,
+                                    param_resolver: 'study.ParamResolver',
+                                    ) -> 'GateOperation':
+        cast_gate = extension.cast(gate_features.ParameterizableEffect,
+                                   self.gate)
+        new_gate = cast_gate.with_parameters_resolved_by(param_resolver)
+        return self.with_gate(cast(raw_types.Gate, new_gate))

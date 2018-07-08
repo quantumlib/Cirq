@@ -78,16 +78,19 @@ class XmonDevice(Device):
                                  xmon_gates.ExpWGate,
                                  xmon_gates.XmonMeasurementGate,
                                  xmon_gates.ExpZGate)):
-            raise ValueError('Unsupported gate type: {}'.format(repr(gate)))
+            raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation):
+        if not isinstance(operation, ops.GateOperation):
+            raise ValueError('Unsupported operation: {!r}'.format(operation))
+
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
             if not isinstance(q, XmonQubit):
-                raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
+                raise ValueError('Unsupported qubit type: {!r}'.format(q))
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {}'.format(repr(q)))
+                raise ValueError('Qubit not on device: {!r}'.format(q))
 
         if (len(operation.qubits) == 2
                 and not isinstance(operation.gate,
@@ -95,11 +98,11 @@ class XmonDevice(Device):
             p, q = operation.qubits
             if not cast(XmonQubit, p).is_adjacent(q):
                 raise ValueError(
-                    'Non-local interaction: {}.'.format(repr(operation)))
+                    'Non-local interaction: {!r}.'.format(operation))
 
     def check_if_exp11_operation_interacts(self,
-                                           exp11_op: ops.Operation,
-                                           other_op: ops.Operation) -> bool:
+                                           exp11_op: ops.GateOperation,
+                                           other_op: ops.GateOperation) -> bool:
         if isinstance(other_op.gate, xmon_gates.ExpZGate):
             return False
         # Adjacent ExpW operations may be doable.

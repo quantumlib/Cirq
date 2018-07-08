@@ -52,7 +52,7 @@ class ExpandComposite(PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=decomposition)
 
-    def _decompose(self, op):
+    def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
         """Recursively decompose composite gates into an OP_TREE of gates."""
         composite_gate = self.extension.try_cast(ops.CompositeGate, op.gate)
         if composite_gate is None:

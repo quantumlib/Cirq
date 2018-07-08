@@ -45,29 +45,33 @@ class _TestDevice(Device):
         elif isinstance(g, ops.Rot11Gate):
             return Duration(nanos=40)
         else:
-            raise ValueError('Unsupported gate type {}'.format(repr(g)))
+            raise ValueError('Unsupported gate type {!r}'.format(g))
 
     def validate_gate(self, gate: ops.Gate):
         if not isinstance(gate, (ops.HGate, ops.Rot11Gate)):
-            raise ValueError('Unsupported gate type {}'.format(repr(gate)))
+            raise ValueError('Unsupported gate type {!r}'.format(gate))
 
     def validate_operation(self, operation: ops.Operation):
+        if not isinstance(operation, ops.GateOperation):
+            raise ValueError('Unsupported operation: {!r}'.format(operation))
+
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
             if not isinstance(q, line.LineQubit):
-                raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
+                raise ValueError('Unsupported qubit type: {!r}'.format(q))
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {}'.format(repr(q)))
+                raise ValueError('Qubit not on device: {!r}'.format(q))
 
         if len(operation.qubits) == 2:
             p, q = operation.qubits
             if not cast(line.LineQubit, p).is_adjacent(cast(line.LineQubit, q)):
                 raise ValueError(
-                    'Non-local interaction: {}.'.format(repr(operation)))
+                    'Non-local interaction: {!r}.'.format(operation))
 
-    def validate_scheduled_operation(self, schedule: Schedule,
-        scheduled_operation: ScheduledOperation):
+    def validate_scheduled_operation(self,
+                                     schedule: Schedule,
+                                     scheduled_operation: ScheduledOperation):
         op = scheduled_operation.operation
         self.validate_operation(op)
         if isinstance(op.gate, ops.Rot11Gate):

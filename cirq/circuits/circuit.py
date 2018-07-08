@@ -302,7 +302,6 @@ class Circuit(object):
             self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
             in self.findall_operations(is_meas_gate))
 
-
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
             strategy: InsertStrategy) -> int:
@@ -587,24 +586,34 @@ def _get_operation_text_diagram_info_with_fallback(
         op: ops.Operation,
         args: ops.TextDiagramInfoArgs,
         ext: Extensions) -> ops.TextDiagramInfo:
-    text_diagram_gate = ext.try_cast(ops.TextDiagrammable, op.gate)
-    if text_diagram_gate is not None:
-        info = text_diagram_gate.text_diagram_info(args)
+    text_diagrammable_op = ext.try_cast(ops.TextDiagrammable, op)
+    if text_diagrammable_op is not None:
+        info = text_diagrammable_op.text_diagram_info(args)
         if len(op.qubits) != len(info.wire_symbols):
             raise ValueError(
                 'Wanted diagram info from {!r} for {} '
                 'qubits but got {!r}'.format(
-                    op.gate,
+                    op,
                     len(info.wire_symbols),
                     info))
         return info
 
-    name = repr(op.gate)
+    # Fallback to a default representation using the operation's __str__.
+    name = str(op)
+
+    # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
+    # Try to cut off the qubit part, since that would be redundant information.
+    redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
+    if name.endswith(redundant_tail):
+        name = name[:-len(redundant_tail)]
+
+    # Include ordering in the qubit labels.
     if len(op.qubits) != 1:
         symbols = tuple('{}:{}'.format(name, i)
                         for i in range(len(op.qubits)))
     else:
         symbols = (name,)
+
     return ops.TextDiagramInfo(wire_symbols=symbols)
 
 
