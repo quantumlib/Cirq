@@ -18,13 +18,6 @@ from cirq.line.placement.anneal import (
 from cirq.line.placement.greedy import (
     GreedySequenceSearchStrategy,
 )
-from cirq.line.placement.line import (
-    line_placement_on_device,
-)
 from cirq.line.placement.place_strategy import (
     LinePlacementStrategy,
-)
-from cirq.line.placement.sequence import (
-    LinePlacement,
-    LineSequence
 )

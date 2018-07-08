@@ -18,10 +18,10 @@ from cirq.line.placement.place_strategy import LinePlacementStrategy
 from cirq.line.placement.sequence import LinePlacement
 
 
-def line_placement_on_device(device: XmonDevice,
-                             length: int,
-                             method: LinePlacementStrategy =
-                             greedy.GreedySequenceSearchStrategy()) -> \
+def _line_placement_on_device(device: XmonDevice,
+                              length: int,
+                              method: LinePlacementStrategy =
+                              greedy.GreedySequenceSearchStrategy()) -> \
         LinePlacement:
     """Searches for linear sequence of qubits on device.
 
