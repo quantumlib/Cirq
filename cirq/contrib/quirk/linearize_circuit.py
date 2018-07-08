@@ -40,7 +40,7 @@ def linearize_circuit_qubits(
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
         ) -> None:
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-        circuit.qubits())
+        circuit.all_qubits())
     qubit_map = {q: line.LineQubit(i)
                  for i, q in enumerate(qubits)}
     QubitMapper(qubit_map.__getitem__).optimize_circuit(circuit)
