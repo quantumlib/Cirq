@@ -441,9 +441,14 @@ def test_greedy_search_method_calls_all(minimal, largest):
 
 
 def test_greedy_search_method_fails_when_unknown():
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    qubits = [q00, q01]
+    length = 2
+
     method = GreedySequenceSearchStrategy('fail')
     with pytest.raises(ValueError):
-        method.place_line(_create_device([]), 0)
+        method.place_line(_create_device(qubits), length)
 
 
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
