@@ -189,6 +189,18 @@ def test_init_ident_from_single(trans, frm):
     assert gate == CliffordGate.I
 
 
+@pytest.mark.parametrize('pauli,sqrt,expected', (
+        (Pauli.X, False, CliffordGate.X),
+        (Pauli.Y, False, CliffordGate.Y),
+        (Pauli.Z, False, CliffordGate.Z),
+        (Pauli.X, True, CliffordGate.X_sqrt),
+        (Pauli.Y, True, CliffordGate.Y_sqrt),
+        (Pauli.Z, True, CliffordGate.Z_sqrt)))
+def test_init_from_pauli(pauli, sqrt, expected):
+    gate = CliffordGate.from_pauli(pauli, sqrt=sqrt)
+    assert gate == expected
+
+
 def test_init_invalid():
     with pytest.raises(ValueError):
         CliffordGate.from_single_map()
@@ -221,7 +233,7 @@ def test_eq_ne_and_hash():
     eq = EqualsTester()
     for trans_x, trans_z in _all_rotation_pairs():
         gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
-        eq.make_equality_pair(gate_gen)
+        eq.make_equality_group(gate_gen)
 
 
 @pytest.mark.parametrize('gate,rep', (

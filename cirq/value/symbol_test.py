@@ -30,4 +30,4 @@ def test_string_representation():
 def test_parameterized_value_eq():
     eq = EqualsTester()
     eq.add_equality_group(Symbol('a'))
-    eq.make_equality_pair(lambda: Symbol('rr'))
+    eq.make_equality_group(lambda: Symbol('rr'))

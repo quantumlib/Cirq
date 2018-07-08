@@ -629,7 +629,7 @@ def test_clear_operations_touching():
     ])
 
 
-def test_qubits():
+def test_all_qubits():
     a = cirq.QubitId()
     b = cirq.QubitId()
 
@@ -637,24 +637,73 @@ def test_qubits():
         Moment([cirq.X(a)]),
         Moment([cirq.X(b)]),
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
 
     c = Circuit([
         Moment([cirq.X(a)]),
         Moment([cirq.X(a)]),
     ])
-    assert c.qubits() == {a}
+    assert c.all_qubits() == {a}
 
     c = Circuit([
         Moment([cirq.CZ(a, b)]),
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
 
     c = Circuit([
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(a)])
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
+
+
+def test_all_operations():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.X(b)]),
+    ])
+    assert list(c.all_operations()) == [cirq.X(a), cirq.X(b)]
+
+    c = Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+    assert list(c.all_operations()) == [cirq.X(a), cirq.X(b)]
+
+    c = Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.X(a)]),
+    ])
+    assert list(c.all_operations()) == [cirq.X(a), cirq.X(a)]
+
+    c = Circuit([
+        Moment([cirq.CZ(a, b)]),
+    ])
+    assert list(c.all_operations()) == [cirq.CZ(a, b)]
+
+    c = Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.X(a)])
+    ])
+    assert list(c.all_operations()) == [cirq.CZ(a, b), cirq.X(a)]
+
+    c = Circuit([
+            Moment([]),
+            Moment([cirq.X(a), cirq.Y(b)]),
+            Moment([]),
+            Moment([cirq.CNOT(a, b)]),
+            Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
+            Moment([])])
+
+    assert list(c.all_operations()) == [
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.CNOT(a, b),
+        cirq.Z(b),
+        cirq.H(a)
+    ]
 
 
 def test_from_ops():
@@ -1155,27 +1204,6 @@ def test_composite_gate_to_unitary_matrix():
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected)
 
 
-def test_iter_ops():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    c = Circuit([
-            Moment([]),
-            Moment([cirq.X(a), cirq.Y(b)]),
-            Moment([]),
-            Moment([cirq.CNOT(a, b)]),
-            Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
-            Moment([])])
-
-    expected = [
-        cirq.X(a),
-        cirq.Y(b),
-        cirq.CNOT(a, b),
-        cirq.Z(b),
-        cirq.H(a)]
-
-    assert list(c.iter_ops()) == expected
-
-
 def test_expanding_gate_symbols():
     class MultiTargetCZ(cirq.TextDiagrammableGate):
         def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
@@ -1207,4 +1235,23 @@ a: ───Z───
 b: ───Z───
       │
 c: ───@───
+    """.strip()
+
+
+def test_transposed_diagram_exponent_order():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.CZ(a, b)**-0.5,
+        cirq.CZ(a, c)**0.5,
+        cirq.CZ(b, c)**0.125,
+    )
+    assert circuit.to_text_diagram(transpose=True).strip() == """
+0 1      2
+│ │      │
+@─@^-0.5 │
+│ │      │
+@─┼──────@^0.5
+│ │      │
+│ @──────@^0.125
+│ │      │
     """.strip()

@@ -82,7 +82,11 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    LineQubit
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    LinePlacementStrategy,
+    LineQubit,
+    line_on_device,
 )
 
 from cirq.ops import (
@@ -105,6 +109,8 @@ from cirq.ops import (
     HGate,
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
+    ISWAP,
+    ISwapGate,
     KnownMatrixGate,
     measure,
     measure_each,

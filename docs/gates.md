@@ -7,8 +7,8 @@ calling the gate on the qubits.  The object created by such calls
 is an ``Operation``.
 ```python
 from cirq.ops import CNOT
-from cirq.google import XmonQubit
-q0, q1 = (XmonQubit(0, 0), XmonQubit(0, 1))
+from cirq.devices import GridQubit
+q0, q1 = (GridQubit(0, 0), GridQubit(0, 1))
 print(CNOT.on(q0, q1))
 print(CNOT(q0, q1))
 # prints
@@ -99,8 +99,8 @@ use in the diagram (e.g. '×' instead of 'SWAP').
 
 ### XmonGates
 
-Google's Xmon qubits support a specific gate set. Gates
-in this gate set operate on ``XmonQubit``s, which are qubits
+Google's Xmon devices support a specific gate set. Gates
+in this gate set operate on ``GridQubit``s, which are qubits
 arranged on a square grid and which have an ``x`` and ``y``
 coordinate.
 
