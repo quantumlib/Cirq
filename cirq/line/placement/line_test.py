@@ -16,7 +16,7 @@ from cirq.google import XmonDevice, XmonQubit
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
 from cirq.line.placement.line import (
-    line_placement_on_device
+    _line_placement_on_device
 )
 from cirq.testing.mock import mock
 from cirq.value import Duration
@@ -35,7 +35,7 @@ def test_anneal_method_calls_anneal_search():
         sequences = [[q00, q01]]
         place_line.return_value = sequences
 
-        assert line_placement_on_device(device, length, method) == sequences
+        assert _line_placement_on_device(device, length, method) == sequences
         place_line.assert_called_once_with(device, length)
 
 
@@ -52,5 +52,5 @@ def test_greedy_method_calls_greedy_search():
         sequences = [[q00, q01]]
         place_line.return_value = sequences
 
-        assert line_placement_on_device(device, length, method) == sequences
+        assert _line_placement_on_device(device, length, method) == sequences
         place_line.assert_called_once_with(device, length)
