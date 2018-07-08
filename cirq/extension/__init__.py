@@ -14,6 +14,11 @@
 
 """Ways to wrap values so that they match desired interfaces."""
 
+from cirq.extension.cast import (
+    can_cast,
+    cast,
+    try_cast,
+)
 from cirq.extension.extensions import (
     Extensions,
 )

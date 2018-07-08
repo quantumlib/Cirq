@@ -70,13 +70,12 @@ class Schedule:
 
     __hash__ = None  # type: ignore
 
-    def query(self,
-        *positional_args,
-        time: Timestamp,
-        duration: Duration = Duration(),
-        qubits: Iterable[QubitId] = None,
-        include_query_end_time=False,
-        include_op_end_times=False) -> List[ScheduledOperation]:
+    def query(self, *,  # Forces keyword args.
+              time: Timestamp,
+              duration: Duration = Duration(),
+              qubits: Iterable[QubitId] = None,
+              include_query_end_time=False,
+              include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:
@@ -93,7 +92,6 @@ class Schedule:
         Returns:
             A list of scheduled operations meeting the specified conditions.
         """
-        assert not positional_args
         earliest_time = time - self._max_duration
         end_time = time + duration
         qubits = None if qubits is None else frozenset(qubits)

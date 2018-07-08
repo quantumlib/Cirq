@@ -35,7 +35,7 @@ print(circuit)
 # prints
 # (0, 0): ───X^0.5───@───X^0.5───M───
 #                    │
-# (1, 0): ───X^0.5───Z───X^0.5───M───
+# (1, 0): ───X^0.5───@───X^0.5───M───
 ```
 
 We can simulate this by creating a ``cirq.google.Simulator`` and 

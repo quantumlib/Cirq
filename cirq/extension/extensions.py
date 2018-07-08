@@ -105,22 +105,22 @@ class Extensions:
         )
 
     def can_cast(self,
-                 actual_value: T_ACTUAL,
-                 desired_type: Type[T_DESIRED]) -> bool:
+                 desired_type: Type[T_DESIRED],
+                 actual_value: T_ACTUAL) -> bool:
         """Is it possible to turn the given value into the desired type?
 
         Args:
-            actual_value: The value that the caller has.
             desired_type: The type that the caller wants.
+            actual_value: The value that the caller has.
 
         Returns:
             True if the cast will work, False otherwise.
         """
-        return self.try_cast(actual_value, desired_type) is not None
+        return self.try_cast(desired_type, actual_value) is not None
 
     def try_cast(self,
-                 actual_value: T_ACTUAL,
-                 desired_type: Type[T_DESIRED]) -> Optional[T_DESIRED]:
+                 desired_type: Type[T_DESIRED],
+                 actual_value: T_ACTUAL) -> Optional[T_DESIRED]:
         """Represents the given value as the desired type, if possible.
 
         Returns None if no wrapper method is found, and the value isn't already
@@ -129,8 +129,8 @@ class Extensions:
         resolution order.
 
         Args:
-            actual_value: The value to be represented as the desired type.
             desired_type: The type of value that the caller wants.
+            actual_value: The value to be represented as the desired type.
 
         Returns:
             A value of the desired type, or else None.
@@ -154,8 +154,8 @@ class Extensions:
         return None
 
     def cast(self,
-             actual_value: T_ACTUAL,
-             desired_type: Type[T_DESIRED]) -> T_DESIRED:
+             desired_type: Type[T_DESIRED],
+             actual_value: T_ACTUAL) -> T_DESIRED:
         """Represents the given value as the desired type, if possible.
 
         Fails if no wrapper method is found, and the value isn't already an
@@ -164,8 +164,8 @@ class Extensions:
         resolution order.
 
         Args:
-            actual_value: The value to be represented as the desired type.
             desired_type: The type of value that the caller wants.
+            actual_value: The value to be represented as the desired type.
 
         Returns:
             A value of the desired type, if possible.
@@ -175,7 +175,7 @@ class Extensions:
                 extension specified for exposing its type or parent types as
                 the desired type.
         """
-        result = self.try_cast(actual_value, desired_type)
+        result = self.try_cast(desired_type, actual_value)
         if result is None:
             raise TypeError('Expected a {} but got {}'.format(
                 desired_type,

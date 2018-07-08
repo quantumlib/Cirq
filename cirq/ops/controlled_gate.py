@@ -12,22 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type
+from typing import Optional, TypeVar, Type, cast, Tuple
 
 import numpy as np
 
 from cirq import linalg, extension
-from cirq.ops import gate_features
-from cirq.ops import raw_types
+from cirq.ops import raw_types, gate_features
 
 T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.BoundedEffectGate,
-    gate_features.ExtrapolatableGate,
+    gate_features.BoundedEffect,
+    gate_features.ExtrapolatableEffect,
     gate_features.KnownMatrixGate,
-    gate_features.ParameterizableGate,
-    gate_features.ReversibleGate,
+    gate_features.ParameterizableEffect,
+    gate_features.ReversibleEffect,
     gate_features.TextDiagrammableGate,
 )
 
@@ -71,14 +70,14 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
 
     def _cast_sub_gate(self, desired_type: Type[T_DESIRED]) -> T_DESIRED:
         ext = self.default_extensions or extension.Extensions()
-        cast_sub_gate = ext.try_cast(self.sub_gate, desired_type)
+        cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
         if cast_sub_gate is None:
             raise TypeError('sub_gate is not a {}', desired_type)
         return cast_sub_gate
 
     def try_cast_to(self, desired_type, ext):
         if desired_type in POTENTIALLY_EXPOSED_SUB_TYPES:
-            cast_sub_gate = ext.try_cast(self.sub_gate, desired_type)
+            cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
             if cast_sub_gate is None:
                 return None
             return ControlledGate(cast_sub_gate, ext)
@@ -90,44 +89,43 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
     def extrapolate_effect(self, factor) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableEffect)
         new_sub_gate = cast_sub_gate.extrapolate_effect(factor)
-        return ControlledGate(new_sub_gate, self.default_extensions)
+        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
+                              self.default_extensions)
 
     def __pow__(self, power: float) -> 'ControlledGate':
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleGate)
-        return ControlledGate(cast_sub_gate.inverse(), self.default_extensions)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleEffect)
+        return ControlledGate(cast(raw_types.Gate, cast_sub_gate.inverse()),
+                              self.default_extensions)
 
     def is_parameterized(self) -> bool:
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
         return cast_sub_gate.is_parameterized()
 
     def with_parameters_resolved_by(self, param_resolver) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
         new_sub_gate = cast_sub_gate.with_parameters_resolved_by(
             param_resolver)
-        return ControlledGate(new_sub_gate, self.default_extensions)
+        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
+                              self.default_extensions)
 
     def text_diagram_exponent(self):
         cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammableGate)
         return cast_sub_gate.text_diagram_exponent()
 
     def trace_distance_bound(self):
-        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffectGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
         return cast_sub_gate.trace_distance_bound()
 
     def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+                                  args: gate_features.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammableGate)
-        sub_symbols = cast_sub_gate.text_diagram_wire_symbols(
-            qubit_count,
-            use_unicode_characters,
-            precision)
+        sub_symbols = cast_sub_gate.text_diagram_wire_symbols(args)
         return ('@',) + sub_symbols
 
     def __str__(self):

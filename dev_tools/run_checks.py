@@ -67,8 +67,8 @@ def parse_args():
         checks = [e for e in checks if e.command_line_switch() in only]
         if len(checks) != len(only):
             print('Bad --only argument. Allowed values {!r}.'.format(
-                    [e.command_line_switch() for e in all_checks.ALL_CHECKS]),
-                file=sys.stderr)
+                      [e.command_line_switch() for e in all_checks.ALL_CHECKS]),
+                  file=sys.stderr)
             sys.exit(1)
     checks = topologically_sorted_checks_with_deps(checks)
 
@@ -118,25 +118,13 @@ def main():
 
             # Run the check.
             print()
-            print(shell_tools.highlight('Running ' + c.command_line_switch(),
-                                        shell_tools.GREEN))
-            if any(e in failures for e in c.dependencies):
-                failures.add(c)
-                result = check.CheckResult(
-                    c, False, 'Skipped due to dependency failing.', None)
-            else:
-                result = c.run_and_report(env, env2, verbose)
-            print(shell_tools.highlight(
-                'Finished ' + c.command_line_switch(),
-                shell_tools.GREEN if result.success else shell_tools.RED))
+            result = c.pick_env_and_run_and_report(env, env2, verbose, failures)
 
             # Record results.
             check_results.append(result)
             currently_pending.remove(c)
             if not result.success:
-                failures.add(result.check)
-            if verbose:
-                print(result)
+                failures.add(c)
             print()
 
     finally:
@@ -157,6 +145,9 @@ def main():
         if result.unexpected_error is not None:
             raise EnvironmentError('At least one check raised.') from (
                 result.unexpected_error)
+
+    if any(not e.success for e in check_results):
+        sys.exit(1)
 
 
 if __name__ == '__main__':

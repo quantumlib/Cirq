@@ -14,7 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 
 import numpy as np
 
@@ -110,7 +110,7 @@ class Exp11Gate(XmonGate,
                 ops.TextDiagrammableGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
-                ops.ParameterizableGate,
+                ops.ParameterizableEffect,
                 PotentialImplementation):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -124,7 +124,7 @@ class Exp11Gate(XmonGate,
     so the half_turn corresponds to half of a full rotation in U(4).
     """
 
-    def __init__(self, *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -135,14 +135,10 @@ class Exp11Gate(XmonGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: The amount of phasing of the 11 state, in half_turns.
             rads: The amount of phasing of the 11 state, in radians.
             degs: The amount of phasing of the 11 state, in degrees.
         """
-        assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -176,11 +172,9 @@ class Exp11Gate(XmonGate,
             raise ValueError("Don't have a known matrix.")
         return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return '@', 'Z'
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
+        return '@', '@'
 
     def text_diagram_exponent(self):
         return self.half_turns
@@ -216,8 +210,8 @@ class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammableGate,
                ops.PhaseableGate,
-               ops.BoundedEffectGate,
-               ops.ParameterizableGate,
+               ops.BoundedEffect,
+               ops.ParameterizableEffect,
                PotentialImplementation):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
@@ -237,7 +231,7 @@ class ExpWGate(XmonGate,
     an operator pointing along the Y direction.
     """
 
-    def __init__(self, *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  axis_half_turns: Optional[Union[value.Symbol, float]] = None,
                  axis_rads: Optional[float] = None,
                  axis_degs: Optional[float] = None,
@@ -255,9 +249,6 @@ class ExpWGate(XmonGate,
         being positive-ward along X and 90 degrees being positive-ward along Y.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             axis_half_turns: The axis angle in the XY plane, in half_turns.
             axis_rads: The axis angle in the XY plane, in radians.
             axis_degs: The axis angle in the XY plane, in degrees.
@@ -265,7 +256,6 @@ class ExpWGate(XmonGate,
             rads: The amount to rotate, in radians.
             degs: The amount to rotate, in degrees.
         """
-        assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -299,7 +289,7 @@ class ExpWGate(XmonGate,
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        if desired_type is ops.ReversibleGate and self.has_inverse():
+        if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
 
@@ -334,17 +324,17 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        e = 0 if precision is None else 10**-precision
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
+        e = 0 if args.precision is None else 10**-args.precision
+        if isinstance(self.axis_half_turns, value.Symbol):
+            return 'W({})'.format(self.axis_half_turns),
         if abs(self.axis_half_turns) <= e:
             return 'X',
         if abs(self.axis_half_turns - 0.5) <= e:
             return 'Y',
-        if precision is not None:
-            return 'W({{:.{}}})'.format(precision).format(
+        if args.precision is not None:
+            return 'W({{:.{}}})'.format(args.precision).format(
                 self.axis_half_turns),
         else:
             return 'W({})'.format(self.axis_half_turns),
@@ -353,7 +343,8 @@ class ExpWGate(XmonGate,
         return self.half_turns
 
     def __str__(self):
-        base = self.text_diagram_wire_symbols()[0]
+        base = self.text_diagram_wire_symbols(
+            ops.TextDiagramSymbolArgs.UNINFORMED_DEFAULT)[0]
         if self.half_turns == 1:
             return base
         return '{}^{}'.format(base, self.half_turns)
@@ -398,7 +389,7 @@ class ExpWGate(XmonGate,
 class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammableGate,
-               ops.ParameterizableGate,
+               ops.ParameterizableEffect,
                PotentialImplementation):
     """A rotation around the Z axis of the Bloch sphere.
 
@@ -411,7 +402,7 @@ class ExpZGate(XmonGate,
     bloch sphere of 360 degrees.
     """
 
-    def __init__(self, *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -422,27 +413,21 @@ class ExpZGate(XmonGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: The relative phasing of Z's eigenstates, in half_turns.
             rads: The relative phasing of Z's eigenstates, in radians.
             degs: The relative phasing of Z's eigenstates, in degrees.
         """
-        assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
             rads=rads,
             degs=degs)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
+    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
+                                  ) -> Tuple[str, ...]:
         if self.half_turns in [-0.25, 0.25]:
-            return 'T'
+            return 'T',
         if self.half_turns in [-0.5, 0.5]:
-            return 'S'
+            return 'S',
         return 'Z',
 
     def text_diagram_exponent(self):
@@ -455,7 +440,7 @@ class ExpZGate(XmonGate,
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():
             return self
-        if desired_type is ops.ReversibleGate and self.has_inverse():
+        if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
 

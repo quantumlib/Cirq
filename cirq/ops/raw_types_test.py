@@ -70,13 +70,28 @@ def test_operation_eq():
     r21 = r2 + r1
 
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r1))
-    eq.make_equality_pair(lambda: cirq.Operation(g2, r1))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r2))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r12))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r21))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r1))
+    eq.make_equality_group(lambda: cirq.Operation(g2, r1))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r2))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r12))
+    eq.make_equality_group(lambda: cirq.Operation(g1, r21))
     eq.add_equality_group(cirq.Operation(cirq.CZ, r21),
                           cirq.Operation(cirq.CZ, r12))
+
+    # Interchangeable subsets.
+
+    class PairGate(cirq.Gate, cirq.InterchangeableQubitsGate):
+        def qubit_index_to_equivalence_group_key(self, index: int):
+            return index // 2
+
+    p = PairGate()
+    a0, a1, b0, b1, c0 = cirq.LineQubit.range(5)
+    eq.add_equality_group(p(a0, a1, b0, b1), p(a1, a0, b1, b0))
+    eq.add_equality_group(p(b0, b1, a0, a1))
+    eq.add_equality_group(p(a0, a1, b0, b1, c0), p(a1, a0, b1, b0, c0))
+    eq.add_equality_group(p(a0, b0, a1, b1, c0))
+    eq.add_equality_group(p(a0, c0, b0, b1, a1))
+    eq.add_equality_group(p(b0, a1, a0, b1, c0))
 
 
 def test_operation_pow():

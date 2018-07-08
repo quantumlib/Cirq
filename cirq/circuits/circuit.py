@@ -530,13 +530,14 @@ class Circuit(object):
         """
         diagram = self.to_text_diagram_drawer(
             ext=ext,
+            use_unicode_characters=use_unicode_characters,
             qubit_name_suffix='' if transpose else ': ',
             precision=precision,
             qubit_order=qubit_order)
 
         if transpose:
             return diagram.transpose().render(
-                crossing_char='─' if use_unicode_characters else '-',
+                crossing_char='┼' if use_unicode_characters else '-',
                 use_unicode_characters=use_unicode_characters)
         return diagram.render(
             crossing_char='┼' if use_unicode_characters else '|',
@@ -546,14 +547,17 @@ class Circuit(object):
     def to_text_diagram_drawer(
             self,
             ext: Extensions = None,
+            use_unicode_characters: bool = True,
             qubit_name_suffix: str = '',
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
             ext: For extending gates to implement TextDiagrammableGate.
+            use_unicode_characters: Determines if unicode characters are
+                allowed (as opposed to ascii-only diagrams).
             qubit_name_suffix: Appended to qubit names in the diagram.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
@@ -573,7 +577,12 @@ class Circuit(object):
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
         for moment in [Moment()] * 2 + self.moments + [Moment()]:
-            _draw_moment_in_diagram(moment, ext, qubit_map, diagram, precision)
+            _draw_moment_in_diagram(moment,
+                                    ext,
+                                    use_unicode_characters,
+                                    qubit_map,
+                                    diagram,
+                                    precision)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -584,13 +593,17 @@ class Circuit(object):
 
 def _get_operation_text_diagram_symbols(op: ops.Operation,
                                         ext: Extensions,
+                                        use_unicode_characters: bool,
                                         precision: Optional[int]
                                         ) -> Iterable[str]:
-    text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
+    text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
     if text_diagram_gate is not None:
         wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
-            precision=precision,
-            qubit_count=len(op.qubits))
+            ops.TextDiagramSymbolArgs(
+                known_qubits=op.qubits,
+                known_qubit_count=len(op.qubits),
+                use_unicode_characters=use_unicode_characters,
+                precision=precision))
         if len(op.qubits) == len(wire_symbols):
             return wire_symbols
         elif len(wire_symbols) == 1:
@@ -611,14 +624,16 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
                                          ext: Extensions,
                                          precision: Optional[int]
                                          ) -> Optional[str]:
-    text_diagram_gate = ext.try_cast(op.gate, ops.TextDiagrammableGate)
+    text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
     if text_diagram_gate is None:
         return None
     exponent = text_diagram_gate.text_diagram_exponent()
     if exponent == 1:
         return None
+    if exponent == -1:
+        return '-1'
     if isinstance(exponent, float) and precision is not None:
-      return '{{:.{}}}'.format(precision).format(exponent)
+        return '{{:.{}}}'.format(precision).format(exponent)
     s = str(exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:
         return '({})'.format(exponent)
@@ -627,6 +642,7 @@ def _get_operation_text_diagram_exponent(op: ops.Operation,
 
 def _draw_moment_in_diagram(moment: Moment,
                             ext: Extensions,
+                            use_unicode_characters: bool,
                             qubit_map: Dict[QubitId, int],
                             out_diagram: TextDiagramDrawer,
                             precision: Optional[int]):
@@ -650,14 +666,17 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        symbols = _get_operation_text_diagram_symbols(op, ext, precision)
+        symbols = _get_operation_text_diagram_symbols(op,
+                                                      ext,
+                                                      use_unicode_characters,
+                                                      precision)
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
-        # Add an exponent to the first label.
+        # Add an exponent to the last label.
         exponent = _get_operation_text_diagram_exponent(op, ext, precision)
         if exponent is not None:
-            out_diagram.write(x, y1, '^' + exponent)
+            out_diagram.write(x, y2, '^' + exponent)
 
 
 def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
@@ -665,13 +684,13 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
                                  ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
-        known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+        known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
         if known_matrix_gate is not None:
             yield op
             continue
 
         # If not, check if it has a decomposition
-        composite_gate = ext.try_cast(op.gate, ops.CompositeGate)
+        composite_gate = ext.try_cast(ops.CompositeGate, op.gate)
         if composite_gate is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_gate.default_decompose(op.qubits)
@@ -681,7 +700,7 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # Pass measurement gates through
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
         if meas_gate is not None:
             yield op
             continue
@@ -699,7 +718,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
     # Precondition is that circuit has only terminal measurements.
     total = np.eye(1 << len(qubit_map))
     for op in iter_ops:
-        meas_gate = ext.try_cast(op.gate, ops.MeasurementGate)
+        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
         if meas_gate is not None:
             if not ignore_terminal_measurements:
                 raise TypeError(
@@ -714,7 +733,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
-    known_matrix_gate = ext.try_cast(op.gate, ops.KnownMatrixGate)
+    known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))

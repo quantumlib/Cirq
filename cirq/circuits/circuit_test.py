@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
+
 import numpy as np
 import pytest
 
@@ -752,7 +754,7 @@ def test_to_text_diagram_teleportation_to_diagram():
                            │                   │
 (1, 0): ───────────X^0.5───@───H───M───────@───┼───
                                            │   │
-(1, 1): ───────────────────────────────────X───Z───
+(1, 1): ───────────────────────────────────X───@───
     """.strip()
     assert c.to_text_diagram(use_unicode_characters=False).strip() == """
 (0, 0): ---H---@-----------X-------M---@-----------
@@ -761,7 +763,7 @@ def test_to_text_diagram_teleportation_to_diagram():
                            |                   |
 (1, 0): -----------X^0.5---@---H---M-------@---|---
                                            |   |
-(1, 1): -----------------------------------X---Z---
+(1, 1): -----------------------------------X---@---
         """.strip()
 
     assert c.to_text_diagram(transpose=True,
@@ -784,7 +786,7 @@ M      |      M      |
 |      |      |      |
 |      |      @------X
 |      |      |      |
-|      @-------------Z
+|      @-------------@
 |      |      |      |
         """.strip()
 
@@ -828,11 +830,9 @@ def test_to_text_diagram_extended_gate():
         def __init__(self, f_gate):
             self.f_gate = f_gate
 
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
-            return 'F'
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
+            return 'F',
 
     diagram = c.to_text_diagram(Extensions({
         cirq.TextDiagrammableGate: {
@@ -874,10 +874,8 @@ M──────M──────M
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
     class BadGate(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
             return 'a', 'a'
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
@@ -894,10 +892,8 @@ def test_to_text_diagram_parameterized_value():
         def __init__(self, val):
             self.val = val
 
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
             return 'P',
 
         def text_diagram_exponent(self):
@@ -1210,13 +1206,11 @@ def test_composite_gate_to_unitary_matrix():
 
 def test_expanding_gate_symbols():
     class MultiTargetCZ(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self,
-                                      qubit_count=None,
-                                      use_unicode_characters=True,
-                                      precision=3):
-            if qubit_count is None:
-                return '@'  # coverage: ignore
-            return ('@',) + ('Z',) * (qubit_count - 1)
+        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
+                                      ) -> Tuple[str, ...]:
+            if args.known_qubit_count is None:
+                return '@',  # coverage: ignore
+            return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1241,4 +1235,23 @@ a: ───Z───
 b: ───Z───
       │
 c: ───@───
+    """.strip()
+
+
+def test_transposed_diagram_exponent_order():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.CZ(a, b)**-0.5,
+        cirq.CZ(a, c)**0.5,
+        cirq.CZ(b, c)**0.125,
+    )
+    assert circuit.to_text_diagram(transpose=True).strip() == """
+0 1      2
+│ │      │
+@─@^-0.5 │
+│ │      │
+@─┼──────@^0.5
+│ │      │
+│ @──────@^0.125
+│ │      │
     """.strip()
