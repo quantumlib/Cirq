@@ -114,8 +114,8 @@ def _qubit_ladder(n_site: int) -> [cirq.QubitId]:
     quid_up = []
     quid_down = []
     for i in range(n_site):
-        quid_up.append(cirq.google.XmonQubit(0, i))
-        quid_down.append(cirq.google.XmonQubit(1, i))
+        quid_up.append(cirq.devices.GridQubit(0, i))
+        quid_down.append(cirq.devices.GridQubit(1, i))
     quid = np.asarray([quid_up, quid_down])
     quid = quid.reshape(2, n_site)
 
