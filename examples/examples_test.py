@@ -16,6 +16,7 @@
 import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.hello_line
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 from examples.supremacy import generate_supremacy_circuit
@@ -58,6 +59,10 @@ def test_example_runs_bernstein_vazirani():
         [], a, [], False)) == []
     assert list(examples.bernstein_vazirani.make_oracle(
         [], a, [], True)) == [cirq.X(a)]
+
+
+def test_example_runs_hello_line():
+    examples.hello_line.main()
 
 
 def test_example_runs_hello_qubit():
