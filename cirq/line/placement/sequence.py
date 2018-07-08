@@ -14,7 +14,7 @@
 
 from typing import List, Optional
 
-from cirq.google import XmonQubit
+from cirq.devices import GridQubit
 
 
 class NotFoundError(Exception):
@@ -23,7 +23,7 @@ class NotFoundError(Exception):
 
 class LineSequence:
 
-    def __init__(self, line: List[XmonQubit]) -> None:
+    def __init__(self, line: List[GridQubit]) -> None:
         self.line = line
 
     def __eq__(self, other):

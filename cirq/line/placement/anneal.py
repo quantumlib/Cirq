@@ -16,7 +16,8 @@ from typing import Callable, List, Optional, Tuple, Set, Any
 
 import numpy as np
 
-from cirq.google import XmonDevice, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import (
     above,
@@ -30,7 +31,7 @@ from cirq.line.placement.sequence import (
 )
 from cirq.contrib import optimization
 
-_STATE = Tuple[List[List[XmonQubit]], Set[EDGE]]
+_STATE = Tuple[List[List[GridQubit]], Set[EDGE]]
 
 
 class AnnealSequenceSearch(object):
@@ -51,8 +52,8 @@ class AnnealSequenceSearch(object):
     def search(
             self,
             trace_func: Callable[
-                [List[List[XmonQubit]], float, float, float, bool],
-                None] = None) -> List[List[XmonQubit]]:
+                [List[List[GridQubit]], float, float, float, bool],
+                None] = None) -> List[List[GridQubit]]:
         """Issues new linear sequence search.
 
         Each call to this method starts new search.
@@ -148,9 +149,9 @@ class AnnealSequenceSearch(object):
                                     lambda: bool(self._rand.randint(2))),
             edges)
 
-    def _force_edge_active(self, seqs: List[List[XmonQubit]], edge: EDGE,
+    def _force_edge_active(self, seqs: List[List[GridQubit]], edge: EDGE,
                            sample_bool: Callable[[], bool]
-                           ) -> List[List[XmonQubit]]:
+                           ) -> List[List[GridQubit]]:
         """Move which forces given edge to appear on some sequence.
 
         Args:
@@ -250,7 +251,7 @@ class AnnealSequenceSearch(object):
           Valid search state.
         """
 
-        def extract_sequences() -> List[List[XmonQubit]]:
+        def extract_sequences() -> List[List[GridQubit]]:
             """Creates list of sequcenes for initial state.
 
             Returns:
@@ -308,7 +309,7 @@ class AnnealSequenceSearch(object):
           position.
         """
 
-        def lower(n: XmonQubit, m: XmonQubit) -> bool:
+        def lower(n: GridQubit, m: GridQubit) -> bool:
             return n.row < m.row or (n.row == m.row and n.col < m.col)
 
         n1, n2 = edge
@@ -337,7 +338,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """
 
     def __init__(self, trace_func: Callable[
-        [List[List[XmonQubit]], float, float, float, bool], None] = None,
+        [List[List[GridQubit]], float, float, float, bool], None] = None,
                  seed: int = None) -> None:
         """Linearized sequence search using simulated annealing method.
 

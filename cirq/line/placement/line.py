@@ -14,7 +14,8 @@
 
 from typing import Callable, List, Tuple
 
-from cirq.google import XmonDevice, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line import LineQubit
 from cirq.line.placement import greedy
 from cirq.line.placement.place_strategy import LinePlacementStrategy
@@ -45,7 +46,7 @@ def line_on_device(device: XmonDevice,
                    offset: int = 0,
                    method: LinePlacementStrategy =
                            greedy.GreedySequenceSearchStrategy()) -> \
-        Tuple[List[XmonQubit], Callable[[LineQubit], XmonQubit]]:
+        Tuple[List[GridQubit], Callable[[LineQubit], GridQubit]]:
     """Searches for linear sequence of qubits on device.
 
     Args:

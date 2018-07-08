@@ -19,7 +19,7 @@ from cirq.line.placement.sequence import (
     LineSequence,
     NotFoundError
 )
-from cirq.google import XmonQubit
+from cirq.devices import GridQubit
 from cirq.testing import EqualsTester
 from cirq.testing.mock import mock
 
@@ -27,19 +27,19 @@ from cirq.testing.mock import mock
 def test_line_sequence_eq():
     eq = EqualsTester()
     eq.make_equality_group(lambda: LineSequence([]))
-    eq.make_equality_group(lambda: LineSequence([XmonQubit(0, 0)]))
+    eq.make_equality_group(lambda: LineSequence([GridQubit(0, 0)]))
     eq.make_equality_group(
-        lambda: LineSequence([XmonQubit(1, 0), XmonQubit(0, 0)]))
+        lambda: LineSequence([GridQubit(1, 0), GridQubit(0, 0)]))
 
 
 def test_line_placement_eq():
     eq = EqualsTester()
     eq.make_equality_group(lambda: LinePlacement(0, []))
     eq.make_equality_group(
-        lambda: LinePlacement(1, [LineSequence([XmonQubit(0, 0)])]))
+        lambda: LinePlacement(1, [LineSequence([GridQubit(0, 0)])]))
     eq.make_equality_group(
-        lambda: LinePlacement(2, [LineSequence([XmonQubit(0, 0)]),
-                                  LineSequence([XmonQubit(0, 1)])]))
+        lambda: LinePlacement(2, [LineSequence([GridQubit(0, 0)]),
+                                  LineSequence([GridQubit(0, 1)])]))
 
 
 def test_line_placement_get_calls_longest():
@@ -74,23 +74,23 @@ def test_line_placement_longest_empty_sequence():
 
 
 def test_line_placement_longest_single_sequence():
-    seq = LineSequence([XmonQubit(0, 0)])
+    seq = LineSequence([GridQubit(0, 0)])
     assert LinePlacement(0, [seq]).longest() == seq
 
 
 def test_line_placement_longest_longest_sequence():
-    q00, q01, q02, q03 = [XmonQubit(0, x) for x in range(4)]
+    q00, q01, q02, q03 = [GridQubit(0, x) for x in range(4)]
     seq1 = LineSequence([q00])
     seq2 = LineSequence([q01, q02, q03])
     assert LinePlacement(0, [seq1, seq2]).longest() == seq2
 
 
 def test_line_placement_longest_multiple_longest_sequences():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q02 = XmonQubit(0, 2)
-    q10 = XmonQubit(1, 0)
-    q20 = XmonQubit(2, 0)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q02 = GridQubit(0, 2)
+    q10 = GridQubit(1, 0)
+    q20 = GridQubit(2, 0)
     seq1 = LineSequence([q00])
     seq2 = LineSequence([q01, q02])
     seq3 = LineSequence([q10, q20])
