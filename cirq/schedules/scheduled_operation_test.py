@@ -32,11 +32,11 @@ def test_eq():
     q0 = ops.QubitId()
 
     eq = EqualsTester()
-    eq.make_equality_pair(
+    eq.make_equality_group(
         lambda: ScheduledOperation(Timestamp(), Duration(), ops.H(q0)))
-    eq.make_equality_pair(
+    eq.make_equality_group(
         lambda: ScheduledOperation(Timestamp(picos=5), Duration(), ops.H(q0)))
-    eq.make_equality_pair(
+    eq.make_equality_group(
         lambda: ScheduledOperation(Timestamp(), Duration(picos=5), ops.H(q0)))
-    eq.make_equality_pair(
+    eq.make_equality_group(
         lambda: ScheduledOperation(Timestamp(), Duration(), ops.X(q0)))

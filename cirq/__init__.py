@@ -84,12 +84,9 @@ from cirq.linalg import (
 from cirq.line import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
-    LinePlacement,
     LinePlacementStrategy,
     LineQubit,
-    LineSequence,
     line_on_device,
-    line_placement_on_device
 )
 
 from cirq.ops import (

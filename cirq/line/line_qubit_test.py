@@ -25,7 +25,7 @@ def test_init():
 
 def test_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: LineQubit(1))
+    eq.make_equality_group(lambda: LineQubit(1))
     eq.add_equality_group(LineQubit(2))
     eq.add_equality_group(LineQubit(0))
 
