@@ -21,3 +21,6 @@ from cirq.line.placement.greedy import (
 from cirq.line.placement.place_strategy import (
     LinePlacementStrategy,
 )
+from cirq.line.placement.line import (
+    line_on_device
+)
