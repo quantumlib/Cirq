@@ -529,11 +529,11 @@ class ISwapGate(eigen_gate.EigenGate,
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
 
-        ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y))
-                 ≡ [1 0         0         0]
-                   [0 cos(πt)   i·sin(πt) 0]
-                   [0 i·sin(πt) cos(πt)   0]
-                   [0 0         0         1]
+        ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y) / 4)
+                 ≡ [1 0            0            0]
+                   [0 cos(π·t/2)   i·sin(π·t/2) 0]
+                   [0 i·sin(π·t/2) cos(π·t/2)   0]
+                   [0 0            0            1]
     """
 
     @property
