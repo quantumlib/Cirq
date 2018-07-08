@@ -28,10 +28,10 @@ def test_xmon_qubit_init():
 
 def test_xmon_qubit_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: GridQubit(0, 0))
-    eq.make_equality_pair(lambda: GridQubit(1, 0))
-    eq.make_equality_pair(lambda: GridQubit(0, 1))
-    eq.make_equality_pair(lambda: GridQubit(50, 25))
+    eq.make_equality_group(lambda: GridQubit(0, 0))
+    eq.make_equality_group(lambda: GridQubit(1, 0))
+    eq.make_equality_group(lambda: GridQubit(0, 1))
+    eq.make_equality_group(lambda: GridQubit(50, 25))
 
 
 def test_xmon_qubit_ordering():
@@ -110,11 +110,11 @@ def test_operation_eq():
     r21 = r2 + r1
 
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: ops.Operation(g1, r1))
-    eq.make_equality_pair(lambda: ops.Operation(g2, r1))
-    eq.make_equality_pair(lambda: ops.Operation(g1, r2))
-    eq.make_equality_pair(lambda: ops.Operation(g1, r12))
-    eq.make_equality_pair(lambda: ops.Operation(g1, r21))
+    eq.make_equality_group(lambda: ops.Operation(g1, r1))
+    eq.make_equality_group(lambda: ops.Operation(g2, r1))
+    eq.make_equality_group(lambda: ops.Operation(g1, r2))
+    eq.make_equality_group(lambda: ops.Operation(g1, r12))
+    eq.make_equality_group(lambda: ops.Operation(g1, r21))
 
 
 def test_to_proto():

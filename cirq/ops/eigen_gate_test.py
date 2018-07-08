@@ -59,13 +59,13 @@ def test_init():
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_pair(lambda: CExpZinGate(quarter_turns=0.1))
+    eq.make_equality_group(lambda: CExpZinGate(quarter_turns=0.1))
     eq.add_equality_group(CExpZinGate(0), CExpZinGate(4), CExpZinGate(-4))
     eq.add_equality_group(CExpZinGate(1.5), CExpZinGate(41.5))
     eq.add_equality_group(CExpZinGate(3.5), CExpZinGate(-0.5))
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
-    eq.make_equality_pair(lambda: cirq.Symbol('a'))
+    eq.make_equality_group(lambda: cirq.Symbol('a'))
     eq.add_equality_group(cirq.Symbol('b'))
 
 

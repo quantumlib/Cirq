@@ -41,7 +41,7 @@ def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(Duration(), Duration(picos=0), Duration(nanos=0.0))
     eq.add_equality_group(Duration(picos=1000), Duration(nanos=1))
-    eq.make_equality_pair(lambda: Duration(picos=-1))
+    eq.make_equality_group(lambda: Duration(picos=-1))
 
 
 def test_cmp():

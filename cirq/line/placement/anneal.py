@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq.devices import GridQubit
 from cirq.google import XmonDevice
-from cirq.line.placement import place_method
+from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import (
     above,
     right_of,
@@ -333,7 +333,7 @@ class AnnealSequenceSearch(object):
         return None
 
 
-class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
+class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
     """
 
@@ -358,18 +358,19 @@ class AnnealSequenceSearchMethod(place_method.LinePlacementMethod):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            length: Required line length.
 
         Returns:
             List of linear sequences on the chip found by simulated annealing
             method.
         """
         seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
-        return LinePlacement([LineSequence(seq) for seq in seqs])
+        return LinePlacement(length, [LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:
