@@ -440,6 +440,12 @@ def test_greedy_search_method_calls_all(minimal, largest):
     minimal_instance.get_or_search.assert_called_once_with()
 
 
+def test_greedy_search_method_fails_when_unknown():
+    method = GreedySequenceSearchStrategy('fail')
+    with pytest.raises(ValueError):
+        method.place_line(_create_device([]), 0)
+
+
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
 @mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
