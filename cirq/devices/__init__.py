@@ -15,6 +15,9 @@
 from cirq.devices.device import (
     Device,
 )
+from cirq.devices.grid_qubit import (
+    GridQubit,
+)
 from cirq.devices.unconstrained_device import (
     UnconstrainedDevice,
 )

@@ -24,11 +24,12 @@ be able to run at the same time as neighboring gates.  Further the
 Here for example is a ``Device`` made up of 10 qubits on a line:
 ```python
 import cirq
-from cirq.google import XmonGate, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonGate
 class Xmon10Device(cirq.Device):
 
   def __init__(self):
-      self.qubits = [XmonQubit(i, 0) for i in range(10)]
+      self.qubits = [GridQubit(i, 0) for i in range(10)]
 
   def duration_of(self, operation):
       # Wouldn't it be nice if everything took 10ns?
@@ -68,7 +69,7 @@ try:
 except ValueError as e:
   print(e)
 # prints something like
-# ValueError: Non-local interaction: Operation(Exp11Gate(half_turns=1.0), (XmonQubit(0, 0), XmonQubit(2, 0)))
+# ValueError: Non-local interaction: Operation(Exp11Gate(half_turns=1.0), (GridQubit(0, 0), GridQubit(2, 0)))
 ```
 
 ### Schedules

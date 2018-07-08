@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google import XmonDevice, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line import LineQubit
 from cirq.line.placement import anneal
 from cirq.line.placement import greedy
@@ -26,9 +27,9 @@ from cirq.value import Duration
 
 
 def test_anneal_method_calls_anneal_search():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q03 = XmonQubit(0, 3)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q03 = GridQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
     length = 2
@@ -44,9 +45,9 @@ def test_anneal_method_calls_anneal_search():
 
 
 def test_greedy_method_calls_greedy_search():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q03 = XmonQubit(0, 3)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q03 = GridQubit(0, 3)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q03])
     length = 2
@@ -64,9 +65,9 @@ def test_greedy_method_calls_greedy_search():
 @mock.patch('cirq.line.placement.line._line_placement_on_device')
 def test_line_on_device_calls_line_placement_on_device(
         line_placement_on_device):
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q02 = XmonQubit(0, 2)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q02 = GridQubit(0, 2)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01, q02])
     length = 2
@@ -84,8 +85,8 @@ def test_line_on_device_calls_line_placement_on_device(
 
 @mock.patch('cirq.line.placement.line._line_placement_on_device')
 def test_line_on_device_creates_mapping(line_placement_on_device):
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01])
     length = 2
@@ -102,8 +103,8 @@ def test_line_on_device_creates_mapping(line_placement_on_device):
 
 @mock.patch('cirq.line.placement.line._line_placement_on_device')
 def test_line_on_device_creates_mapping_with_offset(line_placement_on_device):
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
     device = XmonDevice(Duration(nanos=0), Duration(nanos=0),
                         Duration(nanos=0), qubits=[q00, q01])
     length = 2
