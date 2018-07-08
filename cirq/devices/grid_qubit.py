@@ -19,7 +19,7 @@ from cirq.ops import QubitId
 
 
 class GridQubit(QubitId):
-    """A qubit at a location on an xmon chip.
+    """A qubit at a location on a chip.
 
     GridQubits use row-major ordering:
 
@@ -31,7 +31,7 @@ class GridQubit(QubitId):
         self.col = col
 
     def is_adjacent(self, other: QubitId) -> bool:
-        """Determines if two qubits are adjacent xmon qubits."""
+        """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
