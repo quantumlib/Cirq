@@ -342,5 +342,5 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                 if sequence is None or len(sequence) < len(candidate):
                     sequence = candidate
 
-        return LinePlacement(length,
+        return LinePlacement(device, length,
                              [LineSequence(sequence)] if sequence else [])
