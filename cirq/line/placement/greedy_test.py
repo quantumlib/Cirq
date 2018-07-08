@@ -17,7 +17,7 @@ import pytest
 
 from cirq.line.placement.greedy import (
     GreedySequenceSearch,
-    GreedySequenceSearchMethod,
+    GreedySequenceSearchStrategy,
     MinimalConnectivityGreedySequenceSearch,
     LargestAreaGreedySequenceSearch
 )
@@ -425,11 +425,12 @@ def test_greedy_search_method_calls_all(largest, minimal):
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     qubits = [q00, q01]
+    length = 2
     largest_instance = largest.return_value
     minimal_instance = minimal.return_value
 
-    method = GreedySequenceSearchMethod()
-    method.place_line(_create_device(qubits))
+    method = GreedySequenceSearchStrategy()
+    method.place_line(_create_device(qubits), length)
 
     largest.assert_called_once_with(_create_device(qubits), q00)
     largest_instance.get_or_search.assert_called_once_with()
@@ -443,14 +444,15 @@ def test_greedy_search_method_calls_all(largest, minimal):
 def test_greedy_search_method_returns_longest(largest, minimal):
     q00 = XmonQubit(0, 0)
     q10 = XmonQubit(1, 0)
+    length = 1
     sequence_short = [q00]
     sequence_long = [q00, q10]
     largest.return_value.get_or_search.return_value = sequence_short
     minimal.return_value.get_or_search.return_value = sequence_long
 
-    method = GreedySequenceSearchMethod()
-    assert method.place_line(_create_device([])) == LinePlacement(
-        [LineSequence(sequence_long)])
+    method = GreedySequenceSearchStrategy()
+    assert method.place_line(_create_device([]), length) == LinePlacement(
+        length, [LineSequence(sequence_long)])
 
 
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
@@ -460,5 +462,7 @@ def test_greedy_search_method_returns_empty_when_empty(largest, minimal):
     largest.return_value.get_or_search.return_value = []
     minimal.return_value.get_or_search.return_value = []
 
-    method = GreedySequenceSearchMethod()
-    assert method.place_line(_create_device([])) == LinePlacement([])
+    length = 1
+    method = GreedySequenceSearchStrategy()
+    assert method.place_line(_create_device([]), length) == LinePlacement(
+        length, [])

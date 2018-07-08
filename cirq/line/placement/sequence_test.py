@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from cirq.line.placement.sequence import (
     LinePlacement,
     LineSequence,
-    longest_sequence_index
+    NotFoundError
 )
 from cirq.google import XmonQubit
 from cirq.testing import EqualsTester
+from cirq.testing.mock import mock
 
 
 def test_line_sequence_eq():
@@ -31,35 +34,68 @@ def test_line_sequence_eq():
 
 def test_line_placement_eq():
     eq = EqualsTester()
-    eq.make_equality_group(lambda: LinePlacement([]))
+    eq.make_equality_group(lambda: LinePlacement(0, []))
     eq.make_equality_group(
-        lambda: LinePlacement([LineSequence([XmonQubit(0, 0)])]))
+        lambda: LinePlacement(1, [LineSequence([XmonQubit(0, 0)])]))
     eq.make_equality_group(
-        lambda: LinePlacement([LineSequence([XmonQubit(0, 0)]),
-                               LineSequence([XmonQubit(0, 1)])]))
+        lambda: LinePlacement(2, [LineSequence([XmonQubit(0, 0)]),
+                                  LineSequence([XmonQubit(0, 1)])]))
 
 
-def test_empty_sequence():
-    assert longest_sequence_index([[]]) == 0
+def test_line_placement_get_calls_longest():
+    seq = LineSequence([])
+    placement = LinePlacement(0, [seq])
+    with mock.patch.object(placement, 'longest') as longest:
+        longest.return_value = seq
+        assert placement.get() == seq
+        longest.assert_called_once_with()
 
 
-def test_single_sequence():
-    assert longest_sequence_index([[XmonQubit(0, 0)]]) == 0
+def test_line_placement_get_raises_for_none():
+    placement = LinePlacement(1, [])
+    with mock.patch.object(placement, 'longest') as longest:
+        longest.return_value = None
+        with pytest.raises(NotFoundError):
+            placement.get()
 
 
-def test_longest_sequence():
+def test_line_placement_get_raises_for_too_short():
+    seq = LineSequence([])
+    placement = LinePlacement(1, [seq])
+    with mock.patch.object(placement, 'longest') as longest:
+        longest.return_value = seq
+        with pytest.raises(NotFoundError):
+            placement.get()
+
+
+def test_line_placement_longest_empty_sequence():
+    seq = LineSequence([])
+    assert LinePlacement(0, [seq]).longest() == seq
+
+
+def test_line_placement_longest_single_sequence():
+    seq = LineSequence([XmonQubit(0, 0)])
+    assert LinePlacement(0, [seq]).longest() == seq
+
+
+def test_line_placement_longest_longest_sequence():
     q00, q01, q02, q03 = [XmonQubit(0, x) for x in range(4)]
-    assert longest_sequence_index([[q00], [q01, q02, q03]]) == 1
+    seq1 = LineSequence([q00])
+    seq2 = LineSequence([q01, q02, q03])
+    assert LinePlacement(0, [seq1, seq2]).longest() == seq2
 
 
-def test_multiple_longest_sequences():
+def test_line_placement_longest_multiple_longest_sequences():
     q00 = XmonQubit(0, 0)
     q01 = XmonQubit(0, 1)
     q02 = XmonQubit(0, 2)
     q10 = XmonQubit(1, 0)
     q20 = XmonQubit(2, 0)
-    assert longest_sequence_index([[q00], [q01, q02], [q10, q20]]) == 1
+    seq1 = LineSequence([q00])
+    seq2 = LineSequence([q01, q02])
+    seq3 = LineSequence([q10, q20])
+    assert LinePlacement(0, [seq1, seq2, seq3]).longest() == seq2
 
 
-def test_empty_list():
-    assert longest_sequence_index([]) is None
+def test_line_placement_longest_empty_list():
+    assert LinePlacement(0, []).longest() is None
