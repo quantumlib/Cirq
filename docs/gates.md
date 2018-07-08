@@ -99,7 +99,7 @@ use in the diagram (e.g. '×' instead of 'SWAP').
 
 ### XmonGates
 
-Google's Xmon qubits support a specific gate set. Gates
+Google's Xmon devices support a specific gate set. Gates
 in this gate set operate on ``GridQubit``s, which are qubits
 arranged on a square grid and which have an ``x`` and ``y``
 coordinate.
