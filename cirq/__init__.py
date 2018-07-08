@@ -86,6 +86,7 @@ from cirq.line import (
     GreedySequenceSearchStrategy,
     LinePlacementStrategy,
     LineQubit,
+    line_on_device,
 )
 
 from cirq.ops import (
