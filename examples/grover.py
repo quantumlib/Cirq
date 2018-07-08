@@ -13,16 +13,16 @@ Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
 https://arxiv.org/pdf/1804.03719.pdf
 
 === EXAMPLE OUTPUT ===
-Secret bit sequence: [0, 0]
+Secret bit sequence: [1, 0]
 Circuit:
-(0, 0): ───────H───Z───@───H───X───────@───────X───H───M───
-                                             │               │               │
-(1, 0): ───────H───Z───@───H───X───H───X───H───X───H───M───
-                                             │
-(2, 0): ───X───H───────X───────────────────────────────────
+(0, 0): ───────H───────@───────H───X───────@───────X───H───M───
+                       │                   │               │
+(1, 0): ───────H───X───@───X───H───X───H───X───H───X───H───M───
+                       │
+(2, 0): ───X───H───────X───────────────────────────────────────
 Sampled results:
-Counter({'00': 10})
-Most common bitstring: 00
+Counter({'10': 10})
+Most common bitstring: 10
 Found a match: True
 
 """
