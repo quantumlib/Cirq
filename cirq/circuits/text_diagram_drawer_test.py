@@ -76,18 +76,37 @@ def test_draw_entries_and_lines_with_options():
     """.strip()
 
 
+def test_draw_entries_and_lines_with_emphasize():
+    d = TextDiagramDrawer()
+    d.write(0, 0, '!')
+    d.write(6, 2, 'span')
+    d.line(2, 3, 8, 3, True)
+    d.line(7, 1, 7, 4, True)
+    print(d.render().strip())
+    assert d.render().strip() == """
+!
+
+                 ┃
+                 ┃
+            span ┃
+                 ┃
+    ━━━━━━━━━━━━━━━
+                 ┃
+    """.strip()
+
+
 def test_line_detects_horizontal():
     d = TextDiagramDrawer()
     with mock.patch.object(d, 'vertical_line') as vertical_line:
-        d.line(1, 2, 1, 5)
-        vertical_line.assert_called_once_with(1, 2, 5)
+        d.line(1, 2, 1, 5, True)
+        vertical_line.assert_called_once_with(1, 2, 5, True)
 
 
 def test_line_detects_vertical():
     d = TextDiagramDrawer()
     with mock.patch.object(d, 'horizontal_line') as horizontal_line:
-        d.line(2, 1, 5, 1)
-        horizontal_line.assert_called_once_with(1, 2, 5)
+        d.line(2, 1, 5, 1, True)
+        horizontal_line.assert_called_once_with(1, 2, 5, True)
 
 
 def test_line_fails_when_not_aligned():

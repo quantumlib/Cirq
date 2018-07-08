@@ -38,17 +38,18 @@ class TextDiagramDrawer:
 
         # Vertical line?
         if any(line_x == x and y1 < y < y2
-               for line_x, y1, y2 in self.vertical_lines):
+               for line_x, y1, y2, _ in self.vertical_lines):
             return True
 
         # Horizontal line?
         if any(line_y == y and x1 < x < x2
-               for line_y, x1, x2 in self.horizontal_lines):
+               for line_y, x1, x2, _ in self.horizontal_lines):
             return True
 
         return False
 
-    def line(self, x1: int, y1: int, x2: int, y2: int):
+    def line(self, x1: int, y1: int, x2: int, y2: int,
+             emphasize: bool = False):
         """Adds a line from (x1, y1) to (x2, y2).
 
         Horizontal line is selected on equality in the second coordinate and
@@ -58,21 +59,21 @@ class TextDiagramDrawer:
             ValueError: If line is neither horizontal nor vertical.
         """
         if x1 == x2:
-            self.vertical_line(x1, y1, y2)
+            self.vertical_line(x1, y1, y2, emphasize)
         elif y1 == y2:
-            self.horizontal_line(y1, x1, x2)
+            self.horizontal_line(y1, x1, x2, emphasize)
         else:
             raise ValueError("Line is neither horizontal nor vertical")
 
-    def vertical_line(self, x: int, y1: int, y2: int):
+    def vertical_line(self, x: int, y1: int, y2: int, emphasize: bool = False):
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
-        self.vertical_lines.append((x, y1, y2))
+        self.vertical_lines.append((x, y1, y2, emphasize))
 
-    def horizontal_line(self, y, x1, x2):
+    def horizontal_line(self, y, x1, x2, emphasize: bool = False):
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
-        self.horizontal_lines.append((y, x1, x2))
+        self.horizontal_lines.append((y, x1, x2, emphasize))
 
     def transpose(self):
         """Returns the same diagram, but mirrored across its diagonal."""
@@ -87,9 +88,9 @@ class TextDiagramDrawer:
         max_x = -1
         for x, _ in self.entries.keys():
             max_x = max(max_x, x)
-        for x, _, _ in self.vertical_lines:
+        for x, _, _, _ in self.vertical_lines:
             max_x = max(max_x, x)
-        for _, x1, x2 in self.horizontal_lines:
+        for _, x1, x2, _ in self.horizontal_lines:
             max_x = max(max_x, x1, x2)
         return 1 + max_x
 
@@ -98,9 +99,9 @@ class TextDiagramDrawer:
         max_y = -1
         for _, y in self.entries.keys():
             max_y = max(max_y, y)
-        for y, _, _ in self.horizontal_lines:
+        for y, _, _, _ in self.horizontal_lines:
             max_y = max(max_y, y)
-        for _, y1, y2 in self.vertical_lines:
+        for _, y1, y2, _ in self.vertical_lines:
             max_y = max(max_y, y1, y2)
         return 1 + max_y
 
@@ -116,6 +117,9 @@ class TextDiagramDrawer:
         if crossing_char is None:
             crossing_char = '┼' if use_unicode_characters else '+'
 
+        emp_pipe = '┃' if use_unicode_characters else '#'
+        emp_dash = '━' if use_unicode_characters else '#'
+
         dx = 1 + horizontal_spacing
         dy = 1 + vertical_spacing
         w = self.width() * dx - horizontal_spacing
@@ -124,14 +128,14 @@ class TextDiagramDrawer:
         grid = [[''] * w for _ in range(h)]
         extend_char = [[' '] * w for _ in range(h)]
 
-        for x, y1, y2 in self.vertical_lines:
+        for x, y1, y2, emphasize in self.vertical_lines:
             x *= dx
             y1 *= dy
             y2 *= dy
             for y in range(y1, y2):
-                grid[y][x] = pipe
+                grid[y][x] = emp_pipe if emphasize else pipe
 
-        for y, x1, x2 in self.horizontal_lines:
+        for y, x1, x2, emphasize in self.horizontal_lines:
             y *= dy
             x1 *= dx
             x2 *= dx
@@ -139,8 +143,8 @@ class TextDiagramDrawer:
                 if grid[y][x] == pipe:
                     grid[y][x] = crossing_char
                 else:
-                    grid[y][x] = dash
-                extend_char[y][x] = dash
+                    grid[y][x] = emp_dash if emphasize else dash
+                extend_char[y][x] = emp_dash if emphasize else dash
 
         for (x, y), v in self.entries.items():
             x *= dx
