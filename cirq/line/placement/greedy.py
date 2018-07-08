@@ -286,7 +286,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     BEST = "best"
 
-    def __init__(self, algorithm: str = BEST):
+    def __init__(self, algorithm: str = BEST) -> None:
         """Initializes greedy sequence search strategy.
 
         Args:
