@@ -17,8 +17,7 @@ from typing import Tuple, Union, cast, Optional
 
 import numpy as np
 
-from cirq import abc, value
-from cirq.extension import PotentialImplementation
+from cirq import abc, extension, value
 from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features
 
@@ -26,7 +25,10 @@ from cirq.ops import gate_features
 class PartialReflectionGate(gate_features.TextDiagrammableGate,
                             gate_features.BoundedEffect,
                             gate_features.ParameterizableEffect,
-                            PotentialImplementation):
+                            extension.PotentialImplementation[Union[
+                                gate_features.ExtrapolatableEffect,
+                                gate_features.ReversibleEffect,
+                                gate_features.KnownMatrixGate]]):
     """An interpolated reflection operation.
 
     A reflection operation is an operation that has exactly two eigenvalues

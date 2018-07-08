@@ -111,7 +111,7 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
                 ops.ParameterizableEffect,
-                PotentialImplementation):
+                PotentialImplementation[ops.KnownMatrixGate]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -212,7 +212,7 @@ class ExpWGate(XmonGate,
                ops.PhaseableGate,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
-               PotentialImplementation):
+               PotentialImplementation[ops.KnownMatrixGate]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is exp(-i * pi * W(axis_half_turn) * half_turn / 2) where
@@ -390,7 +390,7 @@ class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammableGate,
                ops.ParameterizableEffect,
-               PotentialImplementation):
+               PotentialImplementation[ops.KnownMatrixGate]):
     """A rotation around the Z axis of the Bloch sphere.
 
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
