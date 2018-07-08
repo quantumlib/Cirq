@@ -14,22 +14,24 @@
 
 from cirq.google import XmonDevice
 from cirq.line.placement import greedy
-from cirq.line.placement.place_method import LinePlacementMethod
+from cirq.line.placement.place_strategy import LinePlacementStrategy
 from cirq.line.placement.sequence import LinePlacement
 
 
-def place_on_device(device: XmonDevice,
-                    method: LinePlacementMethod =
-                            greedy.GreedySequenceSearchMethod()) -> \
+def _line_placement_on_device(device: XmonDevice,
+                              length: int,
+                              method: LinePlacementStrategy =
+                              greedy.GreedySequenceSearchStrategy()) -> \
         LinePlacement:
     """Searches for linear sequence of qubits on device.
 
     Args:
         device: Google Xmon device instance.
+        length: Desired number of qubits making up the line.
         method: Line placement method. Defaults to
                 cirq.greedy.GreedySequenceSearchMethod.
 
     Returns:
         Line sequences search results.
     """
-    return method.place_line(device)
+    return method.place_line(device, length)

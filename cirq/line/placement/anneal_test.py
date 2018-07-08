@@ -21,7 +21,7 @@ from cirq.google import XmonDevice, XmonQubit
 from cirq.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,
-    AnnealSequenceSearchMethod,
+    AnnealSequenceSearchStrategy,
     index_2d,
 )
 from cirq.line.placement.chip import chip_as_adjacency_list
@@ -389,11 +389,12 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
 def test_anneal_search_method_calls(search):
     q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
     device = _create_device([q00, q01])
+    length = 1
     seed = 1
     search_instance = search.return_value
 
-    method = AnnealSequenceSearchMethod(None, seed)
-    method.place_line(device)
+    method = AnnealSequenceSearchStrategy(None, seed)
+    method.place_line(device, length)
 
     search.assert_called_once_with(device, seed)
     search_instance.search.assert_called_once_with(None)
