@@ -32,8 +32,8 @@ import cirq
 
 def set_io_qubits(qubit_count):
     """Add the specified number of input and output qubits."""
-    input_qubits = [cirq.google.XmonQubit(i, 0) for i in range(qubit_count)]
-    output_qubit = cirq.google.XmonQubit(qubit_count, 0)
+    input_qubits = [cirq.devices.GridQubit(i, 0) for i in range(qubit_count)]
+    output_qubit = cirq.devices.GridQubit(qubit_count, 0)
     return (input_qubits, output_qubit)
 
 def make_oracle(input_qubits, output_qubit, x_bits):
@@ -106,7 +106,8 @@ def main():
     # Check if we actually found the secret value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
     print('Most common bitstring: {}'.format(most_common_bitstring))
-    print('Found a match: {}'.format(most_common_bitstring == bitstring(x_bits)))
+    print('Found a match: {}'.format(
+        most_common_bitstring == bitstring(x_bits)))
 
 if __name__ == '__main__':
     main()
