@@ -14,6 +14,7 @@
 
 from typing import List, Optional
 
+from cirq.circuits import TextDiagramDrawer
 from cirq.devices import GridQubit
 from cirq.google import XmonDevice
 
@@ -56,6 +57,34 @@ class LinePlacement:
 
     def __hash__(self):
         return hash(tuple(self.lines))
+
+    def __str__(self):
+        return self._to_str()
+
+    def _to_str(self, draw_unused: bool = False):
+        diagram = TextDiagramDrawer()
+
+        for q in self.device.qubits:
+            diagram.write(q.col, q.row, str(q))
+
+        line_edges = set()
+        for line in self.lines:
+            for i in range(1, len(line.line)):
+                q1 = line.line[i-1]
+                q2 = line.line[i]
+                line_edges.add((q1, q2))
+                line_edges.add((q2, q1))
+
+        for q1 in self.device.qubits:
+            for q2 in self.device.neighbors_of(q1):
+                on_line = (q1, q2) in line_edges
+                if draw_unused or on_line:
+                    diagram.line(q1.col, q1.row, q2.col, q2.row, on_line)
+
+        return diagram.render(
+            horizontal_spacing=3,
+            vertical_spacing=2,
+            use_unicode_characters=True)
 
     def get(self):
         """Retrieves the preferred line placement.
