@@ -26,18 +26,18 @@ from cirq.testing.mock import mock
 
 def test_line_sequence_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: LineSequence([]))
-    eq.make_equality_pair(lambda: LineSequence([XmonQubit(0, 0)]))
-    eq.make_equality_pair(
+    eq.make_equality_group(lambda: LineSequence([]))
+    eq.make_equality_group(lambda: LineSequence([XmonQubit(0, 0)]))
+    eq.make_equality_group(
         lambda: LineSequence([XmonQubit(1, 0), XmonQubit(0, 0)]))
 
 
 def test_line_placement_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: LinePlacement(0, []))
-    eq.make_equality_pair(
+    eq.make_equality_group(lambda: LinePlacement(0, []))
+    eq.make_equality_group(
         lambda: LinePlacement(1, [LineSequence([XmonQubit(0, 0)])]))
-    eq.make_equality_pair(
+    eq.make_equality_group(
         lambda: LinePlacement(2, [LineSequence([XmonQubit(0, 0)]),
                                   LineSequence([XmonQubit(0, 1)])]))
 

@@ -65,10 +65,10 @@ def test_equality():
     eq.add_equality_group(Moment([ops.X(b), ops.X(a)]))
 
     # Two qubit gates.
-    eq.make_equality_pair(lambda: Moment([ops.CZ(c, d)]))
-    eq.make_equality_pair(lambda: Moment([ops.CZ(a, c)]))
-    eq.make_equality_pair(lambda: Moment([ops.CZ(a, b), ops.CZ(c, d)]))
-    eq.make_equality_pair(lambda: Moment([ops.CZ(a, c), ops.CZ(b, d)]))
+    eq.make_equality_group(lambda: Moment([ops.CZ(c, d)]))
+    eq.make_equality_group(lambda: Moment([ops.CZ(a, c)]))
+    eq.make_equality_group(lambda: Moment([ops.CZ(a, b), ops.CZ(c, d)]))
+    eq.make_equality_group(lambda: Moment([ops.CZ(a, c), ops.CZ(b, d)]))
 
 
 def test_operates_on():
