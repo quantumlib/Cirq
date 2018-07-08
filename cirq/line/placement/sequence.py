@@ -41,7 +41,8 @@ class LineSequence:
 
 class LinePlacement:
 
-    def __init__(self, device: XmonDevice, length: int, lines: List[LineSequence]) -> None:
+    def __init__(self, device: XmonDevice, length: int,
+                 lines: List[LineSequence]) -> None:
         self.device = device
         self.length = length
         self.lines = lines
