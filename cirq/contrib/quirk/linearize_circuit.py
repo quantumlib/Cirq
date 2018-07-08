@@ -24,8 +24,7 @@ class QubitMapper(OptimizationPass):
         self.qubit_map = qubit_map
 
     def map_operation(self, operation: ops.Operation) -> ops.Operation:
-        return ops.Operation(operation.gate,
-                             [self.qubit_map(q) for q in operation.qubits])
+        return operation.transform_qubits(self.qubit_map)
 
     def map_moment(self, moment: circuits.Moment) -> circuits.Moment:
         return circuits.Moment(self.map_operation(op)

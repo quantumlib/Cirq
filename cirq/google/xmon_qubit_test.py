@@ -14,7 +14,7 @@
 
 import pytest
 
-from cirq import ops
+import cirq
 from cirq.api.google.v1 import operations_pb2
 from cirq.google import XmonQubit
 from cirq.testing import EqualsTester
@@ -70,7 +70,7 @@ def test_xmon_qubit_is_adjacent():
 
 
 def test_gate_calls_validate():
-    class ValiGate(ops.Gate):
+    class ValiGate(cirq.Gate):
         # noinspection PyMethodMayBeStatic
         def validate_args(self, qubits):
             if len(qubits) == 3:
@@ -95,26 +95,26 @@ def test_gate_calls_validate():
 
 def test_operation_init():
     q = XmonQubit(4, 5)
-    g = ops.Gate()
-    v = ops.Operation(g, (q,))
+    g = cirq.Gate()
+    v = cirq.GateOperation(g, (q,))
     assert v.gate == g
     assert v.qubits == (q,)
 
 
 def test_operation_eq():
-    g1 = ops.Gate()
-    g2 = ops.Gate()
+    g1 = cirq.Gate()
+    g2 = cirq.Gate()
     r1 = [XmonQubit(1, 2)]
     r2 = [XmonQubit(3, 4)]
     r12 = r1 + r2
     r21 = r2 + r1
 
     eq = EqualsTester()
-    eq.make_equality_group(lambda: ops.Operation(g1, r1))
-    eq.make_equality_group(lambda: ops.Operation(g2, r1))
-    eq.make_equality_group(lambda: ops.Operation(g1, r2))
-    eq.make_equality_group(lambda: ops.Operation(g1, r12))
-    eq.make_equality_group(lambda: ops.Operation(g1, r21))
+    eq.make_equality_group(lambda: cirq.GateOperation(g1, r1))
+    eq.make_equality_group(lambda: cirq.GateOperation(g2, r1))
+    eq.make_equality_group(lambda: cirq.GateOperation(g1, r2))
+    eq.make_equality_group(lambda: cirq.GateOperation(g1, r12))
+    eq.make_equality_group(lambda: cirq.GateOperation(g1, r21))
 
 
 def test_to_proto():

@@ -14,7 +14,7 @@
 
 import pytest
 
-from cirq import ops
+import cirq
 from cirq.circuits import Circuit
 from cirq.google import (ExpWGate, ExpZGate, Exp11Gate, XmonDevice,
                          XmonMeasurementGate, XmonQubit)
@@ -43,8 +43,8 @@ def test_init():
 
     assert d.qubits == {q00, q01, q10}
     assert d.duration_of(ExpZGate().on(q00)) == 0 * ns
-    assert d.duration_of(ops.measure(q00)) == ns
-    assert d.duration_of(ops.measure(q00, q01)) == ns
+    assert d.duration_of(cirq.measure(q00)) == ns
+    assert d.duration_of(cirq.measure(q00, q01)) == ns
     assert d.duration_of(ExpWGate().on(q00)) == 2 * ns
     assert d.duration_of(Exp11Gate().on(q00, q01)) == 3 * ns
 
@@ -52,12 +52,12 @@ def test_init():
 def test_validate_operation_adjacent_qubits():
     d = square_device(3, 3)
 
-    d.validate_operation(ops.Operation(
+    d.validate_operation(cirq.GateOperation(
         Exp11Gate(),
         (XmonQubit(0, 0), XmonQubit(1, 0))))
 
     with pytest.raises(ValueError):
-        d.validate_operation(ops.Operation(
+        d.validate_operation(cirq.GateOperation(
             Exp11Gate(),
             (XmonQubit(0, 0), XmonQubit(2, 0))))
 
@@ -65,7 +65,7 @@ def test_validate_operation_adjacent_qubits():
 def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
-    d.validate_operation(ops.Operation(
+    d.validate_operation(cirq.GateOperation(
         XmonMeasurementGate(key=''),
         (XmonQubit(0, 0), XmonQubit(2, 0))))
 
@@ -73,20 +73,20 @@ def test_validate_measurement_non_adjacent_qubits_ok():
 def test_validate_operation_existing_qubits():
     d = square_device(3, 3, holes=[XmonQubit(1, 1)])
 
-    d.validate_operation(ops.Operation(
+    d.validate_operation(cirq.GateOperation(
         Exp11Gate(),
         (XmonQubit(0, 0), XmonQubit(1, 0))))
-    d.validate_operation(ops.Operation(ExpZGate(), (XmonQubit(0, 0),)))
+    d.validate_operation(cirq.GateOperation(ExpZGate(), (XmonQubit(0, 0),)))
 
     with pytest.raises(ValueError):
-        d.validate_operation(ops.Operation(
+        d.validate_operation(cirq.GateOperation(
             Exp11Gate(),
             (XmonQubit(0, 0), XmonQubit(-1, 0))))
     with pytest.raises(ValueError):
-        d.validate_operation(ops.Operation(ExpZGate(),
+        d.validate_operation(cirq.GateOperation(ExpZGate(),
                                            (XmonQubit(-1, 0),)))
     with pytest.raises(ValueError):
-        d.validate_operation(ops.Operation(
+        d.validate_operation(cirq.GateOperation(
             Exp11Gate(),
             (XmonQubit(1, 0), XmonQubit(1, 1))))
 
@@ -94,12 +94,12 @@ def test_validate_operation_existing_qubits():
 def test_validate_operation_supported_gate():
     d = square_device(3, 3)
 
-    class MyGate(ops.Gate):
+    class MyGate(cirq.Gate):
         pass
 
-    d.validate_operation(ops.Operation(ExpZGate(), [XmonQubit(0, 0)]))
+    d.validate_operation(cirq.GateOperation(ExpZGate(), [XmonQubit(0, 0)]))
     with pytest.raises(ValueError):
-        d.validate_operation(ops.Operation(MyGate, [XmonQubit(0, 0)]))
+        d.validate_operation(cirq.GateOperation(MyGate, [XmonQubit(0, 0)]))
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_w():

@@ -33,11 +33,12 @@ def _reverse_operation(operation: raw_types.Operation,
     Raises:
         ValueError: The operation's gate isn't reversible.
     """
-    gate = extensions.try_cast(gate_features.ReversibleEffect, operation.gate)
-    if gate is None:
-        raise ValueError('Not reversible: {}'.format(operation))
-    return raw_types.Operation(cast(raw_types.Gate, gate.inverse()),
-                               operation.qubits)
+    reversible_op = extensions.try_cast(gate_features.ReversibleEffect,
+                                        operation)
+    if reversible_op is not None:
+        return cast(raw_types.Operation, reversible_op.inverse())
+
+    raise ValueError('Not reversible: {}'.format(operation))
 
 
 def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
