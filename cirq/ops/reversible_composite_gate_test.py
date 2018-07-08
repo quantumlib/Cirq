@@ -37,6 +37,10 @@ class _FlipGate(cirq.Gate, cirq.ReversibleEffect):
 
 
 def test_inverse_of_invertible_op_tree():
+    with pytest.raises(TypeError):
+        _ = cirq.inverse_of_invertible_op_tree(
+            cirq.measure(cirq.NamedQubit('q')))
+
     def rev_freeze(root):
         return cirq.freeze_op_tree(cirq.inverse_of_invertible_op_tree(root))
 

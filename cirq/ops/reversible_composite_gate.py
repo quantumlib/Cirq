@@ -21,24 +21,21 @@ from cirq.ops import gate_features, op_tree, raw_types
 
 
 def _reverse_operation(operation: raw_types.Operation,
-                       extensions: Extensions) -> raw_types.Operation:
+                       ext: Extensions) -> raw_types.Operation:
     """Returns the inverse of an operation, if possible.
 
     Args:
         operation: The operation to reverse.
+        ext: Used when casting the operation into a reversible effect.
 
     Returns:
         An operation on the same qubits but with the inverse gate.
 
     Raises:
-        ValueError: The operation's gate isn't reversible.
+        TypeError: The operation isn't reversible.
     """
-    reversible_op = extensions.try_cast(gate_features.ReversibleEffect,
-                                        operation)
-    if reversible_op is not None:
-        return cast(raw_types.Operation, reversible_op.inverse())
-
-    raise ValueError('Not reversible: {}'.format(operation))
+    reversible_op = ext.cast(gate_features.ReversibleEffect, operation)
+    return cast(raw_types.Operation, reversible_op.inverse())
 
 
 def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
