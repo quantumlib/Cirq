@@ -33,7 +33,7 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
 
 class ControlledGate(raw_types.Gate,
                      extension.PotentialImplementation[
-                         Union.__getitem__(*POTENTIALLY_EXPOSED_SUB_TYPES)]):
+                         Union.__getitem__(POTENTIALLY_EXPOSED_SUB_TYPES)]):
     """Augments existing gates with a control qubit."""
 
     def __init__(self,
