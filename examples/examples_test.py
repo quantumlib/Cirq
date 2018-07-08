@@ -69,3 +69,7 @@ def test_example_runs_bell_inequality():
 
 def test_example_runs_quantum_fourier_transform():
     examples.quantum_fourier_transform.main()
+
+def test_example_runs_grover():
+    examples.grover.main()
+    
