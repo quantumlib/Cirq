@@ -30,10 +30,19 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.TextDiagrammableGate,
 )
 
+POTENTIALLY_EXPOSED_SUB_TYPES_UNION = Union[
+    gate_features.BoundedEffect,
+    gate_features.ExtrapolatableEffect,
+    gate_features.KnownMatrixGate,
+    gate_features.ParameterizableEffect,
+    gate_features.ReversibleEffect,
+    gate_features.TextDiagrammableGate,
+]
+
 
 class ControlledGate(raw_types.Gate,
                      extension.PotentialImplementation[
-                         Union.__getitem__(POTENTIALLY_EXPOSED_SUB_TYPES)]):
+                         POTENTIALLY_EXPOSED_SUB_TYPES_UNION]):
     """Augments existing gates with a control qubit."""
 
     def __init__(self,
