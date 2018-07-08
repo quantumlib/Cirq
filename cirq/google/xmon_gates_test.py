@@ -383,3 +383,16 @@ def test_z_diagram_chars():
     assert c.to_text_diagram() == """
 (0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
     """.strip()
+
+
+def test_w_diagram_chars():
+    q = cirq.google.XmonQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpWGate(axis_half_turns=0).on(q),
+        cirq.google.ExpWGate(axis_half_turns=0.25).on(q),
+        cirq.google.ExpWGate(axis_half_turns=0.5).on(q),
+        cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a')).on(q),
+    )
+    assert c.to_text_diagram() == """
+(0, 1): ───X───W(0.25)───Y───W(a)───
+    """.strip()

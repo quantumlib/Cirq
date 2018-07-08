@@ -600,11 +600,11 @@ def _get_operation_text_diagram_info_with_fallback(
         return info
 
     name = repr(op.gate)
-    if len(op.qubits) == 1:
-        symbols = (name,)
-    else:
+    if len(op.qubits) != 1:
         symbols = tuple('{}:{}'.format(name, i)
                         for i in range(len(op.qubits)))
+    else:
+        symbols = (name,)
     return ops.TextDiagramInfo(wire_symbols=symbols)
 
 

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
 
 import numpy as np
 import pytest
@@ -742,6 +741,28 @@ M      |      M      |
         """.strip()
 
 
+def test_diagram_with_unknown_exponent():
+    class WeirdGate(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(wire_symbols=('B',),
+                                        exponent='fancy')
+
+    class WeirderGate(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(wire_symbols=('W',),
+                                        exponent='fancy-that')
+
+    c = cirq.Circuit.from_ops(
+        WeirdGate().on(cirq.NamedQubit('q')),
+        WeirderGate().on(cirq.NamedQubit('q')),
+    )
+
+    # The hyphen in the exponent should cause parens to appear.
+    assert c.to_text_diagram() == 'q: ───B^fancy───W^(fancy-that)───'
+
+
 def test_to_text_diagram_extended_gate():
     q = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
@@ -1077,7 +1098,6 @@ def test_circuit_to_unitary_matrix():
     with pytest.raises(TypeError, match="Terminal"):
         c.to_unitary_matrix(ignore_terminal_measurements=False),
 
-
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(cirq.measure(a), cirq.X(a))
     with pytest.raises(TypeError):
@@ -1175,6 +1195,7 @@ def test_expanding_gate_symbols():
         def text_diagram_info(self,
                               args: cirq.TextDiagramInfoArgs
                               ) -> cirq.TextDiagramInfo:
+            assert args.known_qubit_count is not None
             return cirq.TextDiagramInfo(
                 ('@',) + ('Z',) * (args.known_qubit_count - 1))
 

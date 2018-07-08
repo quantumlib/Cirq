@@ -14,7 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, cast
 
 import numpy as np
 
@@ -424,12 +424,12 @@ class ExpZGate(XmonGate,
         if self.half_turns in [-0.25, 0.25]:
             return ops.TextDiagramInfo(
                 wire_symbols=('T',),
-                exponent=self.half_turns * 4)
+                exponent=cast(float, self.half_turns) * 4)
 
         if self.half_turns in [-0.5, 0.5]:
             return ops.TextDiagramInfo(
                 wire_symbols=('S',),
-                exponent=self.half_turns * 2)
+                exponent=cast(float, self.half_turns) * 2)
 
         return ops.TextDiagramInfo(
             wire_symbols=('Z',),

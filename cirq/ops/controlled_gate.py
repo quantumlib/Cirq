@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast, Tuple
+from typing import Optional, TypeVar, Type, cast
 
 import numpy as np
 

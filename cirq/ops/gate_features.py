@@ -17,12 +17,13 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar, \
-    Any
+from typing import (
+    Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar, Any,
+)
 
 import numpy as np
 
-from cirq import abc, value
+from cirq import abc
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 from cirq.study import ParamResolver
@@ -187,7 +188,7 @@ TextDiagramInfoArgs.UNINFORMED_DEFAULT = TextDiagramInfoArgs(
 class TextDiagramInfo:
     def __init__(self,
                  wire_symbols: Tuple[str, ...],
-                 exponent: Any = 1):
+                 exponent: Any = 1) -> None:
         """
 
         Args:

@@ -14,7 +14,7 @@
 
 """Quantum gates that are commonly used in the literature."""
 import math
-from typing import Union, Tuple, Optional, List, Callable
+from typing import Union, Tuple, Optional, List, Callable, cast
 
 import numpy as np
 
@@ -239,12 +239,12 @@ class RotZGate(eigen_gate.EigenGate,
         if self.half_turns in [-0.25, 0.25]:
             return gate_features.TextDiagramInfo(
                 wire_symbols=('T',),
-                exponent=self._exponent * 4)
+                exponent=cast(float, self._exponent) * 4)
 
         if self.half_turns in [-0.5, 0.5]:
             return gate_features.TextDiagramInfo(
                 wire_symbols=('S',),
-                exponent=self._exponent * 2)
+                exponent=cast(float, self._exponent) * 2)
 
         return gate_features.TextDiagramInfo(
             wire_symbols=('Z',),

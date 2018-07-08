@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Common quantum gates that target three qubits."""
-from typing import Tuple
 
 import numpy as np
 
