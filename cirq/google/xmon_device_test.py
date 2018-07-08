@@ -188,3 +188,12 @@ def test_xmon_device_eq():
     eq.make_equality_group(
         lambda: XmonDevice(Duration(nanos=1), Duration(nanos=1),
                            Duration(nanos=1), []))
+
+def test_xmon_device_str():
+    print(square_device(2, 2))
+    assert str(square_device(2, 2)).strip() == """
+(0, 0)───(0, 1)
+│        │
+│        │
+(1, 0)───(1, 1)
+    """.strip()
