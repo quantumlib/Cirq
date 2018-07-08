@@ -474,6 +474,7 @@ def test_greedy_search_method_calls_minimal_only(minimal, largest):
 def test_greedy_search_method_returns_longest(minimal, largest):
     q00 = GridQubit(0, 0)
     q10 = GridQubit(1, 0)
+    device = _create_device([])
     length = 1
     sequence_short = [q00]
     sequence_long = [q00, q10]
@@ -481,8 +482,8 @@ def test_greedy_search_method_returns_longest(minimal, largest):
     minimal.return_value.get_or_search.return_value = sequence_long
 
     method = GreedySequenceSearchStrategy()
-    assert method.place_line(_create_device([]), length) == LinePlacement(
-        length, [LineSequence(sequence_long)])
+    assert method.place_line(device, length) == LinePlacement(
+        device, length, [LineSequence(sequence_long)])
 
 
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
@@ -492,7 +493,8 @@ def test_greedy_search_method_returns_empty_when_empty(minimal, largest):
     largest.return_value.get_or_search.return_value = []
     minimal.return_value.get_or_search.return_value = []
 
+    device = _create_device([])
     length = 1
     method = GreedySequenceSearchStrategy()
-    assert method.place_line(_create_device([]), length) == LinePlacement(
-        length, [])
+    assert method.place_line(device, length) == LinePlacement(
+        device, length, [])

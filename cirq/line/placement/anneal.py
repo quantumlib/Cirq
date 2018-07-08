@@ -370,7 +370,8 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             method.
         """
         seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
-        return LinePlacement(length, [LineSequence(seq) for seq in seqs])
+        return LinePlacement(device, length,
+                             [LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:
