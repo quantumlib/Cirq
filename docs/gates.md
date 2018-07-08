@@ -90,12 +90,10 @@ take an ``Extension`` which allows for overriding the
 ``Simulators`` where an optional extension can be supplied
 that can be used to override the CompositeGate.
 
-#### TextDiagrammableGate
+#### TextDiagrammable
 
-Text diagrams of ``Circuits`` are actually quite useful for
-visualizing the moment structure of a ``Circuit``. Gates that
-implement this feature can specify compact representations to
-use in the diagram (e.g. '×' instead of 'SWAP').
+Text diagrams of ``Circuits`` are actually quite useful for visualizing the moment structure of a ``Circuit``.
+Gates that implement this feature can specify compact representations to use in the diagram (e.g. '×' instead of 'SWAP').
 
 ### XmonGates
 

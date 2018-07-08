@@ -777,19 +777,16 @@ def test_to_text_diagram_extended_gate():
             """.strip()
 
     # Succeeds with extension.
-    class FGateAsText(cirq.TextDiagrammableGate):
+    class FGateAsText(cirq.TextDiagrammable):
         def __init__(self, f_gate):
             self.f_gate = f_gate
 
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            return 'F',
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs):
+            return cirq.TextDiagramInfo(('F',))
 
-    diagram = c.to_text_diagram(Extensions({
-        cirq.TextDiagrammableGate: {
-           FGate: FGateAsText
-        }
-    }), use_unicode_characters=False)
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.TextDiagrammable, FGate, FGateAsText)
+    diagram = c.to_text_diagram(ext, use_unicode_characters=False)
 
     assert diagram.strip() == """
 (0, 0): ---F---
@@ -824,10 +821,10 @@ M──────M──────M
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
-    class BadGate(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            return 'a', 'a'
+    class BadGate(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(wire_symbols=('a', 'a'))
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -839,16 +836,13 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 def test_to_text_diagram_parameterized_value():
     q = cirq.NamedQubit('cube')
 
-    class PGate(cirq.TextDiagrammableGate):
+    class PGate(cirq.Gate, cirq.TextDiagrammable):
         def __init__(self, val):
             self.val = val
 
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            return 'P',
-
-        def text_diagram_exponent(self):
-            return self.val
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(('P',), self.val)
 
     c = Circuit.from_ops(
         PGate(1).on(q),
@@ -1177,12 +1171,12 @@ def test_iter_ops():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            if args.known_qubit_count is None:
-                return '@',  # coverage: ignore
-            return ('@',) + ('Z',) * (args.known_qubit_count - 1)
+    class MultiTargetCZ(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self,
+                              args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(
+                ('@',) + ('Z',) * (args.known_qubit_count - 1))
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

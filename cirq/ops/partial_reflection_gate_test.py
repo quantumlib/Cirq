@@ -28,11 +28,6 @@ class DummyGate(PartialReflectionGate):
     def _with_half_turns(self, half_turns: Union[Symbol, float] = 1.0):
         return DummyGate(half_turns=half_turns)
 
-    def text_diagram_wire_symbols(self,
-                                  args: cirq.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return 'D',
-
     def _reflection_matrix(self):
         return np.diag([1, -1])
 
@@ -74,10 +69,6 @@ def test_partial_reflection_as_self_inverse():
     assert ex.try_cast(cirq.ReversibleEffect, h0) is h0
     assert ex.try_cast(cirq.ReversibleEffect, h1) is h1
     assert ex.try_cast(cirq.ReversibleEffect, ha) is None
-
-
-def test_partial_reflection_gate_str():
-    assert str(DummyGate(half_turns=.25)) == 'D**0.25'
 
 
 def test_partial_reflection_gate_trace_bound():

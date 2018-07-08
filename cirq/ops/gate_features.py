@@ -17,7 +17,8 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar
+from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar, \
+    Any
 
 import numpy as np
 
@@ -146,7 +147,7 @@ class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """The unitary matrix of the operation this gate applies."""
 
 
-class TextDiagramSymbolArgs:
+class TextDiagramInfoArgs:
     """
     Attributes:
         known_qubits: The qubits the gate is being applied to. None means this
@@ -163,7 +164,7 @@ class TextDiagramSymbolArgs:
             the text diagram. None means use full precision.
     """
 
-    UNINFORMED_DEFAULT = None  # type: TextDiagramSymbolArgs
+    UNINFORMED_DEFAULT = None  # type: TextDiagramInfoArgs
 
     def __init__(self,
                  known_qubits: Optional[Tuple[raw_types.QubitId, ...]],
@@ -176,38 +177,65 @@ class TextDiagramSymbolArgs:
         self.precision = precision
 
 
-TextDiagramSymbolArgs.UNINFORMED_DEFAULT = TextDiagramSymbolArgs(
+TextDiagramInfoArgs.UNINFORMED_DEFAULT = TextDiagramInfoArgs(
     known_qubits=None,
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=3)
 
 
-class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate which can be nicely represented in a text diagram."""
-
-    # noinspection PyMethodMayBeStatic
-    def text_diagram_exponent(self) -> Union[float, value.Symbol]:
-        """The exponent to modify the gate symbol with. 1 means no modifier."""
-        return 1
-
-    @abc.abstractmethod
-    def text_diagram_wire_symbols(self, args: TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        """The symbols that should be shown on the gate's qubits (in order).
-
-        If the gate always acts on the same number of qubits, then the size
-        of the returned tuple should be equal to this number of qubits.
-        If the gate acts on a variable number of qubits, then a single
-        symbol should be used, and this will be repeated across the operation.
+class TextDiagramInfo:
+    def __init__(self,
+                 wire_symbols: Tuple[str, ...],
+                 exponent: Any = 1):
+        """
 
         Args:
-            args: Value class encapsulating the various symbol options, such as
-                whether or not to use unicode characters.
+            wire_symbols: The symbols that should be shown on the qubits
+                affected by this operation. Must match the number of qubits that
+                the operation is applied to.
+            exponent: An optional convenience value that will be appended onto
+                an operation's final gate symbol with a caret in front
+                (unless it's equal to 1). For example, the square root of X gate
+                has a text diagram exponent of 0.5 and symbol of 'X' so it is
+                drawn as 'X^0.5'.
+        """
+        self.wire_symbols = wire_symbols
+        self.exponent = exponent
+
+    def _eq_tuple(self):
+        return TextDiagramInfo, self.wire_symbols, self.exponent
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
+
+    def __repr__(self):
+        return 'TextDiagramInfo(wire_symbols={!r}, exponent={!r})'.format(
+            self.wire_symbols, self.exponent)
+
+
+class TextDiagrammable(metaclass=abc.ABCMeta):
+    """A thing which can be printed in a text diagram."""
+
+    @abc.abstractmethod
+    def text_diagram_info(self, args: TextDiagramInfoArgs) -> TextDiagramInfo:
+        """Describes how to draw something in a text diagram.
+
+        Args:
+            args: A TextDiagramInfoArgs instance encapsulating various pieces of
+                information (e.g. how many qubits are we being applied to) as
+                well as user options (e.g. whether to avoid unicode characters).
 
         Returns:
-             A tuple containing symbols to place on each of the qubit wires
-             touched by the gate.
+             A TextDiagramInfo instance describing what to print.
         """
 
 
