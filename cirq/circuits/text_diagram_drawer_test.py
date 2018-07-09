@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from cirq.circuits import TextDiagramDrawer
+from cirq.testing.mock import mock
 
 
 def test_draw_entries_and_lines_with_options():
@@ -71,3 +74,23 @@ def test_draw_entries_and_lines_with_options():
             span │
     ─────────────┼─
     """.strip()
+
+
+def test_line_detects_horizontal():
+    d = TextDiagramDrawer()
+    with mock.patch.object(d, 'vertical_line') as vertical_line:
+        d.grid_line(1, 2, 1, 5)
+        vertical_line.assert_called_once_with(1, 2, 5)
+
+
+def test_line_detects_vertical():
+    d = TextDiagramDrawer()
+    with mock.patch.object(d, 'horizontal_line') as horizontal_line:
+        d.grid_line(2, 1, 5, 1)
+        horizontal_line.assert_called_once_with(1, 2, 5)
+
+
+def test_line_fails_when_not_aligned():
+    d = TextDiagramDrawer()
+    with pytest.raises(ValueError):
+        d.grid_line(1, 2, 3, 4)
