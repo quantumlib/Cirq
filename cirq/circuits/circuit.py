@@ -19,8 +19,10 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from typing import Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator
-from typing import Optional, Sequence, Union, TYPE_CHECKING
+from typing import (
+    Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
+    Optional, Sequence, Union, TYPE_CHECKING,
+)
 
 import numpy as np
 
@@ -146,9 +148,6 @@ class Circuit(object):
 
     def __iter__(self):
         return iter(self.moments)
-
-    def iter_ops(self) -> Iterator[ops.Operation]:
-        return (op for moment in self for op in moment.operations)
 
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
@@ -451,9 +450,18 @@ class Circuit(object):
                 self.moments[k] = self.moments[k].without_operations_touching(
                     qubits)
 
-    def qubits(self) -> FrozenSet[QubitId]:
+    def all_qubits(self) -> FrozenSet[QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self.moments for q in m.qubits)
+
+    def all_operations(self) -> Iterator[ops.Operation]:
+        """Iterates over the operations applied by this circuit.
+
+        Operations from earlier moments will be iterated over first. Operations
+        within a moment are iterated in the order they were given to the
+        moment's constructor.
+        """
+        return (op for moment in self for op in moment.operations)
 
     def to_unitary_matrix(
             self,
@@ -488,10 +496,10 @@ class Circuit(object):
         if ext is None:
             ext = Extensions()
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.qubits().union(qubits_that_should_be_present))
+            self.all_qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
                      for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
-        matrix_ops = _flatten_to_known_matrix_ops(self.iter_ops(), ext)
+        matrix_ops = _flatten_to_known_matrix_ops(self.all_operations(), ext)
         if not self.are_all_measurements_terminal():
             raise TypeError('Circuit contains a non-terminal measurement')
         return _operations_to_unitary_matrix(matrix_ops,
@@ -560,7 +568,7 @@ class Circuit(object):
             ext = Extensions()
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.qubits())
+            self.all_qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
         diagram = TextDiagramDrawer()
