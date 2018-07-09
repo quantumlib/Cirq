@@ -18,7 +18,7 @@ from cirq import ops
 from cirq.devices import Device
 from cirq.google import xmon_gates
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
-from cirq.google.xmon_qubit import XmonQubit
+from cirq.devices.grid_qubit import GridQubit
 from cirq.value import Duration
 
 from cirq.circuits import TextDiagramDrawer
@@ -32,7 +32,7 @@ class XmonDevice(Device):
                  measurement_duration: Duration,
                  exp_w_duration: Duration,
                  exp_11_duration: Duration,
-                 qubits: Iterable[XmonQubit]) -> None:
+                 qubits: Iterable[GridQubit]) -> None:
         """Initializes the description of an xmon device.
 
         Args:
@@ -46,13 +46,13 @@ class XmonDevice(Device):
         self._exp_z_duration = exp_11_duration
         self.qubits = frozenset(qubits)
 
-    def neighbors_of(self, qubit: XmonQubit):
+    def neighbors_of(self, qubit: GridQubit):
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
-            XmonQubit(qubit.row + 1, qubit.col),
-            XmonQubit(qubit.row - 1, qubit.col),
-            XmonQubit(qubit.row, qubit.col + 1),
-            XmonQubit(qubit.row, qubit.col - 1),
+            GridQubit(qubit.row + 1, qubit.col),
+            GridQubit(qubit.row - 1, qubit.col),
+            GridQubit(qubit.row, qubit.col + 1),
+            GridQubit(qubit.row, qubit.col - 1),
         ]
         return [e for e in possibles if e in self.qubits]
 
@@ -84,7 +84,7 @@ class XmonDevice(Device):
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, XmonQubit):
+            if not isinstance(q, GridQubit):
                 raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {}'.format(repr(q)))
@@ -93,7 +93,7 @@ class XmonDevice(Device):
                 and not isinstance(operation.gate,
                                    xmon_gates.XmonMeasurementGate)):
             p, q = operation.qubits
-            if not cast(XmonQubit, p).is_adjacent(q):
+            if not cast(GridQubit, p).is_adjacent(q):
                 raise ValueError(
                     'Non-local interaction: {}.'.format(repr(operation)))
 
@@ -105,7 +105,7 @@ class XmonDevice(Device):
         # Adjacent ExpW operations may be doable.
         # For now we will play it conservatively.
 
-        return any(cast(XmonQubit, q).is_adjacent(cast(XmonQubit, p))
+        return any(cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
                    for q in exp11_op.qubits
                    for p in other_op.qubits)
 

@@ -23,7 +23,8 @@ from google.protobuf.json_format import MessageToDict
 
 import cirq
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
-from cirq.google import Engine, Foxtail, JobConfig, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import Engine, Foxtail, JobConfig
 from cirq.testing.mock import mock
 
 _A_RESULT = program_pb2.Result(
@@ -120,7 +121,7 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_A_RESULT)}
 
-    circuit = cirq.Circuit.from_ops(cirq.H.on(XmonQubit(0, 1)))
+    circuit = cirq.Circuit.from_ops(cirq.H.on(GridQubit(0, 1)))
     result = Engine(api_key="key").run(circuit, JobConfig('project-id'),
                                        Foxtail)
     assert result.repetitions == 1

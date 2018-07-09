@@ -15,3 +15,9 @@
 from cirq.line.line_qubit import (
     LineQubit,
 )
+from cirq.line.placement import (
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    LinePlacementStrategy,
+    line_on_device,
+)

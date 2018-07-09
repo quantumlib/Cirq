@@ -116,4 +116,4 @@ Qubits
 .. autosummary::
     :toctree: generated/
 
-    google.XmonQubit
+    devices.GridQubit
