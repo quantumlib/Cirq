@@ -57,11 +57,11 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     h = diagram.height()
 
     qwx = {(x, y + 1)
-           for x, y1, y2 in diagram.vertical_lines
+           for x, y1, y2, _ in diagram.vertical_lines
            for y in range(y1, y2)}
 
     qw = {(x, y)
-          for y, x1, x2 in diagram.horizontal_lines
+          for y, x1, x2, _ in diagram.horizontal_lines
           for x in range(x1, x2)}
 
     rows = []
