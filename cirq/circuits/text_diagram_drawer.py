@@ -48,6 +48,22 @@ class TextDiagramDrawer:
 
         return False
 
+    def grid_line(self, x1: int, y1: int, x2: int, y2: int):
+        """Adds a vertical or horizontal line from (x1, y1) to (x2, y2).
+
+        Horizontal line is selected on equality in the second coordinate and
+        vertical line is selected on equality in the first coordinate.
+
+        Raises:
+            ValueError: If line is neither horizontal nor vertical.
+        """
+        if x1 == x2:
+            self.vertical_line(x1, y1, y2)
+        elif y1 == y2:
+            self.horizontal_line(y1, x1, x2)
+        else:
+            raise ValueError("Line is neither horizontal nor vertical")
+
     def vertical_line(self, x: int, y1: int, y2: int):
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
