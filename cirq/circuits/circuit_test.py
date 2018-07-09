@@ -1227,3 +1227,23 @@ def test_transposed_diagram_exponent_order():
 │ @──────@^0.125
 │ │      │
     """.strip()
+
+
+def test_insert_moments():
+    q = cirq.NamedQubit('q')
+    c = cirq.Circuit()
+
+    m0 = cirq.Moment([cirq.X(q)])
+    c.append(m0)
+    assert c.moments == [m0]
+    assert c.moments[0] is m0
+
+    m1 = cirq.Moment([cirq.Y(q)])
+    c.append(m1)
+    assert c.moments == [m0, m1]
+    assert c.moments[1] is m1
+
+    m2 = cirq.Moment([cirq.Z(q)])
+    c.insert(0, m2)
+    assert c.moments == [m2, m0, m1]
+    assert c.moments[0] is m2
