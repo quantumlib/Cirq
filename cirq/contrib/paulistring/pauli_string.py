@@ -23,9 +23,9 @@ from cirq.contrib.paulistring import Pauli, CliffordGate, PauliInteractionGate
 class PauliString:
     def __init__(self,
                  qubit_pauli_map: Mapping[ops.QubitId, Pauli],
-                 inverted: bool = False) -> None:
+                 negated: bool = False) -> None:
         self._qubit_pauli_map = dict(qubit_pauli_map)
-        self.inverted = inverted
+        self.negated = negated
 
     @staticmethod
     def from_single(qubit: ops.QubitId, pauli: Pauli) -> 'PauliString':
@@ -35,7 +35,7 @@ class PauliString:
     def _eq_tuple(self) -> Tuple[Any, ...]:
         return (PauliString,
                 self._qubit_pauli_map,
-                self.inverted)
+                self.negated)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -46,7 +46,7 @@ class PauliString:
         return not self == other
 
     def __hash__(self):
-        return hash((PauliString, self.inverted, frozenset(self.items())))
+        return hash((PauliString, self.negated, frozenset(self.items())))
 
     def __getitem__(self, key: ops.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
@@ -81,11 +81,11 @@ class PauliString:
                              for qubit in
                                 ops.QubitOrder.DEFAULT.order_for(self)))
         return 'PauliString({{{}}}, {})'.format(map_str,
-                                                self.inverted)
+                                                self.negated)
 
     def __str__(self):
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.qubits())
-        return '{{{}, {}}}'.format('+-'[self.inverted],
+        return '{{{}, {}}}'.format('+-'[self.negated],
                                    ', '.join(('{!s}:{!s}'.format(q, self[q])
                                              for q in ordered_qubits)))
 
@@ -96,23 +96,27 @@ class PauliString:
                 yield qubit, (pauli0, other[qubit])
 
     def zip_paulis(self, other: 'PauliString') -> Iterator[Tuple[Pauli, Pauli]]:
-        for qubit, pauli0 in self.items():
-            if qubit in other:
-                yield pauli0, other[qubit]
+        return (paulis for qubit, paulis in self.zip_items(other))
 
-    def commutes_with_string(self, other: 'PauliString') -> bool:
-        return sum((not p0.commutes_with(p1)
-                    for p0, p1 in self.zip_paulis(other))
+    def commutes_with(self, other: 'PauliString') -> bool:
+        return sum(not p0.commutes_with(p1)
+                   for p0, p1 in self.zip_paulis(other)
                    ) % 2 == 0
 
-    def inverse(self) -> 'PauliString':
-        return PauliString(self._qubit_pauli_map, not self.inverted)
+    def negate(self) -> 'PauliString':
+        return PauliString(self._qubit_pauli_map, not self.negated)
+
+    def __neg__(self) -> 'PauliString':
+        return self.negate()
+
+    def __pos__(self) -> 'PauliString':
+        return self
 
     def map_qubits(self, qubit_map: Dict[ops.QubitId, ops.QubitId]
                    ) -> 'PauliString':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
                                for qubit, pauli in self.items()}
-        return PauliString(new_qubit_pauli_map, self.inverted)
+        return PauliString(new_qubit_pauli_map, self.negated)
 
     def pass_operations_over(self,
                              ops: Iterable[ops.Operation],
@@ -121,15 +125,21 @@ class PauliString:
             --op--...--op--self-- and --output--op--...--op--
         are equivalent up to global phase.
 
+        If ops together have matrix C, the Pauli string has matrix P, and the
+        output Pauli string has matrix P', then C^-1 P C == C P' C^-1 up to
+        global phase.
+
+
         Args:
             op: The operation to move
             after_to_before: If true, passes op over the other direction such
                 that the circuits
                     --self--op--...--op-- and --op--...--op--output--
-                are equivalent up to global phase.
+                are equivalent up to global phase and C P C^-1 == C^-1 P' C up
+                to global phase.
         """
         pauli_map = dict(self._qubit_pauli_map)
-        inv = self.inverted
+        inv = self.negated
         for op in ops:
             inv ^= self._pass_operation_over(pauli_map, op, after_to_before)
         return PauliString(pauli_map, inv)

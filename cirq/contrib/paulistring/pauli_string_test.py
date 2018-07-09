@@ -33,9 +33,8 @@ def _make_qubits(n):
 
 def _sample_qubit_pauli_maps():
     qubits = _make_qubits(3)
-    yield {}
     paulis_or_none = (None,) + Pauli.XYZ
-    for paulis in itertools.product(*(paulis_or_none,)*len(qubits)):
+    for paulis in itertools.product(paulis_or_none, repeat=len(qubits)):
         yield {qubit: pauli for qubit, pauli in zip(qubits, paulis)
                             if pauli is not None}
 
@@ -46,16 +45,18 @@ def test_eq_ne_hash():
     eq.make_equality_group(
         lambda: PauliString({}),
         lambda: PauliString({}, False))
-    eq.make_equality_group(lambda: PauliString({}, True))
+    eq.add_equality_group(PauliString({}, True))
     for q, pauli in itertools.product((q0, q1), Pauli.XYZ):
-        eq.make_equality_group(
-            lambda: PauliString({q: pauli}, False),
-            lambda: PauliString.from_single(q, pauli))
-        eq.make_equality_group(
-            lambda: PauliString({q: pauli}, True),
-            lambda: PauliString.from_single(q, pauli).inverse())
+        eq.add_equality_group(PauliString({q: pauli}, False))
+        eq.add_equality_group(PauliString({q: pauli}, True))
     for q, p0, p1 in itertools.product((q0, q1), Pauli.XYZ, Pauli.XYZ):
-        eq.make_equality_group(lambda: PauliString({q: p0, q2: p1}, False))
+        eq.add_equality_group(PauliString({q: p0, q2: p1}, False))
+
+
+@pytest.mark.parametrize('pauli', Pauli.XYZ)
+def test_from_single(pauli):
+    q0, = _make_qubits(1)
+    assert PauliString.from_single(q0, pauli) == PauliString({q0: pauli})
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -133,7 +134,7 @@ def test_repr():
     assert (repr(pauli_string) ==
             "PauliString({NamedQubit('q0'): Pauli.Z, "
             "NamedQubit('q1'): Pauli.Y, NamedQubit('q2'): Pauli.X}, False)")
-    assert (repr(pauli_string.inverse()) ==
+    assert (repr(pauli_string.negate()) ==
             "PauliString({NamedQubit('q0'): Pauli.Z, "
             "NamedQubit('q1'): Pauli.Y, NamedQubit('q2'): Pauli.X}, True)")
 
@@ -142,7 +143,8 @@ def test_str():
     q0, q1, q2 = _make_qubits(3)
     pauli_string = PauliString({q2: Pauli.X, q1: Pauli.Y, q0: Pauli.Z})
     assert str(pauli_string) == '{+, q0:Z, q1:Y, q2:X}'
-    assert str(pauli_string.inverse()) == '{-, q0:Z, q1:Y, q2:X}'
+    assert str(pauli_string.negate()) == '{-, q0:Z, q1:Y, q2:X}'
+
 
 @pytest.mark.parametrize('map1,map2,out', (lambda q0, q1, q2: (
         ({}, {}, {}),
@@ -188,54 +190,61 @@ def test_zip_paulis(map1, map2, out):
     assert set(out_actual) == set(out)  # Ignore output order
 
 
-def test_commutes_with_string():
+def test_commutes_with():
     q0, q1, q2 = _make_qubits(3)
 
-    assert PauliString.from_single(q0, Pauli.X).commutes_with_string(
+    assert PauliString.from_single(q0, Pauli.X).commutes_with(
            PauliString.from_single(q0, Pauli.X))
-    assert not PauliString.from_single(q0, Pauli.X).commutes_with_string(
+    assert not PauliString.from_single(q0, Pauli.X).commutes_with(
                PauliString.from_single(q0, Pauli.Y))
-    assert PauliString.from_single(q0, Pauli.X).commutes_with_string(
+    assert PauliString.from_single(q0, Pauli.X).commutes_with(
            PauliString.from_single(q1, Pauli.X))
-    assert PauliString.from_single(q0, Pauli.X).commutes_with_string(
+    assert PauliString.from_single(q0, Pauli.X).commutes_with(
            PauliString.from_single(q1, Pauli.Y))
 
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q0: Pauli.X, q1: Pauli.Y}))
-    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
                PauliString({q0: Pauli.X, q1: Pauli.Z}))
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q0: Pauli.Y, q1: Pauli.X}))
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q0: Pauli.Y, q1: Pauli.Z}))
 
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q0: Pauli.X, q1: Pauli.Y, q2: Pauli.Z}))
-    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
                PauliString({q0: Pauli.X, q1: Pauli.Z, q2: Pauli.Z}))
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q0: Pauli.Y, q1: Pauli.X, q2: Pauli.Z}))
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q0: Pauli.Y, q1: Pauli.Z, q2: Pauli.X}))
 
-    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
            PauliString({q2: Pauli.X, q1: Pauli.Y}))
-    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
                PauliString({q2: Pauli.X, q1: Pauli.Z}))
-    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
                PauliString({q2: Pauli.Y, q1: Pauli.X}))
-    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with_string(
+    assert not PauliString({q0: Pauli.X, q1: Pauli.Y}).commutes_with(
                PauliString({q2: Pauli.Y, q1: Pauli.Z}))
 
 
-def test_inverse():
+def test_negate():
     q0, q1 = _make_qubits(2)
     qubit_pauli_map = {q0: Pauli.X, q1: Pauli.Y}
     ps1 = PauliString(qubit_pauli_map)
     ps2 = PauliString(qubit_pauli_map, True)
-    assert ps1.inverse() == ps2
-    assert ps1 == ps2.inverse()
-    assert ps1.inverse().inverse() == ps1
+    assert ps1.negate() == -ps1 == ps2
+    assert ps1 == ps2.negate() == -ps2
+    assert ps1.negate().negate() == ps1
+
+
+def test_pos():
+    q0, q1 = _make_qubits(2)
+    qubit_pauli_map = {q0: Pauli.X, q1: Pauli.Y}
+    ps1 = PauliString(qubit_pauli_map)
+    assert ps1 == +ps1
 
 
 def test_map_qubits():
@@ -279,42 +288,42 @@ def test_pass_operations_over_single(shift, t_or_f):
 
     op1 = CliffordGate.from_pauli(X)(q1)
     ps_before = PauliString({q0: X, q1: Y}, t_or_f)
-    ps_after = ps_before.inverse()
+    ps_after = ps_before.negate()
     _assert_pass_over([op1], ps_before, ps_after)
 
     ps_after = PauliString({q0: Z, q1: Y}, not t_or_f)
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
 
-@pytest.mark.parametrize('shift,t_or_f1, t_or_f2,inv',
+@pytest.mark.parametrize('shift,t_or_f1, t_or_f2,neg',
         itertools.product(range(3), *((True, False),)*3))
-def test_pass_operations_over_double(shift, t_or_f1, t_or_f2, inv):
+def test_pass_operations_over_double(shift, t_or_f1, t_or_f2, neg):
     q0, q1, q2 = _make_qubits(3)
     X, Y, Z = (pauli+shift for pauli in Pauli.XYZ)
 
     op0 = PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = PauliString({q0: Z, q2: Y}, inv)
-    ps_after = PauliString({q0: Z, q2: Y}, inv)
+    ps_before = PauliString({q0: Z, q2: Y}, neg)
+    ps_after = PauliString({q0: Z, q2: Y}, neg)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = PauliString({q0: Z, q2: Y}, inv)
-    ps_after = PauliString({q0: Z, q2: Y, q1: X}, inv)
+    ps_before = PauliString({q0: Z, q2: Y}, neg)
+    ps_after = PauliString({q0: Z, q2: Y, q1: X}, neg)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = PauliString({q0: Z, q1: Y}, inv)
-    ps_after = PauliString({q1: Y}, inv)
+    ps_before = PauliString({q0: Z, q1: Y}, neg)
+    ps_after = PauliString({q1: Y}, neg)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = PauliString({q0: Z, q1: Y}, inv)
-    ps_after = PauliString({q0: X, q1: Z}, inv ^ t_or_f1 ^ t_or_f2)
+    ps_before = PauliString({q0: Z, q1: Y}, neg)
+    ps_after = PauliString({q0: X, q1: Z}, neg ^ t_or_f1 ^ t_or_f2)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = PauliInteractionGate(X, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = PauliString({q0: Z, q1: Y}, inv)
-    ps_after = PauliString({q0: Y, q1: Z}, not inv ^ t_or_f1 ^ t_or_f2)
+    ps_before = PauliString({q0: Z, q1: Y}, neg)
+    ps_after = PauliString({q0: Y, q1: Z}, not neg ^ t_or_f1 ^ t_or_f2)
     _assert_pass_over([op0], ps_before, ps_after)
 
 
