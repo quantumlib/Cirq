@@ -106,6 +106,7 @@ from cirq.ops import (
     FREDKIN,
     freeze_op_tree,
     Gate,
+    GateOperation,
     H,
     HGate,
     InterchangeableQubitsGate,
