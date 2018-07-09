@@ -847,7 +847,7 @@ def test_to_text_diagram_extended_gate():
             """.strip()
 
     # Succeeds with extension.
-    class FGateAsText(cirq.TextDiagrammable):
+    class FGateAsText(cirq.Gate, cirq.TextDiagrammable):
         def __init__(self, f_gate):
             self.f_gate = f_gate
 
