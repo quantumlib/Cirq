@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
-
-from cirq import abc, circuits, extension, ops
+from cirq import circuits, extension, ops
 from cirq.contrib.qcircuit_diagrammable_gate import (
     QCircuitDiagrammableGate,
     fallback_qcircuit_extensions,
@@ -44,16 +42,14 @@ class _QCircuitQubit(ops.QubitId):
         return hash((_QCircuitQubit, self.sub))
 
 
-class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
+class _QCircuitGate(ops.Gate, ops.TextDiagrammable):
     def __init__(self, sub: QCircuitDiagrammableGate) -> None:
         self.sub = sub
 
-    def text_diagram_exponent(self):
-        return 1
-
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return self.sub.qcircuit_wire_symbols(args.known_qubit_count)
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
+        return ops.TextDiagramInfo(
+            wire_symbols=self.sub.qcircuit_wire_symbols(args.known_qubit_count))
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:

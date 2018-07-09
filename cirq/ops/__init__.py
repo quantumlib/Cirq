@@ -53,8 +53,9 @@ from cirq.ops.gate_features import (
     PhaseableGate,
     ReversibleEffect,
     SingleQubitGate,
-    TextDiagrammableGate,
-    TextDiagramSymbolArgs,
+    TextDiagrammable,
+    TextDiagramInfo,
+    TextDiagramInfoArgs,
     ThreeQubitGate,
     TwoQubitGate,
 )

@@ -34,7 +34,7 @@ pauli_eigen_map = {
 class PauliInteractionGate(ops.EigenGate,
                            ops.CompositeGate,
                            ops.InterchangeableQubitsGate,
-                           ops.TextDiagrammableGate):
+                           ops.TextDiagrammable):
     def __init__(self,
                  pauli0: Pauli, invert0: bool,
                  pauli1: Pauli, invert1: bool,
@@ -114,18 +114,17 @@ class PauliInteractionGate(ops.EigenGate,
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
         labels = {Pauli.X: 'X', Pauli.Y: 'Y', Pauli.Z: '@'}
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
         l0, l1 = ('(-{})'.format(l) if inv else l
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
-        return l0, l1
-
-    def text_diagram_exponent(self) -> Union[float, value.Symbol]:
-        return self._exponent
+        return ops.TextDiagramInfo(
+            wire_symbols=(l0, l1),
+            exponent=self._exponent)
 
     def __repr__(self):
         return 'PauliInteractionGate({}{!s}, {}{!s})'.format(
