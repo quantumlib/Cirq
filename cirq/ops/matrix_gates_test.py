@@ -34,11 +34,11 @@ def test_single_qubit_init():
 
 def test_single_qubit_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: SingleQubitMatrixGate(np.eye(2)))
-    eq.make_equality_pair(
+    eq.make_equality_group(lambda: SingleQubitMatrixGate(np.eye(2)))
+    eq.make_equality_group(
         lambda: SingleQubitMatrixGate(np.array([[0, 1], [1, 0]])))
     x2 = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
-    eq.make_equality_pair(lambda: SingleQubitMatrixGate(x2))
+    eq.make_equality_group(lambda: SingleQubitMatrixGate(x2))
 
 
 def test_single_qubit_phase_by():
@@ -96,9 +96,9 @@ def test_two_qubit_init():
 
 def test_two_qubit_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: TwoQubitMatrixGate(np.eye(4)))
-    eq.make_equality_pair(lambda: TwoQubitMatrixGate(QFT2))
-    eq.make_equality_pair(lambda: TwoQubitMatrixGate(HH))
+    eq.make_equality_group(lambda: TwoQubitMatrixGate(np.eye(4)))
+    eq.make_equality_group(lambda: TwoQubitMatrixGate(QFT2))
+    eq.make_equality_group(lambda: TwoQubitMatrixGate(HH))
 
 
 def test_two_qubit_phase_by():

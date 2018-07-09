@@ -59,13 +59,13 @@ def test_init():
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_pair(lambda: CExpZinGate(quarter_turns=0.1))
+    eq.make_equality_group(lambda: CExpZinGate(quarter_turns=0.1))
     eq.add_equality_group(CExpZinGate(0), CExpZinGate(4), CExpZinGate(-4))
     eq.add_equality_group(CExpZinGate(1.5), CExpZinGate(41.5))
     eq.add_equality_group(CExpZinGate(3.5), CExpZinGate(-0.5))
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
-    eq.make_equality_pair(lambda: cirq.Symbol('a'))
+    eq.make_equality_group(lambda: cirq.Symbol('a'))
     eq.add_equality_group(cirq.Symbol('b'))
 
 
@@ -101,23 +101,20 @@ def test_try_cast_to():
     ext = cirq.Extensions()
 
     h = CExpZinGate(2)
-    assert h.try_cast_to(cirq.ExtrapolatableGate, ext) is h
-    assert h.try_cast_to(cirq.ReversibleGate, ext) is h
-    assert h.try_cast_to(cirq.SelfInverseGate, ext) is h
+    assert h.try_cast_to(cirq.ExtrapolatableEffect, ext) is h
+    assert h.try_cast_to(cirq.ReversibleEffect, ext) is h
     assert h.try_cast_to(cirq.KnownMatrixGate, ext) is h
     assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
 
     p = CExpZinGate(0.1)
-    assert p.try_cast_to(cirq.ExtrapolatableGate, ext) is p
-    assert p.try_cast_to(cirq.ReversibleGate, ext) is p
-    assert p.try_cast_to(cirq.SelfInverseGate, ext) is None
+    assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is p
+    assert p.try_cast_to(cirq.ReversibleEffect, ext) is p
     assert p.try_cast_to(cirq.KnownMatrixGate, ext) is p
     assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
 
     s = CExpZinGate(cirq.Symbol('a'))
-    assert s.try_cast_to(cirq.ExtrapolatableGate, ext) is None
-    assert s.try_cast_to(cirq.ReversibleGate, ext) is None
-    assert s.try_cast_to(cirq.SelfInverseGate, ext) is None
+    assert s.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
+    assert s.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert s.try_cast_to(cirq.KnownMatrixGate, ext) is None
     assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
 

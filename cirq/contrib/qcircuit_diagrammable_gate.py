@@ -49,15 +49,19 @@ class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammableGate):
 
 
 class _WrappedSymbolsQCircuitGate(QCircuitDiagrammableGate):
-    def __init__(self, sub: ops.TextDiagrammableGate) -> None:
+    def __init__(self, sub: ops.TextDiagrammable) -> None:
         self.sub = sub
 
     def qcircuit_wire_symbols(self, qubit_count=None):
-        s = self.sub.text_diagram_wire_symbols()
-        s = [_escape_text_for_latex(e) for e in s]
-        e = self.sub.text_diagram_exponent()
-        if e != 1:
-            s[0] += '^{' + str(e) + '}'
+        info = self.sub.text_diagram_info(ops.TextDiagramInfoArgs(
+            known_qubit_count=qubit_count,
+            known_qubits=None,
+            use_unicode_characters=True,
+            precision=3))
+
+        s = [_escape_text_for_latex(e) for e in info.wire_symbols]
+        if info.exponent != 1:
+            s[0] += '^{' + str(info.exponent) + '}'
         return tuple('\\gate{' + e + '}' for e in s)
 
 
@@ -76,7 +80,7 @@ class _FallbackQCircuitSymbolsGate(QCircuitDiagrammableGate):
 fallback_qcircuit_extensions = Extensions()
 fallback_qcircuit_extensions.add_cast(
     QCircuitDiagrammableGate,
-    ops.TextDiagrammableGate,
+    ops.TextDiagrammable,
     _WrappedSymbolsQCircuitGate)
 fallback_qcircuit_extensions.add_cast(
     QCircuitDiagrammableGate,

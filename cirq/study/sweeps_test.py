@@ -76,17 +76,16 @@ def test_equality():
 
     # Simple sweeps with the same key are equal to themselves, but different
     # from each other even if they happen to contain the same points.
-    et.add_equality_group(cirq.Linspace('a', 0, 10, 11),
-                          cirq.Linspace(cirq.Symbol('a'), 0, 10, 11))
-    et.make_equality_pair(lambda: cirq.Linspace('b', 0, 10, 11))
-    et.make_equality_pair(lambda: cirq.Points('a', list(range(11))))
-    et.make_equality_pair(lambda: cirq.Points('b', list(range(11))))
+    et.make_equality_group(lambda: cirq.Linspace('a', 0, 10, 11))
+    et.make_equality_group(lambda: cirq.Linspace('b', 0, 10, 11))
+    et.make_equality_group(lambda: cirq.Points('a', list(range(11))))
+    et.make_equality_group(lambda: cirq.Points('b', list(range(11))))
 
     # Product and Zip sweeps can also be equated.
-    et.make_equality_pair(
+    et.make_equality_group(
         lambda: cirq.Linspace('a', 0, 5, 6) * cirq.Linspace('b', 10, 15, 6))
-    et.make_equality_pair(
+    et.make_equality_group(
         lambda: cirq.Linspace('a', 0, 5, 6) + cirq.Linspace('b', 10, 15, 6))
-    et.make_equality_pair(
-        lambda: cirq.Points('a', [1, 2]) * (
-                cirq.Linspace('b', 0, 5, 6) + cirq.Linspace('c', 10, 15, 6)))
+    et.make_equality_group(
+        lambda: cirq.Points('a', [1, 2]) *
+                (cirq.Linspace('b', 0, 5, 6) + cirq.Linspace('c', 10, 15, 6)))

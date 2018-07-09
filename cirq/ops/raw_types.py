@@ -14,7 +14,13 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence
+from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar
+
+from cirq import abc
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.ops import gate_operation
 
 
 class QubitId:
@@ -71,72 +77,60 @@ class Gate:
         """
         pass
 
-    def on(self, *qubits: QubitId) -> 'Operation':
+    def on(self, *qubits: QubitId) -> 'gate_operation.GateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
+        # Avoids circular import.
+        from cirq.ops import gate_operation
+
         if len(qubits) == 0:
             raise ValueError(
                 "Applied a gate to an empty set of qubits. Gate: {}".format(
                     repr(self)))
         self.validate_args(qubits)
-        return Operation(self, list(qubits))
+        return gate_operation.GateOperation(self, list(qubits))
 
     def __call__(self, *args):
         return self.on(*args)
 
 
-class InterchangeableQubitsGate:
-    """Indicates operations should be equal under any qubit permutation."""
-    pass
+TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
 
-class Operation:
-    """An application of a gate to a collection of qubits."""
+class Operation(metaclass=abc.ABCMeta):
+    """An effect applied to a collection of qubits.
 
-    def __init__(self, gate: Gate, qubits: Sequence[QubitId]) -> None:
-        self.gate = gate
-        self.qubits = tuple(qubits)
+    The most common kind of Operation is a GateOperation, which separates its
+    effect into a qubit-independent Gate and the qubits it should be applied to.
+    """
 
-    def __repr__(self):
-        return 'Operation({}, {})'.format(repr(self.gate), repr(self.qubits))
+    @abc.abstractproperty
+    def qubits(self) -> Tuple[QubitId, ...]:
+        raise NotImplementedError()
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    @abc.abstractproperty
+    def gate(self) -> Gate:
+        # TODO: remove this once there are operations besides GateOperation.
+        raise NotImplementedError()
 
-    def __hash__(self):
-        q = self.qubits
-        if isinstance(self.gate, InterchangeableQubitsGate):
-            q = frozenset(q)
-        return hash((Operation, self.gate, q))
+    @abc.abstractmethod
+    def with_qubits(self: TSelf_Operation,
+                    *new_qubits: QubitId) -> TSelf_Operation:
+        pass
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        q1, q2 = self.qubits, other.qubits
-        if isinstance(self.gate, InterchangeableQubitsGate):
-            q1 = frozenset(q1)
-            q2 = frozenset(q2)
-        return self.gate == other.gate and q1 == q2
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __pow__(self, power: float) -> 'Operation':
-        """Raise gate to a power, then reapply to the same qubits.
-
-        Only works if the gate implements gate_features.ExtrapolatableGate.
-        For extrapolatable gate G this means the following two are equivalent:
-
-            (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
+    def transform_qubits(self: TSelf_Operation,
+                         func: Callable[[QubitId], QubitId]) -> TSelf_Operation:
+        """Returns the same operation, but with different qubits.
 
         Args:
-            power: The amount to scale the gate's effect by.
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
 
         Returns:
-            A new operation on the same qubits with the scaled gate.
+            The receiving operation but with qubits transformed by the given
+                function.
         """
-        return (self.gate ** power).on(*self.qubits)  # type: ignore
+        return self.with_qubits(*(func(q) for q in self.qubits))

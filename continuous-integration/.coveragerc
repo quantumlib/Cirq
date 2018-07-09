@@ -1,0 +1,5 @@
+[run]
+# Omit files outside the current working directory.
+# Note: this means coverage must be run from the cirq repo root.
+# Failure to do so will result in false positives.
+include = ./*

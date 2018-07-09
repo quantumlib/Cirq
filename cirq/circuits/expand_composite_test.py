@@ -121,6 +121,53 @@ def test_recursive_composite():
     assert_equal_mod_empty(expected, circuit)
 
 
+def test_decompose_returns_not_flat_op_tree():
+    class DummyGate(CompositeGate):
+        def default_decompose(self, qubits):
+            q0, = qubits
+            # Yield a tuple of gates instead of yielding a gate
+            yield X(q0),
+
+    q0 = QubitId()
+    circuit = Circuit.from_ops(DummyGate()(q0))
+
+    opt = ExpandComposite()
+    opt.optimize_circuit(circuit)
+    expected = Circuit().from_ops(X(q0))
+    assert_equal_mod_empty(expected, circuit)
+
+
+def test_decompose_returns_deep_op_tree():
+    class DummyGate(CompositeGate):
+        def default_decompose(self, qubits):
+            q0, q1 = qubits
+            # Yield a tuple
+            yield ((X(q0), Y(q0)), Z(q0))
+            # Yield nested lists
+            yield [X(q0), [Y(q0), Z(q0)]]
+            def generator(depth):
+                if depth <= 0:
+                    yield CZ(q0, q1), Y(q0)
+                else:
+                    yield X(q0), generator(depth - 1)
+                    yield Z(q0)
+            # Yield nested generators
+            yield generator(2)
+
+    q0, q1 = QubitId(), QubitId()
+    circuit = Circuit.from_ops(DummyGate()(q0, q1))
+
+    opt = ExpandComposite()
+    opt.optimize_circuit(circuit)
+    expected = Circuit().from_ops(X(q0), Y(q0), Z(q0),  # From tuple
+                                  X(q0), Y(q0), Z(q0),  # From nested lists
+                                  # From nested generators
+                                  X(q0), X(q0),
+                                  CZ(q0, q1), Y(q0),
+                                  Z(q0), Z(q0))
+    assert_equal_mod_empty(expected, circuit)
+
+
 class OtherCNot(CNotGate):
 
     def default_decompose(self, qubits):

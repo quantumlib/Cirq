@@ -16,7 +16,9 @@
 import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.grover
 import examples.hello_qubit
+import examples.quantum_fourier_transform
 from examples.supremacy import generate_supremacy_circuit
 
 
@@ -65,3 +67,10 @@ def test_example_runs_hello_qubit():
 
 def test_example_runs_bell_inequality():
     examples.bell_inequality.main()
+
+def test_example_runs_quantum_fourier_transform():
+    examples.quantum_fourier_transform.main()
+
+def test_example_runs_grover():
+    examples.grover.main()
+

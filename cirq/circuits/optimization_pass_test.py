@@ -25,7 +25,7 @@ def test_equality():
 
     eq = EqualsTester()
 
-    eq.make_equality_pair(lambda: PointOptimizationSummary(clear_span=0,
+    eq.make_equality_group(lambda: PointOptimizationSummary(clear_span=0,
                                                            clear_qubits=[],
                                                            new_operations=[]))
     eq.add_equality_group(PointOptimizationSummary(clear_span=1,

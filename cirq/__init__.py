@@ -43,12 +43,16 @@ from cirq.circuits import (
 
 from cirq.devices import (
     Device,
+    GridQubit,
     UnconstrainedDevice,
 )
 
 from cirq.extension import (
+    can_cast,
+    cast,
     Extensions,
-    PotentialImplementation
+    PotentialImplementation,
+    try_cast,
 )
 
 from cirq.linalg import (
@@ -79,25 +83,36 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    LineQubit
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    LinePlacementStrategy,
+    LineQubit,
+    line_on_device,
 )
 
 from cirq.ops import (
-    BoundedEffectGate,
+    BoundedEffect,
+    CCX,
+    CCZ,
     CNOT,
     CNotGate,
     CompositeGate,
     ControlledGate,
+    CSWAP,
     CZ,
     EigenGate,
-    ExtrapolatableGate,
+    ExtrapolatableEffect,
     flatten_op_tree,
+    FREDKIN,
     freeze_op_tree,
     Gate,
+    GateOperation,
     H,
     HGate,
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
+    ISWAP,
+    ISwapGate,
     KnownMatrixGate,
     measure,
     measure_each,
@@ -108,8 +123,8 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleGate,
-    ParameterizableGate,
+    ReversibleEffect,
+    ParameterizableEffect,
     PhaseableGate,
     QubitId,
     Rot11Gate,
@@ -117,13 +132,15 @@ from cirq.ops import (
     RotYGate,
     RotZGate,
     S,
-    SelfInverseGate,
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,
     SwapGate,
     T,
-    TextDiagrammableGate,
+    TextDiagrammable,
+    TextDiagramInfo,
+    TextDiagramInfoArgs,
+    TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,
@@ -155,6 +172,7 @@ from cirq.study.visualize import (
 from cirq.value import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
+    chosen_angle_to_half_turns,
     Duration,
     Symbol,
     Timestamp,

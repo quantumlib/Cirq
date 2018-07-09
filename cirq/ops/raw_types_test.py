@@ -51,35 +51,3 @@ def test_named_qubit_str():
 def test_named_qubit_repr():
     q = cirq.NamedQubit('a')
     assert repr(q) == "NamedQubit('a')"
-
-
-def test_operation_init():
-    q = cirq.QubitId()
-    g = cirq.Gate()
-    v = cirq.Operation(g, (q,))
-    assert v.gate == g
-    assert v.qubits == (q,)
-
-
-def test_operation_eq():
-    g1 = cirq.Gate()
-    g2 = cirq.Gate()
-    r1 = [cirq.QubitId()]
-    r2 = [cirq.QubitId()]
-    r12 = r1 + r2
-    r21 = r2 + r1
-
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r1))
-    eq.make_equality_pair(lambda: cirq.Operation(g2, r1))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r2))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r12))
-    eq.make_equality_pair(lambda: cirq.Operation(g1, r21))
-    eq.add_equality_group(cirq.Operation(cirq.CZ, r21),
-                          cirq.Operation(cirq.CZ, r12))
-
-
-def test_operation_pow():
-    Y = cirq.Y
-    qubit = cirq.QubitId()
-    assert (Y ** 0.5)(qubit) == Y(qubit) ** 0.5

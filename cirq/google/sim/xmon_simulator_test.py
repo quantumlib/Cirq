@@ -17,6 +17,7 @@
 import cmath
 import itertools
 import math
+import time
 from typing import Sequence
 
 import numpy as np
@@ -31,8 +32,9 @@ from cirq import (
     Symbol,
     UnconstrainedDevice,
 )
+from cirq.devices import GridQubit
 from cirq.google import (
-    ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
+    ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate
 )
 from cirq.google.sim import xmon_simulator
 from cirq.ops.common_gates import CNOT, H, X, Y, Z, CZ
@@ -40,9 +42,9 @@ from cirq.schedules import moment_by_moment_schedule
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
 
-Q1 = XmonQubit(0, 0)
-Q2 = XmonQubit(1, 0)
-Q3 = XmonQubit(2, 0)
+Q1 = GridQubit(0, 0)
+Q2 = GridQubit(1, 0)
+Q3 = GridQubit(2, 0)
 
 
 def basic_circuit():
@@ -60,7 +62,7 @@ def basic_circuit():
 
 def large_circuit():
     np.random.seed(0)
-    qubits = [XmonQubit(i, 0) for i in range(10)]
+    qubits = [GridQubit(i, 0) for i in range(10)]
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     cz = Exp11Gate()
     circuit = Circuit()
@@ -127,7 +129,8 @@ def test_run(scheduler):
 
     simulator = xmon_simulator.XmonSimulator()
     result = run(simulator, circuit, scheduler)
-    assert result.measurements == {'a': [False], 'b': [False]}
+    np.testing.assert_equal(result.measurements,
+                            {'a': [[True]], 'b': [[False]]})
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -399,7 +402,7 @@ def test_consistent_seeded_run_sharded(scheduler):
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(
         result.measurements['meas'],
-        [[True, False, False, True, False, False, True, False, False, False]])
+        [[False, True, True, True, False, False, True, False, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -411,7 +414,7 @@ def test_consistent_seeded_run_no_sharding(scheduler):
     result = run(simulator, circuit, scheduler,)
     np.testing.assert_equal(
         result.measurements['meas'],
-        [[True, False, False, True, False, False, True, False, False, False]])
+        [[False, True, True, True, False, False, True, False, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -425,7 +428,7 @@ def test_run_no_sharing_few_qubits(scheduler):
     simulator = xmon_simulator.XmonSimulator(
         xmon_simulator.XmonOptions(min_qubits_before_shard=0))
     result = run(simulator, circuit, scheduler)
-    np.testing.assert_equal(result.measurements['a'], [[False]])
+    np.testing.assert_equal(result.measurements['a'], [[True]])
     np.testing.assert_equal(result.measurements['b'], [[False]])
 
 
@@ -489,6 +492,23 @@ def test_simulate_moment_steps_set_state_2():
     result.set_state(np.array([1j, 0, 0, 0], dtype=np.complex64))
     np.testing.assert_almost_equal(result.state(),
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
+
+
+def test_simulate_moment_steps_sample():
+    np.random.seed(0)
+    circuit = Circuit.from_ops(X(Q1),
+                               XmonMeasurementGate(key='a')(Q1),
+                               XmonMeasurementGate(key='b')(Q2))
+    simulator = xmon_simulator.XmonSimulator()
+    for step in simulator.simulate_moment_steps(circuit, qubit_order=[Q1, Q2]):
+        pass
+    assert [[True]] == step.sample([Q1])
+    assert [[True, False]] == step.sample([Q1, Q2])
+    assert [[False]] == step.sample([Q2])
+
+    assert [[True]] * 3 == step.sample([Q1], 3)
+    assert [[True, False]] * 3 == step.sample([Q1, Q2], 3)
+    assert [[False]] * 3 == step.sample([Q2], 3)
 
 
 def compute_gate(circuit, resolver, num_qubits=1):
@@ -591,7 +611,7 @@ def test_run_circuit_sweep():
     for i, result in enumerate(
                         simulator.run_sweep(circuit, sweep, repetitions=1)):
         assert result.params['a'] == i
-        assert result.measurements['m'] == [i % 2 != 0]
+        np.testing.assert_equal(result.measurements['m'], [[i % 2 != 0]])
 
 
 def test_run_circuit_sweeps():
@@ -608,7 +628,7 @@ def test_run_circuit_sweeps():
                         simulator.run_sweep(circuit, [sweep, sweep2],
                                             repetitions=1)):
         assert result.params['a'] == i
-        assert result.measurements['m'] == [i % 2 != 0]
+        np.testing.assert_equal(result.measurements['m'], [[i % 2 != 0]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -695,8 +715,9 @@ def test_inverted_measurement(scheduler):
         XmonMeasurementGate('d', invert_mask=(True,))(Q1))
     simulator = xmon_simulator.XmonSimulator()
     result = run(simulator, circuit, scheduler)
-    assert {'a': [[False]], 'b': [[True]], 'c': [[False]],
-            'd': [[True]]} == result.measurements
+    np.testing.assert_equal(result.measurements,
+                            {'a': [[False]], 'b': [[True]], 'c': [[False]],
+                             'd': [[True]]})
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -845,8 +866,7 @@ def test_handedness_of_basic_gates():
         XmonMeasurementGate(key='').on(Q1),
     )
     result = xmon_simulator.XmonSimulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''],
-                            [[True]])
+    np.testing.assert_equal(result.measurements[''], [[True]])
 
 
 def test_handedness_of_xmon_gates():
@@ -857,12 +877,11 @@ def test_handedness_of_xmon_gates():
         XmonMeasurementGate(key='').on(Q1),
     )
     result = xmon_simulator.XmonSimulator().run(circuit)
-    np.testing.assert_equal(result.measurements[''],
-                            [[True]])
+    np.testing.assert_equal(result.measurements[''], [[True]])
 
 
 def bit_flip_circuit(flip0, flip1):
-    q1, q2 = XmonQubit(0, 0), XmonQubit(0, 1)
+    q1, q2 = GridQubit(0, 0), GridQubit(0, 1)
     g1, g2 = ExpWGate(half_turns=flip0)(q1), ExpWGate(half_turns=flip1)(q2)
     m1, m2 = XmonMeasurementGate('q1')(q1), XmonMeasurementGate('q2')(q2)
     circuit = Circuit()
@@ -879,6 +898,19 @@ def test_circuit_repetitions():
     assert result.repetitions == 10
     np.testing.assert_equal(result.measurements['q1'], [[True]] * 10)
     np.testing.assert_equal(result.measurements['q2'], [[True]] * 10)
+
+
+def test_circuit_repetitions_optimized_regression():
+    sim = xmon_simulator.XmonSimulator()
+    circuit = bit_flip_circuit(1, 1)
+
+    # When not optimized this takes around 20 seconds to run, otherwise it
+    # runs in less than a second.
+    start = time.time()
+    result = sim.run(circuit, repetitions=10000)
+    assert result.repetitions == 10000
+    end = time.time()
+    assert end - start < 1.0
 
 
 def test_circuit_parameters():
@@ -965,9 +997,9 @@ def test_compare_simulator_states_to_gate_matrices():
 
 
 def test_simulator_trial_result():
-    a = cirq.google.XmonQubit(0, 0)
-    b = cirq.google.XmonQubit(0, 1)
-    c = cirq.google.XmonQubit(0, 2)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.CNOT(a, b),
@@ -980,9 +1012,9 @@ def test_simulator_trial_result():
 
 
 def test_simulator_trial_repeated_result():
-    a = cirq.google.XmonQubit(0, 0)
-    b = cirq.google.XmonQubit(0, 1)
-    c = cirq.google.XmonQubit(0, 2)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(b),
         cirq.measure(a, b, key='ab'),
@@ -1007,9 +1039,9 @@ def test_simulator_simulate_trial_result_repr():
 
 
 def test_simulator_simulate_trial_result_str():
-    a = cirq.google.XmonQubit(0, 0)
-    b = cirq.google.XmonQubit(0, 1)
-    c = cirq.google.XmonQubit(0, 2)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.CNOT(a, b),
@@ -1022,7 +1054,7 @@ def test_simulator_simulate_trial_result_str():
 
 
 def test_simulator_implied_measurement_key():
-    q = cirq.google.XmonQubit(0, 0)
+    q = cirq.GridQubit(0, 0)
     circuit = cirq.Circuit.from_ops(
         cirq.X(q),
         cirq.measure(q),
@@ -1030,3 +1062,26 @@ def test_simulator_implied_measurement_key():
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == "(0, 0)=11111\nother=11111"
+
+
+def test_supports_extensions_for_parameter_resolving():
+
+    class DummyGate(cirq.Gate):
+        pass
+
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.ParameterizableEffect,
+                 DummyGate,
+                 lambda _: cirq.google.ExpWGate(half_turns=cirq.Symbol('x')))
+
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit.from_ops(
+        DummyGate().on(a),
+        cirq.google.XmonMeasurementGate('a').on(a)
+    )
+    results = cirq.google.XmonSimulator().run(
+        circuit=circuit,
+        param_resolver=ParamResolver({'x': 1}),
+        extensions=ext)
+
+    assert str(results) == 'a=1'

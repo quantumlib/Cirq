@@ -47,6 +47,7 @@ from cirq.google import xmon_gates
 from cirq.google import xmon_gate_ext
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.sim import xmon_stepper
+from cirq.ops import raw_types
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
@@ -237,23 +238,46 @@ class XmonSimulator:
                     circuit,
                     param_resolver,
                     extensions or xmon_gate_ext)
-            measurements = {
-                k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
-            for _ in range(repetitions):
-                all_step_results = _simulator_iterator(
-                    xmon_circuit,
-                    self.options,
-                    qubit_order,
-                    initial_state=0)
-                for step_result in all_step_results:
-                    for k, v in step_result.measurements.items():
-                        measurements[k].append(np.array(v, dtype=bool))
+            if xmon_circuit.are_all_measurements_terminal():
+                measurements = self._run_sweep_sample(xmon_circuit, repetitions,
+                                                      qubit_order)
+            else:
+                measurements = self._run_sweep_repeat(keys, xmon_circuit,
+                                                      repetitions, qubit_order)
             trial_results.append(TrialResult(
                 params=param_resolver,
                 repetitions=repetitions,
                 measurements={k: np.array(v) for k, v in measurements.items()}
             ))
         return trial_results
+
+    def _run_sweep_repeat(self, keys, circuit, repetitions, qubit_order):
+        measurements = {
+            k: [] for k in keys}  # type: Dict[str, List[np.ndarray]]
+        for _ in range(repetitions):
+            all_step_results = _simulator_iterator(
+                circuit,
+                self.options,
+                qubit_order,
+                initial_state=0)
+            for step_result in all_step_results:
+                for k, v in step_result.measurements.items():
+                    measurements[k].append(np.array(v, dtype=bool))
+        return measurements
+
+    def _run_sweep_sample(self, circuit, repetitions, qubit_order):
+        all_step_results = _simulator_iterator(
+            circuit,
+            self.options,
+            qubit_order,
+            initial_state=0,
+            perform_measurements=False)
+        step_result = None
+        for step_result in all_step_results:
+            pass
+        return _sample_measurements(circuit,
+                                    step_result,
+                                    repetitions)
 
     def simulate(
         self,
@@ -302,7 +326,6 @@ class XmonSimulator:
         Args:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
@@ -343,7 +366,7 @@ class XmonSimulator:
                 final_state = step_result.state()
             else:
                 # Empty circuit, so final state should be initial state.
-                num_qubits = len(qubit_order.order_for(circuit.qubits()))
+                num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
                 final_state = xmon_stepper.decode_initial_state(initial_state,
                                                                 num_qubits)
             trial_results.append(XmonSimulateTrialResult(
@@ -351,7 +374,6 @@ class XmonSimulator:
                 measurements=measurements,
                 final_state=final_state))
         return trial_results
-
 
     def simulate_moment_steps(
             self,
@@ -408,36 +430,44 @@ class XmonSimulator:
                          param_resolver: ParamResolver,
                          extensions: Extensions = None
                          ) -> Tuple[Circuit, Set[str]]:
+        converter = ConvertToXmonGates(extensions)
+        extensions = converter.extensions
+
         # TODO: Use one optimization pass.
         xmon_circuit = self._to_circuit_with_parameters_resolved(
-                circuit, param_resolver)
-        ConvertToXmonGates(extensions).optimize_circuit(xmon_circuit)
+                circuit, param_resolver, extensions)
+        converter.optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys
 
-    def _to_circuit_with_parameters_resolved(self, circuit: Circuit,
-                                             param_resolver: ParamResolver
-                                             ) -> Circuit:
+    def _to_circuit_with_parameters_resolved(
+            self,
+            circuit: Circuit,
+            param_resolver: ParamResolver,
+            extensions: Extensions,
+            ) -> Circuit:
         resolved_circuit = Circuit()
         for moment in circuit.moments:
             resolved_circuit.append(
                     self._to_operations_with_parameters_resolved(
-                        moment.operations, param_resolver))
+                        moment.operations,
+                        param_resolver,
+                        extensions))
         return resolved_circuit
 
     def _to_operations_with_parameters_resolved(
             self,
             operations: Iterable[ops.Operation],
-            param_resolver: ParamResolver
-            ) -> List[ops.Operation]:
-        resolved_operations = []
+            param_resolver: ParamResolver,
+            extensions) -> List[ops.Operation]:
+        resolved_operations = []  # type: List[ops.Operation]
         for op in operations:
             gate, qubits = op.gate, op.qubits
-            if (isinstance(gate, ops.ParameterizableGate) and
-                    gate.is_parameterized()):
-                gate = gate.with_parameters_resolved_by(param_resolver)
-            resolved_op = ops.Operation(gate, qubits)
+            p_gate = extensions.try_cast(ops.ParameterizableEffect, gate)
+            if p_gate is not None and p_gate.is_parameterized():
+                gate = p_gate.with_parameters_resolved_by(param_resolver)
+            resolved_op = ops.GateOperation(gate, qubits)
             resolved_operations.append(resolved_op)
         return resolved_operations
 
@@ -446,7 +476,8 @@ def _simulator_iterator(
         circuit: Circuit,
         options: 'XmonOptions' = XmonOptions(),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray]=0
+        initial_state: Union[int, np.ndarray]=0,
+        perform_measurements: bool=True,
 ) -> Iterator['XmonStepResult']:
     """Iterator over XmonStepResult from Moments of a Circuit.
 
@@ -467,16 +498,19 @@ def _simulator_iterator(
             If this is a np.ndarray it is the full initial state.
             In this case it must be the correct size, be normalized (an L2
             norm of 1), and be safely castable to a np.complex64.
+        perform_measurements: Whether or not to perform the measurements in
+            the circuit. Should only be set to False when optimizing for
+            sampling over the measurements.
 
     Yields:
-        StepResults from simulating a Moment of the Circuit.
+        XmonStepResults from simulating a Moment of the Circuit.
 
     Raises:
         TypeError: if the circuit contains gates that are not XmonGates or
             composite gates made of XmonGates.
     """
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-        circuit.qubits())
+        circuit.all_qubits())
     qubit_map = {q: i for i, q in enumerate(reversed(qubits))}
     if isinstance(initial_state, np.ndarray):
         initial_state = initial_state.astype(dtype=np.complex64,
@@ -508,19 +542,55 @@ def _simulator_iterator(
                         index=index,
                         half_turns=gate.half_turns,
                         axis_half_turns=gate.axis_half_turns)
-                elif isinstance(gate, xmon_gates.XmonMeasurementGate):
-                    invert_mask = gate.invert_mask or len(op.qubits) * (False,)
-                    for qubit, invert in zip(op.qubits, invert_mask):
-                        index = qubit_map[qubit]
-                        result = stepper.simulate_measurement(index)
-                        if invert:
-                            result = not result
-                        measurements[cast(str, gate.key)].append(result)
+                elif (isinstance(gate, xmon_gates.XmonMeasurementGate)):
+                    if perform_measurements:
+                        invert_mask = (
+                                gate.invert_mask or len(op.qubits) * (False,))
+                        for qubit, invert in zip(op.qubits, invert_mask):
+                            index = qubit_map[qubit]
+                            result = stepper.simulate_measurement(index)
+                            if invert:
+                                result = not result
+                            measurements[cast(str, gate.key)].append(result)
                 else:
                     raise TypeError('{!r} is not supported by the '
                                     'xmon simulator.'.format(gate))
             stepper.simulate_phases(phase_map)
             yield XmonStepResult(stepper, qubit_map, measurements)
+
+
+def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
+    repetitions: int) -> Dict[str, List]:
+    """Sample from measurements in the given circuit.
+
+    This should only be called if the circuit has only terminal measurements.
+
+    Args:
+        circuit: The circuit to sample from.
+        step_result: The XmonStepResult from which to sample. This should be
+            the step at the end of the circuit. Can be None if no steps were
+            taken.
+        repetitions: The number of time to sample.
+
+    Returns:
+        A dictionary from the measurement keys to the measurement results.
+        These results are lists of lists, with the outer list corresponding to
+        the repetition, and the inner list corresponding to the qubits as
+        ordered in the measurement gate.
+    """
+    if step_result is None:
+        return {}
+    is_meas = lambda op: isinstance(op.gate, xmon_gates.XmonMeasurementGate)
+    bounds = {}
+    all_qubits = []  # type: List[raw_types.QubitId]
+    current_index = 0
+    for _, op in circuit.findall_operations(is_meas):
+        key = cast(str, op.gate.key)
+        bounds[key] = (current_index, current_index + len(op.qubits))
+        all_qubits.extend(op.qubits)
+        current_index += len(op.qubits)
+    sample = step_result.sample(all_qubits, repetitions)
+    return {k: [x[s:e] for x in sample] for k,(s, e) in bounds.items()}
 
 
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
@@ -598,3 +668,17 @@ class XmonStepResult:
             dtype.
         """
         self._stepper.reset_state(state)
+
+    def sample(self, qubits: List[raw_types.QubitId], repetitions: int=1):
+        """Samples from the wave function at this point in the computation.
+
+        Note that this does not collapse the wave function.
+
+        Returns:
+            Measurement results with True corresponding to the |1> state.
+            The outer list is for repetitions, and the inner corresponds to
+            measurements ordered by the supplied qubits.
+        """
+        return self._stepper.sample_measurements(
+            indices=[self.qubit_map[q] for q in qubits],
+            repetitions=repetitions)

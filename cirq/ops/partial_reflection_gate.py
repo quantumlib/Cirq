@@ -13,19 +13,19 @@
 # limitations under the License.
 
 """Partial reflection gate."""
-from typing import Tuple, Union, cast, Optional
+from typing import Union, cast, Optional
 
 import numpy as np
 
 from cirq import abc, value
 from cirq.extension import PotentialImplementation
 from cirq.linalg import reflection_matrix_pow
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 
 
-class PartialReflectionGate(gate_features.BoundedEffectGate,
-                            gate_features.ParameterizableGate,
-                            gate_features.TextDiagrammableGate,
+class PartialReflectionGate(raw_types.Gate,
+                            gate_features.BoundedEffect,
+                            gate_features.ParameterizableEffect,
                             PotentialImplementation):
     """An interpolated reflection operation.
 
@@ -39,8 +39,7 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
     with half_turns=1 corresponding to the point where U is a reflection
     operation (i.e., the relative phase is exactly -1).
     """
-    def __init__(self,
-                 *positional_args,
+    def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -51,14 +50,10 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         argument is given, the default value of one half turn is used.
 
         Args:
-            *positional_args: Not an actual argument. Forces all arguments to
-                be keyword arguments. Prevents angle unit confusion by forcing
-                "rads=", "degs=", or "half_turns=".
             half_turns: The relative phasing of the eigenstates, in half_turns.
             rads: The relative phasing of the eigenstates, in radians.
             degs: The relative phasing of the eigenstates, in degrees.
         """
-        assert not positional_args
         self.half_turns = value.chosen_angle_to_canonical_half_turns(
             half_turns=half_turns,
             rads=rads,
@@ -71,28 +66,11 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         """Initialize an instance by specifying the number of half-turns."""
         pass
 
-    @abc.abstractmethod
-    def text_diagram_wire_symbols(self,
-                                  qubit_count = None,
-                                  use_unicode_characters = True,
-                                  precision = 3
-                                  ) -> Tuple[str, ...]:
-        pass
-
-    def text_diagram_exponent(self):
-        return self.half_turns
-
     def __pow__(self, power: float) -> 'PartialReflectionGate':
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PartialReflectionGate':
         return self.extrapolate_effect(-1)
-
-    def __str__(self):
-        base = ''.join(self.text_diagram_wire_symbols())
-        if self.half_turns == 1:
-            return base
-        return '{}**{}'.format(base, repr(self.half_turns))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -111,15 +89,9 @@ class PartialReflectionGate(gate_features.BoundedEffectGate,
         return abs(self.half_turns) * 3.5
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableGate,
-                             gate_features.ReversibleGate] and
-                not self.is_parameterized()):
-            return self
-        if (desired_type in [gate_features.SelfInverseGate] and
-                not self.is_parameterized() and
-                self.half_turns % 1 == 0):
-            return self
-        if (desired_type is gate_features.KnownMatrixGate and
+        if (desired_type in [gate_features.ExtrapolatableEffect,
+                             gate_features.ReversibleEffect,
+                             gate_features.KnownMatrixGate] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)

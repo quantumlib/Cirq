@@ -47,7 +47,7 @@ class UnrelatedType:
 def test_wrap():
     e = extension.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
-    w = e.cast(o, DesiredType)
+    w = e.cast(DesiredType, o)
     assert w.make() == 'wrap'
     assert isinstance(w, WrapType)
     assert w.other is o
@@ -60,16 +60,16 @@ def test_empty():
     u = UnrelatedType()
 
     with pytest.raises(TypeError):
-        _ = e.cast(u, DesiredType)
-    assert e.cast(c, DesiredType) is c
+        _ = e.cast(DesiredType, u)
+    assert e.cast(DesiredType, c) is c
     with pytest.raises(TypeError):
-        _ = e.cast(o, DesiredType)
+        _ = e.cast(DesiredType, o)
 
-    assert e.cast(u, UnrelatedType) is u
+    assert e.cast(UnrelatedType, u) is u
     with pytest.raises(TypeError):
-        _ = e.cast(c, UnrelatedType)
+        _ = e.cast(UnrelatedType, c)
     with pytest.raises(TypeError):
-        _ = e.cast(o, UnrelatedType)
+        _ = e.cast(UnrelatedType, o)
 
 
 def test_cast_hit_vs_miss():
@@ -79,19 +79,19 @@ def test_cast_hit_vs_miss():
     u = UnrelatedType()
 
     with pytest.raises(TypeError):
-        _ = e.cast(None, DesiredType)
+        _ = e.cast(DesiredType, None)
     with pytest.raises(TypeError):
-        _ = e.cast(u, DesiredType)
-    assert e.cast(c, DesiredType) is c
-    assert e.cast(o, DesiredType) is not o
+        _ = e.cast(DesiredType, u)
+    assert e.cast(DesiredType, c) is c
+    assert e.cast(DesiredType, o) is not o
 
     with pytest.raises(TypeError):
-        _ = e.cast(None, UnrelatedType)
-    assert e.cast(u, UnrelatedType) is u
+        _ = e.cast(UnrelatedType, None)
+    assert e.cast(UnrelatedType, u) is u
     with pytest.raises(TypeError):
-        _ = e.cast(c, UnrelatedType)
+        _ = e.cast(UnrelatedType, c)
     with pytest.raises(TypeError):
-        _ = e.cast(o, UnrelatedType)
+        _ = e.cast(UnrelatedType, o)
 
 
 def test_try_cast_hit_vs_miss():
@@ -100,23 +100,23 @@ def test_try_cast_hit_vs_miss():
     c = ChildType()
     u = UnrelatedType()
 
-    assert e.try_cast(None, DesiredType) is None
-    assert e.try_cast(u, DesiredType) is None
-    assert e.try_cast(c, DesiredType) is c
-    assert e.try_cast(o, DesiredType) is not o
+    assert e.try_cast(DesiredType, None) is None
+    assert e.try_cast(DesiredType, u) is None
+    assert e.try_cast(DesiredType, c) is c
+    assert e.try_cast(DesiredType, o) is not o
 
-    assert e.try_cast(None, UnrelatedType) is None
-    assert e.try_cast(u, UnrelatedType) is u
-    assert e.try_cast(c, UnrelatedType) is None
-    assert e.try_cast(o, UnrelatedType) is None
+    assert e.try_cast(UnrelatedType, None) is None
+    assert e.try_cast(UnrelatedType, u) is u
+    assert e.try_cast(UnrelatedType, c) is None
+    assert e.try_cast(UnrelatedType, o) is None
 
 
 def test_can_cast():
     e = extension.Extensions({DesiredType: {OtherType: WrapType}})
     c = ChildType()
     u = UnrelatedType()
-    assert not e.can_cast(u, DesiredType)
-    assert e.can_cast(c, DesiredType)
+    assert not e.can_cast(DesiredType, u)
+    assert e.can_cast(DesiredType, c)
 
 
 def test_override_order():
@@ -126,10 +126,10 @@ def test_override_order():
             UnrelatedType: lambda _: 'unrelated',
         }
     })
-    assert e.cast('', DesiredType) == 'obj'
-    assert e.cast(None, DesiredType) == 'obj'
-    assert e.cast(UnrelatedType(), DesiredType) == 'unrelated'
-    assert e.cast(ChildType(), DesiredType) == 'obj'
+    assert e.cast(DesiredType, '') == 'obj'
+    assert e.cast(DesiredType, None) == 'obj'
+    assert e.cast(DesiredType, UnrelatedType()) == 'unrelated'
+    assert e.cast(DesiredType, ChildType()) == 'obj'
 
 
 def test_try_cast_potential_implementation():
@@ -147,19 +147,19 @@ def test_try_cast_potential_implementation():
     o = PotentialOther(is_other=False)
     u = PotentialOther(is_other=False)
 
-    assert e.try_cast(o, OtherType) is None
-    assert e.try_cast(u, OtherType) is None
+    assert e.try_cast(OtherType, o) is None
+    assert e.try_cast(OtherType, u) is None
 
 
 def test_add_cast():
     e = extension.Extensions()
     d = DesiredType()
 
-    assert e.try_cast(UnrelatedType(), DesiredType) is None
+    assert e.try_cast(DesiredType, UnrelatedType()) is None
     e.add_cast(desired_type=DesiredType,
                actual_type=UnrelatedType,
                conversion=lambda _: d)
-    assert e.try_cast(UnrelatedType(), DesiredType) is d
+    assert e.try_cast(DesiredType, UnrelatedType()) is d
 
 
 class Grandparent:
@@ -196,19 +196,19 @@ def test_add_cast_include_subtypes():
                 also_add_inherited_conversions=False)
 
     c = Child()
-    assert e.try_cast(c, Child) is c
-    assert e.try_cast(c, Parent) is c
-    assert e.try_cast(c, Grandparent) is c
-    assert e.try_cast(c, object) is c
-    assert e.try_cast(c, Aunt) == 'boo'
-    assert e.try_cast(c, Cousin) == 'boo'
+    assert e.try_cast(Child, c) is c
+    assert e.try_cast(Parent, c) is c
+    assert e.try_cast(Grandparent, c) is c
+    assert e.try_cast(object, c) is c
+    assert e.try_cast(Aunt, c) == 'boo'
+    assert e.try_cast(Cousin, c) == 'boo'
 
-    assert e2.try_cast(c, Child) is c
-    assert e2.try_cast(c, Parent) is c
-    assert e2.try_cast(c, Grandparent) is c
-    assert e2.try_cast(c, object) is c
-    assert e2.try_cast(c, Aunt) is None
-    assert e2.try_cast(c, Cousin) == 'boo'
+    assert e2.try_cast(Child, c) is c
+    assert e2.try_cast(Parent, c) is c
+    assert e2.try_cast(Grandparent, c) is c
+    assert e2.try_cast(object, c) is c
+    assert e2.try_cast(Aunt, c) is None
+    assert e2.try_cast(Cousin, c) == 'boo'
 
 
 def test_add_cast_redundant():
@@ -228,13 +228,13 @@ def test_add_cast_redundant():
                    conversion=lambda _: o2,
                    also_add_inherited_conversions=False,
                    overwrite_existing=False)
-    assert e.try_cast(Child(), Cousin) is o1
+    assert e.try_cast(Cousin, Child()) is o1
     e.add_cast(desired_type=Cousin,
                actual_type=Child,
                conversion=lambda _: o3,
                also_add_inherited_conversions=False,
                overwrite_existing=True)
-    assert e.try_cast(Child(), Cousin) is o3
+    assert e.try_cast(Cousin, Child()) is o3
 
 
 def test_add_cast_redundant_including_subtypes():
@@ -254,15 +254,15 @@ def test_add_cast_redundant_including_subtypes():
                    conversion=lambda _: o2,
                    also_add_inherited_conversions=True,
                    overwrite_existing=False)
-    assert e.try_cast(Child(), Aunt) is o1
-    assert e.try_cast(Child(), Cousin) is None
+    assert e.try_cast(Aunt, Child()) is o1
+    assert e.try_cast(Cousin, Child()) is None
     e.add_cast(desired_type=Cousin,
                actual_type=Child,
                conversion=lambda _: o3,
                also_add_inherited_conversions=True,
                overwrite_existing=True)
-    assert e.try_cast(Child(), Aunt) is o3
-    assert e.try_cast(Child(), Cousin) is o3
+    assert e.try_cast(Aunt, Child()) is o3
+    assert e.try_cast(Cousin, Child()) is o3
 
 
 def test_add_potential_cast():
@@ -275,5 +275,5 @@ def test_add_potential_cast():
                actual_type=Child,
                conversion=lambda e: a if e is c1 else None)
 
-    assert e.try_cast(c1, Aunt) is a
-    assert e.try_cast(c2, Aunt) is None
+    assert e.try_cast(Aunt, c1) is a
+    assert e.try_cast(Aunt, c2) is None
