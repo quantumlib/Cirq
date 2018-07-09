@@ -32,8 +32,8 @@ import cirq
 
 def set_io_qubits(qubit_count):
     """Add the specified number of input and output qubits."""
-    input_qubits = [cirq.devices.GridQubit(i, 0) for i in range(qubit_count)]
-    output_qubit = cirq.devices.GridQubit(qubit_count, 0)
+    input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)]
+    output_qubit = cirq.GridQubit(qubit_count, 0)
     return (input_qubits, output_qubit)
 
 def make_oracle(input_qubits, output_qubit, x_bits):
