@@ -26,7 +26,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                 gate_features.PhaseableGate,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
-                raw_types.InterchangeableQubitsGate):
+                gate_features.InterchangeableQubitsGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
@@ -463,7 +463,7 @@ class SwapGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.TwoQubitGate,
                gate_features.CompositeGate,
-               raw_types.InterchangeableQubitsGate):
+               gate_features.InterchangeableQubitsGate):
     """Swaps two qubits."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -521,7 +521,7 @@ SWAP = SwapGate()  # Exchanges two qubits' states.
 
 class ISwapGate(eigen_gate.EigenGate,
                 gate_features.CompositeGate,
-                raw_types.InterchangeableQubitsGate,
+                gate_features.InterchangeableQubitsGate,
                 gate_features.TextDiagrammable,
                 gate_features.TwoQubitGate):
     """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.

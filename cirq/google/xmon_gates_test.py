@@ -347,10 +347,10 @@ def test_has_inverse():
 def test_measure_key_on():
     q = GridQubit(0, 0)
 
-    assert XmonMeasurementGate(key='').on(q) == cirq.Operation(
+    assert XmonMeasurementGate(key='').on(q) == cirq.GateOperation(
         gate=XmonMeasurementGate(key=''),
         qubits=(q,))
-    assert XmonMeasurementGate(key='a').on(q) == cirq.Operation(
+    assert XmonMeasurementGate(key='a').on(q) == cirq.GateOperation(
         gate=XmonMeasurementGate(key='a'),
         qubits=(q,))
 

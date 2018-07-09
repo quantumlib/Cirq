@@ -94,7 +94,7 @@ def _wrap_operation(op: ops.Operation,
     if new_gate is None:
         new_gate = fallback_qcircuit_extensions.cast(QCircuitDiagrammableGate,
                                                      op.gate)
-    return ops.Operation(_QCircuitGate(new_gate), new_qubits)
+    return ops.GateOperation(_QCircuitGate(new_gate), new_qubits)
 
 
 def _wrap_moment(moment: circuits.Moment,

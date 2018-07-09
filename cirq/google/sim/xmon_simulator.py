@@ -461,13 +461,13 @@ class XmonSimulator:
             operations: Iterable[ops.Operation],
             param_resolver: ParamResolver,
             extensions) -> List[ops.Operation]:
-        resolved_operations = []
+        resolved_operations = []  # type: List[ops.Operation]
         for op in operations:
             gate, qubits = op.gate, op.qubits
             p_gate = extensions.try_cast(ops.ParameterizableEffect, gate)
             if p_gate is not None and p_gate.is_parameterized():
                 gate = p_gate.with_parameters_resolved_by(param_resolver)
-            resolved_op = ops.Operation(gate, qubits)
+            resolved_op = ops.GateOperation(gate, qubits)
             resolved_operations.append(resolved_op)
         return resolved_operations
 
