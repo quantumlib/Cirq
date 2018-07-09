@@ -518,7 +518,7 @@ class Circuit(object):
         """Returns text containing a diagram describing the circuit.
 
         Args:
-            ext: For extending gates to implement TextDiagrammableGate.
+            ext: For extending operations/gates to implement TextDiagrammable.
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
@@ -555,7 +555,7 @@ class Circuit(object):
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
-            ext: For extending gates to implement TextDiagrammableGate.
+            ext: For extending operations/gates to implement TextDiagrammable.
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             qubit_name_suffix: Appended to qubit names in the diagram.
@@ -591,52 +591,52 @@ class Circuit(object):
         return diagram
 
 
-def _get_operation_text_diagram_symbols(op: ops.Operation,
-                                        ext: Extensions,
-                                        use_unicode_characters: bool,
-                                        precision: Optional[int]
-                                        ) -> Iterable[str]:
-    text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
+def _get_operation_text_diagram_info_with_fallback(
+        op: ops.Operation,
+        args: ops.TextDiagramInfoArgs,
+        ext: Extensions) -> ops.TextDiagramInfo:
+    text_diagram_gate = ext.try_cast(ops.TextDiagrammable, op.gate)
     if text_diagram_gate is not None:
-        wire_symbols = text_diagram_gate.text_diagram_wire_symbols(
-            ops.TextDiagramSymbolArgs(
-                known_qubits=op.qubits,
-                known_qubit_count=len(op.qubits),
-                use_unicode_characters=use_unicode_characters,
-                precision=precision))
-        if len(op.qubits) == len(wire_symbols):
-            return wire_symbols
-        elif len(wire_symbols) == 1:
-            return len(op.qubits) * wire_symbols
-        else:
+        info = text_diagram_gate.text_diagram_info(args)
+        if len(op.qubits) != len(info.wire_symbols):
             raise ValueError(
-                'Multi-qubit operation with TextDiagrammableGate {} that '
-                'requires {} qubits but found {} qubits'.format(
-                    repr(op.gate), len(wire_symbols), len(op.qubits)))
+                'Wanted diagram info from {!r} for {} '
+                'qubits but got {!r}'.format(
+                    op.gate,
+                    len(info.wire_symbols),
+                    info))
+        return info
 
     name = repr(op.gate)
-    if len(op.qubits) == 1:
-        return [name]
-    return ['{}:{}'.format(name, i) for i in range(len(op.qubits))]
+    if len(op.qubits) != 1:
+        symbols = tuple('{}:{}'.format(name, i)
+                        for i in range(len(op.qubits)))
+    else:
+        symbols = (name,)
+    return ops.TextDiagramInfo(wire_symbols=symbols)
 
 
-def _get_operation_text_diagram_exponent(op: ops.Operation,
-                                         ext: Extensions,
-                                         precision: Optional[int]
-                                         ) -> Optional[str]:
-    text_diagram_gate = ext.try_cast(ops.TextDiagrammableGate, op.gate)
-    if text_diagram_gate is None:
+def _formatted_exponent(info: ops.TextDiagramInfo,
+                        args: ops.TextDiagramInfoArgs) -> Optional[str]:
+    # 1 is not shown.
+    if info.exponent == 1:
         return None
-    exponent = text_diagram_gate.text_diagram_exponent()
-    if exponent == 1:
-        return None
-    if exponent == -1:
+
+    # Round -1.0 into -1.
+    if info.exponent == -1:
         return '-1'
-    if isinstance(exponent, float) and precision is not None:
-        return '{{:.{}}}'.format(precision).format(exponent)
-    s = str(exponent)
+
+    # If it's a float, show the desired precision.
+    if isinstance(info.exponent, float):
+        if args.precision is not None:
+            return '{{:.{}}}'.format(args.precision).format(info.exponent)
+        return repr(info.exponent)
+
+    # If the exponent is any other object, use its string representation.
+    s = str(info.exponent)
     if '+' in s or ' ' in s or '-' in s[1:]:
-        return '({})'.format(exponent)
+        # The string has confusing characters. Put parens around it.
+        return '({})'.format(info.exponent)
     return s
 
 
@@ -665,16 +665,19 @@ def _draw_moment_in_diagram(moment: Moment,
         if y2 > y1:
             out_diagram.vertical_line(x, y1, y2)
 
+        args = ops.TextDiagramInfoArgs(
+            known_qubits=op.qubits,
+            known_qubit_count=len(op.qubits),
+            use_unicode_characters=use_unicode_characters,
+            precision=precision)
+        info = _get_operation_text_diagram_info_with_fallback(op, args, ext)
+
         # Print gate qubit labels.
-        symbols = _get_operation_text_diagram_symbols(op,
-                                                      ext,
-                                                      use_unicode_characters,
-                                                      precision)
-        for s, q in zip(symbols, op.qubits):
+        for s, q in zip(info.wire_symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the last label.
-        exponent = _get_operation_text_diagram_exponent(op, ext, precision)
+        exponent = _formatted_exponent(info, args)
         if exponent is not None:
             out_diagram.write(x, y2, '^' + exponent)
 
