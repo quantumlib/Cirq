@@ -21,6 +21,7 @@ class TextDiagramDrawer:
         self.entries = dict()
         self.vertical_lines = []
         self.horizontal_lines = []
+        self.no_right_wires = []
 
     def write(self, x: int, y: int, text: str):
         """Adds text to the given location."""
