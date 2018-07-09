@@ -1,4 +1,4 @@
-"""  Quantum circuit to prepare the BCS ground states for
+"""Quantum circuit to prepare the BCS ground states for
 superconductors/superfluids. Such states can be prepared by
 applying pairwise Bogoliubov transformations on basis states
 with opposite spins and momenta, followed by the fermionic Fourier
@@ -29,6 +29,13 @@ Zhang Jiang, Kevin J. Sung, Kostyantyn Kechedzhi, Vadim N. Smelyanskiy,
 and Sergio Boixo Phys. Rev. Applied 9, 044036 (2018).
 
 === EXAMPLE OUTPUT ===
+Quantum circuits to prepare the BCS meanfield state.
+Number of sites =  4
+Number of fermions =  4
+Tunneling strength =  1.0
+On-site interaction strength =  -6.0
+Superconducting gap =  2.2328945671127096
+
 Circuit for Bogoliubov transformation:
 (0, 0): ───X───S───iSwap─────────Z^0.75───X───────────────────────────────────────────────────────────────────────────────────────────────────────────
                    │
@@ -89,13 +96,12 @@ def main():
     # Initializing the qubits on a ladder
     q = _qubit_ladder(n_site)
 
-    print("Qunatum circuits to prepare the BCS meanfield state for the \
-           one-dimensional Hubbard model.")
-    print("Number of sites = ", n_site)
-    print("Number of fermions = ", n_fermi)
-    print("Tunneling strength = ", t)
-    print("On-site interaction strength = ", u)
-    print("Superconducting gap = ", delta, '\n')
+    print('Quantum circuits to prepare the BCS meanfield state.')
+    print('Number of sites = ', n_site)
+    print('Number of fermions = ', n_fermi)
+    print('Tunneling strength = ', t)
+    print('On-site interaction strength = ', u)
+    print('Superconducting gap = ', delta, '\n')
 
     # The circuit for Bogoliubov transformation
     bog_circuit = cirq.Circuit()
@@ -107,15 +113,15 @@ def main():
 
     # The inverse fermionic Fourier transformation on the spin-up states
     fourier_circuit_spin_up = cirq.Circuit()
-    print('Circuit for the inverse fermionic Fourier transformation on the \
-           spin-up states:')
+    print('Circuit for the inverse fermionic Fourier transformation on the '
+          + 'spin-up states:')
     fourier_circuit_spin_up.append(_fermi_fourier_trans_inverse_4(q[0, :]))
     print(fourier_circuit_spin_up, '\n')
 
     # The inverse fermionic Fourier transformation on the spin-down states
     fourier_circuit_spin_down = cirq.Circuit()
-    print('Circuit for the inverse fermionic Fourier transformation on the \
-           spin-down states:')
+    print('Circuit for the inverse fermionic Fourier transformation on the '
+          + 'spin-down states:')
     fourier_circuit_spin_down.append(
         _fermi_fourier_trans_inverse_conjugate_4(q[1, :]))
     print(fourier_circuit_spin_down)
@@ -126,9 +132,9 @@ def _qubit_ladder(n_site: int) -> List[cirq.QubitId]:
     """Initialize a qubit ladder to simulate the Hubbard model; the upper chain
      for spin-up basis states and the lower chain for spin-down basis states.
 
-        Args:
-             n_site: the length of the ladder (the number of sites in the
-             Hubbard model).
+    Args:
+         n_site: the length of the ladder (the number of sites in the
+         Hubbard model).
     """
 
     quid_up = []
@@ -144,32 +150,32 @@ def _qubit_ladder(n_site: int) -> List[cirq.QubitId]:
 
 def _fswap(p: cirq.QubitId, q: cirq.QubitId) -> List[cirq.Operation]:
 
-    """ Decompose the Fermionic SWAP gate into two single-qubit gates and
+    """Decompose the Fermionic SWAP gate into two single-qubit gates and
     one iSWAP gate.
 
-        Args:
-            p: the id of the first qubit
-            q: the id of the second qubit
+    Args:
+        p: the id of the first qubit
+        q: the id of the second qubit
     """
 
     ops = [cirq.ISWAP(q, p), cirq.Z(p) ** 1.5, cirq.Z(q) ** 1.5]
     return ops
 
 
-def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float) \
-        -> List[cirq.Operation]:
+def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
+                      ) -> List[cirq.Operation]:
 
-    """ The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
+    """The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
      We use the identity X S^\dag X S X = Y X S^\dag Y S X = X to transform
      the Hamiltonian XY+YX to XX+YY type. The time evolution of the XX + YY
      Hamiltonian can be expressed as a power of the iSWAP gate.
 
-        Args:
-            p: the id of the first qubit
-            q: the id of the second qubit
-            theta: The rotational angle that specifies the Bogoliubov
-            transformation, which is a function of the kinetic energy and
-            the superconducting gap.
+    Args:
+        p: the id of the first qubit
+        q: the id of the second qubit
+        theta: The rotational angle that specifies the Bogoliubov
+        transformation, which is a function of the kinetic energy and
+        the superconducting gap.
     """
 
     # The iSWAP gate corresponds to evolve under the Hamiltonian XX+YY for
@@ -184,10 +190,10 @@ def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float) \
     return ops
 
 
-def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId) \
-        -> List[cirq.Operation]:
+def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
+                           ) -> List[cirq.Operation]:
 
-    """  The 2-mode fermionic Fourier transformation can be implemented
+    """The 2-mode fermionic Fourier transformation can be implemented
     straightforwardly by the √iSWAP gate. The √iSWAP gate can be readily
     implemented with the gmon qubits using the XX + YY Hamiltonian. The matrix
     representation of the 2-qubit fermionic Fourier transformation is:
@@ -201,9 +207,9 @@ def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId) \
     [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
     [0, 0, 0, 1]
 
-        Args:
-            p: the id of the first qubit
-            q: the id of the second qubit
+    Args:
+        p: the id of the first qubit
+        q: the id of the second qubit
     """
 
     ops = [cirq.Z(p)**1.5,
@@ -212,17 +218,17 @@ def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId) \
     return ops
 
 
-def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]) \
-        -> List[cirq.Operation]:
+def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
+                                   ) -> List[cirq.Operation]:
 
-    """ The reverse fermionic Fourier transformation implemented on 4 qubits
+    """The reverse fermionic Fourier transformation implemented on 4 qubits
     on a line, which maps the momentum picture to the position picture.
     Using the fast Fourier transformation algorithm, the circuit can be
     decomposed into 2-mode fermionic Fourier transformation, the fermionic
     SWAP gates, and single-qubit rotations.
 
-        Args:
-            q: the list of ids of the four qubits
+    Args:
+        q: the list of ids of the four qubits
     """
 
     ops = [_fswap(q[1], q[2]),
@@ -237,16 +243,16 @@ def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]) \
     return ops
 
 
-def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]) \
-        -> List[cirq.Operation]:
+def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
+                                             ) -> List[cirq.Operation]:
 
-    """ We will need to map the momentum states in the reversed order for
+    """We will need to map the momentum states in the reversed order for
     spin-down states to the position picture. This transformation can be
     simply implemented the complex conjugate of the former one. We only
     need to change the S gate to S* = S ** 3.
 
-        Args:
-            q: the list of ids of the four qubits
+    Args:
+        q: the list of ids of the four qubits
     """
 
     ops = [_fswap(q[1], q[2]),
@@ -261,18 +267,18 @@ def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]) \
     return ops
 
 
-def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: int)\
-        -> Tuple[float, List[float]]:
+def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: int
+                    ) -> Tuple[float, List[float]]:
 
-    """ Generate the parameters for the BCS ground state, i.e., the
+    """Generate the parameters for the BCS ground state, i.e., the
     superconducting gap and the rotational angles in the Bogoliubov
     transformation.
 
-         Args:
-            n_site: the number of sites in the Hubbard model
-            n_fermi: the number of fermions
-            u: the interaction strength
-            t: the tunneling strength
+     Args:
+        n_site: the number of sites in the Hubbard model
+        n_fermi: the number of fermions
+        u: the interaction strength
+        t: the tunneling strength
     """
 
     # The wave numbers satisfy the periodic boundary condition.
@@ -286,7 +292,7 @@ def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: int)\
 
     def _bcs_gap(delta: float) -> float:
 
-        """ Defines the self-consistent equation for the BCS wavefunction.
+        """Defines the self-consistent equation for the BCS wavefunction.
 
             Args:
             delta: the superconducting gap
