@@ -156,10 +156,7 @@ class XmonDevice(Device):
         for q in self.qubits:
             diagram.write(q.col, q.row, str(q))
             for q2 in self.neighbors_of(q):
-                if q2.col != q.col:
-                    diagram.horizontal_line(q.row, q.col, q2.col)
-                else:
-                    diagram.vertical_line(q.col, q.row, q2.row)
+                diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
         return diagram.render(
             horizontal_spacing=3,
