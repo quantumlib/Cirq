@@ -387,7 +387,7 @@ def test_z_diagram_chars():
 
 
 def test_w_diagram_chars():
-    q = cirq.google.GridQubit(0, 1)
+    q = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpWGate(axis_half_turns=0).on(q),
         cirq.google.ExpWGate(axis_half_turns=0.25).on(q),
