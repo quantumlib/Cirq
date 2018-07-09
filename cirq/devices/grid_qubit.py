@@ -19,7 +19,7 @@ from cirq.ops import QubitId
 
 
 class GridQubit(QubitId):
-    """A qubit at a location on a chip.
+    """A qubit on a 2d square lattice.
 
     GridQubits use row-major ordering:
 
