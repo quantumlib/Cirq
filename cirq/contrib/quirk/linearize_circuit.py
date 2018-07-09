@@ -24,8 +24,7 @@ class QubitMapper(OptimizationPass):
         self.qubit_map = qubit_map
 
     def map_operation(self, operation: ops.Operation) -> ops.Operation:
-        return ops.Operation(operation.gate,
-                             [self.qubit_map(q) for q in operation.qubits])
+        return operation.transform_qubits(self.qubit_map)
 
     def map_moment(self, moment: circuits.Moment) -> circuits.Moment:
         return circuits.Moment(self.map_operation(op)
@@ -40,7 +39,7 @@ def linearize_circuit_qubits(
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
         ) -> None:
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-        circuit.qubits())
+        circuit.all_qubits())
     qubit_map = {q: line.LineQubit(i)
                  for i, q in enumerate(qubits)}
     QubitMapper(qubit_map.__getitem__).optimize_circuit(circuit)
