@@ -1,17 +1,34 @@
-# QC Ware Corp.
-# June 2018
+# Copyright 2018 The Cirq Developers
 #
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Expectation value tool for pauli operators given a circuit"""
 
 # imports
-import cirq
+from typing import Optional, Dict, Tuple, List, Union
+
 import numpy as np
 from cirq.google import XmonSimulator, XmonMeasurementGate
 from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, MeasurementGate
 
-def expectation_value(circuit, operator, method='wavefunction',
-                      n_samples=None, measurement=False, repetitions=100, quadratic_z=False):
+def expectation_value(circuit: Circuit, 
+                      operator: Dict[Tuple[int,str], float],
+                      method: str ='wavefunction',
+                      n_samples: Optional[int]=None, 
+                      measurement: Optional[int]=False, 
+                      repetitions: int =100, 
+                      quadratic_z: bool =False):
     """
     Calculates the expactation value of cost function (operator)
 
@@ -19,8 +36,9 @@ def expectation_value(circuit, operator, method='wavefunction',
         circuit: circ.Circuit type which prepares the state we are interested
                  in calculating the expectation value of
 
-        operator: Operator input as a dictionary where keys are tuples corresponding
-                  to the pauli matrices and qubits and the values are the coefficients
+        operator: Operator input as a dictionary where keys are tuples 
+                  corresponding to the pauli matrices and qubits and the
+                  values are the coefficients
                   example: 
                   operator = {((0,'X'), (3,'Z')): 5, (2,'Y'):1.234
                   we are interested in calculating the expectation value of
@@ -33,12 +51,13 @@ def expectation_value(circuit, operator, method='wavefunction',
 
         n_samples: number of runs for sampling
 
-        measurement: if set to True, then measurement gates are applied to simulator
-                     and expectation is obtained by sampling
+        measurement: if set to True, then measurement gates are applied 
+                     to simulator and expectation is obtained by sampling
 
         repetitions: number of times circuit is run on simulator
 
-        quadratic_z: Boolean that determines whether operator only has terms quadratic in Pauli Z
+        quadratic_z: Boolean that determines whether operator only has terms 
+                     quadratic in Pauli Z
                      If true, computation is faster
 
     Returns:
@@ -47,16 +66,17 @@ def expectation_value(circuit, operator, method='wavefunction',
     """
 
     qubits = list(circuit.qubits())
-    sim = cirq.google.XmonSimulator()
+    sim = XmonSimulator()
 
     # Helper function to remove measrument gates
-    # ensures there are no measurement gates since rotation gates must still be added:
+    # ensures there are no measurement gates since rotation gates 
+    # must still be added:
     def no_meas(circuit):
-        cir2 = cirq.Circuit()
+        cir2 = Circuit()
         for moment in circuit.moments:
             new_moment = []
             for op in moment.operations:
-                if not isinstance(op.gate, cirq.MeasurementGate):
+                if not isinstance(op.gate, MeasurementGate):
                     new_moment.append(op)
 
             cir2.append(new_moment)
@@ -80,15 +100,18 @@ def expectation_value(circuit, operator, method='wavefunction',
 
             # Add appropriate rotation gates to circuit
             # and add measurement gates
-            q_dict = dict()  # dictionary of qubits to be measured and its indices
+            # dictionary of qubits to be measured and its indices
+            q_dict = dict()  
 
             for pauli in term:
 
                 if pauli[1] == 'X':
-                    circuit.append(cirq.RotYGate(half_turns=-1 / 2).on(qubits[pauli[0]]))
+                    circuit.append(RotYGate(half_turns=-1 / 2).on(
+                            qubits[pauli[0]]))
 
                 elif pauli[1] == 'Y':
-                    circuit.append(cirq.RotXGate(half_turns=+1 / 2).on(qubits[pauli[0]]))
+                    circuit.append(RotXGate(half_turns=+1 / 2).on(
+                            qubits[pauli[0]]))
 
                 # After rotation we can re-add measurement gates
                 q_dict['{}'.format(pauli[0])] = qubits[pauli[0]]
@@ -115,7 +138,8 @@ def expectation_value(circuit, operator, method='wavefunction',
             operator_meas = 1
 
             for qubit_key in results.measurements.keys():
-                operator_meas *= results.measurements[qubit_key][:, 0].astype(int) * (-2) + 1
+                operator_meas *= results.measurements[qubit_key][:, 0].astype(
+                    int) * (-2) + 1
 
             mean_measurement = np.mean(operator_meas)
 
@@ -146,11 +170,12 @@ def expectation_value(circuit, operator, method='wavefunction',
         indices_measurement = list(range(len(qubits)))
 
         for operation in last_operations:
-            if isinstance(operation.gate, cirq.MeasurementGate):
+            if isinstance(operation.gate, MeasurementGate):
                 measurement_qubits.remove(operation.qubits[0])
                 indices_measurement.remove(qubits.index(operation.qubits[0]))
 
-        assert len(indices_measurement) == len(measurement_qubits), 'Indices do not match qubits'
+        assert len(indices_measurement) == len(
+            measurement_qubits), 'Indices do not match qubits'
 
         q_dict = {}
         for i in indices_measurement:
@@ -189,9 +214,12 @@ def expectation_value(circuit, operator, method='wavefunction',
                     continue
 
                 # check that terms only contain Z, as expected in maxcut
-                assert term[0][1] == 'Z', 'Only hamiltonian for max cut supported, ops must be Z'
+                assert term[0][1] == 'Z', (
+                    'Only hamiltonian for max cut supported, ops must be Z')
+                
                 if len(term) == 2:
-                    assert term[1][1] == 'Z', 'Only hamiltonian for max cut supported, ops must be Z'
+                    assert term[1][1] == 'Z', (
+                        'Only hamiltonian for max cut supported, ops must be Z')
 
                 # caculates expectation
 
