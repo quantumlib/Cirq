@@ -7,8 +7,8 @@
 import cirq
 import numpy as np
 from cirq.google import XmonSimulator, XmonMeasurementGate
-from cirq import Circuit
-from cirq import RotXGate, RotYGate, MeasurementGate
+from cirq.circuits import Circuit
+from cirq.ops import RotXGate, RotYGate, MeasurementGate
 
 def expectation_value(circuit, operator, method='wavefunction',
                       n_samples=None, measurement=False, repetitions=100, quadratic_z=False):

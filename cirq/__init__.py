@@ -35,6 +35,8 @@ from cirq.circuits import (
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
+    exponentiate,
+    expectation_value,
     InsertStrategy,
     MergeSingleQubitGates,
     Moment,

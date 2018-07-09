@@ -53,3 +53,9 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
+from cirq.circuits.exponentiate import (
+    exponentiate_qubit_operator,
+)
+from cirq.circuits.expectation_value import(
+    expectation_value
+)

@@ -15,7 +15,7 @@
 # imports
 import cirq
 import numpy as np
-from cirq.ops.exponentiate import exponentiate_qubit_operator
+from cirq.circuits.exponentiate import exponentiate_qubit_operator
 
 
 def test_exponentiate_X():

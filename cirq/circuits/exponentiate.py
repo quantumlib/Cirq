@@ -18,7 +18,7 @@
 from typing import Optional, Dict, Tuple, List, Union
 
 import numpy as np
-from cirq import Circuit
+from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT
 from cirq.google import XmonQubit
 

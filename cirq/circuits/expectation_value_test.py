@@ -15,7 +15,7 @@
 # imports
 import cirq
 import numpy as np
-from expectation_value import expectation_value
+from cirq.circuits.expectation_value import expectation_value
 
 
 def test_sampling_ZZ():
