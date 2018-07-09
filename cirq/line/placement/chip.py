@@ -14,13 +14,14 @@
 
 from typing import Dict, List, Tuple
 
-from cirq.google import XmonDevice, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 
 
-EDGE = Tuple[XmonQubit, XmonQubit]
+EDGE = Tuple[GridQubit, GridQubit]
 
 
-def above(qubit: XmonQubit) -> XmonQubit:
+def above(qubit: GridQubit) -> GridQubit:
     """Gives qubit with one unit less on the second coordinate.
 
     Args:
@@ -29,10 +30,10 @@ def above(qubit: XmonQubit) -> XmonQubit:
     Returns:
       New translated qubit.
     """
-    return XmonQubit(qubit.row, qubit.col - 1)
+    return GridQubit(qubit.row, qubit.col - 1)
 
 
-def left_of(qubit: XmonQubit) -> XmonQubit:
+def left_of(qubit: GridQubit) -> GridQubit:
     """Gives qubit with one unit less on the first coordinate.
 
     Args:
@@ -41,10 +42,10 @@ def left_of(qubit: XmonQubit) -> XmonQubit:
     Returns:
       New translated qubit.
     """
-    return XmonQubit(qubit.row - 1, qubit.col)
+    return GridQubit(qubit.row - 1, qubit.col)
 
 
-def below(qubit: XmonQubit) -> XmonQubit:
+def below(qubit: GridQubit) -> GridQubit:
     """Gives qubit with one unit more on the second coordinate.
 
     Args:
@@ -53,10 +54,10 @@ def below(qubit: XmonQubit) -> XmonQubit:
     Returns:
       New translated qubit.
     """
-    return XmonQubit(qubit.row, qubit.col + 1)
+    return GridQubit(qubit.row, qubit.col + 1)
 
 
-def right_of(qubit: XmonQubit) -> XmonQubit:
+def right_of(qubit: GridQubit) -> GridQubit:
     """Gives node with one unit more on the first coordinate.
 
     Args:
@@ -65,10 +66,10 @@ def right_of(qubit: XmonQubit) -> XmonQubit:
     Returns:
       New translated node.
     """
-    return XmonQubit(qubit.row + 1, qubit.col)
+    return GridQubit(qubit.row + 1, qubit.col)
 
 
-def yx_cmp(n: XmonQubit, m: XmonQubit) -> int:
+def yx_cmp(n: GridQubit, m: GridQubit) -> int:
     """Comparator that compares first by second and then first coordinate.
 
     Args:
@@ -85,7 +86,7 @@ def yx_cmp(n: XmonQubit, m: XmonQubit) -> int:
 
 
 def chip_as_adjacency_list(device: XmonDevice) -> Dict[
-    XmonQubit, List[XmonQubit]]:
+    GridQubit, List[GridQubit]]:
     """Gives adjacency list representation of a chip.
 
     The adjacency list is constructed in order of above, left_of, below and
@@ -99,7 +100,7 @@ def chip_as_adjacency_list(device: XmonDevice) -> Dict[
       given qubit.
     """
     c_set = set(device.qubits)
-    c_adj = {} # type: Dict[XmonQubit, List[XmonQubit]] 
+    c_adj = {} # type: Dict[GridQubit, List[GridQubit]]
     for n in device.qubits:
         c_adj[n] = []
         for m in [above(n), left_of(n), below(n), right_of(n)]:

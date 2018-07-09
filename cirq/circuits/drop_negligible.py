@@ -36,8 +36,8 @@ class DropNegligible(optimization_pass.PointOptimizer):
             op: ops.Operation
             ) -> Optional[optimization_pass.PointOptimizationSummary]:
 
-        gate = self.extensions.try_cast(ops.BoundedEffect, op.gate)
-        if gate is None or gate.trace_distance_bound() > self.tolerance:
+        bounded = self.extensions.try_cast(ops.BoundedEffect, op)
+        if bounded is None or bounded.trace_distance_bound() > self.tolerance:
             return None
 
         return optimization_pass.PointOptimizationSummary(

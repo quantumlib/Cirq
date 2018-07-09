@@ -223,10 +223,17 @@ def test_text_diagrams():
         cirq.H(a),
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
+
     assert circuit.to_text_diagram().strip() == """
 a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
       │                     │   │   │       │       │
 b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+    """.strip()
+
+    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
+      |                        |   |   |       |       |
+b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
     """.strip()
 
 

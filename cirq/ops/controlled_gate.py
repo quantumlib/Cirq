@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast, Tuple, Union
+from typing import Optional, TypeVar, Type, cast, Union
 
 import numpy as np
 
@@ -27,22 +27,19 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.KnownMatrixGate,
     gate_features.ParameterizableEffect,
     gate_features.ReversibleEffect,
-    gate_features.TextDiagrammableGate,
+    gate_features.TextDiagrammable,
 )
-
-POTENTIALLY_EXPOSED_SUB_TYPES_UNION = Union[
-    gate_features.BoundedEffect,
-    gate_features.ExtrapolatableEffect,
-    gate_features.KnownMatrixGate,
-    gate_features.ParameterizableEffect,
-    gate_features.ReversibleEffect,
-    gate_features.TextDiagrammableGate,
-]
 
 
 class ControlledGate(raw_types.Gate,
-                     extension.PotentialImplementation[
-                         POTENTIALLY_EXPOSED_SUB_TYPES_UNION]):
+                     extension.PotentialImplementation[Union[
+                         gate_features.BoundedEffect,
+                         gate_features.ExtrapolatableEffect,
+                         gate_features.KnownMatrixGate,
+                         gate_features.ParameterizableEffect,
+                         gate_features.ReversibleEffect,
+                         gate_features.TextDiagrammable,
+                     ]]):
     """Augments existing gates with a control qubit."""
 
     def __init__(self,
@@ -124,20 +121,17 @@ class ControlledGate(raw_types.Gate,
         return ControlledGate(cast(raw_types.Gate, new_sub_gate),
                               self.default_extensions)
 
-    def text_diagram_exponent(self):
-        cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammableGate)
-        return cast_sub_gate.text_diagram_exponent()
-
     def trace_distance_bound(self):
         cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
         return cast_sub_gate.trace_distance_bound()
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammableGate)
-        sub_symbols = cast_sub_gate.text_diagram_wire_symbols(args)
-        return ('@',) + sub_symbols
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammable)
+        sub_info = cast_sub_gate.text_diagram_info(args)
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('@',) + sub_info.wire_symbols,
+            exponent=sub_info.exponent)
 
     def __str__(self):
         return 'C' + str(self.sub_gate)

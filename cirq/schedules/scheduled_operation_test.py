@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import ops
+import cirq
 from cirq.schedules import ScheduledOperation
 from cirq.testing import EqualsTester
 from cirq.value import Duration, Timestamp
@@ -21,22 +21,21 @@ from cirq.value import Duration, Timestamp
 def test_init():
     r = ScheduledOperation(time=Timestamp(picos=5),
                            duration=Duration(picos=7),
-                           operation=ops.Operation(ops.H,
-                                                   [ops.NamedQubit('a')]))
+                           operation=cirq.H(cirq.NamedQubit('a')))
     assert r.time == Timestamp(picos=5)
     assert r.duration == Duration(picos=7)
-    assert r.operation == ops.Operation(ops.H, [ops.NamedQubit('a')])
+    assert r.operation == cirq.H(cirq.NamedQubit('a'))
 
 
 def test_eq():
-    q0 = ops.QubitId()
+    q0 = cirq.QubitId()
 
     eq = EqualsTester()
     eq.make_equality_group(
-        lambda: ScheduledOperation(Timestamp(), Duration(), ops.H(q0)))
+        lambda: ScheduledOperation(Timestamp(), Duration(), cirq.H(q0)))
     eq.make_equality_group(
-        lambda: ScheduledOperation(Timestamp(picos=5), Duration(), ops.H(q0)))
+        lambda: ScheduledOperation(Timestamp(picos=5), Duration(), cirq.H(q0)))
     eq.make_equality_group(
-        lambda: ScheduledOperation(Timestamp(), Duration(picos=5), ops.H(q0)))
+        lambda: ScheduledOperation(Timestamp(), Duration(picos=5), cirq.H(q0)))
     eq.make_equality_group(
-        lambda: ScheduledOperation(Timestamp(), Duration(), ops.X(q0)))
+        lambda: ScheduledOperation(Timestamp(), Duration(), cirq.X(q0)))

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
 
 import numpy as np
 import pytest
@@ -629,7 +628,7 @@ def test_clear_operations_touching():
     ])
 
 
-def test_qubits():
+def test_all_qubits():
     a = cirq.QubitId()
     b = cirq.QubitId()
 
@@ -637,24 +636,73 @@ def test_qubits():
         Moment([cirq.X(a)]),
         Moment([cirq.X(b)]),
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
 
     c = Circuit([
         Moment([cirq.X(a)]),
         Moment([cirq.X(a)]),
     ])
-    assert c.qubits() == {a}
+    assert c.all_qubits() == {a}
 
     c = Circuit([
         Moment([cirq.CZ(a, b)]),
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
 
     c = Circuit([
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(a)])
     ])
-    assert c.qubits() == {a, b}
+    assert c.all_qubits() == {a, b}
+
+
+def test_all_operations():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.X(b)]),
+    ])
+    assert list(c.all_operations()) == [cirq.X(a), cirq.X(b)]
+
+    c = Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+    assert list(c.all_operations()) == [cirq.X(a), cirq.X(b)]
+
+    c = Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.X(a)]),
+    ])
+    assert list(c.all_operations()) == [cirq.X(a), cirq.X(a)]
+
+    c = Circuit([
+        Moment([cirq.CZ(a, b)]),
+    ])
+    assert list(c.all_operations()) == [cirq.CZ(a, b)]
+
+    c = Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.X(a)])
+    ])
+    assert list(c.all_operations()) == [cirq.CZ(a, b), cirq.X(a)]
+
+    c = Circuit([
+            Moment([]),
+            Moment([cirq.X(a), cirq.Y(b)]),
+            Moment([]),
+            Moment([cirq.CNOT(a, b)]),
+            Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
+            Moment([])])
+
+    assert list(c.all_operations()) == [
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.CNOT(a, b),
+        cirq.Z(b),
+        cirq.H(a)
+    ]
 
 
 def test_from_ops():
@@ -742,6 +790,28 @@ M      |      M      |
         """.strip()
 
 
+def test_diagram_with_unknown_exponent():
+    class WeirdGate(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(wire_symbols=('B',),
+                                        exponent='fancy')
+
+    class WeirderGate(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(wire_symbols=('W',),
+                                        exponent='fancy-that')
+
+    c = cirq.Circuit.from_ops(
+        WeirdGate().on(cirq.NamedQubit('q')),
+        WeirderGate().on(cirq.NamedQubit('q')),
+    )
+
+    # The hyphen in the exponent should cause parens to appear.
+    assert c.to_text_diagram() == 'q: ───B^fancy───W^(fancy-that)───'
+
+
 def test_to_text_diagram_extended_gate():
     q = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
@@ -777,19 +847,16 @@ def test_to_text_diagram_extended_gate():
             """.strip()
 
     # Succeeds with extension.
-    class FGateAsText(cirq.TextDiagrammableGate):
+    class FGateAsText(cirq.Gate, cirq.TextDiagrammable):
         def __init__(self, f_gate):
             self.f_gate = f_gate
 
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            return 'F',
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs):
+            return cirq.TextDiagramInfo(('F',))
 
-    diagram = c.to_text_diagram(Extensions({
-        cirq.TextDiagrammableGate: {
-           FGate: FGateAsText
-        }
-    }), use_unicode_characters=False)
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.TextDiagrammable, FGate, FGateAsText)
+    diagram = c.to_text_diagram(ext, use_unicode_characters=False)
 
     assert diagram.strip() == """
 (0, 0): ---F---
@@ -824,10 +891,10 @@ M──────M──────M
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
-    class BadGate(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            return 'a', 'a'
+    class BadGate(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(wire_symbols=('a', 'a'))
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -839,16 +906,13 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 def test_to_text_diagram_parameterized_value():
     q = cirq.NamedQubit('cube')
 
-    class PGate(cirq.TextDiagrammableGate):
+    class PGate(cirq.Gate, cirq.TextDiagrammable):
         def __init__(self, val):
             self.val = val
 
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            return 'P',
-
-        def text_diagram_exponent(self):
-            return self.val
+        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            return cirq.TextDiagramInfo(('P',), self.val)
 
     c = Circuit.from_ops(
         PGate(1).on(q),
@@ -1083,7 +1147,6 @@ def test_circuit_to_unitary_matrix():
     with pytest.raises(TypeError, match="Terminal"):
         c.to_unitary_matrix(ignore_terminal_measurements=False),
 
-
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(cirq.measure(a), cirq.X(a))
     with pytest.raises(TypeError):
@@ -1155,34 +1218,14 @@ def test_composite_gate_to_unitary_matrix():
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected)
 
 
-def test_iter_ops():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    c = Circuit([
-            Moment([]),
-            Moment([cirq.X(a), cirq.Y(b)]),
-            Moment([]),
-            Moment([cirq.CNOT(a, b)]),
-            Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
-            Moment([])])
-
-    expected = [
-        cirq.X(a),
-        cirq.Y(b),
-        cirq.CNOT(a, b),
-        cirq.Z(b),
-        cirq.H(a)]
-
-    assert list(c.iter_ops()) == expected
-
-
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.TextDiagrammableGate):
-        def text_diagram_wire_symbols(self, args: cirq.TextDiagramSymbolArgs
-                                      ) -> Tuple[str, ...]:
-            if args.known_qubit_count is None:
-                return '@',  # coverage: ignore
-            return ('@',) + ('Z',) * (args.known_qubit_count - 1)
+    class MultiTargetCZ(cirq.Gate, cirq.TextDiagrammable):
+        def text_diagram_info(self,
+                              args: cirq.TextDiagramInfoArgs
+                              ) -> cirq.TextDiagramInfo:
+            assert args.known_qubit_count is not None
+            return cirq.TextDiagramInfo(
+                ('@',) + ('Z',) * (args.known_qubit_count - 1))
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
