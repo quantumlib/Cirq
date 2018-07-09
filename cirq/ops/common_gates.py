@@ -14,7 +14,7 @@
 
 """Quantum gates that are commonly used in the literature."""
 import math
-from typing import Union, Tuple, Optional, List, Callable
+from typing import Union, Tuple, Optional, List, Callable, cast
 
 import numpy as np
 
@@ -25,7 +25,7 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 class Rot11Gate(eigen_gate.EigenGate,
                 gate_features.PhaseableGate,
                 gate_features.TwoQubitGate,
-                gate_features.TextDiagrammableGate,
+                gate_features.TextDiagrammable,
                 raw_types.InterchangeableQubitsGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
@@ -72,13 +72,11 @@ class Rot11Gate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return '@', '@'
-
-    def text_diagram_exponent(self):
-        return self._exponent
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('@', '@'),
+            exponent=self._exponent)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
@@ -87,7 +85,7 @@ class Rot11Gate(eigen_gate.EigenGate,
 
 
 class RotXGate(eigen_gate.EigenGate,
-               gate_features.TextDiagrammableGate,
+               gate_features.TextDiagrammable,
                gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
@@ -128,13 +126,11 @@ class RotXGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return 'X',
-
-    def text_diagram_exponent(self):
-        return self._exponent
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('X',),
+            exponent=self._exponent)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
@@ -143,7 +139,7 @@ class RotXGate(eigen_gate.EigenGate,
 
 
 class RotYGate(eigen_gate.EigenGate,
-               gate_features.TextDiagrammableGate,
+               gate_features.TextDiagrammable,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
@@ -184,13 +180,11 @@ class RotYGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return 'Y',
-
-    def text_diagram_exponent(self):
-        return self._exponent
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('Y',),
+            exponent=self._exponent)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
@@ -199,7 +193,7 @@ class RotYGate(eigen_gate.EigenGate,
 
 
 class RotZGate(eigen_gate.EigenGate,
-               gate_features.TextDiagrammableGate,
+               gate_features.TextDiagrammable,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
@@ -240,19 +234,21 @@ class RotZGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
         if self.half_turns in [-0.25, 0.25]:
-            return 'T',
-        if self.half_turns in [-0.5, 0.5]:
-            return 'S',
-        return 'Z',
+            return gate_features.TextDiagramInfo(
+                wire_symbols=('T',),
+                exponent=cast(float, self._exponent) * 4)
 
-    def text_diagram_exponent(self):
-        if self.half_turns in [-0.5, -0.25, 0.25, 0.5]:
-            return np.sign(self.half_turns)
-        return self._exponent
+        if self.half_turns in [-0.5, 0.5]:
+            return gate_features.TextDiagramInfo(
+                wire_symbols=('S',),
+                exponent=cast(float, self._exponent) * 2)
+
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('Z',),
+            exponent=self._exponent)
 
     def __repr__(self) -> str:
         if self.half_turns == 0.25:
@@ -268,7 +264,8 @@ class RotZGate(eigen_gate.EigenGate,
         return 'Z**{!r}'.format(self.half_turns)
 
 
-class MeasurementGate(gate_features.TextDiagrammableGate):
+class MeasurementGate(raw_types.Gate,
+                      gate_features.TextDiagrammable):
     """Indicates that qubits should be measured plus a key to identify results.
 
     Params:
@@ -289,10 +286,10 @@ class MeasurementGate(gate_features.TextDiagrammableGate):
                 len(self.invert_mask) > len(qubits)):
             raise ValueError('len(invert_mask) > len(qubits)')
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return 'M',
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        n = 1 if args.known_qubit_count is None else args.known_qubit_count
+        return gate_features.TextDiagramInfo(('M',) * n)
 
     def __repr__(self):
         return 'MeasurementGate({}, {})'.format(repr(self.key),
@@ -361,17 +358,16 @@ S = Z**0.5
 T = Z**0.25
 
 
-class HGate(gate_features.TextDiagrammableGate,
-            gate_features.CompositeGate,
+class HGate(gate_features.CompositeGate,
+            gate_features.TextDiagrammable,
             gate_features.ReversibleEffect,
             gate_features.KnownMatrixGate,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return 'H',
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(('H',))
 
     def default_decompose(self, qubits):
         q = qubits[0]
@@ -394,7 +390,7 @@ H = HGate()  # Hadamard gate.
 
 
 class CNotGate(eigen_gate.EigenGate,
-               gate_features.TextDiagrammableGate,
+               gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.TwoQubitGate):
     """A controlled-NOT. Toggle the second qubit when the first qubit is on."""
@@ -448,13 +444,11 @@ class CNotGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return '@', 'X'
-
-    def text_diagram_exponent(self):
-        return self._exponent
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('@', 'X'),
+            exponent=self._exponent)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
@@ -466,7 +460,7 @@ CNOT = CNotGate()  # Controlled Not Gate.
 
 
 class SwapGate(eigen_gate.EigenGate,
-               gate_features.TextDiagrammableGate,
+               gate_features.TextDiagrammable,
                gate_features.TwoQubitGate,
                gate_features.CompositeGate,
                raw_types.InterchangeableQubitsGate):
@@ -506,15 +500,15 @@ class SwapGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
         if not args.use_unicode_characters:
-            return 'swap', 'swap'
-        return '×', '×'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+            return gate_features.TextDiagramInfo(
+                wire_symbols=('swap', 'swap'),
+                exponent=self._exponent)
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('×', '×'),
+            exponent=self._exponent)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
@@ -528,7 +522,7 @@ SWAP = SwapGate()  # Exchanges two qubits' states.
 class ISwapGate(eigen_gate.EigenGate,
                 gate_features.CompositeGate,
                 raw_types.InterchangeableQubitsGate,
-                gate_features.TextDiagrammableGate,
+                gate_features.TextDiagrammable,
                 gate_features.TwoQubitGate):
     """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.
 
@@ -578,14 +572,11 @@ class ISwapGate(eigen_gate.EigenGate,
         yield H(a)
         yield CNOT(a, b)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return 'iSwap', 'iSwap'
-
-    def text_diagram_exponent(self):
-        return self.exponent
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=('iSwap', 'iSwap'),
+            exponent=self._exponent)
 
     def __repr__(self):
         if self.exponent == 1:

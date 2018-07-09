@@ -43,6 +43,7 @@ from cirq.circuits import (
 
 from cirq.devices import (
     Device,
+    GridQubit,
     UnconstrainedDevice,
 )
 
@@ -135,8 +136,9 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
-    TextDiagrammableGate,
-    TextDiagramSymbolArgs,
+    TextDiagrammable,
+    TextDiagramInfo,
+    TextDiagramInfoArgs,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,

@@ -356,8 +356,8 @@ def test_measure_key_on():
 
 
 def test_symbol_diagrams():
-    q00 = cirq.devices.GridQubit(0, 0)
-    q01 = cirq.devices.GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a'),
                              half_turns=cirq.Symbol('b')).on(q00),
@@ -372,7 +372,7 @@ def test_symbol_diagrams():
 
 
 def test_z_diagram_chars():
-    q = cirq.devices.GridQubit(0, 1)
+    q = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpZGate().on(q),
         cirq.google.ExpZGate(half_turns=0.5).on(q),
@@ -383,4 +383,17 @@ def test_z_diagram_chars():
     )
     assert c.to_text_diagram() == """
 (0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
+    """.strip()
+
+
+def test_w_diagram_chars():
+    q = cirq.GridQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpWGate(axis_half_turns=0).on(q),
+        cirq.google.ExpWGate(axis_half_turns=0.25).on(q),
+        cirq.google.ExpWGate(axis_half_turns=0.5).on(q),
+        cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a')).on(q),
+    )
+    assert c.to_text_diagram() == """
+(0, 1): ───X───W(0.25)───Y───W(a)───
     """.strip()
