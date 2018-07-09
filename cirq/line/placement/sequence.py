@@ -80,7 +80,7 @@ class LinePlacement:
             for q2 in self.device.neighbors_of(q1):
                 on_line = (q1, q2) in line_edges
                 if draw_unused or on_line:
-                    diagram.line(q1.col, q1.row, q2.col, q2.row, on_line)
+                    diagram.grid_line(q1.col, q1.row, q2.col, q2.row, on_line)
 
         return diagram.render(
             horizontal_spacing=3,
