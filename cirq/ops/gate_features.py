@@ -29,6 +29,14 @@ from cirq.ops import raw_types
 from cirq.study import ParamResolver
 
 
+class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
+    """Indicates operations should be equal under some qubit permutations."""
+
+    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+        """Returns a key that differs between non-interchangeable qubits."""
+        return 0
+
+
 class ReversibleEffect(metaclass=abc.ABCMeta):
     """A gate whose effect can be undone in a known way."""
 
@@ -190,7 +198,6 @@ class TextDiagramInfo:
                  wire_symbols: Tuple[str, ...],
                  exponent: Any = 1) -> None:
         """
-
         Args:
             wire_symbols: The symbols that should be shown on the qubits
                 affected by this operation. Must match the number of qubits that

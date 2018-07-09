@@ -319,9 +319,9 @@ Example:
         print(x)
     # prints
     # CZ((0, 0), (1, 0))
-    # [Operation(H, (GridQubit(0, 0),)), Operation(H, (GridQubit(1, 0),)), Operation(H, (GridQubit(2, 0),))]
-    # [Operation(CZ, (GridQubit(1, 0), GridQubit(2, 0)))]
-    # [Operation(H, (GridQubit(0, 0),)), [Operation(CZ, (GridQubit(1, 0), GridQubit(2, 0)))]]
+    # [GateOperation(H, (GridQubit(0, 0),)), GateOperation(H, (GridQubit(1, 0),)), GateOperation(H, (GridQubit(2, 0),))]
+    # [GateOperation(CZ, (GridQubit(1, 0), GridQubit(2, 0)))]
+    # [GateOperation(H, (GridQubit(0, 0),)), [GateOperation(CZ, (GridQubit(1, 0), GridQubit(2, 0)))]]
 
     print(circuit)
     # prints

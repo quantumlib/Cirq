@@ -17,14 +17,14 @@
 import numpy as np
 
 from cirq import linalg
-from cirq.ops import gate_features, raw_types, common_gates
+from cirq.ops import gate_features, common_gates
 
 
 class _CCZGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.KnownMatrixGate,
-               raw_types.InterchangeableQubitsGate):
+               gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z."""
 
     def default_decompose(self, qubits):
@@ -73,7 +73,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.KnownMatrixGate,
-               raw_types.InterchangeableQubitsGate):
+               gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -101,7 +101,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.TextDiagrammable,
                  gate_features.CompositeGate,
                  gate_features.KnownMatrixGate,
-                 raw_types.InterchangeableQubitsGate):
+                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
