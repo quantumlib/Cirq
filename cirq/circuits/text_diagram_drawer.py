@@ -48,8 +48,8 @@ class TextDiagramDrawer:
 
         return False
 
-    def line(self, x1: int, y1: int, x2: int, y2: int):
-        """Adds a line from (x1, y1) to (x2, y2).
+    def grid_line(self, x1: int, y1: int, x2: int, y2: int):
+        """Adds a vertical or horizontal line from (x1, y1) to (x2, y2).
 
         Horizontal line is selected on equality in the second coordinate and
         vertical line is selected on equality in the first coordinate.

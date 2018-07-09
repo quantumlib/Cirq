@@ -79,18 +79,18 @@ def test_draw_entries_and_lines_with_options():
 def test_line_detects_horizontal():
     d = TextDiagramDrawer()
     with mock.patch.object(d, 'vertical_line') as vertical_line:
-        d.line(1, 2, 1, 5)
+        d.grid_line(1, 2, 1, 5)
         vertical_line.assert_called_once_with(1, 2, 5)
 
 
 def test_line_detects_vertical():
     d = TextDiagramDrawer()
     with mock.patch.object(d, 'horizontal_line') as horizontal_line:
-        d.line(2, 1, 5, 1)
+        d.grid_line(2, 1, 5, 1)
         horizontal_line.assert_called_once_with(1, 2, 5)
 
 
 def test_line_fails_when_not_aligned():
     d = TextDiagramDrawer()
     with pytest.raises(ValueError):
-        d.line(1, 2, 3, 4)
+        d.grid_line(1, 2, 3, 4)
