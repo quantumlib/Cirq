@@ -57,15 +57,17 @@ class XmonDevice(Device):
         return [e for e in possibles if e in self.qubits]
 
     def duration_of(self, operation):
-        g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
-        if isinstance(g, xmon_gates.Exp11Gate):
-            return self._exp_z_duration
-        if isinstance(g, xmon_gates.ExpWGate):
-            return self._exp_w_duration
-        if isinstance(g, xmon_gates.XmonMeasurementGate):
-            return self._measurement_duration
-        if isinstance(g, xmon_gates.ExpZGate):
-            return Duration()  # Z gates are performed in the control software.
+        if isinstance(operation, ops.GateOperation):
+            g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
+            if isinstance(g, xmon_gates.Exp11Gate):
+                return self._exp_z_duration
+            if isinstance(g, xmon_gates.ExpWGate):
+                return self._exp_w_duration
+            if isinstance(g, xmon_gates.XmonMeasurementGate):
+                return self._measurement_duration
+            if isinstance(g, xmon_gates.ExpZGate):
+                # Z gates are performed in the control software.
+                return Duration()
         raise ValueError('Unsupported gate type: {}'.format(repr(g)))
 
     def validate_gate(self, gate: ops.Gate):

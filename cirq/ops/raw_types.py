@@ -101,16 +101,20 @@ TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
 
 class Operation(metaclass=abc.ABCMeta):
-    """An effect applied to a collection of qubits."""
+    """An effect applied to a collection of qubits.
+
+    The most common kind of Operation is a GateOperation, which separates its
+    effect into a qubit-independent Gate and the qubits it should be applied to.
+    """
 
     @abc.abstractproperty
     def qubits(self) -> Tuple[QubitId, ...]:
-        raise NotImplementedError('must implemented abstract properties')
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def gate(self) -> Gate:
         # TODO: remove this once there are operations besides GateOperation.
-        raise NotImplementedError('must implemented abstract properties')
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def with_qubits(self: TSelf_Operation,

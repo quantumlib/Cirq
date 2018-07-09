@@ -40,6 +40,19 @@ def square_device(width, height, holes=()):
                               if GridQubit(x, y) not in holes])
 
 
+class NotImplementedOperation(cirq.Operation):
+    @property
+    def gate(self):
+        raise NotImplementedError()
+
+    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+        raise NotImplementedError()
+
+    @property
+    def qubits(self):
+        raise NotImplementedError()
+
+
 def test_init():
     d = square_device(2, 2, holes=[GridQubit(1, 1)])
     ns = Duration(nanos=1)
@@ -106,6 +119,8 @@ def test_validate_operation_supported_gate():
     d.validate_operation(cirq.GateOperation(ExpZGate(), [GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(cirq.GateOperation(MyGate, [GridQubit(0, 0)]))
+    with pytest.raises(ValueError):
+        d.validate_operation(NotImplementedOperation())
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
