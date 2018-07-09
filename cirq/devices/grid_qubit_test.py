@@ -16,57 +16,57 @@ import pytest
 
 import cirq
 from cirq.api.google.v1 import operations_pb2
-from cirq.google import XmonQubit
+from cirq.devices import GridQubit
 from cirq.testing import EqualsTester
 
 
 def test_xmon_qubit_init():
-    q = XmonQubit(3, 4)
+    q = GridQubit(3, 4)
     assert q.row == 3
     assert q.col == 4
 
 
 def test_xmon_qubit_eq():
     eq = EqualsTester()
-    eq.make_equality_group(lambda: XmonQubit(0, 0))
-    eq.make_equality_group(lambda: XmonQubit(1, 0))
-    eq.make_equality_group(lambda: XmonQubit(0, 1))
-    eq.make_equality_group(lambda: XmonQubit(50, 25))
+    eq.make_equality_group(lambda: GridQubit(0, 0))
+    eq.make_equality_group(lambda: GridQubit(1, 0))
+    eq.make_equality_group(lambda: GridQubit(0, 1))
+    eq.make_equality_group(lambda: GridQubit(50, 25))
 
 
 def test_xmon_qubit_ordering():
-    assert XmonQubit(0, 0) < XmonQubit(0, 1)
-    assert XmonQubit(0, 0) < XmonQubit(1, 0)
-    assert XmonQubit(0, 0) < XmonQubit(1, 1)
-    assert XmonQubit(0, 0) <= XmonQubit(0, 0)
-    assert XmonQubit(0, 0) <= XmonQubit(0, 1)
-    assert XmonQubit(0, 0) <= XmonQubit(1, 0)
-    assert XmonQubit(0, 0) <= XmonQubit(1, 1)
+    assert GridQubit(0, 0) < GridQubit(0, 1)
+    assert GridQubit(0, 0) < GridQubit(1, 0)
+    assert GridQubit(0, 0) < GridQubit(1, 1)
+    assert GridQubit(0, 0) <= GridQubit(0, 0)
+    assert GridQubit(0, 0) <= GridQubit(0, 1)
+    assert GridQubit(0, 0) <= GridQubit(1, 0)
+    assert GridQubit(0, 0) <= GridQubit(1, 1)
 
-    assert XmonQubit(1, 1) > XmonQubit(0, 1)
-    assert XmonQubit(1, 1) > XmonQubit(1, 0)
-    assert XmonQubit(1, 1) > XmonQubit(0, 0)
-    assert XmonQubit(1, 1) >= XmonQubit(1, 1)
-    assert XmonQubit(1, 1) >= XmonQubit(0, 1)
-    assert XmonQubit(1, 1) >= XmonQubit(1, 0)
-    assert XmonQubit(1, 1) >= XmonQubit(0, 0)
+    assert GridQubit(1, 1) > GridQubit(0, 1)
+    assert GridQubit(1, 1) > GridQubit(1, 0)
+    assert GridQubit(1, 1) > GridQubit(0, 0)
+    assert GridQubit(1, 1) >= GridQubit(1, 1)
+    assert GridQubit(1, 1) >= GridQubit(0, 1)
+    assert GridQubit(1, 1) >= GridQubit(1, 0)
+    assert GridQubit(1, 1) >= GridQubit(0, 0)
 
 
 def test_xmon_qubit_is_adjacent():
-    assert XmonQubit(0, 0).is_adjacent(XmonQubit(0, 1))
-    assert XmonQubit(0, 0).is_adjacent(XmonQubit(0, -1))
-    assert XmonQubit(0, 0).is_adjacent(XmonQubit(1, 0))
-    assert XmonQubit(0, 0).is_adjacent(XmonQubit(-1, 0))
+    assert GridQubit(0, 0).is_adjacent(GridQubit(0, 1))
+    assert GridQubit(0, 0).is_adjacent(GridQubit(0, -1))
+    assert GridQubit(0, 0).is_adjacent(GridQubit(1, 0))
+    assert GridQubit(0, 0).is_adjacent(GridQubit(-1, 0))
 
-    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(+1, -1))
-    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(+1, +1))
-    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(-1, -1))
-    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(-1, +1))
+    assert not GridQubit(0, 0).is_adjacent(GridQubit(+1, -1))
+    assert not GridQubit(0, 0).is_adjacent(GridQubit(+1, +1))
+    assert not GridQubit(0, 0).is_adjacent(GridQubit(-1, -1))
+    assert not GridQubit(0, 0).is_adjacent(GridQubit(-1, +1))
 
-    assert not XmonQubit(0, 0).is_adjacent(XmonQubit(2, 0))
+    assert not GridQubit(0, 0).is_adjacent(GridQubit(2, 0))
 
-    assert XmonQubit(500, 999).is_adjacent(XmonQubit(501, 999))
-    assert not XmonQubit(500, 999).is_adjacent(XmonQubit(5034, 999))
+    assert GridQubit(500, 999).is_adjacent(GridQubit(501, 999))
+    assert not GridQubit(500, 999).is_adjacent(GridQubit(5034, 999))
 
 
 def test_gate_calls_validate():
@@ -77,9 +77,9 @@ def test_gate_calls_validate():
                 raise ValueError()
 
     g = ValiGate()
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q10 = XmonQubit(1, 0)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q10 = GridQubit(1, 0)
 
     _ = g.on(q00)
     _ = g.on(q01)
@@ -94,7 +94,7 @@ def test_gate_calls_validate():
 
 
 def test_operation_init():
-    q = XmonQubit(4, 5)
+    q = GridQubit(4, 5)
     g = cirq.Gate()
     v = cirq.GateOperation(g, (q,))
     assert v.gate == g
@@ -104,8 +104,8 @@ def test_operation_init():
 def test_operation_eq():
     g1 = cirq.Gate()
     g2 = cirq.Gate()
-    r1 = [XmonQubit(1, 2)]
-    r2 = [XmonQubit(3, 4)]
+    r1 = [GridQubit(1, 2)]
+    r2 = [GridQubit(3, 4)]
     r12 = r1 + r2
     r21 = r2 + r1
 
@@ -118,7 +118,7 @@ def test_operation_eq():
 
 
 def test_to_proto():
-    q = XmonQubit(5, 6)
+    q = GridQubit(5, 6)
 
     # Create a new message.
     proto = q.to_proto()
@@ -133,6 +133,6 @@ def test_to_proto():
 
 
 def test_from_proto():
-    q = XmonQubit(5, 6)
-    q2 = XmonQubit.from_proto(q.to_proto())
+    q = GridQubit(5, 6)
+    q2 = GridQubit.from_proto(q.to_proto())
     assert q2 == q

@@ -198,7 +198,6 @@ class TextDiagramInfo:
                  wire_symbols: Tuple[str, ...],
                  exponent: Any = 1) -> None:
         """
-
         Args:
             wire_symbols: The symbols that should be shown on the qubits
                 affected by this operation. Must match the number of qubits that

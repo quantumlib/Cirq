@@ -28,7 +28,7 @@ def test_protobuf_round_trip():
         ],
         [
             cirq.google.Exp11Gate().on(q, q2)
-            for q in [cirq.google.XmonQubit(0, 0)]
+            for q in [cirq.GridQubit(0, 0)]
             for q2 in device.neighbors_of(q)
         ]
     )

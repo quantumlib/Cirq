@@ -16,7 +16,7 @@ import abc
 import collections
 
 from typing import Dict, List, Optional, Set
-from cirq.line.placement import place_method
+from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
@@ -25,7 +25,8 @@ from cirq.line.placement.sequence import (
     LinePlacement,
     LineSequence
 )
-from cirq.google import XmonDevice, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 
 
 class GreedySequenceSearch(object):
@@ -35,7 +36,7 @@ class GreedySequenceSearch(object):
     method.
     """
 
-    def __init__(self, device: XmonDevice, start: XmonQubit) -> None:
+    def __init__(self, device: XmonDevice, start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -51,9 +52,9 @@ class GreedySequenceSearch(object):
         self._c = device.qubits
         self._c_adj = chip_as_adjacency_list(device)
         self._start = start
-        self._sequence = None  # type: Optional[List[XmonQubit]]
+        self._sequence = None  # type: Optional[List[GridQubit]]
 
-    def get_or_search(self) -> List[XmonQubit]:
+    def get_or_search(self) -> List[GridQubit]:
         """Starts the search or gives previously calculated sequence.
 
         Returns:
@@ -64,8 +65,8 @@ class GreedySequenceSearch(object):
         return self._sequence
 
     @abc.abstractmethod
-    def _choose_next_qubit(self, qubit: XmonQubit,
-                           used: Set[XmonQubit]) -> Optional[XmonQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit,
+                           used: Set[GridQubit]) -> Optional[GridQubit]:
         """Selects next qubit on the linear sequence.
 
         Args:
@@ -80,7 +81,7 @@ class GreedySequenceSearch(object):
             more qubits are available and search should stop.
         """
 
-    def _find_sequence(self) -> List[XmonQubit]:
+    def _find_sequence(self) -> List[GridQubit]:
         """Looks for a sequence starting at a given qubit.
 
         Search is issued twice from the starting qubit, so that longest possible
@@ -100,8 +101,8 @@ class GreedySequenceSearch(object):
 
         return self._expand_sequence(head + tail)
 
-    def _sequence_search(self, start: XmonQubit,
-                         current: List[XmonQubit]) -> List[XmonQubit]:
+    def _sequence_search(self, start: GridQubit,
+                         current: List[GridQubit]) -> List[GridQubit]:
         """Search for the continuous linear sequence from the given qubit.
 
         This method is called twice for the same starting qubit, so that
@@ -118,7 +119,7 @@ class GreedySequenceSearch(object):
         """
         used = set(current)
         seq = []
-        n = start  # type: Optional[XmonQubit]
+        n = start  # type: Optional[GridQubit]
         while n is not None:
             # Append qubit n to the sequence and mark it is as visited.
             seq.append(n)
@@ -127,7 +128,7 @@ class GreedySequenceSearch(object):
             n = self._choose_next_qubit(n, used)
         return seq
 
-    def _expand_sequence(self, seq: List[XmonQubit]) -> List[XmonQubit]:
+    def _expand_sequence(self, seq: List[GridQubit]) -> List[GridQubit]:
         """Tries to expand given sequence with more qubits.
 
         Args:
@@ -146,8 +147,8 @@ class GreedySequenceSearch(object):
                 i += 1
         return seq
 
-    def _find_path_between(self, p: XmonQubit, q: XmonQubit,
-                           used: Set[XmonQubit]) -> Optional[List[XmonQubit]]:
+    def _find_path_between(self, p: GridQubit, q: GridQubit,
+                           used: Set[GridQubit]) -> Optional[List[GridQubit]]:
         """Searches for continuous sequence between two qubits.
 
         This method runs two BFS algorithms in palarel (alternating variable s
@@ -166,7 +167,7 @@ class GreedySequenceSearch(object):
             if no path was found.
         """
 
-        def assemble_path(n: XmonQubit, parent: Dict[XmonQubit, XmonQubit]):
+        def assemble_path(n: GridQubit, parent: Dict[GridQubit, GridQubit]):
             path = [n]
             while n in parent:
                 n = parent[n]
@@ -175,8 +176,8 @@ class GreedySequenceSearch(object):
 
         other = {p: q, q: p}
         parents = {p: dict(), q: dict()} \
-            # type: Dict[XmonQubit, Dict[XmonQubit, XmonQubit]]
-        visited = {p: set(), q: set()}  # type: Dict[XmonQubit, Set[XmonQubit]]
+            # type: Dict[GridQubit, Dict[GridQubit, GridQubit]]
+        visited = {p: set(), q: set()}  # type: Dict[GridQubit, Set[GridQubit]]
 
         queue = collections.deque([(p, p), (q, q)])
 
@@ -208,11 +209,11 @@ class MinimalConnectivityGreedySequenceSearch(GreedySequenceSearch):
     available neighbours in each step.
     """
 
-    def __init__(self, c: XmonDevice, start: XmonQubit) -> None:
+    def __init__(self, c: XmonDevice, start: GridQubit) -> None:
         GreedySequenceSearch.__init__(self, c, start)
 
-    def _choose_next_qubit(self, qubit: XmonQubit,
-                           used: Set[XmonQubit]) -> Optional[XmonQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit,
+                           used: Set[GridQubit]) -> Optional[GridQubit]:
         best = None
         best_size = None
         for m in self._c_adj[qubit]:
@@ -231,12 +232,12 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
     part of the chip, when this qubit is added to the sequence.
     """
 
-    def __init__(self, c: XmonDevice, start: XmonQubit) -> None:
+    def __init__(self, c: XmonDevice, start: GridQubit) -> None:
         GreedySequenceSearch.__init__(self, c, start)
 
-    def _choose_next_qubit(self, qubit: XmonQubit,
-                           used: Set[XmonQubit]) -> Optional[XmonQubit]:
-        analyzed = set()  # type: Set[XmonQubit]
+    def _choose_next_qubit(self, qubit: GridQubit,
+                           used: Set[GridQubit]) -> Optional[GridQubit]:
+        analyzed = set()  # type: Set[GridQubit]
         best = None
         best_size = None
         for m in self._c_adj[qubit]:
@@ -253,8 +254,8 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
 
         return best
 
-    def _collect_unused(self, start: XmonQubit,
-                        used: Set[XmonQubit]) -> Set[XmonQubit]:
+    def _collect_unused(self, start: GridQubit,
+                        used: Set[GridQubit]) -> Set[GridQubit]:
         """Lists all the qubits that are reachable from given qubit.
 
         Args:
@@ -268,26 +269,27 @@ class LargestAreaGreedySequenceSearch(GreedySequenceSearch):
             traversing any of the used qubits.
         """
 
-        def collect(n: XmonQubit, visited: Set[XmonQubit]):
+        def collect(n: GridQubit, visited: Set[GridQubit]):
             visited.add(n)
             for m in self._c_adj[n]:
                 if m not in used and m not in visited:
                     collect(m, visited)
 
-        visited = set()  # type: Set[XmonQubit]
+        visited = set()  # type: Set[GridQubit]
         collect(start, visited)
         return visited
 
 
-class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
+class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip.
     """
 
-    def place_line(self, device: XmonDevice) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
         """Runs line sequence search.
 
         Args:
             device: Chip description.
+            length: Required line length.
 
         Returns:
             Linear sequences found on the chip.
@@ -315,4 +317,5 @@ class GreedySequenceSearchMethod(place_method.LinePlacementMethod):
             if sequence is None or len(sequence) < len(candidate):
                 sequence = candidate
 
-        return LinePlacement([LineSequence(sequence)] if sequence else [])
+        return LinePlacement(length,
+                             [LineSequence(sequence)] if sequence else [])
