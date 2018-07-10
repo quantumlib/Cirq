@@ -5,14 +5,12 @@ import cirq
 
 def main():
 
-    print(cirq.google.Bristlecone)
-
-    print(cirq.line.placement.line._line_placement_on_device(
+    print(cirq.line.placement.line_placement_on_device(
         cirq.google.Foxtail, 10))
 
     print()
 
-    print(cirq.line.placement.line._line_placement_on_device(
+    print(cirq.line.placement.line_placement_on_device(
         cirq.google.Bristlecone, 10))
 
 

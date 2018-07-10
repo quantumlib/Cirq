@@ -22,10 +22,10 @@ from cirq.line.placement.place_strategy import LinePlacementStrategy
 from cirq.line.placement.sequence import LinePlacement
 
 
-def _line_placement_on_device(device: XmonDevice,
-                              length: int,
-                              method: LinePlacementStrategy =
-                              greedy.GreedySequenceSearchStrategy()) -> \
+def line_placement_on_device(device: XmonDevice,
+                             length: int,
+                             method: LinePlacementStrategy =
+                             greedy.GreedySequenceSearchStrategy()) -> \
         LinePlacement:
     """Searches for linear sequence of qubits on device.
 
@@ -62,5 +62,5 @@ def line_on_device(device: XmonDevice,
     Raises:
         NotFoundError: Could not find a line of the given length on the device.
     """
-    line = _line_placement_on_device(device, length, method).get().line
+    line = line_placement_on_device(device, length, method).get().line
     return line, lambda qubit: line[qubit.x - offset]
