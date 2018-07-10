@@ -131,6 +131,7 @@ def test_unpack_results():
     results = programs.unpack_results(data, 7, [('a', 3), ('b', 2)])
     assert 'a' in results
     assert results['a'].shape == (7, 3)
+    assert results['a'].dtype == bool
     np.testing.assert_array_equal(
         results['a'],
         [[0, 0, 0],
@@ -143,6 +144,7 @@ def test_unpack_results():
 
     assert 'b' in results
     assert results['b'].shape == (7, 2)
+    assert results['b'].dtype == bool
     np.testing.assert_array_equal(
         results['b'],
         [[0, 0],

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast
+from typing import Optional, TypeVar, Type, cast, Union
 
 import numpy as np
 
@@ -31,7 +31,15 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
 )
 
 
-class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
+class ControlledGate(raw_types.Gate,
+                     extension.PotentialImplementation[Union[
+                         gate_features.BoundedEffect,
+                         gate_features.ExtrapolatableEffect,
+                         gate_features.KnownMatrixGate,
+                         gate_features.ParameterizableEffect,
+                         gate_features.ReversibleEffect,
+                         gate_features.TextDiagrammable,
+                     ]]):
     """Augments existing gates with a control qubit."""
 
     def __init__(self,
