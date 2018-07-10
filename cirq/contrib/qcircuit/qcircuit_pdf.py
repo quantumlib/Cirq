@@ -18,8 +18,9 @@ import os
 from pylatex import Document, NoEscape, Package
 
 from cirq.contrib.qcircuit.qcircuit_diagram import (
-        circuit_to_latex_using_qcircuit)
+        circuit_to_latex_using_qcircuit) # coverage: ignore
 
+# coverage: ignore
 def circuit_to_pdf_using_qcircuit_via_tex(circuit, filepath, 
                                           pdf_kwargs=None,
                                           qcircuit_kwargs=None,
@@ -37,7 +38,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(circuit, filepath,
             intermediary dvi and ps files.
         documentclass: The documentclass of the latex file.
     """
-    pdf_kwargs = {**{'compiler': 'latexmk', 'compiler_args': ['-pdfps']},
+    pdf_kwargs = {'compiler': 'latexmk', 'compiler_args': ['-pdfps'],
                   **({} if pdf_kwargs is None else pdf_kwargs)}
     tex = circuit_to_latex_using_qcircuit(circuit, **qcircuit_kwargs)
     doc = Document(documentclass=documentclass, document_options='dvips')

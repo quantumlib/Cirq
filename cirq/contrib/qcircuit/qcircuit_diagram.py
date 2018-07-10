@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
-
 from cirq import circuits, extension, ops
 from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
     QCircuitDiagrammableGate,
