@@ -129,6 +129,8 @@ def test_run(scheduler):
 
     simulator = xmon_simulator.XmonSimulator()
     result = run(simulator, circuit, scheduler)
+    assert result.measurements['a'].dtype == bool
+    assert result.measurements['b'].dtype == bool
     np.testing.assert_equal(result.measurements,
                             {'a': [[True]], 'b': [[False]]})
 
