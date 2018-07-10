@@ -12,49 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
-
 import cirq
 from cirq.ops import gate_features, Gate, SWAP
 
-class MultiswapGate(cirq.CompositeGate,
-                    cirq.TextDiagrammable):
+class CircularShiftGate(cirq.CompositeGate,
+                        cirq.TextDiagrammable):
     """Swaps two sets of qubits.
 
     Args:
-        multiplicities: a sequence of two ints indicating the sizes of the two
-            sets of qubits to swap.
-        swap_gate: the gate to use when decomposing the multiswap gate.
+        shift: how many positions to circularly left shift the qubits.
+        swap_gate: the gate to use when decomposing.
     """
 
     def __init__(self, 
-                 multiplicities: Union[Sequence[int], int],
+                 shift: int,
                  swap_gate: Gate=SWAP) -> None:
-        if isinstance(multiplicities, int):
-            self.multiplicities = (multiplicities,) * 2
-        elif len(multiplicities) != 2:
-            raise ValueError('Multiplicities must have length 2.')
-        elif min(multiplicities) < 1:
-            raise ValueError('Multiplicities must be at least 1.')
-        else:
-            self.multiplicities = tuple(multiplicities)
+        self.shift = shift
         self.swap_gate = swap_gate
 
     def __repr__(self):
-        return 'multiSWAP'
+        return 'CircularShiftGate'
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return ((self.multiplicities == other.multiplicities) and
+        return ((self.shift == other.shift) and
                 (self.swap_gate == other.swap_gate))
 
     def default_decompose(self, qubits):
-        n = sum(self.multiplicities)
-        mins = (list(range(self.multiplicities[0] - 1, 0, -1)) + 
-                list(range(self.multiplicities[1])))
-        maxs = (list(range(self.multiplicities[0], n)) +
-                list(range(n - 1, self.multiplicities[1], -1)))
+        n = len(qubits)
+        left_shift = self.shift % n
+        right_shift = n - left_shift
+        mins = (list(range(left_shift - 1, 0, -1)) + 
+                list(range(right_shift)))
+        maxs = (list(range(left_shift, n)) +
+                list(range(n - 1, right_shift, -1)))
         for i, j in zip(mins, maxs):
             for k in range(i, j, 2):
                 yield self.swap_gate(*qubits[k:k+2])
@@ -62,13 +54,15 @@ class MultiswapGate(cirq.CompositeGate,
 
     def text_diagram_info(self,
                           args: gate_features.TextDiagramInfoArgs):
+        if args.known_qubit_count is None:
+            return NotImplemented
         direction_symbols = (
             ('╲', '╱') if args.use_unicode_characters else
             ('\\', '/'))
         wire_symbols = tuple(
-                direction_symbols[b] + str(i) + direction_symbols[1-b]
-                for i, b in 
-                enumerate([b for b in (0, 1) 
-                             for _ in range(self.multiplicities[b])]))
+                direction_symbols[int(i >= self.shift)] +
+                str(i) +
+                direction_symbols[int(i < self.shift)]
+                for i in range(args.known_qubit_count))
         return gate_features.TextDiagramInfo(
                 wire_symbols=wire_symbols)

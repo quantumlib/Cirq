@@ -12,45 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
 import cirq
 from cirq.circuits import ExpandComposite
-from cirq.contrib.swaps.multiswap import MultiswapGate
-from cirq.ops import SWAP
+from cirq.contrib.acquaintance.shift import CircularShiftGate
+from cirq.ops import SWAP, TextDiagramInfoArgs
 
-def test_multiswap_gate_init():
+def test_circular_shift_gate_init():
 
-    with pytest.raises(ValueError):
-        MultiswapGate((3,))
-    with pytest.raises(ValueError):
-        MultiswapGate((1, 2, 3))
-    with pytest.raises(ValueError):
-        MultiswapGate((0, 2))
+    g = CircularShiftGate(2)
+    assert g.shift == 2
 
-    g = MultiswapGate(2)
-    assert g.multiplicities == (2, 2)
-
-    g = MultiswapGate((1, 2), swap_gate = cirq.CZ)
+    g = CircularShiftGate(1, swap_gate = cirq.CZ)
     assert g.swap_gate == cirq.CZ
 
-def test_multiswap_gate_eq():
-    a = MultiswapGate((2, 2))
-    b = MultiswapGate((2, 2))
-    c = MultiswapGate((1, 2))
+def test_circular_shift_gate_unknown_qubit_count():
+    g = CircularShiftGate(2)
+    args = TextDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert g.text_diagram_info(args) == NotImplemented
+
+def test_circular_shift_gate_eq():
+    a = CircularShiftGate(1)
+    b = CircularShiftGate(1)
+    c = CircularShiftGate(2)
     assert a == b
     assert a != c
 
-def test_multiswap_gate_repr():
-    g = MultiswapGate((2, 2))
-    assert repr(g) == 'multiSWAP'
+def test_circular_shift_gate_repr():
+    g = CircularShiftGate(2)
+    assert repr(g) == 'CircularShiftGate'
 
-def test_multiswap_gate_decomposition():
+def test_circular_shift_gate_decomposition():
     qubits = [cirq.NamedQubit(q) for q in 'abcdef']
 
     expander = ExpandComposite()
-    multiswap = MultiswapGate((1, 1), cirq.CZ)(*qubits[:2])
-    circuit = cirq.Circuit.from_ops(multiswap)
+    circular_shift = CircularShiftGate(1, cirq.CZ)(*qubits[:2])
+    circuit = cirq.Circuit.from_ops(circular_shift)
     expander.optimize_circuit(circuit)
     expected_circuit = cirq.Circuit(
             (cirq.Moment((cirq.CZ(*qubits[:2]),)),))
@@ -59,8 +55,8 @@ def test_multiswap_gate_decomposition():
     stopper = lambda op: (op.gate == SWAP)
     expander = ExpandComposite(stopper=stopper)
 
-    multiswap = MultiswapGate((3, 3))(*qubits)
-    circuit = cirq.Circuit.from_ops(multiswap)
+    circular_shift = CircularShiftGate(3)(*qubits)
+    circuit = cirq.Circuit.from_ops(circular_shift)
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
@@ -78,8 +74,8 @@ f: ───────────×───────────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-    multiswap = MultiswapGate((2, 4))(*qubits)
-    circuit = cirq.Circuit.from_ops(multiswap)
+    circular_shift = CircularShiftGate(2)(*qubits)
+    circuit = cirq.Circuit.from_ops(circular_shift)
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
@@ -98,9 +94,9 @@ f: ───────────────×───────
     assert actual_text_diagram == expected_text_diagram
     
     
-def test_multiswap_gate_wire_symbols():
+def test_circular_shift_gate_wire_symbols():
     qubits = [cirq.NamedQubit(q) for q in 'xyz']
-    circuit = cirq.Circuit.from_ops(MultiswapGate((2, 1))(*qubits))
+    circuit = cirq.Circuit.from_ops(CircularShiftGate(2)(*qubits))
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
 x: ───╲0╱───
