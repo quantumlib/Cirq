@@ -14,6 +14,27 @@
 
 from cirq import ops, Circuit
 from cirq.contrib import circuit_to_latex_using_qcircuit
+from cirq.contrib.qcircuit.qcircuit_diagram import _QCircuitQubit
+from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
+        _FallbackQCircuitSymbolsGate)
+
+
+def test_QCircuitQubit():
+    p = ops.NamedQubit('x')
+    q = _QCircuitQubit(p)
+    assert repr(q) == '_QCircuitQubit({!r})'.format(p)
+
+    assert q != 0
+
+def test_FallbackQCircuitSymbolsGate():
+    class TestGate(ops.Gate):
+        def __str__(self):
+            return 'T'
+
+    g = TestGate()
+    f = _FallbackQCircuitSymbolsGate(g)
+    assert f.qcircuit_wire_symbols() == ('\\text{T:0}',)
+    assert f.qcircuit_wire_symbols(2) == ('\\text{T:0}', '\\text{T:1}')
 
 
 def test_teleportation_diagram():
