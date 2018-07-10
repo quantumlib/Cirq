@@ -17,7 +17,7 @@ import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.grover
-import examples.hello_line
+import examples.line_placement
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 from examples.supremacy import generate_supremacy_circuit
@@ -63,7 +63,7 @@ def test_example_runs_bernstein_vazirani():
 
 
 def test_example_runs_hello_line():
-    examples.hello_line.main()
+    examples.line_placement.main()
 
 
 def test_example_runs_hello_qubit():
