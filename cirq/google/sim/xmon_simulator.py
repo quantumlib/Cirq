@@ -449,27 +449,27 @@ class XmonSimulator:
             ) -> Circuit:
         resolved_circuit = Circuit()
         for moment in circuit.moments:
-            resolved_circuit.append(
-                    self._to_operations_with_parameters_resolved(
-                        moment.operations,
-                        param_resolver,
-                        extensions))
+            resolved_circuit.append(_resolve_operations(
+                moment.operations,
+                param_resolver,
+                extensions))
         return resolved_circuit
 
-    def _to_operations_with_parameters_resolved(
-            self,
-            operations: Iterable[ops.Operation],
-            param_resolver: ParamResolver,
-            extensions) -> List[ops.Operation]:
-        resolved_operations = []
-        for op in operations:
-            gate, qubits = op.gate, op.qubits
-            p_gate = extensions.try_cast(ops.ParameterizableEffect, gate)
-            if p_gate is not None and p_gate.is_parameterized():
-                gate = p_gate.with_parameters_resolved_by(param_resolver)
-            resolved_op = ops.Operation(gate, qubits)
-            resolved_operations.append(resolved_op)
-        return resolved_operations
+
+def _resolve_operations(
+        operations: Iterable[ops.Operation],
+        param_resolver: ParamResolver,
+        extensions) -> List[ops.Operation]:
+    resolved_operations = []  # type: List[ops.Operation]
+    for op in operations:
+        cast_op = extensions.try_cast(ops.ParameterizableEffect, op)
+        if cast_op is None:
+            resolved_op = op
+        else:
+            resolved_op = cast_op.with_parameters_resolved_by(
+                param_resolver)
+        resolved_operations.append(resolved_op)
+    return resolved_operations
 
 
 def _simulator_iterator(
