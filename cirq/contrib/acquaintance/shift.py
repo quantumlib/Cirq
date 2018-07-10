@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from itertools import chain
+
 import cirq
 from cirq.ops import gate_features, Gate, SWAP
 
@@ -43,10 +45,10 @@ class CircularShiftGate(cirq.CompositeGate,
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift
-        mins = (list(range(left_shift - 1, 0, -1)) + 
-                list(range(right_shift)))
-        maxs = (list(range(left_shift, n)) +
-                list(range(n - 1, right_shift, -1)))
+        mins = chain(range(left_shift - 1, 0, -1),
+                     range(right_shift))
+        maxs = chain(range(left_shift, n),
+                     range(n - 1, right_shift, -1))
         for i, j in zip(mins, maxs):
             for k in range(i, j, 2):
                 yield self.swap_gate(*qubits[k:k+2])
