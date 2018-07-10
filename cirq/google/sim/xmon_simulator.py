@@ -16,8 +16,9 @@
 
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
-the circuit are either an XmonGate or are CompositeGate which can be
-decomposed into XmonGates. Measurement gates must all have unique string keys.
+the circuit are either an XmonGate or are CompositionOperations or have a
+KnownNatrix which can be decomposed into XmonGates. Measurement gates must all
+have unique string keys.
 
 A simple example:
     circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])

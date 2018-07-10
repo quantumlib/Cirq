@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimizer that expands CompositeGates into their constituent gates."""
+"""An optimizer that expands CompositeOperation instances."""
 
 from cirq import ops
 from cirq.circuits.optimization_pass import (
@@ -23,13 +23,12 @@ from cirq.extension import Extensions
 
 
 class ExpandComposite(PointOptimizer):
-    """An optimization pass that expands CompositeGates.
+    """An optimization pass that expands CompositeOperation instances.
 
-    For each operation in the circuit, this pass examines if the operation's
-    gate is a CompositeGate, or is composite according to a supplied Extension,
-    and if it is, clears the operation and replaces it with the composite
-    gate elements using a fixed insertion strategy.
-
+    For each operation in the circuit, this pass examines if the operation is a
+    CompositeOperation, or is composite according to a supplied Extension,
+    and if it is, clears the operation and replaces it with its decomposition
+    using a fixed insertion strategy.
     """
 
     def __init__(self,
@@ -38,7 +37,7 @@ class ExpandComposite(PointOptimizer):
 
         Args:
             composite_gate_extension: An extension that that can be used
-                to supply or override a CompositeGate decomposition.
+                to supply or override a CompositeOperation decomposition.
         """
         self.extension = composite_gate_extension or Extensions()
 
@@ -54,9 +53,8 @@ class ExpandComposite(PointOptimizer):
 
     def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
         """Recursively decompose composite gates into an OP_TREE of gates."""
-        composite_gate = self.extension.try_cast(ops.CompositeGate, op.gate)
-        if composite_gate is None:
+        composite_op = self.extension.try_cast(ops.CompositeOperation, op)
+        if composite_op is None:
             return op
-        op_iter = ops.flatten_op_tree(
-                        composite_gate.default_decompose(op.qubits))
+        op_iter = ops.flatten_op_tree(composite_op.default_decompose())
         return (self._decompose(op) for op in op_iter)

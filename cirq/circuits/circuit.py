@@ -702,10 +702,10 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # If not, check if it has a decomposition
-        composite_gate = ext.try_cast(ops.CompositeGate, op.gate)
-        if composite_gate is not None:
+        composite_op = ext.try_cast(ops.CompositeOperation, op)
+        if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
-            op_tree = composite_gate.default_decompose(op.qubits)
+            op_tree = composite_op.default_decompose()
             op_list = ops.flatten_op_tree(op_tree)
             for op in _flatten_to_known_matrix_ops(op_list, ext):
                 yield op

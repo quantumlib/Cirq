@@ -33,11 +33,11 @@ class ConvertToXmonGates(PointOptimizer):
         XmonGate instance.
 
     Second, checks if the given extensions are able to cast the operation into a
-        KnownMatrix instance. If so, and the gate is a 1-qubit or 2-qubit
+        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit
         gate, then performs circuit synthesis of the operation.
 
-    Third, checks if the given extensions are able to cast the gate into a
-        CompositeGate instance. If so, recurses on the decomposition.
+    Third, checks if the given extensions are able to cast the operation into a
+        CompositeOperation. If so, recurses on the decomposition.
 
     Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
@@ -80,19 +80,19 @@ class ConvertToXmonGates(PointOptimizer):
                 allow_partial_czs=True)
 
         # Provides a decomposition?
-        composite = self.extensions.try_cast(ops.CompositeGate, op.gate)
-        if composite is not None:
-            return composite.default_decompose(op.qubits)
+        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        if composite_op is not None:
+            return composite_op.default_decompose()
 
         # Just let it be?
         if self.ignore_failures:
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't an XmonGate, "
-                        "1-qubit KnownMatrix, "
-                        "2-qubit KnownMatrix, "
-                        "or CompositeGate.".format(op))
+                        "It isn't a GateOperation with an XmonGate, "
+                        "a 1-qubit KnownMatrix, "
+                        "a 2-qubit KnownMatrix, "
+                        "or a CompositeOperation.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)
