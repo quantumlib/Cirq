@@ -48,9 +48,6 @@ from cirq.google.xmon_gates import (
     XmonGate,
     XmonMeasurementGate,
 )
-from cirq.google.xmon_qubit import (
-    XmonQubit,
-)
 from cirq.google.sim import (
     XmonOptions,
     XmonSimulator,

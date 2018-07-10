@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Tuple
+from typing import Union
 
 import numpy as np
 
@@ -28,11 +28,6 @@ class DummyGate(PartialReflectionGate):
     def _with_half_turns(self, half_turns: Union[Symbol, float] = 1.0):
         return DummyGate(half_turns=half_turns)
 
-    def text_diagram_wire_symbols(self,
-                                  args: cirq.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return 'D',
-
     def _reflection_matrix(self):
         return np.diag([1, -1])
 
@@ -46,9 +41,9 @@ def test_partial_reflection_gate_eq():
     eq = EqualsTester()
     eq.add_equality_group(DummyGate(), DummyGate(half_turns=1))
     eq.add_equality_group(DummyGate(half_turns=3.5), DummyGate(half_turns=-0.5))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('a')))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=Symbol('b')))
-    eq.make_equality_pair(lambda: DummyGate(half_turns=0))
+    eq.make_equality_group(lambda: DummyGate(half_turns=Symbol('a')))
+    eq.make_equality_group(lambda: DummyGate(half_turns=Symbol('b')))
+    eq.make_equality_group(lambda: DummyGate(half_turns=0))
     eq.add_equality_group(DummyGate(half_turns=0.5),
                           DummyGate(rads=np.pi / 2),
                           DummyGate(degs=90))
@@ -74,10 +69,6 @@ def test_partial_reflection_as_self_inverse():
     assert ex.try_cast(cirq.ReversibleEffect, h0) is h0
     assert ex.try_cast(cirq.ReversibleEffect, h1) is h1
     assert ex.try_cast(cirq.ReversibleEffect, ha) is None
-
-
-def test_partial_reflection_gate_str():
-    assert str(DummyGate(half_turns=.25)) == 'D**0.25'
 
 
 def test_partial_reflection_gate_trace_bound():

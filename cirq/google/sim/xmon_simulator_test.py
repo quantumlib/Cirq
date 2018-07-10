@@ -32,8 +32,9 @@ from cirq import (
     Symbol,
     UnconstrainedDevice,
 )
+from cirq.devices import GridQubit
 from cirq.google import (
-    ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate, XmonQubit,
+    ExpWGate, ExpZGate, Exp11Gate, XmonMeasurementGate
 )
 from cirq.google.sim import xmon_simulator
 from cirq.ops.common_gates import CNOT, H, X, Y, Z, CZ
@@ -41,9 +42,9 @@ from cirq.schedules import moment_by_moment_schedule
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Linspace
 
-Q1 = XmonQubit(0, 0)
-Q2 = XmonQubit(1, 0)
-Q3 = XmonQubit(2, 0)
+Q1 = GridQubit(0, 0)
+Q2 = GridQubit(1, 0)
+Q3 = GridQubit(2, 0)
 
 
 def basic_circuit():
@@ -61,7 +62,7 @@ def basic_circuit():
 
 def large_circuit():
     np.random.seed(0)
-    qubits = [XmonQubit(i, 0) for i in range(10)]
+    qubits = [GridQubit(i, 0) for i in range(10)]
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
     cz = Exp11Gate()
     circuit = Circuit()
@@ -880,7 +881,7 @@ def test_handedness_of_xmon_gates():
 
 
 def bit_flip_circuit(flip0, flip1):
-    q1, q2 = XmonQubit(0, 0), XmonQubit(0, 1)
+    q1, q2 = GridQubit(0, 0), GridQubit(0, 1)
     g1, g2 = ExpWGate(half_turns=flip0)(q1), ExpWGate(half_turns=flip1)(q2)
     m1, m2 = XmonMeasurementGate('q1')(q1), XmonMeasurementGate('q2')(q2)
     circuit = Circuit()
@@ -996,9 +997,9 @@ def test_compare_simulator_states_to_gate_matrices():
 
 
 def test_simulator_trial_result():
-    a = cirq.google.XmonQubit(0, 0)
-    b = cirq.google.XmonQubit(0, 1)
-    c = cirq.google.XmonQubit(0, 2)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.CNOT(a, b),
@@ -1011,9 +1012,9 @@ def test_simulator_trial_result():
 
 
 def test_simulator_trial_repeated_result():
-    a = cirq.google.XmonQubit(0, 0)
-    b = cirq.google.XmonQubit(0, 1)
-    c = cirq.google.XmonQubit(0, 2)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(b),
         cirq.measure(a, b, key='ab'),
@@ -1038,9 +1039,9 @@ def test_simulator_simulate_trial_result_repr():
 
 
 def test_simulator_simulate_trial_result_str():
-    a = cirq.google.XmonQubit(0, 0)
-    b = cirq.google.XmonQubit(0, 1)
-    c = cirq.google.XmonQubit(0, 2)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.CNOT(a, b),
@@ -1053,7 +1054,7 @@ def test_simulator_simulate_trial_result_str():
 
 
 def test_simulator_implied_measurement_key():
-    q = cirq.google.XmonQubit(0, 0)
+    q = cirq.GridQubit(0, 0)
     circuit = cirq.Circuit.from_ops(
         cirq.X(q),
         cirq.measure(q),

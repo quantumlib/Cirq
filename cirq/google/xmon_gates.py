@@ -14,14 +14,14 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, cast
 
 import numpy as np
 
 from cirq import abc, ops, value
 from cirq.api.google.v1 import operations_pb2
 from cirq.extension import PotentialImplementation
-from cirq.google.xmon_qubit import XmonQubit
+from cirq.devices.grid_qubit import GridQubit
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -34,7 +34,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def from_proto(op: operations_pb2.Operation) -> ops.Operation:
         param = XmonGate.parameterized_value_from_proto
-        qubit = XmonQubit.from_proto
+        qubit = GridQubit.from_proto
         which = op.WhichOneof('operation')
         if which == 'exp_w':
             exp_w = op.exp_w
@@ -107,11 +107,11 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
-                ops.TextDiagrammableGate,
+                ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
                 ops.ParameterizableEffect,
-                PotentialImplementation):
+                PotentialImplementation[ops.KnownMatrixGate]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -172,12 +172,9 @@ class Exp11Gate(XmonGate,
             raise ValueError("Don't have a known matrix.")
         return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return '@', '@'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
+        return ops.TextDiagramInfo(('@', '@'), self.half_turns)
 
     def __str__(self):
         if self.half_turns == 1:
@@ -208,11 +205,11 @@ class Exp11Gate(XmonGate,
 
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
-               ops.TextDiagrammableGate,
+               ops.TextDiagrammable,
                ops.PhaseableGate,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
-               PotentialImplementation):
+               PotentialImplementation[ops.KnownMatrixGate]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is exp(-i * pi * W(axis_half_turn) * half_turn / 2) where
@@ -324,27 +321,27 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def _text_symbol(self, args: ops.TextDiagramInfoArgs) -> str:
         e = 0 if args.precision is None else 10**-args.precision
         if isinstance(self.axis_half_turns, value.Symbol):
-            return 'W({})'.format(self.axis_half_turns),
+            return 'W({})'.format(self.axis_half_turns)
         if abs(self.axis_half_turns) <= e:
-            return 'X',
+            return 'X'
         if abs(self.axis_half_turns - 0.5) <= e:
-            return 'Y',
+            return 'Y'
         if args.precision is not None:
             return 'W({{:.{}}})'.format(args.precision).format(
-                self.axis_half_turns),
+                self.axis_half_turns)
         else:
-            return 'W({})'.format(self.axis_half_turns),
+            return 'W({})'.format(self.axis_half_turns)
 
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
+        return ops.TextDiagramInfo((self._text_symbol(args),),
+                                   self.half_turns)
 
     def __str__(self):
-        base = self.text_diagram_wire_symbols(
-            ops.TextDiagramSymbolArgs.UNINFORMED_DEFAULT)[0]
+        base = self._text_symbol(ops.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
         if self.half_turns == 1:
             return base
         return '{}^{}'.format(base, self.half_turns)
@@ -388,9 +385,9 @@ class ExpWGate(XmonGate,
 
 class ExpZGate(XmonGate,
                ops.SingleQubitGate,
-               ops.TextDiagrammableGate,
+               ops.TextDiagrammable,
                ops.ParameterizableEffect,
-               PotentialImplementation):
+               PotentialImplementation[ops.KnownMatrixGate]):
     """A rotation around the Z axis of the Bloch sphere.
 
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
@@ -422,20 +419,21 @@ class ExpZGate(XmonGate,
             rads=rads,
             degs=degs)
 
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
         if self.half_turns in [-0.25, 0.25]:
-            return 'T',
-        if self.half_turns in [-0.5, 0.5]:
-            return 'S',
-        return 'Z',
+            return ops.TextDiagramInfo(
+                wire_symbols=('T',),
+                exponent=cast(float, self.half_turns) * 4)
 
-    def text_diagram_exponent(self):
-        if self.half_turns in [0.25, 0.5]:
-            return 1
-        if self.half_turns in [-0.5, -0.25]:
-            return -1
-        return self.half_turns
+        if self.half_turns in [-0.5, 0.5]:
+            return ops.TextDiagramInfo(
+                wire_symbols=('S',),
+                exponent=cast(float, self.half_turns) * 2)
+
+        return ops.TextDiagramInfo(
+            wire_symbols=('Z',),
+            exponent=self.half_turns)
 
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrixGate and self.has_matrix():

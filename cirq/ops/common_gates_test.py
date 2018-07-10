@@ -95,8 +95,8 @@ def test_rot_gates_eq():
                               gate(half_turns=-0.5),
                               gate(rads=-np.pi/2),
                               gate(degs=-90))
-        eq.make_equality_pair(lambda: gate(half_turns=0))
-        eq.make_equality_pair(lambda: gate(half_turns=0.5))
+        eq.make_equality_group(lambda: gate(half_turns=0))
+        eq.make_equality_group(lambda: gate(half_turns=0.5))
 
     eq.add_equality_group(cirq.RotXGate(), cirq.RotXGate(half_turns=1), cirq.X)
     eq.add_equality_group(cirq.RotYGate(), cirq.RotYGate(half_turns=1), cirq.Y)
@@ -223,10 +223,17 @@ def test_text_diagrams():
         cirq.H(a),
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
+
     assert circuit.to_text_diagram().strip() == """
 a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
       │                     │   │   │       │       │
 b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+    """.strip()
+
+    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
+      |                        |   |   |       |       |
+b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
     """.strip()
 
 
