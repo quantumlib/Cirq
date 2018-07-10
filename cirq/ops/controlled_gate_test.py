@@ -137,7 +137,7 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.KnownMatrixGate, ext) is None
     assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.TextDiagrammableGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
     assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
@@ -145,7 +145,7 @@ def test_try_cast_to():
     assert CY.try_cast_to(cirq.KnownMatrixGate, ext) is not None
     assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
-    assert CY.try_cast_to(cirq.TextDiagrammableGate, ext) is not None
+    assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
     assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
     assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
@@ -228,32 +228,38 @@ def test_parameterizable_via_extension():
     assert not with_ext.is_parameterized()
 
 
-def test_text_diagrammable():
-    assert CY.text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
-    assert CY.text_diagram_exponent() == 1
+def test_text_diagram_info():
+    assert CY.text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+        wire_symbols=('@', 'Y'),
+        exponent=1)
 
-    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
-    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_exponent() == 0.5
+    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            wire_symbols=('@', 'Y'),
+            exponent=0.5)
 
-    assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'S')
-    assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 1
+    assert cirq.ControlledGate(cirq.S).text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            wire_symbols=('@', 'S'),
+            exponent=1)
 
 
 def test_text_diagrammable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammableGate,
+    ext.add_cast(cirq.TextDiagrammable,
                  RestrictedGate,
                  lambda _: cirq.Y**0.5)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
+    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
     with pytest.raises(TypeError):
-        _ = without_ext.text_diagram_exponent()
+        _ = without_ext.text_diagram_info(args)
 
-    assert with_ext.text_diagram_exponent() == 0.5
+    assert with_ext.text_diagram_info(args) == cirq.TextDiagramInfo(
+        wire_symbols=('@', 'Y'),
+        exponent=0.5)
 
 
 def test_bounded_effect():

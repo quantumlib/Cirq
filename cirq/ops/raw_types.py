@@ -14,13 +14,13 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING
+from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar
 
 from cirq import abc
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Dict, List
+    from cirq.ops import gate_operation
 
 
 class QubitId:
@@ -77,90 +77,60 @@ class Gate:
         """
         pass
 
-    def on(self, *qubits: QubitId) -> 'Operation':
+    def on(self, *qubits: QubitId) -> 'gate_operation.GateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
+        # Avoids circular import.
+        from cirq.ops import gate_operation
+
         if len(qubits) == 0:
             raise ValueError(
                 "Applied a gate to an empty set of qubits. Gate: {}".format(
                     repr(self)))
         self.validate_args(qubits)
-        return Operation(self, list(qubits))
+        return gate_operation.GateOperation(self, list(qubits))
 
     def __call__(self, *args):
         return self.on(*args)
 
 
-class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
-    """Indicates operations should be equal under some qubit permutations."""
-
-    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
-        """Returns a key that differs between non-interchangeable qubits."""
-        return 0
+TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
 
-class Operation:
-    """An application of a gate to a collection of qubits.
+class Operation(metaclass=abc.ABCMeta):
+    """An effect applied to a collection of qubits.
 
-    Attributes:
-        gate: The applied gate.
-        qubits: A sequence of the qubits on which the gate is applied.
+    The most common kind of Operation is a GateOperation, which separates its
+    effect into a qubit-independent Gate and the qubits it should be applied to.
     """
 
-    def __init__(self, gate: Gate, qubits: Sequence[QubitId]) -> None:
-        self.gate = gate
-        self.qubits = tuple(qubits)
+    @abc.abstractproperty
+    def qubits(self) -> Tuple[QubitId, ...]:
+        raise NotImplementedError()
 
-    def __repr__(self):
-        return 'Operation({}, {})'.format(repr(self.gate), repr(self.qubits))
+    @abc.abstractproperty
+    def gate(self) -> Gate:
+        # TODO: remove this once there are operations besides GateOperation.
+        raise NotImplementedError()
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    @abc.abstractmethod
+    def with_qubits(self: TSelf_Operation,
+                    *new_qubits: QubitId) -> TSelf_Operation:
+        pass
 
-    def __hash__(self):
-        grouped_qubits = self._group_interchangeable_qubits()
-        return hash((Operation, self.gate, grouped_qubits))
-
-    def _group_interchangeable_qubits(
-            self) -> Tuple[Union[QubitId, Tuple[int, FrozenSet[QubitId]]], ...]:
-
-        if not isinstance(self.gate, InterchangeableQubitsGate):
-            return self.qubits
-
-        groups = {}  # type: Dict[int, List[QubitId]]
-        for i, q in enumerate(self.qubits):
-            k = self.gate.qubit_index_to_equivalence_group_key(i)
-            if k not in groups:
-                groups[k] = []
-            groups[k].append(q)
-        return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        grouped_qubits_1 = self._group_interchangeable_qubits()
-        grouped_qubits_2 = other._group_interchangeable_qubits()
-        return self.gate == other.gate and grouped_qubits_1 == grouped_qubits_2
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __pow__(self, power: float) -> 'Operation':
-        """Raise gate to a power, then reapply to the same qubits.
-
-        Only works if the gate implements cirq.ExtrapolatableEffect.
-        For extrapolatable gate G this means the following two are equivalent:
-
-            (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
+    def transform_qubits(self: TSelf_Operation,
+                         func: Callable[[QubitId], QubitId]) -> TSelf_Operation:
+        """Returns the same operation, but with different qubits.
 
         Args:
-            power: The amount to scale the gate's effect by.
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
 
         Returns:
-            A new operation on the same qubits with the scaled gate.
+            The receiving operation but with qubits transformed by the given
+                function.
         """
-        return (self.gate ** power).on(*self.qubits)  # type: ignore
+        return self.with_qubits(*(func(q) for q in self.qubits))
