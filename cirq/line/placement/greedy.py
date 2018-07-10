@@ -331,8 +331,8 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                 LargestAreaGreedySequenceSearch(device, start)
         }
 
-        if self.algorithm not in greedy_search.keys() and \
-                self.algorithm != self.BEST:
+        if (self.algorithm not in greedy_search.keys() and
+                self.algorithm != self.BEST):
             raise ValueError(
                 "Unknown greedy search algorithm %s" % self.algorithm)
 

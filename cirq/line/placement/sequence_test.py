@@ -120,20 +120,16 @@ def test_line_placement_str():
     q01 = GridQubit(0, 1)
     q02 = GridQubit(0, 2)
     q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    device = _create_device([q00, q01, q02, q10, q20])
+    q11 = GridQubit(1, 1)
+    device = _create_device([q00, q01, q02, q10, q11])
     seq1 = LineSequence([q00, q01, q02])
-    seq2 = LineSequence([q10, q20])
+    seq2 = LineSequence([q10, q11])
     placement = LinePlacement(device, 0, [seq1, seq2])
-    print(str(placement).strip())
     assert str(placement).strip() == """
 (0, 0)━━━(0, 1)━━━(0, 2)
 
 
-(1, 0)
-┃
-┃
-(2, 0)    
+(1, 0)━━━(1, 1)
     """.strip()
 
 def test_line_placement_to_str():
@@ -141,18 +137,14 @@ def test_line_placement_to_str():
     q01 = GridQubit(0, 1)
     q02 = GridQubit(0, 2)
     q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    device = _create_device([q00, q01, q02, q10, q20])
+    q11 = GridQubit(1, 1)
+    device = _create_device([q00, q01, q02, q10, q11])
     seq1 = LineSequence([q00, q01, q02])
-    seq2 = LineSequence([q10, q20])
+    seq2 = LineSequence([q10, q11])
     placement = LinePlacement(device, 0, [seq1, seq2])
-    print(placement._to_str(True).strip())
     assert placement._to_str(True).strip() == """
 (0, 0)━━━(0, 1)━━━(0, 2)
-│
-│
-(1, 0)
-┃
-┃
-(2, 0)  
+│        │
+│        │
+(1, 0)━━━(1, 1)
     """.strip()

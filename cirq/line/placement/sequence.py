@@ -60,9 +60,9 @@ class LinePlacement:
         return hash(tuple(self.lines))
 
     def __str__(self):
-        return self._to_str()
+        return self._to_str(False)
 
-    def _to_str(self, draw_unused: bool = False):
+    def _to_str(self, draw_unused: bool):
         diagram = TextDiagramDrawer()
 
         for q in self.device.qubits:
