@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from cirq import circuits, extension, ops
-from cirq.contrib.qcircuit_diagrammable_gate import (
+from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
     QCircuitDiagrammableGate,
     fallback_qcircuit_extensions,
 )
