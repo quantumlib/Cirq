@@ -33,6 +33,13 @@ def test_multiswap_gate_init():
     g = MultiswapGate((1, 2), swap_gate = cirq.CZ)
     assert g.swap_gate == cirq.CZ
 
+def test_multiswap_gate_eq():
+    a = MultiswapGate((2, 2))
+    b = MultiswapGate((2, 2))
+    c = MultiswapGate((1, 2))
+    assert a == b
+    assert a != c
+
 def test_multiswap_gate_repr():
     g = MultiswapGate((2, 2))
     assert repr(g) == 'multiSWAP'
@@ -94,10 +101,20 @@ def test_multiswap_gate_wire_symbols():
     circuit = cirq.Circuit.from_ops(MultiswapGate((2, 1))(*qubits))
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
-x: ───\\/───
+x: ───╲╱───
       │
-y: ───\\/───
+y: ───╲╱───
       │
-z: ───/\\───
+z: ───╱╲───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+
+    actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=0)
+    expected_text_diagram = """
+x: ---\\/---
+      |
+y: ---\\/---
+      |
+z: ---/\\---
+    """.strip()
+    assert actual_text_diagram.strip() == expected_text_diagram

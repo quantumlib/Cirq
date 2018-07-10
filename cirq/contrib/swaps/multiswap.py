@@ -15,12 +15,12 @@
 from typing import Sequence, Union
 
 import cirq
-from cirq import ops
+from cirq.ops import gate_features, Gate, SWAP
 
-DEFAULT_SWAP = ops.SWAP # type: ops.Gate
+DEFAULT_SWAP = SWAP # type: Gate
 
 class MultiswapGate(cirq.CompositeGate,
-                    cirq.TextDiagrammableGate):
+                    cirq.TextDiagrammable):
     """Swaps two sets of qubits.
 
     Args:
@@ -31,7 +31,7 @@ class MultiswapGate(cirq.CompositeGate,
 
     def __init__(self, 
                  multiplicities: Union[Sequence[int], int],
-                 swap_gate: ops.Gate=DEFAULT_SWAP) -> None:
+                 swap_gate: Gate=DEFAULT_SWAP) -> None:
         if isinstance(multiplicities, int):
             self.multiplicities = (multiplicities,) * 2
         elif len(multiplicities) != 2:
@@ -61,9 +61,13 @@ class MultiswapGate(cirq.CompositeGate,
             for k in range(i, j, 2):
                 yield self.swap_gate(*qubits[k:k+2])
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return (('\\/',) * self.multiplicities[0] +
-                ('/\\',) * self.multiplicities[1])
+
+    def text_diagram_info(self,
+                          args: gate_features.TextDiagramInfoArgs):
+        left_symbol, right_symbol = (
+            ('╲╱', '╱╲') if args.use_unicode_characters else
+            ('\\/', '/\\'))
+        wire_symbols = ((left_symbol,) * self.multiplicities[0] +
+                        (right_symbol,) * self.multiplicities[1])
+        return gate_features.TextDiagramInfo(
+                wire_symbols=wire_symbols)
