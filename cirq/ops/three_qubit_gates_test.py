@@ -92,9 +92,9 @@ def test_decomposition_matches_matrix(gate):
     cirq.CCX, cirq.CSWAP, cirq.CCZ,
 ])
 def test_decomposition_respects_locality(gate):
-    a = cirq.devices.GridQubit(0, 0)
-    b = cirq.devices.GridQubit(1, 0)
-    c = cirq.devices.GridQubit(0, 1)
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(1, 0)
+    c = cirq.GridQubit(0, 1)
 
     for x, y, z in itertools.permutations([a, b, c]):
         circuit = cirq.Circuit.from_ops(gate(x, y, z))

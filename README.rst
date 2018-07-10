@@ -24,7 +24,7 @@ A simple example to get you up and running:
   import cirq
 
   # Pick a qubit.
-  qubit = cirq.devices.GridQubit(0, 0)
+  qubit = cirq.GridQubit(0, 0)
 
   # Create a circuit
   circuit = cirq.Circuit.from_ops(

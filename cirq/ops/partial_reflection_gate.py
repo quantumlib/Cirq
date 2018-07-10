@@ -13,20 +13,22 @@
 # limitations under the License.
 
 """Partial reflection gate."""
-from typing import Tuple, Union, cast, Optional
+from typing import Union, cast, Optional
 
 import numpy as np
 
-from cirq import abc, value
-from cirq.extension import PotentialImplementation
+from cirq import abc, extension, value
 from cirq.linalg import reflection_matrix_pow
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 
 
-class PartialReflectionGate(gate_features.TextDiagrammableGate,
+class PartialReflectionGate(raw_types.Gate,
                             gate_features.BoundedEffect,
                             gate_features.ParameterizableEffect,
-                            PotentialImplementation):
+                            extension.PotentialImplementation[Union[
+                                gate_features.ExtrapolatableEffect,
+                                gate_features.ReversibleEffect,
+                                gate_features.KnownMatrixGate]]):
     """An interpolated reflection operation.
 
     A reflection operation is an operation that has exactly two eigenvalues
@@ -66,27 +68,11 @@ class PartialReflectionGate(gate_features.TextDiagrammableGate,
         """Initialize an instance by specifying the number of half-turns."""
         pass
 
-    @abc.abstractmethod
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        pass
-
-    def text_diagram_exponent(self):
-        return self.half_turns
-
     def __pow__(self, power: float) -> 'PartialReflectionGate':
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PartialReflectionGate':
         return self.extrapolate_effect(-1)
-
-    def __str__(self):
-        base = ''.join(self.text_diagram_wire_symbols(
-            gate_features.TextDiagramSymbolArgs.UNINFORMED_DEFAULT))
-        if self.half_turns == 1:
-            return base
-        return '{}**{}'.format(base, repr(self.half_turns))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
