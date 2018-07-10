@@ -21,7 +21,9 @@ from cirq.circuits import (
     InsertStrategy,
 )
 from cirq.extension import Extensions
-from cirq.ops import CNOT, CNotGate, CompositeGate, CZ, QubitId, SWAP, X, Y, Z
+from cirq.ops import (
+    CNOT, CNotGate, CompositeGate, CZ, HGate, SWAP, X, Y, Z, ISWAP,
+    NamedQubit, QubitId)
 
 
 def assert_equal_mod_empty(expected, actual):
@@ -177,6 +179,29 @@ class OtherCNot(CNotGate):
         yield CZ(c, t)
         yield Y(t)**0.5
         yield Z(c)
+
+def test_nonrecursive_expansion():
+    qubits = [NamedQubit(s) for s in 'xy']
+    stopper = lambda op: (op.gate == ISWAP)
+    expander = ExpandComposite(stopper=stopper)
+    unexpanded_circuit = Circuit.from_ops(ISWAP(*qubits))
+
+    circuit = unexpanded_circuit.__copy__()
+    expander.optimize_circuit(circuit)
+    assert circuit == unexpanded_circuit
+
+    stopper = lambda op: isinstance(op.gate, (CNotGate, HGate))
+    expander = ExpandComposite(stopper=stopper)
+    circuit = unexpanded_circuit.__copy__()
+    expander.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───@───H───X───S───X───S^-1───H───@───
+      │       │       │              │
+y: ───X───────@───────@──────────────X───
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 
 
 def test_composite_extension_overrides():

@@ -33,14 +33,18 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-                 composite_gate_extension: Extensions = None) -> None:
+                 composite_gate_extension: Extensions = None,
+                 stopper=None) -> None:
         """Construct the optimization pass.
 
         Args:
             composite_gate_extension: An extension that that can be used
                 to supply or override a CompositeGate decomposition.
+            stopper: A predicate (of an operation) that indicates whether or
+                not to stop decomposition.
         """
         self.extension = composite_gate_extension or Extensions()
+        self.stopper = stopper or (lambda _: False)
 
     def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
@@ -54,6 +58,9 @@ class ExpandComposite(PointOptimizer):
 
     def _decompose(self, op):
         """Recursively decompose composite gates into an OP_TREE of gates."""
+        stop = self.stopper(op)
+        if stop and (stop is not NotImplemented):
+            return op
         composite_gate = self.extension.try_cast(ops.CompositeGate, op.gate)
         if composite_gate is None:
             return op
