@@ -110,3 +110,55 @@ def test_inverse():
     assert cirq.can_cast(cirq.ReversibleEffect, op1)
     assert op1.inverse() == cirq.GateOperation(cirq.S.inverse(), [q])
     assert cirq.S.inverse().on(q) == cirq.S.on(q).inverse()
+
+
+def test_text_diagrammable():
+    q = cirq.NamedQubit('q')
+
+    # If the gate isn't diagrammable, you get a type error.
+    op0 = cirq.GateOperation(cirq.Gate(), [q])
+    assert not cirq.can_cast(cirq.TextDiagrammable, op0)
+    with pytest.raises(TypeError):
+        _ = op0.text_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+
+    op1 = cirq.GateOperation(cirq.S, [q])
+    assert cirq.can_cast(cirq.TextDiagrammable, op1)
+    actual = op1.text_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+    expected = cirq.S.text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+    assert actual == expected
+
+
+def test_bounded_effect():
+    q = cirq.NamedQubit('q')
+
+    # If the gate isn't bounded, you get a type error.
+    op0 = cirq.GateOperation(cirq.Gate(), [q])
+    assert not cirq.can_cast(cirq.BoundedEffect, op0)
+    with pytest.raises(TypeError):
+        _ = op0.trace_distance_bound()
+
+    op1 = cirq.GateOperation(cirq.Z**0.000001, [q])
+    assert cirq.can_cast(cirq.BoundedEffect, op1)
+    assert op1.trace_distance_bound() == (cirq.Z**0.000001
+                                          ).trace_distance_bound()
+
+
+def test_parameterizable_effect():
+    q = cirq.NamedQubit('q')
+    r = cirq.ParamResolver({'a': 0.5})
+
+    # If the gate isn't parameterizable, you get a type error.
+    op0 = cirq.GateOperation(cirq.Gate(), [q])
+    assert not cirq.can_cast(cirq.ParameterizableEffect, op0)
+    with pytest.raises(TypeError):
+        _ = op0.is_parameterized()
+    with pytest.raises(TypeError):
+        _ = op0.with_parameters_resolved_by(r)
+
+    op1 = cirq.GateOperation(cirq.RotZGate(half_turns=cirq.Symbol('a')), [q])
+    assert cirq.can_cast(cirq.ParameterizableEffect, op1)
+    assert op1.is_parameterized()
+    op2 = op1.with_parameters_resolved_by(r)
+    assert not op2.is_parameterized()
+    assert op2 == cirq.S.on(q)
