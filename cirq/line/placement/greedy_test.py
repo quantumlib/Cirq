@@ -457,9 +457,14 @@ def test_greedy_search_method_fails_when_unknown():
 def test_greedy_search_method_calls_largest_only(minimal, largest):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    largest.return_value.get_or_search.return_value = sequence
 
     method = GreedySequenceSearchStrategy('largest_area')
-    method.place_line(_create_device([q00, q01]), 2)
+    assert method.place_line(device, length) == LinePlacement(
+        length, [LineSequence(sequence)])
 
     largest.return_value.get_or_search.assert_called_once_with()
     minimal.return_value.get_or_search.assert_not_called()
@@ -471,9 +476,14 @@ def test_greedy_search_method_calls_largest_only(minimal, largest):
 def test_greedy_search_method_calls_minimal_only(minimal, largest):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    minimal.return_value.get_or_search.return_value = sequence
 
     method = GreedySequenceSearchStrategy('minimal_connectivity')
-    method.place_line(_create_device([q00, q01]), 2)
+    assert method.place_line(device, length) == LinePlacement(
+        length, [LineSequence(sequence)])
 
     largest.return_value.get_or_search.assert_not_called()
     minimal.return_value.get_or_search.assert_called_once_with()
