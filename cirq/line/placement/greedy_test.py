@@ -268,10 +268,11 @@ def test_minimal_sequence_search_chooses_minimal():
     qubits = [q00, q10, q20, q21]
     search = MinimalConnectivityGreedySequenceSearch(_create_device(qubits),
                                                      q10)
-    # +-* +
-    #
+    # + *-+
+    #     |
     #     +
-    assert search._choose_next_qubit(q10, {q10}) == q00
+    assert search._choose_next_qubit(q10, {q10}) == q20
+    assert search._choose_next_qubit(q20, {q10, q20}) == q21
 
 
 def test_minimal_sequence_search_does_not_use_used():
@@ -328,6 +329,21 @@ def test_minimal_sequence_search_traverses_grid():
     assert search._choose_next_qubit(q40, {q20, q30, q40}) == q41
     assert search._choose_next_qubit(q41, {q20, q30, q40, q41}) == q42
     assert search._choose_next_qubit(q42, {q20, q30, q40, q41, q42}) is None
+
+    # +-+-+-+-+ +
+    #         |
+    #   +     +
+    #         |
+    #         *
+    assert search._choose_next_qubit(q42, {q42}) == q41
+    assert search._choose_next_qubit(q41, {q42, q41}) == q40
+    assert search._choose_next_qubit(q40, {q42, q41, q40}) == q30
+    assert search._choose_next_qubit(q30, {q42, q41, q40, q30}) == q20
+    assert search._choose_next_qubit(q20, {q42, q41, q40, q30, q20}) == q10
+    assert search._choose_next_qubit(q10,
+                                     {q42, q41, q40, q30, q20, q10}) == q11
+    assert search._choose_next_qubit(q11, {q42, q41, q40, q30, q20, q10,
+                                           q11}) is None
 
 
 def test_largest_sequence_search_chooses_largest():
@@ -423,7 +439,7 @@ def test_largest_collect_stops_on_used():
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
 @mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
-def test_greedy_search_method_calls_all(minimal, largest):
+def test_greedy_search_method_calls_all(largest, minimal):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
     qubits = [q00, q01]
@@ -457,9 +473,14 @@ def test_greedy_search_method_fails_when_unknown():
 def test_greedy_search_method_calls_largest_only(minimal, largest):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    largest.return_value.get_or_search.return_value = sequence
 
     method = GreedySequenceSearchStrategy('largest_area')
-    method.place_line(_create_device([q00, q01]), 2)
+    assert method.place_line(device, length) == LinePlacement(
+        length, [LineSequence(sequence)])
 
     largest.return_value.get_or_search.assert_called_once_with()
     minimal.return_value.get_or_search.assert_not_called()
@@ -471,9 +492,14 @@ def test_greedy_search_method_calls_largest_only(minimal, largest):
 def test_greedy_search_method_calls_minimal_only(minimal, largest):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    minimal.return_value.get_or_search.return_value = sequence
 
     method = GreedySequenceSearchStrategy('minimal_connectivity')
-    method.place_line(_create_device([q00, q01]), 2)
+    assert method.place_line(device, length) == LinePlacement(
+        length, [LineSequence(sequence)])
 
     largest.return_value.get_or_search.assert_not_called()
     minimal.return_value.get_or_search.assert_called_once_with()

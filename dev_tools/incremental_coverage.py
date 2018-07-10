@@ -35,6 +35,8 @@ IGNORED_LINE_PATTERNS = [
     r'^app.run\(main\)$',
     # Empty method definitions.
     r'^pass$',
+    # Code explicitly marked as not implemented.
+    r'raise NotImplementedError\(.+',
 ]
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 

@@ -335,6 +335,9 @@ class AnnealSequenceSearch(object):
 
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
+
+    This line search strategy is still work in progress and requires
+    efficiency improvements.
     """
 
     def __init__(self, trace_func: Callable[

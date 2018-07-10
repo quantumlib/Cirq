@@ -14,10 +14,10 @@
 
 import pytest
 
-from cirq import ops
+import cirq
 
 
-class _FlipGate(ops.Gate, ops.ReversibleEffect):
+class _FlipGate(cirq.Gate, cirq.ReversibleEffect):
     def __init__(self, val):
         self.val = val
 
@@ -37,15 +37,19 @@ class _FlipGate(ops.Gate, ops.ReversibleEffect):
 
 
 def test_inverse_of_invertible_op_tree():
+    with pytest.raises(TypeError):
+        _ = cirq.inverse_of_invertible_op_tree(
+            cirq.measure(cirq.NamedQubit('q')))
+
     def rev_freeze(root):
-        return ops.freeze_op_tree(ops.inverse_of_invertible_op_tree(root))
+        return cirq.freeze_op_tree(cirq.inverse_of_invertible_op_tree(root))
 
     operations = [
-        ops.Operation(_FlipGate(i), [ops.NamedQubit(str(i))])
+        cirq.GateOperation(_FlipGate(i), [cirq.NamedQubit(str(i))])
         for i in range(10)
     ]
     expected = [
-        ops.Operation(_FlipGate(~i), [ops.NamedQubit(str(i))])
+        cirq.GateOperation(_FlipGate(~i), [cirq.NamedQubit(str(i))])
         for i in range(10)
     ]
 
@@ -64,13 +68,13 @@ def test_inverse_of_invertible_op_tree():
     # Flattening after reversing is equivalent to reversing then flattening.
     t = (operations[1:5], operations[0], operations[5:])
     assert (
-        tuple(ops.flatten_op_tree(rev_freeze(t))) ==
-        tuple(rev_freeze(ops.flatten_op_tree(t))))
+        tuple(cirq.flatten_op_tree(rev_freeze(t))) ==
+        tuple(rev_freeze(cirq.flatten_op_tree(t))))
 
 
 def test_child_class():
 
-    class Impl(ops.ReversibleCompositeGate):
+    class Impl(cirq.ReversibleCompositeGate):
         def default_decompose(self, qubits):
             yield _FlipGate(1)(*qubits)
             yield _FlipGate(2)(*qubits), _FlipGate(3)(*qubits)
@@ -79,50 +83,50 @@ def test_child_class():
     reversed_gate = gate.inverse()
     assert gate is reversed_gate.inverse()
 
-    q = ops.QubitId()
+    q = cirq.QubitId()
     assert (
-        ops.freeze_op_tree(gate.default_decompose([q])) ==
+        cirq.freeze_op_tree(gate.default_decompose([q])) ==
         (_FlipGate(1)(q), (_FlipGate(2)(q), _FlipGate(3)(q))))
     assert (
-        ops.freeze_op_tree(reversed_gate.default_decompose([q])) ==
+        cirq.freeze_op_tree(reversed_gate.default_decompose([q])) ==
         ((_FlipGate(~3)(q), _FlipGate(~2)(q)), _FlipGate(~1)(q)))
 
 
 def test_enforces_abstract():
     with pytest.raises(TypeError):
-        _ = ops.ReversibleCompositeGate()
+        _ = cirq.ReversibleCompositeGate()
 
     # noinspection PyAbstractClass
-    class Missing(ops.ReversibleCompositeGate):
+    class Missing(cirq.ReversibleCompositeGate):
         pass
 
     with pytest.raises(TypeError):
         _ = Missing()
 
-    class Included(ops.ReversibleCompositeGate):
+    class Included(cirq.ReversibleCompositeGate):
         def default_decompose(self, qubits):
             pass
 
-    assert isinstance(Included(), ops.ReversibleCompositeGate)
+    assert isinstance(Included(), cirq.ReversibleCompositeGate)
 
 
 def test_works_with_basic_gates():
-    a = ops.NamedQubit('a')
-    b = ops.NamedQubit('b')
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
-    basics = [ops.X(a),
-              ops.Y(a)**0.5,
-              ops.Z(a),
-              ops.CZ(a, b)**-0.25,
-              ops.CNOT(a, b),
-              ops.H(b),
-              ops.SWAP(a, b)]
-    assert list(ops.inverse_of_invertible_op_tree(basics)) == [
-        ops.SWAP(a, b),
-        ops.H(b),
-        ops.CNOT(a, b),
-        ops.CZ(a, b)**0.25,
-        ops.Z(a),
-        ops.Y(a)**-0.5,
-        ops.X(a),
+    basics = [cirq.X(a),
+              cirq.Y(a)**0.5,
+              cirq.Z(a),
+              cirq.CZ(a, b)**-0.25,
+              cirq.CNOT(a, b),
+              cirq.H(b),
+              cirq.SWAP(a, b)]
+    assert list(cirq.inverse_of_invertible_op_tree(basics)) == [
+        cirq.SWAP(a, b),
+        cirq.H(b),
+        cirq.CNOT(a, b),
+        cirq.CZ(a, b)**0.25,
+        cirq.Z(a),
+        cirq.Y(a)**-0.5,
+        cirq.X(a),
     ]
