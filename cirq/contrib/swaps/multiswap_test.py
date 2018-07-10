@@ -103,20 +103,20 @@ def test_multiswap_gate_wire_symbols():
     circuit = cirq.Circuit.from_ops(MultiswapGate((2, 1))(*qubits))
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
-x: ───╲╱───
+x: ───╲0╱───
       │
-y: ───╲╱───
+y: ───╲1╱───
       │
-z: ───╱╲───
+z: ───╱2╲───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
     actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=0)
     expected_text_diagram = r"""
-x: ---\/---
+x: ---\0/---
       |
-y: ---\/---
+y: ---\1/---
       |
-z: ---/\---
+z: ---/2\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram

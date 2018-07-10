@@ -62,10 +62,13 @@ class MultiswapGate(cirq.CompositeGate,
 
     def text_diagram_info(self,
                           args: gate_features.TextDiagramInfoArgs):
-        left_symbol, right_symbol = (
-            ('╲╱', '╱╲') if args.use_unicode_characters else
-            ('\\/', '/\\'))
-        wire_symbols = ((left_symbol,) * self.multiplicities[0] +
-                        (right_symbol,) * self.multiplicities[1])
+        direction_symbols = (
+            ('╲', '╱') if args.use_unicode_characters else
+            ('\\', '/'))
+        wire_symbols = tuple(
+                direction_symbols[b] + str(i) + direction_symbols[1-b]
+                for i, b in 
+                enumerate([b for b in (0, 1) 
+                             for _ in range(self.multiplicities[b])]))
         return gate_features.TextDiagramInfo(
                 wire_symbols=wire_symbols)
