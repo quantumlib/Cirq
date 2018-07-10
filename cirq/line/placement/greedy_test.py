@@ -268,10 +268,11 @@ def test_minimal_sequence_search_chooses_minimal():
     qubits = [q00, q10, q20, q21]
     search = MinimalConnectivityGreedySequenceSearch(_create_device(qubits),
                                                      q10)
-    # +-* +
-    #
+    # + *-+
+    #     |
     #     +
-    assert search._choose_next_qubit(q10, {q10}) == q00
+    assert search._choose_next_qubit(q10, {q10}) == q20
+    assert search._choose_next_qubit(q20, {q10, q20}) == q21
 
 
 def test_minimal_sequence_search_does_not_use_used():
@@ -328,6 +329,21 @@ def test_minimal_sequence_search_traverses_grid():
     assert search._choose_next_qubit(q40, {q20, q30, q40}) == q41
     assert search._choose_next_qubit(q41, {q20, q30, q40, q41}) == q42
     assert search._choose_next_qubit(q42, {q20, q30, q40, q41, q42}) is None
+
+    # +-+-+-+-+ +
+    #         |
+    #   +     +
+    #         |
+    #         *
+    assert search._choose_next_qubit(q42, {q42}) == q41
+    assert search._choose_next_qubit(q41, {q42, q41}) == q40
+    assert search._choose_next_qubit(q40, {q42, q41, q40}) == q30
+    assert search._choose_next_qubit(q30, {q42, q41, q40, q30}) == q20
+    assert search._choose_next_qubit(q20, {q42, q41, q40, q30, q20}) == q10
+    assert search._choose_next_qubit(q10,
+                                     {q42, q41, q40, q30, q20, q10}) == q11
+    assert search._choose_next_qubit(q11, {q42, q41, q40, q30, q20, q10,
+                                           q11}) is None
 
 
 def test_largest_sequence_search_chooses_largest():
