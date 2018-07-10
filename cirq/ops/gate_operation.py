@@ -35,7 +35,13 @@ LIFTED_POTENTIAL_TYPES = [
 
 
 class GateOperation(raw_types.Operation,
-                    extension.PotentialImplementation):
+                    extension.PotentialImplementation[Union[
+                        gate_features.ReversibleEffect,
+                        gate_features.ExtrapolatableEffect,
+                        gate_features.TextDiagrammable,
+                        gate_features.BoundedEffect,
+                        gate_features.ParameterizableEffect,
+                    ]]):
     """An application of a gate to a collection of qubits.
 
     Attributes:
