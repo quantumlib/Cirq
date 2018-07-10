@@ -148,12 +148,20 @@ class _CompositeGateImpl(CompositeGate):
         return decomposition
 
 
-class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose constant non-parameterized effect has a known matrix."""
+class KnownMatrix(raw_types.Gate, metaclass=abc.ABCMeta):
+    """An effect that can be described by a matrix."""
 
     @abc.abstractmethod
     def matrix(self) -> np.ndarray:
-        """The unitary matrix of the operation this gate applies."""
+        """The unitary matrix of the gate/operation.
+
+        The matrix order is implicit for both gates and operations. For a gate,
+        the matrix must be in order with respect to the list of qubits that the
+        gate is applied to. For an operation, the order must be with respect to
+        its qubits attribute. The qubit-to-amplitude order mapping matches the
+        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        than the qubit B.
+        """
 
 
 class TextDiagramInfoArgs:

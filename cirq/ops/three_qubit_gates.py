@@ -23,7 +23,7 @@ from cirq.ops import gate_features, common_gates
 class _CCZGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
-               gate_features.KnownMatrixGate,
+               gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z."""
 
@@ -72,7 +72,7 @@ class _CCZGate(gate_features.ThreeQubitGate,
 class _CCXGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
-               gate_features.KnownMatrixGate,
+               gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
@@ -100,7 +100,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
 class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.TextDiagrammable,
                  gate_features.CompositeGate,
-                 gate_features.KnownMatrixGate,
+                 gate_features.KnownMatrix,
                  gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
 

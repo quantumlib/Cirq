@@ -16,6 +16,8 @@
 
 from typing import Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
 
+import numpy as np
+
 from cirq import extension
 from cirq.ops import raw_types, gate_features
 
@@ -26,21 +28,23 @@ if TYPE_CHECKING:
 
 
 LIFTED_POTENTIAL_TYPES = [
-    gate_features.ReversibleEffect,
-    gate_features.ExtrapolatableEffect,
-    gate_features.TextDiagrammable,
     gate_features.BoundedEffect,
+    gate_features.ExtrapolatableEffect,
+    gate_features.KnownMatrix,
     gate_features.ParameterizableEffect,
+    gate_features.ReversibleEffect,
+    gate_features.TextDiagrammable,
 ]
 
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
-                        gate_features.ReversibleEffect,
-                        gate_features.ExtrapolatableEffect,
-                        gate_features.TextDiagrammable,
                         gate_features.BoundedEffect,
+                        gate_features.ExtrapolatableEffect,
+                        gate_features.KnownMatrix,
                         gate_features.ParameterizableEffect,
+                        gate_features.ReversibleEffect,
+                        gate_features.TextDiagrammable,
                     ]]):
     """An application of a gate to a collection of qubits.
 
@@ -115,6 +119,10 @@ class GateOperation(raw_types.Operation,
             if cast_gate is not None:
                 return self.with_gate(cast_gate)
         return None
+
+    def matrix(self) -> np.ndarray:
+        cast_gate = extension.cast(gate_features.KnownMatrix, self.gate)
+        return cast_gate.matrix()
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
