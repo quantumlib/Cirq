@@ -14,7 +14,9 @@
 
 """An optimizer that expands CompositeGates into their constituent gates."""
 
-from cirq import ops
+from typing import Callable
+
+from cirq.ops import Operation, CompositeGate, flatten_op_tree, OP_TREE
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
@@ -34,7 +36,8 @@ class ExpandComposite(PointOptimizer):
 
     def __init__(self,
                  composite_gate_extension: Extensions = None,
-                 stopper=None) -> None:
+                 stopper: Callable[[Operation], bool]=(lambda _: False)
+                 ) -> None:
         """Construct the optimization pass.
 
         Args:
@@ -44,7 +47,7 @@ class ExpandComposite(PointOptimizer):
                 not to stop decomposition.
         """
         self.extension = composite_gate_extension or Extensions()
-        self.stopper = stopper or (lambda _: False)
+        self.stopper = stopper
 
     def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
@@ -56,14 +59,14 @@ class ExpandComposite(PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=decomposition)
 
-    def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
+    def _decompose(self, op: Operation) -> OP_TREE:
         """Recursively decompose composite gates into an OP_TREE of gates."""
         stop = self.stopper(op)
         if stop and (stop is not NotImplemented):
             return op
-        composite_gate = self.extension.try_cast(ops.CompositeGate, op.gate)
+        composite_gate = self.extension.try_cast(CompositeGate, op.gate)
         if composite_gate is None:
             return op
-        op_iter = ops.flatten_op_tree(
+        op_iter = flatten_op_tree(
                         composite_gate.default_decompose(op.qubits))
         return (self._decompose(op) for op in op_iter)

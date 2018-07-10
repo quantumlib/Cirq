@@ -186,13 +186,13 @@ def test_nonrecursive_expansion():
     expander = ExpandComposite(stopper=stopper)
     unexpanded_circuit = Circuit.from_ops(ISWAP(*qubits))
 
-    circuit = unexpanded_circuit.__copy__()
+    circuit = unexpanded_circuit.copy_moments()
     expander.optimize_circuit(circuit)
     assert circuit == unexpanded_circuit
 
     stopper = lambda op: isinstance(op.gate, (CNotGate, HGate))
     expander = ExpandComposite(stopper=stopper)
-    circuit = unexpanded_circuit.__copy__()
+    circuit = unexpanded_circuit.copy_moments()
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """

@@ -16,7 +16,8 @@ import pytest
 
 import cirq
 from cirq.circuits import ExpandComposite
-from cirq.contrib.swaps.multiswap import MultiswapGate, DEFAULT_SWAP
+from cirq.contrib.swaps.multiswap import MultiswapGate
+from cirq.ops import SWAP
 
 def test_multiswap_gate_init():
 
@@ -55,7 +56,7 @@ def test_multiswap_gate_decomposition():
             (cirq.Moment((cirq.CZ(*qubits[:2]),)),))
     assert circuit == expected_circuit
 
-    stopper = lambda op: (op.gate == DEFAULT_SWAP)
+    stopper = lambda op: (op.gate == SWAP)
     expander = ExpandComposite(stopper=stopper)
 
     multiswap = MultiswapGate((3, 3))(*qubits)
@@ -75,6 +76,7 @@ e: ───────×───×───×───────
               │
 f: ───────────×───────────
     """.strip()
+    assert actual_text_diagram == expected_text_diagram
 
     multiswap = MultiswapGate((2, 4))(*qubits)
     circuit = cirq.Circuit.from_ops(multiswap)
@@ -110,11 +112,11 @@ z: ───╱╲───
     assert actual_text_diagram == expected_text_diagram
 
     actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=0)
-    expected_text_diagram = """
-x: ---\\/---
+    expected_text_diagram = r"""
+x: ---\/---
       |
-y: ---\\/---
+y: ---\/---
       |
-z: ---/\\---
+z: ---/\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram

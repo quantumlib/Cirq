@@ -17,8 +17,6 @@ from typing import Sequence, Union
 import cirq
 from cirq.ops import gate_features, Gate, SWAP
 
-DEFAULT_SWAP = SWAP # type: Gate
-
 class MultiswapGate(cirq.CompositeGate,
                     cirq.TextDiagrammable):
     """Swaps two sets of qubits.
@@ -31,7 +29,7 @@ class MultiswapGate(cirq.CompositeGate,
 
     def __init__(self, 
                  multiplicities: Union[Sequence[int], int],
-                 swap_gate: Gate=DEFAULT_SWAP) -> None:
+                 swap_gate: Gate=SWAP) -> None:
         if isinstance(multiplicities, int):
             self.multiplicities = (multiplicities,) * 2
         elif len(multiplicities) != 2:
