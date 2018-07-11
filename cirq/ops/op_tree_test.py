@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import cast
 
 import pytest
 
@@ -99,10 +100,11 @@ def test_transform_leaves():
         for i in range(10)
     ]
 
-    def move_left(op):
+    def move_left(op: cirq.GateOperation):
         return cirq.GateOperation(
             op.gate,
-            [cirq.NamedQubit(q.name + 'a') for q in op.qubits])
+            [cirq.NamedQubit(cast(cirq.NamedQubit, q).name + 'a')
+             for q in op.qubits])
 
     def move_tree_left_freeze(root):
         return cirq.freeze_op_tree(
