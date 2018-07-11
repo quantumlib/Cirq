@@ -18,7 +18,6 @@ import cmath
 import itertools
 import math
 import time
-from typing import Sequence
 
 import numpy as np
 import pytest
@@ -657,25 +656,24 @@ def test_unsupported_gate_composite(scheduler):
 
 
 def test_extensions():
-    # We test that an extension is being applied, by created an incorrect
+    # We test that an extension is being applied, by fixing an incorrect
     # gate with an extension.
 
-    class WrongH(cirq.Gate, cirq.CompositeGate):
-        def default_decompose(self,
-                              qubits: Sequence[cirq.QubitId]
-                              ) -> cirq.OP_TREE:
-            return cirq.X(Q1)
+    class WrongH(cirq.Gate):
+        pass
 
-    extensions = cirq.Extensions(
-        desired_to_actual_to_wrapper={
-            cirq.CompositeGate: {cirq.H: lambda e: WrongH()}})
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.CompositeGate, WrongH, lambda _: cirq.H)
 
     circuit = cirq.Circuit()
-    circuit.append([WrongH()(Q1)])
+    circuit.append([WrongH().on(Q1)])
 
     simulator = cg.XmonSimulator()
-    results = simulator.simulate(circuit, extensions=extensions)
-    np.testing.assert_almost_equal(results.final_state, np.array([0, -1j]))
+    results = simulator.simulate(circuit, extensions=ext)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        results.final_state,
+        np.array([np.sqrt(0.5), np.sqrt(0.5)]),
+        atol=1e-8)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
