@@ -37,12 +37,12 @@ def test_equality():
                         scheduled_operations=scheduled_ops)
 
     q0, q1 = ops.QubitId(), ops.QubitId()
-    et.make_equality_pair(lambda: simple_schedule(q0))
-    et.make_equality_pair(lambda: simple_schedule(q1))
-    et.make_equality_pair(lambda: simple_schedule(q0, start_picos=1000))
-    et.make_equality_pair(lambda: simple_schedule(q0, duration_picos=1000))
-    et.make_equality_pair(lambda: simple_schedule(q0, num_ops=3))
-    et.make_equality_pair(lambda: simple_schedule(q1, num_ops=3))
+    et.make_equality_group(lambda: simple_schedule(q0))
+    et.make_equality_group(lambda: simple_schedule(q1))
+    et.make_equality_group(lambda: simple_schedule(q0, start_picos=1000))
+    et.make_equality_group(lambda: simple_schedule(q0, duration_picos=1000))
+    et.make_equality_group(lambda: simple_schedule(q0, num_ops=3))
+    et.make_equality_group(lambda: simple_schedule(q1, num_ops=3))
 
 
 def test_query_point_operation_inclusive():

@@ -22,3 +22,6 @@ from cirq.contrib.paulistring.clifford_gate import (
 from cirq.contrib.paulistring.pauli_interaction_gate import (
     PauliInteractionGate,
 )
+from cirq.contrib.paulistring.pauli_string import (
+    PauliString,
+)

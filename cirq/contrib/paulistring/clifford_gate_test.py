@@ -189,6 +189,18 @@ def test_init_ident_from_single(trans, frm):
     assert gate == CliffordGate.I
 
 
+@pytest.mark.parametrize('pauli,sqrt,expected', (
+        (Pauli.X, False, CliffordGate.X),
+        (Pauli.Y, False, CliffordGate.Y),
+        (Pauli.Z, False, CliffordGate.Z),
+        (Pauli.X, True, CliffordGate.X_sqrt),
+        (Pauli.Y, True, CliffordGate.Y_sqrt),
+        (Pauli.Z, True, CliffordGate.Z_sqrt)))
+def test_init_from_pauli(pauli, sqrt, expected):
+    gate = CliffordGate.from_pauli(pauli, sqrt=sqrt)
+    assert gate == expected
+
+
 def test_init_invalid():
     with pytest.raises(ValueError):
         CliffordGate.from_single_map()
@@ -221,7 +233,7 @@ def test_eq_ne_and_hash():
     eq = EqualsTester()
     for trans_x, trans_z in _all_rotation_pairs():
         gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
-        eq.make_equality_pair(gate_gen)
+        eq.make_equality_group(gate_gen)
 
 
 @pytest.mark.parametrize('gate,rep', (
@@ -342,28 +354,19 @@ def test_single_qubit_gate_after_switching_order(gate, other):
     assert_allclose_up_to_global_phase(mat, mat_swap)
 
 
-@pytest.mark.parametrize('gate,sym', (
-    (CliffordGate.I,       'I'),
-    (CliffordGate.H,       'H'),
-    (CliffordGate.X,       'X'),
-    (CliffordGate.X_sqrt,  'X'),
-    (CliffordGate.X_nsqrt, 'X'),
+@pytest.mark.parametrize('gate,sym,exp', (
+    (CliffordGate.I,       'I', 1),
+    (CliffordGate.H,       'H', 1),
+    (CliffordGate.X,       'X', 1),
+    (CliffordGate.X_sqrt,  'X', 0.5),
+    (CliffordGate.X_nsqrt, 'X', -0.5),
     (
             CliffordGate.from_xz_map((Pauli.Y, False), (Pauli.X, True)),
-            'X^-0.5-Z^0.5'
+            'X^-0.5-Z^0.5',
+            1
     )))
-def test_text_diagram_wire_symbols(gate, sym):
-    assert gate.text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == (sym,)
-
-
-@pytest.mark.parametrize('gate,exp', (
-    (CliffordGate.I,       1),
-    (CliffordGate.H,       1),
-    (CliffordGate.X,       1),
-    (CliffordGate.X_sqrt,  0.5),
-    (CliffordGate.X_nsqrt, -0.5),
-    (CliffordGate.from_xz_map((Pauli.Y, False), (Pauli.X, True)), 1)))
-def test_text_diagram_exponent(gate, exp):
-    assert gate.text_diagram_exponent() == exp
-
+def test_text_diagram_info(gate, sym, exp):
+    assert gate.text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            wire_symbols=(sym,),
+            exponent=exp)
