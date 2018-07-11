@@ -36,13 +36,13 @@ class _FlipGate(cirq.Gate, cirq.ReversibleEffect):
         return hash((_FlipGate, self.val))
 
 
-def test_inverse_of_invertible_op_tree():
+def test_inverse():
     with pytest.raises(TypeError):
-        _ = cirq.inverse_of_invertible_op_tree(
+        _ = cirq.inverse(
             cirq.measure(cirq.NamedQubit('q')))
 
     def rev_freeze(root):
-        return cirq.freeze_op_tree(cirq.inverse_of_invertible_op_tree(root))
+        return cirq.freeze_op_tree(cirq.inverse(root))
 
     operations = [
         cirq.GateOperation(_FlipGate(i), [cirq.NamedQubit(str(i))])
@@ -121,7 +121,7 @@ def test_works_with_basic_gates():
               cirq.CNOT(a, b),
               cirq.H(b),
               cirq.SWAP(a, b)]
-    assert list(cirq.inverse_of_invertible_op_tree(basics)) == [
+    assert list(cirq.inverse(basics)) == [
         cirq.SWAP(a, b),
         cirq.H(b),
         cirq.CNOT(a, b),
