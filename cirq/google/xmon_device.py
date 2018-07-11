@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast
+from typing import Iterable, cast, Optional, List
 
 from cirq import ops
 from cirq.devices import Device
@@ -149,6 +149,20 @@ class XmonDevice(Device):
                     operation.gate.key))
             else:
                 previous_keys.add(operation.gate.key)
+
+    def at(self, row: int, col: int) -> Optional[GridQubit]:
+        """Returns the qubit at the given position, if there is one, else None.
+        """
+        q = GridQubit(row, col)
+        return q if q in self.qubits else None
+
+    def row(self, row: int) -> List[GridQubit]:
+        """Returns the qubits in the given row, in ascending order."""
+        return sorted(q for q in self.qubits if q.row == row)
+
+    def col(self, col: int) -> List[GridQubit]:
+        """Returns the qubits in the given column, in ascending order."""
+        return sorted(q for q in self.qubits if q.col == col)
 
     def __str__(self):
         diagram = TextDiagramDrawer()

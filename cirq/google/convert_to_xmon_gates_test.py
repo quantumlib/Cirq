@@ -17,7 +17,7 @@ import numpy as np
 import cirq
 
 
-class OtherX(cirq.KnownMatrix, cirq.CompositeGate):
+class OtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
     def matrix(self):
         return np.array([[0, 1], [1, 0]])
 
@@ -25,7 +25,7 @@ class OtherX(cirq.KnownMatrix, cirq.CompositeGate):
         return OtherOtherX().on(*qubits)
 
 
-class OtherOtherX(cirq.KnownMatrix, cirq.CompositeGate):
+class OtherOtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
     def matrix(self):
         return np.array([[0, 1], [1, 0]])
 

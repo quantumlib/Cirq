@@ -17,7 +17,13 @@ message Program {
 
   // The circuit parameters for the operations above will be evaluated for
   // each parameter in parameter sweeps.
-  repeated ParameterSweep parameter_sweeps = 2;
+  repeated ParameterSweep parameter_sweeps = 2 [deprecated = true];
+}
+
+// The context for running a quantum program.
+message RunContext {
+  // The parameters for operations in a program.
+  repeated ParameterSweep parameter_sweeps = 1;
 }
 
 // The parameters used to generate result along with the results for this

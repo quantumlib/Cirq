@@ -126,7 +126,7 @@ from cirq.ops import (
     ReversibleCompositeGate,
     ReversibleEffect,
     ParameterizableEffect,
-    PhaseableGate,
+    PhaseableEffect,
     QubitId,
     Rot11Gate,
     RotXGate,
