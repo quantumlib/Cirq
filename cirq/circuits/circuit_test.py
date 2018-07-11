@@ -1290,3 +1290,40 @@ def test_insert_moments():
     c.insert(0, m2)
     assert c.moments == [m2, m0, m1]
     assert c.moments[0] is m2
+
+
+def test_loose_construction():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c1 = cirq.Circuit([
+        cirq.Moment([]),
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.X(a), cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([]),
+    ])
+
+    c2 = cirq.Circuit([
+        [],
+        [cirq.X(a)],
+        [cirq.Z(b)],
+        [],
+        [cirq.X(a), cirq.Z(b)],
+        [cirq.CZ(a, b)],
+        [],
+    ])
+
+    c3 = cirq.Circuit([
+        [],
+        cirq.X(a),
+        [cirq.Z(b)],
+        [],
+        [[[[[cirq.X(a)], cirq.Z(b)]]]],
+        [cirq.CZ(a, b)],
+        [],
+    ])
+
+    assert c1 == c2 == c3
