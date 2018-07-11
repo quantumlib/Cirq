@@ -58,7 +58,14 @@ class Extensions:
             conversion: CASTER,
             also_add_inherited_conversions: bool = True,
             overwrite_existing: bool = False) -> None:
-        """Adds a way to turn one type of thing into another.
+        """Adds a multi-step way to turn one type of thing into another.
+
+        Differs from add_cast in that the conversion method takes two parameters
+        instead of one. The first parameter is the Extensions object itself,
+        so that the conversion method can attempt to cast other values if
+        needed. For example, a GateOperation has a Gate, and the ability to
+        cast a GateOperation to be TextDiagrammable depends on whether or not
+        its Gate can be cast into a TextDiagrammable.
 
         Args:
             desired_type: The type that the casting caller wants.
@@ -107,7 +114,7 @@ class Extensions:
         Args:
             desired_type: The type that the casting caller wants.
             actual_type: The type of the value that the casting caller has.
-            conversion: A function that takes the value the casting  caller
+            conversion: A function that takes the value the casting caller
                 has, and returns a value that is an instance of the type the
                 casting caller wants (or else acts like an instance of that
                 type; it may not literally be an instance).
