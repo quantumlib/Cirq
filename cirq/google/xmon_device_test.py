@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import numpy as np
 import pytest
 
 import cirq
@@ -29,7 +29,7 @@ from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Duration, Timestamp
 
 
-def square_device(width, height, holes=()):
+def square_device(width: int, height: int, holes=()) -> XmonDevice:
     ns = Duration(nanos=1)
     return XmonDevice(measurement_duration=ns,
                       exp_w_duration=2 * ns,
@@ -212,3 +212,176 @@ def test_xmon_device_str():
 │        │
 (1, 0)───(1, 1)
     """.strip()
+
+
+def test_get_item_single():
+    dev = square_device(4, 3)
+    g = cirq.GridQubit
+
+    assert dev[2, 2] == g(2, 2)
+    assert dev[0, 0] == g(0, 0)
+    assert dev[3, 2] == g(3, 2)
+    with pytest.raises(IndexError):
+        _ = dev[-1, 2]
+    with pytest.raises(IndexError):
+        _ = dev[2, -1]
+    with pytest.raises(IndexError):
+        _ = dev[4, 2]
+    with pytest.raises(IndexError):
+        _ = dev[2, 3]
+
+
+def test_get_item_row_slice():
+    dev = square_device(3, 4)
+    g = cirq.GridQubit
+
+    assert dev[:, 0] == [g(0, 0),
+                         g(1, 0),
+                         g(2, 0)]
+    assert dev[1:, 0] == [g(1, 0),
+                          g(2, 0)]
+    assert dev[:1, 0] == [g(0, 0)]
+    assert dev[:, 3] == [g(0, 3),
+                         g(1, 3),
+                         g(2, 3)]
+    assert dev[::-1, 3] == [g(2, 3),
+                            g(1, 3),
+                            g(0, 3)]
+    assert dev[::2, 3] == [g(0, 3),
+                           g(2, 3)]
+    assert dev[1::2, 3] == [g(1, 3)]
+    assert dev[1:3, 3] == [g(1, 3),
+                           g(2, 3)]
+    assert dev[1:3:-1, 3] == []
+    assert dev[2::-1, 3] == [g(2, 3),
+                             g(1, 3),
+                             g(0, 3)]
+    assert dev[2:1:-1, 3] == [g(2, 3)]
+    assert dev[0::-1, 3] == [g(0, 3)]
+    assert dev[6:, 3] == []
+
+    with pytest.raises(IndexError):
+        _ = dev[:, -1]
+    with pytest.raises(IndexError):
+        _ = dev[:, 4]
+    with pytest.raises(IndexError):
+        _ = dev[3::-1, 4] == []
+    assert dev[3::-1, 3] == [g(2, 3), g(1, 3), g(0, 3)]
+    assert dev[-1::-1, 3] == []
+
+
+def test_get_item_col_slice():
+    dev = square_device(4, 3)
+    g = cirq.GridQubit
+
+    assert dev[0, :] == [g(0, 0),
+                         g(0, 1),
+                         g(0, 2)]
+    assert dev[3, :] == [g(3, 0),
+                         g(3, 1),
+                         g(3, 2)]
+    assert dev[3, ::-1] == [g(3, 2),
+                            g(3, 1),
+                            g(3, 0)]
+    assert dev[3, ::2] == [g(3, 0),
+                           g(3, 2)]
+    assert dev[3, 1::2] == [g(3, 1)]
+    assert dev[3, 1:3] == [g(3, 1),
+                           g(3, 2)]
+    assert dev[3, 1:3:-1] == []
+    assert dev[3, 2::-1] == [g(3, 2),
+                             g(3, 1),
+                             g(3, 0)]
+    assert dev[3, 2:1:-1] == [g(3, 2)]
+    assert dev[3, 0::-1] == [g(3, 0)]
+
+    with pytest.raises(IndexError):
+        _ = dev[-1, :]
+    with pytest.raises(IndexError):
+        _ = dev[4, :]
+    assert dev[3, 10::-1] == [g(3, 2), g(3, 1), g(3, 0)]
+    assert dev[3, -1::-1] == []
+
+
+def test_get_item_grid_slice():
+    dev = square_device(2, 3)
+    g = cirq.GridQubit
+
+    assert np.alltrue(dev[:, :] == [
+        [g(0, 0), g(0, 1), g(0, 2)],
+        [g(1, 0), g(1, 1), g(1, 2)],
+    ])
+
+    assert np.alltrue(dev[:, :2] == [
+        [g(0, 0), g(0, 1)],
+        [g(1, 0), g(1, 1)],
+    ])
+
+    assert np.alltrue(dev[:1, :] == [
+        [g(0, 0), g(0, 1), g(0, 2)],
+    ])
+
+    assert np.alltrue(dev[::2, 1::2] == [
+        [g(0, 1)],
+    ])
+
+    assert np.alltrue(dev[1::-1, 1::-1] == [
+        [g(1, 1), g(1, 0)],
+        [g(0, 1), g(0, 0)],
+    ])
+
+    assert np.alltrue(dev[1:, 1:] == [
+        [g(1, 1), g(1, 2)],
+    ])
+
+
+def test_get_item_not_square():
+    dev = cirq.google.Bristlecone
+    g = cirq.GridQubit
+
+    # Respects the border when picking individuals.
+    with pytest.raises(IndexError):
+        _ = dev[0, 0]
+    with pytest.raises(IndexError):
+        _ = dev[2, 2]
+    assert dev[3, 3] == g(3, 3)
+    assert dev[2, 3] == g(2, 3)
+
+    # Row and column queries work when in range.
+    with pytest.raises(IndexError):
+        _ = dev[:, -1]
+    assert dev[:, 0] == [g(5, 0)]
+    assert dev[:, 1] == [g(4, 1), g(5, 1), g(6, 1)]
+    assert dev[0, :] == [g(0, 5), g(0, 6)]
+    assert dev[1, :] == [g(1, 4), g(1, 5), g(1, 6), g(1, 7)]
+    assert dev[2, ::2] == [g(2, 3), g(2, 5), g(2, 7)]
+    assert dev[2, ::-2] == [g(2, 8), g(2, 6), g(2, 4)]
+
+    # Full grid fails when invalid corners are included.
+    with pytest.raises(IndexError):
+        _ = dev[:, :]
+    assert np.alltrue(dev[2:3, 2:3] == [])
+    with pytest.raises(IndexError):
+        _ = dev[2:4, 2:4]
+    assert np.alltrue(dev[3:4, 3:4] == [[g(3, 3)]])
+    assert np.alltrue(dev[2:4, 3:6] == [
+        [g(2, 3), g(2, 4), g(2, 5)],
+        [g(3, 3), g(3, 4), g(3, 5)],
+    ])
+    with pytest.raises(IndexError):
+        _ = dev[5:7, :]
+    with pytest.raises(IndexError):
+        _ = dev[4:7, :]
+    assert np.alltrue(dev[:, 5:7] == [
+        [g(0, 5), g(0, 6)],
+        [g(1, 5), g(1, 6)],
+        [g(2, 5), g(2, 6)],
+        [g(3, 5), g(3, 6)],
+        [g(4, 5), g(4, 6)],
+        [g(5, 5), g(5, 6)],
+        [g(6, 5), g(6, 6)],
+        [g(7, 5), g(7, 6)],
+        [g(8, 5), g(8, 6)],
+        [g(9, 5), g(9, 6)],
+        [g(10, 5), g(10, 6)],
+    ])

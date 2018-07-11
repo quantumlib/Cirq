@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast
+from typing import Iterable, cast, List
+
+import numpy as np
 
 from cirq import ops
 from cirq.devices import Device
@@ -45,6 +47,63 @@ class XmonDevice(Device):
         self._exp_w_duration = exp_w_duration
         self._exp_z_duration = exp_11_duration
         self.qubits = frozenset(qubits)
+
+    def __getitem__(self, item):
+        r, c = item
+
+        if isinstance(r, int) and isinstance(c, int):
+            q = GridQubit(r, c)
+            if q not in self.qubits:
+                raise IndexError('{} not on device'.format(q))
+            return q
+
+        if isinstance(r, int) and isinstance(c, slice):
+            available_cols = _bound_slice(
+                c,
+                (q.col for q in self.qubits if q.row == r))
+            return [GridQubit(r, col)
+                    for col in available_cols
+                    if GridQubit(r, col) in self.qubits]
+
+        if isinstance(r, slice) and isinstance(c, int):
+            available_rows = _bound_slice(
+                r,
+                (q.row for q in self.qubits if q.col == c))
+            return [GridQubit(row, c)
+                    for row in available_rows
+                    if GridQubit(row, c) in self.qubits]
+
+        if isinstance(r, slice) and isinstance(c, slice):
+            available_rows = _bound_slice(r, (q.row for q in self.qubits))
+            available_cols = _bound_slice(c, (q.col for q in self.qubits))
+            rows = [
+                [
+                    GridQubit(row, col)
+                    for col in available_cols
+                    if GridQubit(row, col) in self.qubits
+                ]
+                for row in available_rows
+            ]
+
+            # Make sure it's a grid.
+            if len(set(len(row) for row in rows)) > 1:
+                raise IndexError('Jagged boundary.')
+
+            result = np.array(rows)
+            row_step = 1 if r.step is None else r.step
+            col_step = 1 if c.step is None else c.step
+
+            # Make sure it's a grid with the expected step.
+            # E.g. we should fail if there's a hole in the middle of the query.
+            if result.shape[0] and result.shape[1]:
+                q = result[0, 0]
+                for i in range(result.shape[0]):
+                    for j in range(result.shape[1]):
+                        if result[i, j] != GridQubit(q.row + row_step * i,
+                                                     q.col + col_step * j):
+                            raise IndexError('Jagged boundary.')
+
+            return result
 
     def neighbors_of(self, qubit: GridQubit):
         """Returns the qubits that the given qubit can interact with."""
@@ -166,10 +225,10 @@ class XmonDevice(Device):
     def __eq__(self, other):
         if not isinstance(other, (XmonDevice, type(self))):
             return NotImplemented
-        return self._measurement_duration == other._measurement_duration and \
-               self._exp_w_duration == other._exp_w_duration and \
-               self._exp_z_duration == other._exp_z_duration and \
-               self.qubits == other.qubits
+        return (self._measurement_duration == other._measurement_duration and
+                self._exp_w_duration == other._exp_w_duration and
+                self._exp_z_duration == other._exp_z_duration and
+                self.qubits == other.qubits)
 
     def __ne__(self, other):
         return not self == other
@@ -177,3 +236,36 @@ class XmonDevice(Device):
     def __hash__(self):
         return hash((XmonDevice, self._measurement_duration,
                      self._exp_w_duration, self._exp_z_duration, self.qubits))
+
+
+def _bound_slice(s: slice, available: Iterable[int]) -> List[int]:
+    step = 1 if s.step is None else s.step
+
+    if s.start is not None and s.stop is not None:
+        return list(range(s.start, s.stop, step))
+
+    min_index = None
+    max_index = None
+    for item in available:
+        if min_index is None:
+            min_index = item
+            max_index = item
+        else:
+            min_index = min(min_index, item)
+            max_index = max(max_index, item)
+
+    if min_index is None or max_index is None:
+        raise IndexError('Sliced outside of valid area.')
+
+    if step >= 0:
+        if s.start is not None:
+            min_index = s.start
+        if s.stop is not None:
+            max_index = s.stop - 1
+        return list(range(min_index, max_index + 1, step))
+
+    if s.start is not None:
+        max_index = s.start
+    if s.stop is not None:
+        min_index = s.stop - 1
+    return list(range(max_index, min_index - 1, step))
