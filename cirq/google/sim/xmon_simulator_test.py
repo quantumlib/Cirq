@@ -683,14 +683,14 @@ def test_extensions():
                               ) -> cirq.OP_TREE:
             return X(Q1)
 
-    extensions = Extensions(
-        desired_to_actual_to_wrapper={CompositeGate: {H: lambda e: WrongH()}})
+    ext = Extensions()
+    ext.add_cast(CompositeGate, H, lambda _: WrongH())
 
     circuit = Circuit()
     circuit.append([WrongH()(Q1)])
 
     simulator = xmon_simulator.XmonSimulator()
-    results = simulator.simulate(circuit, extensions=extensions)
+    results = simulator.simulate(circuit, extensions=ext)
     np.testing.assert_almost_equal(results.final_state, np.array([0, -1j]))
 
 

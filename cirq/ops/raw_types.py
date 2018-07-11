@@ -111,7 +111,7 @@ class Operation(metaclass=abc.ABCMeta):
     def qubits(self) -> Tuple[QubitId, ...]:
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
     def gate(self) -> Gate:
         # TODO: remove this once there are operations besides GateOperation.
         raise NotImplementedError()
