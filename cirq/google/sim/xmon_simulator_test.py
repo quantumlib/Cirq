@@ -18,7 +18,6 @@ import cmath
 import itertools
 import math
 import time
-from typing import Sequence
 
 import numpy as np
 import pytest
