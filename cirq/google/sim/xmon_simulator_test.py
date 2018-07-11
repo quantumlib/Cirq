@@ -677,7 +677,7 @@ def test_extensions():
     # We test that an extension is being applied, by created an incorrect
     # gate with an extension.
 
-    class WrongH(CompositeGate):
+    class WrongH(cirq.Gate, cirq.CompositeGate):
         def default_decompose(self,
                               qubits: Sequence[cirq.QubitId]
                               ) -> cirq.OP_TREE:

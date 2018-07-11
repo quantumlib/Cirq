@@ -23,7 +23,8 @@ from cirq.contrib.paulistring.pauli import Pauli
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
-class CliffordGate(ops.CompositeGate,
+class CliffordGate(ops.Gate,
+                   ops.CompositeGate,
                    ops.ReversibleEffect,
                    ops.TextDiagrammable):
     """Any single qubit Clifford rotation."""

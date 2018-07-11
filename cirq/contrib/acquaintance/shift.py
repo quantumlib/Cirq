@@ -17,7 +17,9 @@ from itertools import chain
 import cirq
 from cirq.ops import gate_features, Gate, SWAP
 
-class CircularShiftGate(cirq.CompositeGate,
+
+class CircularShiftGate(cirq.Gate,
+                        cirq.CompositeGate,
                         cirq.TextDiagrammable):
     """Swaps two sets of qubits.
 
@@ -52,7 +54,6 @@ class CircularShiftGate(cirq.CompositeGate,
         for i, j in zip(mins, maxs):
             for k in range(i, j, 2):
                 yield self.swap_gate(*qubits[k:k+2])
-
 
     def text_diagram_info(self,
                           args: gate_features.TextDiagramInfoArgs):
