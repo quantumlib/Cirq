@@ -35,7 +35,7 @@ from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set
+    from typing import Set, List
 
 
 class Circuit(object):
@@ -81,7 +81,7 @@ class Circuit(object):
         Args:
             moments: The initial list of moments defining the circuit.
         """
-        self.moments = []
+        self.moments = []  # type: List[Moment]
         for moment_or_ops in moments:
             if isinstance(moment_or_ops, Moment):
                 self.moments.append(moment_or_ops)
