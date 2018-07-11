@@ -352,13 +352,13 @@ class Circuit(object):
     def insert(
             self,
             index: int,
-            operation_tree: ops.OP_TREE,
+            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """Inserts operations into the middle of the circuit.
 
         Args:
             index: The index to insert all of the operations at.
-            operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
 
         Returns:
@@ -369,11 +369,15 @@ class Circuit(object):
             IndexError: Bad insertion index.
             ValueError: Bad insertion strategy.
         """
+        if isinstance(moment_or_operation_tree, Moment):
+            self.moments.insert(index, moment_or_operation_tree)
+            return index + 1
+
         if not 0 <= index <= len(self.moments):
             raise IndexError('Insert index out of range: {}'.format(index))
 
         k = index
-        for op in ops.flatten_op_tree(operation_tree):
+        for op in ops.flatten_op_tree(moment_or_operation_tree):
             p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
             while p >= len(self.moments):
                 self.moments.append(Moment())
@@ -427,15 +431,15 @@ class Circuit(object):
 
     def append(
             self,
-            operation_tree: ops.OP_TREE,
+            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:
-            operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self.moments), operation_tree, strategy)
+        self.insert(len(self.moments), moment_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],
