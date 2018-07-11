@@ -228,7 +228,8 @@ class TextDiagrammable(metaclass=abc.ABCMeta):
         """
 
 
-TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect', bound='Phaseable')
+TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect',
+                                bound='PhaseableEffect')
 
 
 class PhaseableEffect(metaclass=abc.ABCMeta):
