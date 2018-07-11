@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from typing import (
-    Dict, Hashable, Iterable, Optional, Sequence, Tuple, Type, TypeVar, Union,
-    cast
+    Dict, Hashable, Iterable, Optional, Tuple, Type, TypeVar, Union, cast
 )
 
 from cirq import ops, value, study, extension
@@ -31,7 +30,7 @@ T_DESIRED = TypeVar('T_DESIRED')
 
 
 class PauliStringPhasor(PauliStringGateOperation,
-                        ops.CompositeGate,
+                        ops.CompositeOperation,
                         ops.BoundedEffect,
                         ops.ParameterizableEffect,
                         extension.PotentialImplementation[Union[
@@ -106,13 +105,13 @@ class PauliStringPhasor(PauliStringGateOperation,
     def inverse(self) -> 'PauliStringPhasor':
         return self.extrapolate_effect(-1)
 
-    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def default_decompose(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
+        qubits = self.qubits
         any_qubit = qubits[0]
         to_z_ops = tuple(pauli_string_to_z_ops(self.pauli_string))
-        xor_decomp = tuple(xor_nonlocal_decompose(self.pauli_string.qubits(),
-                                                  any_qubit))
+        xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
         if isinstance(self.half_turns, value.Symbol):
@@ -127,8 +126,8 @@ class PauliStringPhasor(PauliStringGateOperation,
             else:
                 half_turns = self.half_turns
             yield ops.Z(any_qubit) ** half_turns
-        yield ops.inverse_of_invertible_op_tree(xor_decomp)
-        yield ops.inverse_of_invertible_op_tree(to_z_ops)
+        yield ops.inverse(xor_decomp)
+        yield ops.inverse(to_z_ops)
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
