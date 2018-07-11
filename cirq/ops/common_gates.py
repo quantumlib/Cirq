@@ -19,7 +19,7 @@ from typing import Union, Tuple, Optional, List, Callable, cast
 import numpy as np
 
 from cirq import value
-from cirq.ops import gate_features, eigen_gate, raw_types
+from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
 class Rot11Gate(eigen_gate.EigenGate,
@@ -310,7 +310,7 @@ class MeasurementGate(raw_types.Gate,
 def measure(*qubits: raw_types.QubitId,
             key: Optional[str] = None,
             invert_mask: Optional[Tuple[bool, ...]] = None
-            ) -> raw_types.Operation:
+            ) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -333,7 +333,7 @@ def measure(*qubits: raw_types.QubitId,
 
 def measure_each(*qubits: raw_types.QubitId,
                  key_func: Callable[[raw_types.QubitId], str] = str
-                 ) -> List[raw_types.Operation]:
+                 ) -> List[gate_operation.GateOperation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -361,7 +361,7 @@ T = Z**0.25
 class HGate(gate_features.CompositeGate,
             gate_features.TextDiagrammable,
             gate_features.ReversibleEffect,
-            gate_features.KnownMatrixGate,
+            gate_features.KnownMatrix,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 

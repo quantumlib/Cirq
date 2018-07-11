@@ -32,12 +32,12 @@ class ConvertToXmonGates(PointOptimizer):
     First, checks if the given extensions are able to cast the gate into an
         XmonGate instance.
 
-    Second, checks if the given extensions are able to cast the gate into a
-        KnownMatrixGate instance. If so, and the gate is a 1-qubit or 2-qubit
-        gate, then performs circuit synthesis of the operation.
+    Second, checks if the given extensions are able to cast the operation into a
+        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit gate, then
+        performs circuit synthesis of the operation.
 
-    Third, checks if the given extensions are able to cast the gate into a
-        CompositeGate instance. If so, recurses on the decomposition.
+    Third, checks if the given extensions are able to cast the operation into a
+        CompositeOperation. If so, recurses on the decomposition.
 
     Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
@@ -68,7 +68,7 @@ class ConvertToXmonGates(PointOptimizer):
             return xmon.on(*op.qubits)
 
         # Known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrixGate, op.gate)
+        mat = self.extensions.try_cast(ops.KnownMatrix, op)
         if mat is not None and len(op.qubits) == 1:
             gates = single_qubit_matrix_to_native_gates(mat.matrix())
             return [g.on(op.qubits[0]) for g in gates]
@@ -80,19 +80,19 @@ class ConvertToXmonGates(PointOptimizer):
                 allow_partial_czs=True)
 
         # Provides a decomposition?
-        composite = self.extensions.try_cast(ops.CompositeGate, op.gate)
-        if composite is not None:
-            return composite.default_decompose(op.qubits)
+        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        if composite_op is not None:
+            return composite_op.default_decompose()
 
         # Just let it be?
         if self.ignore_failures:
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't an XmonGate, "
-                        "1-qubit KnownMatrixGate, "
-                        "2-qubit KnownMatrixGate, "
-                        "or CompositeGate.".format(op))
+                        "It isn't a GateOperation with an XmonGate, "
+                        "a 1-qubit KnownMatrix, "
+                        "a 2-qubit KnownMatrix, "
+                        "or a CompositeOperation.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

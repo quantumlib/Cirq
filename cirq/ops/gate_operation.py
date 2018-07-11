@@ -16,6 +16,8 @@
 
 from typing import Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
 
+import numpy as np
+
 from cirq import extension
 from cirq.ops import raw_types, gate_features
 
@@ -25,22 +27,28 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-LIFTED_POTENTIAL_TYPES = [
-    gate_features.ReversibleEffect,
-    gate_features.ExtrapolatableEffect,
-    gate_features.TextDiagrammable,
+LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.BoundedEffect,
+    gate_features.ExtrapolatableEffect,
+    gate_features.KnownMatrix,
     gate_features.ParameterizableEffect,
-]
+    gate_features.ReversibleEffect,
+    gate_features.TextDiagrammable,
+]}
+
+LIFTED_POTENTIAL_TYPES[
+    gate_features.CompositeOperation] = gate_features.CompositeGate
 
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
-                        gate_features.ReversibleEffect,
-                        gate_features.ExtrapolatableEffect,
-                        gate_features.TextDiagrammable,
                         gate_features.BoundedEffect,
+                        gate_features.CompositeOperation,
+                        gate_features.ExtrapolatableEffect,
+                        gate_features.KnownMatrix,
                         gate_features.ParameterizableEffect,
+                        gate_features.ReversibleEffect,
+                        gate_features.TextDiagrammable,
                     ]]):
     """An application of a gate to a collection of qubits.
 
@@ -110,11 +118,20 @@ class GateOperation(raw_types.Operation,
         return not self == other
 
     def try_cast_to(self, desired_type, extensions):
-        if desired_type in LIFTED_POTENTIAL_TYPES:
-            cast_gate = extensions.try_cast(desired_type, self.gate)
+        desired_gate_type = LIFTED_POTENTIAL_TYPES.get(desired_type)
+        if desired_gate_type is not None:
+            cast_gate = extensions.try_cast(desired_gate_type, self.gate)
             if cast_gate is not None:
                 return self.with_gate(cast_gate)
         return None
+
+    def default_decompose(self):
+        cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
+        return cast_gate.default_decompose(self.qubits)
+
+    def matrix(self) -> np.ndarray:
+        cast_gate = extension.cast(gate_features.KnownMatrix, self.gate)
+        return cast_gate.matrix()
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

@@ -28,7 +28,7 @@ class PartialReflectionGate(raw_types.Gate,
                             extension.PotentialImplementation[Union[
                                 gate_features.ExtrapolatableEffect,
                                 gate_features.ReversibleEffect,
-                                gate_features.KnownMatrixGate]]):
+                                gate_features.KnownMatrix]]):
     """An interpolated reflection operation.
 
     A reflection operation is an operation that has exactly two eigenvalues
@@ -93,7 +93,7 @@ class PartialReflectionGate(raw_types.Gate,
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect,
-                             gate_features.KnownMatrixGate] and
+                             gate_features.KnownMatrix] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)

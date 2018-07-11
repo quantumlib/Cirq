@@ -98,7 +98,7 @@ def test_matrix():
 
 def test_matrix_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.KnownMatrixGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.KnownMatrix, RestrictedGate, lambda _: cirq.X)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -134,7 +134,7 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.CompositeGate, ext) is None
 
     # Supported sub features that are not present on sub gate.
-    assert CRestricted.try_cast_to(cirq.KnownMatrixGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.KnownMatrix, ext) is None
     assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
@@ -142,7 +142,7 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
-    assert CY.try_cast_to(cirq.KnownMatrixGate, ext) is not None
+    assert CY.try_cast_to(cirq.KnownMatrix, ext) is not None
     assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
     assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
@@ -150,9 +150,9 @@ def test_try_cast_to():
     assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
     # Extensions stick around after casting.
-    ext.add_cast(cirq.KnownMatrixGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.KnownMatrix, RestrictedGate, lambda _: cirq.X)
     ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.X)
-    casted = CRestricted.try_cast_to(cirq.KnownMatrixGate, ext)
+    casted = CRestricted.try_cast_to(cirq.KnownMatrix, ext)
     assert casted is not None
     assert casted.default_extensions is ext
     assert casted.inverse() is not None
