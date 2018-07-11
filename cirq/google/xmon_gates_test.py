@@ -68,7 +68,7 @@ def test_single_qubit_measurement_to_proto():
         }
         """)
     assert proto_matches_text(
-        XmonMeasurementGate('test', invert_mask=[True, False])
+        XmonMeasurementGate('test', invert_mask=[True])
             .to_proto(GridQubit(2, 3)),
         """
         measurement {
@@ -78,7 +78,6 @@ def test_single_qubit_measurement_to_proto():
             }
             key: "test"
             invert_mask: true
-            invert_mask: false
         }
         """)
 
@@ -99,6 +98,14 @@ def test_multi_qubit_measurement_to_proto():
             key: "test"
         }
         """)
+
+
+def test_invalid_measurement_gate():
+    with pytest.raises(ValueError, match='length'):
+        XmonMeasurementGate('test', invert_mask=[True]).to_proto(
+            GridQubit(2, 3), GridQubit(3, 4)),
+    with pytest.raises(ValueError, match='no qubits'):
+        XmonMeasurementGate('test').to_proto(),
 
 
 def test_z_eq():
