@@ -28,7 +28,9 @@ Our development process uses the `master` branch for development.
 When a release is made for a major or minor version update, `master`
 is tagged with a version tag (vX.X.X) for a pull request corresponding 
 to the release.  In the pull request corresponding to the release 
-the [version file](cirq/_version.py) should be updated.
+the [version file](cirq/_version.py) should be updated. After
+that version is cut, a future pull request should update the 
+version to the next minor version with `-dev` appended.
 
 For patch version updates (bug fixes), we follow a different pattern.
 For these we create a separate branch that off of the version the
