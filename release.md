@@ -4,7 +4,7 @@ Cirq is currently (as of July 11, 2018) alpha, and so has a MAJOR version
 of 0. Below is info on how we version releases, and how the releases 
 themselves are created. Note that development is done on the `master` 
 branch, so if you want to use a more stable version you should use one 
-of the [releases]https://github.com/quantumlib/Cirq/releases) or 
+of the [releases](https://github.com/quantumlib/Cirq/releases) or 
 install from pypi.
 
 ## Versioning
