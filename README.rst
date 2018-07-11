@@ -1,6 +1,7 @@
 .. image:: docs/Cirq_logo_color.svg
   :alt: Cirq
   :width: 500px
+-----------------------------------
 
 Cirq is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
