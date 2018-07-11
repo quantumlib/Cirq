@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
-
-from cirq import abc, circuits, extension, ops
-from cirq.contrib.qcircuit_diagrammable_gate import (
+from cirq import circuits, extension, ops
+from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
     QCircuitDiagrammableGate,
     fallback_qcircuit_extensions,
 )
@@ -44,16 +42,14 @@ class _QCircuitQubit(ops.QubitId):
         return hash((_QCircuitQubit, self.sub))
 
 
-class _QCircuitGate(ops.TextDiagrammableGate, metaclass=abc.ABCMeta):
+class _QCircuitGate(ops.Gate, ops.TextDiagrammable):
     def __init__(self, sub: QCircuitDiagrammableGate) -> None:
         self.sub = sub
 
-    def text_diagram_exponent(self):
-        return 1
-
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return self.sub.qcircuit_wire_symbols(args.known_qubit_count)
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
+        return ops.TextDiagramInfo(
+            wire_symbols=self.sub.qcircuit_wire_symbols(args.known_qubit_count))
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -61,11 +57,11 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     h = diagram.height()
 
     qwx = {(x, y + 1)
-           for x, y1, y2 in diagram.vertical_lines
+           for x, y1, y2, _ in diagram.vertical_lines
            for y in range(y1, y2)}
 
     qw = {(x, y)
-          for y, x1, x2 in diagram.horizontal_lines
+          for y, x1, x2, _ in diagram.horizontal_lines
           for x in range(x1, x2)}
 
     rows = []
@@ -98,7 +94,7 @@ def _wrap_operation(op: ops.Operation,
     if new_gate is None:
         new_gate = fallback_qcircuit_extensions.cast(QCircuitDiagrammableGate,
                                                      op.gate)
-    return ops.Operation(_QCircuitGate(new_gate), new_qubits)
+    return ops.GateOperation(_QCircuitGate(new_gate), new_qubits)
 
 
 def _wrap_moment(moment: circuits.Moment,

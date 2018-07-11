@@ -98,7 +98,7 @@ def test_matrix():
 
 def test_matrix_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.KnownMatrixGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.KnownMatrix, RestrictedGate, lambda _: cirq.X)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
@@ -134,25 +134,25 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.CompositeGate, ext) is None
 
     # Supported sub features that are not present on sub gate.
-    assert CRestricted.try_cast_to(cirq.KnownMatrixGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.KnownMatrix, ext) is None
     assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.TextDiagrammableGate, ext) is None
+    assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
     assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
-    assert CY.try_cast_to(cirq.KnownMatrixGate, ext) is not None
+    assert CY.try_cast_to(cirq.KnownMatrix, ext) is not None
     assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
-    assert CY.try_cast_to(cirq.TextDiagrammableGate, ext) is not None
+    assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
     assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
     assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
     # Extensions stick around after casting.
-    ext.add_cast(cirq.KnownMatrixGate, RestrictedGate, lambda _: cirq.X)
+    ext.add_cast(cirq.KnownMatrix, RestrictedGate, lambda _: cirq.X)
     ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.X)
-    casted = CRestricted.try_cast_to(cirq.KnownMatrixGate, ext)
+    casted = CRestricted.try_cast_to(cirq.KnownMatrix, ext)
     assert casted is not None
     assert casted.default_extensions is ext
     assert casted.inverse() is not None
@@ -228,26 +228,38 @@ def test_parameterizable_via_extension():
     assert not with_ext.is_parameterized()
 
 
-def test_text_diagrammable():
-    assert CY.text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Y')
-    assert CY.text_diagram_exponent() == 1
+def test_text_diagram_info():
+    assert CY.text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+        wire_symbols=('@', 'Y'),
+        exponent=1)
 
-    assert cirq.ControlledGate(cirq.S).text_diagram_wire_symbols(
-        cirq.TextDiagramSymbolArgs.UNINFORMED_DEFAULT) == ('@', 'Z')
-    assert cirq.ControlledGate(cirq.S).text_diagram_exponent() == 0.5
+    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            wire_symbols=('@', 'Y'),
+            exponent=0.5)
+
+    assert cirq.ControlledGate(cirq.S).text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            wire_symbols=('@', 'S'),
+            exponent=1)
 
 
 def test_text_diagrammable_via_extension():
     ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammableGate, RestrictedGate, lambda _: cirq.S)
+    ext.add_cast(cirq.TextDiagrammable,
+                 RestrictedGate,
+                 lambda _: cirq.Y**0.5)
     without_ext = cirq.ControlledGate(RestrictedGate())
     with_ext = cirq.ControlledGate(RestrictedGate(), ext)
 
+    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
     with pytest.raises(TypeError):
-        _ = without_ext.text_diagram_exponent()
+        _ = without_ext.text_diagram_info(args)
 
-    assert with_ext.text_diagram_exponent() == 0.5
+    assert with_ext.text_diagram_info(args) == cirq.TextDiagramInfo(
+        wire_symbols=('@', 'Y'),
+        exponent=0.5)
 
 
 def test_bounded_effect():
@@ -273,5 +285,6 @@ def test_repr():
 def test_str():
     assert str(cirq.ControlledGate(cirq.X)) == 'CX'
     assert str(cirq.ControlledGate(cirq.Z)) == 'CZ'
-    assert str(cirq.ControlledGate(cirq.S)) == 'CZ**0.5'
-    assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCZ**0.5'
+    assert str(cirq.ControlledGate(cirq.S)) == 'CS'
+    assert str(cirq.ControlledGate(cirq.Z**0.125)) == 'CZ**0.125'
+    assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCS'

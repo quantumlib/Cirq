@@ -21,6 +21,8 @@ from cirq.ops.common_gates import (
     CZ,
     H,
     HGate,
+    ISWAP,
+    ISwapGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -45,16 +47,22 @@ from cirq.ops.eigen_gate import (
 from cirq.ops.gate_features import (
     BoundedEffect,
     CompositeGate,
+    CompositeOperation,
     ExtrapolatableEffect,
-    KnownMatrixGate,
+    InterchangeableQubitsGate,
+    KnownMatrix,
     ParameterizableEffect,
     PhaseableGate,
     ReversibleEffect,
     SingleQubitGate,
-    TextDiagrammableGate,
-    TextDiagramSymbolArgs,
+    TextDiagrammable,
+    TextDiagramInfo,
+    TextDiagramInfoArgs,
     ThreeQubitGate,
     TwoQubitGate,
+)
+from cirq.ops.gate_operation import (
+    GateOperation,
 )
 from cirq.ops.qubit_order import (
     QubitOrder,
@@ -74,7 +82,6 @@ from cirq.ops.op_tree import (
 )
 from cirq.ops.raw_types import (
     Gate,
-    InterchangeableQubitsGate,
     NamedQubit,
     Operation,
     QubitId,

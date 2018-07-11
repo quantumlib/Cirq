@@ -16,10 +16,8 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar
 
 import numpy as np
 
-from cirq import abc
-from cirq.extension import PotentialImplementation
+from cirq import abc, extension, value
 from cirq.ops import gate_features, raw_types
-from cirq.value import Symbol
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -28,7 +26,10 @@ TSelf = TypeVar('TSelf', bound='EigenGate')
 class EigenGate(raw_types.Gate,
                 gate_features.BoundedEffect,
                 gate_features.ParameterizableEffect,
-                PotentialImplementation):
+                extension.PotentialImplementation[Union[
+                    gate_features.ExtrapolatableEffect,
+                    gate_features.ReversibleEffect,
+                    gate_features.KnownMatrix]]):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -41,11 +42,11 @@ class EigenGate(raw_types.Gate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[Symbol, float] = 1.0) -> None:
+                 exponent: Union[value.Symbol, float] = 1.0) -> None:
 
         # Canonicalize the exponent.
         period = self._canonical_exponent_period()
-        if period is not None and not isinstance(exponent, Symbol):
+        if period is not None and not isinstance(exponent, value.Symbol):
             # Shift into [-p/2, +p/2).
             exponent += period / 2
             exponent %= period
@@ -57,7 +58,8 @@ class EigenGate(raw_types.Gate,
         self._exponent = exponent
 
     @abc.abstractmethod
-    def _with_exponent(self: TSelf, exponent: Union[Symbol, float]) -> TSelf:
+    def _with_exponent(self: TSelf,
+                       exponent: Union[value.Symbol, float]) -> TSelf:
         """Return the same kind of gate, but with a different exponent."""
         pass
 
@@ -112,7 +114,7 @@ class EigenGate(raw_types.Gate,
         return hash((type(self), self._exponent))
 
     def trace_distance_bound(self):
-        if isinstance(self._exponent, Symbol):
+        if isinstance(self._exponent, value.Symbol):
             return 1
 
         angles = [half_turns for half_turns, _ in self._eigen_components()]
@@ -123,7 +125,7 @@ class EigenGate(raw_types.Gate,
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect,
-                             gate_features.KnownMatrixGate] and
+                             gate_features.KnownMatrix] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
@@ -142,7 +144,7 @@ class EigenGate(raw_types.Gate,
             exponent=cast(float, self._exponent) * factor)
 
     def is_parameterized(self) -> bool:
-        return isinstance(self._exponent, Symbol)
+        return isinstance(self._exponent, value.Symbol)
 
     def with_parameters_resolved_by(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(

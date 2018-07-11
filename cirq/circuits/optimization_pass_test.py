@@ -25,7 +25,7 @@ def test_equality():
 
     eq = EqualsTester()
 
-    eq.make_equality_pair(lambda: PointOptimizationSummary(clear_span=0,
+    eq.make_equality_group(lambda: PointOptimizationSummary(clear_span=0,
                                                            clear_qubits=[],
                                                            new_operations=[]))
     eq.add_equality_group(PointOptimizationSummary(clear_span=1,
@@ -95,14 +95,9 @@ def test_point_optimizer_can_write_new_gates_inline():
         cirq.CNOT(z, y),
     )
 
-    ReplaceWithXGates().optimize_circuit(c)
+    ReplaceWithXGates()(c)
 
-    assert c == cirq.Circuit([
-        cirq.Moment([cirq.X(x), cirq.X(y)]),
-        cirq.Moment([cirq.X(x)]),
-        cirq.Moment([cirq.X(x), cirq.X(y)]),
-        cirq.Moment([cirq.X(y), cirq.X(z)]),
-        cirq.Moment([cirq.X(y), cirq.X(x)]),
-        cirq.Moment([cirq.X(y), cirq.X(z)]),
-        cirq.Moment([cirq.X(z), cirq.X(y)]),
-    ])
+    expected = cirq.Circuit([cirq.Moment([cirq.X(q) for q in Q]) for Q in 
+        ((x,y), (x, y), (x,), (y, z), (y, z, x), (y,z), (y,))])
+
+    assert c == expected

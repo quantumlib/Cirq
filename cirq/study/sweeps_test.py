@@ -78,16 +78,16 @@ def test_equality():
 
     # Simple sweeps with the same key are equal to themselves, but different
     # from each other even if they happen to contain the same points.
-    et.make_equality_pair(lambda: Linspace('a', 0, 10, 11))
-    et.make_equality_pair(lambda: Linspace('b', 0, 10, 11))
-    et.make_equality_pair(lambda: Points('a', list(range(11))))
-    et.make_equality_pair(lambda: Points('b', list(range(11))))
+    et.make_equality_group(lambda: Linspace('a', 0, 10, 11))
+    et.make_equality_group(lambda: Linspace('b', 0, 10, 11))
+    et.make_equality_group(lambda: Points('a', list(range(11))))
+    et.make_equality_group(lambda: Points('b', list(range(11))))
 
     # Product and Zip sweeps can also be equated.
-    et.make_equality_pair(
+    et.make_equality_group(
         lambda: Linspace('a', 0, 5, 6) * Linspace('b', 10, 15, 6))
-    et.make_equality_pair(
+    et.make_equality_group(
         lambda: Linspace('a', 0, 5, 6) + Linspace('b', 10, 15, 6))
-    et.make_equality_pair(
+    et.make_equality_group(
         lambda: Points('a', [1, 2]) *
                      (Linspace('b', 0, 5, 6) + Linspace('c', 10, 15, 6)))
