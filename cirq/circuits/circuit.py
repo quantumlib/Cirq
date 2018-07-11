@@ -99,8 +99,8 @@ class Circuit(object):
         result.append(operations, strategy)
         return result
 
-    def copy_moments(self):
-        return type(self)([moment.__copy__() for moment in self])
+    def __copy__(self):
+        return type(self)(self.moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

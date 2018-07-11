@@ -52,8 +52,8 @@ def test_circular_shift_gate_decomposition():
             (cirq.Moment((cirq.CZ(*qubits[:2]),)),))
     assert circuit == expected_circuit
 
-    stopper = lambda op: (op.gate == SWAP)
-    expander = ExpandComposite(stopper=stopper)
+    no_decomp = lambda op: (op.gate == SWAP)
+    expander = ExpandComposite(no_decomp=no_decomp)
 
     circular_shift = CircularShiftGate(3)(*qubits)
     circuit = cirq.Circuit.from_ops(circular_shift)

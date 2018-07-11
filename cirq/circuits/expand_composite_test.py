@@ -182,17 +182,17 @@ class OtherCNot(CNotGate):
 
 def test_nonrecursive_expansion():
     qubits = [NamedQubit(s) for s in 'xy']
-    stopper = lambda op: (op.gate == ISWAP)
-    expander = ExpandComposite(stopper=stopper)
+    no_decomp = lambda op: (op.gate == ISWAP)
+    expander = ExpandComposite(no_decomp=no_decomp)
     unexpanded_circuit = Circuit.from_ops(ISWAP(*qubits))
 
-    circuit = unexpanded_circuit.copy_moments()
+    circuit = unexpanded_circuit.__copy__()
     expander.optimize_circuit(circuit)
     assert circuit == unexpanded_circuit
 
-    stopper = lambda op: isinstance(op.gate, (CNotGate, HGate))
-    expander = ExpandComposite(stopper=stopper)
-    circuit = unexpanded_circuit.copy_moments()
+    no_decomp = lambda op: isinstance(op.gate, (CNotGate, HGate))
+    expander = ExpandComposite(no_decomp=no_decomp)
+    circuit = unexpanded_circuit.__copy__()
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
