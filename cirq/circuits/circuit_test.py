@@ -16,11 +16,8 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.circuits.circuit import Circuit, _operation_to_unitary_matrix
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
-from cirq.google import ExpWGate
-from cirq.extension import Extensions
+from cirq.circuits.circuit import _operation_to_unitary_matrix
+from cirq import Circuit, InsertStrategy, Moment
 
 
 def test_equality():
@@ -972,7 +969,8 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    test_wgate = cirq.google.ExpWGate(
+        half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
     assert diagram.strip() == """
@@ -982,7 +980,8 @@ a: ---W(0.43)^0.12---
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    test_wgate = cirq.google.ExpWGate(
+        half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
     assert diagram.strip() == """
@@ -1022,7 +1021,7 @@ def test_text_diagram_jupyter():
 
 
 def test_operation_to_unitary_matrix():
-    ex = Extensions()
+    ex = cirq.Extensions()
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
