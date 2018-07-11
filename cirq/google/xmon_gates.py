@@ -109,7 +109,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 class Exp11Gate(XmonGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
-                ops.PhaseableGate,
+                ops.PhaseableEffect,
                 ops.ParameterizableEffect,
                 PotentialImplementation[ops.KnownMatrix]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
@@ -206,7 +206,7 @@ class Exp11Gate(XmonGate,
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
-               ops.PhaseableGate,
+               ops.PhaseableEffect,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
                PotentialImplementation[Union[

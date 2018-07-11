@@ -52,7 +52,7 @@ from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     KnownMatrix,
     ParameterizableEffect,
-    PhaseableGate,
+    PhaseableEffect,
     ReversibleEffect,
     SingleQubitGate,
     TextDiagrammable,
