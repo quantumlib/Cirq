@@ -58,7 +58,7 @@ class Circuit(object):
         insert
         append
         insert_into_range
-        insert_at
+        insert_operation_at
         insert_at_frontier
         clear_operations_touching
 
@@ -427,12 +427,12 @@ class Circuit(object):
 
         return self.insert(end, operations[op_index:])
 
-    def insert_at(self, index, op):
-        new_moment_created = 0
+    def insert_operation_at(self, index: int, op: ops.Operation):
+        new_moment_created = False # type: bool
         if (self._has_op_at(index, op.qubits) or 
             index == len(self.moments)):
             self.moments.insert(index, Moment()) 
-            new_moment_created = 1
+            new_moment_created = True
         self.moments[index] = self.moments[index].with_operation(op)
         return new_moment_created
 
@@ -466,7 +466,7 @@ class Circuit(object):
             for op in reversed(ops_to_push):
                 self.insert_at_frontier(op, op_start)
             
-            self.insert_at(op_start, new_op)
+            self.insert_operation_at(op_start, new_op)
             for q in new_op.qubits:
                 frontier[q] = max(op_start + 1, frontier[q])
 
