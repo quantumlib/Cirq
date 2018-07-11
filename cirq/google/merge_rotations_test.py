@@ -115,7 +115,7 @@ def test_extension():
         pass
 
     optimizer = MergeRotations(extensions=Extensions({
-        ops.KnownMatrixGate: {
+        ops.KnownMatrix: {
             DummyGate: lambda _: ops.SingleQubitMatrixGate(
                 np.array([[0, 1], [1, 0]]))
         }

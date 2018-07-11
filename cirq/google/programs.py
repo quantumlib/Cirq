@@ -131,7 +131,7 @@ def unpack_results(
     total_bits = repetitions * bits_per_rep
 
     byte_arr = np.frombuffer(data, dtype='uint8').reshape((len(data), 1))
-    bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1)
+    bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1).astype(bool)
     bits = bits[:total_bits].reshape((repetitions, bits_per_rep))
 
     results = {}

@@ -31,7 +31,7 @@ def _try_convert_to_quirk_gate(gate: ops.Gate,
     quirk_gate = quirk_gate_ext.try_cast(QuirkGate, gate)
     if quirk_gate is not None:
         return quirk_gate
-    known_matrix_gate = quirk_gate_ext.try_cast(ops.KnownMatrixGate, gate)
+    known_matrix_gate = quirk_gate_ext.try_cast(ops.KnownMatrix, gate)
     if known_matrix_gate is not None:
         raw = single_qubit_matrix_gate(known_matrix_gate)
         if raw is not None:

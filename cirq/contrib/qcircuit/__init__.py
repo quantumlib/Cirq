@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     https://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,19 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods for running studies (repeated trials)."""
+"""Converts cirq circuits into latex using qcircuit."""
 
-from cirq.study.resolver import (
-    ParamResolver,
-)
-from cirq.study.sweepable import (
-    Sweepable,
-)
-from cirq.study.sweeps import (
-    Linspace,
-    Points,
-    Sweep,
-)
-from cirq.study.trial_result import (
-    TrialResult,
+from cirq.contrib.qcircuit.qcircuit_diagram import (
+    circuit_to_latex_using_qcircuit)
+from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
+    QCircuitDiagrammableGate,
+    fallback_qcircuit_extensions,
 )

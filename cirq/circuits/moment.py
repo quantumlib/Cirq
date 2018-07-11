@@ -92,6 +92,9 @@ class Moment(object):
             operation for operation in self.operations
             if qubits.isdisjoint(frozenset(operation.qubits)))
 
+    def __copy__(self):
+        return type(self)(self.operations)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented

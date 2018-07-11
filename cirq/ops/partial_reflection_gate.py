@@ -17,8 +17,7 @@ from typing import Union, cast, Optional
 
 import numpy as np
 
-from cirq import abc, value
-from cirq.extension import PotentialImplementation
+from cirq import abc, extension, value
 from cirq.linalg import reflection_matrix_pow
 from cirq.ops import gate_features, raw_types
 
@@ -26,7 +25,10 @@ from cirq.ops import gate_features, raw_types
 class PartialReflectionGate(raw_types.Gate,
                             gate_features.BoundedEffect,
                             gate_features.ParameterizableEffect,
-                            PotentialImplementation):
+                            extension.PotentialImplementation[Union[
+                                gate_features.ExtrapolatableEffect,
+                                gate_features.ReversibleEffect,
+                                gate_features.KnownMatrix]]):
     """An interpolated reflection operation.
 
     A reflection operation is an operation that has exactly two eigenvalues
@@ -91,7 +93,7 @@ class PartialReflectionGate(raw_types.Gate,
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect,
-                             gate_features.KnownMatrixGate] and
+                             gate_features.KnownMatrix] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
