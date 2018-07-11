@@ -14,12 +14,13 @@
 
 """An optimizer that expands CompositeOperation instances."""
 
-from cirq import ops
+from typing import Callable
+
+from cirq import extension, ops
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
-from cirq.extension import Extensions
 
 
 class ExpandComposite(PointOptimizer):
@@ -32,14 +33,19 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-                 composite_gate_extension: Extensions = None) -> None:
+                 composite_gate_extension: extension.Extensions = None,
+                 no_decomp: Callable[[ops.Operation], bool]=(lambda _: False)
+                 ) -> None:
         """Construct the optimization pass.
 
         Args:
             composite_gate_extension: An extension that that can be used
                 to supply or override a CompositeOperation decomposition.
+            no_decomp: A predicate that determines whether an operation should
+                be decomposed or not. Defaults to decomposing everything.
         """
-        self.extension = composite_gate_extension or Extensions()
+        self.extension = composite_gate_extension or extension.Extensions()
+        self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
@@ -53,6 +59,9 @@ class ExpandComposite(PointOptimizer):
 
     def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
         """Recursively decompose composite gates into an OP_TREE of gates."""
+        skip = self.no_decomp(op)
+        if skip and (skip is not NotImplemented):
+            return op
         composite_op = self.extension.try_cast(ops.CompositeOperation, op)
         if composite_op is None:
             return op

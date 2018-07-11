@@ -126,6 +126,14 @@ class KnownMatrix(raw_types.Gate, metaclass=abc.ABCMeta):
         its qubits attribute. The qubit-to-amplitude order mapping matches the
         ordering of numpy.kron(A, B), where A is a qubit earlier in the list
         than the qubit B.
+
+        For example, when applying a CNOT gate the control qubit goes first and
+        so the CNOT gate's matrix is:
+
+            1 _ _ _
+            _ 1 _ _
+            _ _ _ 1
+            _ _ 1 _
         """
 
 

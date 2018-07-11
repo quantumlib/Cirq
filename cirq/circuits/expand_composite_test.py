@@ -14,7 +14,7 @@
 
 """Tests for the expand composite optimization pass."""
 import cirq
-from cirq.ops import CNOT, CNotGate, CZ, QubitId, SWAP, X, Y, Z
+from cirq.ops import CNOT, CZ, QubitId, SWAP, X, Y, Z
 
 
 def assert_equal_mod_empty(expected, actual):
@@ -161,7 +161,7 @@ def test_decompose_returns_deep_op_tree():
     assert_equal_mod_empty(expected, circuit)
 
 
-class OtherCNot(CNotGate):
+class OtherCNot(cirq.CNotGate):
 
     def default_decompose(self, qubits):
         c, t = qubits
@@ -172,13 +172,37 @@ class OtherCNot(CNotGate):
         yield Z(c)
 
 
+def test_nonrecursive_expansion():
+    qubits = [cirq.NamedQubit(s) for s in 'xy']
+    no_decomp = lambda op: op.gate == cirq.ISWAP
+    expander = cirq.ExpandComposite(no_decomp=no_decomp)
+    unexpanded_circuit = cirq.Circuit.from_ops(cirq.ISWAP(*qubits))
+
+    circuit = unexpanded_circuit.__copy__()
+    expander.optimize_circuit(circuit)
+    assert circuit == unexpanded_circuit
+
+    no_decomp = lambda op: isinstance(op.gate, (cirq.CNotGate, cirq.HGate))
+    expander = cirq.ExpandComposite(no_decomp=no_decomp)
+    circuit = unexpanded_circuit.__copy__()
+    expander.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───@───H───X───S───X───S^-1───H───@───
+      │       │       │              │
+y: ───X───────@───────@──────────────X───
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+
+
 def test_composite_extension_overrides():
     q0, q1 = QubitId(), QubitId()
     cnot = CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(cnot)
     opt = cirq.ExpandComposite(composite_gate_extension=cirq.Extensions({
-        cirq.CompositeGate: {CNotGate: lambda e: OtherCNot()}
+        cirq.CompositeGate: {cirq.CNotGate: lambda e: OtherCNot()}
     }))
     opt.optimize_circuit(circuit)
     expected = cirq.Circuit()
@@ -192,7 +216,7 @@ def test_recursive_composite_extension_overrides():
     circuit = cirq.Circuit()
     circuit.append(swap)
     opt = cirq.ExpandComposite(composite_gate_extension=cirq.Extensions({
-        cirq.CompositeGate: {CNotGate: lambda e: OtherCNot()}
+        cirq.CompositeGate: {cirq.CNotGate: lambda e: OtherCNot()}
     }))
     opt.optimize_circuit(circuit)
     expected = cirq.Circuit()

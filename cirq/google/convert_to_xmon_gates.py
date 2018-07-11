@@ -33,8 +33,8 @@ class ConvertToXmonGates(PointOptimizer):
         XmonGate instance.
 
     Second, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit
-        gate, then performs circuit synthesis of the operation.
+        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit gate, then
+        performs circuit synthesis of the operation.
 
     Third, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
