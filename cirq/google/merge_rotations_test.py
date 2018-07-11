@@ -114,12 +114,12 @@ def test_extension():
     class DummyGate(ops.Gate):
         pass
 
-    optimizer = MergeRotations(extensions=Extensions({
-        ops.KnownMatrix: {
-            DummyGate: lambda _: ops.SingleQubitMatrixGate(
-                np.array([[0, 1], [1, 0]]))
-        }
-    }))
+    ext = Extensions()
+    ext.add_cast(ops.KnownMatrix,
+                 DummyGate,
+                 lambda _: ops.SingleQubitMatrixGate(
+                     np.array([[0, 1], [1, 0]])))
+    optimizer = MergeRotations(extensions=ext)
 
     q = ops.QubitId()
     c = circuits.Circuit([
