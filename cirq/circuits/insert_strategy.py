@@ -22,7 +22,6 @@ class InsertStrategy(object):
     NEW_THEN_INLINE = None  # type: InsertStrategy
     INLINE = None  # type: InsertStrategy
     EARLIEST = None  # type: InsertStrategy
-    PUSH = None  # type: InsertStrategy
 
     def __init__(self, name, doc):
         self.name = name
@@ -71,16 +70,4 @@ InsertStrategy.EARLIEST = InsertStrategy(
     The operation is never added into moments after the insert location.
     If the moment just before the insert location has conflicting operations,
     or the insert index is 0, then the operation is inserted into a new moment.
-    """)
-
-InsertStrategy.PUSH = InsertStrategy(
-    'PUSH',
-    """
-    Attempts to add the operation to insert into the moment at the desired
-    insert location. But, if there's already an existing operation affecting
-    any of the qubits touched by the operation to insert, a new moment is
-    created instead.
-
-    Note that the main difference between this insert strategy and INLINE is
-    that this one inserts the new moment before the conflicting one.
     """)

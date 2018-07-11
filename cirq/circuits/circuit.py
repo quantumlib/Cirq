@@ -58,6 +58,8 @@ class Circuit(object):
         insert
         append
         insert_into_range
+        insert_at
+        insert_at_frontier
         clear_operations_touching
 
     Circuits can also be iterated over,
@@ -335,14 +337,6 @@ class Circuit(object):
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.NEW)
 
-        if strategy is InsertStrategy.PUSH:
-            if (not self._has_op_at(splitter_index, op.qubits) and
-                    0 <= splitter_index < len(self.moments)):
-                return splitter_index
-
-            return self._pick_or_create_inserted_op_moment_index(
-                splitter_index, op, InsertStrategy.NEW)
-
         if strategy is InsertStrategy.EARLIEST:
             if not self._has_op_at(splitter_index, op.qubits):
                 p = self.prev_moment_operating_on(op.qubits, splitter_index)
@@ -412,7 +406,7 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= start < end <= len(self.moments):
+        if not 0 <= start <= end <= len(self.moments):
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
@@ -432,6 +426,16 @@ class Circuit(object):
             return end
 
         return self.insert(end, operations[op_index:])
+
+    def insert_at(self, index, op):
+        new_moment_created = 0
+        if (self._has_op_at(index, op.qubits) or 
+            index == len(self.moments)):
+            self.moments.insert(index, Moment()) 
+            new_moment_created = 1
+        self.moments[index] = self.moments[index].with_operation(op)
+        return new_moment_created
+
 
     def insert_at_frontier(self,
                           operations: ops.OP_TREE,
@@ -462,9 +466,9 @@ class Circuit(object):
             for op in reversed(ops_to_push):
                 self.insert_at_frontier(op, op_start)
             
-            op_frontier = self.insert(op_start, new_op, InsertStrategy.PUSH)
+            self.insert_at(op_start, new_op)
             for q in new_op.qubits:
-                frontier[q] = max(op_frontier, frontier[q])
+                frontier[q] = max(op_start + 1, frontier[q])
 
         return frontier
 
