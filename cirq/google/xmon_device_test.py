@@ -15,29 +15,18 @@
 import pytest
 
 import cirq
-from cirq.circuits import Circuit
-from cirq.devices import GridQubit
-from cirq.google import (
-    ExpWGate,
-    ExpZGate,
-    Exp11Gate,
-    XmonDevice,
-    XmonMeasurementGate
-)
-from cirq.testing import EqualsTester
-from cirq.schedules import Schedule, ScheduledOperation
-from cirq.value import Duration, Timestamp
+import cirq.google as cg
 
 
-def square_device(width, height, holes=()):
-    ns = Duration(nanos=1)
-    return XmonDevice(measurement_duration=ns,
-                      exp_w_duration=2 * ns,
-                      exp_11_duration=3 * ns,
-                      qubits=[GridQubit(x, y)
-                              for x in range(width)
-                              for y in range(height)
-                              if GridQubit(x, y) not in holes])
+def square_device(width: int, height: int, holes=()) -> cg.XmonDevice:
+    ns = cirq.Duration(nanos=1)
+    return cg.XmonDevice(measurement_duration=ns,
+                         exp_w_duration=2 * ns,
+                         exp_11_duration=3 * ns,
+                         qubits=[cirq.GridQubit(row, col)
+                                 for col in range(width)
+                                 for row in range(height)
+                                 if cirq.GridQubit(col, row) not in holes])
 
 
 class NotImplementedOperation(cirq.Operation):
@@ -54,60 +43,57 @@ class NotImplementedOperation(cirq.Operation):
 
 
 def test_init():
-    d = square_device(2, 2, holes=[GridQubit(1, 1)])
-    ns = Duration(nanos=1)
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q10 = GridQubit(1, 0)
+    d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
+    ns = cirq.Duration(nanos=1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
 
     assert d.qubits == {q00, q01, q10}
-    assert d.duration_of(ExpZGate().on(q00)) == 0 * ns
+    assert d.duration_of(cg.ExpZGate().on(q00)) == 0 * ns
     assert d.duration_of(cirq.measure(q00)) == ns
     assert d.duration_of(cirq.measure(q00, q01)) == ns
-    assert d.duration_of(ExpWGate().on(q00)) == 2 * ns
-    assert d.duration_of(Exp11Gate().on(q00, q01)) == 3 * ns
+    assert d.duration_of(cg.ExpWGate().on(q00)) == 2 * ns
+    assert d.duration_of(cg.Exp11Gate().on(q00, q01)) == 3 * ns
 
 
 def test_validate_operation_adjacent_qubits():
     d = square_device(3, 3)
 
     d.validate_operation(cirq.GateOperation(
-        Exp11Gate(),
-        (GridQubit(0, 0), GridQubit(1, 0))))
+        cg.Exp11Gate(),
+        (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
 
     with pytest.raises(ValueError):
         d.validate_operation(cirq.GateOperation(
-            Exp11Gate(),
-            (GridQubit(0, 0), GridQubit(2, 0))))
+            cg.Exp11Gate(),
+            (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
 
 
 def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
     d.validate_operation(cirq.GateOperation(
-        XmonMeasurementGate(key=''),
-        (GridQubit(0, 0), GridQubit(2, 0))))
+        cg.XmonMeasurementGate(key=''),
+        (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
 
 
 def test_validate_operation_existing_qubits():
-    d = square_device(3, 3, holes=[GridQubit(1, 1)])
+    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
 
     d.validate_operation(cirq.GateOperation(
-        Exp11Gate(),
-        (GridQubit(0, 0), GridQubit(1, 0))))
-    d.validate_operation(cirq.GateOperation(ExpZGate(), (GridQubit(0, 0),)))
+        cg.Exp11Gate(),
+        (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
+    d.validate_operation(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
 
     with pytest.raises(ValueError):
-        d.validate_operation(cirq.GateOperation(
-            Exp11Gate(),
-            (GridQubit(0, 0), GridQubit(-1, 0))))
+        d.validate_operation(
+            cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
-        d.validate_operation(cirq.GateOperation(ExpZGate(),
-                                                (GridQubit(-1, 0),)))
+        d.validate_operation(cg.ExpZGate().on(cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
-        d.validate_operation(cirq.GateOperation(
-            Exp11Gate(),
-            (GridQubit(1, 0), GridQubit(1, 1))))
+        d.validate_operation(
+            cg.Exp11Gate().on(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)))
 
 
 def test_validate_operation_supported_gate():
@@ -116,52 +102,53 @@ def test_validate_operation_supported_gate():
     class MyGate(cirq.Gate):
         pass
 
-    d.validate_operation(cirq.GateOperation(ExpZGate(), [GridQubit(0, 0)]))
+    d.validate_operation(cirq.GateOperation(cg.ExpZGate(),
+                                            [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
-        d.validate_operation(cirq.GateOperation(MyGate, [GridQubit(0, 0)]))
+        d.validate_operation(cirq.GateOperation(MyGate, [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(NotImplementedOperation())
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
-    d = square_device(3, 3, holes=[GridQubit(1, 1)])
-    q0 = GridQubit(0, 0)
-    q1 = GridQubit(1, 0)
-    q2 = GridQubit(2, 0)
-    s = Schedule(d, [
-        ScheduledOperation.op_at_on(
-            ExpWGate().on(q0), Timestamp(), d),
-        ScheduledOperation.op_at_on(
-            Exp11Gate().on(q1, q2), Timestamp(), d),
+    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(1, 0)
+    q2 = cirq.GridQubit(2, 0)
+    s = cirq.Schedule(d, [
+        cirq.ScheduledOperation.op_at_on(
+            cg.ExpWGate().on(q0), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
     ])
     with pytest.raises(ValueError):
         d.validate_schedule(s)
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
-    d = square_device(3, 3, holes=[GridQubit(1, 1)])
-    q0 = GridQubit(0, 0)
-    q1 = GridQubit(1, 0)
-    q2 = GridQubit(2, 0)
-    s = Schedule(d, [
-        ScheduledOperation.op_at_on(
-            ExpZGate().on(q0), Timestamp(), d),
-        ScheduledOperation.op_at_on(
-            Exp11Gate().on(q1, q2), Timestamp(), d),
+    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(1, 0)
+    q2 = cirq.GridQubit(2, 0)
+    s = cirq.Schedule(d, [
+        cirq.ScheduledOperation.op_at_on(
+            cg.ExpZGate().on(q0), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 
 
 def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
-    d = square_device(3, 3, holes=[GridQubit(1, 1)])
-    q0 = GridQubit(0, 0)
-    p1 = GridQubit(1, 2)
-    p2 = GridQubit(2, 2)
-    s = Schedule(d, [
-        ScheduledOperation.op_at_on(
-            ExpWGate().on(q0), Timestamp(), d),
-        ScheduledOperation.op_at_on(
-            Exp11Gate().on(p1, p2), Timestamp(), d),
+    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
+    q0 = cirq.GridQubit(0, 0)
+    p1 = cirq.GridQubit(1, 2)
+    p2 = cirq.GridQubit(2, 2)
+    s = cirq.Schedule(d, [
+        cirq.ScheduledOperation.op_at_on(
+            cg.ExpWGate().on(q0), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cg.Exp11Gate().on(p1, p2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 
@@ -169,9 +156,9 @@ def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
 def test_validate_circuit_repeat_measurement_keys():
     d = square_device(3, 3)
 
-    circuit = Circuit()
-    circuit.append([XmonMeasurementGate('a').on(GridQubit(0, 0)),
-                    XmonMeasurementGate('a').on(GridQubit(0, 1))])
+    circuit = cirq.Circuit()
+    circuit.append([cg.XmonMeasurementGate('a').on(cirq.GridQubit(0, 0)),
+                    cg.XmonMeasurementGate('a').on(cirq.GridQubit(0, 1))])
 
     with pytest.raises(ValueError, message='Measurement key a repeated'):
         d.validate_circuit(circuit)
@@ -180,12 +167,13 @@ def test_validate_circuit_repeat_measurement_keys():
 def test_validate_schedule_repeat_measurement_keys():
     d = square_device(3, 3)
 
-    s = Schedule(d, [
-        ScheduledOperation.op_at_on(
-            XmonMeasurementGate('a').on(GridQubit(0, 0)), Timestamp(), d),
-        ScheduledOperation.op_at_on(
-            XmonMeasurementGate('a').on(GridQubit(0, 1)), Timestamp(), d),
-
+    s = cirq.Schedule(d, [
+        cirq.ScheduledOperation.op_at_on(
+            cg.XmonMeasurementGate('a').on(
+                cirq.GridQubit(0, 0)), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cg.XmonMeasurementGate('a').on(
+                cirq.GridQubit(0, 1)), cirq.Timestamp(), d),
     ])
 
     with pytest.raises(ValueError, message='Measurement key a repeated'):
@@ -193,16 +181,16 @@ def test_validate_schedule_repeat_measurement_keys():
 
 
 def test_xmon_device_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: square_device(3, 3))
     eq.make_equality_group(
-        lambda: square_device(3, 3,holes=[GridQubit(1, 1)]))
+        lambda: square_device(3, 3,holes=[cirq.GridQubit(1, 1)]))
     eq.make_equality_group(
-        lambda: XmonDevice(Duration(nanos=1), Duration(nanos=2),
-                           Duration(nanos=3), []))
+        lambda: cg.XmonDevice(cirq.Duration(nanos=1), cirq.Duration(nanos=2),
+                              cirq.Duration(nanos=3), []))
     eq.make_equality_group(
-        lambda: XmonDevice(Duration(nanos=1), Duration(nanos=1),
-                           Duration(nanos=1), []))
+        lambda: cg.XmonDevice(cirq.Duration(nanos=1), cirq.Duration(nanos=1),
+                              cirq.Duration(nanos=1), []))
 
 
 def test_xmon_device_str():
@@ -212,3 +200,47 @@ def test_xmon_device_str():
 │        │
 (1, 0)───(1, 1)
     """.strip()
+
+
+def test_at():
+    d = square_device(3, 3)
+    assert d.at(-1, -1) is None
+    assert d.at(0, 0) == cirq.GridQubit(0, 0)
+
+    assert d.at(-1, 1) is None
+    assert d.at(0, 1) == cirq.GridQubit(0, 1)
+    assert d.at(1, 1) == cirq.GridQubit(1, 1)
+    assert d.at(2, 1) == cirq.GridQubit(2, 1)
+    assert d.at(3, 1) is None
+
+    assert d.at(1, -1) is None
+    assert d.at(1, 0) == cirq.GridQubit(1, 0)
+    assert d.at(1, 1) == cirq.GridQubit(1, 1)
+    assert d.at(1, 2) == cirq.GridQubit(1, 2)
+    assert d.at(1, 3) is None
+
+
+def test_row_and_col():
+    d = square_device(2, 3)
+    assert d.col(-1) == []
+    assert d.col(0) == [cirq.GridQubit(0, 0),
+                        cirq.GridQubit(1, 0),
+                        cirq.GridQubit(2, 0)]
+    assert d.col(1) == [cirq.GridQubit(0, 1),
+                        cirq.GridQubit(1, 1),
+                        cirq.GridQubit(2, 1)]
+    assert d.col(2) == []
+    assert d.col(5000) == []
+
+    assert d.row(-1) == []
+    assert d.row(0) == [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)]
+    assert d.row(1) == [cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)]
+    assert d.row(2) == [cirq.GridQubit(2, 0), cirq.GridQubit(2, 1)]
+    assert d.row(3) == []
+
+    b = cg.Bristlecone
+    assert b.col(0) == [cirq.GridQubit(5, 0)]
+    assert b.row(0) == [cirq.GridQubit(0, 5), cirq.GridQubit(0, 6)]
+    assert b.col(1) == [cirq.GridQubit(4, 1),
+                        cirq.GridQubit(5, 1),
+                        cirq.GridQubit(6, 1)]
