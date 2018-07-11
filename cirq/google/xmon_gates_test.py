@@ -67,6 +67,20 @@ def test_single_qubit_measurement_to_proto():
             key: "test"
         }
         """)
+    assert proto_matches_text(
+        XmonMeasurementGate('test', invert_mask=[True, False])
+            .to_proto(GridQubit(2, 3)),
+        """
+        measurement {
+            targets {
+                row: 2
+                col: 3
+            }
+            key: "test"
+            invert_mask: true
+            invert_mask: false
+        }
+        """)
 
 
 def test_multi_qubit_measurement_to_proto():

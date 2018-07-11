@@ -100,6 +100,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
         for q in qubits:
             q.to_proto(op.measurement.targets.add())
         op.measurement.key = self.key
+        op.measurement.invert_mask.extend(self.invert_mask)
         return op
 
     def __repr__(self):
