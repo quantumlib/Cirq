@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections
-from typing import Iterator, List, Sequence, Tuple
+from typing import Iterator, List, Sequence, Tuple, Union
 
-from cirq import abc
+from cirq import abc, value
 from cirq.study import resolver
 
 
@@ -40,7 +40,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     For example, a sweep can explicitly assign a set of equally spaced points
     between two endpoints using a Linspace,
-        sweep = Linspace("angle", start=0.0, end=2.0, length=10)
+        sweep = cirq.Linspace("angle", start=0.0, end=2.0, length=10)
     This can then be used with a circuit that has an 'angle' Symbol to
     run simulations multiple simulations, one for each of the values in the
     sweep
@@ -129,7 +129,7 @@ class _Unit(Sweep):
         return 'Unit'
 
 
-Unit = _Unit()  # singleton instance
+UNIT_SWEEP = _Unit()  # singleton instance
 
 
 class Product(Sweep):
@@ -240,8 +240,8 @@ class Zip(Sweep):
 class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
-    def __init__(self, key: str) -> None:
-        self.key = key
+    def __init__(self, key: Union[str, value.Symbol]) -> None:
+        self.key = key.name if isinstance(key, value.Symbol) else key
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -271,8 +271,10 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: str, points: Sequence[float]) -> None:
-        super(Points, self).__init__(key)
+    def __init__(self,
+                 key: Union[str, value.Symbol],
+                 points: Sequence[float]) -> None:
+        super().__init__(key)
         self.points = points
 
     def _tuple(self):
@@ -291,17 +293,17 @@ class Points(SingleSweep):
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
-    def __init__(
-        self, key: str,
-        start: float,
-        stop: float,
-        length: int) -> None:
+    def __init__(self,
+                 key: Union[str, value.Symbol],
+                 start: float,
+                 stop: float,
+                 length: int) -> None:
         """Creates a linear-spaced sweep for a given key.
 
         For the given args, assigns to the list of values
             start, start + (stop - start) / (length - 1), ..., stop
         """
-        super(Linspace, self).__init__(key)
+        super().__init__(key)
         self.start = start
         self.stop = stop
         self.length = length

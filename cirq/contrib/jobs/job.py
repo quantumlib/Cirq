@@ -31,7 +31,7 @@ class Job(object):
 
     def __init__(self,
                  circuit: Circuit = Circuit(),
-                 sweep: sweeps.Sweep = sweeps.Unit,
+                 sweep: sweeps.Sweep = sweeps.UNIT_SWEEP,
                  repetitions: int = 1) -> None:
         self.circuit = circuit
         self.sweep = sweep

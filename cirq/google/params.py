@@ -15,7 +15,7 @@ from typing import cast
 
 from cirq.api.google.v1 import params_pb2
 from cirq.study.sweeps import (
-    Linspace, Points, Product, SingleSweep, Sweep, Unit, Zip,
+    Linspace, Points, Product, SingleSweep, Sweep, UNIT_SWEEP, Zip,
 )
 
 
@@ -25,7 +25,7 @@ def sweep_to_proto(
     """Converts sweep into an equivalent protobuf representation."""
     if msg is None:
         msg = params_pb2.ParameterSweep()
-    if not sweep == Unit:
+    if not sweep == UNIT_SWEEP:
         sweep = _to_zip_product(sweep)
         for factor in sweep.factors:
             _sweep_zip_to_proto(cast(Zip, factor), msg=msg.sweep.factors.add())
@@ -80,7 +80,7 @@ def _single_param_sweep_to_proto(
 
 def sweep_from_proto(param_sweep: params_pb2.ParameterSweep) -> Sweep:
     if not param_sweep.HasField('sweep'):
-        return Unit
+        return UNIT_SWEEP
     return Product(*[_sweep_from_param_sweep_zip(f)
                      for f in param_sweep.sweep.factors])
 

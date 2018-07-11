@@ -157,11 +157,13 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
+    Linspace,
     ParamResolver,
     Points,
     Sweep,
     Sweepable,
     TrialResult,
+    UNIT_SWEEP,
 )
 
 from cirq.study.visualize import (
