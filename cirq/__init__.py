@@ -111,7 +111,7 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse_of_invertible_op_tree,
+    inverse,
     ISWAP,
     ISwapGate,
     KnownMatrix,
