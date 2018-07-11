@@ -30,7 +30,7 @@ is tagged with a version tag (vX.X.X) for a pull request corresponding
 to the release.  In the pull request corresponding to the release 
 the [version file](cirq/_version.py) should be updated. After
 that version is cut, a future pull request should update the 
-version to the next minor version with `-dev` appended.
+version to the next minor version with `.dev` appended.
 
 For patch version updates (bug fixes), we follow a different pattern.
 For these we create a separate branch that off of the version the
