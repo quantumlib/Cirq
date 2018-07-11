@@ -115,7 +115,7 @@ def w_to_known(gate: ExpWGate) -> Optional[QuirkGate]:
     return None
 
 
-def single_qubit_matrix_gate(gate: ops.KnownMatrixGate) -> Optional[QuirkGate]:
+def single_qubit_matrix_gate(gate: ops.KnownMatrix) -> Optional[QuirkGate]:
     matrix = gate.matrix()
     if matrix.shape[0] != 2:
         return None
