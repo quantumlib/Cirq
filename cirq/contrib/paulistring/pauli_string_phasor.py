@@ -33,13 +33,14 @@ class PauliStringPhasor(PauliStringGateOperation,
                         ops.CompositeOperation,
                         ops.BoundedEffect,
                         ops.ParameterizableEffect,
+                        ops.TextDiagrammable,
                         extension.PotentialImplementation[Union[
                             ops.ExtrapolatableEffect,
                             ops.ReversibleEffect]]):
-    '''An operation that phases a Pauli string.'''
+    """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
-                 *,
+                 *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
@@ -84,22 +85,24 @@ class PauliStringPhasor(PauliStringGateOperation,
         ps = self.pauli_string.map_qubits(qubit_map)
         return PauliStringPhasor(ps, half_turns=self.half_turns)
 
-    def _with_half_turns(self, half_turns: float) -> 'PauliStringPhasor':
+    def _with_half_turns(self, half_turns: Union[float, value.Symbol]
+                         ) -> 'PauliStringPhasor':
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def extrapolate_effect(self, factor: float) -> 'PauliStringPhasor':
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'PauliStringPhasor':
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't know how to extrapolate.")
         if isinstance(factor, value.Symbol):
             if self.half_turns == 1:
-                half_turns = factor
+                return self._with_half_turns(factor)
             else:
                 raise ValueError("Don't know how to extrapolate by a symbol.")
-        else:
-            half_turns = 1 - (1 - cast(float, self.half_turns) * factor) % 2
+        half_turns = 1 - (1 - cast(float, self.half_turns)
+                              * cast(float, factor)) % 2
         return self._with_half_turns(half_turns)
 
-    def __pow__(self, power: float) -> 'PauliStringPhasor':
+    def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PauliStringPhasor':
@@ -121,19 +124,17 @@ class PauliStringPhasor(PauliStringGateOperation,
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
         else:
-            if self.pauli_string.negated:
-                half_turns = -self.half_turns
-            else:
-                half_turns = self.half_turns
+            half_turns = self.half_turns * (-1 if self.pauli_string.negated
+                                               else 1)
             yield ops.Z(any_qubit) ** half_turns
         yield ops.inverse(xor_decomp)
         yield ops.inverse(to_z_ops)
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
-        return self.standard_diagram_info(args,
-                                          exponent=self.half_turns,
-                                          exponent_absorbs_sign=True)
+        return self._pauli_string_diagram_info(args,
+                                               exponent=self.half_turns,
+                                               exponent_absorbs_sign=True)
 
     def trace_distance_bound(self) -> float:
         return ops.RotZGate(half_turns=self.half_turns).trace_distance_bound()

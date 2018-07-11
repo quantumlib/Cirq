@@ -27,7 +27,6 @@ TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',
 
 class PauliStringGateOperation(ops.Gate,
                                ops.Operation,
-                               ops.TextDiagrammable,
                                metaclass=abc.ABCMeta):
     def __init__(self, pauli_string: PauliString) -> None:
         self.pauli_string = pauli_string
@@ -67,15 +66,11 @@ class PauliStringGateOperation(ops.Gate,
     def qubits(self) -> Tuple[ops.QubitId, ...]:
         return tuple(self.pauli_string)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
-        return self.standard_diagram_info(args)
-
-    def standard_diagram_info(self,
-                              args: ops.TextDiagramInfoArgs,
-                              exponent: Any = 1,
-                              exponent_absorbs_sign: bool = False,
-                              ) -> ops.TextDiagramInfo:
+    def _pauli_string_diagram_info(self,
+                                   args: ops.TextDiagramInfoArgs,
+                                   exponent: Any = 1,
+                                   exponent_absorbs_sign: bool = False,
+                                   ) -> ops.TextDiagramInfo:
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
         syms = tuple('[{}]'.format(self.pauli_string[qubit])
                      for qubit in qubits)

@@ -178,16 +178,8 @@ def test_manual_default_decompose():
         ).to_unitary_matrix()
     cirq.testing.assert_allclose_up_to_global_phase(
         mat,
-        np.array([
-            [1,  0,  0,  0,  0,  0,  0,  0],
-            [0, -1,  0,  0,  0,  0,  0,  0],
-            [0,  0, -1,  0,  0,  0,  0,  0],
-            [0,  0,  0,  1,  0,  0,  0,  0],
-            [0,  0,  0,  0, -1,  0,  0,  0],
-            [0,  0,  0,  0,  0,  1,  0,  0],
-            [0,  0,  0,  0,  0,  0,  1,  0],
-            [0,  0,  0,  0,  0,  0,  0, -1],
-        ]), rtol=1e-7, atol=1e-7)
+        np.diag([1, -1, -1, 1, -1, 1, 1, -1]),
+        rtol=1e-7, atol=1e-7)
 
     mat = cirq.Circuit.from_ops(
             PauliStringPhasor(PauliString({q0: Pauli.Z,
@@ -205,7 +197,8 @@ def test_manual_default_decompose():
             [0,  0,  0,  0,  0,  1,  1,  0],
             [0,  0,  0,  0,  0, -1,  1,  0],
             [0,  0,  0,  0, -1,  0,  0,  1],
-        ]) / np.sqrt(2), rtol=1e-7, atol=1e-7)
+        ]) / np.sqrt(2),
+        rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize('paulis,half_turns,neg',
