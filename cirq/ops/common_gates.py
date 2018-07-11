@@ -23,7 +23,7 @@ from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
 class Rot11Gate(eigen_gate.EigenGate,
-                gate_features.PhaseableGate,
+                gate_features.PhaseableEffect,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate):
