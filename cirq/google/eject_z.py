@@ -14,16 +14,13 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Iterator, Tuple, cast
+from typing import Iterator, Tuple, cast, Optional
 
 from cirq import ops, extension
 from cirq.circuits import Circuit, InsertStrategy, OptimizationPass
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
 from cirq.value import Symbol
-
-
-KNOWN_Z_TYPES = (ExpZGate, ops.RotZGate)
 
 
 class EjectZ(OptimizationPass):
@@ -89,23 +86,20 @@ class EjectZ(OptimizationPass):
 
             if start_z is None:
                 # Unparameterized Zs start optimization ranges.
-                if (isinstance(op.gate, KNOWN_Z_TYPES) and
-                        not isinstance(op.gate.half_turns,
-                                       Symbol)):
+                if _try_get_known_z_half_turns(op) is not None:
                     start_z = i
                     prev_z = None
 
-            elif self.ext.can_cast(ops.MeasurementGate, op.gate):
+            elif _is_known_measurement(op):
                 # Measurement acts like a drain. It destroys phase information.
                 yield start_z, i
                 start_z = None
 
-            elif (isinstance(op.gate, KNOWN_Z_TYPES) and
-                  not isinstance(op.gate.half_turns, Symbol)):
+            elif _try_get_known_z_half_turns(op) is not None:
                 # Could be a drain. Depends if an unphaseable gate follows.
                 prev_z = i
 
-            elif not self.ext.can_cast(ops.PhaseableGate, op.gate):
+            elif not self.ext.can_cast(ops.PhaseableEffect, op):
                 # Unphaseable gates force earlier draining.
                 if prev_z is not None:
                     yield start_z, prev_z
@@ -138,21 +132,22 @@ class EjectZ(OptimizationPass):
 
             if op is None:
                 # Empty.
-                pass
+                continue
 
-            elif isinstance(op.gate, KNOWN_Z_TYPES):
+            known_z_half_turns = _try_get_known_z_half_turns(op)
+            if known_z_half_turns is not None:
                 # Move Z effects out of the circuit and into lost_phase_turns.
                 circuit.clear_operations_touching([qubit], [i])
-                lost_phase_turns += cast(float, op.gate.half_turns) / 2
+                lost_phase_turns += known_z_half_turns / 2
 
-            elif self.ext.can_cast(ops.PhaseableGate, op.gate):
+            elif self.ext.can_cast(ops.PhaseableEffect, op):
                 # Adjust phaseable gates to account for the lost phase.
-                phaseable = self.ext.cast(ops.PhaseableGate, op.gate)
+                phaseable = self.ext.cast(ops.PhaseableEffect, op)
                 k = op.qubits.index(qubit)
                 circuit.clear_operations_touching(op.qubits, [i])
                 circuit.insert(i + 1,
-                               phaseable.phase_by(-lost_phase_turns, k).on(
-                                   *op.qubits),
+                               cast(ops.Operation,
+                                    phaseable.phase_by(-lost_phase_turns, k)),
                                InsertStrategy.INLINE)
 
         self._drain_into(circuit, qubit, drain, lost_phase_turns)
@@ -171,14 +166,31 @@ class EjectZ(OptimizationPass):
 
         # Drain type: another Z gate.
         op = cast(ops.Operation, circuit.operation_at(qubit, drain))
-        if isinstance(op.gate, ExpZGate):
-            half_turns = cast(float, op.gate.half_turns) + accumulated_phase * 2
+        known_z_half_turns = _try_get_known_z_half_turns(op)
+        if known_z_half_turns is not None:
+            new_half_turns = known_z_half_turns + accumulated_phase * 2
             circuit.clear_operations_touching([qubit], [drain])
             circuit.insert(
                 drain + 1,
-                ExpZGate(half_turns=half_turns).on(qubit),
+                ExpZGate(half_turns=new_half_turns).on(qubit),
                 InsertStrategy.INLINE)
             return
 
             # Drain type: measurement gate.
             # (Don't have to do anything.)
+
+
+def _is_known_measurement(op: ops.Operation) -> bool:
+    return (isinstance(op, ops.GateOperation) and
+            isinstance(op.gate, ops.MeasurementGate))
+
+
+def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
+    if not isinstance(op, ops.GateOperation):
+        return None
+    if not isinstance(op.gate, (ExpZGate, ops.RotZGate)):
+        return None
+    h = op.gate.half_turns
+    if isinstance(h, Symbol):
+        return None
+    return h

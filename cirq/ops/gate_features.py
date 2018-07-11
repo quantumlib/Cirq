@@ -113,7 +113,7 @@ class CompositeGate(metaclass=abc.ABCMeta):
         """
 
 
-class KnownMatrix(raw_types.Gate, metaclass=abc.ABCMeta):
+class KnownMatrix(metaclass=abc.ABCMeta):
     """An effect that can be described by a matrix."""
 
     @abc.abstractmethod
@@ -228,16 +228,16 @@ class TextDiagrammable(metaclass=abc.ABCMeta):
         """
 
 
-TSelf_PhaseableGate = TypeVar('TSelf_PhaseableGate', bound='PhaseableGate')
+TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect', bound='Phaseable')
 
 
-class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be phased around the Z axis of target qubits."""
+class PhaseableEffect(metaclass=abc.ABCMeta):
+    """An effect that can be phased around the Z axis of target qubits."""
 
     @abc.abstractmethod
-    def phase_by(self: TSelf_PhaseableGate,
+    def phase_by(self: TSelf_PhaseableEffect,
                  phase_turns: float,
-                 qubit_index: int) -> TSelf_PhaseableGate:
+                 qubit_index: int) -> TSelf_PhaseableEffect:
         """Returns a phased version of the effect.
 
         For example, an X gate phased by 90 degrees would be a Y gate.
@@ -248,7 +248,7 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
             qubit_index: The index of the target qubit the phasing applies to.
 
         Returns:
-            The phased gate.
+            The phased gate or operation.
         """
 
 
