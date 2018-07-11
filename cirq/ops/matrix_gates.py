@@ -26,7 +26,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
+class SingleQubitMatrixGate(gate_features.KnownMatrix,
                             gate_features.PhaseableGate,
                             gate_features.ExtrapolatableEffect,
                             gate_features.BoundedEffect):
@@ -103,7 +103,7 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
         return str(self.matrix().round(3))
 
 
-class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
+class TwoQubitMatrixGate(gate_features.KnownMatrix,
                          gate_features.PhaseableGate,
                          gate_features.ExtrapolatableEffect):
     """A 2-qubit gate defined only by its matrix.

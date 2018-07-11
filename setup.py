@@ -26,6 +26,8 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
+cirq_packages = ['cirq.' + package for package in find_packages(where='cirq')]
+
 setup(
     name='cirq',
     version=__version__,
@@ -33,5 +35,5 @@ setup(
     author='The Cirq Developers',
     install_requires=requirements,
     license='Apache 2',
-    packages=find_packages(),
+    packages=cirq_packages,
     package_data={'cirq.api.google.v1': ['*.proto']})
