@@ -106,34 +106,6 @@ def test_composite_gate_is_abstract_can_implement():
     assert isinstance(Included(), gate_features.CompositeGate)
 
 
-def test_composite_gate_from_gates():
-    class G1(raw_types.Gate):
-        pass
-    class G2(raw_types.Gate):
-        pass
-
-    gates = [G1(), G2()]
-    composite = gate_features.CompositeGate.from_gates(gates)
-
-    q1 = raw_types.QubitId()
-    assert [gates[0](q1), gates[1](q1)] == composite.default_decompose([q1])
-
-
-def test_composite_gate_from_gate_tuples():
-    class G1(raw_types.Gate):
-        pass
-    class G2(raw_types.Gate):
-        pass
-
-    gates = [(G1(), (0,)), (G2(), (0, 1))]
-    composite = gate_features.CompositeGate.from_gates(gates)
-
-    q1 = raw_types.QubitId()
-    q2 = raw_types.QubitId()
-    assert ([gates[0][0](q1), gates[1][0](q1, q2)]
-            == composite.default_decompose([q1, q2]))
-
-
 def test_single_qubit_gate_validate_args():
     class Dummy(gate_features.SingleQubitGate):
         def matrix(self):

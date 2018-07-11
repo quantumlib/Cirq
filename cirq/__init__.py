@@ -97,6 +97,7 @@ from cirq.ops import (
     CNOT,
     CNotGate,
     CompositeGate,
+    CompositeOperation,
     ControlledGate,
     CSWAP,
     CZ,

@@ -1198,7 +1198,7 @@ def test_simple_circuits_to_unitary_matrix():
 
 
 def test_composite_gate_to_unitary_matrix():
-    class CNOT_composite(cirq.CompositeGate):
+    class CNOT_composite(cirq.Gate, cirq.CompositeGate):
         def default_decompose(self, qubits):
             q0, q1 = qubits
             return cirq.Y(q1)**-0.5, cirq.CZ(q0, q1), cirq.Y(q1)**0.5
