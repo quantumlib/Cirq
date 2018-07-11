@@ -201,23 +201,22 @@ def test_composite_extension_overrides():
     cnot = CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(cnot)
-    opt = cirq.ExpandComposite(composite_gate_extension=cirq.Extensions({
-        cirq.CompositeGate: {cirq.CNotGate: lambda e: OtherCNot()}
-    }))
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.CompositeGate, cirq.CNotGate, lambda _: OtherCNot())
+    opt = cirq.ExpandComposite(composite_gate_extension=ext)
     opt.optimize_circuit(circuit)
     expected = cirq.Circuit()
     expected.append([Z(q0), Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5, Z(q0)])
     assert_equal_mod_empty(expected, circuit)
-
 
 def test_recursive_composite_extension_overrides():
     q0, q1 = QubitId(), QubitId()
     swap = SWAP(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(swap)
-    opt = cirq.ExpandComposite(composite_gate_extension=cirq.Extensions({
-        cirq.CompositeGate: {cirq.CNotGate: lambda e: OtherCNot()}
-    }))
+    ext = cirq.Extensions()
+    ext.add_cast(cirq.CompositeGate, cirq.CNotGate, lambda _: OtherCNot())
+    opt = cirq.ExpandComposite(composite_gate_extension=ext)
     opt.optimize_circuit(circuit)
     expected = cirq.Circuit()
     expected.append([Z(q0), Y(q1) ** -0.5, CZ(q0, q1), Y(q1) ** 0.5, Z(q0)])
