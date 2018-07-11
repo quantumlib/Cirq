@@ -477,8 +477,8 @@ class Circuit(object):
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
-            ext: The extensions to use when attempting to cast gates into
-                KnownMatrixGate instances.
+            ext: The extensions to use when attempting to cast operations into
+                KnownMatrix instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -699,7 +699,7 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
                                  ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
-        known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
+        known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
         if known_matrix_gate is not None:
             yield op
             continue
@@ -748,7 +748,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
-    known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
+    known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))

@@ -67,11 +67,11 @@ print(sqrt_x.matrix())
 The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
 Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the intermediate values normalizing rotation angles into a canonical range.
 
-#### KnownMatrixGate
+#### KnownMatrix
 
-We've seen this above.  These are ``Gates`` which implement
-the ``matrix`` method. This returns a numpy ``ndarray`` matrix
-which is the unitary gate for this ``Gate``.
+We've seen this above.
+These are ``Gate`` or ``Operation`` instances which implement the ``matrix`` method.
+This returns a numpy ``ndarray`` matrix which is the unitary gate for the gate/operation.
 
 #### CompositeGate
 
