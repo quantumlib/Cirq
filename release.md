@@ -39,6 +39,3 @@ branches  should be of the name `branch-X-X-X` corresponding to the
 version.  These can then be appropriately tagged and the release
 pushed to pypi.  These fixes, if possible, should also be merged
 into master via a separate change.
-
-         
-
