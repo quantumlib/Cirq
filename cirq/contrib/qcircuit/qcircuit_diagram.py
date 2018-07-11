@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from cirq import circuits, extension, ops
-from cirq.contrib.qcircuit.qcircuit_diagrammable_gate import (
-    QCircuitDiagrammableGate,
+from cirq.contrib.qcircuit.qcircuit_diagrammable import (
+    QCircuitDiagrammable,
     fallback_qcircuit_extensions,
 )
 
@@ -42,14 +42,26 @@ class _QCircuitQubit(ops.QubitId):
         return hash((_QCircuitQubit, self.sub))
 
 
-class _QCircuitGate(ops.Gate, ops.TextDiagrammable):
-    def __init__(self, sub: QCircuitDiagrammableGate) -> None:
-        self.sub = sub
+class _QCircuitOperation(ops.Operation, ops.TextDiagrammable):
+    def __init__(self,
+                 sub_operation: ops.Operation,
+                 diagrammable: QCircuitDiagrammable) -> None:
+        self.sub_operation = sub_operation
+        self.diagrammable = diagrammable
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
         return ops.TextDiagramInfo(
-            wire_symbols=self.sub.qcircuit_wire_symbols(args.known_qubit_count))
+            self.diagrammable.qcircuit_diagram_info(args))
+
+    @property
+    def qubits(self):
+        return self.sub_operation.qubits
+
+    def with_qubits(self, *new_qubits: ops.QubitId) -> '_QCircuitOperation':
+        return _QCircuitOperation(
+            self.sub_operation.with_qubits(*new_qubits),
+            self.diagrammable)
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -90,11 +102,11 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 def _wrap_operation(op: ops.Operation,
                     ext: extension.Extensions) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    new_gate = ext.try_cast(QCircuitDiagrammableGate, op.gate)
-    if new_gate is None:
-        new_gate = fallback_qcircuit_extensions.cast(QCircuitDiagrammableGate,
-                                                     op.gate)
-    return ops.GateOperation(_QCircuitGate(new_gate), new_qubits)
+    diagrammable = ext.try_cast(QCircuitDiagrammable, op)
+    if diagrammable is None:
+        diagrammable = fallback_qcircuit_extensions.cast(
+            QCircuitDiagrammable, op)
+    return _QCircuitOperation(op, diagrammable).with_qubits(*new_qubits)
 
 
 def _wrap_moment(moment: circuits.Moment,
@@ -118,7 +130,7 @@ def circuit_to_latex_using_qcircuit(
     Args:
         circuit: The circuit to represent in latex.
         ext: Extensions used when attempting to cast gates into
-            QCircuitDiagrammableGate instances (before falling back to the
+            QCircuitDiagrammable instances (before falling back to the
             default wrapping methods).
         qubit_order: Determines the order of qubit wires in the diagram.
 
