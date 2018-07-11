@@ -33,48 +33,103 @@ Quantum circuits to prepare the BCS meanfield state.
 Number of sites =  4
 Number of fermions =  4
 Tunneling strength =  1.0
-On-site interaction strength =  -6.0
-Superconducting gap =  2.2328945671127096
+On-site interaction strength =  -4.0
+Superconducting gap =  1.1261371093950703 
 
-Circuit for Bogoliubov transformation:
-(0, 0): ───X───S───iSwap─────────Z^0.75───X───────────────────────────────────────────────────────────────────────────────────────────────────────────
-                   │
-(0, 1): ───────────┼──────────────────────────X───S───iSwap─────────Z^0.75───X────────────────────────────────────────────────────────────────────────
-                   │                                  │
-(0, 2): ───────────┼──────────────────────────────────┼──────────────────────────X───S───iSwap────────Z^0.75───X──────────────────────────────────────
-                   │                                  │                                  │
-(0, 3): ───────────┼──────────────────────────────────┼──────────────────────────────────┼─────────────────────────X───S───iSwap─────────Z^0.75───X───
-                   │                                  │                                  │                                 │
-(1, 0): ───────────iSwap^-1.68────────────────────────┼──────────────────────────────────┼─────────────────────────────────┼──────────────────────────
-                                                      │                                  │                                 │
-(1, 1): ──────────────────────────────────────────────iSwap^-1.47────────────────────────┼─────────────────────────────────┼──────────────────────────
-                                                                                         │                                 │
-(1, 2): ─────────────────────────────────────────────────────────────────────────────────iSwap^-1.0────────────────────────┼──────────────────────────
-                                                                                                                           │
-(1, 3): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────iSwap^-1.47────────────────
+Circuit for the Bogoliubov transformation:
+(0, 0)   (0, 1)   (0, 2)   (0, 3)   (1, 0)      (1, 1)      (1, 2)     (1, 3)
+│        │        │        │        │           │           │          │
+W(0.25)  │        │        │        │           │           │          │
+│        │        │        │        │           │           │          │
+iSwap────┼────────┼────────┼────────iSwap^-1.83 │           │          │
+│        │        │        │        │           │           │          │
+W(0.625) │        │        │        │           │           │          │
+│        │        │        │        │           │           │          │
+│        W(0.25)  │        │        │           │           │          │
+│        │        │        │        │           │           │          │
+│        iSwap────┼────────┼────────┼───────────iSwap^-1.67 │          │
+│        │        │        │        │           │           │          │
+│        W(0.625) │        │        │           │           │          │
+│        │        │        │        │           │           │          │
+│        │        W(0.25)  │        │           │           │          │
+│        │        │        │        │           │           │          │
+│        │        iSwap────┼────────┼───────────┼───────────iSwap^-1.0 │
+│        │        │        │        │           │           │          │
+│        │        W(0.625) │        │           │           │          │
+│        │        │        │        │           │           │          │
+│        │        │        W(0.25)  │           │           │          │
+│        │        │        │        │           │           │          │
+│        │        │        iSwap────┼───────────┼───────────┼──────────iSwap^-1.67
+│        │        │        │        │           │           │          │
+│        │        │        W(0.625) │           │           │          │
+│        │        │        │        │           │           │          │
+ 
 
-Circuit for the inverse Fourier transformation on the spin-up states:
-(0, 0): ───────────S^-1───iSwap───────S^-1──────────────────────────────S^-1───iSwap───────S^-1────────────────────────────────────────────
-                          │                                                    │
-(0, 1): ───iSwap───S^-1───iSwap^0.5─────────────────────────────iSwap───S^-1───iSwap^0.5────────────────────────────────────iSwap───S^-1───
-           │                                                    │                                                           │
-(0, 2): ───iSwap───S^-1───────────────S^-1───iSwap───────S^-1───iSwap───S^-1───────────────S──────S^-1───iSwap───────S^-1───iSwap───S^-1───
-                                             │                                                           │
-(0, 3): ─────────────────────────────────────iSwap^0.5───────────────────────────────────────────────────iSwap^0.5─────────────────────────
+Circuit for the inverse fermionic Fourier transformation on the spin-up states:
+(0, 0) (0, 1)    (0, 2) (0, 3)
+│      │         │      │
+S^-1   iSwap─────iSwap  │
+│      │         │      │
+│      S^-1      Z      │
+│      │         │      │
+iSwap──iSwap^0.5 │      │
+│      │         │      │
+Z      │         iSwap──iSwap^0.5
+│      │         │      │
+│      │         S^-1   │
+│      │         │      │
+│      iSwap─────iSwap  │
+│      │         │      │
+│      S^-1      S^-1   │
+│      │         │      │
+iSwap──iSwap^0.5 │      │
+│      │         │      │
+S^-1   │         │      │
+│      │         │      │
+│      │         iSwap──iSwap^0.5
+│      │         │      │
+│      │         S^-1   │
+│      │         │      │
+│      iSwap─────iSwap  │
+│      │         │      │
+│      S^-1      S^-1   │
+│      │         │      │
+ 
 
-Circuit for the inverse Fourier transformation on the spin-down states:
-(1, 0): ───────────S^-1───iSwap───────S^-1──────────────────────────────S^-1───iSwap───────S^-1────────────────────────────────────────────
-                          │                                                    │
-(1, 1): ───iSwap───S^-1───iSwap^0.5─────────────────────────────iSwap───S^-1───iSwap^0.5────────────────────────────────────iSwap───S^-1───
-           │                                                    │                                                           │
-(1, 2): ───iSwap───S^-1───────────────S^-1───iSwap───────S^-1───iSwap───S^-1───────────────S^-1───S^-1───iSwap───────S^-1───iSwap───S^-1───
-                                             │                                                           │
-(1, 3): ─────────────────────────────────────iSwap^0.5───────────────────────────────────────────────────iSwap^0.5─────────────────────────
+Circuit for the inverse fermionic Fourier transformation on the spin-down states:
+(1, 0) (1, 1)    (1, 2) (1, 3)
+│      │         │      │
+S^-1   iSwap─────iSwap  │
+│      │         │      │
+│      S^-1      Z      │
+│      │         │      │
+iSwap──iSwap^0.5 │      │
+│      │         │      │
+Z      │         iSwap──iSwap^0.5
+│      │         │      │
+│      │         S^-1   │
+│      │         │      │
+│      iSwap─────iSwap  │
+│      │         │      │
+│      S^-1      S      │
+│      │         │      │
+iSwap──iSwap^0.5 │      │
+│      │         │      │
+S^-1   │         │      │
+│      │         │      │
+│      │         iSwap──iSwap^0.5
+│      │         │      │
+│      │         S^-1   │
+│      │         │      │
+│      iSwap─────iSwap  │
+│      │         │      │
+│      S^-1      S^-1   │
+│      │         │      │
 
 
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, cast
 import numpy as np
 import scipy.optimize as sopt
 import cirq
@@ -90,11 +145,12 @@ def main():
     t = 1.
     # On-site interaction strength. It has to be negative (attractive) for the
     # BCS theory to work.
-    u = -6.
+    u = -4.
     # Calculate the superconducting gap and the angles for BCS
     delta, bog_theta = _bcs_parameters(n_site, n_fermi, u, t)
     # Initializing the qubits on a ladder
-    q = _qubit_ladder(n_site)
+    upper_qubits = [cirq.GridQubit(0, i) for i in range(n_fermi)]
+    lower_qubits = [cirq.GridQubit(1, i) for i in range(n_fermi)]
 
     print('Quantum circuits to prepare the BCS meanfield state.')
     print('Number of sites = ', n_site)
@@ -106,49 +162,32 @@ def main():
     # The circuit for Bogoliubov transformation
     bog_circuit = cirq.Circuit()
     for i in range(n_site):
-        bog = _bogoliubov_trans(q[0, i], q[1, i], bog_theta[i])
+        bog = _bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
         bog_circuit.append(bog)
+    cirq.google.MergeRotations().optimize_circuit(bog_circuit)
     print('Circuit for the Bogoliubov transformation:')
-    print(bog_circuit, '\n')
+    print(bog_circuit.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-up states
-    fourier_circuit_spin_up = cirq.Circuit()
     print('Circuit for the inverse fermionic Fourier transformation on the '
           + 'spin-up states:')
-    fourier_circuit_spin_up.append(_fermi_fourier_trans_inverse_4(q[0, :]))
-    print(fourier_circuit_spin_up, '\n')
+    fourier_circuit_spin_up = cirq.Circuit.from_ops(
+        _fermi_fourier_trans_inverse_4(upper_qubits),
+        strategy=cirq.InsertStrategy.EARLIEST)
+    cirq.google.MergeRotations().optimize_circuit(fourier_circuit_spin_up)
+    print(fourier_circuit_spin_up.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-down states
-    fourier_circuit_spin_down = cirq.Circuit()
     print('Circuit for the inverse fermionic Fourier transformation on the '
           + 'spin-down states:')
-    fourier_circuit_spin_down.append(
-        _fermi_fourier_trans_inverse_conjugate_4(q[1, :]))
-    print(fourier_circuit_spin_down)
+    fourier_circuit_spin_down = cirq.Circuit.from_ops(
+        _fermi_fourier_trans_inverse_conjugate_4(lower_qubits),
+        strategy=cirq.InsertStrategy.EARLIEST)
+    cirq.google.MergeRotations().optimize_circuit(fourier_circuit_spin_down)
+    print(fourier_circuit_spin_down.to_text_diagram(transpose=True))
 
 
-def _qubit_ladder(n_site: int) -> List[cirq.QubitId]:
-
-    """Initialize a qubit ladder to simulate the Hubbard model; the upper chain
-     for spin-up basis states and the lower chain for spin-down basis states.
-
-    Args:
-         n_site: the length of the ladder (the number of sites in the
-         Hubbard model).
-    """
-
-    quid_up = []
-    quid_down = []
-    for i in range(n_site):
-        quid_up.append(cirq.devices.GridQubit(0, i))
-        quid_down.append(cirq.devices.GridQubit(1, i))
-    quid = np.asarray([quid_up, quid_down])
-    quid = quid.reshape(2, n_site)
-
-    return quid
-
-
-def _fswap(p: cirq.QubitId, q: cirq.QubitId) -> List[cirq.Operation]:
+def _fswap(p: cirq.QubitId, q: cirq.QubitId) -> cirq.OP_TREE:
 
     """Decompose the Fermionic SWAP gate into two single-qubit gates and
     one iSWAP gate.
@@ -158,12 +197,12 @@ def _fswap(p: cirq.QubitId, q: cirq.QubitId) -> List[cirq.Operation]:
         q: the id of the second qubit
     """
 
-    ops = [cirq.ISWAP(q, p), cirq.Z(p) ** 1.5, cirq.Z(q) ** 1.5]
-    return ops
+    yield cirq.ISWAP(q, p), cirq.Z(p) ** 1.5
+    yield cirq.Z(q) ** 1.5
 
 
 def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
-                      ) -> List[cirq.Operation]:
+                      ) -> cirq.OP_TREE:
 
     """The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
      We use the identity X S^\dag X S X = Y X S^\dag Y S X = X to transform
@@ -182,16 +221,15 @@ def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
     # time -\pi/4.
     expo = -4.*theta/np.pi
 
-    ops = [cirq.X(p),
-           cirq.S(p),
-           cirq.ISwapGate(exponent=expo).on(p, q),
-           cirq.S(p) ** 1.5,
-           cirq.X(p)]
-    return ops
+    yield cirq.X(p)
+    yield cirq.S(p)
+    yield cirq.ISwapGate(exponent=expo).on(p, q)
+    yield cirq.S(p) ** 1.5
+    yield cirq.X(p)
 
 
 def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
-                           ) -> List[cirq.Operation]:
+                           ) -> cirq.OP_TREE:
 
     """The 2-mode fermionic Fourier transformation can be implemented
     straightforwardly by the √iSWAP gate. The √iSWAP gate can be readily
@@ -212,14 +250,13 @@ def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
         q: the id of the second qubit
     """
 
-    ops = [cirq.Z(p)**1.5,
-           cirq.ISwapGate(exponent=0.5).on(q, p),
-           cirq.Z(p)**1.5]
-    return ops
+    yield cirq.Z(p)**1.5
+    yield cirq.ISwapGate(exponent=0.5).on(q, p)
+    yield cirq.Z(p)**1.5
 
 
 def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
-                                   ) -> List[cirq.Operation]:
+                                   ) -> cirq.OP_TREE:
 
     """The reverse fermionic Fourier transformation implemented on 4 qubits
     on a line, which maps the momentum picture to the position picture.
@@ -231,20 +268,18 @@ def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
         q: the list of ids of the four qubits
     """
 
-    ops = [_fswap(q[1], q[2]),
-           _fermi_fourier_trans_2(q[0], q[1]),
-           _fermi_fourier_trans_2(q[2], q[3]),
-           _fswap(q[1], q[2]),
-           _fermi_fourier_trans_2(q[0], q[1]),
-           cirq.S(q[2]),
-           _fermi_fourier_trans_2(q[2], q[3]),
-           _fswap(q[1], q[2])]
-
-    return ops
+    yield _fswap(q[1], q[2]),
+    yield _fermi_fourier_trans_2(q[0], q[1])
+    yield _fermi_fourier_trans_2(q[2], q[3])
+    yield _fswap(q[1], q[2])
+    yield _fermi_fourier_trans_2(q[0], q[1])
+    yield cirq.S(q[2])
+    yield _fermi_fourier_trans_2(q[2], q[3])
+    yield _fswap(q[1], q[2])
 
 
 def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
-                                             ) -> List[cirq.Operation]:
+                                             ) -> cirq.OP_TREE:
 
     """We will need to map the momentum states in the reversed order for
     spin-down states to the position picture. This transformation can be
@@ -255,19 +290,17 @@ def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
         q: the list of ids of the four qubits
     """
 
-    ops = [_fswap(q[1], q[2]),
-           _fermi_fourier_trans_2(q[0], q[1]),
-           _fermi_fourier_trans_2(q[2], q[3]),
-           _fswap(q[1], q[2]),
-           _fermi_fourier_trans_2(q[0], q[1]),
-           cirq.S(q[2]) ** 3,
-           _fermi_fourier_trans_2(q[2], q[3]),
-           _fswap(q[1], q[2])]
-
-    return ops
+    yield _fswap(q[1], q[2]),
+    yield _fermi_fourier_trans_2(q[0], q[1])
+    yield _fermi_fourier_trans_2(q[2], q[3])
+    yield _fswap(q[1], q[2])
+    yield _fermi_fourier_trans_2(q[0], q[1])
+    yield cirq.S(q[2]) ** 3
+    yield _fermi_fourier_trans_2(q[2], q[3])
+    yield _fswap(q[1], q[2])
 
 
-def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: int
+def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: float
                     ) -> Tuple[float, List[float]]:
 
     """Generate the parameters for the BCS ground state, i.e., the
@@ -290,23 +323,23 @@ def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: int
     # Set the Fermi energy to zero
     hop_erg = hop_erg - fermi_erg
 
-    def _bcs_gap(delta: float) -> float:
+    def _bcs_gap(x: float) -> float:
 
         """Defines the self-consistent equation for the BCS wavefunction.
 
-            Args:
-            delta: the superconducting gap
+        Args:
+            x: the superconducting gap
         """
 
         s = 0.
         for i in range(n_site):
-            s += 1. / np.sqrt(hop_erg[i] ** 2 + delta ** 2)
+            s += 1. / np.sqrt(hop_erg[i] ** 2 + x ** 2)
         return 1 + s * u / (2 * n_site)
 
     # Superconducting gap
     delta = sopt.bisect(_bcs_gap, 0.01, 10000. * abs(u))
-    # The parameter v in the Bogoliubov transformation, i.e.,
-    # the amplitude of the double excitation state
+    delta = cast(float, delta)
+    # The amplitude of the double excitation state
     bcs_v = np.sqrt(0.5 * (1 - hop_erg / np.sqrt(hop_erg ** 2 + delta ** 2)))
     # The rotational angle in the Bogoliubov transformation.
     bog_theta = np.arcsin(bcs_v)
