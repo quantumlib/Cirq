@@ -44,18 +44,15 @@ def main():
     """
     # Create circuit
     qft_circuit = generate_2x2_grid_qft_circuit()
-    
     print('Circuit:')
-    print(qft_circuit)
-    
+    print(qft_circuit)    
     # Simulate and collect final_state
     simulator = cirq.google.XmonSimulator()
     result = simulator.simulate(qft_circuit)
-    
     print()
     print('FinalState')
     print(np.around(result.final_state, 3))
-    
+
 def _cz_and_swap(q0, q1, rot):
     yield cirq.CZ(q0, q1)**rot
     yield cirq.SWAP(q0,q1)
