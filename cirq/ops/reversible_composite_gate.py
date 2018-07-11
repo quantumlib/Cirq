@@ -38,9 +38,9 @@ def _reverse_operation(operation: raw_types.Operation,
     return cast(raw_types.Operation, reversible_op.inverse())
 
 
-def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
-                                  extensions: Extensions = None
-                                  ) -> op_tree.OP_TREE:
+def inverse(root: op_tree.OP_TREE,
+            extensions: Extensions = None
+            ) -> op_tree.OP_TREE:
     """Generates OP_TREE inverses.
 
     Args:
@@ -82,5 +82,4 @@ class _ReversedReversibleCompositeGate(Generic[TOriginal],
         return self.forward_form
 
     def default_decompose(self, qubits):
-        return inverse_of_invertible_op_tree(
-            self.forward_form.default_decompose(qubits))
+        return inverse(self.forward_form.default_decompose(qubits))
