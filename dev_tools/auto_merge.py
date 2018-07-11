@@ -231,7 +231,7 @@ def list_open_pull_requests(repo: GithubRepository, base_branch: str
 
 
 def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
-    """
+    r"""
     START                out of date
     |         .---------------------------------.
     |         |                                 |
