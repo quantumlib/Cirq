@@ -99,6 +99,9 @@ class Circuit(object):
         result.append(operations, strategy)
         return result
 
+    def __copy__(self):
+        return type(self)(self.moments)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
