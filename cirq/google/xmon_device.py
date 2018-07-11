@@ -254,7 +254,7 @@ def _bound_slice(s: slice, available: Iterable[int]) -> List[int]:
             min_index = min(min_index, item)
             max_index = max(max_index, item)
 
-    if min_index is None:
+    if min_index is None or max_index is None:
         raise IndexError('Sliced outside of valid area.')
 
     if step >= 0:
