@@ -156,6 +156,7 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
+    Linspace,
     ParamResolver,
     Points,
     Sweep,

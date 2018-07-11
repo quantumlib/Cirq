@@ -21,6 +21,7 @@ from cirq.study.sweepable import (
     Sweepable,
 )
 from cirq.study.sweeps import (
+    Linspace,
     Points,
     Sweep,
 )
