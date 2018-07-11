@@ -111,7 +111,7 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableGate,
                 ops.ParameterizableEffect,
-                PotentialImplementation[ops.KnownMatrixGate]):
+                PotentialImplementation[ops.KnownMatrix]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -160,7 +160,7 @@ class Exp11Gate(XmonGate,
         return op
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrix and self.has_matrix():
             return self
         return super().try_cast_to(desired_type, ext)
 
@@ -209,7 +209,9 @@ class ExpWGate(XmonGate,
                ops.PhaseableGate,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
-               PotentialImplementation[ops.KnownMatrixGate]):
+               PotentialImplementation[Union[
+                   ops.KnownMatrix,
+                   ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is exp(-i * pi * W(axis_half_turn) * half_turn / 2) where
@@ -284,7 +286,7 @@ class ExpWGate(XmonGate,
         return op
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrix and self.has_matrix():
             return self
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
@@ -387,7 +389,9 @@ class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
-               PotentialImplementation[ops.KnownMatrixGate]):
+               PotentialImplementation[Union[
+                   ops.KnownMatrix,
+                   ops.ReversibleEffect]]):
     """A rotation around the Z axis of the Bloch sphere.
 
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
@@ -436,7 +440,7 @@ class ExpZGate(XmonGate,
             exponent=self.half_turns)
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrixGate and self.has_matrix():
+        if desired_type is ops.KnownMatrix and self.has_matrix():
             return self
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self

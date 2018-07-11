@@ -19,6 +19,9 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
+from collections import defaultdict
+from typing import (Any, Dict, FrozenSet, Callable, 
+                    Generator, Iterable, Iterator)
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
     Optional, Sequence, Union, TYPE_CHECKING,
@@ -35,7 +38,7 @@ from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set
+    from typing import Set, List
 
 
 class Circuit(object):
@@ -44,7 +47,7 @@ class Circuit(object):
     Methods returning information about the circuit:
         next_moment_operating_on
         prev_moment_operating_on
-        operation_on
+        operation_at
         qubits
         findall_operations
         to_unitary_matrix
@@ -55,6 +58,8 @@ class Circuit(object):
         insert
         append
         insert_into_range
+        insert_operation_at
+        insert_at_frontier
         clear_operations_touching
 
     Circuits can also be iterated over,
@@ -99,8 +104,8 @@ class Circuit(object):
         result.append(operations, strategy)
         return result
 
-    def copy_moments(self):
-        return type(self)([moment.__copy__() for moment in self])
+    def __copy__(self):
+        return type(self)(self.moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -352,13 +357,13 @@ class Circuit(object):
     def insert(
             self,
             index: int,
-            operation_tree: ops.OP_TREE,
+            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """Inserts operations into the middle of the circuit.
 
         Args:
             index: The index to insert all of the operations at.
-            operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
 
         Returns:
@@ -369,11 +374,15 @@ class Circuit(object):
             IndexError: Bad insertion index.
             ValueError: Bad insertion strategy.
         """
+        if isinstance(moment_or_operation_tree, Moment):
+            self.moments.insert(index, moment_or_operation_tree)
+            return index + 1
+
         if not 0 <= index <= len(self.moments):
             raise IndexError('Insert index out of range: {}'.format(index))
 
         k = index
-        for op in ops.flatten_op_tree(operation_tree):
+        for op in ops.flatten_op_tree(moment_or_operation_tree):
             p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
             while p >= len(self.moments):
                 self.moments.append(Moment())
@@ -404,7 +413,7 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= start < end <= len(self.moments):
+        if not 0 <= start <= end <= len(self.moments):
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
@@ -425,17 +434,64 @@ class Circuit(object):
 
         return self.insert(end, operations[op_index:])
 
+    def insert_operation_at(self, index: int, op: ops.Operation):
+        new_moment_created = False # type: bool
+        if (self._has_op_at(index, op.qubits) or 
+            index == len(self.moments)):
+            self.moments.insert(index, Moment()) 
+            new_moment_created = True
+        self.moments[index] = self.moments[index].with_operation(op)
+        return new_moment_created
+
+
+    def insert_at_frontier(self,
+                          operations: ops.OP_TREE,
+                          start: int,
+                          frontier: Dict[QubitId, int]=None
+                          ) -> Dict[QubitId, int]:
+        """Inserts operations inline at frontier."""
+        if frontier is None:
+            frontier = defaultdict(lambda: 0)
+        for new_op in ops.flatten_op_tree(operations):
+            op_start = max(start, max(frontier[q] for q in new_op.qubits))
+
+            # rectify frontier
+            qubits_start = max(start, min(frontier[q] for q in new_op.qubits))
+            ops_to_push = [] # type: List[ops.Operation]
+            for moment in range(qubits_start, op_start):
+                moment_ops_to_push = [] # type: List[ops.Operation]
+                for op in self.moments[moment].operations:
+                    if any((q in new_op.qubits) and (frontier[q] <= moment) 
+                           for q in op.qubits):
+                        moment_ops_to_push.append(op)
+                if moment_ops_to_push:
+                    ops_to_push += moment_ops_to_push
+                    remaining_ops = [
+                        op for op in self.moments[moment].operations 
+                        if op not in ops_to_push]
+                    self.moments[moment] = Moment(remaining_ops)
+            for op in reversed(ops_to_push):
+                self.insert_at_frontier(op, op_start)
+            
+            self.insert_operation_at(op_start, new_op)
+            for q in new_op.qubits:
+                frontier[q] = max(op_start + 1, frontier[q])
+
+        return frontier
+
+
+
     def append(
             self,
-            operation_tree: ops.OP_TREE,
+            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:
-            operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self.moments), operation_tree, strategy)
+        self.insert(len(self.moments), moment_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],
@@ -477,8 +533,8 @@ class Circuit(object):
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
-            ext: The extensions to use when attempting to cast gates into
-                KnownMatrixGate instances.
+            ext: The extensions to use when attempting to cast operations into
+                KnownMatrix instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -699,16 +755,16 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
                                  ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
-        known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
+        known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
         if known_matrix_gate is not None:
             yield op
             continue
 
         # If not, check if it has a decomposition
-        composite_gate = ext.try_cast(ops.CompositeGate, op.gate)
-        if composite_gate is not None:
+        composite_op = ext.try_cast(ops.CompositeOperation, op)
+        if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
-            op_tree = composite_gate.default_decompose(op.qubits)
+            op_tree = composite_op.default_decompose()
             op_list = ops.flatten_op_tree(op_tree)
             for op in _flatten_to_known_matrix_ops(op_list, ext):
                 yield op
@@ -748,7 +804,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
-    known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
+    known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))

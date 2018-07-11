@@ -12,42 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimizer that expands CompositeGates into their constituent gates."""
+"""An optimizer that expands CompositeOperation instances."""
 
 from typing import Callable
 
-from cirq.ops import Operation, CompositeGate, flatten_op_tree, OP_TREE
+from cirq import extension, ops
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
-from cirq.extension import Extensions
 
 
 class ExpandComposite(PointOptimizer):
-    """An optimization pass that expands CompositeGates.
+    """An optimization pass that expands CompositeOperation instances.
 
-    For each operation in the circuit, this pass examines if the operation's
-    gate is a CompositeGate, or is composite according to a supplied Extension,
-    and if it is, clears the operation and replaces it with the composite
-    gate elements using a fixed insertion strategy.
-
+    For each operation in the circuit, this pass examines if the operation is a
+    CompositeOperation, or is composite according to a supplied Extension,
+    and if it is, clears the operation and replaces it with its decomposition
+    using a fixed insertion strategy.
     """
 
     def __init__(self,
-                 composite_gate_extension: Extensions = None,
-                 stopper: Callable[[Operation], bool]=(lambda _: False)
+                 composite_gate_extension: extension.Extensions = None,
+                 no_decomp: Callable[[ops.Operation], bool]=(lambda _: False)
                  ) -> None:
         """Construct the optimization pass.
 
         Args:
             composite_gate_extension: An extension that that can be used
-                to supply or override a CompositeGate decomposition.
-            stopper: A predicate (of an operation) that indicates whether or
-                not to stop decomposition.
+                to supply or override a CompositeOperation decomposition.
+            no_decomp: A predicate that determines whether an operation should
+                be decomposed or not. Defaults to decomposing everything.
         """
-        self.extension = composite_gate_extension or Extensions()
-        self.stopper = stopper
+        self.extension = composite_gate_extension or extension.Extensions()
+        self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
@@ -59,14 +57,13 @@ class ExpandComposite(PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=decomposition)
 
-    def _decompose(self, op: Operation) -> OP_TREE:
+    def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
         """Recursively decompose composite gates into an OP_TREE of gates."""
-        stop = self.stopper(op)
-        if stop and (stop is not NotImplemented):
+        skip = self.no_decomp(op)
+        if skip and (skip is not NotImplemented):
             return op
-        composite_gate = self.extension.try_cast(CompositeGate, op.gate)
-        if composite_gate is None:
+        composite_op = self.extension.try_cast(ops.CompositeOperation, op)
+        if composite_op is None:
             return op
-        op_iter = flatten_op_tree(
-                        composite_gate.default_decompose(op.qubits))
+        op_iter = ops.flatten_op_tree(composite_op.default_decompose())
         return (self._decompose(op) for op in op_iter)
