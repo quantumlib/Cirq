@@ -14,7 +14,9 @@
 
 """An optimizer that expands CompositeGates into their constituent gates."""
 
-from cirq import ops
+from typing import Callable
+
+from cirq.ops import Operation, CompositeGate, flatten_op_tree, OP_TREE
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
@@ -33,14 +35,19 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-                 composite_gate_extension: Extensions = None) -> None:
+                 composite_gate_extension: Extensions = None,
+                 no_decomp: Callable[[Operation], bool]=(lambda _: False)
+                 ) -> None:
         """Construct the optimization pass.
 
         Args:
             composite_gate_extension: An extension that that can be used
                 to supply or override a CompositeGate decomposition.
+            no_decomp: A predicate (of an operation) that indicates that it
+                should not be decomposed.
         """
         self.extension = composite_gate_extension or Extensions()
+        self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):
         decomposition = self._decompose(op)
@@ -52,11 +59,14 @@ class ExpandComposite(PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=decomposition)
 
-    def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
+    def _decompose(self, op: Operation) -> OP_TREE:
         """Recursively decompose composite gates into an OP_TREE of gates."""
-        composite_gate = self.extension.try_cast(ops.CompositeGate, op.gate)
+        skip = self.no_decomp(op)
+        if skip and (skip is not NotImplemented):
+            return op
+        composite_gate = self.extension.try_cast(CompositeGate, op.gate)
         if composite_gate is None:
             return op
-        op_iter = ops.flatten_op_tree(
+        op_iter = flatten_op_tree(
                         composite_gate.default_decompose(op.qubits))
         return (self._decompose(op) for op in op_iter)
