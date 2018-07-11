@@ -32,8 +32,8 @@ class ConvertToXmonGates(PointOptimizer):
     First, checks if the given extensions are able to cast the gate into an
         XmonGate instance.
 
-    Second, checks if the given extensions are able to cast the gate into a
-        KnownMatrixGate instance. If so, and the gate is a 1-qubit or 2-qubit
+    Second, checks if the given extensions are able to cast the operation into a
+        KnownMatrix instance. If so, and the gate is a 1-qubit or 2-qubit
         gate, then performs circuit synthesis of the operation.
 
     Third, checks if the given extensions are able to cast the gate into a
@@ -68,7 +68,7 @@ class ConvertToXmonGates(PointOptimizer):
             return xmon.on(*op.qubits)
 
         # Known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrixGate, op.gate)
+        mat = self.extensions.try_cast(ops.KnownMatrix, op)
         if mat is not None and len(op.qubits) == 1:
             gates = single_qubit_matrix_to_native_gates(mat.matrix())
             return [g.on(op.qubits[0]) for g in gates]
@@ -90,8 +90,8 @@ class ConvertToXmonGates(PointOptimizer):
 
         raise TypeError("Don't know how to work with {!r}. "
                         "It isn't an XmonGate, "
-                        "1-qubit KnownMatrixGate, "
-                        "2-qubit KnownMatrixGate, "
+                        "1-qubit KnownMatrix, "
+                        "2-qubit KnownMatrix, "
                         "or CompositeGate.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:

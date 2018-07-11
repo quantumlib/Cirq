@@ -113,7 +113,7 @@ from cirq.ops import (
     inverse_of_invertible_op_tree,
     ISWAP,
     ISwapGate,
-    KnownMatrixGate,
+    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,

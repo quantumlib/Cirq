@@ -29,7 +29,7 @@ class EigenGate(raw_types.Gate,
                 extension.PotentialImplementation[Union[
                     gate_features.ExtrapolatableEffect,
                     gate_features.ReversibleEffect,
-                    gate_features.KnownMatrixGate]]):
+                    gate_features.KnownMatrix]]):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -125,7 +125,7 @@ class EigenGate(raw_types.Gate,
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect,
-                             gate_features.KnownMatrixGate] and
+                             gate_features.KnownMatrix] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)

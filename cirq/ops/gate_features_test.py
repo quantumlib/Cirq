@@ -42,12 +42,12 @@ def test_reversible_gate_is_abstract_can_implement():
 
 def test_known_matrix_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.KnownMatrixGate()
+        _ = gate_features.KnownMatrix()
 
 
 def test_known_matrix_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.KnownMatrixGate):
+    class Missing(gate_features.KnownMatrix):
         pass
 
     with pytest.raises(TypeError):
@@ -55,11 +55,11 @@ def test_known_matrix_gate_is_abstract_must_implement():
 
 
 def test_known_matrix_gate_is_abstract_can_implement():
-    class Included(gate_features.KnownMatrixGate):
+    class Included(gate_features.KnownMatrix):
         def matrix(self):
             pass
 
-    assert isinstance(Included(), gate_features.KnownMatrixGate)
+    assert isinstance(Included(), gate_features.KnownMatrix)
 
 
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
