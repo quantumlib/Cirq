@@ -1188,7 +1188,7 @@ def test_simple_circuits_to_unitary_matrix():
     # 2-qubit matrix matches when qubits in order.
     for expected in [np.diag([1, 1j, -1, -1j]), cirq.CNOT.matrix()]:
 
-        class Passthrough(cirq.KnownMatrixGate):
+        class Passthrough(cirq.KnownMatrix):
             def matrix(self):
                 return expected
 
@@ -1198,7 +1198,7 @@ def test_simple_circuits_to_unitary_matrix():
 
 
 def test_composite_gate_to_unitary_matrix():
-    class CNOT_composite(cirq.CompositeGate):
+    class CNOT_composite(cirq.Gate, cirq.CompositeGate):
         def default_decompose(self, qubits):
             q0, q1 = qubits
             return cirq.Y(q1)**-0.5, cirq.CZ(q0, q1), cirq.Y(q1)**0.5
