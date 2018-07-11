@@ -23,9 +23,10 @@ from cirq.contrib.paulistring.pauli import Pauli
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
-class CliffordGate(ops.CompositeGate,
+class CliffordGate(ops.Gate,
+                   ops.CompositeGate,
                    ops.ReversibleEffect,
-                   ops.TextDiagrammableGate):
+                   ops.TextDiagrammable):
     """Any single qubit Clifford rotation."""
     I = None  # type: CliffordGate
     H = None  # type: CliffordGate
@@ -307,8 +308,8 @@ class CliffordGate(ops.CompositeGate,
                 '+-'[self.transform(Pauli.Y).flip], self.transform(Pauli.Y).to,
                 '+-'[self.transform(Pauli.Z).flip], self.transform(Pauli.Z).to)
 
-    def text_diagram_wire_symbols(self, args: ops.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
+                          ) -> ops.TextDiagramInfo:
         well_known_map = {
             CliffordGate.I: 'I',
             CliffordGate.H: 'H',
@@ -323,21 +324,22 @@ class CliffordGate(ops.CompositeGate,
             CliffordGate.Z_nsqrt: 'Z',
         }
         if self in well_known_map:
-            return well_known_map[self],
+            symbol = well_known_map[self]
         else:
             rotations = self.decompose_rotation()
-            return '-'.join((
-                       str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
-                       for r, qt in rotations)),
-
-    def text_diagram_exponent(self) -> float:
-        return {CliffordGate.X_sqrt: 0.5,
+            symbol = '-'.join(
+                str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
+                for r, qt in rotations)
+        return ops.TextDiagramInfo(
+            wire_symbols=(symbol,),
+            exponent={
+                CliffordGate.X_sqrt: 0.5,
                 CliffordGate.Y_sqrt: 0.5,
                 CliffordGate.Z_sqrt: 0.5,
                 CliffordGate.X_nsqrt: -0.5,
                 CliffordGate.Y_nsqrt: -0.5,
                 CliffordGate.Z_nsqrt: -0.5,
-               }.get(self, 1)
+            }.get(self, 1))
 
 
 CliffordGate.I = CliffordGate.from_xz_map((Pauli.X, False), (Pauli.Z, False))

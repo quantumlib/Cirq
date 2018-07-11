@@ -14,12 +14,16 @@
 
 from typing import List, Optional
 
-from cirq.google import XmonQubit
+from cirq.devices import GridQubit
+
+
+class NotFoundError(Exception):
+    pass
 
 
 class LineSequence:
 
-    def __init__(self, line: List[XmonQubit]) -> None:
+    def __init__(self, line: List[GridQubit]) -> None:
         self.line = line
 
     def __eq__(self, other):
@@ -33,13 +37,11 @@ class LineSequence:
     def __hash__(self):
         return hash(tuple(self.line))
 
-    # TODO: def as_list() -> List[LineQubit]?
-
-
 
 class LinePlacement:
 
-    def __init__(self, lines: List[LineSequence]) -> None:
+    def __init__(self, length: int, lines: List[LineSequence]) -> None:
+        self.length = length
         self.lines = lines
 
     def __eq__(self, other):
@@ -53,18 +55,30 @@ class LinePlacement:
     def __hash__(self):
         return hash(tuple(self.lines))
 
+    def get(self):
+        """Retrieves the preferred line placement.
 
-def longest_sequence_index(sequences: List[List[XmonQubit]]) -> Optional[int]:
-    """Gives the position of a longest sequence.
+        Returns:
+             The preferred, best line placement found.
 
-    Args:
-        sequences: List of node sequences.
+        Raises:
+            NotFoundError: When no line satisfying requirements was found.
+        """
+        best = self.longest()
+        if best is None:
+            raise NotFoundError('No line placement found')
+        if len(best.line) < self.length:
+            raise NotFoundError('No line placement with desired length found')
+        return best
 
-    Returns:
-        Index of the longest sequence from the sequences list. If more than one
-        longest sequence exist, the first one is returned. None is returned for
-        empty list.
-    """
-    if sequences:
-        return max(range(len(sequences)), key=lambda i: len(sequences[i]))
-    return None
+    def longest(self) -> Optional[LineSequence]:
+        """Gives the longest sequence found.
+
+        Returns:
+            The longest sequence found. If more than one longest sequence
+            exist, the first one is returned. None is returned if there are no
+            sequences found.
+        """
+        if self.lines:
+            return max(self.lines, key=lambda sequence: len(sequence.line))
+        return None

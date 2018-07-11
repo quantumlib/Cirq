@@ -43,6 +43,7 @@ from cirq.circuits import (
 
 from cirq.devices import (
     Device,
+    GridQubit,
     UnconstrainedDevice,
 )
 
@@ -82,7 +83,11 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    LineQubit
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    LinePlacementStrategy,
+    LineQubit,
+    line_on_device,
 )
 
 from cirq.ops import (
@@ -92,6 +97,7 @@ from cirq.ops import (
     CNOT,
     CNotGate,
     CompositeGate,
+    CompositeOperation,
     ControlledGate,
     CSWAP,
     CZ,
@@ -101,13 +107,14 @@ from cirq.ops import (
     FREDKIN,
     freeze_op_tree,
     Gate,
+    GateOperation,
     H,
     HGate,
     InterchangeableQubitsGate,
     inverse_of_invertible_op_tree,
     ISWAP,
     ISwapGate,
-    KnownMatrixGate,
+    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -131,8 +138,9 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
-    TextDiagrammableGate,
-    TextDiagramSymbolArgs,
+    TextDiagrammable,
+    TextDiagramInfo,
+    TextDiagramInfoArgs,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,

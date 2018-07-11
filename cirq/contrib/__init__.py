@@ -19,4 +19,4 @@ this package.
 """
 
 from cirq.contrib import jobs
-from cirq.contrib.qcircuit_diagram import circuit_to_latex_using_qcircuit
+from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit

@@ -42,12 +42,12 @@ def test_reversible_gate_is_abstract_can_implement():
 
 def test_known_matrix_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = gate_features.KnownMatrixGate()
+        _ = gate_features.KnownMatrix()
 
 
 def test_known_matrix_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(gate_features.KnownMatrixGate):
+    class Missing(gate_features.KnownMatrix):
         pass
 
     with pytest.raises(TypeError):
@@ -55,11 +55,11 @@ def test_known_matrix_gate_is_abstract_must_implement():
 
 
 def test_known_matrix_gate_is_abstract_can_implement():
-    class Included(gate_features.KnownMatrixGate):
+    class Included(gate_features.KnownMatrix):
         def matrix(self):
             pass
 
-    assert isinstance(Included(), gate_features.KnownMatrixGate)
+    assert isinstance(Included(), gate_features.KnownMatrix)
 
 
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
@@ -104,34 +104,6 @@ def test_composite_gate_is_abstract_can_implement():
             pass
 
     assert isinstance(Included(), gate_features.CompositeGate)
-
-
-def test_composite_gate_from_gates():
-    class G1(raw_types.Gate):
-        pass
-    class G2(raw_types.Gate):
-        pass
-
-    gates = [G1(), G2()]
-    composite = gate_features.CompositeGate.from_gates(gates)
-
-    q1 = raw_types.QubitId()
-    assert [gates[0](q1), gates[1](q1)] == composite.default_decompose([q1])
-
-
-def test_composite_gate_from_gate_tuples():
-    class G1(raw_types.Gate):
-        pass
-    class G2(raw_types.Gate):
-        pass
-
-    gates = [(G1(), (0,)), (G2(), (0, 1))]
-    composite = gate_features.CompositeGate.from_gates(gates)
-
-    q1 = raw_types.QubitId()
-    q2 = raw_types.QubitId()
-    assert ([gates[0][0](q1), gates[1][0](q1, q2)]
-            == composite.default_decompose([q1, q2]))
 
 
 def test_single_qubit_gate_validate_args():
@@ -260,3 +232,20 @@ def test_on_each():
     assert c.on_each([a]) == [c(a)]
     assert c.on_each([a, b]) == [c(a), c(b)]
     assert c.on_each([b, a]) == [c(b), c(a)]
+
+
+@cirq.testing.only_test_in_python3
+def test_text_diagram_info_repr():
+    info = cirq.TextDiagramInfo(('X', 'Y'), 2)
+    assert repr(info) == ("TextDiagramInfo(wire_symbols=('X', 'Y')"
+                          ", exponent=2)")
+
+
+def test_text_diagram_info_eq():
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_group(lambda: cirq.TextDiagramInfo(('X',)))
+    eq.add_equality_group(cirq.TextDiagramInfo(('X', 'Y')),
+                          cirq.TextDiagramInfo(('X', 'Y'), 1))
+    eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 2))
+    eq.add_equality_group(cirq.TextDiagramInfo(('Z', 'Z'), 2))
+    eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 3))

@@ -103,19 +103,19 @@ def test_try_cast_to():
     h = CExpZinGate(2)
     assert h.try_cast_to(cirq.ExtrapolatableEffect, ext) is h
     assert h.try_cast_to(cirq.ReversibleEffect, ext) is h
-    assert h.try_cast_to(cirq.KnownMatrixGate, ext) is h
+    assert h.try_cast_to(cirq.KnownMatrix, ext) is h
     assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
 
     p = CExpZinGate(0.1)
     assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is p
     assert p.try_cast_to(cirq.ReversibleEffect, ext) is p
-    assert p.try_cast_to(cirq.KnownMatrixGate, ext) is p
+    assert p.try_cast_to(cirq.KnownMatrix, ext) is p
     assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
 
     s = CExpZinGate(cirq.Symbol('a'))
     assert s.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert s.try_cast_to(cirq.ReversibleEffect, ext) is None
-    assert s.try_cast_to(cirq.KnownMatrixGate, ext) is None
+    assert s.try_cast_to(cirq.KnownMatrix, ext) is None
     assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
 
 

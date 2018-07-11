@@ -18,12 +18,12 @@ from cirq.api.google.v1 import operations_pb2
 from cirq.ops import QubitId
 
 
-class XmonQubit(QubitId):
-    """A qubit at a location on an xmon chip.
+class GridQubit(QubitId):
+    """A qubit on a 2d square lattice.
 
-    XmonQubits use row-major ordering:
+    GridQubits use row-major ordering:
 
-        XmonQubit(0, 0) < XmonQubit(0, 1) < XmonQubit(1, 0) < XmonQubit(1, 1)
+        GridQubit(0, 0) < GridQubit(0, 1) < GridQubit(1, 0) < GridQubit(1, 1)
     """
 
     def __init__(self, row, col):
@@ -31,8 +31,8 @@ class XmonQubit(QubitId):
         self.col = col
 
     def is_adjacent(self, other: QubitId) -> bool:
-        """Determines if two qubits are adjacent xmon qubits."""
-        return (isinstance(other, XmonQubit) and
+        """Determines if two qubits are adjacent qubits."""
+        return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
     def _compare(self, other, op):
@@ -59,10 +59,10 @@ class XmonQubit(QubitId):
         return self._compare(other, operator.ge)
 
     def __hash__(self):
-        return hash((XmonQubit, self.row, self.col))
+        return hash((GridQubit, self.row, self.col))
 
     def __repr__(self):
-        return 'XmonQubit({}, {})'.format(self.row, self.col)
+        return 'GridQubit({}, {})'.format(self.row, self.col)
 
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
@@ -77,5 +77,5 @@ class XmonQubit(QubitId):
         return out
 
     @staticmethod
-    def from_proto(q: operations_pb2.Qubit) -> 'XmonQubit':
-        return XmonQubit(row=q.row, col=q.col)
+    def from_proto(q: operations_pb2.Qubit) -> 'GridQubit':
+        return GridQubit(row=q.row, col=q.col)

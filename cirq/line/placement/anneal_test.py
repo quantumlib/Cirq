@@ -17,11 +17,12 @@ from typing import Iterable, List
 import numpy as np
 import pytest
 
-from cirq.google import XmonDevice, XmonQubit
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,
-    AnnealSequenceSearchMethod,
+    AnnealSequenceSearchStrategy,
     index_2d,
 )
 from cirq.line.placement.chip import chip_as_adjacency_list
@@ -29,15 +30,15 @@ from cirq.testing.mock import mock
 from cirq.value import Duration
 
 
-def _create_device(qubits: Iterable[XmonQubit]):
+def _create_device(qubits: Iterable[GridQubit]):
     return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0),
                       qubits)
 
 
 @mock.patch('cirq.contrib.optimization.anneal_minimize')
 def test_search_calls_anneal_minimize(anneal_minimize):
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
     seqs = [[q00, q01]]
     edges = {(q00, q01)}
     anneal_minimize.return_value = seqs, edges
@@ -51,8 +52,8 @@ def test_search_calls_anneal_minimize(anneal_minimize):
 
 @mock.patch('cirq.contrib.optimization.anneal_minimize')
 def test_search_calls_anneal_minimize_reversed(anneal_minimize):
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
     seqs = [[q01, q00]]
     edges = {(q00, q01)}
     anneal_minimize.return_value = seqs, edges
@@ -66,8 +67,8 @@ def test_search_calls_anneal_minimize_reversed(anneal_minimize):
 
 @mock.patch('cirq.contrib.optimization.anneal_minimize')
 def test_search_converts_trace_func(anneal_minimize):
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
     seqs = [[q00, q01]]
     edges = {(q00, q01)}
     anneal_minimize.return_value = seqs, edges
@@ -83,13 +84,13 @@ def test_search_converts_trace_func(anneal_minimize):
 
 
 def test_quadratic_sum_cost_calculates_quadratic_cost():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q02 = XmonQubit(0, 2)
-    q03 = XmonQubit(0, 3)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q02 = GridQubit(0, 2)
+    q03 = GridQubit(0, 3)
 
-    def calculate_cost(seqs: List[List[XmonQubit]]):
-        qubits = []  # type: List[XmonQubit]
+    def calculate_cost(seqs: List[List[GridQubit]]):
+        qubits = []  # type: List[GridQubit]
         for seq in seqs:
             qubits += seq
         return AnnealSequenceSearch(
@@ -104,10 +105,10 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
 
 
 def test_force_edges_active_move_does_not_change_input():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q10 = XmonQubit(1, 0)
-    q11 = XmonQubit(1, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q10 = GridQubit(1, 0)
+    q11 = GridQubit(1, 1)
     search = AnnealSequenceSearch(
         _create_device([q00, q01, q10, q11]),
         seed=0xF00D0004)
@@ -119,10 +120,10 @@ def test_force_edges_active_move_does_not_change_input():
 
 
 def test_force_edges_active_move_calls_force_edge_active_move():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q10 = XmonQubit(1, 0)
-    q11 = XmonQubit(1, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q10 = GridQubit(1, 0)
+    q11 = GridQubit(1, 1)
     search = AnnealSequenceSearch(
         _create_device([q00, q01, q10, q11]),
         seed=0xF00D0005)
@@ -133,10 +134,10 @@ def test_force_edges_active_move_calls_force_edge_active_move():
 
 
 def test_force_edge_active_move_does_not_change_input():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q10 = XmonQubit(1, 0)
-    q11 = XmonQubit(1, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q10 = GridQubit(1, 0)
+    q11 = GridQubit(1, 1)
     search = AnnealSequenceSearch(
         _create_device([q00, q01, q10, q11]),
         seed=0xF00D0006)
@@ -148,8 +149,8 @@ def test_force_edge_active_move_does_not_change_input():
 
 
 def test_force_edge_active_move_quits_when_no_free_edge():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
     search = AnnealSequenceSearch(
         _create_device([q00, q01]),
         seed=0xF00D0007)
@@ -158,12 +159,12 @@ def test_force_edge_active_move_quits_when_no_free_edge():
 
 
 def test_force_edge_active_move_calls_force_edge_active():
-    q00 = XmonQubit(0, 0)
-    q01 = XmonQubit(0, 1)
-    q10 = XmonQubit(1, 0)
-    q11 = XmonQubit(1, 1)
-    q02 = XmonQubit(0, 2)
-    q12 = XmonQubit(1, 2)
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q10 = GridQubit(1, 0)
+    q11 = GridQubit(1, 1)
+    q02 = GridQubit(0, 2)
+    q12 = GridQubit(1, 2)
     device = _create_device([q00, q01, q10, q11, q02, q12])
     search = AnnealSequenceSearch(device, seed=0xF00D0008)
     with mock.patch.object(search, '_force_edge_active') as force_edge_active:
@@ -185,8 +186,8 @@ def test_force_edge_active_move_calls_force_edge_active():
 
 
 def test_force_edge_active_creates_valid_solution_different_sequnces():
-    q00, q10, q20, q30 = [XmonQubit(x, 0) for x in range(4)]
-    q01, q11, q21, q31 = [XmonQubit(x, 1) for x in range(4)]
+    q00, q10, q20, q30 = [GridQubit(x, 0) for x in range(4)]
+    q01, q11, q21, q31 = [GridQubit(x, 1) for x in range(4)]
     qubits = [q00, q10, q20, q30, q01, q11, q21, q31]
     search = AnnealSequenceSearch(_create_device(qubits), seed=0xF00D0009)
 
@@ -222,8 +223,8 @@ def test_force_edge_active_creates_valid_solution_different_sequnces():
 
 
 def test_force_edge_active_creates_valid_solution_single_sequence():
-    q00, q10, q20, q30 = [XmonQubit(x, 0) for x in range(4)]
-    q01, q11, q21, q31 = [XmonQubit(x, 1) for x in range(4)]
+    q00, q10, q20, q30 = [GridQubit(x, 0) for x in range(4)]
+    q01, q11, q21, q31 = [GridQubit(x, 1) for x in range(4)]
     c = [q00, q10, q20, q30, q01, q11, q21, q31]
     search = AnnealSequenceSearch(_create_device(c), seed=0xF00D0010)
 
@@ -311,15 +312,15 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
 
 
 def test_create_initial_solution_creates_valid_solution():
-    def check_chip(qubits: List[XmonQubit]):
+    def check_chip(qubits: List[GridQubit]):
         _verify_valid_state(
             qubits,
             AnnealSequenceSearch(
                 _create_device(qubits),
                 seed=0xF00D0011)._create_initial_solution())
 
-    q00, q01, q02 = [XmonQubit(0, x) for x in range(3)]
-    q10, q11, q12 = [XmonQubit(1, x) for x in range(3)]
+    q00, q01, q02 = [GridQubit(0, x) for x in range(3)]
+    q10, q11, q12 = [GridQubit(1, x) for x in range(3)]
 
     check_chip([q00, q10])
     check_chip([q00, q10, q01])
@@ -332,8 +333,8 @@ def test_create_initial_solution_creates_valid_solution():
 
 
 def test_normalize_edge_normalizes():
-    q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
-    q10, q11 = XmonQubit(1, 0), XmonQubit(1, 1)
+    q00, q01 = GridQubit(0, 0), GridQubit(0, 1)
+    q10, q11 = GridQubit(1, 0), GridQubit(1, 1)
     search = AnnealSequenceSearch(_create_device([]), seed=0xF00D0012)
 
     assert search._normalize_edge((q00, q01)) == (q00, q01)
@@ -347,7 +348,7 @@ def test_normalize_edge_normalizes():
 
 
 def test_choose_random_edge_chooses():
-    q00, q11, q22 = [XmonQubit(x, x) for x in range(3)]
+    q00, q11, q22 = [GridQubit(x, x) for x in range(3)]
     e0, e1, e2 = (q00, q11), (q11, q22), (q22, q00)
     search = AnnealSequenceSearch(_create_device([]), seed=0xF00D0013)
     assert search._choose_random_edge(set()) is None
@@ -355,7 +356,7 @@ def test_choose_random_edge_chooses():
     assert search._choose_random_edge({e0, e1, e2}) in [e0, e1, e2]
 
 
-def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
+def _verify_valid_state(qubits: List[GridQubit], state: _STATE):
     seqs, edges = state
     search = AnnealSequenceSearch(_create_device(qubits), seed=0xF00D0014)
     c_adj = chip_as_adjacency_list(_create_device(qubits))
@@ -387,13 +388,14 @@ def _verify_valid_state(qubits: List[XmonQubit], state: _STATE):
 
 @mock.patch('cirq.line.placement.anneal.AnnealSequenceSearch')
 def test_anneal_search_method_calls(search):
-    q00, q01 = XmonQubit(0, 0), XmonQubit(0, 1)
+    q00, q01 = GridQubit(0, 0), GridQubit(0, 1)
     device = _create_device([q00, q01])
+    length = 1
     seed = 1
     search_instance = search.return_value
 
-    method = AnnealSequenceSearchMethod(None, seed)
-    method.place_line(device)
+    method = AnnealSequenceSearchStrategy(None, seed)
+    method.place_line(device, length)
 
     search.assert_called_once_with(device, seed)
     search_instance.search.assert_called_once_with(None)

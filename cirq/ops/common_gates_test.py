@@ -160,7 +160,7 @@ def test_runtime_types_of_rot_gates():
         ext = cirq.Extensions()
 
         p = gate_type(half_turns=Symbol('a'))
-        assert p.try_cast_to(cirq.KnownMatrixGate, ext) is None
+        assert p.try_cast_to(cirq.KnownMatrix, ext) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
@@ -172,7 +172,7 @@ def test_runtime_types_of_rot_gates():
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
-        assert c.try_cast_to(cirq.KnownMatrixGate, ext) is c
+        assert c.try_cast_to(cirq.KnownMatrix, ext) is c
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
         assert c.try_cast_to(cirq.BoundedEffect, ext) is c
@@ -223,10 +223,17 @@ def test_text_diagrams():
         cirq.H(a),
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
+
     assert circuit.to_text_diagram().strip() == """
 a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
       │                     │   │   │       │       │
 b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+    """.strip()
+
+    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
+      |                        |   |   |       |       |
+b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
     """.strip()
 
 

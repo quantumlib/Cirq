@@ -7,8 +7,8 @@ calling the gate on the qubits.  The object created by such calls
 is an ``Operation``.
 ```python
 from cirq.ops import CNOT
-from cirq.google import XmonQubit
-q0, q1 = (XmonQubit(0, 0), XmonQubit(0, 1))
+from cirq.devices import GridQubit
+q0, q1 = (GridQubit(0, 0), GridQubit(0, 1))
 print(CNOT.on(q0, q1))
 print(CNOT(q0, q1))
 # prints
@@ -67,13 +67,13 @@ print(sqrt_x.matrix())
 The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
 Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the intermediate values normalizing rotation angles into a canonical range.
 
-#### KnownMatrixGate
+#### KnownMatrix
 
-We've seen this above.  These are ``Gates`` which implement
-the ``matrix`` method. This returns a numpy ``ndarray`` matrix
-which is the unitary gate for this ``Gate``.
+We've seen this above.
+These are ``Gate`` or ``Operation`` instances which implement the ``matrix`` method.
+This returns a numpy ``ndarray`` matrix which is the unitary gate for the gate/operation.
 
-#### CompositeGate
+#### CompositeGate and CompositeOperation
 
 A ``CompositeGate`` is a gate which consists of multiple gates
 that can be applied to a given set of qubits.  This is a manner
@@ -90,17 +90,17 @@ take an ``Extension`` which allows for overriding the
 ``Simulators`` where an optional extension can be supplied
 that can be used to override the CompositeGate.
 
-#### TextDiagrammableGate
+A ``CompositeOperation`` is just like a ``CompositeGate``, except it already knows the qubits it should be applied to.
 
-Text diagrams of ``Circuits`` are actually quite useful for
-visualizing the moment structure of a ``Circuit``. Gates that
-implement this feature can specify compact representations to
-use in the diagram (e.g. '×' instead of 'SWAP').
+#### TextDiagrammable
+
+Text diagrams of ``Circuits`` are actually quite useful for visualizing the moment structure of a ``Circuit``.
+Gates that implement this feature can specify compact representations to use in the diagram (e.g. '×' instead of 'SWAP').
 
 ### XmonGates
 
-Google's Xmon qubits support a specific gate set. Gates
-in this gate set operate on ``XmonQubit``s, which are qubits
+Google's Xmon devices support a specific gate set. Gates
+in this gate set operate on ``GridQubit``s, which are qubits
 arranged on a square grid and which have an ``x`` and ``y``
 coordinate.
 
