@@ -16,6 +16,7 @@
 import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.grover
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
@@ -75,3 +76,8 @@ def test_example_runs_quantum_fourier_transform():
 
 def test_example_runs_bcs_mean_field():
     examples.bcs_mean_field.main()
+
+
+def test_example_runs_grover():
+    examples.grover.main()
+

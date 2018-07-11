@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements the inverse() method of a CompositeGate & ReversibleEffect."""
+"""Implements the inverse method of a CompositeOperation & ReversibleEffect."""
 from typing import TypeVar, Generic, cast
 
 from cirq import abc
@@ -21,28 +21,26 @@ from cirq.ops import gate_features, op_tree, raw_types
 
 
 def _reverse_operation(operation: raw_types.Operation,
-                       extensions: Extensions) -> raw_types.Operation:
+                       ext: Extensions) -> raw_types.Operation:
     """Returns the inverse of an operation, if possible.
 
     Args:
         operation: The operation to reverse.
+        ext: Used when casting the operation into a reversible effect.
 
     Returns:
         An operation on the same qubits but with the inverse gate.
 
     Raises:
-        ValueError: The operation's gate isn't reversible.
+        TypeError: The operation isn't reversible.
     """
-    gate = extensions.try_cast(gate_features.ReversibleEffect, operation.gate)
-    if gate is None:
-        raise ValueError('Not reversible: {}'.format(operation))
-    return raw_types.Operation(cast(raw_types.Gate, gate.inverse()),
-                               operation.qubits)
+    reversible_op = ext.cast(gate_features.ReversibleEffect, operation)
+    return cast(raw_types.Operation, reversible_op.inverse())
 
 
-def inverse_of_invertible_op_tree(root: op_tree.OP_TREE,
-                                  extensions: Extensions = None
-                                  ) -> op_tree.OP_TREE:
+def inverse(root: op_tree.OP_TREE,
+            extensions: Extensions = None
+            ) -> op_tree.OP_TREE:
     """Generates OP_TREE inverses.
 
     Args:
@@ -84,5 +82,4 @@ class _ReversedReversibleCompositeGate(Generic[TOriginal],
         return self.forward_form
 
     def default_decompose(self, qubits):
-        return inverse_of_invertible_op_tree(
-            self.forward_form.default_decompose(qubits))
+        return inverse(self.forward_form.default_decompose(qubits))

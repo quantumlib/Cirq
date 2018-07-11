@@ -22,7 +22,6 @@ from cirq.devices import GridQubit
 from cirq.google import (
     XmonGate, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
-from cirq.ops import KnownMatrixGate, ReversibleEffect
 from cirq.study import ParamResolver
 from cirq.value import Symbol
 
@@ -212,8 +211,9 @@ def test_cz_to_proto():
 
 
 def test_cz_potential_implementation():
-    assert not cirq.can_cast(KnownMatrixGate, Exp11Gate(half_turns=Symbol('a')))
-    assert cirq.can_cast(KnownMatrixGate, Exp11Gate())
+    assert not cirq.can_cast(cirq.KnownMatrix,
+                             Exp11Gate(half_turns=Symbol('a')))
+    assert cirq.can_cast(cirq.KnownMatrix, Exp11Gate())
 
 
 def test_cz_parameterize():
@@ -313,10 +313,11 @@ def test_w_to_proto():
 
 
 def test_w_potential_implementation():
-    assert not cirq.can_cast(KnownMatrixGate, ExpWGate(half_turns=Symbol('a')))
-    assert not cirq.can_cast(ReversibleEffect, ExpWGate(half_turns=Symbol('a')))
-    assert cirq.can_cast(KnownMatrixGate, ExpWGate())
-    assert cirq.can_cast(ReversibleEffect, ExpWGate())
+    assert not cirq.can_cast(cirq.KnownMatrix, ExpWGate(half_turns=Symbol('a')))
+    assert not cirq.can_cast(cirq.ReversibleEffect,
+                             ExpWGate(half_turns=Symbol('a')))
+    assert cirq.can_cast(cirq.KnownMatrix, ExpWGate())
+    assert cirq.can_cast(cirq.ReversibleEffect, ExpWGate())
 
 
 def test_w_parameterize():
@@ -347,17 +348,17 @@ def test_has_inverse():
 def test_measure_key_on():
     q = GridQubit(0, 0)
 
-    assert XmonMeasurementGate(key='').on(q) == cirq.Operation(
+    assert XmonMeasurementGate(key='').on(q) == cirq.GateOperation(
         gate=XmonMeasurementGate(key=''),
         qubits=(q,))
-    assert XmonMeasurementGate(key='a').on(q) == cirq.Operation(
+    assert XmonMeasurementGate(key='a').on(q) == cirq.GateOperation(
         gate=XmonMeasurementGate(key='a'),
         qubits=(q,))
 
 
 def test_symbol_diagrams():
-    q00 = cirq.devices.GridQubit(0, 0)
-    q01 = cirq.devices.GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a'),
                              half_turns=cirq.Symbol('b')).on(q00),
@@ -372,7 +373,7 @@ def test_symbol_diagrams():
 
 
 def test_z_diagram_chars():
-    q = cirq.devices.GridQubit(0, 1)
+    q = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
         cirq.google.ExpZGate().on(q),
         cirq.google.ExpZGate(half_turns=0.5).on(q),
@@ -383,4 +384,17 @@ def test_z_diagram_chars():
     )
     assert c.to_text_diagram() == """
 (0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
+    """.strip()
+
+
+def test_w_diagram_chars():
+    q = cirq.GridQubit(0, 1)
+    c = cirq.Circuit.from_ops(
+        cirq.google.ExpWGate(axis_half_turns=0).on(q),
+        cirq.google.ExpWGate(axis_half_turns=0.25).on(q),
+        cirq.google.ExpWGate(axis_half_turns=0.5).on(q),
+        cirq.google.ExpWGate(axis_half_turns=cirq.Symbol('a')).on(q),
+    )
+    assert c.to_text_diagram() == """
+(0, 1): ───X───W(0.25)───Y───W(a)───
     """.strip()

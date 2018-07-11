@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast
+from typing import Iterable, cast, Optional, List
 
 from cirq import ops
 from cirq.devices import Device
@@ -57,15 +57,17 @@ class XmonDevice(Device):
         return [e for e in possibles if e in self.qubits]
 
     def duration_of(self, operation):
-        g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
-        if isinstance(g, xmon_gates.Exp11Gate):
-            return self._exp_z_duration
-        if isinstance(g, xmon_gates.ExpWGate):
-            return self._exp_w_duration
-        if isinstance(g, xmon_gates.XmonMeasurementGate):
-            return self._measurement_duration
-        if isinstance(g, xmon_gates.ExpZGate):
-            return Duration()  # Z gates are performed in the control software.
+        if isinstance(operation, ops.GateOperation):
+            g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
+            if isinstance(g, xmon_gates.Exp11Gate):
+                return self._exp_z_duration
+            if isinstance(g, xmon_gates.ExpWGate):
+                return self._exp_w_duration
+            if isinstance(g, xmon_gates.XmonMeasurementGate):
+                return self._measurement_duration
+            if isinstance(g, xmon_gates.ExpZGate):
+                # Z gates are performed in the control software.
+                return Duration()
         raise ValueError('Unsupported gate type: {}'.format(repr(g)))
 
     def validate_gate(self, gate: ops.Gate):
@@ -78,16 +80,19 @@ class XmonDevice(Device):
                                  xmon_gates.ExpWGate,
                                  xmon_gates.XmonMeasurementGate,
                                  xmon_gates.ExpZGate)):
-            raise ValueError('Unsupported gate type: {}'.format(repr(gate)))
+            raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation):
+        if not isinstance(operation, ops.GateOperation):
+            raise ValueError('Unsupported operation: {!r}'.format(operation))
+
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
             if not isinstance(q, GridQubit):
-                raise ValueError('Unsupported qubit type: {}'.format(repr(q)))
+                raise ValueError('Unsupported qubit type: {!r}'.format(q))
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {}'.format(repr(q)))
+                raise ValueError('Qubit not on device: {!r}'.format(q))
 
         if (len(operation.qubits) == 2
                 and not isinstance(operation.gate,
@@ -95,11 +100,11 @@ class XmonDevice(Device):
             p, q = operation.qubits
             if not cast(GridQubit, p).is_adjacent(q):
                 raise ValueError(
-                    'Non-local interaction: {}.'.format(repr(operation)))
+                    'Non-local interaction: {!r}.'.format(operation))
 
     def check_if_exp11_operation_interacts(self,
-                                           exp11_op: ops.Operation,
-                                           other_op: ops.Operation) -> bool:
+                                           exp11_op: ops.GateOperation,
+                                           other_op: ops.GateOperation) -> bool:
         if isinstance(other_op.gate, xmon_gates.ExpZGate):
             return False
         # Adjacent ExpW operations may be doable.
@@ -145,16 +150,27 @@ class XmonDevice(Device):
             else:
                 previous_keys.add(operation.gate.key)
 
+    def at(self, row: int, col: int) -> Optional[GridQubit]:
+        """Returns the qubit at the given position, if there is one, else None.
+        """
+        q = GridQubit(row, col)
+        return q if q in self.qubits else None
+
+    def row(self, row: int) -> List[GridQubit]:
+        """Returns the qubits in the given row, in ascending order."""
+        return sorted(q for q in self.qubits if q.row == row)
+
+    def col(self, col: int) -> List[GridQubit]:
+        """Returns the qubits in the given column, in ascending order."""
+        return sorted(q for q in self.qubits if q.col == col)
+
     def __str__(self):
         diagram = TextDiagramDrawer()
 
         for q in self.qubits:
             diagram.write(q.col, q.row, str(q))
             for q2 in self.neighbors_of(q):
-                if q2.col != q.col:
-                    diagram.horizontal_line(q.row, q.col, q2.col)
-                else:
-                    diagram.vertical_line(q.col, q.row, q2.row)
+                diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
         return diagram.render(
             horizontal_spacing=3,

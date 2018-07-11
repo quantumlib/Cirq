@@ -1,3 +1,4 @@
+-r cirq/contrib/contrib-requirements.txt
 -r runtime-requirements.txt
 
 3to2~=1.1

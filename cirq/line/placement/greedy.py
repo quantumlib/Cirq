@@ -219,7 +219,8 @@ class MinimalConnectivityGreedySequenceSearch(GreedySequenceSearch):
         for m in self._c_adj[qubit]:
             if m not in used:
                 connected = [k for k in self._c_adj[m] if k not in used]
-                if best is None or best_size > len(connected):
+                if best is None or best_size == 0 or best_size > len(
+                        connected) > 0:
                     best = m
                 best_size = len(connected)
         return best

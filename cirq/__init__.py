@@ -43,6 +43,7 @@ from cirq.circuits import (
 
 from cirq.devices import (
     Device,
+    GridQubit,
     UnconstrainedDevice,
 )
 
@@ -96,6 +97,7 @@ from cirq.ops import (
     CNOT,
     CNotGate,
     CompositeGate,
+    CompositeOperation,
     ControlledGate,
     CSWAP,
     CZ,
@@ -105,13 +107,14 @@ from cirq.ops import (
     FREDKIN,
     freeze_op_tree,
     Gate,
+    GateOperation,
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse_of_invertible_op_tree,
+    inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrixGate,
+    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -123,7 +126,7 @@ from cirq.ops import (
     ReversibleCompositeGate,
     ReversibleEffect,
     ParameterizableEffect,
-    PhaseableGate,
+    PhaseableEffect,
     QubitId,
     Rot11Gate,
     RotXGate,
@@ -135,8 +138,9 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
-    TextDiagrammableGate,
-    TextDiagramSymbolArgs,
+    TextDiagrammable,
+    TextDiagramInfo,
+    TextDiagramInfoArgs,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -153,6 +157,7 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
+    Linspace,
     ParamResolver,
     Points,
     Sweep,

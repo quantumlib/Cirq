@@ -17,14 +17,22 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Optional, Sequence, Tuple, Type, Union, Iterable, TypeVar
+from typing import Optional, Sequence, Tuple, Iterable, TypeVar, Any
 
 import numpy as np
 
-from cirq import abc, value
+from cirq import abc
 from cirq.ops import op_tree
 from cirq.ops import raw_types
 from cirq.study import ParamResolver
+
+
+class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
+    """Indicates operations should be equal under some qubit permutations."""
+
+    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+        """Returns a key that differs between non-interchangeable qubits."""
+        return 0
 
 
 class ReversibleEffect(metaclass=abc.ABCMeta):
@@ -84,8 +92,16 @@ class ExtrapolatableEffect(ReversibleEffect,
         return self.extrapolate_effect(-1)
 
 
-class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate with a known decomposition into multiple simpler gates."""
+class CompositeOperation(metaclass=abc.ABCMeta):
+    """An operation with a known decomposition into simpler operations."""
+
+    @abc.abstractmethod
+    def default_decompose(self) -> op_tree.OP_TREE:
+        """Yields simpler operations for performing the receiving operation."""
+
+
+class CompositeGate(metaclass=abc.ABCMeta):
+    """A gate with a known decomposition into simpler gates."""
 
     @abc.abstractmethod
     def default_decompose(
@@ -93,60 +109,35 @@ class CompositeGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """Yields operations for performing this gate on the given qubits.
 
         Args:
-            qubits: The qubits the operation should be applied to.
+            qubits: The qubits the gate should be applied to.
         """
 
-    @classmethod
-    def from_gates(cls: Type,
-        gates: Union[Sequence[raw_types.Gate], Sequence[
-            Tuple[raw_types.Gate, Tuple[int]]]]) -> 'CompositeGate':
-        """Returns a CompositeGate which decomposes into the given gates.
 
-        Args:
-            gates: Either a sequence of gates or a sequences of (gate, indices)
-                tuples, where indices is a tuple of qubit indices (ints). The
-                first is used when decomposing a gate into a series of gates
-                that all act on the same number of qubits. The second is used
-                when decomposing a gate into a series of gates that may act on
-                differing number of qubits. In this later case the indices
-                is a tuple of qubit indices, describing which qubit the gate
-                acts on.
-
-        Returns:
-            A CompositeGate with a default_decompose that applies the
-            given gates in sequence.
-        """
-        return _CompositeGateImpl(gates)
-
-
-class _CompositeGateImpl(CompositeGate):
-    """Implementation of CompositeGate which uses specific sequence of gates."""
-
-    def __init__(self, gates: Union[Sequence[raw_types.Gate], Sequence[
-        Tuple[raw_types.Gate, Tuple[int]]]]) -> None:
-        self.gates = gates
-
-    def default_decompose(
-        self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
-        decomposition = []
-        for x in self.gates:
-            if isinstance(x, raw_types.Gate):
-                decomposition.append(x(*qubits))
-            else:
-                gate, indices = x
-                decomposition.append(gate(*map(qubits.__getitem__, indices)))
-        return decomposition
-
-
-class KnownMatrixGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose constant non-parameterized effect has a known matrix."""
+class KnownMatrix(metaclass=abc.ABCMeta):
+    """An effect that can be described by a matrix."""
 
     @abc.abstractmethod
     def matrix(self) -> np.ndarray:
-        """The unitary matrix of the operation this gate applies."""
+        """The unitary matrix of the gate/operation.
+
+        The matrix order is implicit for both gates and operations. For a gate,
+        the matrix must be in order with respect to the list of qubits that the
+        gate is applied to. For an operation, the order must be with respect to
+        its qubits attribute. The qubit-to-amplitude order mapping matches the
+        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        than the qubit B.
+
+        For example, when applying a CNOT gate the control qubit goes first and
+        so the CNOT gate's matrix is:
+
+            1 _ _ _
+            _ 1 _ _
+            _ _ _ 1
+            _ _ 1 _
+        """
 
 
-class TextDiagramSymbolArgs:
+class TextDiagramInfoArgs:
     """
     Attributes:
         known_qubits: The qubits the gate is being applied to. None means this
@@ -163,7 +154,7 @@ class TextDiagramSymbolArgs:
             the text diagram. None means use full precision.
     """
 
-    UNINFORMED_DEFAULT = None  # type: TextDiagramSymbolArgs
+    UNINFORMED_DEFAULT = None  # type: TextDiagramInfoArgs
 
     def __init__(self,
                  known_qubits: Optional[Tuple[raw_types.QubitId, ...]],
@@ -176,51 +167,78 @@ class TextDiagramSymbolArgs:
         self.precision = precision
 
 
-TextDiagramSymbolArgs.UNINFORMED_DEFAULT = TextDiagramSymbolArgs(
+TextDiagramInfoArgs.UNINFORMED_DEFAULT = TextDiagramInfoArgs(
     known_qubits=None,
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=3)
 
 
-class TextDiagrammableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate which can be nicely represented in a text diagram."""
+class TextDiagramInfo:
+    def __init__(self,
+                 wire_symbols: Tuple[str, ...],
+                 exponent: Any = 1) -> None:
+        """
+        Args:
+            wire_symbols: The symbols that should be shown on the qubits
+                affected by this operation. Must match the number of qubits that
+                the operation is applied to.
+            exponent: An optional convenience value that will be appended onto
+                an operation's final gate symbol with a caret in front
+                (unless it's equal to 1). For example, the square root of X gate
+                has a text diagram exponent of 0.5 and symbol of 'X' so it is
+                drawn as 'X^0.5'.
+        """
+        self.wire_symbols = wire_symbols
+        self.exponent = exponent
 
-    # noinspection PyMethodMayBeStatic
-    def text_diagram_exponent(self) -> Union[float, value.Symbol]:
-        """The exponent to modify the gate symbol with. 1 means no modifier."""
-        return 1
+    def _eq_tuple(self):
+        return TextDiagramInfo, self.wire_symbols, self.exponent
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
+
+    def __repr__(self):
+        return 'TextDiagramInfo(wire_symbols={!r}, exponent={!r})'.format(
+            self.wire_symbols, self.exponent)
+
+
+class TextDiagrammable(metaclass=abc.ABCMeta):
+    """A thing which can be printed in a text diagram."""
 
     @abc.abstractmethod
-    def text_diagram_wire_symbols(self, args: TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        """The symbols that should be shown on the gate's qubits (in order).
-
-        If the gate always acts on the same number of qubits, then the size
-        of the returned tuple should be equal to this number of qubits.
-        If the gate acts on a variable number of qubits, then a single
-        symbol should be used, and this will be repeated across the operation.
+    def text_diagram_info(self, args: TextDiagramInfoArgs) -> TextDiagramInfo:
+        """Describes how to draw something in a text diagram.
 
         Args:
-            args: Value class encapsulating the various symbol options, such as
-                whether or not to use unicode characters.
+            args: A TextDiagramInfoArgs instance encapsulating various pieces of
+                information (e.g. how many qubits are we being applied to) as
+                well as user options (e.g. whether to avoid unicode characters).
 
         Returns:
-             A tuple containing symbols to place on each of the qubit wires
-             touched by the gate.
+             A TextDiagramInfo instance describing what to print.
         """
 
 
-TSelf_PhaseableGate = TypeVar('TSelf_PhaseableGate', bound='PhaseableGate')
+TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect',
+                                bound='PhaseableEffect')
 
 
-class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate whose effect can be phased around the Z axis of target qubits."""
+class PhaseableEffect(metaclass=abc.ABCMeta):
+    """An effect that can be phased around the Z axis of target qubits."""
 
     @abc.abstractmethod
-    def phase_by(self: TSelf_PhaseableGate,
+    def phase_by(self: TSelf_PhaseableEffect,
                  phase_turns: float,
-                 qubit_index: int) -> TSelf_PhaseableGate:
+                 qubit_index: int) -> TSelf_PhaseableEffect:
         """Returns a phased version of the effect.
 
         For example, an X gate phased by 90 degrees would be a Y gate.
@@ -231,7 +249,7 @@ class PhaseableGate(raw_types.Gate, metaclass=abc.ABCMeta):
             qubit_index: The index of the target qubit the phasing applies to.
 
         Returns:
-            The phased gate.
+            The phased gate or operation.
         """
 
 

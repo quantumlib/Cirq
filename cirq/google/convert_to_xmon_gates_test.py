@@ -17,7 +17,7 @@ import numpy as np
 import cirq
 
 
-class OtherX(cirq.KnownMatrixGate, cirq.CompositeGate):
+class OtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
     def matrix(self):
         return np.array([[0, 1], [1, 0]])
 
@@ -25,7 +25,7 @@ class OtherX(cirq.KnownMatrixGate, cirq.CompositeGate):
         return OtherOtherX().on(*qubits)
 
 
-class OtherOtherX(cirq.KnownMatrixGate, cirq.CompositeGate):
+class OtherOtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
     def matrix(self):
         return np.array([[0, 1], [1, 0]])
 
@@ -34,7 +34,7 @@ class OtherOtherX(cirq.KnownMatrixGate, cirq.CompositeGate):
 
 
 def test_avoids_infinite_cycle_when_matrix_available():
-    q = cirq.devices.GridQubit(0, 0)
+    q = cirq.GridQubit(0, 0)
     c = cirq.Circuit.from_ops(OtherX().on(q), OtherOtherX().on(q))
     cirq.google.ConvertToXmonGates().optimize_circuit(c)
     assert c.to_text_diagram() == '(0, 0): ───X───X───'

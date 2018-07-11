@@ -13,19 +13,18 @@
 # limitations under the License.
 
 """Common quantum gates that target three qubits."""
-from typing import Tuple
 
 import numpy as np
 
 from cirq import linalg
-from cirq.ops import gate_features, raw_types, common_gates
+from cirq.ops import gate_features, common_gates
 
 
-class _CCZGate(gate_features.TextDiagrammableGate,
+class _CCZGate(gate_features.ThreeQubitGate,
+               gate_features.TextDiagrammable,
                gate_features.CompositeGate,
-               gate_features.ThreeQubitGate,
-               gate_features.KnownMatrixGate,
-               raw_types.InterchangeableQubitsGate):
+               gate_features.KnownMatrix,
+               gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z."""
 
     def default_decompose(self, qubits):
@@ -62,20 +61,19 @@ class _CCZGate(gate_features.TextDiagrammableGate,
     def matrix(self):
         return np.diag([1, 1, 1, 1, 1, 1, 1, -1])
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return '@', '@', '@'
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(('@', '@', '@'))
 
     def __repr__(self) -> str:
         return 'CCZ'
 
 
-class _CCXGate(gate_features.TextDiagrammableGate,
+class _CCXGate(gate_features.ThreeQubitGate,
+               gate_features.TextDiagrammable,
                gate_features.CompositeGate,
-               gate_features.ThreeQubitGate,
-               gate_features.KnownMatrixGate,
-               raw_types.InterchangeableQubitsGate):
+               gate_features.KnownMatrix,
+               gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -91,20 +89,19 @@ class _CCXGate(gate_features.TextDiagrammableGate,
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]))
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
-        return '@', '@', 'X'
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(('@', '@', 'X'))
 
     def __repr__(self) -> str:
         return 'TOFFOLI'
 
 
-class _CSwapGate(gate_features.TextDiagrammableGate,
+class _CSwapGate(gate_features.ThreeQubitGate,
+                 gate_features.TextDiagrammable,
                  gate_features.CompositeGate,
-                 gate_features.ThreeQubitGate,
-                 gate_features.KnownMatrixGate,
-                 raw_types.InterchangeableQubitsGate):
+                 gate_features.KnownMatrix,
+                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -131,12 +128,11 @@ class _CSwapGate(gate_features.TextDiagrammableGate,
                                  np.array([[0, 1], [1, 0]]),
                                  np.diag([1]))
 
-    def text_diagram_wire_symbols(self,
-                                  args: gate_features.TextDiagramSymbolArgs
-                                  ) -> Tuple[str, ...]:
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
         if not args.use_unicode_characters:
-            return '@', 'swap', 'swap'
-        return '@', '×', '×'
+            return gate_features.TextDiagramInfo(('@', 'swap', 'swap'))
+        return gate_features.TextDiagramInfo(('@', '×', '×'))
 
     def __repr__(self) -> str:
         return 'FREDKIN'

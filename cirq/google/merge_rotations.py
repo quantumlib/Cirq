@@ -59,28 +59,28 @@ class MergeRotations(PointOptimizer):
             self,
             circuit: Circuit,
             index: Optional[int],
-            qubit: ops.QubitId) -> Tuple[List[int], List[ops.Gate]]:
-        gates = []
-        indices = []
+            qubit: ops.QubitId) -> Tuple[List[int], List[ops.KnownMatrix]]:
+        operations = []  # type: List[ops.KnownMatrix]
+        indices = []  # type: List[int]
         while index is not None:
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            gate = self.extensions.try_cast(ops.KnownMatrixGate, op.gate)
-            if gate is None:
+            operation = self.extensions.try_cast(ops.KnownMatrix, op)
+            if operation is None:
                 break
             indices.append(index)
-            gates.append(gate)
+            operations.append(operation)
             index = circuit.next_moment_operating_on([qubit], index + 1)
-        return indices, gates
+        return indices, operations
 
     def _merge_rotations(
             self,
             qubit: ops.QubitId,
-            gates: Iterable[ops.KnownMatrixGate]
+            operations: Iterable[ops.KnownMatrix]
     ) -> List[ops.Operation]:
         matrix = np.eye(2, dtype=np.complex128)
-        for op in gates:
+        for op in operations:
             matrix = np.dot(op.matrix(), matrix)
 
         out_gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
