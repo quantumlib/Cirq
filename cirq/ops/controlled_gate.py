@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast
+from typing import Optional, TypeVar, Type, cast, Union
 
 import numpy as np
 
@@ -24,14 +24,22 @@ T_DESIRED = TypeVar('T_DESIRED')
 POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
-    gate_features.KnownMatrixGate,
+    gate_features.KnownMatrix,
     gate_features.ParameterizableEffect,
     gate_features.ReversibleEffect,
     gate_features.TextDiagrammable,
 )
 
 
-class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
+class ControlledGate(raw_types.Gate,
+                     extension.PotentialImplementation[Union[
+                         gate_features.BoundedEffect,
+                         gate_features.ExtrapolatableEffect,
+                         gate_features.KnownMatrix,
+                         gate_features.ParameterizableEffect,
+                         gate_features.ReversibleEffect,
+                         gate_features.TextDiagrammable,
+                     ]]):
     """Augments existing gates with a control qubit."""
 
     def __init__(self,
@@ -45,8 +53,8 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
             default_extensions: The extensions method that should be used when
                 determining if the controlled gate supports certain gate
                 features. For example, if this extensions instance is able to
-                cast sub_gate to a KnownMatrixGate then the controlled gate
-                can also be cast to a KnownMatrixGate. When this value is None,
+                cast sub_gate to a KnownMatrix then the controlled gate
+                can also be cast to a KnownMatrix. When this value is None,
                 an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
@@ -84,7 +92,7 @@ class ControlledGate(raw_types.Gate, extension.PotentialImplementation):
         return super().try_cast_to(desired_type, ext)
 
     def matrix(self) -> np.ndarray:
-        cast_sub_gate = self._cast_sub_gate(gate_features.KnownMatrixGate)
+        cast_sub_gate = self._cast_sub_gate(gate_features.KnownMatrix)
         sub_matrix = cast_sub_gate.matrix()
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 

@@ -129,6 +129,8 @@ def test_run(scheduler):
 
     simulator = xmon_simulator.XmonSimulator()
     result = run(simulator, circuit, scheduler)
+    assert result.measurements['a'].dtype == bool
+    assert result.measurements['b'].dtype == bool
     np.testing.assert_equal(result.measurements,
                             {'a': [[True]], 'b': [[False]]})
 
@@ -675,7 +677,7 @@ def test_extensions():
     # We test that an extension is being applied, by created an incorrect
     # gate with an extension.
 
-    class WrongH(CompositeGate):
+    class WrongH(cirq.Gate, cirq.CompositeGate):
         def default_decompose(self,
                               qubits: Sequence[cirq.QubitId]
                               ) -> cirq.OP_TREE:

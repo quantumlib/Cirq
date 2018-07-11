@@ -168,6 +168,14 @@ def test_without_operations_touching():
                     ops.X(c)]).without_operations_touching([a, c]) ==
             Moment())
 
+def test_copy():
+    a = ops.QubitId()
+    b = ops.QubitId()
+    original = Moment([ops.CZ(a, b)])
+    copy = original.__copy__()
+    assert original == copy
+    assert id(original) != id(copy)
+
 
 def test_qubits():
     a = ops.QubitId()

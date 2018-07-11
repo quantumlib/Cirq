@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements the inverse() method of a CompositeGate & ReversibleEffect."""
+"""Implements the inverse method of a CompositeOperation & ReversibleEffect."""
 from typing import TypeVar, Generic, cast
 
 from cirq import abc

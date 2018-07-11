@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Optional, Type, TypeVar, TYPE_CHECKING, Generic
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -22,11 +22,20 @@ if TYPE_CHECKING:
 T_DESIRED = TypeVar('T_DESIRED')
 
 
-class PotentialImplementation:
+T_AVAILABLE_UNION = TypeVar('T_AVAILABLE_UNION')
+
+
+class PotentialImplementation(Generic[T_AVAILABLE_UNION]):
     """For values that may or may not implement an interface / feature, but can
     determine if so at runtime.
 
     Extensions uses this as a fallback when trying to cast to a desired type.
+
+    TypeArgs:
+        T_AVAILABLE_UNION: A type or union of types that the child class may
+            implement. At the moment this is purely for documentation, with no
+            effect at runtime or when checking types.
+            TODO: use variadic type ( but github.com/python/typing/issues/193 )
     """
 
     def try_cast_to(self,
