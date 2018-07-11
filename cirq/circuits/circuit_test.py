@@ -1188,7 +1188,7 @@ def test_simple_circuits_to_unitary_matrix():
     # 2-qubit matrix matches when qubits in order.
     for expected in [np.diag([1, 1j, -1, -1j]), cirq.CNOT.matrix()]:
 
-        class Passthrough(cirq.KnownMatrix):
+        class Passthrough(cirq.Gate, cirq.KnownMatrix):
             def matrix(self):
                 return expected
 
