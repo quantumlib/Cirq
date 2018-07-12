@@ -63,8 +63,8 @@ def test_map_qubits():
     qubit_map = {q1: q2, q0: q3}
     before = PauliStringPhasor(PauliString({q0: Pauli.Z, q1: Pauli.Y}),
                                half_turns=0.1)
-    after  = PauliStringPhasor(PauliString({q3: Pauli.Z, q2: Pauli.Y}),
-                               half_turns=0.1)
+    after = PauliStringPhasor(PauliString({q3: Pauli.Z, q2: Pauli.Y}),
+                              half_turns=0.1)
     assert before.map_qubits(qubit_map) == after
 
 
@@ -84,14 +84,14 @@ def test_extrapolate_effect_with_symbol():
     eq.add_equality_group(
         PauliStringPhasor(PauliString({})) ** cirq.value.Symbol('b'))
     with pytest.raises(ValueError):
-        PauliStringPhasor(PauliString({}), half_turns=0.5
-                          ) ** cirq.value.Symbol('b')
+        _ = PauliStringPhasor(PauliString({}), half_turns=0.5
+                              ) ** cirq.value.Symbol('b')
     with pytest.raises(ValueError):
-        PauliStringPhasor(PauliString({}), half_turns=cirq.value.Symbol('a')
-                          ) ** 0.5
+        _ = PauliStringPhasor(PauliString({}), half_turns=cirq.value.Symbol('a')
+                              ) ** 0.5
     with pytest.raises(ValueError):
-        PauliStringPhasor(PauliString({}), half_turns=cirq.value.Symbol('a')
-                          ) ** cirq.value.Symbol('b')
+        _ = PauliStringPhasor(PauliString({}), half_turns=cirq.value.Symbol('a')
+                              ) ** cirq.value.Symbol('b')
 
 
 def test_inverse():

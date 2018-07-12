@@ -30,7 +30,7 @@ class UnrelatedType:
 
 
 class PotentialType(cirq.PotentialImplementation):
-    def try_cast_to(self, desired_type, ext):
+    def try_cast_to(self, desired_type, extensions):
         if desired_type is DesiredType:
             return DesiredType()
         return None
