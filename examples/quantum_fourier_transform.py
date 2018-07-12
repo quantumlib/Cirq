@@ -45,7 +45,7 @@ def main():
     # Create circuit
     qft_circuit = generate_2x2_grid_qft_circuit()
     print('Circuit:')
-    print(qft_circuit)    
+    print(qft_circuit)
     # Simulate and collect final_state
     simulator = cirq.google.XmonSimulator()
     result = simulator.simulate(qft_circuit)
