@@ -91,9 +91,7 @@ class _TestDevice(Device):
                    for p in other_op.qubits)
 
     def validate_circuit(self, circuit):
-        for moment in circuit:
-            for operation in moment.operations:
-                self.validate_operation(operation)
+        raise NotImplementedError()
 
     def validate_schedule(self, schedule):
         for scheduled_operation in schedule.scheduled_operations:

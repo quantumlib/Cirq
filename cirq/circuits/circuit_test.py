@@ -98,6 +98,20 @@ def test_append_multiple():
     ])
 
 
+def test_repr():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = Circuit([
+        Moment([cirq.H(a)]),
+        Moment([cirq.CZ(a, b)]),
+    ])
+    assert repr(c) == """
+Circuit([
+    Moment((GateOperation(H, (NamedQubit('a'),)),)),
+    Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
+    """.strip()
+
+
 def test_slice():
     a = cirq.QubitId()
     b = cirq.QubitId()
@@ -1317,6 +1331,11 @@ def test_items():
 
     c[:] = [m1]
     assert c == cirq.Circuit([m1])
+
+    with pytest.raises(TypeError):
+        c[:] = [m1, 1]
+    with pytest.raises(TypeError):
+        c[0] = 1
 
 
 def test_copy():
