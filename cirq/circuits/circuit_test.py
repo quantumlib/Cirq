@@ -1170,7 +1170,7 @@ def test_circuit_to_unitary_matrix():
     # Optionally don't ignoring terminal measurements.
     c = Circuit.from_ops(cirq.measure(a))
     with pytest.raises(TypeError, match="Terminal"):
-        c.to_unitary_matrix(ignore_terminal_measurements=False),
+        c.to_unitary_matrix(ignore_terminal_measurements=False)
 
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(cirq.measure(a), cirq.X(a))

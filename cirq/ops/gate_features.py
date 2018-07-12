@@ -324,7 +324,7 @@ class ParameterizableEffect(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def is_parameterized(self) -> bool:
         """Whether the effect is parameterized.
-        
+
         Returns True if the gate has any unresolved Symbols and False otherwise.
         """
 

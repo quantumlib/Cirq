@@ -24,13 +24,13 @@ def test_equals():
     eq.add_equality_group(Pauli.Y)
     eq.add_equality_group(Pauli.Z)
 
+
 def test_singletons():
     assert Pauli.XYZ[0] == Pauli.X
     assert Pauli.XYZ[1] == Pauli.Y
     assert Pauli.XYZ[2] == Pauli.Z
     assert len(Pauli.XYZ) == 3
-    with pytest.raises(TypeError):
-        Pauli(1, 2)
+
 
 def test_difference():
     assert Pauli.X - Pauli.X == 0
@@ -43,6 +43,7 @@ def test_difference():
     assert Pauli.Z - Pauli.Y == 1
     assert Pauli.Z - Pauli.Z == 0
 
+
 def test_gt():
     assert not Pauli.X > Pauli.X
     assert not Pauli.X > Pauli.Y
@@ -54,10 +55,12 @@ def test_gt():
     assert Pauli.Z > Pauli.Y
     assert not Pauli.Z > Pauli.Z
 
+
 @cirq.testing.only_test_in_python3
 def test_gt_other_type():
     with pytest.raises(TypeError):
-        Pauli.X > object()
+        _ = Pauli.X > object()
+
 
 def test_lt():
     assert not Pauli.X < Pauli.X
@@ -70,10 +73,12 @@ def test_lt():
     assert not Pauli.Z < Pauli.Y
     assert not Pauli.Z < Pauli.Z
 
+
 @cirq.testing.only_test_in_python3
 def test_lt_other_type():
     with pytest.raises(TypeError):
-        Pauli.X < object()
+        _ = Pauli.X < object()
+
 
 def test_addition():
     assert Pauli.X + -3 == Pauli.X
@@ -93,6 +98,7 @@ def test_addition():
     assert Pauli.Z + 1 == Pauli.X
     assert Pauli.Z + 2 == Pauli.Y
 
+
 def test_subtraction():
     assert Pauli.X - -3 == Pauli.X
     assert Pauli.X - -2 == Pauli.Z
@@ -111,15 +117,18 @@ def test_subtraction():
     assert Pauli.Z - 1 == Pauli.Y
     assert Pauli.Z - 2 == Pauli.X
 
+
 def test_str():
     assert str(Pauli.X) == 'X'
     assert str(Pauli.Y) == 'Y'
     assert str(Pauli.Z) == 'Z'
 
+
 def test_repr():
     assert repr(Pauli.X) == 'Pauli.X'
     assert repr(Pauli.Y) == 'Pauli.Y'
     assert repr(Pauli.Z) == 'Pauli.Z'
+
 
 def test_third():
     assert Pauli.X.third(Pauli.Y) == Pauli.Z
@@ -132,6 +141,7 @@ def test_third():
     assert Pauli.X.third(Pauli.X) == Pauli.X
     assert Pauli.Y.third(Pauli.Y) == Pauli.Y
     assert Pauli.Z.third(Pauli.Z) == Pauli.Z
+
 
 def test_commutes_with():
     assert Pauli.X.commutes_with(Pauli.X)

@@ -96,8 +96,8 @@ e: ───────────×───×───×───
 f: ───────────────×───────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
-    
-    
+
+
 def test_circular_shift_gate_wire_symbols():
     qubits = [cirq.NamedQubit(q) for q in 'xyz']
     circuit = cirq.Circuit.from_ops(CircularShiftGate(2)(*qubits))
