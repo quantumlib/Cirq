@@ -50,3 +50,21 @@ contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
 
 Of course, if this import style fundamentally cannot be used, do not let this block submitting
 a pull request for the code as we will definitely grant exceptions.
+
+#### Typing based import cycles
+
+An import cycle is where modules need to import each other (perhaps indirectly).
+Sometimes in order to add a type annotation you have to add an import which
+causes a cycle. To avoid this we use the `TYPE_CHECKING` constant provided 
+by `typing':
+```python
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import module.that.causes.cycle
+```
+Note that if you do this you will need to use the string version of the type,
+```python
+def my_func() -> 'module.that.causes.cycle.MyClass':
+    pass
+```
