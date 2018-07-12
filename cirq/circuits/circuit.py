@@ -19,6 +19,8 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
+from collections import defaultdict
+
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
     Optional, Sequence, Union, TYPE_CHECKING,
@@ -428,6 +430,52 @@ class Circuit(object):
             return end
 
         return self.insert(end, operations[op_index:])
+
+    def insert_at_frontier(self,
+                           operations: ops.OP_TREE,
+                           start: int,
+                           frontier: Dict[QubitId, int]=None
+                           ) -> Dict[QubitId, int]:
+        """Inserts operations inline at frontier."""
+        if frontier is None:
+            frontier = defaultdict(lambda: 0)
+        operations = tuple(ops.flatten_op_tree(operations))
+        if not operations:
+            return frontier
+        qubits = set(q for op in operations for q in op.qubits)
+        next_moments = {}
+        for q in qubits:
+            next_moment = self.next_moment_operating_on([q], start)
+            next_moments[q] = (len(self.moments) if next_moment is None else
+                               next_moment)
+        if any(frontier[q] > next_moments[q] for q in qubits):
+            raise ValueError('Frontier must be before the next moments.')
+
+        # schedule operations
+        schedule = {}
+        for op_index, op in enumerate(operations):
+            op_start = max(start, max(frontier[q] for q in op.qubits))
+            schedule[op_index] = op_start
+            for q in op.qubits:
+                frontier[q] = max(frontier[q], op_start + 1)
+
+        # insert new moments
+        n_new_moments = max(frontier[q] - next_moments[q] for q in qubits)
+        insert_index = min(next_moments.values())
+        self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
+        for q in frontier:
+            if (q not in qubits) and (frontier[q] > insert_index):
+                frontier[q] += n_new_moments
+
+        # insert operations
+        moment_to_ops = defaultdict(list) # type: Dict[int, ops.Operation]
+        for op_index, moment in schedule.items():
+            moment_to_ops[moment].append(operations[op_index])
+        for moment, new_ops in moment_to_ops.items():
+            self.moments[moment] = Moment(self.moments[moment].operations + 
+                                          tuple(new_ops))
+
+        return frontier
 
     def append(
             self,

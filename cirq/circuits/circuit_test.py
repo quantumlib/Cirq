@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
+
 import numpy as np
 import pytest
 
 import cirq
 from cirq.circuits.circuit import _operation_to_unitary_matrix
+from cirq.circuits.optimization_pass import (PointOptimizer,
+                                             PointOptimizationSummary)
 from cirq import Circuit, InsertStrategy, Moment
 
 
@@ -310,6 +314,99 @@ def test_insert_inline_near_start():
         Moment([cirq.Y(a)]),
         Moment(),
     ])
+
+def test_insert_at_frontier_init():
+    x = cirq.NamedQubit('x')
+    op = cirq.X(x)
+    circuit = Circuit.from_ops(op)
+    actual_frontier = circuit.insert_at_frontier(op, 3)
+    expected_circuit = Circuit([Moment([op]), Moment(), Moment(), Moment([op])])
+    assert circuit == expected_circuit
+    expected_frontier = defaultdict(lambda: 0)
+    expected_frontier[x] = 4
+    assert actual_frontier == expected_frontier
+
+    with pytest.raises(ValueError):
+        circuit = Circuit([Moment(), Moment([op])])
+        frontier = {x: 2}
+        circuit.insert_at_frontier(op, 0, frontier)
+
+def test_insert_at_frontier():
+
+    class Replacer(PointOptimizer):
+        def __init__(self, replacer=(lambda x: x)):
+            self.replacer = replacer
+
+        def optimization_at(self, circuit, index, op):
+            new_ops = self.replacer(op)
+            return PointOptimizationSummary(clear_span=1,
+                                            clear_qubits=op.qubits,
+                                            new_operations=new_ops)
+
+    replacer = lambda op: ((cirq.Z(op.qubits[0]),) * 2 + 
+                           (op, cirq.Y(op.qubits[0])))
+    prepend_two_Xs_append_one_Y = Replacer(replacer)
+    qubits = [cirq.NamedQubit(s) for s in 'abcdef']
+    a, b, c = qubits[:3]
+
+    circuit = Circuit([
+              Moment([cirq.CZ(a, b)]),
+              Moment([cirq.CZ(b, c)]),
+              Moment([cirq.CZ(a, b)])
+    ])
+
+    prepend_two_Xs_append_one_Y.optimize_circuit(circuit)
+
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───Z───Z───@───Y───────────────Z───Z───@───Y───
+              │                           │
+b: ───────────@───Z───Z───@───Y───────────@───────
+                          │
+c: ───────────────────────@───────────────────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+    prepender = lambda op: (cirq.X(op.qubits[0]),) * 3 + (op,)
+    prepend_3_Xs = Replacer(prepender)
+    circuit = Circuit([
+        Moment([cirq.CNOT(a, b)]),
+        Moment([cirq.CNOT(b, c)]),
+        Moment([cirq.CNOT(c, b)])
+    ])
+    prepend_3_Xs.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───X───X───X───@───────────────────────────────────
+                  │
+b: ───────────────X───X───X───X───@───────────────X───
+                                  │               │
+c: ───────────────────────────────X───X───X───X───@───
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+    duplicate = Replacer(lambda op: (op,) * 2)
+    circuit = Circuit([
+        Moment([cirq.CZ(qubits[j], qubits[j+1]) 
+                     for j in range(i % 2, 5, 2)]) 
+        for i in range(4)])
+
+    duplicate.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───@───@───────────@───@───────────
+      │   │           │   │
+b: ───@───@───@───@───@───@───@───@───
+              │   │           │   │
+c: ───@───@───@───@───@───@───@───@───
+      │   │           │   │
+d: ───@───@───@───@───@───@───@───@───
+              │   │           │   │
+e: ───@───@───@───@───@───@───@───@───
+      │   │           │   │
+f: ───@───@───────────@───@───────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
 
 
 def test_next_moment_operating_on():
