@@ -1,12 +1,13 @@
-Cirq
-====
+.. image:: docs/Cirq_logo_color.svg
+  :alt: Cirq
+  :width: 500px
+
+Cirq is a Python library for writing, manipulating, and optimizing quantum
+circuits and running them against quantum computers and simulators.
 
 .. image:: https://travis-ci.com/quantumlib/Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
   :target: https://travis-ci.com/quantumlib/Cirq
   :alt: Build Status
-
-Cirq is a Python library for writing, manipulating, and optimizing quantum
-circuits and running them against quantum computers and simulators.
 
 Installation
 ------------
