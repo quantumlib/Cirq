@@ -26,7 +26,9 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
-cirq_packages = ['cirq.' + package for package in find_packages(where='cirq')]
+cirq_packages = ['cirq'] + [
+    'cirq.' + package for package in find_packages(where='cirq')]
+
 
 setup(
     name='cirq',
