@@ -343,7 +343,7 @@ def test_insert_at_frontier():
                                             clear_qubits=op.qubits,
                                             new_operations=new_ops)
 
-    replacer = lambda op: ((cirq.Z(op.qubits[0]),) * 2 + 
+    replacer = lambda op: ((cirq.Z(op.qubits[0]),) * 2 +
                            (op, cirq.Y(op.qubits[0])))
     prepend_two_Xs_append_one_Y = Replacer(replacer)
     qubits = [cirq.NamedQubit(s) for s in 'abcdef']
@@ -387,8 +387,8 @@ c: ─────────────────────────�
 
     duplicate = Replacer(lambda op: (op,) * 2)
     circuit = Circuit([
-        Moment([cirq.CZ(qubits[j], qubits[j+1]) 
-                     for j in range(i % 2, 5, 2)]) 
+        Moment([cirq.CZ(qubits[j], qubits[j+1])
+                     for j in range(i % 2, 5, 2)])
         for i in range(4)])
 
     duplicate.optimize_circuit(circuit)
@@ -1241,7 +1241,7 @@ def test_circuit_to_unitary_matrix():
     # Optionally don't ignoring terminal measurements.
     c = Circuit.from_ops(cirq.measure(a))
     with pytest.raises(TypeError, match="Terminal"):
-        c.to_unitary_matrix(ignore_terminal_measurements=False),
+        c.to_unitary_matrix(ignore_terminal_measurements=False)
 
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(cirq.measure(a), cirq.X(a))

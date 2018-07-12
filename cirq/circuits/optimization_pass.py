@@ -141,3 +141,6 @@ class PointOptimizer(OptimizationPass):
                 circuit.insert_at_frontier(opt.new_operations, i, walls)
 
             i += 1
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)

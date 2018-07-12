@@ -472,7 +472,7 @@ class Circuit(object):
         for op_index, moment in schedule.items():
             moment_to_ops[moment].append(operations[op_index])
         for moment, new_ops in moment_to_ops.items():
-            self.moments[moment] = Moment(self.moments[moment].operations + 
+            self.moments[moment] = Moment(self.moments[moment].operations +
                                           tuple(new_ops))
 
         return frontier

@@ -1,6 +1,6 @@
 """Demonstrates Grover algorithm.
 
-The Grover algorithm takes a black-box oracle implementing a function 
+The Grover algorithm takes a black-box oracle implementing a function
 {f(x) = 1 if x==x', f(x) = 0 if x!= x'} and finds x' within a randomly
 ordered sequence of N items using O(sqrt(N)) operations and O(N log(N)) gates,
 with the probability p >= 2/3.
@@ -30,11 +30,13 @@ Found a match: True
 import random
 import cirq
 
+
 def set_io_qubits(qubit_count):
     """Add the specified number of input and output qubits."""
     input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)]
     output_qubit = cirq.GridQubit(qubit_count, 0)
     return (input_qubits, output_qubit)
+
 
 def make_oracle(input_qubits, output_qubit, x_bits):
     """Implement function {f(x) = 1 if x==x', f(x) = 0 if x!= x'}."""
@@ -75,8 +77,10 @@ def make_grover_circuit(input_qubits, output_qubit, oracle):
 
     return c
 
+
 def bitstring(bits):
     return ''.join(str(int(b)) for b in bits)
+
 
 def main():
     qubit_count = 2
@@ -109,6 +113,7 @@ def main():
     print('Most common bitstring: {}'.format(most_common_bitstring))
     print('Found a match: {}'.format(
         most_common_bitstring == bitstring(x_bits)))
+
 
 if __name__ == '__main__':
     main()

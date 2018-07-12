@@ -95,13 +95,7 @@ def test_point_optimizer_can_write_new_gates_inline():
         cirq.CNOT(z, y),
     )
 
-    print('*' * 60)
-    print(c)
-
-    ReplaceWithXGates().optimize_circuit(c)
-
-    print('*' * 60)
-    print(c)
+    ReplaceWithXGates()(c)
 
     actual_text_diagram = c.to_text_diagram().strip()
     expected_text_diagram = """
