@@ -28,7 +28,7 @@ class CircularShiftGate(cirq.Gate,
         swap_gate: the gate to use when decomposing.
     """
 
-    def __init__(self, 
+    def __init__(self,
                  shift: int,
                  swap_gate: Gate=SWAP) -> None:
         self.shift = shift
