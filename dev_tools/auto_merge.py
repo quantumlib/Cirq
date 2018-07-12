@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Iterable, Dict
 
 import json
 import os
@@ -22,6 +22,10 @@ class PullRequestDetails:
     @staticmethod
     def from_github(repo: GithubRepository,
                     pull_id: int) -> 'PullRequestDetails':
+        """
+        References:
+            https://developer.github.com/v3/pulls/#get-a-single-pull-request
+        """
         url = ("https://api.github.com/repos/{}/{}/pulls/{}"
                "?access_token={}".format(repo.organization,
                                          repo.name,
@@ -51,16 +55,17 @@ class PullRequestDetails:
                    for label in self.payload['labels'])
 
     @property
+    def marked_cla_no(self) -> bool:
+        return any(label['name'] == 'cla: no'
+                   for label in self.payload['labels'])
+
+    @property
     def pull_id(self) -> int:
         return self.payload['number']
 
     @property
     def branch_name(self) -> str:
         return self.payload['head']['ref']
-
-    @property
-    def branch_label(self) -> str:
-        return self.payload['head']['label']
 
     @property
     def base_branch_name(self) -> str:
@@ -80,6 +85,11 @@ class PullRequestDetails:
 
 
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
+    """
+    References:
+        https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
+    """
+
     url = ("https://api.github.com/repos/{}/{}/commits/{}/status"
            "?access_token={}".format(pr.repo.organization,
                                      pr.repo.name,
@@ -96,6 +106,10 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
 
 
 def get_pr_review_status(pr: PullRequestDetails) -> Any:
+    """
+    References:
+        https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
+    """
     url = ("https://api.github.com/repos/{}/{}/pulls/{}/reviews"
            "?access_token={}".format(pr.repo.organization,
                                      pr.repo.name,
@@ -119,7 +133,8 @@ def wait_a_tick():
 def wait_for_status(repo: GithubRepository,
                     pull_id: int,
                     prev_pr: Optional[PullRequestDetails],
-                    fail_if_same: bool) -> PullRequestDetails:
+                    fail_if_same: bool,
+                    ) -> PullRequestDetails:
     while True:
         pr = PullRequestDetails.from_github(repo, pull_id)
         if pr.payload['state'] != 'open':
@@ -161,10 +176,16 @@ def wait_for_status(repo: GithubRepository,
         return pr
 
 
-def get_refs(repo: GithubRepository) -> List[Any]:
-    url = ("https://api.github.com/repos/{}/{}/git/refs"
+def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
+    """
+    References:
+        https://developer.github.com/v3/git/refs/#get-a-reference
+    """
+
+    url = ("https://api.github.com/repos/{}/{}/git/refs/{}"
            "?access_token={}".format(repo.organization,
                                      repo.name,
+                                     ref,
                                      repo.access_token))
     response = requests.get(url)
     if response.status_code != 200:
@@ -176,14 +197,132 @@ def get_refs(repo: GithubRepository) -> List[Any]:
 
 
 def get_master_sha(repo: GithubRepository) -> str:
-    refs = get_refs(repo)
-    matches = [ref for ref in refs if ref['ref'] == 'refs/heads/master']
-    if len(matches) != 1:
-        raise RuntimeError('Wrong number of masters.')
-    return matches[0]['object']['sha']
+    ref = get_repo_ref(repo, 'heads/master')
+    return ref['object']['sha']
+
+
+def watch_for_spurious_cla_failure(pr: PullRequestDetails) -> bool:
+    # It's not spurious if it was already there!
+    if pr.marked_cla_no:
+        return False
+
+    print('Waiting for spurious CLA failure..', flush=True, end='')
+    for _ in range(6):
+        wait_a_tick()
+        new_pr = PullRequestDetails.from_github(pr.repo, pr.pull_id)
+        if new_pr.marked_cla_no:
+            return True
+
+    print('\nGooglebot appears to be sleeping peacefully.')
+    return False
+
+
+def watch_for_cla_restore(pr: PullRequestDetails):
+    print('Waiting for CLA restore..', flush=True, end='')
+    for _ in range(6):
+        wait_a_tick()
+        new_pr = PullRequestDetails.from_github(pr.repo, pr.pull_id)
+        if not new_pr.marked_cla_no:
+            print('\nCLA restored.')
+            return
+
+    raise CurrentStuckGoToNextError('CLA stuck on no.')
+
+
+def list_pr_comments(pr: PullRequestDetails) -> List[Dict[str, Any]]:
+    """
+    References:
+        https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/{}/comments"
+           "?access_token={}".format(pr.repo.organization,
+                                     pr.repo.name,
+                                     pr.pull_id,
+                                     pr.repo.access_token))
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Comments get failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+    payload = json.JSONDecoder().decode(response.content.decode())
+    return payload
+
+
+def delete_comment(repo: GithubRepository, comment_id: int) -> None:
+    """
+    References:
+        https://developer.github.com/v3/issues/comments/#delete-a-comment
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/comments/{}"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     comment_id,
+                                     repo.access_token))
+    response = requests.delete(url)
+    if response.status_code != 204:
+        raise RuntimeError(
+            'Comment delete failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+
+def find_spurious_coauthor_comment_id(pr: PullRequestDetails) -> Optional[int]:
+    expected_user = 'googlebot'
+    expected_text = ('one or more commits were authored or co-authored '
+                     'by someone other than the pull request submitter')
+
+    comments = list_pr_comments(pr)
+    for comment in comments:
+        if comment['user']['login'] == expected_user:
+            if expected_text in comment['body']:
+                return comment['id']
+
+    return None
+
+
+def find_spurious_fixed_comment_id(pr: PullRequestDetails) -> Optional[int]:
+    expected_user = 'googlebot'
+    expected_text = 'A Googler has manually verified that the CLAs look good.'
+
+    comments = list_pr_comments(pr)
+    for comment in comments:
+        if comment['user']['login'] == expected_user:
+            if expected_text in comment['body']:
+                return comment['id']
+
+    return None
+
+
+def fight_cla_bot(pr: PullRequestDetails) -> None:
+    """The cla bot is *not* happy when someone updates others' PRs.
+
+    This bounces the 'cla: no' label back to 'cla: yes'. Only works if the
+    access token being used corresponds to a registered Google employee account.
+    Otherwise cla bot will just restore the label and message.
+    """
+    if not watch_for_spurious_cla_failure(pr):
+        return
+
+    # Manually indicate that this is fine.
+    add_labels_to_pr(pr.repo,
+                     pr.pull_id,
+                     'cla: yes')
+
+    spurious_comment_id = find_spurious_coauthor_comment_id(pr)
+    if spurious_comment_id is not None:
+        delete_comment(pr.repo, spurious_comment_id)
+
+    watch_for_cla_restore(pr)
+
+    spurious_comment_id_2 = find_spurious_fixed_comment_id(pr)
+    if spurious_comment_id_2 is not None:
+        delete_comment(pr.repo, spurious_comment_id_2)
 
 
 def sync_with_master(pr: PullRequestDetails) -> bool:
+    """
+    References:
+        https://developer.github.com/v3/repos/merging/#perform-a-merge
+    """
     master_sha = get_master_sha(pr.repo)
     remote = pr.remote_repo
     url = ("https://api.github.com/repos/{}/{}/merges"
@@ -199,6 +338,7 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
 
     if response.status_code == 201:
         # Merge succeeded.
+        fight_cla_bot(pr)
         return True
 
     if response.status_code == 204:
@@ -210,6 +350,10 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
 
 
 def squash_merge(pr: PullRequestDetails) -> bool:
+    """
+    References:
+        https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
+    """
     url = ("https://api.github.com/repos/{}/{}/pulls/{}/merge"
            "?access_token={}".format(pr.repo.organization,
                                      pr.repo.name,
@@ -231,11 +375,20 @@ def squash_merge(pr: PullRequestDetails) -> bool:
         # Not allowed. Maybe checks need to be run again?
         return False
 
+    if response.status_code == 409:
+        # Head was modified. We should try again.
+        return False
+
     raise RuntimeError('Merge failed. Code: {}. Content: {}.'.format(
         response.status_code, response.content))
 
 
 def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
+    """
+    References:
+        https://developer.github.com/v3/git/refs/#delete-a-reference
+    """
+
     open_pulls = list_open_pull_requests(pr.repo, base_branch=pr.branch_name)
     if any(open_pulls):
         print('Not deleting branch {!r}. It is used elsewhere.'.format(
@@ -260,30 +413,53 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
     return False
 
 
-def remove_automerge_label(repo: GithubRepository, pull_id: int) -> None:
-    pr = PullRequestDetails.from_github(repo, pull_id)
-    if not pr.marked_automergeable:
-        return
-
-    labels = pr.payload['labels']
-    new_labels = [label['name']
-                  for label in labels
-                  if label['name'] != 'automerge']
-
-    url = ("https://api.github.com/repos/{}/{}/issues/{}"
+def add_labels_to_pr(repo: GithubRepository,
+                     pull_id: int,
+                     *labels: str) -> None:
+    """
+    References:
+        https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/{}/labels"
            "?access_token={}".format(repo.organization,
                                      repo.name,
                                      pull_id,
                                      repo.access_token))
-    data = {
-        'labels': new_labels
-    }
-    response = requests.patch(url, json=data)
+    response = requests.post(url, json=list(labels))
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Label change failed. Code: {}. Content: {}.'.format(
+            'Add labels failed. Code: {}. Content: {}.'.format(
                 response.status_code, response.content))
+
+
+def remove_label_from_pr(repo: GithubRepository,
+                         pull_id: int,
+                         label: str) -> bool:
+    """
+    References:
+        https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/{}/labels/{}"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     pull_id,
+                                     label,
+                                     repo.access_token))
+    response = requests.delete(url)
+
+    if response.status_code == 404:
+        payload = json.JSONDecoder().decode(response.content.decode())
+        if payload['message'] == 'Label does not exist':
+            return False
+
+    if response.status_code == 200:
+        # Removed the label.
+        return True
+
+    raise RuntimeError(
+        'Label remove failed. Code: {}. Content: {}.'.format(
+            response.status_code, response.content))
 
 
 def list_open_pull_requests(repo: GithubRepository,
@@ -369,11 +545,11 @@ def auto_merge_multiple_pull_requests(repo: GithubRepository,
     for pull_id in pull_ids:
         try:
             auto_merge_pull_request(repo, pull_id)
-            remove_automerge_label(repo, pull_id)
         except CurrentStuckGoToNextError as ex:
             print('#!\nPR#{} is stuck: {}'.format(pull_id, ex.args))
-            remove_automerge_label(repo, pull_id)
             print('Continuing to next.')
+        finally:
+            remove_label_from_pr(repo, pull_id, 'automerge')
     print('Finished attempting to automerge {}.'.format(pull_ids))
 
 
