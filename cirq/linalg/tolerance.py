@@ -50,6 +50,10 @@ class Tolerance:
     def all_near_zero(self, a):
         return self.all_close(a, np.zeros(np.shape(a)))
 
+    def all_near_zero_mod(self, a, period):
+        return self.all_close((np.array(a) + (period/2)) % period - period/2,
+                              np.zeros(np.shape(a)))
+
     def __repr__(self):
         return "Tolerance(rtol={}, atol={}, equal_nan={})".format(
             repr(self.rtol), repr(self.atol), repr(self.equal_nan))

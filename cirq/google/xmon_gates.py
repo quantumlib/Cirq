@@ -95,11 +95,14 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
     def to_proto(self, *qubits):
         if len(qubits) == 0:
             raise ValueError('Measurement gate on no qubits.')
-
+        if self.invert_mask and len(self.invert_mask) != len(qubits):
+            raise ValueError('Measurement gate had invert mask of length '
+                             'different than number of qubits it acts on.')
         op = operations_pb2.Operation()
         for q in qubits:
             q.to_proto(op.measurement.targets.add())
         op.measurement.key = self.key
+        op.measurement.invert_mask.extend(self.invert_mask)
         return op
 
     def __repr__(self):
