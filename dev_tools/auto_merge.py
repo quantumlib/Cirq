@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Iterable, Dict
+from typing import Optional, List, Any, Dict
 
 import json
 import os
@@ -211,6 +211,7 @@ def watch_for_spurious_cla_failure(pr: PullRequestDetails) -> bool:
         wait_a_tick()
         new_pr = PullRequestDetails.from_github(pr.repo, pr.pull_id)
         if new_pr.marked_cla_no:
+            print('\nCaught spurious failure occurring.')
             return True
 
     print('\nGooglebot appears to be sleeping peacefully.')
@@ -309,12 +310,14 @@ def fight_cla_bot(pr: PullRequestDetails) -> None:
 
     spurious_comment_id = find_spurious_coauthor_comment_id(pr)
     if spurious_comment_id is not None:
+        print("Deleting spurious co-author comment from googlebot.")
         delete_comment(pr.repo, spurious_comment_id)
 
     watch_for_cla_restore(pr)
 
     spurious_comment_id_2 = find_spurious_fixed_comment_id(pr)
     if spurious_comment_id_2 is not None:
+        print("Deleting spurious repair comment from googlebot.")
         delete_comment(pr.repo, spurious_comment_id_2)
 
 
@@ -332,7 +335,7 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
     data = {
         'base': pr.branch_name,
         'head': master_sha,
-        'message': 'Update branch [automerge]'.format(pr.branch_name)
+        'commit_message': 'Update branch [automerge]'.format(pr.branch_name)
     }
     response = requests.post(url, json=data)
 
