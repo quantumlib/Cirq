@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import Iterable, Optional, TYPE_CHECKING
+from typing import Iterable, Optional, TYPE_CHECKING, List
 
 from collections import defaultdict
 
@@ -88,6 +88,9 @@ class PointOptimizationSummary:
 class PointOptimizer(OptimizationPass):
     """Makes circuit improvements focused on a specific location."""
 
+    def _followups(self) -> List[OptimizationPass]:
+        return []
+
     @abc.abstractmethod
     def optimization_at(self,
                         circuit: Circuit,
@@ -114,13 +117,28 @@ class PointOptimizer(OptimizationPass):
         """
         pass
 
+    def _improve(self, opt: PointOptimizationSummary
+                 ) -> PointOptimizationSummary:
+        c = Circuit.from_ops(opt.new_operations)
+        optimizers = list(self._followups())
+        if not optimizers:
+            return opt
+
+        for optimizer in optimizers:
+            optimizer.optimize_circuit(c)
+
+        return PointOptimizationSummary(
+            opt.clear_span,
+            opt.clear_qubits,
+            list(c.all_operations()))
+
     def optimize_circuit(self, circuit: Circuit):
-        walls = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
+        frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
         while i < len(circuit.moments):  # Note: circuit may mutate as we go.
             for op in circuit.moments[i].operations:
                 # Don't touch stuff inserted by previous optimizations.
-                if any(walls[q] > i for q in op.qubits):
+                if any(frontier[q] > i for q in op.qubits):
                     continue
 
                 # Skip if an optimization removed the circuit underneath us.
@@ -133,6 +151,7 @@ class PointOptimizer(OptimizationPass):
                 # Skip if the optimization did nothing.
                 if opt is None:
                     continue
+                opt = self._improve(opt)
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(
@@ -143,6 +162,6 @@ class PointOptimizer(OptimizationPass):
 
                 # Prevent redundant optimizations.
                 for q in opt.clear_qubits:
-                    walls[q] = max(walls[q], next_insert_index)
+                    frontier[q] = max(frontier[q], next_insert_index)
 
             i += 1

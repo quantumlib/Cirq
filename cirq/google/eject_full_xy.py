@@ -20,36 +20,16 @@ from cirq import ops, extension
 from cirq.circuits import (
     Circuit, InsertStrategy, OptimizationPass, DropNegligible,
 )
+from cirq.google import xmon_gates
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
 from cirq.value import Symbol
 
 
-class EjectZ(OptimizationPass):
-    """Removes Z gates by pushing them later and later until they merge.
-
-    As Z gates are removed from the circuit, 'lost phase' builds up. As lost
-    phase is pushed rightward, it modifies phaseable operations along the way.
-    Eventually the lost phase is discharged into a 'drain'. Only Z gates
-    without a parameter dependence are removed.
-
-    There are three kinds of drains:
-    - Measurement gates, which absorb phase by discarding it.
-    - Parameterized Z gates, which absorb phase into their turns attribute.
-    - The end of the circuit, which absorbs phase into a new Z gate.
-    """
-
+class EjectFullXY(OptimizationPass):
     def __init__(self,
                  tolerance: float = 0.0,
                  ext: extension.Extensions=None) -> None:
-        """
-        Args:
-            tolerance: Maximum absolute error tolerance. The optimization is
-                 permitted to simply drop negligible combinations of Z gates,
-                 with a threshold determined by this tolerance.
-            ext: Extensions object used for determining if gates are phaseable
-                (i.e. if Z gates can pass through them).
-        """
         self.tolerance = tolerance
         self.ext = ext or extension.Extensions()
 
@@ -66,6 +46,37 @@ class EjectZ(OptimizationPass):
             for start, drain in self._find_optimization_range_drains(circuit,
                                                                      qubit):
                 self._optimize_range(circuit, qubit, start, drain)
+
+    def cross(self, q: ops.QubitId, other: ops.Operation):
+        gate = xmon_gates.XmonGate.try_get_xmon_gate(other)
+        if gate is None:
+            return None
+        param = self.ext.try_cast(ops.ParameterizableEffect, gate)
+        if param is not None and param.is_parameterized():
+            return None
+
+        if isinstance(gate, xmon_gates.Exp11Gate):
+            if gate.half_turns != 1:
+                return None
+            other_qubit = list(set(other.qubits) - {q})[0]
+            return [gate, xmon_gates.ExpZGate().on(other_qubit)]
+
+        if isinstance(gate, xmon_gates.ExpZGate):
+            return gate.inverse().on(other.qubits)
+        if isinstance(gate, xmon_gates.ExpWGate):
+            if gate.half_turns == 1:
+                pass
+                # sequence terminates in a cancellation
+            return xmon_gates.ExpWGate(axis_half_turns=-gate.axis_half_turns,
+                                       half_turns=gate.half_turns)
+        if isinstance(gate, xmon_gates.XmonMeasurementGate):
+            mask = list(gate.invert_mask or ())
+            d = len(other.qubits) - len(gate.invert_mask)
+            if d > 0:
+                gate.invert_mask += [False,] * d
+            mask[other.qubits.index(q)] ^= True
+            return xmon_gates.XmonMeasurementGate(gate.key, tuple(mask)
+                                                  ).on(*other.qubits)
 
     def _find_optimization_range_drains(
             self,

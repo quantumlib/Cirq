@@ -26,6 +26,8 @@ from cirq.circuits import (
 )
 from cirq.extension import Extensions
 from cirq.google.decompositions import two_qubit_matrix_to_native_gates
+from cirq.google.merge_rotations import MergeRotations
+from cirq.google.xmon_gates import XmonGate
 
 
 class MergeInteractions(PointOptimizer):
@@ -40,29 +42,47 @@ class MergeInteractions(PointOptimizer):
         self.allow_partial_czs = allow_partial_czs
         self.extensions = extensions or Extensions()
 
+    def _followups(self):
+        return [MergeRotations(tolerance=self.tolerance,
+                               extensions=self.extensions)]
+
     def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 2:
             return None
 
-        interaction_count, indices, matrix = (
+        old_operations, indices, matrix = (
             self._scan_two_qubit_ops_into_matrix(circuit, index, op.qubits))
-        if interaction_count <= 1:
-            return None
 
         # Find a max-3-cz construction.
-        operations = two_qubit_matrix_to_native_gates(
+        new_operations = two_qubit_matrix_to_native_gates(
             op.qubits[0],
             op.qubits[1],
             matrix,
             self.allow_partial_czs,
             self.tolerance)
 
-        # TODO: don't replace if there's no benefit in CZ depth.
+        old_interaction_count = len([op for op in old_operations
+                                     if len(op.qubits) == 2])
+        new_interaction_count = len([op for op in new_operations
+                                     if len(op.qubits) == 2])
+        import cirq
+        print(cirq.Circuit.from_ops(old_operations))
+        print(cirq.Circuit.from_ops(new_operations))
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.Circuit.from_ops(old_operations).to_unitary_matrix(),
+            cirq.Circuit.from_ops(new_operations, cirq.X(op.qubits[0]), cirq.X(op.qubits[0]), cirq.X(op.qubits[1]), cirq.X(op.qubits[1])).to_unitary_matrix(),
+            atol=1e-4
+        )
+        keep = False
+        keep |= new_interaction_count < old_interaction_count
+        keep |= any(not XmonGate.is_xmon_op(op) for op in old_operations)
+        if not keep:
+            return None
 
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=operations)
+            new_operations=new_operations)
 
     def _op_to_matrix(self,
                       op: ops.Operation,
@@ -107,7 +127,7 @@ class MergeInteractions(PointOptimizer):
             circuit: Circuit,
             index: Optional[int],
             qubits: Tuple[ops.QubitId, ...]
-    ) -> Tuple[int, List[int], np.ndarray]:
+    ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 
         The scan terminates when it hits the end of the circuit, finds an
@@ -121,21 +141,21 @@ class MergeInteractions(PointOptimizer):
 
         Returns:
             A tuple containing:
-                0. The number of 2-qubit operations that were scanned.
+                0. The operations.
                 1. The moment indices those operations were on.
                 2. A matrix equivalent to the effect of the scanned operations.
         """
 
         product = np.eye(4, dtype=np.complex128)
-        interaction_count = 0
+        all_operations = []
         touched_indices = []
 
         while index is not None:
             operations = {circuit.operation_at(q, index) for q in qubits}
+            operations = [op for op in operations if op]
             op_data = [
                 self._op_to_matrix(op, qubits)
                 for op in operations
-                if op
             ]
 
             # Stop at any non-constant or non-local interaction.
@@ -145,13 +165,12 @@ class MergeInteractions(PointOptimizer):
 
             for op_mat, interacts in present_op_data:
                 product = np.dot(op_mat, product)
-                if interacts:
-                    interaction_count += 1
+                all_operations.extend(operations)
 
             touched_indices.append(index)
             index = circuit.next_moment_operating_on(qubits, index + 1)
 
-        return interaction_count, touched_indices, product
+        return all_operations, touched_indices, product
 
     @staticmethod
     def _flip_kron_order(mat4x4: np.ndarray) -> np.ndarray:
