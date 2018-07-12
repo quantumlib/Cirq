@@ -17,6 +17,7 @@ from cirq.circuits import ExpandComposite
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.ops import SWAP, TextDiagramInfoArgs
 
+
 def test_circular_shift_gate_init():
 
     g = CircularShiftGate(2)
@@ -25,10 +26,12 @@ def test_circular_shift_gate_init():
     g = CircularShiftGate(1, swap_gate = cirq.CZ)
     assert g.swap_gate == cirq.CZ
 
+
 def test_circular_shift_gate_unknown_qubit_count():
     g = CircularShiftGate(2)
     args = TextDiagramInfoArgs.UNINFORMED_DEFAULT
     assert g.text_diagram_info(args) == NotImplemented
+
 
 def test_circular_shift_gate_eq():
     a = CircularShiftGate(1)
@@ -37,9 +40,11 @@ def test_circular_shift_gate_eq():
     assert a == b
     assert a != c
 
+
 def test_circular_shift_gate_repr():
     g = CircularShiftGate(2)
     assert repr(g) == 'CircularShiftGate'
+
 
 def test_circular_shift_gate_decomposition():
     qubits = [cirq.NamedQubit(q) for q in 'abcdef']
@@ -92,8 +97,8 @@ e: ───────────×───×───×───
 f: ───────────────×───────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
-    
-    
+
+
 def test_circular_shift_gate_wire_symbols():
     qubits = [cirq.NamedQubit(q) for q in 'xyz']
     circuit = cirq.Circuit.from_ops(CircularShiftGate(2)(*qubits))
@@ -107,7 +112,7 @@ z: ───╱2╲───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-    actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=0)
+    actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=False)
     expected_text_diagram = r"""
 x: ---\0/---
       |
