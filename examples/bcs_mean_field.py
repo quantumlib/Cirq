@@ -147,7 +147,7 @@ def main():
     # BCS theory to work.
     u = -4.
     # Calculate the superconducting gap and the angles for BCS
-    delta, bog_theta = _bcs_parameters(n_site, n_fermi, u, t)
+    delta, bog_theta = bcs_parameters(n_site, n_fermi, u, t)
     # Initializing the qubits on a ladder
     upper_qubits = [cirq.GridQubit(0, i) for i in range(n_fermi)]
     lower_qubits = [cirq.GridQubit(1, i) for i in range(n_fermi)]
@@ -162,7 +162,7 @@ def main():
     # The circuit for Bogoliubov transformation
     bog_circuit = cirq.Circuit()
     for i in range(n_site):
-        bog = _bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
+        bog = bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
         bog_circuit.append(bog)
     cirq.google.MergeRotations().optimize_circuit(bog_circuit)
     print('Circuit for the Bogoliubov transformation:')
@@ -172,7 +172,7 @@ def main():
     print('Circuit for the inverse fermionic Fourier transformation on the '
           + 'spin-up states:')
     fourier_circuit_spin_up = cirq.Circuit.from_ops(
-        _fermi_fourier_trans_inverse_4(upper_qubits),
+        fermi_fourier_trans_inverse_4(upper_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
     cirq.google.MergeRotations().optimize_circuit(fourier_circuit_spin_up)
     print(fourier_circuit_spin_up.to_text_diagram(transpose=True), '\n')
@@ -181,13 +181,13 @@ def main():
     print('Circuit for the inverse fermionic Fourier transformation on the '
           + 'spin-down states:')
     fourier_circuit_spin_down = cirq.Circuit.from_ops(
-        _fermi_fourier_trans_inverse_conjugate_4(lower_qubits),
+        fermi_fourier_trans_inverse_conjugate_4(lower_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
     cirq.google.MergeRotations().optimize_circuit(fourier_circuit_spin_down)
     print(fourier_circuit_spin_down.to_text_diagram(transpose=True))
 
 
-def _fswap(p: cirq.QubitId, q: cirq.QubitId) -> cirq.OP_TREE:
+def fswap(p: cirq.QubitId, q: cirq.QubitId) -> cirq.OP_TREE:
 
     """Decompose the Fermionic SWAP gate into two single-qubit gates and
     one iSWAP gate.
@@ -201,8 +201,8 @@ def _fswap(p: cirq.QubitId, q: cirq.QubitId) -> cirq.OP_TREE:
     yield cirq.Z(q) ** 1.5
 
 
-def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
-                      ) -> cirq.OP_TREE:
+def bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
+                     ) -> cirq.OP_TREE:
 
     """The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
      We use the identity X S^\dag X S X = Y X S^\dag Y S X = X to transform
@@ -228,8 +228,8 @@ def _bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
     yield cirq.X(p)
 
 
-def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
-                           ) -> cirq.OP_TREE:
+def fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
+                          ) -> cirq.OP_TREE:
 
     """The 2-mode fermionic Fourier transformation can be implemented
     straightforwardly by the √iSWAP gate. The √iSWAP gate can be readily
@@ -255,8 +255,8 @@ def _fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
     yield cirq.Z(p)**1.5
 
 
-def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
-                                   ) -> cirq.OP_TREE:
+def fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
+                                  ) -> cirq.OP_TREE:
 
     """The reverse fermionic Fourier transformation implemented on 4 qubits
     on a line, which maps the momentum picture to the position picture.
@@ -268,18 +268,18 @@ def _fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
         q: the list of ids of the four qubits
     """
 
-    yield _fswap(q[1], q[2]),
-    yield _fermi_fourier_trans_2(q[0], q[1])
-    yield _fermi_fourier_trans_2(q[2], q[3])
-    yield _fswap(q[1], q[2])
-    yield _fermi_fourier_trans_2(q[0], q[1])
+    yield fswap(q[1], q[2]),
+    yield fermi_fourier_trans_2(q[0], q[1])
+    yield fermi_fourier_trans_2(q[2], q[3])
+    yield fswap(q[1], q[2])
+    yield fermi_fourier_trans_2(q[0], q[1])
     yield cirq.S(q[2])
-    yield _fermi_fourier_trans_2(q[2], q[3])
-    yield _fswap(q[1], q[2])
+    yield fermi_fourier_trans_2(q[2], q[3])
+    yield fswap(q[1], q[2])
 
 
-def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
-                                             ) -> cirq.OP_TREE:
+def fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
+                                            ) -> cirq.OP_TREE:
 
     """We will need to map the momentum states in the reversed order for
     spin-down states to the position picture. This transformation can be
@@ -290,18 +290,18 @@ def _fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
         q: the list of ids of the four qubits
     """
 
-    yield _fswap(q[1], q[2]),
-    yield _fermi_fourier_trans_2(q[0], q[1])
-    yield _fermi_fourier_trans_2(q[2], q[3])
-    yield _fswap(q[1], q[2])
-    yield _fermi_fourier_trans_2(q[0], q[1])
+    yield fswap(q[1], q[2]),
+    yield fermi_fourier_trans_2(q[0], q[1])
+    yield fermi_fourier_trans_2(q[2], q[3])
+    yield fswap(q[1], q[2])
+    yield fermi_fourier_trans_2(q[0], q[1])
     yield cirq.S(q[2]) ** 3
-    yield _fermi_fourier_trans_2(q[2], q[3])
-    yield _fswap(q[1], q[2])
+    yield fermi_fourier_trans_2(q[2], q[3])
+    yield fswap(q[1], q[2])
 
 
-def _bcs_parameters(n_site: int, n_fermi: float, u: float, t: float
-                    ) -> Tuple[float, List[float]]:
+def bcs_parameters(n_site: int, n_fermi: float, u: float, t: float
+                   ) -> Tuple[float, List[float]]:
 
     """Generate the parameters for the BCS ground state, i.e., the
     superconducting gap and the rotational angles in the Bogoliubov
