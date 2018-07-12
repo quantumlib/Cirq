@@ -44,7 +44,7 @@ class Circuit(object):
     Methods returning information about the circuit:
         next_moment_operating_on
         prev_moment_operating_on
-        operation_on
+        operation_at
         qubits
         findall_operations
         to_unitary_matrix
@@ -408,7 +408,7 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= start < end <= len(self.moments):
+        if not 0 <= start <= end <= len(self.moments):
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
