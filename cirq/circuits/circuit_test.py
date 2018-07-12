@@ -408,6 +408,24 @@ f: ───@───@───────────@───@────�
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
+    circuit = Circuit([
+        Moment([cirq.CZ(*qubits[2:4]), cirq.CNOT(*qubits[:2])]),
+        Moment([cirq.CNOT(*qubits[1::-1])])
+        ])
+
+    duplicate.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───@───@───X───X───
+      │   │   │   │
+b: ───X───X───@───@───
+
+c: ───@───────@───────
+      │       │
+d: ───@───────@───────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 
 def test_next_moment_operating_on():
     a = cirq.QubitId()

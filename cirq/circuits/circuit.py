@@ -461,11 +461,12 @@ class Circuit(object):
 
         # insert new moments
         n_new_moments = max(frontier[q] - next_moments[q] for q in qubits)
-        insert_index = min(next_moments.values())
-        self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
-        for q in frontier:
-            if (q not in qubits) and (frontier[q] > insert_index):
-                frontier[q] += n_new_moments
+        if n_new_moments:
+            insert_index = min(next_moments.values())
+            self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
+            for q in frontier:
+                if (q not in qubits) and (frontier[q] > insert_index):
+                    frontier[q] += n_new_moments
 
         # insert operations
         moment_to_ops = defaultdict(list) # type: Dict[int, ops.Operation]
