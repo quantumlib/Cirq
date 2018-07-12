@@ -48,7 +48,7 @@ class Xmon10Device(cirq.Device):
       self.validate_operation(scheduled_operation.operation)
 
   def validate_circuit(self, circuit):
-      for moment in circuit.moments:
+      for moment in circuit:
           for operation in moment.operations:
               self.validate_operation(operation)
 

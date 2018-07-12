@@ -72,7 +72,7 @@ def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
     opt = cg.EjectZ()
-    optimized = cirq.Circuit(circuit)
+    optimized = circuit.copy()
     opt.optimize_circuit(optimized)
     has_z = any(isinstance(op.gate, (cirq.RotZGate, cirq.google.ExpZGate))
                 for moment in optimized

@@ -76,11 +76,11 @@ def circuit_to_quirk_url(circuit: circuits.Circuit,
     Returns:
 
     """
-    circuit = circuits.Circuit(circuit.moments)
+    circuit = circuit.copy()
     linearize_circuit_qubits(circuit)
 
     cols = []  # Type: List[List[Any]]
-    for moment in circuit.moments:
+    for moment in circuit:
         can_merges = []
         for op in moment.operations:
             for col, can_merge in _to_quirk_cols(

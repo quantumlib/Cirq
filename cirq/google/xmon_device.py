@@ -130,7 +130,7 @@ class XmonDevice(Device):
 
     def validate_circuit(self, circuit):
         measurement_keys = set()
-        for moment in circuit.moments:
+        for moment in circuit:
             for operation in moment.operations:
                 self.validate_operation(operation)
                 self.verify_new_measurement_key(operation, measurement_keys)

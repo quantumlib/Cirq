@@ -34,5 +34,8 @@ class _UnconstrainedDeviceType(Device):
     def validate_schedule(self, schedule):
         pass
 
+    def __repr__(self):
+        return 'UnconstrainedDevice'
+
 
 UnconstrainedDevice = _UnconstrainedDeviceType()
