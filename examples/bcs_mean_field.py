@@ -131,7 +131,7 @@ S^-1   │         │      │
 
 from typing import List, Tuple, cast
 import numpy as np
-import scipy.optimize as sopt
+import scipy.optimize
 import cirq
 
 
@@ -159,11 +159,9 @@ def main():
     print('On-site interaction strength = ', u)
     print('Superconducting gap = ', delta, '\n')
 
-    # The circuit for Bogoliubov transformation
-    bog_circuit = cirq.Circuit()
-    for i in range(n_site):
-        bog = bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
-        bog_circuit.append(bog)
+    bog_circuit = cirq.Circuit.from_ops(
+        bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i]
+                         ) for i in range(n_site))
     cirq.google.MergeRotations().optimize_circuit(bog_circuit)
     print('Circuit for the Bogoliubov transformation:')
     print(bog_circuit.to_text_diagram(transpose=True), '\n')
@@ -188,7 +186,6 @@ def main():
 
 
 def fswap(p: cirq.QubitId, q: cirq.QubitId) -> cirq.OP_TREE:
-
     """Decompose the Fermionic SWAP gate into two single-qubit gates and
     one iSWAP gate.
 
@@ -203,7 +200,6 @@ def fswap(p: cirq.QubitId, q: cirq.QubitId) -> cirq.OP_TREE:
 
 def bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
                      ) -> cirq.OP_TREE:
-
     """The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
      We use the identity X S^\dag X S X = Y X S^\dag Y S X = X to transform
      the Hamiltonian XY+YX to XX+YY type. The time evolution of the XX + YY
@@ -219,7 +215,7 @@ def bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
 
     # The iSWAP gate corresponds to evolve under the Hamiltonian XX+YY for
     # time -\pi/4.
-    expo = -4.*theta/np.pi
+    expo = -4 * theta / np.pi
 
     yield cirq.X(p)
     yield cirq.S(p)
@@ -230,7 +226,6 @@ def bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
 
 def fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
                           ) -> cirq.OP_TREE:
-
     """The 2-mode fermionic Fourier transformation can be implemented
     straightforwardly by the √iSWAP gate. The √iSWAP gate can be readily
     implemented with the gmon qubits using the XX + YY Hamiltonian. The matrix
@@ -255,9 +250,8 @@ def fermi_fourier_trans_2(p: cirq.QubitId, q: cirq.QubitId
     yield cirq.Z(p)**1.5
 
 
-def fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
+def fermi_fourier_trans_inverse_4(qubits: List[cirq.QubitId]
                                   ) -> cirq.OP_TREE:
-
     """The reverse fermionic Fourier transformation implemented on 4 qubits
     on a line, which maps the momentum picture to the position picture.
     Using the fast Fourier transformation algorithm, the circuit can be
@@ -265,44 +259,42 @@ def fermi_fourier_trans_inverse_4(q: List[cirq.QubitId]
     SWAP gates, and single-qubit rotations.
 
     Args:
-        q: the list of ids of the four qubits
+        qubits: the list of ids of the four qubits
     """
 
-    yield fswap(q[1], q[2]),
-    yield fermi_fourier_trans_2(q[0], q[1])
-    yield fermi_fourier_trans_2(q[2], q[3])
-    yield fswap(q[1], q[2])
-    yield fermi_fourier_trans_2(q[0], q[1])
-    yield cirq.S(q[2])
-    yield fermi_fourier_trans_2(q[2], q[3])
-    yield fswap(q[1], q[2])
+    yield fswap(qubits[1], qubits[2]),
+    yield fermi_fourier_trans_2(qubits[0], qubits[1])
+    yield fermi_fourier_trans_2(qubits[2], qubits[3])
+    yield fswap(qubits[1], qubits[2])
+    yield fermi_fourier_trans_2(qubits[0], qubits[1])
+    yield cirq.S(qubits[2])
+    yield fermi_fourier_trans_2(qubits[2], qubits[3])
+    yield fswap(qubits[1], qubits[2])
 
 
-def fermi_fourier_trans_inverse_conjugate_4(q: List[cirq.QubitId]
+def fermi_fourier_trans_inverse_conjugate_4(qubits: List[cirq.QubitId]
                                             ) -> cirq.OP_TREE:
-
     """We will need to map the momentum states in the reversed order for
     spin-down states to the position picture. This transformation can be
     simply implemented the complex conjugate of the former one. We only
     need to change the S gate to S* = S ** 3.
 
     Args:
-        q: the list of ids of the four qubits
+        qubits: the list of ids of the four qubits
     """
 
-    yield fswap(q[1], q[2]),
-    yield fermi_fourier_trans_2(q[0], q[1])
-    yield fermi_fourier_trans_2(q[2], q[3])
-    yield fswap(q[1], q[2])
-    yield fermi_fourier_trans_2(q[0], q[1])
-    yield cirq.S(q[2]) ** 3
-    yield fermi_fourier_trans_2(q[2], q[3])
-    yield fswap(q[1], q[2])
+    yield fswap(qubits[1], qubits[2]),
+    yield fermi_fourier_trans_2(qubits[0], qubits[1])
+    yield fermi_fourier_trans_2(qubits[2], qubits[3])
+    yield fswap(qubits[1], qubits[2])
+    yield fermi_fourier_trans_2(qubits[0], qubits[1])
+    yield cirq.S(qubits[2]) ** 3
+    yield fermi_fourier_trans_2(qubits[2], qubits[3])
+    yield fswap(qubits[1], qubits[2])
 
 
 def bcs_parameters(n_site: int, n_fermi: float, u: float, t: float
                    ) -> Tuple[float, List[float]]:
-
     """Generate the parameters for the BCS ground state, i.e., the
     superconducting gap and the rotational angles in the Bogoliubov
     transformation.
@@ -324,7 +316,6 @@ def bcs_parameters(n_site: int, n_fermi: float, u: float, t: float
     hop_erg = hop_erg - fermi_erg
 
     def _bcs_gap(x: float) -> float:
-
         """Defines the self-consistent equation for the BCS wavefunction.
 
         Args:
@@ -337,7 +328,7 @@ def bcs_parameters(n_site: int, n_fermi: float, u: float, t: float
         return 1 + s * u / (2 * n_site)
 
     # Superconducting gap
-    delta = sopt.bisect(_bcs_gap, 0.01, 10000. * abs(u))
+    delta = scipy.optimize.bisect(_bcs_gap, 0.01, 10000. * abs(u))
     delta = cast(float, delta)
     # The amplitude of the double excitation state
     bcs_v = np.sqrt(0.5 * (1 - hop_erg / np.sqrt(hop_erg ** 2 + delta ** 2)))
