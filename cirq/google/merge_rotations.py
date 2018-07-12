@@ -59,9 +59,9 @@ class MergeRotations(PointOptimizer):
             self,
             circuit: Circuit,
             index: Optional[int],
-            qubit: ops.QubitId) -> Tuple[List[int], List[ops.Gate]]:
-        operations = []
-        indices = []
+            qubit: ops.QubitId) -> Tuple[List[int], List[ops.KnownMatrix]]:
+        operations = []  # type: List[ops.KnownMatrix]
+        indices = []  # type: List[int]
         while index is not None:
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:

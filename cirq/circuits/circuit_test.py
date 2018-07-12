@@ -16,13 +16,8 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.circuits.circuit import Circuit, _operation_to_unitary_matrix
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
-from cirq.circuits.optimization_pass import (PointOptimizer, 
-                                             PointOptimizationSummary)
-from cirq.google import ExpWGate
-from cirq.extension import Extensions
+from cirq.circuits.circuit import _operation_to_unitary_matrix
+from cirq import Circuit, InsertStrategy, Moment
 
 
 def test_equality():
@@ -285,18 +280,6 @@ def test_insert():
         Moment([cirq.X(b)]),
     ])
 
-def test_insert_into_range():
-    x = cirq.NamedQubit('x')
-    y = cirq.NamedQubit('y')
-    c = Circuit([Moment([cirq.X(x)])] * 4)
-    c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
-    actual_text_diagram = c.to_text_diagram().strip()
-    expected_text_diagram = """
-x: ───X───X───Z───@───X───X───
-                  │
-y: ───────────────@───────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
 
 def test_insert_inline_near_start():
     a = cirq.QubitId()
@@ -327,84 +310,6 @@ def test_insert_inline_near_start():
         Moment([cirq.Y(a)]),
         Moment(),
     ])
-
-def test_insert_at_frontier():
-
-    class Replacer(PointOptimizer):
-        def __init__(self, replacer=(lambda x: x)):
-            self.replacer = replacer
-
-        def optimization_at(self, circuit, index, op):
-            new_ops = self.replacer(op)
-            return PointOptimizationSummary(clear_span=1,
-                                            clear_qubits=op.qubits,
-                                            new_operations=new_ops)
-
-    replacer = lambda op: ((cirq.Z(op.qubits[0]),) * 2 + 
-                           (op, cirq.Y(op.qubits[0])))
-    prepend_two_Xs_append_one_Y = Replacer(replacer)
-    qubits = [cirq.NamedQubit(s) for s in 'abcdef']
-    a, b, c = qubits[:3]
-
-    circuit = Circuit([
-              Moment([cirq.CZ(a, b)]),
-              Moment([cirq.CZ(b, c)]),
-              Moment([cirq.CZ(a, b)])
-    ])
-
-    prepend_two_Xs_append_one_Y(circuit)
-
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
-a: ───Z───Z───@───Y───────────────Z───Z───@───Y───
-              │                           │
-b: ───────────@───Z───Z───@───Y───────────@───────
-                          │
-c: ───────────────────────@───────────────────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
-
-    prepender = lambda op: (cirq.X(op.qubits[0]),) * 3 + (op,)
-    prepend_3_Xs = Replacer(prepender)
-    circuit = Circuit([
-        Moment([cirq.CNOT(a, b)]),
-        Moment([cirq.CNOT(b, c)]),
-        Moment([cirq.CNOT(c, b)])
-    ])
-    prepend_3_Xs(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
-a: ───X───X───X───@───────────────────────────────────
-                  │
-b: ───────────────X───X───X───X───@───────────────X───
-                                  │               │
-c: ───────────────────────────────X───X───X───X───@───
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
-
-    duplicate = Replacer(lambda op: (op,) * 2)
-    circuit = Circuit([
-        Moment([cirq.CZ(qubits[j], qubits[j+1]) 
-                     for j in range(i % 2, 5, 2)]) 
-        for i in range(4)])
-
-    duplicate(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
-a: ───@───@───────────@───@───────────
-      │   │           │   │
-b: ───@───@───@───@───@───@───@───@───
-              │   │           │   │
-c: ───@───@───@───@───@───@───@───@───
-      │   │           │   │
-d: ───@───@───@───@───@───@───@───@───
-              │   │           │   │
-e: ───@───@───@───@───@───@───@───@───
-      │   │           │   │
-f: ───@───@───────────@───@───────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
-
 
 
 def test_next_moment_operating_on():
@@ -895,7 +800,7 @@ def test_diagram_with_unknown_exponent():
             return cirq.TextDiagramInfo(wire_symbols=('W',),
                                         exponent='fancy-that')
 
-    c = Circuit.from_ops(
+    c = cirq.Circuit.from_ops(
         WeirdGate().on(cirq.NamedQubit('q')),
         WeirderGate().on(cirq.NamedQubit('q')),
     )
@@ -1064,7 +969,8 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    test_wgate = cirq.google.ExpWGate(
+        half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
     assert diagram.strip() == """
@@ -1074,7 +980,8 @@ a: ---W(0.43)^0.12---
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    test_wgate = cirq.google.ExpWGate(
+        half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
     assert diagram.strip() == """
@@ -1114,7 +1021,7 @@ def test_text_diagram_jupyter():
 
 
 def test_operation_to_unitary_matrix():
-    ex = Extensions()
+    ex = cirq.Extensions()
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -1280,7 +1187,7 @@ def test_simple_circuits_to_unitary_matrix():
     # 2-qubit matrix matches when qubits in order.
     for expected in [np.diag([1, 1j, -1, -1j]), cirq.CNOT.matrix()]:
 
-        class Passthrough(cirq.KnownMatrix):
+        class Passthrough(cirq.Gate, cirq.KnownMatrix):
             def matrix(self):
                 return expected
 
@@ -1322,9 +1229,9 @@ def test_expanding_gate_symbols():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    t0 = Circuit.from_ops(MultiTargetCZ().on(c))
-    t1 = Circuit.from_ops(MultiTargetCZ().on(c, a))
-    t2 = Circuit.from_ops(MultiTargetCZ().on(c, a, b))
+    t0 = cirq.Circuit.from_ops(MultiTargetCZ().on(c))
+    t1 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a))
+    t2 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a, b))
 
     assert t0.to_text_diagram().strip() == """
 c: ───@───
@@ -1347,7 +1254,7 @@ c: ───@───
 
 def test_transposed_diagram_exponent_order():
     a, b, c = cirq.LineQubit.range(3)
-    circuit = Circuit.from_ops(
+    circuit = cirq.Circuit.from_ops(
         cirq.CZ(a, b)**-0.5,
         cirq.CZ(a, c)**0.5,
         cirq.CZ(b, c)**0.125,
