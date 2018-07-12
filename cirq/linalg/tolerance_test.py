@@ -86,6 +86,26 @@ def test_all_zero():
     assert not tol.all_near_zero([-4.5, 0, 1, 4.5, 30])
 
 
+def test_all_zero_mod():
+    tol = Tolerance(atol=5, rtol=9999999)
+    assert tol.all_near_zero_mod(0, 100)
+    assert tol.all_near_zero_mod(4.5, 100)
+    assert not tol.all_near_zero_mod(5.5, 100)
+
+    assert tol.all_near_zero_mod(100, 100)
+    assert tol.all_near_zero_mod(95.5, 100)
+    assert not tol.all_near_zero_mod(94.5, 100)
+
+    assert tol.all_near_zero_mod(-4.5, 100)
+    assert not tol.all_near_zero_mod(-5.5, 100)
+
+    assert tol.all_near_zero_mod(104.5, 100)
+    assert not tol.all_near_zero_mod(105.5, 100)
+
+    assert tol.all_near_zero_mod([-4.5, 0, 1, 4.5, 3, 95.5, 104.5], 100)
+    assert not tol.all_near_zero_mod([-4.5, 0, 1, 4.5, 30], 100)
+
+
 def test_repr():
     assert (repr(Tolerance(rtol=2, atol=3, equal_nan=True)) ==
             'Tolerance(rtol=2, atol=3, equal_nan=True)')
