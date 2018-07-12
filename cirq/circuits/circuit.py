@@ -310,6 +310,10 @@ class Circuit(object):
                                 T_DESIRED_GATE_TYPE]]:
         """Find the locations of all gate operations of a given type.
 
+        Args:
+            gate_type: The type of gate to find, e.g. RotXGate or
+                MeasurementGate.
+
         Returns:
             An iterator (index, operation, gate)'s for operations with the given
             gate type.
