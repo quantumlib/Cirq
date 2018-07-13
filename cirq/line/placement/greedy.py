@@ -285,6 +285,21 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip.
     """
 
+    BEST = "best"
+
+    def __init__(self, algorithm: str = BEST) -> None:
+        """Initializes greedy sequence search strategy.
+
+        Args:
+            algorithm: Greedy algorithm to be used. Available options are:
+            best - runs all heuristics and chooses the best result,
+            largest_area - on every step takes the qubit which has connection
+            with the largest number of unassigned qubits, and
+            minimal_connectivity - on every step takes the qubit with minimal
+            number of unassigned neighbouring qubits.
+        """
+        self.algorithm = algorithm
+
     def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
         """Runs line sequence search.
 
@@ -294,6 +309,10 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
         Returns:
             Linear sequences found on the chip.
+
+        Raises:
+            ValueError: If search algorithm passed on initialization is not
+                        recognized.
         """
 
         def lower_left():
@@ -312,11 +331,17 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                 LargestAreaGreedySequenceSearch(device, start)
         }
 
+        if (self.algorithm not in greedy_search.keys() and
+                self.algorithm != self.BEST):
+            raise ValueError(
+                "Unknown greedy search algorithm %s" % self.algorithm)
+
         sequence = None
         for algorithm in greedy_search:
-            candidate = greedy_search[algorithm].get_or_search()
-            if sequence is None or len(sequence) < len(candidate):
-                sequence = candidate
+            if algorithm == self.algorithm or self.algorithm == self.BEST:
+                candidate = greedy_search[algorithm].get_or_search()
+                if sequence is None or len(sequence) < len(candidate):
+                    sequence = candidate
 
         return LinePlacement(length,
                              [LineSequence(sequence)] if sequence else [])
