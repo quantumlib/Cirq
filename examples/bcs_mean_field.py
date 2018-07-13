@@ -34,7 +34,7 @@ Number of sites =  4
 Number of fermions =  4
 Tunneling strength =  1.0
 On-site interaction strength =  -4.0
-Superconducting gap =  1.1261371093950703 
+Superconducting gap =  1.1261371093950703
 
 Circuit for the Bogoliubov transformation:
 (0, 0)  (0, 1)  (0, 2)  (0, 3)  (1, 0)      (1, 1)      (1, 2)     (1, 3)
@@ -63,7 +63,7 @@ W(.625) │       │       │       │           │           │          �
 │       │       │       │       │           │           │          │
 │       │       │       W(.625) │           │           │          │
 │       │       │       │       │           │           │          │
- 
+
 
 Circuit for the inverse fermionic Fourier transformation on the spin-up states:
 (0, 0) (0, 1)    (0, 2) (0, 3)
@@ -94,7 +94,7 @@ S^-1   │         │      │
 │      │         │      │
 │      S^-1      S^-1   │
 │      │         │      │
- 
+
 
 Circuit for the inverse fermionic Fourier transformation on the spin-down
 states:
