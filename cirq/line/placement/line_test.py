@@ -62,7 +62,7 @@ def test_greedy_method_calls_greedy_search():
         place_line.assert_called_once_with(device, length)
 
 
-@mock.patch('cirq.line.placement.line._line_placement_on_device')
+@mock.patch('cirq.line.placement.line.line_placement_on_device')
 def test_line_on_device_calls_line_placement_on_device(
         line_placement_on_device):
     q00 = GridQubit(0, 0)
@@ -83,7 +83,7 @@ def test_line_on_device_calls_line_placement_on_device(
     line_placement_on_device.assert_called_once_with(device, length, method)
 
 
-@mock.patch('cirq.line.placement.line._line_placement_on_device')
+@mock.patch('cirq.line.placement.line.line_placement_on_device')
 def test_line_on_device_creates_mapping(line_placement_on_device):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
@@ -101,7 +101,7 @@ def test_line_on_device_creates_mapping(line_placement_on_device):
     assert mapping(qubits[1]) == q01
 
 
-@mock.patch('cirq.line.placement.line._line_placement_on_device')
+@mock.patch('cirq.line.placement.line.line_placement_on_device')
 def test_line_on_device_creates_mapping_with_offset(line_placement_on_device):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
