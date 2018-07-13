@@ -281,6 +281,15 @@ class MeasurementGate(raw_types.Gate,
         self.key = key
         self.invert_mask = invert_mask
 
+    @staticmethod
+    def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+        if isinstance(op, MeasurementGate):
+            return True
+        if (isinstance(op, gate_operation.GateOperation) and
+                isinstance(op.gate, MeasurementGate)):
+            return True
+        return False
+
     def validate_args(self, qubits):
         if (self.invert_mask is not None and
                 len(self.invert_mask) > len(qubits)):

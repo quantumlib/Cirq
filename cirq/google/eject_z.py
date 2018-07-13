@@ -90,7 +90,7 @@ class EjectZ(OptimizationPass):
                     start_z = i
                     prev_z = None
 
-            elif _is_known_measurement(op):
+            elif ops.MeasurementGate.is_measurement(op):
                 # Measurement acts like a drain. It destroys phase information.
                 yield start_z, i
                 start_z = None
@@ -178,11 +178,6 @@ class EjectZ(OptimizationPass):
 
             # Drain type: measurement gate.
             # (Don't have to do anything.)
-
-
-def _is_known_measurement(op: ops.Operation) -> bool:
-    return (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, ops.MeasurementGate))
 
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
