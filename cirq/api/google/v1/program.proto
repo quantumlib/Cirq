@@ -17,7 +17,13 @@ message Program {
 
   // The circuit parameters for the operations above will be evaluated for
   // each parameter in parameter sweeps.
-  repeated ParameterSweep parameter_sweeps = 2;
+  repeated ParameterSweep parameter_sweeps = 2 [deprecated = true];
+}
+
+// The context for running a quantum program.
+message RunContext {
+  // The parameters for operations in a program.
+  repeated ParameterSweep parameter_sweeps = 1;
 }
 
 // The parameters used to generate result along with the results for this
@@ -78,12 +84,6 @@ message MeasurementKey {
 
   // The qubits upon which this measurement is performed.
   repeated Qubit qubits = 2;
-
-  // If not empty, a list of booleans describing whether the results should
-  // be flipped for each of the qubits above. The length of this vector must
-  // match the length of the qubits, and the interpretation of whether to
-  // invert or not matches component-wise this list and the qubits' list.
-  repeated bool invert_mask = 3;
 }
 
 // The measurement results for a particular ParameterSweep.

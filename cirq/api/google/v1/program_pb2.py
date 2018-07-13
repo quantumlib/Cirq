@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cirq/api/google/v1/program.proto',
   package='cirq.api.google.v1',
   syntax='proto3',
-  serialized_pb=_b('\n cirq/api/google/v1/program.proto\x12\x12\x63irq.api.google.v1\x1a#cirq/api/google/v1/operations.proto\x1a\x1f\x63irq/api/google/v1/params.proto\"z\n\x07Program\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v1.Operation\x12<\n\x10parameter_sweeps\x18\x02 \x03(\x0b\x32\".cirq.api.google.v1.ParameterSweep\"e\n\x13ParameterizedResult\x12\x31\n\x06params\x18\x01 \x01(\x0b\x32!.cirq.api.google.v1.ParameterDict\x12\x1b\n\x13measurement_results\x18\x02 \x01(\x0c\"H\n\x0eMeasurementKey\x12\x0b\n\x03key\x18\x01 \x01(\t\x12)\n\x06qubits\x18\x02 \x03(\x0b\x32\x19.cirq.api.google.v1.Qubit\"\xa8\x01\n\x0bSweepResult\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12<\n\x10measurement_keys\x18\x02 \x03(\x0b\x32\".cirq.api.google.v1.MeasurementKey\x12\x46\n\x15parameterized_results\x18\x03 \x03(\x0b\x32\'.cirq.api.google.v1.ParameterizedResult\"@\n\x06Result\x12\x36\n\rsweep_results\x18\x01 \x03(\x0b\x32\x1f.cirq.api.google.v1.SweepResultB/\n\x1d\x63om.google.cirq.api.google.v1B\x0cProgramProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n cirq/api/google/v1/program.proto\x12\x12\x63irq.api.google.v1\x1a#cirq/api/google/v1/operations.proto\x1a\x1f\x63irq/api/google/v1/params.proto\"~\n\x07Program\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v1.Operation\x12@\n\x10parameter_sweeps\x18\x02 \x03(\x0b\x32\".cirq.api.google.v1.ParameterSweepB\x02\x18\x01\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.api.google.v1.ParameterSweep\"e\n\x13ParameterizedResult\x12\x31\n\x06params\x18\x01 \x01(\x0b\x32!.cirq.api.google.v1.ParameterDict\x12\x1b\n\x13measurement_results\x18\x02 \x01(\x0c\"]\n\x0eMeasurementKey\x12\x0b\n\x03key\x18\x01 \x01(\t\x12)\n\x06qubits\x18\x02 \x03(\x0b\x32\x19.cirq.api.google.v1.Qubit\x12\x13\n\x0binvert_mask\x18\x03 \x03(\x08\"\xa8\x01\n\x0bSweepResult\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12<\n\x10measurement_keys\x18\x02 \x03(\x0b\x32\".cirq.api.google.v1.MeasurementKey\x12\x46\n\x15parameterized_results\x18\x03 \x03(\x0b\x32\'.cirq.api.google.v1.ParameterizedResult\"@\n\x06Result\x12\x36\n\rsweep_results\x18\x01 \x03(\x0b\x32\x1f.cirq.api.google.v1.SweepResultB/\n\x1d\x63om.google.cirq.api.google.v1B\x0cProgramProtoP\x01\x62\x06proto3')
   ,
   dependencies=[cirq_dot_api_dot_google_dot_v1_dot_operations__pb2.DESCRIPTOR,cirq_dot_api_dot_google_dot_v1_dot_params__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -49,7 +49,7 @@ _PROGRAM = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))),
   ],
   extensions=[
   ],
@@ -63,7 +63,38 @@ _PROGRAM = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=126,
-  serialized_end=248,
+  serialized_end=252,
+)
+
+
+_RUNCONTEXT = _descriptor.Descriptor(
+  name='RunContext',
+  full_name='cirq.api.google.v1.RunContext',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='parameter_sweeps', full_name='cirq.api.google.v1.RunContext.parameter_sweeps', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=254,
+  serialized_end=328,
 )
 
 
@@ -100,8 +131,8 @@ _PARAMETERIZEDRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=250,
-  serialized_end=351,
+  serialized_start=330,
+  serialized_end=431,
 )
 
 
@@ -126,6 +157,13 @@ _MEASUREMENTKEY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='invert_mask', full_name='cirq.api.google.v1.MeasurementKey.invert_mask', index=2,
+      number=3, type=8, cpp_type=7, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -138,8 +176,8 @@ _MEASUREMENTKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=353,
-  serialized_end=425,
+  serialized_start=433,
+  serialized_end=526,
 )
 
 
@@ -183,8 +221,8 @@ _SWEEPRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=428,
-  serialized_end=596,
+  serialized_start=529,
+  serialized_end=697,
 )
 
 
@@ -214,18 +252,20 @@ _RESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=598,
-  serialized_end=662,
+  serialized_start=699,
+  serialized_end=763,
 )
 
 _PROGRAM.fields_by_name['operations'].message_type = cirq_dot_api_dot_google_dot_v1_dot_operations__pb2._OPERATION
 _PROGRAM.fields_by_name['parameter_sweeps'].message_type = cirq_dot_api_dot_google_dot_v1_dot_params__pb2._PARAMETERSWEEP
+_RUNCONTEXT.fields_by_name['parameter_sweeps'].message_type = cirq_dot_api_dot_google_dot_v1_dot_params__pb2._PARAMETERSWEEP
 _PARAMETERIZEDRESULT.fields_by_name['params'].message_type = cirq_dot_api_dot_google_dot_v1_dot_params__pb2._PARAMETERDICT
 _MEASUREMENTKEY.fields_by_name['qubits'].message_type = cirq_dot_api_dot_google_dot_v1_dot_operations__pb2._QUBIT
 _SWEEPRESULT.fields_by_name['measurement_keys'].message_type = _MEASUREMENTKEY
 _SWEEPRESULT.fields_by_name['parameterized_results'].message_type = _PARAMETERIZEDRESULT
 _RESULT.fields_by_name['sweep_results'].message_type = _SWEEPRESULT
 DESCRIPTOR.message_types_by_name['Program'] = _PROGRAM
+DESCRIPTOR.message_types_by_name['RunContext'] = _RUNCONTEXT
 DESCRIPTOR.message_types_by_name['ParameterizedResult'] = _PARAMETERIZEDRESULT
 DESCRIPTOR.message_types_by_name['MeasurementKey'] = _MEASUREMENTKEY
 DESCRIPTOR.message_types_by_name['SweepResult'] = _SWEEPRESULT
@@ -237,6 +277,13 @@ Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,
   # @@protoc_insertion_point(class_scope:cirq.api.google.v1.Program)
   ))
 _sym_db.RegisterMessage(Program)
+
+RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), dict(
+  DESCRIPTOR = _RUNCONTEXT,
+  __module__ = 'cirq.api.google.v1.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.RunContext)
+  ))
+_sym_db.RegisterMessage(RunContext)
 
 ParameterizedResult = _reflection.GeneratedProtocolMessageType('ParameterizedResult', (_message.Message,), dict(
   DESCRIPTOR = _PARAMETERIZEDRESULT,
@@ -269,4 +316,6 @@ _sym_db.RegisterMessage(Result)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\035com.google.cirq.api.google.v1B\014ProgramProtoP\001'))
+_PROGRAM.fields_by_name['parameter_sweeps'].has_options = True
+_PROGRAM.fields_by_name['parameter_sweeps']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))
 # @@protoc_insertion_point(module_scope)

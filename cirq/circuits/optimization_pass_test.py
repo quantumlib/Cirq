@@ -97,7 +97,12 @@ def test_point_optimizer_can_write_new_gates_inline():
 
     ReplaceWithXGates()(c)
 
-    expected = cirq.Circuit([cirq.Moment([cirq.X(q) for q in Q]) for Q in 
-        ((x,y), (x, y), (x,), (y, z), (y, z, x), (y,z), (y,))])
-
-    assert c == expected
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.X(x), cirq.X(y)]),
+        cirq.Moment([cirq.X(x)]),
+        cirq.Moment([cirq.X(x), cirq.X(y)]),
+        cirq.Moment([cirq.X(y), cirq.X(z)]),
+        cirq.Moment([cirq.X(y), cirq.X(x)]),
+        cirq.Moment([cirq.X(y), cirq.X(z)]),
+        cirq.Moment([cirq.X(z), cirq.X(y)]),
+    ])

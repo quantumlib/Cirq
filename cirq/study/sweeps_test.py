@@ -20,12 +20,12 @@ from cirq.value import Symbol
 
 def test_product_duplicate_keys():
     with pytest.raises(ValueError):
-        Linspace('a', 0, 9, 10) * Linspace('a', 0, 10, 11)
+        _ = Linspace('a', 0, 9, 10) * Linspace('a', 0, 10, 11)
 
 
 def test_zip_duplicate_keys():
     with pytest.raises(ValueError):
-        Linspace('a', 0, 9, 10) * Linspace('a', 0, 10, 11)
+        _ = Linspace('a', 0, 9, 10) * Linspace('a', 0, 10, 11)
 
 
 def test_linspace():

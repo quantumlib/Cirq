@@ -25,3 +25,9 @@ from cirq.contrib.paulistring.pauli_interaction_gate import (
 from cirq.contrib.paulistring.pauli_string import (
     PauliString,
 )
+from cirq.contrib.paulistring.pauli_string_raw_types import (
+    PauliStringGateOperation,
+)
+from cirq.contrib.paulistring.pauli_string_phasor import (
+    PauliStringPhasor,
+)

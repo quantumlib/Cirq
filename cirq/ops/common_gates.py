@@ -23,7 +23,7 @@ from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
 class Rot11Gate(eigen_gate.EigenGate,
-                gate_features.PhaseableGate,
+                gate_features.PhaseableEffect,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate):
@@ -280,6 +280,15 @@ class MeasurementGate(raw_types.Gate,
                  invert_mask: Optional[Tuple[bool, ...]] = None) -> None:
         self.key = key
         self.invert_mask = invert_mask
+
+    @staticmethod
+    def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+        if isinstance(op, MeasurementGate):
+            return True
+        if (isinstance(op, gate_operation.GateOperation) and
+                isinstance(op.gate, MeasurementGate)):
+            return True
+        return False
 
     def validate_args(self, qubits):
         if (self.invert_mask is not None and

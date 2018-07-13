@@ -19,13 +19,10 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from collections import defaultdict
-from typing import (Any, Dict, FrozenSet, Callable, 
-                    Generator, Iterable, Iterator)
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
     Optional, Sequence, Union, TYPE_CHECKING,
-)
+    Type, Tuple, cast, TypeVar)
 
 import numpy as np
 
@@ -38,7 +35,10 @@ from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set, List
+    from typing import Set
+
+
+T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
 class Circuit(object):
@@ -58,8 +58,6 @@ class Circuit(object):
         insert
         append
         insert_into_range
-        insert_operation_at
-        insert_at_frontier
         clear_operations_touching
 
     Circuits can also be iterated over,
@@ -284,7 +282,8 @@ class Circuit(object):
                 return op
         return None
 
-    def findall_operations(self, predicate: Callable[[ops.Operation], bool]):
+    def findall_operations(self, predicate: Callable[[ops.Operation], bool]
+                           ) -> Iterable[Tuple[int, ops.Operation]]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -303,11 +302,33 @@ class Circuit(object):
                 if predicate(op):
                     yield index, op
 
+    def findall_operations_with_gate_type(
+            self,
+            gate_type: Type[T_DESIRED_GATE_TYPE]
+            ) -> Iterable[Tuple[int,
+                                ops.GateOperation,
+                                T_DESIRED_GATE_TYPE]]:
+        """Find the locations of all gate operations of a given type.
+
+        Args:
+            gate_type: The type of gate to find, e.g. RotXGate or
+                MeasurementGate.
+
+        Returns:
+            An iterator (index, operation, gate)'s for operations with the given
+            gate type.
+        """
+        result = self.findall_operations(
+            lambda operation: (isinstance(operation, ops.GateOperation) and
+                               isinstance(operation.gate, gate_type)))
+        for index, op in result:
+            gate_op = cast(ops.GateOperation, op)
+            yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
+
     def are_all_measurements_terminal(self):
-        is_meas_gate = lambda op: isinstance(op.gate, ops.MeasurementGate)
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(is_meas_gate))
+            in self.findall_operations(ops.MeasurementGate.is_measurement))
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -433,53 +454,6 @@ class Circuit(object):
             return end
 
         return self.insert(end, operations[op_index:])
-
-    def insert_operation_at(self, index: int, op: ops.Operation):
-        new_moment_created = False # type: bool
-        if (self._has_op_at(index, op.qubits) or 
-            index == len(self.moments)):
-            self.moments.insert(index, Moment()) 
-            new_moment_created = True
-        self.moments[index] = self.moments[index].with_operation(op)
-        return new_moment_created
-
-
-    def insert_at_frontier(self,
-                          operations: ops.OP_TREE,
-                          start: int,
-                          frontier: Dict[QubitId, int]=None
-                          ) -> Dict[QubitId, int]:
-        """Inserts operations inline at frontier."""
-        if frontier is None:
-            frontier = defaultdict(lambda: 0)
-        for new_op in ops.flatten_op_tree(operations):
-            op_start = max(start, max(frontier[q] for q in new_op.qubits))
-
-            # rectify frontier
-            qubits_start = max(start, min(frontier[q] for q in new_op.qubits))
-            ops_to_push = [] # type: List[ops.Operation]
-            for moment in range(qubits_start, op_start):
-                moment_ops_to_push = [] # type: List[ops.Operation]
-                for op in self.moments[moment].operations:
-                    if any((q in new_op.qubits) and (frontier[q] <= moment) 
-                           for q in op.qubits):
-                        moment_ops_to_push.append(op)
-                if moment_ops_to_push:
-                    ops_to_push += moment_ops_to_push
-                    remaining_ops = [
-                        op for op in self.moments[moment].operations 
-                        if op not in ops_to_push]
-                    self.moments[moment] = Moment(remaining_ops)
-            for op in reversed(ops_to_push):
-                self.insert_at_frontier(op, op_start)
-            
-            self.insert_operation_at(op_start, new_op)
-            for q in new_op.qubits:
-                frontier[q] = max(op_start + 1, frontier[q])
-
-        return frontier
-
-
 
     def append(
             self,
@@ -771,8 +745,7 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
             continue
 
         # Pass measurement gates through
-        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
-        if meas_gate is not None:
+        if ops.MeasurementGate.is_measurement(op):
             yield op
             continue
 
@@ -789,8 +762,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
     # Precondition is that circuit has only terminal measurements.
     total = np.eye(1 << len(qubit_map))
     for op in iter_ops:
-        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
-        if meas_gate is not None:
+        if ops.MeasurementGate.is_measurement(op):
             if not ignore_terminal_measurements:
                 raise TypeError(
                     'Terminal measurement operation but not ignoring these '
