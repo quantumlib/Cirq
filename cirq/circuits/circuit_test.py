@@ -1315,3 +1315,19 @@ def test_insert_moments():
     c.insert(0, m2)
     assert c.moments == [m2, m0, m1]
     assert c.moments[0] is m2
+
+
+def test_with_parameters_resolved_by():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Rot11Gate(half_turns=cirq.Symbol('u')).on(a, b),
+        cirq.RotXGate(half_turns=cirq.Symbol('v')).on(a),
+        cirq.RotYGate(half_turns=cirq.Symbol('w')).on(b),
+    )
+    resolved_circuit = circuit.with_parameters_resolved_by(
+            cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    assert resolved_circuit.to_text_diagram().strip() == """
+0: ───@───────X^0.3───
+      │
+1: ───@^0.1───Y^0.2───
+""".strip()

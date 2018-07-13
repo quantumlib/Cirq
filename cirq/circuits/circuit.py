@@ -20,7 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from typing import (
-    Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
+    Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator, List,
     Optional, Sequence, Union, TYPE_CHECKING,
     Type, Tuple, cast, TypeVar)
 
@@ -32,6 +32,7 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
 from cirq.ops import QubitId
+from cirq.study import ParamResolver
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -621,6 +622,35 @@ class Circuit(object):
             diagram.horizontal_line(i, 0, w)
 
         return diagram
+
+    def with_parameters_resolved_by(self,
+                                    param_resolver: ParamResolver,
+                                    ext: Extensions = None
+                                    ) -> 'Circuit':
+        if ext is None:
+            ext = Extensions()
+        resolved_circuit = Circuit()
+        for moment in self.moments:
+            resolved_circuit.append(_resolve_operations(
+                moment.operations,
+                param_resolver,
+                ext))
+        return resolved_circuit
+
+
+def _resolve_operations(
+        operations: Iterable[ops.Operation],
+        param_resolver: ParamResolver,
+        ext: Extensions) -> List[ops.Operation]:
+    resolved_operations = []  # type: List[ops.Operation]
+    for op in operations:
+        cast_op = ext.try_cast(ops.ParameterizableEffect, op)
+        if cast_op is None:
+            resolved_op = op
+        else:
+            resolved_op = cast_op.with_parameters_resolved_by(param_resolver)
+        resolved_operations.append(resolved_op)
+    return resolved_operations
 
 
 def _get_operation_text_diagram_info_with_fallback(
