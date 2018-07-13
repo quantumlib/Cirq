@@ -132,6 +132,7 @@ def test_line_placement_str():
 (1, 0)━━━(1, 1)
     """.strip()
 
+
 def test_line_placement_to_str():
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)

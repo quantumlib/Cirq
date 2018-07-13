@@ -146,3 +146,6 @@ class PointOptimizer(OptimizationPass):
                     walls[q] = max(walls[q], next_insert_index)
 
             i += 1
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)

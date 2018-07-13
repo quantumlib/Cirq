@@ -97,6 +97,7 @@ from cirq.ops import (
     CNOT,
     CNotGate,
     CompositeGate,
+    CompositeOperation,
     ControlledGate,
     CSWAP,
     CZ,
@@ -110,10 +111,10 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse_of_invertible_op_tree,
+    inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrixGate,
+    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -125,7 +126,7 @@ from cirq.ops import (
     ReversibleCompositeGate,
     ReversibleEffect,
     ParameterizableEffect,
-    PhaseableGate,
+    PhaseableEffect,
     QubitId,
     Rot11Gate,
     RotXGate,
@@ -156,6 +157,7 @@ from cirq.schedules import (
 )
 
 from cirq.study import (
+    Linspace,
     ParamResolver,
     Points,
     Sweep,
