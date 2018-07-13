@@ -113,3 +113,39 @@ def test_line_placement_longest_multiple_longest_sequences():
 
 def test_line_placement_longest_empty_list():
     assert LinePlacement(_create_device([]), 0, []).longest() is None
+
+
+def test_line_placement_str():
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q02 = GridQubit(0, 2)
+    q10 = GridQubit(1, 0)
+    q11 = GridQubit(1, 1)
+    device = _create_device([q00, q01, q02, q10, q11])
+    seq1 = LineSequence([q00, q01, q02])
+    seq2 = LineSequence([q10, q11])
+    placement = LinePlacement(device, 0, [seq1, seq2])
+    assert str(placement).strip() == """
+(0, 0)━━━(0, 1)━━━(0, 2)
+
+
+(1, 0)━━━(1, 1)
+    """.strip()
+
+
+def test_line_placement_to_str():
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    q02 = GridQubit(0, 2)
+    q10 = GridQubit(1, 0)
+    q11 = GridQubit(1, 1)
+    device = _create_device([q00, q01, q02, q10, q11])
+    seq1 = LineSequence([q00, q01, q02])
+    seq2 = LineSequence([q10, q11])
+    placement = LinePlacement(device, 0, [seq1, seq2])
+    assert placement._to_str(True).strip() == """
+(0, 0)━━━(0, 1)━━━(0, 2)
+│        │
+│        │
+(1, 0)━━━(1, 1)
+    """.strip()
