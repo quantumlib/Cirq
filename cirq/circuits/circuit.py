@@ -436,20 +436,28 @@ class Circuit(object):
                            start: int,
                            frontier: Dict[QubitId, int]=None
                            ) -> Dict[QubitId, int]:
-        """Inserts operations inline at frontier."""
+        """Inserts operations inline at frontier.
+
+        Args:
+            operations: the operations to insert
+            start: the moment at which to start inserting the operations
+            frontier: frontier[q] is the earliest moment in which an operation
+                acting on qubit q can be placed.
+        """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
         operations = tuple(ops.flatten_op_tree(operations))
         if not operations:
             return frontier
         qubits = set(q for op in operations for q in op.qubits)
+        if any(frontier[q] > start for q in qubits):
+            raise ValueError('The frontier for qubits on which the operations'
+                             'to insert act cannot be after start.')
         next_moments = {}
         for q in qubits:
             next_moment = self.next_moment_operating_on([q], start)
             next_moments[q] = (len(self.moments) if next_moment is None else
                                next_moment)
-        if any(frontier[q] > next_moments[q] for q in qubits):
-            raise ValueError('Frontier must be before the next moments.')
 
         # schedule operations
         schedule = {}
