@@ -23,7 +23,7 @@ from collections import defaultdict
 
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
-    Optional, Sequence, Union, TYPE_CHECKING,
+    Optional, Sequence, Union, TYPE_CHECKING, Tuple
 )
 
 import numpy as np
@@ -37,7 +37,7 @@ from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set
+    from typing import Set, List
 
 
 class Circuit(object):
@@ -215,6 +215,17 @@ class Circuit(object):
         return self._first_moment_operating_on(
             qubits,
             range(start_moment_index, start_moment_index + max_distance))
+
+    def next_moments_operating_on(self,
+                                 qubits: Iterable[ops.QubitId],
+                                 start_moment_index: int = 0
+                                 ) -> Dict[ops.QubitId, int]:
+        next_moments = {}
+        for q in qubits:
+            next_moment = self.next_moment_operating_on([q], start_moment_index)
+            next_moments[q] = (len(self.moments) if next_moment is None else
+                               next_moment)
+        return next_moments
 
     def prev_moment_operating_on(
             self,
@@ -431,6 +442,51 @@ class Circuit(object):
 
         return self.insert(end, operations[op_index:])
 
+    @staticmethod
+    def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
+                                          start: int=0,
+                                          frontier: Dict[ops.QubitId, int]=None
+                                          ) -> Tuple[Dict[int, int],
+                                                     Dict[ops.QubitId, int]]:
+        if frontier is None:
+            frontier = defaultdict(lambda: 0)
+        moment_indices = {}
+        for op_index, op in enumerate(operations):
+            op_start = max(start, max(frontier[q] for q in op.qubits))
+            moment_indices[op_index] = op_start
+            for q in op.qubits:
+                frontier[q] = max(frontier[q], op_start + 1)
+
+        return (moment_indices, frontier)
+
+
+    def push_frontier(self,
+                      early_frontier: Dict[ops.QubitId, int],
+                      late_frontier: Dict[ops.QubitId, int]
+                      ) -> Dict[ops.QubitId, int]:
+        n_new_moments = max(early_frontier.get(q, 0) - late_frontier[q]
+                            for q in late_frontier)
+        if n_new_moments > 0:
+            insert_index = min(late_frontier.values())
+            self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
+            for q in early_frontier:
+                if ((q not in late_frontier) and
+                    (early_frontier[q] > insert_index)):
+                    early_frontier[q] += n_new_moments
+        return early_frontier
+
+
+    def insert_operations(self,
+                          operations: Sequence[ops.Operation],
+                          insertion_indices: Dict[int, int]) -> None:
+        moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
+        for op_index, moment in insertion_indices.items():
+            moment_to_ops[moment].append(operations[op_index])
+        for moment, new_ops in moment_to_ops.items():
+            self.moments[moment] = Moment(self.moments[moment].operations +
+                                          tuple(new_ops))
+
+
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
                            start: int,
@@ -453,36 +509,15 @@ class Circuit(object):
         if any(frontier[q] > start for q in qubits):
             raise ValueError('The frontier for qubits on which the operations'
                              'to insert act cannot be after start.')
-        next_moments = {}
-        for q in qubits:
-            next_moment = self.next_moment_operating_on([q], start)
-            next_moments[q] = (len(self.moments) if next_moment is None else
-                               next_moment)
 
-        # schedule operations
-        schedule = {}
-        for op_index, op in enumerate(operations):
-            op_start = max(start, max(frontier[q] for q in op.qubits))
-            schedule[op_index] = op_start
-            for q in op.qubits:
-                frontier[q] = max(frontier[q], op_start + 1)
+        next_moments = self.next_moments_operating_on(qubits, start)
 
-        # insert new moments
-        n_new_moments = max(frontier[q] - next_moments[q] for q in qubits)
-        if n_new_moments:
-            insert_index = min(next_moments.values())
-            self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
-            for q in frontier:
-                if (q not in qubits) and (frontier[q] > insert_index):
-                    frontier[q] += n_new_moments
+        insertion_indices, _ = self._pick_inserted_ops_moment_indices(
+                operations, start, frontier)
 
-        # insert operations
-        moment_to_ops = defaultdict(list) # type: Dict[int, ops.Operation]
-        for op_index, moment in schedule.items():
-            moment_to_ops[moment].append(operations[op_index])
-        for moment, new_ops in moment_to_ops.items():
-            self.moments[moment] = Moment(self.moments[moment].operations +
-                                          tuple(new_ops))
+        self.push_frontier(frontier, next_moments)
+
+        self.insert_operations(operations, insertion_indices)
 
         return frontier
 
