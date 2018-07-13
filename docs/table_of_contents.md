@@ -2,7 +2,7 @@ Table of Contents
 =================
 
   * [Tutorial](tutorial.md)
-  * [Circuits, Moments, and OpTrees](circuits.rst)
+  * [Circuits, Moments, and OpTrees](circuits.md)
   * [Gates](gates.md)
   * [Simulation](simulation.md)
   * [Schedules and Devices](schedules.md)
