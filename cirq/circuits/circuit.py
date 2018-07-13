@@ -648,7 +648,9 @@ def _resolve_operations(
         if cast_op is None:
             resolved_op = op
         else:
-            resolved_op = cast_op.with_parameters_resolved_by(param_resolver)
+            resolved_op = cast(
+                    ops.Operation,
+                    cast_op.with_parameters_resolved_by(param_resolver))
         resolved_operations.append(resolved_op)
     return resolved_operations
 
