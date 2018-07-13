@@ -8,7 +8,7 @@ Nielsen and Chuang.
 
 To begin, please follow the instructions for [installing Cirq](install.md)
 
-### Variational quantum algorithms
+### Background: Variational quantum algorithms
 
 The (variational method)[https://en.wikipedia.org/wiki/Variational_method_(quantum_mechanics)]
 in quantum theory is a way of finding low energy states of a system.
@@ -44,7 +44,50 @@ that quantum computers will be able to efficiently solve it.  Yet this
 type of problem is illustrative of the general class of problems that
 Cirq is designed to tackle.
 
+Consider the energy function
+
 ![Energy](resources/EnergyDef.gif)
 
-### Circuits, Moments, OP_TREEs
+where here each s<sub>i</sub>, J<sub>i,j</sub>, and h<sub>i</sub> is either 
++1 or -1.  Here each index i is associated with a bit on a square lattice,
+and the <i,j> notation means sums over neighboring bits on this lattice.
+The problem we would like to solve is, given J<sub>i,j</sub>, and h<sub>i</sub>,
+find an assignment of s<sub>i</sub>s that minimize E.  
 
+What does a variational quantum algorithm work for this? One approach is
+to consider `n` qubits and associate them with each of the bits in the 
+classical problem.  This maps the classical problem onto the quantum problem
+of minimizing the expectation value of the observable
+
+![Hamiltonian](resources/HamiltonianDef.gif)
+
+Then one defines a set of parameterized quantum circuits, i.e. a 
+quantum circuit where the gates (or more general quantum operations)
+are parameterized by some values.  This produces an ansatz state
+
+![State definition](resources/StateDef.gif)
+
+where p<sub>i</sub> are the parameters that produce this state
+(here we assume a pure state, but mixed states are of course
+possible).
+
+The variational algorithm this proceeds by
+1. Prepare the ansatz state.
+2. Make a measurement which samples from terms in H.
+Note that one cannot always measure H directly (without
+the use of quantum phase estimation), so one often relies
+on the linearity of expectation values to measure parts of
+H and then by repeating the steps above one can estimate 
+the expectation value of these terms which can then be added.
+In particular one always needs to repeat 1 and 2 to make
+an estimate of the expectation value.  An important
+point is that one needs to repeat this measurement multiple
+times and that one will almost always have an error in this
+estimate.  How many measurements to make is beyond the 
+scope of this tutorial, but Cirq can help investigate
+this tradeoff. 
+
+### Circuits and Moments
+
+To build the above variational quantum algorithm using Cirq, 
+one begins by building the appropriate [circuit](circuit.md).
