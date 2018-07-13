@@ -628,8 +628,7 @@ class Circuit(ParameterizableEffect):
         if ext is None:
             ext = Extensions()
         return any(cast(ParameterizableEffect, op).is_parameterized()
-                   for moment in self.moments
-                   for op in moment.operations
+                   for op in self.all_operations()
                    if ext.try_cast(ops.ParameterizableEffect, op) is not None)
 
     def with_parameters_resolved_by(self,
