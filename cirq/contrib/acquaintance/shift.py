@@ -68,3 +68,7 @@ class CircularShiftGate(cirq.Gate,
                 for i in range(args.known_qubit_count))
         return gate_features.TextDiagramInfo(
                 wire_symbols=wire_symbols)
+
+CircularShiftGates = type('CircularShiftGates', (dict,), {'__missing__':
+    (lambda self, key: self.setdefault(key, CircularShiftGate(key)))})
+SHIFT = CircularShiftGates()
