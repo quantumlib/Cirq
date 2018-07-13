@@ -160,8 +160,8 @@ def main():
     print('Superconducting gap = ', delta, '\n')
 
     bog_circuit = cirq.Circuit.from_ops(
-        bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i]
-                         ) for i in range(n_site))
+        bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
+        for i in range(n_site))
     cirq.google.MergeRotations().optimize_circuit(bog_circuit)
     print('Circuit for the Bogoliubov transformation:')
     print(bog_circuit.to_text_diagram(transpose=True), '\n')
@@ -214,7 +214,7 @@ def bogoliubov_trans(p: cirq.QubitId, q: cirq.QubitId, theta: float
     """
 
     # The iSWAP gate corresponds to evolve under the Hamiltonian XX+YY for
-    # time -\pi/4.
+    # time -pi/4.
     expo = -4 * theta / np.pi
 
     yield cirq.X(p)
