@@ -143,12 +143,14 @@ class XmonDevice(Device):
                 scheduled_operation.operation, measurement_keys)
 
     def verify_new_measurement_key(self, operation, previous_keys):
-        if isinstance(operation.gate, xmon_gates.XmonMeasurementGate):
-            if operation.gate.key in previous_keys:
-                raise ValueError('Measurement key {} repeated'.format(
-                    operation.gate.key))
-            else:
-                previous_keys.add(operation.gate.key)
+        if isinstance(operation, ops.GateOperation):
+            gate = operation.gate
+            if isinstance(gate, xmon_gates.XmonMeasurementGate):
+                if gate.key in previous_keys:
+                    raise ValueError('Measurement key {} repeated'.format(
+                        gate.key))
+                else:
+                    previous_keys.add(operation.gate.key)
 
     def at(self, row: int, col: int) -> Optional[GridQubit]:
         """Returns the qubit at the given position, if there is one, else None.

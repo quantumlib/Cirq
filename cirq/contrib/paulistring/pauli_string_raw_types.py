@@ -25,8 +25,7 @@ TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',
                                          bound='PauliStringGateOperation')
 
 
-class PauliStringGateOperation(ops.Gate,
-                               ops.Operation,
+class PauliStringGateOperation(ops.Operation,
                                metaclass=abc.ABCMeta):
     def __init__(self, pauli_string: PauliString) -> None:
         self.pauli_string = pauli_string
@@ -34,15 +33,6 @@ class PauliStringGateOperation(ops.Gate,
     def validate_args(self, qubits: Sequence[ops.QubitId]) -> None:
         if len(qubits) != len(self.pauli_string):
             raise ValueError('Incorrect number of qubits for gate')
-
-    def on(self, *qubits: ops.QubitId):
-        self.validate_args(qubits)
-        return self.with_qubits(*qubits)
-
-    @property
-    def gate(self: TSelf_PauliStringGateOperation,
-             ) -> TSelf_PauliStringGateOperation:
-        return self
 
     def with_qubits(self: TSelf_PauliStringGateOperation,
                     *new_qubits: ops.QubitId
