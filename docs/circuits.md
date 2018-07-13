@@ -4,8 +4,8 @@
 
 There are two primary representations of quantum programs in Cirq, each of
 which are represented by a class: `Circuit` and `Schedule`. 
-Conceptually a Circuit object is very closely
-related to the abstract quantum circuit model, while a Schedule object is a
+Conceptually a Circuit object is very closely related to the 
+abstract quantum circuit model, while a Schedule object is
 like the abstract quantum circuit model but includes detailed timing
 information.
 
@@ -16,7 +16,6 @@ some effect that operates on a specific subset of ``Qubits``,
 the most common type of `Operation` is a `GateOperation`.
 
 ![Circuits and Moments](CircuitMomentOperation.png)
-
 Let's unpack this.
 
 At the base of this construction is the notion of a qubit.  In
