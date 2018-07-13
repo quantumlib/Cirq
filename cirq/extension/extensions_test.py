@@ -33,7 +33,8 @@ class OtherType:
 
 
 class WrapType(DesiredType):
-    def __init__(self, other):
+    def __init__(self, extensions, other):
+        del extensions
         self.other = other
 
     def make(self):
@@ -122,8 +123,8 @@ def test_can_cast():
 def test_override_order():
     e = extension.Extensions({
         DesiredType: {
-            object: lambda _: 'obj',
-            UnrelatedType: lambda _: 'unrelated',
+            object: lambda _, _2: 'obj',
+            UnrelatedType: lambda _, _2: 'unrelated',
         }
     })
     assert e.cast(DesiredType, '') == 'obj'
@@ -138,7 +139,7 @@ def test_try_cast_potential_implementation():
         def __init__(self, is_other):
             self.is_other = is_other
 
-        def try_cast_to(self, desired_type, ext):
+        def try_cast_to(self, desired_type, extensions):
             if desired_type is OtherType and self.is_other:
                 return OtherType()
             return None
@@ -277,3 +278,19 @@ def test_add_potential_cast():
 
     assert e.try_cast(Aunt, c1) is a
     assert e.try_cast(Aunt, c2) is None
+
+
+def test_add_recursive_cast():
+    cousin = Cousin()
+    child = Child()
+
+    e = extension.Extensions()
+    e.add_cast(desired_type=Cousin,
+               actual_type=Child,
+               conversion=lambda _: cousin)
+    e.add_recursive_cast(
+        desired_type=Cousin,
+        actual_type=Grandparent,
+        conversion=lambda ext, _: ext.try_cast(Cousin, child))
+
+    assert e.try_cast(Cousin, Grandparent()) is cousin

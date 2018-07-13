@@ -61,7 +61,7 @@ class SharedMemManager(object):
         if not isinstance(arr, np.ndarray):
             raise ValueError('Array is not a numpy ndarray.')
         try:
-           c_arr = np.ctypeslib.as_ctypes(arr)
+            c_arr = np.ctypeslib.as_ctypes(arr)
         except KeyError:
             raise ValueError(
                 'Array has unsupported dtype {}.'.format(arr.dtype))

@@ -22,7 +22,7 @@ Moment the Operations must all act on distinct Qubits.
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
     Optional, Sequence, Union, TYPE_CHECKING,
-)
+    Type, Tuple, cast, TypeVar)
 
 import numpy as np
 
@@ -38,13 +38,16 @@ if TYPE_CHECKING:
     from typing import Set
 
 
+T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
+
+
 class Circuit(object):
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
         next_moment_operating_on
         prev_moment_operating_on
-        operation_on
+        operation_at
         qubits
         findall_operations
         to_unitary_matrix
@@ -98,6 +101,9 @@ class Circuit(object):
         result = Circuit()
         result.append(operations, strategy)
         return result
+
+    def __copy__(self):
+        return type(self)(self.moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -276,7 +282,8 @@ class Circuit(object):
                 return op
         return None
 
-    def findall_operations(self, predicate: Callable[[ops.Operation], bool]):
+    def findall_operations(self, predicate: Callable[[ops.Operation], bool]
+                           ) -> Iterable[Tuple[int, ops.Operation]]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -295,11 +302,33 @@ class Circuit(object):
                 if predicate(op):
                     yield index, op
 
+    def findall_operations_with_gate_type(
+            self,
+            gate_type: Type[T_DESIRED_GATE_TYPE]
+            ) -> Iterable[Tuple[int,
+                                ops.GateOperation,
+                                T_DESIRED_GATE_TYPE]]:
+        """Find the locations of all gate operations of a given type.
+
+        Args:
+            gate_type: The type of gate to find, e.g. RotXGate or
+                MeasurementGate.
+
+        Returns:
+            An iterator (index, operation, gate)'s for operations with the given
+            gate type.
+        """
+        result = self.findall_operations(
+            lambda operation: (isinstance(operation, ops.GateOperation) and
+                               isinstance(operation.gate, gate_type)))
+        for index, op in result:
+            gate_op = cast(ops.GateOperation, op)
+            yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
+
     def are_all_measurements_terminal(self):
-        is_meas_gate = lambda op: isinstance(op.gate, ops.MeasurementGate)
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(is_meas_gate))
+            in self.findall_operations(ops.MeasurementGate.is_measurement))
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -349,13 +378,13 @@ class Circuit(object):
     def insert(
             self,
             index: int,
-            operation_tree: ops.OP_TREE,
+            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """Inserts operations into the middle of the circuit.
 
         Args:
             index: The index to insert all of the operations at.
-            operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
 
         Returns:
@@ -366,11 +395,15 @@ class Circuit(object):
             IndexError: Bad insertion index.
             ValueError: Bad insertion strategy.
         """
+        if isinstance(moment_or_operation_tree, Moment):
+            self.moments.insert(index, moment_or_operation_tree)
+            return index + 1
+
         if not 0 <= index <= len(self.moments):
             raise IndexError('Insert index out of range: {}'.format(index))
 
         k = index
-        for op in ops.flatten_op_tree(operation_tree):
+        for op in ops.flatten_op_tree(moment_or_operation_tree):
             p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
             while p >= len(self.moments):
                 self.moments.append(Moment())
@@ -401,7 +434,7 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= start < end <= len(self.moments):
+        if not 0 <= start <= end <= len(self.moments):
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
@@ -424,15 +457,15 @@ class Circuit(object):
 
     def append(
             self,
-            operation_tree: ops.OP_TREE,
+            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:
-            operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self.moments), operation_tree, strategy)
+        self.insert(len(self.moments), moment_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],
@@ -474,8 +507,8 @@ class Circuit(object):
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
-            ext: The extensions to use when attempting to cast gates into
-                KnownMatrixGate instances.
+            ext: The extensions to use when attempting to cast operations into
+                KnownMatrix instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -696,24 +729,23 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
                                  ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
-        known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
+        known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
         if known_matrix_gate is not None:
             yield op
             continue
 
         # If not, check if it has a decomposition
-        composite_gate = ext.try_cast(ops.CompositeGate, op.gate)
-        if composite_gate is not None:
+        composite_op = ext.try_cast(ops.CompositeOperation, op)
+        if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
-            op_tree = composite_gate.default_decompose(op.qubits)
+            op_tree = composite_op.default_decompose()
             op_list = ops.flatten_op_tree(op_tree)
             for op in _flatten_to_known_matrix_ops(op_list, ext):
                 yield op
             continue
 
         # Pass measurement gates through
-        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
-        if meas_gate is not None:
+        if ops.MeasurementGate.is_measurement(op):
             yield op
             continue
 
@@ -730,8 +762,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
     # Precondition is that circuit has only terminal measurements.
     total = np.eye(1 << len(qubit_map))
     for op in iter_ops:
-        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
-        if meas_gate is not None:
+        if ops.MeasurementGate.is_measurement(op):
             if not ignore_terminal_measurements:
                 raise TypeError(
                     'Terminal measurement operation but not ignoring these '
@@ -745,7 +776,7 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 def _operation_to_unitary_matrix(op: ops.Operation,
                                  qubit_map: Dict[QubitId, int],
                                  ext: Extensions) -> np.ndarray:
-    known_matrix_gate = ext.try_cast(ops.KnownMatrixGate, op.gate)
+    known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
     if known_matrix_gate is None:
         raise TypeError(
             'Operation without a known matrix: {!r}'.format(op))

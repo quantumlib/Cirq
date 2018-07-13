@@ -480,7 +480,7 @@ def test_greedy_search_method_calls_largest_only(minimal, largest):
 
     method = GreedySequenceSearchStrategy('largest_area')
     assert method.place_line(device, length) == LinePlacement(
-        device, length, [LineSequence(sequence)])
+        device,  length, [LineSequence(sequence)])
 
     largest.return_value.get_or_search.assert_called_once_with()
     minimal.return_value.get_or_search.assert_not_called()

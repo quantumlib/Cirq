@@ -19,11 +19,11 @@ from typing import Union, Tuple, Optional, List, Callable, cast
 import numpy as np
 
 from cirq import value
-from cirq.ops import gate_features, eigen_gate, raw_types
+from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
 class Rot11Gate(eigen_gate.EigenGate,
-                gate_features.PhaseableGate,
+                gate_features.PhaseableEffect,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate):
@@ -281,6 +281,15 @@ class MeasurementGate(raw_types.Gate,
         self.key = key
         self.invert_mask = invert_mask
 
+    @staticmethod
+    def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+        if isinstance(op, MeasurementGate):
+            return True
+        if (isinstance(op, gate_operation.GateOperation) and
+                isinstance(op.gate, MeasurementGate)):
+            return True
+        return False
+
     def validate_args(self, qubits):
         if (self.invert_mask is not None and
                 len(self.invert_mask) > len(qubits)):
@@ -310,7 +319,7 @@ class MeasurementGate(raw_types.Gate,
 def measure(*qubits: raw_types.QubitId,
             key: Optional[str] = None,
             invert_mask: Optional[Tuple[bool, ...]] = None
-            ) -> raw_types.Operation:
+            ) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -333,7 +342,7 @@ def measure(*qubits: raw_types.QubitId,
 
 def measure_each(*qubits: raw_types.QubitId,
                  key_func: Callable[[raw_types.QubitId], str] = str
-                 ) -> List[raw_types.Operation]:
+                 ) -> List[gate_operation.GateOperation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -361,7 +370,7 @@ T = Z**0.25
 class HGate(gate_features.CompositeGate,
             gate_features.TextDiagrammable,
             gate_features.ReversibleEffect,
-            gate_features.KnownMatrixGate,
+            gate_features.KnownMatrix,
             gate_features.SingleQubitGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
