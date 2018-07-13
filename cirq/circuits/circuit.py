@@ -35,7 +35,7 @@ from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set
+    from typing import Set, List
 
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
@@ -77,13 +77,19 @@ class Circuit(object):
         moments: A list of the Moments of the circuit.
     """
 
-    def __init__(self, moments: Iterable[Moment] = ()) -> None:
+    def __init__(self, moments: Iterable[Union[Moment,
+                                               ops.OP_TREE]] = ()) -> None:
         """Initializes a circuit.
 
         Args:
             moments: The initial list of moments defining the circuit.
         """
-        self.moments = list(moments)
+        self.moments = []  # type: List[Moment]
+        for moment_or_ops in moments:
+            if isinstance(moment_or_ops, Moment):
+                self.moments.append(moment_or_ops)
+            else:
+                self.moments.append(Moment(moment_or_ops))
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
