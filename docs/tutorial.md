@@ -44,7 +44,7 @@ that quantum computers will be able to efficiently solve it.  Yet this
 type of problem is illustrative of the general class of problems that
 Cirq is designed to tackle.
 
-~[Energy](resources/EnergyDef.gif)
+![Energy](resources/EnergyDef.gif)
 
 ### Circuits, Moments, OP_TREEs
 
