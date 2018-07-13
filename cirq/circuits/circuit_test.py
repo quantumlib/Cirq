@@ -311,6 +311,19 @@ def test_insert_inline_near_start():
         Moment(),
     ])
 
+def test_insert_into_range():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    c = Circuit([Moment([cirq.X(x)])] * 4)
+    c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───X───X───Z───@───X───X───
+                  │
+y: ───────────────@───────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 
 def test_next_moment_operating_on():
     a = cirq.QubitId()
