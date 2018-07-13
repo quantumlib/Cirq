@@ -15,6 +15,7 @@
 from typing import List, Optional
 
 from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 
 
 class NotFoundError(Exception):
@@ -40,7 +41,9 @@ class LineSequence:
 
 class LinePlacement:
 
-    def __init__(self, length: int, lines: List[LineSequence]) -> None:
+    def __init__(self, device: XmonDevice, length: int,
+                 lines: List[LineSequence]) -> None:
+        self.device = device
         self.length = length
         self.lines = lines
 
