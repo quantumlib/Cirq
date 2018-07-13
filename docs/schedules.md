@@ -36,10 +36,11 @@ class Xmon10Device(cirq.Device):
       return cirq.Duration(nanos=10)
 
   def validate_operation(self, operation):
-      if not isinstance(operation.gate, XmonGate):
-          raise ValueError('{} is not an XmonGate'.format(repr(operation.gate)))
+      if (not isinstance(operation, cirq.GateOperation) or
+              not isinstance(operation.gate, XmonGate)):
+          raise ValueError('{!r} is not an XmonGate'.format(operation))
       if len(operation.qubits) == 2:
-          p,q = operation.qubits
+          p, q = operation.qubits
           if not p.is_adjacent(q):
             raise ValueError('Non-local interaction: {}'.format(repr(operation)))
 

@@ -529,7 +529,7 @@ def _simulator_iterator(
                 list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]
             for op in moment.operations:
-                gate = op.gate
+                gate = cast(ops.GateOperation, op).gate
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
                     phase_map[(index,)] = cast(float, gate.half_turns)
@@ -543,7 +543,7 @@ def _simulator_iterator(
                         index=index,
                         half_turns=gate.half_turns,
                         axis_half_turns=gate.axis_half_turns)
-                elif (isinstance(gate, xmon_gates.XmonMeasurementGate)):
+                elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     if perform_measurements:
                         invert_mask = (
                                 gate.invert_mask or len(op.qubits) * (False,))
@@ -560,8 +560,9 @@ def _simulator_iterator(
             yield XmonStepResult(stepper, qubit_map, measurements)
 
 
-def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
-    repetitions: int) -> Dict[str, List]:
+def _sample_measurements(circuit: Circuit,
+                         step_result: 'XmonStepResult',
+                         repetitions: int) -> Dict[str, List]:
     """Sample from measurements in the given circuit.
 
     This should only be called if the circuit has only terminal measurements.
@@ -581,12 +582,12 @@ def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
     """
     if step_result is None:
         return {}
-    is_meas = lambda op: isinstance(op.gate, xmon_gates.XmonMeasurementGate)
     bounds = {}
     all_qubits = []  # type: List[raw_types.QubitId]
     current_index = 0
-    for _, op in circuit.findall_operations(is_meas):
-        key = cast(str, op.gate.key)
+    for _, op, gate in circuit.findall_operations_with_gate_type(
+            xmon_gates.XmonMeasurementGate):
+        key = gate.key
         bounds[key] = (current_index, current_index + len(op.qubits))
         all_qubits.extend(op.qubits)
         current_index += len(op.qubits)
@@ -596,13 +597,12 @@ def _sample_measurements(circuit: Circuit, step_result: 'XmonStepResult',
 
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
     keys = set()  # type: Set[str]
-    for moment in circuit:
-        for op in moment.operations:
-            if isinstance(op.gate, xmon_gates.XmonMeasurementGate):
-                key = cast(str, op.gate.key)
-                if key in keys:
-                    raise ValueError('Repeated Measurement key {}'.format(key))
-                keys.add(key)
+    for _, _, gate in circuit.findall_operations_with_gate_type(
+            xmon_gates.XmonMeasurementGate):
+        key = gate.key
+        if key in keys:
+            raise ValueError('Repeated Measurement key {}'.format(key))
+        keys.add(key)
     return keys
 
 

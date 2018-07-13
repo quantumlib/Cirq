@@ -325,6 +325,19 @@ def test_insert_inline_near_start():
         Moment(),
     ])
 
+def test_insert_into_range():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    c = Circuit([Moment([cirq.X(x)])] * 4)
+    c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───X───X───Z───@───X───X───
+                  │
+y: ───────────────@───────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 
 def test_next_moment_operating_on():
     a = cirq.QubitId()
@@ -509,7 +522,9 @@ def test_findall_operations():
     za = cirq.Z.on(a)
     zb = cirq.Z.on(b)
 
-    is_x = lambda op: isinstance(op.gate, cirq.RotXGate)
+    def is_x(op: cirq.Operation) -> bool:
+        return (isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.RotXGate))
 
     c = Circuit()
     assert list(c.findall_operations(is_x)) == []
@@ -540,6 +555,30 @@ def test_findall_operations():
 
     c = Circuit.from_ops(xa, zb, za, xb)
     assert list(c.findall_operations(is_x)) == [(0, xa), (1, xb)]
+
+
+def test_findall_operations_with_gate():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.measure(a), cirq.measure(b)]),
+    ])
+    assert list(c.findall_operations_with_gate_type(cirq.RotXGate)) == [
+        (0, cirq.X(a), cirq.X),
+        (2, cirq.X(a), cirq.X),
+        (2, cirq.X(b), cirq.X),
+    ]
+    assert list(c.findall_operations_with_gate_type(cirq.Rot11Gate)) == [
+        (3, cirq.CZ(a, b), cirq.CZ),
+    ]
+    assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
+        (4, cirq.MeasurementGate(key='a').on(a), cirq.MeasurementGate(key='a')),
+        (4, cirq.MeasurementGate(key='b').on(b), cirq.MeasurementGate(key='b')),
+    ]
 
 
 def test_are_all_measurements_terminal():
