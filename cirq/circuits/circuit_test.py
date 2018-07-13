@@ -1330,6 +1330,24 @@ def test_insert_moments():
     assert c.moments[0] is m2
 
 
+def test_is_parameterized():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Rot11Gate(half_turns=cirq.Symbol('u')).on(a, b),
+        cirq.RotXGate(half_turns=cirq.Symbol('v')).on(a),
+        cirq.RotYGate(half_turns=cirq.Symbol('w')).on(b),
+    )
+    assert circuit.is_parameterized()
+
+    circuit = circuit.with_parameters_resolved_by(
+            cirq.ParamResolver({'u': 0.1, 'v': 0.3}))
+    assert circuit.is_parameterized()
+
+    circuit = circuit.with_parameters_resolved_by(
+            cirq.ParamResolver({'w': 0.2}))
+    assert not circuit.is_parameterized()
+
+
 def test_with_parameters_resolved_by():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(

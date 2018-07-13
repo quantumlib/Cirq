@@ -31,7 +31,7 @@ from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
-from cirq.ops import QubitId
+from cirq.ops import ParameterizableEffect, QubitId
 from cirq.study import ParamResolver
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
-class Circuit(object):
+class Circuit(ParameterizableEffect):
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
@@ -623,10 +623,18 @@ class Circuit(object):
 
         return diagram
 
+    def is_parameterized(self,
+                         ext: Extensions = None) -> bool:
+        if ext is None:
+            ext = Extensions()
+        return any(cast(ParameterizableEffect, op).is_parameterized()
+                   for moment in self.moments
+                   for op in moment.operations
+                   if ext.try_cast(ops.ParameterizableEffect, op) is not None)
+
     def with_parameters_resolved_by(self,
                                     param_resolver: ParamResolver,
-                                    ext: Extensions = None
-                                    ) -> 'Circuit':
+                                    ext: Extensions = None) -> 'Circuit':
         if ext is None:
             ext = Extensions()
         resolved_circuit = Circuit()

@@ -2,7 +2,6 @@
 max-line-length=80
 disable=all
 enable=
-    arguments-differ,
     assert-on-tuple,
     bad-indentation,
     bad-option-value,
