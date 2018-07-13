@@ -456,12 +456,62 @@ def test_greedy_search_method_calls_all(largest, minimal):
     minimal_instance.get_or_search.assert_called_once_with()
 
 
+def test_greedy_search_method_fails_when_unknown():
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    qubits = [q00, q01]
+    length = 2
+
+    method = GreedySequenceSearchStrategy('fail')
+    with pytest.raises(ValueError):
+        method.place_line(_create_device(qubits), length)
+
+
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
 @mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
-def test_greedy_search_method_returns_longest(largest, minimal):
+def test_greedy_search_method_calls_largest_only(minimal, largest):
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    largest.return_value.get_or_search.return_value = sequence
+
+    method = GreedySequenceSearchStrategy('largest_area')
+    assert method.place_line(device, length) == LinePlacement(
+        device, length, [LineSequence(sequence)])
+
+    largest.return_value.get_or_search.assert_called_once_with()
+    minimal.return_value.get_or_search.assert_not_called()
+
+
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
+            'MinimalConnectivityGreedySequenceSearch')
+def test_greedy_search_method_calls_minimal_only(minimal, largest):
+    q00 = GridQubit(0, 0)
+    q01 = GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    minimal.return_value.get_or_search.return_value = sequence
+
+    method = GreedySequenceSearchStrategy('minimal_connectivity')
+    assert method.place_line(device, length) == LinePlacement(
+        device, length, [LineSequence(sequence)])
+
+    largest.return_value.get_or_search.assert_not_called()
+    minimal.return_value.get_or_search.assert_called_once_with()
+
+
+@mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
+@mock.patch('cirq.line.placement.greedy.'
+            'MinimalConnectivityGreedySequenceSearch')
+def test_greedy_search_method_returns_longest(minimal, largest):
     q00 = GridQubit(0, 0)
     q10 = GridQubit(1, 0)
+    device = _create_device([])
     length = 1
     sequence_short = [q00]
     sequence_long = [q00, q10]
@@ -469,18 +519,19 @@ def test_greedy_search_method_returns_longest(largest, minimal):
     minimal.return_value.get_or_search.return_value = sequence_long
 
     method = GreedySequenceSearchStrategy()
-    assert method.place_line(_create_device([]), length) == LinePlacement(
-        length, [LineSequence(sequence_long)])
+    assert method.place_line(device, length) == LinePlacement(
+        device, length, [LineSequence(sequence_long)])
 
 
 @mock.patch('cirq.line.placement.greedy.LargestAreaGreedySequenceSearch')
 @mock.patch('cirq.line.placement.greedy.'
             'MinimalConnectivityGreedySequenceSearch')
-def test_greedy_search_method_returns_empty_when_empty(largest, minimal):
+def test_greedy_search_method_returns_empty_when_empty(minimal, largest):
     largest.return_value.get_or_search.return_value = []
     minimal.return_value.get_or_search.return_value = []
 
+    device = _create_device([])
     length = 1
     method = GreedySequenceSearchStrategy()
-    assert method.place_line(_create_device([]), length) == LinePlacement(
-        length, [])
+    assert method.place_line(device, length) == LinePlacement(
+        device, length, [])

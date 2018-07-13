@@ -18,6 +18,7 @@ import cmath
 import itertools
 import math
 import time
+from typing import Optional, Callable
 
 import numpy as np
 import pytest
@@ -74,7 +75,10 @@ def test_xmon_options():
     assert options.min_qubits_before_shard == 0
 
 
-def run(simulator, circuit, scheduler, **kw):
+def run(simulator: cg.XmonSimulator,
+        circuit: cirq.Circuit,
+        scheduler: Optional[Callable],
+        **kw):
     if scheduler is None:
         program = circuit
     else:
