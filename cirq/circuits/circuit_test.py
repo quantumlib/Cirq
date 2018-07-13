@@ -16,11 +16,8 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.circuits.circuit import Circuit, _operation_to_unitary_matrix
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
-from cirq.google import ExpWGate
-from cirq.extension import Extensions
+from cirq.circuits.circuit import _operation_to_unitary_matrix
+from cirq import Circuit, InsertStrategy, Moment
 
 
 def test_equality():
@@ -314,6 +311,19 @@ def test_insert_inline_near_start():
         Moment(),
     ])
 
+def test_insert_into_range():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    c = Circuit([Moment([cirq.X(x)])] * 4)
+    c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───X───X───Z───@───X───X───
+                  │
+y: ───────────────@───────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 
 def test_next_moment_operating_on():
     a = cirq.QubitId()
@@ -498,7 +508,9 @@ def test_findall_operations():
     za = cirq.Z.on(a)
     zb = cirq.Z.on(b)
 
-    is_x = lambda op: isinstance(op.gate, cirq.RotXGate)
+    def is_x(op: cirq.Operation) -> bool:
+        return (isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.RotXGate))
 
     c = Circuit()
     assert list(c.findall_operations(is_x)) == []
@@ -529,6 +541,30 @@ def test_findall_operations():
 
     c = Circuit.from_ops(xa, zb, za, xb)
     assert list(c.findall_operations(is_x)) == [(0, xa), (1, xb)]
+
+
+def test_findall_operations_with_gate():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.measure(a), cirq.measure(b)]),
+    ])
+    assert list(c.findall_operations_with_gate_type(cirq.RotXGate)) == [
+        (0, cirq.X(a), cirq.X),
+        (2, cirq.X(a), cirq.X),
+        (2, cirq.X(b), cirq.X),
+    ]
+    assert list(c.findall_operations_with_gate_type(cirq.Rot11Gate)) == [
+        (3, cirq.CZ(a, b), cirq.CZ),
+    ]
+    assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
+        (4, cirq.MeasurementGate(key='a').on(a), cirq.MeasurementGate(key='a')),
+        (4, cirq.MeasurementGate(key='b').on(b), cirq.MeasurementGate(key='b')),
+    ]
 
 
 def test_are_all_measurements_terminal():
@@ -972,7 +1008,8 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    test_wgate = cirq.google.ExpWGate(
+        half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
     assert diagram.strip() == """
@@ -982,7 +1019,8 @@ a: ---W(0.43)^0.12---
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = ExpWGate(half_turns=0.12341234, axis_half_turns=0.43214321)
+    test_wgate = cirq.google.ExpWGate(
+        half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
     assert diagram.strip() == """
@@ -1022,7 +1060,7 @@ def test_text_diagram_jupyter():
 
 
 def test_operation_to_unitary_matrix():
-    ex = Extensions()
+    ex = cirq.Extensions()
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -1145,7 +1183,7 @@ def test_circuit_to_unitary_matrix():
     # Optionally don't ignoring terminal measurements.
     c = Circuit.from_ops(cirq.measure(a))
     with pytest.raises(TypeError, match="Terminal"):
-        c.to_unitary_matrix(ignore_terminal_measurements=False),
+        c.to_unitary_matrix(ignore_terminal_measurements=False)
 
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(cirq.measure(a), cirq.X(a))
@@ -1188,7 +1226,7 @@ def test_simple_circuits_to_unitary_matrix():
     # 2-qubit matrix matches when qubits in order.
     for expected in [np.diag([1, 1j, -1, -1j]), cirq.CNOT.matrix()]:
 
-        class Passthrough(cirq.KnownMatrixGate):
+        class Passthrough(cirq.Gate, cirq.KnownMatrix):
             def matrix(self):
                 return expected
 
@@ -1198,7 +1236,7 @@ def test_simple_circuits_to_unitary_matrix():
 
 
 def test_composite_gate_to_unitary_matrix():
-    class CNOT_composite(cirq.CompositeGate):
+    class CNOT_composite(cirq.Gate, cirq.CompositeGate):
         def default_decompose(self, qubits):
             q0, q1 = qubits
             return cirq.Y(q1)**-0.5, cirq.CZ(q0, q1), cirq.Y(q1)**0.5
@@ -1270,3 +1308,23 @@ def test_transposed_diagram_exponent_order():
 │ @──────@^0.125
 │ │      │
     """.strip()
+
+
+def test_insert_moments():
+    q = cirq.NamedQubit('q')
+    c = cirq.Circuit()
+
+    m0 = cirq.Moment([cirq.X(q)])
+    c.append(m0)
+    assert c.moments == [m0]
+    assert c.moments[0] is m0
+
+    m1 = cirq.Moment([cirq.Y(q)])
+    c.append(m1)
+    assert c.moments == [m0, m1]
+    assert c.moments[1] is m1
+
+    m2 = cirq.Moment([cirq.Z(q)])
+    c.insert(0, m2)
+    assert c.moments == [m2, m0, m1]
+    assert c.moments[0] is m2

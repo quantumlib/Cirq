@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 
 import cirq
@@ -162,3 +163,23 @@ def test_parameterizable_effect():
     op2 = op1.with_parameters_resolved_by(r)
     assert not op2.is_parameterized()
     assert op2 == cirq.S.on(q)
+
+
+def test_known_matrix():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    # If the gate has no matrix, you get a type error.
+    op0 = cirq.measure(a)
+    assert not cirq.can_cast(cirq.KnownMatrix, op0)
+    with pytest.raises(TypeError):
+        _ = op0.matrix()
+
+    op1 = cirq.X(a)
+    assert cirq.can_cast(cirq.KnownMatrix, op1)
+    np.testing.assert_allclose(op1.matrix(),
+                               np.array([[0, 1], [1, 0]]))
+    op2 = cirq.CNOT(a, b)
+    op3 = cirq.CNOT(a, b)
+    np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix())
+    np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix())

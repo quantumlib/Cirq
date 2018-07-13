@@ -14,16 +14,17 @@
 import numpy as np
 
 import cirq
-from cirq.google import ExpZGate, ConvertToXmonGates, EjectZ
+import cirq.google as cg
+from cirq.google.eject_z import _try_get_known_z_half_turns
 
 
 def assert_optimizes(before, after,
-                     pre_opts=(ConvertToXmonGates(ignore_failures=True),),
+                     pre_opts=(cg.ConvertToXmonGates(ignore_failures=True),),
                      post_opts=(
-                        ConvertToXmonGates(ignore_failures=True),
+                             cg.ConvertToXmonGates(ignore_failures=True),
                         cirq.DropEmptyMoments(),
                      )):
-    opt = EjectZ()
+    opt = cg.EjectZ()
 
     for pre in pre_opts:
         pre.optimize_circuit(before)
@@ -64,17 +65,17 @@ def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
     ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit.all_qubits())
     for moment in circuit:
         for op in moment.operations:
-            if isinstance(op.gate, cirq.MeasurementGate):
+            if cirq.MeasurementGate.is_measurement(op):
                 for q in op.qubits:
                     _cancel_qubit_phase(matrix, ordered_qubits.index(q))
     return matrix
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
-    opt = EjectZ()
+    opt = cg.EjectZ()
     optimized = cirq.Circuit(circuit)
     opt.optimize_circuit(optimized)
-    has_z = any(isinstance(op.gate, (cirq.RotZGate, cirq.google.ExpZGate))
+    has_z = any(_try_get_known_z_half_turns(op) is not None
                 for moment in optimized
                 for op in moment.operations)
     m1 = canonicalize_up_to_measurement_phase(circuit)
@@ -142,8 +143,8 @@ def test_early_z_pushed_to_end():
             cirq.Moment(),
             cirq.Moment([cirq.Z(q)**0.5]),
         ]),
-        pre_opts=[ConvertToXmonGates(ignore_failures=True)],
-        post_opts=[ConvertToXmonGates(ignore_failures=True)])
+        pre_opts=[cg.ConvertToXmonGates(ignore_failures=True)],
+        post_opts=[cg.ConvertToXmonGates(ignore_failures=True)])
 
 
 def test_multi_z_merges():
@@ -236,16 +237,16 @@ def test_symbols_block():
     q = cirq.QubitId()
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([ExpZGate(half_turns=1)(q)]),
-            cirq.Moment([ExpZGate(
+            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([cg.ExpZGate(
                 half_turns=cirq.Symbol('a'))(q)]),
-            cirq.Moment([ExpZGate(half_turns=0.25)(q)]),
+            cirq.Moment([cg.ExpZGate(half_turns=0.25)(q)]),
         ]),
         after=cirq.Circuit([
-            cirq.Moment([ExpZGate(half_turns=1)(q)]),
-            cirq.Moment([ExpZGate(
+            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([cg.ExpZGate(
                 half_turns=cirq.Symbol('a'))(q)]),
-            cirq.Moment([ExpZGate(half_turns=0.25)(q)]),
+            cirq.Moment([cg.ExpZGate(half_turns=0.25)(q)]),
         ]))
 
 
@@ -296,3 +297,27 @@ def test_removes_zs():
         cirq.CZ(a, b),
         cirq.google.Exp11Gate().on(a, b),
         cirq.measure(a, b)))
+
+
+def test_unknown_operation_blocks():
+    q = cirq.NamedQubit('q')
+
+    class UnknownOp(cirq.Operation):
+        @property
+        def qubits(self):
+            return [q]
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+    u = UnknownOp()
+
+    assert_optimizes(
+        before=cirq.Circuit([
+            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([u]),
+        ]),
+        after=cirq.Circuit([
+            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([u]),
+        ]))

@@ -160,7 +160,7 @@ def test_runtime_types_of_rot_gates():
         ext = cirq.Extensions()
 
         p = gate_type(half_turns=Symbol('a'))
-        assert p.try_cast_to(cirq.KnownMatrixGate, ext) is None
+        assert p.try_cast_to(cirq.KnownMatrix, ext) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
@@ -172,7 +172,7 @@ def test_runtime_types_of_rot_gates():
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
-        assert c.try_cast_to(cirq.KnownMatrixGate, ext) is c
+        assert c.try_cast_to(cirq.KnownMatrix, ext) is c
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
         assert c.try_cast_to(cirq.BoundedEffect, ext) is c
@@ -397,3 +397,26 @@ a: ───@───H───X───T───X───T^-1───H─�
       │       │       │              │
 b: ───X───────@───────@──────────────X───
     """.strip()
+
+
+class NotImplementedOperation(cirq.Operation):
+    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+        raise NotImplementedError()
+
+    @property
+    def qubits(self):
+        raise NotImplementedError()
+
+
+def test_is_measurement():
+    q = cirq.NamedQubit('q')
+    assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
+    assert cirq.MeasurementGate.is_measurement(cirq.MeasurementGate(key='b'))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.google.XmonMeasurementGate(key='a').on(q))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.google.XmonMeasurementGate(key='a'))
+
+    assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
+    assert not cirq.MeasurementGate.is_measurement(cirq.X)
+    assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())

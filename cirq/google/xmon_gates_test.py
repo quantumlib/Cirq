@@ -22,7 +22,6 @@ from cirq.devices import GridQubit
 from cirq.google import (
     XmonGate, XmonMeasurementGate, ExpZGate, Exp11Gate, ExpWGate,
 )
-from cirq.ops import KnownMatrixGate, ReversibleEffect
 from cirq.study import ParamResolver
 from cirq.value import Symbol
 
@@ -68,6 +67,19 @@ def test_single_qubit_measurement_to_proto():
             key: "test"
         }
         """)
+    assert proto_matches_text(
+        XmonMeasurementGate('test', invert_mask=[True])
+            .to_proto(GridQubit(2, 3)),
+        """
+        measurement {
+            targets {
+                row: 2
+                col: 3
+            }
+            key: "test"
+            invert_mask: true
+        }
+        """)
 
 
 def test_multi_qubit_measurement_to_proto():
@@ -86,6 +98,14 @@ def test_multi_qubit_measurement_to_proto():
             key: "test"
         }
         """)
+
+
+def test_invalid_measurement_gate():
+    with pytest.raises(ValueError, match='length'):
+        XmonMeasurementGate('test', invert_mask=[True]).to_proto(
+            GridQubit(2, 3), GridQubit(3, 4))
+    with pytest.raises(ValueError, match='no qubits'):
+        XmonMeasurementGate('test').to_proto()
 
 
 def test_z_eq():
@@ -212,8 +232,9 @@ def test_cz_to_proto():
 
 
 def test_cz_potential_implementation():
-    assert not cirq.can_cast(KnownMatrixGate, Exp11Gate(half_turns=Symbol('a')))
-    assert cirq.can_cast(KnownMatrixGate, Exp11Gate())
+    assert not cirq.can_cast(cirq.KnownMatrix,
+                             Exp11Gate(half_turns=Symbol('a')))
+    assert cirq.can_cast(cirq.KnownMatrix, Exp11Gate())
 
 
 def test_cz_parameterize():
@@ -313,10 +334,11 @@ def test_w_to_proto():
 
 
 def test_w_potential_implementation():
-    assert not cirq.can_cast(KnownMatrixGate, ExpWGate(half_turns=Symbol('a')))
-    assert not cirq.can_cast(ReversibleEffect, ExpWGate(half_turns=Symbol('a')))
-    assert cirq.can_cast(KnownMatrixGate, ExpWGate())
-    assert cirq.can_cast(ReversibleEffect, ExpWGate())
+    assert not cirq.can_cast(cirq.KnownMatrix, ExpWGate(half_turns=Symbol('a')))
+    assert not cirq.can_cast(cirq.ReversibleEffect,
+                             ExpWGate(half_turns=Symbol('a')))
+    assert cirq.can_cast(cirq.KnownMatrix, ExpWGate())
+    assert cirq.can_cast(cirq.ReversibleEffect, ExpWGate())
 
 
 def test_w_parameterize():

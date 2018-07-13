@@ -19,15 +19,16 @@ from typing import Optional
 import numpy as np
 
 from cirq import linalg
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
-                            gate_features.PhaseableGate,
+class SingleQubitMatrixGate(raw_types.Gate,
+                            gate_features.KnownMatrix,
+                            gate_features.PhaseableEffect,
                             gate_features.ExtrapolatableEffect,
                             gate_features.BoundedEffect):
     """A 1-qubit gate defined by its matrix.
@@ -103,8 +104,9 @@ class SingleQubitMatrixGate(gate_features.KnownMatrixGate,
         return str(self.matrix().round(3))
 
 
-class TwoQubitMatrixGate(gate_features.KnownMatrixGate,
-                         gate_features.PhaseableGate,
+class TwoQubitMatrixGate(raw_types.Gate,
+                         gate_features.KnownMatrix,
+                         gate_features.PhaseableEffect,
                          gate_features.ExtrapolatableEffect):
     """A 2-qubit gate defined only by its matrix.
 

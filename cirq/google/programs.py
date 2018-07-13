@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 
 import numpy as np
 
+from cirq import ops
 from cirq.api.google.v1 import operations_pb2
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.xmon_device import XmonDevice
@@ -37,7 +38,9 @@ def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        gate = xmon_gate_ext.cast(xmon_gates.XmonGate, so.operation.gate)
+        gate = xmon_gate_ext.cast(
+            xmon_gates.XmonGate,
+            cast(ops.GateOperation, so.operation).gate)
         op = gate.to_proto(*so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
@@ -131,7 +134,7 @@ def unpack_results(
     total_bits = repetitions * bits_per_rep
 
     byte_arr = np.frombuffer(data, dtype='uint8').reshape((len(data), 1))
-    bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1)
+    bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1).astype(bool)
     bits = bits[:total_bits].reshape((repetitions, bits_per_rep))
 
     results = {}
