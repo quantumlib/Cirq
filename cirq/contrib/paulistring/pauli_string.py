@@ -141,25 +141,25 @@ class PauliString:
         pauli_map = dict(self._qubit_pauli_map)
         inv = self.negated
         for op in ops:
-            inv ^= self._pass_operation_over(pauli_map, op, after_to_before)
+            inv ^= PauliString._pass_operation_over(pauli_map,
+                                                    op,
+                                                    after_to_before)
         return PauliString(pauli_map, inv)
 
-    @classmethod
-    def _pass_operation_over(cls,
-                             pauli_map: Dict[ops.QubitId, Pauli],
+    @staticmethod
+    def _pass_operation_over(pauli_map: Dict[ops.QubitId, Pauli],
                              op: ops.Operation,
                              after_to_before: bool = False) -> bool:
-        if isinstance(op.gate, CliffordGate):
-            return cls._pass_single_clifford_gate_over(
-                        pauli_map, op.gate, op.qubits[0],
-                        after_to_before=after_to_before)
-        elif isinstance(op.gate, PauliInteractionGate):
-            return cls._pass_pauli_interaction_gate_over(
-                        pauli_map, op.gate, op.qubits[0], op.qubits[1],
-                        after_to_before=after_to_before)
-        else:
-            raise TypeError('Unsupported gate type: {}'.format(
-                            type(op.gate).__name__))
+        if isinstance(op, ops.GateOperation):
+            if isinstance(op.gate, CliffordGate):
+                return PauliString._pass_single_clifford_gate_over(
+                    pauli_map, op.gate, op.qubits[0],
+                    after_to_before=after_to_before)
+            if isinstance(op.gate, PauliInteractionGate):
+                return PauliString._pass_pauli_interaction_gate_over(
+                    pauli_map, op.gate, op.qubits[0], op.qubits[1],
+                    after_to_before=after_to_before)
+        raise TypeError('Unsupported operation: {!r}'.format(op))
 
     @staticmethod
     def _pass_single_clifford_gate_over(pauli_map: Dict[ops.QubitId, Pauli],

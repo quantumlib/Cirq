@@ -30,10 +30,6 @@ def square_device(width: int, height: int, holes=()) -> cg.XmonDevice:
 
 
 class NotImplementedOperation(cirq.Operation):
-    @property
-    def gate(self):
-        raise NotImplementedError()
-
     def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
         raise NotImplementedError()
 
