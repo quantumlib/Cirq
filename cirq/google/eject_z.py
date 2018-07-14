@@ -14,7 +14,7 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Tuple, Optional, cast, TYPE_CHECKING
+from typing import Optional, cast, TYPE_CHECKING
 
 from collections import defaultdict
 
@@ -26,7 +26,7 @@ from cirq.value import Symbol
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Dict, List
+    from typing import Dict, List, Tuple
 
 
 class EjectZ(OptimizationPass):
