@@ -28,11 +28,11 @@ def test_generate_supremacy_circuit():
 
     circuit = generate_supremacy_circuit(device, cz_depth=6)
     # Circuit should have 6 layers of 2 plus a final layer of 1 plus measures.
-    assert len(circuit.moments) == 14
+    assert len(circuit) == 14
 
     # For this chip, by cz-depth 6 there should be one CZ on each edge.
     op_counts = {}
-    for m in circuit.moments:
+    for m in circuit:
         for op in m.operations:
             op_counts[op] = op_counts.get(op, 0) + 1
     for q1 in device.qubits:

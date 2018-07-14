@@ -41,7 +41,7 @@ def moment_by_moment_schedule(device: Device, circuit: Circuit):
     """
     schedule = Schedule(device)
     t = Timestamp()
-    for moment in circuit.moments:
+    for moment in circuit:
         if not moment.operations:
             continue
         for op in moment.operations:
