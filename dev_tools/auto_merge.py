@@ -87,10 +87,60 @@ class PullRequestDetails:
         return self.payload['body']
 
 
+def check_collaborator_has_write(repo: GithubRepository, username: str):
+    """
+    References:
+        https://developer.github.com/v3/issues/events/#list-events-for-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/collaborators/{}/permission"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     username,
+                                     repo.access_token))
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Collaborator check failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    payload = json.JSONDecoder().decode(response.content.decode())
+    if payload['permission'] not in ['admin', 'write']:
+        raise CurrentStuckGoToNextError(
+            'Only collaborators with write permission can use automerge.')
+
+
+def check_auto_merge_labeler(repo: GithubRepository, pull_id: int):
+    """
+    References:
+        https://developer.github.com/v3/issues/events/#list-events-for-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/{}/events"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     pull_id,
+                                     repo.access_token))
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Event check failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    payload = json.JSONDecoder().decode(response.content.decode())
+    relevant = [event
+                for event in payload
+                if event['event'] == 'labeled' and
+                event['label']['name'] == 'automerge']
+    check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
+
+
 def find_existing_status_comment(repo: GithubRepository, pull_id: int
                                  ) -> Optional[Dict[str, Any]]:
     expected_user = 'CirqBot'
-    expected_text = '(automerge): PENDING'
+    expected_text = 'Automerge pending: '
 
     comments = list_pr_comments(repo, pull_id)
     for comment in comments:
@@ -146,8 +196,12 @@ def leave_status_comment(repo: GithubRepository,
                          success: Optional[bool],
                          state_description: str) -> None:
     cur = find_existing_status_comment(repo, pull_id)
-    status = 'PENDING' if success is None else 'DONE' if success else 'FAILED'
-    body = '(automerge): {} ({})'.format(status, state_description)
+    if success:
+        body = 'Automerge done.'
+    elif success is None:
+        body = 'Automerge pending: {}'.format(state_description)
+    else:
+        body = 'Automerge cancelled: {}'.format(state_description)
     if cur is None:
         add_comment(repo, pull_id, body)
     else:
@@ -234,6 +288,11 @@ def wait_for_status(repo: GithubRepository,
             continue
         if check_status['state'] != 'success':
             raise CurrentStuckGoToNextError('A status check is failing.')
+
+        if pr.payload['mergeable'] is None:
+            # Github still computing mergeable flag.
+            wait_a_tick()
+            continue
 
         return pr
 
@@ -582,15 +641,20 @@ def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
     prev_pr = None
     fail_if_same = False
     while True:
+        check_auto_merge_labeler(repo, pull_id)
+
         print('Waiting for checks to succeed..', end='', flush=True)
         pr = wait_for_status(repo, pull_id, prev_pr, fail_if_same)
 
+        check_auto_merge_labeler(repo, pull_id)
+
         print('\nChecks succeeded. Checking if synced...')
-        if sync_with_master(pr):
-            print('Had to resync with master.')
-            prev_pr = pr
-            fail_if_same = False
-            continue
+        if not pr.payload['mergeable']:
+            if sync_with_master(pr):
+                print('Had to resync with master.')
+                prev_pr = pr
+                fail_if_same = False
+                continue
 
         print('Still synced. Attempting merge...')
         if not squash_merge(pr):
