@@ -338,7 +338,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
 
 def measure(*qubits: raw_types.QubitId,
             key: Optional[str] = None,
-            invert_mask: Optional[Tuple[bool, ...]] = None
+            invert_mask: Tuple[bool, ...] = ()
             ) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
