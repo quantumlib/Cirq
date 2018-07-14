@@ -392,6 +392,7 @@ class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
+               ops.PhaseableEffect,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
@@ -448,6 +449,11 @@ class ExpZGate(XmonGate,
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
+
+    def phase_by(self,
+                 phase_turns: float,
+                 qubit_index: int):
+        return self
 
     def has_inverse(self):
         return not isinstance(self.half_turns, value.Symbol)
