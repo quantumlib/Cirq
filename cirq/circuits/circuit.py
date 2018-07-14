@@ -20,27 +20,23 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from typing import (
-    Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
-    Optional, Sequence, Union, TYPE_CHECKING,
+    Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator, List,
+    Optional, Sequence, Union,
     overload, Type, Tuple, cast, TypeVar,
 )
 
 import numpy as np
 
-from cirq import ops, extension
+from cirq import ops, extension, study
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
 
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
-class Circuit:
+class Circuit(ops.ParameterizableEffect):
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
@@ -658,6 +654,45 @@ class Circuit:
             diagram.horizontal_line(i, 0, w)
 
         return diagram
+
+    def is_parameterized(self,
+                         ext: extension.Extensions = None) -> bool:
+        if ext is None:
+            ext = extension.Extensions()
+        return any(cast(ops.ParameterizableEffect, op).is_parameterized()
+                   for op in self.all_operations()
+                   if ext.try_cast(ops.ParameterizableEffect, op) is not None)
+
+    def with_parameters_resolved_by(self,
+                                    param_resolver: study.ParamResolver,
+                                    ext: extension.Extensions = None
+                                    ) -> 'Circuit':
+        if ext is None:
+            ext = extension.Extensions()
+        resolved_circuit = Circuit()
+        for moment in self:
+            resolved_circuit.append(_resolve_operations(
+                moment.operations,
+                param_resolver,
+                ext))
+        return resolved_circuit
+
+
+def _resolve_operations(
+        operations: Iterable[ops.Operation],
+        param_resolver: study.ParamResolver,
+        ext: extension.Extensions) -> List[ops.Operation]:
+    resolved_operations = []  # type: List[ops.Operation]
+    for op in operations:
+        cast_op = ext.try_cast(ops.ParameterizableEffect, op)
+        if cast_op is None:
+            resolved_op = op
+        else:
+            resolved_op = cast(
+                    ops.Operation,
+                    cast_op.with_parameters_resolved_by(param_resolver))
+        resolved_operations.append(resolved_op)
+    return resolved_operations
 
 
 def _get_operation_text_diagram_info_with_fallback(

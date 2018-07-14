@@ -39,22 +39,23 @@ class ParamResolver(object):
     def value_of(
             self,
             value: Union[Symbol, float, str]
-    ) -> float:
-        """Resolves a Symbol or symbol name or float to its assigned value.
+    ) -> Union[Symbol, float]:
+        """Attempt to resolve a Symbol or name or float to its assigned value.
+
+        If unable to resolve a Symbol, returns it unchanged.
+        If unable to resolve a name, returns a Symbol with that name.
 
         Args:
-            value: The Symbol or float or name to resolve into just a float.
+            value: The Symbol or name or float to try to resolve into just
+                a float.
 
         Returns:
-            The value of the parameter as resolved by this resolver. If the
-            parameterized_value is just a float, then it will return this float.
-            If the parameterized_value is a is a key plus a float, then this
-            will return the assigned value for the key plus the float (offset).
+            The value of the parameter as resolved by this resolver.
         """
         if isinstance(value, str):
-            return self.param_dict[value]
+            return self.param_dict.get(value, Symbol(value))
         if isinstance(value, Symbol):
-            return self.param_dict[value.name]
+            return self.param_dict.get(value.name, value)
         return value
 
     def __getitem__(self, key):
