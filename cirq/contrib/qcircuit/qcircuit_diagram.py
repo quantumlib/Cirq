@@ -118,7 +118,7 @@ def _wrap_moment(moment: circuits.Moment,
 def _wrap_circuit(circuit: circuits.Circuit,
                   ext: extension.Extensions) -> circuits.Circuit:
     return circuits.Circuit(_wrap_moment(moment, ext)
-                            for moment in circuit.moments)
+                            for moment in circuit)
 
 
 def circuit_to_latex_using_qcircuit(

@@ -20,31 +20,31 @@ from cirq import ops, circuits, line
 from cirq.contrib.quirk.linearize_circuit import linearize_circuit_qubits
 from cirq.contrib.quirk.quirk_gate import (
     quirk_gate_ext,
-    QuirkGate,
+    QuirkOp,
     UNKNOWN_GATE,
     single_qubit_matrix_gate)
 
 
-def _try_convert_to_quirk_gate(gate: ops.Gate,
+def _try_convert_to_quirk_gate(op: ops.Operation,
                                prefer_unknown_gate_to_failure: bool
-                               ) -> QuirkGate:
-    quirk_gate = quirk_gate_ext.try_cast(QuirkGate, gate)
+                               ) -> QuirkOp:
+    quirk_gate = quirk_gate_ext.try_cast(QuirkOp, op)
     if quirk_gate is not None:
         return quirk_gate
-    known_matrix_gate = quirk_gate_ext.try_cast(ops.KnownMatrix, gate)
+    known_matrix_gate = quirk_gate_ext.try_cast(ops.KnownMatrix, op)
     if known_matrix_gate is not None:
         raw = single_qubit_matrix_gate(known_matrix_gate)
         if raw is not None:
             return raw
     if prefer_unknown_gate_to_failure:
         return UNKNOWN_GATE
-    raise TypeError('Unrecognized gate: {!r}'.format(gate))
+    raise TypeError('Unrecognized operation: {!r}'.format(op))
 
 
 def _to_quirk_cols(op: ops.Operation,
                    prefer_unknown_gate_to_failure: bool
                    ) -> Iterable[Tuple[List[Any], bool]]:
-    gate = _try_convert_to_quirk_gate(op.gate, prefer_unknown_gate_to_failure)
+    gate = _try_convert_to_quirk_gate(op, prefer_unknown_gate_to_failure)
     qubits = cast(Iterable[line.LineQubit], op.qubits)
 
     max_index = max(q.x for q in qubits)
@@ -76,11 +76,11 @@ def circuit_to_quirk_url(circuit: circuits.Circuit,
     Returns:
 
     """
-    circuit = circuits.Circuit(circuit.moments)
+    circuit = circuit.copy()
     linearize_circuit_qubits(circuit)
 
     cols = []  # Type: List[List[Any]]
-    for moment in circuit.moments:
+    for moment in circuit:
         can_merges = []
         for op in moment.operations:
             for col, can_merge in _to_quirk_cols(

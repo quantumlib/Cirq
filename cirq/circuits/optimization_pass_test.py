@@ -95,7 +95,7 @@ def test_point_optimizer_can_write_new_gates_inline():
         cirq.CNOT(z, y),
     )
 
-    ReplaceWithXGates().optimize_circuit(c)
+    ReplaceWithXGates()(c)
 
     assert c == cirq.Circuit([
         cirq.Moment([cirq.X(x), cirq.X(y)]),

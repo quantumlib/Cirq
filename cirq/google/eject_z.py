@@ -52,11 +52,7 @@ class EjectZ(OptimizationPass):
         self.ext = ext or extension.Extensions()
 
     def optimize_circuit(self, circuit: Circuit):
-        qubits = {
-            q
-            for m in circuit.moments for op in m.operations for q in op.qubits
-        }
-        for qubit in qubits:
+        for qubit in circuit.all_qubits():
             for start, drain in self._find_optimization_range_drains(circuit,
                                                                      qubit):
                 self._optimize_range(circuit, qubit, start, drain)
@@ -79,7 +75,7 @@ class EjectZ(OptimizationPass):
         start_z = None
         prev_z = None
 
-        for i in range(len(circuit.moments)):
+        for i in range(len(circuit)):
             op = circuit.operation_at(qubit, i)
             if op is None:
                 continue
@@ -90,7 +86,7 @@ class EjectZ(OptimizationPass):
                     start_z = i
                     prev_z = None
 
-            elif _is_known_measurement(op):
+            elif ops.MeasurementGate.is_measurement(op):
                 # Measurement acts like a drain. It destroys phase information.
                 yield start_z, i
                 start_z = None
@@ -107,7 +103,7 @@ class EjectZ(OptimizationPass):
 
         # End of the circuit forces draining.
         if start_z is not None:
-            yield start_z, len(circuit.moments)
+            yield start_z, len(circuit)
 
     def _optimize_range(self, circuit: Circuit, qubit: ops.QubitId,
                         start: int, drain: int):
@@ -158,7 +154,7 @@ class EjectZ(OptimizationPass):
             return
 
         # Drain type: end of circuit.
-        if drain == len(circuit.moments):
+        if drain == len(circuit):
             circuit.append(
                 ExpZGate(half_turns=2*accumulated_phase).on(qubit),
                 InsertStrategy.INLINE)
@@ -178,11 +174,6 @@ class EjectZ(OptimizationPass):
 
             # Drain type: measurement gate.
             # (Don't have to do anything.)
-
-
-def _is_known_measurement(op: ops.Operation) -> bool:
-    return (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, ops.MeasurementGate))
 
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:

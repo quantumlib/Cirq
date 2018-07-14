@@ -15,6 +15,7 @@ import numpy as np
 
 import cirq
 import cirq.google as cg
+from cirq.google.eject_z import _try_get_known_z_half_turns
 
 
 def assert_optimizes(before, after,
@@ -64,7 +65,7 @@ def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
     ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit.all_qubits())
     for moment in circuit:
         for op in moment.operations:
-            if isinstance(op.gate, cirq.MeasurementGate):
+            if cirq.MeasurementGate.is_measurement(op):
                 for q in op.qubits:
                     _cancel_qubit_phase(matrix, ordered_qubits.index(q))
     return matrix
@@ -72,9 +73,9 @@ def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
     opt = cg.EjectZ()
-    optimized = cirq.Circuit(circuit)
+    optimized = circuit.copy()
     opt.optimize_circuit(optimized)
-    has_z = any(isinstance(op.gate, (cirq.RotZGate, cirq.google.ExpZGate))
+    has_z = any(_try_get_known_z_half_turns(op) is not None
                 for moment in optimized
                 for op in moment.operations)
     m1 = canonicalize_up_to_measurement_phase(circuit)

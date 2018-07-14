@@ -47,7 +47,7 @@ def test_ignore_non_composite():
     q0, q1 = QubitId(), QubitId()
     circuit = cirq.Circuit()
     circuit.append([X(q0), Y(q1), CZ(q0, q1), Z(q0)])
-    expected = cirq.Circuit(circuit.moments)
+    expected = circuit.copy()
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
     assert_equal_mod_empty(expected, circuit)
@@ -174,7 +174,8 @@ class OtherCNot(cirq.CNotGate):
 
 def test_nonrecursive_expansion():
     qubits = [cirq.NamedQubit(s) for s in 'xy']
-    no_decomp = lambda op: op.gate == cirq.ISWAP
+    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
+                            op.gate == cirq.ISWAP)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     unexpanded_circuit = cirq.Circuit.from_ops(cirq.ISWAP(*qubits))
 
@@ -182,7 +183,8 @@ def test_nonrecursive_expansion():
     expander.optimize_circuit(circuit)
     assert circuit == unexpanded_circuit
 
-    no_decomp = lambda op: isinstance(op.gate, (cirq.CNotGate, cirq.HGate))
+    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
+                            isinstance(op.gate, (cirq.CNotGate, cirq.HGate)))
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     circuit = unexpanded_circuit.__copy__()
     expander.optimize_circuit(circuit)
