@@ -1,9 +1,9 @@
 -r cirq/contrib/contrib-requirements.txt
 -r runtime-requirements.txt
 
-3to2==1.1
-absl-py==0.2
-mypy==0.610
-pylint==1.9
-pytest==3.6
-pytest-cov==2.5
+3to2~=1.1
+absl-py~=0.2.0
+mypy~=0.610.0
+pylint~=1.9.0
+pytest~=3.6.0
+pytest-cov~=2.5.0

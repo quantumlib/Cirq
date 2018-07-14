@@ -1306,19 +1306,19 @@ def test_to_unitary_output():
     # Qubit ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
-            initial_state=0b00),
+            initial_state=0),
         np.array([1, 0, 0, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
-            initial_state=0b01),
+            initial_state=1),
         np.array([0, 1, 0, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
-            initial_state=0b10),
+            initial_state=2),
         np.array([0, 0, 0, 1]))
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
-            initial_state=0b11),
+            initial_state=3),
         np.array([0, 0, 1, 0]))
 
     # Measurements.
