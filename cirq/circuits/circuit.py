@@ -71,6 +71,8 @@ class Circuit:
     and multiplied by an integer,
         circuit * k is a new Circuit made up of the moments in circuit repeated
             k times.
+    and mutated,
+        circuit[1:7] = [Moment(...)]
     """
 
     def __init__(self, moments: Iterable[Moment] = ()) -> None:

@@ -98,6 +98,7 @@ def test_append_multiple():
     ])
 
 
+@cirq.testing.only_test_in_python3
 def test_repr():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
