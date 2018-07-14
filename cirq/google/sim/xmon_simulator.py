@@ -494,7 +494,7 @@ def _simulator_iterator(
             min_qubits_before_shard=options.min_qubits_before_shard,
             use_processes=options.use_processes
     ) as stepper:
-        for moment in circuit.moments:
+        for moment in circuit:
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[bool]]
             phase_map = {}  # type: Dict[Tuple[int, ...], float]

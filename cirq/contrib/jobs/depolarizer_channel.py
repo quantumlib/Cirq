@@ -87,7 +87,7 @@ class DepolarizerChannel(object):
         circuit = job.circuit
 
         # Retrieve the set of qubits used in the circuit
-        for moment in circuit.moments:
+        for moment in circuit:
             for op in moment.operations:
                 for qubit in op.qubits:
                     if qubit not in qubit_set:
@@ -99,7 +99,7 @@ class DepolarizerChannel(object):
         error_number = 0
         error_sweep = Zip()
 
-        for moment in circuit.moments:
+        for moment in circuit:
             moments.append(moment)
 
             for gate in self.depolarizing_gates:

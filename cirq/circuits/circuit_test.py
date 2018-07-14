@@ -98,6 +98,21 @@ def test_append_multiple():
     ])
 
 
+@cirq.testing.only_test_in_python3
+def test_repr():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = Circuit([
+        Moment([cirq.H(a)]),
+        Moment([cirq.CZ(a, b)]),
+    ])
+    assert repr(c) == """
+Circuit([
+    Moment((GateOperation(H, (NamedQubit('a'),)),)),
+    Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
+    """.strip()
+
+
 def test_slice():
     a = cirq.QubitId()
     b = cirq.QubitId()
@@ -188,11 +203,11 @@ def test_container_methods():
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.H(b)]),
     ])
-    assert list(c) == list(c.moments)
+    assert list(c) == list(c._moments)
     # __iter__
-    assert list(iter(c)) == list(c.moments)
+    assert list(iter(c)) == list(c._moments)
     # __reversed__ for free.
-    assert list(reversed(c)) == list(reversed(c.moments))
+    assert list(reversed(c)) == list(reversed(c._moments))
     # __contains__ for free.
     assert Moment([cirq.H(b)]) in c
 
@@ -1316,18 +1331,18 @@ def test_insert_moments():
 
     m0 = cirq.Moment([cirq.X(q)])
     c.append(m0)
-    assert c.moments == [m0]
-    assert c.moments[0] is m0
+    assert list(c) == [m0]
+    assert c[0] is m0
 
     m1 = cirq.Moment([cirq.Y(q)])
     c.append(m1)
-    assert c.moments == [m0, m1]
-    assert c.moments[1] is m1
+    assert list(c) == [m0, m1]
+    assert c[1] is m1
 
     m2 = cirq.Moment([cirq.Z(q)])
     c.insert(0, m2)
-    assert c.moments == [m2, m0, m1]
-    assert c.moments[0] is m2
+    assert list(c) == [m2, m0, m1]
+    assert c[0] is m2
 
 
 def test_is_parameterized():
@@ -1362,3 +1377,47 @@ def test_with_parameters_resolved_by():
       │
 1: ───@^0.1───Y^0.2───
 """.strip()
+
+
+def test_items():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.Circuit()
+    m1 = cirq.Moment([cirq.X(a), cirq.X(b)])
+    m2 = cirq.Moment([cirq.X(a)])
+    m3 = cirq.Moment([])
+    m4 = cirq.Moment([cirq.CZ(a, b)])
+
+    c[:] = [m1, m2]
+    assert c == cirq.Circuit([m1, m2])
+
+    assert c[0] == m1
+    del c[0]
+    assert c == cirq.Circuit([m2])
+
+    c.append(m1)
+    c.append(m3)
+    assert c == cirq.Circuit([m2, m1, m3])
+
+    assert c[0:2] == Circuit([m2, m1])
+    c[0:2] = [m4]
+    assert c == cirq.Circuit([m4, m3])
+
+    c[:] = [m1]
+    assert c == cirq.Circuit([m1])
+
+    with pytest.raises(TypeError):
+        c[:] = [m1, 1]
+    with pytest.raises(TypeError):
+        c[0] = 1
+
+
+def test_copy():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.Circuit.from_ops(cirq.X(a), cirq.CZ(a, b), cirq.Z(a), cirq.Z(b))
+    assert c == c.copy() == c.__copy__() == c.__deepcopy__()
+    c2 = c.copy()
+    assert c2 == c
+    c2[:] = []
+    assert c2 != c
