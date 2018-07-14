@@ -194,7 +194,8 @@ class RotYGate(eigen_gate.EigenGate,
 
 class RotZGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
-               gate_features.SingleQubitGate):
+               gate_features.SingleQubitGate,
+               gate_features.PhaseableEffect):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -233,6 +234,11 @@ class RotZGate(eigen_gate.EigenGate,
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
+
+    def phase_by(self,
+                 phase_turns: float,
+                 qubit_index: int):
+        return self
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
