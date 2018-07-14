@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import cirq
-from cirq.circuits import ExpandComposite
-from cirq.contrib.acquaintance.shift import CircularShiftGate
+from cirq import NamedQubit
+from cirq.circuits import Circuit, Moment, ExpandComposite
+from cirq.contrib.acquaintance.gates import CircularShiftGate, ACQUAINT
 from cirq.ops import SWAP, TextDiagramInfoArgs
 
 def test_circular_shift_gate_init():
@@ -116,3 +117,25 @@ y: ---\1/---
 z: ---/2\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram
+
+def test_acquaintance_gate_repr():
+    assert repr(ACQUAINT) == 'Acq'
+
+def test_acquaintance_gate_text_diagram_info():
+    qubits = [NamedQubit(s) for s in 'xyz']
+    circuit = Circuit([Moment([ACQUAINT(*qubits)])])
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───█───
+      │
+y: ───█───
+      │
+z: ───█───
+    """.strip()
+    print(actual_text_diagram)
+    assert actual_text_diagram == expected_text_diagram
+
+def test_acquaintance_gate_unknown_qubit_count():
+    g = ACQUAINT
+    args = TextDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert g.text_diagram_info(args) == NotImplemented

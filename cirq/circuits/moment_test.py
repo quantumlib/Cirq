@@ -184,3 +184,12 @@ def test_qubits():
     assert Moment([ops.X(a), ops.X(b)]).qubits == {a , b}
     assert Moment([ops.X(a)]).qubits == {a}
     assert Moment([ops.CZ(a, b)]).qubits == {a, b}
+
+def test_with_qubits_mapped():
+    x, y, z = (ops.QubitId() for _ in 'xyz')
+
+    moment = Moment([ops.X(x), ops.CNOT(y, z)])
+    qubit_map = {x: z, y: y, z: x}
+    mapped_moment = Moment([ops.X(z), ops.CNOT(y, x)])
+    assert moment.with_qubits_mapped(qubit_map) == mapped_moment
+

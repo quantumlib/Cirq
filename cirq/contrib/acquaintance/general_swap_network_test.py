@@ -16,8 +16,8 @@ from string import ascii_lowercase as alphabet
 
 from cirq import NamedQubit
 from cirq.circuits import Circuit, ExpandComposite
-from cirq.contrib.acquaintance.general_swap_network import SwapNetworkGate
-from cirq.contrib.acquaintance.shift import CircularShiftGate
+from cirq.contrib.acquaintance.gates import (
+        SwapNetworkGate, CircularShiftGate)
 
 def test_swap_network_gate():
     qubits = tuple(NamedQubit(s) for s in alphabet)
@@ -50,17 +50,17 @@ f: ───×(2,1)───
     expander(swap_network)
     actual_text_diagram = swap_network.to_text_diagram().strip()
     expected_text_diagram = """
-a: ───█───────╲0╱───█─────────────────█───────────╲0╱───█───────
-      │       │     │                 │           │     │
-b: ───█───█───╲1╱───█───█─────────────█───█───────╲1╱───█───█───
+a: ───█───────╲0╱───█─────────────────█───────────╲0╱───█───────╲0╱───
+      │       │     │                 │           │     │       │
+b: ───█───█───╲1╱───█───█─────────────█───█───────╲1╱───█───█───╱1╲───
       │   │   │     │   │             │   │       │     │   │
-c: ───█───█───╱2╲───█───█───█───╲0╱───█───█───█───╱2╲───█───█───
-          │   │         │   │   │         │   │   │         │
-d: ───────█───╱3╲───█───█───█───╲1╱───█───█───█───╱3╲───────█───
+c: ───█───█───╱2╲───█───█───█───╲0╱───█───█───█───╱2╲───█───█───╲0╱───
+          │   │         │   │   │         │   │   │         │   │
+d: ───────█───╱3╲───█───█───█───╲1╱───█───█───█───╱3╲───────█───╱1╲───
                     │       │   │     │       │
-e: ─────────────────█───────█───╱2╲───█───────█─────────────────
-                    │           │     │
-f: ─────────────────█───────────╱3╲───█─────────────────────────
+e: ─────────────────█───────█───╱2╲───█───────█───╲0╱─────────────────
+                    │           │     │           │
+f: ─────────────────█───────────╱3╲───█───────────╱1╲─────────────────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
@@ -92,5 +92,3 @@ e: ───╲0╱───╱1╲───╲0╱───╱1╲───╲0
 f: ───╱1╲─────────╱1╲─────────╱1╲─────────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
-
-
