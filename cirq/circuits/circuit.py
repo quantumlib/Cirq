@@ -21,7 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
-    Optional, Sequence, Union, TYPE_CHECKING, Type, Tuple, cast, TypeVar
+    Optional, Sequence, Union, Type, Tuple, cast, TypeVar
 )
 
 import numpy as np
@@ -538,7 +538,7 @@ class Circuit(object):
             self.all_qubits().union(qubits_that_should_be_present))
         n = len(qs)
 
-        state = np.eye(1 << n, dtype=np.complex64)
+        state = np.eye(1 << n, dtype=np.complex128)
         state.shape = (2,) * (2 * n)
 
         result = _apply_unitary_circuit(self, state, qs, ext)
@@ -561,7 +561,7 @@ class Circuit(object):
                 basis state (e.g. 5 means initialize to |5> = |...000101>). If
                 this is a state vector, it specifies the initial state. The
                 vector must be a flat numpy array with a type that can be
-                converted to np.complex64.
+                converted to np.complex128.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -598,10 +598,10 @@ class Circuit(object):
         n = len(qs)
 
         if isinstance(initial_state, int):
-            state = np.zeros(1 << n, dtype=np.complex64)
+            state = np.zeros(1 << n, dtype=np.complex128)
             state[initial_state] = 1
         else:
-            state = initial_state.astype(np.complex64)
+            state = initial_state.astype(np.complex128)
         state.shape = (2,) * n
 
         result = _apply_unitary_circuit(self, state, qs, ext)
@@ -816,9 +816,9 @@ def _apply_unitary_circuit(circuit: Circuit,
         The left-multiplied state tensor.
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    buffer = np.zeros(state.shape, dtype=np.complex64)
+    buffer = np.zeros(state.shape, dtype=np.complex128)
     for op, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = op.matrix().astype(np.complex64).reshape((2,) * (2 * len(qs)))
+        matrix = op.matrix().astype(np.complex128).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
         _apply_unitary_operation(state, matrix, indices, buffer)
         state, buffer = buffer, state
@@ -826,7 +826,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _extract_unitaries(operations: Iterable[ops.Operation],
-                       ext: Extensions) -> Iterable[ops.KnownMatrix]:
+                       ext: Extensions
+                       ) -> Iterable[Tuple[ops.KnownMatrix,
+                                           Tuple[ops.QubitId]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
     """
     for op in operations:
