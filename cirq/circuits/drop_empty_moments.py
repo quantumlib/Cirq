@@ -22,6 +22,4 @@ class DropEmptyMoments(OptimizationPass):
     """Removes empty moments from a circuit."""
 
     def optimize_circuit(self, circuit: Circuit):
-        circuit.moments = [moment
-                           for moment in circuit.moments
-                           if moment.operations]
+        circuit[:] = (m for m in circuit if m.operations)

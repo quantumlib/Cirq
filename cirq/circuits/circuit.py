@@ -22,16 +22,15 @@ Moment the Operations must all act on distinct Qubits.
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
     Optional, Sequence, Union, TYPE_CHECKING,
-    Type, Tuple, cast, TypeVar)
+    overload, Type, Tuple, cast, TypeVar,
+)
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, extension
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.extension import Extensions
-from cirq.ops import QubitId
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -41,7 +40,7 @@ if TYPE_CHECKING:
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
-class Circuit(object):
+class Circuit:
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
@@ -72,9 +71,8 @@ class Circuit(object):
     and multiplied by an integer,
         circuit * k is a new Circuit made up of the moments in circuit repeated
             k times.
-
-    Attributes:
-        moments: A list of the Moments of the circuit.
+    and mutated,
+        circuit[1:7] = [Moment(...)]
     """
 
     def __init__(self, moments: Iterable[Moment] = ()) -> None:
@@ -83,7 +81,7 @@ class Circuit(object):
         Args:
             moments: The initial list of moments defining the circuit.
         """
-        self.moments = list(moments)
+        self._moments = list(moments)
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
@@ -102,61 +100,100 @@ class Circuit(object):
         result.append(operations, strategy)
         return result
 
-    def __copy__(self):
-        return type(self)(self.moments)
+    def __copy__(self) -> 'Circuit':
+        return self.copy()
+
+    def __deepcopy__(self) -> 'Circuit':
+        return self.copy()
+
+    def copy(self) -> 'Circuit':
+        return Circuit(self._moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.moments == other.moments
+        return self._moments == other._moments
 
     def __ne__(self, other):
         return not self == other
 
-    def __getitem__(self, key: Union[int, slice]) -> Union['Circuit', Moment]:
+    def __len__(self):
+        return len(self._moments)
+
+    def __iter__(self):
+        return iter(self._moments)
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, key: slice) -> 'Circuit':
+        pass
+
+    @overload
+    def __getitem__(self, key: int) -> Moment:
+        pass
+
+    def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self.moments[key])
+            return Circuit(self._moments[key])
         if isinstance(key, int):
-            return self.moments[key]
+            return self._moments[key]
         else:
             raise TypeError(
                 '__getitem__ called with key not of type slice or int.')
 
+    @overload
+    def __setitem__(self, key: int, value: Moment):
+        pass
+
+    @overload
+    def __setitem__(self, key: slice, value: Iterable[Moment]):
+        pass
+
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            if not isinstance(value, Moment):
+                raise TypeError('Can only assign Moments into Circuits.')
+
+        if isinstance(key, slice):
+            value = list(value)
+            if any(not isinstance(v, Moment) for v in value):
+                raise TypeError('Can only assign Moments into Circuits.')
+
+        self._moments[key] = value
+    # pylint: enable=function-redefined
+
+    def __delitem__(self, key: Union[int, slice]):
+        del self._moments[key]
+
     def __iadd__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        self.moments += other.moments
+        self._moments += other._moments
         return self
 
     def __add__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return Circuit(self.moments + other.moments)
+        return Circuit(self._moments + other._moments)
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
             return NotImplemented
-        self.moments *= repetitions
+        self._moments *= repetitions
         return self
 
     def __mul__(self, repetitions: int):
         if not isinstance(repetitions, int):
             return NotImplemented
-        return Circuit(self.moments * repetitions)
+        return Circuit(self._moments * repetitions)
 
     def __rmul__(self, repetitions: int):
         if not isinstance(repetitions, int):
             return NotImplemented
         return self * repetitions
 
-    def __len__(self):
-        return len(self.moments)
-
-    def __iter__(self):
-        return iter(self.moments)
-
     def __repr__(self):
-        moment_lines = ('\n    ' + repr(moment) for moment in self.moments)
+        moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
         return 'Circuit([{}])'.format(','.join(moment_lines))
 
     def __str__(self):
@@ -205,7 +242,7 @@ class Circuit(object):
         Raises:
           ValueError: negative max_distance.
         """
-        max_circuit_distance = len(self.moments) - start_moment_index
+        max_circuit_distance = len(self._moments) - start_moment_index
         if max_distance is None:
             max_distance = max_circuit_distance
         elif max_distance < 0:
@@ -240,18 +277,18 @@ class Circuit(object):
             ValueError: negative max_distance.
         """
         if end_moment_index is None:
-            end_moment_index = len(self.moments)
+            end_moment_index = len(self._moments)
 
         if max_distance is None:
-            max_distance = len(self.moments)
+            max_distance = len(self._moments)
         elif max_distance < 0:
             raise ValueError('Negative max_distance: {}'.format(max_distance))
         else:
             max_distance = min(end_moment_index, max_distance)
 
         # Don't bother searching indices past the end of the list.
-        if end_moment_index > len(self.moments):
-            d = end_moment_index - len(self.moments)
+        if end_moment_index > len(self._moments):
+            d = end_moment_index - len(self._moments)
             end_moment_index -= d
             max_distance -= d
         if max_distance <= 0:
@@ -275,9 +312,9 @@ class Circuit(object):
             None if there is no operation on the qubit at the given moment, or
             else the operation.
         """
-        if not 0 <= moment_index < len(self.moments):
+        if not 0 <= moment_index < len(self._moments):
             return None
-        for op in self.moments[moment_index].operations:
+        for op in self._moments[moment_index].operations:
             if qubit in op.qubits:
                 return op
         return None
@@ -297,7 +334,7 @@ class Circuit(object):
         Returns:
             An iterator (index, operation)'s that satisfy the op_condition.
         """
-        for index, moment in enumerate(self.moments):
+        for index, moment in enumerate(self._moments):
             for op in moment.operations:
                 if predicate(op):
                     yield index, op
@@ -350,12 +387,12 @@ class Circuit(object):
 
         if (strategy is InsertStrategy.NEW or
                 strategy is InsertStrategy.NEW_THEN_INLINE):
-            self.moments.insert(splitter_index, Moment())
+            self._moments.insert(splitter_index, Moment())
             return splitter_index
 
         if strategy is InsertStrategy.INLINE:
             if (not self._has_op_at(splitter_index - 1, op.qubits) and
-                    0 <= splitter_index - 1 < len(self.moments)):
+                    0 <= splitter_index - 1 < len(self._moments)):
                 return splitter_index - 1
 
             return self._pick_or_create_inserted_op_moment_index(
@@ -372,8 +409,8 @@ class Circuit(object):
         raise ValueError('Unrecognized append strategy: {}'.format(strategy))
 
     def _has_op_at(self, moment_index, qubits):
-        return (0 <= moment_index < len(self.moments) and
-                self.moments[moment_index].operates_on(qubits))
+        return (0 <= moment_index < len(self._moments) and
+                self._moments[moment_index].operates_on(qubits))
 
     def insert(
             self,
@@ -396,18 +433,18 @@ class Circuit(object):
             ValueError: Bad insertion strategy.
         """
         if isinstance(moment_or_operation_tree, Moment):
-            self.moments.insert(index, moment_or_operation_tree)
+            self._moments.insert(index, moment_or_operation_tree)
             return index + 1
 
-        if not 0 <= index <= len(self.moments):
+        if not 0 <= index <= len(self._moments):
             raise IndexError('Insert index out of range: {}'.format(index))
 
         k = index
         for op in ops.flatten_op_tree(moment_or_operation_tree):
             p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
-            while p >= len(self.moments):
-                self.moments.append(Moment())
-            self.moments[p] = self.moments[p].with_operation(op)
+            while p >= len(self._moments):
+                self._moments.append(Moment())
+            self._moments[p] = self._moments[p].with_operation(op)
             k = max(k, p + 1)
             if strategy is InsertStrategy.NEW_THEN_INLINE:
                 strategy = InsertStrategy.INLINE
@@ -434,7 +471,7 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= start <= end <= len(self.moments):
+        if not 0 <= start <= end <= len(self):
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
@@ -443,11 +480,11 @@ class Circuit(object):
         op_index = 0
         while op_index < len(operations):
             op = operations[op_index]
-            while i < end and self.moments[i].operates_on(op.qubits):
+            while i < end and self._moments[i].operates_on(op.qubits):
                 i += 1
             if i >= end:
                 break
-            self.moments[i] = self.moments[i].with_operation(op)
+            self._moments[i] = self._moments[i].with_operation(op)
             op_index += 1
 
         if op_index >= len(operations):
@@ -465,7 +502,7 @@ class Circuit(object):
             moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self.moments), moment_or_operation_tree, strategy)
+        self.insert(len(self._moments), moment_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],
@@ -479,13 +516,13 @@ class Circuit(object):
         """
         qubits = frozenset(qubits)
         for k in moment_indices:
-            if 0 <= k < len(self.moments):
-                self.moments[k] = self.moments[k].without_operations_touching(
+            if 0 <= k < len(self._moments):
+                self._moments[k] = self._moments[k].without_operations_touching(
                     qubits)
 
-    def all_qubits(self) -> FrozenSet[QubitId]:
+    def all_qubits(self) -> FrozenSet[ops.QubitId]:
         """Returns the qubits acted upon by Operations in this circuit."""
-        return frozenset(q for m in self.moments for q in m.qubits)
+        return frozenset(q for m in self._moments for q in m.qubits)
 
     def all_operations(self) -> Iterator[ops.Operation]:
         """Iterates over the operations applied by this circuit.
@@ -499,9 +536,9 @@ class Circuit(object):
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[QubitId] = (),
+            qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: Extensions = None) -> np.ndarray:
+            ext: extension.Extensions = None) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -527,11 +564,11 @@ class Circuit(object):
         """
 
         if ext is None:
-            ext = Extensions()
+            ext = extension.Extensions()
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
         qubit_map = {i: q
-                     for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
+                     for q, i in enumerate(qs)}  # type: Dict[ops.QubitId, int]
         matrix_ops = _flatten_to_known_matrix_ops(self.all_operations(), ext)
         if not self.are_all_measurements_terminal():
             raise TypeError('Circuit contains a non-terminal measurement')
@@ -542,7 +579,7 @@ class Circuit(object):
 
     def to_text_diagram(
             self,
-            ext: Extensions = None,
+            ext: extension.Extensions = None,
             use_unicode_characters: bool = True,
             transpose: bool = False,
             precision: Optional[int] = 3,
@@ -578,7 +615,7 @@ class Circuit(object):
 
     def to_text_diagram_drawer(
             self,
-            ext: Extensions = None,
+            ext: extension.Extensions = None,
             use_unicode_characters: bool = True,
             qubit_name_suffix: str = '',
             precision: Optional[int] = 3,
@@ -598,7 +635,7 @@ class Circuit(object):
             The TextDiagramDrawer instance.
         """
         if ext is None:
-            ext = Extensions()
+            ext = extension.Extensions()
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -608,7 +645,7 @@ class Circuit(object):
         for q, i in qubit_map.items():
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
-        for moment in [Moment()] * 2 + self.moments + [Moment()]:
+        for moment in [Moment()] * 2 + self._moments + [Moment()]:
             _draw_moment_in_diagram(moment,
                                     ext,
                                     use_unicode_characters,
@@ -626,7 +663,7 @@ class Circuit(object):
 def _get_operation_text_diagram_info_with_fallback(
         op: ops.Operation,
         args: ops.TextDiagramInfoArgs,
-        ext: Extensions) -> ops.TextDiagramInfo:
+        ext: extension.Extensions) -> ops.TextDiagramInfo:
     text_diagrammable_op = ext.try_cast(ops.TextDiagrammable, op)
     if text_diagrammable_op is not None:
         info = text_diagrammable_op.text_diagram_info(args)
@@ -683,9 +720,9 @@ def _formatted_exponent(info: ops.TextDiagramInfo,
 
 
 def _draw_moment_in_diagram(moment: Moment,
-                            ext: Extensions,
+                            ext: extension.Extensions,
                             use_unicode_characters: bool,
-                            qubit_map: Dict[QubitId, int],
+                            qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
                             precision: Optional[int]):
     if not moment.operations:
@@ -725,7 +762,7 @@ def _draw_moment_in_diagram(moment: Moment,
 
 
 def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
-                                 ext: Extensions
+                                 ext: extension.Extensions
                                  ) -> Generator[ops.Operation, None, None]:
     for op in iter_ops:
         # Check if the operation has a known matrix
@@ -756,9 +793,9 @@ def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
 
 
 def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
-                                  qubit_map: Dict[QubitId, int],
+                                  qubit_map: Dict[ops.QubitId, int],
                                   ignore_terminal_measurements: bool,
-                                  ext: Extensions) -> np.ndarray:
+                                  ext: extension.Extensions) -> np.ndarray:
     # Precondition is that circuit has only terminal measurements.
     total = np.eye(1 << len(qubit_map))
     for op in iter_ops:
@@ -774,8 +811,8 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
 
 
 def _operation_to_unitary_matrix(op: ops.Operation,
-                                 qubit_map: Dict[QubitId, int],
-                                 ext: Extensions) -> np.ndarray:
+                                 qubit_map: Dict[ops.QubitId, int],
+                                 ext: extension.Extensions) -> np.ndarray:
     known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
     if known_matrix_gate is None:
         raise TypeError(
