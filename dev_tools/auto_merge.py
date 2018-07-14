@@ -699,6 +699,9 @@ def auto_merge_multiple_pull_requests(repo: GithubRepository,
             remove_label_from_pr(repo, pull_id, 'automerge')
     print('Finished attempting to automerge {}.'.format(pull_ids))
 
+    # Give some leeway for updates to propagate on github's side.
+    time.sleep(5)
+
 
 def watch_for_auto_mergeable_pull_requests(repo: GithubRepository):
     while True:
