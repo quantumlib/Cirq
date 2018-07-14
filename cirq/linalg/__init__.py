@@ -26,6 +26,7 @@ from cirq.linalg.combinators import (
     kron_with_controls,
 )
 from cirq.linalg.decompositions import (
+    deconstruct_single_qubit_matrix_into_angles,
     kak_canonicalize_vector,
     kak_decomposition,
     kron_factor_4x4_to_2x2s,
