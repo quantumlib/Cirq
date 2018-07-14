@@ -45,6 +45,7 @@ class Circuit(ops.ParameterizableEffect):
         qubits
         findall_operations
         to_unitary_matrix
+        apply_unitary_effect_to_state
         to_text_diagram
         to_text_diagram_drawer
 
@@ -580,14 +581,27 @@ class Circuit(ops.ParameterizableEffect):
         result = _apply_unitary_circuit(self, state, qs, ext)
         return result.reshape((1 << n, 1 << n))
 
-    def to_unitary_output(
+    def apply_unitary_effect_to_state(
             self,
             initial_state: Union[int, np.ndarray] = 0,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
             ext: extension.Extensions = None) -> np.ndarray:
-        """Computes the output state vector of the circuit.
+        """Left-multiplies a state vector by the circuit's unitary effect.
+
+        A circuit's "unitary effect" is the unitary matrix produced by
+        multiplying together all of its gates' unitary matrices. A circuit
+        with non-unitary gates (such as measurement or parameterized gates) does
+        not have a well-defined unitary effect, and the method will if such
+        operations are present.
+
+        For convenience, terminal measurements are automatically ignored
+        instead of causing a failure. Set the 'ignore_terminal_measurements'
+        argument to False to disable this behavior.
+
+        This method is equivalent to left-multiplying the input state by
+        circuit.to_unitary_matrix(...), but computed in a more efficient way.
 
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
@@ -595,9 +609,9 @@ class Circuit(ops.ParameterizableEffect):
             initial_state: The input state for the circuit. This can be an int
                 or a vector. When this is an int, it refers to a computational
                 basis state (e.g. 5 means initialize to |5> = |...000101>). If
-                this is a state vector, it specifies the initial state. The
-                vector must be a flat numpy array with a type that can be
-                converted to np.complex128.
+                this is a state vector, it directly specifies the initial
+                state's amplitudes. The vector must be a flat numpy array with a
+                type that can be converted to np.complex128.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -870,7 +884,9 @@ def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
                            ext: extension.Extensions) -> np.ndarray:
-    """Applies a circuit to the given vector or matrix.
+    """Applies a circuit's unitary effect to the given vector or matrix.
+
+    This method assumes that the caller wants to ignore measurements.
 
     Args:
         circuit: The circuit to simulate. All operations must have a known
@@ -879,7 +895,7 @@ def _apply_unitary_circuit(circuit: Circuit,
         state: The initial state tensor (i.e. superposition or unitary matrix).
             This is what will be left-multiplied by the circuit's effective
             unitary. If this is a state vector, it must have shape
-            (2,)*num_qubits. If it is a unitary matrix it should have shape
+            (2,) * num_qubits. If it is a unitary matrix it should have shape
             (2,) * (2*num_qubits).
         qubits: The qubits in the state tensor. Determines which axes operations
             apply to. An operation targeting the k'th qubit in this list will

@@ -1295,86 +1295,90 @@ def test_insert_moments():
     assert c[0] is m2
 
 
-def test_to_unitary_output():
+def test_apply_unitary_effect_to_state():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     # State ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).to_unitary_output(),
+        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(),
         np.array([1j, 1]) * np.sqrt(0.5))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
             initial_state=0),
         np.array([1j, 1]) * np.sqrt(0.5))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
             initial_state=1),
         np.array([1, 1j]) * np.sqrt(0.5))
 
     # Vector state.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
             initial_state=np.array([1j, 1]) * np.sqrt(0.5)),
         np.array([0, 1]))
 
     # Qubit ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
             initial_state=0),
         np.array([1, 0, 0, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
             initial_state=1),
         np.array([0, 1, 0, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
             initial_state=2),
         np.array([0, 0, 0, 1]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
             initial_state=3),
         np.array([0, 0, 1, 0]))
 
     # Measurements.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.measure(a)).to_unitary_output(),
+        cirq.Circuit.from_ops(cirq.measure(a)).apply_unitary_effect_to_state(),
         np.array([1, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a), cirq.measure(a)).to_unitary_output(),
+        cirq.Circuit.from_ops(cirq.X(a), cirq.measure(a)
+                              ).apply_unitary_effect_to_state(),
         np.array([0, 1]))
     with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.Circuit.from_ops(cirq.measure(a), cirq.X(a)
-                                  ).to_unitary_output(),
+                                  ).apply_unitary_effect_to_state(),
             np.array([1, 0]))
     with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(cirq.measure(a)).to_unitary_output(
-                ignore_terminal_measurements=False),
+            cirq.Circuit.from_ops(
+                cirq.measure(a)).apply_unitary_effect_to_state(
+                    ignore_terminal_measurements=False),
             np.array([1, 0]))
 
     # Extra qubits.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops().to_unitary_output(),
+        cirq.Circuit.from_ops().apply_unitary_effect_to_state(),
         np.array([1]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops().to_unitary_output(
+        cirq.Circuit.from_ops().apply_unitary_effect_to_state(
             qubits_that_should_be_present=[a]),
         np.array([1, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(b)).to_unitary_output(
+        cirq.Circuit.from_ops(cirq.X(b)).apply_unitary_effect_to_state(
             qubits_that_should_be_present=[a]),
         np.array([0, 1, 0, 0]))
 
     # Qubit order.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.Z(a), cirq.X(b)).to_unitary_output(
-            qubit_order=[a, b]),
+        cirq.Circuit.from_ops(
+            cirq.Z(a), cirq.X(b)).apply_unitary_effect_to_state(
+                qubit_order=[a, b]),
         np.array([0, 1, 0, 0]))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.Z(a), cirq.X(b)).to_unitary_output(
-            qubit_order=[b, a]),
+        cirq.Circuit.from_ops(
+            cirq.Z(a), cirq.X(b)).apply_unitary_effect_to_state(
+                qubit_order=[b, a]),
         np.array([0, 0, 1, 0]))
 
 
