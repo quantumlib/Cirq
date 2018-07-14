@@ -397,3 +397,26 @@ a: ───@───H───X───T───X───T^-1───H─�
       │       │       │              │
 b: ───X───────@───────@──────────────X───
     """.strip()
+
+
+class NotImplementedOperation(cirq.Operation):
+    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+        raise NotImplementedError()
+
+    @property
+    def qubits(self):
+        raise NotImplementedError()
+
+
+def test_is_measurement():
+    q = cirq.NamedQubit('q')
+    assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
+    assert cirq.MeasurementGate.is_measurement(cirq.MeasurementGate(key='b'))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.google.XmonMeasurementGate(key='a').on(q))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.google.XmonMeasurementGate(key='a'))
+
+    assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
+    assert not cirq.MeasurementGate.is_measurement(cirq.X)
+    assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())

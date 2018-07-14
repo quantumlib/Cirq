@@ -20,8 +20,8 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from typing import (
-    Any, Dict, FrozenSet, Callable, Iterable, Iterator,
-    Optional, Sequence, Union, TYPE_CHECKING, List, Tuple,
+    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
+    Optional, Sequence, Union, TYPE_CHECKING, Type, Tuple, cast, TypeVar
 )
 
 import numpy as np
@@ -33,9 +33,8 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.extension import Extensions
 from cirq.ops import QubitId
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
+
+T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
 class Circuit(object):
@@ -44,7 +43,7 @@ class Circuit(object):
     Methods returning information about the circuit:
         next_moment_operating_on
         prev_moment_operating_on
-        operation_on
+        operation_at
         qubits
         findall_operations
         to_unitary_matrix
@@ -279,7 +278,8 @@ class Circuit(object):
                 return op
         return None
 
-    def findall_operations(self, predicate: Callable[[ops.Operation], bool]):
+    def findall_operations(self, predicate: Callable[[ops.Operation], bool]
+                           ) -> Iterable[Tuple[int, ops.Operation]]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -298,11 +298,33 @@ class Circuit(object):
                 if predicate(op):
                     yield index, op
 
+    def findall_operations_with_gate_type(
+            self,
+            gate_type: Type[T_DESIRED_GATE_TYPE]
+            ) -> Iterable[Tuple[int,
+                                ops.GateOperation,
+                                T_DESIRED_GATE_TYPE]]:
+        """Find the locations of all gate operations of a given type.
+
+        Args:
+            gate_type: The type of gate to find, e.g. RotXGate or
+                MeasurementGate.
+
+        Returns:
+            An iterator (index, operation, gate)'s for operations with the given
+            gate type.
+        """
+        result = self.findall_operations(
+            lambda operation: (isinstance(operation, ops.GateOperation) and
+                               isinstance(operation.gate, gate_type)))
+        for index, op in result:
+            gate_op = cast(ops.GateOperation, op)
+            yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
+
     def are_all_measurements_terminal(self):
-        is_meas_gate = lambda op: isinstance(op.gate, ops.MeasurementGate)
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(is_meas_gate))
+            in self.findall_operations(ops.MeasurementGate.is_measurement))
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -408,7 +430,7 @@ class Circuit(object):
         Raises:
             IndexError: Bad inline_start and/or inline_end.
         """
-        if not 0 <= start < end <= len(self.moments):
+        if not 0 <= start <= end <= len(self.moments):
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
@@ -824,8 +846,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
                 yield op2
             continue
 
-        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
-        if meas_gate is not None:
+        if ops.MeasurementGate.is_measurement(op):
             # Ignore measurement gates. The caller should have checked for this
             # and failed already.
             continue
