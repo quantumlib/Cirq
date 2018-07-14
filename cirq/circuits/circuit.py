@@ -21,7 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from typing import (
     Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator, List,
-    Optional, Sequence, Union, TYPE_CHECKING,
+    Optional, Sequence, Union,
     overload, Type, Tuple, cast, TypeVar,
 )
 
