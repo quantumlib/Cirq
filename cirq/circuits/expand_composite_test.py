@@ -47,7 +47,7 @@ def test_ignore_non_composite():
     q0, q1 = QubitId(), QubitId()
     circuit = cirq.Circuit()
     circuit.append([X(q0), Y(q1), CZ(q0, q1), Z(q0)])
-    expected = cirq.Circuit(circuit.moments)
+    expected = circuit.copy()
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
     assert_equal_mod_empty(expected, circuit)
