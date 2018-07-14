@@ -10,7 +10,7 @@ import requests
 from dev_tools.github_repository import GithubRepository
 
 
-CLA_ACCESS_TOKEN = None
+cla_access_token = None
 
 
 class CurrentStuckGoToNextError(RuntimeError):
@@ -370,7 +370,7 @@ def fight_cla_bot(pr: PullRequestDetails) -> None:
     add_labels_to_pr(pr.repo,
                      pr.pull_id,
                      'cla: yes',
-                     override_token=CLA_ACCESS_TOKEN)
+                     override_token=cla_access_token)
 
     spurious_comment_id = find_spurious_coauthor_comment_id(pr)
     if spurious_comment_id is not None:
