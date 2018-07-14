@@ -35,7 +35,7 @@ via.
 
 import math
 import collections
-from typing import Dict, Iterable, Iterator, List, Set, Union, cast
+from typing import Dict, Iterator, List, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
@@ -435,42 +435,12 @@ class XmonSimulator:
         extensions = converter.extensions
 
         # TODO: Use one optimization pass.
-        xmon_circuit = self._to_circuit_with_parameters_resolved(
-                circuit, param_resolver, extensions)
+        xmon_circuit = circuit.with_parameters_resolved_by(
+                param_resolver, extensions)
         converter.optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys
-
-    def _to_circuit_with_parameters_resolved(
-            self,
-            circuit: Circuit,
-            param_resolver: ParamResolver,
-            extensions: Extensions,
-            ) -> Circuit:
-        resolved_circuit = Circuit()
-        for moment in circuit:
-            resolved_circuit.append(_resolve_operations(
-                moment.operations,
-                param_resolver,
-                extensions))
-        return resolved_circuit
-
-
-def _resolve_operations(
-        operations: Iterable[ops.Operation],
-        param_resolver: ParamResolver,
-        extensions) -> List[ops.Operation]:
-    resolved_operations = []  # type: List[ops.Operation]
-    for op in operations:
-        cast_op = extensions.try_cast(ops.ParameterizableEffect, op)
-        if cast_op is None:
-            resolved_op = op
-        else:
-            resolved_op = cast_op.with_parameters_resolved_by(
-                param_resolver)
-        resolved_operations.append(resolved_op)
-    return resolved_operations
 
 
 def _simulator_iterator(
