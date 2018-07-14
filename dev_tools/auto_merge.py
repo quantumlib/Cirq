@@ -521,11 +521,12 @@ def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
         pr = wait_for_status(repo, pull_id, prev_pr, fail_if_same)
 
         print('\nChecks succeeded. Checking if synced...')
-        if sync_with_master(pr):
-            print('Had to resync with master.')
-            prev_pr = pr
-            fail_if_same = False
-            continue
+        if not pr.payload['mergeable']:
+            if sync_with_master(pr):
+                print('Had to resync with master.')
+                prev_pr = pr
+                fail_if_same = False
+                continue
 
         print('Still synced. Attempting merge...')
         if not squash_merge(pr):
