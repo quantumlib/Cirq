@@ -292,7 +292,7 @@ class Engine:
                             device: Device = None) -> Schedule:
         if isinstance(program, Circuit):
             device = device or UnconstrainedDevice
-            circuit_copy = Circuit(program.moments)
+            circuit_copy = program.copy()
             ConvertToXmonGates().optimize_circuit(circuit_copy)
             DropEmptyMoments().optimize_circuit(circuit_copy)
             device.validate_circuit(circuit_copy)
