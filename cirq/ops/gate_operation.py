@@ -14,7 +14,9 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
+from typing import (
+    Dict, Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
+)
 
 import numpy as np
 
@@ -39,6 +41,8 @@ LIFTED_POTENTIAL_TYPES = {t: t for t in [
 
 LIFTED_POTENTIAL_TYPES[
     gate_features.CompositeOperation] = gate_features.CompositeGate
+LIFTED_POTENTIAL_TYPES[
+    gate_features.QasmConvertableOperation] = gate_features.QasmConvertableGate
 
 
 class GateOperation(raw_types.Operation,
@@ -51,6 +55,7 @@ class GateOperation(raw_types.Operation,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
                         gate_features.TextDiagrammable,
+                        gate_features.QasmConvertableOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
 
@@ -189,3 +194,9 @@ class GateOperation(raw_types.Operation,
                                    self.gate)
         new_gate = cast_gate.with_parameters_resolved_by(param_resolver)
         return self.with_gate(cast(raw_types.Gate, new_gate))
+
+    def qasm_output(self, args: gate_features.QasmOutputArgs) -> Optional[str]:
+        """Returns a lines of QASM output representing the operation."""
+        cast_gate = extension.cast(gate_features.QasmConvertableGate,
+                                   self.gate)
+        return cast_gate.qasm_output(self.qubits, args)

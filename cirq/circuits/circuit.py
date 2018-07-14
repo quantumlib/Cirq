@@ -25,6 +25,7 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
     Optional, Sequence, Union, Type, Tuple, cast, TypeVar, overload
 )
+import pathlib
 
 import numpy as np
 
@@ -32,6 +33,7 @@ from cirq import devices, ops, extension, study
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.circuits.circuit_to_qasm import qasm_circuit_str, save_qasm_circuit
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -1106,6 +1108,57 @@ class Circuit(ops.ParameterizableEffect):
                 param_resolver,
                 ext))
         return resolved_circuit
+
+    def to_qasm(self,
+                ext: extension.Extensions = None,
+                precision: int = 10,
+                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                header: str = 'Generated from Cirq') -> str:
+        """Returns QASM equivalent to the circuit.
+
+        Args:
+            ext: For extending operations/gates to implement
+                QasmConvertableOperation/QasmConvertableGate.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM.
+        """
+        if ext is None:
+            ext = extension.Extensions()
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        args = ops.QasmOutputArgs(precision=precision, header=header)
+
+        return qasm_circuit_str(self.all_operations(), qubits,
+                                args, ext)
+
+    def save_qasm(self,
+                  file_path: Union[str, bytes, pathlib.Path],
+                  ext: extension.Extensions = None,
+                  precision: int = 10,
+                  qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                  header: str = 'Generated from Cirq') -> None:
+        """Save a QASM file equivalent to the circuit.
+
+        Args:
+            ext: For extending operations/gates to implement
+                QasmConvertableOperation/QasmConvertableGate.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM.
+        """
+        if ext is None:
+            ext = extension.Extensions()
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        args = ops.QasmOutputArgs(precision=precision, header=header)
+
+        save_qasm_circuit(self.all_operations(), qubits,
+                          file_path, args, ext)
 
 
 def _resolve_operations(

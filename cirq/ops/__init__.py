@@ -60,6 +60,9 @@ from cirq.ops.gate_features import (
     TextDiagramInfoArgs,
     ThreeQubitGate,
     TwoQubitGate,
+    QasmOutputArgs,
+    QasmConvertableGate,
+    QasmConvertableOperation,
 )
 from cirq.ops.gate_operation import (
     GateOperation,
