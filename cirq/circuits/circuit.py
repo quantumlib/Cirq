@@ -828,7 +828,7 @@ def _apply_unitary_circuit(circuit: Circuit,
 def _extract_unitaries(operations: Iterable[ops.Operation],
                        ext: Extensions
                        ) -> Iterable[Tuple[ops.KnownMatrix,
-                                           Tuple[ops.QubitId]]]:
+                                           Tuple[ops.QubitId, ...]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
     """
     for op in operations:
