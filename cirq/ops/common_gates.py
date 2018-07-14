@@ -14,7 +14,7 @@
 
 """Quantum gates that are commonly used in the literature."""
 import math
-from typing import Union, Tuple, Optional, List, Callable, cast
+from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
 
 import numpy as np
 
@@ -268,18 +268,19 @@ class MeasurementGate(raw_types.Gate,
                       gate_features.TextDiagrammable):
     """Indicates that qubits should be measured plus a key to identify results.
 
-    Params:
+    Attributes:
         key: The string key of the measurement.
-        invert_mask: A list of Truthy or Falsey values indicating whether
-            the corresponding qubits should be flipped. None indicates no
-            inverting should be done.
+        invert_mask: A list of values indicating whether the corresponding
+            qubits should be flipped. The list's length must not be longer than
+            the number of qubits, but it is permitted to be shorted. Qubits with
+            indices past the end of the mask are not flipped.
     """
 
     def __init__(self,
                  key: str = '',
-                 invert_mask: Optional[Tuple[bool, ...]] = None) -> None:
+                 invert_mask: Tuple[bool, ...] = ()) -> None:
         self.key = key
-        self.invert_mask = invert_mask
+        self.invert_mask = invert_mask or ()
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -297,8 +298,23 @@ class MeasurementGate(raw_types.Gate,
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
-        n = 1 if args.known_qubit_count is None else args.known_qubit_count
-        return gate_features.TextDiagramInfo(('M',) * n)
+        n = (max(1, len(self.invert_mask))
+             if args.known_qubit_count is None
+             else args.known_qubit_count)
+        symbols = ['M'] * n
+
+        # Show which output bits are negated.
+        if self.invert_mask:
+            for i, b in enumerate(self.invert_mask):
+                if b:
+                    symbols[i] = '!M'
+
+        # Mention the measurement key.
+        if (not args.known_qubits or
+                self.key != _default_measurement_key(args.known_qubits)):
+            symbols[0] += "('{}')".format(self.key)
+
+        return gate_features.TextDiagramInfo(tuple(symbols))
 
     def __repr__(self):
         return 'MeasurementGate({}, {})'.format(repr(self.key),
@@ -314,6 +330,10 @@ class MeasurementGate(raw_types.Gate,
 
     def __hash__(self):
         return hash((MeasurementGate, self.key, self.invert_mask))
+
+
+def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
+    return ','.join(str(q) for q in qubits)
 
 
 def measure(*qubits: raw_types.QubitId,
@@ -336,7 +356,7 @@ def measure(*qubits: raw_types.QubitId,
         An operation targeting the given qubits with a measurement.
     """
     if key is None:
-        key = ','.join(str(q) for q in qubits)
+        key = _default_measurement_key(qubits)
     return MeasurementGate(key, invert_mask).on(*qubits)
 
 
