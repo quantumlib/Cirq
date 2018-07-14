@@ -20,8 +20,8 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from typing import (
-    Any, Dict, FrozenSet, Callable, Generator, Iterable, Iterator,
-    Optional, Sequence, Union, TYPE_CHECKING,
+    Any, Dict, FrozenSet, Callable, Iterable, Iterator,
+    Optional, Sequence, Union, TYPE_CHECKING, List, Tuple,
 )
 
 import numpy as np
@@ -487,7 +487,7 @@ class Circuit(object):
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
             ignore_terminal_measurements: When set, measurements at the end of
-                the circuit are ignored instead of causing the conversion to
+                the circuit are ignored instead of causing the method to
                 fail.
 
         Returns:
@@ -495,24 +495,95 @@ class Circuit(object):
             equivalent to the circuit's effect on a quantum state.
 
         Raises:
+            ValueError: The circuit contains measurement gates that are not
+                ignored.
             TypeError: The circuit contains gates that don't have a known
-                unitary matrix, such as measurement gates, gates parameterized
-                by a Symbol, etc.
+                unitary matrix, e.g. gates parameterized by a Symbol.
         """
 
         if ext is None:
             ext = Extensions()
+
+        if not ignore_terminal_measurements and any(
+                ops.MeasurementGate.is_measurement(op)
+                for op in self.all_operations()):
+            raise ValueError('Circuit contains a measurement.')
+
+        if not self.are_all_measurements_terminal():
+            raise ValueError('Circuit contains a non-terminal measurement.')
+
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
-        qubit_map = {i: q
-                     for q, i in enumerate(qs)}  # type: Dict[QubitId, int]
-        matrix_ops = _flatten_to_known_matrix_ops(self.all_operations(), ext)
+        n = len(qs)
+
+        state = np.eye(1 << n, dtype=np.complex64)
+        state.shape = (2,) * (2 * n)
+
+        result = _apply_unitary_circuit(self, state, qs, ext)
+        return result.reshape((1 << n, 1 << n))
+
+    def to_unitary_output(
+            self,
+            initial_state: Union[int, np.ndarray] = 0,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable[QubitId] = (),
+            ignore_terminal_measurements: bool = True,
+            ext: Extensions = None) -> np.ndarray:
+        """Computes the output state vector of the circuit.
+
+        Args:
+            qubit_order: Determines how qubits are ordered when passing matrices
+                into np.kron.
+            initial_state: The input state for the circuit. This can be an int
+                or a vector. When this is an int, it refers to a computational
+                basis state (e.g. 5 means initialize to |5> = |...000101>). If
+                this is a state vector, it specifies the initial state. The
+                vector must be a flat numpy array with a type that can be
+                converted to np.complex64.
+            qubits_that_should_be_present: Qubits that may or may not appear
+                in operations within the circuit, but that should be included
+                regardless when generating the matrix.
+            ignore_terminal_measurements: When set, measurements at the end of
+                the circuit are ignored instead of causing the method to
+                fail.
+            ext: The extensions to use when attempting to cast operations into
+                KnownMatrix instances.
+
+        Returns:
+            A (possibly gigantic) numpy array storing the superposition that
+            came out of the circuit for the given input state.
+
+        Raises:
+            ValueError: The circuit contains measurement gates that are not
+                ignored.
+            TypeError: The circuit contains gates that don't have a known
+                unitary matrix, e.g. gates parameterized by a Symbol.
+        """
+
+        if ext is None:
+            ext = Extensions()
+
+        if not ignore_terminal_measurements and any(
+                ops.MeasurementGate.is_measurement(op)
+                for op in self.all_operations()):
+            raise ValueError('Circuit contains a measurement.')
+
         if not self.are_all_measurements_terminal():
-            raise TypeError('Circuit contains a non-terminal measurement')
-        return _operations_to_unitary_matrix(matrix_ops,
-                                             qubit_map,
-                                             ignore_terminal_measurements,
-                                             ext)
+            raise ValueError('Circuit contains a non-terminal measurement.')
+
+        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits().union(qubits_that_should_be_present))
+        n = len(qs)
+
+        if isinstance(initial_state, int):
+            state = np.zeros(1 << n, dtype=np.complex64)
+            state[initial_state] = 1
+        else:
+            state = initial_state.astype(np.complex64)
+        state.shape = (2,) * n
+
+        result = _apply_unitary_circuit(self, state, qs, ext)
+        return result.reshape((1 << n,))
 
     def to_text_diagram(
             self,
@@ -698,81 +769,98 @@ def _draw_moment_in_diagram(moment: Moment,
             out_diagram.write(x, y2, '^' + exponent)
 
 
-def _flatten_to_known_matrix_ops(iter_ops: Iterable[ops.Operation],
-                                 ext: Extensions
-                                 ) -> Generator[ops.Operation, None, None]:
-    for op in iter_ops:
-        # Check if the operation has a known matrix
-        known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
-        if known_matrix_gate is not None:
-            yield op
+def _apply_unitary_circuit(circuit: Circuit,
+                           state: np.ndarray,
+                           qubits: Tuple[ops.QubitId, ...],
+                           ext: Extensions) -> np.ndarray:
+    """Applies a circuit to the given vector or matrix.
+
+    Args:
+        circuit: The circuit to simulate. All operations must have a known
+            matrix or decompositions leading to known matrices. Measurements
+            are allowed to be in the circuit, but they will be ignored.
+        state: The initial state tensor (i.e. superposition or unitary matrix).
+            This is what will be left-multiplied by the circuit's effective
+            unitary. If this is a state vector, it must have shape
+            (2,)*num_qubits. If it is a unitary matrix it should have shape
+            (2,) * (2*num_qubits).
+        qubits: The qubits in the state tensor. Determines which axes operations
+            apply to. An operation targeting the k'th qubit in this list will
+            operate on the k'th axis of the state tensor.
+        ext: Extensions used when attempting to get matrices and decompositions
+            of the operations.
+
+    Returns:
+        The left-multiplied state tensor.
+    """
+    qubit_map = {q: i for i, q in enumerate(qubits)}
+    buffer = np.zeros(state.shape, dtype=np.complex64)
+    for op, qs in _extract_unitaries(circuit.all_operations(), ext):
+        matrix = op.matrix().astype(np.complex64).reshape((2,) * (2 * len(qs)))
+        indices = [qubit_map[q] for q in qs]
+        _apply_unitary_operation(state, matrix, indices, buffer)
+        state, buffer = buffer, state
+    return state
+
+
+def _extract_unitaries(operations: Iterable[ops.Operation],
+                       ext: Extensions) -> Iterable[ops.KnownMatrix]:
+    """Yields a sequence of unitary matrices equivalent to the circuit's effect.
+    """
+    for op in operations:
+        # Check if the operation has a known matrix.
+        known_matrix = ext.try_cast(ops.KnownMatrix, op)
+        if known_matrix is not None:
+            yield known_matrix, op.qubits
             continue
 
-        # If not, check if it has a decomposition
+        # If not, check if it has a decomposition.
         composite_op = ext.try_cast(ops.CompositeOperation, op)
         if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_op.default_decompose()
             op_list = ops.flatten_op_tree(op_tree)
-            for op in _flatten_to_known_matrix_ops(op_list, ext):
-                yield op
+            for op2 in _extract_unitaries(op_list, ext):
+                yield op2
             continue
 
-        # Pass measurement gates through
         meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
         if meas_gate is not None:
-            yield op
+            # Ignore measurement gates. The caller should have checked for this
+            # and failed already.
             continue
 
         # Otherwise, fail
         raise TypeError(
             'Operation without a known matrix or decomposition: {!r}'
-            .format(op))
+                .format(op))
 
 
-def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
-                                  qubit_map: Dict[QubitId, int],
-                                  ignore_terminal_measurements: bool,
-                                  ext: Extensions) -> np.ndarray:
-    # Precondition is that circuit has only terminal measurements.
-    total = np.eye(1 << len(qubit_map))
-    for op in iter_ops:
-        meas_gate = ext.try_cast(ops.MeasurementGate, op.gate)
-        if meas_gate is not None:
-            if not ignore_terminal_measurements:
-                raise TypeError(
-                    'Terminal measurement operation but not ignoring these '
-                    'measurements: {!r}'.format(op))
-            continue  # coverage: ignore
-        mat = _operation_to_unitary_matrix(op, qubit_map, ext)
-        total = np.matmul(mat, total)
-    return total
+def _apply_unitary_operation(state: np.ndarray,
+                             matrix: np.ndarray,
+                             target_axes: List[int],
+                             out: Optional[np.ndarray]) -> np.ndarray:
+    """Left-multiplies the given axes of the state tensor by the given matrix.
 
+    Args:
+        state: The state tensor to left-multiple.
+        matrix: What to left-multiply the state tensor by.
+        target_axes: Which axes of the tensor are being operated on.
+        out: The buffer to store the results in. If None, a new buffer is used.
 
-def _operation_to_unitary_matrix(op: ops.Operation,
-                                 qubit_map: Dict[QubitId, int],
-                                 ext: Extensions) -> np.ndarray:
-    known_matrix_gate = ext.try_cast(ops.KnownMatrix, op)
-    if known_matrix_gate is None:
-        raise TypeError(
-            'Operation without a known matrix: {!r}'.format(op))
-    sub_mat = known_matrix_gate.matrix()
-    qubit_count = len(qubit_map)
-    bit_locs = [qubit_count - qubit_map[q] - 1 for q in op.qubits][::-1]
-    over_mask = ~sum(1 << b for b in bit_locs)
+    Returns:
+        The output tensor.
+    """
+    k = len(target_axes)
+    d = len(state.shape)
+    work_indices = tuple(range(k))
+    data_indices = tuple(range(k, k + d))
+    used_data_indices = tuple(data_indices[q] for q in target_axes)
+    output_indices = list(data_indices)
+    for w, t in zip(work_indices, target_axes):
+        output_indices[t] = w
 
-    result = np.zeros(shape=(1 << qubit_count, 1 << qubit_count),
-                      dtype=np.complex128)
-    for i in range(1 << qubit_count):
-        sub_i = sum(_moved_bit(i, b, k) for k, b in enumerate(bit_locs))
-        over_i = i & over_mask
-
-        for sub_j in range(sub_mat.shape[1]):
-            j = sum(_moved_bit(sub_j, k, b) for k, b in enumerate(bit_locs))
-            result[i, over_i | j] = sub_mat[sub_i, sub_j]
-
-    return result
-
-
-def _moved_bit(val: int, at: int, to: int) -> int:
-    return ((val >> at) & 1) << to
+    return np.einsum(matrix, work_indices + used_data_indices,
+                     state, data_indices,
+                     output_indices,
+                     out=out)
