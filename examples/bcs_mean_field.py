@@ -168,8 +168,8 @@ def main():
     print(bog_circuit.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-up states
-    print('Circuit for the inverse fermionic Fourier transformation on the '
-          + 'spin-up states:')
+    print(('Circuit for the inverse fermionic Fourier transformation on the '
+           'spin-up states:'))
     fourier_circuit_spin_up = cirq.Circuit.from_ops(
         fermi_fourier_trans_inverse_4(upper_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
