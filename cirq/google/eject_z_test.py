@@ -79,6 +79,39 @@ def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
     return matrix
 
 
+def is_same_circuit_up_to_measurement_phase(circuit1: cirq.Circuit,
+                                            circuit2: cirq.Circuit,
+                                            atol: float):
+    # Default to [[1]] when the circuit doesn't have a known unitary effect.
+    m1 = np.diag([1])
+    m2 = np.diag([1])
+
+    try:
+        m1 = canonicalize_up_to_measurement_phase(circuit1)
+    except TypeError:
+        pass
+    try:
+        m2 = canonicalize_up_to_measurement_phase(circuit2)
+    except TypeError:
+        pass
+    return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
+
+
+def assert_equivalent_circuit_up_to_measurement_phase(actual: cirq.Circuit,
+                                                      expected: cirq.Circuit,
+                                                      atol: float):
+    similar = is_same_circuit_up_to_measurement_phase(actual,
+                                                      expected,
+                                                      atol)
+    if not similar:
+        # coverage: ignore
+        print("ACTUAL")
+        print(actual)
+        print("EXPECTED")
+        print(expected)
+    assert similar
+
+
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
     opt = cg.EjectZ()
     optimized = circuit.copy()
@@ -86,9 +119,9 @@ def assert_removes_all_z_gates(circuit: cirq.Circuit):
     has_z = any(_try_get_known_z_half_turns(op) is not None
                 for moment in optimized
                 for op in moment.operations)
-    m1 = canonicalize_up_to_measurement_phase(circuit)
-    m2 = canonicalize_up_to_measurement_phase(optimized)
-    similar = cirq.allclose_up_to_global_phase(m1, m2)
+    similar = is_same_circuit_up_to_measurement_phase(circuit,
+                                                      optimized,
+                                                      atol=1e-8)
 
     if has_z or not similar:
         # coverage: ignore
@@ -96,13 +129,6 @@ def assert_removes_all_z_gates(circuit: cirq.Circuit):
         print(circuit)
         print("OPTIMIZED CIRCUIT")
         print(optimized)
-
-    if not similar:
-        # coverage: ignore
-        print("CANONICALIZED CIRCUIT MATRIX")
-        print(m1)
-        print("CANONICALIZED OPTIMIZED CIRCUIT MATRIX")
-        print(m2)
 
     assert similar and not has_z
 

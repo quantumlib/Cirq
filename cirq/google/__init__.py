@@ -22,6 +22,9 @@ from cirq.google.decompositions import (
     single_qubit_op_to_framed_phase_form,
     two_qubit_matrix_to_native_gates,
 )
+from cirq.google.eject_full_w import (
+    EjectFullW,
+)
 from cirq.google.eject_z import (
     EjectZ,
 )
