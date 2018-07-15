@@ -649,7 +649,7 @@ def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
         check_auto_merge_labeler(repo, pull_id)
 
         print('\nChecks succeeded. Checking if synced...')
-        if not pr.payload['mergeable']:
+        if pr.payload['mergeable_state'] != 'clean':
             if sync_with_master(pr):
                 print('Had to resync with master.')
                 prev_pr = pr
