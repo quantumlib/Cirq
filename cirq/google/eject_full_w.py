@@ -243,9 +243,9 @@ def _single_cross_over_cz(moment_index: int,
              |      |      │                      (split into on/off cases)
           ───W(a)───W(a)───@^t──────────────────
 
-        ≡ ───@─────────────@─────O──────────────
-             |             │     |                (off doesn't interact with on)
-          ───W(a)──────────@^t───W(a)───────────
+        ≡ ───@─────────────@─────────────O──────
+             |             │             |        (off doesn't interact with on)
+          ───W(a)──────────@^t───────────W(a)───
 
         ≡ ───────────Z^t───@──────@──────O──────
                            │      |      |        (crossing causes kickback)
@@ -286,7 +286,7 @@ def _double_cross_over_cz(op: ops.Operation,
 
 
         ≡ ──────────@─────Z^-t───W(a)───
-                    │                     (single-cross top W over CZ)
+                    │                     (single-cross bottom W over CZ)
           ──────────@^t───W(b)───Z^t────
 
 
