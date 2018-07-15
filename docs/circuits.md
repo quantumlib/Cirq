@@ -227,7 +227,7 @@ circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.INLINE)
 print(circuit)
 # prints
 # (0, 0): ───────H───────
-#                │
+#                
 # (1, 0): ───@───@───H───
 #            │   │
 # (2, 0): ───@───@───H───
