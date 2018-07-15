@@ -1220,6 +1220,13 @@ def test_circuit_to_unitary_matrix():
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
 
+    # Accounts for measurement bit flipping.
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.Circuit.from_ops(
+            cirq.measure(a, invert_mask=(True,))
+        ).to_unitary_matrix(),
+        cirq.X.matrix())
+
 
 def test_simple_circuits_to_unitary_matrix():
     a = cirq.NamedQubit('a')
