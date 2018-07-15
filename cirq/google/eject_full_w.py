@@ -43,7 +43,8 @@ class EjectFullW(circuits.OptimizationPass):
 
     As the gates get pushed, they may absorb Z gates, cancel against other ExpW
     gates with half_turns=1, get merged into measurements (as output bit flips),
-    and kickback across CZs.
+    and cause phase kickback operations across CZs (which can then be removed by
+    the EjectZ optimization).
     """
 
     def __init__(self,
