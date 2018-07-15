@@ -517,7 +517,7 @@ class Circuit(ops.ParameterizableEffect):
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
                                           start: int=0,
                                           frontier: Dict[ops.QubitId, int]=None
-                                          ) -> Tuple[Dict[int, int],
+                                          ) -> Tuple[Sequence[int],
                                                      Dict[ops.QubitId, int]]:
         """Greedily assigns operations to moments.
 
@@ -534,10 +534,10 @@ class Circuit(ops.ParameterizableEffect):
         """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
-        moment_indices = {}
-        for op_index, op in enumerate(operations):
+        moment_indices = []
+        for op in operations:
             op_start = max(start, max(frontier[q] for q in op.qubits))
-            moment_indices[op_index] = op_start
+            moment_indices.append(op_start)
             for q in op.qubits:
                 frontier[q] = max(frontier[q], op_start + 1)
 
@@ -582,7 +582,7 @@ class Circuit(ops.ParameterizableEffect):
     def insert_operations(self,
                           operations: Sequence[ops.Operation],
                           insertion_indices: Sequence[int]) -> None:
-        """Inserts operations at the specified moments.
+        """Inserts operations at the specified moments. Appends new moments if necessary.
 
         Args:
             operations: The operations to insert.
@@ -598,6 +598,8 @@ class Circuit(ops.ParameterizableEffect):
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the'
                              'same length.')
+        self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
+                                                  len(self))]
         moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
@@ -619,9 +621,6 @@ class Circuit(ops.ParameterizableEffect):
             frontier: frontier[q] is the earliest moment in which an operation
                 acting on qubit q can be placed.
         """
-        print('*' * 60)
-        print(operations, start, frontier)
-        print(self)
         if frontier is None:
             frontier = defaultdict(lambda: 0)
         operations = tuple(ops.flatten_op_tree(operations))

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+from string import ascii_lowercase as alphabet
 
 import numpy as np
 import pytest
@@ -22,6 +23,7 @@ from cirq.circuits.circuit import _operation_to_unitary_matrix
 from cirq.circuits.optimization_pass import (PointOptimizer,
                                              PointOptimizationSummary)
 from cirq import Circuit, InsertStrategy, Moment
+from cirq.testing.random_circuit import random_circuit
 
 
 def test_equality():
@@ -1460,8 +1462,8 @@ def test_insert_moments():
     assert list(c) == [m2, m0, m1]
     assert c[0] is m2
 
-    assert c.moments == [m2, m0, m1]
-    assert c.moments[0] is m2
+    assert c._moments == [m2, m0, m1]
+    assert c._moments[0] is m2
 
 def test_is_parameterized():
     a, b = cirq.LineQubit.range(2)
@@ -1721,13 +1723,36 @@ def test_pick_inserted_ops_moment_indices():
 def test_push_frontier():
     assert 0
 
-def test_insert_operations():
-    assert 0
+def test_insert_operations_new_moments():
+    a, b, c = (cirq.NamedQubit(s) for s in 'abc')
+    operation = cirq.X(a)
+    insertion_index = 3
+    circuit = Circuit()
+    circuit.insert_operations([operation], [insertion_index])
+    assert circuit == Circuit([Moment() for _ in range(insertion_index)] +
+                              [Moment([operation])])
+
+
+def test_insert_operations_random_circuits():
+    qubits = tuple(cirq.NamedQubit(s) for s in alphabet[:10])
+    n_moments = 10
+    op_density = 0.5
+    circuit = random_circuit(qubits, n_moments, op_density)
+    operations, insert_indices = [], []
+    remove_prob = 0.7
+    for moment_index, moment in enumerate(circuit):
+        for op in moment.operations:
+            operations.append(op)
+            insert_indices.append(moment_index)
+    other_circuit = Circuit()
+    other_circuit.insert_operations(operations, insert_indices)
+    assert circuit == other_circuit
+
 
 def test_insert_operations_errors():
-    a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
+    a, b, c = (cirq.NamedQubit(s) for s in 'abc')
     with pytest.raises(ValueError):
-        circuit = cirq.Circuit()
+        circuit = cirq.Circuit([Moment([cirq.Z(c)])])
         operations = [cirq.X(a), cirq.CZ(a, b)]
         insertion_indices = [0, 0]
         circuit.insert_operations(operations, insertion_indices)
