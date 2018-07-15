@@ -475,18 +475,21 @@ class Circuit(object):
                                           ) -> Tuple[Dict[int, int],
                                                      Dict[ops.QubitId, int]]:
         if frontier is None:
-            frontier = defaultdict(lambda: 0)
+            frontier = defaultdict(lambda: start)
+        else:
+            for q in frontier:
+                frontier[q] = max(frontier[q], start)
         moment_indices = {}
         for op_index, op in enumerate(operations):
-            op_start = max(start, max(frontier[q] for q in op.qubits))
+            op_start = max(frontier[q] for q in op.qubits)
             moment_indices[op_index] = op_start
             for q in op.qubits:
                 frontier[q] = max(frontier[q], op_start + 1)
 
-        return (moment_indices, frontier)
+        return moment_indices, frontier
 
 
-    def push_frontier(self,
+    def _push_frontier(self,
                       early_frontier: Dict[ops.QubitId, int],
                       late_frontier: Dict[ops.QubitId, int]
                       ) -> Dict[ops.QubitId, int]:
@@ -497,7 +500,7 @@ class Circuit(object):
             self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
             for q in early_frontier:
                 if ((q not in late_frontier) and
-                    (early_frontier[q] > insert_index)):
+                        (early_frontier[q] > insert_index)):
                     early_frontier[q] += n_new_moments
         return early_frontier
 
@@ -506,11 +509,11 @@ class Circuit(object):
                           operations: Sequence[ops.Operation],
                           insertion_indices: Dict[int, int]) -> None:
         moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
-        for op_index, moment in insertion_indices.items():
-            moment_to_ops[moment].append(operations[op_index])
-        for moment, new_ops in moment_to_ops.items():
-            self.moments[moment] = Moment(self.moments[moment].operations +
-                                          tuple(new_ops))
+        for op_index, moment_index in insertion_indices.items():
+            moment_to_ops[moment_index].append(operations[op_index])
+        for moment_index, new_ops in moment_to_ops.items():
+            self.moments[moment_index] = Moment(
+                    self.moments[moment_index].operations + tuple(new_ops))
 
 
     def insert_at_frontier(self,
@@ -541,7 +544,7 @@ class Circuit(object):
         insertion_indices, _ = self._pick_inserted_ops_moment_indices(
                 operations, start, frontier)
 
-        self.push_frontier(frontier, next_moments)
+        self._push_frontier(frontier, next_moments)
 
         self.insert_operations(operations, insertion_indices)
 
