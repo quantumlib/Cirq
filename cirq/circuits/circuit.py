@@ -223,6 +223,19 @@ class Circuit(object):
                                  qubits: Iterable[ops.QubitId],
                                  start_moment_index: int = 0
                                  ) -> Dict[ops.QubitId, int]:
+        """Finds the index of the next moment that touches each qubit.
+
+        Args:
+            qubits: The qubits to find the next moments acting on. 
+            start_moment_index: The starting point of the search.
+
+        Returns:
+            The index of the next moment that touches each qubit. If there
+            is no such moment, the next moment is specified as the number of
+            moments in the circuit. Equivalently, can be characterized as one
+            plus the index of the last moment after start_moment_index
+            (inclusive) that does *not* act on a given qubit.
+        """
         next_moments = {}
         for q in qubits:
             next_moment = self.next_moment_operating_on([q], start_moment_index)
@@ -474,6 +487,21 @@ class Circuit(object):
                                           frontier: Dict[ops.QubitId, int]=None
                                           ) -> Tuple[Dict[int, int],
                                                      Dict[ops.QubitId, int]]:
+        """Greedily assigns operations to moments.
+
+        Args:
+            operations: The operations to assign to moments.
+            start: The first moment to consider assignment to.
+            frontier: The first moment to which an operation acting on a qubit
+                can be assigned. Updated in place as operations are assigned.
+
+        Returns:
+            The frontier giving the index of the moment after the last one to
+            which an operation that acts on each qubit is assigned. If a
+            frontier was specified as an argument, this is the same object.
+            Even if there are no operations acting on a qubit, the frontier
+            there is rounded up to at least start.
+        """
         if frontier is None:
             frontier = defaultdict(lambda: start)
         else:
@@ -493,6 +521,23 @@ class Circuit(object):
                       early_frontier: Dict[ops.QubitId, int],
                       late_frontier: Dict[ops.QubitId, int]
                       ) -> Dict[ops.QubitId, int]:
+        """Inserts moments to separate two frontiers.
+
+        After insertion n_new moments, the following holds:
+           for q in late_frontier: 
+               early_frontier[q] + n_new <= late_frontier[q]
+           for q in early_frontier but not in late_frontier:
+               early_frontier[q] is the identifies the same moment as before
+                   (but whose index may have changed if this moment is after
+                   those inserted).
+
+        Args:
+            early_frontier: The earlier frontier. For qubits not in the later
+                frontier, this is updated to account for the newly inserted
+                moments.
+            late_frontier: The later frontier. This is not modified.
+        """
+
         n_new_moments = max(early_frontier.get(q, 0) - late_frontier[q]
                             for q in late_frontier)
         if n_new_moments > 0:
@@ -508,6 +553,16 @@ class Circuit(object):
     def insert_operations(self,
                           operations: Sequence[ops.Operation],
                           insertion_indices: Dict[int, int]) -> None:
+        """Inserts operations at the specified moments.
+        
+        Args: 
+            operations: The operations to insert.
+            insertion_indices: Where to insert them, i.e. operations[i] is
+                inserted into moments[insertion_indices[i].
+
+        NB: It's on the caller to ensure that the operations won't conflict
+        with operations already in the moment or even each other.
+        """
         moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in insertion_indices.items():
             moment_to_ops[moment_index].append(operations[op_index])
