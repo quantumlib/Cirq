@@ -514,14 +514,15 @@ class Circuit(object):
 
     def _push_frontier(self,
                       early_frontier: Dict[ops.QubitId, int],
-                      late_frontier: Dict[ops.QubitId, int]
+                      late_frontier: Dict[ops.QubitId, int],
+                      update_qubits: Iterable[ops.QubitId]=None
                       ) -> Dict[ops.QubitId, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
            for q in late_frontier: 
                early_frontier[q] + n_new <= late_frontier[q]
-           for q in early_frontier but not in late_frontier:
+           for q in update_qubits:
                early_frontier[q] is the identifies the same moment as before
                    (but whose index may have changed if this moment is after
                    those inserted).
@@ -531,19 +532,19 @@ class Circuit(object):
                 frontier, this is updated to account for the newly inserted
                 moments.
             late_frontier: The later frontier. This is not modified.
+            update_qubits: The qubits for which to update early_frontier to
+                account for the newly inserted moments.
         """
-
+        if update_qubits is None:
+            update_qubits = set(early_frontier).difference(late_frontier)
         n_new_moments = max(early_frontier.get(q, 0) - late_frontier[q]
                             for q in late_frontier)
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self.moments[insert_index:insert_index] = [Moment()] * n_new_moments
-            for q in early_frontier:
-                if ((q not in late_frontier) and
-                        (early_frontier[q] > insert_index)):
+            for q in update_qubits:
+                if early_frontier[q] > insert_index:
                     early_frontier[q] += n_new_moments
-        return early_frontier
-
 
     def insert_operations(self,
                           operations: Sequence[ops.Operation],
