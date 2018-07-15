@@ -1460,6 +1460,8 @@ def test_insert_moments():
     assert list(c) == [m2, m0, m1]
     assert c[0] is m2
 
+    assert c.moments == [m2, m0, m1]
+    assert c.moments[0] is m2
 
 def test_is_parameterized():
     a, b = cirq.LineQubit.range(2)
@@ -1709,3 +1711,35 @@ def test_batch_insert():
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
+
+def test_next_moments_operating_on():
+    assert 0
+
+def test_pick_inserted_ops_moment_indices():
+    assert 0
+
+def test_push_frontier():
+    assert 0
+
+def test_insert_operations():
+    assert 0
+
+def test_insert_operations_errors():
+    a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
+    with pytest.raises(ValueError):
+        circuit = cirq.Circuit()
+        operations = [cirq.X(a), cirq.CZ(a, b)]
+        insertion_indices = [0, 0]
+        circuit.insert_operations(operations, insertion_indices)
+
+    with pytest.raises(ValueError):
+        circuit = cirq.Circuit.from_ops(cirq.X(a))
+        operations = [cirq.CZ(a, b)]
+        insertion_indices = [0]
+        circuit.insert_operations(operations, insertion_indices)
+
+    with pytest.raises(ValueError):
+        circuit = cirq.Circuit()
+        operations = [cirq.X(a), cirq.CZ(a, b)]
+        insertion_indices = []
+        circuit.insert_operations(operations, insertion_indices)
