@@ -814,7 +814,7 @@ class Circuit(ops.ParameterizableEffect):
         for q, i in qubit_map.items():
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
-        for moment in [Moment()] * 2 + self._moments + [Moment()]:
+        for moment in self._moments:
             _draw_moment_in_diagram(moment,
                                     ext,
                                     use_unicode_characters,
@@ -933,9 +933,6 @@ def _draw_moment_in_diagram(moment: Moment,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
                             precision: Optional[int]):
-    if not moment.operations:
-        return []
-
     x0 = out_diagram.width()
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
@@ -1012,6 +1009,11 @@ def _operations_to_unitary_matrix(iter_ops: Iterable[ops.Operation],
                 raise TypeError(
                     'Terminal measurement operation but not ignoring these '
                     'measurements: {!r}'.format(op))
+            gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
+            for q, b in zip(op.qubits, gate.invert_mask or ()):
+                if b:
+                    mat = _operation_to_unitary_matrix(ops.X(q), qubit_map, ext)
+                    total = np.matmul(mat, total)
             continue  # coverage: ignore
         mat = _operation_to_unitary_matrix(op, qubit_map, ext)
         total = np.matmul(mat, total)

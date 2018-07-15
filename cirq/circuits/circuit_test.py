@@ -977,24 +977,24 @@ def test_to_text_diagram_multi_qubit_gate():
     q3 = cirq.NamedQubit('(0, 2)')
     c = Circuit.from_ops(cirq.measure(q1, q2, q3, key='msg'))
     assert c.to_text_diagram().strip() == """
-(0, 0): ───M───
+(0, 0): ───M('msg')───
            │
-(0, 1): ───M───
+(0, 1): ───M──────────
            │
-(0, 2): ───M───
+(0, 2): ───M──────────
     """.strip()
     assert c.to_text_diagram(use_unicode_characters=False).strip() == """
-(0, 0): ---M---
+(0, 0): ---M('msg')---
            |
-(0, 1): ---M---
+(0, 1): ---M----------
            |
-(0, 2): ---M---
+(0, 2): ---M----------
     """.strip()
     assert c.to_text_diagram(transpose=True).strip() == """
-(0, 0) (0, 1) (0, 2)
-│      │      │
-M──────M──────M
-│      │      │
+(0, 0)   (0, 1) (0, 2)
+│        │      │
+M('msg')─M──────M
+│        │      │
     """.strip()
 
 
@@ -1276,6 +1276,13 @@ def test_circuit_to_unitary_matrix():
     c = Circuit.from_ops(MysteryGate()(a, b))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
+
+    # Accounts for measurement bit flipping.
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.Circuit.from_ops(
+            cirq.measure(a, invert_mask=(True,))
+        ).to_unitary_matrix(),
+        cirq.X.matrix())
 
 
 def test_simple_circuits_to_unitary_matrix():
