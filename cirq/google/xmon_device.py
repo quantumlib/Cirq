@@ -117,9 +117,10 @@ class XmonDevice(Device):
         return any(self._check_if_exp11_operation_interacts(exp11_op, op)
                    for op in others)
 
-    def _check_if_exp11_operation_interacts(self,
-                                            exp11_op: ops.GateOperation,
-                                            other_op: ops.GateOperation) -> bool:
+    def _check_if_exp11_operation_interacts(
+            self,
+            exp11_op: ops.GateOperation,
+            other_op: ops.GateOperation) -> bool:
         if isinstance(other_op.gate, xmon_gates.ExpZGate):
             return False
         if isinstance(other_op.gate, xmon_gates.ExpWGate):
@@ -210,10 +211,10 @@ class XmonDevice(Device):
     def __eq__(self, other):
         if not isinstance(other, (XmonDevice, type(self))):
             return NotImplemented
-        return self._measurement_duration == other._measurement_duration and \
-               self._exp_w_duration == other._exp_w_duration and \
-               self._exp_z_duration == other._exp_z_duration and \
-               self.qubits == other.qubits
+        return (self._measurement_duration == other._measurement_duration and
+                self._exp_w_duration == other._exp_w_duration and
+                self._exp_z_duration == other._exp_z_duration and
+                self.qubits == other.qubits)
 
     def __ne__(self, other):
         return not self == other
