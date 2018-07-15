@@ -231,10 +231,11 @@ class Circuit(ops.ParameterizableEffect):
 
     __hash__ = None  # type: ignore
 
-    def switch_device(self,
-                      new_device: devices.Device,
-                      qubit_mapping: Callable[[ops.QubitId], ops.QubitId]
-                      ) -> 'Circuit':
+    def with_switched_device(
+            self,
+            new_device: devices.Device,
+            qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
+            ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
         Args:
@@ -354,19 +355,14 @@ class Circuit(ops.ParameterizableEffect):
             self,
             op: ops.Operation,
             end_moment_index: int) -> Optional[int]:
-        # Don't bother searching indices past the end of the list.
-        max_distance = len(self._moments)
-        if end_moment_index > len(self._moments):
-            d = end_moment_index - len(self._moments)
-            end_moment_index -= d
-            max_distance -= d
-        if max_distance <= 0:
+        if not self._moments:
             return None
 
-        indices = list(end_moment_index - k - 1 for k in range(max_distance))
-        for m in indices:
-            if not self._can_add_op_at(m, op):
-                return m
+        k = end_moment_index
+        while k > 0:
+            k -= 1
+            if not self._can_add_op_at(k, op):
+                return k
         return None
 
     def operation_at(self,

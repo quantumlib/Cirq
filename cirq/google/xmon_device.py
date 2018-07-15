@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast, Optional, List
+from typing import Iterable, cast, Optional, List, TYPE_CHECKING
 
 from cirq import ops, circuits
 from cirq.devices import Device
@@ -22,6 +22,11 @@ from cirq.devices.grid_qubit import GridQubit
 from cirq.value import Duration
 
 from cirq.circuits import TextDiagramDrawer
+
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
 
 
 class XmonDevice(Device):
@@ -71,7 +76,7 @@ class XmonDevice(Device):
             if isinstance(g, xmon_gates.ExpZGate):
                 # Z gates are performed in the control software.
                 return Duration()
-        raise ValueError('Unsupported gate type: {}'.format(repr(g)))
+        raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
     def validate_gate(self, gate: ops.Gate):
         """Raises an error if the given gate isn't allowed.
@@ -85,7 +90,7 @@ class XmonDevice(Device):
                                  xmon_gates.ExpZGate)):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
-    def validate_operation(self, operation):
+    def validate_operation(self, operation: ops.Operation):
         if not isinstance(operation, ops.GateOperation):
             raise ValueError('Unsupported operation: {!r}'.format(operation))
 
@@ -109,12 +114,12 @@ class XmonDevice(Device):
             self,
             exp11_op: ops.GateOperation,
             others: Iterable[ops.GateOperation]) -> bool:
-        return any(self.check_if_exp11_operation_interacts(exp11_op, op)
+        return any(self._check_if_exp11_operation_interacts(exp11_op, op)
                    for op in others)
 
-    def check_if_exp11_operation_interacts(self,
-                                           exp11_op: ops.GateOperation,
-                                           other_op: ops.GateOperation) -> bool:
+    def _check_if_exp11_operation_interacts(self,
+                                            exp11_op: ops.GateOperation,
+                                            other_op: ops.GateOperation) -> bool:
         if isinstance(other_op.gate, xmon_gates.ExpZGate):
             return False
         if isinstance(other_op.gate, xmon_gates.ExpWGate):
@@ -131,60 +136,49 @@ class XmonDevice(Device):
                       xmon_gates.Exp11Gate):
             for other in schedule.operations_happening_at_same_time_as(
                     scheduled_operation):
-                if self.check_if_exp11_operation_interacts(
-                        scheduled_operation.operation,
-                        other.operation):
+                if self._check_if_exp11_operation_interacts(
+                        cast(ops.GateOperation, scheduled_operation.operation),
+                        cast(ops.GateOperation, other.operation)):
                     raise ValueError(
                         'Adjacent Exp11 operations: {} vs {}.'.format(
                             scheduled_operation, other))
 
     def validate_circuit(self, circuit: circuits.Circuit):
-        measurement_keys = set()
-        for moment in circuit:
-            self.validate_moment(moment)
-        for op in circuit.all_operations():
-            self.verify_new_measurement_key(op, measurement_keys)
+        super().validate_circuit(circuit)
+        _verify_unique_measurement_keys(circuit.all_operations())
 
     def validate_moment(self, moment: circuits.Moment):
         super().validate_moment(moment)
         for op in moment.operations:
-            if isinstance(op.gate, xmon_gates.Exp11Gate):
+            if (isinstance(op, ops.GateOperation) and
+                    isinstance(op.gate, xmon_gates.Exp11Gate)):
                 for other in moment.operations:
-                    if other is not op:
-                        if self.check_if_exp11_operation_interacts(
-                                op,
-                                other):
-                            raise ValueError(
-                                'Adjacent Exp11 operations: {}.'.format(moment))
+                    if (other is not op and
+                            self._check_if_exp11_operation_interacts(
+                                cast(ops.GateOperation, op),
+                                cast(ops.GateOperation, other))):
+                        raise ValueError(
+                            'Adjacent Exp11 operations: {}.'.format(moment))
 
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
                                       moment: circuits.Moment) -> bool:
+        self.validate_moment(moment)
+
         if not super().can_add_operation_into_moment(operation, moment):
             return False
         if (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, xmon_gates.Exp11Gate)):
             return not self._check_if_exp11_operation_interacts_with_any(
-                operation,
-                moment.operations)
+                cast(ops.GateOperation, operation),
+                cast(Iterable[ops.GateOperation], moment.operations))
         return True
 
     def validate_schedule(self, schedule):
-        measurement_keys = set()
+        _verify_unique_measurement_keys(
+            s.operation for s in schedule.scheduled_operations)
         for scheduled_operation in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, scheduled_operation)
-            self.verify_new_measurement_key(
-                scheduled_operation.operation, measurement_keys)
-
-    def verify_new_measurement_key(self, operation, previous_keys):
-        if isinstance(operation, ops.GateOperation):
-            gate = operation.gate
-            if isinstance(gate, xmon_gates.XmonMeasurementGate):
-                if gate.key in previous_keys:
-                    raise ValueError('Measurement key {} repeated'.format(
-                        gate.key))
-                else:
-                    previous_keys.add(operation.gate.key)
 
     def at(self, row: int, col: int) -> Optional[GridQubit]:
         """Returns the qubit at the given position, if there is one, else None.
@@ -227,3 +221,14 @@ class XmonDevice(Device):
     def __hash__(self):
         return hash((XmonDevice, self._measurement_duration,
                      self._exp_w_duration, self._exp_z_duration, self.qubits))
+
+
+def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
+    seen = set()  # type: Set[str]
+    for op in operations:
+        if ops.MeasurementGate.is_measurement(op):
+            key = cast(ops.MeasurementGate,
+                       cast(ops.GateOperation, op).gate).key
+            if key in seen:
+                raise ValueError('Measurement key {} repeated'.format(key))
+            seen.add(key)

@@ -38,7 +38,6 @@ from google.protobuf.json_format import MessageToDict
 from cirq.api.google.v1 import program_pb2
 from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
-from cirq.devices import Device, UnconstrainedDevice
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto
 from cirq.google.programs import schedule_to_proto, unpack_results

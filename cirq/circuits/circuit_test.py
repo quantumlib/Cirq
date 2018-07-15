@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+import cirq.google as cg
 from cirq.circuits.circuit import _operation_to_unitary_matrix
 from cirq import Circuit, InsertStrategy, Moment
 
@@ -33,7 +34,7 @@ def test_equality():
     eq.add_equality_group(
         Circuit([Moment()]),
         Circuit((Moment(),)))
-    eq.add_equality_group(Circuit(device=cirq.google.Foxtail))
+    eq.add_equality_group(Circuit(device=cg.Foxtail))
 
     # Equality depends on structure and contents.
     eq.add_equality_group(Circuit([Moment([cirq.X(a)])]))
@@ -114,6 +115,10 @@ Circuit([
     Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
     """.strip()
 
+    c = Circuit.from_ops(cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+                         device=cg.Foxtail)
+    assert 'device' in repr(c)
+
 
 def test_slice():
     a = cirq.QubitId()
@@ -168,6 +173,56 @@ def test_concatenate():
         _ = c + 'a'
     with pytest.raises(TypeError):
         c += 'a'
+
+
+def test_concatenate_with_device():
+    fox = cirq.Circuit(device=cg.Foxtail)
+    cone = cirq.Circuit(device=cg.Bristlecone)
+    unr = cirq.Circuit()
+
+    _ = cone + cone
+    _ = cone + unr
+    _ = unr + cone
+    cone += unr
+    with pytest.raises(ValueError):
+        _ = cone + fox
+    with pytest.raises(ValueError):
+        unr += cone
+    with pytest.raises(ValueError):
+        cone += fox
+
+    unr.append(cirq.X(cirq.NamedQubit('not_allowed')))
+    with pytest.raises(ValueError):
+        cone += unr
+    with pytest.raises(ValueError):
+        _ = cone + unr
+    assert len(cone) == 0
+
+
+def test_with_switched_device():
+    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    c2 = c.with_switched_device(cg.Foxtail,
+                                lambda e: cirq.GridQubit(e.x, 0))
+    assert c2 == cirq.Circuit.from_ops(
+        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+        device=cg.Foxtail)
+
+    # Qubit type must be correct.
+    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    with pytest.raises(ValueError):
+        _ = c.with_switched_device(cg.Foxtail)
+
+    # Operations must be compatible from the start
+    c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError):
+        _ = c.with_switched_device(cg.Foxtail)
+
+    # Some qubits existing on multiple devices.
+    c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
+    with pytest.raises(ValueError):
+        _ = c.with_switched_device(cg.Bristlecone)
+    c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 6)), device=cg.Foxtail)
+    _ = c.with_switched_device(cg.Bristlecone)
 
 
 def test_multiply():
@@ -1025,7 +1080,7 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = cirq.google.ExpWGate(
+    test_wgate = cg.ExpWGate(
         half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
@@ -1036,7 +1091,7 @@ a: ---W(0.43)^0.12---
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = cirq.google.ExpWGate(
+    test_wgate = cg.ExpWGate(
         half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
@@ -1598,44 +1653,43 @@ def test_batch_insert():
 
 
 def test_validates_while_editing():
-    c = cirq.Circuit(device=cirq.google.Foxtail)
-    unknown = cirq.Gate()
+    c = cirq.Circuit(device=cg.Foxtail)
 
     with pytest.raises(ValueError):
         # Wrong type of qubit.
-        c.append(cirq.google.ExpZGate().on(cirq.NamedQubit('q')))
+        c.append(cg.ExpZGate().on(cirq.NamedQubit('q')))
     with pytest.raises(ValueError):
         # A qubit that's not on the device.
         c[:] = [cirq.Moment([
-            cirq.google.ExpZGate().on(cirq.GridQubit(-5, 100))])]
-    c.append(cirq.google.ExpZGate().on(cirq.GridQubit(0, 0)))
+            cg.ExpZGate().on(cirq.GridQubit(-5, 100))])]
+    c.append(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
 
     with pytest.raises(ValueError):
         # Non-adjacent CZ.
-        c[0] = cirq.Moment([cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+        c[0] = cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
                                                        cirq.GridQubit(2, 2))])
 
-    c.insert(0, cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+    c.insert(0, cg.Exp11Gate().on(cirq.GridQubit(0, 0),
                                            cirq.GridQubit(1, 0)))
 
 
 def test_respects_additional_adjacency_constraints():
-    c = cirq.Circuit(device=cirq.google.Foxtail)
-    c.append(cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+    c = cirq.Circuit(device=cg.Foxtail)
+    c.append(cg.Exp11Gate().on(cirq.GridQubit(0, 0),
                                         cirq.GridQubit(0, 1)))
-    c.append(cirq.google.Exp11Gate().on(cirq.GridQubit(1, 0),
+    c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
                                         cirq.GridQubit(1, 1)),
              strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
-        cirq.Moment([cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
                                                 cirq.GridQubit(0, 1))]),
-        cirq.Moment([cirq.google.Exp11Gate().on(cirq.GridQubit(1, 0),
+        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
                                                 cirq.GridQubit(1, 1))]),
-    ], device=cirq.google.Foxtail)
+    ], device=cg.Foxtail)
 
 
 def test_decomposes_while_appending():
-    c = cirq.Circuit(device=cirq.google.Foxtail)
+    c = cirq.Circuit(device=cg.Foxtail)
     c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0),
                           cirq.GridQubit(0, 1),
                           cirq.GridQubit(0, 2)))
