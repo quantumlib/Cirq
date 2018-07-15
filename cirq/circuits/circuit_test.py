@@ -98,6 +98,21 @@ def test_append_multiple():
     ])
 
 
+@cirq.testing.only_test_in_python3
+def test_repr():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = Circuit([
+        Moment([cirq.H(a)]),
+        Moment([cirq.CZ(a, b)]),
+    ])
+    assert repr(c) == """
+Circuit([
+    Moment((GateOperation(H, (NamedQubit('a'),)),)),
+    Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
+    """.strip()
+
+
 def test_slice():
     a = cirq.QubitId()
     b = cirq.QubitId()
@@ -188,11 +203,11 @@ def test_container_methods():
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.H(b)]),
     ])
-    assert list(c) == list(c.moments)
+    assert list(c) == list(c._moments)
     # __iter__
-    assert list(iter(c)) == list(c.moments)
+    assert list(iter(c)) == list(c._moments)
     # __reversed__ for free.
-    assert list(reversed(c)) == list(reversed(c.moments))
+    assert list(reversed(c)) == list(reversed(c._moments))
     # __contains__ for free.
     assert Moment([cirq.H(b)]) in c
 
@@ -310,6 +325,19 @@ def test_insert_inline_near_start():
         Moment([cirq.Y(a)]),
         Moment(),
     ])
+
+def test_insert_into_range():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    c = Circuit([Moment([cirq.X(x)])] * 4)
+    c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───X───X───Z───@───X───X───
+                  │
+y: ───────────────@───────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
 
 
 def test_next_moment_operating_on():
@@ -495,7 +523,9 @@ def test_findall_operations():
     za = cirq.Z.on(a)
     zb = cirq.Z.on(b)
 
-    is_x = lambda op: isinstance(op.gate, cirq.RotXGate)
+    def is_x(op: cirq.Operation) -> bool:
+        return (isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.RotXGate))
 
     c = Circuit()
     assert list(c.findall_operations(is_x)) == []
@@ -526,6 +556,30 @@ def test_findall_operations():
 
     c = Circuit.from_ops(xa, zb, za, xb)
     assert list(c.findall_operations(is_x)) == [(0, xa), (1, xb)]
+
+
+def test_findall_operations_with_gate():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.measure(a), cirq.measure(b)]),
+    ])
+    assert list(c.findall_operations_with_gate_type(cirq.RotXGate)) == [
+        (0, cirq.X(a), cirq.X),
+        (2, cirq.X(a), cirq.X),
+        (2, cirq.X(b), cirq.X),
+    ]
+    assert list(c.findall_operations_with_gate_type(cirq.Rot11Gate)) == [
+        (3, cirq.CZ(a, b), cirq.CZ),
+    ]
+    assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
+        (4, cirq.MeasurementGate(key='a').on(a), cirq.MeasurementGate(key='a')),
+        (4, cirq.MeasurementGate(key='b').on(b), cirq.MeasurementGate(key='b')),
+    ]
 
 
 def test_are_all_measurements_terminal():
@@ -1144,7 +1198,7 @@ def test_circuit_to_unitary_matrix():
     # Optionally don't ignoring terminal measurements.
     c = Circuit.from_ops(cirq.measure(a))
     with pytest.raises(TypeError, match="Terminal"):
-        c.to_unitary_matrix(ignore_terminal_measurements=False),
+        c.to_unitary_matrix(ignore_terminal_measurements=False)
 
     # Non-terminal measurements are not ignored.
     c = Circuit.from_ops(cirq.measure(a), cirq.X(a))
@@ -1277,15 +1331,265 @@ def test_insert_moments():
 
     m0 = cirq.Moment([cirq.X(q)])
     c.append(m0)
-    assert c.moments == [m0]
-    assert c.moments[0] is m0
+    assert list(c) == [m0]
+    assert c[0] is m0
 
     m1 = cirq.Moment([cirq.Y(q)])
     c.append(m1)
-    assert c.moments == [m0, m1]
-    assert c.moments[1] is m1
+    assert list(c) == [m0, m1]
+    assert c[1] is m1
 
     m2 = cirq.Moment([cirq.Z(q)])
     c.insert(0, m2)
-    assert c.moments == [m2, m0, m1]
-    assert c.moments[0] is m2
+    assert list(c) == [m2, m0, m1]
+    assert c[0] is m2
+
+
+def test_is_parameterized():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Rot11Gate(half_turns=cirq.Symbol('u')).on(a, b),
+        cirq.RotXGate(half_turns=cirq.Symbol('v')).on(a),
+        cirq.RotYGate(half_turns=cirq.Symbol('w')).on(b),
+    )
+    assert circuit.is_parameterized()
+
+    circuit = circuit.with_parameters_resolved_by(
+            cirq.ParamResolver({'u': 0.1, 'v': 0.3}))
+    assert circuit.is_parameterized()
+
+    circuit = circuit.with_parameters_resolved_by(
+            cirq.ParamResolver({'w': 0.2}))
+    assert not circuit.is_parameterized()
+
+
+def test_with_parameters_resolved_by():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Rot11Gate(half_turns=cirq.Symbol('u')).on(a, b),
+        cirq.RotXGate(half_turns=cirq.Symbol('v')).on(a),
+        cirq.RotYGate(half_turns=cirq.Symbol('w')).on(b),
+    )
+    resolved_circuit = circuit.with_parameters_resolved_by(
+            cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    assert resolved_circuit.to_text_diagram().strip() == """
+0: ───@───────X^0.3───
+      │
+1: ───@^0.1───Y^0.2───
+""".strip()
+
+
+def test_items():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.Circuit()
+    m1 = cirq.Moment([cirq.X(a), cirq.X(b)])
+    m2 = cirq.Moment([cirq.X(a)])
+    m3 = cirq.Moment([])
+    m4 = cirq.Moment([cirq.CZ(a, b)])
+
+    c[:] = [m1, m2]
+    assert c == cirq.Circuit([m1, m2])
+
+    assert c[0] == m1
+    del c[0]
+    assert c == cirq.Circuit([m2])
+
+    c.append(m1)
+    c.append(m3)
+    assert c == cirq.Circuit([m2, m1, m3])
+
+    assert c[0:2] == Circuit([m2, m1])
+    c[0:2] = [m4]
+    assert c == cirq.Circuit([m4, m3])
+
+    c[:] = [m1]
+    assert c == cirq.Circuit([m1])
+
+    with pytest.raises(TypeError):
+        c[:] = [m1, 1]
+    with pytest.raises(TypeError):
+        c[0] = 1
+
+
+def test_copy():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.Circuit.from_ops(cirq.X(a), cirq.CZ(a, b), cirq.Z(a), cirq.Z(b))
+    assert c == c.copy() == c.__copy__() == c.__deepcopy__()
+    c2 = c.copy()
+    assert c2 == c
+    c2[:] = []
+    assert c2 != c
+
+
+def test_batch_remove():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_remove([])
+    assert after == original
+
+    # Delete one.
+    after = original.copy()
+    after.batch_remove([(0, cirq.X(a))])
+    assert after == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Out of range.
+    after = original.copy()
+    with pytest.raises(IndexError):
+        after.batch_remove([(500, cirq.X(a))])
+    assert after == original
+
+    # Delete several.
+    after = original.copy()
+    after.batch_remove([(0, cirq.X(a)), (2, cirq.CZ(a, b))])
+    assert after == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Delete all.
+    after = original.copy()
+    after.batch_remove([(0, cirq.X(a)),
+                        (1, cirq.Z(b)),
+                        (2, cirq.CZ(a, b)),
+                        (3, cirq.X(a)),
+                        (3, cirq.X(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment(),
+    ])
+
+    # Delete moment partially.
+    after = original.copy()
+    after.batch_remove([(3, cirq.X(a))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(b)]),
+    ])
+
+    # Deleting something that's not there.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_remove([(0, cirq.X(b))])
+    assert after == original
+
+    # Duplicate delete.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_remove([(0, cirq.X(a)), (0, cirq.X(a))])
+    assert after == original
+
+
+def test_batch_insert_into():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_insert_into([])
+    assert after == original
+
+    # Add into non-empty moment.
+    after = original.copy()
+    after.batch_insert_into([(0, cirq.X(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add into empty moment.
+    after = original.copy()
+    after.batch_insert_into([(1, cirq.Z(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add into two moments.
+    after = original.copy()
+    after.batch_insert_into([(1, cirq.Z(b)), (0, cirq.X(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Out of range.
+    after = original.copy()
+    with pytest.raises(IndexError):
+        after.batch_insert_into([(500, cirq.X(a))])
+    assert after == original
+
+    # Collision.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(0, cirq.X(a))])
+    assert after == original
+
+    # Duplicate insertion collision.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(1, cirq.X(a)), (1, cirq.CZ(a, b))])
+    assert after == original
+
+
+def test_batch_insert():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_insert([])
+    assert after == original
+
+    # Pushing.
+    after = original.copy()
+    after.batch_insert([(0, cirq.CZ(a, b)),
+                        (0, cirq.CNOT(a, b)),
+                        (1, cirq.Z(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.Z(b)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])

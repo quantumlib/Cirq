@@ -26,7 +26,7 @@ from cirq.google.xmon_gates import ExpWGate
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
-    return abs(_signed_mod_1(turns)) < tolerance
+    return abs(_signed_mod_1(turns)) <= tolerance
 
 
 def _phase_matrix(angle: float) -> np.ndarray:

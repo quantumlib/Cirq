@@ -111,6 +111,8 @@ def test_z_extrapolate():
     assert cirq.RotZGate(
         half_turns=1).extrapolate_effect(0.5) == cirq.RotZGate(half_turns=0.5)
     assert cirq.Z**-0.25 == cirq.RotZGate(half_turns=1.75)
+    assert cirq.RotZGate(half_turns=0.5).phase_by(0.25, 0) == cirq.RotZGate(
+        half_turns=0.5)
 
 
 def test_z_matrix():
@@ -397,3 +399,26 @@ a: ───@───H───X───T───X───T^-1───H─�
       │       │       │              │
 b: ───X───────@───────@──────────────X───
     """.strip()
+
+
+class NotImplementedOperation(cirq.Operation):
+    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+        raise NotImplementedError()
+
+    @property
+    def qubits(self):
+        raise NotImplementedError()
+
+
+def test_is_measurement():
+    q = cirq.NamedQubit('q')
+    assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
+    assert cirq.MeasurementGate.is_measurement(cirq.MeasurementGate(key='b'))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.google.XmonMeasurementGate(key='a').on(q))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.google.XmonMeasurementGate(key='a'))
+
+    assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
+    assert not cirq.MeasurementGate.is_measurement(cirq.X)
+    assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())

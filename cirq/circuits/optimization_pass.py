@@ -135,17 +135,17 @@ class PointOptimizer(OptimizationPass):
     def optimize_circuit(self, circuit: Circuit):
         frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
-        while i < len(circuit.moments):  # Note: circuit may mutate as we go.
-            for op in circuit.moments[i].operations:
+        while i < len(circuit):  # Note: circuit may mutate as we go.
+            for op in circuit[i].operations:
                 # Don't touch stuff inserted by previous optimizations.
                 if any(frontier[q] > i for q in op.qubits):
                     continue
 
                 # Skip if an optimization removed the circuit underneath us.
-                if i >= len(circuit.moments):
+                if i >= len(circuit):
                     continue
                 # Skip if an optimization removed the op we're considering.
-                if op not in circuit.moments[i].operations:
+                if op not in circuit[i].operations:
                     continue
                 opt = self.optimization_at(circuit, i, op)
                 # Skip if the optimization did nothing.
@@ -165,3 +165,6 @@ class PointOptimizer(OptimizationPass):
                     frontier[q] = max(frontier[q], next_insert_index)
 
             i += 1
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)

@@ -55,7 +55,7 @@ class Extensions:
             self,
             desired_type: Type[T_DESIRED],
             actual_type: Type[T_ACTUAL],
-            conversion: CASTER,
+            conversion: Callable[['Extensions', T_ACTUAL], Optional[T_DESIRED]],
             also_add_inherited_conversions: bool = True,
             overwrite_existing: bool = False) -> None:
         """Adds a multi-step way to turn one type of thing into another.

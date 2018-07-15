@@ -194,7 +194,8 @@ class RotYGate(eigen_gate.EigenGate,
 
 class RotZGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
-               gate_features.SingleQubitGate):
+               gate_features.SingleQubitGate,
+               gate_features.PhaseableEffect):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -233,6 +234,11 @@ class RotZGate(eigen_gate.EigenGate,
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
+
+    def phase_by(self,
+                 phase_turns: float,
+                 qubit_index: int):
+        return self
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
@@ -280,6 +286,15 @@ class MeasurementGate(raw_types.Gate,
                  invert_mask: Optional[Tuple[bool, ...]] = None) -> None:
         self.key = key
         self.invert_mask = invert_mask
+
+    @staticmethod
+    def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+        if isinstance(op, MeasurementGate):
+            return True
+        if (isinstance(op, gate_operation.GateOperation) and
+                isinstance(op.gate, MeasurementGate)):
+            return True
+        return False
 
     def validate_args(self, qubits):
         if (self.invert_mask is not None and

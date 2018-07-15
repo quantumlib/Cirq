@@ -139,7 +139,7 @@ def test_try_cast_potential_implementation():
         def __init__(self, is_other):
             self.is_other = is_other
 
-        def try_cast_to(self, desired_type, ext):
+        def try_cast_to(self, desired_type, extensions):
             if desired_type is OtherType and self.is_other:
                 return OtherType()
             return None
