@@ -39,13 +39,26 @@ DEFAULT_GATE_DOMAIN = (
     )
 
 def gate_to_arity(gate: Gate) -> int:
+    """Gets the arity of a gate (i.e. the number of qubits on which it acts).
+
+    Args:
+        gate: the gate to get the arity of.
+
+    Returns:
+        The arity.
+
+    Raises:
+        TypeError: the given gate is not an instance of (SingleQubitGate,
+            TwoQubitGate, ThreeQubitGate).
+    """
+
     if isinstance(gate, SingleQubitGate):
         return 1
     if isinstance(gate, TwoQubitGate):
         return 2
     if isinstance(gate, ThreeQubitGate):
         return 3
-    raise ValueError('Gates in gate_domain must be instances of ('
+    raise TypeError('Gates in gate_domain must be instances of ('
                      'SingleQubitGate, TwoQubitGate, ThreeQubitGate).'
                      'Gate {} is not.'.format(gate))
 
@@ -69,8 +82,6 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
     Raises:
         ValueError:
             * op_density is not in (0, 1).
-            * gate_domain contains a gate that is not an instance of
-                (SingleQubitGate, TwoQubitGate, ThreeQubitGate).
             * gate_domain is empty.
             * qubits is an int less than 1 or an empty sequence.
 
@@ -109,5 +120,3 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
         moments.append(Moment(operations))
 
     return Circuit(moments)
-
-

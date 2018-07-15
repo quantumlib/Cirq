@@ -12,6 +12,63 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from random import randint, random, sample, choice
+import pytest
 
-def test_random_circuit():
-    assert 0
+from cirq.testing.random_circuit import (
+        gate_to_arity, random_circuit, DEFAULT_GATE_DOMAIN)
+from cirq import ops
+
+def test_gate_to_arity():
+    with pytest.raises(TypeError):
+        random_circuit(randint(1, 10), randint(1, 10), random(),
+                       gate_domain=[ops.Rot11Gate])
+    with pytest.raises(TypeError):
+        random_circuit(randint(1, 10), randint(1, 10), random(),
+                       gate_domain=[ops.MeasurementGate])
+
+    assert gate_to_arity(ops.X) == 1
+    assert gate_to_arity(ops.Rot11Gate()) == 2
+    assert gate_to_arity(ops.three_qubit_gates._CCZGate()) == 3
+
+def test_random_circuit_errors():
+    with pytest.raises(ValueError):
+        random_circuit(randint(1, 10), randint(1, 10), -1)
+    with pytest.raises(ValueError):
+        random_circuit(randint(1, 10), randint(1, 10), 1.)
+
+    with pytest.raises(ValueError):
+        random_circuit(randint(1, 10), randint(1, 10), random(),
+                gate_domain=())
+
+    with pytest.raises(ValueError):
+        random_circuit(0, randint(1, 10), random())
+
+    with pytest.raises(ValueError):
+        random_circuit((), randint(1, 10), random())
+
+n_random_circuit_tests = 10
+random_circuit_test_parameters = [
+    (randint(1, 20), randint(1, 10), random(),
+     (None if randint(0, 1) else 
+      sample(DEFAULT_GATE_DOMAIN, randint(1, len(DEFAULT_GATE_DOMAIN)))),
+     choice((True, False)))
+    for _ in range(n_random_circuit_tests)]
+@pytest.mark.parametrize(
+        'n_qubits,n_moments,op_density,gate_domain,pass_qubits',
+        random_circuit_test_parameters)
+def test_random_circuit(n_qubits,
+                        n_moments,
+                        gate_domain,
+                        op_density,
+                        pass_qubits
+                        ):
+    qubits = ([ops.QubitId() for _ in range(n_qubits)]
+              if pass_qubits else n_qubits)
+    circuit = random_circuit(qubits, n_moments, op_density, gate_domain)
+    if pass_qubits:
+        assert circuit.all_qubits().issubset(qubits)
+    assert len(circuit) == n_moments
+    if gate_domain is None:
+        gate_domain = DEFAULT_GATE_DOMAIN
+    assert set(op.gate for op in circuit.all_operations()).issubset(gate_domain)
