@@ -88,7 +88,7 @@ class PointOptimizationSummary:
 class PointOptimizer(OptimizationPass):
     """Makes circuit improvements focused on a specific location."""
 
-    def _followups(self) -> List[OptimizationPass]:
+    def _inplace_followups(self) -> List[OptimizationPass]:
         return []
 
     @abc.abstractmethod
@@ -117,15 +117,23 @@ class PointOptimizer(OptimizationPass):
         """
         pass
 
-    def _improve(self, opt: PointOptimizationSummary
+    def _improve(self,
+                 opt: PointOptimizationSummary
                  ) -> PointOptimizationSummary:
         c = Circuit.from_ops(opt.new_operations)
-        optimizers = list(self._followups())
+        optimizers = list(self._inplace_followups())
         if not optimizers:
             return opt
 
-        for optimizer in optimizers:
-            optimizer.optimize_circuit(c)
+        queue = list(optimizers)
+        i = 0
+        while i < len(queue):
+            optimizer = queue[i]
+            if isinstance(optimizer, PointOptimizer):
+                optimizer._optimize_circuit_helper(c, do_followup=False)
+                queue.extend(optimizer._inplace_followups())
+            else:
+                optimizer.optimize_circuit(c)
 
         return PointOptimizationSummary(
             opt.clear_span,
@@ -133,6 +141,11 @@ class PointOptimizer(OptimizationPass):
             list(c.all_operations()))
 
     def optimize_circuit(self, circuit: Circuit):
+        self._optimize_circuit_helper(circuit, True)
+
+    def _optimize_circuit_helper(self,
+                                 circuit: Circuit,
+                                 do_followup: bool):
         frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
@@ -151,7 +164,8 @@ class PointOptimizer(OptimizationPass):
                 # Skip if the optimization did nothing.
                 if opt is None:
                     continue
-                opt = self._improve(opt)
+                if do_followup:
+                    opt = self._improve(opt)
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(

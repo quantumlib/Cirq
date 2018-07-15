@@ -56,7 +56,7 @@ class EjectZ(circuits.OptimizationPass):
         self.tolerance = tolerance
         self.ext = ext or extension.Extensions()
 
-    def _followups(self):
+    def _inplace_followups(self):
         return [circuits.DropNegligible(tolerance=self.tolerance,
                                         extensions=self.ext)]
 

@@ -66,11 +66,13 @@ class MergeInteractions(PointOptimizer):
         new_interaction_count = len([op for op in new_operations
                                      if len(op.qubits) == 2])
         import cirq
+        print("OLD")
         print(cirq.Circuit.from_ops(old_operations))
+        print("NEW")
         print(cirq.Circuit.from_ops(new_operations))
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.Circuit.from_ops(old_operations).to_unitary_matrix(),
-            cirq.Circuit.from_ops(new_operations, cirq.X(op.qubits[0]), cirq.X(op.qubits[0]), cirq.X(op.qubits[1]), cirq.X(op.qubits[1])).to_unitary_matrix(),
+            cirq.Circuit.from_ops(new_operations).to_unitary_matrix(),
             atol=1e-4
         )
         keep = False
