@@ -49,10 +49,6 @@ class EjectZ(circuits.OptimizationPass):
         self.tolerance = tolerance
         self.ext = ext or extension.Extensions()
 
-    def _inplace_followups(self):
-        return [circuits.DropNegligible(tolerance=self.tolerance,
-                                        extensions=self.ext)]
-
     def optimize_circuit(self, circuit: circuits.Circuit):
         turns_state = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
 

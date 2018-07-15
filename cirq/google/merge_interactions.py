@@ -27,6 +27,7 @@ from cirq.circuits import (
 from cirq.extension import Extensions
 from cirq.google.decompositions import two_qubit_matrix_to_native_gates
 from cirq.google.merge_rotations import MergeRotations
+from cirq.google.eject_full_w import EjectFullW
 from cirq.google.xmon_gates import XmonGate
 
 
@@ -41,10 +42,6 @@ class MergeInteractions(PointOptimizer):
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
         self.extensions = extensions or Extensions()
-
-    def _followups(self):
-        return [MergeRotations(tolerance=self.tolerance,
-                               extensions=self.extensions)]
 
     def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 2:
@@ -65,16 +62,6 @@ class MergeInteractions(PointOptimizer):
                                      if len(op.qubits) == 2])
         new_interaction_count = len([op for op in new_operations
                                      if len(op.qubits) == 2])
-        import cirq
-        print("OLD")
-        print(cirq.Circuit.from_ops(old_operations))
-        print("NEW")
-        print(cirq.Circuit.from_ops(new_operations))
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(old_operations).to_unitary_matrix(),
-            cirq.Circuit.from_ops(new_operations).to_unitary_matrix(),
-            atol=1e-4
-        )
         keep = False
         keep |= new_interaction_count < old_interaction_count
         keep |= any(not XmonGate.is_xmon_op(op) for op in old_operations)
@@ -87,7 +74,7 @@ class MergeInteractions(PointOptimizer):
             new_operations=new_operations)
 
     def _op_to_matrix(self,
-                      op: ops.Operation,
+                      op: Optional[ops.Operation],
                       qubits: Tuple[ops.QubitId, ...]
                       ) -> Optional[Tuple[np.ndarray, bool]]:
         """Determines the effect of an operation on the given qubits.
@@ -153,8 +140,7 @@ class MergeInteractions(PointOptimizer):
         touched_indices = []
 
         while index is not None:
-            operations = {circuit.operation_at(q, index) for q in qubits}
-            operations = [op for op in operations if op]
+            operations = list({circuit.operation_at(q, index) for q in qubits})
             op_data = [
                 self._op_to_matrix(op, qubits)
                 for op in operations
@@ -163,11 +149,12 @@ class MergeInteractions(PointOptimizer):
             # Stop at any non-constant or non-local interaction.
             if any(e is None for e in op_data):
                 break
+            present_ops = [op for op in operations if op]
             present_op_data = cast(List[Tuple[np.ndarray, bool]], op_data)
 
             for op_mat, interacts in present_op_data:
                 product = np.dot(op_mat, product)
-                all_operations.extend(operations)
+            all_operations.extend(present_ops)
 
             touched_indices.append(index)
             index = circuit.next_moment_operating_on(qubits, index + 1)

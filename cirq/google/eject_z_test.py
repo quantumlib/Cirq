@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterable
+from typing import Iterable, Tuple, Optional
 
 import numpy as np
 
@@ -52,49 +52,69 @@ def assert_optimizes(before: cirq.Circuit,
     assert circuit == expected
 
 
-def _cancel_qubit_phase(m: np.ndarray, k: int) -> None:
-    n = m.shape[0]
+def _cancel_qubit_phase(m1: np.ndarray, m2: np.ndarray, k: int) -> None:
+    n = m1.shape[0]
     b = 1 << k
 
     for t in [False, True]:
-        best_pair = max([m[i, j]
-                         for i in range(n)
-                         for j in range(n)
-                         if t == bool(i & b)],
-                        key=abs)
-        counter_phase = np.conj(best_pair) / abs(best_pair)
+        best_loc = max([(i, j)
+                        for i in range(n)
+                        for j in range(n)
+                        if t == bool(i & b)],
+                       key=lambda e: max(abs(m1[e]), abs(m2[e])))
+        best_val_1 = m1[best_loc]
+        best_val_2 = m2[best_loc]
+        counter_phase_1 = np.conj(best_val_1) / abs(best_val_1)
+        counter_phase_2 = np.conj(best_val_2) / abs(best_val_2)
         for i in range(n):
             if t == bool(i & b):
-                m[i, :] *= counter_phase
+                m1[i, :] *= counter_phase_1
+                m2[i, :] *= counter_phase_2
 
 
-def canonicalize_up_to_measurement_phase(circuit: cirq.Circuit) -> np.ndarray:
-    matrix = circuit.to_unitary_matrix()
-    ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit.all_qubits())
-    for moment in circuit:
-        for op in moment.operations:
-            if cirq.MeasurementGate.is_measurement(op):
-                for q in op.qubits:
-                    _cancel_qubit_phase(matrix, ordered_qubits.index(q))
-    return matrix
+def canonicalize_up_to_measurement_phase(
+        circuit1: cirq.Circuit,
+        circuit2: cirq.Circuit) -> Tuple[Optional[np.ndarray],
+                                         Optional[np.ndarray]]:
+    ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit1.all_qubits())
+    ordered_qubits_2 = cirq.QubitOrder.DEFAULT.order_for(circuit2.all_qubits())
+    assert ordered_qubits == ordered_qubits_2
+    assert circuit1.are_all_measurements_terminal()
+    assert circuit2.are_all_measurements_terminal()
+
+    terminal_1 = {q
+                  for op in circuit1.all_operations()
+                  if cirq.MeasurementGate.is_measurement(op)
+                  for q in op.qubits}
+    terminal_2 = {q
+                  for op in circuit1.all_operations()
+                  if cirq.MeasurementGate.is_measurement(op)
+                  for q in op.qubits}
+    assert terminal_1 == terminal_2
+
+    matrix1, matrix2 = None, None
+    try:
+        matrix1 = circuit1.to_unitary_matrix()
+    except TypeError:
+        pass
+    try:
+        matrix2 = circuit2.to_unitary_matrix()
+    except TypeError:
+        pass
+    assert (matrix1 is None) == (matrix2 is None)
+    if matrix1 is None or matrix2 is None:
+        return np.eye(1), np.eye(1)
+    for q in terminal_1:
+        _cancel_qubit_phase(matrix1, matrix2, ordered_qubits.index(q))
+    return matrix1, matrix2
 
 
 def is_same_circuit_up_to_measurement_phase(circuit1: cirq.Circuit,
                                             circuit2: cirq.Circuit,
                                             atol: float):
-    # Default to [[1]] when the circuit doesn't have a known unitary effect.
-    m1 = np.diag([1])
-    m2 = np.diag([1])
-
-    try:
-        m1 = canonicalize_up_to_measurement_phase(circuit1)
-    except TypeError:
-        pass
-    try:
-        m2 = canonicalize_up_to_measurement_phase(circuit2)
-    except TypeError:
-        pass
-    return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
+    m1, m2 = canonicalize_up_to_measurement_phase(circuit1, circuit2)
+    if m1 is not None and m2 is not None:
+        return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
 
 
 def assert_equivalent_circuit_up_to_measurement_phase(actual: cirq.Circuit,

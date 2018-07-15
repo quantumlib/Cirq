@@ -39,10 +39,6 @@ class MergeRotations(PointOptimizer):
         self.tolerance = tolerance
         self.extensions = extensions or Extensions()
 
-    def _followups(self):
-        return [EjectZ(tolerance=self.tolerance,
-                       ext=self.extensions)]
-
     def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 1:
             return
