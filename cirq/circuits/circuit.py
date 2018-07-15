@@ -499,17 +499,12 @@ class Circuit(object):
             The frontier giving the index of the moment after the last one to
             which an operation that acts on each qubit is assigned. If a
             frontier was specified as an argument, this is the same object.
-            Even if there are no operations acting on a qubit, the frontier
-            there is rounded up to at least start.
         """
         if frontier is None:
-            frontier = defaultdict(lambda: start)
-        else:
-            for q in frontier:
-                frontier[q] = max(frontier[q], start)
+            frontier = defaultdict(lambda: 0)
         moment_indices = {}
         for op_index, op in enumerate(operations):
-            op_start = max(frontier[q] for q in op.qubits)
+            op_start = max(start, max(frontier[q] for q in op.qubits))
             moment_indices[op_index] = op_start
             for q in op.qubits:
                 frontier[q] = max(frontier[q], op_start + 1)
@@ -552,7 +547,7 @@ class Circuit(object):
 
     def insert_operations(self,
                           operations: Sequence[ops.Operation],
-                          insertion_indices: Dict[int, int]) -> None:
+                          insertion_indices: Sequence[int]) -> None:
         """Inserts operations at the specified moments.
         
         Args: 
@@ -560,9 +555,15 @@ class Circuit(object):
             insertion_indices: Where to insert them, i.e. operations[i] is
                 inserted into moments[insertion_indices[i].
 
+        Raises: 
+            ValueError: operations and insert_indices have different lengths.
+
         NB: It's on the caller to ensure that the operations won't conflict
         with operations already in the moment or even each other.
         """
+        if len(operations) != len(insertion_indices):
+            raise ValueError('operations and insertion_indices must have the'
+                             'same length.')
         moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in insertion_indices.items():
             moment_to_ops[moment_index].append(operations[op_index])
