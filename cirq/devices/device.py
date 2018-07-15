@@ -20,9 +20,7 @@ from cirq.value import Duration
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq.circuits import Circuit
-    from cirq.ops import Operation
-    from cirq.schedules import Schedule, ScheduledOperation
+    import cirq
 
 # Note: circuit/schedule types specified by name to avoid circular references.
 
@@ -30,12 +28,22 @@ if TYPE_CHECKING:
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits and schedules."""
 
+    def decompose_operation(self, operation: 'cirq.Operation'
+                            ) -> 'cirq.OP_TREE':
+        """Returns a device-valid decomposition for the given operation.
+
+        This method is used when adding operations into circuits with a device
+        specified, to avoid spurious failures due to e.g. using a Hadamard gate
+        instead of ExpWGate.
+        """
+        return operation
+
     @abc.abstractmethod
-    def duration_of(self, operation: 'Operation') -> Duration:
+    def duration_of(self, operation: 'cirq.Operation') -> Duration:
         pass
 
     @abc.abstractmethod
-    def validate_operation(self, operation: 'Operation') -> None:
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
         """Raises an exception if an operation is not valid.
 
         Args:
@@ -49,8 +57,8 @@ class Device(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def validate_scheduled_operation(
             self,
-            schedule: 'Schedule',
-            scheduled_operation: 'ScheduledOperation'
+            schedule: 'cirq.Schedule',
+            scheduled_operation: 'cirq.ScheduledOperation'
     ) -> None:
         """Raises an exception if the scheduled operation is not valid.
 
@@ -64,8 +72,7 @@ class Device(metaclass=abc.ABCMeta):
         """
         pass
 
-    @abc.abstractmethod
-    def validate_circuit(self, circuit: 'Circuit') -> None:
+    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
         """Raises an exception if a circuit is not valid.
 
         Args:
@@ -74,10 +81,40 @@ class Device(metaclass=abc.ABCMeta):
         Raises:
             ValueError: The circuit isn't valid for this device.
         """
-        pass
+        for moment in circuit:
+            self.validate_moment(moment)
+
+    def validate_moment(self, moment: 'cirq.Moment') -> None:
+        """Raises an exception if a moment is not valid.
+
+        Args:
+            moment: The moment to validate.
+
+        Raises:
+            ValueError: The moment isn't valid for this device.
+        """
+        for operation in moment.operations:
+            self.validate_operation(operation)
+
+    def can_add_operation_into_moment(self,
+                                      operation: 'cirq.Operation',
+                                      moment: 'cirq.Moment') -> bool:
+        """Determines if it's possible to add an operation into a moment.
+
+        For example, on the XmonDevice two CZs shouldn't be placed in the same
+        moment if they are on adjacent qubits.
+
+        Args:
+            operation: The operation being added.
+            moment: The moment being transformed.
+
+        Returns:
+            Whether or not the moment will validate after adding the operation.
+        """
+        return not moment.operates_on(operation.qubits)
 
     @abc.abstractmethod
-    def validate_schedule(self, schedule: 'Schedule') -> None:
+    def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
         """Raises an exception if a schedule is not valid.
 
         Args:

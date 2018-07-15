@@ -28,10 +28,12 @@ def test_equality():
 
     # Default is empty. Iterables get listed.
     eq.add_equality_group(Circuit(),
+                          Circuit(device=cirq.UnconstrainedDevice),
                           Circuit([]), Circuit(()))
     eq.add_equality_group(
         Circuit([Moment()]),
         Circuit((Moment(),)))
+    eq.add_equality_group(Circuit(device=cirq.google.Foxtail))
 
     # Equality depends on structure and contents.
     eq.add_equality_group(Circuit([Moment([cirq.X(a)])]))
@@ -1593,3 +1595,57 @@ def test_batch_insert():
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
+
+
+def test_validates_while_editing():
+    c = cirq.Circuit(device=cirq.google.Foxtail)
+    unknown = cirq.Gate()
+
+    with pytest.raises(ValueError):
+        # Wrong type of qubit.
+        c.append(cirq.google.ExpZGate().on(cirq.NamedQubit('q')))
+    with pytest.raises(ValueError):
+        # A qubit that's not on the device.
+        c[:] = [cirq.Moment([
+            cirq.google.ExpZGate().on(cirq.GridQubit(-5, 100))])]
+    c.append(cirq.google.ExpZGate().on(cirq.GridQubit(0, 0)))
+
+    with pytest.raises(ValueError):
+        # Non-adjacent CZ.
+        c[0] = cirq.Moment([cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+                                                       cirq.GridQubit(2, 2))])
+
+    c.insert(0, cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+                                           cirq.GridQubit(1, 0)))
+
+
+def test_respects_additional_adjacency_constraints():
+    c = cirq.Circuit(device=cirq.google.Foxtail)
+    c.append(cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+                                        cirq.GridQubit(0, 1)))
+    c.append(cirq.google.Exp11Gate().on(cirq.GridQubit(1, 0),
+                                        cirq.GridQubit(1, 1)),
+             strategy=cirq.InsertStrategy.EARLIEST)
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.google.Exp11Gate().on(cirq.GridQubit(0, 0),
+                                                cirq.GridQubit(0, 1))]),
+        cirq.Moment([cirq.google.Exp11Gate().on(cirq.GridQubit(1, 0),
+                                                cirq.GridQubit(1, 1))]),
+    ], device=cirq.google.Foxtail)
+
+
+def test_decomposes_while_appending():
+    c = cirq.Circuit(device=cirq.google.Foxtail)
+    c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0),
+                          cirq.GridQubit(0, 1),
+                          cirq.GridQubit(0, 2)))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        c.to_unitary_matrix(),
+        cirq.TOFFOLI.matrix(),
+        atol=1e-8)
+
+    # But you still have to respect adjacency constraints!
+    with pytest.raises(ValueError):
+        c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0),
+                              cirq.GridQubit(0, 2),
+                              cirq.GridQubit(0, 4)))
