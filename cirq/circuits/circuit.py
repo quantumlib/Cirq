@@ -488,6 +488,80 @@ class Circuit(ops.ParameterizableEffect):
 
         return self.insert(end, operations[op_index:])
 
+    def batch_remove(self,
+                     removals: Iterable[Tuple[int, ops.Operation]]) -> None:
+        """Removes several operations from a circuit.
+
+        Args:
+            removals: A sequence of (moment_index, operation) tuples indicating
+                operations to delete from the moments that are present. All
+                listed operations must actually be present or the edit will
+                fail (without making any changes to the circuit).
+
+        ValueError:
+            One of the operations to delete wasn't present to start with.
+
+        IndexError:
+            Deleted from a moment that doesn't exist.
+        """
+        copy = self.copy()
+        for i, op in removals:
+            if op not in copy._moments[i].operations:
+                raise ValueError(
+                    "Can't remove {} @ {} because it doesn't exist.".format(
+                        op, i))
+            copy._moments[i] = Moment(old_op
+                                      for old_op in copy._moments[i].operations
+                                      if op != old_op)
+        self._moments = copy._moments
+
+    def batch_insert_into(self,
+                          insert_intos: Iterable[Tuple[int, ops.Operation]]
+                          ) -> None:
+        """Inserts operations into empty spaces in existing moments.
+
+        If any of the insertions fails (due to colliding with an existing
+        operation), this method fails without making any changes to the circuit.
+
+        Args:
+            insert_intos: A sequence of (moment_index, new_operation)
+                pairs indicating a moment to add a new operation into.
+
+        ValueError:
+            One of the insertions collided with an existing operation.
+
+        IndexError:
+            Inserted into a moment index that doesn't exist.
+        """
+        copy = self.copy()
+        for i, op in insert_intos:
+            copy._moments[i] = copy._moments[i].with_operation(op)
+        self._moments = copy._moments
+
+    def batch_insert(self,
+                     insertions: Iterable[Tuple[int, ops.OP_TREE]]) -> None:
+        """Applies a batched insert operation to the circuit.
+
+        Transparently handles the fact that earlier insertions may shift
+        the index that later insertions should occur at. For example, if you
+        insert an operation at index 2 and at index 4, but the insert at index 2
+        causes a new moment to be created, then the insert at "4" will actually
+        occur at index 5 to account for the shift from the new moment.
+
+        All insertions are done with the strategy 'EARLIEST'.
+
+        Args:
+            insertions: A sequence of (insert_index, operations) pairs
+                indicating operations to add into the circuit at specific
+                places.
+        """
+        shift = 0
+        for i, tree in sorted(insertions, key=lambda e: e[0]):
+            for op in ops.flatten_op_tree(tree):
+                next_index = self.insert(i + shift, op, InsertStrategy.EARLIEST)
+                if next_index > i:
+                    shift += 1
+
     def append(
             self,
             moment_or_operation_tree: Union[Moment, ops.OP_TREE],
@@ -593,7 +667,7 @@ class Circuit(ops.ParameterizableEffect):
         A circuit's "unitary effect" is the unitary matrix produced by
         multiplying together all of its gates' unitary matrices. A circuit
         with non-unitary gates (such as measurement or parameterized gates) does
-        not have a well-defined unitary effect, and the method will if such
+        not have a well-defined unitary effect, and the method will fail if such
         operations are present.
 
         For convenience, terminal measurements are automatically ignored
@@ -725,7 +799,7 @@ class Circuit(ops.ParameterizableEffect):
         for q, i in qubit_map.items():
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
-        for moment in [Moment()] * 2 + self._moments + [Moment()]:
+        for moment in self._moments:
             _draw_moment_in_diagram(moment,
                                     ext,
                                     use_unicode_characters,
@@ -844,9 +918,6 @@ def _draw_moment_in_diagram(moment: Moment,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
                             precision: Optional[int]):
-    if not moment.operations:
-        return []
-
     x0 = out_diagram.width()
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]

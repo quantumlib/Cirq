@@ -221,23 +221,23 @@ Another strategy is `InsertStrategy.INLINE`:
 ```python
 circuit = cirq.Circuit()
 circuit.append([CZ(q1, q2)])
-circuit.append([CZ(q0,q1), H(q2), H(q0)], strategy=InsertStrategy.INLINE)
+circuit.append([CZ(q1, q2)])
+circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.INLINE)
 
 print(circuit)
 # prints
-# (0, 0): ───────@───H───
-#                │
-# (1, 0): ───@───@───────
-#            │
-# (2, 0): ───@───H───────
+# (0, 0): ───────H───────
+#
+# (1, 0): ───@───@───H───
+#            │   │
+# (2, 0): ───@───@───H───
 ```
 
-After an initial `CZ` between the second and third qubit, we try
-to insert 3 ``Operations``. We see that the `CZ` on the first
-two qubits and the `H` on the third qubit are inserted into the
-new `Moment`, but then the insert of `H` on the
-first qubit cannot be insert into this `Moment`, so a new
-`Moment` is created.
+After two initial `CZ` between the second and third qubit, we try
+to insert 3 `H` ``Operations``. We see that the `H` on the first
+qubit is inserted into the previous `Moment`, but the `H` on the second and third
+qubits cannot be inserted into the previous `Moment`, so a new `Moment` is
+created.
 
 Finally we turn to the default strategy:
 > `InsertStrategy.NEW_THEN_INLINE`: Creates a new moment at the
