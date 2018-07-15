@@ -582,7 +582,8 @@ class Circuit(ops.ParameterizableEffect):
     def insert_operations(self,
                           operations: Sequence[ops.Operation],
                           insertion_indices: Sequence[int]) -> None:
-        """Inserts operations at the specified moments. Appends new moments if necessary.
+        """Inserts operations at the specified moments. Appends new moments if
+        necessary.
 
         Args:
             operations: The operations to insert.

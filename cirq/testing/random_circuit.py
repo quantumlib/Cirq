@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Sequence
+from random import choice, sample, random
+from typing import Union, Sequence, TYPE_CHECKING
 
 from cirq.ops import (
         Gate, SingleQubitGate, TwoQubitGate, ThreeQubitGate)
 from cirq import ops
 from cirq.circuits import Circuit, Moment
-from random import choice, sample, random
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List
 
 DEFAULT_GATE_DOMAIN = (
     ops.CNOT,
@@ -56,14 +60,14 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
         qubits: the qubits that the circuit acts on. Because the qubits on
             which an operation acts are chosen randomly, not all given qubits
             may be acted upon.
-        n_moments: 
+        n_moments: the number of moments in the generated circuit.
         op_density: the expected proportion of qubits that are acted on in any
             moment.
         gate_domain: The set of gates to choose from. Gates must be instances
             of (SingleQubitGate, TwoQubitGate, ThreeQubitGate).
 
     Raises:
-        ValueError: 
+        ValueError:
             * op_density is not in (0, 1).
             * gate_domain contains a gate that is not an instance of
                 (SingleQubitGate, TwoQubitGate, ThreeQubitGate).
@@ -91,7 +95,7 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
-    moments = [] # type: Moment
+    moments = [] # type: List[Moment]
     for _ in range(n_moments):
         operations = []
         free_qubits = set(q for q in qubits)

@@ -1723,9 +1723,7 @@ def test_pick_inserted_ops_moment_indices():
 def test_push_frontier():
     assert 0
 
-def test_insert_operations_new_moments():
-    a, b, c = (cirq.NamedQubit(s) for s in 'abc')
-    operation = cirq.X(a)
+    operation = cirq.X(cirq.QubitId())
     insertion_index = 3
     circuit = Circuit()
     circuit.insert_operations([operation], [insertion_index])
@@ -1739,7 +1737,7 @@ def test_insert_operations_random_circuits():
     op_density = 0.5
     circuit = random_circuit(qubits, n_moments, op_density)
     operations, insert_indices = [], []
-    remove_prob = 0.7
+#   remove_prob = 0.7
     for moment_index, moment in enumerate(circuit):
         for op in moment.operations:
             operations.append(op)
