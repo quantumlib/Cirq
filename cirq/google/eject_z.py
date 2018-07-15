@@ -29,17 +29,10 @@ if TYPE_CHECKING:
 
 
 class EjectZ(circuits.OptimizationPass):
-    """Removes Z gates by pushing them later and later until they merge.
+    """Pushes Z gates towards the end of the circuit.
 
-    As Z gates are removed from the circuit, 'lost phase' builds up. As lost
-    phase is pushed rightward, it modifies phaseable operations along the way.
-    Eventually the lost phase is discharged into a 'drain'. Only Z gates
-    without a parameter dependence are removed.
-
-    There are three kinds of drains:
-    - Measurement gates, which absorb phase by discarding it.
-    - Parameterized Z gates, which absorb phase into their turns attribute.
-    - The end of the circuit, which absorbs phase into a new Z gate.
+    As the Z gates get pushed they may absorb other Z gates, get absorbed into
+    measurements, cross CZ gates, cross W gates (by phasing them), etc.
     """
 
     def __init__(self,

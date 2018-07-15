@@ -296,6 +296,15 @@ class MeasurementGate(raw_types.Gate,
             return True
         return False
 
+    def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
+        """Toggles whether or not the measurement inverts various outputs."""
+        old_mask = self.invert_mask or ()
+        n = max(len(old_mask) - 1, *bit_positions) + 1
+        new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
+        for b in bit_positions:
+            new_mask[b] = not new_mask[b]
+        return MeasurementGate(key=self.key, invert_mask=tuple(new_mask))
+
     def validate_args(self, qubits):
         if (self.invert_mask is not None and
                 len(self.invert_mask) > len(qubits)):
