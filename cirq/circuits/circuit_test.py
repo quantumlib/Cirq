@@ -1220,6 +1220,13 @@ def test_circuit_to_unitary_matrix():
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
 
+    # Accounts for measurement bit flipping.
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.Circuit.from_ops(
+            cirq.measure(a, invert_mask=(True,))
+        ).to_unitary_matrix(),
+        cirq.X.matrix())
+
 
 def test_simple_circuits_to_unitary_matrix():
     a = cirq.NamedQubit('a')
@@ -1421,3 +1428,175 @@ def test_copy():
     assert c2 == c
     c2[:] = []
     assert c2 != c
+
+
+def test_batch_remove():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_remove([])
+    assert after == original
+
+    # Delete one.
+    after = original.copy()
+    after.batch_remove([(0, cirq.X(a))])
+    assert after == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Out of range.
+    after = original.copy()
+    with pytest.raises(IndexError):
+        after.batch_remove([(500, cirq.X(a))])
+    assert after == original
+
+    # Delete several.
+    after = original.copy()
+    after.batch_remove([(0, cirq.X(a)), (2, cirq.CZ(a, b))])
+    assert after == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Delete all.
+    after = original.copy()
+    after.batch_remove([(0, cirq.X(a)),
+                        (1, cirq.Z(b)),
+                        (2, cirq.CZ(a, b)),
+                        (3, cirq.X(a)),
+                        (3, cirq.X(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment(),
+        cirq.Moment(),
+    ])
+
+    # Delete moment partially.
+    after = original.copy()
+    after.batch_remove([(3, cirq.X(a))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(b)]),
+    ])
+
+    # Deleting something that's not there.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_remove([(0, cirq.X(b))])
+    assert after == original
+
+    # Duplicate delete.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_remove([(0, cirq.X(a)), (0, cirq.X(a))])
+    assert after == original
+
+
+def test_batch_insert_into():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_insert_into([])
+    assert after == original
+
+    # Add into non-empty moment.
+    after = original.copy()
+    after.batch_insert_into([(0, cirq.X(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add into empty moment.
+    after = original.copy()
+    after.batch_insert_into([(1, cirq.Z(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add into two moments.
+    after = original.copy()
+    after.batch_insert_into([(1, cirq.Z(b)), (0, cirq.X(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Out of range.
+    after = original.copy()
+    with pytest.raises(IndexError):
+        after.batch_insert_into([(500, cirq.X(a))])
+    assert after == original
+
+    # Collision.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(0, cirq.X(a))])
+    assert after == original
+
+    # Duplicate insertion collision.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(1, cirq.X(a)), (1, cirq.CZ(a, b))])
+    assert after == original
+
+
+def test_batch_insert():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_insert([])
+    assert after == original
+
+    # Pushing.
+    after = original.copy()
+    after.batch_insert([(0, cirq.CZ(a, b)),
+                        (0, cirq.CNOT(a, b)),
+                        (1, cirq.Z(b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.Z(b)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
