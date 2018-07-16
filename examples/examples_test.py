@@ -17,6 +17,7 @@ import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.grover
+import examples.line_placement
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
@@ -60,6 +61,10 @@ def test_example_runs_bernstein_vazirani():
         [], a, [], False)) == []
     assert list(examples.bernstein_vazirani.make_oracle(
         [], a, [], True)) == [cirq.X(a)]
+
+
+def test_example_runs_hello_line():
+    examples.line_placement.main()
 
 
 def test_example_runs_hello_qubit():
