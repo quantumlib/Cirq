@@ -1744,7 +1744,7 @@ def test_pick_inserted_ops_moment_indices():
         second_half = Circuit(circuit[start:])
         operations = tuple(op for moment in second_half
                 for op in moment.operations)
-        squeezed_second_half = Circuit.from_ops(operations, 
+        squeezed_second_half = Circuit.from_ops(operations,
                 strategy=InsertStrategy.EARLIEST)
         expected_circuit = Circuit(first_half._moments +
                                    squeezed_second_half._moments)
@@ -1796,8 +1796,8 @@ def test_push_frontier_random_circuit():
         for q in set(update_qubits).intersection(early_frontier):
             if orig_early_frontier[q] == insert_index:
                 assert orig_early_frontier[q] == early_frontier[q]
-                if n_new_moments:
-                    assert circuit._moments[early_frontier[q]] == Moment()
+                assert (not n_new_moments) or (
+                        circuit._moments[early_frontier[q]] == Moment())
             elif orig_early_frontier[q] == len(orig_moments):
                 assert early_frontier[q] == len(circuit)
             else:
