@@ -39,7 +39,7 @@ def test_anneal_method_calls_anneal_search():
         sequences = [[q00, q01]]
         place_line.return_value = sequences
 
-        assert line._line_placement_on_device(device, length,
+        assert line.line_placement_on_device(device, length,
                                              method) == sequences
         place_line.assert_called_once_with(device, length)
 
@@ -57,12 +57,12 @@ def test_greedy_method_calls_greedy_search():
         sequences = [[q00, q01]]
         place_line.return_value = sequences
 
-        assert line._line_placement_on_device(device, length,
-                                              method) == sequences
+        assert line.line_placement_on_device(device, length,
+                                             method) == sequences
         place_line.assert_called_once_with(device, length)
 
 
-@mock.patch('cirq.line.placement.line._line_placement_on_device')
+@mock.patch('cirq.line.placement.line.line_placement_on_device')
 def test_line_on_device_calls_line_placement_on_device(
         line_placement_on_device):
     q00 = GridQubit(0, 0)
@@ -83,7 +83,7 @@ def test_line_on_device_calls_line_placement_on_device(
     line_placement_on_device.assert_called_once_with(device, length, method)
 
 
-@mock.patch('cirq.line.placement.line._line_placement_on_device')
+@mock.patch('cirq.line.placement.line.line_placement_on_device')
 def test_line_on_device_creates_mapping(line_placement_on_device):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
@@ -101,7 +101,7 @@ def test_line_on_device_creates_mapping(line_placement_on_device):
     assert mapping(qubits[1]) == q01
 
 
-@mock.patch('cirq.line.placement.line._line_placement_on_device')
+@mock.patch('cirq.line.placement.line.line_placement_on_device')
 def test_line_on_device_creates_mapping_with_offset(line_placement_on_device):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
