@@ -690,7 +690,7 @@ class Circuit(ops.ParameterizableEffect):
             return insert_index, n_new_moments
         return (0, 0)
 
-    def insert_operations(self,
+    def _insert_operations(self,
                           operations: Sequence[ops.Operation],
                           insertion_indices: Sequence[int]) -> None:
         """Inserts operations at the specified moments. Appends new moments if
@@ -750,7 +750,7 @@ class Circuit(ops.ParameterizableEffect):
 
         self._push_frontier(frontier, next_moments)
 
-        self.insert_operations(operations, insertion_indices)
+        self._insert_operations(operations, insertion_indices)
 
         return frontier
 

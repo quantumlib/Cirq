@@ -1836,9 +1836,8 @@ def test_next_moments_operating_on():
         n_moments = randint(1, 10)
         circuit = random_circuit(randint(1, 20), n_moments, random())
         circuit_qubits = circuit.all_qubits()
-        if not circuit_qubits:
-            continue
-        key_qubits = sample(circuit_qubits, randint(1, len(circuit_qubits)))
+        n_key_qubits = randint(int(bool(circuit_qubits)), len(circuit_qubits))
+        key_qubits = sample(circuit_qubits, n_key_qubits)
         start = randrange(len(circuit))
         next_moments = circuit.next_moments_operating_on(key_qubits, start)
         for q, m in next_moments.items():
@@ -1880,7 +1879,7 @@ def test_push_frontier_new_moments():
     operation = cirq.X(cirq.QubitId())
     insertion_index = 3
     circuit = Circuit()
-    circuit.insert_operations([operation], [insertion_index])
+    circuit._insert_operations([operation], [insertion_index])
     assert circuit == Circuit([Moment() for _ in range(insertion_index)] +
                               [Moment([operation])])
 
@@ -1932,7 +1931,7 @@ def test_insert_operations_random_circuits():
             operations.append(op)
             insert_indices.append(moment_index)
     other_circuit = Circuit()
-    other_circuit.insert_operations(operations, insert_indices)
+    other_circuit._insert_operations(operations, insert_indices)
     assert circuit == other_circuit
 
 
@@ -1942,19 +1941,19 @@ def test_insert_operations_errors():
         circuit = cirq.Circuit([Moment([cirq.Z(c)])])
         operations = [cirq.X(a), cirq.CZ(a, b)]
         insertion_indices = [0, 0]
-        circuit.insert_operations(operations, insertion_indices)
+        circuit._insert_operations(operations, insertion_indices)
 
     with pytest.raises(ValueError):
         circuit = cirq.Circuit.from_ops(cirq.X(a))
         operations = [cirq.CZ(a, b)]
         insertion_indices = [0]
-        circuit.insert_operations(operations, insertion_indices)
+        circuit._insert_operations(operations, insertion_indices)
 
     with pytest.raises(ValueError):
         circuit = cirq.Circuit()
         operations = [cirq.X(a), cirq.CZ(a, b)]
         insertion_indices = []
-        circuit.insert_operations(operations, insertion_indices)
+        circuit._insert_operations(operations, insertion_indices)
 
 def test_validates_while_editing():
     c = cirq.Circuit(device=cg.Foxtail)
