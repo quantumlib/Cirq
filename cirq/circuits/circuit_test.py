@@ -1897,7 +1897,7 @@ def test_push_frontier_random_circuit():
         update_qubits = sample(qubits, randint(0, len(qubits)))
 
         orig_early_frontier = {q: f for q, f in early_frontier.items()}
-        orig_moments = circuit._moments.copy()
+        orig_moments = [m for m  in circuit._moments]
         insert_index, n_new_moments = circuit._push_frontier(
                 early_frontier, late_frontier, update_qubits)
 
