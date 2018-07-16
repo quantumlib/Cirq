@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from itertools import chain
-from typing import Sequence, List
+from typing import Sequence, Dict
 
 from cirq import CompositeGate, TextDiagrammable
 from cirq.ops import Gate, gate_features, SWAP, OP_TREE, QubitId
@@ -73,6 +73,7 @@ class CircularShiftGate(PermutationGate,
         return gate_features.TextDiagramInfo(
                 wire_symbols=wire_symbols)
 
-    def permutation(self, qubit_count: int) -> List[int]:
+    def permutation(self, qubit_count: int) -> Dict[int, int]:
         indices = list(range(qubit_count))
-        return indices[self.shift:] + indices[:self.shift]
+        permuted_indices = indices[self.shift:] + indices[:self.shift]
+        return {i: s for i, s in enumerate(permuted_indices)}

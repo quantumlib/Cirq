@@ -17,7 +17,8 @@ from operator import indexOf
 from typing import Iterable, Sequence, TYPE_CHECKING
 
 from cirq import CompositeGate, TextDiagrammable
-from cirq.ops import Operation, Gate, gate_features, QubitId, OP_TREE
+from cirq.ops import (
+        Operation, Gate, gate_features, QubitId, OP_TREE, SWAP)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 
 if TYPE_CHECKING:
@@ -54,9 +55,12 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
 
     def __init__(self,
                  part_lens: Iterable[int],
-                 acquaintance_size: int=0) -> None:
+                 acquaintance_size: int=0,
+                 swap_gate: Gate=SWAP
+                 ) -> None:
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
+        self.swap_gate = swap_gate
 
     def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
@@ -76,7 +80,9 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                 left_part, right_part = parts[i:i+2]
                 parts_qubits = left_part + right_part
                 multiplicities = (len(left_part), len(right_part))
-                shift = CircularShiftGate(multiplicities[0])(*parts_qubits)
+                shift = CircularShiftGate(multiplicities[0], 
+                                          swap_gate=self.swap_gate)(
+                                                  *parts_qubits)
                 if max(multiplicities) != self.acquaintance_size - 1:
                     layer.append(shift)
                 elif self.acquaintance_size == 2:

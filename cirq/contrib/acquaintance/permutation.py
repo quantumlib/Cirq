@@ -12,16 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import Dict, Sequence, Any
 
 from cirq import abc
-from cirq.ops import Gate
+from cirq.ops import CompositeGate, Gate
 
-class PermutationGate(Gate, metaclass=abc.ABCMeta):
+class PermutationGate(Gate, CompositeGate, metaclass=abc.ABCMeta):
     """Permutation gate."""
 
     @abc.abstractmethod
-    def permutation(self, qubit_count: int) -> List[int]:
-        """permutation = (x0, x1, ...) indicates that the 0th element is mapped
-        to position x0, the 1st element is mapped to position x1, etc."""
-        raise NotImplementedError()
+    def permutation(self, qubit_count: int) -> Dict[int, int]:
+        """permutation = {i: s[i]} indicates that the i-th qubit is mapped to
+        the s[i]-th qubit."""
+        pass
+
+    def update_mapping(self, 
+                       mapping: Dict[Any, Any], 
+                       elements: Sequence[Any]
+                       ) -> None:
+        n_elements = len(elements)
+        permutation = self.permutation(n_elements)
+        permuted_elements = [elements[permutation.get(i, i)] 
+                             for i in range(n_elements)]
+        for i, e in enumerate(elements):
+            mapping[e] = permuted_elements[i]
+
+
+class LinearPermutationGate(PermutationGate):
+    """A permutation gate that decomposes a given permutation using a linear
+        sorting network."""
+    pass

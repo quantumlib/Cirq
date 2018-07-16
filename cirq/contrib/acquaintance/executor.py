@@ -93,8 +93,7 @@ class StrategyExecutor(PointOptimizer):
                     new_operations=logical_operations)
 
         if isinstance(op.gate, PermutationGate):
-            for i, p in enumerate(op.gate.permutation(len(op.qubits))):
-                self.mapping[op.qubits[p]] = self.mapping[op.qubits[i]]
+            op.gate.update_mapping(self.mapping, op.qubits)
 
         raise TypeError('Can only execute a strategy consisting of gates that '
                          'are instances of AcquaintanceOpportunityGate or '
