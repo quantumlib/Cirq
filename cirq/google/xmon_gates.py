@@ -105,6 +105,10 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
         op.measurement.invert_mask.extend(self.invert_mask)
         return op
 
+    def with_bits_flipped(self, *bit_positions: int) -> 'XmonMeasurementGate':
+        sup = super().with_bits_flipped(*bit_positions)
+        return XmonMeasurementGate(key=sup.key, invert_mask=sup.invert_mask)
+
     def __repr__(self):
         return 'XmonMeasurementGate({})'.format(repr(self.key))
 
@@ -216,6 +220,9 @@ class ExpWGate(XmonGate,
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
+
+    This gate is a "phased X rotation". Specifically:
+        ───W(axis)^t─── = ───Z^-axis───X^t───Z^axis───
 
     This gate is exp(-i * pi * W(axis_half_turn) * half_turn / 2) where
         W(theta) = cos(pi * theta) X + sin(pi * theta) Y
