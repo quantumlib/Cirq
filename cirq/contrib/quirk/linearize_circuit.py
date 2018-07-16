@@ -31,7 +31,7 @@ class QubitMapper(OptimizationPass):
                                for op in moment.operations)
 
     def optimize_circuit(self, circuit: circuits.Circuit):
-        circuit.moments = [self.map_moment(m) for m in circuit.moments]
+        circuit[:] = (self.map_moment(m) for m in circuit)
 
 
 def linearize_circuit_qubits(

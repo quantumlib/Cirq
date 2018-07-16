@@ -46,7 +46,7 @@ Example output:
 .. code-block:: bash
 
   Circuit:
-  (0, 0): ───X^0.5───M───
+  (0, 0): ───X^0.5───M('m')───
   Results:
   m=11000111111011001000
 
