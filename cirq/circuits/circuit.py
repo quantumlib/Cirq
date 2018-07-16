@@ -1011,8 +1011,14 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             continue
 
         if ops.MeasurementGate.is_measurement(op):
-            # Ignore measurement gates. The caller should have checked for this
-            # and failed already.
+            gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
+            # Account for bit flips embedded into the measurement operation.
+            for i, b in enumerate(gate.invert_mask):
+                if b:
+                    yield ops.X, (op.qubits[i],)
+
+            # This is a private method called in contexts where we know
+            # measurement is supposed to be skipped.
             continue
 
         # Otherwise, fail
