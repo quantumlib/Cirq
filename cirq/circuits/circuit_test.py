@@ -1737,7 +1737,7 @@ def test_respects_additional_adjacency_constraints():
                                         cirq.GridQubit(0, 1)))
     c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
                                         cirq.GridQubit(1, 1)),
-             strategy=cirq.cirq.InsertStrategy.EARLIEST)
+             strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
         cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
                                                 cirq.GridQubit(0, 1))]),
