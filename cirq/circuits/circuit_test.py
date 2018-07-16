@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
-from random import randint, random, sample, randrange
+from random import randint, random, sample, randrange, seed
 from string import ascii_lowercase as alphabet
 
 import numpy as np
@@ -26,6 +26,7 @@ from cirq.circuits.optimization_pass import (PointOptimizer,
 from cirq import Circuit, InsertStrategy, Moment
 from cirq.testing.random_circuit import random_circuit
 
+seed(5)
 
 def test_equality():
     a = cirq.QubitId()
