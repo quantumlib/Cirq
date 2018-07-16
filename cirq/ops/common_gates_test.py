@@ -186,7 +186,7 @@ def test_runtime_types_of_rot_gates():
 def test_measurement_eq():
     eq = EqualsTester()
     eq.add_equality_group(cirq.MeasurementGate(''),
-                          cirq.MeasurementGate('', invert_mask=None))
+                          cirq.MeasurementGate('', invert_mask=()))
     eq.add_equality_group(cirq.MeasurementGate('a'))
     eq.add_equality_group(cirq.MeasurementGate('a', invert_mask=(True,)))
     eq.add_equality_group(cirq.MeasurementGate('a', invert_mask=(False,)))
@@ -322,6 +322,51 @@ def test_str():
 
     assert str(cirq.CNOT) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+
+def test_measurement_gate_diagram():
+    # Shows key.
+    assert cirq.MeasurementGate().text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            ("M('')",))
+    assert cirq.MeasurementGate(key='test').text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            ("M('test')",))
+
+    # Uses known qubit count.
+    assert cirq.MeasurementGate().text_diagram_info(
+        cirq.TextDiagramInfoArgs(
+            known_qubits=None,
+            known_qubit_count=3,
+            use_unicode_characters=True,
+            precision=None
+        )) == cirq.TextDiagramInfo(("M('')", 'M', 'M'))
+
+    # Shows invert mask.
+    assert cirq.MeasurementGate(invert_mask=(False, True)).text_diagram_info(
+        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+            ("M('')", "!M"))
+
+    # Omits key when it is the default.
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    assert cirq.Circuit.from_ops(cirq.measure(a, b)).to_text_diagram() == """
+a: ───M───
+      │
+b: ───M───
+    """.strip()
+    assert cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))
+                                 ).to_text_diagram() == """
+a: ───!M───
+      │
+b: ───M────
+    """.strip()
+    assert cirq.Circuit.from_ops(cirq.measure(a, b, key='test')
+                                 ).to_text_diagram() == """
+a: ───M('test')───
+      │
+b: ───M───────────
+    """.strip()
 
 
 def test_measure():

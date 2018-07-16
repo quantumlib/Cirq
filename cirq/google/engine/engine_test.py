@@ -22,9 +22,8 @@ from apiclient import discovery
 from google.protobuf.json_format import MessageToDict
 
 import cirq
+import cirq.google as cg
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
-from cirq.devices import GridQubit
-from cirq.google import Engine, Foxtail, JobConfig
 from cirq.testing.mock import mock
 
 _A_RESULT = program_pb2.Result(
@@ -68,9 +67,9 @@ def test_run_circuit(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_A_RESULT)}
 
-    result = Engine(api_key="key").run(
-        cirq.Circuit(),
-        JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+    result = cg.Engine(api_key="key").run(
+        program=cirq.Circuit(),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
@@ -87,9 +86,16 @@ def test_run_circuit(build):
 
 @mock.patch.object(discovery, 'build')
 def test_circuit_device_validation_fails(build):
-    circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.NamedQubit("dorothy")))
+    circuit = cirq.Circuit(device=cg.Foxtail)
+
+    # Purposefully create an invalid Circuit by fiddling with internal bits.
+    # This simulates a failure in the incremental checks.
+    circuit._moments.append(cirq.Moment([
+        cg.ExpZGate().on(cirq.NamedQubit("dorothy"))]))
+
     with pytest.raises(ValueError, match='Unsupported qubit type'):
-        Engine(api_key="key").run(circuit, JobConfig('project-id'), Foxtail)
+        cg.Engine(api_key="key").run(program=circuit,
+                                     job_config=cg.JobConfig('project-id'))
 
 
 @mock.patch.object(discovery, 'build')
@@ -97,11 +103,13 @@ def test_schedule_device_validation_fails(build):
     scheduled_op = cirq.ScheduledOperation(time=None, duration=None,
                                            operation=cirq.H.on(
                                                cirq.NamedQubit("dorothy")))
-    schedule = cirq.Schedule(device=Foxtail,
+    schedule = cirq.Schedule(device=cg.Foxtail,
                              scheduled_operations=[scheduled_op])
 
     with pytest.raises(ValueError):
-        Engine(api_key="key").run(schedule, JobConfig('project-id'))
+        cg.Engine(api_key="key").run(
+            program=schedule,
+            job_config=cg.JobConfig('project-id'))
 
 
 @mock.patch.object(discovery, 'build')
@@ -121,31 +129,20 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_A_RESULT)}
 
-    circuit = cirq.Circuit.from_ops(cirq.H.on(GridQubit(0, 1)))
-    result = Engine(api_key="key").run(circuit, JobConfig('project-id'),
-                                       Foxtail)
+    circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
+                                    device=cg.Foxtail)
+    result = cg.Engine(api_key="key").run(
+        program=circuit,
+        job_config=cg.JobConfig('project-id'))
     assert result.repetitions == 1
 
 
 @mock.patch.object(discovery, 'build')
-def test_schedule_and_device_both_not_supported(build):
-    scheduled_op = cirq.ScheduledOperation(time=None, duration=None,
-                                           operation=cirq.H.on(
-                                               cirq.NamedQubit("dorothy")))
-    schedule = cirq.Schedule(device=Foxtail,
-                             scheduled_operations=[scheduled_op])
-    eng = Engine(api_key="key")
-    with pytest.raises(ValueError, match='Device'):
-        eng.run(schedule, JobConfig('project-id'), device=Foxtail)
-
-
-@mock.patch.object(discovery, 'build')
 def test_unsupported_program_type(build):
-    eng = Engine(api_key="key")
+    eng = cg.Engine(api_key="key")
     with pytest.raises(TypeError, match='program'):
         eng.run(program="this isn't even the right type of thing!",
-                job_config=JobConfig('project-id'),
-                device=Foxtail)
+                job_config=cg.JobConfig('project-id'))
 
 
 @mock.patch.object(discovery, 'build')
@@ -164,9 +161,10 @@ def test_run_circuit_failed(build):
         'executionStatus': {'state': 'FAILURE'}}
 
     with pytest.raises(RuntimeError, match='It is in state FAILURE'):
-        Engine(api_key="key").run(
-            cirq.Circuit(),
-            JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+        cg.Engine(api_key="key").run(
+            program=cirq.Circuit(),
+            job_config=cg.JobConfig('project-id',
+                                    gcs_prefix='gs://bucket/folder'))
 
 
 @mock.patch.object(discovery, 'build')
@@ -186,9 +184,9 @@ def test_default_prefix(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_A_RESULT)}
 
-    result = Engine(api_key="key").run(
-        cirq.Circuit(),
-        JobConfig('org.com:project-id'))
+    result = cg.Engine(api_key="key").run(
+        program=cirq.Circuit(),
+        job_config=cg.JobConfig('org.com:project-id'))
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
@@ -216,10 +214,10 @@ def test_run_sweep_params(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_RESULTS)}
 
-    job = Engine(api_key="key").run_sweep(
-        cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                       cirq.Circuit()),
-        JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+    job = cg.Engine(api_key="key").run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})])
     results = job.results()
     assert len(results) == 2
@@ -261,10 +259,10 @@ def test_run_sweep_sweeps(build):
     jobs.getResult().execute.return_value = {
         'result': MessageToDict(_RESULTS)}
 
-    job = Engine(api_key="key").run_sweep(
-        cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                       cirq.Circuit()),
-        JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+    job = cg.Engine(api_key="key").run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert len(results) == 2
@@ -290,10 +288,11 @@ def test_run_sweep_sweeps(build):
 
 @mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
-    eng = Engine(api_key="key")
+    eng = cg.Engine(api_key="key")
     with pytest.raises(ValueError, match='priority must be'):
-        eng.run(cirq.Circuit(),
-                JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        eng.run(program=cirq.Circuit(),
+                job_config=cg.JobConfig('project-id',
+                                        gcs_prefix='gs://bucket/folder'),
                 priority=1001)
 
 
@@ -312,9 +311,9 @@ def test_cancel(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'CANCELLED'}}
 
-    job = Engine(api_key="key").run_sweep(
-        cirq.Circuit(),
-        JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+    job = cg.Engine(api_key="key").run_sweep(
+        program=cirq.Circuit(),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
     job.cancel()
     assert job.job_resource_name == ('projects/project-id/programs/test/'
                                      'jobs/test')
@@ -329,7 +328,7 @@ def test_program_labels(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
-    engine = Engine(api_key="key")
+    engine = cg.Engine(api_key="key")
 
     def body():
         return programs.patch.call_args[1]['body']
@@ -359,7 +358,7 @@ def test_job_labels(build):
     service = mock.Mock()
     build.return_value = service
     jobs = service.projects().programs().jobs()
-    engine = Engine(api_key="key")
+    engine = cg.Engine(api_key="key")
 
     def body():
         return jobs.patch.call_args[1]['body']
@@ -385,43 +384,43 @@ def test_job_labels(build):
 
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config_project_id(build):
-    eng = Engine(api_key="key")
+    eng = cg.Engine(api_key="key")
     with pytest.raises(ValueError, match='project id'):
         _ = eng.implied_job_config(None)
     with pytest.raises(ValueError, match='project id'):
-        _ = eng.implied_job_config(JobConfig())
+        _ = eng.implied_job_config(cg.JobConfig())
     assert eng.implied_job_config(
-        JobConfig(project_id='specific')).project_id == 'specific'
+        cg.JobConfig(project_id='specific')).project_id == 'specific'
 
-    eng_with = Engine(api_key="key", default_project_id='default')
+    eng_with = cg.Engine(api_key="key", default_project_id='default')
 
     # Fallback to default.
     assert eng_with.implied_job_config(None).project_id == 'default'
 
     # Override default.
     assert eng_with.implied_job_config(
-        JobConfig(project_id='specific')).project_id == 'specific'
+        cg.JobConfig(project_id='specific')).project_id == 'specific'
 
 
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config_gcs_prefix(build):
-    eng = Engine(api_key="key")
-    config = JobConfig(project_id='project_id')
+    eng = cg.Engine(api_key="key")
+    config = cg.JobConfig(project_id='project_id')
 
     # Implied by project id.
     assert eng.implied_job_config(config).gcs_prefix == 'gs://gqe-project_id/'
 
     # Bad default.
-    eng_with_bad = Engine(api_key="key", default_gcs_prefix='bad_prefix')
+    eng_with_bad = cg.Engine(api_key="key", default_gcs_prefix='bad_prefix')
     with pytest.raises(ValueError, match='gcs_prefix must be of the form'):
         _ = eng_with_bad.implied_job_config(config)
 
     # Good default without slash.
-    eng_with = Engine(api_key="key", default_gcs_prefix='gs://good')
+    eng_with = cg.Engine(api_key="key", default_gcs_prefix='gs://good')
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://good/'
 
     # Good default with slash.
-    eng_with = Engine(api_key="key", default_gcs_prefix='gs://good/')
+    eng_with = cg.Engine(api_key="key", default_gcs_prefix='gs://good/')
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://good/'
 
     # Bad override.
@@ -445,10 +444,10 @@ def test_implied_job_config_gcs_prefix(build):
 @cirq.testing.only_test_in_python3  # uses re.fullmatch
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config(build):
-    eng = Engine(api_key="key")
+    eng = cg.Engine(api_key="key")
 
     # Infer all from project id.
-    implied = eng.implied_job_config(JobConfig(project_id='project_id'))
+    implied = eng.implied_job_config(cg.JobConfig(project_id='project_id'))
     assert implied.project_id == 'project_id'
     assert re.fullmatch(r'prog-[0-9A-Z]+', implied.program_id)
     assert implied.job_id == 'job-0'
@@ -461,7 +460,7 @@ def test_implied_job_config(build):
         implied.gcs_results)
 
     # Force program id.
-    implied = eng.implied_job_config(JobConfig(
+    implied = eng.implied_job_config(cg.JobConfig(
         project_id='j',
         program_id='g'))
     assert implied.project_id == 'j'
@@ -472,7 +471,7 @@ def test_implied_job_config(build):
     assert implied.gcs_results == 'gs://gqe-j/programs/g/jobs/job-0'
 
     # Force all.
-    implied = eng.implied_job_config(JobConfig(
+    implied = eng.implied_job_config(cg.JobConfig(
         project_id='a',
         program_id='b',
         job_id='c',
@@ -489,8 +488,8 @@ def test_implied_job_config(build):
 
 @mock.patch.object(discovery, 'build')
 def test_bad_job_config_inference_order(build):
-    eng = Engine(api_key="key")
-    config = JobConfig()
+    eng = cg.Engine(api_key="key")
+    config = cg.JobConfig()
 
     with pytest.raises(ValueError):
         eng._infer_gcs_prefix(config)
