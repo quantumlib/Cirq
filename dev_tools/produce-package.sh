@@ -14,24 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
 # Get the working directory to the repo root.
 own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd ${own_directory}
 repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
+# Fail if package files already exist.
+mkdir dist3
+mkdir dist27
+rmdir dist3
+rmdir dist27
+
+echo "Producing python 3 package files..."
+python3 setup.py -q sdist bdist_wheel
+mv dist dist3
+
+echo "Generating python 2.7 source..."
 cur_dir=$(pwd)
-out_dir="$(pwd)/python2.7-package-tmp"
+tmp_py2_dir="$(pwd)/python2.7-package-tmp"
+bash python2.7-generate.sh "${tmp_py2_dir}" "${cur_dir}"
 
-echo "Generating python 2.7 source (this will take a minute)..."
-bash python2.7-generate.sh "${out_dir}" "${cur_dir}"
-
-echo "Producing package..."
-export PYTHONPATH=${out_dir}
-cd "${out_dir}"
-python2 setup.py sdist
-cp -r dist/ "${cur_dir}/dist2.7"
+echo "Producing python 2.7 package files..."
+export PYTHONPATH=${tmp_py2_dir}
+cd "${tmp_py2_dir}"
+python2 setup.py -q sdist bdist_wheel
+mv dist "${cur_dir}/dist27"
 cd "${cur_dir}"
-rm -rf "${out_dir}"
+rm -rf "${tmp_py2_dir}"
 
-echo "Done. Output is in 'dist2.7/'."
+echo "Done. Python 3 output is in 'dist3/'. Python 2.7 output is in 'dist27/'."
