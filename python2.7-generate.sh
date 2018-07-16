@@ -37,6 +37,7 @@ set -e
 out_dir=${1:-"$(pwd)/python2.7-output"}
 in_dir=${2:-$(pwd)}
 venv_dir=${3:-""}
+project_name="cirq"
 
 if [ -z "${venv_dir}" ]; then
   three_to_two_path="3to2"
@@ -62,20 +63,31 @@ touch "${out_dir}/err_tmp.log"
 trap print_cached_err ERR
 
 # Copy into output directory and convert in-place.
-cp -r "${in_dir}/cirq" "${out_dir}/cirq"
+cp -r "${in_dir}/${project_name}" "${out_dir}/${project_name}"
 cp -r "${in_dir}/docs" "${out_dir}/docs"
 cp -r "${in_dir}/examples" "${out_dir}/examples"
-"${three_to_two_path}" "${out_dir}" -w >/dev/null 2> "${out_dir}/err_tmp.log"
+"${three_to_two_path}" --nofix=numliterals --no-diffs --write --processes=16 "${out_dir}" >/dev/null 2> "${out_dir}/err_tmp.log"
 find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 
 # Build protobufs.
-proto_dir="${out_dir}/cirq/api/google/v1"
+proto_dir="${out_dir}/${project_name}/api/google/v1"
 find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
 protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
 
-cp "${in_dir}/python2.7-runtime-requirements.txt" "${out_dir}/python2.7-runtime-requirements.txt"
-cp "${in_dir}/python2.7-dev-requirements.txt" "${out_dir}/python2.7-dev-requirements.txt"
+# Include requirements files.
+cp "${in_dir}/python2.7-runtime-requirements.txt" "${out_dir}/runtime-requirements.txt"
+cp "${in_dir}/python2.7-dev-requirements.txt" "${out_dir}/dev-requirements.txt"
+sed -i -e 's/python2.7-runtime-requirements.txt/runtime-requirements.txt/g' "${out_dir}/dev-requirements.txt"
+
+# Include packaging files.
+cp "${in_dir}/MANIFEST.in" "${out_dir}/MANIFEST.in"
 cp "${in_dir}/README.rst" "${out_dir}/README.rst"
+cp "${in_dir}/LICENSE" "${out_dir}/LICENSE"
+cp "${in_dir}/setup.py" "${out_dir}/setup.py"
+
+# Substitute versions (failing via grep triggering -e if not present.)
+grep "python_requires='>=3.5'" "${out_dir}/setup.py" > /dev/null
+sed -i "s/python_requires='>=3.5'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")
