@@ -19,6 +19,8 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
+from collections import defaultdict
+
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
     Optional, Sequence, Union, Type, Tuple, cast, TypeVar, overload
@@ -30,7 +32,6 @@ from cirq import devices, ops, extension, study
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -316,6 +317,30 @@ class Circuit(ops.ParameterizableEffect):
             qubits,
             range(start_moment_index, start_moment_index + max_distance))
 
+    def next_moments_operating_on(self,
+                                 qubits: Iterable[ops.QubitId],
+                                 start_moment_index: int = 0
+                                 ) -> Dict[ops.QubitId, int]:
+        """Finds the index of the next moment that touches each qubit.
+
+        Args:
+            qubits: The qubits to find the next moments acting on.
+            start_moment_index: The starting point of the search.
+
+        Returns:
+            The index of the next moment that touches each qubit. If there
+            is no such moment, the next moment is specified as the number of
+            moments in the circuit. Equivalently, can be characterized as one
+            plus the index of the last moment after start_moment_index
+            (inclusive) that does *not* act on a given qubit.
+        """
+        next_moments = {}
+        for q in qubits:
+            next_moment = self.next_moment_operating_on([q], start_moment_index)
+            next_moments[q] = (len(self._moments) if next_moment is None else
+                               next_moment)
+        return next_moments
+
     def prev_moment_operating_on(
             self,
             qubits: Sequence[ops.QubitId],
@@ -590,6 +615,145 @@ class Circuit(ops.ParameterizableEffect):
             return end
 
         return self.insert(end, operations[op_index:])
+
+    @staticmethod
+    def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
+                                          start: int=0,
+                                          frontier: Dict[ops.QubitId, int]=None
+                                          ) -> Tuple[Sequence[int],
+                                                     Dict[ops.QubitId, int]]:
+        """Greedily assigns operations to moments.
+
+        Args:
+            operations: The operations to assign to moments.
+            start: The first moment to consider assignment to.
+            frontier: The first moment to which an operation acting on a qubit
+                can be assigned. Updated in place as operations are assigned.
+
+        Returns:
+            The frontier giving the index of the moment after the last one to
+            which an operation that acts on each qubit is assigned. If a
+            frontier was specified as an argument, this is the same object.
+        """
+        if frontier is None:
+            frontier = defaultdict(lambda: 0)
+        moment_indices = []
+        for op in operations:
+            op_start = max(start, max(frontier[q] for q in op.qubits))
+            moment_indices.append(op_start)
+            for q in op.qubits:
+                frontier[q] = max(frontier[q], op_start + 1)
+
+        return moment_indices, frontier
+
+
+    def _push_frontier(self,
+                      early_frontier: Dict[ops.QubitId, int],
+                      late_frontier: Dict[ops.QubitId, int],
+                      update_qubits: Iterable[ops.QubitId]=None
+                      ) -> Tuple[int, int]:
+        """Inserts moments to separate two frontiers.
+
+        After insertion n_new moments, the following holds:
+           for q in late_frontier:
+               early_frontier[q] <= late_frontier[q] + n_new
+           for q in update_qubits:
+               early_frontier[q] the identifies the same moment as before
+                   (but whose index may have changed if this moment is after
+                   those inserted).
+
+        Args:
+            early_frontier: The earlier frontier. For qubits not in the later
+                frontier, this is updated to account for the newly inserted
+                moments.
+            late_frontier: The later frontier. This is not modified.
+            update_qubits: The qubits for which to update early_frontier to
+                account for the newly inserted moments.
+
+        Returns:
+            (index at which new moments were inserted, how many new moments
+            were inserted) if new moments were indeed inserted. (0, 0)
+            otherwise.
+        """
+        if update_qubits is None:
+            update_qubits = set(early_frontier).difference(late_frontier)
+        n_new_moments = (max(early_frontier.get(q, 0) - late_frontier[q]
+                             for q in late_frontier)
+                         if late_frontier else 0)
+        if n_new_moments > 0:
+            insert_index = min(late_frontier.values())
+            self._moments[insert_index:insert_index] = (
+                    [Moment()] * n_new_moments)
+            for q in update_qubits:
+                if early_frontier.get(q, 0) > insert_index:
+                    early_frontier[q] += n_new_moments
+            return insert_index, n_new_moments
+        return (0, 0)
+
+    def _insert_operations(self,
+                          operations: Sequence[ops.Operation],
+                          insertion_indices: Sequence[int]) -> None:
+        """Inserts operations at the specified moments. Appends new moments if
+        necessary.
+
+        Args:
+            operations: The operations to insert.
+            insertion_indices: Where to insert them, i.e. operations[i] is
+                inserted into moments[insertion_indices[i].
+
+        Raises:
+            ValueError: operations and insert_indices have different lengths.
+
+        NB: It's on the caller to ensure that the operations won't conflict
+        with operations already in the moment or even each other.
+        """
+        if len(operations) != len(insertion_indices):
+            raise ValueError('operations and insertion_indices must have the'
+                             'same length.')
+        self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
+                                                  len(self))]
+        moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
+        for op_index, moment_index in enumerate(insertion_indices):
+            moment_to_ops[moment_index].append(operations[op_index])
+        for moment_index, new_ops in moment_to_ops.items():
+            self._moments[moment_index] = Moment(
+                    self._moments[moment_index].operations + tuple(new_ops))
+
+
+    def insert_at_frontier(self,
+                           operations: ops.OP_TREE,
+                           start: int,
+                           frontier: Dict[ops.QubitId, int]=None
+                           ) -> Dict[ops.QubitId, int]:
+        """Inserts operations inline at frontier.
+
+        Args:
+            operations: the operations to insert
+            start: the moment at which to start inserting the operations
+            frontier: frontier[q] is the earliest moment in which an operation
+                acting on qubit q can be placed.
+        """
+        if frontier is None:
+            frontier = defaultdict(lambda: 0)
+        operations = tuple(ops.flatten_op_tree(operations))
+        if not operations:
+            return frontier
+        qubits = set(q for op in operations for q in op.qubits)
+        if any(frontier[q] > start for q in qubits):
+            raise ValueError('The frontier for qubits on which the operations'
+                             'to insert act cannot be after start.')
+
+        next_moments = self.next_moments_operating_on(qubits, start)
+
+        insertion_indices, _ = self._pick_inserted_ops_moment_indices(
+                operations, start, frontier)
+
+        self._push_frontier(frontier, next_moments)
+
+        self._insert_operations(operations, insertion_indices)
+
+        return frontier
+
 
     def batch_remove(self,
                      removals: Iterable[Tuple[int, ops.Operation]]) -> None:
