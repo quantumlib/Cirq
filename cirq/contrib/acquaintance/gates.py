@@ -69,7 +69,7 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
         op_sort_key = (lambda op:
                 qubit_to_position[min(op.qubits, key=qubit_to_position.get)] %
                 self.acquaintance_size)
-        post_layer = []
+        post_layer = [] # type: List[Operation]
         for layer_num in range(n_parts):
             pre_layer, layer, post_layer = post_layer, [], []
             for i in range(layer_num % 2, n_parts - 1, 2):

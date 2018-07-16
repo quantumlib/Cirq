@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List
+
+from cirq import abc
 from cirq.ops import Gate
 
-class PermutationGate(Gate):
+class PermutationGate(Gate, metaclass=abc.ABCMeta):
     """Permutation gate."""
-    pass
 
+    @abc.abstractmethod
+    def permutation(self, qubit_count: int) -> List[int]:
+        """permutation = (x0, x1, ...) indicates that the 0th element is mapped
+        to position x0, the 1st element is mapped to position x1, etc."""
+        raise NotImplementedError()

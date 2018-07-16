@@ -76,6 +76,11 @@ class AcquaintanceStrategy(Circuit):
                  ) -> 'AcquaintanceStrategy':
         return AcquaintanceStrategy(Circuit.from_ops(*operations))
 
+    def acquaintance_size(self) -> int:
+        return max(len(op.qubits) for op in self.all_operations()
+                   if isinstance(op.gate, AcquaintanceOpportunityGate))
+
+
 def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
                                    acquaintance_size: int=0,
                                    ) -> AcquaintanceStrategy:
