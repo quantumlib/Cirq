@@ -81,8 +81,17 @@ class Circuit(ops.ParameterizableEffect):
             device: Hardware that the circuit should be able to run on.
         """
         self._moments = list(moments)
-        self.device = device
-        self.device.validate_circuit(self)
+        self._device = device
+        self._device.validate_circuit(self)
+
+    @property
+    def device(self) -> devices.Device:
+        return self._device
+
+    @device.setter
+    def device(self, new_device: devices.Device) -> None:
+        new_device.validate_circuit(self)
+        self._device = new_device
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
@@ -110,12 +119,12 @@ class Circuit(ops.ParameterizableEffect):
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, self.device)
+        return Circuit(self._moments, self._device)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._moments == other._moments and self.device == other.device
+        return self._moments == other._moments and self._device == other._device
 
     def __ne__(self, other):
         return not self == other
@@ -156,14 +165,14 @@ class Circuit(ops.ParameterizableEffect):
         if isinstance(key, int):
             if not isinstance(value, Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
-            self.device.validate_moment(value)
+            self._device.validate_moment(value)
 
         if isinstance(key, slice):
             value = list(value)
             if any(not isinstance(v, Moment) for v in value):
                 raise TypeError('Can only assign Moments into Circuits.')
             for moment in value:
-                self.device.validate_moment(moment)
+                self._device.validate_moment(moment)
 
         self._moments[key] = value
     # pylint: enable=function-redefined
@@ -174,23 +183,23 @@ class Circuit(ops.ParameterizableEffect):
     def __iadd__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        if (other.device != self.device and
+        if (other.device != self._device and
                 other.device != devices.UnconstrainedDevice):
             raise ValueError("Other circuit's device is not compatible.")
         for moment in other:
-            self.device.validate_moment(moment)
+            self._device.validate_moment(moment)
         self._moments += other._moments
         return self
 
     def __add__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        device = (self.device
+        device = (self._device
                     if other.device is devices.UnconstrainedDevice
                     else other.device)
         device_2 = (other.device
-                    if self.device is devices.UnconstrainedDevice
-                    else self.device)
+                    if self._device is devices.UnconstrainedDevice
+                    else self._device)
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
@@ -212,7 +221,7 @@ class Circuit(ops.ParameterizableEffect):
         if not isinstance(repetitions, int):
             return NotImplemented
         return Circuit(self._moments * repetitions,
-                       device=self.device)
+                       device=self._device)
 
     def __rmul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -221,17 +230,17 @@ class Circuit(ops.ParameterizableEffect):
 
     def __repr__(self):
         moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
-        if self.device == devices.UnconstrainedDevice:
+        if self._device == devices.UnconstrainedDevice:
             return 'Circuit([{}])'.format(','.join(moment_lines))
         return 'Circuit([{}], device={})'.format(','.join(moment_lines),
-                                                 self.device)
+                                                 self._device)
 
     def __str__(self):
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
 
-    def with_switched_device(
+    def with_device(
             self,
             new_device: devices.Device,
             qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
@@ -486,7 +495,7 @@ class Circuit(ops.ParameterizableEffect):
                        operation: ops.Operation) -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
-        return self.device.can_add_operation_into_moment(
+        return self._device.can_add_operation_into_moment(
             operation,
             self._moments[moment_index])
 
@@ -511,7 +520,7 @@ class Circuit(ops.ParameterizableEffect):
             ValueError: Bad insertion strategy.
         """
         if isinstance(moment_or_operation_tree, Moment):
-            self.device.validate_moment(moment_or_operation_tree)
+            self._device.validate_moment(moment_or_operation_tree)
             self._moments.insert(index, moment_or_operation_tree)
             return index + 1
 
@@ -520,9 +529,9 @@ class Circuit(ops.ParameterizableEffect):
 
         operations = list(ops.flatten_op_tree(ops.transform_op_tree(
             moment_or_operation_tree,
-            self.device.decompose_operation)))
+            self._device.decompose_operation)))
         for op in operations:
-            self.device.validate_operation(op)
+            self._device.validate_operation(op)
 
         k = index
         for op in operations:
@@ -530,7 +539,7 @@ class Circuit(ops.ParameterizableEffect):
             while p >= len(self._moments):
                 self._moments.append(Moment())
             self._moments[p] = self._moments[p].with_operation(op)
-            self.device.validate_moment(self._moments[p])
+            self._device.validate_moment(self._moments[p])
             k = max(k, p + 1)
             if strategy is InsertStrategy.NEW_THEN_INLINE:
                 strategy = InsertStrategy.INLINE
@@ -563,13 +572,13 @@ class Circuit(ops.ParameterizableEffect):
 
         operations = list(ops.flatten_op_tree(operations))
         for op in operations:
-            self.device.validate_operation(op)
+            self._device.validate_operation(op)
 
         i = start
         op_index = 0
         while op_index < len(operations):
             op = operations[op_index]
-            while i < end and not self.device.can_add_operation_into_moment(
+            while i < end and not self._device.can_add_operation_into_moment(
                     op, self._moments[i]):
                 i += 1
             if i >= end:
@@ -607,7 +616,7 @@ class Circuit(ops.ParameterizableEffect):
             copy._moments[i] = Moment(old_op
                                       for old_op in copy._moments[i].operations
                                       if op != old_op)
-        self.device.validate_circuit(copy)
+        self._device.validate_circuit(copy)
         self._moments = copy._moments
 
     def batch_insert_into(self,
@@ -631,7 +640,7 @@ class Circuit(ops.ParameterizableEffect):
         copy = self.copy()
         for i, op in insert_intos:
             copy._moments[i] = copy._moments[i].with_operation(op)
-        self.device.validate_circuit(copy)
+        self._device.validate_circuit(copy)
         self._moments = copy._moments
 
     def batch_insert(self,
