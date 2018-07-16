@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+from random import randint, random, sample, randrange
 from string import ascii_lowercase as alphabet
 
 import numpy as np
@@ -1715,14 +1716,51 @@ def test_batch_insert():
     ])
 
 def test_next_moments_operating_on():
-    assert 0
+    for _ in range(20):
+        n_moments = randint(1, 10)
+        circuit = random_circuit(randint(1, 20), n_moments, random())
+        circuit_qubits = circuit.all_qubits()
+        if not circuit_qubits:
+            continue
+        key_qubits = sample(circuit_qubits, randint(1, len(circuit_qubits)))
+        start = randrange(len(circuit))
+        next_moments = circuit.next_moments_operating_on(key_qubits, start)
+        for q, m in next_moments.items():
+            if m == len(circuit):
+                p = circuit.prev_moment_operating_on([q])
+            else:
+                p = circuit.prev_moment_operating_on([q], m - 1)
+            assert (not p) or (p < start)
+
 
 def test_pick_inserted_ops_moment_indices():
-    assert 0
+    for _ in range(20):
+        n_moments = randint(1, 10)
+        n_qubits = randint(1, 20)
+        op_density = random()
+        circuit = random_circuit(n_qubits, n_moments, op_density)
+        start = randrange(n_moments)
+        first_half = Circuit(circuit[:start])
+        second_half = Circuit(circuit[start:])
+        operations = tuple(op for moment in second_half
+                for op in moment.operations)
+        squeezed_second_half = Circuit.from_ops(operations, 
+                strategy=InsertStrategy.EARLIEST)
+        expected_circuit = Circuit(first_half._moments +
+                                   squeezed_second_half._moments)
+        expected_circuit._moments += [Moment() for _ in
+                range(len(circuit) - len(expected_circuit))]
+        insert_indices, _ = circuit._pick_inserted_ops_moment_indices(
+                operations, start)
+        actual_circuit = Circuit(first_half._moments +
+            [Moment() for _ in range(n_moments - start)])
+        for op, insert_index in zip(operations, insert_indices):
+            actual_circuit._moments[insert_index] = (
+                actual_circuit._moments[insert_index].with_operation(op))
+        assert actual_circuit == expected_circuit
 
-def test_push_frontier():
-    assert 0
 
+def test_push_frontier_new_moments():
     operation = cirq.X(cirq.QubitId())
     insertion_index = 3
     circuit = Circuit()
@@ -1730,6 +1768,41 @@ def test_push_frontier():
     assert circuit == Circuit([Moment() for _ in range(insertion_index)] +
                               [Moment([operation])])
 
+
+def test_push_frontier_random_circuit():
+    for _ in range(20):
+        n_moments = randint(1, 10)
+        circuit = random_circuit(randint(1, 20), n_moments, random())
+        qubits = circuit.all_qubits()
+        early_frontier = {q: randint(0, n_moments) for q in
+                          sample(qubits, randint(0, len(qubits)))}
+        late_frontier = {q: randint(0, n_moments) for q in
+                          sample(qubits, randint(0, len(qubits)))}
+        update_qubits = sample(qubits, randint(0, len(qubits)))
+
+        orig_early_frontier = {q: f for q, f in early_frontier.items()}
+        orig_moments = circuit._moments.copy()
+        insert_index, n_new_moments = circuit._push_frontier(
+                early_frontier, late_frontier, update_qubits)
+
+        assert set(early_frontier.keys()) == set(orig_early_frontier.keys())
+        for q in set(early_frontier).difference(update_qubits):
+            assert early_frontier[q] == orig_early_frontier[q]
+        for q, f in late_frontier.items():
+            assert (orig_early_frontier.get(q, 0) <=
+                    late_frontier[q] + n_new_moments)
+            if f != len(orig_moments):
+                assert orig_moments[f] == circuit[f + n_new_moments]
+        for q in set(update_qubits).intersection(early_frontier):
+            if orig_early_frontier[q] == insert_index:
+                assert orig_early_frontier[q] == early_frontier[q]
+                if n_new_moments:
+                    assert circuit._moments[early_frontier[q]] == Moment()
+            elif orig_early_frontier[q] == len(orig_moments):
+                assert early_frontier[q] == len(circuit)
+            else:
+                assert (orig_moments[orig_early_frontier[q]] ==
+                        circuit._moments[early_frontier[q]])
 
 def test_insert_operations_random_circuits():
     qubits = tuple(cirq.NamedQubit(s) for s in alphabet[:10])

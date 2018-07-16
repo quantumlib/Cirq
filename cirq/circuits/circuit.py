@@ -548,14 +548,14 @@ class Circuit(ops.ParameterizableEffect):
                       early_frontier: Dict[ops.QubitId, int],
                       late_frontier: Dict[ops.QubitId, int],
                       update_qubits: Iterable[ops.QubitId]=None
-                      ) -> None:
+                      ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
            for q in late_frontier:
-               early_frontier[q] + n_new <= late_frontier[q]
+               early_frontier[q] <= late_frontier[q] + n_new
            for q in update_qubits:
-               early_frontier[q] is the identifies the same moment as before
+               early_frontier[q] the identifies the same moment as before
                    (but whose index may have changed if this moment is after
                    those inserted).
 
@@ -566,18 +566,26 @@ class Circuit(ops.ParameterizableEffect):
             late_frontier: The later frontier. This is not modified.
             update_qubits: The qubits for which to update early_frontier to
                 account for the newly inserted moments.
+
+        Returns:
+            (index at which new moments were inserted, how many new moments
+            were inserted) if new moments were indeed inserted. (0, 0)
+            otherwise.
         """
         if update_qubits is None:
             update_qubits = set(early_frontier).difference(late_frontier)
-        n_new_moments = max(early_frontier.get(q, 0) - late_frontier[q]
-                            for q in late_frontier)
+        n_new_moments = (max(early_frontier.get(q, 0) - late_frontier[q]
+                             for q in late_frontier)
+                         if late_frontier else 0)
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self._moments[insert_index:insert_index] = (
                     [Moment()] * n_new_moments)
             for q in update_qubits:
-                if early_frontier[q] > insert_index:
+                if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
+            return insert_index, n_new_moments
+        return (0, 0)
 
     def insert_operations(self,
                           operations: Sequence[ops.Operation],
