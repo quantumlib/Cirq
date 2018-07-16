@@ -18,7 +18,7 @@ import pytest
 
 import cirq
 from cirq import Circuit, NamedQubit, ExpandComposite
-from cirq.contrib.acquaintance.gates import (
+from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
 from cirq.contrib.acquaintance.strategy import (
     AcquaintanceStrategy, complete_acquaintance_strategy)

@@ -20,8 +20,9 @@ from typing import Sequence
 from cirq.circuits import Circuit, Moment, ExpandComposite, InsertStrategy
 from cirq.ops import QubitId, OP_TREE
 from cirq.contrib.acquaintance.gates import (
-     CircularShiftGate, SwapNetworkGate, AcquaintanceOpportunityGate, 
-     ACQUAINT, PermutationGate)
+     SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
+from cirq.contrib.acquaintance.shift import CircularShiftGate
+from cirq.contrib.acquaintance.permutation import PermutationGate
 
 class AcquaintanceStrategy(Circuit):
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
