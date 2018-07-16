@@ -16,20 +16,8 @@ from random import randint, random, sample, choice
 import pytest
 
 from cirq.testing.random_circuit import (
-        gate_to_arity, random_circuit, DEFAULT_GATE_DOMAIN)
+        random_circuit, DEFAULT_GATE_DOMAIN)
 from cirq import ops
-
-def test_gate_to_arity():
-    with pytest.raises(TypeError):
-        random_circuit(randint(1, 10), randint(1, 10), random(),
-                       gate_domain=[ops.Rot11Gate])
-    with pytest.raises(TypeError):
-        random_circuit(randint(1, 10), randint(1, 10), random(),
-                       gate_domain=[ops.MeasurementGate])
-
-    assert gate_to_arity(ops.X) == 1
-    assert gate_to_arity(ops.Rot11Gate()) == 2
-    assert gate_to_arity(ops.three_qubit_gates._CCZGate()) == 3
 
 def test_random_circuit_errors():
     with pytest.raises(ValueError):
@@ -50,8 +38,9 @@ def test_random_circuit_errors():
 n_random_circuit_tests = 10
 random_circuit_test_parameters = [
     (randint(1, 20), randint(1, 10), random(),
-     (None if randint(0, 1) else 
-      sample(DEFAULT_GATE_DOMAIN, randint(1, len(DEFAULT_GATE_DOMAIN)))),
+     (None if randint(0, 1) else
+      dict(sample(tuple(DEFAULT_GATE_DOMAIN.items()),
+             randint(1, len(DEFAULT_GATE_DOMAIN))))),
      choice((True, False)))
     for _ in range(n_random_circuit_tests)]
 @pytest.mark.parametrize(
