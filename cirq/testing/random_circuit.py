@@ -13,10 +13,8 @@
 # limitations under the License.
 
 from random import choice, sample, random
-from typing import Union, Sequence, TYPE_CHECKING
+from typing import Union, Sequence, TYPE_CHECKING, Dict
 
-from cirq.ops import (
-        Gate, SingleQubitGate, TwoQubitGate, ThreeQubitGate)
 from cirq import ops
 from cirq.circuits import Circuit, Moment
 
@@ -24,48 +22,24 @@ if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import List
 
-DEFAULT_GATE_DOMAIN = (
-    ops.CNOT,
-    ops.CZ,
-    ops.H,
-    ops.ISWAP,
-    ops.Rot11Gate(),
-    ops.S,
-    ops.SWAP,
-    ops.T,
-    ops.X,
-    ops.Y,
-    ops.Z,
-    )
-
-def gate_to_arity(gate: Gate) -> int:
-    """Gets the arity of a gate (i.e. the number of qubits on which it acts).
-
-    Args:
-        gate: the gate to get the arity of.
-
-    Returns:
-        The arity.
-
-    Raises:
-        TypeError: the given gate is not an instance of (SingleQubitGate,
-            TwoQubitGate, ThreeQubitGate).
-    """
-
-    if isinstance(gate, SingleQubitGate):
-        return 1
-    if isinstance(gate, TwoQubitGate):
-        return 2
-    if isinstance(gate, ThreeQubitGate):
-        return 3
-    raise TypeError('Gates in gate_domain must be instances of ('
-                     'SingleQubitGate, TwoQubitGate, ThreeQubitGate).'
-                     'Gate {} is not.'.format(gate))
+DEFAULT_GATE_DOMAIN = {
+    ops.CNOT: 2,
+    ops.CZ: 2,
+    ops.H: 1,
+    ops.ISWAP: 2,
+    ops.Rot11Gate(): 2,
+    ops.S: 1,
+    ops.SWAP: 2,
+    ops.T: 1,
+    ops.X: 1,
+    ops.Y: 1,
+    ops.Z: 1
+    }
 
 def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
                    n_moments: int,
                    op_density: float,
-                   gate_domain: Sequence[Gate]= None
+                   gate_domain: Dict[ops.Gate, int]= None
                    ) -> Circuit:
     """Generates a random circuit.
 
@@ -76,8 +50,7 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
         n_moments: the number of moments in the generated circuit.
         op_density: the expected proportion of qubits that are acted on in any
             moment.
-        gate_domain: The set of gates to choose from. Gates must be instances
-            of (SingleQubitGate, TwoQubitGate, ThreeQubitGate).
+        gate_domain: The set of gates to choose from, with a specified arity.
 
     Raises:
         ValueError:
@@ -92,13 +65,9 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
         raise ValueError('op_density must be in (0, 1).')
     if gate_domain is None:
         gate_domain = DEFAULT_GATE_DOMAIN
-    max_arity = 0
-    arities = (gate_to_arity(gate) for gate in gate_domain)
-    for gate, arity in zip(gate_domain, arities):
-        max_arity = max(max_arity, arity)
-    if not max_arity:
+    if not gate_domain:
         raise ValueError('gate_domain must be non-empty')
-
+    max_arity = max(gate_domain.values())
 
     if isinstance(qubits, int):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
@@ -111,8 +80,7 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
         operations = []
         free_qubits = set(q for q in qubits)
         while len(free_qubits) >= max_arity:
-            gate = choice(gate_domain)
-            arity = gate_to_arity(gate)
+            gate, arity = choice(tuple(gate_domain.items()))
             op_qubits = sample(free_qubits, arity)
             free_qubits.difference_update(op_qubits)
             if random() <= op_density:
