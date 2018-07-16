@@ -17,7 +17,7 @@ from operator import indexOf
 from typing import Iterable, Sequence, TYPE_CHECKING
 
 from cirq import CompositeGate, TextDiagrammable
-from cirq.ops import Operation, Gate, gate_features, QubitId
+from cirq.ops import Operation, Gate, gate_features, QubitId, OP_TREE
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 
 if TYPE_CHECKING:
@@ -41,10 +41,6 @@ class AcquaintanceOpportunityGate(Gate, TextDiagrammable):
 
 ACQUAINT = AcquaintanceOpportunityGate()
 
-class PermutationGate(Gate):
-    """Permutation gate."""
-    pass
-
 class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
     """A single gate representing a generalized swap network.
 
@@ -62,7 +58,7 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
 
-    def default_decompose(self, qubits):
+    def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
         parts = []
         q = 0
@@ -104,10 +100,8 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                 parts[i] = parts_qubits[:multiplicities[1]]
                 parts[i + 1] = parts_qubits[multiplicities[1]:]
             pre_layer.sort(key=op_sort_key)
-            for op in pre_layer:
-                yield op
-            for op in layer:
-                yield op
+            yield pre_layer
+            yield layer
         post_layer.sort(key=op_sort_key)
         for op in post_layer:
             yield op

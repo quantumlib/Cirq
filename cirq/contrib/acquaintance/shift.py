@@ -13,16 +13,18 @@
 # limitations under the License.
 
 from itertools import chain
+from typing import Sequence
 
 from cirq import CompositeGate, TextDiagrammable
-from cirq.ops import Gate, gate_features, SWAP
+from cirq.ops import Gate, gate_features, SWAP, OP_TREE, QubitId
 from cirq.contrib.acquaintance.permutation import PermutationGate
 
 
 class CircularShiftGate(PermutationGate,
                         CompositeGate,
                         TextDiagrammable):
-    """Swaps two sets of qubits.
+    """Performs a cyclical permutation of the qubits to the left by a specified
+    amount.
 
     Args:
         shift: how many positions to circularly left shift the qubits.
@@ -44,7 +46,7 @@ class CircularShiftGate(PermutationGate,
         return ((self.shift == other.shift) and
                 (self.swap_gate == other.swap_gate))
 
-    def default_decompose(self, qubits):
+    def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift
