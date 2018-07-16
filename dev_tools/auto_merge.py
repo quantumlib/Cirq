@@ -471,6 +471,10 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
         # Already merged.
         return False
 
+    if response.status_code == 409:
+        # Merge conflict.
+        raise CurrentStuckGoToNextError("There's a merge conflict.")
+
     raise RuntimeError('Sync with master failed. Code: {}. Content: {}.'.format(
         response.status_code, response.content))
 
