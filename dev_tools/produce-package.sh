@@ -23,14 +23,10 @@ repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
 # Fail if package files already exist.
-mkdir dist3
-mkdir dist27
-rmdir dist3
-rmdir dist27
+mkdir dist
 
 echo "Producing python 3 package files..."
 python3 setup.py -q sdist bdist_wheel
-mv dist dist3
 
 echo "Generating python 2.7 source..."
 cur_dir=$(pwd)
@@ -41,8 +37,9 @@ echo "Producing python 2.7 package files..."
 export PYTHONPATH=${tmp_py2_dir}
 cd "${tmp_py2_dir}"
 python2 setup.py -q sdist bdist_wheel
-mv dist "${cur_dir}/dist27"
+cp dist/* "${cur_dir}/dist/"
 cd "${cur_dir}"
 rm -rf "${tmp_py2_dir}"
 
-echo "Done. Python 3 output is in 'dist3/'. Python 2.7 output is in 'dist27/'."
+ls dist/
+echo "Done. Output is in 'dist/'."
