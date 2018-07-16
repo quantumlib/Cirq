@@ -227,7 +227,7 @@ circuit.append([H(q0), H(q1), H(q2)], strategy=InsertStrategy.INLINE)
 print(circuit)
 # prints
 # (0, 0): ───────H───────
-#                
+#
 # (1, 0): ───@───@───H───
 #            │   │
 # (2, 0): ───@───@───H───
@@ -235,8 +235,8 @@ print(circuit)
 
 After two initial `CZ` between the second and third qubit, we try
 to insert 3 `H` ``Operations``. We see that the `H` on the first
-qubit is inserted into the previous `Moment`, but the `H` on the second and third 
-qubits cannot be inserted into the previous `Moment`, so a new `Moment` is 
+qubit is inserted into the previous `Moment`, but the `H` on the second and third
+qubits cannot be inserted into the previous `Moment`, so a new `Moment` is
 created.
 
 Finally we turn to the default strategy:
