@@ -26,7 +26,7 @@ def test_swap_network_gate():
     n_parts = 3
     part_lens = (acquaintance_size - 1,) * n_parts
     n_qubits = sum(part_lens)
-    swap_network_op = SwapNetworkGate(part_lens, 
+    swap_network_op = SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
     swap_network = Circuit.from_ops(swap_network_op)
     actual_text_diagram = swap_network.to_text_diagram().strip()
@@ -71,7 +71,7 @@ f: ─────────────────█───────�
     n_parts = 6
     part_lens = (1,) * n_parts
     n_qubits = sum(part_lens)
-    swap_network_op = SwapNetworkGate(part_lens, 
+    swap_network_op = SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
     swap_network = Circuit.from_ops(swap_network_op)
 

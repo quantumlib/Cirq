@@ -38,6 +38,6 @@ python3 ${repo_dir}/dev_tools/run_simple_checks.py $@
 result=$?
 
 # Delete coverage files created by pytest during the checks.
-find | grep "\.py,cover$" | xargs rm
+find . | grep "\.py,cover$" | xargs rm
 
 exit ${result}

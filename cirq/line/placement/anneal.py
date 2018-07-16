@@ -336,7 +336,7 @@ class AnnealSequenceSearch(object):
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
 
-    This line search strategy is still work in progress and requires
+    TODO: This line search strategy is still work in progress and requires
     efficiency improvements.
     """
 
@@ -373,7 +373,8 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             method.
         """
         seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
-        return LinePlacement(length, [LineSequence(seq) for seq in seqs])
+        return LinePlacement(device, length,
+                             [LineSequence(seq) for seq in seqs])
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

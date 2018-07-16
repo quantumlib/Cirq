@@ -18,7 +18,7 @@ from operator import ne
 from typing import Sequence
 
 from cirq.circuits import Circuit, Moment, ExpandComposite, InsertStrategy
-from cirq.ops import QubitId, OP_TREE
+from cirq.ops import QubitId, OP_TREE, GateOperation
 from cirq.contrib.acquaintance.gates import (
      SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
@@ -35,7 +35,7 @@ class AcquaintanceStrategy(Circuit):
                 if not isinstance(op.gate, self.gate_types):
                     raise ValueError('An acquaintance strategy can only'
                         'contain gates of types {}'.format(self.gate_types))
-        super().__init__(circuit.moments)
+        super().__init__(circuit._moments)
 
     def rectify(self):
         last_gate_type = self.gate_types[0]
@@ -47,7 +47,7 @@ class AcquaintanceStrategy(Circuit):
             if len(gate_type_to_ops) == 1:
                 rectified_moments.append(moment)
                 continue
-            for gate_type in sorted(gate_type_to_ops, 
+            for gate_type in sorted(gate_type_to_ops,
                                     key=partial(ne, last_gate_type)):
                 rectified_moments.append(Moment(gate_type_to_ops[gate_type]))
                 last_gate_type = gate_type
@@ -78,7 +78,8 @@ class AcquaintanceStrategy(Circuit):
 
     def acquaintance_size(self) -> int:
         return max(len(op.qubits) for op in self.all_operations()
-                   if isinstance(op.gate, AcquaintanceOpportunityGate))
+                   if (isinstance(op, GateOperation) and
+                       isinstance(op.gate, AcquaintanceOpportunityGate)))
 
 
 def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],

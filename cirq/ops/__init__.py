@@ -52,7 +52,7 @@ from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     KnownMatrix,
     ParameterizableEffect,
-    PhaseableGate,
+    PhaseableEffect,
     ReversibleEffect,
     SingleQubitGate,
     TextDiagrammable,
@@ -87,7 +87,7 @@ from cirq.ops.raw_types import (
     QubitId,
 )
 from cirq.ops.reversible_composite_gate import (
-    inverse_of_invertible_op_tree,
+    inverse,
     ReversibleCompositeGate,
 )
 from cirq.ops.three_qubit_gates import (

@@ -26,13 +26,13 @@ class PermutationGate(Gate, CompositeGate, metaclass=abc.ABCMeta):
         the s[i]-th qubit."""
         pass
 
-    def update_mapping(self, 
-                       mapping: Dict[Any, Any], 
+    def update_mapping(self,
+                       mapping: Dict[Any, Any],
                        elements: Sequence[Any]
                        ) -> None:
         n_elements = len(elements)
         permutation = self.permutation(n_elements)
-        permuted_elements = [elements[permutation.get(i, i)] 
+        permuted_elements = [elements[permutation.get(i, i)]
                              for i in range(n_elements)]
         for i, e in enumerate(elements):
             mapping[e] = permuted_elements[i]

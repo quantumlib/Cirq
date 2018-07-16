@@ -95,12 +95,19 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
     def to_proto(self, *qubits):
         if len(qubits) == 0:
             raise ValueError('Measurement gate on no qubits.')
-
+        if self.invert_mask and len(self.invert_mask) != len(qubits):
+            raise ValueError('Measurement gate had invert mask of length '
+                             'different than number of qubits it acts on.')
         op = operations_pb2.Operation()
         for q in qubits:
             q.to_proto(op.measurement.targets.add())
         op.measurement.key = self.key
+        op.measurement.invert_mask.extend(self.invert_mask)
         return op
+
+    def with_bits_flipped(self, *bit_positions: int) -> 'XmonMeasurementGate':
+        sup = super().with_bits_flipped(*bit_positions)
+        return XmonMeasurementGate(key=sup.key, invert_mask=sup.invert_mask)
 
     def __repr__(self):
         return 'XmonMeasurementGate({})'.format(repr(self.key))
@@ -109,7 +116,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 class Exp11Gate(XmonGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
-                ops.PhaseableGate,
+                ops.PhaseableEffect,
                 ops.ParameterizableEffect,
                 PotentialImplementation[ops.KnownMatrix]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
@@ -206,13 +213,16 @@ class Exp11Gate(XmonGate,
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
-               ops.PhaseableGate,
+               ops.PhaseableEffect,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
+
+    This gate is a "phased X rotation". Specifically:
+        ───W(axis)^t─── = ───Z^-axis───X^t───Z^axis───
 
     This gate is exp(-i * pi * W(axis_half_turn) * half_turn / 2) where
         W(theta) = cos(pi * theta) X + sin(pi * theta) Y
@@ -389,6 +399,7 @@ class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
+               ops.PhaseableEffect,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
@@ -445,6 +456,11 @@ class ExpZGate(XmonGate,
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
+
+    def phase_by(self,
+                 phase_turns: float,
+                 qubit_index: int):
+        return self
 
     def has_inverse(self):
         return not isinstance(self.half_turns, value.Symbol)

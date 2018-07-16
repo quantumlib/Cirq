@@ -113,5 +113,5 @@ class Moment(object):
         return ' and '.join(str(op) for op in self.operations)
 
     def with_qubits_mapped(self, qubit_map: Dict[ops.QubitId, ops.QubitId]):
-        return Moment(op.gate(*(qubit_map[q] for q in op.qubits)) 
+        return Moment(op.with_qubits(*(qubit_map[q] for q in op.qubits))
                       for op in self.operations)

@@ -74,7 +74,8 @@ class _TestDevice(Device):
                                      scheduled_operation: ScheduledOperation):
         op = scheduled_operation.operation
         self.validate_operation(op)
-        if isinstance(op.gate, ops.Rot11Gate):
+        if (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, ops.Rot11Gate)):
             for other in schedule.operations_happening_at_same_time_as(
                     scheduled_operation):
                 if self.check_if_cz_adjacent(op, other.operation):
@@ -82,18 +83,17 @@ class _TestDevice(Device):
                         scheduled_operation, other))
 
     def check_if_cz_adjacent(self,
-                             cz_op: ops.Operation,
+                             cz_op: ops.GateOperation,
                              other_op: ops.Operation):
-        if isinstance(other_op.gate, ops.HGate):
+        if (isinstance(other_op, ops.GateOperation) and
+                isinstance(other_op.gate, ops.HGate)):
             return False
         return any(cast(line.LineQubit, q).is_adjacent(cast(line.LineQubit, p))
                    for q in cz_op.qubits
                    for p in other_op.qubits)
 
     def validate_circuit(self, circuit):
-        for moment in circuit.moments:
-            for operation in moment.operations:
-                self.validate_operation(operation)
+        raise NotImplementedError()
 
     def validate_schedule(self, schedule):
         for scheduled_operation in schedule.scheduled_operations:
@@ -101,10 +101,6 @@ class _TestDevice(Device):
 
 
 class NotImplementedOperation(cirq.Operation):
-    @property
-    def gate(self):
-        raise NotImplementedError()
-
     def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
         raise NotImplementedError()
 

@@ -80,7 +80,7 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                 left_part, right_part = parts[i:i+2]
                 parts_qubits = left_part + right_part
                 multiplicities = (len(left_part), len(right_part))
-                shift = CircularShiftGate(multiplicities[0], 
+                shift = CircularShiftGate(multiplicities[0],
                                           swap_gate=self.swap_gate)(
                                                   *parts_qubits)
                 if max(multiplicities) != self.acquaintance_size - 1:
@@ -102,7 +102,7 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                         pre_layer.append(ACQUAINT(*pre_qubits))
                         post_qubits = parts_qubits[:self.acquaintance_size]
                         post_layer.append(ACQUAINT(*post_qubits))
-                
+
                 parts[i] = parts_qubits[:multiplicities[1]]
                 parts[i + 1] = parts_qubits[multiplicities[1]:]
             pre_layer.sort(key=op_sort_key)

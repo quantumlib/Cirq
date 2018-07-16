@@ -15,13 +15,13 @@
 from collections import defaultdict
 from typing import Dict, Tuple, TYPE_CHECKING
 
-from cirq.ops import Gate, Operation, QubitId
 from cirq.circuits import (
         Circuit, PointOptimizer, PointOptimizationSummary)
-from cirq.ops import Operation
+from cirq.ops import Operation, GateOperation, Gate, QubitId
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import PermutationGate
 from cirq.contrib.acquaintance.strategy import AcquaintanceStrategy
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Callable, List, DefaultDict
@@ -38,24 +38,24 @@ class StrategyExecutor(PointOptimizer):
     """
 
 
-    def execute(self, 
-                strategy: AcquaintanceStrategy, 
+    def execute(self,
+                strategy: AcquaintanceStrategy,
                 gates: Dict[Tuple[int,...], Gate],
                 initial_mapping: Dict[QubitId, int]
                 ) -> None:
         """Executes the strategy.
-        
+
         Args:
             strategy: The acquaintance strategy.
             gates: The operations to implement.
             initial_mapping: The initial mapping from qubits to logical indices.
-            
+
         Raises:
             ValueError:
                 * The initial mapping specifies qubits not in the strategy.
                 * The initial mapping doesn't specify a qubit for some logical
                   index.
-            NotImplementedError: 
+            NotImplementedError:
                 * The operations are of different arities
                 * The arity of the operations doesn't exactly match the arity
                   of the acquaintance opportunities.
@@ -67,7 +67,7 @@ class StrategyExecutor(PointOptimizer):
         if not all_indices.issubset(initial_mapping.values()):
             raise ValueError('Initial mapping does not specify qubit for '
                              'every logical index.')
-        if (set(len(indices) for indices in gates) != 
+        if (set(len(indices) for indices in gates) !=
                 set((strategy.acquaintance_size(),))):
             raise NotImplementedError('The arity of the operations must match '
                     'that of the acquaintance opportunities exactly.')
@@ -78,7 +78,8 @@ class StrategyExecutor(PointOptimizer):
             raise ValueError("Strategy couldn't implement all operations.")
 
     def optimization_at(self, circuit: Circuit, index: int, op: Operation):
-        if isinstance(op.gate, AcquaintanceOpportunityGate):
+        if (isinstance(op, GateOperation) and
+                isinstance(op.gate, AcquaintanceOpportunityGate)):
             index_set = frozenset(self.mapping[q] for q in op.qubits)
             logical_operations = []
             if index_set in self.index_set_to_gates:
@@ -92,7 +93,8 @@ class StrategyExecutor(PointOptimizer):
                     clear_qubits=op.qubits,
                     new_operations=logical_operations)
 
-        if isinstance(op.gate, PermutationGate):
+        if (isinstance(op, GateOperation) and
+                isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(self.mapping, op.qubits)
 
         raise TypeError('Can only execute a strategy consisting of gates that '
@@ -106,5 +108,5 @@ class StrategyExecutor(PointOptimizer):
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate
-        return {canonical_indices: dict(list(gates.items())) 
+        return {canonical_indices: dict(list(gates.items()))
                 for canonical_indices, gates in canonicalized_gates.items()}

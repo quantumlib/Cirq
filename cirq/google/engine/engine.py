@@ -38,7 +38,6 @@ from google.protobuf.json_format import MessageToDict
 from cirq.api.google.v1 import program_pb2
 from cirq.circuits import Circuit
 from cirq.circuits.drop_empty_moments import DropEmptyMoments
-from cirq.devices import Device, UnconstrainedDevice
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto
 from cirq.google.programs import schedule_to_proto, unpack_results
@@ -170,13 +169,13 @@ class Engine:
             **kwargs)
 
     def run(self,
+            *,  # Force keyword args.
             program: Union[Circuit, Schedule],
             job_config: Optional[JobConfig] = None,
-            device: Device = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            target_route: str = '/xmonsim',
+            target_route: str = '/xmonsim'
     ) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
@@ -184,11 +183,6 @@ class Engine:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
             job_config: Configures the names of programs and jobs.
-            device: The device on which to run a circuit. The circuit will be
-                validated against this device before sending to the engine.
-                If device is None, no validation will be done. Can only be
-                supplied if program is a Circuit, otherwise the device from
-                the Schedule will be used.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
@@ -197,13 +191,12 @@ class Engine:
         Returns:
             A single TrialResult for this run.
         """
-        return list(self.run_sweep(program,
-                                   job_config,
-                                   device,
-                                   [param_resolver],
-                                   repetitions,
-                                   priority,
-                                   target_route))[0]
+        return list(self.run_sweep(program=program,
+                                   job_config=job_config,
+                                   params=[param_resolver],
+                                   repetitions=repetitions,
+                                   priority=priority,
+                                   target_route=target_route))[0]
 
     def _infer_project_id(self, job_config) -> None:
         if job_config.project_id is not None:
@@ -288,32 +281,29 @@ class Engine:
         return implied_job_config
 
     def program_as_schedule(self,
-                            program: Union[Circuit, Schedule],
-                            device: Device = None) -> Schedule:
+                            program: Union[Circuit, Schedule]) -> Schedule:
         if isinstance(program, Circuit):
-            device = device or UnconstrainedDevice
-            circuit_copy = Circuit(program.moments)
+            device = program.device
+            circuit_copy = program.copy()
             ConvertToXmonGates().optimize_circuit(circuit_copy)
             DropEmptyMoments().optimize_circuit(circuit_copy)
             device.validate_circuit(circuit_copy)
             return moment_by_moment_schedule(device, circuit_copy)
 
         elif isinstance(program, Schedule):
-            if device:
-                raise ValueError(
-                    'Device can not be provided when running a schedule.')
             return program
+
         else:
             raise TypeError('Unexpected program type.')
 
     def run_sweep(self,
+                  *,  # Force keyword args.
                   program: Union[Circuit, Schedule],
                   job_config: Optional[JobConfig] = None,
-                  device: Device = None,
                   params: Sweepable = None,
                   repetitions: int = 1,
                   priority: int = 500,
-                  target_route: str = '/xmonsim',
+                  target_route: str = '/xmonsim'
     ) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
@@ -324,11 +314,6 @@ class Engine:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
             job_config: Configures the names of programs and jobs.
-            device: The device on which to run a circuit. The circuit will be
-                validated against this device before sending to the engine.
-                If device is None, no validation will be done. Can only be
-                supplied if program is a Circuit, otherwise the device from
-                the Schedule will be used.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
@@ -340,7 +325,7 @@ class Engine:
         """
 
         job_config = self.implied_job_config(job_config)
-        schedule = self.program_as_schedule(program, device)
+        schedule = self.program_as_schedule(program)
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:

@@ -26,7 +26,7 @@ from cirq.google.xmon_gates import ExpWGate
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
-    return abs(_signed_mod_1(turns)) < tolerance
+    return abs(_signed_mod_1(turns)) <= tolerance
 
 
 def _phase_matrix(angle: float) -> np.ndarray:
@@ -213,7 +213,7 @@ def controlled_op_to_native_gates(
         del u_gates[-1]
 
     ops_before = [gate(target) for gate in u_gates]
-    ops_after = ops.inverse_of_invertible_op_tree(ops_before)
+    ops_after = ops.inverse(ops_before)
     effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
     kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
 

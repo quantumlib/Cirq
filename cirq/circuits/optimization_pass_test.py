@@ -97,7 +97,13 @@ def test_point_optimizer_can_write_new_gates_inline():
 
     ReplaceWithXGates()(c)
 
-    expected = cirq.Circuit([cirq.Moment([cirq.X(q) for q in Q]) for Q in 
-        ((x,y), (x, y), (x,), (y, z), (y, z, x), (y,z), (y,))])
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───X───X───X───────X───────────
 
-    assert c == expected
+y: ───X───X───────X───X───X───X───
+
+z: ───────────────X───X───X───────
+    """.strip()
+
+    assert actual_text_diagram == expected_text_diagram
