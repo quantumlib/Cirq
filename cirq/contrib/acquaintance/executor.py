@@ -24,7 +24,7 @@ from cirq.contrib.acquaintance.permutation import PermutationGate
 from cirq.contrib.acquaintance.strategy import AcquaintanceStrategy
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Callable
+    from typing import Callable, List, DefaultDict
 
 class StrategyExecutor(PointOptimizer):
     """Executes an AcquaintanceStrategy.
@@ -102,10 +102,10 @@ class StrategyExecutor(PointOptimizer):
     @staticmethod
     def canonicalize_gates(gates: Dict[Tuple[int, ...], Gate]
         ) -> Dict[frozenset, Dict[Tuple[int, ...], Gate]]:
-        canonicalized_gates = defaultdict(lambda: defaultdict(list)
-                ) # type: Dict[frozenset, Callable[[Tuple[int, ...]], Gate]]
+        canonicalized_gates = defaultdict(dict
+            ) # type: Dict[frozenset, Dict[Tuple[int, ...], Gate]]
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate
-        return {canonical_indices: dict(gates.items()) 
+        return {canonical_indices: dict(list(gates.items())) 
                 for canonical_indices, gates in canonicalized_gates.items()}
