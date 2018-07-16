@@ -51,6 +51,31 @@ def test_init():
     assert d.duration_of(cirq.measure(q00, q01)) == ns
     assert d.duration_of(cg.ExpWGate().on(q00)) == 2 * ns
     assert d.duration_of(cg.Exp11Gate().on(q00, q01)) == 3 * ns
+    with pytest.raises(ValueError):
+        _ = d.duration_of(cirq.Gate().on(q00))
+
+
+def test_can_add_operation_into_moment():
+    d = square_device(2, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
+    m = cirq.Moment([cg.Exp11Gate().on(q00, q01)])
+    assert not d.can_add_operation_into_moment(
+        cg.Exp11Gate().on(q10, q11), m)
+
+
+def test_validate_moment():
+    d = square_device(2, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
+    m = cirq.Moment([cg.Exp11Gate().on(q00, q01),
+                     cg.Exp11Gate().on(q10, q11)])
+    with pytest.raises(ValueError):
+        d.validate_moment(m)
 
 
 def test_validate_operation_adjacent_qubits():
@@ -117,8 +142,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
         cirq.ScheduledOperation.op_at_on(
             cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
     ])
-    with pytest.raises(ValueError):
-        d.validate_schedule(s)
+    d.validate_schedule(s)
 
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
