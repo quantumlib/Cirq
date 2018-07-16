@@ -12,13 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
+from random import randint, random, sample, randrange, seed
+from string import ascii_lowercase as alphabet
+
 import numpy as np
 import pytest
 
 import cirq
+from cirq.circuits.optimization_pass import (PointOptimizer,
+                                             PointOptimizationSummary)
+from cirq import Circuit, InsertStrategy, Moment
+from cirq.testing.random_circuit import random_circuit
 import cirq.google as cg
-from cirq import Circuit, Moment
 
+seed(5)
 
 def test_equality():
     a = cirq.QubitId()
@@ -395,6 +403,118 @@ def test_insert_inline_near_start():
         Moment([cirq.Y(a)]),
         Moment(),
     ])
+
+def test_insert_at_frontier_init():
+    x = cirq.NamedQubit('x')
+    op = cirq.X(x)
+    circuit = Circuit.from_ops(op)
+    actual_frontier = circuit.insert_at_frontier(op, 3)
+    expected_circuit = Circuit([Moment([op]), Moment(), Moment(), Moment([op])])
+    assert circuit == expected_circuit
+    expected_frontier = defaultdict(lambda: 0)
+    expected_frontier[x] = 4
+    assert actual_frontier == expected_frontier
+
+    with pytest.raises(ValueError):
+        circuit = Circuit([Moment(), Moment([op])])
+        frontier = {x: 2}
+        circuit.insert_at_frontier(op, 0, frontier)
+
+def test_insert_at_frontier():
+
+    class Replacer(PointOptimizer):
+        def __init__(self, replacer=(lambda x: x)):
+            self.replacer = replacer
+
+        def optimization_at(self, circuit, index, op):
+            new_ops = self.replacer(op)
+            return PointOptimizationSummary(clear_span=1,
+                                            clear_qubits=op.qubits,
+                                            new_operations=new_ops)
+
+    replacer = lambda op: ((cirq.Z(op.qubits[0]),) * 2 +
+                           (op, cirq.Y(op.qubits[0])))
+    prepend_two_Xs_append_one_Y = Replacer(replacer)
+    qubits = [cirq.NamedQubit(s) for s in 'abcdef']
+    a, b, c = qubits[:3]
+
+    circuit = Circuit([
+              Moment([cirq.CZ(a, b)]),
+              Moment([cirq.CZ(b, c)]),
+              Moment([cirq.CZ(a, b)])
+    ])
+
+    prepend_two_Xs_append_one_Y.optimize_circuit(circuit)
+
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───Z───Z───@───Y───────────────Z───Z───@───Y───
+              │                           │
+b: ───────────@───Z───Z───@───Y───────────@───────
+                          │
+c: ───────────────────────@───────────────────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+    prepender = lambda op: (cirq.X(op.qubits[0]),) * 3 + (op,)
+    prepend_3_Xs = Replacer(prepender)
+    circuit = Circuit([
+        Moment([cirq.CNOT(a, b)]),
+        Moment([cirq.CNOT(b, c)]),
+        Moment([cirq.CNOT(c, b)])
+    ])
+    prepend_3_Xs.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───X───X───X───@───────────────────────────────────
+                  │
+b: ───────────────X───X───X───X───@───────────────X───
+                                  │               │
+c: ───────────────────────────────X───X───X───X───@───
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+    duplicate = Replacer(lambda op: (op,) * 2)
+    circuit = Circuit([
+        Moment([cirq.CZ(qubits[j], qubits[j+1])
+                     for j in range(i % 2, 5, 2)])
+        for i in range(4)])
+
+    duplicate.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───@───@───────────@───@───────────
+      │   │           │   │
+b: ───@───@───@───@───@───@───@───@───
+              │   │           │   │
+c: ───@───@───@───@───@───@───@───@───
+      │   │           │   │
+d: ───@───@───@───@───@───@───@───@───
+              │   │           │   │
+e: ───@───@───@───@───@───@───@───@───
+      │   │           │   │
+f: ───@───@───────────@───@───────────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+    circuit = Circuit([
+        Moment([cirq.CZ(*qubits[2:4]), cirq.CNOT(*qubits[:2])]),
+        Moment([cirq.CNOT(*qubits[1::-1])])
+        ])
+
+    duplicate.optimize_circuit(circuit)
+    actual_text_diagram = circuit.to_text_diagram().strip()
+    expected_text_diagram = """
+a: ───@───@───X───X───
+      │   │   │   │
+b: ───X───X───@───@───
+
+c: ───@───────@───────
+      │       │
+d: ───@───────@───────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 
 def test_insert_into_range():
     x = cirq.NamedQubit('x')
@@ -1372,6 +1492,8 @@ def test_insert_moments():
     assert list(c) == [m2, m0, m1]
     assert c[0] is m2
 
+    assert c._moments == [m2, m0, m1]
+    assert c._moments[0] is m2
 
 def test_apply_unitary_effect_to_state():
     a = cirq.NamedQubit('a')
@@ -1709,6 +1831,129 @@ def test_batch_insert():
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
 
+def test_next_moments_operating_on():
+    for _ in range(20):
+        n_moments = randint(1, 10)
+        circuit = random_circuit(randint(1, 20), n_moments, random())
+        circuit_qubits = circuit.all_qubits()
+        n_key_qubits = randint(int(bool(circuit_qubits)), len(circuit_qubits))
+        key_qubits = sample(circuit_qubits, n_key_qubits)
+        start = randrange(len(circuit))
+        next_moments = circuit.next_moments_operating_on(key_qubits, start)
+        for q, m in next_moments.items():
+            if m == len(circuit):
+                p = circuit.prev_moment_operating_on([q])
+            else:
+                p = circuit.prev_moment_operating_on([q], m - 1)
+            assert (not p) or (p < start)
+
+
+def test_pick_inserted_ops_moment_indices():
+    for _ in range(20):
+        n_moments = randint(1, 10)
+        n_qubits = randint(1, 20)
+        op_density = random()
+        circuit = random_circuit(n_qubits, n_moments, op_density)
+        start = randrange(n_moments)
+        first_half = Circuit(circuit[:start])
+        second_half = Circuit(circuit[start:])
+        operations = tuple(op for moment in second_half
+                for op in moment.operations)
+        squeezed_second_half = Circuit.from_ops(operations,
+                strategy=InsertStrategy.EARLIEST)
+        expected_circuit = Circuit(first_half._moments +
+                                   squeezed_second_half._moments)
+        expected_circuit._moments += [Moment() for _ in
+                range(len(circuit) - len(expected_circuit))]
+        insert_indices, _ = circuit._pick_inserted_ops_moment_indices(
+                operations, start)
+        actual_circuit = Circuit(first_half._moments +
+            [Moment() for _ in range(n_moments - start)])
+        for op, insert_index in zip(operations, insert_indices):
+            actual_circuit._moments[insert_index] = (
+                actual_circuit._moments[insert_index].with_operation(op))
+        assert actual_circuit == expected_circuit
+
+
+def test_push_frontier_new_moments():
+    operation = cirq.X(cirq.QubitId())
+    insertion_index = 3
+    circuit = Circuit()
+    circuit._insert_operations([operation], [insertion_index])
+    assert circuit == Circuit([Moment() for _ in range(insertion_index)] +
+                              [Moment([operation])])
+
+
+def test_push_frontier_random_circuit():
+    for _ in range(20):
+        n_moments = randint(1, 10)
+        circuit = random_circuit(randint(1, 20), n_moments, random())
+        qubits = circuit.all_qubits()
+        early_frontier = {q: randint(0, n_moments) for q in
+                          sample(qubits, randint(0, len(qubits)))}
+        late_frontier = {q: randint(0, n_moments) for q in
+                          sample(qubits, randint(0, len(qubits)))}
+        update_qubits = sample(qubits, randint(0, len(qubits)))
+
+        orig_early_frontier = {q: f for q, f in early_frontier.items()}
+        orig_moments = [m for m  in circuit._moments]
+        insert_index, n_new_moments = circuit._push_frontier(
+                early_frontier, late_frontier, update_qubits)
+
+        assert set(early_frontier.keys()) == set(orig_early_frontier.keys())
+        for q in set(early_frontier).difference(update_qubits):
+            assert early_frontier[q] == orig_early_frontier[q]
+        for q, f in late_frontier.items():
+            assert (orig_early_frontier.get(q, 0) <=
+                    late_frontier[q] + n_new_moments)
+            if f != len(orig_moments):
+                assert orig_moments[f] == circuit[f + n_new_moments]
+        for q in set(update_qubits).intersection(early_frontier):
+            if orig_early_frontier[q] == insert_index:
+                assert orig_early_frontier[q] == early_frontier[q]
+                assert (not n_new_moments) or (
+                        circuit._moments[early_frontier[q]] == Moment())
+            elif orig_early_frontier[q] == len(orig_moments):
+                assert early_frontier[q] == len(circuit)
+            else:
+                assert (orig_moments[orig_early_frontier[q]] ==
+                        circuit._moments[early_frontier[q]])
+
+def test_insert_operations_random_circuits():
+    qubits = tuple(cirq.NamedQubit(s) for s in alphabet[:10])
+    n_moments = 10
+    op_density = 0.5
+    circuit = random_circuit(qubits, n_moments, op_density)
+    operations, insert_indices = [], []
+#   remove_prob = 0.7
+    for moment_index, moment in enumerate(circuit):
+        for op in moment.operations:
+            operations.append(op)
+            insert_indices.append(moment_index)
+    other_circuit = Circuit()
+    other_circuit._insert_operations(operations, insert_indices)
+    assert circuit == other_circuit
+
+
+def test_insert_operations_errors():
+    a, b, c = (cirq.NamedQubit(s) for s in 'abc')
+    with pytest.raises(ValueError):
+        circuit = cirq.Circuit([Moment([cirq.Z(c)])])
+        operations = [cirq.X(a), cirq.CZ(a, b)]
+        insertion_indices = [0, 0]
+        circuit._insert_operations(operations, insertion_indices)
+
+    with pytest.raises(ValueError):
+        circuit = cirq.Circuit.from_ops(cirq.X(a))
+        operations = [cirq.CZ(a, b)]
+        insertion_indices = [0]
+        circuit._insert_operations(operations, insertion_indices)
+
+    with pytest.raises(ValueError):
+        circuit = cirq.Circuit()
+        operations = [cirq.X(a), cirq.CZ(a, b)]
+        insertion_indices = []
+        circuit._insert_operations(operations, insertion_indices)
 
 def test_validates_while_editing():
     c = cirq.Circuit(device=cg.Foxtail)
