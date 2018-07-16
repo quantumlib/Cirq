@@ -27,14 +27,16 @@ requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 cirq_packages = ['cirq'] + [
-    'cirq.' + package for package in find_packages(where='cirq')]
-
+    'cirq.' + package for package in find_packages(where='cirq')
+]
 
 setup(
     name='cirq',
     version=__version__,
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
+    author_email='cirq@googlegroups.com',
+    python_requires='>=3.5',
     install_requires=requirements,
     license='Apache 2',
     packages=cirq_packages,
