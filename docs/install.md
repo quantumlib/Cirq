@@ -1,19 +1,74 @@
-## Installation
+## Installing Cirq
 
-### Summary
+Choose your operating system:
 
-For the experts, installation is as simple as
-```bash
-pip install git+https://git@github.com/quantumlib/cirq.git#egg=cirq
-```
-You will be asked for credentials: use an access token for your github
-account generated at
-[https://github.com/settings/tokens](https://github.com/settings/tokens).
-Alternative if you have github set up for ssh on your machine, 
-you can use
-```bash
-pip install git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
-``` 
+- [Installing on Linux](###Linux)
+- [Installing on Mac OS X](###Mac OS X)
+- [Installing on Windows](###Windows)
+
+If you want to create a development environment, see [docs/development.md](/docs/development.md).
+
+
+### Linux
+
+0. Make sure you have python 3.5 or greater (or else python 2.7).
+
+    See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) @ the hitchhiker's guide to python.
+
+1. Consider using a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
+
+2. Use `pip` to install `cirq`:
+
+    ```bash
+    pip install --upgrade pip
+    pip install cirq
+    ```
+
+3. (Optional) install system dependencies that pip can't handle.
+
+    ```bash
+    sudo apt-get install python3-tk texlive-latex-base latexmk
+    ```
+
+    - Without `python3-tk`, plotting functionality won't work.
+    - Without `texlive-latex-base` and `latexmk`, pdf writing functionality will not work.
+
+
+### Mac OS X
+
+0. Make sure you have python 3.5 or greater (or else python 2.7).
+
+    See [Installing Python 3 on Mac OS X](https://docs.python-guide.org/starting/install3/osx/) @ the hitchhiker's guide to python.
+
+1. Consider using a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
+
+2. Use `pip` to install `cirq`:
+
+    ```bash
+    pip install --upgrade pip
+    pip install cirq
+    ```
+
+3. Be aware that cirq's pdf writing functionality does not currently work on OS X.
+
+
+### Windows
+
+0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](###Linux) instead of these instructions.
+
+1. Make sure you have python 3.5 or greater (or else python 2.7.9+).
+
+    See [Installing Python 3 on Windows](https://docs.python-guide.org/starting/install3/win/) @ the hitchhiker's guide to python.
+
+2. Use `pip` to install `cirq`:
+
+    ```bash
+    pip install --upgrade pip
+    pip install cirq
+    ```
+
+3. Be aware that cirq's pdf writing functionality does not work on Windows.
+
 
 ### Detailed Install on Mac or Ubuntu 
 
