@@ -18,6 +18,8 @@
 from typing import Set  # pylint: disable=unused-import
 from typing import Callable, List, Tuple, TypeVar
 
+import math
+import cmath
 import numpy as np
 
 from cirq.linalg import combinators
@@ -26,6 +28,45 @@ from cirq.linalg import predicates
 from cirq.linalg.tolerance import Tolerance
 
 T = TypeVar('T')
+
+
+def _phase_matrix(angle: float) -> np.ndarray:
+    return np.diag([1, np.exp(1j * angle)])
+
+
+def _rotation_matrix(angle: float) -> np.ndarray:
+    c, s = np.cos(angle), np.sin(angle)
+    return np.array([[c, -s], [s, c]])
+
+
+def deconstruct_single_qubit_matrix_into_angles(
+        mat: np.ndarray) -> Tuple[float, float, float]:
+    """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
+
+    Args:
+        mat: The 2x2 unitary matrix to break down.
+
+    Returns:
+        A tuple containing the amount to phase around Z, then rotate around Y,
+        then phase around Z (all in radians).
+    """
+    # Anti-cancel left-vs-right phase along top row.
+    right_phase = cmath.phase(mat[0, 1] * np.conj(mat[0, 0])) + math.pi
+    mat = np.dot(mat, _phase_matrix(-right_phase))
+
+    # Cancel top-vs-bottom phase along left column.
+    bottom_phase = cmath.phase(mat[1, 0] * np.conj(mat[0, 0]))
+    mat = np.dot(_phase_matrix(-bottom_phase), mat)
+
+    # Lined up for a rotation. Clear the off-diagonal cells with one.
+    rotation = math.atan2(abs(mat[1, 0]), abs(mat[0, 0]))
+    mat = np.dot(_rotation_matrix(-rotation), mat)
+
+    # Cancel top-left-vs-bottom-right phase.
+    diagonal_phase = cmath.phase(mat[1, 1] * np.conj(mat[0, 0]))
+
+    # Note: Ignoring global phase.
+    return right_phase + diagonal_phase, rotation * 2, bottom_phase
 
 
 def _group_similar(items: List[T],

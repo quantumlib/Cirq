@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utilities for testing code."""
+from typing import Any, Union
 
-from cirq.testing.equals_tester import (
-    EqualsTester,
-)
-from cirq.testing.lin_alg_utils import (
-    random_orthogonal,
-    random_special_orthogonal,
-    random_special_unitary,
-    random_unitary,
-    assert_allclose_up_to_global_phase,
-)
-from cirq.testing.only_test_in_python3 import (
-    only_test_in_python3,
-)
-from cirq.testing.file_tester import (
-    TempFilePath,
-)
+import os, shutil, tempfile
+
+
+class TempFilePath:
+    """A context manager that provides a temporary file path for use within a
+    with statement.
+    """
+    def __enter__(self) -> Union[str, bytes]:
+        self.dir_path = tempfile.mkdtemp(prefix='test-output-')
+        file_path = os.path.join(self.dir_path, 'test-file')
+        return file_path
+
+    def __exit__(self, err_type: Any, err_args: Any, traceback: Any) -> None:
+        shutil.rmtree(self.dir_path)
