@@ -17,64 +17,64 @@ cd Cirq
 
 1. Install system dependencies.
 
-Make sure you have python 3.5 or greater.
-You can install most other dependencies via `apt-get`:
+    Make sure you have python 3.5 or greater.
+    You can install most other dependencies via `apt-get`:
 
-```bash
-cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install
-```
+    ```bash
+    cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install
+    ```
 
-Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is required but not installable via `apt-get`.
-Without this dependency, you will not be able to produce the transpiled python 2.7 code.
+    Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is required but not installable via `apt-get`.
+    Without this dependency, you will not be able to produce the transpiled python 2.7 code.
 
-The simplest way to install v3.5 of the protobuf compiler dependency is to download
-`https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip`,
-unzip it into some directory of your choice,
-and add that directory to your path.
+    The simplest way to install v3.5 of the protobuf compiler dependency is to download
+    `https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip`,
+    unzip it into some directory of your choice,
+    and add that directory to your path.
 
-For example, that is how the travis continuous integration scripts get the protobuf compiler:
+    For example, that is how the travis continuous integration scripts get the protobuf compiler:
 
-```bash
-# Grab precompiled protobuf compiler v3.5.1
-curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
-# Drop directly in current working directory.
-unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
-PATH=$(pwd)/protoc3.5/bin:${PATH}
-```
+    ```bash
+    # Grab precompiled protobuf compiler v3.5.1
+    curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
+    # Drop directly in current working directory.
+    unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
+    PATH=$(pwd)/protoc3.5/bin:${PATH}
+    ```
 
 2. Prepare a virtual environment with the dev requirements.
 
-One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
-If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
+    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
+    If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
 
-```bash
-mkvirtualenv cirq-py3 --python=/usr/bin/pythp
-pip install --upgrade pip
-pip install -r dev-requirements.txt
-```
+    ```bash
+    mkvirtualenv cirq-py3 --python=/usr/bin/pythp
+    pip install --upgrade pip
+    pip install -r dev-requirements.txt
+    ```
 
 3. Check that the tests pass.
 
-```bash
-pytest .
-```
+    ```bash
+    pytest .
+    ```
 
-4. (**OPTIONAL**) your development copy of cirq in your python path.
+4. (**OPTIONAL**) include your development copy of cirq in your python path.
 
-```bash
-PYTHONPATH="$(pwd)":"${PYTHONPATH}"
-```
+    ```bash
+    PYTHONPATH="$(pwd)":"${PYTHONPATH}"
+    ```
 
 
 ### Running continuous integration checks locally
 
 There are two options, one easy/fast and the other slow/reliable.
 
-Run [continuous-integration/simple-check.sh](/continuous-integration/simple-check.sh) to invoke `pylint`, `mypy`, and `pytest` directly on your working directory.
+Run [continuous-integration/simple_check.sh](/continuous-integration/simple_check.sh) to invoke `pylint`, `mypy`, and `pytest` directly on your working directory.
 This check does not attempt to ensure your test environment is up to date, and it does not transpile and test the python 2 code.
 
 ```bash
-bash continuous-integration/simple-check.sh
+bash continuous-integration/simple_check.sh
 ```
 
 Run [continuous-integration/check.sh](/continuous-integration/check.sh) to run the checks inside a temporary fresh virtual environment and to also transpile and test the python 2 code. 
@@ -108,10 +108,10 @@ The script does nothing if the output directory already exists.
     `pip` will choose between the two based on whichever version of python the user is using.
     Development versions end with `.dev35` and `.dev27` instead of `.35` and `.27`, e.g. use `0.0.4.dev27` for the python 2 variant of the development version of `0.0.4`.
 
-2. Run [dev_tools/prepare-package.sh](/dev_tools/prepare-package.sh) to produce pypi artifacts.
+2. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
 
     ```bash
-    bash dev_tools/prepare-package.sh
+    bash dev_tools/produce-package.sh
     ```
 
 The output files will be placed in `dist/`, from which they can be uploaded to pypi with a tool such as `twine`.
