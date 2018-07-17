@@ -341,6 +341,16 @@ class ParameterizableEffect(metaclass=abc.ABCMeta):
 
 
 class QasmOutputArgs(string.Formatter):
+    """
+    Attributes:
+        precision: The number of digits after the decimal to show for numbers in
+            the text diagram.
+        version: The QASM version to output.  QasmConvertableGate/Operation may
+            return different text depending on version.
+        qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
+        meas_key_id_map: A dictionary mapping measurement keys to creg QASM
+            identifiers.
+    """
     def __init__(self,
                  precision: int = 10,
                  version: str = '2.0',
