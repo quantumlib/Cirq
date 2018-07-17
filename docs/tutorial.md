@@ -44,7 +44,7 @@ and exploring this class of algorithms is a key part of research
 for [noisy intermediate scale quantum computers](https://arxiv.org/abs/1801.00862).
 
 The classical problem we will focus on is the 2D +/- Ising model with
-transverse field ([ISING](http://iopscience.iop.org/article/10.1088/0305-4470/15/10/028/meta).
+transverse field ([ISING](http://iopscience.iop.org/article/10.1088/0305-4470/15/10/028/meta)).
 This problem is NP-complete so it is highly unlikely that 
 quantum computers will be able to efficiently solve it
 across all instances.  Yet this type of problem is illustrative of 
