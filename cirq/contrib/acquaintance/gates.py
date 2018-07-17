@@ -73,9 +73,11 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
         op_sort_key = (lambda op:
                 qubit_to_position[min(op.qubits, key=qubit_to_position.get)] %
                 self.acquaintance_size)
-        post_layer = [] # type: List[Operation]
+        posterior_interstitial_layer = [] # type: List[Operation]
         for layer_num in range(n_parts):
-            pre_layer, layer, post_layer = post_layer, [], []
+            prior_interstitial_layer = posterior_interstitial_layer
+            layer = []
+            posterior_interstitial_layer = []
             for i in range(layer_num % 2, n_parts - 1, 2):
                 left_part, right_part = parts[i:i+2]
                 parts_qubits = left_part + right_part
@@ -86,7 +88,7 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                 if max(multiplicities) != self.acquaintance_size - 1:
                     layer.append(shift)
                 elif self.acquaintance_size == 2:
-                    pre_layer.append(ACQUAINT(*parts_qubits))
+                    prior_interstitial_layer.append(ACQUAINT(*parts_qubits))
                     layer.append(shift)
                 else:
                     if self.acquaintance_size > 3:
@@ -94,22 +96,24 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                     layer.append(shift)
                     if multiplicities[0] == self.acquaintance_size - 1:
                         pre_qubits = parts_qubits[:self.acquaintance_size]
-                        pre_layer.append(ACQUAINT(*pre_qubits))
+                        prior_interstitial_layer.append(ACQUAINT(*pre_qubits))
                         post_qubits = parts_qubits[-self.acquaintance_size:]
-                        post_layer.append(ACQUAINT(*post_qubits))
+                        posterior_interstitial_layer.append(
+                                ACQUAINT(*post_qubits))
                     if multiplicities[1] == self.acquaintance_size - 1:
                         pre_qubits = parts_qubits[-self.acquaintance_size:]
-                        pre_layer.append(ACQUAINT(*pre_qubits))
+                        prior_interstitial_layer.append(ACQUAINT(*pre_qubits))
                         post_qubits = parts_qubits[:self.acquaintance_size]
-                        post_layer.append(ACQUAINT(*post_qubits))
+                        posterior_interstitial_layer.append(
+                                ACQUAINT(*post_qubits))
 
                 parts[i] = parts_qubits[:multiplicities[1]]
                 parts[i + 1] = parts_qubits[multiplicities[1]:]
-            pre_layer.sort(key=op_sort_key)
-            yield pre_layer
+            prior_interstitial_layer.sort(key=op_sort_key)
+            yield prior_interstitial_layer
             yield layer
-        post_layer.sort(key=op_sort_key)
-        for op in post_layer:
+        posterior_interstitial_layer.sort(key=op_sort_key)
+        for op in posterior_interstitial_layer:
             yield op
         for part in parts:
             if len(part) > 1:

@@ -15,10 +15,13 @@
 from typing import Dict, Sequence, Any
 
 from cirq import abc
-from cirq.ops import CompositeGate, Gate
+from cirq.ops import CompositeGate, Gate, QubitId, OP_TREE, SWAP
 
 class PermutationGate(Gate, CompositeGate, metaclass=abc.ABCMeta):
     """Permutation gate."""
+
+    def __init__(self, swap_gate: Gate=SWAP) -> None:
+        self.swap_gate = swap_gate
 
     @abc.abstractmethod
     def permutation(self, qubit_count: int) -> Dict[int, int]:
@@ -37,8 +40,32 @@ class PermutationGate(Gate, CompositeGate, metaclass=abc.ABCMeta):
         for i, e in enumerate(elements):
             mapping[e] = permuted_elements[i]
 
+class SwapPermutationGate(PermutationGate):
+    """Generic swap gate."""
+
+    def permutation(self, qubit_count: int) -> Dict[int, int]:
+        return {0: 1, 1: 0}
 
 class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
         sorting network."""
-    pass
+
+    def __init__(self,
+                 permutation: Dict[int, int],
+                 swap_gate: Gate=SWAP
+                 ) -> None:
+        self._permutation = permutation
+        self.swap_gate = swap_gate
+
+    def permutation(self, qubit_count: int) -> Dict[int, int]:
+        return self._permutation
+
+    def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
+        swap_gate = SwapPermutationGate(self.swap_gate)
+        n_qubits = len(qubits)
+        mapping = {i: self._permutation.get(i, i) for i in range(n_qubits)}
+        for layer_index in range(n_qubits):
+            for i in range(layer_index % 2, n_qubits - 1, 2):
+                if mapping[i] > mapping[i + 1]:
+                    yield swap_gate(*qubits[i:i+2])
+                    mapping[i], mapping[i+1] = mapping[i+1], mapping[i]

@@ -17,8 +17,8 @@ from functools import partial
 from operator import ne
 from typing import Sequence
 
-from cirq.circuits import Circuit, Moment, ExpandComposite, InsertStrategy
-from cirq.ops import QubitId, OP_TREE, GateOperation
+from cirq.circuits import Circuit, Moment, ExpandComposite
+from cirq.ops import QubitId, GateOperation
 from cirq.contrib.acquaintance.gates import (
      SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
@@ -51,7 +51,7 @@ class AcquaintanceStrategy(Circuit):
                                     key=partial(ne, last_gate_type)):
                 rectified_moments.append(Moment(gate_type_to_ops[gate_type]))
                 last_gate_type = gate_type
-        self.moments = rectified_moments
+        self._moments = rectified_moments
 
     def nest(self, qubit_order: Sequence[QubitId], acquaintance_size: int=0
             ) -> bool:
@@ -66,15 +66,9 @@ class AcquaintanceStrategy(Circuit):
                 swap_network_gate = SwapNetworkGate.from_operations(
                         qubit_order, moment.operations, acquaintance_size)
                 swap_network_op = swap_network_gate(*qubit_order)
-                self.moments[moment_index] = Moment([swap_network_op])
+                self._moments[moment_index] = Moment([swap_network_op])
                 reflected = not reflected
         return reflected
-
-    @staticmethod
-    def from_ops(*operations: OP_TREE,
-                 strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE
-                 ) -> 'AcquaintanceStrategy':
-        return AcquaintanceStrategy(Circuit.from_ops(*operations))
 
     def acquaintance_size(self) -> int:
         return max(len(op.qubits) for op in self.all_operations()
@@ -90,7 +84,8 @@ def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
     elif acquaintance_size == 0:
         return AcquaintanceStrategy()
 
-    strategy = AcquaintanceStrategy.from_ops(ACQUAINT(q) for q in qubit_order)
+    strategy = AcquaintanceStrategy(
+            Circuit.from_ops(ACQUAINT(q) for q in qubit_order))
     is_shift = lambda op: isinstance(op.gate, CircularShiftGate)
     expand = ExpandComposite(no_decomp=is_shift)
     for size_to_acquaint in range(2, acquaintance_size + 1):

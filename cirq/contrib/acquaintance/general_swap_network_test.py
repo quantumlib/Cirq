@@ -77,7 +77,6 @@ f: ─────────────────█───────�
 
     expander(swap_network)
     actual_text_diagram = swap_network.to_text_diagram().strip()
-    print(actual_text_diagram)
     expected_text_diagram = """
 a: ───╲0╱─────────╲0╱─────────╲0╱─────────
       │           │           │

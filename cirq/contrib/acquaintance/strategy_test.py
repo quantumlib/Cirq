@@ -37,7 +37,7 @@ def test_complete_acquaintance_strategy():
         _ = complete_acquaintance_strategy(qubits, -1)
 
     empty_strategy = complete_acquaintance_strategy(qubits)
-    assert empty_strategy.moments == []
+    assert empty_strategy._moments == []
 
     trivial_strategy = complete_acquaintance_strategy(qubits[:4], 1)
     actual_text_diagram = trivial_strategy.to_text_diagram().strip()
