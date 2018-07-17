@@ -247,7 +247,7 @@ def test_phases_partial_ws():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(axis_half_turns=0.25, half_turns=0.5).on(q)],
+            [cg.ExpWGate(axis_half_turns=-0.25, half_turns=0.5).on(q)],
             [cg.ExpWGate().on(q)],
         ))
 
@@ -258,7 +258,7 @@ def test_phases_partial_ws():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(axis_half_turns=-0.5, half_turns=0.5).on(q)],
+            [cg.ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(q)],
             [cg.ExpWGate(axis_half_turns=0.25).on(q)],
         ))
 
@@ -271,6 +271,17 @@ def test_phases_partial_ws():
             [],
             [cg.ExpWGate(half_turns=0.75).on(q)],
             [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+        ))
+
+    assert_optimizes(
+        before=quick_circuit(
+            [cg.ExpWGate().on(q)],
+            [cg.ExpWGate(half_turns=-0.25, axis_half_turns=0.5).on(q)]
+        ),
+        expected=quick_circuit(
+            [],
+            [cg.ExpWGate(half_turns=-0.25, axis_half_turns=-0.5).on(q)],
+            [cg.ExpWGate().on(q)],
         ))
 
 
