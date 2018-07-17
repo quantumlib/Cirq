@@ -1920,21 +1920,20 @@ def test_push_frontier_random_circuit():
                         circuit._moments[early_frontier[q]])
 
 
-def test_insert_operations_random_circuits():
-    qubits = tuple(cirq.NamedQubit(s) for s in alphabet[:10])
-    n_moments = 10
-    op_density = 0.5
-    for _ in range(20):
-        circuit = random_circuit(qubits, n_moments, op_density)
-        operations, insert_indices = [], []
-        for moment_index, moment in enumerate(circuit):
-            for op in moment.operations:
-                operations.append(op)
-                insert_indices.append(moment_index)
-        other_circuit = Circuit([Moment() for _ in range(n_moments)])
-        other_circuit._insert_operations(operations, insert_indices)
-        print(circuit)
-        assert circuit == other_circuit
+@pytest.mark.parametrize('circuit',
+    [random_circuit(
+        tuple(cirq.NamedQubit(s) for s in alphabet[:10]), 10, 0.5)
+     for _ in range(20)])
+def test_insert_operations_random_circuits(circuit):
+    n_moments = len(circuit)
+    operations, insert_indices = [], []
+    for moment_index, moment in enumerate(circuit):
+        for op in moment.operations:
+            operations.append(op)
+            insert_indices.append(moment_index)
+    other_circuit = Circuit([Moment() for _ in range(n_moments)])
+    other_circuit._insert_operations(operations, insert_indices)
+    assert circuit == other_circuit
 
 
 def test_insert_operations_errors():
