@@ -15,9 +15,6 @@ from typing import Iterable
 
 import cirq
 import cirq.google as cg
-from cirq.google.eject_z_test import (
-    assert_equivalent_circuit_up_to_measurement_phase,
-)
 
 
 def assert_optimizes(before: cirq.Circuit,
@@ -30,9 +27,8 @@ def assert_optimizes(before: cirq.Circuit,
 
     # They should have equivalent effects.
     if check_equivalent_matrices:
-        assert_equivalent_circuit_up_to_measurement_phase(circuit,
-                                                          expected,
-                                                          1e-8)
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            circuit, expected, 1e-8)
 
     # And match the expected circuit.
     if circuit != expected:
