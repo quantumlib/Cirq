@@ -60,7 +60,7 @@ and the <i,j> notation means sums over neighboring bits on this lattice.
 The problem we would like to solve is, given J<sub>i,j</sub>, and h<sub>i</sub>,
 find an assignment of s<sub>i</sub> values that minimize E.
 
-What does a variational quantum algorithm work for this? One approach is
+How does a variational quantum algorithm work for this? One approach is
 to consider `n` qubits and associate them with each of the bits in the 
 classical problem.  This maps the classical problem onto the quantum problem
 of minimizing the expectation value of the observable
@@ -79,15 +79,14 @@ possible).
 
 The variational algorithm then proceeds by
 1. Prepare the ansatz state.
-2. Make a measurement which samples from terms in H.
+2. Make a measurement which samples from some terms in H.
+3. Repeat 1.
 Note that one cannot always measure H directly (without
 the use of quantum phase estimation), so one often relies
 on the linearity of expectation values to measure parts of
-H and then by repeating the steps above one can estimate 
-the expectation value of these terms which can then be added.
-In particular one always needs to repeat 1 and 2 to make
-an estimate of the expectation value. How many measurements
-to make to achieve a given accuracy is beyond the scope of 
+H in step 2. One always needs to repeat the measurements to
+obtain an estimate of the expectation value. How many measurements
+needed to achieve a given accuracy is beyond the scope of 
 this tutorial, but Cirq can help investigate this question. 
 
 ### Create a circuit on a Grid
@@ -95,16 +94,17 @@ this tutorial, but Cirq can help investigate this question.
 To build the above variational quantum algorithm using Cirq, 
 one begins by building the appropriate [circuit](circuits.md).
 In Cirq circuits are represented either by a `Circuit` object
-or a `Schedule` object. `Schedule`s are for more control of
-quantum gates and circuits at the timing level, so here
-we will work with a `Circuit.`
+or a `Schedule` object.  `Schedule`s offer more control over 
+quantum gates and circuits at the timing level, which we do not 
+need, so here we will work with `Circuit`s instead.
 
 Conceptually: a `Circuit` is a collection of ``Moments``. A
 `Moment` is a collection of ``Operations`` that all act during
 the same abstract time slice. An `Operation` is a
-some effect that operates on a specific subset of ``Qubits``,
-the most common type of `Operation` is a `GateOperation`.
-The following diagram should help illustrate these concepts.
+some effect that operates on a specific subset of ``Qubits``.
+The most common type of `Operation` is a `Gate` applied 
+to several qubits (a `GateOperation`). The following diagram 
+should help illustrate these concepts.
 
 ![Circuits and Moments](CircuitMomentOperation.png)
 
@@ -135,7 +135,7 @@ Here we see that we've created a bunch of `GridQubit`s.
 that they are equatable and hashable. `GridQubit`s in addition
 have a row and column, indicating their position on a grid. 
 
-Having some qubits, let us construct a `Circuit` on these qubits.
+Now that we have some qubits, let us construct a `Circuit` on these qubits.
 For example, suppose we want to apply the Hadamard gate `H` to
 every qubit whose row index plus column index is even and `X` to
 every qubit whose row index plus column index is odd.  To
@@ -166,12 +166,12 @@ print(circuit)
 ```
 One thing to notice here.  First `cirq.X` is a `Gate` object. There
 are many different gates supported by Cirq. A good place to look
-at gates that are defined is in (common_gates.py)[/cirq/circuits/common_gates.py].
+at gates that are defined is in [common_gates.py](/cirq/circuits/common_gates.py).
 One common confusion to avoid is the difference between a gate class 
 and a gate object (which is an instantiation of a class).  The second is that gate
 objects are transformed into `Operation`s (technically `GateOperation`s)
 via either the method `on(qubit)` or, as we see for the `X` gates, via simply
-applying the gate to the qubits `(qubit)`. Here we only apply to single
+applying the gate to the qubits `(qubit)`. Here we only apply single
 qubit gates, but a similar pattern applies for multiple qubits, but now a 
 sequence of qubits should be supplied as parameters. 
 
@@ -189,7 +189,7 @@ Here we see that we can iterate over a `Circuit`'s `Moment`s. The reason
 that two `Moment`s were created was that the `append` method uses an
 `InsertStrategy` of `NEW_THEN_INLINE`. `InsertStrategy`s describe
 how new insertions into `Circuit`s place their gates. Details of these
-strategies can be found in the (circuit documentation)[circuits.md].  If
+strategies can be found in the [circuit documentation](/docs/circuits.md).  If
 we wanted to insert the gates so that they form one `Moment`, we could 
 instead use the `EARLIEST` insertion strategy:
 ```python
@@ -225,7 +225,7 @@ over to act at the earliest `Moment` they can.
 If you look closely at the circuit creation code above you will see that
 we applied the `append` method to both a `tuple` and a `list` (recall that
 in python one can use generator comprehensions in method calls).  
-Inspecting the (code)[/cirq/circuits/circuit.py] for append on sees that in
+Inspecting the [code](/cirq/circuits/circuit.py) for append on sees that in
 the append method generally takes an `OP_TREE` (or a `Moment`).  What is
 an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE` 
 is anything that can be flattened, perhaps recursively, into a list 
@@ -384,7 +384,7 @@ values (0.1, 0.2, 0.3).
 
 ### Simulation
 
-Now lets see how to use the simulate the circuit corresponding
+Now lets see how simulate the circuit corresponding
 to creating our ansatz.  In Cirq the simulators make a distinction
 between a "run" and a "simulation". A "run" only allows for a 
 simulation that mimics the actual quantum hardware.  For example,
@@ -392,7 +392,7 @@ it does not allow for access to the amplitudes of the wave function
 of the system, since that is not experimentally accessible.
 "Simulate" commands, however, are more broad and allow different forms
 of simulation.  When prototyping small circuits it is useful to 
-execute "simulate" methods, but one should be weary of relying on
+execute "simulate" methods, but one should be wary of relying on
 them when run against actual hardware.
 
 Currently Cirq ships with a simulator tied strongly to the gate
@@ -508,7 +508,7 @@ print(circuit)
 Note now that the circuit's gates are parameterized.
 
 Parameters are specified at run time using a `ParamResolver` which is
-just a string key for the `Symbol` to it's value. For example,
+which is just a dictionary from `Symbol` keys to runtime values. For example,
 ```python
 resolver = cirq.ParamResolver({'alpha': 0.1, 'beta': 0.3, 'gamma': 0.7})
 resolved_circuit = circuit.with_parameters_resolved_by(resolver)
