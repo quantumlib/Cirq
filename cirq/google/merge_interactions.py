@@ -79,7 +79,7 @@ class MergeInteractions(PointOptimizer):
     def _op_to_matrix(self,
                       op: Optional[ops.Operation],
                       qubits: Tuple[ops.QubitId, ...]
-                      ) -> Optional[Tuple[np.ndarray, bool]]:
+                      ) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
         The operation must be a 1-qubit operation on one of the given qubits,
@@ -99,18 +99,18 @@ class MergeInteractions(PointOptimizer):
         q1, q2 = qubits
 
         known = self.extensions.try_cast(ops.KnownMatrix, op)
-        if known is None:
+        if known is None or op is None:
             return None
         m = known.matrix()
 
         if op.qubits == qubits:
-            return m, True
+            return m
         if op.qubits == (q2, q1):
-            return MergeInteractions._flip_kron_order(m), True
+            return MergeInteractions._flip_kron_order(m)
         if op.qubits == (q1,):
-            return np.kron(m, np.eye(2)), False
+            return np.kron(m, np.eye(2))
         if op.qubits == (q2,):
-            return np.kron(np.eye(2), m), False
+            return np.kron(np.eye(2), m)
 
         return None
 
@@ -153,9 +153,9 @@ class MergeInteractions(PointOptimizer):
             if any(e is None for e in op_data):
                 break
             present_ops = [op for op in operations if op]
-            present_op_data = cast(List[Tuple[np.ndarray, bool]], op_data)
+            present_op_data = cast(List[Tuple[np.ndarray]], op_data)
 
-            for op_mat, interacts in present_op_data:
+            for op_mat, _ in present_op_data:
                 product = np.dot(op_mat, product)
             all_operations.extend(present_ops)
 
