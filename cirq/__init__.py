@@ -39,6 +39,7 @@ from cirq.circuits import (
     PointOptimizationSummary,
     PointOptimizer,
     TextDiagramDrawer,
+    QasmOutput,
 )
 
 from cirq.devices import (
