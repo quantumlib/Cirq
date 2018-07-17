@@ -27,12 +27,12 @@ def test_temp_file():
 
     assert contents == 'Hello!\n'
 
-    with pytest.raises(OSError):
+    with pytest.raises(IOError):
         # Can't open the file because it's deleted
         with open(file_path, 'r'):
             pass
 
-    with pytest.raises(OSError):
+    with pytest.raises(IOError):
         # Can't create a file because the directory is gone
         with open(file_path, 'w'):
             pass

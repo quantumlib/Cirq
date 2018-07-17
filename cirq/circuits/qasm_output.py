@@ -52,7 +52,7 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertableGate):
                           args: ops.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         return args.format(
-                'u3({:half_turns},{:half_turns},{:half_turns}) {};\n',
+                'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
                 self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
@@ -120,9 +120,14 @@ class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
         yield self.after0(q0)
         yield self.after1(q1)
 
+    def __repr__(self) -> str:
+        return 'QasmTwoQubitGate({}, {}, {}, {}, {}, {}, {})'.format(
+                self.before0, self.before1, self.x, self.y, self.z,
+                self.after0, self.after1)
+
 
 class QasmOutput:
-    valid_id_re = re.compile('[a-z][a-zA-Z0-9_]*', re.ASCII)
+    valid_id_re = re.compile('[a-z][a-zA-Z0-9_]*\Z')
 
     def __init__(self,
                  operations: ops.OP_TREE,
@@ -150,10 +155,10 @@ class QasmOutput:
                                        meas_key_id_map=meas_key_id_map)
 
     def _generate_measurement_ids(self
-                                  ) -> Tuple[Dict[str, str], Dict[str, str]]:
+            ) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map = {}  # type: Dict[str, str]
-        meas_comments = {}  # type: Dict[str, str]
+        meas_comments = {}  # type: Dict[str, Optional[str]]
         meas_i = 0
         for meas in self.measurements:
             key = cast(ops.MeasurementGate, meas.gate).key
@@ -161,7 +166,7 @@ class QasmOutput:
                 continue
             meas_id = 'm_{}'.format(key)
             if self.is_valid_qasm_id(meas_id):
-                meas_comments[key] = ''
+                meas_comments[key] = None
             else:
                 meas_id = 'm{}'.format(meas_i)
                 meas_i += 1
@@ -174,7 +179,7 @@ class QasmOutput:
 
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
-        return self.valid_id_re.fullmatch(id_str) != None
+        return self.valid_id_re.match(id_str) != None
 
     def save(self, path: Union[str, bytes, int]) -> None:
         """Write QASM output to a file specified by path."""
@@ -230,11 +235,11 @@ class QasmOutput:
             already_output_keys.add(key)
             meas_id = self.args.meas_key_id_map[key]
             comment = self.meas_comments[key]
-            if comment:
-                output('creg {}[{}];  // Measurement: {}\n'.format(
-                            meas_id, comment, len(meas.qubits)))
-            else:
+            if comment is None:
                 output('creg {}[{}];\n'.format(meas_id, len(meas.qubits)))
+            else:
+                output('creg {}[{}];  // Measurement: {}\n'.format(
+                            meas_id, len(meas.qubits), comment))
         output_line_gap(2)
 
         # Operations

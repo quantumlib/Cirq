@@ -190,7 +190,7 @@ class Exp11Gate(XmonGate,
         if self.half_turns != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
-        return args.format('cz {},{};\n', qubits[0], qubits[1])
+        return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
     def __str__(self):
         if self.half_turns == 1:
@@ -465,7 +465,7 @@ class ExpZGate(XmonGate,
                           args: ops.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         if self.half_turns == 1:
-            return args.format('z {};\n', qubits[0])
+            return args.format('z {0};\n', qubits[0])
         else:
             return args.format('rz({:half_turns}) {};\n',
                                self.half_turns, qubits[0])

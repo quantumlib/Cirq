@@ -73,9 +73,9 @@ class _CCZGate(gate_features.ThreeQubitGate,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         lines = [
-            args.format('h {};\n', qubits[2]),
-            args.format('ccx {},{},{};\n', qubits[0], qubits[1], qubits[2]),
-            args.format('h {};\n', qubits[2])]
+            args.format('h {0};\n', qubits[2]),
+            args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2]),
+            args.format('h {0};\n', qubits[2])]
         return ''.join(lines)
 
     def __repr__(self) -> str:
@@ -111,7 +111,8 @@ class _CCXGate(gate_features.ThreeQubitGate,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        return args.format('ccx {},{},{};\n', qubits[0], qubits[1], qubits[2])
+        return args.format('ccx {0},{1},{2};\n',
+                           qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
         return 'TOFFOLI'
@@ -159,7 +160,8 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        return args.format('cswap {},{},{};\n', qubits[0], qubits[1], qubits[2])
+        return args.format('cswap {0},{1},{2};\n',
+                           qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
         return 'FREDKIN'
