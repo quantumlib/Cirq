@@ -15,10 +15,6 @@
 """A combination of several optimizations targeting XmonDevice."""
 
 from cirq import circuits
-from cirq.circuits import (
-    drop_negligible,
-    drop_empty_moments,
-)
 from cirq.google import (
     convert_to_xmon_gates,
     merge_rotations,
@@ -36,25 +32,27 @@ _OPTIMIZERS = [
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
-    drop_negligible.DropNegligible(tolerance=_TOLERANCE),
-    drop_empty_moments.DropEmptyMoments(),
+    circuits.DropNegligible(tolerance=_TOLERANCE),
 ]
 
 
-def optimize_for_xmon(circuit: circuits.Circuit) -> None:
-    """Applies a series of optimizations to the circuit with XmonDevice in mind.
+def optimized_for_xmon(circuit: circuits.Circuit) -> circuits.Circuit:
+    """Optimizes a circuit with XmonDevice in mind.
 
     Starts by converting the circuit's operations to the xmon gate set, then
     begins merging interactions and rotations, ejecting pi-rotations and phasing
-    operations, and dropping unnecessary operations.
+    operations, dropping unnecessary operations, and pushing operations earlier.
 
     Args:
         circuit: The circuit to optimize.
+
+    Returns:
+        The optimized circuit.
     """
     copy = circuit.copy()
     for optimizer in _OPTIMIZERS:
         optimizer.optimize_circuit(copy)
 
-    circuit[:] = []
-    circuit.append(copy.all_operations(),
-                   strategy=circuits.InsertStrategy.EARLIEST)
+    return circuits.Circuit().from_ops(
+        copy.all_operations(),
+        strategy=circuits.InsertStrategy.EARLIEST)

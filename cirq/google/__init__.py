@@ -45,7 +45,7 @@ from cirq.google.xmon_gate_extensions import (
     xmon_gate_ext,
 )
 from cirq.google.optimize import (
-    optimize_for_xmon,
+    optimized_for_xmon,
 )
 from cirq.google.xmon_gates import (
     Exp11Gate,

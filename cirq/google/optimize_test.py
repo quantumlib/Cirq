@@ -15,8 +15,11 @@
 import pytest
 
 import cirq
+import cirq.google as cg
 
-from cirq.google.eject_z_test import canonicalize_up_to_terminal_measurement_phase
+from cirq.google.eject_z_test import (
+    assert_equivalent_circuit_up_to_measurement_phase,
+)
 
 
 @pytest.mark.parametrize('n,d', [
@@ -34,14 +37,22 @@ def test_swap_field(n: int, d: int):
     )
     before.append(cirq.measure(*before.all_qubits()))
 
-    after = before.copy()
-    cirq.google.optimize_for_xmon(after)
+    after = cg.optimized_for_xmon(before)
 
-    if n <= 5:
-        m1, m2 = canonicalize_up_to_terminal_measurement_phase(before, after)
-        cirq.testing.assert_allclose_up_to_global_phase(
-            m1,
-            m2,
-            atol=1e-4
-        )
     assert len(after) == d*4 + 2
+    if n <= 5:
+        assert_equivalent_circuit_up_to_measurement_phase(before,
+                                                          after,
+                                                          atol=1e-4)
+
+
+def test_ccz():
+    before = cirq.Circuit.from_ops(
+        cirq.CCZ(cirq.GridQubit(5, 5),
+                 cirq.GridQubit(5, 6),
+                 cirq.GridQubit(5, 7)))
+
+    after = cg.optimized_for_xmon(before)
+
+    assert len(after) <= 22
+    assert_equivalent_circuit_up_to_measurement_phase(before, after, atol=1e-4)
