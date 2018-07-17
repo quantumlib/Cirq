@@ -1319,11 +1319,18 @@ def _apply_unitary_operation(state: np.ndarray,
     work_indices = tuple(range(k))
     data_indices = tuple(range(k, k + d))
     used_data_indices = tuple(data_indices[q] for q in target_axes)
+    input_indices = work_indices + used_data_indices
     output_indices = list(data_indices)
     for w, t in zip(work_indices, target_axes):
         output_indices[t] = w
 
-    return np.einsum(matrix, work_indices + used_data_indices,
+    all_indices = set(input_indices + data_indices + tuple(output_indices))
+
+    return np.einsum(matrix, input_indices,
                      state, data_indices,
                      output_indices,
-                     out=out)
+                     out=out,
+                     # Note: this is a workaround for a bug in numpy:
+                     #     https://github.com/numpy/numpy/issues/10926
+                     # Turning optimize on actually makes things slower.
+                     optimize=len(all_indices) >= 26)
