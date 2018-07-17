@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Dict, Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
+    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
 )
 
 import numpy as np

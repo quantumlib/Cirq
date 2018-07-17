@@ -14,17 +14,15 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
+from typing import Set  # pylint: disable=unused-import
 from typing import (
-    Any, Callable, Dict, List, Optional, Sequence, Set, TextIO, Tuple, Union,
-    cast
+    Callable, Dict, Optional, Sequence, Tuple, Union, cast
 )
 
-import string
 import re
 import numpy as np
 
 from cirq import ops, linalg, extension
-from cirq.extension import Extensions
 
 
 class QasmUGate(ops.SingleQubitGate, ops.QasmConvertableGate):

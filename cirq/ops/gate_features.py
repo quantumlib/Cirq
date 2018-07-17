@@ -25,7 +25,6 @@ import numpy as np
 from cirq import abc
 from cirq.ops import op_tree
 from cirq.ops import raw_types
-from cirq.ops import qubit_order
 from cirq.study import ParamResolver
 
 
@@ -345,13 +344,14 @@ class QasmOutputArgs(string.Formatter):
     def __init__(self,
                  precision: int = 10,
                  version: str = '2.0',
-                 qubit_id_map: Dict[raw_types.QubitId, str] = {},
-                 meas_key_id_map: Dict[str, str] = {},
+                 qubit_id_map: Dict[raw_types.QubitId, str] = None,
+                 meas_key_id_map: Dict[str, str] = None,
                  ) -> None:
         self.precision = precision
         self.version = version
-        self.qubit_id_map = qubit_id_map
-        self.meas_key_id_map = meas_key_id_map
+        self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
+        self.meas_key_id_map = ({} if meas_key_id_map is None
+                                   else meas_key_id_map)
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
