@@ -34,7 +34,7 @@ from cirq import devices, ops, extension, study
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.circuits.circuit_to_qasm import QasmOutput
+from cirq.circuits.qasm_output import QasmOutput
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
