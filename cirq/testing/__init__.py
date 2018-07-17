@@ -14,6 +14,9 @@
 
 """Utilities for testing code."""
 
+from cirq.testing.circuit_compare import (
+    assert_circuits_with_terminal_measurements_are_equivalent,
+)
 from cirq.testing.equals_tester import (
     EqualsTester,
 )
@@ -24,6 +27,12 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
     assert_allclose_up_to_global_phase,
 )
+from cirq.testing.random_circuit import (
+    random_circuit,
+)
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
+)
+from cirq.testing.file_tester import (
+    TempFilePath,
 )
