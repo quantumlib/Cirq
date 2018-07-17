@@ -14,7 +14,6 @@
 
 from collections import defaultdict
 from random import randint, random, sample, randrange, seed
-from string import ascii_lowercase as alphabet
 
 import numpy as np
 import pytest
@@ -1919,18 +1918,18 @@ def test_push_frontier_random_circuit():
                 assert (orig_moments[orig_early_frontier[q]] ==
                         circuit._moments[early_frontier[q]])
 
-def test_insert_operations_random_circuits():
-    qubits = tuple(cirq.NamedQubit(s) for s in alphabet[:10])
-    n_moments = 10
-    op_density = 0.5
-    circuit = random_circuit(qubits, n_moments, op_density)
+
+@pytest.mark.parametrize('circuit',
+    [random_circuit(cirq.LineQubit.range(10), 10, 0.5)
+     for _ in range(20)])
+def test_insert_operations_random_circuits(circuit):
+    n_moments = len(circuit)
     operations, insert_indices = [], []
-#   remove_prob = 0.7
     for moment_index, moment in enumerate(circuit):
         for op in moment.operations:
             operations.append(op)
             insert_indices.append(moment_index)
-    other_circuit = Circuit()
+    other_circuit = Circuit([Moment() for _ in range(n_moments)])
     other_circuit._insert_operations(operations, insert_indices)
     assert circuit == other_circuit
 
