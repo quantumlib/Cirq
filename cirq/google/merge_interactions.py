@@ -25,9 +25,8 @@ from cirq.circuits import (
     PointOptimizationSummary,
 )
 from cirq.extension import Extensions
+from cirq.google import convert_to_xmon_gates
 from cirq.google.decompositions import two_qubit_matrix_to_native_gates
-from cirq.google.merge_rotations import MergeRotations
-from cirq.google.eject_full_w import EjectFullW
 from cirq.google.xmon_gates import XmonGate
 
 
@@ -68,10 +67,14 @@ class MergeInteractions(PointOptimizer):
         if not keep:
             return None
 
+        converter = convert_to_xmon_gates.ConvertToXmonGates()
+        new_xmon_operations = [converter.convert(op)
+                               for op in new_operations]
+
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=new_operations)
+            new_operations=new_xmon_operations)
 
     def _op_to_matrix(self,
                       op: Optional[ops.Operation],

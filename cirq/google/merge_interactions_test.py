@@ -55,31 +55,29 @@ def assert_optimization_not_broken(circuit):
 
 
 def test_clears_paired_cnot():
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
+    a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.CNOT(q0, q1)]),
-            cirq.Moment([cirq.CNOT(q0, q1)]),
+            cirq.Moment([cirq.CNOT(a, b)]),
+            cirq.Moment([cirq.CNOT(a, b)]),
         ]),
         expected=cirq.Circuit())
 
 
 def test_ignores_czs_separated_by_parameterized():
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
+    a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.CZ(q0, q1)]),
+            cirq.Moment([cirq.CZ(a, b)]),
             cirq.Moment([cg.ExpZGate(
-                half_turns=cirq.Symbol('boo'))(q0)]),
-            cirq.Moment([cirq.CZ(q0, q1)]),
+                half_turns=cirq.Symbol('boo'))(a)]),
+            cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cirq.CZ(q0, q1)]),
+            cirq.Moment([cirq.CZ(a, b)]),
             cirq.Moment([cg.ExpZGate(
-                half_turns=cirq.Symbol('boo'))(q0)]),
-            cirq.Moment([cirq.CZ(q0, q1)]),
+                half_turns=cirq.Symbol('boo'))(a)]),
+            cirq.Moment([cirq.CZ(a, b)]),
         ]))
 
 
@@ -101,46 +99,53 @@ def test_ignores_czs_separated_by_outer_cz():
 
 
 def test_cnots_separated_by_single_gates_correct():
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
+    a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
         cirq.Circuit.from_ops(
-            cirq.CNOT(q0, q1),
-            cirq.H(q1),
-            cirq.CNOT(q0, q1),
+            cirq.CNOT(a, b),
+            cirq.H(b),
+            cirq.CNOT(a, b),
         ))
 
 
 def test_czs_separated_by_single_gates_correct():
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
+    a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
         cirq.Circuit.from_ops(
-            cirq.CZ(q0, q1),
-            cirq.X(q1),
-            cirq.X(q1),
-            cirq.X(q1),
-            cirq.CZ(q0, q1),
+            cirq.CZ(a, b),
+            cirq.X(b),
+            cirq.X(b),
+            cirq.X(b),
+            cirq.CZ(a, b),
         ))
 
 
 def test_inefficient_circuit_correct():
     t = 0.1
     v = 0.11
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
+    a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
         cirq.Circuit.from_ops(
-            cirq.H(q1),
-            cirq.CNOT(q0, q1),
-            cirq.H(q1),
-            cirq.CNOT(q0, q1),
-            cirq.CNOT(q1, q0),
-            cirq.H(q0),
-            cirq.CNOT(q0, q1),
-            cirq.Z(q0)**t, cirq.Z(q1)**-t,
-            cirq.CNOT(q0, q1),
-            cirq.H(q0), cirq.Z(q1)**v,
-            cirq.CNOT(q0, q1),
-            cirq.Z(q0)**-v, cirq.Z(q1)**-v,
+            cirq.H(b),
+            cirq.CNOT(a, b),
+            cirq.H(b),
+            cirq.CNOT(a, b),
+            cirq.CNOT(b, a),
+            cirq.H(a),
+            cirq.CNOT(a, b),
+            cirq.Z(a)**t, cirq.Z(b)**-t,
+            cirq.CNOT(a, b),
+            cirq.H(a), cirq.Z(b)**v,
+            cirq.CNOT(a, b),
+            cirq.Z(a)**-v, cirq.Z(b)**-v,
         ))
+
+
+def test_optimizes_single_iswap():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.ISWAP(a, b))
+    assert_optimization_not_broken(c)
+    cg.MergeInteractions().optimize_circuit(c)
+    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
+    assert all(cg.XmonGate.is_xmon_op(op)
+               for op in c.all_operations())

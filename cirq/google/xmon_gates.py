@@ -411,6 +411,7 @@ class ExpZGate(XmonGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
+               ops.BoundedEffect,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
