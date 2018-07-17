@@ -21,7 +21,7 @@ the initial repository cloning command) assume you are at the cirq repo root.
     You can install most other dependencies via `apt-get`:
 
     ```bash
-    cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install
+    cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install --yes
     ```
 
     Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is required but not installable via `apt-get`.
@@ -52,6 +52,8 @@ the initial repository cloning command) assume you are at the cirq repo root.
     pip install --upgrade pip
     pip install -r dev-requirements.txt
     ```
+
+    (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
 
 3. Check that the tests pass.
 
