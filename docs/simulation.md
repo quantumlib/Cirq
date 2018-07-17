@@ -230,9 +230,6 @@ for y in range(5):
 ```
 Here we see that the ``Symbol`` is used in two gates, and then the resolver
 provide this value at run time.
-Also note that we now see the use of the ``TrialContext`` returned as the first
-tuple from ``run``: it contains the ``param_dict`` describing what values were
-actually used in resolving the ``Symbol``s.
 
 Parameterized values are most useful in defining what we call a
 ``Study``.  A ``Study`` is a collection of trials, where each 
@@ -262,6 +259,9 @@ for result in results:
 where we see that different repetitions for the case that the
 qubit has been rotated into a superposition over computational
 basis states yield different measurement results per run.
+Also note that we now see the use of the ``TrialContext`` returned as the first
+tuple from ``run``: it contains the ``param_dict`` describing what values were
+actually used in resolving the ``Symbol``s.
 
 TODO(dabacon): Describe the iterable of parameterized resolvers
 supported by Google's API. 
