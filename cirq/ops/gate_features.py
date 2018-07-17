@@ -17,8 +17,9 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Optional, Sequence, Tuple, Iterable, TypeVar, Any
+from typing import Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar
 
+import string
 import numpy as np
 
 from cirq import abc
@@ -337,3 +338,65 @@ class ParameterizableEffect(metaclass=abc.ABCMeta):
         Returns a gate or operation of the same type, but with all Symbols
         replaced with floats according to the given ParamResolver.
         """
+
+
+class QasmOutputArgs(string.Formatter):
+    """
+    Attributes:
+        precision: The number of digits after the decimal to show for numbers in
+            the text diagram.
+        version: The QASM version to output.  QasmConvertableGate/Operation may
+            return different text depending on version.
+        qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
+        meas_key_id_map: A dictionary mapping measurement keys to creg QASM
+            identifiers.
+    """
+    def __init__(self,
+                 precision: int = 10,
+                 version: str = '2.0',
+                 qubit_id_map: Dict[raw_types.QubitId, str] = None,
+                 meas_key_id_map: Dict[str, str] = None,
+                 ) -> None:
+        self.precision = precision
+        self.version = version
+        self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
+        self.meas_key_id_map = ({} if meas_key_id_map is None
+                                   else meas_key_id_map)
+
+    def format_field(self, value: Any, spec: str) -> str:
+        """Method of string.Formatter that specifies the output of format()."""
+        if isinstance(value, float):
+            value = round(value, self.precision)
+            if spec == 'half_turns':
+                value = 'pi*{}'.format(value) if value != 0 else '0'
+                spec = ''
+        elif isinstance(value, raw_types.QubitId):
+            value = self.qubit_id_map[value]
+        elif isinstance(value, str) and spec == 'meas':
+            value = self.meas_key_id_map[value]
+            spec = ''
+        return super().format_field(value, spec)
+
+    def validate_version(self, *supported_versions: str) -> None:
+        if self.version not in supported_versions:
+            raise ValueError('QASM version {} output is not supported.'.format(
+                                self.version))
+
+
+class QasmConvertableGate(metaclass=abc.ABCMeta):
+    """A gate that knows its representation in QASM."""
+    @abc.abstractmethod
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: QasmOutputArgs) -> Optional[str]:
+        """Returns lines of QASM output representing the gate on the given
+        qubits or None if a simple conversion is not possible.
+        """
+
+
+class QasmConvertableOperation(metaclass=abc.ABCMeta):
+    """An operation that knows its representation in QASM."""
+    @abc.abstractmethod
+    def known_qasm_output(self, args: QasmOutputArgs) -> Optional[str]:
+        """Returns lines of QASM output representing the operation or None if a
+        simple conversion is not possible."""

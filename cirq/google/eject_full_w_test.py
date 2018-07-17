@@ -15,20 +15,20 @@ from typing import Iterable
 
 import cirq
 import cirq.google as cg
-from cirq.google.eject_z_test import (
-    assert_equivalent_circuit_up_to_measurement_phase,
-)
 
 
 def assert_optimizes(before: cirq.Circuit,
-                     expected: cirq.Circuit):
+                     expected: cirq.Circuit,
+                     compare_unitaries: bool = True):
     opt = cg.EjectFullW()
 
     circuit = before.copy()
     opt.optimize_circuit(circuit)
 
     # They should have equivalent effects.
-    assert_equivalent_circuit_up_to_measurement_phase(circuit, expected, 1e-8)
+    if compare_unitaries:
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            circuit, expected, 1e-8)
 
     # And match the expected circuit.
     if circuit != expected:
@@ -300,7 +300,8 @@ def test_blocked_by_unknown_and_symbols():
             [cg.ExpWGate().on(a)],
             [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
             [cg.ExpWGate().on(a)],
-        ))
+        ),
+        compare_unitaries=False)
 
     assert_optimizes(
         before=quick_circuit(
@@ -312,4 +313,5 @@ def test_blocked_by_unknown_and_symbols():
             [cg.ExpWGate().on(a)],
             [cg.Exp11Gate(half_turns=cirq.Symbol('z')).on(a, b)],
             [cg.ExpWGate().on(a)],
-        ))
+        ),
+        compare_unitaries=False)

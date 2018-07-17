@@ -14,7 +14,6 @@
 
 from collections import defaultdict
 from random import randint, random, sample, randrange, seed
-from string import ascii_lowercase as alphabet
 
 import numpy as np
 import pytest
@@ -23,7 +22,7 @@ import cirq
 from cirq.circuits.optimization_pass import (PointOptimizer,
                                              PointOptimizationSummary)
 from cirq import Circuit, InsertStrategy, Moment
-from cirq.testing.random_circuit import random_circuit
+from cirq.testing import random_circuit
 import cirq.google as cg
 
 seed(5)
@@ -1919,18 +1918,18 @@ def test_push_frontier_random_circuit():
                 assert (orig_moments[orig_early_frontier[q]] ==
                         circuit._moments[early_frontier[q]])
 
-def test_insert_operations_random_circuits():
-    qubits = tuple(cirq.NamedQubit(s) for s in alphabet[:10])
-    n_moments = 10
-    op_density = 0.5
-    circuit = random_circuit(qubits, n_moments, op_density)
+
+@pytest.mark.parametrize('circuit',
+    [random_circuit(cirq.LineQubit.range(10), 10, 0.5)
+     for _ in range(20)])
+def test_insert_operations_random_circuits(circuit):
+    n_moments = len(circuit)
     operations, insert_indices = [], []
-#   remove_prob = 0.7
     for moment_index, moment in enumerate(circuit):
         for op in moment.operations:
             operations.append(op)
             insert_indices.append(moment_index)
-    other_circuit = Circuit()
+    other_circuit = Circuit([Moment() for _ in range(n_moments)])
     other_circuit._insert_operations(operations, insert_indices)
     assert circuit == other_circuit
 
@@ -2006,3 +2005,47 @@ def test_decomposes_while_appending():
         c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0),
                               cirq.GridQubit(0, 2),
                               cirq.GridQubit(0, 4)))
+
+
+def test_to_qasm():
+    q0 = cirq.NamedQubit('q0')
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q0),
+    )
+    assert (circuit.to_qasm() ==
+"""// Generated from Cirq
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q0]
+qreg q[1];
+
+
+x q[0];
+""")
+
+
+def test_save_qasm():
+    q0 = cirq.NamedQubit('q0')
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q0),
+    )
+    with cirq.testing.TempFilePath() as file_path:
+        circuit.save_qasm(file_path)
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+    assert (file_content ==
+"""// Generated from Cirq
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q0]
+qreg q[1];
+
+
+x q[0];
+""")
