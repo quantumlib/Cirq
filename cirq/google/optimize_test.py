@@ -17,8 +17,8 @@ import pytest
 import cirq
 import cirq.google as cg
 
-from cirq.google.eject_z_test import (
-    assert_equivalent_circuit_up_to_measurement_phase,
+from cirq.testing import (
+    assert_circuits_with_terminal_measurements_are_equivalent,
 )
 
 
@@ -41,9 +41,8 @@ def test_swap_field(n: int, d: int):
 
     assert len(after) == d*4 + 2
     if n <= 5:
-        assert_equivalent_circuit_up_to_measurement_phase(before,
-                                                          after,
-                                                          atol=1e-4)
+        assert_circuits_with_terminal_measurements_are_equivalent(
+            before, after, atol=1e-4)
 
 
 def test_ccz():
@@ -55,4 +54,5 @@ def test_ccz():
     after = cg.optimized_for_xmon(before)
 
     assert len(after) <= 22
-    assert_equivalent_circuit_up_to_measurement_phase(before, after, atol=1e-4)
+    assert_circuits_with_terminal_measurements_are_equivalent(
+        before, after, atol=1e-4)
