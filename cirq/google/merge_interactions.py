@@ -58,11 +58,11 @@ class MergeInteractions(circuits.PointOptimizer):
                                      if len(old_op.qubits) == 2])
         new_interaction_count = len([new_op for new_op in new_operations
                                      if len(new_op.qubits) == 2])
-        keep = False
-        keep |= new_interaction_count < old_interaction_count
-        keep |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
-                    for old_op in old_operations)
-        if not keep:
+        switch_to_new = False
+        switch_to_new |= new_interaction_count < old_interaction_count
+        switch_to_new |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
+                             for old_op in old_operations)
+        if not switch_to_new:
             return None
 
         converter = convert_to_xmon_gates.ConvertToXmonGates()
@@ -80,9 +80,10 @@ class MergeInteractions(circuits.PointOptimizer):
                       ) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
-        The operation must be a 1-qubit operation on one of the given qubits,
-        or a 2-qubit operation on both of the given qubits. Also, the operation
-        must have a known matrix. Otherwise None is returned.
+        If the operation is a 1-qubit operation on one of the given qubits,
+        or a 2-qubit operation on both of the given qubits, and also the
+        operation has a known matrix, then a matrix is returned. Otherwise None
+        is returned.
 
         Args:
             op: The operation to understand.
