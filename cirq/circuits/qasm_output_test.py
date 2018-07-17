@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import pytest
 
 import cirq
@@ -178,19 +179,19 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
     class DummyOperation(cirq.Operation, cirq.QasmConvertableOperation,
                          cirq.CompositeOperation):
         qubits = (q0,)
-        def with_qubits(self, *qubits):
-            raise NotImplemented
+        with_qubits = NotImplemented
 
         def known_qasm_output(self, args):
             return '// Dummy operation\n'
 
         def default_decompose(self):
-            return ()
+            # Only used by test_output_unitary_same_as_qiskit
+            return ()  # coverage: ignore
 
     class DummyCompositeOperation(cirq.Operation, cirq.CompositeOperation):
         qubits = (q0,)
-        def with_qubits(self, *qubits):
-            raise NotImplemented
+        with_qubits = NotImplemented
+
 
         def default_decompose(self):
             return cirq.X(self.qubits[0])
@@ -226,7 +227,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
         # Requires 2-qubit decomposition
         cirq.google.Exp11Gate(half_turns=1.25)(q0, q1),
 
-        *((
+        (
             cirq.MeasurementGate('xX')(q0),
             cirq.MeasurementGate('x_a')(q2),
             cirq.MeasurementGate('x?')(q1),
@@ -234,7 +235,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
             cirq.MeasurementGate('_x')(q4),
             cirq.MeasurementGate('x_a')(q2),
             cirq.MeasurementGate('multi', (False, True))(q1, q2, q3),
-        ) * include_measurments),
+        ) if include_measurments else (),
 
         DummyOperation(),
         DummyCompositeOperation(),
@@ -248,10 +249,12 @@ def test_output_parsable_by_qiskit():
                              header='Generated from Cirq',
                              precision=10)
     text = str(output)
+
+    # coverage: ignore
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.
-        import qiskit
+        import qiskit  # type: ignore
     except ImportError:
         return
 
@@ -265,10 +268,12 @@ def test_output_unitary_same_as_qiskit():
                              header='Generated from Cirq',
                              precision=10)
     text = str(output)
+
+    # coverage: ignore
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.
-        import qiskit
+        import qiskit  # type: ignore
     except ImportError:
         return
 
@@ -285,12 +290,16 @@ def test_output_unitary_same_as_qiskit():
 
 
 def test_output_format():
+    def filter_unpredictable_numbers(text):
+        return re.sub(r'u3\(.+\)', r'u3(<not-repeatable>)', text)
+
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
                              header='Generated from Cirq',
                              precision=5)
-    assert (str(output) ==
+    assert (filter_unpredictable_numbers(str(output)) ==
+            filter_unpredictable_numbers(
 """// Generated from Cirq
 
 OPENQASM 2.0;
@@ -420,4 +429,4 @@ measure q[3] -> m_multi[2];
 
 // Operation: DummyCompositeOperation()
 x q[0];
-""")
+"""))
