@@ -343,7 +343,7 @@ class ParameterizableEffect(metaclass=abc.ABCMeta):
 
 class QasmOutputArgs(string.Formatter):
     def __init__(self,
-                 precision: float = 10,
+                 precision: int = 10,
                  version: str = '2.0',
                  qubit_id_map: Dict[raw_types.QubitId, str] = {},
                  meas_key_id_map: Dict[str, str] = {},

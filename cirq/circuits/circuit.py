@@ -23,10 +23,8 @@ from collections import defaultdict
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING
+    Sequence, Union, Type, Tuple, cast, TypeVar, overload
 )
-if TYPE_CHECKING:
-    import pathlib
 
 import numpy as np
 
@@ -1138,7 +1136,7 @@ class Circuit(ops.ParameterizableEffect):
         return str(output)
 
     def save_qasm(self,
-                  file_path: Union[str, bytes, 'pathlib.Path'],
+                  file_path: Union[str, bytes, int],
                   header: str = 'Generated from Cirq',
                   precision: int = 10,
                   qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,

@@ -15,11 +15,9 @@
 """An optimization pass that combines adjacent single-qubit rotations."""
 
 from typing import (
-    Any, Callable, Dict, List, Optional, Sequence, TextIO, Tuple, Union, cast,
-    TYPE_CHECKING
+    Any, Callable, Dict, List, Optional, Sequence, Set, TextIO, Tuple, Union,
+    cast
 )
-if TYPE_CHECKING:
-    import pathlib
 
 import string
 import re
@@ -69,7 +67,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
                  before1: ops.SingleQubitGate,
                  x: float, y: float, z: float,
                  after0: ops.SingleQubitGate,
-                 after1: ops.SingleQubitGate):
+                 after1: ops.SingleQubitGate) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
         All angles are in half turns.  Assumes a canonicalized KAK
@@ -103,7 +101,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
                                 x, y, z,
                                 after0, after1)
 
-    def default_decompose(self, qubits: Tuple[ops.QubitId, ...]) -> ops.OP_TREE:
+    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         q0, q1 = qubits
         a = self.x * -2 / np.pi + 0.5
         b = self.y * -2 / np.pi + 0.5
@@ -132,17 +130,18 @@ class QasmOutput:
                  operations: ops.OP_TREE,
                  qubits: Tuple[ops.QubitId, ...],
                  header: str = '',
-                 precision: float = 10,
+                 precision: int = 10,
                  version: str = '2.0',
-                 ext: extension.Extensions = None):
+                 ext: extension.Extensions = None) -> None:
         self.operations = tuple(ops.flatten_op_tree(operations))
         self.qubits = qubits
         self.header = header
         if ext is None:
             ext = extension.Extensions()
         self.ext = ext
-        self.measurements = [op for op in self.operations
-                                if ops.MeasurementGate.is_measurement(op)]
+        self.measurements = tuple(cast(ops.GateOperation, op)
+                                  for op in self.operations
+                                  if ops.MeasurementGate.is_measurement(op))
 
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
@@ -152,13 +151,14 @@ class QasmOutput:
                                        qubit_id_map=qubit_id_map,
                                        meas_key_id_map=meas_key_id_map)
 
-    def _generate_measurement_ids(self) -> Dict[str, str]:
+    def _generate_measurement_ids(self
+                                  ) -> Tuple[Dict[str, str], Dict[str, str]]:
         # Pick an id for the creg that will store each measurement
-        meas_key_id_map = {}
-        meas_comments = {}
+        meas_key_id_map = {}  # type: Dict[str, str]
+        meas_comments = {}  # type: Dict[str, str]
         meas_i = 0
         for meas in self.measurements:
-            key = meas.gate.key
+            key = cast(ops.MeasurementGate, meas.gate).key
             if key in meas_key_id_map:
                 continue
             meas_id = 'm_{}'.format(key)
@@ -178,10 +178,12 @@ class QasmOutput:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.fullmatch(id_str) != None
 
-    def save(self, path: Union[str, bytes, 'pathlib.Path']) -> None:
+    def save(self, path: Union[str, bytes, int]) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
-            self._write_qasm(lambda s:f.write(s))
+            def write(s: str) -> None:
+                f.write(s)
+            self._write_qasm(write)
 
     def __str__(self) -> str:
         """Return QASM output as a string."""
@@ -222,9 +224,9 @@ class QasmOutput:
         output('qreg q[{}];\n'.format(len(self.qubits)))
         # Classical registers
         # Pick an id for the creg that will store each measurement
-        already_output_keys = set()
+        already_output_keys = set()  # type: Set[str]
         for meas in self.measurements:
-            key = meas.gate.key
+            key = cast(ops.MeasurementGate, meas.gate).key
             if key in already_output_keys:
                 continue
             already_output_keys.add(key)
@@ -232,7 +234,7 @@ class QasmOutput:
             comment = self.meas_comments[key]
             if comment:
                 output('creg {}[{}];  // Measurement: {}\n'.format(
-                            meas_id, key_str, len(meas.qubits)))
+                            meas_id, comment, len(meas.qubits)))
             else:
                 output('creg {}[{}];\n'.format(meas_id, len(meas.qubits)))
         output_line_gap(2)
