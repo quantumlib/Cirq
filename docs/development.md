@@ -24,23 +24,12 @@ the initial repository cloning command) assume you are at the cirq repo root.
     cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install --yes
     ```
 
-    Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is required but not installable via `apt-get`.
-    Without this dependency, you will not be able to produce the transpiled python 2.7 code.
+    Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is not installable via `apt-get`.
+    You *can* skip this dependency.
+    It is only needed when producing the transpiled python 2.7 code for local testing.
+    The installation process is technical; requiring you to either build from source or manually installing pre-built binaries onto your system.
+    If you want to be able to run the python 2.7 tests on your machine, see ["Protobuf Compiler Installation" on the google/protobuf github repository](https://github.com/google/protobuf#protocol-compiler-installation) for details.
 
-    The simplest way to install v3.5 of the protobuf compiler dependency is to download
-    `https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip`,
-    unzip it into some directory of your choice,
-    and add that directory to your path.
-
-    For example, that is how the travis continuous integration scripts get the protobuf compiler:
-
-    ```bash
-    # Grab precompiled protobuf compiler v3.5.1
-    curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
-    # Drop directly in current working directory.
-    unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
-    PATH=$(pwd)/protoc3.5/bin:${PATH}
-    ```
 
 2. Prepare a virtual environment with the dev requirements.
 
