@@ -1,9 +1,10 @@
 # Tutorial
 
 In this tutorial we will go from knowing nothing about Cirq to creating a
-quantum variational algorithm. Note that this tutorial isn't a quantum
-computing 101 tutorial, we assume familiarity of quantum computing at about
-the level of the textbook "Quantum Computation and Quantum Information" by
+[quantum variational algorithm](https://arxiv.org/abs/1304.3061). 
+Note that this tutorial isn't a quantum computing 101 tutorial, 
+we assume familiarity of quantum computing at aboutthe level of 
+the textbook "Quantum Computation and Quantum Information" by
 Nielsen and Chuang. For a more conceptual overview see the
 [conceptual documentation](table_of_contents.md).
 
@@ -12,19 +13,22 @@ To begin, please follow the instructions for [installing Cirq](install.md).
 ### Background: Variational quantum algorithms
 
 The [variational method](https://en.wikipedia.org/wiki/Variational_method_(quantum_mechanics))
-in quantum theory is a way of finding low energy states of a system.
-The rough idea of this method is that one defines a trial wave function
-(sometimes called an ansatz) as a function of some parameter, and then
-one finds the values of these parameters that minimize the expectation
-value of the energy with respect to these parameters. This minimized
-anstaz is then an approximation to the lowest energy eigenstate, and 
-the expectation values serves as an upper bound on the energy of the
+in quantum theory is a classical method for finding low energy states 
+of a quantum system. The rough idea of this method is that one defines 
+a trial wave function (sometimes called an ansatz) as a function 
+of some parameters, and then one finds the values of these 
+parameters that minimize the expectation value of the energy 
+with respect to these parameters. This minimized anstaz is then 
+an approximation to the lowest energy eigenstate, and 
+the expectation value serves as an upper bound on the energy of the
 ground state.
 
-Recently it has been realized that quantum computers can mimic the
+In the last few years (see [arXiv:1304.3061](https://arxiv.org/abs/1304.3061)
+and [arXiv:1507.08969](https://arxiv.org/abs/1507.08969) for example), it 
+has been realized that quantum computers can mimic the
 classical technique and that a quantum computer does so with certain
 advantages.  In particular, when one applies the classical variational
-method to a system of `n` qubits, an exponential number (in `n`) number
+method to a system of `n` qubits, an exponential number (in `n`)
 of complex numbers are necessary to generically represent the 
 wave function of the system.  However with a quantum computer one
 can directly produce this state using a parameterized quantum
@@ -34,39 +38,40 @@ value of the energy.
 This idea has led to a class of algorithms known as variational quantum
 algorithms. Indeed this approach is not just limited to finding low
 energy eigenstates, but minimizing any objective function that can
-be expressed as a quantum observable. In general one does not know
-whether these variational algorithms will succeed or not, and exploring
-this class of algorithms is a key part of research for noisy intermediate
-scale quantum computers.
+be expressed as a quantum observable. It is an open question to identify 
+under what conditions these quantum variataional algorithms will succeed, 
+and exploring this class of algorithms is a key part of research 
+for [noisy intermediate scale quantum computers](https://arxiv.org/abs/1801.00862).
 
 The classical problem we will focus on is the 2D +/- Ising model with
-transverse field (ISING).  This problem is NP-complete so it is highly
-unlikely that quantum computers will be able to efficiently solve it
+transverse field ([ISING](http://iopscience.iop.org/article/10.1088/0305-4470/15/10/028/meta).
+This problem is NP-complete so it is highly unlikely that 
+quantum computers will be able to efficiently solve it
 across all instances.  Yet this type of problem is illustrative of 
 the general class of problems that Cirq is designed to tackle.
 
 Consider the energy function
 
-![Energy](resources/EnergyDef.gif)
+![Energy: $E(s_1,\dots,s_n) = \sum_{<i,j>} J_{i,j}s_i s_j + \sum_i h_i s_i$](resources/EnergyDef.gif)
 
 where here each s<sub>i</sub>, J<sub>i,j</sub>, and h<sub>i</sub> are either 
 +1 or -1.  Here each index i is associated with a bit on a square lattice,
 and the <i,j> notation means sums over neighboring bits on this lattice.
 The problem we would like to solve is, given J<sub>i,j</sub>, and h<sub>i</sub>,
-find an assignment of s<sub>i</sub>s that minimize E.  
+find an assignment of s<sub>i</sub> values that minimize E.
 
 What does a variational quantum algorithm work for this? One approach is
 to consider `n` qubits and associate them with each of the bits in the 
 classical problem.  This maps the classical problem onto the quantum problem
 of minimizing the expectation value of the observable
 
-![Hamiltonian](resources/HamiltonianDef.gif)
+![Hamiltonian: $H=\sum_{<i,j>} J_{i,j} Z_i Z_j + \sum_i h_iZ_i$](resources/HamiltonianDef.gif)
 
 Then one defines a set of parameterized quantum circuits, i.e. a 
 quantum circuit where the gates (or more general quantum operations)
 are parameterized by some values.  This produces an ansatz state
 
-![State definition](resources/StateDef.gif)
+![State definition: $|\psi(p_1, p_2, \dots, p_k)\rangle$](resources/StateDef.gif)
 
 where p<sub>i</sub> are the parameters that produce this state
 (here we assume a pure state, but mixed states are of course
@@ -85,13 +90,13 @@ an estimate of the expectation value. How many measurements
 to make to achieve a given accuracy is beyond the scope of 
 this tutorial, but Cirq can help investigate this question. 
 
-### Create A Circuit on a Grid
+### Create a circuit on a Grid
 
 To build the above variational quantum algorithm using Cirq, 
 one begins by building the appropriate [circuit](circuits.md).
 In Cirq circuits are represented either by a `Circuit` object
 or a `Schedule` object. `Schedule`s are for more control of
-a quantum gates and circuits at the timing level, so here
+quantum gates and circuits at the timing level, so here
 we will work with a `Circuit.`
 
 Conceptually: a `Circuit` is a collection of ``Moments``. A
@@ -161,10 +166,10 @@ print(circuit)
 ```
 One thing to notice here.  First `cirq.X` is a `Gate` object. There
 are many different gates supported by Cirq. A good place to look
-at gates that are defined is in (common_gates.py)[../circuits/common_gates.py].
+at gates that are defined is in (common_gates.py)[/cirq/circuits/common_gates.py].
 One common confusion to avoid is the difference between a gate class 
-and a gate object (instantiation of a class).  The second is that gate
-object can be transformed in `Operation`s (technically `GateOperation`s)
+and a gate object (which is an instantiation of a class).  The second is that gate
+objects are transformed into `Operation`s (technically `GateOperation`s)
 via either the method `on(qubit)` or, as we see for the `X` gates, via simply
 applying the gate to the qubits `(qubit)`. Here we only apply to single
 qubit gates, but a similar pattern applies for multiple qubits, but now a 
@@ -219,9 +224,8 @@ over to act at the earliest `Moment` they can.
 
 If you look closely at the circuit creation code above you will see that
 we applied the `append` method to both a `tuple` and a `list` (recall that
-in python one can use tuple comprehensions in method calls, i.e. 
-`method(a for a in l)` is the same as `method((a for a in l))`).  
-Inspecting the (code)[../circuits/circuit.py] for append on sees that in
+in python one can use generator comprehensions in method calls).  
+Inspecting the (code)[/cirq/circuits/circuit.py] for append on sees that in
 the append method generally takes an `OP_TREE` (or a `Moment`).  What is
 an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE` 
 is anything that can be flattened, perhaps recursively, into a list 
@@ -259,11 +263,11 @@ Another important concept here is that the rotation gate is
 specified in "half turns". For a rotation about X this is the
 gate cos(half_turns * pi) I + i sin(half_turns * pi) X. 
 
-There is a lot of freedom defining an variational ansatz. 
-Here we will do a variation on a QOAO strategy and define 
-an anstaz related to he problem we are trying to solve. 
+There is a lot of freedom defining a variational ansatz. 
+Here we will do a variation on a [QOAO strategy](https://arxiv.org/abs/1411.4028)
+and define an anstaz related to he problem we are trying to solve. 
 
-First we need to choose how the instances of the instance of the 
+First we need to choose how the instances of the 
 problem are represented.  These are the values J and h in the
 Hamiltonian definition.  We will represent these as two dimensional
 arrays (lists of lists).  For J we will use two such lists, 
@@ -340,7 +344,10 @@ def rot_11_layer(jr, jc, half_turns):
 
 Putting this together we can create a step that uses just
 three parameters. The code to do this uses the generator
-for each of the layers:
+for each of the layers (note to advanced Python users that
+this code is not a bug in using yield due to the auto
+flattening of the OP_TREE concept. Normally one would want
+to use `yield from` here, but this is not necessary):
 ```python               
 def one_step(h, jr, jc, x_half_turns, h_half_turns, j_half_turns):
     length = len(h)
@@ -382,19 +389,22 @@ to creating our ansatz.  In Cirq the simulators make a distinction
 between a "run" and a "simulation". A "run" only allows for a 
 simulation that mimics the actual quantum hardware.  For example,
 it does not allow for access to the amplitudes of the wave function
-of the system, since that is not experimentally accessible.  
+of the system, since that is not experimentally accessible.
 "Simulate" commands, however, are more broad and allow different forms
 of simulation.  When prototyping small circuits it is useful to 
 execute "simulate" methods, but one should be weary of relying on
 them when run against actual hardware.
 
 Currently Cirq ships with a simulator tied strongly to the gate
-set of the Google xmon architecture.  This can in principle simulate
+set of the Google xmon architecture.  However, for convenience, 
+the simulator attempts to automatically convert unknown 
+operations into XmonGates (as long as the operation specifies 
+a matrix or decomposition). This can in principle simulate
 any circuit that has gates that implement one and two qubit 
 `KnownMatrix` gates. Future release will expand these simulators.
 
 Because the simulator is tied to the xmon gate set, the simulator
-lives, in contrast to core Cirq in the `cirq.google` module.
+lives, in contrast to core Cirq, in the `cirq.google` module.
 To run a simulation of the full circuit we simply create a 
 simulator, and pass the circuit to the simulator.
 
@@ -444,7 +454,7 @@ print(results.histogram(key='x', fold_func=energy_func(3, h, jr, jc)))
 One can then calculate the expectation value over all repetitions
 ```python
 def obj_func(result):
-    energy_hist = results.histogram(key='x', fold_func=energy_func(3, h, jr, jc))
+    energy_hist = result.histogram(key='x', fold_func=energy_func(3, h, jr, jc))
     return np.sum(k * v for k,v in energy_hist.items()) / result.repetitions
 print('Value of the objective function {}'.format(obj_func(results)))
 # prints something like
@@ -458,12 +468,12 @@ it using Cirq, we can now think about optimizing the value. On quantum
 hardware one would most likely want to have the optimization code as close
 to the hardware as possible.  As the classical hardware that is allowed to
 inter-operate with the quantum hardware becomes better specified, this
-language will be better define.  Without this specification, however,
+language will be better defined.  Without this specification, however,
 Cirq also provides a useful concept for optimizing the looping in many
 optimization algorithms.  This is the fact that many of the value in 
 the gate sets can, instead of being specified by a float, be specified
-by a `Symbol` and this `Symbol` can be substituted for its value at
-execution time.
+by a `Symbol` and this `Symbol` can be substituted for a value specified 
+at execution time.
 
 Luckily for us, we have written our code so that using parameterized
 values is as simple as passing `Symbol` objects where we previously
@@ -505,7 +515,7 @@ resolved_circuit = circuit.with_parameters_resolved_by(resolver)
 ```
 resolves the parameters to actual values in the above circuit.
 
-More useful, Cirq also has the concept of a "sweep".  A sweep is
+More usefully, Cirq also has the concept of a "sweep".  A sweep is
 essentially a collection of parameter resolvers. This runtime information
 is very useful when one wants to run many circuits for many different
 parameter values.  Sweeps can be created to specify values directly
@@ -534,7 +544,7 @@ for result in results:
 
 Now we have all the code to we need to do a simple grid search
 over values to find a minimal value.  Grid search is most definitely
-not the best optimization algorithm, but is here simple illustrative.
+not the best optimization algorithm, but is here simply illustrative.
 
 ```python
 sweep_size = 10
