@@ -174,19 +174,23 @@ def test_unsupported_operation():
         _ = str(output)
 
 
-def test_everything():
-    q0, q1, q2, q3, q4 = _make_qubits(5)
-
-    class DummyOperation(cirq.Operation, cirq.QasmConvertableOperation):
+def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
+    class DummyOperation(cirq.Operation, cirq.QasmConvertableOperation,
+                         cirq.CompositeOperation):
         qubits = (q0,)
-        with_qubits = NotImplemented
+        def with_qubits(self, *qubits):
+            raise NotImplemented
 
         def known_qasm_output(self, args):
             return '// Dummy operation\n'
 
+        def default_decompose(self):
+            return ()
+
     class DummyCompositeOperation(cirq.Operation, cirq.CompositeOperation):
         qubits = (q0,)
-        with_qubits = NotImplemented
+        def with_qubits(self, *qubits):
+            raise NotImplemented
 
         def default_decompose(self):
             return cirq.X(self.qubits[0])
@@ -194,7 +198,7 @@ def test_everything():
         def __repr__(self):
             return 'DummyCompositeOperation()'
 
-    operations = (
+    return (
         cirq.Z(q0),
         cirq.Z(q0) ** .625,
         cirq.Y(q0),
@@ -222,18 +226,68 @@ def test_everything():
         # Requires 2-qubit decomposition
         cirq.google.Exp11Gate(half_turns=1.25)(q0, q1),
 
-        cirq.MeasurementGate('xX')(q0),
-        cirq.MeasurementGate('x_a')(q2),
-        cirq.MeasurementGate('x?')(q1),
-        cirq.MeasurementGate('X')(q3),
-        cirq.MeasurementGate('_x')(q4),
-        cirq.MeasurementGate('x_a')(q2),
-        cirq.MeasurementGate('multi', (False, True))(q1, q2, q3),
+        *((
+            cirq.MeasurementGate('xX')(q0),
+            cirq.MeasurementGate('x_a')(q2),
+            cirq.MeasurementGate('x?')(q1),
+            cirq.MeasurementGate('X')(q3),
+            cirq.MeasurementGate('_x')(q4),
+            cirq.MeasurementGate('x_a')(q2),
+            cirq.MeasurementGate('multi', (False, True))(q1, q2, q3),
+        ) * include_measurments),
 
         DummyOperation(),
         DummyCompositeOperation(),
     )
-    output = cirq.QasmOutput(operations, (q0, q1, q2, q3, q4),
+
+
+def test_output_parsable_by_qiskit():
+    qubits = tuple(_make_qubits(5))
+    operations = _all_operations(*qubits)
+    output = cirq.QasmOutput(operations, qubits,
+                             header='Generated from Cirq',
+                             precision=10)
+    text = str(output)
+    try:
+        # We don't want to require qiskit as a dependency but
+        # if Qiskit is installed, test QASM output against it.
+        import qiskit
+    except ImportError:
+        return
+
+    assert qiskit.qasm.Qasm(data=text).parse().qasm() is not None
+
+
+def test_output_unitary_same_as_qiskit():
+    qubits = tuple(_make_qubits(5))
+    operations = _all_operations(*qubits, include_measurments=False)
+    output = cirq.QasmOutput(operations, qubits,
+                             header='Generated from Cirq',
+                             precision=10)
+    text = str(output)
+    try:
+        # We don't want to require qiskit as a dependency but
+        # if Qiskit is installed, test QASM output against it.
+        import qiskit
+    except ImportError:
+        return
+
+    circuit = cirq.Circuit.from_ops(operations)
+    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits[::-1])
+
+    p = qiskit.QuantumProgram()
+    p.load_qasm_text(text)
+    result = p.execute(backend='local_unitary_simulator')
+    qiskit_unitary = result.get_unitary()
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+                    cirq_unitary, qiskit_unitary, rtol=1e-10, atol=1e-10)
+
+
+def test_output_format():
+    qubits = tuple(_make_qubits(5))
+    operations = _all_operations(*qubits)
+    output = cirq.QasmOutput(operations, qubits,
                              header='Generated from Cirq',
                              precision=5)
     assert (str(output) ==
