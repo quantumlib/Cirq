@@ -74,8 +74,7 @@ def _cancel_qubit_phase(m1: np.ndarray, m2: np.ndarray, k: int) -> None:
 
 def canonicalize_up_to_terminal_measurement_phase(
         circuit1: cirq.Circuit,
-        circuit2: cirq.Circuit) -> Tuple[Optional[np.ndarray],
-                                         Optional[np.ndarray]]:
+        circuit2: cirq.Circuit) -> Tuple[np.ndarray, np.ndarray]:
     ordered_qubits = cirq.QubitOrder.DEFAULT.order_for(circuit1.all_qubits())
     ordered_qubits_2 = cirq.QubitOrder.DEFAULT.order_for(circuit2.all_qubits())
     assert ordered_qubits == ordered_qubits_2
@@ -94,9 +93,6 @@ def canonicalize_up_to_terminal_measurement_phase(
 
     matrix1 = circuit1.to_unitary_matrix()
     matrix2 = circuit2.to_unitary_matrix()
-    assert (matrix1 is None) == (matrix2 is None)
-    if matrix1 is None or matrix2 is None:
-        return np.eye(1), np.eye(1)
     for q in terminal_1:
         _cancel_qubit_phase(matrix1, matrix2, ordered_qubits.index(q))
     return matrix1, matrix2
@@ -106,8 +102,7 @@ def is_same_circuit_up_to_measurement_phase(circuit1: cirq.Circuit,
                                             circuit2: cirq.Circuit,
                                             atol: float):
     m1, m2 = canonicalize_up_to_terminal_measurement_phase(circuit1, circuit2)
-    if m1 is not None and m2 is not None:
-        return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
+    return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
 
 
 def assert_equivalent_circuit_up_to_measurement_phase(actual: cirq.Circuit,
