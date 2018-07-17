@@ -336,7 +336,7 @@ class AnnealSequenceSearch(object):
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
 
-    This line search strategy is still work in progress and requires
+    TODO: This line search strategy is still work in progress and requires
     efficiency improvements.
     """
 
