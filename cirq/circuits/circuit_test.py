@@ -2005,3 +2005,47 @@ def test_decomposes_while_appending():
         c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0),
                               cirq.GridQubit(0, 2),
                               cirq.GridQubit(0, 4)))
+
+
+def test_to_qasm():
+    q0 = cirq.NamedQubit('q0')
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q0),
+    )
+    assert (circuit.to_qasm() ==
+"""// Generated from Cirq
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q0]
+qreg q[1];
+
+
+x q[0];
+""")
+
+
+def test_save_qasm():
+    q0 = cirq.NamedQubit('q0')
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q0),
+    )
+    with cirq.testing.TempFilePath() as file_path:
+        circuit.save_qasm(file_path)
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+    assert (file_content ==
+"""// Generated from Cirq
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q0]
+qreg q[1];
+
+
+x q[0];
+""")

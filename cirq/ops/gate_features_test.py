@@ -15,7 +15,7 @@
 import pytest
 
 import cirq
-from cirq.ops import gate_features, raw_types
+from cirq.ops import gate_features, raw_types, common_gates
 
 
 def test_reversible_gate_is_abstract_cant_instantiate():
@@ -249,3 +249,37 @@ def test_text_diagram_info_eq():
     eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 2))
     eq.add_equality_group(cirq.TextDiagramInfo(('Z', 'Z'), 2))
     eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 3))
+
+
+def test_qasm_output_args_validate():
+    args = cirq.QasmOutputArgs(version='2.0')
+    args.validate_version('2.0')
+
+    with pytest.raises(ValueError):
+        args.validate_version('2.1')
+
+
+def test_qasm_output_args_format():
+    a = raw_types.NamedQubit('a')
+    b = raw_types.NamedQubit('b')
+    m_a = common_gates.MeasurementGate('meas_a')(a)
+    m_b = common_gates.MeasurementGate('meas_b')(b)
+    args = cirq.QasmOutputArgs(
+                    precision=4,
+                    version='2.0',
+                    qubit_id_map={a: 'aaa[0]', b: 'bbb[0]'},
+                    meas_key_id_map={'meas_a': 'm_a', 'meas_b': 'm_b'})
+
+    assert args.format('_{}_', a) == '_aaa[0]_'
+    assert args.format('_{}_', b) == '_bbb[0]_'
+
+    assert args.format('_{:meas}_', m_a.gate.key) == '_m_a_'
+    assert args.format('_{:meas}_', m_b.gate.key) == '_m_b_'
+
+    assert args.format('_{}_', 89.1234567) == '_89.1235_'
+    assert args.format('_{}_', 1.23) == '_1.23_'
+
+    assert args.format('_{:half_turns}_', 89.1234567) == '_pi*89.1235_'
+    assert args.format('_{:half_turns}_', 1.23) == '_pi*1.23_'
+
+    assert args.format('_{}_', 'other') == '_other_'
