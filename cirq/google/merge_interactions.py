@@ -18,19 +18,12 @@ from typing import List, Tuple, Optional, cast
 
 import numpy as np
 
-from cirq import ops
-from cirq.circuits import (
-    Circuit,
-    PointOptimizer,
-    PointOptimizationSummary,
-)
+from cirq import circuits, ops
 from cirq.extension import Extensions
-from cirq.google import convert_to_xmon_gates
-from cirq.google.decompositions import two_qubit_matrix_to_native_gates
-from cirq.google.xmon_gates import XmonGate
+from cirq.google import decompositions, convert_to_xmon_gates, xmon_gates
 
 
-class MergeInteractions(PointOptimizer):
+class MergeInteractions(circuits.PointOptimizer):
     """Combines series of adjacent one and two-qubit gates operating on a pair
     of qubits."""
 
@@ -42,7 +35,11 @@ class MergeInteractions(PointOptimizer):
         self.allow_partial_czs = allow_partial_czs
         self.extensions = extensions or Extensions()
 
-    def optimization_at(self, circuit, index, op):
+    def optimization_at(self,
+                        circuit: circuits.Circuit,
+                        index: int,
+                        op: ops.Operation
+                        ) -> Optional[circuits.PointOptimizationSummary]:
         if len(op.qubits) != 2:
             return None
 
@@ -50,28 +47,29 @@ class MergeInteractions(PointOptimizer):
             self._scan_two_qubit_ops_into_matrix(circuit, index, op.qubits))
 
         # Find a max-3-cz construction.
-        new_operations = two_qubit_matrix_to_native_gates(
+        new_operations = decompositions.two_qubit_matrix_to_native_gates(
             op.qubits[0],
             op.qubits[1],
             matrix,
             self.allow_partial_czs,
             self.tolerance)
 
-        old_interaction_count = len([op for op in old_operations
-                                     if len(op.qubits) == 2])
-        new_interaction_count = len([op for op in new_operations
-                                     if len(op.qubits) == 2])
+        old_interaction_count = len([old_op for old_op in old_operations
+                                     if len(old_op.qubits) == 2])
+        new_interaction_count = len([new_op for new_op in new_operations
+                                     if len(new_op.qubits) == 2])
         keep = False
         keep |= new_interaction_count < old_interaction_count
-        keep |= any(not XmonGate.is_xmon_op(op) for op in old_operations)
+        keep |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
+                    for old_op in old_operations)
         if not keep:
             return None
 
         converter = convert_to_xmon_gates.ConvertToXmonGates()
-        new_xmon_operations = [converter.convert(op)
-                               for op in new_operations]
+        new_xmon_operations = [converter.convert(new_op)
+                               for new_op in new_operations]
 
-        return PointOptimizationSummary(
+        return circuits.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
             new_operations=new_xmon_operations)
@@ -116,7 +114,7 @@ class MergeInteractions(PointOptimizer):
 
     def _scan_two_qubit_ops_into_matrix(
             self,
-            circuit: Circuit,
+            circuit: circuits.Circuit,
             index: Optional[int],
             qubits: Tuple[ops.QubitId, ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
@@ -155,7 +153,7 @@ class MergeInteractions(PointOptimizer):
             present_ops = [op for op in operations if op]
             present_op_data = cast(List[Tuple[np.ndarray]], op_data)
 
-            for op_mat, _ in present_op_data:
+            for op_mat in present_op_data:
                 product = np.dot(op_mat, product)
             all_operations.extend(present_ops)
 
