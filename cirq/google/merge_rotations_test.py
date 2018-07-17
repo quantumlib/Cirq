@@ -59,8 +59,8 @@ def test_combines_sequence():
 
     assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
             cirq.PointOptimizationSummary(clear_span=3,
-                                              clear_qubits=[q],
-                                              new_operations=cirq.Y(q)**0.5))
+                                          clear_qubits=[q],
+                                          new_operations=cirq.Y(q)**0.5))
 
 
 def test_removes_identity_sequence():
@@ -72,7 +72,7 @@ def test_removes_identity_sequence():
             cirq.Moment([cirq.X(q)]),
             cirq.Moment([cirq.H(q)]),
         ]),
-        after = cirq.Circuit())
+        after=cirq.Circuit())
 
 
 def test_stopped_at_2qubit():
@@ -90,8 +90,8 @@ def test_stopped_at_2qubit():
 
     assert (m.optimization_at(c, 0, c.operation_at(q, 0)) ==
             cirq.PointOptimizationSummary(clear_span=4,
-                                              clear_qubits=[q],
-                                              new_operations=[]))
+                                          clear_qubits=[q],
+                                          new_operations=[]))
 
 
 def test_ignores_2qubit_target():
