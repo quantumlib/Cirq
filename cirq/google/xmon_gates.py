@@ -32,6 +32,17 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @staticmethod
+    def is_xmon_op(op: ops.Operation) -> bool:
+        return XmonGate.try_get_xmon_gate(op) is not None
+
+    @staticmethod
+    def try_get_xmon_gate(op: ops.Operation) -> Optional['XmonGate']:
+        if (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, XmonGate)):
+            return op.gate
+        return None
+
+    @staticmethod
     def from_proto(op: operations_pb2.Operation) -> ops.Operation:
         param = XmonGate.parameterized_value_from_proto
         qubit = GridQubit.from_proto
@@ -400,6 +411,7 @@ class ExpZGate(XmonGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
+               ops.BoundedEffect,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
