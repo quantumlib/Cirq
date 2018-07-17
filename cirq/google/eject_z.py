@@ -18,18 +18,16 @@ from typing import Optional, cast, TYPE_CHECKING
 
 from collections import defaultdict
 
-from cirq import ops, extension
-from cirq.circuits import Circuit, OptimizationPass
+from cirq import circuits, ops, extension, value
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
-from cirq.value import Symbol
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Dict, List, Tuple
 
 
-class EjectZ(OptimizationPass):
+class EjectZ(circuits.OptimizationPass):
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
@@ -50,7 +48,7 @@ class EjectZ(OptimizationPass):
         self.tolerance = tolerance
         self.ext = ext or extension.Extensions()
 
-    def optimize_circuit(self, circuit: Circuit):
+    def optimize_circuit(self, circuit: circuits.Circuit):
         turns_state = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
 
         def dump_phases(qubits, index):
@@ -105,6 +103,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op.gate, (ExpZGate, ops.RotZGate)):
         return None
     h = op.gate.half_turns
-    if isinstance(h, Symbol):
+    if isinstance(h, value.Symbol):
         return None
     return h

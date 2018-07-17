@@ -17,6 +17,9 @@
 from cirq.circuits.text_diagram_drawer import (
     TextDiagramDrawer,
 )
+from cirq.circuits.qasm_output import (
+    QasmOutput,
+)
 from cirq.circuits.circuit import (
     Circuit,
 )

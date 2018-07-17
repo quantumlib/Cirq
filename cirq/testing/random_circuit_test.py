@@ -15,9 +15,9 @@
 from random import randint, random, sample, choice
 import pytest
 
-from cirq.testing.random_circuit import (
-        random_circuit, DEFAULT_GATE_DOMAIN)
+from cirq.testing.random_circuit import random_circuit, DEFAULT_GATE_DOMAIN
 from cirq import ops
+
 
 def test_random_circuit_errors():
     with pytest.raises(ValueError):
@@ -26,8 +26,7 @@ def test_random_circuit_errors():
         random_circuit(randint(1, 10), randint(1, 10), 1.)
 
     with pytest.raises(ValueError):
-        random_circuit(randint(1, 10), randint(1, 10), random(),
-                gate_domain=())
+        random_circuit(randint(1, 10), randint(1, 10), random(), gate_domain={})
 
     with pytest.raises(ValueError):
         random_circuit(0, randint(1, 10), random())
@@ -35,17 +34,22 @@ def test_random_circuit_errors():
     with pytest.raises(ValueError):
         random_circuit((), randint(1, 10), random())
 
-n_random_circuit_tests = 10
-random_circuit_test_parameters = [
-    (randint(1, 20), randint(1, 10), random(),
-     (None if randint(0, 1) else
-      dict(sample(tuple(DEFAULT_GATE_DOMAIN.items()),
-             randint(1, len(DEFAULT_GATE_DOMAIN))))),
-     choice((True, False)))
-    for _ in range(n_random_circuit_tests)]
+
 @pytest.mark.parametrize(
-        'n_qubits,n_moments,op_density,gate_domain,pass_qubits',
-        random_circuit_test_parameters)
+    'n_qubits,n_moments,op_density,gate_domain,pass_qubits',
+    [(
+        randint(1, 20),
+        randint(1, 10),
+        random(),
+        (
+            None
+            if randint(0, 1)
+            else dict(sample(tuple(DEFAULT_GATE_DOMAIN.items()),
+                             randint(1, len(DEFAULT_GATE_DOMAIN))))
+        ),
+        choice((True, False))
+    ) for _ in range(10)]
+)
 def test_random_circuit(n_qubits,
                         n_moments,
                         gate_domain,
