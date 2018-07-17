@@ -345,13 +345,11 @@ class QasmOutputArgs(string.Formatter):
     def __init__(self,
                  precision: float = 10,
                  version: str = '2.0',
-                 header: str = '',
                  qubit_id_map: Dict[raw_types.QubitId, str] = {},
                  meas_key_id_map: Dict[str, str] = {},
                  ) -> None:
         self.precision = precision
         self.version = version
-        self.header = header
         self.qubit_id_map = qubit_id_map
         self.meas_key_id_map = meas_key_id_map
 
@@ -378,16 +376,17 @@ class QasmOutputArgs(string.Formatter):
 class QasmConvertableGate(metaclass=abc.ABCMeta):
     """A gate that knows its representation in QASM."""
     @abc.abstractmethod
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: QasmOutputArgs) -> Optional[str]:
-        """Returns line of QASM output representing the gate on the given
-        qubits.
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: QasmOutputArgs) -> Optional[str]:
+        """Returns lines of QASM output representing the gate on the given
+        qubits or None if a simple conversion is not possible.
         """
 
 
 class QasmConvertableOperation(metaclass=abc.ABCMeta):
-    """A gate that knows its representation in QASM."""
+    """An operation that knows its representation in QASM."""
     @abc.abstractmethod
-    def qasm_output(self, args: QasmOutputArgs) -> Optional[str]:
-        """Returns a lines of QASM output representing the operation."""
+    def known_qasm_output(self, args: QasmOutputArgs) -> Optional[str]:
+        """Returns lines of QASM output representing the operation or None if a
+        simple conversion is not possible."""

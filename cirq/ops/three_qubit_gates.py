@@ -14,17 +14,20 @@
 
 """Common quantum gates that target three qubits."""
 
+from typing import Optional, Tuple
+
 import numpy as np
 
 from cirq import linalg
-from cirq.ops import gate_features, common_gates
+from cirq.ops import gate_features, common_gates, raw_types
 
 
 class _CCZGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.KnownMatrix,
-               gate_features.InterchangeableQubitsGate):
+               gate_features.InterchangeableQubitsGate,
+               gate_features.QasmConvertableGate):
     """A doubly-controlled-Z."""
 
     def default_decompose(self, qubits):
@@ -65,6 +68,16 @@ class _CCZGate(gate_features.ThreeQubitGate,
                           ) -> gate_features.TextDiagramInfo:
         return gate_features.TextDiagramInfo(('@', '@', '@'))
 
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+        args.validate_version('2.0')
+        lines = [
+            args.format('h {};\n', qubits[2]),
+            args.format('ccx {},{},{};\n', qubits[0], qubits[1], qubits[2]),
+            args.format('h {};\n', qubits[2])]
+        return ''.join(lines)
+
     def __repr__(self) -> str:
         return 'CCZ'
 
@@ -73,7 +86,8 @@ class _CCXGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.KnownMatrix,
-               gate_features.InterchangeableQubitsGate):
+               gate_features.InterchangeableQubitsGate,
+               gate_features.QasmConvertableGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -93,6 +107,12 @@ class _CCXGate(gate_features.ThreeQubitGate,
                           ) -> gate_features.TextDiagramInfo:
         return gate_features.TextDiagramInfo(('@', '@', 'X'))
 
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('ccx {},{},{};\n', qubits[0], qubits[1], qubits[2])
+
     def __repr__(self) -> str:
         return 'TOFFOLI'
 
@@ -101,7 +121,8 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.TextDiagrammable,
                  gate_features.CompositeGate,
                  gate_features.KnownMatrix,
-                 gate_features.InterchangeableQubitsGate):
+                 gate_features.InterchangeableQubitsGate,
+                 gate_features.QasmConvertableGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -133,6 +154,12 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         if not args.use_unicode_characters:
             return gate_features.TextDiagramInfo(('@', 'swap', 'swap'))
         return gate_features.TextDiagramInfo(('@', '×', '×'))
+
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('cswap {},{},{};\n', qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
         return 'FREDKIN'

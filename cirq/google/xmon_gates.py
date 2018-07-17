@@ -184,9 +184,9 @@ class Exp11Gate(XmonGate,
                           ) -> ops.TextDiagramInfo:
         return ops.TextDiagramInfo(('@', '@'), self.half_turns)
 
-    def qasm_output(self,
-                    qubits: Tuple[ops.QubitId, ...],
-                    args: ops.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[ops.QubitId, ...],
+                          args: ops.QasmOutputArgs) -> Optional[str]:
         if self.half_turns != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -460,9 +460,9 @@ class ExpZGate(XmonGate,
             wire_symbols=('Z',),
             exponent=self.half_turns)
 
-    def qasm_output(self,
-                    qubits: Tuple[ops.QubitId, ...],
-                    args: ops.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[ops.QubitId, ...],
+                          args: ops.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         if self.half_turns == 1:
             return args.format('z {};\n', qubits[0])

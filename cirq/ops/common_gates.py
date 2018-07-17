@@ -79,9 +79,9 @@ class Rot11Gate(eigen_gate.EigenGate,
             wire_symbols=('@', '@'),
             exponent=self._exponent)
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         if self.half_turns != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -142,9 +142,9 @@ class RotXGate(eigen_gate.EigenGate,
             wire_symbols=('X',),
             exponent=self._exponent)
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         if self.half_turns == 1:
             return args.format('x {};\n', qubits[0])
@@ -207,9 +207,9 @@ class RotYGate(eigen_gate.EigenGate,
             wire_symbols=('Y',),
             exponent=self._exponent)
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         if self.half_turns == 1:
             return args.format('y {};\n', qubits[0])
@@ -288,9 +288,9 @@ class RotZGate(eigen_gate.EigenGate,
             wire_symbols=('Z',),
             exponent=self._exponent)
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         if self.half_turns == 1:
             return args.format('z {};\n', qubits[0])
@@ -374,11 +374,22 @@ class MeasurementGate(raw_types.Gate,
 
         return gate_features.TextDiagramInfo(tuple(symbols))
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        return args.format('measure {} -> {:meas};\n', qubits[0], self.key)
+        invert_mask = self.invert_mask
+        if len(invert_mask) < len(qubits):
+            invert_mask = (invert_mask
+                           + (False,) * (len(qubits) - len(invert_mask)))
+        lines = []
+        for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
+            if inv:
+                lines.append(args.format(
+                        'x {};  // Invert the following measurement\n', qubit))
+            lines.append(args.format('measure {} -> {:meas}[{}];\n',
+                                     qubit, self.key, i))
+        return ''.join(lines)
 
     def __repr__(self):
         return 'MeasurementGate({}, {})'.format(repr(self.key),
@@ -476,9 +487,9 @@ class HGate(gate_features.CompositeGate,
         s = math.sqrt(0.5)
         return np.array([[s, s], [s, -s]])
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('h {};\n', qubits[0])
 
@@ -551,9 +562,9 @@ class CNotGate(eigen_gate.EigenGate,
             wire_symbols=('@', 'X'),
             exponent=self._exponent)
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         if self.half_turns != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -620,9 +631,9 @@ class SwapGate(eigen_gate.EigenGate,
             wire_symbols=('×', '×'),
             exponent=self._exponent)
 
-    def qasm_output(self,
-                    qubits: Tuple[raw_types.QubitId, ...],
-                    args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def known_qasm_output(self,
+                          qubits: Tuple[raw_types.QubitId, ...],
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         if self.half_turns != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')

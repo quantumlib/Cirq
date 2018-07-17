@@ -195,8 +195,8 @@ class GateOperation(raw_types.Operation,
         new_gate = cast_gate.with_parameters_resolved_by(param_resolver)
         return self.with_gate(cast(raw_types.Gate, new_gate))
 
-    def qasm_output(self, args: gate_features.QasmOutputArgs) -> Optional[str]:
-        """Returns a lines of QASM output representing the operation."""
+    def known_qasm_output(self,
+                          args: gate_features.QasmOutputArgs) -> Optional[str]:
         cast_gate = extension.cast(gate_features.QasmConvertableGate,
                                    self.gate)
-        return cast_gate.qasm_output(self.qubits, args)
+        return cast_gate.known_qasm_output(self.qubits, args)
