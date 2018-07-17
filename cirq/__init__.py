@@ -38,8 +38,8 @@ from cirq.circuits import (
     OptimizationPass,
     PointOptimizationSummary,
     PointOptimizer,
-    TextDiagramDrawer,
     QasmOutput,
+    TextDiagramDrawer,
 )
 
 from cirq.devices import (
@@ -128,6 +128,9 @@ from cirq.ops import (
     ReversibleEffect,
     ParameterizableEffect,
     PhaseableEffect,
+    QasmConvertableGate,
+    QasmConvertableOperation,
+    QasmOutputArgs,
     QubitId,
     Rot11Gate,
     RotXGate,

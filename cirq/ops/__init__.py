@@ -53,6 +53,9 @@ from cirq.ops.gate_features import (
     KnownMatrix,
     ParameterizableEffect,
     PhaseableEffect,
+    QasmConvertableGate,
+    QasmConvertableOperation,
+    QasmOutputArgs,
     ReversibleEffect,
     SingleQubitGate,
     TextDiagrammable,
@@ -60,9 +63,6 @@ from cirq.ops.gate_features import (
     TextDiagramInfoArgs,
     ThreeQubitGate,
     TwoQubitGate,
-    QasmOutputArgs,
-    QasmConvertableGate,
-    QasmConvertableOperation,
 )
 from cirq.ops.gate_operation import (
     GateOperation,
