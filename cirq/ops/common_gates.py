@@ -214,7 +214,7 @@ class RotYGate(eigen_gate.EigenGate,
         if self.half_turns == 1:
             return args.format('y {0};\n', qubits[0])
         else:
-            return args.format('ry({:half_turns}) {};\n',
+            return args.format('ry({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
     def __repr__(self) -> str:

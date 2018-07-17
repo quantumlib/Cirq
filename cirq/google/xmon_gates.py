@@ -467,7 +467,7 @@ class ExpZGate(XmonGate,
         if self.half_turns == 1:
             return args.format('z {0};\n', qubits[0])
         else:
-            return args.format('rz({:half_turns}) {};\n',
+            return args.format('rz({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
     def try_cast_to(self, desired_type, ext):
