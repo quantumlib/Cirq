@@ -48,7 +48,7 @@ the initial repository cloning command) assume you are at the cirq repo root.
     If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
 
     ```bash
-    mkvirtualenv cirq-py3 --python=/usr/bin/pythp
+    mkvirtualenv cirq-py3 --python=/usr/bin/python3
     pip install --upgrade pip
     pip install -r dev-requirements.txt
     ```
