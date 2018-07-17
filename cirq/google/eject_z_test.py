@@ -72,7 +72,7 @@ def _cancel_qubit_phase(m1: np.ndarray, m2: np.ndarray, k: int) -> None:
                 m2[i, :] *= counter_phase_2
 
 
-def canonicalize_up_to_measurement_phase(
+def canonicalize_up_to_terminal_measurement_phase(
         circuit1: cirq.Circuit,
         circuit2: cirq.Circuit) -> Tuple[Optional[np.ndarray],
                                          Optional[np.ndarray]]:
@@ -92,15 +92,8 @@ def canonicalize_up_to_measurement_phase(
                   for q in op.qubits}
     assert terminal_1 == terminal_2
 
-    matrix1, matrix2 = None, None
-    try:
-        matrix1 = circuit1.to_unitary_matrix()
-    except TypeError:
-        pass
-    try:
-        matrix2 = circuit2.to_unitary_matrix()
-    except TypeError:
-        pass
+    matrix1 = circuit1.to_unitary_matrix()
+    matrix2 = circuit2.to_unitary_matrix()
     assert (matrix1 is None) == (matrix2 is None)
     if matrix1 is None or matrix2 is None:
         return np.eye(1), np.eye(1)
@@ -112,42 +105,9 @@ def canonicalize_up_to_measurement_phase(
 def is_same_circuit_up_to_measurement_phase(circuit1: cirq.Circuit,
                                             circuit2: cirq.Circuit,
                                             atol: float):
-    m1, m2 = canonicalize_up_to_measurement_phase(circuit1, circuit2)
+    m1, m2 = canonicalize_up_to_terminal_measurement_phase(circuit1, circuit2)
     if m1 is not None and m2 is not None:
         return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
-
-
-def assert_equivalent_circuit_up_to_measurement_phase(actual: cirq.Circuit,
-                                                      expected: cirq.Circuit,
-                                                      atol: float):
-    similar = is_same_circuit_up_to_measurement_phase(actual,
-                                                      expected,
-                                                      atol)
-    if not similar:
-        # coverage: ignore
-        print("ACTUAL")
-        print(actual)
-        print("EXPECTED")
-        print(expected)
-    assert similar
-
-
-def is_same_circuit_up_to_measurement_phase(circuit1: cirq.Circuit,
-                                            circuit2: cirq.Circuit,
-                                            atol: float):
-    # Default to [[1]] when the circuit doesn't have a known unitary effect.
-    m1 = np.diag([1])
-    m2 = np.diag([1])
-
-    try:
-        m1 = canonicalize_up_to_measurement_phase(circuit1)
-    except TypeError:
-        pass
-    try:
-        m2 = canonicalize_up_to_measurement_phase(circuit2)
-    except TypeError:
-        pass
-    return cirq.allclose_up_to_global_phase(m1, m2, atol=atol)
 
 
 def assert_equivalent_circuit_up_to_measurement_phase(actual: cirq.Circuit,

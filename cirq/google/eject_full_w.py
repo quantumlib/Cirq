@@ -204,15 +204,11 @@ def _potential_cross_partial_w(moment_index: int,
 
     Uses the following identity:
         ───W(a)───W(b)^t───
-        ≡ ───Z^-a───X───Z^a───Z^-b───X^t───Z^b───                    (expand Ws)
-        ≡ ───Z^-a───Z^-a───Z^b───X^t───Z^-b───X───    (move X right flipping Zs)
-        ≡ ───Z^(b-2a)───X^t───Z^-b───X───                             (merge Zs)
-        ≡ ───Z^(b-2a)───X^t───Z^-(b-2a)───Z^(b-2a)───Z^-b───X───  (match left Z)
-        ≡ ───W(b-2a)^t───Z^(b-2a)───Z^-b───X───                   (merge into W)
-        ≡ ───W(b-2a)^t───Z^-2a───X───                               (cancel Z^b)
-        ≡ ───W(b-2a)^t───Z^-a───Z^-a───X───                        (split Z^-2a)
-        ≡ ───W(b-2a)^t───Z^-a───X───Z^a───                    (flip Z^-a across)
-        ≡ ───W(b-2a)^t───W(a)───                                       (merge W)
+        ≡ ───Z^-a───X───Z^a───W(b)^t────── (expand W(a))
+        ≡ ───Z^-a───X───W(b-a)^t───Z^a──── (move Z^a across, phasing axis)
+        ≡ ───Z^-a───W(a-b)^t───X───Z^a──── (move X across, negating axis angle)
+        ≡ ───W(2a-b)^t───Z^-a───X───Z^a─── (move Z^-a across, phasing axis)
+        ≡ ───W(2a-b)^t───W(a)───
     """
     a = state.held_w_phases.get(op.qubits[0])
     if a is None:
@@ -221,7 +217,7 @@ def _potential_cross_partial_w(moment_index: int,
     b = cast(float, w.axis_half_turns)
     t = cast(float, w.half_turns)
     new_op = ExpWGate(half_turns=t,
-                      axis_half_turns=b-2*a).on(op.qubits[0])
+                      axis_half_turns=2*a-b).on(op.qubits[0])
     state.deletions.append((moment_index, op))
     state.inline_intos.append((moment_index, new_op))
 

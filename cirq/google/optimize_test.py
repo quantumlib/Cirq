@@ -16,7 +16,7 @@ import pytest
 
 import cirq
 
-from cirq.google.eject_z_test import canonicalize_up_to_measurement_phase
+from cirq.google.eject_z_test import canonicalize_up_to_terminal_measurement_phase
 
 
 @pytest.mark.parametrize('n,d', [
@@ -38,7 +38,7 @@ def test_swap_field(n: int, d: int):
     cirq.google.optimize_for_xmon(after)
 
     if n <= 5:
-        m1, m2 = canonicalize_up_to_measurement_phase(before, after)
+        m1, m2 = canonicalize_up_to_terminal_measurement_phase(before, after)
         cirq.testing.assert_allclose_up_to_global_phase(
             m1,
             m2,
