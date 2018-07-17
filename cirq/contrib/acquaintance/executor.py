@@ -19,7 +19,8 @@ from cirq.circuits import (
         Circuit, PointOptimizer, PointOptimizationSummary)
 from cirq.ops import Operation, GateOperation, Gate, QubitId
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
-from cirq.contrib.acquaintance.permutation import PermutationGate
+from cirq.contrib.acquaintance.permutation import (
+        PermutationGate, LOGICAL_INDEX)
 from cirq.contrib.acquaintance.strategy import AcquaintanceStrategy
 
 if TYPE_CHECKING:
@@ -40,8 +41,8 @@ class StrategyExecutor(PointOptimizer):
 
     def execute(self,
                 strategy: AcquaintanceStrategy,
-                gates: Dict[Tuple[int,...], Gate],
-                initial_mapping: Dict[QubitId, int]
+                gates: Dict[Tuple[LOGICAL_INDEX,...], Gate],
+                initial_mapping: Dict[QubitId, LOGICAL_INDEX]
                 ) -> None:
         """Executes the strategy.
 
@@ -100,11 +101,13 @@ class StrategyExecutor(PointOptimizer):
         raise TypeError('Can only execute a strategy consisting of gates that '
                          'are instances of AcquaintanceOpportunityGate or '
                          'PermutationGate.')
+
+
     @staticmethod
-    def canonicalize_gates(gates: Dict[Tuple[int, ...], Gate]
-        ) -> Dict[frozenset, Dict[Tuple[int, ...], Gate]]:
+    def canonicalize_gates(gates: Dict[Tuple[LOGICAL_INDEX, ...], Gate]
+        ) -> Dict[frozenset, Dict[Tuple[LOGICAL_INDEX, ...], Gate]]:
         canonicalized_gates = defaultdict(dict
-            ) # type: Dict[frozenset, Dict[Tuple[int, ...], Gate]]
+            ) # type: Dict[frozenset, Dict[Tuple[LOGICAL_INDEX, ...], Gate]]
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate

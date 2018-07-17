@@ -13,13 +13,17 @@
 # limitations under the License.
 
 from functools import partial
+from itertools import chain
+from math import ceil
 from operator import indexOf
-from typing import Iterable, Sequence, TYPE_CHECKING
+from typing import Iterable, Sequence, TYPE_CHECKING, Dict
 
 from cirq import CompositeGate, TextDiagrammable
 from cirq.ops import (
         Operation, Gate, gate_features, QubitId, OP_TREE, SWAP)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
+from cirq.contrib.acquaintance.permutation import (
+        PermutationGate, SwapPermutationGate, LinearPermutationGate)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -42,7 +46,7 @@ class AcquaintanceOpportunityGate(Gate, TextDiagrammable):
 
 ACQUAINT = AcquaintanceOpportunityGate()
 
-class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
+class SwapNetworkGate(CompositeGate, PermutationGate):
     """A single gate representing a generalized swap network.
 
     Args:
@@ -62,12 +66,30 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
         self.acquaintance_size = acquaintance_size
         self.swap_gate = swap_gate
 
+    def acquaint_insides(self,
+                         acquaintance_gate: Operation,
+                         part: Sequence[QubitId],
+                         max_reach: int,
+                         acquaint_first: bool
+                         ) -> OP_TREE:
+        reaches = chain(range(1, max_reach + 1),
+                        range(max_reach, -1, -1))
+        offsets = (0, 1) * max_reach
+        swap_gate = SwapPermutationGate(self.swap_gate)
+        for offset, reach in zip(offsets, reaches):
+            if offset != acquaint_first:
+                yield acquaintance_gate
+            for dr in range(offset, reach, 2):
+                yield swap_gate(*part[dr:dr + 2])
+
+
     def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
+        mapping = {q: i for i, q in enumerate(qubits)}
         parts = []
         q = 0
         for part_len in self.part_lens:
-            parts.append(tuple(qubits[q: q + part_len]))
+            parts.append(list(qubits[q: q + part_len]))
             q += part_len
         n_parts = len(parts)
         op_sort_key = (lambda op:
@@ -76,11 +98,13 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
         posterior_interstitial_layer = [] # type: List[Operation]
         for layer_num in range(n_parts):
             prior_interstitial_layer = posterior_interstitial_layer
+            pre_layer = []
             layer = []
+            post_layer = []
             posterior_interstitial_layer = []
             for i in range(layer_num % 2, n_parts - 1, 2):
                 left_part, right_part = parts[i:i+2]
-                parts_qubits = left_part + right_part
+                parts_qubits = list(left_part + right_part)
                 multiplicities = (len(left_part), len(right_part))
                 shift = CircularShiftGate(multiplicities[0],
                                           swap_gate=self.swap_gate)(
@@ -91,33 +115,104 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
                     prior_interstitial_layer.append(ACQUAINT(*parts_qubits))
                     layer.append(shift)
                 else:
-                    if self.acquaintance_size > 3:
-                        raise NotImplementedError()
-                    layer.append(shift)
+
+                    # before
                     if multiplicities[0] == self.acquaintance_size - 1:
+                        # right part
                         pre_qubits = parts_qubits[:self.acquaintance_size]
-                        prior_interstitial_layer.append(ACQUAINT(*pre_qubits))
-                        post_qubits = parts_qubits[-self.acquaintance_size:]
-                        posterior_interstitial_layer.append(
-                                ACQUAINT(*post_qubits))
+                        pre_acquaintance_gate = ACQUAINT(*pre_qubits)
+
+                        prior_interstitial_layer.append(pre_acquaintance_gate)
+
+
+                        max_reach = int(ceil(multiplicities[1] / 2)) - 1
+                        pre_layer.append(
+                                self.acquaint_insides(pre_acquaintance_gate,
+                                    right_part, max_reach, False))
+                        reached_qubits = right_part[:max_reach + 1]
+                        positions = list(mapping[q] for q in reached_qubits)
+                        mapping.update(zip(reached_qubits, reversed(positions)))
+
                     if multiplicities[1] == self.acquaintance_size - 1:
+                        # left part
                         pre_qubits = parts_qubits[-self.acquaintance_size:]
-                        prior_interstitial_layer.append(ACQUAINT(*pre_qubits))
-                        post_qubits = parts_qubits[:self.acquaintance_size]
+                        pre_acquaintance_gate = ACQUAINT(*pre_qubits)
+
+                        prior_interstitial_layer.append(pre_acquaintance_gate)
+
+                        max_reach = int(ceil(multiplicities[0] / 2)) - 1
+                        pre_layer.append(
+                                self.acquaint_insides(pre_acquaintance_gate,
+                                    left_part[::-1], max_reach, False))
+
+                        reached_qubits = left_part[::-1][:max_reach + 1]
+                        positions = list(mapping[q] for q in reached_qubits)
+                        mapping.update(zip(reached_qubits, reversed(positions)))
+
+                    layer.append(shift)
+                    shift.gate.update_mapping(mapping, parts_qubits)
+
+                    # after
+                    if multiplicities[0] == self.acquaintance_size - 1:
+                        # right part
+                        post_qubits = parts_qubits[-self.acquaintance_size:]
+                        post_acquaintance_gate = ACQUAINT(*post_qubits)
+
+                        new_left_part = parts_qubits[multiplicities[1] - 1::-1]
+                        max_reach = max((multiplicities[1] // 2) - 1, 0)
+                        post_layer.append(
+                                self.acquaint_insides(post_acquaintance_gate,
+                                    new_left_part, max_reach, True))
+                        reached_qubits = new_left_part[:max_reach + 1]
+                        positions = list(mapping[q] for q in reached_qubits)
+                        mapping.update(zip(reached_qubits, reversed(positions)))
+
                         posterior_interstitial_layer.append(
-                                ACQUAINT(*post_qubits))
+                                post_acquaintance_gate)
+
+                    if multiplicities[1] == self.acquaintance_size - 1:
+                        # left part
+                        post_qubits = parts_qubits[:self.acquaintance_size]
+                        post_acquaintance_gate = ACQUAINT(*post_qubits)
+
+                        max_reach = (multiplicities[1] // 2) - 1
+                        post_layer.append(
+                                self.acquaint_insides(post_acquaintance_gate,
+                                    parts_qubits[multiplicities[1]:],
+                                    max_reach, True))
+
+                        reached_qubits = (
+                                parts_qubits[multiplicities[1]:
+                                    ][:max_reach + 1])
+                        positions = list(mapping[q] for q in reached_qubits)
+                        mapping.update(zip(reached_qubits, reversed(positions)))
+
+                        posterior_interstitial_layer.append(
+                                post_acquaintance_gate)
 
                 parts[i] = parts_qubits[:multiplicities[1]]
                 parts[i + 1] = parts_qubits[multiplicities[1]:]
             prior_interstitial_layer.sort(key=op_sort_key)
             yield prior_interstitial_layer
+            yield pre_layer
             yield layer
+            yield post_layer
         posterior_interstitial_layer.sort(key=op_sort_key)
         for op in posterior_interstitial_layer:
             yield op
-        for part in parts:
-            if len(part) > 1:
-                yield SwapNetworkGate((1,) * len(part))(*part)
+
+        # finish reversal
+        for part in reversed(parts):
+            part_len = len(part)
+            if part_len > 1:
+                positions = [mapping[q] for q in part]
+                offset = min(positions)
+                permutation = {
+                        i: (mapping[q] - offset) for i, q in enumerate(part)}
+                reverse_permutation = {
+                        i: part_len - p - 1 for i, p in permutation.items()}
+                yield LinearPermutationGate(reverse_permutation,
+                        self.swap_gate)(*part)
 
     def text_diagram_info(self,
                           args: gate_features.TextDiagramInfoArgs):
@@ -147,3 +242,12 @@ class SwapNetworkGate(Gate, CompositeGate, TextDiagrammable):
         assert sum(parts, ()) == tuple(qubit_order)
 
         return SwapNetworkGate(part_sizes, acquaintance_size)
+
+
+
+    def permutation(self, qubit_count: int) -> Dict[int, int]:
+        if qubit_count < sum(self.part_lens):
+            raise ValueError('qubit_count must be as large as the sum of the'
+                             'part lens.')
+        return {i: j for i, j in
+                enumerate(reversed(range(sum(self.part_lens))))}

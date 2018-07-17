@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence, Any
+from typing import Dict, Sequence, Union
 
 from cirq import abc
-from cirq.ops import CompositeGate, Gate, QubitId, OP_TREE, SWAP
+from cirq.ops import (
+        CompositeGate, Gate, QubitId, OP_TREE, SWAP,
+        flatten_op_tree, GateOperation, TextDiagrammable,
+        gate_features)
 
-class PermutationGate(Gate, CompositeGate, metaclass=abc.ABCMeta):
+LOGICAL_INDEX = Union[int, QubitId]
+
+class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
     """Permutation gate."""
 
     def __init__(self, swap_gate: Gate=SWAP) -> None:
@@ -30,23 +35,56 @@ class PermutationGate(Gate, CompositeGate, metaclass=abc.ABCMeta):
         pass
 
     def update_mapping(self,
-                       mapping: Dict[Any, Any],
-                       elements: Sequence[Any]
+                       mapping: Dict[QubitId, LOGICAL_INDEX],
+                       keys: Sequence[QubitId]
                        ) -> None:
-        n_elements = len(elements)
+        n_elements = len(keys)
         permutation = self.permutation(n_elements)
-        permuted_elements = [elements[permutation.get(i, i)]
-                             for i in range(n_elements)]
-        for i, e in enumerate(elements):
-            mapping[e] = permuted_elements[i]
+        indices = tuple(permutation.keys())
+        old_elements = [mapping[keys[i]] for i in indices]
+        for i, e in zip(indices, old_elements):
+            mapping[keys[permutation[i]]] = e
 
-class SwapPermutationGate(PermutationGate):
+
+    @staticmethod
+    def validate_permutation(permutation: Dict[int, int],
+                             n_elements: int=None) -> None:
+        if not permutation:
+            return
+        if len(set(permutation.values())) != len(permutation):
+            raise IndexError('Permutation is not injective.')
+        if set(permutation.values()) != set(permutation):
+            raise IndexError('key and value sets must be the same.')
+        if min(permutation) < 0:
+            raise IndexError('keys of the permutation must be non-negative.')
+        if min(permutation.values()) < 0:
+            raise IndexError('values of the permutation must be non-negative.')
+        if n_elements is not None:
+            if max(permutation) >= n_elements:
+                raise IndexError('key is out of bounds.')
+
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+            ) -> gate_features.TextDiagramInfo:
+        if args.known_qubit_count is None:
+            return NotImplemented
+        permutation = self.permutation(args.known_qubit_count)
+        arrow = '↦' if args.use_unicode_characters else '->'
+        wire_symbols = tuple(str(i) + arrow + str(permutation.get(i, i))
+                        for i in range(args.known_qubit_count))
+        return gate_features.TextDiagramInfo(wire_symbols=wire_symbols)
+
+
+class SwapPermutationGate(PermutationGate, CompositeGate):
     """Generic swap gate."""
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
-class LinearPermutationGate(PermutationGate):
+    def default_decompose(
+            self, qubits: Sequence[QubitId]) -> OP_TREE:
+        yield self.swap_gate(*qubits)
+
+class LinearPermutationGate(PermutationGate, CompositeGate):
     """A permutation gate that decomposes a given permutation using a linear
         sorting network."""
 
@@ -54,6 +92,13 @@ class LinearPermutationGate(PermutationGate):
                  permutation: Dict[int, int],
                  swap_gate: Gate=SWAP
                  ) -> None:
+        """Initializes a linear permutation gate.
+
+        Args:
+            permutation: The permutation effected by the gate.
+            swap_gate: The swap gate used in decompositions.
+        """
+        PermutationGate.validate_permutation(permutation)
         self._permutation = permutation
         self.swap_gate = swap_gate
 
@@ -69,3 +114,12 @@ class LinearPermutationGate(PermutationGate):
                 if mapping[i] > mapping[i + 1]:
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
+
+def update_mapping(mapping: Dict[QubitId, LOGICAL_INDEX],
+                   operations: OP_TREE
+                   ) -> None:
+    for op in flatten_op_tree(operations):
+        if not isinstance(op, GateOperation):
+            continue
+        if isinstance(op.gate, PermutationGate):
+            op.gate.update_mapping(mapping, op.qubits)

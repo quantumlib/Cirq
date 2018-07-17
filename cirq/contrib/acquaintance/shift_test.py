@@ -37,6 +37,15 @@ def test_circular_shift_gate_eq():
     assert a == b
     assert a != c
 
+def test_circular_shift_gate_permutation():
+    assert (CircularShiftGate(4).permutation(3) ==
+            {0: 2, 1: 0, 2: 1})
+    assert (CircularShiftGate(0).permutation(4) ==
+            {0: 0, 1: 1, 2: 2, 3: 3})
+
+    assert (CircularShiftGate(2).permutation(5) ==
+            {0:3, 1: 4, 2: 0, 3: 1, 4: 2})
+
 
 def test_circular_shift_gate_repr():
     g = CircularShiftGate(2)
