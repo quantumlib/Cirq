@@ -19,14 +19,14 @@ import cirq.google as cg
 
 def assert_optimizes(before: cirq.Circuit,
                      expected: cirq.Circuit,
-                     check_equivalent_matrices: bool = True):
+                     compare_unitaries: bool = True):
     opt = cg.EjectFullW()
 
     circuit = before.copy()
     opt.optimize_circuit(circuit)
 
     # They should have equivalent effects.
-    if check_equivalent_matrices:
+    if compare_unitaries:
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, expected, 1e-8)
 
@@ -312,7 +312,7 @@ def test_blocked_by_unknown_and_symbols():
             [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
             [cg.ExpWGate().on(a)],
         ),
-        check_equivalent_matrices=False)
+        compare_unitaries=False)
 
     assert_optimizes(
         before=quick_circuit(
@@ -325,4 +325,4 @@ def test_blocked_by_unknown_and_symbols():
             [cg.Exp11Gate(half_turns=cirq.Symbol('z')).on(a, b)],
             [cg.ExpWGate().on(a)],
         ),
-        check_equivalent_matrices=False)
+        compare_unitaries=False)

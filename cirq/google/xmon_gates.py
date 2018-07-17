@@ -14,7 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Union, Optional, cast
+from typing import Tuple, Union, Optional, cast
 
 import numpy as np
 
@@ -129,6 +129,7 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
+                ops.QasmConvertableGate,
                 PotentialImplementation[ops.KnownMatrix]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -193,6 +194,14 @@ class Exp11Gate(XmonGate,
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
         return ops.TextDiagramInfo(('@', '@'), self.half_turns)
+
+    def known_qasm_output(self,
+                          qubits: Tuple[ops.QubitId, ...],
+                          args: ops.QasmOutputArgs) -> Optional[str]:
+        if self.half_turns != 1:
+            return None  # Don't have an equivalent gate in QASM
+        args.validate_version('2.0')
+        return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
     def __str__(self):
         if self.half_turns == 1:
@@ -412,6 +421,7 @@ class ExpZGate(XmonGate,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
                ops.BoundedEffect,
+               ops.QasmConvertableGate,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
@@ -461,6 +471,16 @@ class ExpZGate(XmonGate,
         return ops.TextDiagramInfo(
             wire_symbols=('Z',),
             exponent=self.half_turns)
+
+    def known_qasm_output(self,
+                          qubits: Tuple[ops.QubitId, ...],
+                          args: ops.QasmOutputArgs) -> Optional[str]:
+        args.validate_version('2.0')
+        if self.half_turns == 1:
+            return args.format('z {0};\n', qubits[0])
+        else:
+            return args.format('rz({0:half_turns}) {1};\n',
+                               self.half_turns, qubits[0])
 
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.KnownMatrix and self.has_matrix():

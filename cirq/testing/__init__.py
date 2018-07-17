@@ -33,3 +33,6 @@ from cirq.testing.random_circuit import (
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
 )
+from cirq.testing.file_tester import (
+    TempFilePath,
+)
