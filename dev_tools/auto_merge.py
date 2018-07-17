@@ -134,6 +134,9 @@ def check_auto_merge_labeler(repo: GithubRepository, pull_id: int):
                 for event in payload
                 if event['event'] == 'labeled' and
                 event['label']['name'] == 'automerge']
+    if not relevant:
+        raise CurrentStuckGoToNextError('"automerge" label was never added.')
+
     check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
 
 
