@@ -22,7 +22,7 @@ import cirq
 from cirq.circuits.optimization_pass import (PointOptimizer,
                                              PointOptimizationSummary)
 from cirq import Circuit, InsertStrategy, Moment
-from cirq.testing.random_circuit import random_circuit
+from cirq.testing import random_circuit
 import cirq.google as cg
 
 seed(5)
