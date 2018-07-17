@@ -1921,8 +1921,7 @@ def test_push_frontier_random_circuit():
 
 
 @pytest.mark.parametrize('circuit',
-    [random_circuit(
-        tuple(cirq.NamedQubit(s) for s in alphabet[:10]), 10, 0.5)
+    [random_circuit(cirq.LineQubit.range(10), 10, 0.5)
      for _ in range(20)])
 def test_insert_operations_random_circuits(circuit):
     n_moments = len(circuit)
