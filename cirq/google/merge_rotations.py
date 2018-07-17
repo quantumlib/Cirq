@@ -27,7 +27,6 @@ from cirq.circuits import (
 from cirq.extension import Extensions
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.google.xmon_gates import XmonGate
-from cirq.google.eject_z import EjectZ
 
 
 class MergeRotations(PointOptimizer):
