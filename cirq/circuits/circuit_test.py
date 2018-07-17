@@ -14,7 +14,6 @@
 
 from collections import defaultdict
 from random import randint, random, sample, randrange, seed
-from string import ascii_lowercase as alphabet
 
 import numpy as np
 import pytest
