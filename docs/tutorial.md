@@ -77,17 +77,28 @@ where p<sub>i</sub> are the parameters that produce this state
 (here we assume a pure state, but mixed states are of course
 possible).
 
-The variational algorithm then proceeds by
+The variational algorithm then works by noting that one
+can obtain the value of the objective function for a 
+given ansatz state by 
 1. Prepare the ansatz state.
 2. Make a measurement which samples from some terms in H.
-3. Repeat 1.
+3. Goto 1.
 Note that one cannot always measure H directly (without
 the use of quantum phase estimation), so one often relies
 on the linearity of expectation values to measure parts of
 H in step 2. One always needs to repeat the measurements to
 obtain an estimate of the expectation value. How many measurements
 needed to achieve a given accuracy is beyond the scope of 
-this tutorial, but Cirq can help investigate this question. 
+this tutorial, but Cirq can help investigate this question.
+
+The above shows that one can use a quantum computer to 
+obtain estimates of the objective function for the ansatz.
+This can then be used in an outer loop to try to 
+obtain parameters for the the lowest value of the
+objective function. For these values, one can then use
+that best ansatz to produce samples of solutions to the problem
+which obtain a hopefully good approximation for the 
+lowest possible value of the objective function.
 
 ### Create a circuit on a Grid
 
@@ -100,8 +111,8 @@ need, so here we will work with `Circuit`s instead.
 
 Conceptually: a `Circuit` is a collection of ``Moments``. A
 `Moment` is a collection of ``Operations`` that all act during
-the same abstract time slice. An `Operation` is a
-some effect that operates on a specific subset of ``Qubits``.
+the same abstract time slice. An `Operation` is a an effect
+that operates on a specific subset of ``Qubits``.
 The most common type of `Operation` is a `Gate` applied 
 to several qubits (a `GateOperation`). The following diagram 
 should help illustrate these concepts.
@@ -110,7 +121,7 @@ should help illustrate these concepts.
 
 See the [conceptual documentation](circuits.md) for more 
 details on these classes. Because the problem we have 
-defined as a natural structure on a grid, we will use 
+defined has a natural structure on a grid, we will use 
 Cirq's built in `GridQubit`s as our qubits.
 We will demonstrate some of how this works in an 
 interactive python environment, the following code can
