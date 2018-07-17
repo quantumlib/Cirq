@@ -14,13 +14,17 @@
 
 """An optimization pass that removes operations with tiny effects."""
 
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from cirq import ops, extension
 from cirq.circuits import optimization_pass, circuit as _circuit
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List, Tuple
 
-class DropNegligible(optimization_pass.PointOptimizer):
+
+class DropNegligible(optimization_pass.OptimizationPass):
     """An optimization pass that removes operations with tiny effects."""
 
     def __init__(self,
@@ -29,18 +33,12 @@ class DropNegligible(optimization_pass.PointOptimizer):
         self.tolerance = tolerance
         self.extensions = extensions or extension.Extensions()
 
-    def optimization_at(
-            self,
-            circuit: _circuit.Circuit,
-            index: int,
-            op: ops.Operation
-            ) -> Optional[optimization_pass.PointOptimizationSummary]:
-
-        bounded = self.extensions.try_cast(ops.BoundedEffect, op)
-        if bounded is None or bounded.trace_distance_bound() > self.tolerance:
-            return None
-
-        return optimization_pass.PointOptimizationSummary(
-            clear_span=1,
-            new_operations=(),
-            clear_qubits=op.qubits)
+    def optimize_circuit(self, circuit: _circuit.Circuit) -> None:
+        deletions = []  # type: List[Tuple[int, ops.Operation]]
+        for moment_index, moment in enumerate(circuit):
+            for op in moment.operations:
+                bounded = self.extensions.try_cast(ops.BoundedEffect, op)
+                if (bounded is not None and
+                        bounded.trace_distance_bound() <= self.tolerance):
+                    deletions.append((moment_index, op))
+        circuit.batch_remove(deletions)
