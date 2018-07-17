@@ -2,13 +2,12 @@
 
 Choose your operating system:
 
-- [Installing on Linux](###Installing-on-Linux)
-- [Installing on Mac OS X](###Installing-on-Mac-OS-X)
-- [Installing on Windows](###Installing-on-Windows)
+- [Installing on Linux](#Installing-on-Linux)
+- [Installing on Mac OS X](#Installing-on-Mac-OS-X)
+- [Installing on Windows](#Installing-on-Windows)
 
 If you want to create a development environment, see [docs/development.md](/docs/development.md).
 
----
 ---
 
 ### Installing on Linux
@@ -62,9 +61,7 @@ If you want to create a development environment, see [docs/development.md](/docs
     pip install cirq
     ```
 
-3. Be aware that cirq's pdf writing functionality does not currently work on OS X.
-
-4. Check that it works!
+3. Check that it works!
 
     ```bash
     python -c 'import cirq; print(cirq.google.Foxtail)'
@@ -78,7 +75,7 @@ If you want to create a development environment, see [docs/development.md](/docs
 
 ### Installing on Windows
 
-0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](###Installing-on-Linux) instead of these instructions.
+0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](#Installing-on-Linux) instead of these instructions.
 
 1. Make sure you have python 3.5 or greater (or else python 2.7.9+).
 
@@ -87,13 +84,11 @@ If you want to create a development environment, see [docs/development.md](/docs
 2. Use `pip` to install `cirq`:
 
     ```bash
-    pip install --upgrade pip
-    pip install cirq
+    python -m pip install --upgrade pip
+    python -m pip install cirq
     ```
 
-3. Be aware that cirq's pdf writing functionality does not work on Windows.
-
-4. Check that it works!
+3. Check that it works!
 
     ```bash
     python -c 'import cirq; print(cirq.google.Foxtail)'

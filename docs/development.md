@@ -10,10 +10,10 @@ the initial repository cloning command) assume you are at the cirq repo root.
 
 0. Clone the repository.
 
-```bash
-git clone git@github.com:quantumlib/Cirq.git
-cd Cirq
-```
+    ```bash
+    git clone git@github.com:quantumlib/Cirq.git
+    cd Cirq
+    ```
 
 1. Install system dependencies.
 
@@ -114,4 +114,4 @@ The script does nothing if the output directory already exists.
     bash dev_tools/produce-package.sh
     ```
 
-The output files will be placed in `dist/`, from which they can be uploaded to pypi with a tool such as `twine`.
+    The output files will be placed in `dist/`, from which they can be uploaded to pypi with a tool such as `twine`.
