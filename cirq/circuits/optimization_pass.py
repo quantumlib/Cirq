@@ -138,12 +138,7 @@ class PointOptimizer(OptimizationPass):
                 circuit.clear_operations_touching(
                     opt.clear_qubits,
                     [e for e in range(i, i + opt.clear_span)])
-                next_insert_index = circuit.insert_into_range(
-                    opt.new_operations, i, i + opt.clear_span)
-
-                # Prevent redundant optimizations.
-                for q in opt.clear_qubits:
-                    frontier[q] = max(frontier[q], next_insert_index)
+                circuit.insert_at_frontier(opt.new_operations, i, frontier)
 
             i += 1
 

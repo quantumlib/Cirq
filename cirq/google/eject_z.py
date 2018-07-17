@@ -18,10 +18,9 @@ from typing import Optional, cast, TYPE_CHECKING
 
 from collections import defaultdict
 
-from cirq import circuits, ops, extension
+from cirq import circuits, ops, extension, value
 from cirq.google.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
-from cirq.value import Symbol
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -104,6 +103,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op.gate, (ExpZGate, ops.RotZGate)):
         return None
     h = op.gate.half_turns
-    if isinstance(h, Symbol):
+    if isinstance(h, value.Symbol):
         return None
     return h

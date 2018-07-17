@@ -17,10 +17,9 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 
-from cirq import circuits, ops, extension
+from cirq import circuits, ops, extension, value
 from cirq.google import decompositions
 from cirq.google.xmon_gates import ExpZGate, ExpWGate, Exp11Gate
-from cirq.value import Symbol
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -43,7 +42,8 @@ class EjectFullW(circuits.OptimizationPass):
 
     As the gates get pushed, they may absorb Z gates, cancel against other ExpW
     gates with half_turns=1, get merged into measurements (as output bit flips),
-    and kickback across CZs.
+    and cause phase kickback operations across CZs (which can then be removed by
+    the EjectZ optimization).
     """
 
     def __init__(self,
@@ -313,7 +313,7 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
             not isinstance(op.gate, (Exp11Gate, ops.Rot11Gate))):
         return None
     h = op.gate.half_turns
-    if isinstance(h, Symbol):
+    if isinstance(h, value.Symbol):
         return None
     return h
 
@@ -321,8 +321,8 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
 def _try_get_known_w(op: ops.Operation) -> Optional[ExpWGate]:
     if (not isinstance(op, ops.GateOperation) or
             not isinstance(op.gate, ExpWGate) or
-            isinstance(op.gate.half_turns, Symbol) or
-            isinstance(op.gate.axis_half_turns, Symbol)):
+            isinstance(op.gate.half_turns, value.Symbol) or
+            isinstance(op.gate.axis_half_turns, value.Symbol)):
         return None
     return op.gate
 
@@ -332,6 +332,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
             not isinstance(op.gate, (ExpZGate, ops.RotZGate))):
         return None
     h = op.gate.half_turns
-    if isinstance(h, Symbol):
+    if isinstance(h, value.Symbol):
         return None
     return h
