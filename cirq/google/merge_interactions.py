@@ -150,7 +150,7 @@ class MergeInteractions(circuits.PointOptimizer):
             if any(e is None for e in op_data):
                 break
             present_ops = [op for op in operations if op]
-            present_op_data = cast(List[Tuple[np.ndarray]], op_data)
+            present_op_data = cast(List[np.ndarray], op_data)
 
             for op_mat in present_op_data:
                 product = np.dot(op_mat, product)
