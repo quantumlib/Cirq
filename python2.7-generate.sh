@@ -86,8 +86,8 @@ cp "${in_dir}/LICENSE" "${out_dir}/LICENSE"
 cp "${in_dir}/setup.py" "${out_dir}/setup.py"
 
 # Substitute versions (failing via grep triggering -e if not present.)
-grep "python_requires='>=3.5'" "${out_dir}/setup.py" > /dev/null
-sed -i "s/python_requires='>=3.5'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
+grep "python_requires='>=3.5.3'" "${out_dir}/setup.py" > /dev/null
+sed -i "s/python_requires='>=3.5.3'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")
