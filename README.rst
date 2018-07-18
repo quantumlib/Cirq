@@ -9,6 +9,9 @@ circuits and running them against quantum computers and simulators.
   :target: https://travis-ci.com/quantumlib/Cirq
   :alt: Build Status
 
+.. image:: https://badge.fury.io/py/cirq.svg
+    :target: https://badge.fury.io/py/cirq
+
 Installation
 ------------
 
