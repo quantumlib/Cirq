@@ -83,6 +83,7 @@ given ansatz state by
 1. Prepare the ansatz state.
 2. Make a measurement which samples from some terms in H.
 3. Goto 1.
+
 Note that one cannot always measure H directly (without
 the use of quantum phase estimation), so one often relies
 on the linearity of expectation values to measure parts of
@@ -148,8 +149,8 @@ have a row and column, indicating their position on a grid.
 
 Now that we have some qubits, let us construct a `Circuit` on these qubits.
 For example, suppose we want to apply the Hadamard gate `H` to
-every qubit whose row index plus column index is even and `X` to
-every qubit whose row index plus column index is odd.  To
+every qubit whose row index plus column index is even and an `X`
+gate to every qubit whose row index plus column index is odd.  To
 do this we write
 ```python
 circuit = cirq.Circuit()
@@ -234,9 +235,9 @@ over to act at the earliest `Moment` they can.
 ### Creating the Ansatz
 
 If you look closely at the circuit creation code above you will see that
-we applied the `append` method to both a `tuple` and a `list` (recall that
-in python one can use generator comprehensions in method calls).  
-Inspecting the [code](/cirq/circuits/circuit.py) for append on sees that in
+we applied the `append` method to both a `generator` and a `list` (recall that
+in python one can use generator comprehensions in method calls).
+Inspecting the [code](/cirq/circuits/circuit.py) for append one sees that
 the append method generally takes an `OP_TREE` (or a `Moment`).  What is
 an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE` 
 is anything that can be flattened, perhaps recursively, into a list 
@@ -246,6 +247,7 @@ of operations, or into a single operation. Examples of an `OP_TREE` are
 * A tuple of `Operation`s.
 * A list of a list of `Operations`s.
 * A generator yielding `Operations`. 
+
 This last case yields a nice pattern for defining sub-circuits / layers,
 define a function that takes in the relevant parameters and then
 yields the operations for the sub circuit and then this can be appended
@@ -291,7 +293,7 @@ import random
 def rand2d(rows, cols):
     return [[random.choice([+1, -1]) for _ in range(rows)] for _ in range(cols)]
 
-def fields(length):
+def random_instance(length):
     # transverse field terms
     h = rand2d(length, length)
     # links within a row
@@ -300,12 +302,12 @@ def fields(length):
     jc = rand2d(length - 1, length)
     return (h, jr, jc)
     
-h, jr, jc = fields(3)
-print('transfer field: {}'.format(h))
+h, jr, jc = random_instance(3)
+print('transverse fields: {}'.format(h))
 print('row j fields: {}'.format(jr))
 print('column j fields: {}'.format(jc))
 # prints something like
-# transfer field: [[-1, 1, -1], [1, -1, -1], [-1, 1, -1]]
+# transverse fields: [[-1, 1, -1], [1, -1, -1], [-1, 1, -1]]
 # row j fields: [[1, 1, -1], [1, -1, 1]]
 # column j fields: [[1, -1], [-1, 1], [-1, 1]]
 ```
@@ -366,7 +368,7 @@ def one_step(h, jr, jc, x_half_turns, h_half_turns, j_half_turns):
     yield rot_z_layer(h, h_half_turns)
     yield rot_11_layer(jr, jc, j_half_turns)
 
-h, jr, jc = fields(3)
+h, jr, jc = random_instance(3)
 
 circuit = cirq.Circuit()    
 circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
@@ -410,9 +412,10 @@ Currently Cirq ships with a simulator tied strongly to the gate
 set of the Google xmon architecture.  However, for convenience, 
 the simulator attempts to automatically convert unknown 
 operations into XmonGates (as long as the operation specifies 
-a matrix or decomposition). This can in principle simulate
-any circuit that has gates that implement one and two qubit 
-`KnownMatrix` gates. Future release will expand these simulators.
+a matrix or a decomposition into XmonGates). This can in 
+principle allows us to simulate any circuit that has gates 
+that implement one and two qubit  `KnownMatrix` gates. 
+Future releases of Cirq will expand these simulators.
 
 Because the simulator is tied to the xmon gate set, the simulator
 lives, in contrast to core Cirq, in the `cirq.google` module.
@@ -433,8 +436,8 @@ Note that we have run the simulation 100 times and produced a
 histogram of the counts of the measurement results.  What are the
 keys in the histogram counter? Note that we have passed in 
 the order of the qubits. This ordering is then used to translate 
-the order of the measurement results to a register using big
-endian representation.
+the order of the measurement results to a register using a 
+[big endian](https://en.wikipedia.org/wiki/Endianness) representation.
 
 For our optimization problem we will want to calculate the 
 value of the objective function for a given result run. One
