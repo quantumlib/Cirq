@@ -115,12 +115,12 @@ class PointOptimizer(OptimizationPass):
         pass
 
     def optimize_circuit(self, circuit: Circuit):
-        walls = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
+        frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:
                 # Don't touch stuff inserted by previous optimizations.
-                if any(walls[q] > i for q in op.qubits):
+                if any(frontier[q] > i for q in op.qubits):
                     continue
 
                 # Skip if an optimization removed the circuit underneath us.
@@ -138,7 +138,7 @@ class PointOptimizer(OptimizationPass):
                 circuit.clear_operations_touching(
                     opt.clear_qubits,
                     [e for e in range(i, i + opt.clear_span)])
-                circuit.insert_at_frontier(opt.new_operations, i, walls)
+                circuit.insert_at_frontier(opt.new_operations, i, frontier)
 
             i += 1
 
