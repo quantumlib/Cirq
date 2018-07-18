@@ -27,7 +27,6 @@ def test_leaves_big():
     drop = cirq.DropNegligible(0.001)
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit([cirq.Moment([cirq.Z(a)**0.1])])
-    assert drop.optimization_at(circuit, 0, circuit.operation_at(a, 0)) is None
 
     assert_optimizes(optimizer=drop,
                      initial_circuit=circuit,
@@ -38,11 +37,6 @@ def test_clears_small():
     drop = cirq.DropNegligible(0.001)
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit([cirq.Moment([cirq.Z(a)**0.000001])])
-
-    assert (drop.optimization_at(circuit, 0, circuit.operation_at(a, 0)) ==
-            cirq.PointOptimizationSummary(clear_span=1,
-                                          clear_qubits=[a],
-                                          new_operations=[]))
 
     assert_optimizes(optimizer=drop,
                      initial_circuit=circuit,
