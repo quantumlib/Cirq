@@ -22,9 +22,8 @@ from cirq.line.placement.place_strategy import (
     LinePlacementStrategy,
 )
 from cirq.line.placement.sequence import (
-    LinePlacement,
+    GridQubitLineTuple,
 )
 from cirq.line.placement.line import (
-    line_placement_on_device,
     line_on_device,
 )

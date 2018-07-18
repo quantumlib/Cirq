@@ -234,8 +234,8 @@ class Circuit(ops.ParameterizableEffect):
         moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
         if self._device == devices.UnconstrainedDevice:
             return 'Circuit([{}])'.format(','.join(moment_lines))
-        return 'Circuit([{}], device={})'.format(','.join(moment_lines),
-                                                 self._device)
+        return 'Circuit([{}], device={!r})'.format(','.join(moment_lines),
+                                                   self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -386,19 +386,19 @@ class Circuit(ops.ParameterizableEffect):
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
-    def _prev_moment_blocking(
+    def _prev_moment_available(
             self,
             op: ops.Operation,
             end_moment_index: int) -> Optional[int]:
-        if not self._moments:
-            return None
-
+        last_available = end_moment_index
         k = end_moment_index
         while k > 0:
             k -= 1
-            if not self._can_add_op_at(k, op):
-                return k
-        return None
+            if not self._can_commute_past(k, op):
+                return last_available
+            if self._can_add_op_at(k, op):
+                last_available = k
+        return last_available
 
     def operation_at(self,
                      qubit: ops.QubitId,
@@ -493,8 +493,8 @@ class Circuit(ops.ParameterizableEffect):
             return splitter_index
 
         if strategy is InsertStrategy.INLINE:
-            if (self._can_add_op_at(splitter_index - 1, op) and
-                    0 <= splitter_index - 1 < len(self._moments)):
+            if (0 <= splitter_index - 1 < len(self._moments) and
+                    self._can_add_op_at(splitter_index - 1, op)):
                 return splitter_index - 1
 
             return self._pick_or_create_inserted_op_moment_index(
@@ -502,8 +502,8 @@ class Circuit(ops.ParameterizableEffect):
 
         if strategy is InsertStrategy.EARLIEST:
             if self._can_add_op_at(splitter_index, op):
-                p = self._prev_moment_blocking(op, splitter_index)
-                return p + 1 if p is not None else 0
+                p = self._prev_moment_available(op, splitter_index)
+                return p or 0
 
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.INLINE)
@@ -524,6 +524,11 @@ class Circuit(ops.ParameterizableEffect):
         return self._device.can_add_operation_into_moment(
             operation,
             self._moments[moment_index])
+
+    def _can_commute_past(self,
+                          moment_index: int,
+                          operation: ops.Operation) -> bool:
+        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
             self,
