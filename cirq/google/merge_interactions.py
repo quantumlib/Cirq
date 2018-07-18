@@ -91,9 +91,7 @@ class MergeInteractions(circuits.PointOptimizer):
                 order.
 
         Returns:
-            None, or else a tuple containing a matrix equivalent to the effect
-            of the operation and a boolean indicating if the operation is a
-            2-qubit interaction.
+            None, or else a matrix equivalent to the effect of the operation.
         """
         q1, q2 = qubits
 
