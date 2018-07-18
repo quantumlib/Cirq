@@ -65,6 +65,15 @@ Contributing
 We welcome contributions. Please follow these
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
 
+See Also
+--------
+
+For those interested in using quantum computers to solve problems in
+chemistry and materials science, we encourage exploring
+`OpenFermion <https://github.com/quantumlib/openfermion>`__ and
+its sister library for compiling quantum simulation algorithms in Cirq,
+`OpenFermion-Cirq <https://github.com/quantumlib/openfermion-cirq>`__.
+
 Disclaimer
 ----------
 
