@@ -24,10 +24,7 @@ from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
 )
-from cirq.line.placement.sequence import (
-    GridQubitLineTuple,
-    LineSequence
-)
+from cirq.line.placement.sequence import GridQubitLineTuple
 
 
 class GreedySequenceSearch(object):
@@ -337,7 +334,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             raise ValueError(
                 "Unknown greedy search algorithm %s" % self.algorithm)
 
-        sequence = []  # type: List[LineSequence]
+        sequence = []  # type: List[GridQubit]
         for algorithm in greedy_search:
             if algorithm == self.algorithm or self.algorithm == self.BEST:
                 candidate = greedy_search[algorithm].get_or_search()
