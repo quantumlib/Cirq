@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Dict, List, Optional, Set
+
 import abc
 import collections
 
-from typing import Dict, List, Optional, Set
+from cirq.devices import GridQubit
+from cirq.google import XmonDevice
 from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import (
     chip_as_adjacency_list,
     yx_cmp
 )
-from cirq.line.placement.sequence import (
-    LinePlacement,
-    LineSequence
-)
-from cirq.devices import GridQubit
-from cirq.google import XmonDevice
+from cirq.line.placement.sequence import GridQubitLineTuple
 
 
 class GreedySequenceSearch(object):
@@ -300,7 +298,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         """
         self.algorithm = algorithm
 
-    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
@@ -336,12 +334,11 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             raise ValueError(
                 "Unknown greedy search algorithm %s" % self.algorithm)
 
-        sequence = None
+        sequence = []  # type: List[GridQubit]
         for algorithm in greedy_search:
             if algorithm == self.algorithm or self.algorithm == self.BEST:
                 candidate = greedy_search[algorithm].get_or_search()
-                if sequence is None or len(sequence) < len(candidate):
+                if len(sequence) < len(candidate):
                     sequence = candidate
 
-        return LinePlacement(device, length,
-                             [LineSequence(sequence)] if sequence else [])
+        return GridQubitLineTuple.best_of([sequence], length)

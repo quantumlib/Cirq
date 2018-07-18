@@ -1978,15 +1978,35 @@ def test_validates_while_editing():
 def test_respects_additional_adjacency_constraints():
     c = cirq.Circuit(device=cg.Foxtail)
     c.append(cg.Exp11Gate().on(cirq.GridQubit(0, 0),
-                                        cirq.GridQubit(0, 1)))
+                               cirq.GridQubit(0, 1)))
     c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
-                                        cirq.GridQubit(1, 1)),
+                               cirq.GridQubit(1, 1)),
              strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
         cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
-                                                cirq.GridQubit(0, 1))]),
+                                       cirq.GridQubit(0, 1))]),
         cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
-                                                cirq.GridQubit(1, 1))]),
+                                       cirq.GridQubit(1, 1))]),
+    ], device=cg.Foxtail)
+
+
+def test_commutes_past_adjacency_constraints():
+    c = cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment(),
+            cirq.Moment([
+                cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))])
+        ],
+        device=cg.Foxtail)
+    c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+                               cirq.GridQubit(1, 1)),
+             strategy=cirq.InsertStrategy.EARLIEST)
+    assert c == cirq.Circuit([
+        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+                                       cirq.GridQubit(1, 1))]),
+        cirq.Moment(),
+        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+                                       cirq.GridQubit(0, 1))]),
     ], device=cg.Foxtail)
 
 
