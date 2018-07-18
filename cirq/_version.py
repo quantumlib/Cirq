@@ -17,6 +17,6 @@
 import sys
 
 if sys.version_info.major == 2:
-    __version__ = "0.3.0.27"  # coverage: ignore
+    __version__ = "0.3.1.dev27"  # coverage: ignore
 else:
-    __version__ = "0.3.0.35"
+    __version__ = "0.3.1.dev35"
