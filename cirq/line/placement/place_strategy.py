@@ -15,7 +15,7 @@
 
 from cirq import abc
 from cirq.google import XmonDevice
-from cirq.line.placement.sequence import LinePlacement
+from cirq.line.placement.sequence import GridQubitLineTuple
 
 
 class LinePlacementStrategy(metaclass=abc.ABCMeta):
@@ -26,7 +26,7 @@ class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
