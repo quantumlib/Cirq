@@ -19,8 +19,16 @@ from setuptools import find_packages, setup
 __version__ = None
 exec(open('cirq/_version.py').read())
 
+description = ('A framework for creating, editing, and invoking '
+               'Noisy Intermediate Scale Quantum (NISQ) circuits.')
+
 # Readme file as long_description:
-long_description = io.open('README.rst', encoding='utf-8').read()
+long_description = ('====\n'
+                    'Cirq\n'
+                    '====\n')
+stream = io.open('README.rst', encoding='utf-8')
+stream.readline()
+long_description += stream.read()
 
 # Read in requirements
 requirements = open('runtime-requirements.txt').readlines()
@@ -39,5 +47,7 @@ setup(
     python_requires='>=3.5',
     install_requires=requirements,
     license='Apache 2',
+    description=description,
+    long_description=long_description,
     packages=cirq_packages,
     package_data={'cirq.api.google.v1': ['*.proto']})
