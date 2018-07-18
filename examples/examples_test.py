@@ -17,7 +17,7 @@ import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.grover
-import examples.line_placement
+import examples.place_on_bristlecone
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
@@ -64,7 +64,7 @@ def test_example_runs_bernstein_vazirani():
 
 
 def test_example_runs_hello_line():
-    examples.line_placement.main()
+    examples.place_on_bristlecone.main()
 
 
 def test_example_runs_hello_qubit():

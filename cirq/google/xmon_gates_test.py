@@ -287,6 +287,15 @@ def test_w_eq():
         cg.ExpWGate(half_turns=7.75, axis_half_turns=11.25))
 
 
+def test_w_str():
+    assert str(cg.ExpWGate()) == 'X'
+    assert str(cg.ExpWGate(axis_half_turns=0.99999, half_turns=0.5)) == 'X^-0.5'
+    assert str(cg.ExpWGate(axis_half_turns=0.5, half_turns=0.25)) == 'Y^0.25'
+    assert str(cg.ExpWGate(axis_half_turns=0.25,
+                           half_turns=0.5)) == 'W(0.25)^0.5'
+
+
+
 def test_w_to_proto():
     assert proto_matches_text(
         cg.ExpWGate(half_turns=Symbol('k'),

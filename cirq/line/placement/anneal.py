@@ -26,7 +26,7 @@ from cirq.line.placement.chip import (
     EDGE,
 )
 from cirq.line.placement.sequence import (
-    LinePlacement,
+    GridQubitLineTuple,
     LineSequence
 )
 from cirq.contrib import optimization
@@ -52,8 +52,8 @@ class AnnealSequenceSearch(object):
     def search(
             self,
             trace_func: Callable[
-                [List[List[GridQubit]], float, float, float, bool],
-                None] = None) -> List[List[GridQubit]]:
+                [List[LineSequence], float, float, float, bool],
+                None] = None) -> List[LineSequence]:
         """Issues new linear sequence search.
 
         Each call to this method starts new search.
@@ -340,8 +340,12 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     efficiency improvements.
     """
 
-    def __init__(self, trace_func: Callable[
-        [List[List[GridQubit]], float, float, float, bool], None] = None,
+    def __init__(self,
+                 trace_func: Callable[[List[LineSequence],
+                                       float,
+                                       float,
+                                       float,
+                                       bool], None] = None,
                  seed: int = None) -> None:
         """Linearized sequence search using simulated annealing method.
 
@@ -361,7 +365,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: XmonDevice, length: int) -> LinePlacement:
+    def place_line(self, device: XmonDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
@@ -373,8 +377,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             method.
         """
         seqs = AnnealSequenceSearch(device, self.seed).search(self.trace_func)
-        return LinePlacement(device, length,
-                             [LineSequence(seq) for seq in seqs])
+        return GridQubitLineTuple.best_of(seqs, length)
 
 
 def index_2d(seqs: List[List[Any]], target: Any) -> Tuple[int, int]:

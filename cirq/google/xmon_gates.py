@@ -32,6 +32,17 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @staticmethod
+    def is_xmon_op(op: ops.Operation) -> bool:
+        return XmonGate.try_get_xmon_gate(op) is not None
+
+    @staticmethod
+    def try_get_xmon_gate(op: ops.Operation) -> Optional['XmonGate']:
+        if (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, XmonGate)):
+            return op.gate
+        return None
+
+    @staticmethod
     def from_proto(op: operations_pb2.Operation) -> ops.Operation:
         param = XmonGate.parameterized_value_from_proto
         qubit = GridQubit.from_proto
@@ -342,30 +353,33 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def _text_symbol(self, args: ops.TextDiagramInfoArgs) -> str:
-        e = 0 if args.precision is None else 10**-args.precision
-        if isinstance(self.axis_half_turns, value.Symbol):
-            return 'W({})'.format(self.axis_half_turns)
-        if abs(self.axis_half_turns) <= e:
-            return 'X'
-        if abs(self.axis_half_turns - 0.5) <= e:
-            return 'Y'
-        if args.precision is not None:
-            return 'W({{:.{}}})'.format(args.precision).format(
-                self.axis_half_turns)
-        else:
-            return 'W({})'.format(self.axis_half_turns)
-
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
-        return ops.TextDiagramInfo((self._text_symbol(args),),
-                                   self.half_turns)
+        e = 0 if args.precision is None else 10**-args.precision
+        half_turns = self.half_turns
+        if isinstance(self.axis_half_turns, value.Symbol):
+            s = 'W({})'.format(self.axis_half_turns)
+        elif abs(self.axis_half_turns) <= e:
+            s = 'X'
+        elif (abs(self.axis_half_turns - 1) <= e and
+              isinstance(half_turns, float)):
+            s = 'X'
+            half_turns = -half_turns
+        elif abs(self.axis_half_turns - 0.5) <= e:
+            s = 'Y'
+        elif args.precision is not None:
+            s = 'W({{:.{}}})'.format(args.precision).format(
+                self.axis_half_turns)
+        else:
+            s = 'W({})'.format(self.axis_half_turns)
+        return ops.TextDiagramInfo((s,), half_turns)
 
     def __str__(self):
-        base = self._text_symbol(ops.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
-        if self.half_turns == 1:
-            return base
-        return '{}^{}'.format(base, self.half_turns)
+        info = self.text_diagram_info(
+            ops.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+        if info.exponent == 1:
+            return info.wire_symbols[0]
+        return '{}^{}'.format(info.wire_symbols[0], info.exponent)
 
     def __repr__(self):
         return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(
@@ -409,6 +423,7 @@ class ExpZGate(XmonGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
+               ops.BoundedEffect,
                ops.QasmConvertableGate,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
