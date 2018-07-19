@@ -286,7 +286,7 @@ def test_output_unitary_same_as_qiskit():
     qiskit_unitary = result.get_unitary()
 
     cirq.testing.assert_allclose_up_to_global_phase(
-                    cirq_unitary, qiskit_unitary, rtol=1e-10, atol=1e-10)
+                    cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
 
 
 def test_output_format():

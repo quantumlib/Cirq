@@ -64,8 +64,9 @@ def random_special_orthogonal(dim: int) -> np.ndarray:
 def assert_allclose_up_to_global_phase(
         actual: np.ndarray,
         desired: np.ndarray,
+        *,  # Forces keyword args.
         rtol: float = 1e-7,
-        atol: float = 0,
+        atol: float,  # Require atol to be specified
         equal_nan: bool = True,
         err_msg: Optional[str] = '',
         verbose: bool = True) -> None:
