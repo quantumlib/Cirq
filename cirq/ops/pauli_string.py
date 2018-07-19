@@ -119,6 +119,10 @@ class PauliString:
                                for qubit, pauli in self.items()}
         return PauliString(new_qubit_pauli_map, self.negated)
 
+    def ops_to_convert_to_computational_basis(self):
+        for qubit, pauli in self.items():
+            yield CliffordGate.from_single_map({pauli: (Pauli.Z, False)})(qubit)
+
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],
                              after_to_before: bool = False) -> 'PauliString':
