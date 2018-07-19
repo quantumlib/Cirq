@@ -18,8 +18,6 @@ from typing import (
 
 from cirq import ops, value, study, extension
 
-from cirq.ops.pauli import Pauli
-from cirq.ops.clifford_gate import CliffordGate
 from cirq.ops.pauli_string import PauliString
 from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation)
@@ -112,7 +110,7 @@ class PauliStringPhasor(PauliStringGateOperation,
             return
         qubits = self.qubits
         any_qubit = qubits[0]
-        to_z_ops = tuple(pauli_string_to_z_ops(self.pauli_string))
+        to_z_ops = ops.freeze_op_tree(self.pauli_string.to_z_basis_ops())
         xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
@@ -162,14 +160,6 @@ class PauliStringPhasor(PauliStringGateOperation,
 
     def __str__(self):
         return '{}**{}'.format(self.pauli_string, self.half_turns)
-
-
-def pauli_string_to_z_ops(pauli_string: PauliString) -> Iterable[ops.Operation]:
-    """Yields the single qubit operations to apply before a Pauli string of Zs
-    (and apply the inverse of these operations after) to make it equivalent to
-    the given pauli_string."""
-    for qubit, pauli in pauli_string.items():
-        yield CliffordGate.from_single_map({pauli: (Pauli.Z, False)})(qubit)
 
 
 def xor_nonlocal_decompose(qubits: Iterable[ops.QubitId],

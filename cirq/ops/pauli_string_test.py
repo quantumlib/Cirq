@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import numpy as np
 import pytest
 from cirq.testing import (
     EqualsTester,
@@ -270,6 +271,31 @@ def test_map_qubits():
     ps1 = cirq.PauliString(qubit_pauli_map1)
     ps2 = cirq.PauliString(qubit_pauli_map2)
     assert ps1.map_qubits(qubit_map) == ps2
+
+
+def test_to_z_basis_ops():
+    x0 = np.array([1,1]) / np.sqrt(2)
+    x1 = np.array([1,-1]) / np.sqrt(2)
+    y0 = np.array([1,1j]) / np.sqrt(2)
+    y1 = np.array([1,-1j]) / np.sqrt(2)
+    z0 = np.array([1,0])
+    z1 = np.array([0,1])
+
+    q0, q1, q2, q3, q4, q5 = _make_qubits(6)
+    pauli_string = cirq.PauliString({q0: cirq.Pauli.X, q1: cirq.Pauli.X,
+                                     q2: cirq.Pauli.Y, q3: cirq.Pauli.Y,
+                                     q4: cirq.Pauli.Z, q5: cirq.Pauli.Z})
+    circuit = cirq.Circuit.from_ops(
+                    pauli_string.to_z_basis_ops())
+
+    initial_state = cirq.kron(x0, x1, y0, y1, z0, z1)
+    z_basis_state = circuit.apply_unitary_effect_to_state(initial_state)
+
+    expected_state = np.zeros(2 ** 6)
+    expected_state[0b010101] = 1
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+                    z_basis_state, expected_state, rtol=1e-7, atol=1e-7)
 
 
 def _assert_pass_over(ops, before, after):
