@@ -18,7 +18,8 @@ from string import ascii_lowercase as alphabet
 import pytest
 
 from cirq.circuits import Circuit, ExpandComposite
-from cirq.ops import NamedQubit, CZ, SWAP, GateOperation, flatten_op_tree
+from cirq.ops import (
+        NamedQubit, CZ, SWAP, GateOperation, flatten_op_tree, gate_features)
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
 
@@ -43,20 +44,20 @@ def test_validate_permutation_errors():
     validate_permutation = PermutationGate.validate_permutation
     validate_permutation({})
 
-    with pytest.raises(IndexError, message='Permutation is not injective.'):
-        validate_permutation({0: 1, 1: 1})
     with pytest.raises(IndexError,
             message='key and value sets must be the same.'):
         validate_permutation({0: 2, 1: 3})
+
     with pytest.raises(IndexError,
             message='keys of the permutation must be non-negative.'):
-        validate_permutation({-1: 0})
-    with pytest.raises(IndexError,
-            message='values of the permutation must be non-negative.'):
-        validate_permutation({0: -1})
+        validate_permutation({-1: 0, 0: -1})
 
     with pytest.raises(IndexError, message='key is out of bounds.'):
         validate_permutation({0: 3, 3: 0}, 2)
+
+    gate = SwapPermutationGate()
+    args = gate_features.TextDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert gate.text_diagram_info(args) == NotImplemented
 
 
 def test_linear_permutation_gate():

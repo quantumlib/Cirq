@@ -15,14 +15,24 @@
 from collections import defaultdict
 from functools import partial
 from operator import ne
-from typing import Sequence
+from typing import Sequence, TYPE_CHECKING, Union
 
 from cirq.circuits import Circuit, Moment, ExpandComposite
+from cirq.extension import Extensions
 from cirq.ops import QubitId, GateOperation
 from cirq.contrib.acquaintance.gates import (
-     SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
+     SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT,
+     op_acquaintance_size)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
-from cirq.contrib.acquaintance.permutation import PermutationGate
+from cirq.contrib.acquaintance.permutation import (
+        PermutationGate, LinearPermutationGate)
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Type, Dict, List
+    from cirq.ops import Gate
+
+STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 class AcquaintanceStrategy(Circuit):
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
@@ -37,11 +47,12 @@ class AcquaintanceStrategy(Circuit):
                         'contain gates of types {}'.format(self.gate_types))
         super().__init__(circuit._moments)
 
-    def rectify(self):
-        last_gate_type = self.gate_types[0]
+    def rectify(self, acquaint_first: bool=True):
+        last_gate_type = self.gate_types[int(not acquaint_first)]
         rectified_moments = []
         for moment in self:
-            gate_type_to_ops = defaultdict(list)
+            gate_type_to_ops = defaultdict(list
+                    ) # type: Dict[Type[STRATEGY_GATE], List[GateOperation]]
             for op in moment.operations:
                 gate_type_to_ops[type(op.gate)].append(op)
             if len(gate_type_to_ops) == 1:
@@ -62,7 +73,7 @@ class AcquaintanceStrategy(Circuit):
             if reflected:
                 moment = moment.with_qubits_mapped(reverse_map)
             if all(isinstance(op.gate, AcquaintanceOpportunityGate)
-                   for op in moment.operations):
+                    for op in moment.operations):
                 swap_network_gate = SwapNetworkGate.from_operations(
                         qubit_order, moment.operations, acquaintance_size)
                 swap_network_op = swap_network_gate(*qubit_order)
@@ -71,9 +82,18 @@ class AcquaintanceStrategy(Circuit):
         return reflected
 
     def acquaintance_size(self) -> int:
-        return max(len(op.qubits) for op in self.all_operations()
-                   if (isinstance(op, GateOperation) and
-                       isinstance(op.gate, AcquaintanceOpportunityGate)))
+        return max(op_acquaintance_size(op) for op in self.all_operations())
+
+
+class ExposeAcquaintanceGates(ExpandComposite):
+    def __init__(self):
+        self.extension = Extensions()
+        self.no_decomp = lambda op: (
+                not op_acquaintance_size(op) or
+                (isinstance(op, GateOperation) and
+                 isinstance(op.gate, AcquaintanceOpportunityGate)))
+
+expose_acquaintance_gates = ExposeAcquaintanceGates()
 
 
 def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
@@ -86,8 +106,12 @@ def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
 
     strategy = AcquaintanceStrategy(
             Circuit.from_ops(ACQUAINT(q) for q in qubit_order))
-    is_shift = lambda op: isinstance(op.gate, CircularShiftGate)
-    expand = ExpandComposite(no_decomp=is_shift)
+    no_decomp = lambda op: (
+            isinstance(op.gate,
+                (CircularShiftGate, LinearPermutationGate)) or
+            (isinstance(op.gate, SwapNetworkGate) and
+                not op.gate.acquaintance_size))
+    expand = ExpandComposite(no_decomp=no_decomp)
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expand(strategy)
         strategy.nest(qubit_order, size_to_acquaint)

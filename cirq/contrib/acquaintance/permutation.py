@@ -51,14 +51,10 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
                              n_elements: int=None) -> None:
         if not permutation:
             return
-        if len(set(permutation.values())) != len(permutation):
-            raise IndexError('Permutation is not injective.')
         if set(permutation.values()) != set(permutation):
             raise IndexError('key and value sets must be the same.')
         if min(permutation) < 0:
             raise IndexError('keys of the permutation must be non-negative.')
-        if min(permutation.values()) < 0:
-            raise IndexError('values of the permutation must be non-negative.')
         if n_elements is not None:
             if max(permutation) >= n_elements:
                 raise IndexError('key is out of bounds.')
@@ -119,7 +115,6 @@ def update_mapping(mapping: Dict[QubitId, LOGICAL_INDEX],
                    operations: OP_TREE
                    ) -> None:
     for op in flatten_op_tree(operations):
-        if not isinstance(op, GateOperation):
-            continue
-        if isinstance(op.gate, PermutationGate):
+        if (isinstance(op, GateOperation) and
+            isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(mapping, op.qubits)

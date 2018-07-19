@@ -14,15 +14,19 @@
 
 from itertools import product
 from string import ascii_lowercase as alphabet
+from typing import Sequence, Tuple
 
+from numpy.random import poisson
 import pytest
 
 from cirq import NamedQubit, LineQubit
 from cirq.circuits import Circuit, Moment, ExpandComposite
-from cirq.ops import TextDiagramInfoArgs, flatten_op_tree
+from cirq.ops import (
+        TextDiagramInfoArgs, flatten_op_tree,
+        Operation, QubitId)
 
 from cirq.contrib.acquaintance.gates import (
-        ACQUAINT, SwapNetworkGate)
+        ACQUAINT, SwapNetworkGate, op_acquaintance_size)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         update_mapping, LinearPermutationGate)
@@ -127,7 +131,7 @@ f: ───╱1╲─────────╱1╲─────────
 @pytest.mark.parametrize('part_lens, acquaintance_size',
     list(((part_len,) * n_parts, acquaintance_size) for
          part_len, acquaintance_size, n_parts in
-         product(range(1, 5), range(5), range(1, 5)))
+         product(range(1, 5), range(5), range(2, 5)))
     )
 def test_swap_network_gate_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
@@ -163,3 +167,75 @@ def test_swap_network_decomposition():
 7: ───────█───────────────────█───╱7╲───█───────────────────────█───3↦1───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+
+def test_swap_network_init_error():
+    with pytest.raises(ValueError):
+        SwapNetworkGate(())
+    with pytest.raises(ValueError):
+        SwapNetworkGate((3,))
+
+@pytest.mark.parametrize('part_lens, acquaintance_size', [
+    [[l + 1 for l in poisson(size=n_parts, lam=lam)], poisson(4)]
+    for n_parts, lam in product(range(2, 20, 3), range(1, 4))
+     ])
+def test_swap_network_permutation(part_lens, acquaintance_size):
+    n_qubits = sum(part_lens)
+    gate = SwapNetworkGate(part_lens, acquaintance_size)
+
+    expected_permutation = {i: j for i, j in
+            zip(range(n_qubits), reversed(range(n_qubits)))}
+    assert gate.permutation(n_qubits) == expected_permutation
+
+def test_swap_network_permutation_error():
+    gate = SwapNetworkGate((1, 1))
+    with pytest.raises(ValueError):
+        gate.permutation(1)
+
+class OtherOperation(Operation):
+    def __init__(self, qubits: Sequence[QubitId]) -> None:
+        self._qubits = tuple(qubits)
+
+    @property
+    def qubits(self) -> Tuple[QubitId, ...]:
+        return self._qubits
+
+    def with_qubits(self, *new_qubits: QubitId) -> 'OtherOperation':
+        return type(self)(self._qubits)
+
+    def __eq__(self, other):
+        return (isinstance(other, type(self)) and
+                self.qubits == other.qubits)
+
+def test_op_acquaintance_size():
+    qubits = LineQubit.range(5)
+    op = OtherOperation(qubits)
+    assert op.with_qubits(qubits) == op
+    assert op_acquaintance_size(op) == 0
+
+    for s, _ in enumerate(qubits):
+        op = ACQUAINT(*qubits[:s + 1])
+        assert op_acquaintance_size(op) == s + 1
+
+    part_lens = (2, 2, 2, 2)
+    acquaintance_size = 3
+    gate = SwapNetworkGate(part_lens, acquaintance_size)
+    op = gate(*qubits[:sum(part_lens)])
+    assert op_acquaintance_size(op) == 3
+
+    part_lens = (2, 2, 2, 2)
+    acquaintance_size = 4
+    gate = SwapNetworkGate(part_lens, acquaintance_size)
+    op = gate(*qubits[:sum(part_lens)])
+    assert op_acquaintance_size(op) == 0
+
+    part_lens = (2, 2, 2, 2)
+    acquaintance_size = 1
+    gate = SwapNetworkGate(part_lens, acquaintance_size)
+    op = gate(*qubits[:sum(part_lens)])
+    assert op_acquaintance_size(op) == 0
+
+    part_lens = (2, 2, 2, 2)
+    acquaintance_size = 1
+    gate = SwapNetworkGate(part_lens, acquaintance_size)
+    op = gate(*qubits[:sum(part_lens)])
+    assert op_acquaintance_size(op) == 0

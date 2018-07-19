@@ -16,11 +16,11 @@ from functools import partial
 from itertools import chain
 from math import ceil
 from operator import indexOf
-from typing import Iterable, Sequence, TYPE_CHECKING, Dict
+from typing import Sequence, TYPE_CHECKING, Dict
 
 from cirq import CompositeGate, TextDiagrammable
 from cirq.ops import (
-        Operation, Gate, gate_features, QubitId, OP_TREE, SWAP)
+        Operation, Gate, gate_features, QubitId, OP_TREE, SWAP, GateOperation)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
@@ -50,7 +50,7 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
     """A single gate representing a generalized swap network.
 
     Args:
-        part_lens: An iterable indicating the sizes of the parts in the
+        part_lens: An sequence indicating the sizes of the parts in the
             partition defining the swap network.
         acquaintance_size: An int indicating the locality of the logical gates
             desired; used to keep track of this while nesting. If 0, no
@@ -58,10 +58,12 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
     """
 
     def __init__(self,
-                 part_lens: Iterable[int],
+                 part_lens: Sequence[int],
                  acquaintance_size: int=0,
                  swap_gate: Gate=SWAP
                  ) -> None:
+        if len(part_lens) < 2:
+            raise ValueError('part_lens must have length at least 2.')
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
         self.swap_gate = swap_gate
@@ -153,7 +155,8 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
                     shift.gate.update_mapping(mapping, parts_qubits)
 
                     # after
-                    if multiplicities[0] == self.acquaintance_size - 1:
+                    if ((multiplicities[0] == self.acquaintance_size - 1) and
+                        (multiplicities[1] > 1)):
                         # right part
                         post_qubits = parts_qubits[-self.acquaintance_size:]
                         post_acquaintance_gate = ACQUAINT(*post_qubits)
@@ -170,7 +173,8 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
                         posterior_interstitial_layer.append(
                                 post_acquaintance_gate)
 
-                    if multiplicities[1] == self.acquaintance_size - 1:
+                    if ((multiplicities[1] == self.acquaintance_size - 1) and
+                        (multiplicities[0] > 1)):
                         # left part
                         post_qubits = parts_qubits[:self.acquaintance_size]
                         post_acquaintance_gate = ACQUAINT(*post_qubits)
@@ -244,10 +248,18 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
         return SwapNetworkGate(part_sizes, acquaintance_size)
 
 
-
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         if qubit_count < sum(self.part_lens):
             raise ValueError('qubit_count must be as large as the sum of the'
                              'part lens.')
         return {i: j for i, j in
                 enumerate(reversed(range(sum(self.part_lens))))}
+def op_acquaintance_size(op: Operation):
+    if not isinstance(op, GateOperation):
+        return 0
+    if isinstance(op.gate, AcquaintanceOpportunityGate):
+        return len(op.qubits)
+    if isinstance(op.gate, SwapNetworkGate):
+        if (op.gate.acquaintance_size - 1) in op.gate.part_lens:
+            return op.gate.acquaintance_size
+    return 0

@@ -17,11 +17,14 @@ from string import ascii_lowercase as alphabet
 import pytest
 
 import cirq
-from cirq import Circuit, NamedQubit, ExpandComposite
+from cirq import Circuit, NamedQubit, ExpandComposite, LineQubit
 from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
+from cirq.contrib.acquaintance.permutation import (
+        LinearPermutationGate, SwapPermutationGate)
 from cirq.contrib.acquaintance.strategy import (
     AcquaintanceStrategy, complete_acquaintance_strategy)
+from cirq.contrib.acquaintance.gates import ACQUAINT
 
 def test_acquaintance_strategy():
     with pytest.raises(ValueError):
@@ -51,9 +54,11 @@ c: ───█───
 d: ───█───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+    assert trivial_strategy.acquaintance_size() == 1
 
-    is_shift = lambda op: isinstance(op.gate, CircularShiftGate)
-    expand = ExpandComposite(no_decomp=is_shift)
+    is_shift_or_lin_perm = lambda op: isinstance(op.gate,
+            (CircularShiftGate, LinearPermutationGate))
+    expand = ExpandComposite(no_decomp=is_shift_or_lin_perm)
 
     quadratic_strategy = complete_acquaintance_strategy(qubits[:8], 2)
     actual_text_diagram = quadratic_strategy.to_text_diagram().strip()
@@ -75,6 +80,7 @@ g: ───×(6,0)───
 h: ───×(7,0)───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+    assert quadratic_strategy.acquaintance_size() == 2
 
     expand(quadratic_strategy)
     actual_text_diagram = quadratic_strategy.to_text_diagram(
@@ -116,6 +122,7 @@ h: ───×(7,0)───
         "│   │   │   │   │   │   │   │        ".strip()
         ))
     assert actual_text_diagram == expected_text_diagram
+    assert quadratic_strategy.acquaintance_size() == 2
 
     cubic_strategy = complete_acquaintance_strategy(qubits[:4], 3)
     actual_text_diagram = cubic_strategy.to_text_diagram(
@@ -140,4 +147,41 @@ h: ───×(7,0)───
         """│      ╲0╱────╱1╲    │""",
         """│      │      │      │"""
         ))
+    assert actual_text_diagram == expected_text_diagram
+    assert cubic_strategy.acquaintance_size() == 3
+
+def test_rectification():
+    qubits = LineQubit.range(4)
+    perm_gate = SwapPermutationGate()
+    operations = [
+        perm_gate(*qubits[:2]), ACQUAINT(*qubits[2:]),
+        ACQUAINT(*qubits[:2]), perm_gate(*qubits[2:])
+        ]
+
+    strategy = AcquaintanceStrategy(Circuit.from_ops(operations))
+    strategy.rectify()
+    actual_text_diagram = strategy.to_text_diagram().strip()
+    expected_text_diagram = """
+0: ───────0↦1─────────█───
+          │           │
+1: ───────1↦0─────────█───
+
+2: ───█─────────0↦1───────
+      │         │
+3: ───█─────────1↦0───────
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+    strategy = AcquaintanceStrategy(Circuit.from_ops(operations))
+    strategy.rectify(False)
+    actual_text_diagram = strategy.to_text_diagram()
+    expected_text_diagram = """
+0: ───0↦1───────█─────────
+      │         │
+1: ───1↦0───────█─────────
+
+2: ─────────█───────0↦1───
+            │       │
+3: ─────────█───────1↦0───
+    """.strip()
     assert actual_text_diagram == expected_text_diagram

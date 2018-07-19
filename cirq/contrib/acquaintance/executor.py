@@ -13,94 +13,102 @@
 # limitations under the License.
 
 from collections import defaultdict
-from typing import Dict, Tuple, TYPE_CHECKING
+from typing import Dict, Tuple, TYPE_CHECKING, Sequence
 
+from cirq import abc
 from cirq.circuits import (
         Circuit, PointOptimizer, PointOptimizationSummary)
-from cirq.ops import Operation, GateOperation, Gate, QubitId
+from cirq.ops import Operation, GateOperation, Gate, QubitId, OP_TREE
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, LOGICAL_INDEX)
-from cirq.contrib.acquaintance.strategy import AcquaintanceStrategy
+from cirq.contrib.acquaintance.strategy import (
+        AcquaintanceStrategy, expose_acquaintance_gates)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Callable, List, DefaultDict
 
+class ExecutionStrategy(metaclass=abc.ABCMeta):
+    """An execution strategy."""
+
+    keep_acquaintance = False
+
+    @abc.abstractproperty
+    def initial_mapping(self) -> Dict[QubitId, LOGICAL_INDEX]:
+        pass
+
+    @abc.abstractmethod
+    def get_operations(self,
+                       indices: Sequence[LOGICAL_INDEX],
+                       qubits: Sequence[QubitId]
+                       ) -> OP_TREE:
+        """Gets the logical operations to apply to qubits."""
+        pass
+
+
 class StrategyExecutor(PointOptimizer):
-    """Executes an AcquaintanceStrategy.
+    """Executes an AcquaintanceStrategy."""
 
-    Args:
-        operations: The operations to implement.
+    def __init__(self, execution_strategy: ExecutionStrategy) -> None:
+        self.execution_strategy = execution_strategy
+        self.mapping = execution_strategy.initial_mapping.copy()
 
-    Raises:
-        TypeError: Applied to a circuit containing a gate that is not an
-            instance of AcquaintanceOpportunityGate or PermutationGate.
-    """
-
-
-    def execute(self,
-                strategy: AcquaintanceStrategy,
-                gates: Dict[Tuple[LOGICAL_INDEX,...], Gate],
-                initial_mapping: Dict[QubitId, LOGICAL_INDEX]
-                ) -> None:
-        """Executes the strategy.
-
-        Args:
-            strategy: The acquaintance strategy.
-            gates: The operations to implement.
-            initial_mapping: The initial mapping from qubits to logical indices.
-
-        Raises:
-            ValueError:
-                * The initial mapping specifies qubits not in the strategy.
-                * The initial mapping doesn't specify a qubit for some logical
-                  index.
-            NotImplementedError:
-                * The operations are of different arities
-                * The arity of the operations doesn't exactly match the arity
-                  of the acquaintance opportunities.
-        """
-        if not set(initial_mapping).issubset(strategy.all_qubits()):
-            raise ValueError('Initial mapping specifies qubits not in the'
-                    'strategy.')
-        all_indices = set(i for indices in gates for i in indices)
-        if not all_indices.issubset(initial_mapping.values()):
-            raise ValueError('Initial mapping does not specify qubit for '
-                             'every logical index.')
-        if (set(len(indices) for indices in gates) !=
-                set((strategy.acquaintance_size(),))):
-            raise NotImplementedError('The arity of the operations must match '
-                    'that of the acquaintance opportunities exactly.')
-        self.index_set_to_gates = self.canonicalize_gates(gates)
-        self.mapping = {q: i for q, i in initial_mapping.items()}
+    def __call__(self, strategy: Circuit):
+        if not isinstance(strategy, AcquaintanceStrategy):
+            raise ValueError('Can only execute an acquaintance strategy.')
+        expose_acquaintance_gates(strategy)
         super().optimize_circuit(strategy)
-        if self.index_set_to_gates:
-            raise ValueError("Strategy couldn't implement all operations.")
 
     def optimization_at(self, circuit: Circuit, index: int, op: Operation):
         if (isinstance(op, GateOperation) and
                 isinstance(op.gate, AcquaintanceOpportunityGate)):
-            index_set = frozenset(self.mapping[q] for q in op.qubits)
-            logical_operations = []
-            if index_set in self.index_set_to_gates:
-                gates = self.index_set_to_gates.pop(index_set)
-                index_to_qubit = {self.mapping[q]: q for q in op.qubits}
-                for indices, gate in gates.items():
-                    op = gate(*[index_to_qubit[i] for i in indices])
-                    logical_operations.append(op)
+            logical_indices = tuple(self.mapping[q] for q in op.qubits)
+            logical_operations = self.execution_strategy.get_operations(
+                    logical_indices, op.qubits)
+            clear_span = int(not self.execution_strategy.keep_acquaintance)
+
             return PointOptimizationSummary(
-                    clear_span=1,
+                    clear_span=clear_span,
                     clear_qubits=op.qubits,
                     new_operations=logical_operations)
 
         if (isinstance(op, GateOperation) and
                 isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(self.mapping, op.qubits)
+            return
 
         raise TypeError('Can only execute a strategy consisting of gates that '
                          'are instances of AcquaintanceOpportunityGate or '
                          'PermutationGate.')
+
+class GreedyExecutionStrategy(ExecutionStrategy):
+    def __init__(self,
+                 gates: Dict[Tuple[LOGICAL_INDEX, ...], Gate],
+                 initial_mapping: Dict[QubitId, LOGICAL_INDEX]
+                 ) -> None:
+        if len(set(len(indices) for indices in gates)) != 1:
+            raise NotImplementedError(
+                    'Can only implement greedy strategy if all gates '
+                    'are of the same arity.')
+        self.index_set_to_gates = self.canonicalize_gates(gates)
+        self._initial_mapping = initial_mapping.copy()
+
+    @property
+    def initial_mapping(self) -> Dict[QubitId, LOGICAL_INDEX]:
+        return self._initial_mapping
+
+    def get_operations(self,
+                       indices: Sequence[LOGICAL_INDEX],
+                       qubits: Sequence[QubitId]
+                       ) -> OP_TREE:
+        index_set = frozenset(indices)
+        if index_set in self.index_set_to_gates:
+            gates = self.index_set_to_gates.pop(index_set)
+            index_to_qubit = dict(zip(indices, qubits))
+            for gate_indices, gate in gates.items():
+                yield gate(*[index_to_qubit[i] for i in gate_indices])
+        return
 
 
     @staticmethod
