@@ -10,9 +10,9 @@ Circuits
     :toctree: generated/
 
     Circuit
-    InsertStrategy
     Moment
-    Schedule
+    InsertStrategy
+    OP_TREE
 
 
 Operations
@@ -22,6 +22,21 @@ Operations
     :toctree: generated/
 
     Operation
+    GateOperation
+    CompositeOperation
+    QasmConvertableOperation
+
+
+Schedules
+---------
+
+.. autosummary::
+    :toctree: generated/
+
+    Schedule
+    ScheduledOperation
+    Duration
+    Timestamp
 
 Gates
 ^^^^^
@@ -32,6 +47,25 @@ Gates
     Gate
     MeasurementGate
 
+Gate Features and Effects
+'''''''''''''''''''''''''
+
+.. autosummary::
+    :toctree: generated
+
+    KnownMatrix
+    ParameterizableEffect
+    CompositeGate
+    ExtrapolatableEffect
+    ReversibleEffect
+    InterchangeableQubitsGate
+    PhaseableEffect
+    TextDiagrammable
+    BoundedEffect
+    SingleQubitGate
+    TwoQubitGate
+    QasmConvertableGate
+    EigenGate
 
 Single Qubit Gates
 ''''''''''''''''''
@@ -39,10 +73,17 @@ Single Qubit Gates
 .. autosummary::
     :toctree: generated/
 
-    H
+    RotXGate
+    RotYGate
+    RotZGate
+    HGate
     X
     Y
     Z
+    H
+    S
+    T
+
 
 Two Qubit Gates
 ''''''''''''''''
@@ -50,43 +91,122 @@ Two Qubit Gates
 .. autosummary::
     :toctree: generated/
 
-    CNOT
+    Rot11Gate
+    CNotGate
+    SwapGate
+    ISwapGate
     CZ
+    CNOT
+    ISWAP
+
+Three Qubit Gates
+''''''''''''''''''
+
+.. autosummary::
+   :toctree: generated/
+
+    CCZ
+    CCX
+    CSWAP
+    TOFFOLI
+    FREDKIN
+
 
 Qubits
 ------
 
-General classes for qubits.
+General classes for qubits and related concepts.
 
 .. autosummary::
     :toctree: generated/
 
     QubitId
     NamedQubit
+    LineQubit
+    GridQubit
+    QubitOrder
+    QubitOrderOrList
+    QubitOrder.DEFAULT
 
-See also:
 
-* :ref:`Google Qubits <api-google-qubits>`
+Devices
+-------
 
+Classes characterizing constraints of hardware.
+
+.. autosummary::
+    :toctree: generated/
+
+    Device
+    UnconstrainedDevice
+
+Placement
+---------
+
+Classes for placing circuits onto circuits.
+
+.. autosummary::
+    :toctree: generated/
+
+    LinePlacementStrategy
+    GreedySequenceSearchStrategy
+    AnnealSequenceSearchStrategy
+    line_on_device
+
+Parameterization
+----------------
+
+Classes for parameterized circuits.
+
+.. autosummary::
+    :toctree: generated/
+
+    Symbol
+    ParamResolver
+    Sweep
+    Points
+    Linspace
+    Sweepable
+
+Optimization
+------------
+
+Classes for compiling.
+
+.. autosummary::
+    :toctree: generated/
+
+    OptimizationPass
+    PointOptimizer
+    PointOptimizationSummary
+    ExpandComposite
+    DropEmptyMoments
+    DropNegligible
 
 Implementations
 ---------------
 
-Packages to use specific hardware implementations of quantum circuits.
+Packages to use specific hardware implementations.
 
 Google
 ^^^^^^
 
-Quantum hardware implementation by the Google Quantum AI Lab.
+Quantum hardware from Google.
 
-Engine
+Gates
 ''''''
 
 .. autosummary::
     :toctree: generated/
 
-    google.Engine
-    google.JobConfig
+    google.XmonGate
+    google.Exp11Gate
+    google.ExpWGate
+    google.ExpZGate
+    google.XmonMeasurementGate
+    google.single_qubit_matrix_to_native_gates
+    google.two_qubit_matrix_to_native_gates
+    google.ConvertToXmonGates
 
 Devices
 '''''''
@@ -96,6 +216,7 @@ Devices
 
     google.Bristlecone
     google.Foxtail
+    google.XmonDevice
 
 Simulator
 '''''''''
@@ -108,12 +229,12 @@ Simulator
     google.XmonStepResult
     google.XmonSimulateTrialResult
 
-.. _api-google-qubits:
-
-Qubits
-''''''
+Optimizers
+''''''''''
 
 .. autosummary::
     :toctree: generated/
 
-    devices.GridQubit
+    google.optimized_for_xmon
+    google.EjectZ
+    google.EjectFullW

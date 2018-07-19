@@ -10,6 +10,9 @@ import requests
 from dev_tools.github_repository import GithubRepository
 
 
+cla_access_token = None
+
+
 class CurrentStuckGoToNextError(RuntimeError):
     pass
 
@@ -84,6 +87,130 @@ class PullRequestDetails:
         return self.payload['body']
 
 
+def check_collaborator_has_write(repo: GithubRepository, username: str):
+    """
+    References:
+        https://developer.github.com/v3/issues/events/#list-events-for-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/collaborators/{}/permission"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     username,
+                                     repo.access_token))
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Collaborator check failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    payload = json.JSONDecoder().decode(response.content.decode())
+    if payload['permission'] not in ['admin', 'write']:
+        raise CurrentStuckGoToNextError(
+            'Only collaborators with write permission can use automerge.')
+
+
+def check_auto_merge_labeler(repo: GithubRepository, pull_id: int):
+    """
+    References:
+        https://developer.github.com/v3/issues/events/#list-events-for-an-issue
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/{}/events"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     pull_id,
+                                     repo.access_token))
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Event check failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    payload = json.JSONDecoder().decode(response.content.decode())
+    relevant = [event
+                for event in payload
+                if event['event'] == 'labeled' and
+                event['label']['name'] == 'automerge']
+    if not relevant:
+        raise CurrentStuckGoToNextError('"automerge" label was never added.')
+
+    check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
+
+
+def find_existing_status_comment(repo: GithubRepository, pull_id: int
+                                 ) -> Optional[Dict[str, Any]]:
+    expected_user = 'CirqBot'
+    expected_text = 'Automerge pending: '
+
+    comments = list_pr_comments(repo, pull_id)
+    for comment in comments:
+        if comment['user']['login'] == expected_user:
+            if expected_text in comment['body']:
+                return comment
+
+    return None
+
+
+def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
+    """
+    References:
+        https://developer.github.com/v3/issues/comments/#create-a-comment
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/{}/comments"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     pull_id,
+                                     repo.access_token))
+    data = {
+        'body': text
+    }
+    response = requests.post(url, json=data)
+
+    if response.status_code != 201:
+        raise RuntimeError('Add comment failed. Code: {}. Content: {}.'.format(
+            response.status_code, response.content))
+
+
+def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
+    """
+    References:
+        https://developer.github.com/v3/issues/comments/#edit-a-comment
+    """
+    url = ("https://api.github.com/repos/{}/{}/issues/comments/{}"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     comment_id,
+                                     repo.access_token))
+    data = {
+        'body': text
+    }
+    response = requests.patch(url, json=data)
+
+    if response.status_code != 200:
+        raise RuntimeError('Edit comment failed. Code: {}. Content: {}.'.format(
+            response.status_code, response.content))
+
+
+def leave_status_comment(repo: GithubRepository,
+                         pull_id: int,
+                         success: Optional[bool],
+                         state_description: str) -> None:
+    cur = find_existing_status_comment(repo, pull_id)
+    if success:
+        body = 'Automerge done.'
+    elif success is None:
+        body = 'Automerge pending: {}'.format(state_description)
+    else:
+        body = 'Automerge cancelled: {}'.format(state_description)
+    if cur is None:
+        add_comment(repo, pull_id, body)
+    else:
+        edit_comment(repo, body, cur['id'])
+
+
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
     """
     References:
@@ -138,40 +265,37 @@ def wait_for_status(repo: GithubRepository,
     while True:
         pr = PullRequestDetails.from_github(repo, pull_id)
         if pr.payload['state'] != 'open':
-            raise CurrentStuckGoToNextError(
-                'Not an open PR! {}'.format(pr.payload))
+            raise CurrentStuckGoToNextError('Not an open PR.')
 
         if prev_pr and pr.branch_sha == prev_pr.branch_sha:
             if fail_if_same:
-                raise CurrentStuckGoToNextError(
-                    'Doing the same thing twice while expecting '
-                    'different results.')
+                raise CurrentStuckGoToNextError("I think I'm stuck in a loop.")
             wait_a_tick()
             continue
 
         if not pr.marked_automergeable:
-            raise CurrentStuckGoToNextError(
-                'Not labelled with "automerge".')
+            raise CurrentStuckGoToNextError('"automerge" label was removed.')
         if pr.base_branch_name != 'master':
-            raise CurrentStuckGoToNextError(
-                'PR not merging into master: {}.'.format(pr.payload))
+            raise CurrentStuckGoToNextError('Failed to merge into master.')
 
         review_status = get_pr_review_status(pr)
         if not any(review['state'] == 'APPROVED' for review in review_status):
-            raise CurrentStuckGoToNextError(
-                'No approved review: {}'.format(review_status))
+            raise CurrentStuckGoToNextError('No approved review.')
         if any(review['state'] == 'REQUEST_CHANGES'
                for review in review_status):
-            raise CurrentStuckGoToNextError(
-                'Review requesting changes: {}'.format(review_status))
+            raise CurrentStuckGoToNextError('A review is requesting changes.')
 
         check_status = get_pr_check_status(pr)
         if check_status['state'] == 'pending':
             wait_a_tick()
             continue
         if check_status['state'] != 'success':
-            raise CurrentStuckGoToNextError(
-                'A status check is failing: {}'.format(check_status))
+            raise CurrentStuckGoToNextError('A status check is failing.')
+
+        if pr.payload['mergeable'] is None:
+            # Github still computing mergeable flag.
+            wait_a_tick()
+            continue
 
         return pr
 
@@ -230,16 +354,17 @@ def watch_for_cla_restore(pr: PullRequestDetails):
     raise CurrentStuckGoToNextError('CLA stuck on no.')
 
 
-def list_pr_comments(pr: PullRequestDetails) -> List[Dict[str, Any]]:
+def list_pr_comments(repo: GithubRepository, pull_id: int
+                     ) -> List[Dict[str, Any]]:
     """
     References:
         https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
     """
     url = ("https://api.github.com/repos/{}/{}/issues/{}/comments"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.pull_id,
-                                     pr.repo.access_token))
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     pull_id,
+                                     repo.access_token))
     response = requests.get(url)
     if response.status_code != 200:
         raise RuntimeError(
@@ -271,7 +396,7 @@ def find_spurious_coauthor_comment_id(pr: PullRequestDetails) -> Optional[int]:
     expected_text = ('one or more commits were authored or co-authored '
                      'by someone other than the pull request submitter')
 
-    comments = list_pr_comments(pr)
+    comments = list_pr_comments(pr.repo, pr.pull_id)
     for comment in comments:
         if comment['user']['login'] == expected_user:
             if expected_text in comment['body']:
@@ -284,7 +409,7 @@ def find_spurious_fixed_comment_id(pr: PullRequestDetails) -> Optional[int]:
     expected_user = 'googlebot'
     expected_text = 'A Googler has manually verified that the CLAs look good.'
 
-    comments = list_pr_comments(pr)
+    comments = list_pr_comments(pr.repo, pr.pull_id)
     for comment in comments:
         if comment['user']['login'] == expected_user:
             if expected_text in comment['body']:
@@ -306,7 +431,8 @@ def fight_cla_bot(pr: PullRequestDetails) -> None:
     # Manually indicate that this is fine.
     add_labels_to_pr(pr.repo,
                      pr.pull_id,
-                     'cla: yes')
+                     'cla: yes',
+                     override_token=cla_access_token)
 
     spurious_comment_id = find_spurious_coauthor_comment_id(pr)
     if spurious_comment_id is not None:
@@ -335,7 +461,7 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
     data = {
         'base': pr.branch_name,
         'head': master_sha,
-        'commit_message': 'Update branch [automerge]'.format(pr.branch_name)
+        'commit_message': 'Update branch (automerge)'.format(pr.branch_name)
     }
     response = requests.post(url, json=data)
 
@@ -347,6 +473,10 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
     if response.status_code == 204:
         # Already merged.
         return False
+
+    if response.status_code == 409:
+        # Merge conflict.
+        raise CurrentStuckGoToNextError("There's a merge conflict.")
 
     raise RuntimeError('Sync with master failed. Code: {}. Content: {}.'.format(
         response.status_code, response.content))
@@ -418,7 +548,8 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
 
 def add_labels_to_pr(repo: GithubRepository,
                      pull_id: int,
-                     *labels: str) -> None:
+                     *labels: str,
+                     override_token: str = None) -> None:
     """
     References:
         https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
@@ -427,7 +558,7 @@ def add_labels_to_pr(repo: GithubRepository,
            "?access_token={}".format(repo.organization,
                                      repo.name,
                                      pull_id,
-                                     repo.access_token))
+                                     override_token or repo.access_token))
     response = requests.post(url, json=list(labels))
 
     if response.status_code != 200:
@@ -517,11 +648,15 @@ def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
     prev_pr = None
     fail_if_same = False
     while True:
+        check_auto_merge_labeler(repo, pull_id)
+
         print('Waiting for checks to succeed..', end='', flush=True)
         pr = wait_for_status(repo, pull_id, prev_pr, fail_if_same)
 
+        check_auto_merge_labeler(repo, pull_id)
+
         print('\nChecks succeeded. Checking if synced...')
-        if not pr.payload['mergeable']:
+        if pr.payload['mergeable_state'] != 'clean':
             if sync_with_master(pr):
                 print('Had to resync with master.')
                 prev_pr = pr
@@ -548,13 +683,31 @@ def auto_merge_multiple_pull_requests(repo: GithubRepository,
     print('Automerging multiple PRs: {}'.format(pull_ids))
     for pull_id in pull_ids:
         try:
+            leave_status_comment(repo,
+                                 pull_id,
+                                 None,
+                                 'syncing and waiting...')
             auto_merge_pull_request(repo, pull_id)
+            leave_status_comment(repo,
+                                 pull_id,
+                                 True,
+                                 'merged successfully')
         except CurrentStuckGoToNextError as ex:
             print('#!\nPR#{} is stuck: {}'.format(pull_id, ex.args))
             print('Continuing to next.')
+            leave_status_comment(repo,
+                                 pull_id,
+                                 False,
+                                 ex.args[0])
+        except Exception:
+            leave_status_comment(repo, pull_id, False, 'Unexpected error.')
+            raise
         finally:
             remove_label_from_pr(repo, pull_id, 'automerge')
     print('Finished attempting to automerge {}.'.format(pull_ids))
+
+    # Give some leeway for updates to propagate on github's side.
+    time.sleep(5)
 
 
 def watch_for_auto_mergeable_pull_requests(repo: GithubRepository):
@@ -570,10 +723,15 @@ def watch_for_auto_mergeable_pull_requests(repo: GithubRepository):
 
 
 def main():
+    global cla_access_token
     pull_ids = [int(e) for e in sys.argv[1:]]
-    access_token = os.getenv('CIRQ_GITHUB_PR_ACCESS_TOKEN')
+    access_token = os.getenv('CIRQ_BOT_GITHUB_ACCESS_TOKEN')
+    cla_access_token = os.getenv('CIRQ_BOT_ALT_CLA_GITHUB_ACCESS_TOKEN')
     if not access_token:
-        print('CIRQ_GITHUB_PR_ACCESS_TOKEN not set.', file=sys.stderr)
+        print('CIRQ_BOT_GITHUB_ACCESS_TOKEN not set.', file=sys.stderr)
+        sys.exit(1)
+    if not cla_access_token:
+        print('CIRQ_BOT_ALT_CLA_GITHUB_ACCESS_TOKEN not set.', file=sys.stderr)
         sys.exit(1)
 
     repo = GithubRepository(

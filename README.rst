@@ -9,11 +9,14 @@ circuits and running them against quantum computers and simulators.
   :target: https://travis-ci.com/quantumlib/Cirq
   :alt: Build Status
 
+.. image:: https://badge.fury.io/py/cirq.svg
+    :target: https://badge.fury.io/py/cirq
+
 Installation
 ------------
 
 Follow these
-`instructions <https://github.com/quantumlib/Cirq/blob/master/docs/install.md>`__.
+`instructions <https://cirq.readthedocs.io/en/latest/install.html>`__.
 
 Hello Qubit
 -----------
@@ -55,15 +58,24 @@ Documentation
 -------------
 
 See
-`here <https://github.com/quantumlib/Cirq/blob/master/docs/table_of_contents.md>`__
+`here <https://cirq.readthedocs.io/en/latest/>`__
 or jump into the
-`tutorial <https://github.com/quantumlib/Cirq/blob/master/docs/tutorial.md>`__.
+`tutorial <https://cirq.readthedocs.io/en/latest/tutorial.html>`__.
 
 Contributing
 ------------
 
 We welcome contributions. Please follow these
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
+
+See Also
+--------
+
+For those interested in using quantum computers to solve problems in
+chemistry and materials science, we encourage exploring
+`OpenFermion <https://github.com/quantumlib/openfermion>`__ and
+its sister library for compiling quantum simulation algorithms in Cirq,
+`OpenFermion-Cirq <https://github.com/quantumlib/openfermion-cirq>`__.
 
 Disclaimer
 ----------

@@ -15,18 +15,17 @@
 from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
                     cast)
 
-from cirq import ops
-
-from cirq.contrib.paulistring.pauli import Pauli
+from cirq.ops import raw_types, gate_features, common_gates, op_tree
+from cirq.ops.pauli import Pauli
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
-class CliffordGate(ops.Gate,
-                   ops.CompositeGate,
-                   ops.ReversibleEffect,
-                   ops.TextDiagrammable):
+class CliffordGate(raw_types.Gate,
+                   gate_features.CompositeGate,
+                   gate_features.ReversibleEffect,
+                   gate_features.TextDiagrammable):
     """Any single qubit Clifford rotation."""
     I = None  # type: CliffordGate
     H = None  # type: CliffordGate
@@ -234,14 +233,15 @@ class CliffordGate(ops.Gate,
         return CliffordGate.from_xz_map((x_final_pauli, x_flip1 ^ x_flip2),
                                           (z_final_pauli, z_flip1 ^ z_flip2))
 
-    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def default_decompose(self, qubits: Sequence[raw_types.QubitId]
+                          ) -> op_tree.OP_TREE:
         qubit, = qubits
         if self == CliffordGate.H:
-            return ops.H(qubit),
+            return common_gates.H(qubit),
         rotations = self.decompose_rotation()
-        pauli_gate_map = {Pauli.X: ops.X,
-                          Pauli.Y: ops.Y,
-                          Pauli.Z: ops.Z}
+        pauli_gate_map = {Pauli.X: common_gates.X,
+                          Pauli.Y: common_gates.Y,
+                          Pauli.Z: common_gates.Z}
         return tuple((pauli_gate_map[r](qubit) ** (qt / 2)
                       for r, qt in rotations))
 
@@ -308,8 +308,8 @@ class CliffordGate(ops.Gate,
                 '+-'[self.transform(Pauli.Y).flip], self.transform(Pauli.Y).to,
                 '+-'[self.transform(Pauli.Z).flip], self.transform(Pauli.Z).to)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
         well_known_map = {
             CliffordGate.I: 'I',
             CliffordGate.H: 'H',
@@ -330,7 +330,7 @@ class CliffordGate(ops.Gate,
             symbol = '-'.join(
                 str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
                 for r, qt in rotations)
-        return ops.TextDiagramInfo(
+        return gate_features.TextDiagramInfo(
             wire_symbols=(symbol,),
             exponent={
                 CliffordGate.X_sqrt: 0.5,

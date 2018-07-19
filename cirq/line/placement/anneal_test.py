@@ -386,19 +386,14 @@ def _verify_valid_state(qubits: List[GridQubit], state: _STATE):
     assert not c_set
 
 
-@mock.patch('cirq.line.placement.anneal.AnnealSequenceSearch')
-def test_anneal_search_method_calls(search):
+def test_anneal_search_method_calls():
     q00, q01 = GridQubit(0, 0), GridQubit(0, 1)
     device = _create_device([q00, q01])
     length = 1
     seed = 1
-    search_instance = search.return_value
 
     method = AnnealSequenceSearchStrategy(None, seed)
-    method.place_line(device, length)
-
-    search.assert_called_once_with(device, seed)
-    search_instance.search.assert_called_once_with(None)
+    assert len(method.place_line(device, length)) == length
 
 
 def test_index_2d():

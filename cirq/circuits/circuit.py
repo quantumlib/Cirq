@@ -22,8 +22,8 @@ Moment the Operations must all act on distinct Qubits.
 from collections import defaultdict
 
 from typing import (
-    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
-    Optional, Sequence, Union, Type, Tuple, cast, TypeVar, overload
+    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
+    Sequence, Union, Type, Tuple, cast, TypeVar, overload
 )
 
 import numpy as np
@@ -32,6 +32,7 @@ from cirq import devices, ops, extension, study
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.circuits.qasm_output import QasmOutput
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -233,8 +234,8 @@ class Circuit(ops.ParameterizableEffect):
         moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
         if self._device == devices.UnconstrainedDevice:
             return 'Circuit([{}])'.format(','.join(moment_lines))
-        return 'Circuit([{}], device={})'.format(','.join(moment_lines),
-                                                 self._device)
+        return 'Circuit([{}], device={!r})'.format(','.join(moment_lines),
+                                                   self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -385,19 +386,19 @@ class Circuit(ops.ParameterizableEffect):
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
-    def _prev_moment_blocking(
+    def _prev_moment_available(
             self,
             op: ops.Operation,
             end_moment_index: int) -> Optional[int]:
-        if not self._moments:
-            return None
-
+        last_available = end_moment_index
         k = end_moment_index
         while k > 0:
             k -= 1
-            if not self._can_add_op_at(k, op):
-                return k
-        return None
+            if not self._can_commute_past(k, op):
+                return last_available
+            if self._can_add_op_at(k, op):
+                last_available = k
+        return last_available
 
     def operation_at(self,
                      qubit: ops.QubitId,
@@ -492,8 +493,8 @@ class Circuit(ops.ParameterizableEffect):
             return splitter_index
 
         if strategy is InsertStrategy.INLINE:
-            if (self._can_add_op_at(splitter_index - 1, op) and
-                    0 <= splitter_index - 1 < len(self._moments)):
+            if (0 <= splitter_index - 1 < len(self._moments) and
+                    self._can_add_op_at(splitter_index - 1, op)):
                 return splitter_index - 1
 
             return self._pick_or_create_inserted_op_moment_index(
@@ -501,8 +502,8 @@ class Circuit(ops.ParameterizableEffect):
 
         if strategy is InsertStrategy.EARLIEST:
             if self._can_add_op_at(splitter_index, op):
-                p = self._prev_moment_blocking(op, splitter_index)
-                return p + 1 if p is not None else 0
+                p = self._prev_moment_available(op, splitter_index)
+                return p or 0
 
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.INLINE)
@@ -523,6 +524,11 @@ class Circuit(ops.ParameterizableEffect):
         return self._device.can_add_operation_into_moment(
             operation,
             self._moments[moment_index])
+
+    def _can_commute_past(self,
+                          moment_index: int,
+                          operation: ops.Operation) -> bool:
+        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
             self,
@@ -1107,6 +1113,61 @@ class Circuit(ops.ParameterizableEffect):
                 ext))
         return resolved_circuit
 
+    def to_qasm(self,
+                header: str = 'Generated from Cirq',
+                precision: int = 10,
+                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                ext: extension.Extensions = None
+                ) -> str:
+        """Returns QASM equivalent to the circuit.
+
+        Args:
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+            ext: For extending operations/gates to implement
+                QasmConvertableOperation/QasmConvertableGate.
+        """
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        output = QasmOutput(operations=self.all_operations(),
+                            qubits=qubits,
+                            header=header,
+                            precision=precision,
+                            version='2.0',
+                            ext=ext)
+        return str(output)
+
+    def save_qasm(self,
+                  file_path: Union[str, bytes, int],
+                  header: str = 'Generated from Cirq',
+                  precision: int = 10,
+                  qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                  ext: extension.Extensions = None
+                  ) -> None:
+        """Save a QASM file equivalent to the circuit.
+
+        Args:
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+            ext: For extending operations/gates to implement
+                QasmConvertableOperation/QasmConvertableGate.
+        """
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        output = QasmOutput(operations=self.all_operations(),
+                            qubits=qubits,
+                            header=header,
+                            precision=precision,
+                            version='2.0',
+                            ext=ext)
+        output.save(file_path)
+
 
 def _resolve_operations(
         operations: Iterable[ops.Operation],
@@ -1319,11 +1380,18 @@ def _apply_unitary_operation(state: np.ndarray,
     work_indices = tuple(range(k))
     data_indices = tuple(range(k, k + d))
     used_data_indices = tuple(data_indices[q] for q in target_axes)
+    input_indices = work_indices + used_data_indices
     output_indices = list(data_indices)
     for w, t in zip(work_indices, target_axes):
         output_indices[t] = w
 
-    return np.einsum(matrix, work_indices + used_data_indices,
+    all_indices = set(input_indices + data_indices + tuple(output_indices))
+
+    return np.einsum(matrix, input_indices,
                      state, data_indices,
                      output_indices,
-                     out=out)
+                     out=out,
+                     # Note: this is a workaround for a bug in numpy:
+                     #     https://github.com/numpy/numpy/issues/10926
+                     # Turning optimize on actually makes things slower.
+                     optimize=len(all_indices) >= 26)

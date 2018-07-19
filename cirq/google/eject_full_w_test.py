@@ -15,20 +15,20 @@ from typing import Iterable
 
 import cirq
 import cirq.google as cg
-from cirq.google.eject_z_test import (
-    assert_equivalent_circuit_up_to_measurement_phase,
-)
 
 
 def assert_optimizes(before: cirq.Circuit,
-                     expected: cirq.Circuit):
+                     expected: cirq.Circuit,
+                     compare_unitaries: bool = True):
     opt = cg.EjectFullW()
 
     circuit = before.copy()
     opt.optimize_circuit(circuit)
 
     # They should have equivalent effects.
-    assert_equivalent_circuit_up_to_measurement_phase(circuit, expected, 1e-8)
+    if compare_unitaries:
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            circuit, expected, 1e-8)
 
     # And match the expected circuit.
     if circuit != expected:
@@ -247,7 +247,7 @@ def test_phases_partial_ws():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(axis_half_turns=0.25, half_turns=0.5).on(q)],
+            [cg.ExpWGate(axis_half_turns=-0.25, half_turns=0.5).on(q)],
             [cg.ExpWGate().on(q)],
         ))
 
@@ -258,7 +258,7 @@ def test_phases_partial_ws():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(axis_half_turns=-0.5, half_turns=0.5).on(q)],
+            [cg.ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(q)],
             [cg.ExpWGate(axis_half_turns=0.25).on(q)],
         ))
 
@@ -271,6 +271,17 @@ def test_phases_partial_ws():
             [],
             [cg.ExpWGate(half_turns=0.75).on(q)],
             [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+        ))
+
+    assert_optimizes(
+        before=quick_circuit(
+            [cg.ExpWGate().on(q)],
+            [cg.ExpWGate(half_turns=-0.25, axis_half_turns=0.5).on(q)]
+        ),
+        expected=quick_circuit(
+            [],
+            [cg.ExpWGate(half_turns=-0.25, axis_half_turns=-0.5).on(q)],
+            [cg.ExpWGate().on(q)],
         ))
 
 
@@ -300,7 +311,8 @@ def test_blocked_by_unknown_and_symbols():
             [cg.ExpWGate().on(a)],
             [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
             [cg.ExpWGate().on(a)],
-        ))
+        ),
+        compare_unitaries=False)
 
     assert_optimizes(
         before=quick_circuit(
@@ -312,4 +324,5 @@ def test_blocked_by_unknown_and_symbols():
             [cg.ExpWGate().on(a)],
             [cg.Exp11Gate(half_turns=cirq.Symbol('z')).on(a, b)],
             [cg.ExpWGate().on(a)],
-        ))
+        ),
+        compare_unitaries=False)

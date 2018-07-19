@@ -38,6 +38,7 @@ from cirq.circuits import (
     OptimizationPass,
     PointOptimizationSummary,
     PointOptimizer,
+    QasmOutput,
     TextDiagramDrawer,
 )
 
@@ -126,7 +127,15 @@ from cirq.ops import (
     ReversibleCompositeGate,
     ReversibleEffect,
     ParameterizableEffect,
+    Pauli,
+    CliffordGate,
+    PauliTransform,
+    PauliInteractionGate,
+    PauliString,
     PhaseableEffect,
+    QasmConvertableGate,
+    QasmConvertableOperation,
+    QasmOutputArgs,
     QubitId,
     Rot11Gate,
     RotXGate,

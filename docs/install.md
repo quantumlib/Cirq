@@ -1,99 +1,100 @@
-## Installation
+## Installing Cirq
 
-### Summary
+Choose your operating system:
 
-For the experts, installation is as simple as
-```bash
-pip install git+https://git@github.com/quantumlib/cirq.git#egg=cirq
-```
-You will be asked for credentials: use an access token for your github
-account generated at
-[https://github.com/settings/tokens](https://github.com/settings/tokens).
-Alternative if you have github set up for ssh on your machine, 
-you can use
-```bash
-pip install git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
-``` 
+- [Installing on Linux](#Installing-on-Linux)
+- [Installing on Mac OS X](#Installing-on-Mac-OS-X)
+- [Installing on Windows](#Installing-on-Windows)
 
-### Detailed Install on Mac or Ubuntu 
+If you want to create a development environment, see [docs/development.md](/docs/development.md).
 
-We recommend using [Virtualenv](https://virtualenv.pypa.io/en/stable/) when
-working with Cirq.  Vitualenv creates a Python environment isolated from 
-other Python installations. This isolation ensures that other Python 
-environment's dependencies or configurations do not interfere with the
-environment you have created to work with Cirq.
+---
 
-**Prerequisites:**
- - Python 3 and Pip. See these 
-[instructions](http://docs.python-guide.org/en/latest/starting/installation/)
-for installing both of these. 
+### Installing on Linux
 
-**Instructions:**
-1. Start a shell (terminal). All commands below execute in this shell.
-2. Install Virtualenv (if not already installed):
-```bash
-$ pip install --upgrade virtualenv 
-```
+0. Make sure you have python 3.5 or greater (or else python 2.7).
 
-3. Create a virtual environment:
-```bash
-$ virtualenv --no-site-packages -p python3 targetDirectory
-```
-Here *targetDirectory* is the directory where you want to install the
-virtual environment (this does not need to be related to where the code
-you write with that uses Cirq lives). It will also be the name of
-the virtual environment.
+    See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) @ the hitchhiker's guide to python.
 
-4. Activate the virtualenv:
-```bash
-$ cd targetDirectory
-$ source ./bin/activate      # If using bash, sh, ksh, or zsh
-$ source ./bin/activate.csh  # If using csh or tcsh 
-```
-After this your shell should show that you are in this virtual environment
-by appending the target directory name to the shell prompt:
-```bash
-(targetDirectory)$
-```
+1. Consider using a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
 
-5. Pip install Cirq and its dependencies. From the directory where 
-you cloned Cirq:
-```bash
-(targetDirectory)$ pip3 install git+https://git@github.com/quantumlib/cirq.git#egg=cirq
-``` 
-You will be asked for credentials: use an access token generated at
-[https://github.com/settings/tokens](https://github.com/settings/tokens) 
-with the "repo" permissions enabled.
+2. Use `pip` to install `cirq`:
 
-If you want to install Cirq and change Cirq code, then you should add the
-```-e``` flag to the above command:
-```bash
-(targetDirectory)$ pip3 install -e git+https://git@github.com/quantumlib/cirq.git#egg=cirq
-```  
-Note that Cirq will be copied into the ```src```directory of your 
-virtual environment, so use this as the base of 
-your git repo. For contributing to Cirq you should use git and
-follow these [guidelines](../../CONTRIBUTING.md). See these 
-[instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-for installing git.  
+    ```bash
+    pip install --upgrade pip
+    pip install cirq
+    ```
 
-Install python3-tk separately using ```apt-get```, required by matplotlib:
+3. (Optional) install system dependencies that pip can't handle.
 
-```bash
-$ sudo apt-get install python3-tk
-```
+    ```bash
+    sudo apt-get install python3-tk texlive-latex-base latexmk
+    ```
 
-6. You should now be able use Cirq. To confirm this you should be able
-to run the following with no errors
-```bash
-(targetDirectory)$ python   # Or your command to run python.
->>> import cirq
-```
+    - Without `python3-tk`, plotting functionality won't work.
+    - Without `texlive-latex-base` and `latexmk`, pdf writing functionality will not work.
 
-7. You can leave the virtual environment by typing ```deactivate```
-at any time. To re-enter this environment follow the instructions in 
-step 4.   
+4. Check that it works!
 
-### Install on Windows
+    ```bash
+    python -c 'import cirq; print(cirq.google.Foxtail)'
+    # should print:
+    # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
+    # │        │        │        │        │        │        │        │        │        │        │
+    # │        │        │        │        │        │        │        │        │        │        │
+    # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
+    ```
 
-TODO
+
+### Installing on Mac OS X
+
+0. Make sure you have python 3.5 or greater (or else python 2.7).
+
+    See [Installing Python 3 on Mac OS X](https://docs.python-guide.org/starting/install3/osx/) @ the hitchhiker's guide to python.
+
+1. Consider using a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
+
+2. Use `pip` to install `cirq`:
+
+    ```bash
+    pip install --upgrade pip
+    pip install cirq
+    ```
+
+3. Check that it works!
+
+    ```bash
+    python -c 'import cirq; print(cirq.google.Foxtail)'
+    # should print:
+    # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
+    # │        │        │        │        │        │        │        │        │        │        │
+    # │        │        │        │        │        │        │        │        │        │        │
+    # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
+    ```
+
+
+### Installing on Windows
+
+0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](#Installing-on-Linux) instead of these instructions.
+
+1. Make sure you have python 3.5 or greater (or else python 2.7.9+).
+
+    See [Installing Python 3 on Windows](https://docs.python-guide.org/starting/install3/win/) @ the hitchhiker's guide to python.
+
+2. Use `pip` to install `cirq`:
+
+    ```bash
+    python -m pip install --upgrade pip
+    python -m pip install cirq
+    ```
+
+3. Check that it works!
+
+    ```bash
+    python -c "import cirq; print(cirq.google.Foxtail)"
+    # should print:
+    # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
+    # │        │        │        │        │        │        │        │        │        │        │
+    # │        │        │        │        │        │        │        │        │        │        │
+    # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
+    ```
