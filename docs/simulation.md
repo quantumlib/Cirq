@@ -1,7 +1,7 @@
 ## Simulation
 
 Cirq comes with a built in Python simulator for testing out
-small circuits.  This simulator can shard its simulation 
+small circuits.  This simulator can share its simulation
 across different processes/threads and so take advantage of
 multiple cores/CPUs.  
 
