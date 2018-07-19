@@ -83,6 +83,19 @@ from cirq.ops.op_tree import (
     freeze_op_tree,
     transform_op_tree,
 )
+from cirq.ops.pauli import (
+    Pauli,
+)
+from cirq.ops.clifford_gate import (
+    CliffordGate,
+    PauliTransform,
+)
+from cirq.ops.pauli_interaction_gate import (
+    PauliInteractionGate,
+)
+from cirq.ops.pauli_string import (
+    PauliString,
+)
 from cirq.ops.raw_types import (
     Gate,
     NamedQubit,
