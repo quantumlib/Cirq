@@ -15,7 +15,7 @@
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Optional, Tuple, ValuesView)
 
-from cirq.ops import raw_types, gate_operation, qubit_order
+from cirq.ops import raw_types, gate_operation, qubit_order, op_tree
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import CliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
@@ -119,7 +119,9 @@ class PauliString:
                                for qubit, pauli in self.items()}
         return PauliString(new_qubit_pauli_map, self.negated)
 
-    def ops_to_convert_to_computational_basis(self):
+    def to_z_basis_ops(self) -> op_tree.OP_TREE:
+        """Returns operations to convert the qubits to the computational basis.
+        """
         for qubit, pauli in self.items():
             yield CliffordGate.from_single_map({pauli: (Pauli.Z, False)})(qubit)
 

@@ -110,8 +110,7 @@ class PauliStringPhasor(PauliStringGateOperation,
             return
         qubits = self.qubits
         any_qubit = qubits[0]
-        to_z_ops = tuple(
-                    self.pauli_string.ops_to_convert_to_computational_basis())
+        to_z_ops = ops.freeze_op_tree(self.pauli_string.to_z_basis_ops())
         xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
