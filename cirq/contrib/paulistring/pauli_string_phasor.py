@@ -18,12 +18,11 @@ from typing import (
 
 from cirq import ops, value, study, extension
 
-from cirq.contrib.paulistring import (
-    Pauli,
-    CliffordGate,
-    PauliString,
-    PauliStringGateOperation,
-)
+from cirq.ops.pauli import Pauli
+from cirq.ops.clifford_gate import CliffordGate
+from cirq.ops.pauli_string import PauliString
+from cirq.contrib.paulistring.pauli_string_raw_types import (
+    PauliStringGateOperation)
 
 
 T_DESIRED = TypeVar('T_DESIRED')

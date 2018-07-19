@@ -16,9 +16,10 @@ from typing import Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq import ops, value
-
-from cirq.contrib.paulistring import Pauli, CliffordGate
+from cirq import value
+from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, op_tree
+from cirq.ops.pauli import Pauli
+from cirq.ops.clifford_gate import CliffordGate
 
 
 pauli_eigen_map = {
@@ -31,10 +32,10 @@ pauli_eigen_map = {
 }
 
 
-class PauliInteractionGate(ops.EigenGate,
-                           ops.CompositeGate,
-                           ops.InterchangeableQubitsGate,
-                           ops.TextDiagrammable):
+class PauliInteractionGate(eigen_gate.EigenGate,
+                           gate_features.CompositeGate,
+                           gate_features.InterchangeableQubitsGate,
+                           gate_features.TextDiagrammable):
     def __init__(self,
                  pauli0: Pauli, invert0: bool,
                  pauli1: Pauli, invert1: bool,
@@ -99,8 +100,8 @@ class PauliInteractionGate(ops.EigenGate,
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def default_decompose(self, qubits: Sequence[ops.QubitId]
-                          ) -> ops.op_tree.OP_TREE:
+    def default_decompose(self, qubits: Sequence[raw_types.QubitId]
+                          ) -> op_tree.OP_TREE:
         q0, q1 = qubits
         right_gate0 = CliffordGate.from_single_map(
                                     z_to=(self.pauli0, self.invert0))
@@ -110,19 +111,19 @@ class PauliInteractionGate(ops.EigenGate,
         left_gate1 = right_gate1.inverse()
         yield left_gate0(q0)
         yield left_gate1(q1)
-        yield ops.Rot11Gate(half_turns=self._exponent)(q0, q1)
+        yield common_gates.Rot11Gate(half_turns=self._exponent)(q0, q1)
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
         labels = {Pauli.X: 'X', Pauli.Y: 'Y', Pauli.Z: '@'}
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
         l0, l1 = ('(-{})'.format(l) if inv else l
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
-        return ops.TextDiagramInfo(
+        return gate_features.TextDiagramInfo(
             wire_symbols=(l0, l1),
             exponent=self._exponent)
 
