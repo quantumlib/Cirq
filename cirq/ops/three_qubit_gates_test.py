@@ -29,7 +29,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
         [0, 0, 0, 0, 0, 0, 1, 0],
-    ]))
+    ]), atol=1e-8)
 
     np.testing.assert_allclose(cirq.CCZ.matrix(), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
@@ -40,7 +40,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, -1],
-    ]))
+    ]), atol=1e-8)
 
     np.testing.assert_allclose(cirq.CSWAP.matrix(), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
@@ -51,7 +51,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
-    ]))
+    ]), atol=1e-8)
 
 
 def test_str():

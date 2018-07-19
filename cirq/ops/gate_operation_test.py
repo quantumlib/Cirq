@@ -178,8 +178,9 @@ def test_known_matrix():
     op1 = cirq.X(a)
     assert cirq.can_cast(cirq.KnownMatrix, op1)
     np.testing.assert_allclose(op1.matrix(),
-                               np.array([[0, 1], [1, 0]]))
+                               np.array([[0, 1], [1, 0]]),
+                               atol=1e-8)
     op2 = cirq.CNOT(a, b)
     op3 = cirq.CNOT(a, b)
-    np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix())
-    np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix())
+    np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix(), atol=1e-8)
+    np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix(), atol=1e-8)
