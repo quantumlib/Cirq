@@ -3,7 +3,7 @@
 In this tutorial we will go from knowing nothing about Cirq to creating a
 [quantum variational algorithm](https://arxiv.org/abs/1304.3061). 
 Note that this tutorial isn't a quantum computing 101 tutorial, 
-we assume familiarity of quantum computing at aboutthe level of 
+we assume familiarity of quantum computing at about the level of 
 the textbook "Quantum Computation and Quantum Information" by
 Nielsen and Chuang. For a more conceptual overview see the
 [conceptual documentation](table_of_contents.md).
