@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.paulistring.pauli import (
-    Pauli,
-)
-from cirq.contrib.paulistring.clifford_gate import (
-    CliffordGate,
-    PauliTransform,
-)
-from cirq.contrib.paulistring.pauli_interaction_gate import (
-    PauliInteractionGate,
-)
-from cirq.contrib.paulistring.pauli_string import (
-    PauliString,
-)
 from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation,
 )

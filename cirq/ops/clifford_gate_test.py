@@ -21,64 +21,58 @@ from cirq.testing import (
 
 import cirq
 
-from cirq.contrib.paulistring import Pauli
-from cirq.contrib.paulistring import (
-    CliffordGate,
-    PauliTransform,
-)
-
 
 _bools = (False, True)
 
 
 def _assert_not_mirror(gate) -> None:
-    trans_x = gate.transform(Pauli.X)
-    trans_y = gate.transform(Pauli.Y)
-    trans_z = gate.transform(Pauli.Z)
+    trans_x = gate.transform(cirq.Pauli.X)
+    trans_y = gate.transform(cirq.Pauli.Y)
+    trans_z = gate.transform(cirq.Pauli.Z)
     right_handed = (trans_x.flip ^ trans_y.flip ^ trans_z.flip ^
                    (trans_x.to - trans_y.to != 1))
     assert right_handed, 'Mirrors'
 
 
 def _assert_no_collision(gate) -> None:
-    trans_x = gate.transform(Pauli.X)
-    trans_y = gate.transform(Pauli.Y)
-    trans_z = gate.transform(Pauli.Z)
+    trans_x = gate.transform(cirq.Pauli.X)
+    trans_y = gate.transform(cirq.Pauli.Y)
+    trans_z = gate.transform(cirq.Pauli.Z)
     assert trans_x.to != trans_y.to, 'Collision'
     assert trans_y.to != trans_z.to, 'Collision'
     assert trans_z.to != trans_x.to, 'Collision'
 
 
 def _all_rotations():
-    for pauli, flip, in itertools.product(Pauli.XYZ, _bools):
-        yield PauliTransform(pauli, flip)
+    for pauli, flip, in itertools.product(cirq.Pauli.XYZ, _bools):
+        yield cirq.PauliTransform(pauli, flip)
 
 
 def _all_rotation_pairs():
-    for px, flip_x, pz, flip_z in itertools.product(Pauli.XYZ, _bools,
-                                                    Pauli.XYZ, _bools):
+    for px, flip_x, pz, flip_z in itertools.product(cirq.Pauli.XYZ, _bools,
+                                                    cirq.Pauli.XYZ, _bools):
         if px == pz:
             continue
-        yield PauliTransform(px, flip_x), PauliTransform(pz, flip_z)
+        yield cirq.PauliTransform(px, flip_x), cirq.PauliTransform(pz, flip_z)
 
 
 def _all_clifford_gates():
     for trans_x, trans_z in _all_rotation_pairs():
-        yield CliffordGate.from_xz_map(trans_x, trans_z)
+        yield cirq.CliffordGate.from_xz_map(trans_x, trans_z)
 
 
 @pytest.mark.parametrize('pauli,flip_x,flip_z',
-    itertools.product(Pauli.XYZ, _bools, _bools))
+    itertools.product(cirq.Pauli.XYZ, _bools, _bools))
 def test_init_value_error(pauli, flip_x, flip_z):
     with pytest.raises(ValueError):
-        CliffordGate.from_xz_map((pauli, flip_x), (pauli, flip_z))
+        cirq.CliffordGate.from_xz_map((pauli, flip_x), (pauli, flip_z))
 
 
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
 def test_init_from_xz(trans_x, trans_z):
-    gate = CliffordGate.from_xz_map(trans_x, trans_z)
-    assert gate.transform(Pauli.X) == trans_x
-    assert gate.transform(Pauli.Z) == trans_z
+    gate = cirq.CliffordGate.from_xz_map(trans_x, trans_z)
+    assert gate.transform(cirq.Pauli.X) == trans_x
+    assert gate.transform(cirq.Pauli.Z) == trans_z
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
 
@@ -87,14 +81,14 @@ def test_init_from_xz(trans_x, trans_z):
     ((trans1, trans2, from1)
      for trans1, trans2, from1 in itertools.product(_all_rotations(),
                                                     _all_rotations(),
-                                                    Pauli.XYZ)
+                                                    cirq.Pauli.XYZ)
      if trans1.to != trans2.to))
 def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
     from2 = from1 + 1
     from1_str, from2_str = (str(frm).lower()+'_to' for frm in (from1, from2))
-    gate_kw = CliffordGate.from_double_map(**{from1_str: trans1,
-                                              from2_str: trans2})
-    gate_map = CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    gate_kw = cirq.CliffordGate.from_double_map(**{from1_str: trans1,
+                                                   from2_str: trans2})
+    gate_map = cirq.CliffordGate.from_double_map({from1: trans1, from2: trans2})
     # Test initializes the same gate
     assert gate_kw == gate_map
 
@@ -103,24 +97,24 @@ def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
     ((trans1, trans2, from1)
      for trans1, trans2, from1 in itertools.product(_all_rotations(),
                                                     _all_rotations(),
-                                                    Pauli.XYZ)
+                                                    cirq.Pauli.XYZ)
      if trans1.to == trans2.to))
 def test_init_from_double_invalid(trans1, trans2, from1):
     from2 = from1 + 1
     # Test throws on invalid arguments
     with pytest.raises(ValueError):
-        CliffordGate.from_double_map({from1: trans1, from2: trans2})
+        cirq.CliffordGate.from_double_map({from1: trans1, from2: trans2})
 
 
 @pytest.mark.parametrize('trans1,trans2,from1',
     ((trans1, trans2, from1)
      for trans1, trans2, from1 in itertools.product(_all_rotations(),
                                                     _all_rotations(),
-                                                    Pauli.XYZ)
+                                                    cirq.Pauli.XYZ)
      if trans1.to != trans2.to))
 def test_init_from_double(trans1, trans2, from1):
     from2 = from1 + 1
-    gate = CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    gate = cirq.CliffordGate.from_double_map({from1: trans1, from2: trans2})
     # Test initializes what was expected
     assert gate.transform(from1) == trans1
     assert gate.transform(from2) == trans2
@@ -130,21 +124,21 @@ def test_init_from_double(trans1, trans2, from1):
 
 @pytest.mark.parametrize('trans,frm',
     itertools.product(_all_rotations(),
-                      Pauli.XYZ))
+                      cirq.Pauli.XYZ))
 def test_init_from_single_map_vs_kwargs(trans, frm):
     from_str = str(frm).lower()+'_to'
     # pylint: disable=unexpected-keyword-arg
-    gate_kw = CliffordGate.from_single_map(**{from_str: trans})
-    gate_map = CliffordGate.from_single_map({frm: trans})
+    gate_kw = cirq.CliffordGate.from_single_map(**{from_str: trans})
+    gate_map = cirq.CliffordGate.from_single_map({frm: trans})
     assert gate_kw == gate_map
 
 
 @pytest.mark.parametrize('trans,frm',
     ((trans, frm)
-     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     for trans, frm in itertools.product(_all_rotations(), cirq.Pauli.XYZ)
      if trans.to != frm))
 def test_init_90rot_from_single(trans, frm):
-    gate = CliffordGate.from_single_map({frm: trans})
+    gate = cirq.CliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
@@ -152,127 +146,127 @@ def test_init_90rot_from_single(trans, frm):
     assert len(gate.decompose_rotation()) == 1
     # Check that this is a 90 degree rotation gate
     assert (gate.merged_with(gate).merged_with(gate).merged_with(gate)
-            == CliffordGate.I)
+            == cirq.CliffordGate.I)
     # Check that flipping the transform produces the inverse rotation
-    trans_rev = PauliTransform(trans.to, not trans.flip)
-    gate_rev = CliffordGate.from_single_map({frm: trans_rev})
+    trans_rev = cirq.PauliTransform(trans.to, not trans.flip)
+    gate_rev = cirq.CliffordGate.from_single_map({frm: trans_rev})
     assert gate.inverse() == gate_rev
 
 
 @pytest.mark.parametrize('trans,frm',
     ((trans, frm)
-     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     for trans, frm in itertools.product(_all_rotations(), cirq.Pauli.XYZ)
      if trans.to == frm and trans.flip))
 def test_init_180rot_from_single(trans, frm):
-    gate = CliffordGate.from_single_map({frm: trans})
+    gate = cirq.CliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to one gate
     assert len(gate.decompose_rotation()) == 1
     # Check that this is a 180 degree rotation gate
-    assert gate.merged_with(gate) == CliffordGate.I
+    assert gate.merged_with(gate) == cirq.CliffordGate.I
 
 
 @pytest.mark.parametrize('trans,frm',
     ((trans, frm)
-     for trans, frm in itertools.product(_all_rotations(), Pauli.XYZ)
+     for trans, frm in itertools.product(_all_rotations(), cirq.Pauli.XYZ)
      if trans.to == frm and not trans.flip))
 def test_init_ident_from_single(trans, frm):
-    gate = CliffordGate.from_single_map({frm: trans})
+    gate = cirq.CliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to zero gates
     assert len(gate.decompose_rotation()) == 0
     # Check that this is an identity gate
-    assert gate == CliffordGate.I
+    assert gate == cirq.CliffordGate.I
 
 
 @pytest.mark.parametrize('pauli,sqrt,expected', (
-        (Pauli.X, False, CliffordGate.X),
-        (Pauli.Y, False, CliffordGate.Y),
-        (Pauli.Z, False, CliffordGate.Z),
-        (Pauli.X, True, CliffordGate.X_sqrt),
-        (Pauli.Y, True, CliffordGate.Y_sqrt),
-        (Pauli.Z, True, CliffordGate.Z_sqrt)))
+        (cirq.Pauli.X, False, cirq.CliffordGate.X),
+        (cirq.Pauli.Y, False, cirq.CliffordGate.Y),
+        (cirq.Pauli.Z, False, cirq.CliffordGate.Z),
+        (cirq.Pauli.X, True, cirq.CliffordGate.X_sqrt),
+        (cirq.Pauli.Y, True, cirq.CliffordGate.Y_sqrt),
+        (cirq.Pauli.Z, True, cirq.CliffordGate.Z_sqrt)))
 def test_init_from_pauli(pauli, sqrt, expected):
-    gate = CliffordGate.from_pauli(pauli, sqrt=sqrt)
+    gate = cirq.CliffordGate.from_pauli(pauli, sqrt=sqrt)
     assert gate == expected
 
 
 def test_init_invalid():
     with pytest.raises(ValueError):
-        CliffordGate.from_single_map()
+        cirq.CliffordGate.from_single_map()
     with pytest.raises(ValueError):
-        CliffordGate.from_single_map({})
+        cirq.CliffordGate.from_single_map({})
     with pytest.raises(ValueError):
-        CliffordGate.from_single_map({Pauli.X: (Pauli.X, False)},
-                                     y_to=(Pauli.Y, False))
+        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.X, False)},
+                                          y_to=(cirq.Pauli.Y, False))
     with pytest.raises(ValueError):
-        CliffordGate.from_single_map({Pauli.X: (Pauli.X, False),
-                                      Pauli.Y: (Pauli.Y, False)})
+        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.X, False),
+                                           cirq.Pauli.Y: (cirq.Pauli.Y, False)})
     with pytest.raises(ValueError):
-        CliffordGate.from_double_map()
+        cirq.CliffordGate.from_double_map()
     with pytest.raises(ValueError):
-        CliffordGate.from_double_map({})
+        cirq.CliffordGate.from_double_map({})
     with pytest.raises(ValueError):
-        CliffordGate.from_double_map({Pauli.X: (Pauli.X, False)})
+        cirq.CliffordGate.from_double_map({cirq.Pauli.X: (cirq.Pauli.X, False)})
     with pytest.raises(ValueError):
-        CliffordGate.from_double_map(x_to=(Pauli.X, False))
+        cirq.CliffordGate.from_double_map(x_to=(cirq.Pauli.X, False))
     with pytest.raises(ValueError):
-        CliffordGate.from_single_map({Pauli.X: (Pauli.Y, False),
-                                      Pauli.Y: (Pauli.Z, False),
-                                      Pauli.Z: (Pauli.X, False)})
+        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.Y, False),
+                                           cirq.Pauli.Y: (cirq.Pauli.Z, False),
+                                           cirq.Pauli.Z: (cirq.Pauli.X, False)})
     with pytest.raises(ValueError):
-        CliffordGate.from_single_map({Pauli.X: (Pauli.X, False),
-                                      Pauli.Y: (Pauli.X, False)})
+        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.X, False),
+                                           cirq.Pauli.Y: (cirq.Pauli.X, False)})
 
 
 def test_eq_ne_and_hash():
     eq = EqualsTester()
     for trans_x, trans_z in _all_rotation_pairs():
-        gate_gen = lambda: CliffordGate.from_xz_map(trans_x, trans_z)
+        gate_gen = lambda: cirq.CliffordGate.from_xz_map(trans_x, trans_z)
         eq.make_equality_group(gate_gen)
 
 
 @pytest.mark.parametrize('gate,rep', (
-    (CliffordGate.I,       'CliffordGate(X:+X, Y:+Y, Z:+Z)'),
-    (CliffordGate.H,       'CliffordGate(X:+Z, Y:-Y, Z:+X)'),
-    (CliffordGate.X,       'CliffordGate(X:+X, Y:-Y, Z:-Z)'),
-    (CliffordGate.X_sqrt,  'CliffordGate(X:+X, Y:+Z, Z:-Y)')))
+    (cirq.CliffordGate.I,       'CliffordGate(X:+X, Y:+Y, Z:+Z)'),
+    (cirq.CliffordGate.H,       'CliffordGate(X:+Z, Y:-Y, Z:+X)'),
+    (cirq.CliffordGate.X,       'CliffordGate(X:+X, Y:-Y, Z:-Z)'),
+    (cirq.CliffordGate.X_sqrt,  'CliffordGate(X:+X, Y:+Z, Z:-Y)')))
 def test_repr(gate, rep):
     assert repr(gate) == rep
 
 
 @pytest.mark.parametrize('gate,trans_y', (
-    (CliffordGate.I,       (Pauli.Y, False)),
-    (CliffordGate.H,       (Pauli.Y, True)),
-    (CliffordGate.X,       (Pauli.Y, True)),
-    (CliffordGate.Y,       (Pauli.Y, False)),
-    (CliffordGate.Z,       (Pauli.Y, True)),
-    (CliffordGate.X_sqrt,  (Pauli.Z, False)),
-    (CliffordGate.X_nsqrt, (Pauli.Z, True)),
-    (CliffordGate.Y_sqrt,  (Pauli.Y, False)),
-    (CliffordGate.Y_nsqrt, (Pauli.Y, False)),
-    (CliffordGate.Z_sqrt,  (Pauli.X, True)),
-    (CliffordGate.Z_nsqrt, (Pauli.X, False))))
+    (cirq.CliffordGate.I,       (cirq.Pauli.Y, False)),
+    (cirq.CliffordGate.H,       (cirq.Pauli.Y, True)),
+    (cirq.CliffordGate.X,       (cirq.Pauli.Y, True)),
+    (cirq.CliffordGate.Y,       (cirq.Pauli.Y, False)),
+    (cirq.CliffordGate.Z,       (cirq.Pauli.Y, True)),
+    (cirq.CliffordGate.X_sqrt,  (cirq.Pauli.Z, False)),
+    (cirq.CliffordGate.X_nsqrt, (cirq.Pauli.Z, True)),
+    (cirq.CliffordGate.Y_sqrt,  (cirq.Pauli.Y, False)),
+    (cirq.CliffordGate.Y_nsqrt, (cirq.Pauli.Y, False)),
+    (cirq.CliffordGate.Z_sqrt,  (cirq.Pauli.X, True)),
+    (cirq.CliffordGate.Z_nsqrt, (cirq.Pauli.X, False))))
 def test_y_rotation(gate, trans_y):
-    assert gate.transform(Pauli.Y) == trans_y
+    assert gate.transform(cirq.Pauli.Y) == trans_y
 
 
 @pytest.mark.parametrize('gate,gate_equiv', (
-    (CliffordGate.I,       cirq.X ** 0),
-    (CliffordGate.H,       cirq.H),
-    (CliffordGate.X,       cirq.X),
-    (CliffordGate.Y,       cirq.Y),
-    (CliffordGate.Z,       cirq.Z),
-    (CliffordGate.X_sqrt,  cirq.X ** 0.5),
-    (CliffordGate.X_nsqrt, cirq.X ** -0.5),
-    (CliffordGate.Y_sqrt,  cirq.Y ** 0.5),
-    (CliffordGate.Y_nsqrt, cirq.Y ** -0.5),
-    (CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
-    (CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
+    (cirq.CliffordGate.I,       cirq.X ** 0),
+    (cirq.CliffordGate.H,       cirq.H),
+    (cirq.CliffordGate.X,       cirq.X),
+    (cirq.CliffordGate.Y,       cirq.Y),
+    (cirq.CliffordGate.Z,       cirq.Z),
+    (cirq.CliffordGate.X_sqrt,  cirq.X ** 0.5),
+    (cirq.CliffordGate.X_nsqrt, cirq.X ** -0.5),
+    (cirq.CliffordGate.Y_sqrt,  cirq.Y ** 0.5),
+    (cirq.CliffordGate.Y_nsqrt, cirq.Y ** -0.5),
+    (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
+    (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_decompose(gate, gate_equiv):
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit.from_ops(
@@ -317,12 +311,12 @@ def test_commutes_with_single_qubit_gate(gate, other):
 
 @pytest.mark.parametrize('gate,pauli,half_turns',
     itertools.product(_all_clifford_gates(),
-                      Pauli.XYZ,
+                      cirq.Pauli.XYZ,
                       (0.1, 0.25, 0.5, -0.5)))
 def test_commutes_with_pauli(gate, pauli, half_turns):
-    pauli_gates = {Pauli.X: cirq.X,
-                   Pauli.Y: cirq.Y,
-                   Pauli.Z: cirq.Z}
+    pauli_gates = {cirq.Pauli.X: cirq.X,
+                   cirq.Pauli.Y: cirq.Y,
+                   cirq.Pauli.Z: cirq.Z}
     pauli_gate = pauli_gates[pauli] ** half_turns
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit.from_ops(
@@ -355,15 +349,16 @@ def test_single_qubit_gate_after_switching_order(gate, other):
 
 
 @pytest.mark.parametrize('gate,sym,exp', (
-    (CliffordGate.I,       'I', 1),
-    (CliffordGate.H,       'H', 1),
-    (CliffordGate.X,       'X', 1),
-    (CliffordGate.X_sqrt,  'X', 0.5),
-    (CliffordGate.X_nsqrt, 'X', -0.5),
+    (cirq.CliffordGate.I,       'I', 1),
+    (cirq.CliffordGate.H,       'H', 1),
+    (cirq.CliffordGate.X,       'X', 1),
+    (cirq.CliffordGate.X_sqrt,  'X', 0.5),
+    (cirq.CliffordGate.X_nsqrt, 'X', -0.5),
     (
-            CliffordGate.from_xz_map((Pauli.Y, False), (Pauli.X, True)),
-            'X^-0.5-Z^0.5',
-            1
+        cirq.CliffordGate.from_xz_map(
+                (cirq.Pauli.Y, False), (cirq.Pauli.X, True)),
+        'X^-0.5-Z^0.5',
+        1
     )))
 def test_text_diagram_info(gate, sym, exp):
     assert gate.text_diagram_info(
