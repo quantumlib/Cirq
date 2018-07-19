@@ -36,10 +36,12 @@ def test_chosen_angle_to_half_turns():
                                                      default=0.75) == 0.25
     np.testing.assert_allclose(
         cirq.chosen_angle_to_half_turns(rads=np.pi/2),
-        0.5)
+        0.5,
+        atol=1e-8)
     np.testing.assert_allclose(
         cirq.chosen_angle_to_half_turns(rads=-np.pi/4),
-        -0.25)
+        -0.25,
+        atol=1e-8)
     assert cirq.chosen_angle_to_half_turns(degs=90) == 0.5
     assert cirq.chosen_angle_to_half_turns(degs=1080) == 6.0
     assert cirq.chosen_angle_to_half_turns(degs=990) == 5.5
@@ -63,10 +65,12 @@ def test_chosen_angle_to_canonical_half_turns():
                                                      default=0.75) == 0.25
     np.testing.assert_allclose(
         cirq.chosen_angle_to_canonical_half_turns(rads=np.pi/2),
-        0.5)
+        0.5,
+        atol=1e-8)
     np.testing.assert_allclose(
         cirq.chosen_angle_to_canonical_half_turns(rads=-np.pi/4),
-        -0.25)
+        -0.25,
+        atol=1e-8)
     assert cirq.chosen_angle_to_canonical_half_turns(degs=90) == 0.5
     assert cirq.chosen_angle_to_canonical_half_turns(degs=1080) == 0
     assert cirq.chosen_angle_to_canonical_half_turns(degs=990) == -0.5

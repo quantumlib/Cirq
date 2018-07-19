@@ -64,8 +64,8 @@ def test_match_global_phase():
     a = np.array([[5, 4], [3, -2]])
     b = np.array([[0.000001, 0], [0, 1j]])
     c, d = match_global_phase(a, b)
-    np.testing.assert_allclose(c, -a)
-    np.testing.assert_allclose(d, b * -1j)
+    np.testing.assert_allclose(c, -a, atol=1e-10)
+    np.testing.assert_allclose(d, b * -1j, atol=1e-10)
 
 
 def test_match_global_phase_zeros():
@@ -73,16 +73,16 @@ def test_match_global_phase_zeros():
     b = np.array([[1, 1], [1, 1]])
 
     z1, b1 = match_global_phase(z, b)
-    np.testing.assert_allclose(z, z1)
-    np.testing.assert_allclose(b, b1)
+    np.testing.assert_allclose(z, z1, atol=1e-10)
+    np.testing.assert_allclose(b, b1, atol=1e-10)
 
     z2, b2 = match_global_phase(z, b)
-    np.testing.assert_allclose(z, z2)
-    np.testing.assert_allclose(b, b2)
+    np.testing.assert_allclose(z, z2, atol=1e-10)
+    np.testing.assert_allclose(b, b2, atol=1e-10)
 
     z3, z4 = match_global_phase(z, z)
-    np.testing.assert_allclose(z, z3)
-    np.testing.assert_allclose(z, z4)
+    np.testing.assert_allclose(z, z3, atol=1e-10)
+    np.testing.assert_allclose(z, z4, atol=1e-10)
 
 
 def test_match_global_no_float_error_when_axis_aligned():

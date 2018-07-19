@@ -339,8 +339,8 @@ def test_initial_state_consistency(scheduler):
                                 initial_state=blip(i, 8),
                                 qubit_order=[Q1, Q2, Q3]).final_state
 
-        np.testing.assert_allclose(int_result, blip(i, 8))
-        np.testing.assert_allclose(int_result, array_result)
+        np.testing.assert_allclose(int_result, blip(i, 8), atol=1e-8)
+        np.testing.assert_allclose(int_result, array_result, atol=1e-8)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)

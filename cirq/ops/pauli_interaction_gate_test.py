@@ -73,7 +73,8 @@ def test_decompose(gate):
     cirq.circuits.ExpandComposite().optimize_circuit(circuit)
     decompose_mat = circuit.to_unitary_matrix()
     gate_mat = gate.matrix()
-    assert_allclose_up_to_global_phase(decompose_mat, gate_mat)
+    assert_allclose_up_to_global_phase(decompose_mat, gate_mat,
+                                       rtol=1e-7, atol=1e-7)
 
 def test_exponent():
     cnot = cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.X, False)
@@ -93,7 +94,7 @@ def test_exponent():
         g.matrix(),
         cirq.Circuit.from_ops(g.default_decompose([q0, q1])
                               ).to_unitary_matrix(),
-        atol=1e-8)
+        rtol=1e-7, atol=1e-7)
 
 def test_decomposes_despite_symbol():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')

@@ -275,7 +275,7 @@ def test_decompose(gate, gate_equiv):
     mat_check = cirq.Circuit.from_ops(
                     gate_equiv(q0),
                 ).to_unitary_matrix()
-    assert_allclose_up_to_global_phase(mat, mat_check)
+    assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize('gate', _all_clifford_gates())
@@ -288,7 +288,8 @@ def test_inverse_matrix(gate):
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit.from_ops(gate(q0)).to_unitary_matrix()
     mat_inv = cirq.Circuit.from_ops(gate.inverse()(q0)).to_unitary_matrix()
-    assert_allclose_up_to_global_phase(mat, mat_inv.T.conj())
+    assert_allclose_up_to_global_phase(mat, mat_inv.T.conj(),
+                                       rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize('gate,other',
@@ -345,7 +346,7 @@ def test_single_qubit_gate_after_switching_order(gate, other):
                     gate.equivalent_gate_before(other)(q0),
                     gate(q0),
                 ).to_unitary_matrix()
-    assert_allclose_up_to_global_phase(mat, mat_swap)
+    assert_allclose_up_to_global_phase(mat, mat_swap, rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize('gate,sym,exp', (

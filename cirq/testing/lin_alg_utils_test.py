@@ -33,12 +33,14 @@ def test_random_unitary():
 def test_assert_allclose_up_to_global_phase():
     assert_allclose_up_to_global_phase(
         np.array([[1]]),
-        np.array([[1j]]))
+        np.array([[1j]]),
+        atol=0)
 
     with pytest.raises(AssertionError):
         assert_allclose_up_to_global_phase(
             np.array([[1]]),
-            np.array([[2]]))
+            np.array([[2]]),
+            atol=0)
 
     assert_allclose_up_to_global_phase(
         np.array([[1e-8, -1, 1e-8]]),
@@ -53,4 +55,5 @@ def test_assert_allclose_up_to_global_phase():
 
     assert_allclose_up_to_global_phase(
         np.array([[1, 2], [3, 4]]),
-        np.array([[-1, -2], [-3, -4]]))
+        np.array([[-1, -2], [-3, -4]]),
+        atol=0)

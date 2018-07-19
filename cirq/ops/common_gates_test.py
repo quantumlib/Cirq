@@ -424,7 +424,8 @@ def test_iswap_matrix():
         np.array([[1, 0, 0, 0],
                   [0, 0, 1j, 0],
                   [0, 1j, 0, 0],
-                  [0, 0, 0, 1]]))
+                  [0, 0, 0, 1]]),
+        atol=1e-8)
 
 
 def test_iswap_decompose():
