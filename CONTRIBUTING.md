@@ -32,11 +32,9 @@ The basic process for setting up a fork is
 [repo page](https://github.com/quantumlib/Cirq)).
 Forking creates a new github repo at the location
 ```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
-your github id.
-
-1. Use the directions on the [development page](docs/development.md) to
-fork the repository and download a copy to your local machine. You need
-only do this once.  
+your github id. Use the directions on the
+[development page](docs/development.md) to download a copy to
+your local machine. You need only do this once.
 1. Checkout master and create a new branch from this master
     ```shell
     git checkout master -b new_branch_name
