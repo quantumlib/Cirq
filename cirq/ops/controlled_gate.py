@@ -24,7 +24,6 @@ T_DESIRED = TypeVar('T_DESIRED')
 POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
-    gate_features.KnownMatrix,
     gate_features.ParameterizableEffect,
     gate_features.ReversibleEffect,
     gate_features.TextDiagrammable,
@@ -32,10 +31,10 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
 
 
 class ControlledGate(raw_types.Gate,
+                     gate_features.KnownMatrix,
                      extension.PotentialImplementation[Union[
                          gate_features.BoundedEffect,
                          gate_features.ExtrapolatableEffect,
-                         gate_features.KnownMatrix,
                          gate_features.ParameterizableEffect,
                          gate_features.ReversibleEffect,
                          gate_features.TextDiagrammable,
@@ -91,9 +90,13 @@ class ControlledGate(raw_types.Gate,
             return ControlledGate(cast_sub_gate, ext)
         return super().try_cast_to(desired_type, ext)
 
-    def matrix(self) -> np.ndarray:
-        cast_sub_gate = self._cast_sub_gate(gate_features.KnownMatrix)
-        sub_matrix = cast_sub_gate.matrix()
+    def has_matrix(self) -> bool:
+        return gate_features.KnownMatrix.has_matrix_of(self.sub_gate)
+
+    def matrix(self) -> Optional[np.ndarray]:
+        sub_matrix = gate_features.KnownMatrix.matrix_of(self.sub_gate)
+        if sub_matrix is None:
+            return None
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
     def extrapolate_effect(self, factor) -> 'ControlledGate':

@@ -14,6 +14,8 @@
 
 import cmath
 import math
+from typing import List, Iterable, cast
+
 import random
 
 import numpy as np
@@ -25,21 +27,17 @@ from cirq.google import decompositions
 from cirq import circuits, linalg, testing
 
 
-def _operations_to_matrix(operations, qubits):
+def _operations_to_matrix(operations: Iterable[cirq.Operation],
+                          qubits: Iterable[cirq.QubitId]):
     return circuits.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=cirq.QubitOrder.explicit(qubits),
         qubits_that_should_be_present=qubits)
 
 
-def _gates_to_matrix(gates):
-    m = gates[0].matrix()
-    for gate in gates[1:]:
-        m = gate.matrix().dot(m)
-    return m
-
-
-def assert_gates_implement_unitary(gates, intended_effect):
-    actual_effect = _gates_to_matrix(gates)
+def assert_gates_implement_unitary(gates: List[cirq.SingleQubitGate],
+                                   intended_effect: np.ndarray):
+    actual_effect = cirq.dot(*[cast(np.ndarray, cirq.KnownMatrix.matrix_of(g))
+                               for g in gates][::-1])
     assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
@@ -122,7 +120,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_z():
     assert len(optimized_away) == 0
 
     kept = decompositions.single_qubit_matrix_to_native_gates(z,
-                                                        tolerance=0.0001)
+                                                              tolerance=0.0001)
     assert len(kept) == 1
 
 
@@ -135,7 +133,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_xy():
     assert len(optimized_away) == 0
 
     kept = decompositions.single_qubit_matrix_to_native_gates(xy,
-                                                        tolerance=0.0001)
+                                                              tolerance=0.0001)
     assert len(kept) == 1
 
 
@@ -306,7 +304,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
 
     (1.5, 3, linalg.map_eigenvalues(cirq.SWAP.matrix(), lambda e: e**0.5)),
 
-    (2, 2, cirq.SWAP.matrix().dot(cirq.CZ.matrix())),
+    (2, 2, np.dot(cirq.SWAP.matrix(), cirq.CZ.matrix())),
 
     (3, 3, cirq.SWAP.matrix()),
     (3, 3, np.array([
@@ -346,29 +344,29 @@ def test_two_to_native_equivalent_and_bounded_for_known_and_random(
 def test_trivial_parity_interaction_corner_case():
     q0 = cirq.QubitId()
     q1 = cirq.QubitId()
-    nearPi4 = np.pi/4 * 0.99
+    near_pi_4 = np.pi/4 * 0.99
     tolerance = 1e-2
     circuit = circuits.Circuit.from_ops(
-        decompositions._parity_interaction(q0, q1, -nearPi4, tolerance))
+        decompositions._parity_interaction(q0, q1, -near_pi_4, tolerance))
     assert len(circuit) == 2
 
 
-@pytest.mark.parametrize('rad,expected', (lambda err, largeErr: [
+@pytest.mark.parametrize('rad,expected', (lambda err, large_err: [
     (np.pi/4, True),
     (np.pi/4 + err, True),
-    (np.pi/4 + largeErr, False),
+    (np.pi / 4 + large_err, False),
     (np.pi/4 - err, True),
-    (np.pi/4 - largeErr, False),
+    (np.pi / 4 - large_err, False),
     (-np.pi/4, True),
     (-np.pi/4 + err, True),
-    (-np.pi/4 + largeErr, False),
+    (-np.pi / 4 + large_err, False),
     (-np.pi/4 - err, True),
-    (-np.pi/4 - largeErr, False),
+    (-np.pi / 4 - large_err, False),
     (0, True),
     (err, True),
-    (largeErr, False),
+    (large_err, False),
     (-err, True),
-    (-largeErr, False),
+    (-large_err, False),
     (np.pi/8, False),
     (-np.pi/8, False),
 ])(1e-8*2/3, 1e-8*4/3))

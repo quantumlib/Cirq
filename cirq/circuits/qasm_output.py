@@ -275,29 +275,30 @@ class QasmOutput:
                     output_line_gap(1)
                 continue
 
-            matrix_op = self.ext.try_cast(ops.KnownMatrix, op)
-            if matrix_op is not None and len(op.qubits) == 1:
-                u_op = QasmUGate.from_matrix(matrix_op.matrix())(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                output(u_op.known_qasm_output(self.args))
-                if top:
-                    output_line_gap(1)
-                continue
+            if len(op.qubits) <= 2:
+                matrix = ops.KnownMatrix.matrix_of(op)
+                if matrix is not None:
+                    if len(op.qubits) == 1:
+                        u_op = QasmUGate.from_matrix(matrix)(*op.qubits)
+                        if top:
+                            output_line_gap(1)
+                            output('// {}\n'.format(comment))
+                        output(u_op.known_qasm_output(self.args))
+                        if top:
+                            output_line_gap(1)
+                        continue
 
-            if matrix_op is not None and len(op.qubits) == 2:
-                u_op = QasmTwoQubitGate.from_matrix(matrix_op.matrix()
-                                                    )(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations((u_op,),
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
+                    if len(op.qubits) == 2:
+                        u_op = QasmTwoQubitGate.from_matrix(matrix)(*op.qubits)
+                        if top:
+                            output_line_gap(1)
+                            output('// {}\n'.format(comment))
+                        self._write_operations((u_op,),
+                                               output,
+                                               output_line_gap,
+                                               top=False)
+                        if top:
+                            output_line_gap(1)
+                        continue
 
             raise ValueError('Cannot output operation as QASM: {!r}'.format(op))

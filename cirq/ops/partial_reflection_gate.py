@@ -25,10 +25,10 @@ from cirq.ops import gate_features, raw_types
 class PartialReflectionGate(raw_types.Gate,
                             gate_features.BoundedEffect,
                             gate_features.ParameterizableEffect,
+                            gate_features.KnownMatrix,
                             extension.PotentialImplementation[Union[
                                 gate_features.ExtrapolatableEffect,
-                                gate_features.ReversibleEffect,
-                                gate_features.KnownMatrix]]):
+                                gate_features.ReversibleEffect]]):
     """An interpolated reflection operation.
 
     A reflection operation is an operation that has exactly two eigenvalues
@@ -92,8 +92,7 @@ class PartialReflectionGate(raw_types.Gate,
 
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
-                             gate_features.ReversibleEffect,
-                             gate_features.KnownMatrix] and
+                             gate_features.ReversibleEffect] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
@@ -103,9 +102,12 @@ class PartialReflectionGate(raw_types.Gate,
         """The reflection matrix corresponding to half_turns=1."""
         pass
 
-    def matrix(self) -> np.ndarray:
+    def has_matrix(self) -> bool:
+        return not self.is_parameterized()
+
+    def matrix(self) -> Optional[np.ndarray]:
         if self.is_parameterized():
-            raise ValueError("Parameterized. Don't have a known matrix.")
+            return None
         return reflection_matrix_pow(
                 self._reflection_matrix(), cast(float, self.half_turns))
 

@@ -162,19 +162,16 @@ def test_runtime_types_of_rot_gates():
         ext = cirq.Extensions()
 
         p = gate_type(half_turns=Symbol('a'))
-        assert p.try_cast_to(cirq.KnownMatrix, ext) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
-        with pytest.raises(ValueError):
-            _ = p.matrix()
+        assert p.matrix() is None
         with pytest.raises(ValueError):
             _ = p.extrapolate_effect(2)
         with pytest.raises(ValueError):
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
-        assert c.try_cast_to(cirq.KnownMatrix, ext) is c
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
         assert c.try_cast_to(cirq.BoundedEffect, ext) is c

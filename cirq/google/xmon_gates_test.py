@@ -167,8 +167,7 @@ def test_z_matrix():
 def test_z_parameterize():
     parameterized_gate = cg.ExpZGate(half_turns=Symbol('a'))
     assert parameterized_gate.is_parameterized()
-    with pytest.raises(ValueError):
-        _ = parameterized_gate.matrix()
+    assert parameterized_gate.matrix() is None
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.ExpZGate(half_turns=0.1)
@@ -229,16 +228,14 @@ def test_cz_to_proto():
 
 
 def test_cz_potential_implementation():
-    assert not cirq.can_cast(cirq.KnownMatrix,
-                             cg.Exp11Gate(half_turns=Symbol('a')))
-    assert cirq.can_cast(cirq.KnownMatrix, cg.Exp11Gate())
+    assert cg.Exp11Gate(half_turns=Symbol('a')).matrix() is None
+    assert cg.Exp11Gate().matrix() is not None
 
 
 def test_cz_parameterize():
     parameterized_gate = cg.Exp11Gate(half_turns=Symbol('a'))
     assert parameterized_gate.is_parameterized()
-    with pytest.raises(ValueError):
-        _ = parameterized_gate.matrix()
+    assert parameterized_gate.matrix() is None
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
@@ -295,7 +292,6 @@ def test_w_str():
                            half_turns=0.5)) == 'W(0.25)^0.5'
 
 
-
 def test_w_to_proto():
     assert proto_matches_text(
         cg.ExpWGate(half_turns=Symbol('k'),
@@ -349,11 +345,8 @@ def test_w_decomposition():
 
 
 def test_w_potential_implementation():
-    assert not cirq.can_cast(cirq.KnownMatrix,
-                             cg.ExpWGate(half_turns=Symbol('a')))
     assert not cirq.can_cast(cirq.ReversibleEffect,
                              cg.ExpWGate(half_turns=Symbol('a')))
-    assert cirq.can_cast(cirq.KnownMatrix, cg.ExpWGate())
     assert cirq.can_cast(cirq.ReversibleEffect, cg.ExpWGate())
 
 
@@ -361,8 +354,7 @@ def test_w_parameterize():
     parameterized_gate = cg.ExpWGate(half_turns=Symbol('a'),
                                      axis_half_turns=Symbol('b'))
     assert parameterized_gate.is_parameterized()
-    with pytest.raises(ValueError):
-        _ = parameterized_gate.matrix()
+    assert parameterized_gate.matrix() is None
     resolver = ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)

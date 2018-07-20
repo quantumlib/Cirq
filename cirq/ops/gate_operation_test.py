@@ -171,12 +171,9 @@ def test_known_matrix():
 
     # If the gate has no matrix, you get a type error.
     op0 = cirq.measure(a)
-    assert not cirq.can_cast(cirq.KnownMatrix, op0)
-    with pytest.raises(TypeError):
-        _ = op0.matrix()
+    assert op0.matrix() is None
 
     op1 = cirq.X(a)
-    assert cirq.can_cast(cirq.KnownMatrix, op1)
     np.testing.assert_allclose(op1.matrix(),
                                np.array([[0, 1], [1, 0]]),
                                atol=1e-8)

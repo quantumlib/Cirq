@@ -25,11 +25,11 @@ TSelf = TypeVar('TSelf', bound='EigenGate')
 
 class EigenGate(raw_types.Gate,
                 gate_features.BoundedEffect,
+                gate_features.KnownMatrix,
                 gate_features.ParameterizableEffect,
                 extension.PotentialImplementation[Union[
                     gate_features.ExtrapolatableEffect,
-                    gate_features.ReversibleEffect,
-                    gate_features.KnownMatrix]]):
+                    gate_features.ReversibleEffect]]):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -124,15 +124,17 @@ class EigenGate(raw_types.Gate,
 
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
-                             gate_features.ReversibleEffect,
-                             gate_features.KnownMatrix] and
+                             gate_features.ReversibleEffect] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def matrix(self) -> np.ndarray:
+    def has_matrix(self):
+        return not self.is_parameterized()
+
+    def matrix(self) -> Optional[np.ndarray]:
         if self.is_parameterized():
-            raise ValueError("Parameterized. Don't have a known matrix.")
+            return None
         e = cast(float, self._exponent)
         return np.sum(1j**(half_turns * e * 2) * component
                       for half_turns, component in self._eigen_components())

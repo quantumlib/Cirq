@@ -130,7 +130,7 @@ class Exp11Gate(XmonGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
                 ops.QasmConvertableGate,
-                PotentialImplementation[ops.KnownMatrix]):
+                ops.KnownMatrix):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -178,17 +178,12 @@ class Exp11Gate(XmonGate,
                                           op.exp_11.half_turns)
         return op
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrix and self.has_matrix():
-            return self
-        return super().try_cast_to(desired_type, ext)
-
     def has_matrix(self):
         return not isinstance(self.half_turns, value.Symbol)
 
-    def matrix(self):
+    def matrix(self) -> Optional[np.ndarray]:
         if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
+            return None
         return ops.Rot11Gate(half_turns=self.half_turns).matrix()
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
@@ -231,13 +226,13 @@ class Exp11Gate(XmonGate,
 
 
 class ExpWGate(XmonGate,
+               ops.KnownMatrix,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.PhaseableEffect,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
                PotentialImplementation[Union[
-                   ops.KnownMatrix,
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
@@ -316,8 +311,6 @@ class ExpWGate(XmonGate,
         return op
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrix and self.has_matrix():
-            return self
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
@@ -335,13 +328,13 @@ class ExpWGate(XmonGate,
         return (not isinstance(self.half_turns, value.Symbol) and
                 not isinstance(self.axis_half_turns, value.Symbol))
 
-    def matrix(self):
+    def matrix(self) -> Optional[np.ndarray]:
         if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
+            return None
         phase = ops.RotZGate(half_turns=self.axis_half_turns).matrix()
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
-        return phase.dot(rot).dot(np.conj(phase))
+        return np.dot(np.dot(phase, rot), np.conj(phase))
 
     def phase_by(self, phase_turns, qubit_index):
         return ExpWGate(
@@ -419,6 +412,7 @@ class ExpWGate(XmonGate,
 
 
 class ExpZGate(XmonGate,
+               ops.KnownMatrix,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
@@ -426,7 +420,6 @@ class ExpZGate(XmonGate,
                ops.BoundedEffect,
                ops.QasmConvertableGate,
                PotentialImplementation[Union[
-                   ops.KnownMatrix,
                    ops.ReversibleEffect]]):
     """A rotation around the Z axis of the Bloch sphere.
 
@@ -486,8 +479,6 @@ class ExpZGate(XmonGate,
                                self.half_turns, qubits[0])
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrix and self.has_matrix():
-            return self
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
@@ -508,10 +499,11 @@ class ExpZGate(XmonGate,
     def has_matrix(self):
         return not isinstance(self.half_turns, value.Symbol)
 
-    def matrix(self):
+    def matrix(self) -> Optional[np.ndarray]:
         if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
-        return np.diag([(-1j)**self.half_turns, 1j**self.half_turns])
+            return None
+        h = cast(float, self.half_turns)
+        return np.diag([(-1j)**h, 1j**h])
 
     def trace_distance_bound(self):
         if isinstance(self.half_turns, value.Symbol):

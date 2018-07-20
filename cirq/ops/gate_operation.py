@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
-    gate_features.KnownMatrix,
     gate_features.ParameterizableEffect,
     gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
@@ -46,11 +45,11 @@ LIFTED_POTENTIAL_TYPES[
 
 
 class GateOperation(raw_types.Operation,
+                    gate_features.KnownMatrix,
                     extension.PotentialImplementation[Union[
                         gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
-                        gate_features.KnownMatrix,
                         gate_features.ParameterizableEffect,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
@@ -136,9 +135,8 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
-    def matrix(self) -> np.ndarray:
-        cast_gate = extension.cast(gate_features.KnownMatrix, self.gate)
-        return cast_gate.matrix()
+    def matrix(self) -> Optional[np.ndarray]:
+        return gate_features.KnownMatrix.matrix_of(self._gate)
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

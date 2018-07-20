@@ -95,19 +95,19 @@ class MergeInteractions(circuits.PointOptimizer):
         """
         q1, q2 = qubits
 
-        known = self.extensions.try_cast(ops.KnownMatrix, op)
-        if known is None or op is None:
+        matrix = ops.KnownMatrix.matrix_of(op)
+        if matrix is None:
             return None
-        m = known.matrix()
 
+        assert op is not None
         if op.qubits == qubits:
-            return m
+            return matrix
         if op.qubits == (q2, q1):
-            return MergeInteractions._flip_kron_order(m)
+            return MergeInteractions._flip_kron_order(matrix)
         if op.qubits == (q1,):
-            return np.kron(m, np.eye(2))
+            return np.kron(matrix, np.eye(2))
         if op.qubits == (q2,):
-            return np.kron(np.eye(2), m)
+            return np.kron(np.eye(2), matrix)
 
         return None
 

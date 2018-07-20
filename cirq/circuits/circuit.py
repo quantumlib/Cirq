@@ -1313,7 +1313,8 @@ def _apply_unitary_circuit(circuit: Circuit,
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=np.complex128)
     for op, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = op.matrix().astype(np.complex128).reshape((2,) * (2 * len(qs)))
+        matrix = cast(np.ndarray, cast(ops.KnownMatrix, op).matrix())
+        matrix = matrix.astype(np.complex128).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
         linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
         state, buffer = buffer, state
@@ -1328,9 +1329,8 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
     """
     for op in operations:
         # Check if the operation has a known matrix.
-        known_matrix = ext.try_cast(ops.KnownMatrix, op)
-        if known_matrix is not None:
-            yield known_matrix, op.qubits
+        if ops.KnownMatrix.has_matrix_of(op):
+            yield cast(ops.KnownMatrix, op), op.qubits
             continue
 
         # If not, check if it has a decomposition.
@@ -1348,7 +1348,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             # Account for bit flips embedded into the measurement operation.
             for i, b in enumerate(gate.invert_mask):
                 if b:
-                    yield ext.cast(ops.KnownMatrix, ops.X), (op.qubits[i],)
+                    yield ops.X, (op.qubits[i],)
 
             # This is a private method called in contexts where we know
             # measurement is supposed to be skipped.
