@@ -6,14 +6,70 @@ Note that all commands assume a Debian environment, and all commands (except
 the initial repository cloning command) assume you are at the cirq repo root.
 
 
-### Setting up an environment.
+### Cloning the repository
 
-0. Clone the repository.
+You can create a local version of this repository by running:
 
     ```bash
     git clone git@github.com:quantumlib/Cirq.git
     cd Cirq
     ```
+
+This will allow you to use the Cirq library and build your own applications
+using this framework.
+
+If instead, you wish to do development on Cirq itself and contribute back to
+the community, follow the directions below.
+
+### Forking the repository
+
+If do not plan to contribute back to the Cirq project and only wish to use
+the Cirq framework to build your own quantum programs and circuits, you can
+skip this section.
+
+1. Fork the Cirq repo (Fork button in upper right corner of
+[repo page](https://github.com/quantumlib/Cirq)).
+Forking creates a new github repo at the location
+```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
+your github id.
+1. Clone the fork you created to your local machine at the directory
+where you would like to store your local copy of the code.
+    ```shell
+    git clone git@github.com:USERNAME/cirq.git
+    ```
+    (Alternatively, you can clone the repository using the URL provided
+    on your repo page under the green "Clone or Download" button)
+1. Add a remote called ```upstream``` to git.  This remote will represent
+the main git repo for cirq (as opposed to the clone, which you just
+created, which will be the ```origin``` remote).  This remote can be used
+to sync your local git repos with the main git repo for cirq.
+    ```shell
+    git remote add upstream https://github.com/quantumlib/cirq.git
+    ```
+    To verify the remote run ```git remote -v``` and you should see both
+    the ```origin``` and ```upstream``` remotes.
+1. Sync up your local git with the ```upstream``` remote:
+    ```shell
+    git fetch upstream
+    ```
+    You can check the branches that are on the ```upstream``` remote by
+    running ```git remote -va``` or ```git branch -r```.
+Most importantly you should see ```upstream/master``` listed.
+1. Merge the upstream master into your local master so that
+it is up to date
+    ```shell
+    git checkout master
+    git merge upstream/master
+    ```
+    At this point your local git master should be synced with the master
+    from the main cirq repo.
+
+
+### Setting up an environment.
+
+0. First clone the repository, if you have not already done so.
+See the previous section for instructions.
+
 
 1. Install system dependencies.
 
@@ -74,6 +130,9 @@ Run [continuous-integration/check.sh](/continuous-integration/check.sh) to run t
 bash continuous-integration/check.sh
 ```
 
+You can run a subset of the checks using the ```--only``` flag.
+This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`,
+or `incremental-coverage`.
 
 ### Producing the Python 2.7 code
 
