@@ -106,8 +106,8 @@ def targeted_left_multiply(left_matrix: np.ndarray,
 
     This method also works when the right hand side is a matrix instead of a
     vector. If a unitary circuit's matrix is `old_effect`, and you append
-    a CNOT(q1, q3) operation onto the circuit, where the control q1 is the qubit
-    at offset 1 and the target q3 is the qubit at offset 4, then the appended
+    a CNOT(q1, q4) operation onto the circuit, where the control q1 is the qubit
+    at offset 1 and the target q4 is the qubit at offset 4, then the appended
     circuit's unitary matrix is computed as follows:
 
         new_effect = cirq.targeted_left_multiply(
