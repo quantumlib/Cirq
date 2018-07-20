@@ -37,12 +37,25 @@ _OPTIMIZERS = [
     circuits.DropNegligible(tolerance=_TOLERANCE),
 ]
 
+_OPTIMIZERS_RM_PART_CZ = [
+    convert_to_xmon_gates.ConvertToXmonGates(),
+
+    merge_interactions.MergeInteractions(tolerance=_TOLERANCE,
+                                         allow_partial_czs=False,
+                                         decompose_partial_czs=True),
+    merge_rotations.MergeRotations(tolerance=_TOLERANCE),
+    eject_full_w.EjectFullW(tolerance=_TOLERANCE),
+    eject_z.EjectZ(tolerance=_TOLERANCE),
+    circuits.DropNegligible(tolerance=_TOLERANCE),
+]
+
 
 def optimized_for_xmon(
         circuit: circuits.Circuit,
         new_device: Optional[xmon_device.XmonDevice] = None,
         qubit_map: Callable[[ops.QubitId], devices.GridQubit] =
-        lambda e: cast(devices.GridQubit, e),
+            lambda e: cast(devices.GridQubit, e),
+        full_cz_only: bool = False,
 ) -> circuits.Circuit:
     """Optimizes a circuit with XmonDevice in mind.
 
@@ -55,12 +68,16 @@ def optimized_for_xmon(
         new_device: The device the optimized circuit should be targeted at. If
             set to None, the circuit's current device is used.
         qubit_map: Transforms the qubits (e.g. so that they are GridQubits).
+        full_cz_only: If true, all partial CZ gates will be converted to full CZ
+            gates.  At worst, two CZ gates will be put in place of each partial
+            CZ.
 
     Returns:
         The optimized circuit.
     """
     copy = circuit.copy()
-    for optimizer in _OPTIMIZERS:
+    opts = _OPTIMIZERS_RM_PART_CZ if full_cz_only else _OPTIMIZERS
+    for optimizer in opts:
         optimizer.optimize_circuit(copy)
 
     return circuits.Circuit.from_ops(
