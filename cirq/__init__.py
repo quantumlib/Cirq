@@ -12,21 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Import sub-modules.
-
-from cirq import (
-    api,
-    circuits,
-    devices,
-    google,
-    linalg,
-    ops,
-    schedules,
-    study,
-    testing,
-)
-
-# Also flatten some of the sub-modules.
+# Flatten sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -187,6 +173,20 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+)
+
+from cirq.protocols import (
+    has_unitary_effect,
+    maybe_unitary_effect,
+    SupportsUnitaryEffect,
+    unitary_effect,
+)
+
+# Unflattened sub-modules.
+from cirq import (
+    api,
+    google,
+    testing,
 )
 
 # Import version last since it is a relative import.

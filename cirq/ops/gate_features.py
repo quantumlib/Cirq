@@ -117,32 +117,6 @@ class CompositeGate(metaclass=abc.ABCMeta):
 class KnownMatrix(metaclass=abc.ABCMeta):
     """An effect that can be described by a matrix."""
 
-    @staticmethod
-    def matrix_of(other: Any) -> Optional[np.ndarray]:
-        """Determines the matrix of the given object, if any.
-
-        Returns:
-            A 2d numpy array when the given object is a KnownMatrix and its
-            matrix() method returns a non-None result.
-
-            None when the given object isn't a KnownMatrix or else its matrix
-            method returns None.
-        """
-        return other.matrix() if isinstance(other, KnownMatrix) else None
-
-    @staticmethod
-    def has_matrix_of(other: Any) -> bool:
-        """Determines if the given object has a known matrix or not.
-
-        Returns:
-            True when the given object is a KnownMatrix and its has_matrix
-            method returns True.
-
-            False when the given object isn't a KnownMatrix or else its
-            has_matrix returns False.
-        """
-        return other.has_matrix() if isinstance(other, KnownMatrix) else False
-
     def has_matrix(self) -> bool:
         """Determines if the gate/operation has a known matrix or not."""
         return self.matrix() is not None

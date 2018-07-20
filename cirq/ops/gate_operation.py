@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension
+from cirq import extension, protocols
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
@@ -136,7 +136,7 @@ class GateOperation(raw_types.Operation,
         return cast_gate.default_decompose(self.qubits)
 
     def matrix(self) -> Optional[np.ndarray]:
-        return gate_features.KnownMatrix.matrix_of(self._gate)
+        return protocols.maybe_unitary_effect(self._gate)
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

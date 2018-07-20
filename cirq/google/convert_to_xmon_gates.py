@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
@@ -70,7 +70,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         # Known matrix?
         if len(op.qubits) <= 2:
-            matrix = ops.KnownMatrix.matrix_of(op)
+            matrix = protocols.maybe_unitary_effect(op)
             if matrix is not None:
                 if len(op.qubits) == 1:
                     gates = single_qubit_matrix_to_native_gates(matrix)

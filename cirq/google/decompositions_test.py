@@ -14,17 +14,15 @@
 
 import cmath
 import math
-from typing import List, Iterable, cast
-
-import random
+from typing import List, Iterable
 
 import numpy as np
-
 import pytest
+import random
 
 import cirq
-from cirq.google import decompositions
 from cirq import circuits, linalg, testing
+from cirq.google import decompositions
 
 
 def _operations_to_matrix(operations: Iterable[cirq.Operation],
@@ -36,8 +34,7 @@ def _operations_to_matrix(operations: Iterable[cirq.Operation],
 
 def assert_gates_implement_unitary(gates: List[cirq.SingleQubitGate],
                                    intended_effect: np.ndarray):
-    actual_effect = cirq.dot(*[cast(np.ndarray, cirq.KnownMatrix.matrix_of(g))
-                               for g in gates][::-1])
+    actual_effect = cirq.dot(*[cirq.unitary_effect(g) for g in gates][::-1])
     assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 

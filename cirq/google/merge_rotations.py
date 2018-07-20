@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.circuits import (
     Circuit,
     PointOptimizer,
@@ -63,7 +63,7 @@ class MergeRotations(PointOptimizer):
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            matrix = ops.KnownMatrix.matrix_of(op)
+            matrix = protocols.maybe_unitary_effect(op)
             if matrix is None:
                 break
             indices.append(index)

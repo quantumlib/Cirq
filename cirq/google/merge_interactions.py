@@ -18,7 +18,7 @@ from typing import List, Tuple, Optional, cast
 
 import numpy as np
 
-from cirq import circuits, ops
+from cirq import circuits, ops, protocols
 from cirq.extension import Extensions
 from cirq.google import decompositions, convert_to_xmon_gates, xmon_gates
 
@@ -95,7 +95,7 @@ class MergeInteractions(circuits.PointOptimizer):
         """
         q1, q2 = qubits
 
-        matrix = ops.KnownMatrix.matrix_of(op)
+        matrix = protocols.maybe_unitary_effect(op)
         if matrix is None:
             return None
 

@@ -22,7 +22,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import ops, linalg, extension
+from cirq import ops, linalg, extension, protocols
 
 
 class QasmUGate(ops.SingleQubitGate, ops.QasmConvertableGate):
@@ -276,7 +276,7 @@ class QasmOutput:
                 continue
 
             if len(op.qubits) <= 2:
-                matrix = ops.KnownMatrix.matrix_of(op)
+                matrix = protocols.maybe_unitary_effect(op)
                 if matrix is not None:
                     if len(op.qubits) == 1:
                         u_op = QasmUGate.from_matrix(matrix)(*op.qubits)

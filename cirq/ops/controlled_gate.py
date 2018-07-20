@@ -16,7 +16,7 @@ from typing import Optional, TypeVar, Type, cast, Union
 
 import numpy as np
 
-from cirq import linalg, extension
+from cirq import linalg, extension, protocols
 from cirq.ops import raw_types, gate_features
 
 T_DESIRED = TypeVar('T_DESIRED')
@@ -91,10 +91,10 @@ class ControlledGate(raw_types.Gate,
         return super().try_cast_to(desired_type, ext)
 
     def has_matrix(self) -> bool:
-        return gate_features.KnownMatrix.has_matrix_of(self.sub_gate)
+        return protocols.has_unitary_effect(self.sub_gate)
 
     def matrix(self) -> Optional[np.ndarray]:
-        sub_matrix = gate_features.KnownMatrix.matrix_of(self.sub_gate)
+        sub_matrix = protocols.maybe_unitary_effect(self.sub_gate)
         if sub_matrix is None:
             return None
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
