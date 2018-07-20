@@ -28,7 +28,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study
+from cirq import devices, ops, extension, study, linalg
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -1315,7 +1315,7 @@ def _apply_unitary_circuit(circuit: Circuit,
     for op, qs in _extract_unitaries(circuit.all_operations(), ext):
         matrix = op.matrix().astype(np.complex128).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
-        _apply_unitary_operation(state, matrix, indices, buffer)
+        linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
         state, buffer = buffer, state
     return state
 
@@ -1356,42 +1356,5 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
 
         # Otherwise, fail
         raise TypeError(
-            'Operation without a known matrix or decomposition: {!r}'
-                .format(op))
-
-
-def _apply_unitary_operation(state: np.ndarray,
-                             matrix: np.ndarray,
-                             target_axes: List[int],
-                             out: Optional[np.ndarray]) -> np.ndarray:
-    """Left-multiplies the given axes of the state tensor by the given matrix.
-
-    Args:
-        state: The state tensor to left-multiple.
-        matrix: What to left-multiply the state tensor by.
-        target_axes: Which axes of the tensor are being operated on.
-        out: The buffer to store the results in. If None, a new buffer is used.
-
-    Returns:
-        The output tensor.
-    """
-    k = len(target_axes)
-    d = len(state.shape)
-    work_indices = tuple(range(k))
-    data_indices = tuple(range(k, k + d))
-    used_data_indices = tuple(data_indices[q] for q in target_axes)
-    input_indices = work_indices + used_data_indices
-    output_indices = list(data_indices)
-    for w, t in zip(work_indices, target_axes):
-        output_indices[t] = w
-
-    all_indices = set(input_indices + data_indices + tuple(output_indices))
-
-    return np.einsum(matrix, input_indices,
-                     state, data_indices,
-                     output_indices,
-                     out=out,
-                     # Note: this is a workaround for a bug in numpy:
-                     #     https://github.com/numpy/numpy/issues/10926
-                     # Turning optimize on actually makes things slower.
-                     optimize=len(all_indices) >= 26)
+            'Operation without a known matrix or decomposition: {!r}'.format(
+                op))
