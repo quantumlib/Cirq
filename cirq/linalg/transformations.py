@@ -100,7 +100,7 @@ def targeted_left_multiply(left_matrix: np.ndarray,
     For example, if you have an 6-qubit state vector `input_state` with shape
     (2, 2, 2, 2, 2, 2), and a 2-qubit unitary operation `op` with shape
     (2, 2, 2, 2), and you want to apply `op` to the 5'th and 3'rd qubits
-    within `input_state, then the output state vector is computed as follows:
+    within `input_state`, then the output state vector is computed as follows:
 
         output_state = cirq.targeted_left_multiply(op, input_state, [5, 3])
 
