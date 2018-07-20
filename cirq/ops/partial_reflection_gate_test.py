@@ -85,6 +85,7 @@ def test_partial_reflection_gate_with_parameters_resolved_by():
 
 def test_partial_reflection_gate_matrix():
     assert DummyGate(half_turns=cirq.Symbol('a')).matrix() is None
+    assert not DummyGate(half_turns=cirq.Symbol('a')).has_matrix()
 
     np.testing.assert_allclose(DummyGate(half_turns=1).matrix(),
                                np.diag([1, -1]),
@@ -97,3 +98,4 @@ def test_partial_reflection_gate_matrix():
     np.testing.assert_allclose(DummyGate(half_turns=-0.5).matrix(),
                                np.diag([1, -1j]),
                                atol=1e-8)
+    assert DummyGate(half_turns=-0.5).has_matrix()
