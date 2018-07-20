@@ -64,7 +64,7 @@ def test_various_known_gate_types():
         cirq.Z(a)**0.5,
         cirq.Y(a),
         cirq.Y(a)**-0.25,
-        cirq.RotYGate(half_turns=cirq.Symbol('t')).on(a),
+        cirq.Y(a)**cirq.Symbol('t'),
         cirq.H(a),
         cirq.measure(a),
         cirq.measure(a, b, key='not-relevant'),
