@@ -16,7 +16,6 @@ import cirq
 from cirq.circuits import ExpandComposite
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 
-
 def test_circular_shift_gate_init():
     g = CircularShiftGate(2)
     assert g.shift == 2
@@ -37,6 +36,15 @@ def test_circular_shift_gate_eq():
     c = CircularShiftGate(2)
     assert a == b
     assert a != c
+
+def test_circular_shift_gate_permutation():
+    assert (CircularShiftGate(4).permutation(3) ==
+            {0: 2, 1: 0, 2: 1})
+    assert (CircularShiftGate(0).permutation(4) ==
+            {0: 0, 1: 1, 2: 2, 3: 3})
+
+    assert (CircularShiftGate(2).permutation(5) ==
+            {0:3, 1: 4, 2: 0, 3: 1, 4: 2})
 
 
 def test_circular_shift_gate_repr():

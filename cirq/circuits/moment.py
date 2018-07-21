@@ -14,7 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Iterable
+from typing import Dict, Iterable
 
 from cirq import ops
 
@@ -111,3 +111,7 @@ class Moment(object):
 
     def __str__(self):
         return ' and '.join(str(op) for op in self.operations)
+
+    def with_qubits_mapped(self, qubit_map: Dict[ops.QubitId, ops.QubitId]):
+        return Moment(op.with_qubits(*(qubit_map[q] for q in op.qubits))
+                      for op in self.operations)
