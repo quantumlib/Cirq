@@ -88,4 +88,5 @@ def test_equality():
         lambda: cirq.Linspace('a', 0, 5, 6) + cirq.Linspace('b', 10, 15, 6))
     et.make_equality_group(
         lambda: cirq.Points('a', [1, 2]) *
-                     (cirq.Linspace('b', 0, 5, 6) + cirq.Linspace('c', 10, 15, 6)))
+                     (cirq.Linspace('b', 0, 5, 6) +
+                      cirq.Linspace('c', 10, 15, 6)))

@@ -187,6 +187,7 @@ def test_include():
     schedule.include(op0)
     with pytest.raises(ValueError):
         schedule.include(cirq.ScheduledOperation(zero, ps, cirq.H(q0)))
+    with pytest.raises(ValueError):
         schedule.include(cirq.ScheduledOperation(zero + 0.5 * ps,
                                                  ps,
                                                  cirq.H(q0)))
