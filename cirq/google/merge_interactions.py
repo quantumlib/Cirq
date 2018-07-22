@@ -144,6 +144,7 @@ class MergeInteractions(circuits.PointOptimizer):
             op_data = [
                 self._op_to_matrix(op, qubits)
                 for op in operations
+                if op is not None
             ]
 
             # Stop at any non-constant or non-local interaction.
