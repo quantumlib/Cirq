@@ -50,15 +50,15 @@ The primary use of ``ExtrapolatableEffect`` is to allow
 easy *powering* of gates.  That is one can define
 for these gates a power
 ```python
+import cirq
 import numpy as np
-from cirq.ops import X
-print(np.around(X.matrix()))
+print(np.around(cirq.unitary_effect(cirq.X)))
 # prints
 # [[0.+0.j 1.+0.j]
 #  [1.+0.j 0.+0.j]]
 
-sqrt_x = X**0.5
-print(sqrt_x.matrix())
+sqrt_x = cirq.X**0.5
+print(cirq.unitary_effect(sqrt_x))
 # prints
 # [[0.5+0.5j 0.5-0.5j]
 #  [0.5-0.5j 0.5+0.5j]]

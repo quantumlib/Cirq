@@ -222,8 +222,8 @@ def test_default_decompose(paulis, half_turns, neg):
     ).to_unitary_matrix()
 
     # Calculate expected matrix
-    to_z_mats = {cirq.Pauli.X: (cirq.Y ** -0.5).matrix(),
-                 cirq.Pauli.Y: (cirq.X ** 0.5).matrix(),
+    to_z_mats = {cirq.Pauli.X: cirq.unitary_effect(cirq.Y ** -0.5),
+                 cirq.Pauli.Y: cirq.unitary_effect(cirq.X ** 0.5),
                  cirq.Pauli.Z: np.eye(2)}
     expected_convert = np.eye(1)
     for pauli in paulis:

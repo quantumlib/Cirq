@@ -1348,7 +1348,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             # Account for bit flips embedded into the measurement operation.
             for i, b in enumerate(gate.invert_mask):
                 if b:
-                    yield ops.X.matrix(), (op.qubits[i],)
+                    yield protocols.unitary_effect(ops.X), (op.qubits[i],)
 
             # This is a private method called in contexts where we know
             # measurement is supposed to be skipped.

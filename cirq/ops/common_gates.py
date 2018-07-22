@@ -482,8 +482,7 @@ class HGate(gate_features.CompositeGate,
     def inverse(self):
         return self
 
-    def _maybe_unitary_effect_(self):
-        """See base class."""
+    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
         s = math.sqrt(0.5)
         return np.array([[s, s], [s, -s]])
 

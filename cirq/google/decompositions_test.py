@@ -98,9 +98,9 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
     intended_effect = linalg.dot(
-        cirq.RotZGate(half_turns=2 * pre_turns).matrix(),
-        cirq.X.matrix(),
-        cirq.RotZGate(half_turns=2 * post_turns).matrix())
+        cirq.unitary_effect(cirq.Z**(2 * pre_turns)),
+        cirq.unitary_effect(cirq.X),
+        cirq.unitary_effect(cirq.Z**(2 * post_turns)))
 
     gates = decompositions.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)
@@ -153,8 +153,9 @@ def test_single_qubit_matrix_to_native_gates_tolerance_half_turn_phasing():
 
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = decompositions.single_qubit_op_to_framed_phase_form(
-        (cirq.Y**0.25).matrix())
-    assert linalg.allclose_up_to_global_phase(u, (cirq.X**0.5).matrix())
+        cirq.unitary_effect(cirq.Y**0.25))
+    assert linalg.allclose_up_to_global_phase(u,
+                                              cirq.unitary_effect(cirq.X**0.5))
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
     assert abs(g - 1) < 0.00001
 
@@ -162,11 +163,11 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
 @pytest.mark.parametrize('mat', [
     np.eye(2),
     cirq.unitary_effect(cirq.H),
-    cirq.X.matrix(),
-    (cirq.X**0.5).matrix(),
-    cirq.Y.matrix(),
-    cirq.Z.matrix(),
-    (cirq.Z**0.5).matrix(),
+    cirq.unitary_effect(cirq.X),
+    cirq.unitary_effect(cirq.X**0.5),
+    cirq.unitary_effect(cirq.Y),
+    cirq.unitary_effect(cirq.Z),
+    cirq.unitary_effect(cirq.Z**0.5),
 ] + [testing.random_unitary(2)
      for _ in range(10)])
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
@@ -204,11 +205,11 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
 @pytest.mark.parametrize('mat', [
     np.eye(2),
     cirq.unitary_effect(cirq.H),
-    cirq.X.matrix(),
-    (cirq.X**0.5).matrix(),
-    cirq.Y.matrix(),
-    cirq.Z.matrix(),
-    (cirq.Z**0.5).matrix(),
+    cirq.unitary_effect(cirq.X),
+    cirq.unitary_effect(cirq.X**0.5),
+    cirq.unitary_effect(cirq.Y),
+    cirq.unitary_effect(cirq.Z),
+    cirq.unitary_effect(cirq.Z**0.5),
 ] + [
     testing.random_unitary(2) for _ in range(10)
 ])
@@ -241,9 +242,9 @@ def _random_double_partial_cz_effect():
 def _random_double_full_cz_effect():
     return linalg.dot(
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
-        cirq.CZ.matrix(),
+        cirq.unitary_effect(cirq.CZ),
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
-        cirq.CZ.matrix(),
+        cirq.unitary_effect(cirq.CZ),
         linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
 
 
@@ -277,12 +278,12 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
         [0, 1, 0, 0],
         [1, 0, 0, 0j],
     ])),
-    (0, 0, (cirq.CZ**0.00000001).matrix()),
+    (0, 0, cirq.unitary_effect(cirq.CZ**0.00000001)),
 
-    (0.5, 2, (cirq.CZ**0.5).matrix()),
+    (0.5, 2, cirq.unitary_effect(cirq.CZ**0.5)),
 
-    (1, 1, cirq.CZ.matrix()),
-    (1, 1, cirq.CNOT.matrix()),
+    (1, 1, cirq.unitary_effect(cirq.CZ)),
+    (1, 1, cirq.unitary_effect(cirq.CNOT)),
     (1, 1, np.array([
         [1, 0, 0, 1j],
         [0, 1, 1j, 0],
@@ -302,11 +303,13 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
         [1j, 0, 0, 1],
     ]) * np.sqrt(0.5)),
 
-    (1.5, 3, linalg.map_eigenvalues(cirq.SWAP.matrix(), lambda e: e**0.5)),
+    (1.5, 3, linalg.map_eigenvalues(cirq.unitary_effect(cirq.SWAP),
+                                    lambda e: e**0.5)),
 
-    (2, 2, np.dot(cirq.SWAP.matrix(), cirq.CZ.matrix())),
+    (2, 2, np.dot(cirq.unitary_effect(cirq.SWAP),
+                  cirq.unitary_effect(cirq.CZ))),
 
-    (3, 3, cirq.SWAP.matrix()),
+    (3, 3, cirq.unitary_effect(cirq.SWAP)),
     (3, 3, np.array([
         [0, 0, 0, 1],
         [0, 1, 0, 0],

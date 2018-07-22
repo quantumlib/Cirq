@@ -57,3 +57,9 @@ class Symbol:
 
     def __hash__(self):
         return hash((Symbol, self.name))
+
+    def __mul__(self, other):
+        return self if other == 1 else NotImplemented
+
+    def __rmul__(self, other):
+        return self if other == 1 else NotImplemented

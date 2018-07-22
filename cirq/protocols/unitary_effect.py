@@ -17,8 +17,7 @@ from typing import Any, Optional
 import numpy as np
 from typing_extensions import Protocol
 
-import cirq
-from cirq import abc
+from cirq import abc, extension, ops
 
 
 class SupportsUnitaryEffect(Protocol):
@@ -73,7 +72,7 @@ def maybe_unitary_effect(val: Any) -> Optional[np.ndarray]:
         return get()
 
     # TODO: delete after KnownMatrix is deleted.
-    v = cirq.try_cast(cirq.KnownMatrix, val)
+    v = extension.try_cast(ops.KnownMatrix, val)
     if v is not None:
         return v.matrix()
 
@@ -99,14 +98,19 @@ def unitary_effect(val: Any) -> np.ndarray:
     if maybe is not None:
         result = maybe()
         if result is None:
-            raise TypeError(
+            raise ValueError(
                 "Expected a value with a non-None _unitary_effect_, but "
                 "{!r}._maybe_unitary_effect_() returned None".format(type(val)))
         return result
 
     # TODO: delete after KnownMatrix is deleted.
-    v = cirq.try_cast(cirq.KnownMatrix, val)
+    v = extension.try_cast(ops.KnownMatrix, val)
     if v is not None:
+        result = v.matrix()
+        if result is None:
+            raise ValueError(
+                "Expected a value with a non-None _unitary_effect_, but "
+                "{!r}.matrix() returned None".format(type(val)))
         return v.matrix()
 
     raise AttributeError(
@@ -138,7 +142,7 @@ def has_unitary_effect(val: Any) -> bool:
         return True
 
     # TODO: delete after KnownMatrix is deleted.
-    v = cirq.try_cast(cirq.KnownMatrix, val)
+    v = extension.try_cast(ops.KnownMatrix, val)
     if v is not None:
         return v.has_matrix()
 

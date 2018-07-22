@@ -1,5 +1,4 @@
 [config]
-ignore=cirq/api
 max-line-length=80
 disable=all
 ignore-patterns=.*_pb2\.py
