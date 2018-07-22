@@ -16,7 +16,7 @@ from typing import Iterable
 
 from cirq.devices import GridQubit
 from cirq.line.placement.chip import \
-    chip_as_adjacency_list, yx_cmp, above, below, right_of, left_of
+    chip_as_adjacency_list, above, below, right_of, left_of
 from cirq.google import XmonDevice
 from cirq.value import Duration
 
@@ -43,23 +43,6 @@ def test_qubit_not_mutated():
 
     left_of(qubit)
     assert qubit == GridQubit(0, 0)
-
-
-def test_lower():
-    assert yx_cmp(GridQubit(0, 0), GridQubit(1, 1)) < 0
-    assert yx_cmp(GridQubit(0, 1), GridQubit(1, 1)) < 0
-    assert yx_cmp(GridQubit(1, 0), GridQubit(0, 1)) < 0
-
-
-def test_equal():
-    assert yx_cmp(GridQubit(0, 0), GridQubit(0, 0)) == 0
-    assert yx_cmp(GridQubit(1, 1), GridQubit(1, 1)) == 0
-
-
-def test_greater():
-    assert yx_cmp(GridQubit(1, 1), GridQubit(0, 0)) > 0
-    assert yx_cmp(GridQubit(1, 1), GridQubit(0, 1)) > 0
-    assert yx_cmp(GridQubit(0, 1), GridQubit(1, 0)) > 0
 
 
 def _create_device(qubits: Iterable[GridQubit]) -> XmonDevice:

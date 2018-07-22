@@ -156,14 +156,11 @@ from cirq.schedules import (
 from cirq.study import (
     Linspace,
     ParamResolver,
+    plot_state_histogram,
     Points,
     Sweep,
     Sweepable,
     TrialResult,
-)
-
-from cirq.study.visualize import (
-    plot_state_histogram,
 )
 
 from cirq.value import (
@@ -184,3 +181,14 @@ from cirq import (
 
 # Import version last since it is a relative import.
 from ._version import __version__
+
+# As far as the user is concerned, flattened modules don't exist.
+del circuits
+del devices
+del extension
+del linalg
+del line
+del ops
+del schedules
+del study
+del value
