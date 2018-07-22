@@ -139,4 +139,4 @@ def test_two_qubit_extrapolate():
     assert cz4.extrapolate_effect(0).approx_eq(i)
     assert cz2.extrapolate_effect(0.5).approx_eq(cz4)
     with pytest.raises(TypeError):
-        _ = x**cirq.Symbol('a')
+        _ = cz2**cirq.Symbol('a')
