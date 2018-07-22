@@ -1,6 +1,10 @@
 [config]
 max-line-length=80
 disable=all
+ignore-patterns=.*_pb2\.py
+output-format=colorized
+score=no
+reports=no
 enable=
     assert-on-tuple,
     bad-indentation,
