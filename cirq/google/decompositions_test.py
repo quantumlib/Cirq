@@ -14,11 +14,11 @@
 
 import cmath
 import math
+import random
 from typing import List, Iterable
 
 import numpy as np
 import pytest
-import random
 
 import cirq
 from cirq import circuits, linalg, testing
@@ -161,7 +161,7 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
-    cirq.H.matrix(),
+    cirq.unitary_effect(cirq.H),
     cirq.X.matrix(),
     (cirq.X**0.5).matrix(),
     cirq.Y.matrix(),
@@ -193,14 +193,17 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     qc = cirq.QubitId()
     qt = cirq.QubitId()
     operations = decompositions.controlled_op_to_native_gates(
-        control=qc, target=qt, operation=cirq.H.matrix(), tolerance=0.0001)
+        control=qc,
+        target=qt,
+        operation=cirq.unitary_effect(cirq.H),
+        tolerance=0.0001)
 
     assert operations == [cirq.Y(qt)**-0.25, cirq.CZ(qc, qt), cirq.Y(qt)**0.25]
 
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
-    cirq.H.matrix(),
+    cirq.unitary_effect(cirq.H),
     cirq.X.matrix(),
     (cirq.X**0.5).matrix(),
     cirq.Y.matrix(),

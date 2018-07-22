@@ -18,7 +18,7 @@ from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
 
 import numpy as np
 
-from cirq import value
+from cirq import value, protocols
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
@@ -465,7 +465,7 @@ T = Z**0.25
 class HGate(gate_features.CompositeGate,
             gate_features.TextDiagrammable,
             gate_features.ReversibleEffect,
-            gate_features.KnownMatrix,
+            protocols.SupportsUnitaryEffect,
             gate_features.SingleQubitGate,
             gate_features.QasmConvertableGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
@@ -482,7 +482,7 @@ class HGate(gate_features.CompositeGate,
     def inverse(self):
         return self
 
-    def matrix(self):
+    def _maybe_unitary_effect_(self):
         """See base class."""
         s = math.sqrt(0.5)
         return np.array([[s, s], [s, -s]])

@@ -115,24 +115,35 @@ See the previous section for instructions.
 
 ### Running continuous integration checks locally
 
-There are two options, one easy/fast and the other slow/reliable.
+There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
-Run [continuous-integration/simple_check.sh](/continuous-integration/simple_check.sh) to invoke `pylint`, `mypy`, and `pytest` directly on your working directory.
-This check does not attempt to ensure your test environment is up to date, and it does not transpile and test the python 2 code.
+The simplest and fastest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yourself as follows:
+
+```bash
+pytest .
+pylint --rcfile=continuous-integration/.pylintrc cirq  # note: only tests the cirq subdirectory
+mypy --config-file=continuous-integration/mypy.ini .
+```
+
+But note that this will not check the incremental coverage or run the python 2 tests, and that during continuous integration pylint is run against more than just the cirq subdirectory.
+
+The script [continuous-integration/simple_check.sh](/continuous-integration/simple_check.sh) will run pytest, mypy, pylint (on all the necessary files) and the incremental coverage check:
 
 ```bash
 bash continuous-integration/simple_check.sh
 ```
 
-Run [continuous-integration/check.sh](/continuous-integration/check.sh) to run the checks inside a temporary fresh virtual environment and to also transpile and test the python 2 code. 
+But this script doesn't guarantee your test environment is up to date, and it does not transpile and test the python 2 code.
+
+Use the script [continuous-integration/check.sh](/continuous-integration/check.sh) to do a proper full local check.
+This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies, transpile the python 2 code, and run all relevant checks.
 
 ```bash
 bash continuous-integration/check.sh
 ```
 
 You can run a subset of the checks using the ```--only``` flag.
-This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`,
-or `incremental-coverage`.
+This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
 
 ### Producing the Python 2.7 code
 
