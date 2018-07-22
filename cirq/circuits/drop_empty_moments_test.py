@@ -12,26 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
-from cirq import ops
+import cirq
 
 
 def assert_optimizes(before, after):
-    opt = circuits.DropEmptyMoments()
+    opt = cirq.DropEmptyMoments()
     opt.optimize_circuit(before)
     assert before == after
 
 
 def test_drop():
-    q1 = ops.QubitId()
-    q2 = ops.QubitId()
+    q1 = cirq.QubitId()
+    q2 = cirq.QubitId()
     assert_optimizes(
-        before=circuits.Circuit([
-            circuits.Moment(),
-            circuits.Moment(),
-            circuits.Moment([ops.CNOT(q1, q2)]),
-            circuits.Moment(),
+        before=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment(),
+            cirq.Moment([cirq.CNOT(q1, q2)]),
+            cirq.Moment(),
         ]),
-        after=circuits.Circuit([
-            circuits.Moment([ops.CNOT(q1, q2)]),
+        after=cirq.Circuit([
+            cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
