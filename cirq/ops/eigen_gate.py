@@ -138,10 +138,7 @@ class EigenGate(raw_types.Gate,
                       for half_turns, component in self._eigen_components())
 
     def extrapolate_effect(self: TSelf, factor: float) -> TSelf:
-        if self.is_parameterized():
-            raise ValueError("Parameterized. Don't know how to extrapolate.")
-        return self._with_exponent(
-            exponent=cast(float, self._exponent) * factor)
+        return self._with_exponent(exponent=self._exponent * factor)
 
     def is_parameterized(self) -> bool:
         return isinstance(self._exponent, value.Symbol)

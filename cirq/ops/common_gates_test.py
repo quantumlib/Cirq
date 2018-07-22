@@ -18,7 +18,7 @@ import pytest
 import cirq
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
-HH = cirq.linalg.kron(H, H)
+HH = cirq.kron(H, H)
 QFT2 = np.array([[1, 1, 1, 1],
                  [1, 1j, -1, -1j],
                  [1, -1, 1, -1],
@@ -166,9 +166,9 @@ def test_runtime_types_of_rot_gates():
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
         with pytest.raises(ValueError):
             _ = p.matrix()
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.extrapolate_effect(2)
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)

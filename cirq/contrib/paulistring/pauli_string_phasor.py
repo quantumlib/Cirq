@@ -88,16 +88,7 @@ class PauliStringPhasor(PauliStringGateOperation,
 
     def extrapolate_effect(self, factor: Union[float, value.Symbol]
                            ) -> 'PauliStringPhasor':
-        if self.is_parameterized():
-            raise ValueError("Parameterized. Don't know how to extrapolate.")
-        if isinstance(factor, value.Symbol):
-            if self.half_turns == 1:
-                return self._with_half_turns(factor)
-            else:
-                raise ValueError("Don't know how to extrapolate by a symbol.")
-        half_turns = 1 - (1 - cast(float, self.half_turns)
-                              * cast(float, factor)) % 2
-        return self._with_half_turns(half_turns)
+        return self._with_half_turns(self.half_turns * factor)  # type: ignore
 
     def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
         return self.extrapolate_effect(power)

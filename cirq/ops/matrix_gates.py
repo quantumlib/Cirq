@@ -14,11 +14,11 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Optional
+from typing import Optional, Union, cast
 
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, value
 from cirq.ops import gate_features, raw_types
 
 
@@ -56,8 +56,12 @@ class SingleQubitMatrixGate(raw_types.Gate,
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: float):
-        new_mat = linalg.map_eigenvalues(self.matrix(), lambda e: e**factor)
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'SingleQubitMatrixGate':
+        if isinstance(factor, value.Symbol):
+            raise TypeError('TwoQubitMatrixGate cannot be parameterized.')
+        e = cast(float, factor)
+        new_mat = linalg.map_eigenvalues(self.matrix(), lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
     def trace_distance_bound(self):
@@ -134,8 +138,12 @@ class TwoQubitMatrixGate(raw_types.Gate,
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: float):
-        new_mat = linalg.map_eigenvalues(self.matrix(), lambda e: e**factor)
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'TwoQubitMatrixGate':
+        if isinstance(factor, value.Symbol):
+            raise TypeError('TwoQubitMatrixGate cannot be parameterized.')
+        e = cast(float, factor)
+        new_mat = linalg.map_eigenvalues(self.matrix(), lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)
 
     def phase_by(self, phase_turns: float, qubit_index: int):

@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension
+from cirq import extension, value
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
@@ -153,7 +153,8 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
         return self.with_gate(cast(raw_types.Gate, cast_gate.inverse()))
 
-    def extrapolate_effect(self, factor: float) -> 'GateOperation':
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'GateOperation':
         cast_gate = extension.cast(gate_features.ExtrapolatableEffect,
                                    self.gate)
         return self.with_gate(cast(raw_types.Gate,
