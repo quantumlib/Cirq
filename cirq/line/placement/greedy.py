@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 import abc
 import collections
@@ -21,7 +21,11 @@ from cirq.devices import GridQubit
 from cirq.google import XmonDevice
 from cirq.line.placement import place_strategy
 from cirq.line.placement.chip import chip_as_adjacency_list
-from cirq.line.placement.sequence import GridQubitLineTuple, LineSequence
+from cirq.line.placement.sequence import GridQubitLineTuple
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.line.placement.sequence import LineSequence
 
 
 class GreedySequenceSearch:
@@ -323,7 +327,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                 _PickFewestNeighbors(device, start),
                 _PickLargestArea(device, start),
             ]
-        }
+        }  # type: Dict[str, List[GreedySequenceSearch]]
 
         algos = greedy_search.get(self.algorithm)
         if algos is None:

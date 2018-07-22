@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
-from random import randint, random, sample, randrange, seed
+from random import randint, random, sample, randrange
 
 import numpy as np
 import pytest

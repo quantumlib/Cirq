@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Flatten sub-modules.
+# Flattened sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -83,6 +83,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
+    CliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -110,21 +111,21 @@ from cirq.ops import (
     NamedQubit,
     OP_TREE,
     Operation,
-    QubitOrder,
-    QubitOrderOrList,
-    ReversibleCompositeGate,
-    ReversibleEffect,
     ParameterizableEffect,
+    PartialReflectionGate,
     Pauli,
-    CliffordGate,
-    PauliTransform,
     PauliInteractionGate,
     PauliString,
+    PauliTransform,
     PhaseableEffect,
     QasmConvertableGate,
     QasmConvertableOperation,
     QasmOutputArgs,
     QubitId,
+    QubitOrder,
+    QubitOrderOrList,
+    ReversibleCompositeGate,
+    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -161,6 +162,7 @@ from cirq.study import (
     Sweep,
     Sweepable,
     TrialResult,
+    UnitSweep,
 )
 
 from cirq.value import (
@@ -173,8 +175,10 @@ from cirq.value import (
 )
 
 # Unflattened sub-modules.
+
 from cirq import (
     api,
+    # contrib,
     google,
     testing,
 )
@@ -183,12 +187,13 @@ from cirq import (
 from ._version import __version__
 
 # As far as the user is concerned, flattened modules don't exist.
-del circuits
-del devices
-del extension
-del linalg
-del line
-del ops
-del schedules
-del study
-del value
+# pylint: disable=undefined-variable
+# del circuits
+# del devices
+# del extension
+# del linalg
+# del line
+# del ops
+# del schedules
+# del study
+# del value

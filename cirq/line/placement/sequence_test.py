@@ -34,8 +34,7 @@ def test_best_of_gets_longest_needs_minimum():
     assert GridQubitLineTuple.best_of([[q00, q01], [q00]], 2) == (q00, q01)
     assert GridQubitLineTuple.best_of([[q00, q01]], 2) == (q00, q01)
 
-    with pytest.raises(NotFoundError):
-        _ = GridQubitLineTuple.best_of([], 0)
+    assert GridQubitLineTuple.best_of([], 0) == ()
     with pytest.raises(NotFoundError):
         _ = GridQubitLineTuple.best_of([[]], 1)
     with pytest.raises(NotFoundError):

@@ -13,7 +13,7 @@
 # limitations under the License.
 import pytest
 
-from cirq.study.sweeps import Linspace, Points, Unit
+from cirq.study.sweeps import Linspace, Points, UnitSweep
 from cirq.testing import EqualsTester
 from cirq.value import Symbol
 
@@ -74,7 +74,7 @@ def _values(sweep, key):
 def test_equality():
     et = EqualsTester()
 
-    et.add_equality_group(Unit, Unit)
+    et.add_equality_group(UnitSweep, UnitSweep)
 
     # Simple sweeps with the same key are equal to themselves, but different
     # from each other even if they happen to contain the same points.
