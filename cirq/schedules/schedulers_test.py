@@ -196,7 +196,8 @@ def test_moment_by_moment_schedule_moment_of_two_qubit_ops():
     qubits = device.qubits
 
     circuit = cirq.Circuit(
-        [cirq.Moment((cirq.CZ(qubits[i], qubits[i + 1]) for i in range(0, 9, 3)))])
+        [cirq.Moment((cirq.CZ(qubits[i], qubits[i + 1])
+                      for i in range(0, 9, 3)))])
     schedule = cirq.moment_by_moment_schedule(device, circuit)
 
     zero_ns = cirq.Timestamp()
