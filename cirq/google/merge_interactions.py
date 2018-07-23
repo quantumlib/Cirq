@@ -66,8 +66,8 @@ class MergeInteractions(circuits.PointOptimizer):
                              for old_op in old_operations)
         if self.decompose_partial_czs:
             switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
-                                 (isinstance(old_op.gate, ops.Rot11Gate) or
-                                  isinstance(old_op.gate, xmon_gates.Exp11Gate))
+                                 isinstance(old_op.gate,
+                                        (ops.Rot11Gate, xmon_gates.Exp11Gate))
                                  and old_op.gate.half_turns != 1
                                  for old_op in old_operations)
         if not switch_to_new:
