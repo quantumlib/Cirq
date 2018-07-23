@@ -79,7 +79,9 @@ from cirq.linalg import (
     kron_factor_4x4_to_2x2s,
     kron_with_controls,
     map_eigenvalues,
+    reflection_matrix_pow,
     so4_to_magic_su2s,
+    targeted_left_multiply,
     Tolerance,
 )
 

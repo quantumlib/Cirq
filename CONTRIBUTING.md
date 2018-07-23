@@ -19,52 +19,22 @@ again.
 ## Pull Request Process and Code Review
 
 All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. 
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) has 
+use GitHub pull requests for this purpose.
+[GitHub Help](https://help.github.com/articles/about-pull-requests/) has
 information on using pull requests.
 
 The preferred manner for submitting pull requests is for users to fork
-the Cirq [repo](https://github.com/quantumlib/Cirq) and then use a 
+the Cirq [repo](https://github.com/quantumlib/Cirq) and then use a
 branch from this fork to create a pull request to the main Cirq repo.
 
-The basic process for setting up a fork is 
-1. Fork the Cirq repo (Fork button in upper right corner of 
+The basic process for setting up a fork is
+1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
-Forking creates a new github repo at the location 
+Forking creates a new github repo at the location
 ```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
-your github id.
-1. Clone the fork you created to your local machine at the directory
-where you would like to store your local copy of the code.
-    ```shell
-    git clone git@github.com:USERNAME/cirq.git
-    ```
-1. Add a remote called ```upstream``` to git.  This remote will represent
-the main git repo for cirq (as opposed to the clone, which you just
-created, which will be the ```origin``` remote).  This remote can be used
-to sync your local git repos with the main git repo for cirq.
-    ```shell
-    git remote add upstream https://github.com/quantumlib/cirq.git
-    ```
-    To verify the remote run ```git remote -v``` and you should see both 
-    the ```origin``` and ```upstream``` remotes.
-1. Sync up your local git with the ```upstream``` remote:
-    ```shell
-    git fetch upstream
-    ```
-    You can check the branches that are on the ```upstream``` remote by 
-    running ```git remote -va```.
-Most importantly you should see ```upstream/master``` listed.
-1. Merge the upstream master into your local master so that 
-it is up to date
-    ```shell
-    git checkout master
-    git merge upstream/master
-    ```
-    At this point your local git master should be synced with the master
-    from the main cirq repo. 
-
-The process of doing work which you would like to contribute is
-then to
+your github id. Use the directions on the
+[development page](docs/development.md) to download a copy to
+your local machine. You need only do this once.
 1. Checkout master and create a new branch from this master
     ```shell
     git checkout master -b new_branch_name
@@ -100,11 +70,16 @@ the appropriate branches.
 you can perform these locally, and then push the new commit following
 the same process as above.
 
-## Continuous Integration and Standards
+## Code Testing Standards
 
 When a pull request is created or updated, various automatic checks will run to ensure that the change won't break Cirq and meets our coding standards.
 
-The continuous integration tooling checks the following:
+Cirq contains a continuous integration tool to verify testing.  See our
+[development page](docs/development.md) on how to run the continuous integration
+checks locally.
+
+Please be aware of the following code standards that will be applied to any
+new changes.
 
 - **Tests**.
 Existing tests must continue to pass (or be updated) when new changes are introduced.
@@ -132,12 +107,3 @@ For example, `max([], default=2)` fails to translate.
 We check that the translation worked by testing the translated code against the translated tests.
 Cirq has several utilities to help the translation process along, such as the `@cirq.testing.only_test_in_python3` decorator for tests that check functionality specific to python 3.
 
-If you are on a debian machine, you can run the continuous integration checks for yourself.
-Simply run the following command from a terminal at the root of your clone of cirq's repo, with your local changes:
-
-```shell
-bash continous-integration/check.sh
-```
-
-You can run a subset of the checks using the ```--only``` flag.
-This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
