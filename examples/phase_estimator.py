@@ -109,11 +109,11 @@ def run_estimate(phi, qnum, repeats):
     qubits = [None] * qnum
     for i in range(len(qubits)):
         qubits[i] = cirq.GridQubit(0, i)
-    ansilla = cirq.GridQubit(0, len(qubits))
+    ancilla = cirq.GridQubit(0, len(qubits))
 
     circuit = cirq.Circuit.from_ops(
         cirq.H.on_each(qubits),
-        [cirq.ControlledGate(phase_op((2**i)*phi))(qubits[qnum-i-1], ansilla)
+        [cirq.ControlledGate(phase_op((2**i)*phi))(qubits[qnum-i-1], ancilla)
          for i in range(qnum)],
         QftInverse()(*qubits),
         cirq.measure(*qubits, key='phase'))
