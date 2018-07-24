@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that combines adjacent single-qubit rotations."""
-
 import numpy as np
 
 from cirq import ops, circuits, linalg, google
