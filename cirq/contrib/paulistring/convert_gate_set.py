@@ -120,7 +120,6 @@ def converted_gate_set(circuit: circuits.Circuit, atol: float = 1e-7
                 matrices[qubit] = np.eye(2)
 
         for op in xmon_circuit.all_operations():
-            print(op)
             # Assumes all Xmon operations are GateOperation
             gate = op.gate
             if isinstance(gate, google.XmonMeasurementGate):
@@ -131,7 +130,6 @@ def converted_gate_set(circuit: circuits.Circuit, atol: float = 1e-7
                 # Collect all one qubit rotations
                 # Assumes all Xmon gates implement KnownMatrix
                 qubit, = op.qubits
-                print(op.matrix())
                 matrices[qubit] = op.matrix().dot(matrices[qubit])
             elif isinstance(gate, google.Exp11Gate):
                 yield clear_matrices(op.qubits)
