@@ -2,9 +2,9 @@
 
 Choose your operating system:
 
-- [Installing on Linux](#Installing-on-Linux)
-- [Installing on Mac OS X](#Installing-on-Mac-OS-X)
-- [Installing on Windows](#Installing-on-Windows)
+- [Installing on Linux](#installing-on-linux)
+- [Installing on Mac OS X](#installing-on-mac-os-x)
+- [Installing on Windows](#installing-on-windows)
 
 If you want to create a development environment, see [docs/development.md](/docs/development.md).
 
