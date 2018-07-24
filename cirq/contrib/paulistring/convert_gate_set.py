@@ -21,7 +21,7 @@ from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 
 def converted_gate_set(circuit: circuits.Circuit, atol: float = 1e-7
                        ) -> circuits.Circuit:
-    xmon_circuit = google.optimized_for_xmon(circuit, full_cz_only=True)
+    xmon_circuit = google.optimized_for_xmon(circuit, allow_partial_czs=False)
 
     qubits = circuit.all_qubits()
     tol = linalg.Tolerance(atol=atol)
