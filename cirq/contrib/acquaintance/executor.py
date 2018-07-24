@@ -13,15 +13,16 @@
 # limitations under the License.
 
 from collections import defaultdict
-from typing import Dict, Tuple, TYPE_CHECKING, Sequence
+from typing import Dict, TYPE_CHECKING, Sequence
 
 from cirq import abc
 from cirq.circuits import (
         Circuit, PointOptimizer, PointOptimizationSummary)
-from cirq.ops import Operation, GateOperation, Gate, QubitId, OP_TREE
+from cirq.ops import Operation, GateOperation, QubitId, OP_TREE
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
-        PermutationGate, LOGICAL_INDEX)
+        PermutationGate,
+        LOGICAL_INDEX, LOGICAL_GATES, LOGICAL_MAPPING)
 from cirq.contrib.acquaintance.strategy import (
         AcquaintanceStrategy, expose_acquaintance_gates)
 
@@ -35,7 +36,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     keep_acquaintance = False
 
     @abc.abstractproperty
-    def initial_mapping(self) -> Dict[QubitId, LOGICAL_INDEX]:
+    def initial_mapping(self) -> LOGICAL_MAPPING:
         pass
 
     @abc.abstractmethod
@@ -59,6 +60,7 @@ class StrategyExecutor(PointOptimizer):
             raise ValueError('Can only execute an acquaintance strategy.')
         expose_acquaintance_gates(strategy)
         super().optimize_circuit(strategy)
+        return self.mapping.copy()
 
     def optimization_at(self, circuit: Circuit, index: int, op: Operation):
         if (isinstance(op, GateOperation) and
@@ -84,10 +86,10 @@ class StrategyExecutor(PointOptimizer):
 
 class GreedyExecutionStrategy(ExecutionStrategy):
     def __init__(self,
-                 gates: Dict[Tuple[LOGICAL_INDEX, ...], Gate],
-                 initial_mapping: Dict[QubitId, LOGICAL_INDEX]
+                 gates: LOGICAL_GATES,
+                 initial_mapping: LOGICAL_MAPPING
                  ) -> None:
-        if len(set(len(indices) for indices in gates)) != 1:
+        if len(set(len(indices) for indices in gates)) > 1:
             raise NotImplementedError(
                     'Can only implement greedy strategy if all gates '
                     'are of the same arity.')
@@ -95,7 +97,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         self._initial_mapping = initial_mapping.copy()
 
     @property
-    def initial_mapping(self) -> Dict[QubitId, LOGICAL_INDEX]:
+    def initial_mapping(self) -> LOGICAL_MAPPING:
         return self._initial_mapping
 
     def get_operations(self,
@@ -112,10 +114,10 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
 
     @staticmethod
-    def canonicalize_gates(gates: Dict[Tuple[LOGICAL_INDEX, ...], Gate]
-        ) -> Dict[frozenset, Dict[Tuple[LOGICAL_INDEX, ...], Gate]]:
+    def canonicalize_gates(gates: LOGICAL_GATES
+        ) -> Dict[frozenset, LOGICAL_GATES]:
         canonicalized_gates = defaultdict(dict
-            ) # type: Dict[frozenset, Dict[Tuple[LOGICAL_INDEX, ...], Gate]]
+            ) # type: DefaultDict[frozenset, LOGICAL_GATES]
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate

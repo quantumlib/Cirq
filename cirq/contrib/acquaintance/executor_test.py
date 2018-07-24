@@ -13,15 +13,19 @@
 # limitations under the License.
 
 from itertools import combinations
-from typing import Sequence
+from typing import Sequence, Dict, Tuple
 
+import numpy as np
 import pytest
 
 from cirq import LineQubit
 from cirq.circuits import Circuit
-from cirq.ops import Gate, gate_features, X
+from cirq.linalg import Tolerance
+from cirq.ops import Gate, gate_features, X, QubitId
 from cirq.contrib.acquaintance.strategy import (
     complete_acquaintance_strategy, AcquaintanceStrategy)
+from cirq.contrib.acquaintance.permutation import (
+        LinearPermutationGate)
 from cirq.contrib.acquaintance.executor import (
         StrategyExecutor, GreedyExecutionStrategy)
 
@@ -35,7 +39,7 @@ class ExampleGate(Gate, gate_features.TextDiagrammable):
                 wire_symbols=self._wire_symbols)
 
 
-def test_executor():
+def test_executor_explicit():
     n_qubits = 8
     qubits = LineQubit.range(n_qubits)
     circuit = complete_acquaintance_strategy(qubits, 2)
@@ -79,3 +83,77 @@ def test_executor():
 7: ───7───6───╱1╲─────────────────6───4───╱1╲─────────────────4───2───╱1╲─────────────────2───0───╱1╲─────────────────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+
+class DiagonalGate(Gate,
+                   gate_features.KnownMatrix,
+                   gate_features.TextDiagrammable):
+    def __init__(self, n_qubits: int, diagonal: np.ndarray) -> None:
+        dimension = 2 ** n_qubits
+        if ((diagonal.shape != (dimension,)) or not
+            Tolerance.DEFAULT.all_close(
+                np.absolute(diagonal), np.ones(dimension))):
+            raise ValueError('Diagonal must be an (2**n_qubits)-dimensional '
+                    'vector with unit-norm entries.')
+        self.n_qubits = n_qubits
+        self.diagonal = diagonal
+
+    def matrix(self) -> np.ndarray:
+        return np.diag(self.diagonal)
+
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        if args.known_qubit_count is None:
+            return NotImplemented
+        wire_symbols = ('Diag',) * args.known_qubit_count
+        return gate_features.TextDiagramInfo(
+                wire_symbols=wire_symbols)
+
+
+    @staticmethod
+    def random(n_qubits: int):
+        dimension = 2 ** n_qubits
+        diagonal = np.exp(2j * np.pi * np.random.random(dimension))
+        return DiagonalGate(n_qubits, diagonal)
+
+def random_diagonal_gates(n_qubits: int,
+                 acquaintance_size: int
+                 ) -> Dict[Tuple[QubitId, ...], Gate]:
+
+    return {Q: DiagonalGate.random(acquaintance_size)
+             for Q in
+             combinations(LineQubit.range(n_qubits), acquaintance_size)}
+
+
+@pytest.mark.parametrize('n_qubits, acquaintance_size, gates',
+    [(n_qubits, acquaintance_size,
+      random_diagonal_gates(n_qubits, acquaintance_size))
+      for acquaintance_size, n_qubits in
+      ([(2, n) for n in range(2, 9)] +
+       [(3, n) for n in range(3, 9)] +
+       [(4, n) for n in (4, 7)] +
+       [(5, n) for n in (5, 8)])
+      for _ in range(2)
+      ])
+def test_executor_random(n_qubits: int,
+                         acquaintance_size: int,
+                         gates: Dict[Tuple[QubitId, ...], Gate]):
+    qubits = LineQubit.range(n_qubits)
+    circuit = complete_acquaintance_strategy(qubits, acquaintance_size)
+
+    logical_circuit = Circuit.from_ops([g(*Q) for Q, g in gates.items()])
+    expected_unitary = logical_circuit.to_unitary_matrix()
+
+    initial_mapping = {q: q for q in qubits}
+    execution_strategy = GreedyExecutionStrategy(gates, initial_mapping)
+    executor = StrategyExecutor(execution_strategy)
+    final_mapping = executor(circuit)
+    permutation = {q.x: qq.x for q, qq in final_mapping.items()}
+    circuit.append(LinearPermutationGate(permutation)(*qubits))
+    actual_unitary = circuit.to_unitary_matrix()
+    print(logical_circuit)
+    print(circuit.to_text_diagram(transpose=True))
+
+    np.testing.assert_allclose(
+            actual=actual_unitary,
+            desired=expected_unitary,
+            verbose=True)

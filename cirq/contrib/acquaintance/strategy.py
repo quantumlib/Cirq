@@ -23,9 +23,8 @@ from cirq.ops import QubitId, GateOperation
 from cirq.contrib.acquaintance.gates import (
      SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT,
      op_acquaintance_size)
-from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
-        PermutationGate, LinearPermutationGate)
+        PermutationGate)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -77,8 +76,9 @@ class AcquaintanceStrategy(Circuit):
                 swap_network_gate = SwapNetworkGate.from_operations(
                         qubit_order, moment.operations, acquaintance_size)
                 swap_network_op = swap_network_gate(*qubit_order)
-                self._moments[moment_index] = Moment([swap_network_op])
+                moment = Moment([swap_network_op])
                 reflected = not reflected
+            self._moments[moment_index] = moment
         return reflected
 
     def acquaintance_size(self) -> int:
@@ -106,13 +106,7 @@ def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
 
     strategy = AcquaintanceStrategy(
             Circuit.from_ops(ACQUAINT(q) for q in qubit_order))
-    no_decomp = lambda op: (
-            isinstance(op.gate,
-                (CircularShiftGate, LinearPermutationGate)) or
-            (isinstance(op.gate, SwapNetworkGate) and
-                not op.gate.acquaintance_size))
-    expand = ExpandComposite(no_decomp=no_decomp)
     for size_to_acquaint in range(2, acquaintance_size + 1):
-        expand(strategy)
+        expose_acquaintance_gates(strategy)
         strategy.nest(qubit_order, size_to_acquaint)
     return strategy

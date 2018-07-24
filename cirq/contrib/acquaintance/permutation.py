@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence, Union
+from typing import Dict, Sequence, Union, Tuple
 
 from cirq import abc
 from cirq.ops import (
@@ -21,6 +21,10 @@ from cirq.ops import (
         gate_features)
 
 LOGICAL_INDEX = Union[int, QubitId]
+LOGICAL_INDICES = Union[Tuple[int, ...], Tuple[QubitId, ...]]
+LOGICAL_GATES = Union[Dict[Tuple[int, ...], Gate],
+                      Dict[Tuple[QubitId, ...], Gate]]
+LOGICAL_MAPPING = Union[Dict[QubitId, int], Dict[QubitId, QubitId]]
 
 class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
     """Permutation gate."""
@@ -35,7 +39,7 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
         pass
 
     def update_mapping(self,
-                       mapping: Dict[QubitId, LOGICAL_INDEX],
+                       mapping: LOGICAL_MAPPING,
                        keys: Sequence[QubitId]
                        ) -> None:
         n_elements = len(keys)
@@ -111,7 +115,7 @@ class LinearPermutationGate(PermutationGate, CompositeGate):
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
 
-def update_mapping(mapping: Dict[QubitId, LOGICAL_INDEX],
+def update_mapping(mapping: LOGICAL_MAPPING,
                    operations: OP_TREE
                    ) -> None:
     for op in flatten_op_tree(operations):
