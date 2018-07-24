@@ -15,9 +15,9 @@
 import pytest
 
 import cirq
-from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
+from cirq.contrib.paulistring import PauliStringPhasor
 
-from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
+from cirq.contrib.paulistring import converted_gate_set
 
 
 @pytest.mark.parametrize('op,expected_ops', (lambda q0, q1: (
