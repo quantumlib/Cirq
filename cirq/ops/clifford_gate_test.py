@@ -358,7 +358,7 @@ def test_single_qubit_gate_after_switching_order(gate, other):
     (
         cirq.CliffordGate.from_xz_map(
                 (cirq.Pauli.Y, False), (cirq.Pauli.X, True)),
-        'X^-0.5-Z^0.5',
+        '(X^-0.5-Z^0.5)',
         1
     )))
 def test_text_diagram_info(gate, sym, exp):
