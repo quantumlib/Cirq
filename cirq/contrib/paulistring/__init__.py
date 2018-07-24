@@ -18,3 +18,6 @@ from cirq.contrib.paulistring.pauli_string_raw_types import (
 from cirq.contrib.paulistring.pauli_string_phasor import (
     PauliStringPhasor,
 )
+from cirq.contrib.paulistring.convert_gate_set import (
+    converted_gate_set,
+)
