@@ -46,7 +46,6 @@ RMS Error: 0.0011
 
 
 import numpy as np
-
 import cirq
 
 
@@ -75,7 +74,8 @@ class QftInverse(cirq.Gate, cirq.CompositeGate):
                              |                 |           |
         ---------------------@-----------------@-----------@-----H---
 
-        where Controlled-R_k is equivalent to Rot11Gate(rad=-2Pi/2^k).
+        where Controlled-R_k is equivalent to CZ**(-1/2^(k-1))
+        (and also to Rot11Gate(rads=-2Pi/2^k)).
         The number of qubits can be arbitrary.
         """
 
@@ -84,7 +84,7 @@ class QftInverse(cirq.Gate, cirq.CompositeGate):
             q_head = qubits.pop(0)
             yield cirq.H(q_head)
             for i, qubit in enumerate(qubits):
-                yield (cirq.Rot11Gate(rads=-2*np.pi/2**(i+2)))(qubit, q_head)
+                yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
 
 
 def run_estimate(phi, qnum, repeats):
@@ -111,12 +111,12 @@ def run_estimate(phi, qnum, repeats):
         qubits[i] = cirq.GridQubit(0, i)
     ansilla = cirq.GridQubit(0, len(qubits))
 
-    ops = [cirq.H(q) for q in qubits]
-    ops += [cirq.ControlledGate(phase_op((2**i)*phi))(qubits[qnum-i-1], ansilla)
-            for i in range(qnum)]
-    ops.append(QftInverse()(*qubits))
-    ops += [cirq.measure(*qubits, key='phase')]
-    circuit = cirq.Circuit.from_ops(*ops)
+    circuit = cirq.Circuit.from_ops(
+        cirq.H.on_each(qubits),
+        [cirq.ControlledGate(phase_op((2**i)*phi))(qubits[qnum-i-1], ansilla)
+         for i in range(qnum)],
+        QftInverse()(*qubits),
+        cirq.measure(*qubits, key='phase'))
     simulator = cirq.google.XmonSimulator()
     result = simulator.run(circuit, repetitions=repeats)
     return result
