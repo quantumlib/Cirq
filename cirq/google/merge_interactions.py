@@ -30,11 +30,9 @@ class MergeInteractions(circuits.PointOptimizer):
     def __init__(self,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 decompose_partial_czs: bool = False,
                  extensions: Extensions = None) -> None:
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
-        self.decompose_partial_czs = decompose_partial_czs
         self.extensions = extensions or Extensions()
 
     def optimization_at(self,
@@ -64,7 +62,7 @@ class MergeInteractions(circuits.PointOptimizer):
         switch_to_new |= new_interaction_count < old_interaction_count
         switch_to_new |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
                              for old_op in old_operations)
-        if self.decompose_partial_czs:
+        if not self.allow_partial_czs:
             switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
                                  isinstance(old_op.gate,
                                         (ops.Rot11Gate, xmon_gates.Exp11Gate))

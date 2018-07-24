@@ -162,8 +162,7 @@ def test_optimizes_single_iswap():
         cg.Exp11Gate(half_turns=0.3)(*cirq.LineQubit.range(2)),
     )))
 def test_decompose_partial_czs(circuit):
-    optimizer = cg.MergeInteractions(allow_partial_czs=False,
-                                     decompose_partial_czs=True)
+    optimizer = cg.MergeInteractions(allow_partial_czs=False)
     optimizer.optimize_circuit(circuit)
 
     cz_gates = [op.gate for op in circuit.all_operations()
@@ -180,8 +179,7 @@ def test_not_decompose_partial_czs():
         cg.Exp11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
     )
 
-    optimizer = cg.MergeInteractions(allow_partial_czs=False,
-                                     decompose_partial_czs=False)
+    optimizer = cg.MergeInteractions(allow_partial_czs=True)
     optimizer.optimize_circuit(circuit)
 
     cz_gates = [op.gate for op in circuit.all_operations()
