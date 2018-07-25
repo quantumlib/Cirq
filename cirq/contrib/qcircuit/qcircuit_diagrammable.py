@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
-
 import cirq
 from cirq import Extensions, ops
 from cirq import abc
+from cirq.ops import gate_features
 
 
 class QCircuitDiagrammable(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> Tuple[str, ...]:
+                              ) -> ops.TextDiagramInfo:
         pass
 
 
@@ -46,8 +45,8 @@ class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammable):
         self.symbols = symbols
 
     def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> Tuple[str, ...]:
-        return ops.TextDiagramInfo(self.symbols).wire_symbols
+                              ) -> ops.TextDiagramInfo:
+        return ops.TextDiagramInfo(self.symbols)
 
 
 class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
@@ -55,13 +54,31 @@ class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
         self.sub = sub
 
     def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> Tuple[str, ...]:
+                              ) -> ops.TextDiagramInfo:
         info = self.sub.text_diagram_info(args)
-
+        while True:
+            if (args.qubit_map is None) or (args.known_qubits is None):
+                break
+            if not isinstance(self.sub,
+                    gate_features.InterchangeableQubitsGate):
+                break
+            indices = [args.qubit_map[q] for q in args.known_qubits]
+            min_index = min(indices)
+            if sorted(indices) != list(range(min_index, max(indices) + 1)):
+                break
+            name = _escape_text_for_latex(str(self.sub).rsplit('**', 1)[0])
+            if info.exponent != 1:
+                name += '^{' + str(info.exponent) + '}'
+            box = '\multigate{' + str(len(indices) - 1) + '}{' + name + '}'
+            ghost = '\ghost{' + name + '}'
+            symbols = tuple(box if (args.qubit_map[q] == min_index) else
+                            ghost for q in args.known_qubits)
+            return ops.TextDiagramInfo(symbols, exponent=info.exponent,
+                    connected=False)
         s = [_escape_text_for_latex(e) for e in info.wire_symbols]
         if info.exponent != 1:
             s[0] += '^{' + str(info.exponent) + '}'
-        return tuple('\\gate{' + e + '}' for e in s)
+        return ops.TextDiagramInfo(tuple('\\gate{' + e + '}' for e in s))
 
 
 class _FallbackQCircuitGate(QCircuitDiagrammable):
@@ -69,13 +86,15 @@ class _FallbackQCircuitGate(QCircuitDiagrammable):
         self.sub = sub
 
     def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> Tuple[str, ...]:
+                              ) -> ops.TextDiagramInfo:
         name = str(self.sub)
-        qubit_count = (1 if args.known_qubit_count is None
+        qubit_count = ((len(args.known_qubits) if
+                       (args.known_qubits is not None) else 1)
+                       if args.known_qubit_count is None
                        else args.known_qubit_count)
         symbols = tuple(_escape_text_for_latex('{}:{}'.format(name, i))
                         for i in range(qubit_count))
-        return symbols
+        return ops.TextDiagramInfo(symbols)
 
 
 fallback_qcircuit_extensions = Extensions()
