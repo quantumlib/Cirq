@@ -25,7 +25,6 @@ from cirq.circuits.circuit import (
 )
 from cirq.circuits.circuit_dag import (
     CircuitDag,
-    CircuitDagAbc,
 )
 from cirq.circuits.drop_empty_moments import (
     DropEmptyMoments,

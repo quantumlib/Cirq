@@ -12,17 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Generic, Iterator, Type, TypeVar
+from typing import Any, Callable, Generic, Iterator, Type, TypeVar
 
 import networkx
 
-from cirq import ops, devices, abc
+from cirq import ops, devices
 from cirq.circuits import circuit
 
 
 T = TypeVar('T')
 
 class Unique(Generic[T]):
+    """A wrapper for a value that doesn't compare equal to other instances.
+
+    For example: 5 == 5 but Unique(5) != Unique(5).
+
+    Unique is used by CircuitDag to wrap operations because nodes in a graph
+    are considered the same node if they compare equal to each other.  X(q0)
+    in one moment of a Circuit and X(q0) in another moment of the Circuit are
+    wrapped by Unique(X(q0)) so they are distinct nodes in the graph.
+    """
     def __init__(self, val: T) -> None:
         self.val = val
 
@@ -30,40 +39,73 @@ class Unique(Generic[T]):
         return 'Unique({}, {!r})'.format(id(self), self.val)
 
 
-TSelf = TypeVar('TSelf', bound='CircuitDagAbc')
+TSelf = TypeVar('TSelf', bound='CircuitDag')
 
-class CircuitDagAbc(networkx.DiGraph, metaclass=abc.ABCMeta):
-    """A representation of a Circuit as a directed acyclic graph.  Subclass
-    CircuitDagAbc and implement can_reorder()."""
+
+def _default_can_reorder(op1: ops.Operation, op2: ops.Operation) -> bool:
+    """Returns true only if the operations have any qubits in common."""
+    return not set(op1.qubits) & set(op2.qubits)
+
+
+class CircuitDag(networkx.DiGraph):
+    """A representation of a Circuit as a directed acyclic graph.
+
+    Nodes of the graph are instances of Unique containing each operation of a
+    circuit.
+
+    Edges of the graph are tuples of nodes.  Each edge specifies a required
+    application order between two operations.  The first must be applied before
+    the second.
+    """
+
+    default_can_reorder = staticmethod(_default_can_reorder)
 
     def __init__(self,
+                 can_reorder: Callable[[ops.Operation, ops.Operation], bool] =
+                    _default_can_reorder,
                  incoming_graph_data: Any = None,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> None:
-        super().__init__(incoming_graph_data)
-        self.device = device
+        """Initializes a CircuitDag.
 
-    @abc.abstractmethod
-    def can_reorder(self,
-                    op1: ops.Operation,
-                    op2: ops.Operation) -> bool:
-        """Returns true if the order that op1 and op2 are applied in a circuit
-        does not matter."""
+        Args:
+            can_reorder: A predicate that determines if two operations may be
+                reordered.  Graph edges are created for pairs of operations
+                where this returns False.
+
+                The default predicate allows reordering only when the operations
+                don't share common qubits.
+            incoming_graph_data: Data in initialize the graph.  This can be any
+                value supported by networkx.DiGraph() e.g. an edge list or
+                another graph.
+            device: Hardware that the circuit should be able to run on.
+        """
+        super().__init__(incoming_graph_data)
+        self.can_reorder = can_reorder
+        self.device = device
 
     @staticmethod
     def make_node(op: ops.Operation) -> Unique:
         return Unique(op)
 
     @classmethod
-    def from_circuit(cls: Type[TSelf], circuit: circuit.Circuit) -> TSelf:
-        return cls.from_ops(circuit.all_operations(), device=circuit.device)
+    def from_circuit(cls: Type[TSelf],
+                     circuit: circuit.Circuit,
+                     can_reorder: Callable[[ops.Operation, ops.Operation],
+                                           bool] = _default_can_reorder
+                     ) -> TSelf:
+        return cls.from_ops(circuit.all_operations(),
+                            can_reorder=can_reorder,
+                            device=circuit.device)
 
     @classmethod
     def from_ops(cls: Type[TSelf],
                  *operations: ops.OP_TREE,
+                 can_reorder: Callable[[ops.Operation, ops.Operation], bool] =
+                    _default_can_reorder,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> TSelf:
-        dag = cls(device=device)
+        dag = cls(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
             dag.append(op)
         return dag
@@ -76,21 +118,23 @@ class CircuitDagAbc(networkx.DiGraph, metaclass=abc.ABCMeta):
         self.add_node(new_node)
 
     def all_operations(self) -> Iterator[ops.Operation]:
-        if len(self.nodes) <= 0:
+        if not self.nodes:
             return
         g = self.copy()
 
-        def get_root_node(some_node):
+        def get_root_node(some_node: Unique[ops.Operation]
+                          ) -> Unique[ops.Operation]:
             pred = g.pred
-            while len(pred[some_node]) > 0:
+            while pred[some_node]:
                 some_node = next(iter(pred[some_node]))
             return some_node
 
-        def get_first_node():
+        def get_first_node() -> Unique[ops.Operation]:
             return get_root_node(next(iter(g.nodes)))
 
-        def get_next_node(succ):
-            if len(succ) > 0:
+        def get_next_node(succ: networkx.classes.coreviews.AtlasView
+                          ) -> Unique[ops.Operation]:
+            if succ:
                 return get_root_node(next(iter(succ)))
             else:
                 return get_first_node()
@@ -101,7 +145,7 @@ class CircuitDagAbc(networkx.DiGraph, metaclass=abc.ABCMeta):
             succ = g.succ[node]
             g.remove_node(node)
 
-            if len(g.nodes) <= 0:
+            if not g.nodes:
                 return
 
             node = get_next_node(succ)
@@ -111,12 +155,3 @@ class CircuitDagAbc(networkx.DiGraph, metaclass=abc.ABCMeta):
                     self.all_operations(),
                     strategy=circuit.InsertStrategy.EARLIEST,
                     device=self.device)
-
-
-class CircuitDag(CircuitDagAbc):
-    """A representation of a Circuit as a directed acyclic graph.  Gate can
-    reorder only if they don't share qubits."""
-    def can_reorder(self,
-                    op1: ops.Operation,
-                    op2: ops.Operation) -> bool:
-        return len(set(op1.qubits) & set(op2.qubits)) == 0
