@@ -154,6 +154,14 @@ class PauliStringPhasor(PauliStringGateOperation,
         return self._with_half_turns(
                         param_resolver.value_of(self.half_turns))
 
+    def pass_operations_over(self,
+                             ops: Iterable[ops.Operation],
+                             after_to_before: bool = False
+                             ) -> 'PauliStringPhasor':
+        new_pauli_string = self.pauli_string.pass_operations_over(
+                                    ops, after_to_before)
+        return PauliStringPhasor(new_pauli_string, half_turns=self.half_turns)
+
     def __repr__(self):
         return 'PauliStringPhasor({}, half_turns={})'.format(
                     self.pauli_string, self.half_turns)

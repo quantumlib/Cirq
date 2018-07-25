@@ -40,9 +40,6 @@ class LintCheck(check.Check):
 
         result = shell_tools.run_cmd(
             env.bin('pylint'),
-            '--reports=no',
-            '--score=no',
-            '--output-format=colorized',
             '--rcfile={}'.format(rc_path),
             *files,
             out=shell_tools.TeeCapture(sys.stdout),
