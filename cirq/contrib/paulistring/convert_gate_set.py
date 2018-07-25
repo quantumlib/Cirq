@@ -21,6 +21,11 @@ from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 
 def converted_gate_set(circuit: circuits.Circuit, atol: float = 1e-7
                        ) -> circuits.Circuit:
+    """Returns a new, equivalent circuit using the gate set {CliffordGate,
+    PauliInteractionGate, PauliStringPhasor}.
+
+    The circuit structure may differ because it is optimized during conversion.
+    """
     xmon_circuit = google.optimized_for_xmon(circuit, allow_partial_czs=False)
 
     qubits = circuit.all_qubits()
