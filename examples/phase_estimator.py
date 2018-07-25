@@ -54,7 +54,7 @@ class QftInverse(cirq.Gate, cirq.CompositeGate):
     """
 
     def default_decompose(self, qubits):
-        """A quantum circuit (QFT_inf) with the following structure.
+        """A quantum circuit (QFT_inv) with the following structure.
 
         ---H--@-------@--------@----------------------------------------------
               |       |        |
@@ -81,11 +81,11 @@ def run_estimate(unknown_gate, qnum, repeats):
                                      ---------
     ---H---------------------@------|         |---M--- [m4]:lowest bit
                              |      |         |
-    ---H---------------@-----|------|         |---M--- [m3]
+    ---H---------------@-----+------|         |---M--- [m3]
                        |     |      | QFT_inv |
-    ---H---------@-----|-----|------|         |---M--- [m2]
+    ---H---------@-----*-----*------|         |---M--- [m2]
                  |     |     |      |         |
-    ---H---@-----|-----|-----|------|         |---M--- [m1]:highest bit
+    ---H---@-----+-----+-----+------|         |---M--- [m1]:highest bit
            |     |     |     |       ---------
     -------U-----U^2---U^4---U^8----------------------
 
