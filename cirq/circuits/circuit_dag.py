@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Generic, Iterator, Type, TypeVar
+from typing import Any, Callable, Generic, Iterator, TypeVar
 
 import networkx
 
@@ -37,9 +37,6 @@ class Unique(Generic[T]):
 
     def __repr__(self):
         return 'Unique({}, {!r})'.format(id(self), self.val)
-
-
-TSelf = TypeVar('TSelf', bound='CircuitDag')
 
 
 def _disjoint_qubits(op1: ops.Operation, op2: ops.Operation) -> bool:
