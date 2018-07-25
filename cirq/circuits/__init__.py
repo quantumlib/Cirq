@@ -23,6 +23,9 @@ from cirq.circuits.qasm_output import (
 from cirq.circuits.circuit import (
     Circuit,
 )
+from cirq.circuits.circuit_dag import (
+    CircuitDag,
+)
 from cirq.circuits.drop_empty_moments import (
     DropEmptyMoments,
 )
