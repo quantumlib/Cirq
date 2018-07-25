@@ -23,7 +23,6 @@ from cirq.contrib.paulistring.convert_gate_set import (
 )
 from cirq.contrib.paulistring.separate import (
     convert_and_separate_circuit,
-    separate_circuit,
     clifford_half,
     non_clifford_half,
 )

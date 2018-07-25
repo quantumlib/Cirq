@@ -65,7 +65,6 @@ def test_toffoli_separate():
         atol=1e-7,
     )
 
-    print(repr(c_left))
     assert all(isinstance(op, PauliStringPhasor)
                for op in c_left.all_operations())
     assert all(isinstance(op, cirq.GateOperation) and

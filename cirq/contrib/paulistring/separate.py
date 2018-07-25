@@ -23,15 +23,12 @@ from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 def convert_and_separate_circuit(circuit: circuits.Circuit
                                  ) -> Tuple[circuits.Circuit, circuits.Circuit]:
     """Converts any circuit into two circuits where (circuit_left+circuit_right)
-    is equivalent to circuit.
-
-    circuit_left contains only PauliStringPhasor operations.
-
-    circuit_right is a Clifford circuit which contains only CliffordGate and
-    PauliInteractionGate gates.
+    is equivalent to the given circuit.
 
     Args:
-        circuit: Any Circuit with any kind of gates.
+        circuit: Any Circuit that cirq.google.optimized_for_xmon() supports.
+            All gates should either provide a decomposition or have a known one
+            or two qubit unitary matrix.
 
     Returns:
         (circuit_left, circuit_right)
@@ -39,42 +36,24 @@ def convert_and_separate_circuit(circuit: circuits.Circuit
         circuit_left contains only PauliStringPhasor operations.
 
         circuit_right is a Clifford circuit which contains only CliffordGate and
-        PauliInteractionGate gates.
+        PauliInteractionGate gates.  It also contains MeasurementGates if the
+        given circuit contains measurements.
     """
     circuit = converted_gate_set(circuit)
-    return separate_circuit(circuit)
-
-
-def separate_circuit(circuit: circuits.Circuit
-                     ) -> Tuple[circuits.Circuit, circuits.Circuit]:
-    """Converts a circuit into two circuits where (circuit_left+circuit_right)
-    is equivalent to circuit.
-
-    Args:
-        circuit: A Circuit with the gate set {CliffordGate,
-            PauliInteractionGate, PauliStringPhasor}.
-
-    Returns:
-        (circuit_left, circuit_right)
-
-        circuit_left contains only PauliStringPhasor operations.
-
-        circuit_right is a Clifford circuit which contains only CliffordGate and
-        PauliInteractionGate gates.
-    """
     return non_clifford_half(circuit), clifford_half(circuit)
 
 
 def clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
-    """Return only circuit_right from separate_circuit().  This is a Clifford
-    circuit.
+    """Return only the Clifford part of a circuit.  See
+    convert_and_separate_circuit().
 
     Args:
         circuit: A Circuit with the gate set {CliffordGate,
             PauliInteractionGate, PauliStringPhasor}.
 
     Returns:
-        A Circuit with CliffordGate and PauliInteractionGate gates.
+        A Circuit with CliffordGate and PauliInteractionGate gates.  It also
+        contains MeasurementGates if the given circuit contains measurements.
     """
     return circuits.Circuit(
                 circuits.Moment(op for op in moment.operations
@@ -83,7 +62,8 @@ def clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
 
 
 def non_clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
-    """Return only circuit_left from separate_circuit().
+    """Return only the non-Clifford part of a circuit.  See
+    convert_and_separate_circuit().
 
     Args:
         circuit: A Circuit with the gate set {CliffordGate,
@@ -98,8 +78,8 @@ def non_clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
 
 
 def _pull_non_clifford_before(circuit: circuits.Circuit) -> ops.OP_TREE:
-    def _iter_ops_range_reversed(moment_start, moment_end):
-        for i in reversed(range(moment_start, moment_end)):
+    def _iter_ops_range_reversed(moment_end):
+        for i in reversed(range(moment_end)):
             moment = circuit[i]
             for op in moment.operations:
                 if not isinstance(op, PauliStringPhasor):
@@ -108,5 +88,5 @@ def _pull_non_clifford_before(circuit: circuits.Circuit) -> ops.OP_TREE:
     for i, moment in enumerate(circuit):
         for op in moment.operations:
             if isinstance(op, PauliStringPhasor):
-                ops_to_cross = _iter_ops_range_reversed(0, i)
+                ops_to_cross = _iter_ops_range_reversed(i)
                 yield op.pass_operations_over(ops_to_cross)
