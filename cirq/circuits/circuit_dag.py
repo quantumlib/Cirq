@@ -61,8 +61,8 @@ class CircuitDag(networkx.DiGraph):
     default_can_reorder = staticmethod(_default_can_reorder)
 
     def __init__(self,
-                 can_reorder: Callable[[ops.Operation, ops.Operation], bool] =
-                    _default_can_reorder,
+                 can_reorder: Callable[[ops.Operation, ops.Operation],
+                                       bool] = _default_can_reorder,
                  incoming_graph_data: Any = None,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> None:
@@ -101,8 +101,8 @@ class CircuitDag(networkx.DiGraph):
     @classmethod
     def from_ops(cls: Type[TSelf],
                  *operations: ops.OP_TREE,
-                 can_reorder: Callable[[ops.Operation, ops.Operation], bool] =
-                    _default_can_reorder,
+                 can_reorder: Callable[[ops.Operation, ops.Operation],
+                                       bool] = _default_can_reorder,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> TSelf:
         dag = cls(can_reorder=can_reorder, device=device)
