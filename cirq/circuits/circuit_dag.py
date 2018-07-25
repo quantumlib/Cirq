@@ -42,7 +42,7 @@ class Unique(Generic[T]):
 TSelf = TypeVar('TSelf', bound='CircuitDag')
 
 
-def _default_can_reorder(op1: ops.Operation, op2: ops.Operation) -> bool:
+def _disjoint_qubits(op1: ops.Operation, op2: ops.Operation) -> bool:
     """Returns true only if the operations have qubits in common."""
     return not set(op1.qubits) & set(op2.qubits)
 
@@ -56,13 +56,15 @@ class CircuitDag(networkx.DiGraph):
     Edges of the graph are tuples of nodes.  Each edge specifies a required
     application order between two operations.  The first must be applied before
     the second.
+
+    The graph is maximalist (transitive completion).
     """
 
-    default_can_reorder = staticmethod(_default_can_reorder)
+    disjoint_qubits = staticmethod(_disjoint_qubits)
 
     def __init__(self,
                  can_reorder: Callable[[ops.Operation, ops.Operation],
-                                       bool] = _default_can_reorder,
+                                       bool] = _disjoint_qubits,
                  incoming_graph_data: Any = None,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> None:
@@ -88,24 +90,22 @@ class CircuitDag(networkx.DiGraph):
     def make_node(op: ops.Operation) -> Unique:
         return Unique(op)
 
-    @classmethod
-    def from_circuit(cls: Type[TSelf],
-                     circuit: circuit.Circuit,
+    @staticmethod
+    def from_circuit(circuit: circuit.Circuit,
                      can_reorder: Callable[[ops.Operation, ops.Operation],
-                                           bool] = _default_can_reorder
-                     ) -> TSelf:
-        return cls.from_ops(circuit.all_operations(),
-                            can_reorder=can_reorder,
-                            device=circuit.device)
+                                           bool] = _disjoint_qubits
+                     ) -> 'CircuitDag':
+        return CircuitDag.from_ops(circuit.all_operations(),
+                                   can_reorder=can_reorder,
+                                   device=circuit.device)
 
-    @classmethod
-    def from_ops(cls: Type[TSelf],
-                 *operations: ops.OP_TREE,
+    @staticmethod
+    def from_ops(*operations: ops.OP_TREE,
                  can_reorder: Callable[[ops.Operation, ops.Operation],
-                                       bool] = _default_can_reorder,
+                                       bool] = _disjoint_qubits,
                  device: devices.Device = devices.UnconstrainedDevice
-                 ) -> TSelf:
-        dag = cls(can_reorder=can_reorder, device=device)
+                 ) -> 'CircuitDag':
+        dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
             dag.append(op)
         return dag
