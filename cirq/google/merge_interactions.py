@@ -62,6 +62,11 @@ class MergeInteractions(circuits.PointOptimizer):
         switch_to_new |= new_interaction_count < old_interaction_count
         switch_to_new |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
                              for old_op in old_operations)
+        if not self.allow_partial_czs:
+            switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
+                                 isinstance(old_op.gate, xmon_gates.Exp11Gate)
+                                 and old_op.gate.half_turns != 1
+                                 for old_op in old_operations)
         if not switch_to_new:
             return None
 
