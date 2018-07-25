@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 import cirq.google as cg
 
@@ -149,3 +151,41 @@ def test_optimizes_single_iswap():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
     assert all(cg.XmonGate.is_xmon_op(op)
                for op in c.all_operations())
+
+
+@pytest.mark.parametrize('circuit', (
+    cirq.Circuit.from_ops(
+        cg.Exp11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
+    ),
+    cirq.Circuit.from_ops(
+        cg.Exp11Gate(half_turns=0.2)(*cirq.LineQubit.range(2)),
+        cg.Exp11Gate(half_turns=0.3)(*cirq.LineQubit.range(2)),
+    )))
+def test_decompose_partial_czs(circuit):
+    optimizer = cg.MergeInteractions(allow_partial_czs=False)
+    optimizer.optimize_circuit(circuit)
+
+    cz_gates = [op.gate for op in circuit.all_operations()
+                        if cg.XmonGate.is_xmon_op(op) and
+                           isinstance(op.gate, cg.Exp11Gate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+    assert num_full_cz == 2
+    assert num_part_cz == 0
+
+
+def test_not_decompose_partial_czs():
+    circuit = cirq.Circuit.from_ops(
+        cg.Exp11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
+    )
+
+    optimizer = cg.MergeInteractions(allow_partial_czs=True)
+    optimizer.optimize_circuit(circuit)
+
+    cz_gates = [op.gate for op in circuit.all_operations()
+                        if cg.XmonGate.is_xmon_op(op) and
+                           isinstance(op.gate, cg.Exp11Gate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+    assert num_full_cz == 0
+    assert num_part_cz == 1
