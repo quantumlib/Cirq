@@ -49,33 +49,21 @@ import numpy as np
 import cirq
 
 
-def phase_op(phi):
-    """An example unitary 1-qubit operation U with an eigen vector |0>
-    and an eigen value exp(2*Pi*i*phi)
-    """
-
-    gate = cirq.SingleQubitMatrixGate(
-        matrix=np.array([[np.exp(2*np.pi*1.0j*phi), 0], [0, 1]]))
-    return gate
-
-
 class QftInverse(cirq.Gate, cirq.CompositeGate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
 
     def default_decompose(self, qubits):
-        """A quantum circuit with the following structure.
+        """A quantum circuit (QFT_inf) with the following structure.
 
-        ---H----R_2---R_3---R_4--------------------------------------
-                 |     |     |
-        ---------@-----|-----|-----H----R_2---R_3--------------------
-                       |     |           |     |                       = QFT_inv
-        ---------------@-----|-----------@-----|-----H----R_2--------
-                             |                 |           |
-        ---------------------@-----------------@-----------@-----H---
+        ---H--@-------@--------@----------------------------------------------
+              |       |        |
+        ------@^-0.5--+--------+---------H--@-------@-------------------------
+                      |        |            |       |
+        --------------@^-0.25--+------------@^-0.5--+---------H--@------------
+                               |                    |            |
+        -----------------------@^-0.125-------------@^-0.25------@^-0.5---H---
 
-        where Controlled-R_k is equivalent to CZ**(-1/2^(k-1))
-        (and also to Rot11Gate(rads=-2Pi/2^k)).
         The number of qubits can be arbitrary.
         """
 
@@ -87,7 +75,7 @@ class QftInverse(cirq.Gate, cirq.CompositeGate):
                 yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
 
 
-def run_estimate(phi, qnum, repeats):
+def run_estimate(unknown_gate, qnum, repeats):
     """Construct the following phase estimator circuit and execute simulations.
 
                                      ---------
@@ -99,7 +87,7 @@ def run_estimate(phi, qnum, repeats):
                  |     |     |      |         |
     ---H---@-----|-----|-----|------|         |---M--- [m1]:highest bit
            |     |     |     |       ---------
-    -------U----U^2---U^4---U^8--------------------------
+    -------U-----U^2---U^4---U^8----------------------
 
     The measurement results M=[m1, m2,...] are translated to the estimated
     phase with the following formula:
@@ -113,7 +101,7 @@ def run_estimate(phi, qnum, repeats):
 
     circuit = cirq.Circuit.from_ops(
         cirq.H.on_each(qubits),
-        [cirq.ControlledGate(phase_op((2**i)*phi))(qubits[qnum-i-1], ancilla)
+        [cirq.ControlledGate(unknown_gate**(2**i)).on(qubits[qnum-i-1], ancilla)
          for i in range(qnum)],
         QftInverse()(*qubits),
         cirq.measure(*qubits, key='phase'))
@@ -127,12 +115,21 @@ def experiment(qnum, repeats=100):
     show results.
     """
 
+    def example_gate(phi):
+        """An example unitary 1-qubit gate U with an eigen vector |0> and an
+        eigen value exp(2*Pi*i*phi)
+        """
+
+        gate = cirq.SingleQubitMatrixGate(
+            matrix=np.array([[np.exp(2*np.pi*1.0j*phi), 0], [0, 1]]))
+        return gate
+
     print('Estimation with {}qubits.'.format(qnum))
     print('Actual, Estimation (Raw binary)')
     errors = []
     fold_func = lambda ms: ''.join(np.flip(ms, 0).astype(int).astype(str))
     for phi in np.arange(0, 1, 0.1):
-        result = run_estimate(phi, qnum, repeats)
+        result = run_estimate(example_gate(phi), qnum, repeats)
         hist = result.histogram(key='phase', fold_func=fold_func)
         estimate_bin = hist.most_common(1)[0][0]
         estimate = (sum([float(s)*0.5**(order+1)
