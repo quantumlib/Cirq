@@ -43,7 +43,7 @@ TSelf = TypeVar('TSelf', bound='CircuitDag')
 
 
 def _default_can_reorder(op1: ops.Operation, op2: ops.Operation) -> bool:
-    """Returns true only if the operations have any qubits in common."""
+    """Returns true only if the operations have qubits in common."""
     return not set(op1.qubits) & set(op2.qubits)
 
 
