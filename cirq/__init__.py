@@ -30,6 +30,8 @@ from cirq import (
 
 from cirq.circuits import (
     Circuit,
+    CircuitDag,
+    CircuitDagAbc,
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
