@@ -82,6 +82,9 @@ def converted_gate_set(circuit: circuits.Circuit, atol: float = 1e-7
         if is_no_turn(m_ht):
             z_ht_before += z_ht_after
             z_ht_after = 0
+        elif is_half_turn(m_ht):
+            z_ht_after -= z_ht_before
+            z_ht_before = 0
 
         # Generate operations
         rotation_list = [

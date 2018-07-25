@@ -64,8 +64,32 @@ def test_converts_various_ops(op, expected_ops):
             atol=1e-7)
 
 
+def test_degenerate_single_qubit_decompose():
+    q0 = cirq.LineQubit(0)
+
+    before = cirq.Circuit.from_ops(
+        cirq.Z(q0) ** 0.1,
+        cirq.X(q0) ** 1.0000000001,
+        cirq.Z(q0) ** 0.1,
+    )
+    expected = cirq.Circuit.from_ops(
+        cirq.CliffordGate.X(q0),
+    )
+
+    after = converted_gate_set(before)
+    assert after == expected
+    cirq.testing.assert_allclose_up_to_global_phase(
+            before.to_unitary_matrix(),
+            after.to_unitary_matrix(),
+            atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(
+            after.to_unitary_matrix(),
+            expected.to_unitary_matrix(),
+            atol=1e-7)
+
+
 def test_converts_single_qubit_series():
-    q0, = cirq.LineQubit.range(1)
+    q0 = cirq.LineQubit(0)
 
     before = cirq.Circuit.from_ops(
         cirq.X(q0),
