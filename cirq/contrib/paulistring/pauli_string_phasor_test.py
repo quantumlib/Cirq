@@ -68,6 +68,18 @@ def test_map_qubits():
     assert before.map_qubits(qubit_map) == after
 
 
+def test_pass_operations_over():
+    q0, q1 = _make_qubits(2)
+    X, Y, Z = cirq.Pauli.XYZ
+    op = cirq.CliffordGate.from_double_map({Z: (X,False), X: (Z,False)})(q0)
+    ps_before = cirq.PauliString({q0: X, q1: Y}, True)
+    ps_after = cirq.PauliString({q0: Z, q1: Y}, True)
+    before = PauliStringPhasor(ps_before, half_turns=0.1)
+    after = PauliStringPhasor(ps_after, half_turns=0.1)
+    assert before.pass_operations_over([op]) == after
+    assert after.pass_operations_over([op], after_to_before=True) == before
+
+
 def test_extrapolate_effect():
     op1 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.5)
     op2 = PauliStringPhasor(cirq.PauliString({}), half_turns=1.5)
