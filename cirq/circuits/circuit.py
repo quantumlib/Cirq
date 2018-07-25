@@ -1272,7 +1272,7 @@ def _draw_moment_in_diagram(moment: Moment,
         info = _get_operation_text_diagram_info_with_fallback(op, args, ext)
 
         # Draw vertical line linking the gate's qubits.
-        if (y2 > y1) and info.connected:
+        if y2 > y1 and info.connected:
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional, Tuple
+
 import cirq
 from cirq import Extensions, ops
 from cirq import abc
@@ -48,6 +50,20 @@ class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammable):
                               ) -> ops.TextDiagramInfo:
         return ops.TextDiagramInfo(self.symbols)
 
+def _get_multigate_parameters(gate: ops.TextDiagrammable,
+                              args: ops.TextDiagramInfoArgs
+                              ) -> Optional[Tuple[int, int]]:
+    if not isinstance(gate, gate_features.InterchangeableQubitsGate):
+        return None
+    if args.qubit_map is None or args.known_qubits is None:
+        return None
+
+    indices = [args.qubit_map[q] for q in args.known_qubits]
+    min_index = min(indices)
+    n_qubits = len(args.known_qubits)
+    if sorted(indices) != list(range(min_index, min_index + n_qubits)):
+        return None
+    return min_index, n_qubits
 
 class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
     def __init__(self, sub: ops.TextDiagrammable) -> None:
@@ -56,20 +72,13 @@ class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
     def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
                               ) -> ops.TextDiagramInfo:
         info = self.sub.text_diagram_info(args)
-        while True:
-            if (args.qubit_map is None) or (args.known_qubits is None):
-                break
-            if not isinstance(self.sub,
-                    gate_features.InterchangeableQubitsGate):
-                break
-            indices = [args.qubit_map[q] for q in args.known_qubits]
-            min_index = min(indices)
-            if sorted(indices) != list(range(min_index, max(indices) + 1)):
-                break
+        multigate_parameters = _get_multigate_parameters(self.sub, args)
+        if multigate_parameters is not None:
+            min_index, n_qubits = multigate_parameters
             name = _escape_text_for_latex(str(self.sub).rsplit('**', 1)[0])
             if info.exponent != 1:
                 name += '^{' + str(info.exponent) + '}'
-            box = '\multigate{' + str(len(indices) - 1) + '}{' + name + '}'
+            box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
             ghost = '\ghost{' + name + '}'
             symbols = tuple(box if (args.qubit_map[q] == min_index) else
                             ghost for q in args.known_qubits)
