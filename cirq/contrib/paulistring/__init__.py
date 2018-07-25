@@ -21,3 +21,8 @@ from cirq.contrib.paulistring.pauli_string_phasor import (
 from cirq.contrib.paulistring.convert_gate_set import (
     converted_gate_set,
 )
+from cirq.contrib.paulistring.separate import (
+    convert_and_separate_circuit,
+    clifford_half,
+    non_clifford_half,
+)
