@@ -86,3 +86,33 @@ def test_remap_qubits():
         cirq.Moment([
             cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
         device=cg.Foxtail)
+
+
+def test_dont_allow_partial_czs():
+    before = cirq.Circuit([cirq.Moment([
+        cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6)) ** 0.5])])
+
+    after = cg.optimized_for_xmon(before, allow_partial_czs=False)
+
+    cz_gates = [op.gate for op in after.all_operations()
+                        if cg.XmonGate.is_xmon_op(op) and
+                           isinstance(op.gate, cg.Exp11Gate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+    assert num_full_cz == 2
+    assert num_part_cz == 0
+
+
+def test_allow_partial_czs():
+    before = cirq.Circuit([cirq.Moment([
+        cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6)) ** 0.5])])
+
+    after = cg.optimized_for_xmon(before, allow_partial_czs=True)
+
+    cz_gates = [op.gate for op in after.all_operations()
+                        if cg.XmonGate.is_xmon_op(op) and
+                           isinstance(op.gate, cg.Exp11Gate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+    assert num_full_cz == 0
+    assert num_part_cz == 1

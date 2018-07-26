@@ -126,7 +126,7 @@ def run_cmd(*cmd: Optional[str],
             err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr,
             raise_on_fail: bool = True,
             log_run_to_stderr: bool = True,
-            abbreviate_non_option_arguments = False,
+            abbreviate_non_option_arguments: bool = False,
             **kwargs
             ) -> Tuple[Optional[str], Optional[str], int]:
     """Invokes a subprocess and waits for it to finish.
