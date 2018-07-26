@@ -30,6 +30,7 @@ from cirq import (
 
 from cirq.circuits import (
     Circuit,
+    CircuitDag,
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
@@ -97,6 +98,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
+    CliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -124,21 +126,21 @@ from cirq.ops import (
     NamedQubit,
     OP_TREE,
     Operation,
-    QubitOrder,
-    QubitOrderOrList,
-    ReversibleCompositeGate,
-    ReversibleEffect,
     ParameterizableEffect,
+    PartialReflectionGate,
     Pauli,
-    CliffordGate,
-    PauliTransform,
     PauliInteractionGate,
     PauliString,
+    PauliTransform,
     PhaseableEffect,
     QasmConvertableGate,
     QasmConvertableOperation,
     QasmOutputArgs,
     QubitId,
+    QubitOrder,
+    QubitOrderOrList,
+    ReversibleCompositeGate,
+    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -170,14 +172,12 @@ from cirq.schedules import (
 from cirq.study import (
     Linspace,
     ParamResolver,
+    plot_state_histogram,
     Points,
     Sweep,
     Sweepable,
     TrialResult,
-)
-
-from cirq.study.visualize import (
-    plot_state_histogram,
+    UnitSweep,
 )
 
 from cirq.value import (

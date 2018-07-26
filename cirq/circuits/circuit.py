@@ -1263,16 +1263,17 @@ def _draw_moment_in_diagram(moment: Moment,
                   for y in range(y1, y2 + 1)):
             x += 1
 
-        # Draw vertical line linking the gate's qubits.
-        if y2 > y1:
-            out_diagram.vertical_line(x, y1, y2)
-
         args = ops.TextDiagramInfoArgs(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
+            qubit_map=qubit_map,
             precision=precision)
         info = _get_operation_text_diagram_info_with_fallback(op, args, ext)
+
+        # Draw vertical line linking the gate's qubits.
+        if y2 > y1 and info.connected:
+            out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
         for s, q in zip(info.wire_symbols, op.qubits):
