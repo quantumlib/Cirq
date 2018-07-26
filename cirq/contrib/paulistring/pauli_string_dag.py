@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2018 The ops Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,21 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast
+
+from cirq import ops, circuits
 from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation,
-)
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor,
-)
-from cirq.contrib.paulistring.convert_gate_set import (
-    converted_gate_set,
-)
-from cirq.contrib.paulistring.separate import (
-    convert_and_separate_circuit,
-    clifford_half,
-    non_clifford_half,
-)
-from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
-    pauli_string_dag_from_circuit,
-)
+    PauliStringGateOperation)
+
+
+def pauli_string_reorder_pred(op1: ops.Operation,
+                              op2: ops.Operation) -> bool:
+    ps1 = cast(PauliStringGateOperation, op1).pauli_string
+    ps2 = cast(PauliStringGateOperation, op2).pauli_string
+    return ps1.commutes_with(ps2)
+
+
+def pauli_string_dag_from_circuit(circuit: circuits.Circuit
+                                  ) -> circuits.CircuitDag:
+    return circuits.CircuitDag.from_circuit(circuit, pauli_string_reorder_pred)

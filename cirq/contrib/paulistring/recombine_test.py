@@ -12,21 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation,
-)
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor,
-)
-from cirq.contrib.paulistring.convert_gate_set import (
-    converted_gate_set,
-)
-from cirq.contrib.paulistring.separate import (
-    convert_and_separate_circuit,
-    clifford_half,
-    non_clifford_half,
-)
-from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
-    pauli_string_dag_from_circuit,
-)
+
+
+
