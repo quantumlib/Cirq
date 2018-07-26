@@ -330,6 +330,7 @@ class CliffordGate(raw_types.Gate,
             symbol = '-'.join(
                 str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
                 for r, qt in rotations)
+            symbol = '({})'.format(symbol)
         return gate_features.TextDiagramInfo(
             wire_symbols=(symbol,),
             exponent={
