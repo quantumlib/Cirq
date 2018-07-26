@@ -16,8 +16,6 @@ from typing import Union, cast
 
 from cirq import ops, circuits
 
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringGateOperation)
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_dag_from_circuit)
 
