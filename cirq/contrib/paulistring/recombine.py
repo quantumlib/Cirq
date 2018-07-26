@@ -16,7 +16,8 @@ from typing import Union, cast
 
 from cirq import ops, circuits
 
-from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
+from cirq.contrib.paulistring.pauli_string_phasor import (
+    PauliStringGateOperation)
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_dag_from_circuit)
 
@@ -55,7 +56,7 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
                 if not set(out_op.qubits) & set(string_op.qubits):
                     # Skip if operations don't share qubits
                     continue
-                if (isinstance(out_op, PauliStringPhasor) or
+                if (isinstance(out_op, PauliStringGateOperation) or
                     not (isinstance(out_op, ops.GateOperation) and
                          isinstance(out_op.gate, (ops.CliffordGate,
                                                   ops.PauliInteractionGate)))):

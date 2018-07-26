@@ -30,3 +30,6 @@ from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
 )
+from cirq.contrib.paulistring.recombine import (
+    move_non_clifford_into_clifford,
+)

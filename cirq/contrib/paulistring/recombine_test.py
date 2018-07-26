@@ -13,5 +13,38 @@
 # limitations under the License.
 
 
+import cirq
+
+from cirq.contrib.paulistring import (
+    PauliStringGateOperation,
+    convert_and_separate_circuit,
+    pauli_string_dag_from_circuit,
+    move_non_clifford_into_clifford,
+)
 
 
+def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:
+    for op in circuit.all_operations():
+        if isinstance(op, PauliStringGateOperation):
+            assert len(op.pauli_string) == 1
+
+
+def test_move_non_clifford_into_clifford():
+    c_orig = cirq.testing.nonoptimal_toffoli_circuit()
+
+    c_left, c_right = convert_and_separate_circuit(c_orig)
+
+    # Normally, c_left would be optimized here
+    c_left_dag = pauli_string_dag_from_circuit(c_left)
+
+    c_recombined1 = move_non_clifford_into_clifford(c_left, c_right)
+    c_recombined2 = move_non_clifford_into_clifford(c_left_dag, c_right)
+
+    _assert_no_multi_qubit_pauli_strings(c_recombined1)
+    _assert_no_multi_qubit_pauli_strings(c_recombined2)
+
+    baseline_len = len(cirq.google.optimized_for_xmon(c_orig))
+    opt_len1 = len(cirq.google.optimized_for_xmon(c_recombined1))
+    opt_len2 = len(cirq.google.optimized_for_xmon(c_recombined2))
+    assert opt_len1 <= baseline_len
+    assert opt_len2 <= baseline_len
