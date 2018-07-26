@@ -34,22 +34,11 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
     rightmost_nodes = (set(string_dag.nodes)
                        - set(before for before, _ in string_dag.edges))
 
-    while rightmost_nodes:
-        # Pick the Pauli string that can be moved furthest through the Clifford
-        # circuit
-        shortest_string_len = float('inf')
-        best_index = 0
-        best_string_op = None
-        best_node = None
-
+    def possible_string_placements():
         for right_node in rightmost_nodes:
             string_op = right_node.val
             # Try moving the Pauli string through, stop at measurements
-            if len(string_op.pauli_string) < shortest_string_len:
-                shortest_string_len = len(string_op.pauli_string)
-                best_index = 0
-                best_string_op = string_op
-                best_node = right_node
+            yield (string_op, 0, right_node)
             for i, out_op in enumerate(output_ops):
                 if not set(out_op.qubits) & set(string_op.qubits):
                     # Skip if operations don't share qubits
@@ -61,15 +50,15 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
                     break
                 string_op = string_op.pass_operations_over([out_op],
                                                            after_to_before=True)
-                if (len(string_op.pauli_string) < shortest_string_len
-                    or (len(string_op.pauli_string) == shortest_string_len
-                        and i+1 > best_index)):
-                    shortest_string_len = len(string_op.pauli_string)
-                    best_index = i + 1
-                    best_string_op = string_op
-                    best_node = right_node
+                yield (string_op, i+1, right_node)
 
-        assert best_node is not None
+    while rightmost_nodes:
+        # Pick the Pauli string that can be moved furthest through the Clifford
+        # circuit
+        best_string_op, best_index, best_node = max(
+            possible_string_placements(),
+            key=lambda placement: (-len(placement[0].pauli_string),
+                                   placement[1]))
 
         # Place the best one into the output circuit
         output_ops.insert(best_index, cast(ops.Operation, best_string_op))
