@@ -80,6 +80,8 @@ class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
                 name += '^{' + str(info.exponent) + '}'
             box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
             ghost = '\ghost{' + name + '}'
+            assert args.qubit_map is not None
+            assert args.known_qubits is not None
             symbols = tuple(box if (args.qubit_map[q] == min_index) else
                             ghost for q in args.known_qubits)
             return ops.TextDiagramInfo(symbols, exponent=info.exponent,
