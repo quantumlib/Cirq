@@ -19,43 +19,8 @@ from cirq.contrib.paulistring import (
 )
 
 
-def nonoptimal_toffoli_circuit():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    return cirq.Circuit.from_ops(
-        cirq.Y(q2) ** 0.5,
-        cirq.X(q2),
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** -0.25,
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q0, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** 0.25,
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** -0.25,
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q0, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** 0.25,
-        cirq.Z(q1) ** 0.25,
-        cirq.CNOT(q0, q1),
-        cirq.Z(q0) ** 0.25,
-        cirq.Z(q1) ** -0.25,
-        cirq.CNOT(q0, q1),
-        cirq.Y(q2) ** 0.5,
-        cirq.X(q2),
-    )
-
-
 def test_toffoli_separate():
-    circuit = nonoptimal_toffoli_circuit()
+    circuit = cirq.testing.nonoptimal_toffoli_circuit()
 
     c_left, c_right = convert_and_separate_circuit(circuit)
 
