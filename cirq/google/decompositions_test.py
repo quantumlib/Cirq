@@ -22,11 +22,10 @@ import pytest
 
 import cirq
 from cirq.google import decompositions
-from cirq import circuits, linalg, testing
 
 
 def _operations_to_matrix(operations, qubits):
-    return circuits.Circuit.from_ops(operations).to_unitary_matrix(
+    return cirq.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=cirq.QubitOrder.explicit(qubits),
         qubits_that_should_be_present=qubits)
 
@@ -40,7 +39,7 @@ def _gates_to_matrix(gates):
 
 def assert_gates_implement_unitary(gates, intended_effect):
     actual_effect = _gates_to_matrix(gates)
-    assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
+    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
 def test_single_qubit_matrix_to_native_gates_known_x():
@@ -88,7 +87,7 @@ def test_known_h():
 @pytest.mark.parametrize('intended_effect', [
     np.array([[0, 1j], [1, 0]]),
 ] + [
-    testing.random_unitary(2) for _ in range(10)
+    cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
     gates = decompositions.single_qubit_matrix_to_native_gates(
@@ -102,7 +101,7 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
                           for _ in range(10)])
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
-    intended_effect = linalg.dot(
+    intended_effect = cirq.dot(
         cirq.RotZGate(half_turns=2 * pre_turns).matrix(),
         cirq.X.matrix(),
         cirq.RotZGate(half_turns=2 * post_turns).matrix())
@@ -159,7 +158,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_half_turn_phasing():
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = decompositions.single_qubit_op_to_framed_phase_form(
         (cirq.Y**0.25).matrix())
-    assert linalg.allclose_up_to_global_phase(u, (cirq.X**0.5).matrix())
+    assert cirq.allclose_up_to_global_phase(u, (cirq.X**0.5).matrix())
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
     assert abs(g - 1) < 0.00001
 
@@ -172,7 +171,7 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     cirq.Y.matrix(),
     cirq.Z.matrix(),
     (cirq.Z**0.5).matrix(),
-] + [testing.random_unitary(2)
+] + [cirq.testing.random_unitary(2)
      for _ in range(10)])
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
         mat):
@@ -212,7 +211,7 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     cirq.Z.matrix(),
     (cirq.Z**0.5).matrix(),
 ] + [
-    testing.random_unitary(2) for _ in range(10)
+    cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
     qc = cirq.QubitId()
@@ -220,33 +219,41 @@ def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
     operations = decompositions.controlled_op_to_native_gates(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
-    intended_effect = linalg.kron_with_controls(linalg.CONTROL_TAG, mat)
-    assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect)
+    intended_effect = cirq.kron_with_controls(cirq.CONTROL_TAG, mat)
+    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
 def _random_single_partial_cz_effect():
-    return linalg.dot(
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+    return cirq.dot(
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)),
         np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)))
 
 
 def _random_double_partial_cz_effect():
-    return linalg.dot(
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+    return cirq.dot(
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)),
         np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)),
         np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)))
 
 
 def _random_double_full_cz_effect():
-    return linalg.dot(
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+    return cirq.dot(
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)),
         cirq.CZ.matrix(),
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)),
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)),
         cirq.CZ.matrix(),
-        linalg.kron(testing.random_unitary(2), testing.random_unitary(2)))
+        cirq.kron(cirq.testing.random_unitary(2),
+                  cirq.testing.random_unitary(2)))
 
 
 def assert_cz_depth_below(operations, threshold, must_be_full):
@@ -267,7 +274,7 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
 def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
                                  atol=0.01):
     actual_effect = _operations_to_matrix(operations, (q0, q1))
-    assert linalg.allclose_up_to_global_phase(actual_effect, intended_effect,
+    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect,
                                               atol=atol)
 
 
@@ -304,7 +311,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
         [1j, 0, 0, 1],
     ]) * np.sqrt(0.5)),
 
-    (1.5, 3, linalg.map_eigenvalues(cirq.SWAP.matrix(), lambda e: e**0.5)),
+    (1.5, 3, cirq.map_eigenvalues(cirq.SWAP.matrix(), lambda e: e**0.5)),
 
     (2, 2, cirq.SWAP.matrix().dot(cirq.CZ.matrix())),
 
@@ -322,7 +329,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
 ] + [
     (2, 3, _random_double_partial_cz_effect()) for _ in range(10)
 ] + [
-    (3, 3, testing.random_unitary(4)) for _ in range(10)
+    (3, 3, cirq.testing.random_unitary(4)) for _ in range(10)
 ])
 def test_two_to_native_equivalent_and_bounded_for_known_and_random(
         max_partial_cz_depth,
@@ -348,7 +355,7 @@ def test_trivial_parity_interaction_corner_case():
     q1 = cirq.QubitId()
     nearPi4 = np.pi/4 * 0.99
     tolerance = 1e-2
-    circuit = circuits.Circuit.from_ops(
+    circuit = cirq.Circuit.from_ops(
         decompositions._parity_interaction(q0, q1, -nearPi4, tolerance))
     assert len(circuit) == 2
 

@@ -17,9 +17,7 @@ import random
 import numpy as np
 import pytest
 
-from cirq import linalg
-from cirq import testing
-from cirq.linalg import combinators
+import cirq
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -41,12 +39,12 @@ CZ = np.diag([1, 1, 1, -1])
 
 @pytest.mark.parametrize('matrix', [
     X,
-    linalg.kron(X, X),
-    linalg.kron(X, Y),
-    linalg.kron(X, np.eye(2))
+    cirq.kron(X, X),
+    cirq.kron(X, Y),
+    cirq.kron(X, np.eye(2))
 ])
 def test_map_eigenvalues_identity(matrix):
-    identity_mapped = linalg.map_eigenvalues(matrix, lambda e: e)
+    identity_mapped = cirq.map_eigenvalues(matrix, lambda e: e)
     assert np.allclose(matrix, identity_mapped)
 
 
@@ -59,7 +57,7 @@ def test_map_eigenvalues_identity(matrix):
     [X, 0.5, np.array([[1j, 1], [1, 1j]]) * (1 - 1j) / 2],
 ])
 def test_map_eigenvalues_raise(matrix, exponent, desired):
-    exp_mapped = linalg.map_eigenvalues(matrix, lambda e: complex(e)**exponent)
+    exp_mapped = cirq.map_eigenvalues(matrix, lambda e: complex(e)**exponent)
     assert np.allclose(desired, exp_mapped)
 
 
@@ -76,73 +74,75 @@ def test_map_eigenvalues_raise(matrix, exponent, desired):
     (-X, 1j * np.eye(2)),
     (X, X),
 ] + [
-    (testing.random_unitary(2), testing.random_unitary(2))
+    (cirq.testing.random_unitary(2), cirq.testing.random_unitary(2))
     for _ in range(10)
 ])
 def test_kron_factor(f1, f2):
-    p = linalg.kron(f1, f2)
-    g, g1, g2 = linalg.kron_factor_4x4_to_2x2s(p)
+    p = cirq.kron(f1, f2)
+    g, g1, g2 = cirq.kron_factor_4x4_to_2x2s(p)
     assert abs(np.linalg.det(g1) - 1) < 0.00001
     assert abs(np.linalg.det(g2) - 1) < 0.00001
-    assert np.allclose(g * linalg.kron(g1, g2), p)
+    assert np.allclose(g * cirq.kron(g1, g2), p)
 
 
 @pytest.mark.parametrize('f1,f2', [
-    (testing.random_special_unitary(2), testing.random_special_unitary(2))
+    (cirq.testing.random_special_unitary(2),
+     cirq.testing.random_special_unitary(2))
     for _ in range(10)
 ])
 def test_kron_factor_special_unitaries(f1, f2):
-    p = linalg.kron(f1, f2)
-    g, g1, g2 = linalg.kron_factor_4x4_to_2x2s(p)
-    assert np.allclose(linalg.kron(g1, g2), p)
+    p = cirq.kron(f1, f2)
+    g, g1, g2 = cirq.kron_factor_4x4_to_2x2s(p)
+    assert np.allclose(cirq.kron(g1, g2), p)
     assert abs(g - 1) < 0.000001
-    assert linalg.is_special_unitary(g1)
-    assert linalg.is_special_unitary(g2)
+    assert cirq.is_special_unitary(g1)
+    assert cirq.is_special_unitary(g2)
 
 
 def test_kron_factor_fail():
     with pytest.raises(ValueError):
-        _ = linalg.kron_factor_4x4_to_2x2s(
-            linalg.kron_with_controls(linalg.CONTROL_TAG, X))
+        _ = cirq.kron_factor_4x4_to_2x2s(
+            cirq.kron_with_controls(cirq.CONTROL_TAG, X))
 
     with pytest.raises(ValueError):
-        _ = linalg.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
+        _ = cirq.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
 
 
 def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     assert a.shape == (2, 2)
     assert b.shape == (2, 2)
-    assert linalg.is_special_unitary(a)
-    assert linalg.is_special_unitary(b)
+    assert cirq.is_special_unitary(a)
+    assert cirq.is_special_unitary(b)
 
     magic = np.array([[1, 0, 0, 1j],
                     [0, 1j, 1, 0],
                     [0, 1j, -1, 0],
                     [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    result = np.real(combinators.dot(np.conj(magic.T),
-                                     linalg.kron(a, b),
-                                     magic))
-    assert linalg.is_orthogonal(result)
+    result = np.real(cirq.dot(np.conj(magic.T),
+                              cirq.kron(a, b),
+                              magic))
+    assert cirq.is_orthogonal(result)
     return result
 
 
 @pytest.mark.parametrize('m', [
-    testing.random_special_orthogonal(4)
+    cirq.testing.random_special_orthogonal(4)
     for _ in range(10)
 ])
 def test_so4_to_magic_su2s(m):
-    a, b = linalg.so4_to_magic_su2s(m)
+    a, b = cirq.so4_to_magic_su2s(m)
     m2 = recompose_so4(a, b)
     assert np.allclose(m, m2)
 
 
 @pytest.mark.parametrize('a,b', [
-    (testing.random_special_unitary(2), testing.random_special_unitary(2))
+    (cirq.testing.random_special_unitary(2),
+     cirq.testing.random_special_unitary(2))
     for _ in range(10)
 ])
 def test_so4_to_magic_su2s_known_factors(a, b):
     m = recompose_so4(a, b)
-    a2, b2 = linalg.so4_to_magic_su2s(m)
+    a2, b2 = cirq.so4_to_magic_su2s(m)
     m2 = recompose_so4(a2, b2)
 
     assert np.allclose(m2, m)
@@ -164,23 +164,23 @@ def test_so4_to_magic_su2s_known_factors(a, b):
 ])
 def test_so4_to_magic_su2s_fail(mat):
     with pytest.raises(ValueError):
-        linalg.so4_to_magic_su2s(mat)
+        cirq.so4_to_magic_su2s(mat)
 
 
 def recompose_kak(g, a, v, b) -> np.ndarray:
     a1, a0 = a
     x, y, z = v
     b1, b0 = b
-    xx = linalg.kron(X, X)
-    yy = linalg.kron(Y, Y)
-    zz = linalg.kron(Z, Z)
+    xx = cirq.kron(X, X)
+    yy = cirq.kron(Y, Y)
+    zz = cirq.kron(Z, Z)
 
-    a = linalg.kron(a1, a0)
-    m = linalg.map_eigenvalues(xx * x + yy * y + zz * z,
+    a = cirq.kron(a1, a0)
+    m = cirq.map_eigenvalues(xx * x + yy * y + zz * z,
                                lambda e: np.exp(1j * e))
-    b = linalg.kron(b1, b0)
+    b = cirq.kron(b1, b0)
 
-    return linalg.dot(a, m, b) * g
+    return cirq.dot(a, m, b) * g
 
 
 @pytest.mark.parametrize('x,y,z', [
@@ -191,7 +191,7 @@ def test_kak_canonicalize_vector(x, y, z):
     i = np.eye(2)
     m = recompose_kak(1, (i, i), (x, y, z), (i, i))
 
-    g, (a1, a0), (x2, y2, z2), (b1, b0) = linalg.kak_canonicalize_vector(
+    g, (a1, a0), (x2, y2, z2), (b1, b0) = cirq.kak_canonicalize_vector(
         x, y, z)
     m2 = recompose_kak(g, (a1, a0), (x2, y2, z2), (b1, b0))
 
@@ -199,10 +199,10 @@ def test_kak_canonicalize_vector(x, y, z):
     assert 0.0 <= y2 <= np.pi / 4
     assert -np.pi / 4 <= z2 <= np.pi / 4
     assert abs(x2) >= abs(y2) >= abs(z2)
-    assert linalg.is_special_unitary(a1)
-    assert linalg.is_special_unitary(a0)
-    assert linalg.is_special_unitary(b1)
-    assert linalg.is_special_unitary(b0)
+    assert cirq.is_special_unitary(a1)
+    assert cirq.is_special_unitary(a0)
+    assert cirq.is_special_unitary(b1)
+    assert cirq.is_special_unitary(b0)
     assert np.allclose(m, m2)
 
 
@@ -214,10 +214,10 @@ def test_kak_canonicalize_vector(x, y, z):
     CNOT,
     SWAP.dot(CZ),
 ] + [
-    testing.random_unitary(4)
+    cirq.testing.random_unitary(4)
     for _ in range(10)
 ])
 def test_kak_decomposition(m):
-    g, (a1, a0), (x, y, z), (b1, b0) = linalg.kak_decomposition(m)
+    g, (a1, a0), (x, y, z), (b1, b0) = cirq.kak_decomposition(m)
     m2 = recompose_kak(g, (a1, a0), (x, y, z), (b1, b0))
     assert np.allclose(m, m2)
