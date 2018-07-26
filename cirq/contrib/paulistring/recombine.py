@@ -56,10 +56,9 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
                 if not set(out_op.qubits) & set(string_op.qubits):
                     # Skip if operations don't share qubits
                     continue
-                if (isinstance(out_op, PauliStringGateOperation) or
-                    not (isinstance(out_op, ops.GateOperation) and
-                         isinstance(out_op.gate, (ops.CliffordGate,
-                                                  ops.PauliInteractionGate)))):
+                if not (isinstance(out_op, ops.GateOperation) and
+                        isinstance(out_op.gate, (ops.CliffordGate,
+                                                 ops.PauliInteractionGate))):
                     # This is as far through as this Pauli string can move
                     break
                 string_op = string_op.pass_operations_over([out_op],
