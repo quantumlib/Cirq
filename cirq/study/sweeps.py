@@ -129,7 +129,7 @@ class _Unit(Sweep):
         return 'Unit'
 
 
-Unit = _Unit()  # singleton instance
+UnitSweep = _Unit()  # singleton instance
 
 
 class Product(Sweep):
