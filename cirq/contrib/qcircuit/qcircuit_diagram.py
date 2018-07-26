@@ -51,8 +51,7 @@ class _QCircuitOperation(ops.Operation, ops.TextDiagrammable):
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
-        return ops.TextDiagramInfo(
-            self.diagrammable.qcircuit_diagram_info(args))
+        return self.diagrammable.qcircuit_diagram_info(args)
 
     @property
     def qubits(self):
