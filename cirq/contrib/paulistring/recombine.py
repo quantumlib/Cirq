@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, cast
+from typing import Iterator, Tuple, Union, cast
 
 from cirq import ops, circuits
 
+from cirq.contrib.paulistring.pauli_string_raw_types import (
+    PauliStringGateOperation)
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_dag_from_circuit)
 
@@ -34,11 +36,13 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
     rightmost_nodes = (set(string_dag.nodes)
                        - set(before for before, _ in string_dag.edges))
 
-    def possible_string_placements():
+    def possible_string_placements(
+            ) -> Iterator[Tuple[PauliStringGateOperation, int,
+                                circuits.Unique[PauliStringGateOperation]]]:
         for right_node in rightmost_nodes:
             string_op = right_node.val
             # Try moving the Pauli string through, stop at measurements
-            yield (string_op, 0, right_node)
+            yield string_op, 0, right_node
             for i, out_op in enumerate(output_ops):
                 if not set(out_op.qubits) & set(string_op.qubits):
                     # Skip if operations don't share qubits
@@ -50,7 +54,7 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
                     break
                 string_op = string_op.pass_operations_over([out_op],
                                                            after_to_before=True)
-                yield (string_op, i+1, right_node)
+                yield string_op, i+1, right_node
 
     while rightmost_nodes:
         # Pick the Pauli string that can be moved furthest through the Clifford
@@ -61,7 +65,7 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
                                    placement[1]))
 
         # Place the best one into the output circuit
-        output_ops.insert(best_index, cast(ops.Operation, best_string_op))
+        output_ops.insert(best_index, best_string_op)
         # Remove the best one from the dag and update rightmost_nodes
         rightmost_nodes.remove(best_node)
         rightmost_nodes.update(
@@ -70,7 +74,7 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
             if len(string_dag.succ[pred_node]) <= 1)
         string_dag.remove_node(best_node)
 
-    assert not string_dag.nodes
+    assert not string_dag.nodes, 'There was a cycle in the CircuitDag'
 
     return circuits.Circuit.from_ops(
             output_ops,

@@ -20,7 +20,8 @@ from cirq.contrib.paulistring import (
 
 
 def test_toffoli_separate():
-    circuit = cirq.testing.nonoptimal_toffoli_circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 
     c_left, c_right = convert_and_separate_circuit(circuit)
 

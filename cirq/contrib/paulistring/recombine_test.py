@@ -30,7 +30,8 @@ def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:
 
 
 def test_move_non_clifford_into_clifford():
-    c_orig = cirq.testing.nonoptimal_toffoli_circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 
     c_left, c_right = convert_and_separate_circuit(c_orig)
 
