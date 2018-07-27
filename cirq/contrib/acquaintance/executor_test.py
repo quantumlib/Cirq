@@ -115,6 +115,17 @@ class DiagonalGate(Gate,
         diagonal = np.exp(2j * np.pi * np.random.random(dimension))
         return DiagonalGate(n_qubits, diagonal)
 
+def test_diagonal_gate():
+    with pytest.raises(ValueError):
+        diagonal = np.exp(2j * np.pi * np.random.random(5))
+        DiagonalGate(2, diagonal)
+    with pytest.raises(ValueError):
+        diagonal = np.ndarray(range(4))
+        DiagonalGate(2, diagonal)
+    gate = DiagonalGate.random(2)
+    args = gate_features.TextDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert gate.text_diagram_info(args) == NotImplemented
+
 def random_diagonal_gates(n_qubits: int,
                  acquaintance_size: int
                  ) -> Dict[Tuple[QubitId, ...], Gate]:

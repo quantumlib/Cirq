@@ -22,7 +22,8 @@ from cirq.ops import Operation, GateOperation, QubitId, OP_TREE
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate,
-        LOGICAL_INDEX, LOGICAL_GATES, LOGICAL_MAPPING)
+        LogicalIndex,
+        LogicalGates, LogicalMapping)
 from cirq.contrib.acquaintance.strategy import (
         AcquaintanceStrategy, expose_acquaintance_gates)
 
@@ -36,12 +37,12 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     keep_acquaintance = False
 
     @abc.abstractproperty
-    def initial_mapping(self) -> LOGICAL_MAPPING:
+    def initial_mapping(self) -> LogicalMapping:
         pass
 
     @abc.abstractmethod
     def get_operations(self,
-                       indices: Sequence[LOGICAL_INDEX],
+                       indices: Sequence[LogicalIndex],
                        qubits: Sequence[QubitId]
                        ) -> OP_TREE:
         """Gets the logical operations to apply to qubits."""
@@ -86,8 +87,8 @@ class StrategyExecutor(PointOptimizer):
 
 class GreedyExecutionStrategy(ExecutionStrategy):
     def __init__(self,
-                 gates: LOGICAL_GATES,
-                 initial_mapping: LOGICAL_MAPPING
+                 gates: LogicalGates,
+                 initial_mapping: LogicalMapping
                  ) -> None:
         if len(set(len(indices) for indices in gates)) > 1:
             raise NotImplementedError(
@@ -97,11 +98,11 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         self._initial_mapping = initial_mapping.copy()
 
     @property
-    def initial_mapping(self) -> LOGICAL_MAPPING:
+    def initial_mapping(self) -> LogicalMapping:
         return self._initial_mapping
 
     def get_operations(self,
-                       indices: Sequence[LOGICAL_INDEX],
+                       indices: Sequence[LogicalIndex],
                        qubits: Sequence[QubitId]
                        ) -> OP_TREE:
         index_set = frozenset(indices)
@@ -114,10 +115,10 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
 
     @staticmethod
-    def canonicalize_gates(gates: LOGICAL_GATES
-        ) -> Dict[frozenset, LOGICAL_GATES]:
+    def canonicalize_gates(gates: LogicalGates
+        ) -> Dict[frozenset, LogicalGates]:
         canonicalized_gates = defaultdict(dict
-            ) # type: DefaultDict[frozenset, LOGICAL_GATES]
+            ) # type: DefaultDict[frozenset, LogicalGates]
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate

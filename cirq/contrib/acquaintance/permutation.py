@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence, Union, Tuple
+from typing import Dict, Sequence, Tuple, TypeVar
 
 from cirq import abc
 from cirq.ops import (
@@ -20,11 +20,10 @@ from cirq.ops import (
         flatten_op_tree, GateOperation, TextDiagrammable,
         gate_features)
 
-LOGICAL_INDEX = Union[int, QubitId]
-LOGICAL_INDICES = Union[Tuple[int, ...], Tuple[QubitId, ...]]
-LOGICAL_GATES = Union[Dict[Tuple[int, ...], Gate],
-                      Dict[Tuple[QubitId, ...], Gate]]
-LOGICAL_MAPPING = Union[Dict[QubitId, int], Dict[QubitId, QubitId]]
+LogicalIndex = TypeVar('LogicalIndex', int, QubitId)
+LogicalGates = Dict[Tuple[LogicalIndex, ...], Gate]
+LogicalMappingKey = TypeVar('LogicalMappingKey', bound=QubitId)
+LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
     """Permutation gate."""
@@ -32,22 +31,23 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
     def __init__(self, swap_gate: Gate=SWAP) -> None:
         self.swap_gate = swap_gate
 
+
     @abc.abstractmethod
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         """permutation = {i: s[i]} indicates that the i-th qubit is mapped to
         the s[i]-th qubit."""
         pass
 
-    def update_mapping(self,
-                       mapping: LOGICAL_MAPPING,
+
+    def update_mapping(self, mapping: Dict[QubitId, LogicalIndex],
                        keys: Sequence[QubitId]
                        ) -> None:
         n_elements = len(keys)
         permutation = self.permutation(n_elements)
         indices = tuple(permutation.keys())
+        new_keys = [keys[permutation[i]] for i in indices]
         old_elements = [mapping[keys[i]] for i in indices]
-        for i, e in zip(indices, old_elements):
-            mapping[keys[permutation[i]]] = e
+        mapping.update(zip(new_keys, old_elements))
 
 
     @staticmethod
@@ -115,7 +115,7 @@ class LinearPermutationGate(PermutationGate, CompositeGate):
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
 
-def update_mapping(mapping: LOGICAL_MAPPING,
+def update_mapping(mapping: Dict[QubitId, LogicalIndex],
                    operations: OP_TREE
                    ) -> None:
     for op in flatten_op_tree(operations):
