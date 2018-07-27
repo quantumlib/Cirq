@@ -48,6 +48,38 @@ def test_eq_ne_hash():
         eq.add_equality_group(cirq.PauliString({q: p0, q2: p1}, False))
 
 
+def test_equal_up_to_sign():
+    q0, = _make_qubits(1)
+    assert cirq.PauliString({}, False).equal_up_to_sign(
+           cirq.PauliString({}, False))
+    assert cirq.PauliString({}, True).equal_up_to_sign(
+           cirq.PauliString({}, True))
+    assert cirq.PauliString({}, False).equal_up_to_sign(
+           cirq.PauliString({}, True))
+
+    assert cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+           cirq.PauliString({q0: cirq.Pauli.X}, False))
+    assert cirq.PauliString({q0: cirq.Pauli.X}, True).equal_up_to_sign(
+           cirq.PauliString({q0: cirq.Pauli.X}, True))
+    assert cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+           cirq.PauliString({q0: cirq.Pauli.X}, True))
+
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({q0: cirq.Pauli.Y}, False))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, True).equal_up_to_sign(
+               cirq.PauliString({q0: cirq.Pauli.Y}, True))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({q0: cirq.Pauli.Y}, True))
+
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({}, False))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, True).equal_up_to_sign(
+               cirq.PauliString({}, True))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({}, True))
+
+
+
 @pytest.mark.parametrize('pauli', cirq.Pauli.XYZ)
 def test_from_single(pauli):
     q0, = _make_qubits(1)
