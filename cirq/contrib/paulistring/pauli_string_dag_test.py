@@ -12,24 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation,
-)
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor,
-)
-from cirq.contrib.paulistring.convert_gate_set import (
-    converted_gate_set,
-)
-from cirq.contrib.paulistring.separate import (
+import pytest
+
+import cirq
+
+from cirq.contrib.paulistring import (
     convert_and_separate_circuit,
-    clifford_half,
-    non_clifford_half,
-)
-from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
 )
-from cirq.contrib.paulistring.recombine import (
-    move_non_clifford_into_clifford,
-)
+
+
+@pytest.mark.parametrize('repetition', range(6))
+def test_pauli_string_dag_from_circuit(repetition):
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
+    c_left, _ = convert_and_separate_circuit(c_orig)
+
+    c_left_dag = pauli_string_dag_from_circuit(c_left)
+    c_left_reordered = c_left_dag.to_circuit()
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        c_left.to_unitary_matrix(),
+        c_left_reordered.to_unitary_matrix(),
+        atol=1e-7)
