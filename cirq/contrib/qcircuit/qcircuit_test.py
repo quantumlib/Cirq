@@ -16,7 +16,7 @@ import cirq
 from cirq.contrib import circuit_to_latex_using_qcircuit
 from cirq.contrib.qcircuit.qcircuit_diagram import _QCircuitQubit
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
-    _FallbackQCircuitGate,
+    _FallbackQCircuitGate, _TextToQCircuitDiagrammable
 )
 
 
@@ -34,13 +34,66 @@ def test_FallbackQCircuitSymbolsGate():
 
     g = TestGate()
     f = _FallbackQCircuitGate(g)
-    assert f.qcircuit_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-                                   ) == ('\\text{T:0}',)
-    assert f.qcircuit_diagram_info(cirq.TextDiagramInfoArgs(
+    actual_info = f.qcircuit_diagram_info(
+            cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+    expected_info = cirq.TextDiagramInfo(('\\text{T:0}',))
+    assert actual_info == expected_info
+
+    actual_info = f.qcircuit_diagram_info(cirq.TextDiagramInfoArgs(
         known_qubits=None,
         known_qubit_count=2,
         use_unicode_characters=True,
-        precision=None)) == ('\\text{T:0}', '\\text{T:1}')
+        precision=None,
+        qubit_map=None))
+    expected_info = cirq.TextDiagramInfo(('\\text{T:0}', '\\text{T:1}'))
+    assert actual_info == expected_info
+
+def test_TextToQCircuitDiagrammable():
+    qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
+
+    g = cirq.SwapGate(half_turns=0.5)
+    f = _TextToQCircuitDiagrammable(g)
+    qubit_map = {q: i for i, q in enumerate(qubits)}
+    actual_info = f.qcircuit_diagram_info(
+            cirq.TextDiagramInfoArgs(known_qubits=qubits,
+                                     known_qubit_count=None,
+                                     use_unicode_characters=True,
+                                     precision=3,
+                                     qubit_map=qubit_map))
+    name = '{\\text{SWAP}^{0.5}}'
+    expected_info = cirq.TextDiagramInfo(
+            ('\multigate{1}' + name, '\ghost' + name),
+            exponent=0.5,
+            connected=False)
+    assert actual_info == expected_info
+
+    g = cirq.SWAP
+    f = _TextToQCircuitDiagrammable(g)
+    qubit_map = {q: i for q, i in zip(qubits, (4, 3))}
+    actual_info = f.qcircuit_diagram_info(
+            cirq.TextDiagramInfoArgs(known_qubits=qubits,
+                                     known_qubit_count=None,
+                                     use_unicode_characters=True,
+                                     precision=3,
+                                     qubit_map=qubit_map))
+    expected_info = cirq.TextDiagramInfo(
+            ('\ghost{\\text{SWAP}}', '\multigate{1}{\\text{SWAP}}'),
+            connected=False)
+    assert actual_info == expected_info
+
+    qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
+    actual_info = f.qcircuit_diagram_info(
+            cirq.TextDiagramInfoArgs(known_qubits=qubits,
+                                     known_qubit_count=None,
+                                     use_unicode_characters=True,
+                                     precision=3,
+                                     qubit_map=qubit_map))
+    expected_info = cirq.TextDiagramInfo(('\\gate{\\text{×}}',) * 2)
+    assert actual_info == expected_info
+
+    actual_info = f.qcircuit_diagram_info(
+            cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+    assert actual_info == expected_info
 
 
 def test_teleportation_diagram():

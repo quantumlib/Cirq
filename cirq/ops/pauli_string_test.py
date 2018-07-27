@@ -299,7 +299,7 @@ def test_to_z_basis_ops():
 
 
 def _assert_pass_over(ops, before, after):
-    assert before.pass_operations_over(ops) == after
+    assert before.pass_operations_over(ops[::-1]) == after
     assert (after.pass_operations_over(ops, after_to_before=True)
             == before)
 
@@ -332,6 +332,12 @@ def test_pass_operations_over_single(shift, t_or_f):
     _assert_pass_over([op1], ps_before, ps_after)
 
     ps_after = cirq.PauliString({q0: Z, q1: Y}, not t_or_f)
+    _assert_pass_over([op0, op1], ps_before, ps_after)
+
+    op0 = cirq.CliffordGate.from_pauli(Z, True)(q0)
+    op1 = cirq.CliffordGate.from_pauli(X, True)(q0)
+    ps_before = cirq.PauliString({q0: X}, t_or_f)
+    ps_after = cirq.PauliString({q0: Y}, not t_or_f)
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
 
