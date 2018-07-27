@@ -129,19 +129,20 @@ class PauliString:
                              ops: Iterable[raw_types.Operation],
                              after_to_before: bool = False) -> 'PauliString':
         """Return a new PauliString such that the circuits
-            --op--...--op--self-- and --output--op--...--op--
+            --op_last--...--op_first--self-- and
+            --output--op_last--...--op_first--
         are equivalent up to global phase.
 
         If ops together have matrix C, the Pauli string has matrix P, and the
         output Pauli string has matrix P', then C^-1 P C == C P' C^-1 up to
         global phase.
 
-
         Args:
             op: The operation to move
             after_to_before: If true, passes op over the other direction such
                 that the circuits
-                    --self--op--...--op-- and --op--...--op--output--
+                    --self--op_first--...--op_last-- and
+                    --op_fist--...--op_last--output--
                 are equivalent up to global phase and C P C^-1 == C^-1 P' C up
                 to global phase.
         """

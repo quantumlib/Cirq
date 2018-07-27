@@ -16,11 +16,9 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import Symbol, linalg, Circuit
-from cirq.testing import EqualsTester
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
-HH = linalg.kron(H, H)
+HH = cirq.kron(H, H)
 QFT2 = np.array([[1, 1, 1, 1],
                  [1, 1j, -1, -1j],
                  [1, -1, 1, -1],
@@ -82,7 +80,7 @@ def test_z_init():
 
 
 def test_rot_gates_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     gates = [
         cirq.RotXGate,
         cirq.RotYGate,
@@ -161,7 +159,7 @@ def test_runtime_types_of_rot_gates():
                       cirq.RotZGate]:
         ext = cirq.Extensions()
 
-        p = gate_type(half_turns=Symbol('a'))
+        p = gate_type(half_turns=cirq.Symbol('a'))
         assert p.try_cast_to(cirq.KnownMatrix, ext) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
@@ -184,7 +182,7 @@ def test_runtime_types_of_rot_gates():
 
 
 def test_measurement_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.MeasurementGate(''),
                           cirq.MeasurementGate('', invert_mask=()))
     eq.add_equality_group(cirq.MeasurementGate('a'))
@@ -197,7 +195,7 @@ def test_interchangeable_qubit_eq():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(cirq.SWAP(a, b), cirq.SWAP(b, a))
     eq.add_equality_group(cirq.SWAP(a, c))
@@ -213,7 +211,7 @@ def test_interchangeable_qubit_eq():
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = Circuit.from_ops(
+    circuit = cirq.Circuit.from_ops(
         cirq.SWAP(a, b),
         cirq.X(a),
         cirq.Y(a),
@@ -262,7 +260,7 @@ def test_cnot_power():
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
+    assert cirq.CNotGate(half_turns=cirq.Symbol('x')).default_decompose([a, b])
 
 
 def test_swap_power():
@@ -339,7 +337,8 @@ def test_measurement_gate_diagram():
             known_qubits=None,
             known_qubit_count=3,
             use_unicode_characters=True,
-            precision=None
+            precision=None,
+            qubit_map=None
         )) == cirq.TextDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
