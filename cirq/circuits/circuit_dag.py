@@ -114,7 +114,7 @@ class CircuitDag(networkx.DiGraph):
                              if not self.can_reorder(node.val, new_node.val)])
         self.add_node(new_node)
 
-    def all_operations(self) -> Iterator[ops.Operation]:
+    def ordered_nodes(self) -> Iterator[Unique[ops.Operation]]:
         if not self.nodes:
             return
         g = self.copy()
@@ -138,7 +138,7 @@ class CircuitDag(networkx.DiGraph):
 
         node = get_first_node()
         while True:
-            yield node.val
+            yield node
             succ = g.succ[node]
             g.remove_node(node)
 
@@ -146,6 +146,9 @@ class CircuitDag(networkx.DiGraph):
                 return
 
             node = get_next_node(succ)
+
+    def all_operations(self) -> Iterator[ops.Operation]:
+        return (node.val for node in self.ordered_nodes())
 
     def to_circuit(self) -> circuit.Circuit:
         return circuit.Circuit.from_ops(
