@@ -12,39 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
+from cirq import ops, circuits, devices
 
 
-def nonoptimal_toffoli_circuit():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    return cirq.Circuit.from_ops(
-        cirq.Y(q2) ** 0.5,
-        cirq.X(q2),
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** -0.25,
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q0, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** 0.25,
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** -0.25,
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q0, q1),
-        cirq.CNOT(q1, q2),
-        cirq.CNOT(q2, q1),
-        cirq.CNOT(q1, q2),
-        cirq.Z(q2) ** 0.25,
-        cirq.Z(q1) ** 0.25,
-        cirq.CNOT(q0, q1),
-        cirq.Z(q0) ** 0.25,
-        cirq.Z(q1) ** -0.25,
-        cirq.CNOT(q0, q1),
-        cirq.Y(q2) ** 0.5,
-        cirq.X(q2),
+def nonoptimal_toffoli_circuit(
+        q0: ops.QubitId, q1: ops.QubitId, q2: ops.QubitId,
+        device: devices.Device = devices.UnconstrainedDevice
+        ) -> circuits.Circuit:
+    return circuits.Circuit.from_ops(
+        ops.Y(q2) ** 0.5,
+        ops.X(q2),
+        ops.CNOT(q1, q2),
+        ops.Z(q2) ** -0.25,
+        ops.CNOT(q1, q2),
+        ops.CNOT(q2, q1),
+        ops.CNOT(q1, q2),
+        ops.CNOT(q0, q1),
+        ops.CNOT(q1, q2),
+        ops.CNOT(q2, q1),
+        ops.CNOT(q1, q2),
+        ops.Z(q2) ** 0.25,
+        ops.CNOT(q1, q2),
+        ops.Z(q2) ** -0.25,
+        ops.CNOT(q1, q2),
+        ops.CNOT(q2, q1),
+        ops.CNOT(q1, q2),
+        ops.CNOT(q0, q1),
+        ops.CNOT(q1, q2),
+        ops.CNOT(q2, q1),
+        ops.CNOT(q1, q2),
+        ops.Z(q2) ** 0.25,
+        ops.Z(q1) ** 0.25,
+        ops.CNOT(q0, q1),
+        ops.Z(q0) ** 0.25,
+        ops.Z(q1) ** -0.25,
+        ops.CNOT(q0, q1),
+        ops.Y(q2) ** 0.5,
+        ops.X(q2),
+        device=device
     )
