@@ -256,6 +256,22 @@ def test_cnot_power():
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
+def test_cnot_keyword_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    circuit_positional = cirq.Circuit.from_ops(
+        cirq.CNOT(a,b),
+        cirq.CNOT(b, a)
+    )
+
+    circuit_keywords = cirq.Circuit.from_ops(
+        cirq.CNOT(control=a, target=b),
+        cirq.CNOT(target=a, control=b)
+    )
+
+    assert circuit_positional == circuit_keywords
+
 
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')

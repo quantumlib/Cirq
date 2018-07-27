@@ -505,7 +505,8 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.CompositeGate,
                gate_features.TwoQubitGate,
                gate_features.QasmConvertableGate):
-    """A controlled-NOT. Toggle the second qubit when the first qubit is on."""
+    """A controlled-NOT. Toggle the second qubit when the first qubit is on.
+    You can also use the keyword arguments 'target' and 'control' instead of the positional ones."""
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
@@ -574,6 +575,11 @@ class CNotGate(eigen_gate.EigenGate,
         if self.half_turns == 1:
             return 'CNOT'
         return 'CNOT**{!r}'.format(self.half_turns)
+
+    def on(self, *args: raw_types.QubitId, **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
+        if 'control' in kwargs.keys() and 'target' in kwargs.keys():
+            return super(eigen_gate.EigenGate, self).on(kwargs['control'], kwargs['target'])
+        return super(eigen_gate.EigenGate, self).on(*args)
 
 
 CNOT = CNotGate()  # Controlled Not Gate.

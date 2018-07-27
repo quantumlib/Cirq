@@ -93,8 +93,8 @@ class Gate:
         self.validate_args(qubits)
         return gate_operation.GateOperation(self, list(qubits))
 
-    def __call__(self, *args):
-        return self.on(*args)
+    def __call__(self, *args, **kwargs):
+        return self.on(*args, **kwargs)
 
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
