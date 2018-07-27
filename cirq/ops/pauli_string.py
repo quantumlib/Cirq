@@ -49,6 +49,9 @@ class PauliString:
     def __hash__(self):
         return hash((PauliString, self.negated, frozenset(self.items())))
 
+    def equal_up_to_sign(self, other: 'PauliString') -> bool:
+        return self._qubit_pauli_map == other._qubit_pauli_map
+
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
