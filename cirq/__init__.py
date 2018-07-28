@@ -44,6 +44,14 @@ from cirq.circuits import (
     Unique,
 )
 
+from cirq.decompositions import (
+    controlled_op_to_operations,
+    is_negligible_turn,
+    single_qubit_matrix_to_gates,
+    single_qubit_op_to_framed_phase_form,
+    two_qubit_matrix_to_operations,
+)
+
 from cirq.devices import (
     Device,
     GridQubit,
