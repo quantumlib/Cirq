@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 from cirq import ops, decompositions, extension
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
@@ -37,7 +39,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
 
     def __init__(self,
                  extensions: extension.Extensions = None,
-                 ignore_failures: bool = False) -> None:
+                 ignore_failures: bool = False,
+                 allow_partial_czs: bool = False) -> None:
         """
         Args:
             extensions: The extensions instance to use when trying to
@@ -47,19 +50,22 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         """
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
+        self.allow_partial_czs = allow_partial_czs
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Already supported?
+        # Check if this is a CZ
+        # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-            and isinstance(op.gate, ops.Rot11Gate)):
+            and isinstance(op.gate, ops.Rot11Gate)
+            and (self.allow_partial_czs or op.gate.half_turns == 1)):
             return op
 
         # Known matrix?
         mat = self.extensions.try_cast(ops.KnownMatrix, op)
         if mat is not None and len(op.qubits) == 1:
-            return mat
+            return op
         if mat is not None and len(op.qubits) == 2:
-            return decompositions.two_qubit_matrix_to_gates(
+            return decompositions.two_qubit_matrix_to_operations(
                 op.qubits[0],
                 op.qubits[1],
                 mat.matrix(),
@@ -83,10 +89,10 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         converted = self._convert_one(op)
         if converted is op:
             return converted
-        return (self.convert(e) for e in ops.flatten_op_tree(converted))
+        return [self.convert(e) for e in ops.flatten_op_tree(converted)]
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
-                        ) -> PointOptimizationSummary:
+                        ) -> Optional[PointOptimizationSummary]:
         converted = self.convert(op)
         if converted is op:
             return None

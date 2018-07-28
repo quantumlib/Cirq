@@ -41,12 +41,12 @@ class MergeSingleQubitGates(PointOptimizer):
                         op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
         if len(op.qubits) != 1:
-            return
+            return None
 
         indices, gates = self._scan_single_qubit_ops(circuit, index,
                                                      op.qubits[0])
         if not gates:
-            return
+            return None
 
         # Replace the gates with a max-2-op XY + Z construction.
         operations = self._merge_rotations(op.qubits[0], gates)
