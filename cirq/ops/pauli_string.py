@@ -15,7 +15,9 @@
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Optional, Tuple, ValuesView)
 
-from cirq.ops import raw_types, gate_operation, common_gates, qubit_order, op_tree
+from cirq.ops import (
+    raw_types, gate_operation, common_gates, qubit_order, op_tree
+)
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import CliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
