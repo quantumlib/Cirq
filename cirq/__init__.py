@@ -31,10 +31,12 @@ from cirq import (
 from cirq.circuits import (
     Circuit,
     CircuitDag,
+    ConvertToCzAndSingleGates,
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
     InsertStrategy,
+    MergeSingleQubitGates,
     Moment,
     OptimizationPass,
     PointOptimizationSummary,
