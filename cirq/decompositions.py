@@ -70,7 +70,7 @@ def single_qubit_matrix_to_gates(
         linalg.deconstruct_single_qubit_matrix_into_angles(mat))
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    m_gate = ops.X
+    m_gate = ops.X  # type: ops.Gate
     z_ht_after = z_rad_after / np.pi + 0.5
 
     # Clean up angles
