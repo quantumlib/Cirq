@@ -31,10 +31,10 @@ def _signed_mod_1(x: float) -> float:
     return (x + 0.5) % 1 - 0.5
 
 
-def single_qubit_matrix_to_gates(
+def single_qubit_matrix_to_pauli_rotations(
         mat: np.ndarray, tolerance: float = 0
-) -> List[ops.SingleQubitGate]:
-    """Implements a single-qubit operation with few gates.
+) -> List[Tuple[ops.Pauli, float]]:
+    """Implements a single-qubit operation with few rotations.
 
     Args:
         mat: The 2x2 unitary matrix of the operation to implement.
@@ -42,8 +42,8 @@ def single_qubit_matrix_to_gates(
             construction.
 
     Returns:
-        A list of gates that, when applied in order, perform the desired
-            operation.
+        A list of (Pauli, half_turns) tuples that, when applied in order,
+        perform the desired operation.
     """
 
     tol = linalg.Tolerance(atol=tolerance)
@@ -70,7 +70,7 @@ def single_qubit_matrix_to_gates(
         linalg.deconstruct_single_qubit_matrix_into_angles(mat))
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    m_gate = ops.X  # type: ops.Gate
+    m_pauli = ops.Pauli.X
     z_ht_after = z_rad_after / np.pi + 0.5
 
     # Clean up angles
@@ -79,7 +79,7 @@ def single_qubit_matrix_to_gates(
             (is_half_turn(m_ht) and is_no_turn(z_ht_before-z_ht_after))):
             z_ht_before += 0.5
             z_ht_after -= 0.5
-            m_gate = ops.Y
+            m_pauli = ops.Pauli.Y
         if is_half_turn(z_ht_before) or is_half_turn(z_ht_after):
             z_ht_before -= 1
             z_ht_after += 1
@@ -93,11 +93,30 @@ def single_qubit_matrix_to_gates(
 
     # Generate operations
     rotation_list = [
-        (ops.Z, z_ht_before),
-        (m_gate, m_ht),
-        (ops.Z, z_ht_after)]
-    return [gate ** ht for gate, ht in rotation_list if not is_no_turn(ht)]
+        (ops.Pauli.Z, z_ht_before),
+        (m_pauli, m_ht),
+        (ops.Pauli.Z, z_ht_after)]
+    return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
+
+def single_qubit_matrix_to_gates(
+        mat: np.ndarray, tolerance: float = 0
+) -> List[ops.SingleQubitGate]:
+    """Implements a single-qubit operation with few gates.
+
+    Args:
+        mat: The 2x2 unitary matrix of the operation to implement.
+        tolerance: A limit on the amount of error introduced by the
+            construction.
+
+    Returns:
+        A list of gates that, when applied in order, perform the desired
+            operation.
+    """
+    pauli_to_gate = {ops.Pauli.X: ops.X, ops.Pauli.Y: ops.Y, ops.Pauli.Z: ops.Z}
+    rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
+    return [cast(ops.SingleQubitGate, pauli_to_gate[pauli] ** ht)
+            for pauli, ht in rotations]
 
 def single_qubit_op_to_framed_phase_form(
         mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
