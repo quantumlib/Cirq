@@ -40,13 +40,13 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                  extensions: extension.Extensions = None) -> None:
         """
         Args:
-            extensions: The extensions instance to use when trying to
-                cast gates to known types.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
             tolerance: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
+            extensions: The extensions instance to use when trying to
+                cast gates to known types.
         """
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
