@@ -22,6 +22,7 @@ import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
 import examples.phase_estimator
+import examples.basic_arithmetic
 from examples.supremacy import generate_supremacy_circuit
 
 
