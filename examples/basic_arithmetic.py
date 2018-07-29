@@ -90,7 +90,7 @@ import cirq
 
 
 class Adder(cirq.Gate, cirq.CompositeGate):
-    """ A quantum circuite to calculate a + b
+    """ A quantum circuit to calculate a + b
 
             -----------@---             ---@------------
                        |                   |
@@ -156,7 +156,7 @@ class Adder(cirq.Gate, cirq.CompositeGate):
 
 
 class Multiplier(cirq.Gate, cirq.CompositeGate):
-    """ A quantum circuite to calculate y * x
+    """ A quantum circuit to calculate y * x
 
                        -----                         -----                 -----
     c0: --------------|     |-----------------------|     |---------------|     |---------
