@@ -505,8 +505,8 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.CompositeGate,
                gate_features.TwoQubitGate,
                gate_features.QasmConvertableGate):
-    """A controlled-NOT. Toggle the second qubit when the first qubit is on.
-    You can also use the keyword arguments 'target' and 'control' instead of the positional ones."""
+    """When applying CNOT (controlled-not) to QuBits, you can either use positional arguments CNOT(q1, q2), where
+    q2 is toggled when q1 is on, or named arguments CNOT(control=q1, target=q2). (Mixing the two is not permitted.)"""
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
@@ -577,9 +577,20 @@ class CNotGate(eigen_gate.EigenGate,
         return 'CNOT**{!r}'.format(self.half_turns)
 
     def on(self, *args: raw_types.QubitId, **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
+        if kwargs and args:
+            raise ValueError('A mix of named and positional arguments has been specified for a CNOT operation.\n'
+                             'Be sure to choose either one of them')
+        for argkey in kwargs.keys():
+            if argkey not in ['control', 'target']:
+                raise ValueError("Unknown named argument '{0}' has been specified for CNOT operation."
+                                 "Specify 'target' AND 'control' or make use of positional arguments".format(argkey))
         if 'control' in kwargs.keys() and 'target' in kwargs.keys():
-            return super(eigen_gate.EigenGate, self).on(kwargs['control'], kwargs['target'])
-        return super(eigen_gate.EigenGate, self).on(*args)
+            return super().on(kwargs['control'], kwargs['target'])
+        if 'control' in kwargs.keys() or 'target' in kwargs.keys():
+            raise ValueError('Just one of the named arguments \'target\' and \'control\' has been specified '
+                             'for a CNOT operation. \n Assign both of them or use positional arguments '
+                             'for proper operation.')
+        return super().on(*args)
 
 
 CNOT = CNotGate()  # Controlled Not Gate.
