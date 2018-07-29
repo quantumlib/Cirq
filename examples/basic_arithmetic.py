@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Creates and simulates basic arithmetic circutes
+"""Creates and simulates basic arithmetic circuits
 
 === EXAMPLE OUTPUT ===
 Execute Adder
