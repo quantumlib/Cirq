@@ -158,7 +158,7 @@ class Adder(cirq.Gate, cirq.CompositeGate):
 class Multiplier(cirq.Gate, cirq.CompositeGate):
     """ A quantum circuite to calculate y * x
 
-                       -----	                     -----	           -----
+                       -----                         -----                 -----
     c0: --------------|     |-----------------------|     |---------------|     |---------
                       |     |                       |     |               |     |
     a0: --X-----------|     |---X-------------------|     |---------------|     |---------
