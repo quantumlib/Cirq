@@ -115,6 +115,74 @@ def test_inverse():
     assert op1.inverse() == op2
 
 
+def test_can_merge_with():
+    q0, = _make_qubits(1)
+
+    op1 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.25)
+    op2 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.75)
+    assert op1.can_merge_with(op2)
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.75)
+    assert op1.can_merge_with(op2)
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.Y}, True), half_turns=0.75)
+    assert not op1.can_merge_with(op2)
+
+
+def test_merge_with():
+    q0, = _make_qubits(1)
+
+    op1 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.25)
+    op2 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.75)
+    op12 = PauliStringPhasor(cirq.PauliString({}), half_turns=1.0)
+    assert op1.merged_with(op2) == op12
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.75)
+    op12 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=1.0)
+    assert op1.merged_with(op2) == op12
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.75)
+    op12 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=-0.5)
+    assert op1.merged_with(op2) == op12
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.75)
+    op12 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=-0.5)
+    assert op1.merged_with(op2) == op12
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.75)
+    op12 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=1.0)
+    assert op1.merged_with(op2) == op12
+
+    op1 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+    op2 = PauliStringPhasor(
+            cirq.PauliString({q0: cirq.Pauli.Y}, True), half_turns=0.75)
+    with pytest.raises(ValueError):
+        op1.merged_with(op2)
+
+
 def test_try_cast_to():
     class Dummy: pass
     op = PauliStringPhasor(cirq.PauliString({}))

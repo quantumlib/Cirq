@@ -16,17 +16,13 @@
 
 import cmath
 import math
-from typing import List, Tuple, Optional, cast
+from typing import List, Tuple, cast
 
 import numpy as np
 
-from cirq import linalg
-from cirq import ops
+from cirq import ops, linalg
+from cirq.decompositions import single_qubit_op_to_framed_phase_form
 from cirq.google.xmon_gates import ExpWGate
-
-
-def is_negligible_turn(turns: float, tolerance: float) -> bool:
-    return abs(_signed_mod_1(turns)) <= tolerance
 
 
 def _signed_mod_1(x: float) -> float:
@@ -58,28 +54,6 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(
     # Normalize turns into the range [-0.5, 0.5).
     return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn),
             _signed_mod_1(total_z_turn))
-
-
-def _easy_direction_partial_cz(q0: ops.QubitId, q1: ops.QubitId, t: float):
-    """The actual hardware can only do CZs that phase counter-clockwise.
-
-    This method replaces clockwise phase(t) to counter-clockwise.
-
-    Args:
-      q0: The first qubit being operated on.
-      q1: The other qubit being operated on.
-      t: The parameter to describe partial-CZ(CZ^t).
-
-    Yields:
-      Yields an equivalent circuit for CZ^t with counter-clock phased CZs.
-    """
-    if t >= 0:
-        yield ops.CZ(q0, q1)**t
-        return
-    yield ops.Z(q0)**t
-    yield ops.X(q1)
-    yield ops.CZ(q0, q1)**(-t)
-    yield ops.X(q1)
 
 
 def single_qubit_matrix_to_native_gates(
@@ -119,34 +93,6 @@ def single_qubit_matrix_to_native_gates(
     return result
 
 
-def single_qubit_op_to_framed_phase_form(
-        mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
-    """Decomposes a 2x2 unitary M into U^-1 * diag(1, r) * U * diag(g, g).
-
-    U translates the rotation axis of M to the Z axis.
-    g fixes a global phase factor difference caused by the translation.
-    r's phase is the amount of rotation around M's rotation axis.
-
-    This decomposition can be used to decompose controlled single-qubit
-    rotations into controlled-Z operations bordered by single-qubit operations.
-
-    Args:
-      mat:  The qubit operation as a 2x2 unitary matrix.
-
-    Returns:
-        A 2x2 unitary U, the complex relative phase factor r, and the complex
-        global phase factor g. Applying M is equivalent (up to global phase) to
-        applying U, rotating around the Z axis to apply r, then un-applying U.
-        When M is controlled, the control must be rotated around the Z axis to
-        apply g.
-    """
-    vals, vecs = np.linalg.eig(mat)
-    u = np.conj(vecs).T
-    r = vals[1] / vals[0]
-    g = vals[0]
-    return u, r, g
-
-
 def controlled_op_to_native_gates(
         control: ops.QubitId,
         target: ops.QubitId,
@@ -183,176 +129,3 @@ def controlled_op_to_native_gates(
         effect,
         kickback if abs(global_phase - 1) > tolerance else [],
         ops_after)))
-
-
-def _xx_interaction_via_full_czs(q0: ops.QubitId,
-                                 q1: ops.QubitId,
-                                 x: float):
-    a = x * -2 / np.pi
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.X(q0)**a
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-
-
-def _xx_yy_interaction_via_full_czs(q0: ops.QubitId,
-                                    q1: ops.QubitId,
-                                    x: float,
-                                    y: float):
-    a = x * -2 / np.pi
-    b = y * -2 / np.pi
-    yield ops.X(q0)**0.5
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-    yield ops.X(q0)**a
-    yield ops.Y(q1)**b
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-    yield ops.X(q0)**-0.5
-
-
-def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
-                                       q1: ops.QubitId,
-                                       x: float,
-                                       y: float,
-                                       z: float):
-    a = x * -2 / np.pi + 0.5
-    b = y * -2 / np.pi + 0.5
-    c = z * -2 / np.pi + 0.5
-    yield ops.X(q0)**0.5
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-    yield ops.X(q0)**a
-    yield ops.Y(q1)**b
-    yield ops.H.on(q0)
-    yield ops.CZ(q1, q0)
-    yield ops.H(q0)
-    yield ops.X(q1)**-0.5
-    yield ops.Z(q1)**c
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-
-
-def two_qubit_matrix_to_native_gates(q0: ops.QubitId,
-                                     q1: ops.QubitId,
-                                     mat: np.ndarray,
-                                     allow_partial_czs: bool,
-                                     tolerance: float = 1e-8
-                                     ) -> List[ops.Operation]:
-    """Decomposes a two-qubit operation into Z/XY/CZ gates.
-
-    Args:
-        q0: The first qubit being operated on.
-        q1: The other qubit being operated on.
-        mat: Defines the operation to apply to the pair of qubits.
-        allow_partial_czs: Enables the use of Partial-CZ gates.
-        tolerance: A limit on the amount of error introduced by the
-            construction.
-
-    Returns:
-        A list of operations implementing the matrix.
-    """
-    _, (a0, a1), (x, y, z), (b0, b1) = linalg.kak_decomposition(
-        mat,
-        linalg.Tolerance(atol=tolerance))
-    return _kak_decomposition_to_native_gates(q0, q1,
-                                              a0, a1, x, y, z, b0, b1,
-                                              allow_partial_czs, tolerance)
-
-
-def _kak_decomposition_to_native_gates(q0: ops.QubitId,
-                                       q1: ops.QubitId,
-                                       a0: np.ndarray,
-                                       a1: np.ndarray,
-                                       x: float,
-                                       y: float,
-                                       z: float,
-                                       b0: np.ndarray,
-                                       b1: np.ndarray,
-                                       allow_partial_czs: bool,
-                                       tolerance: float = 1e-8
-                                       ) -> List[ops.Operation]:
-    """Assumes that the decomposition is canonical."""
-    pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
-    post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
-
-    return list(ops.flatten_op_tree([
-        pre,
-        _non_local_part(q0, q1, x, y, z, allow_partial_czs, tolerance),
-        post,
-    ]))
-
-
-def _is_trivial_angle(rad: float, tolerance: float) -> bool:
-    """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
-    be performed with a whole CZ.
-
-    Args:
-        rad: The angle in radians, assumed to be in the range [-pi/4, pi/4]
-    """
-    return abs(rad) < tolerance or abs(abs(rad) - np.pi / 4) < tolerance
-
-
-def _parity_interaction(q0: ops.QubitId,
-                        q1: ops.QubitId,
-                        rads: float,
-                        tolerance: float,
-                        gate: Optional[ops.ReversibleEffect] = None):
-    """Yields a ZZ interaction framed by the given operation."""
-    if abs(rads) < tolerance:
-        return
-
-    h = rads * -2 / np.pi
-    if gate is not None:
-        g = cast(ops.Gate, gate)
-        yield g.on(q0), g.on(q1)
-
-    # If rads is ±pi/4 radians within tolerance, single full-CZ suffices.
-    if _is_trivial_angle(rads, tolerance):
-        yield ops.CZ.on(q0, q1)
-    else:
-        yield _easy_direction_partial_cz(q0, q1, -2 * h)
-
-    yield ops.Z(q0)**h
-    yield ops.Z(q1)**h
-    if gate is not None:
-        g = cast(ops.Gate, gate.inverse())
-        yield g.on(q0), g.on(q1)
-
-
-def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float=1e-8):
-    for gate in single_qubit_matrix_to_native_gates(u, tolerance):
-        yield gate(q)
-
-
-def _non_local_part(q0: ops.QubitId,
-                    q1: ops.QubitId,
-                    x: float,
-                    y: float,
-                    z: float,
-                    allow_partial_czs: bool,
-                    tolerance: float = 1e-8):
-    """Yields non-local operation of KAK decomposition."""
-
-    if (allow_partial_czs or
-        all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):
-        return [
-            _parity_interaction(q0, q1, x, tolerance,
-                                cast(ops.ReversibleEffect, ops.Y**-0.5)),
-            _parity_interaction(q0, q1, y, tolerance,
-                                cast(ops.ReversibleEffect, ops.X**0.5)),
-            _parity_interaction(q0, q1, z, tolerance)
-        ]
-
-    if abs(z) >= tolerance:
-        return _xx_yy_zz_interaction_via_full_czs(q0, q1, x, y, z)
-
-    if y >= tolerance:
-        return _xx_yy_interaction_via_full_czs(q0, q1, x, y)
-
-    return _xx_interaction_via_full_czs(q0, q1, x)
