@@ -94,4 +94,4 @@ def test_example_runs_phase_estimator():
 
 
 def test_example_runs_basic_arithmetic():
-    examples.basic_arithmetic.main()
+    examples.basic_arithmetic.main(n=2)
