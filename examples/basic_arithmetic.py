@@ -199,10 +199,10 @@ class Multiplier(cirq.Gate, cirq.CompositeGate):
         x = qubits[n*4:]
 
         for i, x_i in enumerate(x):
-            # a = y**(2*i)*(x_i)
+            # a = (y*(2**i))*x_i
             for a_qubit, y_qubit in zip(a[i:], y[:n-i]):
                 yield cirq.TOFFOLI(x_i, y_qubit, a_qubit)
-            # c += a
+            # b += a
             yield Adder().on(*qubits[:n*3])
             # a = 0
             for a_qubit, y_qubit in zip(a[i:], y[:n-i]):
