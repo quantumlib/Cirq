@@ -576,19 +576,25 @@ class CNotGate(eigen_gate.EigenGate,
             return 'CNOT'
         return 'CNOT**{!r}'.format(self.half_turns)
 
-    def on(self, *args: raw_types.QubitId, **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
+    def on(self, *args: raw_types.QubitId,
+           **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
         if kwargs and args:
-            raise ValueError('A mix of named and positional arguments has been specified for a CNOT operation.\n'
+            raise ValueError('A mix of named and positional arguments has been '
+                             'specified for a CNOT operation.\n'
                              'Be sure to choose either one of them')
         for argkey in kwargs.keys():
             if argkey not in ['control', 'target']:
-                raise ValueError("Unknown named argument '{0}' has been specified for CNOT operation."
-                                 "Specify 'target' AND 'control' or make use of positional arguments".format(argkey))
+                raise ValueError("Unknown named argument '{0}' has been "
+                                 "specified for CNOT operation.\n"
+                                 "Specify 'target' AND 'control' or make use "
+                                 "of positional arguments".format(argkey))
         if 'control' in kwargs.keys() and 'target' in kwargs.keys():
             return super().on(kwargs['control'], kwargs['target'])
         if 'control' in kwargs.keys() or 'target' in kwargs.keys():
-            raise ValueError('Just one of the named arguments \'target\' and \'control\' has been specified '
-                             'for a CNOT operation. \n Assign both of them or use positional arguments '
+            raise ValueError('Just one of the named arguments \'target\' '
+                             'and \'control\' has been specified '
+                             'for a CNOT operation. \n '
+                             'Assign both of them or use positional arguments '
                              'for proper operation.')
         return super().on(*args)
 

@@ -261,8 +261,10 @@ def test_cnot_keyword_arguments():
     b = cirq.NamedQubit('b')
 
     eq_tester = cirq.testing.EqualsTester()
-    eq_tester.add_equality_group(cirq.CNOT(a, b), cirq.CNOT(control=a, target=b))
-    eq_tester.add_equality_group(cirq.CNOT(b, a), cirq.CNOT(control=b, target=a))
+    eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                 cirq.CNOT(control=a, target=b))
+    eq_tester.add_equality_group(cirq.CNOT(b, a),
+                                 cirq.CNOT(control=b, target=a))
 
 def test_cnot_keyword_not_equal():
     a = cirq.NamedQubit('a')
@@ -270,7 +272,8 @@ def test_cnot_keyword_not_equal():
 
     with pytest.raises(AssertionError):
         eq_tester = cirq.testing.EqualsTester()
-        eq_tester.add_equality_group(cirq.CNOT(a, b), cirq.CNOT(target=a, control=b))
+        eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                     cirq.CNOT(target=a, control=b))
 
 def test_cnot_mixed_keyword_and_positional_arguments():
     a = cirq.NamedQubit('a')
