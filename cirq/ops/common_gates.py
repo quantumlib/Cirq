@@ -505,8 +505,10 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.CompositeGate,
                gate_features.TwoQubitGate,
                gate_features.QasmConvertableGate):
-    """When applying CNOT (controlled-not) to QuBits, you can either use positional arguments CNOT(q1, q2), where
-    q2 is toggled when q1 is on, or named arguments CNOT(control=q1, target=q2). (Mixing the two is not permitted.)"""
+    """When applying CNOT (controlled-not) to QuBits, you can either use
+    positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
+    or named arguments CNOT(control=q1, target=q2).
+    (Mixing the two is not permitted.)"""
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
