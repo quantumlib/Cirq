@@ -14,7 +14,7 @@
 import pytest
 
 from cirq.google import params
-from cirq.study.sweeps import Linspace, Points, Product, Unit, Zip
+from cirq.study.sweeps import Linspace, Points, Product, UnitSweep, Zip
 
 
 def test_gen_sweep_points():
@@ -272,8 +272,8 @@ def test_param_sweep_size_versus_gen(param_sweep):
 
 @pytest.mark.parametrize('sweep,expected', [
     (
-        Unit,
-        Unit
+        UnitSweep,
+        UnitSweep
     ),
     (
         Linspace('a', 0, 10, 25),

@@ -14,67 +14,66 @@
 
 import pytest
 
-from cirq import ops
-from cirq.circuits.moment import Moment
-from cirq.testing import EqualsTester
+import cirq
+from cirq import Moment
 
 
 def test_validation():
-    a = ops.QubitId()
-    b = ops.QubitId()
-    c = ops.QubitId()
-    d = ops.QubitId()
+    a = cirq.QubitId()
+    b = cirq.QubitId()
+    c = cirq.QubitId()
+    d = cirq.QubitId()
 
     _ = Moment([])
-    _ = Moment([ops.X(a)])
-    _ = Moment([ops.CZ(a, b)])
-    _ = Moment([ops.CZ(b, d)])
-    _ = Moment([ops.CZ(a, b), ops.CZ(c, d)])
-    _ = Moment([ops.CZ(a, c), ops.CZ(b, d)])
-    _ = Moment([ops.CZ(a, c), ops.X(b)])
+    _ = Moment([cirq.X(a)])
+    _ = Moment([cirq.CZ(a, b)])
+    _ = Moment([cirq.CZ(b, d)])
+    _ = Moment([cirq.CZ(a, b), cirq.CZ(c, d)])
+    _ = Moment([cirq.CZ(a, c), cirq.CZ(b, d)])
+    _ = Moment([cirq.CZ(a, c), cirq.X(b)])
 
     with pytest.raises(ValueError):
-        _ = Moment([ops.X(a), ops.X(a)])
+        _ = Moment([cirq.X(a), cirq.X(a)])
     with pytest.raises(ValueError):
-        _ = Moment([ops.CZ(a, c), ops.X(c)])
+        _ = Moment([cirq.CZ(a, c), cirq.X(c)])
     with pytest.raises(ValueError):
-        _ = Moment([ops.CZ(a, c), ops.CZ(c, d)])
+        _ = Moment([cirq.CZ(a, c), cirq.CZ(c, d)])
 
 
 def test_equality():
-    a = ops.QubitId()
-    b = ops.QubitId()
-    c = ops.QubitId()
-    d = ops.QubitId()
+    a = cirq.QubitId()
+    b = cirq.QubitId()
+    c = cirq.QubitId()
+    d = cirq.QubitId()
 
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
 
     # Default is empty. Iterables get frozen into tuples.
     eq.add_equality_group(Moment(),
                           Moment([]), Moment(()))
     eq.add_equality_group(
-        Moment([ops.X(d)]), Moment((ops.X(d),)))
+        Moment([cirq.X(d)]), Moment((cirq.X(d),)))
 
     # Equality depends on gate and qubits.
-    eq.add_equality_group(Moment([ops.X(a)]))
-    eq.add_equality_group(Moment([ops.X(b)]))
-    eq.add_equality_group(Moment([ops.Y(a)]))
+    eq.add_equality_group(Moment([cirq.X(a)]))
+    eq.add_equality_group(Moment([cirq.X(b)]))
+    eq.add_equality_group(Moment([cirq.Y(a)]))
 
     # Equality depends on order.
-    eq.add_equality_group(Moment([ops.X(a), ops.X(b)]))
-    eq.add_equality_group(Moment([ops.X(b), ops.X(a)]))
+    eq.add_equality_group(Moment([cirq.X(a), cirq.X(b)]))
+    eq.add_equality_group(Moment([cirq.X(b), cirq.X(a)]))
 
     # Two qubit gates.
-    eq.make_equality_group(lambda: Moment([ops.CZ(c, d)]))
-    eq.make_equality_group(lambda: Moment([ops.CZ(a, c)]))
-    eq.make_equality_group(lambda: Moment([ops.CZ(a, b), ops.CZ(c, d)]))
-    eq.make_equality_group(lambda: Moment([ops.CZ(a, c), ops.CZ(b, d)]))
+    eq.make_equality_group(lambda: Moment([cirq.CZ(c, d)]))
+    eq.make_equality_group(lambda: Moment([cirq.CZ(a, c)]))
+    eq.make_equality_group(lambda: Moment([cirq.CZ(a, b), cirq.CZ(c, d)]))
+    eq.make_equality_group(lambda: Moment([cirq.CZ(a, c), cirq.CZ(b, d)]))
 
 
 def test_operates_on():
-    a = ops.QubitId()
-    b = ops.QubitId()
-    c = ops.QubitId()
+    a = cirq.QubitId()
+    b = cirq.QubitId()
+    c = cirq.QubitId()
 
     # Empty case.
     assert not Moment().operates_on([])
@@ -83,47 +82,47 @@ def test_operates_on():
     assert not Moment().operates_on([a, b])
 
     # One-qubit operation case.
-    assert not Moment([ops.X(a)]).operates_on([])
-    assert Moment([ops.X(a)]).operates_on([a])
-    assert not Moment([ops.X(a)]).operates_on([b])
-    assert Moment([ops.X(a)]).operates_on([a, b])
+    assert not Moment([cirq.X(a)]).operates_on([])
+    assert Moment([cirq.X(a)]).operates_on([a])
+    assert not Moment([cirq.X(a)]).operates_on([b])
+    assert Moment([cirq.X(a)]).operates_on([a, b])
 
     # Two-qubit operation case.
-    assert not Moment([ops.CZ(a, b)]).operates_on([])
-    assert Moment([ops.CZ(a, b)]).operates_on([a])
-    assert Moment([ops.CZ(a, b)]).operates_on([b])
-    assert Moment([ops.CZ(a, b)]).operates_on([a, b])
-    assert not Moment([ops.CZ(a, b)]).operates_on([c])
-    assert Moment([ops.CZ(a, b)]).operates_on([a, c])
-    assert Moment([ops.CZ(a, b)]).operates_on([a, b, c])
+    assert not Moment([cirq.CZ(a, b)]).operates_on([])
+    assert Moment([cirq.CZ(a, b)]).operates_on([a])
+    assert Moment([cirq.CZ(a, b)]).operates_on([b])
+    assert Moment([cirq.CZ(a, b)]).operates_on([a, b])
+    assert not Moment([cirq.CZ(a, b)]).operates_on([c])
+    assert Moment([cirq.CZ(a, b)]).operates_on([a, c])
+    assert Moment([cirq.CZ(a, b)]).operates_on([a, b, c])
 
     # Multiple operations case.
-    assert not Moment([ops.X(a), ops.X(b)]).operates_on([])
-    assert Moment([ops.X(a), ops.X(b)]).operates_on([a])
-    assert Moment([ops.X(a), ops.X(b)]).operates_on([b])
-    assert Moment([ops.X(a), ops.X(b)]).operates_on([a, b])
-    assert not Moment([ops.X(a), ops.X(b)]).operates_on([c])
-    assert Moment([ops.X(a), ops.X(b)]).operates_on([a, c])
-    assert Moment([ops.X(a), ops.X(b)]).operates_on([a, b, c])
+    assert not Moment([cirq.X(a), cirq.X(b)]).operates_on([])
+    assert Moment([cirq.X(a), cirq.X(b)]).operates_on([a])
+    assert Moment([cirq.X(a), cirq.X(b)]).operates_on([b])
+    assert Moment([cirq.X(a), cirq.X(b)]).operates_on([a, b])
+    assert not Moment([cirq.X(a), cirq.X(b)]).operates_on([c])
+    assert Moment([cirq.X(a), cirq.X(b)]).operates_on([a, c])
+    assert Moment([cirq.X(a), cirq.X(b)]).operates_on([a, b, c])
 
 
 def test_with_operation():
-    a = ops.QubitId()
-    b = ops.QubitId()
+    a = cirq.QubitId()
+    b = cirq.QubitId()
 
-    assert Moment().with_operation(ops.X(a)) == Moment([ops.X(a)])
+    assert Moment().with_operation(cirq.X(a)) == Moment([cirq.X(a)])
 
-    assert (Moment([ops.X(a)]).with_operation(ops.X(b)) ==
-            Moment([ops.X(a), ops.X(b)]))
+    assert (Moment([cirq.X(a)]).with_operation(cirq.X(b)) ==
+            Moment([cirq.X(a), cirq.X(b)]))
 
     with pytest.raises(ValueError):
-        _ = Moment([ops.X(a)]).with_operation(ops.X(a))
+        _ = Moment([cirq.X(a)]).with_operation(cirq.X(a))
 
 
 def test_without_operations_touching():
-    a = ops.QubitId()
-    b = ops.QubitId()
-    c = ops.QubitId()
+    a = cirq.QubitId()
+    b = cirq.QubitId()
+    c = cirq.QubitId()
 
     # Empty case.
     assert Moment().without_operations_touching([]) == Moment()
@@ -131,56 +130,57 @@ def test_without_operations_touching():
     assert Moment().without_operations_touching([a, b]) == Moment()
 
     # One-qubit operation case.
-    assert (Moment([ops.X(a)]).without_operations_touching([]) ==
-            Moment([ops.X(a)]))
-    assert (Moment([ops.X(a)]).without_operations_touching([a]) ==
+    assert (Moment([cirq.X(a)]).without_operations_touching([]) ==
+            Moment([cirq.X(a)]))
+    assert (Moment([cirq.X(a)]).without_operations_touching([a]) ==
             Moment())
-    assert (Moment([ops.X(a)]).without_operations_touching([b]) ==
-            Moment([ops.X(a)]))
+    assert (Moment([cirq.X(a)]).without_operations_touching([b]) ==
+            Moment([cirq.X(a)]))
 
     # Two-qubit operation case.
-    assert (Moment([ops.CZ(a, b)]).without_operations_touching([]) ==
-            Moment([ops.CZ(a, b)]))
-    assert (Moment([ops.CZ(a, b)]).without_operations_touching([a]) ==
+    assert (Moment([cirq.CZ(a, b)]).without_operations_touching([]) ==
+            Moment([cirq.CZ(a, b)]))
+    assert (Moment([cirq.CZ(a, b)]).without_operations_touching([a]) ==
             Moment())
-    assert (Moment([ops.CZ(a, b)]).without_operations_touching([b]) ==
+    assert (Moment([cirq.CZ(a, b)]).without_operations_touching([b]) ==
             Moment())
-    assert (Moment([ops.CZ(a, b)]).without_operations_touching([c]) ==
-            Moment([ops.CZ(a, b)]))
+    assert (Moment([cirq.CZ(a, b)]).without_operations_touching([c]) ==
+            Moment([cirq.CZ(a, b)]))
 
     # Multiple operation case.
-    assert (Moment([ops.CZ(a, b),
-                    ops.X(c)]).without_operations_touching([]) ==
-            Moment([ops.CZ(a, b), ops.X(c)]))
-    assert (Moment([ops.CZ(a, b),
-                    ops.X(c)]).without_operations_touching([a]) ==
-            Moment([ops.X(c)]))
-    assert (Moment([ops.CZ(a, b),
-                    ops.X(c)]).without_operations_touching([b]) ==
-            Moment([ops.X(c)]))
-    assert (Moment([ops.CZ(a, b),
-                    ops.X(c)]).without_operations_touching([c]) ==
-            Moment([ops.CZ(a, b)]))
-    assert (Moment([ops.CZ(a, b),
-                    ops.X(c)]).without_operations_touching([a, b]) ==
-            Moment([ops.X(c)]))
-    assert (Moment([ops.CZ(a, b),
-                    ops.X(c)]).without_operations_touching([a, c]) ==
+    assert (Moment([cirq.CZ(a, b),
+                    cirq.X(c)]).without_operations_touching([]) ==
+            Moment([cirq.CZ(a, b), cirq.X(c)]))
+    assert (Moment([cirq.CZ(a, b),
+                    cirq.X(c)]).without_operations_touching([a]) ==
+            Moment([cirq.X(c)]))
+    assert (Moment([cirq.CZ(a, b),
+                    cirq.X(c)]).without_operations_touching([b]) ==
+            Moment([cirq.X(c)]))
+    assert (Moment([cirq.CZ(a, b),
+                    cirq.X(c)]).without_operations_touching([c]) ==
+            Moment([cirq.CZ(a, b)]))
+    assert (Moment([cirq.CZ(a, b),
+                    cirq.X(c)]).without_operations_touching([a, b]) ==
+            Moment([cirq.X(c)]))
+    assert (Moment([cirq.CZ(a, b),
+                    cirq.X(c)]).without_operations_touching([a, c]) ==
             Moment())
 
+
 def test_copy():
-    a = ops.QubitId()
-    b = ops.QubitId()
-    original = Moment([ops.CZ(a, b)])
+    a = cirq.QubitId()
+    b = cirq.QubitId()
+    original = Moment([cirq.CZ(a, b)])
     copy = original.__copy__()
     assert original == copy
     assert id(original) != id(copy)
 
 
 def test_qubits():
-    a = ops.QubitId()
-    b = ops.QubitId()
+    a = cirq.QubitId()
+    b = cirq.QubitId()
 
-    assert Moment([ops.X(a), ops.X(b)]).qubits == {a , b}
-    assert Moment([ops.X(a)]).qubits == {a}
-    assert Moment([ops.CZ(a, b)]).qubits == {a, b}
+    assert Moment([cirq.X(a), cirq.X(b)]).qubits == {a , b}
+    assert Moment([cirq.X(a)]).qubits == {a}
+    assert Moment([cirq.CZ(a, b)]).qubits == {a, b}

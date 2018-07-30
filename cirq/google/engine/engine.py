@@ -41,7 +41,7 @@ from cirq.google.params import sweep_to_proto_dict
 from cirq.google.programs import schedule_to_proto_dicts, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
-from cirq.study.sweeps import Points, Unit, Zip
+from cirq.study.sweeps import Points, UnitSweep, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
@@ -596,4 +596,4 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     return Zip(*[Points(key, [value]) for key, value in
                  resolver.param_dict.items()]) if len(
-        resolver.param_dict) else Unit
+        resolver.param_dict) else UnitSweep

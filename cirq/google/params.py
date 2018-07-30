@@ -14,7 +14,7 @@
 from typing import cast, Dict
 
 from cirq.study.sweeps import (
-    Linspace, Points, Product, SingleSweep, Sweep, Unit, Zip,
+    Linspace, Points, Product, SingleSweep, Sweep, UnitSweep, Zip,
 )
 
 

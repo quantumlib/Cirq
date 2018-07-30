@@ -21,6 +21,7 @@ import examples.place_on_bristlecone
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
+import examples.phase_estimator
 from examples.supremacy import generate_supremacy_circuit
 
 
@@ -86,3 +87,6 @@ def test_example_runs_bcs_mean_field():
 def test_example_runs_grover():
     examples.grover.main()
 
+
+def test_example_runs_phase_estimator():
+    examples.phase_estimator.main()

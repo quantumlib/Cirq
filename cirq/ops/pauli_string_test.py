@@ -48,6 +48,38 @@ def test_eq_ne_hash():
         eq.add_equality_group(cirq.PauliString({q: p0, q2: p1}, False))
 
 
+def test_equal_up_to_sign():
+    q0, = _make_qubits(1)
+    assert cirq.PauliString({}, False).equal_up_to_sign(
+           cirq.PauliString({}, False))
+    assert cirq.PauliString({}, True).equal_up_to_sign(
+           cirq.PauliString({}, True))
+    assert cirq.PauliString({}, False).equal_up_to_sign(
+           cirq.PauliString({}, True))
+
+    assert cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+           cirq.PauliString({q0: cirq.Pauli.X}, False))
+    assert cirq.PauliString({q0: cirq.Pauli.X}, True).equal_up_to_sign(
+           cirq.PauliString({q0: cirq.Pauli.X}, True))
+    assert cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+           cirq.PauliString({q0: cirq.Pauli.X}, True))
+
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({q0: cirq.Pauli.Y}, False))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, True).equal_up_to_sign(
+               cirq.PauliString({q0: cirq.Pauli.Y}, True))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({q0: cirq.Pauli.Y}, True))
+
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({}, False))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, True).equal_up_to_sign(
+               cirq.PauliString({}, True))
+    assert not cirq.PauliString({q0: cirq.Pauli.X}, False).equal_up_to_sign(
+               cirq.PauliString({}, True))
+
+
+
 @pytest.mark.parametrize('pauli', cirq.Pauli.XYZ)
 def test_from_single(pauli):
     q0, = _make_qubits(1)
@@ -299,7 +331,7 @@ def test_to_z_basis_ops():
 
 
 def _assert_pass_over(ops, before, after):
-    assert before.pass_operations_over(ops) == after
+    assert before.pass_operations_over(ops[::-1]) == after
     assert (after.pass_operations_over(ops, after_to_before=True)
             == before)
 
@@ -334,6 +366,12 @@ def test_pass_operations_over_single(shift, t_or_f):
     ps_after = cirq.PauliString({q0: Z, q1: Y}, not t_or_f)
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
+    op0 = cirq.CliffordGate.from_pauli(Z, True)(q0)
+    op1 = cirq.CliffordGate.from_pauli(X, True)(q0)
+    ps_before = cirq.PauliString({q0: X}, t_or_f)
+    ps_after = cirq.PauliString({q0: Y}, not t_or_f)
+    _assert_pass_over([op0, op1], ps_before, ps_after)
+
 
 @pytest.mark.parametrize('shift,t_or_f1, t_or_f2,neg',
         itertools.product(range(3), *((True, False),)*3))
@@ -364,6 +402,14 @@ def test_pass_operations_over_double(shift, t_or_f1, t_or_f2, neg):
     op0 = cirq.PauliInteractionGate(X, t_or_f1, X, t_or_f2)(q0, q1)
     ps_before = cirq.PauliString({q0: Z, q1: Y}, neg)
     ps_after = cirq.PauliString({q0: Y, q1: Z}, not neg ^ t_or_f1 ^ t_or_f2)
+    _assert_pass_over([op0], ps_before, ps_after)
+
+
+def test_pass_operations_over_cz():
+    q0, q1 = _make_qubits(2)
+    op0 = cirq.CZ(q0, q1)
+    ps_before = cirq.PauliString({q0: cirq.Pauli.Z, q1: cirq.Pauli.Y})
+    ps_after = cirq.PauliString({q1: cirq.Pauli.Y})
     _assert_pass_over([op0], ps_before, ps_after)
 
 
