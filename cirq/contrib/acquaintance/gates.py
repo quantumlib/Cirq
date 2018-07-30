@@ -254,6 +254,8 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
                              'part lens.')
         return {i: j for i, j in
                 enumerate(reversed(range(sum(self.part_lens))))}
+
+
 def op_acquaintance_size(op: Operation):
     if not isinstance(op, GateOperation):
         return 0

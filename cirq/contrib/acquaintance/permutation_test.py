@@ -19,7 +19,8 @@ import pytest
 
 import cirq
 from cirq.contrib.acquaintance.permutation import (
-        PermutationGate, SwapPermutationGate, LinearPermutationGate)
+        PermutationGate, SwapPermutationGate, LinearPermutationGate,
+        update_mapping)
 
 def test_swap_permutation_gate():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
@@ -58,6 +59,27 @@ def test_validate_permutation_errors():
     assert gate.text_diagram_info(args) == NotImplemented
 
 
+def test_diagram():
+    gate = SwapPermutationGate()
+    a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
+    circuit = cirq.Circuit.from_ops([gate(a, b)])
+    actual_text_diagram = circuit.to_text_diagram()
+    expected_text_diagram = """
+a: ───0↦1───
+      │
+b: ───1↦0───
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
+def test_update_mapping():
+    gate = SwapPermutationGate()
+    a, b, c = (cirq.NamedQubit(s) for s in 'abc')
+    mapping = {s: i for i, s in enumerate((a, b, c))}
+    ops = [gate(a, b), gate(b, c)]
+    update_mapping(mapping, ops)
+    assert mapping == {a: 1, b: 2, c: 0}
+
+
 def test_linear_permutation_gate():
     for _ in range(20):
         n_elements = randint(5, 20)
@@ -70,6 +92,7 @@ def test_linear_permutation_gate():
                        zip(elements_to_permute, permuted_elements)}
         PermutationGate.validate_permutation(permutation, n_elements)
         gate = LinearPermutationGate(permutation)
+        assert gate.permutation(n_elements) == permutation
         mapping = dict(zip(qubits, elements))
         for swap in cirq.flatten_op_tree(gate.default_decompose(qubits)):
             assert isinstance(swap, cirq.GateOperation)
