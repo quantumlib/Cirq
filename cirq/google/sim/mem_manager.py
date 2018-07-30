@@ -13,12 +13,16 @@
 # limitations under the License.
 
 """Global level manager of shared numpy arrays."""
-from typing import Optional, Tuple, Any
+from typing import TYPE_CHECKING
 
 import warnings
 from multiprocessing import Lock, RawArray  # type: ignore
 
 import numpy as np
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Any, Optional, Tuple, List
 
 
 class SharedMemManager(object):
@@ -44,7 +48,7 @@ class SharedMemManager(object):
         self._current = 0
         self._count = 0
         self._arrays = SharedMemManager._INITIAL_SIZE * [
-            None]  # type: Optional[Tuple[Any, Tuple[int, ...]]]
+            None]  # type: List[Optional[Tuple[Any, Tuple[int, ...]]]]
 
     def _create_array(self, arr: np.ndarray) -> int:
         """Returns the handle of a RawArray created from the given numpy array.
@@ -117,12 +121,14 @@ class SharedMemManager(object):
         Returns:
           The numpy ndarray with the handle given from _create_array.
         """
+        tup = self._arrays[handle]
+        assert tup is not None
+        c_arr, shape = tup
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', RuntimeWarning)
-            c_arr, shape = self._arrays[handle]
             result = np.ctypeslib.as_array(c_arr)
-            result.shape = shape
-            return result
+        result.shape = shape
+        return result
 
     @staticmethod
     def get_instance() -> 'SharedMemManager':
