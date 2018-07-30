@@ -80,18 +80,25 @@ def test_draw_entries_and_lines_with_emphasize():
     d = TextDiagramDrawer()
     d.write(0, 0, '!')
     d.write(6, 2, 'span')
-    d.grid_line(2, 3, 8, 3, True)
-    d.grid_line(7, 1, 7, 4, True)
-    print(d.render().strip())
+    d.horizontal_line(y=3, x1=2, x2=8, emphasize=True)
+    d.horizontal_line(y=5, x1=2, x2=9, emphasize=False)
+    d.vertical_line(x=7, y1=1, y2=6, emphasize=True)
+    d.vertical_line(x=5, y1=1, y2=7, emphasize=False)
     assert d.render().strip() == """
 !
 
-                 ┃
-                 ┃
-            span ┃
-                 ┃
-    ━━━━━━━━━━━━━━━
-                 ┃
+          │      ┃
+          │      ┃
+          │ span ┃
+          │      ┃
+    ━━━━━━┿━━━━━━╋━
+          │      ┃
+          │      ┃
+          │      ┃
+    ──────┼──────╂───
+          │      ┃
+          │
+          │
     """.strip()
 
 

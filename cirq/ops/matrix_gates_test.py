@@ -135,3 +135,77 @@ def test_two_qubit_extrapolate():
     assert cz2.extrapolate_effect(0).approx_eq(i)
     assert cz4.extrapolate_effect(0).approx_eq(i)
     assert cz2.extrapolate_effect(0.5).approx_eq(cz4)
+
+
+def test_single_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
+    c = cirq.Circuit.from_ops(
+        cirq.SingleQubitMatrixGate(m).on(a),
+        cirq.CZ(a, b))
+    assert c.to_text_diagram() == """
+a: ───┌                         ┐───@───
+      │0.707+0.j    0.   +0.707j│   │
+      │0.   +0.707j 0.707+0.j   │   │
+      └                         ┘   │
+                                    │
+b: ─────────────────────────────────@───
+    """.strip()
+
+    assert c.to_text_diagram(transpose=True) == """
+a                           b
+│                           │
+┌                         ┐ │
+│0.707+0.j    0.   +0.707j│ │
+│0.   +0.707j 0.707+0.j   │ │
+└                         ┘ │
+│                           │
+@───────────────────────────@
+│                           │
+    """.strip()
+
+
+def test_two_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    c = cirq.Circuit.from_ops(
+        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(a, b),
+        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(c, a))
+    assert c.to_text_diagram() == """
+a: ───┌                               ┐───#2──────────────────────────────────
+      │ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│   │
+      │ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│   │
+      │ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│   │
+      │ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│   │
+      └                               ┘   │
+      │                                   │
+b: ───#2──────────────────────────────────┼───────────────────────────────────
+                                          │
+c: ───────────────────────────────────────┌                               ┐───
+                                          │ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│
+                                          │ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│
+                                          │ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│
+                                          │ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│
+                                          └                               ┘
+    """.strip()
+
+    assert c.to_text_diagram(transpose=True) == """
+a                                 b  c
+│                                 │  │
+┌                               ┐─#2 │
+│ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│ │  │
+│ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│ │  │
+│ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│ │  │
+│ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│ │  │
+└                               ┘ │  │
+│                                 │  │
+#2────────────────────────────────┼──┌                               ┐
+│                                 │  │ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│
+│                                 │  │ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│
+│                                 │  │ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│
+│                                 │  │ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│
+│                                 │  └                               ┘
+│                                 │  │
+    """.strip()
