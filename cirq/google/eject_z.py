@@ -19,7 +19,7 @@ from typing import Optional, cast, TYPE_CHECKING
 from collections import defaultdict
 
 from cirq import circuits, ops, extension, value
-from cirq.google.decompositions import is_negligible_turn
+from cirq.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
 
 if TYPE_CHECKING:

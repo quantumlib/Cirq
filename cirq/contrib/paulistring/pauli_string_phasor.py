@@ -105,6 +105,17 @@ class PauliStringPhasor(PauliStringGateOperation,
     def inverse(self) -> 'PauliStringPhasor':
         return self.extrapolate_effect(-1)
 
+    def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
+        return self.pauli_string.equal_up_to_sign(op.pauli_string)
+
+    def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
+        if not self.can_merge_with(op):
+            raise ValueError('Cannot merge operations: {}, {}'.format(self, op))
+        neg_sign = (1, -1)[op.pauli_string.negated ^ self.pauli_string.negated]
+        half_turns = (cast(float, self.half_turns)
+                      + cast(float, op.half_turns) * neg_sign)
+        return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
+
     def default_decompose(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
