@@ -17,7 +17,6 @@ import pytest
 import cirq
 from cirq.contrib.paulistring import (
     ConvertToCliffordGates,
-    PauliStringPhasor,
 )
 
 

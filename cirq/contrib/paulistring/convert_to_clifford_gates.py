@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
-
-import numpy as np
+from typing import Optional, cast
 
 from cirq import ops, linalg, decompositions, extension
 from cirq.circuits.circuit import Circuit
@@ -22,7 +20,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 
 
 class ConvertToCliffordGates(PointOptimizer):
@@ -68,9 +65,10 @@ class ConvertToCliffordGates(PointOptimizer):
         elif quarter_turns == 3:
             return ops.CliffordGate.from_pauli(pauli, True).inverse()
 
-    def _matrix_to_clifford_op(self, op: ops.KnownMatrix) -> ops.CliffordGate:
+    def _matrix_to_clifford_op(self, mat_op: ops.KnownMatrix
+                               ) -> ops.Operation:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
-                                       op.matrix(), self.tolerance)
+                                       mat_op.matrix(), self.tolerance)
         clifford_gate = ops.CliffordGate.I
         for pauli, half_turns in rotations:
             if self._tol.all_near_zero_mod(half_turns, 0.5):
@@ -78,8 +76,8 @@ class ConvertToCliffordGates(PointOptimizer):
                     self._rotation_to_clifford_gate(pauli, half_turns))
             else:
                 raise ValueError('Cannot convert to CliffordGate: {!r}'.format(
-                                 op))
-        return clifford_gate(op.qubits[0])
+                                 mat_op))
+        return clifford_gate(cast(ops.Operation, mat_op).qubits[0])
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Don't change if it's already a CliffordGate
