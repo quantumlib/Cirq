@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import re
 
 import numpy as np
 
@@ -144,26 +145,26 @@ def test_single_qubit_diagram():
     c = cirq.Circuit.from_ops(
         cirq.SingleQubitMatrixGate(m).on(a),
         cirq.CZ(a, b))
-    assert c.to_text_diagram() == """
-a: ───┌                         ┐───@───
-      │0.707+0.j    0.   +0.707j│   │
-      │0.   +0.707j 0.707+0.j   │   │
-      └                         ┘   │
-                                    │
-b: ─────────────────────────────────@───
-    """.strip()
+    assert re.match("""
+a: ───┌[             ]+┐───@───
+      │[0-9#\\.+\\-j ]+│   │
+      │[0-9#\\.+\\-j ]+│   │
+      └[             ]+┘   │
+       [             ]+    │
+b: ────[─────────────]+────@───
+    """.strip(), c.to_text_diagram())
 
-    assert c.to_text_diagram(transpose=True) == """
-a                           b
-│                           │
-┌                         ┐ │
-│0.707+0.j    0.   +0.707j│ │
-│0.   +0.707j 0.707+0.j   │ │
-└                         ┘ │
-│                           │
-@───────────────────────────@
-│                           │
-    """.strip()
+    assert re.match("""
+a[             ]+  b
+│[             ]+  │
+┌[             ]+┐ │
+│[0-9#\\.+\\-j ]+│ │
+│[0-9#\\.+\\-j ]+│ │
+└[             ]+┘ │
+│[             ]+  │
+@[─────────────]+──@
+│[             ]+  │
+    """.strip(), c.to_text_diagram(transpose=True))
 
 
 def test_two_qubit_diagram():
@@ -173,39 +174,39 @@ def test_two_qubit_diagram():
     c = cirq.Circuit.from_ops(
         cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(a, b),
         cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(c, a))
-    assert c.to_text_diagram() == """
-a: ───┌                               ┐───#2──────────────────────────────────
-      │ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│   │
-      │ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│   │
-      │ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│   │
-      │ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│   │
-      └                               ┘   │
-      │                                   │
-b: ───#2──────────────────────────────────┼───────────────────────────────────
-                                          │
-c: ───────────────────────────────────────┌                               ┐───
-                                          │ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│
-                                          │ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│
-                                          │ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│
-                                          │ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│
-                                          └                               ┘
-    """.strip()
+    assert re.match("""
+a: ───┌[             ]+┐───#2─+
+      │[0-9#\\.+\\-j ]+│   │
+      │[0-9#\\.+\\-j ]+│   │
+      │[0-9#\\.+\\-j ]+│   │
+      │[0-9#\\.+\\-j ]+│   │
+      └[             ]+┘   │
+      │[             ]+    │
+b: ───#2[────────────]+────┼─+
+       [             ]+    │
+c: ────[─────────────]+────┌[             ]+┐───
+       [             ]+    │[0-9#\\.+\\-j ]+│
+       [             ]+    │[0-9#\\.+\\-j ]+│
+       [             ]+    │[0-9#\\.+\\-j ]+│
+       [             ]+    │[0-9#\\.+\\-j ]+│
+       [             ]+    └[             ]+┘
+    """.strip(), c.to_text_diagram())
 
-    assert c.to_text_diagram(transpose=True) == """
-a                                 b  c
-│                                 │  │
-┌                               ┐─#2 │
-│ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│ │  │
-│ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│ │  │
-│ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│ │  │
-│ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│ │  │
-└                               ┘ │  │
-│                                 │  │
-#2────────────────────────────────┼──┌                               ┐
-│                                 │  │ 1.+0.j  0.+0.j  0.+0.j  0.+0.j│
-│                                 │  │ 0.+0.j  1.+0.j  0.+0.j  0.+0.j│
-│                                 │  │ 0.+0.j  0.+0.j  1.+0.j  0.+0.j│
-│                                 │  │ 0.+0.j  0.+0.j  0.+0.j -1.+0.j│
-│                                 │  └                               ┘
-│                                 │  │
-    """.strip()
+    assert re.match("""
+a[             ]+  b  c
+│[             ]+  │  │
+┌[             ]+┐─#2 │
+│[0-9#\\.+\\-j ]+│ │  │
+│[0-9#\\.+\\-j ]+│ │  │
+│[0-9#\\.+\\-j ]+│ │  │
+│[0-9#\\.+\\-j ]+│ │  │
+└[             ]+┘ │  │
+│[             ]+  │  │
+#2[────────────]+──┼──┌[             ]+┐
+│[             ]+  │  │[0-9#\\.+\\-j ]+│
+│[             ]+  │  │[0-9#\\.+\\-j ]+│
+│[             ]+  │  │[0-9#\\.+\\-j ]+│
+│[             ]+  │  │[0-9#\\.+\\-j ]+│
+│[             ]+  │  └[             ]+┘
+│[             ]+  │  │
+    """.strip(), c.to_text_diagram(transpose=True))
