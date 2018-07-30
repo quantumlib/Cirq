@@ -17,10 +17,7 @@ from cirq.google.convert_to_xmon_gates import (
 )
 from cirq.google.decompositions import (
     controlled_op_to_native_gates,
-    is_negligible_turn,
     single_qubit_matrix_to_native_gates,
-    single_qubit_op_to_framed_phase_form,
-    two_qubit_matrix_to_native_gates,
 )
 from cirq.google.eject_full_w import (
     EjectFullW,

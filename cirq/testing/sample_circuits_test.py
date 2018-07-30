@@ -13,28 +13,11 @@
 # limitations under the License.
 
 import cirq
-from cirq.contrib.paulistring import (
-    PauliStringPhasor,
-    convert_and_separate_circuit,
-)
 
 
-def test_toffoli_separate():
+def test_nonoptimal_toffoli_circuit():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
-
-    c_left, c_right = convert_and_separate_circuit(circuit)
-
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        (c_left + c_right).to_unitary_matrix(),
-        atol=1e-7,
-    )
-
-    assert all(isinstance(op, PauliStringPhasor)
-               for op in c_left.all_operations())
-    assert all(isinstance(op, cirq.GateOperation) and
-               isinstance(op.gate, (cirq.CliffordGate,
-                                    cirq.PauliInteractionGate))
-               for op in c_right.all_operations())
-
+        cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2).to_unitary_matrix(),
+        cirq.TOFFOLI(q0, q1, q2).matrix(),
+        atol=1e-7)
