@@ -14,31 +14,28 @@
 
 import pytest
 import numpy as np
-from google.protobuf import message, text_format
 
 import cirq
 import cirq.google as cg
-from cirq.api.google.v1 import operations_pb2
 from cirq.devices import GridQubit
 from cirq.study import ParamResolver
 from cirq.value import Symbol
 
 
-def proto_matches_text(proto: message, expected_as_text: str):
-    expected = text_format.Merge(expected_as_text, type(proto)())
-    return str(proto) == str(expected)
+def proto_matches_text(proto: str, expected_as_text: str):
+    return proto == expected_as_text
 
 
 def test_parameterized_value_from_proto():
-    from_proto = cg.XmonGate.parameterized_value_from_proto
+    from_proto = cg.XmonGate.parameterized_value_from_proto_dict
 
-    m1 = operations_pb2.ParameterizedFloat(raw=5)
+    m1 = {'raw': 5}
     assert from_proto(m1) == 5
 
     with pytest.raises(ValueError):
-        from_proto(operations_pb2.ParameterizedFloat())
+        from_proto({})
 
-    m3 = operations_pb2.ParameterizedFloat(parameter_key='rr')
+    m3 = {'parameter_key': 'rr'}
     assert from_proto(m3) == Symbol('rr')
 
 
@@ -53,58 +50,67 @@ def test_measurement_eq():
                                                          invert_mask=(False,)))
 
 
-def test_single_qubit_measurement_to_proto():
-    assert proto_matches_text(
-        cg.XmonMeasurementGate('test').to_proto(GridQubit(2, 3)),
-        """
-        measurement {
-            targets {
-                row: 2
-                col: 3
-            }
-            key: "test"
+def test_single_qubit_measurement_to_proto_dict():
+    result = cg.XmonMeasurementGate('test').to_proto_dict(GridQubit(2, 3))
+    expected = {
+        'measurement': {
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                }
+            ],
+            'key': 'test'
         }
-        """)
-    assert proto_matches_text(
-        cg.XmonMeasurementGate('test', invert_mask=[True])
-            .to_proto(GridQubit(2, 3)),
-        """
-        measurement {
-            targets {
-                row: 2
-                col: 3
-            }
-            key: "test"
-            invert_mask: true
-        }
-        """)
+    }
+    assert result == expected
 
 
-def test_multi_qubit_measurement_to_proto():
-    assert proto_matches_text(
-        cg.XmonMeasurementGate('test').to_proto(
-            GridQubit(2, 3), GridQubit(3, 4)),
-        """
-        measurement {
-            targets {
-                row: 2
-                col: 3
-            }
-            targets {
-                row: 3
-                col: 4
-            }
-            key: "test"
+def test_single_qubit_measurement_to_proto_dict_invert_mask():
+    result = cg.XmonMeasurementGate('test', invert_mask=[True]).to_proto_dict(
+        GridQubit(2, 3))
+    expected = {
+        'measurement': {
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                }
+            ],
+            'key': 'test',
+            'invert_mask': [True]
         }
-        """)
+    }
+    assert result == expected
+
+
+def test_multi_qubit_measurement_to_proto_dict():
+    result = cg.XmonMeasurementGate('test').to_proto_dict(GridQubit(2, 3),
+                                                          GridQubit(3, 4))
+    expected = {
+        'measurement': {
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                },
+                {
+                    'row': 3,
+                    'col': 4
+                }
+            ],
+            'key': 'test'
+        }
+    }
+    assert result == expected
 
 
 def test_invalid_measurement_gate():
     with pytest.raises(ValueError, match='length'):
-        cg.XmonMeasurementGate('test', invert_mask=[True]).to_proto(
+        cg.XmonMeasurementGate('test', invert_mask=[True]).to_proto_dict(
             GridQubit(2, 3), GridQubit(3, 4))
     with pytest.raises(ValueError, match='no qubits'):
-        cg.XmonMeasurementGate('test').to_proto()
+        cg.XmonMeasurementGate('test').to_proto_dict()
 
 
 def test_z_eq():
@@ -123,34 +129,34 @@ def test_z_eq():
         cg.ExpZGate(half_turns=10.5))
 
 
-def test_z_to_proto():
-    assert proto_matches_text(
-        cg.ExpZGate(half_turns=Symbol('k')).to_proto(GridQubit(2, 3)),
-        """
-        exp_z {
-            target {
-                row: 2
-                col: 3
-            }
-            half_turns {
-                parameter_key: "k"
+def test_z_to_proto_dict():
+    result = cg.ExpZGate(half_turns=Symbol('k')).to_proto_dict(GridQubit(2, 3))
+    expected = {
+        'exp_z': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'half_turns': {
+                'parameter_key': 'k'
             }
         }
-        """)
+    }
+    assert result == expected
 
-    assert proto_matches_text(
-        cg.ExpZGate(half_turns=0.5).to_proto(GridQubit(2, 3)),
-        """
-        exp_z {
-            target {
-                row: 2
-                col: 3
-            }
-            half_turns {
-                raw: 0.5
+    result = cg.ExpZGate(half_turns=0.5).to_proto_dict(GridQubit(2, 3))
+    expected = {
+        'exp_z': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'half_turns': {
+                'raw': 0.5
             }
         }
-        """)
+    }
+    assert result == expected
 
 
 def test_z_matrix():
@@ -188,44 +194,44 @@ def test_cz_eq():
         cg.Exp11Gate(half_turns=6.5))
 
 
-def test_cz_to_proto():
-    assert proto_matches_text(
-        cg.Exp11Gate(half_turns=Symbol('k')).to_proto(
-            GridQubit(2, 3), GridQubit(4, 5)),
-        """
-        exp_11 {
-            target1 {
-                row: 2
-                col: 3
-            }
-            target2 {
-                row: 4
-                col: 5
-            }
-            half_turns {
-                parameter_key: "k"
+def test_cz_to_proto_dict():
+    result =  cg.Exp11Gate(half_turns=Symbol('k')).to_proto_dict(
+            GridQubit(2, 3), GridQubit(4, 5))
+    expected = {
+        'exp_11': {
+            'target1': {
+                'row': 2,
+                'col': 3
+            },
+            'target2': {
+                'row': 4,
+                'col': 5
+            },
+            'half_turns': {
+                'parameter_key': 'k'
             }
         }
-        """)
+    }
+    assert result == expected
 
-    assert proto_matches_text(
-        cg.Exp11Gate(half_turns=0.5).to_proto(
-            GridQubit(2, 3), GridQubit(4, 5)),
-        """
-        exp_11 {
-            target1 {
-                row: 2
-                col: 3
-            }
-            target2 {
-                row: 4
-                col: 5
-            }
-            half_turns {
-                raw: 0.5
+    result = cg.Exp11Gate(half_turns=0.5).to_proto_dict(GridQubit(2, 3),
+                                                        GridQubit(4, 5))
+    expected = {
+        'exp_11': {
+            'target1': {
+                'row': 2,
+                'col': 3
+            },
+            'target2': {
+                'row': 4,
+                'col': 5
+            },
+            'half_turns': {
+                'raw': 0.5
             }
         }
-        """)
+    }
+    assert result == expected
 
 
 def test_cz_potential_implementation():
@@ -296,42 +302,42 @@ def test_w_str():
 
 
 
-def test_w_to_proto():
-    assert proto_matches_text(
-        cg.ExpWGate(half_turns=Symbol('k'),
-                    axis_half_turns=1).to_proto(GridQubit(2, 3)),
-        """
-        exp_w {
-            target {
-                row: 2
-                col: 3
-            }
-            axis_half_turns {
-                raw: 1
-            }
-            half_turns {
-                parameter_key: "k"
+def test_w_to_proto_dict():
+    result = cg.ExpWGate(half_turns=Symbol('k'),
+                         axis_half_turns=1).to_proto_dict(GridQubit(2, 3))
+    expected = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'raw': 1
+            },
+            'half_turns': {
+                'parameter_key': 'k'
             }
         }
-        """)
+    }
+    assert result == expected
+    result =  cg.ExpWGate(half_turns=0.5,
+                    axis_half_turns=Symbol('j')).to_proto_dict(GridQubit(2, 3))
 
-    assert proto_matches_text(
-        cg.ExpWGate(half_turns=0.5,
-                    axis_half_turns=Symbol('j')).to_proto(GridQubit(2, 3)),
-        """
-        exp_w {
-            target {
-                row: 2
-                col: 3
-            }
-            axis_half_turns {
-                parameter_key: "j"
-            }
-            half_turns {
-                raw: 0.5
+    expected = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'parameter_key': 'j'
+            },
+            'half_turns': {
+                'raw': 0.5
             }
         }
-        """)
+    }
+    assert result == expected
 
 
 def test_w_decomposition():

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import operator
 
-from cirq.api.google.v1 import operations_pb2
+import operator
+from typing import Dict
+
 from cirq.ops import QubitId
 
 
@@ -67,15 +68,14 @@ class GridQubit(QubitId):
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
-    def to_proto(
-            self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
+    def to_proto_dict(self, out: Dict = None) -> Dict:
         """Return the proto form, mutating supplied form if supplied."""
         if out is None:
-            out = operations_pb2.Qubit()
-        out.row = self.row
-        out.col = self.col
+            out = {}
+        out['row'] = self.row
+        out['col'] = self.col
         return out
 
     @staticmethod
-    def from_proto(q: operations_pb2.Qubit) -> 'GridQubit':
-        return GridQubit(row=q.row, col=q.col)
+    def from_proto_dict(q: Dict) -> 'GridQubit':
+        return GridQubit(row=q['row'], col=q['col'])

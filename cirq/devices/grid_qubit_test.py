@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cirq
-from cirq.api.google.v1 import operations_pb2
 
 
 def test_xmon_qubit_init():
@@ -69,18 +68,12 @@ def test_to_proto():
     q = cirq.GridQubit(5, 6)
 
     # Create a new message.
-    proto = q.to_proto()
-    assert proto.row == 5
-    assert proto.col == 6
-
-    # Populate an existing message.
-    proto2 = operations_pb2.Qubit()
-    q.to_proto(proto2)
-    assert proto2.row == 5
-    assert proto2.col == 6
+    proto = q.to_proto_dict()
+    assert proto['row'] == 5
+    assert proto['col'] == 6
 
 
 def test_from_proto():
     q = cirq.GridQubit(5, 6)
-    q2 = cirq.GridQubit.from_proto(q.to_proto())
+    q2 = cirq.GridQubit.from_proto_dict(q.to_proto_dict())
     assert q2 == q

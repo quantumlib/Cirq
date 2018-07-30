@@ -16,7 +16,6 @@ from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 import numpy as np
 
 from cirq import ops
-from cirq.api.google.v1 import operations_pb2
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
     from typing import Optional  # pylint: disable=unused-import
 
 
-def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
+def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """Convert a schedule into protobufs.
 
     Args:
@@ -34,34 +33,37 @@ def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
             that can be cast to xmon gates.
 
     Yields:
-        operations_pb2.Operation
+        A proto dictionary corresponding to an Operation proto.
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
         gate = xmon_gate_ext.cast(
             xmon_gates.XmonGate,
             cast(ops.GateOperation, so.operation).gate)
-        op = gate.to_proto(*so.operation.qubits)
+        op = gate.to_proto_dict(*so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
-            op.incremental_delay_picoseconds = time_picos
+            op['incremental_delay_picoseconds'] = time_picos
         else:
-            op.incremental_delay_picoseconds = time_picos - last_time_picos
+            op['incremental_delay_picoseconds'] = time_picos - last_time_picos
         last_time_picos = time_picos
         yield op
 
 
-def schedule_from_proto(
+def schedule_from_proto_dicts(
         device: XmonDevice,
-        ops: Iterable[operations_pb2.Operation],
+        ops: Iterable[Dict],
 ) -> Schedule:
     """Convert protobufs into a Schedule for the given device."""
     scheduled_ops = []
     last_time_picos = 0
     for op in ops:
-        time_picos = last_time_picos + op.incremental_delay_picoseconds
+        delay_picos = 0
+        if 'incremental_delay_picoseconds' in op:
+            delay_picos = op['incremental_delay_picoseconds']
+        time_picos = last_time_picos + delay_picos
         last_time_picos = time_picos
-        xmon_op = xmon_gates.XmonGate.from_proto(op)
+        xmon_op = xmon_gates.XmonGate.from_proto_dict(op)
         scheduled_ops.append(ScheduledOperation.op_at_on(
             operation=xmon_op,
             time=Timestamp(picos=time_picos),
