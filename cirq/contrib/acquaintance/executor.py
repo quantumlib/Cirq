@@ -32,7 +32,9 @@ if TYPE_CHECKING:
     from typing import Callable, List, DefaultDict
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):
-    """An execution strategy."""
+    """An execution strategy tells StrategyExecutor how to execute an
+    acquaintance strategy, i.e. what gates to implement at the available
+    acquaintance opportunities."""
 
     keep_acquaintance = False
 
@@ -86,6 +88,13 @@ class StrategyExecutor(PointOptimizer):
                          'PermutationGate.')
 
 class GreedyExecutionStrategy(ExecutionStrategy):
+    """A greedy execution strategy. When an acquaintance opportunity is
+    reached, all gates acting on those qubits in any order are inserted.
+
+        Args:
+            gates: The gates to insert.
+            initial_mapping: The initial mapping of qubits to logical indices.
+    """
     def __init__(self,
                  gates: LogicalGates,
                  initial_mapping: LogicalMapping
@@ -116,6 +125,9 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     @staticmethod
     def canonicalize_gates(gates: LogicalGates
         ) -> Dict[frozenset, LogicalGates]:
+        """Takes a set of gates specified by ordered sequences of logical
+        indices, and groups those that act on the same qubits regardless of
+        order."""
         canonicalized_gates = defaultdict(dict
             ) # type: DefaultDict[frozenset, LogicalGates]
         for indices, gate in gates.items():

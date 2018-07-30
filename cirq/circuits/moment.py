@@ -14,7 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Dict, Iterable, TypeVar, Callable
+from typing import Iterable, TypeVar, Callable
 
 from cirq import ops
 
@@ -116,5 +116,5 @@ class Moment(object):
     def transform_qubits(self: TSelf_Moment,
                          func: Callable[[ops.QubitId], ops.QubitId]
                          ) -> TSelf_Moment:
-        return self.__class__(op.transform_qubits(*(func(q) for q in op.qubits))
-                      for op in self.operations)
+        return self.__class__(op.transform_qubits(func)
+                for op in self.operations)

@@ -34,6 +34,11 @@ if TYPE_CHECKING:
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 class AcquaintanceStrategy(Circuit):
+    """An acquaintance strategy is a special type of circuit that contains only
+    gates of two types: AcquaintanceOpportunityGate and PermutationGate. It
+    serves as a skeleton for compiling around geometric constraints.
+    """
+
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
     def __init__(self, circuit: Circuit=None) -> None:
@@ -47,6 +52,8 @@ class AcquaintanceStrategy(Circuit):
         super().__init__(circuit._moments)
 
     def rectify(self, acquaint_first: bool=True):
+        """Splits moments so that they contain either only acquaintance gates
+        or only permutation gates."""
         last_gate_type = self.gate_types[int(not acquaint_first)]
         rectified_moments = []
         for moment in self:
@@ -65,6 +72,10 @@ class AcquaintanceStrategy(Circuit):
 
     def nest(self, qubit_order: Sequence[QubitId], acquaintance_size: int=0
             ) -> bool:
+        """Replace every moment containing acquaintance gates (after
+        rectification) with a generalized swap network, with the partition
+        given by the acquaintance gates in that moment (and singletons for the
+                free qubits). Accounts for reversing effect of swap networks."""
         self.rectify()
         reflected = False
         reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
@@ -86,6 +97,8 @@ class AcquaintanceStrategy(Circuit):
 
 
 class ExposeAcquaintanceGates(ExpandComposite):
+    """Decomposes any permutation gates that provide acquaintance opportunities
+    in order to make them explicit."""
     def __init__(self):
         self.extension = Extensions()
         self.no_decomp = lambda op: (
@@ -99,6 +112,16 @@ expose_acquaintance_gates = ExposeAcquaintanceGates()
 def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
                                    acquaintance_size: int=0,
                                    ) -> AcquaintanceStrategy:
+    """
+        Args:
+            qubit_order: The qubits on which the strategy should be defined.
+            acquaintance_size: The maximum number of qubits to be acted on by
+            an operation.
+
+        Returns:
+            An AcquaintanceStrategy capable of implementing any set of k-local
+            operation.
+    """
     if acquaintance_size < 0:
         raise ValueError('acquaintance_size must be non-negative.')
     elif acquaintance_size == 0:
