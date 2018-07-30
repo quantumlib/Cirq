@@ -19,12 +19,7 @@ from typing import Sequence, Tuple
 from numpy.random import poisson
 import pytest
 
-from cirq import NamedQubit, LineQubit
-from cirq.circuits import Circuit, Moment, ExpandComposite
-from cirq.ops import (
-        TextDiagramInfoArgs, flatten_op_tree,
-        Operation, QubitId)
-
+import cirq
 from cirq.contrib.acquaintance.gates import (
         ACQUAINT, SwapNetworkGate, op_acquaintance_size)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
@@ -36,8 +31,8 @@ def test_acquaintance_gate_repr():
     assert repr(ACQUAINT) == 'Acq'
 
 def test_acquaintance_gate_text_diagram_info():
-    qubits = [NamedQubit(s) for s in 'xyz']
-    circuit = Circuit([Moment([ACQUAINT(*qubits)])])
+    qubits = [cirq.NamedQubit(s) for s in 'xyz']
+    circuit = cirq.Circuit([cirq.Moment([ACQUAINT(*qubits)])])
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
 x: ───█───
@@ -50,12 +45,12 @@ z: ───█───
 
 def test_acquaintance_gate_unknown_qubit_count():
     g = ACQUAINT
-    args = TextDiagramInfoArgs.UNINFORMED_DEFAULT
+    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
     assert g.text_diagram_info(args) == NotImplemented
 
 
 def test_swap_network_gate():
-    qubits = tuple(NamedQubit(s) for s in alphabet)
+    qubits = tuple(cirq.NamedQubit(s) for s in alphabet)
 
     acquaintance_size = 3
     n_parts = 3
@@ -63,7 +58,7 @@ def test_swap_network_gate():
     n_qubits = sum(part_lens)
     swap_network_op = SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
-    swap_network = Circuit.from_ops(swap_network_op)
+    swap_network = cirq.Circuit.from_ops(swap_network_op)
     actual_text_diagram = swap_network.to_text_diagram().strip()
     expected_text_diagram = """
 a: ───×(0,0)───
@@ -82,7 +77,7 @@ f: ───×(2,1)───
 
     no_decomp = lambda op: isinstance(op.gate,
             (CircularShiftGate, LinearPermutationGate))
-    expander = ExpandComposite(no_decomp=no_decomp)
+    expander = cirq.ExpandComposite(no_decomp=no_decomp)
     expander(swap_network)
     actual_text_diagram = swap_network.to_text_diagram().strip()
     expected_text_diagram = """
@@ -101,7 +96,7 @@ f: ─────────────────█───────�
     assert actual_text_diagram == expected_text_diagram
 
     no_decomp = lambda op: isinstance(op.gate, CircularShiftGate)
-    expander = ExpandComposite(no_decomp=no_decomp)
+    expander = cirq.ExpandComposite(no_decomp=no_decomp)
 
     acquaintance_size = 3
     n_parts = 6
@@ -109,7 +104,7 @@ f: ─────────────────█───────�
     n_qubits = sum(part_lens)
     swap_network_op = SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
-    swap_network = Circuit.from_ops(swap_network_op)
+    swap_network = cirq.Circuit.from_ops(swap_network_op)
 
     expander(swap_network)
     actual_text_diagram = swap_network.to_text_diagram().strip()
@@ -135,19 +130,19 @@ f: ───╱1╲─────────╱1╲─────────
     )
 def test_swap_network_gate_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
-    qubits = LineQubit.range(n_qubits)
+    qubits = cirq.LineQubit.range(n_qubits)
     swap_network_gate = SwapNetworkGate(part_lens, acquaintance_size)
     operations = swap_network_gate.default_decompose(qubits)
-    operations = list(flatten_op_tree(operations))
+    operations = list(cirq.flatten_op_tree(operations))
     mapping = {q: i for i, q in enumerate(qubits)}
     update_mapping(mapping, operations)
     assert mapping == {q: i for i, q in enumerate(reversed(qubits))}
 
 def test_swap_network_decomposition():
-    qubits = LineQubit.range(8)
+    qubits = cirq.LineQubit.range(8)
     swap_network_gate = SwapNetworkGate((4, 4), 5)
     operations = swap_network_gate.default_decompose(qubits)
-    circuit = Circuit.from_ops(operations)
+    circuit = cirq.Circuit.from_ops(operations)
     actual_text_diagram = circuit.to_text_diagram()
     expected_text_diagram = """
 0: ───█─────────────█─────────────╲0╱─────────────█─────────█───────0↦2───
@@ -191,15 +186,15 @@ def test_swap_network_permutation_error():
     with pytest.raises(ValueError):
         gate.permutation(1)
 
-class OtherOperation(Operation):
-    def __init__(self, qubits: Sequence[QubitId]) -> None:
+class OtherOperation(cirq.Operation):
+    def __init__(self, qubits: Sequence[cirq.QubitId]) -> None:
         self._qubits = tuple(qubits)
 
     @property
-    def qubits(self) -> Tuple[QubitId, ...]:
+    def qubits(self) -> Tuple[cirq.QubitId, ...]:
         return self._qubits
 
-    def with_qubits(self, *new_qubits: QubitId) -> 'OtherOperation':
+    def with_qubits(self, *new_qubits: cirq.QubitId) -> 'OtherOperation':
         return type(self)(self._qubits)
 
     def __eq__(self, other):
@@ -207,7 +202,7 @@ class OtherOperation(Operation):
                 self.qubits == other.qubits)
 
 def test_op_acquaintance_size():
-    qubits = LineQubit.range(5)
+    qubits = cirq.LineQubit.range(5)
     op = OtherOperation(qubits)
     assert op.with_qubits(qubits) == op
     assert op_acquaintance_size(op) == 0

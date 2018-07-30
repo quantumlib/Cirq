@@ -111,7 +111,6 @@ class GreedyExecutionStrategy(ExecutionStrategy):
             index_to_qubit = dict(zip(indices, qubits))
             for gate_indices, gate in gates.items():
                 yield gate(*[index_to_qubit[i] for i in gate_indices])
-        return
 
 
     @staticmethod

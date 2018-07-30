@@ -14,10 +14,11 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Dict, Iterable
+from typing import Dict, Iterable, TypeVar, Callable
 
 from cirq import ops
 
+TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 class Moment(object):
     """A simplified time-slice of operations within a sequenced circuit.
@@ -112,6 +113,8 @@ class Moment(object):
     def __str__(self):
         return ' and '.join(str(op) for op in self.operations)
 
-    def with_qubits_mapped(self, qubit_map: Dict[ops.QubitId, ops.QubitId]):
-        return Moment(op.with_qubits(*(qubit_map[q] for q in op.qubits))
+    def transform_qubits(self: TSelf_Moment,
+                         func: Callable[[ops.QubitId], ops.QubitId]
+                         ) -> TSelf_Moment:
+        return self.__class__(op.transform_qubits(*(func(q) for q in op.qubits))
                       for op in self.operations)

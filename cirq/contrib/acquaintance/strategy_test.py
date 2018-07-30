@@ -17,7 +17,6 @@ from string import ascii_lowercase as alphabet
 import pytest
 
 import cirq
-from cirq import Circuit, NamedQubit, ExpandComposite, LineQubit
 from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
 from cirq.contrib.acquaintance.permutation import (
@@ -28,13 +27,13 @@ from cirq.contrib.acquaintance.gates import ACQUAINT
 
 def test_acquaintance_strategy():
     with pytest.raises(ValueError):
-        q = NamedQubit('q')
-        circuit = Circuit.from_ops(cirq.X(q))
+        q = cirq.NamedQubit('q')
+        circuit = cirq.Circuit.from_ops(cirq.X(q))
         _ = AcquaintanceStrategy(circuit)
 
 
 def test_complete_acquaintance_strategy():
-    qubits = [NamedQubit(s) for s in alphabet]
+    qubits = [cirq.NamedQubit(s) for s in alphabet]
 
     with pytest.raises(ValueError):
         _ = complete_acquaintance_strategy(qubits, -1)
@@ -58,7 +57,7 @@ d: ───█───
 
     is_shift_or_lin_perm = lambda op: isinstance(op.gate,
             (CircularShiftGate, LinearPermutationGate))
-    expand = ExpandComposite(no_decomp=is_shift_or_lin_perm)
+    expand = cirq.ExpandComposite(no_decomp=is_shift_or_lin_perm)
 
     quadratic_strategy = complete_acquaintance_strategy(qubits[:8], 2)
     actual_text_diagram = quadratic_strategy.to_text_diagram().strip()
@@ -151,14 +150,14 @@ a      b      c      d
     assert cubic_strategy.acquaintance_size() == 3
 
 def test_rectification():
-    qubits = LineQubit.range(4)
+    qubits = cirq.LineQubit.range(4)
     perm_gate = SwapPermutationGate()
     operations = [
         perm_gate(*qubits[:2]), ACQUAINT(*qubits[2:]),
         ACQUAINT(*qubits[:2]), perm_gate(*qubits[2:])
         ]
 
-    strategy = AcquaintanceStrategy(Circuit.from_ops(operations))
+    strategy = AcquaintanceStrategy(cirq.Circuit.from_ops(operations))
     strategy.rectify()
     actual_text_diagram = strategy.to_text_diagram().strip()
     expected_text_diagram = """
@@ -172,7 +171,7 @@ def test_rectification():
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-    strategy = AcquaintanceStrategy(Circuit.from_ops(operations))
+    strategy = AcquaintanceStrategy(cirq.Circuit.from_ops(operations))
     strategy.rectify(False)
     actual_text_diagram = strategy.to_text_diagram()
     expected_text_diagram = """

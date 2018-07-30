@@ -18,10 +18,7 @@ from typing import Sequence, Dict, Tuple
 import numpy as np
 import pytest
 
-from cirq import LineQubit
-from cirq.circuits import Circuit
-from cirq.linalg import Tolerance
-from cirq.ops import Gate, gate_features, X, QubitId
+import cirq
 from cirq.contrib.acquaintance.strategy import (
     complete_acquaintance_strategy, AcquaintanceStrategy)
 from cirq.contrib.acquaintance.permutation import (
@@ -29,19 +26,19 @@ from cirq.contrib.acquaintance.permutation import (
 from cirq.contrib.acquaintance.executor import (
         StrategyExecutor, GreedyExecutionStrategy)
 
-class ExampleGate(Gate, gate_features.TextDiagrammable):
+class ExampleGate(cirq.Gate, cirq.TextDiagrammable):
     def __init__(self, wire_symbols: Sequence[str]) -> None:
         self._wire_symbols = tuple(wire_symbols)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
                 wire_symbols=self._wire_symbols)
 
 
 def test_executor_explicit():
     n_qubits = 8
-    qubits = LineQubit.range(n_qubits)
+    qubits = cirq.LineQubit.range(n_qubits)
     circuit = complete_acquaintance_strategy(qubits, 2)
 
     gates = {(i, j): ExampleGate([str(k) for k in ij])
@@ -56,11 +53,11 @@ def test_executor_explicit():
         GreedyExecutionStrategy(bad_gates, initial_mapping)
 
     with pytest.raises(ValueError):
-        executor(Circuit())
+        executor(cirq.Circuit())
 
     with pytest.raises(TypeError):
-        bad_strategy = AcquaintanceStrategy(Circuit())
-        bad_strategy.append(X(qubits[0]))
+        bad_strategy = AcquaintanceStrategy(cirq.Circuit())
+        bad_strategy.append(cirq.X(qubits[0]))
         executor(bad_strategy)
 
     executor(circuit)
@@ -84,13 +81,13 @@ def test_executor_explicit():
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-class DiagonalGate(Gate,
-                   gate_features.KnownMatrix,
-                   gate_features.TextDiagrammable):
+class DiagonalGate(cirq.Gate,
+                   cirq.KnownMatrix,
+                   cirq.TextDiagrammable):
     def __init__(self, n_qubits: int, diagonal: np.ndarray) -> None:
         dimension = 2 ** n_qubits
         if ((diagonal.shape != (dimension,)) or not
-            Tolerance.DEFAULT.all_close(
+            np.allclose(
                 np.absolute(diagonal), np.ones(dimension))):
             raise ValueError('Diagonal must be an (2**n_qubits)-dimensional '
                     'vector with unit-norm entries.')
@@ -100,12 +97,12 @@ class DiagonalGate(Gate,
     def matrix(self) -> np.ndarray:
         return np.diag(self.diagonal)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
         if args.known_qubit_count is None:
             return NotImplemented
         wire_symbols = ('Diag',) * args.known_qubit_count
-        return gate_features.TextDiagramInfo(
+        return cirq.TextDiagramInfo(
                 wire_symbols=wire_symbols)
 
 
@@ -123,16 +120,16 @@ def test_diagonal_gate():
         diagonal = np.ndarray(range(4))
         DiagonalGate(2, diagonal)
     gate = DiagonalGate.random(2)
-    args = gate_features.TextDiagramInfoArgs.UNINFORMED_DEFAULT
+    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
     assert gate.text_diagram_info(args) == NotImplemented
 
 def random_diagonal_gates(n_qubits: int,
                  acquaintance_size: int
-                 ) -> Dict[Tuple[QubitId, ...], Gate]:
+                 ) -> Dict[Tuple[cirq.QubitId, ...], cirq.Gate]:
 
     return {Q: DiagonalGate.random(acquaintance_size)
              for Q in
-             combinations(LineQubit.range(n_qubits), acquaintance_size)}
+             combinations(cirq.LineQubit.range(n_qubits), acquaintance_size)}
 
 
 @pytest.mark.parametrize('n_qubits, acquaintance_size, gates',
@@ -147,11 +144,11 @@ def random_diagonal_gates(n_qubits: int,
       ])
 def test_executor_random(n_qubits: int,
                          acquaintance_size: int,
-                         gates: Dict[Tuple[QubitId, ...], Gate]):
-    qubits = LineQubit.range(n_qubits)
+                         gates: Dict[Tuple[cirq.QubitId, ...], cirq.Gate]):
+    qubits = cirq.LineQubit.range(n_qubits)
     circuit = complete_acquaintance_strategy(qubits, acquaintance_size)
 
-    logical_circuit = Circuit.from_ops([g(*Q) for Q, g in gates.items()])
+    logical_circuit = cirq.Circuit.from_ops([g(*Q) for Q, g in gates.items()])
     expected_unitary = logical_circuit.to_unitary_matrix()
 
     initial_mapping = {q: q for q in qubits}
@@ -161,8 +158,6 @@ def test_executor_random(n_qubits: int,
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(LinearPermutationGate(permutation)(*qubits))
     actual_unitary = circuit.to_unitary_matrix()
-    print(logical_circuit)
-    print(circuit.to_text_diagram(transpose=True))
 
     np.testing.assert_allclose(
             actual=actual_unitary,

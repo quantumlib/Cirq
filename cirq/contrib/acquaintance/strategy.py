@@ -70,7 +70,7 @@ class AcquaintanceStrategy(Circuit):
         reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
         for moment_index, moment in enumerate(self):
             if reflected:
-                moment = moment.with_qubits_mapped(reverse_map)
+                moment = moment.transform_qubits(reverse_map.__getitem__)
             if all(isinstance(op.gate, AcquaintanceOpportunityGate)
                     for op in moment.operations):
                 swap_network_gate = SwapNetworkGate.from_operations(
