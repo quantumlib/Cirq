@@ -47,6 +47,22 @@ def test_convert():
 """.strip()
 
 
+def test_non_clifford_known_matrix():
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Z(q0) ** 0.25,
+    )
+    c_orig = cirq.Circuit(circuit)
+
+    ConvertToCliffordGates(ignore_failures=True).optimize_circuit(circuit)
+    assert circuit == c_orig
+
+    circuit2 = cirq.Circuit(c_orig)
+    with pytest.raises(ValueError):
+        ConvertToCliffordGates().optimize_circuit(circuit2)
+
+
+
 def test_already_converted():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit.from_ops(

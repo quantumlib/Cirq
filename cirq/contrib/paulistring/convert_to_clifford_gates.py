@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, cast
+from typing import Optional
+
+import numpy as np
 
 from cirq import ops, linalg, decompositions, extension
 from cirq.circuits.circuit import Circuit
@@ -65,19 +67,18 @@ class ConvertToCliffordGates(PointOptimizer):
         elif quarter_turns == 3:
             return ops.CliffordGate.from_pauli(pauli, True).inverse()
 
-    def _matrix_to_clifford_op(self, mat_op: ops.KnownMatrix
-                               ) -> ops.Operation:
+    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.QubitId
+                               ) -> Optional[ops.Operation]:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
-                                       mat_op.matrix(), self.tolerance)
+                                       mat, self.tolerance)
         clifford_gate = ops.CliffordGate.I
         for pauli, half_turns in rotations:
             if self._tol.all_near_zero_mod(half_turns, 0.5):
                 clifford_gate = clifford_gate.merged_with(
                     self._rotation_to_clifford_gate(pauli, half_turns))
             else:
-                raise ValueError('Cannot convert to CliffordGate: {!r}'.format(
-                                 mat_op))
-        return clifford_gate(cast(ops.Operation, mat_op).qubits[0])
+                return None
+        return clifford_gate(qubit)
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Don't change if it's already a CliffordGate
@@ -88,7 +89,14 @@ class ConvertToCliffordGates(PointOptimizer):
         # Single qubit gate with known matrix?
         mat = self.extensions.try_cast(ops.KnownMatrix, op)
         if mat is not None and len(op.qubits) == 1:
-            return self._matrix_to_clifford_op(mat)
+            cliff_op = self._matrix_to_clifford_op(mat.matrix(), op.qubits[0])
+            if cliff_op is not None:
+                return cliff_op
+            elif self.ignore_failures:
+                return op
+            else:
+                raise ValueError('Single qubit operation is not in the Clifford'
+                                 'group: {!r}'.format(op))
 
         # Provides a decomposition?
         composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
