@@ -56,16 +56,17 @@ class ConvertToCliffordGates(PointOptimizer):
         self.tolerance = tolerance
         self._tol = linalg.Tolerance(atol=tolerance)
 
-    def _rotation_to_clifford_gate(self, pauli, half_turns):
+    def _rotation_to_clifford_gate(self, pauli: ops.Pauli, half_turns: float
+                                   ) -> ops.CliffordGate:
         quarter_turns = round(half_turns * 2) % 4
-        if quarter_turns == 0:
-            return ops.CliffordGate.I
-        elif quarter_turns == 1:
+        if quarter_turns == 1:
             return ops.CliffordGate.from_pauli(pauli, True)
         elif quarter_turns == 2:
             return ops.CliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
             return ops.CliffordGate.from_pauli(pauli, True).inverse()
+        else:
+            return ops.CliffordGate.I
 
     def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.QubitId
                                ) -> Optional[ops.Operation]:

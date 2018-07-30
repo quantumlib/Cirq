@@ -128,3 +128,16 @@ def test_fail_unsupported_gate():
     )
     with pytest.raises(TypeError):
         ConvertToCliffordGates().optimize_circuit(circuit)
+
+
+def test_rotation_to_clifford_gate():
+    conv = ConvertToCliffordGates()
+
+    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 0.0)
+            == cirq.CliffordGate.I)
+    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 0.5)
+            == cirq.CliffordGate.X_sqrt)
+    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 1.0)
+            == cirq.CliffordGate.X)
+    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, -0.5)
+            == cirq.CliffordGate.X_nsqrt)
