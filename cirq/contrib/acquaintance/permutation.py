@@ -26,7 +26,13 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=QubitId)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
-    """Permutation gate."""
+    """A permutation gate indicates a change in the mapping from qubits to
+    logical indices.
+
+    Args:
+        swap_gate: the gate that swaps the indices mapped to by a pair of
+            qubits (e.g. SWAP or fermionic swap).
+    """
 
     def __init__(self, swap_gate: Gate=SWAP) -> None:
         self.swap_gate = swap_gate
@@ -34,14 +40,20 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def permutation(self, qubit_count: int) -> Dict[int, int]:
-        """permutation = {i: s[i]} indicates that the i-th qubit is mapped to
-        the s[i]-th qubit."""
+        """permutation = {i: s[i]} indicates that the i-th element is mapped to
+        the s[i]-th element."""
         pass
 
 
     def update_mapping(self, mapping: Dict[QubitId, LogicalIndex],
                        keys: Sequence[QubitId]
                        ) -> None:
+        """Updates a mapping (in place) from qubits to logical indices.
+
+        Args:
+            mapping: The mapping to update.
+            keys: The qubits acted on by the gate.
+        """
         n_elements = len(keys)
         permutation = self.permutation(n_elements)
         indices = tuple(permutation.keys())
@@ -118,6 +130,14 @@ class LinearPermutationGate(PermutationGate, CompositeGate):
 def update_mapping(mapping: Dict[QubitId, LogicalIndex],
                    operations: OP_TREE
                    ) -> None:
+    """Updates a mapping (in place) from qubits to logical indices according to
+    a set of permutation gates. Any gates other than permutation gates are
+    ignored.
+
+    Args:
+        mapping: The mapping to update.
+        operations: The operations to update according to.
+    """
     for op in flatten_op_tree(operations):
         if (isinstance(op, GateOperation) and
             isinstance(op.gate, PermutationGate)):
