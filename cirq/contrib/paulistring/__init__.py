@@ -21,6 +21,9 @@ from cirq.contrib.paulistring.pauli_string_phasor import (
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors,
 )
+from cirq.contrib.paulistring.convert_to_clifford_gates import (
+    ConvertToCliffordGates,
+)
 from cirq.contrib.paulistring.convert_gate_set import (
     converted_gate_set,
 )
