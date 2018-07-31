@@ -8,13 +8,34 @@ branches:
 matrix:
   include:
   - os: linux
+    env: NAME="mypy"
+    python: "3.5"
+    before_install:
+      - pip install --upgrade pip setuptools wheel
+    install:
+      - pip install mypy
+    script: tool/mypy.sh
+
+  - os: linux
+    env: NAME="pylint"
+    python: "3.5"
+    before_install:
+      - pip install --upgrade pip setuptools wheel
+    install:
+      - pip install pylint
+    script: tool/pylint.sh
+
+  - os: linux
+    env: NAME="pytest+coverage"
     python: "3.5"
     before_install:
       - pip install --upgrade pip setuptools wheel
     install:
       - pip install -r dev-requirements.txt
     script: continuous-integration/travis.sh "normal"
+
   - os: linux
+    env: NAME="pytest"
     python: "2.7"
     before_install:
       - pip install --upgrade pip setuptools wheel

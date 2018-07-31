@@ -23,8 +23,6 @@ from dev_tools import all_checks, prepared_env
 def main():
     verbose = True
     checks = [
-        all_checks.pylint,
-        all_checks.typecheck,
         all_checks.pytest,
         all_checks.incremental_coverage,
     ]
