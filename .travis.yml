@@ -31,8 +31,7 @@ matrix:
     before_install:
       - pip install --upgrade pip setuptools wheel
     install:
-      - pip install -r runtime-requirements.txt
-      - cat dev-requirements.txt | grep pytest | xargs pip install
+      - pip install -r dev-requirements.txt
     script: continuous-integration/travis.sh "normal"
 
   - os: linux
@@ -41,6 +40,5 @@ matrix:
     before_install:
       - pip install --upgrade pip setuptools wheel
     install:
-      - pip install -r python2.7-runtime-requirements.txt
-      - cat python2.7-dev-requirements.txt | grep pytest | xargs pip install
+      - pip install -r python2.7-dev-requirements.txt
     script: continuous-integration/travis.sh "convert-and-test"
