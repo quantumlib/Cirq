@@ -14,11 +14,11 @@
 
 import cmath
 import math
+import random
 from typing import Sequence, cast
 
 import numpy as np
 import pytest
-import random
 
 import cirq
 
