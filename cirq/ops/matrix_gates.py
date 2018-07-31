@@ -59,7 +59,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
     def extrapolate_effect(self, factor: Union[float, value.Symbol]
                            ) -> 'SingleQubitMatrixGate':
         if isinstance(factor, value.Symbol):
-            raise TypeError('TwoQubitMatrixGate cannot be parameterized.')
+            raise TypeError('SingleQubitMatrixGate cannot be parameterized.')
         e = cast(float, factor)
         new_mat = linalg.map_eigenvalues(self.matrix(), lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
