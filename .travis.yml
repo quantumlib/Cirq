@@ -14,7 +14,7 @@ matrix:
       - pip install --upgrade pip setuptools wheel
     install:
       - pip install mypy
-    script: tool/mypy.sh
+    script: tool/mypy
 
   - os: linux
     env: NAME="pylint"
@@ -23,7 +23,7 @@ matrix:
       - pip install --upgrade pip setuptools wheel
     install:
       - pip install pylint
-    script: tool/pylint.sh
+    script: tool/pylint
 
   - os: linux
     env: NAME="pytest+coverage"
