@@ -1,0 +1,1 @@
+mypy --config-file=continuous-integration/mypy.ini .
