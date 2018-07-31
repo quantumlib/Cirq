@@ -74,7 +74,7 @@ class CircularShiftGate(PermutationGate,
                 wire_symbols=wire_symbols)
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
-        indices = list(range(qubit_count))
         shift = self.shift % qubit_count
-        permuted_indices = chain(indices[shift:], indices[:shift])
+        permuted_indices = chain(range(shift, qubit_count),
+                                 range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}

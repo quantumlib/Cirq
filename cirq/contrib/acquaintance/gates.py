@@ -205,7 +205,7 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
                  swap_gate: Gate=SWAP
                  ) -> None:
         if len(part_lens) < 2:
-            raise ValueError('part_lens must have length at least 2.')
+            raise ValueError('len(part_lens) < 2.')
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
         self.swap_gate = swap_gate
@@ -213,7 +213,7 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
 
     def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
-        mapping = {q: i for i, q in enumerate(qubits)}
+        mapping = dict(qubit_to_position)
         parts = []
         q = 0
         for part_len in self.part_lens:
@@ -252,10 +252,9 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
             if part_len > 1:
                 positions = [mapping[q] for q in part]
                 offset = min(positions)
-                permutation = {
-                        i: (mapping[q] - offset) for i, q in enumerate(part)}
                 reverse_permutation = {
-                        i: part_len - p - 1 for i, p in permutation.items()}
+                        i: (offset - mapping[q] - 1) % part_len
+                        for i, q in enumerate(part)}
                 yield LinearPermutationGate(reverse_permutation,
                         self.swap_gate)(*part)
         assert set(layers.keys()).issubset((
@@ -294,8 +293,7 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         if qubit_count < sum(self.part_lens):
-            raise ValueError('qubit_count must be as large as the sum of the'
-                             'part lens.')
+            raise ValueError('qubit_count < sum(self.part_lens)')
         return {i: j for i, j in
                 enumerate(reversed(range(sum(self.part_lens))))}
 
