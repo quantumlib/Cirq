@@ -21,7 +21,7 @@ from cirq.study.sweeps import (
 def sweep_to_proto_dict(sweep: Sweep, repetitions: int=1) -> Dict:
     """Converts sweep into an equivalent protobuf representation."""
     msg = {}  # type: Dict
-    if not sweep == Unit:
+    if not sweep == UnitSweep:
         sweep = _to_zip_product(sweep)
         msg['sweep'] = {
             'factors': [_sweep_zip_to_proto_dict(cast(Zip, factor)) for factor
@@ -76,7 +76,7 @@ def sweep_from_proto_dict(param_sweep: Dict) -> Sweep:
     if 'sweep' in param_sweep and 'factors' in param_sweep['sweep']:
         return Product(*[_sweep_from_param_sweep_zip_proto_dict(f)
                          for f in param_sweep['sweep']['factors']])
-    return Unit
+    return UnitSweep
 
 
 def _sweep_from_param_sweep_zip_proto_dict(
@@ -84,7 +84,7 @@ def _sweep_from_param_sweep_zip_proto_dict(
     if 'sweeps' in param_sweep_zip:
         return Zip(*[_sweep_from_single_param_sweep_proto_dict(sweep)
                      for sweep in param_sweep_zip['sweeps']])
-    return Unit
+    return UnitSweep
 
 
 def _sweep_from_single_param_sweep_proto_dict(

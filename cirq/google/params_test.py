@@ -64,7 +64,7 @@ def test_gen_param_sweep_zip():
 
 def test_gen_empty_param_sweep():
     out = params.sweep_from_proto_dict({})
-    assert out == Unit
+    assert out == UnitSweep
 
 
 def test_gen_param_sweep():
