@@ -18,9 +18,9 @@ from typing import List, Tuple, Optional, cast
 
 import numpy as np
 
-from cirq import circuits, ops
+from cirq import circuits, ops, decompositions
 from cirq.extension import Extensions
-from cirq.google import decompositions, convert_to_xmon_gates, xmon_gates
+from cirq.google import convert_to_xmon_gates, xmon_gates
 
 
 class MergeInteractions(circuits.PointOptimizer):
@@ -47,7 +47,7 @@ class MergeInteractions(circuits.PointOptimizer):
             self._scan_two_qubit_ops_into_matrix(circuit, index, op.qubits))
 
         # Find a max-3-cz construction.
-        new_operations = decompositions.two_qubit_matrix_to_native_gates(
+        new_operations = decompositions.two_qubit_matrix_to_operations(
             op.qubits[0],
             op.qubits[1],
             matrix,
@@ -62,6 +62,11 @@ class MergeInteractions(circuits.PointOptimizer):
         switch_to_new |= new_interaction_count < old_interaction_count
         switch_to_new |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
                              for old_op in old_operations)
+        if not self.allow_partial_czs:
+            switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
+                                 isinstance(old_op.gate, xmon_gates.Exp11Gate)
+                                 and old_op.gate.half_turns != 1
+                                 for old_op in old_operations)
         if not switch_to_new:
             return None
 

@@ -14,8 +14,7 @@
 
 import pytest
 
-from cirq import extension
-from cirq.extension import PotentialImplementation
+import cirq
 
 
 class DesiredType:
@@ -46,7 +45,7 @@ class UnrelatedType:
 
 
 def test_wrap():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     w = e.cast(DesiredType, o)
     assert w.make() == 'wrap'
@@ -55,7 +54,7 @@ def test_wrap():
 
 
 def test_empty():
-    e = extension.Extensions()
+    e = cirq.Extensions()
     o = OtherType()
     c = ChildType()
     u = UnrelatedType()
@@ -74,7 +73,7 @@ def test_empty():
 
 
 def test_cast_hit_vs_miss():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     c = ChildType()
     u = UnrelatedType()
@@ -96,7 +95,7 @@ def test_cast_hit_vs_miss():
 
 
 def test_try_cast_hit_vs_miss():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     o = OtherType()
     c = ChildType()
     u = UnrelatedType()
@@ -113,7 +112,7 @@ def test_try_cast_hit_vs_miss():
 
 
 def test_can_cast():
-    e = extension.Extensions({DesiredType: {OtherType: WrapType}})
+    e = cirq.Extensions({DesiredType: {OtherType: WrapType}})
     c = ChildType()
     u = UnrelatedType()
     assert not e.can_cast(DesiredType, u)
@@ -121,7 +120,7 @@ def test_can_cast():
 
 
 def test_override_order():
-    e = extension.Extensions({
+    e = cirq.Extensions({
         DesiredType: {
             object: lambda _, _2: 'obj',
             UnrelatedType: lambda _, _2: 'unrelated',
@@ -135,7 +134,7 @@ def test_override_order():
 
 def test_try_cast_potential_implementation():
 
-    class PotentialOther(PotentialImplementation):
+    class PotentialOther(cirq.PotentialImplementation):
         def __init__(self, is_other):
             self.is_other = is_other
 
@@ -144,7 +143,7 @@ def test_try_cast_potential_implementation():
                 return OtherType()
             return None
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     o = PotentialOther(is_other=False)
     u = PotentialOther(is_other=False)
 
@@ -153,7 +152,7 @@ def test_try_cast_potential_implementation():
 
 
 def test_add_cast():
-    e = extension.Extensions()
+    e = cirq.Extensions()
     d = DesiredType()
 
     assert e.try_cast(DesiredType, UnrelatedType()) is None
@@ -185,12 +184,12 @@ class Cousin(Aunt):
 
 def test_add_cast_include_subtypes():
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     e.add_cast(desired_type=Cousin,
                actual_type=Child,
                conversion=lambda _: 'boo',
                also_add_inherited_conversions=True)
-    e2 = extension.Extensions()
+    e2 = cirq.Extensions()
     e2.add_cast(desired_type=Cousin,
                 actual_type=Child,
                 conversion=lambda _: 'boo',
@@ -217,7 +216,7 @@ def test_add_cast_redundant():
     o2 = Cousin()
     o3 = Cousin()
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     e.add_cast(desired_type=Cousin,
                actual_type=Child,
                conversion=lambda _: o1,
@@ -243,7 +242,7 @@ def test_add_cast_redundant_including_subtypes():
     o2 = Cousin()
     o3 = Cousin()
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     e.add_cast(desired_type=Aunt,
                actual_type=Child,
                conversion=lambda _: o1,
@@ -271,7 +270,7 @@ def test_add_potential_cast():
     c1 = Child()
     c2 = Child()
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     e.add_cast(desired_type=Aunt,
                actual_type=Child,
                conversion=lambda e: a if e is c1 else None)
@@ -284,7 +283,7 @@ def test_add_recursive_cast():
     cousin = Cousin()
     child = Child()
 
-    e = extension.Extensions()
+    e = cirq.Extensions()
     e.add_cast(desired_type=Cousin,
                actual_type=Child,
                conversion=lambda _: cousin)

@@ -45,6 +45,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(circuit: circuits.Circuit,
     """
     pdf_kwargs = {'compiler': 'latexmk', 'compiler_args': ['-pdfps'],
                   **({} if pdf_kwargs is None else pdf_kwargs)}
+    qcircuit_kwargs = {} if qcircuit_kwargs is None else qcircuit_kwargs
     tex = circuit_to_latex_using_qcircuit(circuit, **qcircuit_kwargs)
     doc = Document(documentclass=documentclass, document_options='dvips')
     doc.packages.append(Package('amsmath'))
