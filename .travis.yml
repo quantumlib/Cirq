@@ -5,13 +5,14 @@ branches:
   only:
     - master
 
+before_install:
+  - pip install --upgrade pip setuptools wheel
+
 matrix:
   include:
   - os: linux
     env: NAME=mypy
     python: "3.5"
-    before_install:
-      - pip install --upgrade pip setuptools wheel
     install:
       - cat dev-requirements.txt | grep mypy | xargs pip install
     script: check/mypy
@@ -19,8 +20,6 @@ matrix:
   - os: linux
     env: NAME=pylint
     python: "3.5"
-    before_install:
-      - pip install --upgrade pip setuptools wheel
     install:
       - cat dev-requirements.txt | grep pylint | xargs pip install
     script: check/pylint
@@ -28,17 +27,13 @@ matrix:
   - os: linux
     env: NAME=pytest-and-incremental-coverage
     python: "3.5"
-    before_install:
-      - pip install --upgrade pip setuptools wheel
     install:
       - pip install -r dev-requirements.txt
     script: check/pytest-and-incremental-coverage master
 
   - os: linux
-    env: NAME=pytest
+    env: NAME=pytest2
     python: "2.7"
-    before_install:
-      - pip install --upgrade pip setuptools wheel
     install:
       - pip install -r python2.7-dev-requirements.txt
-    script: continuous-integration/travis.sh "convert-and-test"
+    script: continuous-integration/travis-pytest2.sh

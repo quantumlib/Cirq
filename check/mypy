@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mypy --config-file=continuous-integration/mypy.ini .
+mypy --config-file=continuous-integration/mypy.ini $@ .
