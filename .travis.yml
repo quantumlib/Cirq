@@ -8,34 +8,34 @@ branches:
 matrix:
   include:
   - os: linux
-    env: NAME="mypy"
+    env: NAME=mypy
     python: "3.5"
     before_install:
       - pip install --upgrade pip setuptools wheel
     install:
       - cat dev-requirements.txt | grep mypy | xargs pip install
-    script: tool/mypy
+    script: check/mypy
 
   - os: linux
-    env: NAME="pylint"
+    env: NAME=pylint
     python: "3.5"
     before_install:
       - pip install --upgrade pip setuptools wheel
     install:
       - cat dev-requirements.txt | grep pylint | xargs pip install
-    script: tool/pylint
+    script: check/pylint
 
   - os: linux
-    env: NAME="pytest+coverage"
+    env: NAME=pytest-and-incremental-coverage
     python: "3.5"
     before_install:
       - pip install --upgrade pip setuptools wheel
     install:
       - pip install -r dev-requirements.txt
-    script: continuous-integration/travis.sh "normal"
+    script: check/pytest-and-incremental-coverage master
 
   - os: linux
-    env: NAME="pytest"
+    env: NAME=pytest
     python: "2.7"
     before_install:
       - pip install --upgrade pip setuptools wheel

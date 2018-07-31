@@ -17,42 +17,31 @@
 import os
 import sys
 
-from dev_tools import all_checks, prepared_env
+from dev_tools import all_checks, prepared_env, shell_tools
 
 
 def main():
-    verbose = True
-    checks = [
-        all_checks.pylint,
-        all_checks.typecheck,
-        all_checks.pytest,
-        all_checks.incremental_coverage,
-    ]
+    if len(sys.argv) < 2:
+        print(shell_tools.highlight(
+            'Must specify a comparison branch (e.g. "master").',
+            shell_tools.RED))
+        sys.exit(1)
+    comparison_branch = sys.argv[1]
 
     env = prepared_env.PreparedEnv(
         github_repo=None,
         actual_commit_id=None,  # local uncommitted files
-        compare_commit_id='master',
+        compare_commit_id=comparison_branch,
         destination_directory=os.getcwd(),
         virtual_env_path=None)
-    check_results = []
-    failures = set()
-    for c in checks:
-        print()
-        result = c.run(env, verbose, failures)
-
-        # Record results.
-        check_results.append(result)
-        if not result.success:
-            failures.add(c)
-        print()
-
-    print()
-    print("ALL CHECK RESULTS")
-    for result in check_results:
-        print(result)
-
+    check_results = [
+        all_checks.pytest.run(env, False, set()),
+        all_checks.incremental_coverage.run(env, False, set()),
+    ]
     if any(not e.success for e in check_results):
+        print(shell_tools.highlight(
+            'Failed.',
+            shell_tools.RED))
         sys.exit(1)
 
 

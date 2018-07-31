@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+export PYTHONPATH=$(pwd)
+python dev_tools/run_pytest_and_incremental_coverage.py $@
