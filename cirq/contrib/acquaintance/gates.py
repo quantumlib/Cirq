@@ -45,28 +45,45 @@ ACQUAINT = AcquaintanceOpportunityGate()
 def acquaint_insides(swap_gate: Gate,
                      acquaintance_gate: Operation,
                      qubits: Sequence[QubitId],
-                     max_reach: int,
-                     acquaint_first: bool,
+                     before: bool,
                      layers: Dict[str, List[Operation]],
                      mapping: Dict[QubitId, int]
-                     ) -> List[Operation]:
+                     ) -> None:
+    """Acquaints half a list of qubits.
+
+    Args:
+        qubits: The list of qubits of which half are individually acquainted
+            with another list of qubits.
+        layers: The layers to put gates into.
+        acquaintance_gate: The acquaintance gate that acquaints the end qubit
+            with another list of qubits.
+        before: Whether the acquainting is done before the shift.
+        swap_gate: The gate used to swap logical indices.
+        mapping: The mapping from qubits to logical indices. Used to keep track
+            of the effect of inside-acquainting swaps.
+    """
+
+    max_reach = _get_max_reach(len(qubits), round_up=before)
     reaches = chain(range(1, max_reach + 1),
                     range(max_reach, -1, -1))
     offsets = (0, 1) * max_reach
     swap_gate = SwapPermutationGate(swap_gate)
     ops = []
     for offset, reach in zip(offsets, reaches):
-        if offset != acquaint_first:
+        if offset == before:
             ops.append(acquaintance_gate)
         for dr in range(offset, reach, 2):
             ops.append(swap_gate(*qubits[dr:dr + 2]))
+    layers['pre' if before else 'post'] += ops
 
+    # add interstitial gate
+    interstitial = ('prior' if before else 'posterior') + '_interstitial'
+    layers[interstitial].append(acquaintance_gate)
 
     # update mapping
     reached_qubits = qubits[:max_reach + 1]
     positions = list(mapping[q] for q in reached_qubits)
     mapping.update(zip(reached_qubits, reversed(positions)))
-    return ops
 
 def _get_max_reach(size: int, round_up: bool=True) -> int:
     if round_up:
@@ -79,6 +96,25 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
                        acquaintance_size: int,
                        swap_gate: Gate,
                        mapping: Dict[QubitId, int]):
+    """Acquaints and shifts a pair of lists of qubits. The first part is
+    acquainted with every qubit individually in the second part, and vice
+    versa. Operations are grouped into several layers:
+        * prior_interstitial: The first layer of acquaintance gates.
+        * prior: The combination of acquaintance gates and swaps that acquaints
+            the inner halves.
+        * intra: The shift gate.
+        * post: The combination of acquaintance gates and swaps that acquaints
+            the outer halves.
+        * posterior_interstitial: The last layer of acquaintance gates.
+
+    Args:
+        parts: The two lists of qubits to acquaint.
+        layers: The layers to put gates into.
+        acquaintance_size: The number of qubits to acquaint at a time.
+        swap_gate: The gate used to swap logical indices.
+        mapping: The mapping from qubits to logical indices. Used to keep track
+            of the effect of inside-acquainting swaps.
+    """
     left_part, right_part = parts
     left_size, right_size = len(left_part), len(right_part)
     assert not (set(left_part) & set(right_part))
@@ -96,32 +132,22 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
         if left_size == acquaintance_size - 1:
             # right part
             pre_acquaintance_gate = ACQUAINT(*qubits[:acquaintance_size])
-
-            layers['prior_interstitial'].append(pre_acquaintance_gate)
-
-            max_reach = _get_max_reach(right_size)
-            layers['pre'] += acquaint_insides(
+            acquaint_insides(
                     swap_gate=swap_gate,
                     acquaintance_gate=pre_acquaintance_gate,
                     qubits=right_part,
-                    max_reach=max_reach,
-                    acquaint_first=False,
+                    before=True,
                     layers=layers,
                     mapping=mapping)
 
         if right_size == acquaintance_size - 1:
             # left part
             pre_acquaintance_gate = ACQUAINT(*qubits[-acquaintance_size:])
-
-            layers['prior_interstitial'].append(pre_acquaintance_gate)
-
-            max_reach = _get_max_reach(left_size)
-            layers['pre'] += acquaint_insides(
+            acquaint_insides(
                     swap_gate=swap_gate,
                     acquaintance_gate=pre_acquaintance_gate,
                     qubits=left_part[::-1],
-                    max_reach=max_reach,
-                    acquaint_first=False,
+                    before=True,
                     layers=layers,
                     mapping=mapping)
 
@@ -135,37 +161,26 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
             post_acquaintance_gate = ACQUAINT(*qubits[-acquaintance_size:])
 
             new_left_part = qubits[right_size - 1::-1]
-            max_reach = _get_max_reach(right_size, False)
-            layers['post'] += acquaint_insides(
+            acquaint_insides(
                     swap_gate=swap_gate,
                     acquaintance_gate=post_acquaintance_gate,
                     qubits=new_left_part,
-                    max_reach=max_reach,
-                    acquaint_first=True,
+                    before=False,
                     layers=layers,
                     mapping=mapping)
-
-            layers['posterior_interstitial'].append(
-                    post_acquaintance_gate)
 
         if ((right_size == acquaintance_size - 1) and
             (left_size > 1)):
             # left part
-            post_acquaintance_gate = ACQUAINT(*qubits[:acquaintance_size])
 
-            max_reach = _get_max_reach(left_size, False)
-            layers['post'] += acquaint_insides(
+            post_acquaintance_gate = ACQUAINT(*qubits[:acquaintance_size])
+            acquaint_insides(
                     swap_gate=swap_gate,
                     acquaintance_gate=post_acquaintance_gate,
                     qubits=qubits[right_size:],
-                    max_reach=max_reach,
-                    acquaint_first=True,
+                    before=False,
                     layers=layers,
                     mapping=mapping)
-
-            layers['posterior_interstitial'].append(
-                    post_acquaintance_gate)
-
 
 
 class SwapNetworkGate(CompositeGate, PermutationGate):
@@ -211,9 +226,9 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
                 layers[l] = []
             for i in range(layer_num % 2, n_parts - 1, 2):
                 left_part, right_part = parts[i:i+2]
-                acquaint_and_shift(parts=(left_part, right_part), 
+                acquaint_and_shift(parts=(left_part, right_part),
                                    layers=layers,
-                                   acquaintance_size=self.acquaintance_size, 
+                                   acquaintance_size=self.acquaintance_size,
                                    swap_gate=self.swap_gate,
                                    mapping=mapping)
 
