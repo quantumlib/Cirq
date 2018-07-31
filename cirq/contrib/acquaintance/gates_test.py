@@ -138,6 +138,21 @@ def test_swap_network_gate_permutation(part_lens, acquaintance_size):
     update_mapping(mapping, operations)
     assert mapping == {q: i for i, q in enumerate(reversed(qubits))}
 
+def test_swap_network_gate_from_ops():
+    n_qubits = 10
+    qubits = cirq.LineQubit.range(n_qubits)
+    part_lens = (1, 2, 1, 3, 3)
+    operations = [cirq.Z(qubits[0]),
+                  cirq.CZ(*qubits[1:3]),
+                  cirq.CCZ(*qubits[4:7]),
+                  cirq.CCZ(*qubits[7:])]
+    acquaintance_size = 3
+    swap_network = SwapNetworkGate.from_operations(
+            qubits, operations, acquaintance_size)
+    assert swap_network.acquaintance_size == acquaintance_size
+    assert swap_network.part_lens == part_lens
+
+
 def test_swap_network_decomposition():
     qubits = cirq.LineQubit.range(8)
     swap_network_gate = SwapNetworkGate((4, 4), 5)
@@ -161,6 +176,7 @@ def test_swap_network_decomposition():
           │                   │   │     │                       │   │
 7: ───────█───────────────────█───╱7╲───█───────────────────────█───3↦1───
     """.strip()
+    print(actual_text_diagram)
     assert actual_text_diagram == expected_text_diagram
 
 def test_swap_network_init_error():
