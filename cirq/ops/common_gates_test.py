@@ -166,9 +166,9 @@ def test_runtime_types_of_rot_gates():
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
         with pytest.raises(ValueError):
             _ = p.matrix()
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.extrapolate_effect(2)
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
@@ -216,7 +216,7 @@ def test_text_diagrams():
         cirq.X(a),
         cirq.Y(a),
         cirq.Z(a),
-        cirq.RotZGate(half_turns=cirq.Symbol('x')).on(a),
+        cirq.Z(a)**cirq.Symbol('x'),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),

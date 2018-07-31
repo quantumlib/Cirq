@@ -110,8 +110,6 @@ class PartialReflectionGate(raw_types.Gate,
                 self._reflection_matrix(), cast(float, self.half_turns))
 
     def extrapolate_effect(self, factor) -> 'PartialReflectionGate':
-        if self.is_parameterized():
-            raise ValueError("Parameterized. Don't know how to extrapolate.")
         return self._with_half_turns(half_turns=self.half_turns * factor)
 
     def is_parameterized(self) -> bool:

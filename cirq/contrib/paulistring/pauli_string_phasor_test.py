@@ -92,18 +92,18 @@ def test_extrapolate_effect_with_symbol():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         PauliStringPhasor(cirq.PauliString({}),
-                               half_turns=cirq.Symbol('a')),
+                          half_turns=cirq.Symbol('a')),
         PauliStringPhasor(cirq.PauliString({})) ** cirq.Symbol('a'))
     eq.add_equality_group(
         PauliStringPhasor(cirq.PauliString({})) ** cirq.Symbol('b'))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = PauliStringPhasor(cirq.PauliString({}), half_turns=0.5
                               ) ** cirq.Symbol('b')
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = PauliStringPhasor(cirq.PauliString({}),
                               half_turns=cirq.Symbol('a')
                               ) ** 0.5
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = PauliStringPhasor(cirq.PauliString({}),
                               half_turns=cirq.Symbol('a')
                               ) ** cirq.Symbol('b')
