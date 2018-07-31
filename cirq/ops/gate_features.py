@@ -17,12 +17,14 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar
+from typing import (
+    Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
+)
 
 import string
 import numpy as np
 
-from cirq import abc
+from cirq import abc, value
 from cirq.ops import op_tree, raw_types
 from cirq.study import ParamResolver
 
@@ -53,7 +55,8 @@ class ExtrapolatableEffect(ReversibleEffect,
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableEffect, factor: float
+    def extrapolate_effect(self: TSelf_ExtrapolatableEffect,
+                           factor: Union[float, value.Symbol]
                            ) -> TSelf_ExtrapolatableEffect:
         """Augments, diminishes, or reverses the effect of the receiving gate.
 
@@ -64,7 +67,8 @@ class ExtrapolatableEffect(ReversibleEffect,
             A gate equivalent to applying the receiving gate 'factor' times.
         """
 
-    def __pow__(self: TSelf_ExtrapolatableEffect, power: float
+    def __pow__(self: TSelf_ExtrapolatableEffect,
+                power: Union[float, value.Symbol]
                 ) -> TSelf_ExtrapolatableEffect:
         """Extrapolates the effect of the gate.
 

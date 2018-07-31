@@ -11,23 +11,44 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 
-from cirq.value import Symbol
-from cirq.testing import EqualsTester
+import cirq
 
 
 def test_parameterized_value_init():
-    assert Symbol('a').name == 'a'
-    assert Symbol('b').name == 'b'
+    assert cirq.Symbol('a').name == 'a'
+    assert cirq.Symbol('b').name == 'b'
+
 
 def test_string_representation():
-    assert str(Symbol('a1')) == 'a1'
-    assert str(Symbol('_b23_')) == '_b23_'
-    assert str(Symbol('1a')) == 'Symbol("1a")'
-    assert str(Symbol('&%#')) == 'Symbol("&%#")'
-    assert str(Symbol('')) == 'Symbol("")'
+    assert str(cirq.Symbol('a1')) == 'a1'
+    assert str(cirq.Symbol('_b23_')) == '_b23_'
+    assert str(cirq.Symbol('1a')) == 'Symbol("1a")'
+    assert str(cirq.Symbol('&%#')) == 'Symbol("&%#")'
+    assert str(cirq.Symbol('')) == 'Symbol("")'
+
 
 def test_parameterized_value_eq():
-    eq = EqualsTester()
-    eq.add_equality_group(Symbol('a'))
-    eq.make_equality_group(lambda: Symbol('rr'))
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.Symbol('a'))
+    eq.make_equality_group(lambda: cirq.Symbol('rr'))
+
+
+def test_identity_operations():
+    s = cirq.Symbol('s')
+    assert s == s * 1 == 1 * s == 1.0 * s * 1.0
+    assert s == s + 0 == 0 + s == 0.0 + s + 0.0
+
+    with pytest.raises(TypeError):
+        _ = s + s
+    with pytest.raises(TypeError):
+        _ = s + 1
+    with pytest.raises(TypeError):
+        _ = 1 + s
+    with pytest.raises(TypeError):
+        _ = s * s
+    with pytest.raises(TypeError):
+        _ = s * 2
+    with pytest.raises(TypeError):
+        _ = 2 * s
