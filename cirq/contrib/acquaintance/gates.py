@@ -42,16 +42,11 @@ class AcquaintanceOpportunityGate(Gate, TextDiagrammable):
 
 ACQUAINT = AcquaintanceOpportunityGate()
 
-class Layers(NamedTuple):
-    prior_interstitial # type: List[Operation]
-    pre # type: List[Operation]
-    intra # type: List[Operation]
-    post # type: List[Operation]
-    posterior_interstitial # type: List[Operation]
+Layers = NamedTuple('Layers', [(field, List[Operation]) for field in 
+    ('prior_interstitial', 'pre', 'intra', 'post', 'posterior_interstitial')])
 
-    @classmethod
-    def new(cls, **kwargs):
-        return cls(**{field: kwargs.get(field, []) for field in cls._fields})
+def new_layers(**kwargs):
+    return Layers._make(kwargs.get(field, []) for field in Layers._fields)
 
 def acquaint_insides(swap_gate: Gate,
                      acquaintance_gate: Operation,
@@ -236,9 +231,9 @@ class SwapNetworkGate(CompositeGate, PermutationGate):
         op_sort_key = (lambda op:
                 qubit_to_position[min(op.qubits, key=qubit_to_position.get)] %
                 self.acquaintance_size)
-        layers = Layers.new()
+        layers = new_layers()
         for layer_num in range(n_parts):
-            layers = Layers.new(
+            layers = new_layers(
                     prior_interstitial=layers.posterior_interstitial)
             for i in range(layer_num % 2, n_parts - 1, 2):
                 left_part, right_part = parts[i:i+2]
