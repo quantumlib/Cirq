@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-PYTHONPATH=$(pwd)
-python dev_tools/run_pytest_and_incremental_coverage.py $@
+PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py $@
 result=$?
 
 # Clean up generated coverage files.
