@@ -140,3 +140,21 @@ next──────────1──────
               │
               4n
     """.strip()
+
+    d = TextDiagramDrawer()
+    d.vertical_line(x=0, y1=0, y2=3)
+    d.vertical_line(x=1, y1=0, y2=3)
+    d.vertical_line(x=2, y1=0, y2=3)
+    d.vertical_line(x=3, y1=0, y2=3)
+    d.write(0, 0, 'long line\nshort')
+    d.write(2, 2, 'short\nlong line')
+    assert d.render().strip() == """
+long line │ │         │
+short     │ │         │
+│         │ │         │
+│         │ │         │
+│         │ │         │
+│         │ short     │
+│         │ long line │
+│         │ │         │
+    """.strip()
