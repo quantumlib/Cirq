@@ -13,11 +13,16 @@
 # limitations under the License.
 
 """Global level manager of shared numpy arrays."""
+from typing import TYPE_CHECKING
 
 import warnings
 from multiprocessing import Lock, RawArray  # type: ignore
 
 import numpy as np
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Any, Optional, Tuple, List
 
 
 class SharedMemManager(object):
@@ -34,15 +39,16 @@ class SharedMemManager(object):
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(SharedMemManager, cls).__new__(cls, *args,
-                                                                 **kwargs)
+            cls._instance = super(SharedMemManager, cls).__new__(
+                cls, *args, **kwargs)
         return cls._instance
 
     def __init__(self):
         self._lock = Lock()
         self._current = 0
         self._count = 0
-        self._arrays = SharedMemManager._INITIAL_SIZE * [None]
+        self._arrays = SharedMemManager._INITIAL_SIZE * [
+            None]  # type: List[Optional[Tuple[Any, Tuple[int, ...]]]]
 
     def _create_array(self, arr: np.ndarray) -> int:
         """Returns the handle of a RawArray created from the given numpy array.
@@ -75,7 +81,10 @@ class SharedMemManager(object):
 
             self._get_next_free()
 
-            self._arrays[self._current] = raw_arr
+            # Note storing the shape is a workaround for an issue encountered
+            # when upgrading to numpy 1.15.
+            # See https://github.com/numpy/numpy/issues/11636
+            self._arrays[self._current] = (raw_arr, arr.shape)
 
             self._count += 1
 
@@ -112,9 +121,14 @@ class SharedMemManager(object):
         Returns:
           The numpy ndarray with the handle given from _create_array.
         """
+        tup = self._arrays[handle]
+        assert tup is not None
+        c_arr, shape = tup
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', RuntimeWarning)
-            return np.ctypeslib.as_array(self._arrays[handle])
+            result = np.ctypeslib.as_array(c_arr)
+        result.shape = shape
+        return result
 
     @staticmethod
     def get_instance() -> 'SharedMemManager':
