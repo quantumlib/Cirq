@@ -176,7 +176,6 @@ def test_swap_network_decomposition():
           │                   │   │     │                       │   │
 7: ───────█───────────────────█───╱7╲───█───────────────────────█───3↦1───
     """.strip()
-    print(actual_text_diagram)
     assert actual_text_diagram == expected_text_diagram
 
 def test_swap_network_init_error():
