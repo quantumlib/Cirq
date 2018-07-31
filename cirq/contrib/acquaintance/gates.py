@@ -47,7 +47,8 @@ def acquaint_insides(swap_gate: Gate,
                      qubits: Sequence[QubitId],
                      max_reach: int,
                      acquaint_first: bool,
-                     layers: Dict[str, List[Operation]]
+                     layers: Dict[str, List[Operation]],
+                     mapping: Dict[QubitId, int]
                      ) -> List[Operation]:
     reaches = chain(range(1, max_reach + 1),
                     range(max_reach, -1, -1))
@@ -59,6 +60,12 @@ def acquaint_insides(swap_gate: Gate,
             ops.append(acquaintance_gate)
         for dr in range(offset, reach, 2):
             ops.append(swap_gate(*qubits[dr:dr + 2]))
+
+
+    # update mapping
+    reached_qubits = qubits[:max_reach + 1]
+    positions = list(mapping[q] for q in reached_qubits)
+    mapping.update(zip(reached_qubits, reversed(positions)))
     return ops
 
 def _get_max_reach(size: int, round_up: bool=True) -> int:
@@ -99,10 +106,8 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
                     qubits=right_part,
                     max_reach=max_reach,
                     acquaint_first=False,
-                    layers=layers)
-            reached_qubits = right_part[:max_reach + 1]
-            positions = list(mapping[q] for q in reached_qubits)
-            mapping.update(zip(reached_qubits, reversed(positions)))
+                    layers=layers,
+                    mapping=mapping)
 
         if right_size == acquaintance_size - 1:
             # left part
@@ -117,11 +122,8 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
                     qubits=left_part[::-1],
                     max_reach=max_reach,
                     acquaint_first=False,
-                    layers=layers)
-
-            reached_qubits = left_part[::-1][:max_reach + 1]
-            positions = list(mapping[q] for q in reached_qubits)
-            mapping.update(zip(reached_qubits, reversed(positions)))
+                    layers=layers,
+                    mapping=mapping)
 
         layers['intra'].append(shift)
         shift.gate.update_mapping(mapping, qubits)
@@ -140,11 +142,8 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
                     qubits=new_left_part,
                     max_reach=max_reach,
                     acquaint_first=True,
-                    layers=layers)
-
-            reached_qubits = new_left_part[:max_reach + 1]
-            positions = list(mapping[q] for q in reached_qubits)
-            mapping.update(zip(reached_qubits, reversed(positions)))
+                    layers=layers,
+                    mapping=mapping)
 
             layers['posterior_interstitial'].append(
                     post_acquaintance_gate)
@@ -161,11 +160,8 @@ def acquaint_and_shift(parts: Tuple[List[QubitId], List[QubitId]],
                     qubits=qubits[right_size:],
                     max_reach=max_reach,
                     acquaint_first=True,
-                    layers=layers)
-
-            reached_qubits = (qubits[right_size:][:max_reach + 1])
-            positions = list(mapping[q] for q in reached_qubits)
-            mapping.update(zip(reached_qubits, reversed(positions)))
+                    layers=layers,
+                    mapping=mapping)
 
             layers['posterior_interstitial'].append(
                     post_acquaintance_gate)
