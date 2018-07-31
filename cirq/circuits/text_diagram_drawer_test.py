@@ -120,3 +120,23 @@ def test_line_fails_when_not_aligned():
     d = TextDiagramDrawer()
     with pytest.raises(ValueError):
         d.grid_line(1, 2, 3, 4)
+
+
+def test_multiline_entries():
+    d = TextDiagramDrawer()
+    d.write(0, 0, 'hello\nthere')
+    d.write(0, 1, 'next')
+    d.write(5, 1, '1\n2\n3')
+    d.write(5, 2, '4n')
+    d.vertical_line(x=5, y1=1, y2=2)
+    d.horizontal_line(y=1, x1=0, x2=8)
+    assert d.render().strip() == """
+hello
+there
+
+next──────────1──────
+              2
+              3
+              │
+              4n
+    """.strip()

@@ -1084,8 +1084,7 @@ class Circuit(ops.ParameterizableEffect):
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
-                                    precision,
-                                    transpose)
+                                    precision)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -1255,8 +1254,7 @@ def _draw_moment_in_diagram(moment: Moment,
                             use_unicode_characters: bool,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
-                            precision: Optional[int],
-                            is_transposed: bool):
+                            precision: Optional[int]):
     x0 = out_diagram.width()
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]

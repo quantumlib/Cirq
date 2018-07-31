@@ -89,7 +89,7 @@ class TextDiagramDrawer:
         self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize))
 
     def horizontal_line(self, y, x1, x2, emphasize: bool = False
-                      ) -> None:
+                        ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
@@ -204,16 +204,12 @@ _AsciiMap = {k: v for k, _, v in _BoxChars}
 
 
 def _normal_char(k: str, emphasize: bool = False) -> str:
-    if not emphasize:
-        return k
-    r = _EmphasisMap.get(k)
-    return r if r is not None else k
+    return _EmphasisMap.get(k, k) if emphasize else k
 
 
 def _ascii_char(k: str, emphasize: bool = False) -> str:
     del emphasize
-    r = _AsciiMap.get(k)
-    return r if r is not None else k
+    return _AsciiMap.get(k, k)
 
 
 def _cross_char(use_ascii: bool, horizontal_emph: bool, vertical_emph: bool
