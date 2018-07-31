@@ -73,7 +73,7 @@ def test_pow():
     assert CExpZinGate(0.25)**2 == CExpZinGate(0.5)
     assert CExpZinGate(0.25)**-1 == CExpZinGate(-0.25)
     assert CExpZinGate(0.25)**0 == CExpZinGate(0)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = CExpZinGate(cirq.Symbol('a'))**1.5
 
 
@@ -82,13 +82,13 @@ def test_extrapolate_effect():
     assert CExpZinGate(0.25).extrapolate_effect(-1) == CExpZinGate(-0.25)
     assert CExpZinGate(0.25).extrapolate_effect(0) == CExpZinGate(0)
     assert CExpZinGate(0).extrapolate_effect(0) == CExpZinGate(0)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = CExpZinGate(cirq.Symbol('a')).extrapolate_effect(1.5)
 
 
 def test_inverse():
     assert CExpZinGate(0.25).inverse() == CExpZinGate(-0.25)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = CExpZinGate(cirq.Symbol('a')).inverse()
 
 

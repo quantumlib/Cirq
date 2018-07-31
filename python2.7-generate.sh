@@ -55,8 +55,11 @@ fi
 
 mkdir ${out_dir}
 
+trap "manual_cancel=1; exit 1" INT
 function print_cached_err () {
-  cat "${out_dir}/err_tmp.log" 1>&2
+  if [ -z "${manual_cancel}" ]; then
+    cat "${out_dir}/err_tmp.log" 1>&2
+  fi
   rm -rf "${out_dir}"
 }
 touch "${out_dir}/err_tmp.log"
