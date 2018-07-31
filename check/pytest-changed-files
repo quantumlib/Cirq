@@ -1,0 +1,21 @@
+if [ -z $1 ]; then
+    echo -e "\e[31mSpecify a branch to compare against (e.g. 'origin/master').\e[0m"
+    exit 1
+fi
+
+# Get the _test version of changed python files.
+changed=$(git diff --name-only "$1" \
+    | grep "\.py$" \
+    | sed -e "s/\.py$/_test.py/" \
+    | sed -e "s/_test_test\.py$/_test.py/" \
+    | perl -ne 'chomp(); if (-e $_) {print "$_\n"}' \
+    | uniq \
+)
+num_changed=$(echo -e "${changed}" | wc -w)
+
+echo "Found ${num_changed} differing files with associated tests."
+if [ -z "${changed}" ]; then
+    exit 0
+fi
+
+pytest ${changed}
