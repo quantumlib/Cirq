@@ -14,11 +14,11 @@
 
 import cmath
 import math
-import random
+from typing import Sequence, cast
 
 import numpy as np
-
 import pytest
+import random
 
 import cirq
 
@@ -29,16 +29,20 @@ def _operations_to_matrix(operations, qubits):
         qubits_that_should_be_present=qubits)
 
 
-def _gates_to_matrix(gates):
+def _gates_to_matrix(gates: Sequence[cirq.KnownMatrix]) -> np.ndarray:
     m = gates[0].matrix()
     for gate in gates[1:]:
         m = gate.matrix().dot(m)
     return m
 
 
-def assert_gates_implement_unitary(gates, intended_effect):
-    actual_effect = _gates_to_matrix(gates)
-    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect)
+def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
+                                   intended_effect: np.ndarray,
+                                   atol: float):
+    actual_effect = _gates_to_matrix(cast(Sequence[cirq.KnownMatrix], gates))
+    cirq.testing.assert_allclose_up_to_global_phase(actual_effect,
+                                                    intended_effect,
+                                                    atol=atol)
 
 
 def test_single_qubit_matrix_to_gates_known_x():
@@ -85,15 +89,19 @@ def test_known_h():
 
 @pytest.mark.parametrize('intended_effect', [
     np.array([[0, 1j], [1, 0]]),
+    # Historical failure:
+    np.array([[-0.10313355-0.62283483j,  0.76512225-0.1266025j],
+              [-0.72184177+0.28352196j,  0.23073193+0.5876415j]]),
 ] + [
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_single_qubit_matrix_to_gates_cases(intended_effect):
-    gates = cirq.single_qubit_matrix_to_gates(
-        intended_effect, tolerance=0.0001)
-    assert len(gates) <= 3
-    assert sum(1 for g in gates if not isinstance(g, cirq.RotZGate)) <= 1
-    assert_gates_implement_unitary(gates, intended_effect)
+    for atol in [1e-1, 1e-8]:
+        gates = cirq.single_qubit_matrix_to_gates(
+            intended_effect, tolerance=atol / 10)
+        assert len(gates) <= 3
+        assert sum(1 for g in gates if not isinstance(g, cirq.RotZGate)) <= 1
+        assert_gates_implement_unitary(gates, intended_effect, atol=atol)
 
 
 @pytest.mark.parametrize('pre_turns,post_turns',
@@ -107,10 +115,10 @@ def test_single_qubit_matrix_to_gates_fuzz_half_turns_merge_z_gates(
         cirq.RotZGate(half_turns=2 * post_turns).matrix())
 
     gates = cirq.single_qubit_matrix_to_gates(
-        intended_effect, tolerance=0.0001)
+        intended_effect, tolerance=1e-7)
 
     assert len(gates) <= 2
-    assert_gates_implement_unitary(gates, intended_effect)
+    assert_gates_implement_unitary(gates, intended_effect, atol=1e-6)
 
 
 def test_single_qubit_matrix_to_gates_tolerance_z():
