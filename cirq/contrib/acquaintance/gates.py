@@ -42,8 +42,13 @@ class AcquaintanceOpportunityGate(Gate, TextDiagrammable):
 
 ACQUAINT = AcquaintanceOpportunityGate()
 
-Layers = NamedTuple('Layers', [(field, List[Operation]) for field in 
-    ('prior_interstitial', 'pre', 'intra', 'post', 'posterior_interstitial')])
+Layers = NamedTuple('Layers', [
+    ('prior_interstitial', List[Operation]),
+    ('pre', List[Operation]),
+    ('intra', List[Operation]),
+    ('post', List[Operation]),
+    ('posterior_interstitial', List[Operation])
+    ])
 
 def new_layers(**kwargs):
     return Layers._make(kwargs.get(field, []) for field in Layers._fields)
