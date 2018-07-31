@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Do a sanity check that we're actually in python 2 land.
+v=$(python --version 2>&1)
+h=$(echo "${v}" | grep "Python 2\.7\.")
+if [ -z "${h}" ]; then
+    echo -e "\e[31mError: 'python --version' was '${v}', not 'Python 2.7.*'.\nDouble-check that you are in a prepared python 2 environment.\e[0m"
+    exit 1
+fi
+
+# Prepare environment.
+out_dir=$(mktemp -d "/tmp/cirq.pytest2.XXXXXXXXXXXXXXXX")
+rmdir "${out_dir}"
+trap "{ rm -rf ${out_dir}; }" EXIT
+trap "exit" INT
+
+# Convert code from python3 to python2.7.
+echo "Transpiling to python 2 with destination '${out_dir}'..."
+set -e
+./python2.7-generate.sh "${out_dir}"
+set +e
+
+# Run tests against converted code.
+PYTHONPATH="${out_dir}"
+cd "${out_dir}"
+pytest $@

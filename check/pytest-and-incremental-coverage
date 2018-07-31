@@ -1,3 +1,10 @@
 #!/usr/bin/env bash
-export PYTHONPATH=$(pwd)
+
+PYTHONPATH=$(pwd)
 python dev_tools/run_pytest_and_incremental_coverage.py $@
+result=$?
+
+# Clean up generated coverage files.
+find | grep "\.py,cover$" | xargs rm -f
+
+exit ${result}
