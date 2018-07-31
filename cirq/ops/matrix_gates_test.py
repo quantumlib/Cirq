@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -85,6 +86,8 @@ def test_single_qubit_extrapolate():
     z4 = cirq.SingleQubitMatrixGate(
         np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
     assert z2.extrapolate_effect(0.5).approx_eq(z4)
+    with pytest.raises(TypeError):
+        _ = x**cirq.Symbol('a')
 
 
 def test_two_qubit_init():
@@ -135,3 +138,5 @@ def test_two_qubit_extrapolate():
     assert cz2.extrapolate_effect(0).approx_eq(i)
     assert cz4.extrapolate_effect(0).approx_eq(i)
     assert cz2.extrapolate_effect(0.5).approx_eq(cz4)
+    with pytest.raises(TypeError):
+        _ = cz2**cirq.Symbol('a')
