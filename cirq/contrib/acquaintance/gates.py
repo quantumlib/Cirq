@@ -43,11 +43,11 @@ class AcquaintanceOpportunityGate(Gate, TextDiagrammable):
 ACQUAINT = AcquaintanceOpportunityGate()
 
 class Layers(NamedTuple):
-    prior_interstitial: List[Operation]
-    pre: List[Operation]
-    intra: List[Operation]
-    post: List[Operation]
-    posterior_interstitial: List[Operation]
+    prior_interstitial # type: List[Operation]
+    pre # type: List[Operation]
+    intra # type: List[Operation]
+    post # type: List[Operation]
+    posterior_interstitial # type: List[Operation]
 
     @classmethod
     def new(cls, **kwargs):
