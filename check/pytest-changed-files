@@ -1,7 +1,13 @@
+set -e
+
 if [ -z $1 ]; then
     echo -e "\e[31mSpecify what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
     exit 1
 fi
+
+# Run from repo root.
+root=$(git rev-parse --show-toplevel)
+cd "${root}"
 
 # Get the _test version of changed python files.
 changed=$(git diff --name-only "$1" \
