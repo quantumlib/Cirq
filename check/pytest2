@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 
+################################################################################
+# Transpiles to python 2 and runs pytest on the transpiled code.
+#
+# Usage:
+#     check/pytest2 [--flags] [file-paths-relative-to-repo-root]
+#
+# You must be in a python 2 environment with 3to2 and protoc present in order to
+# run this command.
+#
+# You may specify additional flags or specific files to test. The file paths
+# must be relative to the repository root. If no files are specified, everything
+# is tested.
+################################################################################
+
+# Get the working directory to the repo root.
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd ${own_directory}
+repo_dir=$(git rev-parse --show-toplevel)
+cd ${repo_dir}
+
 # Do a sanity check that we're actually in python 2 land.
 v=$(python --version 2>&1)
 h=$(echo "${v}" | grep "Python 2\.7\.")
