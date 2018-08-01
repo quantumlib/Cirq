@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
+import itertools, functools
 import pytest
 from cirq.testing import (
     EqualsTester,
@@ -193,6 +193,16 @@ def test_init_ident_from_single(trans, frm):
 def test_init_from_pauli(pauli, sqrt, expected):
     gate = cirq.CliffordGate.from_pauli(pauli, sqrt=sqrt)
     assert gate == expected
+
+
+@pytest.mark.parametrize('gate', _all_clifford_gates())
+def test_init_from_quarter_turns(gate):
+    new_gate = functools.reduce(
+                    cirq.CliffordGate.merged_with,
+                    (cirq.CliffordGate.from_quarter_turns(pauli, qt)
+                     for pauli, qt in gate.decompose_rotation()),
+                    cirq.CliffordGate.I)
+    assert gate == new_gate
 
 
 def test_init_invalid():
