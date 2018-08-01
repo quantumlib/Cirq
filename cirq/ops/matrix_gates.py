@@ -27,6 +27,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 
 class SingleQubitMatrixGate(raw_types.Gate,
+                            gate_features.TextDiagrammable,
                             gate_features.KnownMatrix,
                             gate_features.PhaseableEffect,
                             gate_features.ExtrapolatableEffect,
@@ -82,6 +83,11 @@ class SingleQubitMatrixGate(raw_types.Gate,
                 'method.'.format(type(self)))
         return self._matrix
 
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=(_matrix_to_diagram_symbol(self.matrix(), args),))
+
     def __hash__(self):
         vals = tuple(v for _, v in np.ndenumerate(self.matrix()))
         return hash((SingleQubitMatrixGate, vals))
@@ -109,6 +115,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
 
 
 class TwoQubitMatrixGate(raw_types.Gate,
+                         gate_features.TextDiagrammable,
                          gate_features.KnownMatrix,
                          gate_features.PhaseableEffect,
                          gate_features.ExtrapolatableEffect):
@@ -168,6 +175,11 @@ class TwoQubitMatrixGate(raw_types.Gate,
                 'method.'.format(type(self)))
         return self._matrix
 
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=(_matrix_to_diagram_symbol(self.matrix(), args), '#2'))
+
     def __hash__(self):
         vals = tuple(v for _, v in np.ndenumerate(self.matrix()))
         return hash((SingleQubitMatrixGate, vals))
@@ -185,3 +197,23 @@ class TwoQubitMatrixGate(raw_types.Gate,
 
     def __str__(self):
         return str(self.matrix().round(3))
+
+
+def _matrix_to_diagram_symbol(matrix: np.ndarray,
+                              args: gate_features.TextDiagramInfoArgs) -> str:
+    if args.precision is not None:
+        matrix = matrix.round(args.precision)
+    result = str(matrix)
+    if args.use_unicode_characters:
+        lines = result.split('\n')
+        for i in range(len(lines)):
+            lines[i] = lines[i].replace('[[', '')
+            lines[i] = lines[i].replace(' [', '')
+            lines[i] = lines[i].replace(']', '')
+        w = max(len(line) for line in lines)
+        for i in range(len(lines)):
+            lines[i] = '│' + lines[i].ljust(w) + '│'
+        lines.insert(0, '┌' + ' ' * w + '┐')
+        lines.append('└' + ' ' * w + '┘')
+        result = '\n'.join(lines)
+    return result
