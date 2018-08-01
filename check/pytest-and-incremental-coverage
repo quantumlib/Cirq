@@ -1,5 +1,24 @@
 #!/usr/bin/env bash
 
+################################################################################
+# Finds changed uncovered lines.
+#
+# Usage:
+#     check/pytest-and-incremental-coverage COMPARISON_BRANCH_OR_COMMIT_ID
+#
+# You must specify a git commit or branch to compare against (i.e. to use when
+# determining whether or not a line is considered to have "changed"). To make
+# the tool more consistent, it actually diffs against the most recent common
+# ancestor of the specified id and HEAD. So if you choose 'origin/master' you're
+# actually diffing against the output of 'git merge-base origin/master HEAD'.
+################################################################################
+
+# Get the working directory to the repo root.
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd ${own_directory}
+repo_dir=$(git rev-parse --show-toplevel)
+cd ${repo_dir}
+
 PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py $@
 result=$?
 
