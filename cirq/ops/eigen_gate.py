@@ -137,11 +137,10 @@ class EigenGate(raw_types.Gate,
         return np.sum(1j**(half_turns * e * 2) * component
                       for half_turns, component in self._eigen_components())
 
-    def extrapolate_effect(self: TSelf, factor: float) -> TSelf:
-        if self.is_parameterized():
-            raise ValueError("Parameterized. Don't know how to extrapolate.")
+    def extrapolate_effect(self: TSelf,
+                           factor: Union[float, value.Symbol]) -> TSelf:
         return self._with_exponent(
-            exponent=cast(float, self._exponent) * factor)
+            exponent=self._exponent * factor)  # type: ignore
 
     def is_parameterized(self) -> bool:
         return isinstance(self._exponent, value.Symbol)
