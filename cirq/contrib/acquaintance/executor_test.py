@@ -123,6 +123,17 @@ def test_diagonal_gate():
     args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
     assert gate.text_diagram_info(args) == NotImplemented
 
+    qubits = cirq.LineQubit.range(2)
+    gate = DiagonalGate.random(2)
+    circuit = cirq.Circuit.from_ops([gate(*qubits)])
+    actual_text_diagram = circuit.to_text_diagram()
+    expected_text_diagram = """
+0: ───Diag───
+      │
+1: ───Diag───
+    """.strip()
+    assert actual_text_diagram == expected_text_diagram
+
 def random_diagonal_gates(n_qubits: int,
                  acquaintance_size: int
                  ) -> Dict[Tuple[cirq.QubitId, ...], cirq.Gate]:
