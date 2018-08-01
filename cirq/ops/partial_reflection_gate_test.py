@@ -17,15 +17,11 @@ from typing import Union
 import numpy as np
 
 import cirq
-from cirq.ops.partial_reflection_gate import PartialReflectionGate
-from cirq.study import ParamResolver
-from cirq.testing import EqualsTester
-from cirq.value import Symbol
 
 
-class DummyGate(PartialReflectionGate):
+class DummyGate(cirq.PartialReflectionGate):
 
-    def _with_half_turns(self, half_turns: Union[Symbol, float] = 1.0):
+    def _with_half_turns(self, half_turns: Union[cirq.Symbol, float] = 1.0):
         return DummyGate(half_turns=half_turns)
 
     def _reflection_matrix(self):
@@ -38,11 +34,11 @@ def test_partial_reflection_gate_init():
 
 
 def test_partial_reflection_gate_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(DummyGate(), DummyGate(half_turns=1))
     eq.add_equality_group(DummyGate(half_turns=3.5), DummyGate(half_turns=-0.5))
-    eq.make_equality_group(lambda: DummyGate(half_turns=Symbol('a')))
-    eq.make_equality_group(lambda: DummyGate(half_turns=Symbol('b')))
+    eq.make_equality_group(lambda: DummyGate(half_turns=cirq.Symbol('a')))
+    eq.make_equality_group(lambda: DummyGate(half_turns=cirq.Symbol('b')))
     eq.make_equality_group(lambda: DummyGate(half_turns=0))
     eq.add_equality_group(DummyGate(half_turns=0.5),
                           DummyGate(rads=np.pi / 2),
@@ -77,8 +73,8 @@ def test_partial_reflection_gate_trace_bound():
 
 
 def test_partial_reflection_gate_with_parameters_resolved_by():
-    gate = DummyGate(half_turns=Symbol('a'))
-    resolver = ParamResolver({'a': 0.1})
+    gate = DummyGate(half_turns=cirq.Symbol('a'))
+    resolver = cirq.ParamResolver({'a': 0.1})
     resolved_gate = gate.with_parameters_resolved_by(resolver)
     assert resolved_gate.half_turns == 0.1
 

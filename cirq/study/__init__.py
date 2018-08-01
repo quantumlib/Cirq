@@ -24,7 +24,11 @@ from cirq.study.sweeps import (
     Linspace,
     Points,
     Sweep,
+    UnitSweep,
 )
 from cirq.study.trial_result import (
     TrialResult,
+)
+from cirq.study.visualize import (
+    plot_state_histogram,
 )

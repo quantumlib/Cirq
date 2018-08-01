@@ -63,3 +63,9 @@ class Symbol:
 
     def __rmul__(self, other):
         return self if other == 1 else NotImplemented
+
+    def __add__(self, other):
+        return self if other == 0 else NotImplemented
+
+    def __radd__(self, other):
+        return self if other == 0 else NotImplemented

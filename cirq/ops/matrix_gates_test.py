@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import re
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -85,6 +87,8 @@ def test_single_qubit_extrapolate():
     z4 = cirq.SingleQubitMatrixGate(
         np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
     assert z2.extrapolate_effect(0.5).approx_eq(z4)
+    with pytest.raises(TypeError):
+        _ = x**cirq.Symbol('a')
 
 
 def test_two_qubit_init():
@@ -135,3 +139,87 @@ def test_two_qubit_extrapolate():
     assert cz2.extrapolate_effect(0).approx_eq(i)
     assert cz4.extrapolate_effect(0).approx_eq(i)
     assert cz2.extrapolate_effect(0.5).approx_eq(cz4)
+    with pytest.raises(TypeError):
+        _ = cz2**cirq.Symbol('a')
+
+
+def test_single_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
+    c = cirq.Circuit.from_ops(
+        cirq.SingleQubitMatrixGate(m).on(a),
+        cirq.CZ(a, b))
+
+    assert re.match("""
+a: ───┌[            ]+┐───@───
+      │[0-9\\.+\\-j ]+│   │
+      │[0-9\\.+\\-j ]+│   │
+      └[            ]+┘   │
+       [            ]+    │
+b: ────[────────────]+────@───
+    """.strip(), c.to_text_diagram())
+
+    assert re.match(r"""
+a: ---[\[0-9\.+\-j \]]+---@---
+      [\[0-9\.+\-j \]]+   |
+      [              ]+   |
+b: ---[--------------]+---@---
+        """.strip(), c.to_text_diagram(use_unicode_characters=False))
+
+    assert re.match("""
+a[            ]+  b
+│[            ]+  │
+┌[            ]+┐ │
+│[0-9\\.+\\-j ]+│ │
+│[0-9\\.+\\-j ]+│ │
+└[            ]+┘ │
+│[            ]+  │
+@[────────────]+──@
+│[            ]+  │
+    """.strip(), c.to_text_diagram(transpose=True))
+
+
+def test_two_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    c = cirq.Circuit.from_ops(
+        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(a, b),
+        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(c, a))
+    assert re.match("""
+a: ───┌[            ]+┐───#2─+
+      │[0-9\\.+\\-j ]+│   │
+      │[0-9\\.+\\-j ]+│   │
+      │[0-9\\.+\\-j ]+│   │
+      │[0-9\\.+\\-j ]+│   │
+      └[            ]+┘   │
+      │[            ]+    │
+b: ───#2[───────────]+────┼──+
+       [            ]+    │
+c: ────[────────────]+────┌[            ]+┐───
+       [            ]+    │[0-9\\.+\\-j ]+│
+       [            ]+    │[0-9\\.+\\-j ]+│
+       [            ]+    │[0-9\\.+\\-j ]+│
+       [            ]+    │[0-9\\.+\\-j ]+│
+       [            ]+    └[            ]+┘
+    """.strip(), c.to_text_diagram())
+
+    assert re.match("""
+a[            ]+  b  c
+│[            ]+  │  │
+┌[            ]+┐─#2 │
+│[0-9\\.+\\-j ]+│ │  │
+│[0-9\\.+\\-j ]+│ │  │
+│[0-9\\.+\\-j ]+│ │  │
+│[0-9\\.+\\-j ]+│ │  │
+└[            ]+┘ │  │
+│[            ]+  │  │
+#2[───────────]+──┼──┌[            ]+┐
+│[            ]+  │  │[0-9\\.+\\-j ]+│
+│[            ]+  │  │[0-9\\.+\\-j ]+│
+│[            ]+  │  │[0-9\\.+\\-j ]+│
+│[            ]+  │  │[0-9\\.+\\-j ]+│
+│[            ]+  │  └[            ]+┘
+│[            ]+  │  │
+    """.strip(), c.to_text_diagram(transpose=True))

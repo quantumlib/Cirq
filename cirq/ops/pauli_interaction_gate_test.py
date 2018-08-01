@@ -69,7 +69,7 @@ def test_decompose(gate):
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     circuit = cirq.Circuit.from_ops(
                     gate(q0, q1))
-    cirq.circuits.ExpandComposite().optimize_circuit(circuit)
+    cirq.ExpandComposite().optimize_circuit(circuit)
     decompose_mat = circuit.to_unitary_matrix()
     gate_mat = cirq.unitary_effect(gate)
     cirq.testing.assert_allclose_up_to_global_phase(

@@ -15,8 +15,8 @@
 from random import randint, random, sample, choice
 import pytest
 
+import cirq
 from cirq.testing.random_circuit import random_circuit, DEFAULT_GATE_DOMAIN
-from cirq import ops
 
 
 def test_random_circuit_errors():
@@ -56,7 +56,7 @@ def test_random_circuit(n_qubits,
                         op_density,
                         pass_qubits
                         ):
-    qubits = ([ops.QubitId() for _ in range(n_qubits)]
+    qubits = ([cirq.QubitId() for _ in range(n_qubits)]
               if pass_qubits else n_qubits)
     circuit = random_circuit(qubits, n_moments, op_density, gate_domain)
     if pass_qubits:

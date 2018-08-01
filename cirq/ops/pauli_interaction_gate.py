@@ -36,6 +36,9 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                            gate_features.CompositeGate,
                            gate_features.InterchangeableQubitsGate,
                            gate_features.TextDiagrammable):
+    CZ = None  # type: PauliInteractionGate
+    CNOT = None  # type: PauliInteractionGate
+
     def __init__(self,
                  pauli0: Pauli, invert0: bool,
                  pauli1: Pauli, invert1: bool,
@@ -130,3 +133,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
     def __repr__(self):
         return 'PauliInteractionGate({}{!s}, {}{!s})'.format(
                '+-'[self.invert0], self.pauli0, '+-'[self.invert1], self.pauli1)
+
+
+PauliInteractionGate.CZ = PauliInteractionGate(Pauli.Z, False, Pauli.Z, False)
+PauliInteractionGate.CNOT = PauliInteractionGate(Pauli.Z, False, Pauli.X, False)

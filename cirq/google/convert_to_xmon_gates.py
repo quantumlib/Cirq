@@ -18,10 +18,8 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
 )
 from cirq.extension import Extensions
-from cirq.google.decompositions import (
-    single_qubit_matrix_to_native_gates,
-    two_qubit_matrix_to_native_gates,
-)
+from cirq.google.decompositions import single_qubit_matrix_to_native_gates
+from cirq.decompositions import two_qubit_matrix_to_operations
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_gates import XmonGate
 
@@ -69,18 +67,16 @@ class ConvertToXmonGates(PointOptimizer):
                 return xmon.on(*op.qubits)
 
         # Known matrix?
-        if len(op.qubits) <= 2:
-            matrix = protocols.maybe_unitary_effect(op)
-            if matrix is not None:
-                if len(op.qubits) == 1:
-                    gates = single_qubit_matrix_to_native_gates(matrix)
-                    return [g.on(op.qubits[0]) for g in gates]
-
-                return two_qubit_matrix_to_native_gates(
-                    op.qubits[0],
-                    op.qubits[1],
-                    matrix,
-                    allow_partial_czs=True)
+        mat = self.extensions.try_cast(ops.KnownMatrix, op)
+        if mat is not None and len(op.qubits) == 1:
+            gates = single_qubit_matrix_to_native_gates(mat.matrix())
+            return [g.on(op.qubits[0]) for g in gates]
+        if mat is not None and len(op.qubits) == 2:
+            return two_qubit_matrix_to_operations(
+                op.qubits[0],
+                op.qubits[1],
+                mat.matrix(),
+                allow_partial_czs=True)
 
         # Provides a decomposition?
         composite_op = self.extensions.try_cast(ops.CompositeOperation, op)

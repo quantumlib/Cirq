@@ -32,9 +32,7 @@ class GridQubitLineTuple(tuple):
     def best_of(lines: Iterable[LineSequence],
                 length: int) -> 'GridQubitLineTuple':
         lines = list(lines)
-        if len(lines) == 0:
-            raise NotFoundError('No line placement found.')
-        longest = max(lines, key=len)
+        longest = max(lines, key=len) if lines else []
         if len(longest) < length:
             raise NotFoundError('No line placement with desired length found.')
         return GridQubitLineTuple(longest[:length])
