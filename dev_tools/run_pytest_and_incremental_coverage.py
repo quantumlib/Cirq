@@ -23,7 +23,8 @@ from dev_tools import all_checks, prepared_env, shell_tools
 def main():
     if len(sys.argv) < 2:
         print(shell_tools.highlight(
-            'Must specify a comparison branch (e.g. "master").',
+            'Must specify a comparison branch '
+            '(e.g. "origin/master" or "HEAD~1").',
             shell_tools.RED))
         sys.exit(1)
     comparison_branch = sys.argv[1]

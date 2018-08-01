@@ -256,6 +256,45 @@ def test_cnot_power():
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
+def test_cnot_keyword_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    eq_tester = cirq.testing.EqualsTester()
+    eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                 cirq.CNOT(control=a, target=b))
+    eq_tester.add_equality_group(cirq.CNOT(b, a),
+                                 cirq.CNOT(control=b, target=a))
+
+def test_cnot_keyword_not_equal():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(AssertionError):
+        eq_tester = cirq.testing.EqualsTester()
+        eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                     cirq.CNOT(target=a, control=b))
+
+def test_cnot_keyword_too_few_arguments():
+    a = cirq.NamedQubit('a')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(control=a)
+
+
+def test_cnot_mixed_keyword_and_positional_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(a, target=b)
+
+def test_cnot_unknown_keyword_argument():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(target=a, controlled=b)
 
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
