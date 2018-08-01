@@ -17,7 +17,7 @@ changed=$(git diff --name-only "$1" \
     | perl -ne 'chomp(); if (-e $_) {print "$_\n"}' \
     | uniq \
 )
-num_changed=$(echo -e "${changed}" | wc -l)
+num_changed=$(echo -e "${changed}" | wc -w)
 
 echo "Found ${num_changed} differing files with associated tests."
 if [ -z "${changed}" ]; then
