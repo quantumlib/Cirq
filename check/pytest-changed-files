@@ -24,16 +24,10 @@ cd ${own_directory}
 repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
-set -e
-
 if [ -z $1 ] || [[ $1 == --* ]]; then
     echo -e "\e[31mArgument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
     exit 1
 fi
-
-# Run from repo root.
-root=$(git rev-parse --show-toplevel)
-cd "${root}"
 
 # Get the _test version of changed python files.
 changed=$(git diff --name-only "$1" \
