@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -23,6 +23,10 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
 )
 from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List
 
 
 class ConvertToPauliStringPhasors(PointOptimizer):
@@ -69,8 +73,9 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                 cliff_gate = ops.CliffordGate.from_quarter_turns(
                                     pauli, round(half_turns * 2))
                 if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):
-                    out_ops[-1] = out_ops[-1].gate.merged_with(cliff_gate
-                                                               )(qubit)
+                    op = cast(ops.GateOperation, out_ops[-1])
+                    gate = cast(ops.CliffordGate, op.gate)
+                    out_ops[-1] = gate.merged_with(cliff_gate)(qubit)
                 else:
                     out_ops.append(
                         cliff_gate(qubit))
