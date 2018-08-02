@@ -39,6 +39,10 @@ where you would like to store your local copy of the code.
     ```
     (Alternatively, you can clone the repository using the URL provided
     on your repo page under the green "Clone or Download" button)
+1. Change directory to cirq.
+   ```shell
+   cd cirq
+   ```
 1. Add a remote called ```upstream``` to git.  This remote will represent
 the main git repo for cirq (as opposed to the clone, which you just
 created, which will be the ```origin``` remote).  This remote can be used
