@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs pylint on the repository using a preconfigured .pylintrc file.
+#
+# Usage:
+#     check/pylint [--flags]
+################################################################################
+
+# Get the working directory to the repo root.
+own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd ${own_directory}
+repo_dir=$(git rev-parse --show-toplevel)
+cd ${repo_dir}
+
+pylint --rcfile=continuous-integration/.pylintrc $@ cirq dev_tools examples
