@@ -4,15 +4,24 @@
 # Runs pytest on files that have been modified.
 #
 # Usage:
-#     check/pytest-changed-files COMPARISON_BRANCH_OR_COMMIT_ID [--pytest-flags]
+#     check/pytest-changed-files [BASE_REVISION] [--pytest-flags]
 #
 # This tool is not clever; it does not understand dependencies between all
 # files. If "x.py" or "x_test.py" have been modified, it will include
 # "x_test.py" in the arguments given to pytest. That's all it does.
 #
-# You must specify a git commit or branch to compare against (i.e. to use when
+# You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a file is considered to have "changed"). For
 # example, you can compare against 'origin/master' or 'HEAD~1'.
+#
+# If you don't specify a base revision, the following defaults will be tried, in
+# order, until one exists:
+#
+#     1. upstream/master
+#     2. origin/master
+#     3. master
+#
+# If none exists, the script fails.
 #
 # You can pass flags such as "-v" into pytest by placing them after the
 # comparison id.
@@ -24,13 +33,28 @@ cd ${own_directory}
 repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
-if [ -z $1 ] || [[ $1 == -* ]]; then
-    echo -e "\e[31mArgument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
+# Figure out which branch to compare against.
+rest="$@"
+if [ ! -z "$1" ] && [[ $1 != -* ]]; then
+    branch="$1"
+    rest="${@:2}"
+elif [ ! -z $(git branch --list upstream/master) ]; then
+    branch=upstream/master
+elif [ !-z $(git branch --list origin/master) ]; then
+    branch=origin/master
+elif [ !-z $(git branch --list master) ]; then
+    branch=master
+else
+    echo -e "\e[31mNo master branch found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
     exit 1
 fi
+set -e
+git rev-parse "${branch}" > /dev/null
+set +e
+echo "Comparing against revision '${branch}'."
 
 # Get the _test version of changed python files.
-changed=$(git diff --name-only "$1" \
+changed=$(git diff --name-only "${branch}" \
     | grep "\.py$" \
     | sed -e "s/\.py$/_test.py/" \
     | sed -e "s/_test_test\.py$/_test.py/" \
@@ -39,9 +63,9 @@ changed=$(git diff --name-only "$1" \
 )
 num_changed=$(echo -e "${changed}" | wc -w)
 
+# Run it.
 echo "Found ${num_changed} differing files with associated tests."
 if [ -z "${changed}" ]; then
     exit 0
 fi
-
-pytest "${@:2}" ${changed}
+pytest "${rest}" ${changed}
