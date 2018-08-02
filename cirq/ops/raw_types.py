@@ -36,6 +36,16 @@ class NamedQubit(QubitId):
     def __init__(self, name: str) -> None:
         self.name = name
 
+    @staticmethod
+    def range(*range_args) -> List['NamedQubit']:
+        """Returns a range of named qubits.
+        Args:
+            *range_args: Same arguments as python's built-in range method.
+        Returns:
+            A list of named qubits.
+        """
+        return [NamedQubit(i) for i in range(*range_args)]
+
     def __str__(self):
         return self.name
 
