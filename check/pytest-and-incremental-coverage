@@ -4,13 +4,22 @@
 # Finds changed uncovered lines.
 #
 # Usage:
-#     check/pytest-and-incremental-coverage COMPARISON_BRANCH_OR_COMMIT_ID
+#     check/pytest-and-incremental-coverage [COMPARISON_BRANCH_OR_COMMIT_ID]
 #
-# You must specify a git commit or branch to compare against (i.e. to use when
+# You can specify a git commit or branch to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
 # the tool more consistent, it actually diffs against the most recent common
 # ancestor of the specified id and HEAD. So if you choose 'origin/master' you're
 # actually diffing against the output of 'git merge-base origin/master HEAD'.
+#
+# If you don't specify a commit or branch, the following defaults will be tried,
+# in order, until one exists.
+#
+#     1. upstream/master
+#     2. origin/master
+#     3. master
+#
+# If none exists, the script fails.
 ################################################################################
 
 # Get the working directory to the repo root.
@@ -19,7 +28,21 @@ cd ${own_directory}
 repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
-PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py $@
+if [ ! -z "$1" ]; then
+    branch="$1"
+elif [ ! -z $(git branch --list upstream/master) ]; then
+    branch=upstream/master
+elif [ !-z $(git branch --list origin/master) ]; then
+    branch=origin/master
+elif [ !-z $(git branch --list master) ]; then
+    branch=master
+else
+    echo -e "\e[31mNo master branch found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
+    exit 1
+fi
+
+echo "Comparing against ${branch}"
+PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py "${branch}" "${@:2}"
 result=$?
 
 # Clean up generated coverage files.

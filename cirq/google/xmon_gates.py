@@ -184,7 +184,8 @@ class Exp11Gate(XmonGate,
     def matrix(self) -> Optional[np.ndarray]:
         if not self.has_matrix():
             return None
-        return protocols.unitary_effect(ops.CZ**self.half_turns)
+        return protocols.unitary_effect(
+            ops.Rot11Gate(half_turns=self.half_turns))
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
@@ -331,7 +332,8 @@ class ExpWGate(XmonGate,
     def matrix(self) -> Optional[np.ndarray]:
         if not self.has_matrix():
             return None
-        phase = protocols.unitary_effect(ops.Z**self.axis_half_turns)
+        phase = protocols.unitary_effect(
+            ops.RotZGate(half_turns=self.axis_half_turns))
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return np.dot(np.dot(phase, rot), np.conj(phase))

@@ -35,7 +35,7 @@ def assert_optimizes(before: cirq.Circuit,
 
     try:
         assert before == expected
-    except AssertionError:
+    except AssertionError:  # coverage: ignore
         # coverage: ignore
         print("BEFORE")
         print(before)

@@ -70,10 +70,6 @@ class GateOperation(raw_types.Operation,
         self._qubits = tuple(qubits)
 
     @property
-    def maybe_gate(self) -> raw_types.Gate:
-        return self._gate
-
-    @property
     def gate(self) -> raw_types.Gate:
         return self._gate
 

@@ -15,7 +15,7 @@
 import cmath
 import math
 import random
-from typing import Sequence, cast
+from typing import Sequence
 
 import numpy as np
 import pytest
