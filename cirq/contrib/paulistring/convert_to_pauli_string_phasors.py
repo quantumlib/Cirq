@@ -62,7 +62,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                                         qubit: ops.QubitId) -> ops.OP_TREE:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
                                        mat, self.tolerance)
-        out_ops = []
+        out_ops = []  # type: List[ops.Operation]
         for pauli, half_turns in rotations:
             if (self.keep_clifford
                 and self._tol.all_near_zero_mod(half_turns, 0.5)):

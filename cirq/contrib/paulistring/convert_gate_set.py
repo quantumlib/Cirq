@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
-from cirq import ops, circuits, linalg, google
+from cirq import circuits
 
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors)
