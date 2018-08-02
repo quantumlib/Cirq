@@ -145,6 +145,18 @@ class CliffordGate(raw_types.Gate,
                             _inverse_map=inverse_map)
 
     @staticmethod
+    def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> 'CliffordGate':
+        quarter_turns = quarter_turns % 4
+        if quarter_turns == 0:
+            return CliffordGate.I
+        elif quarter_turns == 1:
+            return CliffordGate.from_pauli(pauli, True)
+        elif quarter_turns == 2:
+            return CliffordGate.from_pauli(pauli)
+        else:
+            return CliffordGate.from_pauli(pauli, True).inverse()
+
+    @staticmethod
     def _validate_map_input(required_transform_count: int,
                             pauli_map_to: Optional[Dict[Pauli,
                                                         Tuple[Pauli, bool]]],
