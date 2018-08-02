@@ -17,7 +17,9 @@ import numpy as np
 import cirq
 
 
-def assert_optimizes(before, after, optimizer=None):
+def assert_optimizes(before: cirq.Circuit,
+                     expected: cirq.Circuit,
+                     optimizer: cirq.OptimizationPass=None):
     if optimizer is None:
         optimizer = cirq.MergeSingleQubitGates()
     optimizer.optimize_circuit(before)
@@ -29,13 +31,17 @@ def assert_optimizes(before, after, optimizer=None):
     ]
     for post in followup_optimizations:
         post.optimize_circuit(before)
-        post.optimize_circuit(after)
+        post.optimize_circuit(expected)
 
-    if before != after:
+    try:
+        assert before == expected
+    except AssertionError:
         # coverage: ignore
-        print("before:", before)
-        print("after:", after)
-    assert before == after
+        print("BEFORE")
+        print(before)
+        print("EXPECTED")
+        print(expected)
+        raise
 
 
 def test_leaves_singleton():
@@ -51,11 +57,10 @@ def test_leaves_singleton():
 def test_combines_sequence():
     m = cirq.MergeSingleQubitGates()
     q = cirq.QubitId()
-    c = cirq.Circuit([
-        cirq.Moment([cirq.X(q)**0.5]),
-        cirq.Moment([cirq.Z(q)**0.5]),
-        cirq.Moment([cirq.X(q)**-0.5]),
-    ])
+    c = cirq.Circuit.from_ops(
+        cirq.X(q)**0.5,
+        cirq.Z(q)**0.5,
+        cirq.X(q)**-0.5)
 
     opt_summary = m.optimization_at(c, 0, c.operation_at(q, 0))
     assert opt_summary.clear_span == 3
@@ -64,8 +69,8 @@ def test_combines_sequence():
     assert isinstance(opt_summary.new_operations[0].gate,
                       cirq.SingleQubitMatrixGate)
     cirq.testing.assert_allclose_up_to_global_phase(
-        opt_summary.new_operations[0].matrix(),
-        (cirq.Y ** 0.5).matrix(),
+        cirq.unitary_effect(opt_summary.new_operations[0]),
+        cirq.unitary_effect(cirq.Y**0.5),
         atol=1e-7)
 
 
@@ -78,7 +83,7 @@ def test_removes_identity_sequence():
             cirq.Moment([cirq.X(q)]),
             cirq.Moment([cirq.H(q)]),
         ]),
-        after=cirq.Circuit())
+        expected=cirq.Circuit())
 
 
 def test_stopped_at_2qubit():
@@ -102,7 +107,7 @@ def test_stopped_at_2qubit():
         assert isinstance(opt_summary.new_operations[0].gate,
                           cirq.SingleQubitMatrixGate)
         cirq.testing.assert_allclose_up_to_global_phase(
-            opt_summary.new_operations[0].matrix(),
+            cirq.unitary_effect(opt_summary.new_operations[0]),
             np.eye(2),
             atol=1e-7)
 
@@ -118,28 +123,6 @@ def test_ignores_2qubit_target():
     m.optimization_at(c, 0, c.operation_at(q, 0))
 
     assert c == cirq.Circuit([cirq.Moment([cirq.CZ(q, q2)])])
-
-
-def test_extension():
-    class DummyGate(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.KnownMatrix,
-                 DummyGate,
-                 lambda _: cirq.SingleQubitMatrixGate(
-                     np.array([[0, 1], [1, 0]])))
-    optimizer = cirq.MergeSingleQubitGates(extensions=ext)
-
-    q = cirq.QubitId()
-    c = cirq.Circuit([
-        cirq.Moment([DummyGate().on(q)]),
-    ])
-    assert_optimizes(
-        before=c,
-        after=cirq.Circuit([cirq.Moment([cirq.SingleQubitMatrixGate(
-                                            np.array([[0, 1], [1, 0]]))(q)])]),
-        optimizer=optimizer)
 
 
 def test_ignore_unsupported_gate():

@@ -16,7 +16,7 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import ops, linalg, decompositions, extension
+from cirq import ops, linalg, decompositions, extension, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -88,9 +88,9 @@ class ConvertToCliffordGates(PointOptimizer):
             return op
 
         # Single qubit gate with known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
+        mat = protocols.maybe_unitary_effect(op)
         if mat is not None and len(op.qubits) == 1:
-            cliff_op = self._matrix_to_clifford_op(mat.matrix(), op.qubits[0])
+            cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
             if cliff_op is not None:
                 return cliff_op
             elif self.ignore_failures:

@@ -154,20 +154,20 @@ def test_z_to_proto():
 
 
 def test_z_matrix():
-    assert np.allclose(cg.ExpZGate(half_turns=1).matrix(),
+    assert np.allclose(cirq.unitary_effect(cg.ExpZGate(half_turns=1)),
                        np.array([[-1j, 0], [0, 1j]]))
-    assert np.allclose(cg.ExpZGate(half_turns=0.5).matrix(),
+    assert np.allclose(cirq.unitary_effect(cg.ExpZGate(half_turns=0.5)),
                        np.array([[1 - 1j, 0], [0, 1 + 1j]]) / np.sqrt(2))
-    assert np.allclose(cg.ExpZGate(half_turns=0).matrix(),
+    assert np.allclose(cirq.unitary_effect(cg.ExpZGate(half_turns=0)),
                        np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cg.ExpZGate(half_turns=-0.5).matrix(),
+    assert np.allclose(cirq.unitary_effect(cg.ExpZGate(half_turns=-0.5)),
                        np.array([[1 + 1j, 0], [0, 1 - 1j]]) / np.sqrt(2))
 
 
 def test_z_parameterize():
     parameterized_gate = cg.ExpZGate(half_turns=Symbol('a'))
     assert parameterized_gate.is_parameterized()
-    assert parameterized_gate.matrix() is None
+    assert not cirq.has_unitary_effect(parameterized_gate)
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.ExpZGate(half_turns=0.1)
@@ -228,14 +228,14 @@ def test_cz_to_proto():
 
 
 def test_cz_potential_implementation():
-    assert cg.Exp11Gate(half_turns=Symbol('a')).matrix() is None
-    assert cg.Exp11Gate().matrix() is not None
+    assert not cirq.has_unitary_effect(cg.Exp11Gate(half_turns=Symbol('a')))
+    assert cirq.has_unitary_effect(cg.Exp11Gate())
 
 
 def test_cz_parameterize():
     parameterized_gate = cg.Exp11Gate(half_turns=Symbol('a'))
     assert parameterized_gate.is_parameterized()
-    assert parameterized_gate.matrix() is None
+    assert not cirq.has_unitary_effect(parameterized_gate)
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
@@ -354,7 +354,7 @@ def test_w_parameterize():
     parameterized_gate = cg.ExpWGate(half_turns=Symbol('a'),
                                      axis_half_turns=Symbol('b'))
     assert parameterized_gate.is_parameterized()
-    assert parameterized_gate.matrix() is None
+    assert not cirq.has_unitary_effect(parameterized_gate)
     resolver = ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)

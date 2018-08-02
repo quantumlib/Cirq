@@ -185,8 +185,8 @@ def test_two_qubit_diagram():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     c = cirq.Circuit.from_ops(
-        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(a, b),
-        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(c, a))
+        cirq.TwoQubitMatrixGate(cirq.unitary_effect(cirq.CZ)).on(a, b),
+        cirq.TwoQubitMatrixGate(cirq.unitary_effect(cirq.CZ)).on(c, a))
     assert re.match("""
 a: ───┌[            ]+┐───#2─+
       │[0-9\\.+\\-j ]+│   │

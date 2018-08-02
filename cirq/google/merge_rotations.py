@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import ops, protocols, linalg
 from cirq.circuits import (
     Circuit,
     PointOptimizer,
@@ -76,9 +76,9 @@ class MergeRotations(PointOptimizer):
             qubit: ops.QubitId,
             operations: Iterable[ops.KnownMatrix]
     ) -> List[ops.Operation]:
-        matrix = np.eye(2, dtype=np.complex128)
-        for op in operations:
-            matrix = np.dot(op.matrix(), matrix)
+        matrix = linalg.dot(
+            np.eye(2, dtype=np.complex128),
+            *reversed([protocols.unitary_effect(op) for op in operations]))
 
         out_gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
         return [gate(qubit) for gate in out_gates]

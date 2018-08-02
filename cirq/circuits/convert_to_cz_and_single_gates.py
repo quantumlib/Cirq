@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from cirq import ops, decompositions, extension
+from cirq import ops, decompositions, extension, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -61,14 +61,14 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             return op
 
         # Known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
+        mat = protocols.maybe_unitary_effect(op)
         if mat is not None and len(op.qubits) == 1:
             return op
         if mat is not None and len(op.qubits) == 2:
             return decompositions.two_qubit_matrix_to_operations(
                 op.qubits[0],
                 op.qubits[1],
-                mat.matrix(),
+                mat,
                 allow_partial_czs=False)
 
         # Provides a decomposition?

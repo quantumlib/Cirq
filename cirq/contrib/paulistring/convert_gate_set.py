@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from cirq import ops, circuits, linalg, google
+from cirq import ops, circuits, linalg, google, protocols
 
 from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 
@@ -138,7 +138,8 @@ def converted_gate_set(circuit: circuits.Circuit, atol: float = 1e-7
                 # Collect all one qubit rotations
                 # Assumes all Xmon gates implement KnownMatrix
                 qubit, = op.qubits
-                matrices[qubit] = op.matrix().dot(matrices[qubit])
+                matrices[qubit] = protocols.unitary_effect(op).dot(
+                    matrices[qubit])
             elif isinstance(gate, google.Exp11Gate):
                 yield clear_matrices(op.qubits)
                 if gate.half_turns != 1:
