@@ -45,25 +45,6 @@ def test_named_qubit_str():
     assert q.name == 'a'
     assert str(q) == 'a'
 
-def test_named_qubit_range():
-    assert NamedQubit.range(0) == []
-    assert NamedQubit.range(1) == [NamedQubit(0)]
-    assert NamedQubit.range(2) == [NamedQubit(0), NamedQubit(1)]
-    assert NamedQubit.range(5) == [
-        NamedQubit(0),
-        NamedQubit(1)
-        NamedQubit(2),
-        NamedQubit(3),
-        NamedQubit(4),
-    ]
-    assert NamedQubit.range(0, 0) == []
-    assert NamedQubit.range(0, 1) == [NamedQubit(0)]
-    assert NamedQubit.range(1, 4) == [NamedQubit(1), NamedQubit(2), NamedQubit(3)]
-    assert NamedQubit.range(3, 1, -1) == [NamedQubit(3), NamedQubit(2)]
-    assert NamedQubit.range(3, 5, -1) == []
-    assert NamedQubit.range(1, 5, 2) == [NamedQubit(1), NamedQubit(3)]
-
-
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
 @cirq.testing.only_test_in_python3
 def test_named_qubit_repr():
