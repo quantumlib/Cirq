@@ -16,7 +16,7 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import ops, decompositions, extension
+from cirq import ops, decompositions, extension, linalg
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -36,12 +36,15 @@ class ConvertToPauliStringPhasors(PointOptimizer):
 
     def __init__(self,
                  ignore_failures: bool = False,
+                 keep_clifford: bool = False,
                  tolerance: float = 0,
                  extensions: extension.Extensions = None) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
+            keep_clifford: If set, single qubit rotations in the Clifford group
+                are converted to CliffordGates.
             tolerance: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
@@ -50,20 +53,41 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         """
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
+        self.keep_clifford = keep_clifford
         self.tolerance = tolerance
+        self._tol = linalg.Tolerance(atol=tolerance)
 
     def _matrix_to_pauli_string_phasors(self,
                                         mat: np.ndarray,
                                         qubit: ops.QubitId) -> ops.OP_TREE:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
                                        mat, self.tolerance)
+        out_ops = []
         for pauli, half_turns in rotations:
-            pauli_string = ops.PauliString.from_single(qubit, pauli)
-            yield PauliStringPhasor(pauli_string, half_turns=half_turns)
+            if (self.keep_clifford
+                and self._tol.all_near_zero_mod(half_turns, 0.5)):
+                cliff_gate = ops.CliffordGate.from_quarter_turns(
+                                    pauli, round(half_turns * 2))
+                if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):
+                    out_ops[-1] = out_ops[-1].gate.merged_with(cliff_gate
+                                                               )(qubit)
+                else:
+                    out_ops.append(
+                        cliff_gate(qubit))
+            else:
+                pauli_string = ops.PauliString.from_single(qubit, pauli)
+                out_ops.append(
+                    PauliStringPhasor(pauli_string, half_turns=half_turns))
+        return out_ops
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Don't change if it's already a PauliStringPhasor
         if isinstance(op, PauliStringPhasor):
+            return op
+
+        if (self.keep_clifford
+            and isinstance(op, ops.GateOperation)
+            and isinstance(op.gate, ops.CliffordGate)):
             return op
 
         # Single qubit gate with known matrix?

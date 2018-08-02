@@ -49,7 +49,8 @@ def move_non_clifford_into_clifford(circuit_left: Union[circuits.Circuit,
                     continue
                 if not (isinstance(out_op, ops.GateOperation) and
                         isinstance(out_op.gate, (ops.CliffordGate,
-                                                 ops.PauliInteractionGate))):
+                                                 ops.PauliInteractionGate,
+                                                 ops.Rot11Gate))):
                     # This is as far through as this Pauli string can move
                     break
                 string_op = string_op.pass_operations_over([out_op],
