@@ -333,7 +333,7 @@ class Engine:
 
         # Create program.
         sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
-        program_dict = {}
+        program_dict = {}  # type: Dict
 
         program_dict['parameter_sweeps'] = [
             sweep_to_proto_dict(sweep, repetitions) for

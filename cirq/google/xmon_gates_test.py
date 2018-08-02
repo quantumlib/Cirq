@@ -22,8 +22,13 @@ from cirq.study import ParamResolver
 from cirq.value import Symbol
 
 
-def proto_matches_text(proto: str, expected_as_text: str):
-    return proto == expected_as_text
+Q1 = GridQubit(2, 3)
+Q2 = GridQubit(3, 4)
+
+
+def assert_proto_dict_convert(gate_cls, gate, proto_dict, *qubits):
+    assert gate.to_proto_dict(*qubits) == proto_dict
+    assert gate_cls.from_proto_dict(proto_dict) == gate(*qubits)
 
 
 def test_parameterized_value_from_proto():
@@ -50,9 +55,9 @@ def test_measurement_eq():
                                                          invert_mask=(False,)))
 
 
-def test_single_qubit_measurement_to_proto_dict():
-    result = cg.XmonMeasurementGate('test').to_proto_dict(GridQubit(2, 3))
-    expected = {
+def test_single_qubit_measurement_proto_dict_convert():
+    gate = cg.XmonMeasurementGate('test')
+    proto_dict = {
         'measurement': {
             'targets': [
                 {
@@ -63,13 +68,40 @@ def test_single_qubit_measurement_to_proto_dict():
             'key': 'test'
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.XmonMeasurementGate, gate, proto_dict, Q1)
 
 
-def test_single_qubit_measurement_to_proto_dict_invert_mask():
-    result = cg.XmonMeasurementGate('test', invert_mask=[True]).to_proto_dict(
-        GridQubit(2, 3))
-    expected = {
+def test_single_qubit_measurement_invalid_dict():
+    proto_dict = {
+        'measurement': {
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                }
+            ],
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.XmonMeasurementGate.from_proto_dict(proto_dict)
+
+    proto_dict = {
+        'measurement': {
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                }
+            ],
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.XmonMeasurementGate.from_proto_dict(proto_dict)
+
+
+def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
+    gate = cg.XmonMeasurementGate('test', invert_mask=(True,))
+    proto_dict = {
         'measurement': {
             'targets': [
                 {
@@ -78,16 +110,15 @@ def test_single_qubit_measurement_to_proto_dict_invert_mask():
                 }
             ],
             'key': 'test',
-            'invert_mask': [True]
+            'invert_mask': ['true']
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.XmonMeasurementGate, gate, proto_dict, Q1)
 
 
 def test_multi_qubit_measurement_to_proto_dict():
-    result = cg.XmonMeasurementGate('test').to_proto_dict(GridQubit(2, 3),
-                                                          GridQubit(3, 4))
-    expected = {
+    gate = cg.XmonMeasurementGate('test')
+    proto_dict = {
         'measurement': {
             'targets': [
                 {
@@ -102,12 +133,18 @@ def test_multi_qubit_measurement_to_proto_dict():
             'key': 'test'
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.XmonMeasurementGate, gate, proto_dict, Q1, Q2)
+
+
+@cirq.testing.only_test_in_python3
+def test_measurement_repr():
+    gate = cg.XmonMeasurementGate('test', invert_mask=(True,))
+    assert repr(gate) == 'XmonMeasurementGate(\'test\', (True,))'
 
 
 def test_invalid_measurement_gate():
     with pytest.raises(ValueError, match='length'):
-        cg.XmonMeasurementGate('test', invert_mask=[True]).to_proto_dict(
+        cg.XmonMeasurementGate('test', invert_mask=(True,)).to_proto_dict(
             GridQubit(2, 3), GridQubit(3, 4))
     with pytest.raises(ValueError, match='no qubits'):
         cg.XmonMeasurementGate('test').to_proto_dict()
@@ -129,9 +166,9 @@ def test_z_eq():
         cg.ExpZGate(half_turns=10.5))
 
 
-def test_z_to_proto_dict():
-    result = cg.ExpZGate(half_turns=Symbol('k')).to_proto_dict(GridQubit(2, 3))
-    expected = {
+def test_z_proto_dict_convert():
+    gate = cg.ExpZGate(half_turns=Symbol('k'))
+    proto_dict = {
         'exp_z': {
             'target': {
                 'row': 2,
@@ -142,10 +179,10 @@ def test_z_to_proto_dict():
             }
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.ExpZGate, gate, proto_dict, Q1)
 
-    result = cg.ExpZGate(half_turns=0.5).to_proto_dict(GridQubit(2, 3))
-    expected = {
+    gate = cg.ExpZGate(half_turns=0.5)
+    proto_dict = {
         'exp_z': {
             'target': {
                 'row': 2,
@@ -156,7 +193,31 @@ def test_z_to_proto_dict():
             }
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.ExpZGate, gate, proto_dict, Q1)
+
+
+def test_z_invalid_dict():
+    proto_dict = {
+        'exp_z': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.ExpZGate.from_proto_dict(proto_dict)
+
+    proto_dict = {
+        'exp_z': {
+            'half_turns': {
+                'parameter_key': 'k'
+            }
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.ExpZGate.from_proto_dict(proto_dict)
+
 
 
 def test_z_matrix():
@@ -180,6 +241,11 @@ def test_z_parameterize():
     assert resolved_gate == cg.ExpZGate(half_turns=0.1)
 
 
+def test_z_repr():
+    gate = cg.ExpZGate(half_turns=0.1)
+    assert repr(gate) == 'ExpZGate(half_turns=0.1)'
+
+
 def test_cz_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cg.Exp11Gate(half_turns=0))
@@ -194,44 +260,87 @@ def test_cz_eq():
         cg.Exp11Gate(half_turns=6.5))
 
 
-def test_cz_to_proto_dict():
-    result =  cg.Exp11Gate(half_turns=Symbol('k')).to_proto_dict(
-            GridQubit(2, 3), GridQubit(4, 5))
-    expected = {
+def test_cz_proto_dict_convert():
+    gate =  cg.Exp11Gate(half_turns=Symbol('k'))
+    proto_dict = {
         'exp_11': {
             'target1': {
                 'row': 2,
                 'col': 3
             },
             'target2': {
-                'row': 4,
-                'col': 5
+                'row': 3,
+                'col': 4
             },
             'half_turns': {
                 'parameter_key': 'k'
             }
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.Exp11Gate, gate, proto_dict, Q1, Q2)
 
-    result = cg.Exp11Gate(half_turns=0.5).to_proto_dict(GridQubit(2, 3),
-                                                        GridQubit(4, 5))
-    expected = {
+    gate = cg.Exp11Gate(half_turns=0.5)
+    proto_dict = {
         'exp_11': {
             'target1': {
                 'row': 2,
                 'col': 3
             },
             'target2': {
-                'row': 4,
-                'col': 5
+                'row': 3,
+                'col': 4
             },
             'half_turns': {
                 'raw': 0.5
             }
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.Exp11Gate, gate, proto_dict, Q1, Q2)
+
+
+def test_cz_invalid_dict():
+    proto_dict = {
+        'exp_11': {
+            'target2': {
+                'row': 3,
+                'col': 4
+            },
+            'half_turns': {
+                'parameter_key': 'k'
+            }
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.Exp11Gate.from_proto_dict(proto_dict)
+
+    proto_dict = {
+        'exp_11': {
+            'target1': {
+                'row': 2,
+                'col': 3
+            },
+            'half_turns': {
+                'parameter_key': 'k'
+            }
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.Exp11Gate.from_proto_dict(proto_dict)
+
+    proto_dict = {
+        'exp_11': {
+            'target1': {
+                'row': 2,
+                'col': 3
+            },
+            'target2': {
+                'row': 3,
+                'col': 4
+            },
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.Exp11Gate.from_proto_dict(proto_dict)
 
 
 def test_cz_potential_implementation():
@@ -248,6 +357,11 @@ def test_cz_parameterize():
     resolver = ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
+
+
+def test_cz_repr():
+    gate = cg.Exp11Gate(half_turns=0.1)
+    assert repr(gate) == 'Exp11Gate(half_turns=0.1)'
 
 
 def test_w_eq():
@@ -303,9 +417,8 @@ def test_w_str():
 
 
 def test_w_to_proto_dict():
-    result = cg.ExpWGate(half_turns=Symbol('k'),
-                         axis_half_turns=1).to_proto_dict(GridQubit(2, 3))
-    expected = {
+    gate = cg.ExpWGate(half_turns=Symbol('k'), axis_half_turns=1)
+    proto_dict = {
         'exp_w': {
             'target': {
                 'row': 2,
@@ -319,11 +432,10 @@ def test_w_to_proto_dict():
             }
         }
     }
-    assert result == expected
-    result =  cg.ExpWGate(half_turns=0.5,
-                    axis_half_turns=Symbol('j')).to_proto_dict(GridQubit(2, 3))
+    assert_proto_dict_convert(cg.ExpWGate, gate, proto_dict, Q1)
 
-    expected = {
+    gate = cg.ExpWGate(half_turns=0.5, axis_half_turns=Symbol('j'))
+    proto_dict = {
         'exp_w': {
             'target': {
                 'row': 2,
@@ -337,7 +449,50 @@ def test_w_to_proto_dict():
             }
         }
     }
-    assert result == expected
+    assert_proto_dict_convert(cg.ExpWGate, gate, proto_dict, Q1)
+
+
+def test_w_invalid_dict():
+    proto_dict = {
+        'exp_w': {
+            'axis_half_turns': {
+                'raw': 1
+            },
+            'half_turns': {
+                'parameter_key': 'k'
+            }
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.ExpWGate.from_proto_dict(proto_dict)
+
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'half_turns': {
+                'parameter_key': 'k'
+            }
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.ExpWGate.from_proto_dict(proto_dict)
+
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'raw': 1
+            },
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.ExpWGate.from_proto_dict(proto_dict)
 
 
 def test_w_decomposition():
@@ -374,6 +529,11 @@ def test_w_parameterize():
     assert resolved_gate == cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)
 
 
+def test_w_repr():
+    gate = cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)
+    assert repr(gate) == 'ExpWGate(half_turns=0.1, axis_half_turns=0.2)'
+
+
 def test_trace_bound():
     assert cg.ExpZGate(half_turns=.001).trace_distance_bound() < 0.01
     assert cg.ExpWGate(half_turns=.001).trace_distance_bound() < 0.01
@@ -397,6 +557,28 @@ def test_measure_key_on():
     assert cg.XmonMeasurementGate(key='a').on(q) == cirq.GateOperation(
         gate=cg.XmonMeasurementGate(key='a'),
         qubits=(q,))
+
+
+def test_unsupported_op():
+    proto_dict = {
+        'not_a_gate': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+        }
+    }
+    with pytest.raises(ValueError):
+        cg.XmonGate.from_proto_dict(proto_dict)
+
+
+def test_invalid_to_proto_dict_qubit_number():
+    with pytest.raises(ValueError):
+        cg.Exp11Gate(half_turns=0.5).to_proto_dict(Q1)
+    with pytest.raises(ValueError):
+        cg.ExpZGate(half_turns=0.5).to_proto_dict(Q1, Q2)
+    with pytest.raises(ValueError):
+        cg.ExpWGate(half_turns=0.5, axis_half_turns=0).to_proto_dict(Q1, Q2)
 
 
 def test_symbol_diagrams():

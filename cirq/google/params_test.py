@@ -102,6 +102,24 @@ def test_empty_param_sweep_keys():
     assert params.sweep_from_proto_dict({}).keys == []
 
 
+def test_sweep_from_proto_dict_missing_type():
+    s1 = {
+        'parameter_key': 'foo',
+
+    }
+    ps = {
+        'sweep': {
+            'factors': [
+                {
+                    'sweeps': [s1]
+                },
+            ]
+        }
+    }
+    with pytest.raises(ValueError):
+        params.sweep_from_proto_dict(ps)
+
+
 def test_param_sweep_keys():
     s11 = {
         'parameter_key': 'foo',
@@ -312,6 +330,8 @@ def test_param_sweep_size_versus_gen(param_sweep):
         ),
     ),
 ])
+
+
 def test_sweep_to_proto_dict(sweep, expected):
     proto = params.sweep_to_proto_dict(sweep)
     out = params.sweep_from_proto_dict(proto)

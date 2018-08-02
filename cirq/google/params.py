@@ -57,7 +57,7 @@ def _sweep_zip_to_proto_dict(
 def _single_param_sweep_to_proto_dict(
         sweep: SingleSweep,
 ) -> Dict:
-    msg = {}
+    msg = {}  # type: Dict
     msg['parameter_key'] = sweep.key
     if isinstance(sweep, Linspace):
         msg['linspace'] = {

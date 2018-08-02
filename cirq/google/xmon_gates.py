@@ -14,6 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
+import json
 from typing import cast, Dict, Optional, Tuple, Union
 
 import numpy as np
@@ -42,32 +43,66 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         return None
 
     @staticmethod
-    def from_proto_dict(op: Dict) -> ops.Operation:
+    def from_proto_dict(proto_dict: Dict) -> ops.Operation:
+        """Convert the proto dictionary to the corresponding operation.
+
+        See protos in api/google/v1 for specification of the protos.
+
+        Args:
+            proto_dict: Dictionary representing the proto. Keys are always
+                strings, but values may be types correspond to a raw proto type
+                or another dictionary (for messages).
+
+        Returns:
+            The operation.
+
+        Raises:
+            ValueError if the dictionary does not contain required values
+            corresponding to the proto.
+        """
+
+        def raise_missing_fields(gate_name: str):
+            raise ValueError(
+                '{} missing required fields: {}'.format(gate_name, proto_dict))
         param = XmonGate.parameterized_value_from_proto_dict
         qubit = GridQubit.from_proto_dict
-        if 'exp_w' in op:
-            exp_w = op['exp_w']
+        if 'exp_w' in proto_dict:
+            exp_w = proto_dict['exp_w']
+            if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w
+                    or 'target' not in exp_w):
+                raise_missing_fields('ExpW')
             return ExpWGate(
                 half_turns=param(exp_w['half_turns']),
                 axis_half_turns=param(exp_w['axis_half_turns']),
             ).on(qubit(exp_w['target']))
-        elif 'exp_z' in op:
-            exp_z = op['exp_z']
+        elif 'exp_z' in proto_dict:
+            exp_z = proto_dict['exp_z']
+            if 'half_turns' not in exp_z or 'target' not in exp_z:
+                raise_missing_fields('ExpZ')
             return ExpZGate(
                 half_turns=param(exp_z['half_turns'])
             ).on(qubit(exp_z['target']))
-        elif 'exp_11' in op:
-            exp_11 = op['exp_11']
+        elif 'exp_11' in proto_dict:
+            exp_11 = proto_dict['exp_11']
+            if ('half_turns' not in exp_11 or 'target1' not in exp_11
+                    or 'target2' not in exp_11):
+                raise_missing_fields('Exp11')
             return Exp11Gate(
                 half_turns=param(exp_11['half_turns'])
             ).on(qubit(exp_11['target1']), qubit(exp_11['target2']))
-        elif 'measurement' in op:
-            meas = op['measurement']
+        elif 'measurement' in proto_dict:
+            meas = proto_dict['measurement']
+            invert_mask = () # type: Tuple
+            if 'invert_mask' in meas:
+                invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
+            if 'key' not in meas or 'targets' not in meas:
+                raise_missing_fields('Measurement')
             return XmonMeasurementGate(
-                key=meas['key']
+                key=meas['key'],
+                invert_mask=invert_mask
             ).on(*[qubit(q) for q in meas['targets']])
         else:
-            raise ValueError('invalid operation: {}'.format(op))
+            raise ValueError('invalid operation: {}'.format(proto_dict))
 
     @staticmethod
     def parameterized_value_from_proto_dict(message: Dict) -> Union[
@@ -82,7 +117,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def parameterized_value_to_proto_dict(
         param: Union[value.Symbol, float]) -> Dict:
-        out = {}
+        out = {}  # type: Dict
         if isinstance(param, value.Symbol):
             out['parameter_key'] = param.name
         else:
@@ -107,7 +142,8 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
             'key': self.key,
         }
         if self.invert_mask:
-            measurement['invert_mask'] = self.invert_mask
+            measurement['invert_mask'] = [json.dumps(x) for x in
+                                          self.invert_mask]
         return {'measurement': measurement}
 
     def with_bits_flipped(self, *bit_positions: int) -> 'XmonMeasurementGate':
@@ -115,7 +151,8 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
         return XmonMeasurementGate(key=sup.key, invert_mask=sup.invert_mask)
 
     def __repr__(self):
-        return 'XmonMeasurementGate({})'.format(repr(self.key))
+        return 'XmonMeasurementGate({}, {})'.format(repr(self.key),
+                                                    repr(self.invert_mask))
 
 
 class Exp11Gate(XmonGate,
