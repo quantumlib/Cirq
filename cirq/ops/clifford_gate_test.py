@@ -195,8 +195,52 @@ def test_init_from_pauli(pauli, sqrt, expected):
     assert gate == expected
 
 
+def test_init_from_quarter_turns():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 0),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 0),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 0),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 8),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 8),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 8),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, -4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, -4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, -4)
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 1),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 5),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 9),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, -3),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 1),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 5),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 9),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, -3),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 1),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 5),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 9),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, -3),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 2),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 6),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 3),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 7),
+    )
+
+
 @pytest.mark.parametrize('gate', _all_clifford_gates())
-def test_init_from_quarter_turns(gate):
+def test_init_from_quarter_turns_reconstruct(gate):
     new_gate = functools.reduce(
                     cirq.CliffordGate.merged_with,
                     (cirq.CliffordGate.from_quarter_turns(pauli, qt)
