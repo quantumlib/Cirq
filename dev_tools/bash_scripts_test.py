@@ -55,7 +55,7 @@ git init --quiet
 git commit -m 'init' --allow-empty --quiet
 {}
 {}
-source ./test-script {}
+. ./test-script {}
 """.format(dir_path, script_file, setup, interception, arg),
             log_run_to_stderr=False,
             raise_on_fail=False,
