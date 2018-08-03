@@ -61,8 +61,7 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             return op
 
         # Measurement?
-        if (isinstance(op, ops.GateOperation)
-            and isinstance(op.gate, ops.MeasurementGate)):
+        if ops.MeasurementGate.is_measurement(op):
             return op
 
         # Known matrix?
