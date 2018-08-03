@@ -12,14 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterator, Tuple, Union, cast
+from typing import Tuple, cast
 
-import itertools
-import networkx
-
-from cirq import ops, circuits, linalg, google
-from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation)
+from cirq import ops, circuits
 from cirq.contrib.paulistring.pauli_string_phasor import (
     PauliStringPhasor)
 from cirq.contrib.paulistring.convert_gate_set import (
@@ -36,11 +31,9 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
     all_ops = list(c_cliff.all_operations())
 
     def find_merge_point(start_i: int,
-                         string_op: PauliStringGateOperation,
+                         string_op: PauliStringPhasor,
                          stop_at_cz: bool,
-                         ) -> Tuple[int, PauliStringGateOperation]:
-        start_op = all_ops[start_i]
-
+                         ) -> Tuple[int, PauliStringPhasor]:
         def continue_condition(op: ops.Operation,
                                current_string: PauliStringPhasor,
                                is_first: bool) -> int:
@@ -85,7 +78,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
         orig_qubit, = cliff_op.qubits
         remaining_cliff_gate = ops.CliffordGate.I
         for pauli, quarter_turns in reversed(
-                                        cliff_op.gate.decompose_rotation()):
+                cast(ops.CliffordGate, cliff_op.gate).decompose_rotation()):
             trans = remaining_cliff_gate.transform(pauli)
             pauli = trans.to
             quarter_turns *= (1, -1)[trans.flip]
@@ -95,7 +88,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
 
             merge_i, merge_op = find_merge_point(start_i, string_op,
                                                  quarter_turns == 2)
-            assert merge_i >= start_i
+            assert merge_i > start_i
             assert len(merge_op.pauli_string) == 1, 'PauliString length != 1'
 
             qubit, pauli = next(iter(merge_op.pauli_string.items()))
@@ -105,44 +98,40 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             part_cliff_gate = ops.CliffordGate.from_quarter_turns(
                                         pauli, quarter_turns)
 
-            if merge_i == start_i:
+            other_op = all_ops[merge_i] if merge_i < len(all_ops) else None
+            if other_op is not None and qubit not in set(other_op.qubits):
+                other_op = None
+
+            if (isinstance(other_op, ops.GateOperation)
+                and isinstance(other_op.gate, ops.CliffordGate)):
+                # Merge with another CliffordGate
+                new_op = part_cliff_gate.merged_with(other_op.gate
+                                                     )(qubit)
+                all_ops[merge_i] = new_op
+            elif (isinstance(other_op, ops.GateOperation)
+                  and isinstance(other_op.gate, ops.Rot11Gate)
+                  and other_op.gate.half_turns == 1
+                  and quarter_turns == 2):
+                # Pass whole Pauli gate over CZ, possibly adding a Z gate
+                if pauli != ops.Pauli.Z:
+                    other_qubit = other_op.qubits[
+                                    other_op.qubits.index(qubit)-1]
+                    all_ops.insert(merge_i+1,
+                                   ops.CliffordGate.Z(other_qubit))
+                all_ops.insert(merge_i+1, part_cliff_gate(qubit))
+            elif isinstance(other_op, PauliStringPhasor):
+                # Pass over a non-Clifford gate
+                mod_op = other_op.pass_operations_over(
+                                        [part_cliff_gate(qubit)])
+                all_ops[merge_i] = mod_op
+                all_ops.insert(merge_i+1, part_cliff_gate(qubit))
+            elif merge_i > start_i + 1:
+                # Moved Clifford through the circuit but nothing to merge
+                all_ops.insert(merge_i, part_cliff_gate(qubit))
+            else:
+                # Couldn't move Clifford
                 remaining_cliff_gate = remaining_cliff_gate.merged_with(
                                             part_cliff_gate)
-            else:
-                other_op = all_ops[merge_i] if merge_i < len(all_ops) else None
-                if other_op is not None and qubit not in set(other_op.qubits):
-                    other_op = None
-
-                if (isinstance(other_op, ops.GateOperation)
-                    and isinstance(other_op.gate, ops.CliffordGate)):
-                    # Merge with another CliffordGate
-                    new_op = part_cliff_gate.merged_with(other_op.gate
-                                                         )(qubit)
-                    all_ops[merge_i] = new_op
-                elif (isinstance(other_op, ops.GateOperation)
-                      and isinstance(other_op.gate, ops.Rot11Gate)
-                      and other_op.gate.half_turns == 1
-                      and quarter_turns == 2):
-                    # Pass whole Pauli gate over CZ, possibly adding a Z gate
-                    if pauli != ops.Pauli.Z:
-                        other_qubit = other_op.qubits[
-                                        other_op.qubits.index(qubit)-1]
-                        all_ops.insert(merge_i+1,
-                                       ops.CliffordGate.Z(other_qubit))
-                    all_ops.insert(merge_i+1, part_cliff_gate(qubit))
-                elif isinstance(other_op, PauliStringGateOperation):
-                    # Pass over a non-Clifford gate
-                    mod_op = other_op.pass_operations_over(
-                                            [part_cliff_gate(qubit)])
-                    all_ops[merge_i] = mod_op
-                    all_ops.insert(merge_i+1, part_cliff_gate(qubit))
-                elif merge_i > start_i + 1:
-                    # Moved Clifford through the circuit but nothing to merge
-                    all_ops.insert(merge_i, part_cliff_gate(qubit))
-                else:
-                    # Couldn't move Clifford
-                    remaining_cliff_gate = remaining_cliff_gate.merged_with(
-                                                part_cliff_gate)
 
         if remaining_cliff_gate == ops.CliffordGate.I:
             all_ops.pop(start_i)
@@ -164,18 +153,23 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             for j in reversed(range(i)):
                 op2 = all_ops[j]
                 if not set(op.qubits) & set(op2.qubits):
+                    # Don't share qubits
                     continue
                 elif not (isinstance(op2, ops.GateOperation)
                           and isinstance(op2.gate, ops.Rot11Gate)
                           and op.gate.half_turns == 1):
+                    # Not a CZ gate
                     break
                 elif op == op2:
+                    # Cancel two CZ gates
                     all_ops.pop(i)
                     all_ops.pop(j)
                     i -= 2
                     break
                 else:
-                    break
+                    # Two CZ gates that share one qubit
+                    # Pass through and keep looking
+                    continue
         i += 1
 
     return circuits.Circuit.from_ops(
