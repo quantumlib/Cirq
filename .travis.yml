@@ -33,7 +33,7 @@ matrix:
 
   - os: linux
     env: NAME=pytest
-    python: "3.7"
+    python: "3.6"
     install:
       - pip install -r dev-requirements.txt
     script: check/pytest
