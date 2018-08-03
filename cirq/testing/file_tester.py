@@ -19,12 +19,24 @@ import os, shutil, tempfile
 
 class TempFilePath:
     """A context manager that provides a temporary file path for use within a
-    with statement.
+    'with' statement.
     """
     def __enter__(self) -> Union[str, bytes]:
         self.dir_path = tempfile.mkdtemp(prefix='test-output-')
         file_path = os.path.join(self.dir_path, 'test-file')
         return file_path
+
+    def __exit__(self, err_type: Any, err_args: Any, traceback: Any) -> None:
+        shutil.rmtree(self.dir_path)
+
+
+class TempDirectoryPath:
+    """A context manager that provides a temporary directory for use within a
+    'with' statement.
+    """
+    def __enter__(self) -> Union[str, bytes]:
+        self.dir_path = tempfile.mkdtemp(prefix='test-output-')
+        return self.dir_path
 
     def __exit__(self, err_type: Any, err_args: Any, traceback: Any) -> None:
         shutil.rmtree(self.dir_path)

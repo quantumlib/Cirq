@@ -28,33 +28,32 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${own_directory}
-repo_dir=$(git rev-parse --show-toplevel)
-cd ${repo_dir}
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
 
 # Figure out which branch to compare against.
-rest="$@"
+rest=$@
 if [ ! -z "$1" ] && [[ $1 != -* ]]; then
-    branch="$1"
-    rest="${@:2}"
-elif [ ! -z $(git branch --list upstream/master) ]; then
-    branch=upstream/master
-elif [ !-z $(git branch --list origin/master) ]; then
-    branch=origin/master
-elif [ !-z $(git branch --list master) ]; then
-    branch=master
+    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
+        echo -e "\e[31mNo revision '$1'.\e[0m" >&2
+        exit 1
+    fi
+    rev=$1
+    rest=${@:2}
+elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
+    rev=upstream/master
+elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
+    rev=origin/master
+elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
+    rev=master
 else
-    echo -e "\e[31mNo master branch found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
+    echo -e "\e[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m" >&2
     exit 1
 fi
-set -e
-git rev-parse "${branch}" > /dev/null
-set +e
-echo "Comparing against revision '${branch}'."
+echo "Comparing against revision '${rev}'." >&2
 
 # Get the _test version of changed python files.
-changed=$(git diff --name-only "${branch}" \
+changed=$(git diff --name-only ${rev} -- \
     | grep "\.py$" \
     | sed -e "s/\.py$/_test.py/" \
     | sed -e "s/_test_test\.py$/_test.py/" \
@@ -64,8 +63,8 @@ changed=$(git diff --name-only "${branch}" \
 num_changed=$(echo -e "${changed}" | wc -w)
 
 # Run it.
-echo "Found ${num_changed} differing files with associated tests."
+echo "Found ${num_changed} differing files with associated tests." >&2
 if [ -z "${changed}" ]; then
     exit 0
 fi
-pytest "${rest}" ${changed}
+pytest ${rest} ${changed}
