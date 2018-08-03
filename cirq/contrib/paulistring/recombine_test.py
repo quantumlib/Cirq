@@ -19,7 +19,7 @@ from cirq.contrib.paulistring import (
     PauliStringGateOperation,
     convert_and_separate_circuit,
     pauli_string_dag_from_circuit,
-    move_non_clifford_into_clifford,
+    move_pauli_strings_into_circuit,
 )
 
 
@@ -38,8 +38,8 @@ def test_move_non_clifford_into_clifford():
     # Normally, c_left would be optimized here
     c_left_dag = pauli_string_dag_from_circuit(c_left)
 
-    c_recombined1 = move_non_clifford_into_clifford(c_left, c_right)
-    c_recombined2 = move_non_clifford_into_clifford(c_left_dag, c_right)
+    c_recombined1 = move_pauli_strings_into_circuit(c_left, c_right)
+    c_recombined2 = move_pauli_strings_into_circuit(c_left_dag, c_right)
 
     _assert_no_multi_qubit_pauli_strings(c_recombined1)
     _assert_no_multi_qubit_pauli_strings(c_recombined2)
