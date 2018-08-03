@@ -45,19 +45,6 @@ def test_optimize():
               │                             │              │
 2: ───────────@───X^0.125───────────────────@───X^0.0625───@───X^0.125───
 """.strip()
-    c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
-            cirq.X(q0) ** 0.5,
-            cirq.CZ(q1, q2),
-            cirq.X(q1) ** -0.5,
-            cirq.CZ(q0, q1),
-            cirq.CZ(q1, q2),
-            cirq.X(q2) ** -0.0625,
-            cirq.CZ(q1, q2),
-            cirq.X(q2) ** -0.25,
-            cirq.Z(q1) ** 0.5,
-            cirq.Z(q2),
-        ))
 
     c_opt = optimized_circuit(c_orig)
 

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, cast
-
 from cirq import ops, circuits
 from cirq.contrib.paulistring.pauli_string_optimize import (
     pauli_string_optimized_circuit)
