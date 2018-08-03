@@ -32,31 +32,37 @@ def run(*, script_file: str, arg: str ='', setup: str = ''
         ) -> shell_tools.CommandOutput:
     """Invokes the given script within a temporary test environment."""
 
+    with open(script_file) as f:
+        script_lines = f.readlines()
+
     intercepted = [
         'python',
         'python2',
-        'python3'
+        'python3',
         'pylint',
         'pytest',
         'mypy',
     ]
-    interception = ''.join("alias {0}='echo INTERCEPTED {0}'\n".format(e)
-                           for e in intercepted)
+    assert script_lines[0] == '#!/usr/bin/env bash\n'
+    for e in intercepted:
+        script_lines.insert(1, e + '() {\n  echo INTERCEPTED ' + e + ' $@\n}\n')
+
     with cirq.testing.TempDirectoryPath() as dir_path:
-        return shell_tools.run_shell(
-            cmd=r"""
+        with open(os.path.join(dir_path, 'test-script'), 'w') as f:
+            f.writelines(script_lines)
+
+        cmd = r"""
 dir=$(git rev-parse --show-toplevel)
 tmp={}
-file={}
-cp $file $tmp/test-script
 cd $tmp
-BASH_SOURCE=$tmp
 git init --quiet
 git commit -m 'init' --allow-empty --quiet
 {}
-{}
-. ./test-script {}
-""".format(dir_path, script_file, setup, interception, arg),
+chmod +x ./test-script
+./test-script {}
+""".format(dir_path, setup, arg)
+        return shell_tools.run_shell(
+            cmd=cmd,
             log_run_to_stderr=False,
             raise_on_fail=False,
             out=shell_tools.TeeCapture(),
@@ -197,6 +203,22 @@ def test_pytest_changed_files_branch_selection():
     assert result.out == ''
     assert result.err == ("Comparing against revision 'master'.\n"
                           "Found 0 differing files with associated tests.\n")
+
+    # Works on remotes.
+    result = run(script_file='check/pytest-changed-files',
+                 setup='mkdir alt\n'
+                       'cd alt\n'
+                       'git init --quiet\n'
+                       'git commit -m test --quiet --allow-empty\n'
+                       'cd ..\n'
+                       'git remote add origin alt\n'
+                       'git fetch origin master --quiet\n')
+    print(result)
+    assert result.exit_code == 0
+    assert result.out == ''
+    assert result.err == ("Comparing against revision 'origin/master'.\n"
+                          "Found 0 differing files with associated tests.\n")
+
 
 
 @only_in_python3_on_posix
