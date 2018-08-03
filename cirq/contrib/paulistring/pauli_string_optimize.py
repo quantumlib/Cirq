@@ -12,26 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Union, cast
-
 import networkx
 
-from cirq import ops, circuits, linalg, google
+from cirq import circuits, linalg
 from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation)
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor)
 from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
     pauli_string_dag_from_circuit)
-from cirq.contrib.paulistring.convert_to_clifford_gates import (
-    ConvertToCliffordGates)
-from cirq.contrib.paulistring.convert_gate_set import (
-    converted_gate_set)
 from cirq.contrib.paulistring.separate import (
-    convert_and_separate_circuit,
-    pauli_string_half,
-    regular_half)
+    convert_and_separate_circuit)
 from cirq.contrib.paulistring.recombine import (
     move_pauli_strings_into_circuit)
 
