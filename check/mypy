@@ -13,4 +13,4 @@ cd ${own_directory}
 repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
-mypy --config-file=continuous-integration/mypy.ini $@ .
+mypy --config-file=dev_tools/conf/mypy.ini $@ .

@@ -36,7 +36,8 @@ class TestAndPrepareCoverageCheck(check.Check):
         do_coverage = True
         base_path = cast(str, env.destination_directory)
         rc_path = os.path.join(base_path,
-                               'continuous-integration',
+                               'dev_tools',
+                               'conf',
                                '.coveragerc')
         target_path = base_path
         result = shell_tools.run_cmd(
