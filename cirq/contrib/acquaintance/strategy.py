@@ -64,18 +64,22 @@ class AcquaintanceStrategy(Circuit):
             if len(gate_type_to_ops) == 1:
                 rectified_moments.append(moment)
                 continue
-            for gate_type in sorted(gate_type_to_ops,
+            for gate_type in sorted(gate_type_to_ops.keys(),
                                     key=partial(ne, last_gate_type)):
                 rectified_moments.append(Moment(gate_type_to_ops[gate_type]))
                 last_gate_type = gate_type
         self._moments = rectified_moments
 
-    def nest(self, qubit_order: Sequence[QubitId], acquaintance_size: int=0
-            ) -> bool:
+    def replace_acquaintance_with_swap_network(self,
+                                               qubit_order: Sequence[QubitId],
+                                               acquaintance_size: int=0
+                                               ) -> bool:
         """Replace every moment containing acquaintance gates (after
         rectification) with a generalized swap network, with the partition
         given by the acquaintance gates in that moment (and singletons for the
-                free qubits). Accounts for reversing effect of swap networks."""
+        free qubits). Accounts for reversing effect of swap networks.
+        """
+
         self.rectify()
         reflected = False
         reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
@@ -113,14 +117,17 @@ def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
                                    acquaintance_size: int=0,
                                    ) -> AcquaintanceStrategy:
     """
-        Args:
-            qubit_order: The qubits on which the strategy should be defined.
-            acquaintance_size: The maximum number of qubits to be acted on by
-            an operation.
+    Returns an acquaintance strategy capable of executing a gate corresponding
+    to any set of at most acquaintance_size qubits.
 
-        Returns:
-            An AcquaintanceStrategy capable of implementing any set of k-local
-            operation.
+    Args:
+        qubit_order: The qubits on which the strategy should be defined.
+        acquaintance_size: The maximum number of qubits to be acted on by
+        an operation.
+
+    Returns:
+        An AcquaintanceStrategy capable of implementing any set of k-local
+        operation.
     """
     if acquaintance_size < 0:
         raise ValueError('acquaintance_size must be non-negative.')
@@ -131,5 +138,6 @@ def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
             Circuit.from_ops(ACQUAINT(q) for q in qubit_order))
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)
-        strategy.nest(qubit_order, size_to_acquaint)
+        strategy.replace_acquaintance_with_swap_network(qubit_order,
+                                                        size_to_acquaint)
     return strategy

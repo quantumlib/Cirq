@@ -118,7 +118,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         if index_set in self.index_set_to_gates:
             gates = self.index_set_to_gates.pop(index_set)
             index_to_qubit = dict(zip(indices, qubits))
-            for gate_indices, gate in gates.items():
+            for gate_indices, gate in sorted(gates.items()):
                 yield gate(*[index_to_qubit[i] for i in gate_indices])
 
 

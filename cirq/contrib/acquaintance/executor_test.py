@@ -44,7 +44,7 @@ def test_executor_explicit():
     gates = {(i, j): ExampleGate([str(k) for k in ij])
              for ij in combinations(range(n_qubits), 2)
              for i, j in (ij, ij[::-1])}
-    initial_mapping = {q: i for i, q in enumerate(qubits)}
+    initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = GreedyExecutionStrategy(gates, initial_mapping)
     executor = StrategyExecutor(execution_strategy)
 
@@ -79,6 +79,7 @@ def test_executor_explicit():
       │   │   │                   │   │   │                   │   │   │                   │   │   │
 7: ───7───6───╱1╲─────────────────6───4───╱1╲─────────────────4───2───╱1╲─────────────────2───0───╱1╲─────────────────
     """.strip()
+    print(actual_text_diagram)
     assert actual_text_diagram == expected_text_diagram
 
 class DiagonalGate(cirq.Gate,
@@ -86,7 +87,7 @@ class DiagonalGate(cirq.Gate,
                    cirq.TextDiagrammable):
     def __init__(self, n_qubits: int, diagonal: np.ndarray) -> None:
         dimension = 2 ** n_qubits
-        if ((diagonal.shape != (dimension,)) or not
+        if (diagonal.shape != (dimension,) or not
             np.allclose(
                 np.absolute(diagonal), np.ones(dimension))):
             raise ValueError('Diagonal must be an (2**n_qubits)-dimensional '
@@ -100,7 +101,7 @@ class DiagonalGate(cirq.Gate,
     def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
                           ) -> cirq.TextDiagramInfo:
         if args.known_qubit_count is None:
-            return NotImplemented
+            raise ValueError('args.known_qubit_count is None')
         wire_symbols = ('Diag',) * args.known_qubit_count
         return cirq.TextDiagramInfo(
                 wire_symbols=wire_symbols)
@@ -121,7 +122,8 @@ def test_diagonal_gate():
         DiagonalGate(2, diagonal)
     gate = DiagonalGate.random(2)
     args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    assert gate.text_diagram_info(args) == NotImplemented
+    with pytest.raises(ValueError):
+        gate.text_diagram_info(args)
 
     qubits = cirq.LineQubit.range(2)
     gate = DiagonalGate.random(2)
