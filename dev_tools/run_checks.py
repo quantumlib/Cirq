@@ -21,7 +21,7 @@ import shutil
 import sys
 import tempfile
 
-from dev_tools import env_tools, shell_tools, all_checks, check
+from dev_tools import env_tools, all_checks, check
 
 
 REPO_ORGANIZATION = 'quantumlib'
