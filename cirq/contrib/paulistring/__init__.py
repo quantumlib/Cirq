@@ -29,8 +29,8 @@ from cirq.contrib.paulistring.convert_gate_set import (
 )
 from cirq.contrib.paulistring.separate import (
     convert_and_separate_circuit,
-    clifford_half,
-    non_clifford_half,
+    regular_half,
+    pauli_string_half,
 )
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
