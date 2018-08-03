@@ -16,7 +16,6 @@
 import cirq
 
 from cirq.contrib.paulistring import (
-    converted_gate_set,
     optimized_circuit,
 )
 
