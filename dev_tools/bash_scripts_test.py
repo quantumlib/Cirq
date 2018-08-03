@@ -53,10 +53,9 @@ def run(*, script_file: str, arg: str ='', setup: str = ''
 
         cmd = r"""
 dir=$(git rev-parse --show-toplevel)
-tmp={}
-cd $tmp
+cd {}
 git init --quiet
-git commit -m 'init' --allow-empty --quiet
+git commit -m init --allow-empty --quiet
 {}
 chmod +x ./test-script
 ./test-script {}
