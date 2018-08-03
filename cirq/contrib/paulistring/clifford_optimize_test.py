@@ -76,8 +76,6 @@ def test_remove_czs():
         atol=1e-7,
     )
 
-    print(c_opt)
-    print(c_expected)
     assert c_opt == c_expected
 
     assert c_opt.to_text_diagram() == """
