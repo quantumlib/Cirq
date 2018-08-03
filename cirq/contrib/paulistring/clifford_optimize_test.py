@@ -33,10 +33,10 @@ def test_optimize():
     )
     c_expected = converted_gate_set(
         cirq.Circuit.from_ops(
-        cirq.CZ(q0, q1),
-        cirq.Z(q0) ** 0.25,
-        cirq.X(q1) ** 0.25,
-        cirq.CZ(q0, q1),
+            cirq.CZ(q0, q1),
+            cirq.Z(q0) ** 0.25,
+            cirq.X(q1) ** 0.25,
+            cirq.CZ(q0, q1),
         ))
 
     c_opt = clifford_optimized_circuit(c_orig)
