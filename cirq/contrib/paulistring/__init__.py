@@ -45,3 +45,6 @@ from cirq.contrib.paulistring.pauli_string_optimize import (
 from cirq.contrib.paulistring.clifford_optimize import (
     clifford_optimized_circuit,
 )
+from cirq.contrib.paulistring.optimize import (
+    optimized_circuit,
+)
