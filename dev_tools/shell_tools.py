@@ -19,6 +19,8 @@ from typing import (
     Optional, Tuple, Union, IO, Any, cast, TYPE_CHECKING, NamedTuple,
 )
 
+import collections
+
 CommandOutput = NamedTuple(
     "CommandOutput",
     [
@@ -27,8 +29,6 @@ CommandOutput = NamedTuple(
         ('exit_code', int),
     ]
 )
-
-import collections
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
