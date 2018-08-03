@@ -42,6 +42,28 @@ def test_convert():
 """.strip()
 
 
+def test_convert_keep_clifford():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q1) ** 0.25,
+        cirq.Z(q0) ** 0.125,
+        cirq.CliffordGate.H(q1),
+    )
+    c_orig = cirq.Circuit(circuit)
+    ConvertToPauliStringPhasors(keep_clifford=True).optimize_circuit(circuit)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circuit.to_unitary_matrix(),
+        c_orig.to_unitary_matrix(),
+        atol=1e-7)
+    assert circuit.to_text_diagram() == """
+0: ───X──────────[Z]^0.125───
+
+1: ───[Y]^0.25───H───────────
+""".strip()
+
+
 def test_already_converted():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit.from_ops(

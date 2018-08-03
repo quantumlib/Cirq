@@ -60,6 +60,10 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             and (self.allow_partial_czs or op.gate.half_turns == 1)):
             return op
 
+        # Measurement?
+        if ops.MeasurementGate.is_measurement(op):
+            return op
+
         # Known matrix?
         mat = self.extensions.try_cast(ops.KnownMatrix, op)
         if mat is not None and len(op.qubits) == 1:
