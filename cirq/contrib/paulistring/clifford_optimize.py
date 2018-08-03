@@ -164,7 +164,9 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             else:
                 # Two CZ gates that share one qubit
                 # Pass through and keep looking
-                continue
+                continue  # coverage: ignore
+                # The above line is covered by test_remove_staggered_czs but the
+                # coverage checker disagrees.
         return 0
 
     i = 0
