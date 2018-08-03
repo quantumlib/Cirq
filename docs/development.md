@@ -10,10 +10,10 @@ the initial repository cloning command) assume you are at the cirq repo root.
 
 You can create a local version of this repository by running:
 
-    ```bash
-    git clone git@github.com:quantumlib/Cirq.git
-    cd Cirq
-    ```
+```bash
+git clone git@github.com:quantumlib/Cirq.git
+cd Cirq
+```
 
 This will allow you to use the Cirq library and build your own applications
 using this framework.
@@ -33,16 +33,14 @@ Forking creates a new github repo at the location
 ```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
 your github id.
 1. Clone the fork you created to your local machine at the directory
-where you would like to store your local copy of the code.
-    ```shell
+where you would like to store your local copy of the code and change directory
+to cirq.
+    ```bash
     git clone git@github.com:USERNAME/cirq.git
+    cd cirq
     ```
     (Alternatively, you can clone the repository using the URL provided
     on your repo page under the green "Clone or Download" button)
-1. Change directory to cirq.
-   ```shell
-   cd cirq
-   ```
 1. Add a remote called ```upstream``` to git.  This remote will represent
 the main git repo for cirq (as opposed to the clone, which you just
 created, which will be the ```origin``` remote).  This remote can be used
