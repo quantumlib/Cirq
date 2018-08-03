@@ -22,7 +22,7 @@ from cirq.contrib.paulistring import (
 
 
 def test_optimize():
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit.from_ops(
         cirq.X(q0) ** 0.25,
         cirq.H(q0),
