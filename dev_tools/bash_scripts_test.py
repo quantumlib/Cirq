@@ -55,7 +55,7 @@ def run(*, script_file: str, arg: str ='', setup: str = ''
 dir=$(git rev-parse --show-toplevel)
 cd {}
 git init --quiet
-git commit -m init --allow-empty --quiet
+git commit -m init --allow-empty --quiet --no-gpg-sign
 {}
 chmod +x ./test-script
 ./test-script {}
@@ -75,7 +75,7 @@ def test_pytest_changed_files_file_selection():
                  arg='HEAD~1',
                  setup='touch file.py\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == ''
     assert result.err == ("Comparing against revision 'HEAD~1'.\n"
@@ -85,7 +85,7 @@ def test_pytest_changed_files_file_selection():
                  arg='HEAD~1',
                  setup='touch file_test.py\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err == ("Comparing against revision 'HEAD~1'.\n"
@@ -95,7 +95,7 @@ def test_pytest_changed_files_file_selection():
                  arg='HEAD~1',
                  setup='touch file.py file_test.py\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err == ("Comparing against revision 'HEAD~1'.\n"
@@ -105,7 +105,7 @@ def test_pytest_changed_files_file_selection():
                  arg='HEAD',
                  setup='touch file.py file_test.py\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n'
+                       'git commit -m test --quiet --no-gpg-sign\n'
                        'echo x > file_test.py\n')
     assert result.exit_code == 0
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
@@ -116,7 +116,7 @@ def test_pytest_changed_files_file_selection():
                  arg='HEAD',
                  setup='touch file.py file_test.py\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n'
+                       'git commit -m test --quiet --no-gpg-sign\n'
                        'echo x > file.py\n')
     assert result.exit_code == 0
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
@@ -178,7 +178,7 @@ def test_pytest_changed_files_branch_selection():
                  arg='file',
                  setup='touch file\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 1
     assert result.out == ''
     assert "No revision 'file'." in result.err
@@ -188,7 +188,7 @@ def test_pytest_changed_files_branch_selection():
                  arg='HEAD',
                  setup='touch HEAD\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == ''
     assert result.err == ("Comparing against revision 'HEAD'.\n"
@@ -197,7 +197,7 @@ def test_pytest_changed_files_branch_selection():
     result = run(script_file='check/pytest-changed-files',
                  setup='touch master\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == ''
     assert result.err == ("Comparing against revision 'master'.\n"
@@ -208,7 +208,7 @@ def test_pytest_changed_files_branch_selection():
                  setup='mkdir alt\n'
                        'cd alt\n'
                        'git init --quiet\n'
-                       'git commit -m test --quiet --allow-empty\n'
+                       'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
                        'cd ..\n'
                        'git remote add origin alt\n'
                        'git fetch origin master --quiet 2> /dev/null\n')
@@ -279,7 +279,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
                  arg='HEAD',
                  setup='touch HEAD\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED python '
@@ -289,7 +289,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='touch master\n'
                        'git add -A\n'
-                       'git commit -m test --quiet\n')
+                       'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED python '
