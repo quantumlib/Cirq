@@ -36,12 +36,10 @@ def _possible_string_placements(
         # Try moving the Pauli string through, stop at measurements
         yield string_op, 0, possible_node
 
-        out_op = None
         for i, out_op in enumerate(output_ops):
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
-            short_circuit = False
             if not (isinstance(out_op, ops.GateOperation) and
                     isinstance(out_op.gate, (ops.CliffordGate,
                                              ops.PauliInteractionGate,
