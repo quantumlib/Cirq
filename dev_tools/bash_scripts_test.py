@@ -212,7 +212,6 @@ def test_pytest_changed_files_branch_selection():
                        'cd ..\n'
                        'git remote add origin alt\n'
                        'git fetch origin master --quiet 2> /dev/null\n')
-    print(result)
     assert result.exit_code == 0
     assert result.out == ''
     assert result.err == ("Comparing against revision 'origin/master'.\n"
