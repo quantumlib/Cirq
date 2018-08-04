@@ -23,7 +23,7 @@ def optimized_circuit(circuit: circuits.Circuit,
                       tolerance: float = 1e-8,
                       repeat: int = 10,
                       ) -> circuits.Circuit:
-    while True:
+    for _ in range(repeat):
         circuit2 = pauli_string_optimized_circuit(
                         circuit,
                         move_cliffords=True,
