@@ -35,6 +35,7 @@ def optimized_circuit(circuit: circuits.Circuit,
             and _cz_count(circuit3) == _cz_count(circuit)):
             return circuit3
         circuit = circuit3
+    return circuit
 
 
 def _cz_count(circuit):
