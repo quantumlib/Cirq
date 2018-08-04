@@ -112,6 +112,38 @@ def test_remove_staggered_czs():
 """.strip()
 
 
+def test_with_measurements():
+    q0, q1 = cirq.LineQubit.range(2)
+    c_orig = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.CZ(q0, q1),
+        cirq.MeasurementGate('m')(q0, q1),
+    )
+    c_expected = converted_gate_set(
+        cirq.Circuit.from_ops(
+            cirq.CZ(q0, q1),
+            cirq.X(q0),
+            cirq.Z(q1),
+            cirq.MeasurementGate('m')(q0, q1),
+        ))
+
+    c_opt = clifford_optimized_circuit(c_orig)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        c_orig.to_unitary_matrix(),
+        c_opt.to_unitary_matrix(),
+        atol=1e-7,
+    )
+
+    assert c_opt == c_expected
+
+    assert c_opt.to_text_diagram() == """
+0: ───@───X───M('m')───
+      │       │
+1: ───@───Z───M────────
+""".strip()
+
+
 def test_optimize_large_circuit():
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
