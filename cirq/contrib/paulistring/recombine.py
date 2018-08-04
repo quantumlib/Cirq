@@ -35,19 +35,27 @@ def _possible_string_placements(
         string_op = key(possible_node)
         # Try moving the Pauli string through, stop at measurements
         yield string_op, 0, possible_node
+
         for i, out_op in enumerate(output_ops):
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
+            short_circuit = False
             if not (isinstance(out_op, ops.GateOperation) and
                     isinstance(out_op.gate, (ops.CliffordGate,
                                              ops.PauliInteractionGate,
                                              ops.Rot11Gate))):
                 # This is as far through as this Pauli string can move
+                if len(string_op.pauli_string) == 1:
+                    # This is as far as any Pauli string can go on this qubit
+                    # Stop searching to save time
+                    short_circuit = True
                 break
             string_op = string_op.pass_operations_over([out_op],
                                                        after_to_before=True)
             yield string_op, i+1, possible_node
+            if short_circuit:
+                return
 
 
 def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
