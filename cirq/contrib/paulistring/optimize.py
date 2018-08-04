@@ -20,7 +20,8 @@ from cirq.contrib.paulistring.clifford_optimize import (
 
 
 def optimized_circuit(circuit: circuits.Circuit,
-                      tolerance: float = 1e-8
+                      tolerance: float = 1e-8,
+                      repeat: int = 10,
                       ) -> circuits.Circuit:
     while True:
         circuit2 = pauli_string_optimized_circuit(
