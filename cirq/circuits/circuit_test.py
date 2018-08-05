@@ -332,6 +332,17 @@ def test_append_strategies():
     ])
 
 
+def test_insert_bad_index_for_moments():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c = cirq.Circuit()
+
+    c.insert(0, Moment([cirq.X(a)]))
+    with pytest.raises(IndexError):
+        c.insert(-2, Moment([cirq.H(b)]))
+
+
 def test_insert():
     a = cirq.QubitId()
     b = cirq.QubitId()

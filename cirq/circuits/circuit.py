@@ -550,13 +550,13 @@ class Circuit(ops.ParameterizableEffect):
             IndexError: Bad insertion index.
             ValueError: Bad insertion strategy.
         """
+        if not 0 <= index <= len(self._moments):
+            raise IndexError('Insert index out of range: {}'.format(index))
+
         if isinstance(moment_or_operation_tree, Moment):
             self._device.validate_moment(moment_or_operation_tree)
             self._moments.insert(index, moment_or_operation_tree)
             return index + 1
-
-        if not 0 <= index <= len(self._moments):
-            raise IndexError('Insert index out of range: {}'.format(index))
 
         operations = list(ops.flatten_op_tree(ops.transform_op_tree(
             moment_or_operation_tree,
