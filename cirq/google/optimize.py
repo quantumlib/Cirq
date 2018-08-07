@@ -35,6 +35,7 @@ _OPTIMIZERS = [
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
     circuits.DropNegligible(tolerance=_TOLERANCE),
+    merge_rotations.MergeRotations(tolerance=_TOLERANCE),
 ]
 
 _OPTIMIZERS_PART_CZ = [
@@ -47,6 +48,7 @@ _OPTIMIZERS_PART_CZ = [
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
     circuits.DropNegligible(tolerance=_TOLERANCE),
+    merge_rotations.MergeRotations(tolerance=_TOLERANCE),
 ]
 
 
