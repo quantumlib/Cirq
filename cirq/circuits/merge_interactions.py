@@ -32,14 +32,13 @@ class MergeInteractions(optimization_pass.PointOptimizer):
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
                  extensions: Extensions = None,
-                 post_clean_up: Callable[[Sequence[ops.Operation]],
-                                         Sequence[ops.Operation]
+                 post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
                                 ] = lambda op_list: op_list
                  ) -> None:
+        super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
         self.extensions = extensions or Extensions()
-        self.post_clean_up = post_clean_up
 
     def optimization_at(self,
                         circuit: Circuit,
@@ -78,12 +77,10 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         if not switch_to_new:
             return None
 
-        cleaned_operations = self.post_clean_up(new_operations)
-
         return optimization_pass.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=cleaned_operations)
+            new_operations=new_operations)
 
     def _op_to_matrix(self,
                       op: Optional[ops.Operation],

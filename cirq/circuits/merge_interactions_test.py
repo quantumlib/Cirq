@@ -187,3 +187,34 @@ def test_not_decompose_partial_czs():
     num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
     assert num_full_cz == 0
     assert num_part_cz == 1
+
+
+def test_post_clean_up():
+    class Marker(cirq.Gate):
+        pass
+
+    a, b = cirq.LineQubit.range(2)
+    c_orig = cirq.Circuit.from_ops(
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+    )
+    circuit = cirq.Circuit(c_orig)
+
+    def clean_up(operations):
+        yield Marker()(a, b)
+        yield operations
+        yield Marker()(a, b)
+    optimizer = cirq.MergeInteractions(allow_partial_czs=False,
+                                       post_clean_up=clean_up)
+    optimizer.optimize_circuit(circuit)
+
+    assert isinstance(circuit[0].operations[0].gate, Marker)
+    assert isinstance(circuit[-1].operations[0].gate, Marker)
+
+    u_before = c_orig.to_unitary_matrix()
+    u_after = circuit[1:-1].to_unitary_matrix()
+    cirq.testing.assert_allclose_up_to_global_phase(
+        u_before, u_after, atol=1e-8)
