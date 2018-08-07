@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """Basic types defining qubits, gates, and operations."""
-
-from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar
+import string
+from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, List
 
 from cirq import abc
 
@@ -35,6 +35,30 @@ class NamedQubit(QubitId):
 
     def __init__(self, name: str) -> None:
         self.name = name
+
+    @staticmethod
+    def range(*range_args) -> List['NamedQubit']:
+        """Returns a list of named qubits from [a, b, ..., y, z, aa, ab, ...].
+
+        Args:
+            *range_args: Same arguments as python's built-in range method.
+
+        Returns:
+            The named qubits.
+        """
+        def col_name(i: int) -> str:
+            """Converts a column index to its spreadsheet name, e.g. 29->ac."""
+            if i < 0:
+                return '-' + col_name(~i)
+            s = ''
+            i += 1
+            while True:
+                i -= 1
+                s = string.ascii_lowercase[i % 26] + s
+                i //= 26
+                if not i:
+                    return s
+        return [NamedQubit(col_name(i)) for i in range(*range_args)]
 
     def __str__(self):
         return self.name

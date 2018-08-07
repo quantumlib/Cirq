@@ -40,6 +40,39 @@ def test_gate_calls_validate():
         _ = g(q10, q01, q00)
 
 
+def test_named_range():
+    q = cirq.NamedQubit
+
+    a, b, c = q.range(3)
+    assert a == q('a')
+    assert b == q('b')
+    assert c == q('c')
+
+    assert q.range(0) == []
+    assert q.range(1) == [q('a')]
+    assert q.range(2) == [q('a'), q('b')]
+    assert q.range(5) == [
+        q('a'),
+        q('b'),
+        q('c'),
+        q('d'),
+        q('e'),
+    ]
+
+    assert q.range(0, 0) == []
+    assert q.range(0, 1) == [q('a')]
+    assert q.range(1, 4) == [q('b'), q('c'), q('d')]
+
+    assert q.range(3, 1, -1) == [q('d'), q('c')]
+    assert q.range(3, 5, -1) == []
+    assert q.range(1, 5, 2) == [q('b'), q('d')]
+
+    assert q.range(24, 29) == [q('y'), q('z'), q('aa'), q('ab'), q('ac')]
+    assert q.range(-24, -29, -1) == [q('-x'), q('-y'), q('-z'),
+                                     q('-aa'), q('-ab')]
+    assert q.range(-2, 2) == [q('-b'), q('-a'), q('a'), q('b')]
+
+
 def test_named_qubit_str():
     q = cirq.NamedQubit('a')
     assert q.name == 'a'
