@@ -252,7 +252,7 @@ class CliffordGate(raw_types.Gate,
         mat = np.eye(2)
         qubit = raw_types.QubitId()
         for op in op_tree.flatten_op_tree(self.default_decompose((qubit,))):
-            mat = cast(gate_features.KnownMatrix, op.matrix()).dot(mat)
+            mat = cast(gate_features.KnownMatrix, op).matrix().dot(mat)
         return mat
 
     def default_decompose(self, qubits: Sequence[raw_types.QubitId]
