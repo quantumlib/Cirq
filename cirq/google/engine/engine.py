@@ -110,7 +110,7 @@ class JobConfig:
                 'job_id={!r}, '
                 'gcs_prefix={!r}, '
                 'gcs_program={!r}, '
-                'gcs_results={!r}) ').format(self.project_id,
+                'gcs_results={!r})').format(self.project_id,
                                              self.program_id,
                                              self.job_id,
                                              self.gcs_prefix,
