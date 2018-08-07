@@ -26,17 +26,17 @@ import cirq.google as cg
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
 from cirq.testing.mock import mock
 
-
 @cirq.testing.only_test_in_python3
 def test_repr():
     v = cirq.google.JobConfig(project_id='my-project-id',
                               program_id='my-program-id',
                               job_id='my-job-id')
 
-    assert repr(options) == ("JobConfig(project_id='my-project-id', "
-                             "program_id='my-program-id', "
-                             "job_id='my-job-id', gcs_prefix=None, "
-                             "gcs_program=None, gcs_results=None)")
+    assert repr(v) == ("JobConfig(project_id='my-project-id', "
+                         "program_id='my-program-id', "
+                         "job_id='my-job-id', gcs_prefix=None, "
+                         "gcs_program=None, gcs_results=None)")
+
 
 
 _A_RESULT = program_pb2.Result(
