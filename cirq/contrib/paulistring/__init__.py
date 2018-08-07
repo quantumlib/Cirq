@@ -37,5 +37,14 @@ from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_dag_from_circuit,
 )
 from cirq.contrib.paulistring.recombine import (
-    move_non_clifford_into_clifford,
+    move_pauli_strings_into_circuit,
+)
+from cirq.contrib.paulistring.pauli_string_optimize import (
+    pauli_string_optimized_circuit,
+)
+from cirq.contrib.paulistring.clifford_optimize import (
+    clifford_optimized_circuit,
+)
+from cirq.contrib.paulistring.optimize import (
+    optimized_circuit,
 )

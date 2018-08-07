@@ -15,10 +15,8 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${own_directory}
-repo_dir=$(git rev-parse --show-toplevel)
-cd ${repo_dir}
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
 
 # Do a sanity check that we're actually in python 2 land.
 v=$(python --version 2>&1)
