@@ -86,8 +86,6 @@ def test_repr():
 
 @mock.patch.object(discovery, 'build')
 def test_run_circuit(build):
-
-
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
