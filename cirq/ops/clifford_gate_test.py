@@ -332,6 +332,24 @@ def test_decompose(gate, gate_equiv):
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
+@pytest.mark.parametrize('gate,gate_equiv', (
+    (cirq.CliffordGate.I,       cirq.X ** 0),
+    (cirq.CliffordGate.H,       cirq.H),
+    (cirq.CliffordGate.X,       cirq.X),
+    (cirq.CliffordGate.Y,       cirq.Y),
+    (cirq.CliffordGate.Z,       cirq.Z),
+    (cirq.CliffordGate.X_sqrt,  cirq.X ** 0.5),
+    (cirq.CliffordGate.X_nsqrt, cirq.X ** -0.5),
+    (cirq.CliffordGate.Y_sqrt,  cirq.Y ** 0.5),
+    (cirq.CliffordGate.Y_nsqrt, cirq.Y ** -0.5),
+    (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
+    (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
+def test_known_matrix(gate, gate_equiv):
+    mat = gate.matrix()
+    mat_check = gate_equiv.matrix()
+    assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
+
+
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_inverse(gate):
     assert gate == gate.inverse().inverse()
