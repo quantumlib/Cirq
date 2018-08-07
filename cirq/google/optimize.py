@@ -29,8 +29,9 @@ _TOLERANCE = 1e-5
 _OPTIMIZERS = [
     convert_to_xmon_gates.ConvertToXmonGates(),
 
-    merge_interactions.MergeInteractions(tolerance=_TOLERANCE,
-                                         allow_partial_czs=False),
+    circuits.MergeInteractions(tolerance=_TOLERANCE,
+                               allow_partial_czs=False),
+    convert_to_xmon_gates.ConvertToXmonGates(),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
@@ -40,8 +41,9 @@ _OPTIMIZERS = [
 _OPTIMIZERS_PART_CZ = [
     convert_to_xmon_gates.ConvertToXmonGates(),
 
-    merge_interactions.MergeInteractions(tolerance=_TOLERANCE,
-                                         allow_partial_czs=True),
+    circuits.MergeInteractions(tolerance=_TOLERANCE,
+                               allow_partial_czs=True),
+    convert_to_xmon_gates.ConvertToXmonGates(),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
