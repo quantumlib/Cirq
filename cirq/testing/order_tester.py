@@ -131,7 +131,7 @@ class OrderTester:
             self._verify_equality(v1, v2)
 
         # Check the hash property.
-        self._verify_hash_property(group_items)
+        self._verify_hash_property(*group_items)
 
         # Check that already added groups are not overlapping with the new
         # group.
