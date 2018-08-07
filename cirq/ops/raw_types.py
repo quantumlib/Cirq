@@ -51,13 +51,12 @@ class NamedQubit(QubitId):
             if i < 0:
                 return '-' + col_name(~i)
             s = ''
-            i += 1
             while True:
-                i -= 1
                 s = string.ascii_lowercase[i % 26] + s
                 i //= 26
                 if not i:
                     return s
+                i -= 1
         return [NamedQubit(col_name(i)) for i in range(*range_args)]
 
     def __str__(self):
