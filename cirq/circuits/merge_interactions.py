@@ -19,7 +19,8 @@ from typing import Callable, List, Optional, Sequence, Tuple, cast
 import numpy as np
 
 from cirq import ops, decompositions
-from cirq.circuits import circuit, optimization_pass
+from cirq.circuits import optimization_pass
+from cirq.circuits.circuit import Circuit
 from cirq.extension import Extensions
 
 
@@ -41,7 +42,7 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         self.post_clean_up = post_clean_up
 
     def optimization_at(self,
-                        circuit: circuit.Circuit,
+                        circuit: Circuit,
                         index: int,
                         op: ops.Operation
     ) -> Optional[optimization_pass.PointOptimizationSummary]:
@@ -77,12 +78,12 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         if not switch_to_new:
             return None
 
-        new_operations = self.post_clean_up(new_operations)
+        cleaned_operations = self.post_clean_up(new_operations)
 
         return optimization_pass.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=new_operations)
+            new_operations=cleaned_operations)
 
     def _op_to_matrix(self,
                       op: Optional[ops.Operation],
@@ -123,7 +124,7 @@ class MergeInteractions(optimization_pass.PointOptimizer):
 
     def _scan_two_qubit_ops_into_matrix(
             self,
-            circuit: circuit.Circuit,
+            circuit: Circuit,
             index: Optional[int],
             qubits: Tuple[ops.QubitId, ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:

@@ -19,7 +19,6 @@ from cirq import circuits, ops, devices
 from cirq.google import (
     convert_to_xmon_gates,
     merge_rotations,
-    merge_interactions,
     eject_full_w,
     eject_z,
     xmon_device)

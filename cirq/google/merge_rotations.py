@@ -25,6 +25,7 @@ from cirq.circuits import (
     PointOptimizationSummary,
 )
 from cirq.extension import Extensions
+from cirq.google import convert_to_xmon_gates
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.google.xmon_gates import XmonGate
 
@@ -48,12 +49,16 @@ class MergeRotations(PointOptimizer):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        operations = self._merge_rotations(op.qubits[0], gates)
+        new_operations = self._merge_rotations(op.qubits[0], gates)
+
+        converter = convert_to_xmon_gates.ConvertToXmonGates()
+        new_xmon_operations = [converter.convert(new_op)
+                               for new_op in new_operations]
 
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=operations)
+            new_operations=new_xmon_operations)
 
     def _scan_single_qubit_ops(
             self,
