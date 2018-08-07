@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Sequence
+
 from cirq import ops, circuits
 from cirq.contrib.paulistring.pauli_string_optimize import (
     pauli_string_optimized_circuit)
@@ -22,20 +24,35 @@ from cirq.contrib.paulistring.clifford_optimize import (
 def optimized_circuit(circuit: circuits.Circuit,
                       tolerance: float = 1e-8,
                       repeat: int = 10,
+                      merge_interactions: bool = True
                       ) -> circuits.Circuit:
     for _ in range(repeat):
+        start_len = len(circuit)
+        start_cz_count = _cz_count(circuit)
+        if merge_interactions:
+            circuits.MergeInteractions(allow_partial_czs=False,
+                                       post_clean_up=_optimized_ops,
+                                       ).optimize_circuit(circuit)
         circuit2 = pauli_string_optimized_circuit(
                         circuit,
-                        move_cliffords=True,
+                        move_cliffords=False,
                         tolerance=tolerance)
         circuit3 = clifford_optimized_circuit(
                         circuit2,
                         tolerance=tolerance)
-        if (len(circuit3) == len(circuit)
-            and _cz_count(circuit3) == _cz_count(circuit)):
+        if (len(circuit3) == start_len
+            and _cz_count(circuit3) == start_cz_count):
             return circuit3
         circuit = circuit3
     return circuit
+
+
+def _optimized_ops(ops: Sequence[ops.Operation],
+                   tolerance: float = 1e-8,
+                   repeat: int = 10) -> Sequence[ops.Operation]:
+    c = circuits.Circuit.from_ops(ops)
+    c_opt = optimized_circuit(c, tolerance, repeat, merge_interactions=False)
+    return tuple(c_opt.all_operations())
 
 
 def _cz_count(circuit):
