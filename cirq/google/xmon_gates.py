@@ -29,6 +29,10 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def to_proto_dict(self, *qubits) -> Dict:
+        """Returns a dictionary representing the proto.
+
+        For definitions of the protos see api/google/v1/operations.proto
+        """
         raise NotImplementedError()
 
     @staticmethod
