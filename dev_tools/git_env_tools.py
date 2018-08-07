@@ -169,6 +169,7 @@ def fetch_local_files(destination_directory: str,
             'commit',
             '-m', 'working changes',
             '--allow-empty',
+            '--no-gpg-sign',
             None if verbose else '--quiet',
             out=sys.stderr,
             log_run_to_stderr=verbose)

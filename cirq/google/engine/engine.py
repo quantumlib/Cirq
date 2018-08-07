@@ -102,6 +102,19 @@ class JobConfig:
             gcs_program=self.gcs_program,
             gcs_results=self.gcs_results)
 
+    def __repr__(self):
+        return ('JobConfig(project_id={!r}, '
+                'program_id={!r}, '
+                'job_id={!r}, '
+                'gcs_prefix={!r}, '
+                'gcs_program={!r}, '
+                'gcs_results={!r})').format(self.project_id,
+                                             self.program_id,
+                                             self.job_id,
+                                             self.gcs_prefix,
+                                             self.gcs_program,
+                                             self.gcs_results)
+
 
 class Engine:
     """Runs programs via the Quantum Engine API.
@@ -174,7 +187,7 @@ class Engine:
             repetitions: int = 1,
             priority: int = 50,
             target_route: str = '/xmonsim'
-    ) -> TrialResult:
+            ) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -302,7 +315,7 @@ class Engine:
                   repetitions: int = 1,
                   priority: int = 500,
                   target_route: str = '/xmonsim'
-    ) -> 'EngineJob':
+                  ) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -590,7 +603,7 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
             resolvers = iterable
             return [_resolver_to_sweep(p) for p in resolvers]
     else:
-        raise TypeError('Unexpected Sweepable.') # coverage: ignore
+        raise TypeError('Unexpected Sweepable.')  # coverage: ignore
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
