@@ -68,14 +68,17 @@ class GridQubit(QubitId):
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
-    def to_proto_dict(self, out: Dict = None) -> Dict:
-        """Return the proto form, mutating supplied form if supplied."""
-        if out is None:
-            out = {}
-        out['row'] = self.row
-        out['col'] = self.col
-        return out
+    def to_proto_dict(self) -> Dict:
+        """Return the proto in dictionary form."""
+        return {
+            'row': self.row,
+            'col': self.col,
+        }
 
     @staticmethod
-    def from_proto_dict(q: Dict) -> 'GridQubit':
-        return GridQubit(row=q['row'], col=q['col'])
+    def from_proto_dict(proto_dict: Dict) -> 'GridQubit':
+        """Proto dict must have 'row' and 'col' keys."""
+        if 'row' not in proto_dict or 'col' not in proto_dict:
+            raise ValueError(
+                'Proto dict does not contain row or col: {}'.format(proto_dict))
+        return GridQubit(row=proto_dict['row'], col=proto_dict['col'])

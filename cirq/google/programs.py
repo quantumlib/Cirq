@@ -26,11 +26,11 @@ if TYPE_CHECKING:
 
 
 def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
-    """Convert a schedule into protobufs.
+    """Convert a schedule into an iterable of proto dictionaries.
 
     Args:
-        schedule: The schedule to convert to protobufs. Must contain only gates
-            that can be cast to xmon gates.
+        schedule: The schedule to convert to a proto dict. Must contain only
+            gates that can be cast to xmon gates.
 
     Yields:
         A proto dictionary corresponding to an Operation proto.
@@ -54,7 +54,7 @@ def schedule_from_proto_dicts(
         device: XmonDevice,
         ops: Iterable[Dict],
 ) -> Schedule:
-    """Convert protobufs into a Schedule for the given device."""
+    """Convert proto dictionaries into a Schedule for the given device."""
     scheduled_ops = []
     last_time_picos = 0
     for op in ops:

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Tests for grid_qubit."""
+
+import pytest
 
 import cirq
 
@@ -69,11 +72,21 @@ def test_to_proto():
 
     # Create a new message.
     proto = q.to_proto_dict()
-    assert proto['row'] == 5
-    assert proto['col'] == 6
+    assert proto == {'row': 5, 'col': 6}
 
 
 def test_from_proto():
     q = cirq.GridQubit(5, 6)
     q2 = cirq.GridQubit.from_proto_dict(q.to_proto_dict())
     assert q2 == q
+
+
+def test_from_proto_bad_dict():
+    with pytest.raises(ValueError):
+        cirq.GridQubit.from_proto_dict({'row': 1})
+    with pytest.raises(ValueError):
+        cirq.GridQubit.from_proto_dict({'col': 1})
+    with pytest.raises(ValueError):
+        cirq.GridQubit.from_proto_dict({})
+    with pytest.raises(ValueError):
+        cirq.GridQubit.from_proto_dict({'nothing': 1})
