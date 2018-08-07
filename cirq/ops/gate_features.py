@@ -360,7 +360,7 @@ class QasmOutputArgs(string.Formatter):
     Attributes:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram.
-        version: The QASM version to output.  QasmConvertableGate/Operation may
+        version: The QASM version to output.  QasmConvertibleGate/Operation may
             return different text depending on version.
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
         meas_key_id_map: A dictionary mapping measurement keys to creg QASM
@@ -398,7 +398,7 @@ class QasmOutputArgs(string.Formatter):
                                 self.version))
 
 
-class QasmConvertableGate(metaclass=abc.ABCMeta):
+class QasmConvertibleGate(metaclass=abc.ABCMeta):
     """A gate that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self,
@@ -409,7 +409,7 @@ class QasmConvertableGate(metaclass=abc.ABCMeta):
         """
 
 
-class QasmConvertableOperation(metaclass=abc.ABCMeta):
+class QasmConvertibleOperation(metaclass=abc.ABCMeta):
     """An operation that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self, args: QasmOutputArgs) -> Optional[str]:
