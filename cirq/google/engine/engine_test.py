@@ -33,9 +33,9 @@ def test_repr():
                               job_id='my-job-id')
 
     assert repr(v) == ("JobConfig(project_id='my-project-id', "
-                         "program_id='my-program-id', "
-                         "job_id='my-job-id', gcs_prefix=None, "
-                         "gcs_program=None, gcs_results=None)")
+                       "program_id='my-program-id', "
+                       "job_id='my-job-id', gcs_prefix=None, "
+                       "gcs_program=None, gcs_results=None)")
 
 
 
