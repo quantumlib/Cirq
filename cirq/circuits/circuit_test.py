@@ -25,7 +25,6 @@ from cirq import Circuit, InsertStrategy, Moment
 from cirq.testing import random_circuit
 import cirq.google as cg
 
-seed(5)
 
 def test_equality():
     a = cirq.QubitId()
@@ -109,21 +108,28 @@ def test_append_multiple():
 
 @cirq.testing.only_test_in_python3
 def test_repr():
+    assert repr(cirq.Circuit()) == 'cirq.Circuit()'
+
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = Circuit([
-        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.H(b)]),
         Moment([cirq.CZ(a, b)]),
     ])
-    assert repr(c) == """
-Circuit([
-    Moment((GateOperation(H, (NamedQubit('a'),)),)),
-    Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
-    """.strip()
+    assert repr(c) == """cirq.Circuit(moments=[
+    cirq.Moment(operations=[
+        H.on(NamedQubit('a')),
+        H.on(NamedQubit('b')),
+    ]),
+    cirq.Moment(operations=[
+        CZ.on(NamedQubit('a'), NamedQubit('b')),
+    ]),
+])"""
 
-    c = Circuit.from_ops(cg.ExpWGate().on(cirq.GridQubit(0, 0)),
-                         device=cg.Foxtail)
-    assert 'device' in repr(c)
+    assert 'device' in repr(Circuit(device=cg.Foxtail))
+    assert 'device' in repr(Circuit.from_ops(
+        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+        device=cg.Foxtail))
 
 
 def test_slice():

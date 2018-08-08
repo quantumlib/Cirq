@@ -292,9 +292,9 @@ for x in my_layer():
     print(x)
 # prints
 # CZ((0, 0), (1, 0))
-# [GateOperation(H, (GridQubit(0, 0),)), GateOperation(H, (GridQubit(1, 0),)), GateOperation(H, (GridQubit(2, 0),))]
-# [GateOperation(CZ, (GridQubit(1, 0), GridQubit(2, 0)))]
-# [GateOperation(H, (GridQubit(0, 0),)), [GateOperation(CZ, (GridQubit(1, 0), GridQubit(2, 0)))]]
+# [H.on(GridQubit(0, 0)), H.on(GridQubit(1, 0)), H.on(GridQubit(2, 0))]
+# [CZ.on(GridQubit(1, 0), GridQubit(2, 0))]
+# [H.on(GridQubit(0, 0)), [CZ.on(GridQubit(1, 0), GridQubit(2, 0))]]
 
 print(circuit)
 # prints
