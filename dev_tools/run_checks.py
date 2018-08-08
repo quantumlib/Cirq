@@ -21,7 +21,7 @@ import shutil
 import sys
 import tempfile
 
-from dev_tools import env_tools, shell_tools, all_checks, check
+from dev_tools import env_tools, all_checks, check
 
 
 REPO_ORGANIZATION = 'quantumlib'
@@ -82,11 +82,6 @@ def parse_args():
 
 def main():
     pull_request_number, access_token, verbose, checks = parse_args()
-    if pull_request_number is None:
-        print(shell_tools.highlight(
-            'No pull request number given. Using local files.',
-            shell_tools.YELLOW))
-        print()
 
     test_dir = tempfile.mkdtemp(prefix='test-{}-'.format(REPO_NAME))
     test_dir_2 = tempfile.mkdtemp(prefix='test-{}-py2-'.format(REPO_NAME))

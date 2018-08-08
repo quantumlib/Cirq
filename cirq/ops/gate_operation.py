@@ -42,7 +42,7 @@ LIFTED_POTENTIAL_TYPES = {t: t for t in [
 LIFTED_POTENTIAL_TYPES[
     gate_features.CompositeOperation] = gate_features.CompositeGate
 LIFTED_POTENTIAL_TYPES[
-    gate_features.QasmConvertableOperation] = gate_features.QasmConvertableGate
+    gate_features.QasmConvertibleOperation] = gate_features.QasmConvertibleGate
 
 
 class GateOperation(raw_types.Operation,
@@ -55,7 +55,7 @@ class GateOperation(raw_types.Operation,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
                         gate_features.TextDiagrammable,
-                        gate_features.QasmConvertableOperation,
+                        gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
 
@@ -198,6 +198,6 @@ class GateOperation(raw_types.Operation,
 
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
-        cast_gate = extension.cast(gate_features.QasmConvertableGate,
+        cast_gate = extension.cast(gate_features.QasmConvertibleGate,
                                    self.gate)
         return cast_gate.known_qasm_output(self.qubits, args)
