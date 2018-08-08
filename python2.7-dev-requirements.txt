@@ -4,3 +4,4 @@
 absl-py~=0.2
 mock~=2.0
 pytest~=3.2
+scipy~=1.1.0

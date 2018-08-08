@@ -1,11 +1,13 @@
-"""Quantum circuit to prepare the BCS ground states for
-superconductors/superfluids. Such states can be prepared by
-applying pairwise Bogoliubov transformations on basis states
-with opposite spins and momenta, followed by the fermionic Fourier
-transformations. In this simple example, we consider a 1D 4-site Hubbard model.
-The fermionic quantum state is mapped that of a qubit ladder (two coupled
-chains) using the Jordan-Wigner transformation, the upper (lower) chain
-represent spin-up (down) basis states.
+"""Circuits for preparing BCS ground states for superconductors/superfluids.
+
+NOTE: YOU MUST 'pip install scipy' IN ORDER FOR THIS EXAMPLE TO WORK.
+
+BCS ground states can be prepared by applying pairwise Bogoliubov
+transformations on basis states with opposite spins and momenta, followed by the
+fermionic Fourier transformations. In this simple example, we consider a 1D
+4-site Hubbard model. The fermionic quantum state is mapped that of a qubit
+ladder (two coupled chains) using the Jordan-Wigner transformation, the upper
+(lower) chain represent spin-up (down) basis states.
 
 The Bogoliubov transformation can be readily implemented by
 applying quantum gates on vertical pairs of qubits, which takes the form
