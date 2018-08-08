@@ -585,7 +585,7 @@ def test_invalid_to_proto_dict_qubit_number():
             cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
 
-def test_cirq_sumbol_diagrams():
+def test_cirq_symbol_diagrams():
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
