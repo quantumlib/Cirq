@@ -139,7 +139,6 @@ from cirq.ops import (
     OP_TREE,
     Operation,
     ParameterizableEffect,
-    PartialReflectionGate,
     Pauli,
     PauliInteractionGate,
     PauliString,
