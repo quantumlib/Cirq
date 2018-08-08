@@ -218,7 +218,6 @@ def test_pytest_changed_files_branch_selection():
                           "Found 0 differing files with associated tests.\n")
 
 
-
 @only_in_python3_on_posix
 def test_pytest_and_incremental_coverage_branch_selection():
 
