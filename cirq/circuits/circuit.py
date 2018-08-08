@@ -234,7 +234,7 @@ class Circuit(ops.ParameterizableEffect):
         if not self._moments and self._device == devices.UnconstrainedDevice:
             return 'cirq.Circuit()'
 
-        if not self._moments and self._device == devices.UnconstrainedDevice:
+        if not self._moments:
             return 'cirq.Circuit(device={!r})'.format(self._device)
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)

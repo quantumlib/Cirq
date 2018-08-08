@@ -91,7 +91,9 @@ class GateOperation(raw_types.Operation,
                 self.gate,
                 ', '.join(repr(q) for q in self.qubits))
 
-        return 'cirq.GateOperation({!r}, {!r})'.format(self.gate, self.qubits)
+        return 'cirq.GateOperation(gate={!r}, qubits={!r})'.format(
+            self.gate,
+            list(self.qubits))
 
     def __str__(self):
         return '{}({})'.format(self.gate,

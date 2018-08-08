@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Sequence
+from typing import Tuple, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, ops, linalg
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
 
 
 def _cancel_qubit_phase(m1: np.ndarray,
@@ -67,10 +71,10 @@ def _cancel_qubit_phase(m1: np.ndarray,
         prob[row, -1] = np.angle(m1[row, col]) - np.angle(m2[row, col])
 
     # Gram-Schmidt.
-    used = set()
+    used = set()  # type: Set[int]
     for col in range(len(qubits)):
-        chosen_row = next(row for row in range(n)
-                          if row not in used and prob[row, col])
+        chosen_row = min(row for row in range(n)
+                         if row not in used and prob[row, col])
         used.add(chosen_row)
         prob[chosen_row, :] /= prob[chosen_row, col]
         for row in range(n):

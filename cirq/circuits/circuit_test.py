@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
-from random import randint, random, sample, randrange, seed
+from random import randint, random, sample, randrange
 
 import numpy as np
 import pytest
@@ -114,6 +114,7 @@ def test_repr():
     b = cirq.NamedQubit('b')
     c = Circuit([
         Moment([cirq.H(a), cirq.H(b)]),
+        Moment(),
         Moment([cirq.CZ(a, b)]),
     ])
     assert repr(c) == """cirq.Circuit(moments=[
@@ -121,15 +122,21 @@ def test_repr():
         H.on(NamedQubit('a')),
         H.on(NamedQubit('b')),
     ]),
+    cirq.Moment(),
     cirq.Moment(operations=[
         CZ.on(NamedQubit('a'), NamedQubit('b')),
     ]),
 ])"""
 
-    assert 'device' in repr(Circuit(device=cg.Foxtail))
-    assert 'device' in repr(Circuit.from_ops(
+    assert repr(Circuit(device=cg.Foxtail)
+                ) == 'cirq.Circuit(device=cirq.google.Foxtail)'
+    assert repr(Circuit.from_ops(
         cg.ExpWGate().on(cirq.GridQubit(0, 0)),
-        device=cg.Foxtail))
+        device=cg.Foxtail)) == """cirq.Circuit(moments=[
+    cirq.Moment(operations=[
+        ExpWGate(half_turns=1.0, axis_half_turns=0.0).on(GridQubit(0, 0)),
+    ]),
+], device=cirq.google.Foxtail)"""
 
 
 def test_slice():
