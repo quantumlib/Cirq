@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, TYPE_CHECKING
 
 from cirq.devices import GridQubit
-from cirq.google import XmonDevice
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq.google
 
 
 EDGE = Tuple[GridQubit, GridQubit]
@@ -69,7 +72,7 @@ def right_of(qubit: GridQubit) -> GridQubit:
     return GridQubit(qubit.row + 1, qubit.col)
 
 
-def chip_as_adjacency_list(device: XmonDevice
+def chip_as_adjacency_list(device: 'cirq.google.XmonDevice',
                            ) -> Dict[GridQubit, List[GridQubit]]:
     """Gives adjacency list representation of a chip.
 

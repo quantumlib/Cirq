@@ -45,7 +45,6 @@ LIFTED_POTENTIAL_TYPES[
 
 
 class GateOperation(raw_types.Operation,
-                    gate_features.KnownMatrix,
                     extension.PotentialImplementation[Union[
                         gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
@@ -135,7 +134,7 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
-    def matrix(self) -> Optional[np.ndarray]:
+    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
         return protocols.maybe_unitary_effect(self._gate)
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs

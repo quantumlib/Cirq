@@ -25,7 +25,6 @@ TSelf = TypeVar('TSelf', bound='EigenGate')
 
 class EigenGate(raw_types.Gate,
                 gate_features.BoundedEffect,
-                protocols.SupportsUnitaryEffect,
                 gate_features.ParameterizableEffect,
                 extension.PotentialImplementation[Union[
                     gate_features.ExtrapolatableEffect,

@@ -465,7 +465,6 @@ T = Z**0.25
 class HGate(gate_features.CompositeGate,
             gate_features.TextDiagrammable,
             gate_features.ReversibleEffect,
-            protocols.SupportsUnitaryEffect,
             gate_features.SingleQubitGate,
             gate_features.QasmConvertibleGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
@@ -482,7 +481,7 @@ class HGate(gate_features.CompositeGate,
     def inverse(self):
         return self
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+    def _unitary_effect_(self) -> np.ndarray:
         s = math.sqrt(0.5)
         return np.array([[s, s], [s, -s]])
 

@@ -31,7 +31,6 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
 
 
 class ControlledGate(raw_types.Gate,
-                     gate_features.KnownMatrix,
                      extension.PotentialImplementation[Union[
                          gate_features.BoundedEffect,
                          gate_features.ExtrapolatableEffect,
@@ -52,8 +51,8 @@ class ControlledGate(raw_types.Gate,
             default_extensions: The extensions method that should be used when
                 determining if the controlled gate supports certain gate
                 features. For example, if this extensions instance is able to
-                cast sub_gate to a KnownMatrix then the controlled gate
-                can also be cast to a KnownMatrix. When this value is None,
+                cast sub_gate to a ReversibleEffect then the controlled gate
+                can also be cast to a ReversibleEffect. When this value is None,
                 an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
@@ -90,10 +89,7 @@ class ControlledGate(raw_types.Gate,
             return ControlledGate(cast_sub_gate, ext)
         return super().try_cast_to(desired_type, ext)
 
-    def has_matrix(self) -> bool:
-        return protocols.has_unitary_effect(self.sub_gate)
-
-    def matrix(self) -> Optional[np.ndarray]:
+    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
         sub_matrix = protocols.maybe_unitary_effect(self.sub_gate)
         if sub_matrix is None:
             return None

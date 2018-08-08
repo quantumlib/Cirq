@@ -44,8 +44,7 @@ class MergeRotations(PointOptimizer):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        operations = self._merge_rotations(op.qubits[0],
-                                           cast(List[ops.KnownMatrix], opers))
+        operations = self._merge_rotations(op.qubits[0], opers)
 
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
@@ -74,7 +73,7 @@ class MergeRotations(PointOptimizer):
     def _merge_rotations(
             self,
             qubit: ops.QubitId,
-            operations: Iterable[ops.KnownMatrix]
+            operations: Iterable[ops.Operation]
     ) -> List[ops.Operation]:
         matrix = linalg.dot(
             np.eye(2, dtype=np.complex128),

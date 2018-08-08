@@ -414,7 +414,7 @@ the simulator attempts to automatically convert unknown
 operations into XmonGates (as long as the operation specifies 
 a matrix or a decomposition into XmonGates). This can in 
 principle allows us to simulate any circuit that has gates 
-that implement one and two qubit  `KnownMatrix` gates. 
+that implement one and two qubit gates with specified unitary matrices. 
 Future releases of Cirq will expand these simulators.
 
 Because the simulator is tied to the xmon gate set, the simulator

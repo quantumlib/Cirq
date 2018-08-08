@@ -18,14 +18,13 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, protocols
 from cirq.ops import gate_features, common_gates, raw_types, op_tree
 
 
 class _CCZGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
-               gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate,
                gate_features.QasmConvertibleGate):
     """A doubly-controlled-Z."""
@@ -61,7 +60,7 @@ class _CCZGate(gate_features.ThreeQubitGate,
         yield t(c)**-1
         yield sweep_abc
 
-    def matrix(self):
+    def _unitary_effect_(self) -> np.ndarray:
         return np.diag([1, 1, 1, 1, 1, 1, 1, -1])
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
@@ -85,7 +84,6 @@ class _CCZGate(gate_features.ThreeQubitGate,
 class _CCXGate(gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
-               gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate,
                gate_features.QasmConvertibleGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
@@ -99,7 +97,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
         yield CCZ(c1, c2, t)
         yield common_gates.H(t)
 
-    def matrix(self):
+    def _unitary_effect_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]))
 
@@ -121,7 +119,6 @@ class _CCXGate(gate_features.ThreeQubitGate,
 class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.TextDiagrammable,
                  gate_features.CompositeGate,
-                 gate_features.KnownMatrix,
                  gate_features.InterchangeableQubitsGate,
                  gate_features.QasmConvertibleGate):
     """A controlled swap gate. The Fredkin gate."""
@@ -216,7 +213,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.X(b)**0.5
         yield common_gates.X(c)**-0.5
 
-    def matrix(self):
+    def _unitary_effect_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]),
                                  np.diag([1]))

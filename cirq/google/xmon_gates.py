@@ -129,7 +129,7 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
-                ops.QasmConvertableGate):
+                ops.QasmConvertibleGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -223,7 +223,6 @@ class Exp11Gate(XmonGate,
 
 
 class ExpWGate(XmonGate,
-               ops.KnownMatrix,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.PhaseableEffect,
@@ -321,13 +320,11 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
-    def has_matrix(self):
-        return (not isinstance(self.half_turns, value.Symbol) and
-                not isinstance(self.axis_half_turns, value.Symbol))
-
-    def matrix(self) -> Optional[np.ndarray]:
-        if not self.has_matrix():
+    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+        if (isinstance(self.half_turns, value.Symbol) or
+                isinstance(self.axis_half_turns, value.Symbol)):
             return None
+
         phase = protocols.unitary_effect(
             ops.RotZGate(half_turns=self.axis_half_turns))
         c = np.exp(1j * np.pi * self.half_turns)
@@ -410,7 +407,6 @@ class ExpWGate(XmonGate,
 
 
 class ExpZGate(XmonGate,
-               ops.KnownMatrix,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.ParameterizableEffect,
@@ -494,11 +490,8 @@ class ExpZGate(XmonGate,
             raise ValueError("Don't have a known inverse.")
         return ExpZGate(half_turns=-self.half_turns)
 
-    def has_matrix(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def matrix(self) -> Optional[np.ndarray]:
-        if not self.has_matrix():
+    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+        if isinstance(self.half_turns, value.Symbol):
             return None
         h = cast(float, self.half_turns)
         return np.diag([(-1j)**h, 1j**h])

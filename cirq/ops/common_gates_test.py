@@ -160,7 +160,7 @@ def test_runtime_types_of_rot_gates():
         ext = cirq.Extensions()
 
         p = gate_type(half_turns=cirq.Symbol('a'))
-        assert p.try_cast_to(cirq.KnownMatrix, ext) is None
+        assert cirq.maybe_unitary_effect(p) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p

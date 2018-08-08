@@ -17,13 +17,10 @@ from typing import Any, Optional
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import abc, extension, ops
-
 
 class SupportsUnitaryEffect(Protocol):
     """An effect that can be described by a unitary matrix."""
 
-    @abc.abstractmethod
     def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
         """The unitary matrix of the effect, or None if not known.
 
@@ -42,6 +39,7 @@ class SupportsUnitaryEffect(Protocol):
             _ _ _ 1
             _ _ 1 _
         """
+        return None
 
     def _has_matrix_(self) -> bool:
         """Determines if the gate/operation has a known matrix or not."""
@@ -57,11 +55,8 @@ def maybe_unitary_effect(val: Any) -> Optional[np.ndarray]:
     """Determines the matrix of the given object, if any.
 
     Returns:
-        A 2d numpy array when the given object is a KnownMatrix and its
-        matrix() method returns a non-None result.
-
-        None when the given object isn't a KnownMatrix or else its matrix
-        method returns None.
+        A 2d numpy array if the given object follows the SupportsUnitaryEffect
+        protocol and returns a non-None unitary effect. Otherwise None.
     """
     maybe = getattr(val, '_maybe_unitary_effect_', None)
     if maybe is not None:
@@ -71,24 +66,23 @@ def maybe_unitary_effect(val: Any) -> Optional[np.ndarray]:
     if get is not None:
         return get()
 
-    # TODO: delete after KnownMatrix is deleted.
-    v = extension.try_cast(ops.KnownMatrix, val)
-    if v is not None:
-        return v.matrix()
-
     # Things that don't specify a unitary effect don't have a unitary effect.
     return None
 
 
 def unitary_effect(val: Any) -> np.ndarray:
-    """Determines the matrix of the given object, if any.
+    """Gets the unitary matrix of the given object.
 
     Returns:
-        A 2d numpy array when the given object is a KnownMatrix and its
-        matrix() method returns a non-None result.
+        A 2d numpy array if the given object follows the SupportsUnitaryEffect
+        protocol and returns a non-None unitary effect. Otherwise None.
 
-        None when the given object isn't a KnownMatrix or else its matrix
-        method returns None.
+    Raises:
+        AttributeError: The given object doesn't follow the
+            SupportsUnitaryEffect protocol.
+        ValueError:
+            The given follows the SupportsUnitaryEffect protocol, but it doesn't
+            have a unitary effect.
     """
     get = getattr(val, '_unitary_effect_', None)
     if get is not None:
@@ -103,16 +97,6 @@ def unitary_effect(val: Any) -> np.ndarray:
                 "{!r}._maybe_unitary_effect_() returned None".format(type(val)))
         return result
 
-    # TODO: delete after KnownMatrix is deleted.
-    v = extension.try_cast(ops.KnownMatrix, val)
-    if v is not None:
-        result = v.matrix()
-        if result is None:
-            raise ValueError(
-                "Expected a value with a non-None _unitary_effect_, but "
-                "{!r}.matrix() returned None".format(type(val)))
-        return v.matrix()
-
     raise AttributeError(
         "'{}' object has no attribute '_unitary_effect_' "
         "or '_maybe_unitary_effect_'".format(type(val)))
@@ -122,11 +106,8 @@ def has_unitary_effect(val: Any) -> bool:
     """Determines the matrix of the given object, if any.
 
     Returns:
-        A 2d numpy array when the given object is a KnownMatrix and its
-        matrix() method returns a non-None result.
-
-        None when the given object isn't a KnownMatrix or else its matrix
-        method returns None.
+        Whether or not the given object follows the SupportsUnitaryEffect and
+        also has a unitary effect.
     """
     has = getattr(val, '_has_unitary_effect_', None)
     if has is not None:
@@ -140,10 +121,5 @@ def has_unitary_effect(val: Any) -> bool:
     if get is not None:
         assert get() is not None, 'val._unitary_effect_() returned None'
         return True
-
-    # TODO: delete after KnownMatrix is deleted.
-    v = extension.try_cast(ops.KnownMatrix, val)
-    if v is not None:
-        return v.has_matrix()
 
     return False

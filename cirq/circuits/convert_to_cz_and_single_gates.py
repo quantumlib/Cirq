@@ -26,9 +26,9 @@ class ConvertToCzAndSingleGates(PointOptimizer):
     """Attempts to convert strange multi-qubit gates into CZ and single qubit
     gates.
 
-    First, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit gate, then
-        performs circuit synthesis of the operation.
+    First, checks if the operation has a unitary effect. If so, and the gate is
+        a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
+        operation.
 
     Second, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
@@ -85,9 +85,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit KnownMatrix, "
-                        "a 2-qubit KnownMatrix, "
-                        "or a CompositeOperation.".format(op))
+                        "It isn't a CompositeOperation or an operation with a "
+                        "known unitary effect on 1 or 2 qubits.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

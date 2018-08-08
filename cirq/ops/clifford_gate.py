@@ -17,6 +17,7 @@ from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
 
 import numpy as np
 
+from cirq import protocols
 from cirq.ops import raw_types, gate_features, common_gates, op_tree
 from cirq.ops.pauli import Pauli
 
@@ -25,7 +26,6 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
 class CliffordGate(raw_types.Gate,
-                   gate_features.KnownMatrix,
                    gate_features.CompositeGate,
                    gate_features.ReversibleEffect,
                    gate_features.TextDiagrammable):
@@ -248,11 +248,11 @@ class CliffordGate(raw_types.Gate,
         return CliffordGate.from_xz_map((x_final_pauli, x_flip1 ^ x_flip2),
                                           (z_final_pauli, z_flip1 ^ z_flip2))
 
-    def matrix(self) -> np.ndarray:
+    def _unitary_effect_(self) -> np.ndarray:
         mat = np.eye(2)
         qubit = raw_types.QubitId()
         for op in op_tree.flatten_op_tree(self.default_decompose((qubit,))):
-            mat = cast(gate_features.KnownMatrix, op).matrix().dot(mat)
+            mat = protocols.unitary_effect(op).dot(mat)
         return mat
 
     def default_decompose(self, qubits: Sequence[raw_types.QubitId]

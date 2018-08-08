@@ -111,7 +111,7 @@ def targeted_left_multiply(left_matrix: np.ndarray,
     circuit's unitary matrix is computed as follows:
 
         new_effect = cirq.targeted_left_multiply(
-            left_matrix=cirq.CNOT.matrix().reshape((2, 2, 2, 2)),
+            left_matrix=cirq.unitary_effect(cirq.CNOT).reshape((2, 2, 2, 2)),
             right_target=old_effect,
             target_axes=[1, 4])
 

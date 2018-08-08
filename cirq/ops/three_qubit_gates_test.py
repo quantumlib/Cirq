@@ -20,7 +20,7 @@ import cirq
 
 
 def test_matrix():
-    np.testing.assert_allclose(cirq.CCX.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary_effect(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -31,7 +31,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 1, 0],
     ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CCZ.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary_effect(cirq.CCZ), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -42,7 +42,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 0, -1],
     ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CSWAP.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary_effect(cirq.CSWAP), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],

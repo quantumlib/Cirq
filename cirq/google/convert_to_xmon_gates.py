@@ -30,9 +30,9 @@ class ConvertToXmonGates(PointOptimizer):
     First, checks if the given extensions are able to cast the gate into an
         XmonGate instance.
 
-    Second, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit gate, then
-        performs circuit synthesis of the operation.
+    Second, checks if the operation SupportsUnitaryEffect. If so, and the gate
+        is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
+        operation.
 
     Third, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
@@ -89,8 +89,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         raise TypeError("Don't know how to work with {!r}. "
                         "It isn't a GateOperation with an XmonGate, "
-                        "a 1-qubit KnownMatrix, "
-                        "a 2-qubit KnownMatrix, "
+                        "a SupportsUnitaryEffect on 1 or 2 qubits, "
                         "or a CompositeOperation.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:

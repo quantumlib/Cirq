@@ -16,7 +16,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, decompositions, extension, linalg
+from cirq import ops, decompositions, extension, linalg, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -33,9 +33,9 @@ class ConvertToPauliStringPhasors(PointOptimizer):
     """Attempts to convert single-qubit gates into single-qubit
     PauliStringPhasor operations.
 
-    Checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit gate, then decomposes it
-        into x, y, or z rotations and creates a PauliStringPhasor for each.
+    Checks if the operation has a known unitary effect. If so, and the gate is a
+        1-qubit gate, then decomposes it into x, y, or z rotations and creates a
+        PauliStringPhasor for each.
     """
 
     def __init__(self,
@@ -96,17 +96,17 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             return op
 
         # Single qubit gate with known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
+        mat = protocols.maybe_unitary_effect(op)
         if mat is not None and len(op.qubits) == 1:
-            return self._matrix_to_pauli_string_phasors(
-                            mat.matrix(), op.qubits[0])
+            return self._matrix_to_pauli_string_phasors(mat, op.qubits[0])
 
         # Just let it be?
         if self.ignore_failures:
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit KnownMatrix.".format(op))
+                        "It isn't a 1-qubit operation with a known unitary "
+                        "effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

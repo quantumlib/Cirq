@@ -27,3 +27,6 @@ from cirq.line.placement.sequence import (
 from cirq.line.placement.line import (
     line_on_device,
 )
+from cirq.line.placement.optimization import (
+    anneal_minimize,
+)

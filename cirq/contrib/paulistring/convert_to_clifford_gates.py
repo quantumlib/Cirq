@@ -28,10 +28,9 @@ class ConvertToCliffordGates(PointOptimizer):
     """Attempts to convert single-qubit gates into single-qubit
     CliffordGates.
 
-    First, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit gate, then decomposes it
-        and tries to make a CliffordGate. It fails if the operation is not in
-        the Clifford group.
+    First, checks if the operation has a known unitary effect. If so, and the
+        gate is a 1-qubit gate, then decomposes it and tries to make a
+        CliffordGate. It fails if the operation is not in the Clifford group.
 
     Second, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
@@ -109,8 +108,8 @@ class ConvertToCliffordGates(PointOptimizer):
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit KnownMatrix, "
-                        "or a CompositeOperation.".format(op))
+                        "It isn't a CompositeOperation or a 1-qubit operation "
+                        "with a known unitary effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

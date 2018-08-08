@@ -1392,8 +1392,8 @@ def test_simple_circuits_to_unitary_matrix():
     for expected in [np.diag([1, 1j, -1, -1j]),
                      cirq.unitary_effect(cirq.CNOT)]:
 
-        class Passthrough(cirq.Gate, cirq.KnownMatrix):
-            def matrix(self):
+        class Passthrough(cirq.Gate):
+            def _unitary_effect_(self):
                 return expected
 
         c = Circuit.from_ops(Passthrough()(a, b))

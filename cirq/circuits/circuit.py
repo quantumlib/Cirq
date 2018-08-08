@@ -893,7 +893,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
             ext: The extensions to use when attempting to cast operations into
-                KnownMatrix instances.
+                CompositeOperation instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -971,7 +971,7 @@ class Circuit(ops.ParameterizableEffect):
                 the circuit are ignored instead of causing the method to
                 fail.
             ext: The extensions to use when attempting to cast operations into
-                KnownMatrix instances.
+                CompositeOperation instances.
 
         Returns:
             A (possibly gigantic) numpy array storing the superposition that
