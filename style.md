@@ -3,7 +3,7 @@
 As mentioned in [CONTRIBUTING.md](CONTRIBUTING.md) we use use [pylint](https://www.pylint.org/) 
 to check for style violations.  Pylint attempts to enforce styles in 
 [PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
-[continuous-integration/.pylintrc](continuous-integration/.pylintrc) file.
+[dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file.
 
 Here we include some extra style guidelines.
 

@@ -14,26 +14,28 @@ matrix:
     env: NAME=mypy
     python: "3.5"
     install:
-      - cat dev-requirements.txt | grep mypy | xargs pip install
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
     script: check/mypy
 
   - os: linux
     env: NAME=pylint
     python: "3.5"
     install:
-      - cat dev-requirements.txt | grep pylint | xargs pip install
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep pylint | xargs pip install
     script: check/pylint
 
   - os: linux
     env: NAME=pytest-and-incremental-coverage
     python: "3.5"
     install:
-      - pip install -r dev-requirements.txt
+      - pip install -r requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master
 
   - os: linux
     env: NAME=pytest2
     python: "2.7"
     install:
-      - pip install -r python2.7-dev-requirements.txt
+      - pip install -r python2.7-requirements.txt
+      - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
     script: check/pytest2
