@@ -170,7 +170,8 @@ class OrderTester(EqualsTester):
             AssertionError: The group elements aren't equal to each other,
                 or items in another group overlap with the new group.
         """
-        # Check that elements are equal with regard to each other.
+        # Check that elements are equal with regard to each other
+        # and not equal to any other group.
         super(OrderTester, self).verify_equality_group(*group_items)
 
         # Check that the new group is strictly ascending with regard to
@@ -194,7 +195,7 @@ class ClassSmallerThanEverythingElse:
         return not isinstance(other, ClassSmallerThanEverythingElse)
 
     def __hash__(self):
-        return hash(ClassSmallerThanEverythingElse)
+        return hash(ClassSmallerThanEverythingElse)  # coverage: ignore
 
 
 class ClassLargerThanEverythingElse:
