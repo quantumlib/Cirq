@@ -58,7 +58,8 @@ class SupportsUnitaryEffect(Protocol):
                 The receiving value doesn't have a unitary effect.
         """
         result = self._maybe_unitary_effect_()
-        assert result is not None, 'self._unitary_effect_() returned None'
+        if result is None:
+            raise ValueError('No unitary effect.')
         return result
 
 

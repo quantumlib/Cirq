@@ -212,3 +212,20 @@ def test_inconsistent():
         cirq.testing.assert_unitary_effect_is(
             Wrap(True, np.eye(2), None),
             expected_effect=np.eye(2))
+
+
+def test_inherits():
+    class Wrap(cirq.protocols.SupportsUnitaryEffect):
+        def __init__(self, mat):
+            self.mat = mat
+
+        def _maybe_unitary_effect_(self):
+            return self.mat
+
+    cirq.testing.assert_unitary_effect_is(
+        Wrap(None),
+        expected_effect=None)
+
+    cirq.testing.assert_unitary_effect_is(
+        Wrap(np.eye(2)),
+        expected_effect=np.eye(2))
