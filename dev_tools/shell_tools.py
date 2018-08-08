@@ -15,9 +15,20 @@
 import asyncio
 import subprocess
 import sys
-from typing import Optional, Tuple, Union, IO, Any, cast, TYPE_CHECKING
+from typing import (
+    Optional, Tuple, Union, IO, Any, cast, TYPE_CHECKING, NamedTuple,
+)
 
 import collections
+
+CommandOutput = NamedTuple(
+    "CommandOutput",
+    [
+        ('out', Optional[str]),
+        ('err', Optional[str]),
+        ('exit_code', int),
+    ]
+)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -90,7 +101,7 @@ async def _async_wait_for_process(
         future_process: Any,
         out: Optional[Union[TeeCapture, IO[str]]] = sys.stdout,
         err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr
-) -> Tuple[Optional[str], Optional[str], int]:
+) -> CommandOutput:
     """Awaits the creation and completion of an asynchronous process.
 
     Args:
@@ -107,7 +118,7 @@ async def _async_wait_for_process(
     output, err_output = await asyncio.gather(future_output, future_err_output)
     await process.wait()
 
-    return output, err_output, process.returncode
+    return CommandOutput(output, err_output, process.returncode)
 
 
 def abbreviate_command_arguments_after_switches(
@@ -126,9 +137,9 @@ def run_cmd(*cmd: Optional[str],
             err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr,
             raise_on_fail: bool = True,
             log_run_to_stderr: bool = True,
-            abbreviate_non_option_arguments = False,
+            abbreviate_non_option_arguments: bool = False,
             **kwargs
-            ) -> Tuple[Optional[str], Optional[str], int]:
+            ) -> CommandOutput:
     """Invokes a subprocess and waits for it to finish.
 
     Args:
@@ -191,7 +202,7 @@ def run_shell(cmd: str,
               raise_on_fail: bool = True,
               log_run_to_stderr: bool = True,
               **kwargs
-              ) -> Tuple[Optional[str], Optional[str], int]:
+              ) -> CommandOutput:
     """Invokes a shell command and waits for it to finish.
 
     Args:
@@ -260,7 +271,7 @@ def output_of(*cmd: Optional[str], **kwargs) -> str:
     result = cast(str, run_cmd(*cmd,
                                log_run_to_stderr=False,
                                out=TeeCapture(),
-                               **kwargs)[0])
+                               **kwargs).out)
 
     # Strip final newline.
     if result.endswith('\n'):

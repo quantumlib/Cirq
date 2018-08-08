@@ -88,22 +88,24 @@ class PauliStringPhasor(PauliStringGateOperation,
 
     def extrapolate_effect(self, factor: Union[float, value.Symbol]
                            ) -> 'PauliStringPhasor':
-        if self.is_parameterized():
-            raise ValueError("Parameterized. Don't know how to extrapolate.")
-        if isinstance(factor, value.Symbol):
-            if self.half_turns == 1:
-                return self._with_half_turns(factor)
-            else:
-                raise ValueError("Don't know how to extrapolate by a symbol.")
-        half_turns = 1 - (1 - cast(float, self.half_turns)
-                              * cast(float, factor)) % 2
-        return self._with_half_turns(half_turns)
+        return self._with_half_turns(self.half_turns * factor)  # type: ignore
 
     def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PauliStringPhasor':
         return self.extrapolate_effect(-1)
+
+    def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
+        return self.pauli_string.equal_up_to_sign(op.pauli_string)
+
+    def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
+        if not self.can_merge_with(op):
+            raise ValueError('Cannot merge operations: {}, {}'.format(self, op))
+        neg_sign = (1, -1)[op.pauli_string.negated ^ self.pauli_string.negated]
+        half_turns = (cast(float, self.half_turns)
+                      + cast(float, op.half_turns) * neg_sign)
+        return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
     def default_decompose(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
@@ -153,6 +155,14 @@ class PauliStringPhasor(PauliStringGateOperation,
                                     ) -> 'PauliStringPhasor':
         return self._with_half_turns(
                         param_resolver.value_of(self.half_turns))
+
+    def pass_operations_over(self,
+                             ops: Iterable[ops.Operation],
+                             after_to_before: bool = False
+                             ) -> 'PauliStringPhasor':
+        new_pauli_string = self.pauli_string.pass_operations_over(
+                                    ops, after_to_before)
+        return PauliStringPhasor(new_pauli_string, half_turns=self.half_turns)
 
     def __repr__(self):
         return 'PauliStringPhasor({}, half_turns={})'.format(

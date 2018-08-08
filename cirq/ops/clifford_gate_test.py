@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
+import itertools, functools
 import pytest
 from cirq.testing import (
     EqualsTester,
@@ -195,6 +195,60 @@ def test_init_from_pauli(pauli, sqrt, expected):
     assert gate == expected
 
 
+def test_init_from_quarter_turns():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 0),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 0),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 0),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 8),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 8),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 8),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, -4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, -4),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, -4)
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 1),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 5),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 9),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, -3),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 1),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 5),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 9),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, -3),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 1),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 5),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 9),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, -3),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 2),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 6),
+    )
+    eq.add_equality_group(
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 3),
+        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 7),
+    )
+
+
+@pytest.mark.parametrize('gate', _all_clifford_gates())
+def test_init_from_quarter_turns_reconstruct(gate):
+    new_gate = functools.reduce(
+                    cirq.CliffordGate.merged_with,
+                    (cirq.CliffordGate.from_quarter_turns(pauli, qt)
+                     for pauli, qt in gate.decompose_rotation()),
+                    cirq.CliffordGate.I)
+    assert gate == new_gate
+
+
 def test_init_invalid():
     with pytest.raises(ValueError):
         cirq.CliffordGate.from_single_map()
@@ -278,6 +332,24 @@ def test_decompose(gate, gate_equiv):
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
+@pytest.mark.parametrize('gate,gate_equiv', (
+    (cirq.CliffordGate.I,       cirq.X ** 0),
+    (cirq.CliffordGate.H,       cirq.H),
+    (cirq.CliffordGate.X,       cirq.X),
+    (cirq.CliffordGate.Y,       cirq.Y),
+    (cirq.CliffordGate.Z,       cirq.Z),
+    (cirq.CliffordGate.X_sqrt,  cirq.X ** 0.5),
+    (cirq.CliffordGate.X_nsqrt, cirq.X ** -0.5),
+    (cirq.CliffordGate.Y_sqrt,  cirq.Y ** 0.5),
+    (cirq.CliffordGate.Y_nsqrt, cirq.Y ** -0.5),
+    (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
+    (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
+def test_known_matrix(gate, gate_equiv):
+    mat = gate.matrix()
+    mat_check = gate_equiv.matrix()
+    assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
+
+
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_inverse(gate):
     assert gate == gate.inverse().inverse()
@@ -358,7 +430,7 @@ def test_single_qubit_gate_after_switching_order(gate, other):
     (
         cirq.CliffordGate.from_xz_map(
                 (cirq.Pauli.Y, False), (cirq.Pauli.X, True)),
-        'X^-0.5-Z^0.5',
+        '(X^-0.5-Z^0.5)',
         1
     )))
 def test_text_diagram_info(gate, sym, exp):

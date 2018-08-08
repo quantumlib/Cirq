@@ -17,14 +17,15 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar
+from typing import (
+    Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
+)
 
 import string
 import numpy as np
 
-from cirq import abc
-from cirq.ops import op_tree
-from cirq.ops import raw_types
+from cirq import abc, value
+from cirq.ops import op_tree, raw_types
 from cirq.study import ParamResolver
 
 
@@ -34,6 +35,7 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         """Returns a key that differs between non-interchangeable qubits."""
         return 0
+
 
 
 class ReversibleEffect(metaclass=abc.ABCMeta):
@@ -53,7 +55,8 @@ class ExtrapolatableEffect(ReversibleEffect,
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableEffect, factor: float
+    def extrapolate_effect(self: TSelf_ExtrapolatableEffect,
+                           factor: Union[float, value.Symbol]
                            ) -> TSelf_ExtrapolatableEffect:
         """Augments, diminishes, or reverses the effect of the receiving gate.
 
@@ -64,7 +67,8 @@ class ExtrapolatableEffect(ReversibleEffect,
             A gate equivalent to applying the receiving gate 'factor' times.
         """
 
-    def __pow__(self: TSelf_ExtrapolatableEffect, power: float
+    def __pow__(self: TSelf_ExtrapolatableEffect,
+                power: Union[float, value.Symbol]
                 ) -> TSelf_ExtrapolatableEffect:
         """Extrapolates the effect of the gate.
 
@@ -153,6 +157,7 @@ class TextDiagramInfoArgs:
             properly handle unicode characters.
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
+        qubit_map: The map from qubits to diagram positions.
     """
 
     UNINFORMED_DEFAULT = None  # type: TextDiagramInfoArgs
@@ -161,24 +166,28 @@ class TextDiagramInfoArgs:
                  known_qubits: Optional[Tuple[raw_types.QubitId, ...]],
                  known_qubit_count: Optional[int],
                  use_unicode_characters: bool,
-                 precision: Optional[int]) -> None:
+                 precision: Optional[int],
+                 qubit_map: Optional[Dict[raw_types.QubitId, int]]) -> None:
         self.known_qubits = known_qubits
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
+        self.qubit_map = qubit_map
 
 
 TextDiagramInfoArgs.UNINFORMED_DEFAULT = TextDiagramInfoArgs(
     known_qubits=None,
     known_qubit_count=None,
     use_unicode_characters=True,
-    precision=3)
+    precision=3,
+    qubit_map=None)
 
 
 class TextDiagramInfo:
     def __init__(self,
                  wire_symbols: Tuple[str, ...],
-                 exponent: Any = 1) -> None:
+                 exponent: Any = 1,
+                 connected: bool = True) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -189,12 +198,15 @@ class TextDiagramInfo:
                 (unless it's equal to 1). For example, the square root of X gate
                 has a text diagram exponent of 0.5 and symbol of 'X' so it is
                 drawn as 'X^0.5'.
+            connected: Whether or not to draw a line connecting the qubits.
         """
         self.wire_symbols = wire_symbols
         self.exponent = exponent
+        self.connected = connected
 
     def _eq_tuple(self):
-        return TextDiagramInfo, self.wire_symbols, self.exponent
+        return (TextDiagramInfo, self.wire_symbols,
+                self.exponent, self.connected)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -208,8 +220,11 @@ class TextDiagramInfo:
         return hash(self._eq_tuple())
 
     def __repr__(self):
-        return 'TextDiagramInfo(wire_symbols={!r}, exponent={!r})'.format(
-            self.wire_symbols, self.exponent)
+        return ('TextDiagramInfo(' +
+                'wire_symbols={!r}, '.format(self.wire_symbols) +
+                'exponent={!r}, '.format(self.exponent) +
+                'connected={!r})'.format(self.connected)
+                )
 
 
 class TextDiagrammable(metaclass=abc.ABCMeta):
@@ -345,7 +360,7 @@ class QasmOutputArgs(string.Formatter):
     Attributes:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram.
-        version: The QASM version to output.  QasmConvertableGate/Operation may
+        version: The QASM version to output.  QasmConvertibleGate/Operation may
             return different text depending on version.
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
         meas_key_id_map: A dictionary mapping measurement keys to creg QASM
@@ -383,7 +398,7 @@ class QasmOutputArgs(string.Formatter):
                                 self.version))
 
 
-class QasmConvertableGate(metaclass=abc.ABCMeta):
+class QasmConvertibleGate(metaclass=abc.ABCMeta):
     """A gate that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self,
@@ -394,7 +409,7 @@ class QasmConvertableGate(metaclass=abc.ABCMeta):
         """
 
 
-class QasmConvertableOperation(metaclass=abc.ABCMeta):
+class QasmConvertibleOperation(metaclass=abc.ABCMeta):
     """An operation that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self, args: QasmOutputArgs) -> Optional[str]:

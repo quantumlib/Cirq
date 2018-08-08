@@ -130,5 +130,6 @@ class PreparedEnv:
             '--name-only',
             self.compare_commit_id,
             self.actual_commit_id,
+            '--',
             cwd=self.destination_directory)
         return [e for e in out.split('\n') if e.strip()]

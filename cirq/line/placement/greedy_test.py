@@ -15,29 +15,30 @@
 from typing import Iterable
 import pytest
 
+import cirq
+import cirq.google as cg
 from cirq.line.placement import greedy
 from cirq.line.placement.sequence import GridQubitLineTuple, NotFoundError
-from cirq.devices import GridQubit
-from cirq.google import XmonDevice
 from cirq.testing.mock import mock
-from cirq.value import Duration
 
 
-def _create_device(qubits: Iterable[GridQubit]):
-    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0),
-                      qubits)
+def _create_device(qubits: Iterable[cirq.GridQubit]):
+    return cg.XmonDevice(cirq.Duration(nanos=0),
+                         cirq.Duration(nanos=0),
+                         cirq.Duration(nanos=0),
+                         qubits)
 
 
 def test_greedy_sequence_search_fails_on_wrong_start_qubit():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     with pytest.raises(ValueError):
         greedy.GreedySequenceSearch(_create_device([q00]), q01)
 
 
 def test_get_or_search_calls_find_sequence_once():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     search = greedy.GreedySequenceSearch(_create_device([q00, q01]), q00)
     with mock.patch.object(search, '_find_sequence') as find_sequence:
         sequence = [q00, q01]
@@ -51,9 +52,9 @@ def test_get_or_search_calls_find_sequence_once():
 
 
 def test_find_sequence_assembles_head_and_tail():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
     qubits = [q00, q01, q02]
     start = q01
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
@@ -67,9 +68,9 @@ def test_find_sequence_assembles_head_and_tail():
 
 
 def test_find_sequence_calls_expand_sequence():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
     qubits = [q00, q01, q02]
     start = q01
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
@@ -85,9 +86,9 @@ def test_find_sequence_calls_expand_sequence():
 
 
 def test_search_sequence_calls_choose_next_qubit():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
     qubits = [q00, q01, q02]
     search = greedy.GreedySequenceSearch(_create_device(qubits), q01)
 
@@ -103,9 +104,9 @@ def test_search_sequence_calls_choose_next_qubit():
 
 
 def test_search_sequence_assembles_sequence():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
     qubits = [q00, q01, q02]
     search = greedy.GreedySequenceSearch(_create_device(qubits), q01)
 
@@ -115,15 +116,15 @@ def test_search_sequence_assembles_sequence():
 
 
 def test_find_path_between_finds_path():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
-    q10 = GridQubit(1, 0)
-    q11 = GridQubit(1, 1)
-    q12 = GridQubit(1, 2)
-    q20 = GridQubit(2, 0)
-    q21 = GridQubit(2, 1)
-    q22 = GridQubit(2, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
+    q12 = cirq.GridQubit(1, 2)
+    q20 = cirq.GridQubit(2, 0)
+    q21 = cirq.GridQubit(2, 1)
+    q22 = cirq.GridQubit(2, 2)
 
     qubits = [q00, q01, q10, q11]
     start = q00
@@ -147,13 +148,13 @@ def test_find_path_between_finds_path():
 
 
 def test_find_path_between_does_not_find_path():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
-    q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    q22 = GridQubit(2, 2)
-    q12 = GridQubit(1, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q10 = cirq.GridQubit(1, 0)
+    q20 = cirq.GridQubit(2, 0)
+    q22 = cirq.GridQubit(2, 2)
+    q12 = cirq.GridQubit(1, 2)
     qubits = [q00, q01]
     start = q00
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
@@ -177,16 +178,16 @@ def test_find_path_between_does_not_find_path():
 
 
 def test_expand_sequence_expands_sequence():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
-    q03 = GridQubit(0, 3)
-    q04 = GridQubit(0, 4)
-    q10 = GridQubit(1, 0)
-    q11 = GridQubit(1, 1)
-    q12 = GridQubit(1, 2)
-    q13 = GridQubit(1, 3)
-    q14 = GridQubit(1, 4)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q03 = cirq.GridQubit(0, 3)
+    q04 = cirq.GridQubit(0, 4)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
+    q12 = cirq.GridQubit(1, 2)
+    q13 = cirq.GridQubit(1, 3)
+    q14 = cirq.GridQubit(1, 4)
 
     # + +  ->  +-+
     # |          |
@@ -204,8 +205,8 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q10, q11]
     start = q00
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02]) == [q00, q10, q11, q01,
-                                                        q02]
+    assert search._expand_sequence([q00, q01, q02]) == [
+        q00, q10, q11, q01, q02]
 
     # +    ->  +
     # |        |
@@ -215,8 +216,8 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q11, q12]
     start = q00
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02]) == [q00, q01, q11, q12,
-                                                        q02]
+    assert search._expand_sequence([q00, q01, q02]) == [
+        q00, q01, q11, q12, q02]
 
     # +    ->  +
     # |        |
@@ -228,9 +229,8 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q03, q11, q12]
     start = q00
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02, q03]) == [q00, q01, q11,
-                                                             q12,
-                                                             q02, q03]
+    assert search._expand_sequence([q00, q01, q02, q03]) == [
+        q00, q01, q11, q12, q02, q03]
 
     # + +  ->  +-+
     # |          |
@@ -244,19 +244,15 @@ def test_expand_sequence_expands_sequence():
     qubits = [q00, q01, q02, q03, q04, q10, q11, q13, q14]
     start = q00
     search = greedy.GreedySequenceSearch(_create_device(qubits), start)
-    assert search._expand_sequence([q00, q01, q02, q03, q04]) == [q00, q10,
-                                                                  q11,
-                                                                  q01, q02,
-                                                                  q03,
-                                                                  q13, q14,
-                                                                  q04]
+    assert search._expand_sequence([q00, q01, q02, q03, q04]) == [
+        q00, q10, q11, q01, q02, q03, q13, q14, q04]
 
 
 def test_minimal_sequence_search_chooses_minimal():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    q21 = GridQubit(2, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
+    q20 = cirq.GridQubit(2, 0)
+    q21 = cirq.GridQubit(2, 1)
     qubits = [q00, q10, q20, q21]
     search = greedy._PickFewestNeighbors(
         _create_device(qubits), q10)
@@ -268,10 +264,10 @@ def test_minimal_sequence_search_chooses_minimal():
 
 
 def test_minimal_sequence_search_does_not_use_used():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    q21 = GridQubit(2, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
+    q20 = cirq.GridQubit(2, 0)
+    q21 = cirq.GridQubit(2, 1)
     qubits = [q00, q10, q20, q21]
     search = greedy._PickFewestNeighbors(
         _create_device(qubits), q10)
@@ -282,7 +278,7 @@ def test_minimal_sequence_search_does_not_use_used():
 
 
 def test_minimal_sequence_search_returns_none_for_single_node():
-    q00 = GridQubit(0, 0)
+    q00 = cirq.GridQubit(0, 0)
     qubits = [q00]
     search = greedy._PickFewestNeighbors(
         _create_device(qubits), q00)
@@ -290,8 +286,8 @@ def test_minimal_sequence_search_returns_none_for_single_node():
 
 
 def test_minimal_sequence_search_returns_none_when_blocked():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
     qubits = [q00, q10]
     search = greedy._PickFewestNeighbors(
         _create_device(qubits), q10)
@@ -299,15 +295,15 @@ def test_minimal_sequence_search_returns_none_when_blocked():
 
 
 def test_minimal_sequence_search_traverses_grid():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q11 = GridQubit(1, 1)
-    q02 = GridQubit(0, 2)
-    q03 = GridQubit(0, 3)
-    q04 = GridQubit(0, 4)
-    q14 = GridQubit(1, 4)
-    q24 = GridQubit(2, 4)
-    q05 = GridQubit(0, 5)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q11 = cirq.GridQubit(1, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q03 = cirq.GridQubit(0, 3)
+    q04 = cirq.GridQubit(0, 4)
+    q14 = cirq.GridQubit(1, 4)
+    q24 = cirq.GridQubit(2, 4)
+    q05 = cirq.GridQubit(0, 5)
     qubits = [q00, q01, q11, q02, q03, q04, q05, q14, q24]
     device = _create_device(qubits)
     search = greedy._PickFewestNeighbors(device, q02)
@@ -354,10 +350,10 @@ def test_minimal_sequence_search_traverses_grid():
 
 
 def test_largest_sequence_search_chooses_largest():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    q21 = GridQubit(2, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
+    q20 = cirq.GridQubit(2, 0)
+    q21 = cirq.GridQubit(2, 1)
     qubits = [q00, q10, q20, q21]
     search = greedy._PickLargestArea(
         _create_device(qubits), q10)
@@ -368,10 +364,10 @@ def test_largest_sequence_search_chooses_largest():
 
 
 def test_largest_sequence_search_does_not_use_used():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
-    q20 = GridQubit(2, 0)
-    q21 = GridQubit(2, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
+    q20 = cirq.GridQubit(2, 0)
+    q21 = cirq.GridQubit(2, 1)
     qubits = [q00, q10, q20, q21]
     search = greedy._PickLargestArea(
         _create_device(qubits), q10)
@@ -382,15 +378,15 @@ def test_largest_sequence_search_does_not_use_used():
 
 
 def test_largest_sequence_search_traverses_grid():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
-    q11 = GridQubit(1, 1)
-    q20 = GridQubit(2, 0)
-    q30 = GridQubit(3, 0)
-    q40 = GridQubit(4, 0)
-    q41 = GridQubit(4, 1)
-    q42 = GridQubit(4, 2)
-    q50 = GridQubit(5, 0)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
+    q20 = cirq.GridQubit(2, 0)
+    q30 = cirq.GridQubit(3, 0)
+    q40 = cirq.GridQubit(4, 0)
+    q41 = cirq.GridQubit(4, 1)
+    q42 = cirq.GridQubit(4, 2)
+    q50 = cirq.GridQubit(5, 0)
     qubits = [q00, q10, q11, q20, q30, q40, q50, q41, q42]
     device = _create_device(qubits)
     search = greedy._PickLargestArea(device, q20)
@@ -413,10 +409,10 @@ def test_largest_sequence_search_traverses_grid():
 
 
 def test_largest_collect_unused_collects_all_for_empty():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
-    q12 = GridQubit(1, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q12 = cirq.GridQubit(1, 2)
     qubits = [q00, q01, q02, q12]
     start = q01
     search = greedy._PickLargestArea(
@@ -426,10 +422,10 @@ def test_largest_collect_unused_collects_all_for_empty():
 
 
 def test_largest_collect_unused_collects():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
-    q12 = GridQubit(1, 2)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q12 = cirq.GridQubit(1, 2)
     qubits = [q00, q01, q02, q12]
     start = q01
     search = greedy._PickLargestArea(
@@ -438,26 +434,26 @@ def test_largest_collect_unused_collects():
 
 
 def test_largest_collect_stops_on_used():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
-    q02 = GridQubit(0, 2)
-    q03 = GridQubit(0, 3)
-    q04 = GridQubit(0, 4)
-    q05 = GridQubit(0, 5)
-    q11 = GridQubit(1, 1)
-    q14 = GridQubit(1, 4)
-    q24 = GridQubit(2, 4)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q02 = cirq.GridQubit(0, 2)
+    q03 = cirq.GridQubit(0, 3)
+    q04 = cirq.GridQubit(0, 4)
+    q05 = cirq.GridQubit(0, 5)
+    q11 = cirq.GridQubit(1, 1)
+    q14 = cirq.GridQubit(1, 4)
+    q24 = cirq.GridQubit(2, 4)
     qubits = [q00, q01, q11, q02, q03, q04, q05, q14, q24]
     start = q02
     search = greedy._PickLargestArea(
         _create_device(qubits), start)
-    assert search._collect_unused(start, {start, q04}) == {q00, q01, q11, q02,
-                                                           q03}
+    assert search._collect_unused(start, {start, q04}) == {
+        q00, q01, q11, q02, q03}
 
 
 def test_greedy_search_method_calls_all():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     qubits = [q00, q01]
     length = 2
     method = greedy.GreedySequenceSearchStrategy()
@@ -465,8 +461,8 @@ def test_greedy_search_method_calls_all():
 
 
 def test_greedy_search_method_fails_when_unknown():
-    q00 = GridQubit(0, 0)
-    q01 = GridQubit(0, 1)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
     qubits = [q00, q01]
     length = 2
 
@@ -475,9 +471,43 @@ def test_greedy_search_method_fails_when_unknown():
         method.place_line(_create_device(qubits), length)
 
 
+@mock.patch('cirq.line.placement.greedy._PickLargestArea')
+@mock.patch('cirq.line.placement.greedy._PickFewestNeighbors')
+def test_greedy_search_method_calls_largest_only(minimal, largest):
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    largest.return_value.get_or_search.return_value = sequence
+
+    method = greedy.GreedySequenceSearchStrategy('largest_area')
+    assert method.place_line(device, length) == GridQubitLineTuple(sequence)
+
+    largest.return_value.get_or_search.assert_called_once_with()
+    minimal.return_value.get_or_search.assert_not_called()
+
+
+@mock.patch('cirq.line.placement.greedy._PickLargestArea')
+@mock.patch('cirq.line.placement.greedy._PickFewestNeighbors')
+def test_greedy_search_method_calls_minimal_only(minimal, largest):
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    device = _create_device([q00, q01])
+    length = 2
+    sequence = [q00, q01]
+    minimal.return_value.get_or_search.return_value = sequence
+
+    method = greedy.GreedySequenceSearchStrategy('minimal_connectivity')
+    assert method.place_line(device, length) == GridQubitLineTuple(sequence)
+
+    largest.return_value.get_or_search.assert_not_called()
+    minimal.return_value.get_or_search.assert_called_once_with()
+
+
 def test_greedy_search_method_returns_longest():
-    q00 = GridQubit(0, 0)
-    q10 = GridQubit(1, 0)
+    q00 = cirq.GridQubit(0, 0)
+    q10 = cirq.GridQubit(1, 0)
     device = _create_device([q00, q10])
     length = 1
 

@@ -33,16 +33,14 @@ class LintCheck(check.Check):
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         base_path = cast(str, env.destination_directory)
         rc_path = os.path.join(base_path,
-                               'continuous-integration',
+                               'dev_tools',
+                               'conf',
                                '.pylintrc')
         files = list(
             env_tools.get_unhidden_ungenerated_python_files(base_path))
 
         result = shell_tools.run_cmd(
             env.bin('pylint'),
-            '--reports=no',
-            '--score=no',
-            '--output-format=colorized',
             '--rcfile={}'.format(rc_path),
             *files,
             out=shell_tools.TeeCapture(sys.stdout),

@@ -18,10 +18,8 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
 )
 from cirq.extension import Extensions
-from cirq.google.decompositions import (
-    single_qubit_matrix_to_native_gates,
-    two_qubit_matrix_to_native_gates,
-)
+from cirq.google.decompositions import single_qubit_matrix_to_native_gates
+from cirq.decompositions import two_qubit_matrix_to_operations
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_gates import XmonGate
 
@@ -74,7 +72,7 @@ class ConvertToXmonGates(PointOptimizer):
             gates = single_qubit_matrix_to_native_gates(mat.matrix())
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
-            return two_qubit_matrix_to_native_gates(
+            return two_qubit_matrix_to_operations(
                 op.qubits[0],
                 op.qubits[1],
                 mat.matrix(),

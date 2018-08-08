@@ -15,7 +15,9 @@
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Optional, Tuple, ValuesView)
 
-from cirq.ops import raw_types, gate_operation, qubit_order, op_tree
+from cirq.ops import (
+    raw_types, gate_operation, common_gates, qubit_order, op_tree
+)
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import CliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
@@ -48,6 +50,9 @@ class PauliString:
 
     def __hash__(self):
         return hash((PauliString, self.negated, frozenset(self.items())))
+
+    def equal_up_to_sign(self, other: 'PauliString') -> bool:
+        return self._qubit_pauli_map == other._qubit_pauli_map
 
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
@@ -129,19 +134,20 @@ class PauliString:
                              ops: Iterable[raw_types.Operation],
                              after_to_before: bool = False) -> 'PauliString':
         """Return a new PauliString such that the circuits
-            --op--...--op--self-- and --output--op--...--op--
+            --op_last--...--op_first--self-- and
+            --output--op_last--...--op_first--
         are equivalent up to global phase.
 
         If ops together have matrix C, the Pauli string has matrix P, and the
         output Pauli string has matrix P', then C^-1 P C == C P' C^-1 up to
         global phase.
 
-
         Args:
             op: The operation to move
             after_to_before: If true, passes op over the other direction such
                 that the circuits
-                    --self--op--...--op-- and --op--...--op--output--
+                    --self--op_first--...--op_last-- and
+                    --op_fist--...--op_last--output--
                 are equivalent up to global phase and C P C^-1 == C^-1 P' C up
                 to global phase.
         """
@@ -158,13 +164,16 @@ class PauliString:
                              op: raw_types.Operation,
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
-            if isinstance(op.gate, CliffordGate):
+            gate = op.gate
+            if isinstance(gate, CliffordGate):
                 return PauliString._pass_single_clifford_gate_over(
-                    pauli_map, op.gate, op.qubits[0],
+                    pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
-            if isinstance(op.gate, PauliInteractionGate):
+            if isinstance(gate, common_gates.Rot11Gate):
+                gate = PauliInteractionGate.CZ
+            if isinstance(gate, PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(
-                    pauli_map, op.gate, op.qubits[0], op.qubits[1],
+                    pauli_map, gate, op.qubits[0], op.qubits[1],
                     after_to_before=after_to_before)
         raise TypeError('Unsupported operation: {!r}'.format(op))
 

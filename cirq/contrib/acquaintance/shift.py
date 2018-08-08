@@ -13,15 +13,18 @@
 # limitations under the License.
 
 from itertools import chain
+from typing import Sequence, Dict
 
-import cirq
-from cirq.ops import gate_features, Gate, SWAP
+from cirq import CompositeGate, TextDiagrammable
+from cirq.ops import Gate, gate_features, SWAP, OP_TREE, QubitId
+from cirq.contrib.acquaintance.permutation import PermutationGate
 
 
-class CircularShiftGate(cirq.Gate,
-                        cirq.CompositeGate,
-                        cirq.TextDiagrammable):
-    """Swaps two sets of qubits.
+class CircularShiftGate(PermutationGate,
+                        CompositeGate,
+                        TextDiagrammable):
+    """Performs a cyclical permutation of the qubits to the left by a specified
+    amount.
 
     Args:
         shift: how many positions to circularly left shift the qubits.
@@ -43,7 +46,7 @@ class CircularShiftGate(cirq.Gate,
         return ((self.shift == other.shift) and
                 (self.swap_gate == other.swap_gate))
 
-    def default_decompose(self, qubits):
+    def default_decompose(self, qubits: Sequence[QubitId]) -> OP_TREE:
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift
@@ -69,3 +72,9 @@ class CircularShiftGate(cirq.Gate,
                 for i in range(args.known_qubit_count))
         return gate_features.TextDiagramInfo(
                 wire_symbols=wire_symbols)
+
+    def permutation(self, qubit_count: int) -> Dict[int, int]:
+        shift = self.shift % qubit_count
+        permuted_indices = chain(range(shift, qubit_count),
+                                 range(shift))
+        return {s: i for i, s in enumerate(permuted_indices)}

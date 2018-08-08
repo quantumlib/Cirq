@@ -111,8 +111,8 @@ def targeted_left_multiply(left_matrix: np.ndarray,
     circuit's unitary matrix is computed as follows:
 
         new_effect = cirq.targeted_left_multiply(
-            matrix=cirq.CNOT.matrix().reshape((2, 2, 2, 2)),
-            state=old_effect,
+            left_matrix=cirq.CNOT.matrix().reshape((2, 2, 2, 2)),
+            right_target=old_effect,
             target_axes=[1, 4])
 
     Args:
@@ -140,8 +140,10 @@ def targeted_left_multiply(left_matrix: np.ndarray,
     return np.einsum(left_matrix, input_indices,
                      right_target, data_indices,
                      output_indices,
-                     # Note: this is a workaround for a bug in numpy:
+                     # We would prefer to omit 'optimize=' (it's faster),
+                     # but this is a workaround for a bug in numpy:
                      #     https://github.com/numpy/numpy/issues/10926
-                     # Turning optimize on actually makes things slower.
                      optimize=len(all_indices) >= 26,
+                     # And this is workaround for *another* bug!
+                     # Supposed to be able to just say 'old=old'.
                      **({'out': out} if out is not None else {}))

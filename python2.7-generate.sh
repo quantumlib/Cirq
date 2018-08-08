@@ -55,8 +55,11 @@ fi
 
 mkdir ${out_dir}
 
+trap "manual_cancel=1; exit 1" INT
 function print_cached_err () {
-  cat "${out_dir}/err_tmp.log" 1>&2
+  if [ -z "${manual_cancel}" ]; then
+    cat "${out_dir}/err_tmp.log" 1>&2
+  fi
   rm -rf "${out_dir}"
 }
 touch "${out_dir}/err_tmp.log"
@@ -75,9 +78,8 @@ find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
 protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
 
 # Include requirements files.
-cp "${in_dir}/python2.7-runtime-requirements.txt" "${out_dir}/runtime-requirements.txt"
-cp "${in_dir}/python2.7-dev-requirements.txt" "${out_dir}/dev-requirements.txt"
-sed -i -e 's/python2.7-runtime-requirements.txt/runtime-requirements.txt/g' "${out_dir}/dev-requirements.txt"
+cp "${in_dir}/python2.7-requirements.txt" "${out_dir}/requirements.txt"
+cp "${in_dir}/dev_tools/conf/pip-list-python2.7-test-tools.txt" "${out_dir}/pip-list-test-tools.txt"
 
 # Include packaging files.
 cp "${in_dir}/MANIFEST.in" "${out_dir}/MANIFEST.in"
