@@ -38,4 +38,4 @@ matrix:
     install:
       - pip install -r python2.7-requirements.txt
       - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
-    script: continuous-integration/travis-pytest2.sh
+    script: check/pytest2
