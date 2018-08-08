@@ -1,0 +1,3 @@
+# Runtime requirements for the python 3 version of cirq.
+
+pylatex==1.3.*
