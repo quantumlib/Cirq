@@ -23,57 +23,106 @@ added items or groups.
 It will also check that a==b implies hash(a)==hash(b).
 """
 
-import collections
-
 from typing import Any
 
-import itertools
+from cirq.testing.equals_tester import EqualsTester
 
 
-class OrderTester:
+class OrderTester(EqualsTester):
     """Tests ordering against user-provided disjoint ordered groups or items."""
 
     def __init__(self):
-        self.groups = [(_ClassUnknownToSubjects(),)]
+        self.groups = [(ClassSmallerThanEverythingElse(),)]
 
     def _verify_ascending(self, v1, v2):
-        # __lt__ and __gt__ might not necessarily be implemented both.
-        lt, gt = None, None
-        assert hasattr(v1, '__lt__') or hasattr(v2, '__gt__')
-        lt = hasattr(v1, '__lt__') and v1.__lt__(v2)
-        gt = hasattr(v2, '__gt__') and v2.__gt__(v1)
-        assert lt or gt
+        """Verifies that (v1, v2) is a strictly ascending sequence."""
+        lt_1 = NotImplemented
+        not_lt_2 = NotImplemented
+        gt_2 = NotImplemented
+        not_gt_1 = NotImplemented
+        le_1 = NotImplemented
+        not_le_2 = NotImplemented
+        ge_2 = NotImplemented
+        not_ge_1 = NotImplemented
 
-    def _verify_equality(self, v1, v2):
-        # Binary operators should always work.
-        assert v1 == v2
-        assert not v1 != v2
+        try:
+            lt_1 = v1 < v2
+        except TypeError:
+            pass
 
-        # __eq__ and __neq__ should both be correct or not implemented.
-        assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
-        # Careful: python2 int doesn't have __eq__ or __ne__.
-        if hasattr(v1, '__eq__'):
-            eq = v1.__eq__(v2)
-        if hasattr(v1, '__ne__'):
-            ne = v1.__ne__(v2)
-        assert (eq, ne) in [(True, False),
-                            (NotImplemented, False),
-                            (NotImplemented, NotImplemented)]
+        try:
+            not_lt_2 = not v2 < v1
+        except TypeError:
+            pass
 
-    def _verify_hash_property(self, *items):
-        # TODO: this reuses method from EqualityTester.
-        # Either introduce a common library or make one class inherit the other.
-        hashes = [hash(v) if isinstance(v, collections.Hashable) else None
-                  for v in items]
-        if len(set(hashes)) > 1:
-            examples = ((v1, h1, v2, h2)
-                        for v1, h1 in zip(items, hashes)
-                        for v2, h2 in zip(items, hashes)
-                        if h1 != h2)
-            example = next(examples)
-            raise AssertionError(
-                'Items in the same group produced different hashes. '
-                'Example: hash({}) is {} but hash({}) is {}.'.format(*example))
+        assert(lt_1, gt_2) in [
+            (True, True),
+            (True, NotImplemented),
+            (NotImplemented, True),
+                ]
+
+        try:
+            gt_2 = not hasattr(v2, '__gt__') or v2 > v1
+        except TypeError:
+            pass
+
+        try:
+            not_gt_1 = not hasattr(v1, '__gt__') or not v1 > v2
+        except TypeError:
+            pass
+
+        assert(not_lt_2, not_gt_1) in [
+            (True, True),
+            (True, NotImplemented),
+            (NotImplemented, True),
+            (NotImplemented, NotImplemented),
+                ]
+
+        try:
+            le_1 = not hasattr(v1, '__le__') or v1 <= v2
+        except TypeError:
+            pass
+
+        try:
+            not_le_2 = not hasattr(v2, '__le__') or not v2 <= v1
+        except TypeError:
+            pass
+
+        assert(le_1, not_le_2) in [
+            (True, True),
+            (True, NotImplemented),
+            (NotImplemented, True),
+            (NotImplemented, NotImplemented),
+                ]
+
+        try:
+            ge_2 = not hasattr(v2, '__ge__') or v2 >= v1
+        except TypeError:
+            pass
+
+        try:
+            not_ge_1 = not hasattr(v1, '__ge__') or not v1 >= v2
+        except TypeError:
+            pass
+
+        assert(ge_2, not_ge_1) in [
+            (True, True),
+            (True, NotImplemented),
+            (NotImplemented, True),
+            (NotImplemented, NotImplemented),
+                ]
+
+    def verify_ascending_group(self, *group_items: Any):
+        """Verifies that the given items are strictly ascending
+        with regard to the groups which have been added before.
+        """
+        assert group_items
+
+        for lesser_group in self.groups:
+            for lesser_item in lesser_group:
+                for larger_item in group_items:
+                    self._verify_ascending(lesser_item, larger_item)
+
 
     def add_ascending(self, *items: Any):
         """Tries to add a sequence of ascending items to the order tester.
@@ -95,21 +144,8 @@ class OrderTester:
 
         assert items
 
-        # Check that items are ascending with regard to each other.
-        if len(items) > 1:
-            for v1, v2 in zip(items[:-1], items[1:]):
-                self._verify_ascending(v1, v2)
-
-        # Check that already added groups are not overlapping with the new
-        # group.
-        # For this, it should be enough to check that the last item of the last
-        # already existing group is coming before first of the new items.
-        if self.groups:
-            self._verify_ascending(self.groups[-1][-1], items[0])
-
-        # Remember this group, to enable checks vs later groups.
-        # Every item becomes its own equivalence group.
-        self.groups.extend((item,) for item in items)
+        for item in items:
+            self.add_ascending_equivalence_group(item)
 
     def add_ascending_equivalence_group(self, *group_items: Any):
         """Tries to add an ascending equivalence group to the order tester.
@@ -127,29 +163,59 @@ class OrderTester:
                 or items in another group overlap with the new group.
         """
         # Check that elements are equal with regard to each other.
-        for v1, v2 in itertools.product(group_items, group_items):
-            self._verify_equality(v1, v2)
+        super(OrderTester, self).verify_equality_group(*group_items)
 
-        # Check the hash property.
-        self._verify_hash_property(*group_items)
-
-        # Check that already added groups are not overlapping with the new
-        # group.
-        if self.groups:
-            self._verify_ascending(self.groups[-1][-1], group_items[0])
+        # Check that the new group is strictly ascending with regard to
+        # the groups which have been added before.
+        self.verify_ascending_group(*group_items)
 
         # Remember this group.
         self.groups.append(tuple(group_items))
 
 
-class _ClassUnknownToSubjects:
+class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, _ClassUnknownToSubjects)
+        return isinstance(other, ClassSmallerThanEverythingElse)
+
+    def __ne__(self, other):
+        return not isinstance(other, ClassSmallerThanEverythingElse)
 
     def __lt__(self, other):
-        return not isinstance(other, _ClassUnknownToSubjects)
+        return not isinstance(other, ClassSmallerThanEverythingElse)
 
     def __hash__(self):
-        return hash(_ClassUnknownToSubjects)
+        return hash(ClassSmallerThanEverythingElse)
+
+
+class ClassLargerThanEverythingElse:
+    """Assume that the element of this class is less than anything else."""
+
+    def __eq__(self, other):
+        return isinstance(other, ClassLargerThanEverythingElse)
+
+    def __ne__(self, other):
+        return not isinstance(other, ClassSmallerThanEverythingElse)
+
+    def __lt__(self, other):
+        return False
+
+    def __hash__(self):
+        return hash(ClassLargerThanEverythingElse)
+
+
+class UnorderableClass:
+    """Assume that the element of this class is less than anything else."""
+
+    def __eq__(self, other):
+        return isinstance(other, ClassLargerThanEverythingElse)
+
+    def __ne__(self, other):
+        return not isinstance(other, ClassSmallerThanEverythingElse)
+
+    def __lt__(self, other):
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(ClassLargerThanEverythingElse)

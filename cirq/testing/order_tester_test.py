@@ -57,6 +57,9 @@ def test_add_ordering_equivalence_group_bad_hash():
         def __ne__(self, other):
             return not self == other
 
+        def __lt__(self, other):
+            return isinstance(other, KeyHash) and self._k < other._k
+
         def __hash__(self):
             return self._h
 

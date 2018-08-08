@@ -33,8 +33,8 @@ class EqualsTester:
     def __init__(self):
         self.groups = [(_ClassUnknownToSubjects(),)]
 
-    def add_equality_group(self, *group_items: Any):
-        """Tries to add a disjoint equivalence group to the equality tester.
+    def verify_equality_group(self, *group_items: Any):
+        """Verifies that a group is an equivalence group.
 
         This methods asserts that items within the group must all be equal to
         each other, but not equal to any items in other groups that have been
@@ -61,8 +61,13 @@ class EqualsTester:
             assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
             # Careful: python2 int doesn't have __eq__ or __ne__.
             if hasattr(v1, '__eq__'):
-                eq = v1.__eq__(v2)
-                ne = v1.__ne__(v2)
+                eq = NotImplemented
+                ne = NotImplemented
+                try:
+                    eq = v1.__eq__(v2)
+                    ne = v1.__ne__(v2)
+                except TypeError:
+                    pass
                 assert (eq, ne) in [(True, False),
                                     (NotImplemented, False),
                                     (NotImplemented, NotImplemented)]
@@ -78,8 +83,13 @@ class EqualsTester:
                 assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
                 # Careful: python2 int doesn't have __eq__ or __ne__.
                 if hasattr(v1, '__eq__'):
-                    eq = v1.__eq__(v2)
-                    ne = v1.__ne__(v2)
+                    eq = NotImplemented
+                    ne = NotImplemented
+                    try:
+                        eq = v1.__eq__(v2)
+                        ne = v1.__ne__(v2)
+                    except TypeError:
+                        pass
                     assert (eq, ne) in [(False, True),
                                         (NotImplemented, True),
                                         (NotImplemented, NotImplemented)]
@@ -96,6 +106,24 @@ class EqualsTester:
             raise AssertionError(
                 'Items in the same group produced different hashes. '
                 'Example: hash({}) is {} but hash({}) is {}.'.format(*example))
+
+    def add_equality_group(self, *group_items: Any):
+        """Tries to add a disjoint equivalence group to the equality tester.
+
+        This methods asserts that items within the group must all be equal to
+        each other, but not equal to any items in other groups that have been
+        or will be added.
+
+        Args:
+          *group_items: The items making up the equivalence group.
+
+        Raises:
+            AssertionError: Items within the group are not equal to each other,
+                or items in another group are equal to items within the new
+                group, or the items violate the equals-implies-same-hash rule.
+        """
+
+        self.verify_equality_group(*group_items)
 
         # Remember this group, to enable disjoint checks vs later groups.
         self.groups.append(group_items)
