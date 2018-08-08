@@ -16,6 +16,8 @@ import fractions
 import pytest
 
 from cirq.testing.order_tester import OrderTester
+from cirq.testing.order_tester import ClassLargerThanEverythingElse
+from cirq.testing.order_tester import UnorderableClass
 
 def test_add_ordering_group_correct():
     ot = OrderTester()
@@ -23,6 +25,8 @@ def test_add_ordering_group_correct():
     ot.add_ascending(1, 2)
     ot.add_ascending_equivalence_group(fractions.Fraction(6, 2),
                                        fractions.Fraction(12, 4), 3, 3.0)
+    ot.add_ascending_equivalence_group(ClassLargerThanEverythingElse(),
+        ClassLargerThanEverythingElse())
 
 def test_add_ordering_group_incorrect():
     ot = OrderTester()
@@ -44,6 +48,8 @@ def test_add_ordering_equivalence_group_incorrect():
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(0, 0.)  # not ascending w.r.t
                                                    # previous items
+    with pytest.raises(AssertionError):
+        ot.add_ascending_equivalence_group(UnorderableClass, UnorderableClass)
 
 def test_add_ordering_equivalence_group_bad_hash():
     class KeyHash:

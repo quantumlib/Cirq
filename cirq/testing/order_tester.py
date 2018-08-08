@@ -55,10 +55,11 @@ class OrderTester(EqualsTester):
         except TypeError:
             pass
 
-        assert(lt_1, gt_2) in [
+        assert(lt_1, not_lt_2) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
+            (NotImplemented, NotImplemented)
                 ]
 
         try:
@@ -71,12 +72,19 @@ class OrderTester(EqualsTester):
         except TypeError:
             pass
 
-        assert(not_lt_2, not_gt_1) in [
+        assert(gt_2, not_gt_1) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
             (NotImplemented, NotImplemented),
                 ]
+
+        # at least one strict ordering operator should work
+        assert(lt_1, gt_2) in [
+            (True, True),
+            (True, NotImplemented),
+            (NotImplemented, True),
+        ]
 
         try:
             le_1 = not hasattr(v1, '__le__') or v1 <= v2
@@ -196,10 +204,10 @@ class ClassLargerThanEverythingElse:
         return isinstance(other, ClassLargerThanEverythingElse)
 
     def __ne__(self, other):
-        return not isinstance(other, ClassSmallerThanEverythingElse)
+        return not isinstance(other, ClassLargerThanEverythingElse)
 
-    def __lt__(self, other):
-        return False
+    def __gt__(self, other):
+        return not isinstance(other, ClassLargerThanEverythingElse)
 
     def __hash__(self):
         return hash(ClassLargerThanEverythingElse)
@@ -209,13 +217,13 @@ class UnorderableClass:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassLargerThanEverythingElse)
+        return isinstance(other, UnorderableClass)
 
     def __ne__(self, other):
-        return not isinstance(other, ClassSmallerThanEverythingElse)
+        return not isinstance(other, UnorderableClass)
 
     def __lt__(self, other):
         return NotImplemented
 
     def __hash__(self):
-        return hash(ClassLargerThanEverythingElse)
+        return hash(UnorderableClass)
