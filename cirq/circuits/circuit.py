@@ -1132,7 +1132,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1160,7 +1160,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())

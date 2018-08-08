@@ -40,9 +40,7 @@ from cirq.contrib.paulistring import converted_gate_set
 
     (cirq.X(q0) ** 0, ()),
 
-    (cirq.CZ(q0, q1),
-     cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.Z, False
-                                  )(q0, q1)),
+    (cirq.CZ(q0, q1), cirq.CZ(q0, q1)),
 
     (cirq.MeasurementGate('key')(q0, q1),
      cirq.MeasurementGate('key')(q0, q1)),
@@ -148,7 +146,6 @@ def test_converts_large_circuit():
         cirq.X(q0) ** 0.25,
         cirq.Y(q0) ** 0.25,
         cirq.Z(q0) ** 0.25,
-
         cirq.CZ(q0, q1),
     )
 
@@ -160,10 +157,10 @@ def test_converts_large_circuit():
             atol=1e-7)
 
     assert after.to_text_diagram() == '''
-0: ───Y^0.5───@───[Z]^-0.304───[X]^0.333───[Z]^0.304───@───[Z]^0.142───
+0: ───Y^0.5───@───[Z]^-0.304───[X]^0.333───[Z]^0.446───@───
               │                                        │
-1: ───────────@───@────────────────────────────────────@───────────────
+1: ───────────@───@────────────────────────────────────@───
                   │
-2: ───────────────@────────────────────────────────────────────────────
+2: ───────────────@────────────────────────────────────────
 '''.strip()
 

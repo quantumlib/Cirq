@@ -122,6 +122,17 @@ def test_fail_unsupported_gate():
         cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
 
 
+def test_passes_through_measurements():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.MeasurementGate('m0')(q0),
+        cirq.MeasurementGate('m1', invert_mask=(True, False))(q1, q2),
+    )
+    c_orig = cirq.Circuit(circuit)
+    cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
+    assert circuit == c_orig
+
+
 def test_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(

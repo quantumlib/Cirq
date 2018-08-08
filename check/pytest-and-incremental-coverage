@@ -4,16 +4,16 @@
 # Finds changed uncovered lines.
 #
 # Usage:
-#     check/pytest-and-incremental-coverage [COMPARISON_BRANCH_OR_COMMIT_ID]
+#     check/pytest-and-incremental-coverage [BASE_REVISION]
 #
-# You can specify a git commit or branch to compare against (i.e. to use when
+# You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
 # the tool more consistent, it actually diffs against the most recent common
 # ancestor of the specified id and HEAD. So if you choose 'origin/master' you're
 # actually diffing against the output of 'git merge-base origin/master HEAD'.
 #
-# If you don't specify a commit or branch, the following defaults will be tried,
-# in order, until one exists.
+# If you don't specify a base revision, the following defaults will be tried,
+# in order, until one exists:
 #
 #     1. upstream/master
 #     2. origin/master
@@ -23,26 +23,30 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${own_directory}
-repo_dir=$(git rev-parse --show-toplevel)
-cd ${repo_dir}
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
 
-if [ ! -z "$1" ]; then
-    branch="$1"
-elif [ ! -z $(git branch --list upstream/master) ]; then
-    branch=upstream/master
-elif [ !-z $(git branch --list origin/master) ]; then
-    branch=origin/master
-elif [ !-z $(git branch --list master) ]; then
-    branch=master
+# Figure out which revision to compare against.
+if [ ! -z "$1" ] && [[ $1 != -* ]]; then
+    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
+        echo -e "\e[31mNo revision '$1'.\e[0m" >&2
+        exit 1
+    fi
+    rev=$1
+elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
+    rev=upstream/master
+elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
+    rev=origin/master
+elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
+    rev=master
 else
-    echo -e "\e[31mNo master branch found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m"
+    echo -e "\e[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m" >&2
     exit 1
 fi
+echo "Comparing against revision '${rev}'." >&2
 
-echo "Comparing against ${branch}"
-PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py "${branch}" "${@:2}"
+# Run it.
+PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py "${rev}"
 result=$?
 
 # Clean up generated coverage files.

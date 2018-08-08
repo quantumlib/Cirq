@@ -129,8 +129,7 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
-                ops.QasmConvertableGate,
-                ops.KnownMatrix):
+                ops.QasmConvertableGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -178,11 +177,8 @@ class Exp11Gate(XmonGate,
                                           op.exp_11.half_turns)
         return op
 
-    def has_matrix(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def matrix(self) -> Optional[np.ndarray]:
-        if not self.has_matrix():
+    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+        if isinstance(self.half_turns, value.Symbol):
             return None
         return protocols.unitary_effect(
             ops.Rot11Gate(half_turns=self.half_turns))
@@ -420,7 +416,7 @@ class ExpZGate(XmonGate,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
                ops.BoundedEffect,
-               ops.QasmConvertableGate,
+               ops.QasmConvertibleGate,
                PotentialImplementation[Union[
                    ops.ReversibleEffect]]):
     """A rotation around the Z axis of the Bloch sphere.

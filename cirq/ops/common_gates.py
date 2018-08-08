@@ -27,7 +27,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate,
-                gate_features.QasmConvertableGate):
+                gate_features.QasmConvertibleGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
@@ -96,7 +96,7 @@ class Rot11Gate(eigen_gate.EigenGate,
 class RotXGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -161,7 +161,7 @@ class RotXGate(eigen_gate.EigenGate,
 class RotYGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -227,7 +227,7 @@ class RotZGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
                gate_features.PhaseableEffect,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -314,7 +314,7 @@ class RotZGate(eigen_gate.EigenGate,
 
 class MeasurementGate(raw_types.Gate,
                       gate_features.TextDiagrammable,
-                      gate_features.QasmConvertableGate):
+                      gate_features.QasmConvertibleGate):
     """Indicates that qubits should be measured plus a key to identify results.
 
     Attributes:
@@ -467,7 +467,7 @@ class HGate(gate_features.CompositeGate,
             gate_features.ReversibleEffect,
             protocols.SupportsUnitaryEffect,
             gate_features.SingleQubitGate,
-            gate_features.QasmConvertableGate):
+            gate_features.QasmConvertibleGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
@@ -503,7 +503,7 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.TwoQubitGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """When applying CNOT (controlled-not) to QuBits, you can either use
     positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
     or named arguments CNOT(control=q1, target=q2).
@@ -597,7 +597,7 @@ class SwapGate(eigen_gate.EigenGate,
                gate_features.TwoQubitGate,
                gate_features.CompositeGate,
                gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Swaps two qubits."""
 
     def __init__(self, *,  # Forces keyword args.
