@@ -155,6 +155,30 @@ def test_fails_when_ne_is_inconsistent():
             return self.x == other.x
 
         def __ne__(self, other):
+            if not isinstance(other, type(self)):
+                return NotImplemented
+            return self.x == other.x
+
+        def __hash__(self):
+            return hash(self.x)
+
+    with pytest.raises(AssertionError):
+        eq.make_equality_group(InconsistentNeImplementation)
+
+
+def test_fails_when_ne_is_inconsistent_due_to_not_implemented():
+    eq = EqualsTester()
+
+    class InconsistentNeImplementation:
+        def __init__(self):
+            self.x = 1
+
+        def __eq__(self, other):
+            if not isinstance(other, type(self)):
+                return NotImplemented
+            return self.x == other.x
+
+        def __ne__(self, other):
             return NotImplemented
 
         def __hash__(self):
@@ -205,3 +229,10 @@ def test_fails_when_not_commutative():
     with pytest.raises(AssertionError):
         eq.add_equality_group(NotCommutativeImplementation(1),
                               NotCommutativeImplementation(0))
+
+
+def test_works_on_types():
+    eq = EqualsTester()
+    eq.add_equality_group(object)
+    eq.add_equality_group(int)
+    eq.add_equality_group(object())
