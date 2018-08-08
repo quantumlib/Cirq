@@ -201,5 +201,12 @@ from cirq.value import (
     Timestamp,
 )
 
+from cirq.protocols import (
+    has_unitary_effect,
+    maybe_unitary_effect,
+    SupportsUnitaryEffect,
+    unitary_effect,
+)
+
 # Import version last since it is a relative import.
 from ._version import __version__
