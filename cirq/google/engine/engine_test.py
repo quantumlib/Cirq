@@ -26,28 +26,41 @@ import cirq.google as cg
 from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
 from cirq.testing.mock import mock
 
+@cirq.testing.only_test_in_python3
+def test_repr():
+    v = cirq.google.JobConfig(project_id='my-project-id',
+                              program_id='my-program-id',
+                              job_id='my-job-id')
+
+    assert repr(v) == ("JobConfig(project_id='my-project-id', "
+                       "program_id='my-program-id', "
+                       "job_id='my-job-id', gcs_prefix=None, "
+                       "gcs_program=None, gcs_results=None)")
+
+
+
 _A_RESULT = program_pb2.Result(
     sweep_results=[program_pb2.SweepResult(repetitions=1, measurement_keys=[
         program_pb2.MeasurementKey(
             key='q',
             qubits=[operations_pb2.Qubit(row=1, col=1)])],
-            parameterized_results=[
-                program_pb2.ParameterizedResult(
-                    params=params_pb2.ParameterDict(assignments={'a': 1}),
-                    measurement_results=b'01')])])
+        parameterized_results=[
+        program_pb2.ParameterizedResult(
+            params=params_pb2.ParameterDict(assignments={'a': 1}),
+            measurement_results=b'01')])])
 
 _RESULTS = program_pb2.Result(
     sweep_results=[program_pb2.SweepResult(repetitions=1, measurement_keys=[
         program_pb2.MeasurementKey(
             key='q',
             qubits=[operations_pb2.Qubit(row=1, col=1)])],
-            parameterized_results=[
-                program_pb2.ParameterizedResult(
-                    params=params_pb2.ParameterDict(assignments={'a': 1}),
-                    measurement_results=b'01'),
-                program_pb2.ParameterizedResult(
-                    params=params_pb2.ParameterDict(assignments={'a': 2}),
-                    measurement_results=b'01')])])
+        parameterized_results=[
+        program_pb2.ParameterizedResult(
+            params=params_pb2.ParameterDict(assignments={'a': 1}),
+            measurement_results=b'01'),
+        program_pb2.ParameterizedResult(
+            params=params_pb2.ParameterDict(assignments={'a': 2}),
+            measurement_results=b'01')])])
 
 
 @mock.patch.object(discovery, 'build')
@@ -79,7 +92,7 @@ def test_run_circuit(build):
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
     assert jobs.create.call_args[1][
-               'parent'] == 'projects/project-id/programs/test'
+        'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
@@ -197,6 +210,7 @@ def test_default_prefix(build):
     assert programs.create.call_args[1]['body']['gcs_code_location'][
         'uri'].startswith('gs://gqe-project-id/programs/')
 
+
 @mock.patch.object(discovery, 'build')
 def test_run_sweep_params(build):
     service = mock.Mock()
@@ -235,9 +249,9 @@ def test_run_sweep_params(build):
     for i, v in enumerate([1, 2]):
         assert sweeps[i]['repetitions'] == 1
         assert sweeps[i]['sweep']['factors'][0]['sweeps'][0]['points'][
-                   'points'] == [v]
+            'points'] == [v]
     assert jobs.create.call_args[1][
-               'parent'] == 'projects/project-id/programs/test'
+        'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
@@ -279,9 +293,9 @@ def test_run_sweep_sweeps(build):
     assert len(sweeps) == 1
     assert sweeps[0]['repetitions'] == 1
     assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['points'][
-               'points'] == [1, 2]
+        'points'] == [1, 2]
     assert jobs.create.call_args[1][
-               'parent'] == 'projects/project-id/programs/test'
+        'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
@@ -319,7 +333,7 @@ def test_cancel(build):
                                      'jobs/test')
     assert job.status() == 'CANCELLED'
     assert jobs.cancel.call_args[1][
-               'name'] == 'projects/project-id/programs/test/jobs/test'
+        'name'] == 'projects/project-id/programs/test/jobs/test'
 
 
 @mock.patch.object(discovery, 'build')

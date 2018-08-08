@@ -33,7 +33,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
     def find_merge_point(start_i: int,
                          string_op: PauliStringPhasor,
                          stop_at_cz: bool,
-                         ) -> Tuple[int, PauliStringPhasor]:
+                         ) -> Tuple[int, PauliStringPhasor, int]:
         STOP = 0
         CONTINUE = 1
         SKIP = 2
@@ -57,6 +57,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
         modified_op = string_op
         furthest_op = string_op
         furthest_i = start_i + 1
+        num_passed_over = 0
         for i in range(start_i+1, len(all_ops)):
             op = all_ops[i]
             if not set(op.qubits) & set(modified_op.qubits):
@@ -71,11 +72,12 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             if cont_cond == CONTINUE:
                 modified_op = modified_op.pass_operations_over(
                                     [op], after_to_before=True)
+            num_passed_over += 1
             if len(modified_op.pauli_string) == 1:
                 furthest_op = modified_op
                 furthest_i = i + 1
 
-        return furthest_i, furthest_op
+        return furthest_i, furthest_op, num_passed_over
 
     def try_merge_clifford(cliff_op: ops.GateOperation, start_i: int) -> bool:
         orig_qubit, = cliff_op.qubits
@@ -89,8 +91,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                 ops.PauliString.from_single(cliff_op.qubits[0], pauli),
                 half_turns=quarter_turns / 2)
 
-            merge_i, merge_op = find_merge_point(start_i, string_op,
-                                                 quarter_turns == 2)
+            merge_i, merge_op, num_passed = find_merge_point(start_i, string_op,
+                                                             quarter_turns == 2)
             assert merge_i > start_i
             assert len(merge_op.pauli_string) == 1, 'PauliString length != 1'
 
@@ -128,7 +130,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                                         [part_cliff_gate(qubit)])
                 all_ops[merge_i] = mod_op
                 all_ops.insert(merge_i+1, part_cliff_gate(qubit))
-            elif merge_i > start_i + 1:
+            elif merge_i > start_i + 1 and num_passed > 0:
                 # Moved Clifford through the circuit but nothing to merge
                 all_ops.insert(merge_i, part_cliff_gate(qubit))
             else:

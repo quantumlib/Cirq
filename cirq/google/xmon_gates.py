@@ -129,7 +129,7 @@ class Exp11Gate(XmonGate,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
-                ops.QasmConvertableGate,
+                ops.QasmConvertibleGate,
                 PotentialImplementation[ops.KnownMatrix]):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -424,7 +424,7 @@ class ExpZGate(XmonGate,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
                ops.BoundedEffect,
-               ops.QasmConvertableGate,
+               ops.QasmConvertibleGate,
                PotentialImplementation[Union[
                    ops.KnownMatrix,
                    ops.ReversibleEffect]]):
