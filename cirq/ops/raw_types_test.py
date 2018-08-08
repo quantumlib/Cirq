@@ -38,16 +38,3 @@ def test_gate_calls_validate():
     _ = g(q00, q10)
     with pytest.raises(ValueError):
         _ = g(q10, q01, q00)
-
-
-def test_named_qubit_str():
-    q = cirq.NamedQubit('a')
-    assert q.name == 'a'
-    assert str(q) == 'a'
-
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
-def test_named_qubit_repr():
-    q = cirq.NamedQubit('a')
-    assert repr(q) == "NamedQubit('a')"

@@ -28,7 +28,7 @@ def test_add_ordering_group_incorrect():
     ot = OrderTester()
     ot.add_ascending(1, 2)
     with pytest.raises(AssertionError):
-        ot.add_ascending(object, object)  # not ascending within call
+        ot.add_ascending('a', 'a')  # not ascending within call
     with pytest.raises(AssertionError):
         ot.add_ascending(1, 3)  # not ascending w.r.t. previous call
     with pytest.raises(AssertionError):

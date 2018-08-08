@@ -117,8 +117,8 @@ def test_repr():
     ])
     assert repr(c) == """
 Circuit([
-    Moment((GateOperation(H, (NamedQubit('a'),)),)),
-    Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
+    Moment((GateOperation(H, (cirq.NamedQubit('a'),)),)),
+    Moment((GateOperation(CZ, (cirq.NamedQubit('a'), cirq.NamedQubit('b'))),))])
     """.strip()
 
     c = Circuit.from_ops(cg.ExpWGate().on(cirq.GridQubit(0, 0)),

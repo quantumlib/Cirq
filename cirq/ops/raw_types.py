@@ -26,32 +26,10 @@ if TYPE_CHECKING:
 class QubitId:
     """Identifies a qubit. Child classes provide specific types of qubits.
 
-    Child classes must be equatable and hashable."""
+    Child classes should be comparable. I.e. they should implement
+    __eq__, __ne__, __hash__, __lt__, __le__, __gt__, and __ge__.
+    """
     pass
-
-
-class NamedQubit(QubitId):
-    """A qubit identified by name."""
-
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return 'NamedQubit({})'.format(repr(self.name))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((NamedQubit, self.name))
 
 
 class Gate:
