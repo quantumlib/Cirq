@@ -30,8 +30,7 @@ import string
 import time
 import urllib.parse
 from collections import Iterable
-from typing import Dict, List, Optional, Union, cast
-
+from typing import cast, Dict, List, Optional, TYPE_CHECKING, Union
 from apiclient import discovery
 
 from cirq.circuits import Circuit
@@ -42,6 +41,10 @@ from cirq.google.programs import schedule_to_proto_dicts, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 from cirq.study.sweeps import Points, UnitSweep, Zip
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Any
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
@@ -346,7 +349,7 @@ class Engine:
 
         # Create program.
         sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
-        program_dict = {}  # type: Dict
+        program_dict = {}  # type: Dict[str, Any]
 
         program_dict['parameter_sweeps'] = [
             sweep_to_proto_dict(sweep, repetitions) for

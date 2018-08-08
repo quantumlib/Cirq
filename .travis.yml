@@ -36,4 +36,4 @@ matrix:
     python: "2.7"
     install:
       - pip install -r python2.7-dev-requirements.txt
-    script: continuous-integration/travis-pytest2.sh
+    script: check/pytest2

@@ -82,13 +82,6 @@ See the previous section for instructions.
     cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install --yes
     ```
 
-    Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is not installable via `apt-get`.
-    You *can* skip this dependency.
-    It is only needed when producing the transpiled python 2.7 code for local testing.
-    The installation process is technical; requiring you to either build from source or manually installing pre-built binaries onto your system.
-    If you want to be able to run the python 2.7 tests on your machine, see ["Protobuf Compiler Installation" on the google/protobuf github repository](https://github.com/google/protobuf#protocol-compiler-installation) for details.
-
-
 2. Prepare a virtual environment with the dev requirements.
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
