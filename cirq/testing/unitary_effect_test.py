@@ -50,6 +50,12 @@ def test_has_unitary_effect():
             Wrap(True),
             expected_effect=np.eye(2))
 
+    # Global methods detect the inconsistency.
+    with pytest.raises(AttributeError):
+        _ = cirq.maybe_unitary_effect(Wrap(True))
+    with pytest.raises(AttributeError):
+        _ = cirq.unitary_effect(Wrap(True))
+
     # Must agree with expectation.
     with pytest.raises(AssertionError):
         cirq.testing.assert_unitary_effect_is(
