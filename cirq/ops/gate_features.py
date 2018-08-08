@@ -22,7 +22,6 @@ from typing import (
 )
 
 import string
-import numpy as np
 
 from cirq import abc, value
 from cirq.ops import op_tree, raw_types

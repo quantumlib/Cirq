@@ -18,7 +18,7 @@ from typing import Union, cast
 
 import numpy as np
 
-from cirq import linalg, value, protocols
+from cirq import linalg, value
 from cirq.ops import gate_features, raw_types
 
 

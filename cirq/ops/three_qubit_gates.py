@@ -18,7 +18,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg
 from cirq.ops import gate_features, common_gates, raw_types, op_tree
 
 

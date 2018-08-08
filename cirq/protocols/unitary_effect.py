@@ -17,10 +17,13 @@ from typing import Any, Optional
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq import abc
+
 
 class SupportsUnitaryEffect(Protocol):
     """An effect that can be described by a unitary matrix."""
 
+    @abc.abstractmethod
     def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
         """The unitary matrix of the effect, or None if not known.
 
@@ -39,13 +42,21 @@ class SupportsUnitaryEffect(Protocol):
             _ _ _ 1
             _ _ 1 _
         """
-        return None
 
     def _has_matrix_(self) -> bool:
         """Determines if the gate/operation has a known matrix or not."""
         return self._maybe_unitary_effect_() is not None
 
     def _unitary_effect_(self) -> np.ndarray:
+        """The unitary matrix of the effect, or else an exception.
+
+        Returns:
+            The unitary matrix.
+
+        Raises:
+            ValueError:
+                The receiving value doesn't have a unitary effect.
+        """
         result = self._maybe_unitary_effect_()
         assert result is not None, 'self._unitary_effect_() returned None'
         return result
@@ -64,9 +75,21 @@ def maybe_unitary_effect(val: Any) -> Optional[np.ndarray]:
 
     get = getattr(val, '_unitary_effect_', None)
     if get is not None:
-        return get()
+        try:
+            return get()
+        except ValueError:
+            return None
 
-    # Things that don't specify a unitary effect don't have a unitary effect.
+    has = getattr(val, '_has_unitary_effect_', None)
+    if has is not None:
+        if has():
+            raise AttributeError(
+                "'{}' object has attribute '_has_unitary_effect_' and it "
+                "returned True, but object has no attribute '_unitary_effect_' "
+                "or '_maybe_unitary_effect_'".format(type(val)))
+        return None
+
+    # Not following SupportsUnitaryEffect means don't have a unitary effect.
     return None
 
 
@@ -78,11 +101,9 @@ def unitary_effect(val: Any) -> np.ndarray:
         protocol and returns a non-None unitary effect. Otherwise None.
 
     Raises:
-        AttributeError: The given object doesn't follow the
-            SupportsUnitaryEffect protocol.
         ValueError:
-            The given follows the SupportsUnitaryEffect protocol, but it doesn't
-            have a unitary effect.
+            The given object doesn't follow the SupportsUnitaryEffect protocol,
+            or it does but doesn't have a known unitary effect.
     """
     get = getattr(val, '_unitary_effect_', None)
     if get is not None:
@@ -97,9 +118,21 @@ def unitary_effect(val: Any) -> np.ndarray:
                 "{!r}._maybe_unitary_effect_() returned None".format(type(val)))
         return result
 
-    raise AttributeError(
-        "'{}' object has no attribute '_unitary_effect_' "
-        "or '_maybe_unitary_effect_'".format(type(val)))
+    has = getattr(val, '_has_unitary_effect_', None)
+    if has is not None:
+        if has():
+            raise AttributeError(
+                "'{}' object has attribute '_has_unitary_effect_' and it "
+                "returned True, but object has no attribute '_unitary_effect_' "
+                "or '_maybe_unitary_effect_'".format(type(val)))
+        else:
+            raise ValueError(
+                "Expected a value with a non-None _unitary_effect_, but "
+                "{!r}._has_unitary_effect_() returned False".format(type(val)))
+
+    raise ValueError(
+        "'{}' object doesn't follow the SupportsUnitaryEffect protocol, and so "
+        "does not have a unitary effect.".format(type(val)))
 
 
 def has_unitary_effect(val: Any) -> bool:
@@ -119,7 +152,11 @@ def has_unitary_effect(val: Any) -> bool:
 
     get = getattr(val, '_unitary_effect_', None)
     if get is not None:
-        assert get() is not None, 'val._unitary_effect_() returned None'
-        return True
+        try:
+            _ = get()
+            return True
+        except ValueError:
+            return False
 
+    # Not following SupportsUnitaryEffect means don't have a unitary effect.
     return False

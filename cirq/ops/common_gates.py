@@ -18,7 +18,7 @@ from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
 
 import numpy as np
 
-from cirq import value, protocols
+from cirq import value
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
