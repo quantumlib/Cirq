@@ -195,6 +195,9 @@ class XmonDevice(Device):
         """Returns the qubits in the given column, in ascending order."""
         return sorted(q for q in self.qubits if q.col == col)
 
+    def __repr__(self):
+        return 'cirq.google.Foxtail'
+
     def __str__(self):
         diagram = TextDiagramDrawer()
 

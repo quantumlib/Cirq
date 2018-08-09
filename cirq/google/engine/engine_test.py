@@ -13,18 +13,62 @@
 # limitations under the License.
 
 """Tests for engine."""
+import base64
 import re
 
 import numpy as np
 import pytest
 
 from apiclient import discovery
-from google.protobuf.json_format import MessageToDict
 
 import cirq
 import cirq.google as cg
-from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
 from cirq.testing.mock import mock
+
+_A_RESULT = {
+    'sweepResults': [
+        {
+            'repetitions': 1,
+            'measurementKeys': [
+                {
+                    'key': 'q',
+                    'qubits': [{'row': 1, 'col': 1}]
+                }
+            ],
+            'parameterizedResults': [
+                {
+                    'params': {'assignments': {'a': 1}},
+                    'measurementResults': base64.b64encode(b'01')
+                }
+            ]
+        }
+    ]
+}
+
+
+_RESULTS = {
+    'sweepResults': [
+        {
+            'repetitions': 1,
+            'measurementKeys': [
+                {
+                    'key': 'q',
+                    'qubits': [{'row': 1, 'col': 1}]
+                }
+            ],
+            'parameterizedResults': [
+                {
+                    'params': {'assignments': {'a': 1}},
+                    'measurementResults': base64.b64encode(b'01')
+                },
+                {
+                    'params': {'assignments': {'a': 2}},
+                    'measurementResults': base64.b64encode(b'01')
+                }
+            ]
+        }
+    ]
+}
 
 @cirq.testing.only_test_in_python3
 def test_repr():
@@ -36,32 +80,6 @@ def test_repr():
                        "program_id='my-program-id', "
                        "job_id='my-job-id', gcs_prefix=None, "
                        "gcs_program=None, gcs_results=None)")
-
-
-
-_A_RESULT = program_pb2.Result(
-    sweep_results=[program_pb2.SweepResult(repetitions=1, measurement_keys=[
-        program_pb2.MeasurementKey(
-            key='q',
-            qubits=[operations_pb2.Qubit(row=1, col=1)])],
-        parameterized_results=[
-        program_pb2.ParameterizedResult(
-            params=params_pb2.ParameterDict(assignments={'a': 1}),
-            measurement_results=b'01')])])
-
-_RESULTS = program_pb2.Result(
-    sweep_results=[program_pb2.SweepResult(repetitions=1, measurement_keys=[
-        program_pb2.MeasurementKey(
-            key='q',
-            qubits=[operations_pb2.Qubit(row=1, col=1)])],
-        parameterized_results=[
-        program_pb2.ParameterizedResult(
-            params=params_pb2.ParameterDict(assignments={'a': 1}),
-            measurement_results=b'01'),
-        program_pb2.ParameterizedResult(
-            params=params_pb2.ParameterDict(assignments={'a': 2}),
-            measurement_results=b'01')])])
-
 
 @mock.patch.object(discovery, 'build')
 def test_run_circuit(build):
@@ -78,7 +96,7 @@ def test_run_circuit(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'SUCCESS'}}
     jobs.getResult().execute.return_value = {
-        'result': MessageToDict(_A_RESULT)}
+        'result': _A_RESULT}
 
     result = cg.Engine(api_key="key").run(
         program=cirq.Circuit(),
@@ -140,7 +158,7 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'SUCCESS'}}
     jobs.getResult().execute.return_value = {
-        'result': MessageToDict(_A_RESULT)}
+        'result': _A_RESULT}
 
     circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
                                     device=cg.Foxtail)
@@ -195,7 +213,7 @@ def test_default_prefix(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'SUCCESS'}}
     jobs.getResult().execute.return_value = {
-        'result': MessageToDict(_A_RESULT)}
+        'result': _A_RESULT}
 
     result = cg.Engine(api_key="key").run(
         program=cirq.Circuit(),
@@ -226,7 +244,7 @@ def test_run_sweep_params(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'SUCCESS'}}
     jobs.getResult().execute.return_value = {
-        'result': MessageToDict(_RESULTS)}
+        'result': _RESULTS}
 
     job = cg.Engine(api_key="key").run_sweep(
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
@@ -244,7 +262,7 @@ def test_run_sweep_params(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    sweeps = programs.create.call_args[1]['body']['code']['parameterSweeps']
+    sweeps = programs.create.call_args[1]['body']['code']['parameter_sweeps']
     assert len(sweeps) == 2
     for i, v in enumerate([1, 2]):
         assert sweeps[i]['repetitions'] == 1
@@ -271,7 +289,7 @@ def test_run_sweep_sweeps(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'SUCCESS'}}
     jobs.getResult().execute.return_value = {
-        'result': MessageToDict(_RESULTS)}
+        'result': _RESULTS}
 
     job = cg.Engine(api_key="key").run_sweep(
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
@@ -289,7 +307,7 @@ def test_run_sweep_sweeps(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    sweeps = programs.create.call_args[1]['body']['code']['parameterSweeps']
+    sweeps = programs.create.call_args[1]['body']['code']['parameter_sweeps']
     assert len(sweeps) == 1
     assert sweeps[0]['repetitions'] == 1
     assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['points'][

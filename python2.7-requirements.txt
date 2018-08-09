@@ -1,3 +1,5 @@
+# Runtime requirements for the transpiled python 2.7 version of cirq.
+
 google-api-python-client~=1.6
 matplotlib~=2.1
 networkx~=2.1

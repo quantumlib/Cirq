@@ -35,6 +35,7 @@ def _possible_string_placements(
         string_op = key(possible_node)
         # Try moving the Pauli string through, stop at measurements
         yield string_op, 0, possible_node
+
         for i, out_op in enumerate(output_ops):
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
@@ -48,6 +49,12 @@ def _possible_string_placements(
             string_op = string_op.pass_operations_over([out_op],
                                                        after_to_before=True)
             yield string_op, i+1, possible_node
+
+        if len(string_op.pauli_string) == 1:
+            # This is as far as any Pauli string can go on this qubit
+            # and this Pauli string can be moved here.
+            # Stop searching to save time.
+            return
 
 
 def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
