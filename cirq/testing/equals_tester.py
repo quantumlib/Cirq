@@ -62,7 +62,10 @@ class EqualsTester:
 
         # Within-group items must be equal.
         for v1, v2 in itertools.product(group_items, group_items):
-            assert EqualsTester._eq_check(v1, v2), (
+            same = EqualsTester._eq_check(v1, v2)
+            assert same or v1 is not v2, "{!r} isn't equal to itself!".format(
+                v1)
+            assert same, (
                 "{!r} and {!r} can't be in the same equality group. "
                 "They're not equal.".format(v1, v2))
 
