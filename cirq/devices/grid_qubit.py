@@ -63,7 +63,7 @@ class GridQubit(QubitId):
         return hash((GridQubit, self.row, self.col))
 
     def __repr__(self):
-        return 'GridQubit({}, {})'.format(self.row, self.col)
+        return 'cirq.GridQubit({}, {})'.format(self.row, self.col)
 
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)

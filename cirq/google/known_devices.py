@@ -53,7 +53,17 @@ CCCCCCDDDDD
 """
 
 
-Foxtail = XmonDevice(
+class _NamedConstantXmonDevice(XmonDevice):
+    def __init__(self, constant: str, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._repr = constant
+
+    def __repr__(self):
+        return self._repr
+
+
+Foxtail = _NamedConstantXmonDevice(
+    'cirq.google.Foxtail',
     measurement_duration=Duration(nanos=1000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
@@ -75,7 +85,8 @@ ABCDEFGHIJKL
 """
 
 
-Bristlecone = XmonDevice(
+Bristlecone = _NamedConstantXmonDevice(
+    'cirq.google.Bristlecone',
     measurement_duration=Duration(nanos=1000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
