@@ -59,7 +59,8 @@ def test_init():
 def test_repr():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
     assert repr(d) == 'cirq.google.Foxtail'
-    
+
+
 def test_can_add_operation_into_moment():
     d = square_device(2, 2)
     q00 = cirq.GridQubit(0, 0)
