@@ -350,9 +350,14 @@ def rot_11_layer(jr, jc, half_turns):
             
     for i, jc_row in enumerate(jc):
         for j, jc_ij in enumerate(jc_row):
-            if jc_ij == 1:
-                yield gate(cirq.GridQubit(i, j),
-                           cirq.GridQubit(i, j + 1))
+            if jc_ij == -1:
+                yield cirq.X(cirq.GridQubit(i, j))
+                yield cirq.X(cirq.GridQubit(i, j + 1))
+            yield gate(cirq.GridQubit(i, j),
+                       cirq.GridQubit(i, j + 1))
+            if jc_ij == -1:
+                yield cirq.X(cirq.GridQubit(i, j))
+                yield cirq.X(cirq.GridQubit(i, j + 1))
 ```
 
 Putting this together we can create a step that uses just
@@ -371,26 +376,27 @@ def one_step(h, jr, jc, x_half_turns, h_half_turns, j_half_turns):
 h, jr, jc = random_instance(3)
 
 circuit = cirq.Circuit()    
-circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
+circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3),
+               strategy=cirq.InsertStrategy.EARLIEST)
 print(circuit)
 # prints something like
-# (0, 0): ───X^0.1───X───────────@───────X───────────────────────────────────────────────────────@───────────────
-#                                │                                                               │
-# (0, 1): ───X^0.1───Z^0.2───────┼───────X───@───────X───────────────────────────────────────────@^0.3───────────
-#                                │           │
-# (0, 2): ───X^0.1───────────────┼───────────┼───────────@───────────────────────────────────────────────────────
-#                                │           │           │
-# (1, 0): ───X^0.1───Z^0.2───X───@^0.3───X───┼───────X───┼───────@───────X───────────────────────@───────────────
-#                                            │           │       │                               │
-# (1, 1): ───X^0.1───────────────────────X───@^0.3───X───┼───────┼───────X───@───────X───────────@^0.3───@───────
-#                                                        │       │           │                           │
-# (1, 2): ───X^0.1───Z^0.2───────────────────────────────@^0.3───┼───────────┼───────X───@───────X───────@^0.3───
-#                                                                │           │           │
-# (2, 0): ───X^0.1───────────────────────────────────X───────────@^0.3───X───┼───────────┼───────────────────────
-#                                                                            │           │
-# (2, 1): ───X^0.1───Z^0.2───────────────────────────────────────────────X───@^0.3───X───┼───────────────────────
-#                                                                                        │
-# (2, 2): ───X^0.1───Z^0.2───────────────────────────────────────────────────────────X───@^0.3───X───────────────
+# (0, 0): ───X^0.1───────────@───────X───────────────────────────────@───────X───────────────────────────────
+#                            │                                       │
+# (0, 1): ───X^0.1───Z^0.2───┼───────@───────────────────────X───────@^0.3───X───X───────@───────X───────────
+#                            │       │                                                   │
+# (0, 2): ───X^0.1───Z^0.2───┼───────┼───────@───────────────X───────────────────────────@^0.3───X───────────
+#                            │       │       │
+# (1, 0): ───X^0.1───────────@^0.3───┼───────┼───────@───────X───────────────────────────@───────X───────────
+#                                    │       │       │                                   │
+# (1, 1): ───X^0.1───Z^0.2───────────@^0.3───┼───────┼───────X───────@───────X───X───────@^0.3───X───@───────
+#                                            │       │               │                               │
+# (1, 2): ───X^0.1───Z^0.2───────────────────@^0.3───┼───────@───────┼───────────────────────────────@^0.3───
+#                                                    │       │       │
+# (2, 0): ───X^0.1───────────────────────────────────@^0.3───┼───────┼───────────@───────────────────────────
+#                                                            │       │           │
+# (2, 1): ───X^0.1───Z^0.2───────────X───────────────────────┼───────@^0.3───X───@^0.3───@───────────────────
+#                                                            │                           │
+# (2, 2): ───X^0.1───Z^0.2───────────────────────────────────@^0.3───────────────────────@^0.3───────────────
 ```
 Where here we see that we have chosen particular parameter
 values (0.1, 0.2, 0.3).
@@ -450,8 +456,12 @@ import numpy as np
 
 def energy_func(length, h, jr, jc):
     def energy(measurements):
-        meas_list_of_lists = [measurements[i:i + length] for i in range(length)]
+        # Reshape measurement into array that matches grid shape.
+        meas_list_of_lists = [measurements[i * length:(i + 1) * length]
+                              for i in range(length)]
+        # Convert true/false to +1/-1.
         pm_meas = 1 - 2 * np.array(meas_list_of_lists).astype(np.int32)
+
         tot_energy = np.sum(pm_meas * h)
         for i, jr_row in enumerate(jr):
             for j, jr_ij in enumerate(jr_row):
@@ -463,7 +473,7 @@ def energy_func(length, h, jr, jc):
     return energy
 print(results.histogram(key='x', fold_func=energy_func(3, h, jr, jc)))
 # prints something like
-# Counter({-3: 94, -1: 3, 7: 2, 1: 1})
+# Counter({7: 79, 5: 12, -1: 4, 1: 3, 13: 1, -3: 1})
 ```
 One can then calculate the expectation value over all repetitions
 ```python
@@ -472,7 +482,7 @@ def obj_func(result):
     return np.sum(k * v for k,v in energy_hist.items()) / result.repetitions
 print('Value of the objective function {}'.format(obj_func(results)))
 # prints something like
-# Value of the objective function -2.7
+# Value of the objective function 6.2
 ```
 
 ### Parameterizing the Ansatz
@@ -501,23 +511,23 @@ circuit.append(one_step(h, jr, jc, alpha, beta, gamma))
 circuit.append(cirq.measure(*qubits, key='x'))
 print(circuit)
 # prints something like
-# (0, 0): ───X^alpha───X────────────@─────────X─────────────────────────────────────────────────────────────────@───────────────────M───
-#                                   │                                                                           │                   │
-# (0, 1): ───X^alpha───Z^beta───────┼─────────X───@─────────X───────────────────────────────────────────────────@^gamma─────────────M───
-#                                   │             │                                                                                 │
-# (0, 2): ───X^alpha────────────────┼─────────────┼─────────────@───────────────────────────────────────────────────────────────────M───
-#                                   │             │             │                                                                   │
-# (1, 0): ───X^alpha───Z^beta───X───@^gamma───X───┼─────────X───┼─────────@─────────X───────────────────────────@───────────────────M───
-#                                                 │             │         │                                     │                   │
-# (1, 1): ───X^alpha──────────────────────────X───@^gamma───X───┼─────────┼─────────X───@─────────X─────────────@^gamma───@─────────M───
-#                                                               │         │             │                                 │         │
-# (1, 2): ───X^alpha───Z^beta───────────────────────────────────@^gamma───┼─────────────┼─────────X───@─────────X─────────@^gamma───M───
-#                                                                         │             │             │                             │
-# (2, 0): ───X^alpha────────────────────────────────────────X─────────────@^gamma───X───┼─────────────┼─────────────────────────────M───
-#                                                                                       │             │                             │
-# (2, 1): ───X^alpha───Z^beta───────────────────────────────────────────────────────X───@^gamma───X───┼─────────────────────────────M───
-#                                                                                                     │                             │
-# (2, 2): ───X^alpha───Z^beta─────────────────────────────────────────────────────────────────────X───@^gamma───X───────────────────M───
+# (0, 0): ───X^alpha────────────@─────────────────────────────────────────────────────X─────────────@─────────X───────────────────────────────────────────────────────M('x')───
+#                               │                                                                   │                                                                 │
+# (0, 1): ───X^alpha───Z^beta───┼─────────@───────────────────────────────────────────X─────────────@^gamma───X───X───@─────────X─────────────────────────────────────M────────
+#                               │         │                                                                           │                                               │
+# (0, 2): ───X^alpha───Z^beta───┼─────────┼─────────@─────────────────────────────────────────────────────────────X───@^gamma───X─────────────────────────────────────M────────
+#                               │         │         │                                                                                                                 │
+# (1, 0): ───X^alpha────────────@^gamma───┼─────────┼─────────@─────────────────────────────────────────────────────────────────X───@─────────X───────────────────────M────────
+#                                         │         │         │                                                                     │                                 │
+# (1, 1): ───X^alpha───Z^beta─────────────@^gamma───┼─────────┼─────────X───@─────────X─────────────────────────────────────────X───@^gamma───X───@───────────────────M────────
+#                                                   │         │             │                                                                     │                   │
+# (1, 2): ───X^alpha───Z^beta───────────────────────@^gamma───┼─────────────┼─────────────@───────────────────────────────────────────────────────@^gamma─────────────M────────
+#                                                             │             │             │                                                                           │
+# (2, 0): ───X^alpha──────────────────────────────────────────@^gamma───────┼─────────────┼───────────────────────────────────────────────────────@───────────────────M────────
+#                                                                           │             │                                                       │                   │
+# (2, 1): ───X^alpha───Z^beta───────────────────────────────────────────X───@^gamma───X───┼───────────────────────────────────────────────────────@^gamma───@─────────M────────
+#                                                                                         │                                                                 │         │
+# (2, 2): ───X^alpha───Z^beta─────────────────────────────────────────────────────────────@^gamma───────────────────────────────────────────────────────────@^gamma───M────────```
 ```
 Note now that the circuit's gates are parameterized.
 
@@ -545,13 +555,14 @@ results = simulator.run_sweep(circuit, params=sweep, repetitions=100)
 for result in results:
     print(result.params.param_dict, obj_func(result))
 # prints something like
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.1)]) -4.7
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.30000000000000004)]) -4.86
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.5)]) -4.56
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.7000000000000001)]) -4.86
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.1)]) 6.42
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.30000000000000004)]) 6.48
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.5)]) 6.44
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.7000000000000001)]) 6.58
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.9)]) 6.58
 ...
-# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.7000000000000001)]) 4.54
-# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.9)]) 4.64
+# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.7000000000000001)]) 0.76
+# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.9)]) 0.94```
 ```
 
 ### Finiding the Minimum
@@ -576,7 +587,7 @@ for result in results:
         min_params = result.params
 print('Minimum objective value is {}.'.format(min))
 # prints something like
-# Minimum objective value is -5.06.
+# Minimum objective value is -1.42.
 ```
 
 We've created a simple variational quantum algorithm using Cirq.
