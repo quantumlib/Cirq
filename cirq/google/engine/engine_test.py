@@ -25,6 +25,7 @@ import cirq
 import cirq.google as cg
 from cirq.testing.mock import mock
 
+
 _A_RESULT = {
     'sweepResults': [
         {
@@ -70,6 +71,7 @@ _RESULTS = {
     ]
 }
 
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     v = cirq.google.JobConfig(project_id='my-project-id',
@@ -80,6 +82,7 @@ def test_repr():
                        "program_id='my-program-id', "
                        "job_id='my-job-id', gcs_prefix=None, "
                        "gcs_program=None, gcs_results=None)")
+
 
 @mock.patch.object(discovery, 'build')
 def test_run_circuit(build):
