@@ -176,7 +176,7 @@ def test_fails_when_ne_is_inconsistent():
             return self.x == other.x
 
         def __hash__(self):
-            return hash(self.x)
+            return hash(self.x)  # coverage: ignore
 
     with pytest.raises(AssertionError, match='inconsistent'):
         eq.make_equality_group(InconsistentNeImplementation)
