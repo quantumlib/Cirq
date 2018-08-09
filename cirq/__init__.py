@@ -15,7 +15,6 @@
 # Import sub-modules.
 
 from cirq import (
-    api,
     circuits,
     devices,
     google,
