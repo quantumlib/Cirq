@@ -31,7 +31,7 @@ def test_wrapper_repr():
 
     node = cirq.CircuitDag.make_node(cirq.X(q0))
     assert (repr(node) ==
-            'Unique(' + str(id(node)) + ', GateOperation(X, (LineQubit(0),)))')
+            'Unique(' + str(id(node)) + ', cirq.X.on(cirq.LineQubit(0)))')
 
 
 def test_init():
@@ -62,9 +62,9 @@ def test_two_identical_ops():
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert len(dag.nodes) == 3
     assert (set((n1.val, n2.val) for n1, n2 in dag.edges) ==
-            set(((cirq.X(q0), cirq.Y(q0)),
-                 (cirq.X(q0), cirq.X(q0)),
-                 (cirq.Y(q0), cirq.X(q0)))))
+            {(cirq.X(q0), cirq.Y(q0)),
+             (cirq.X(q0), cirq.X(q0)),
+             (cirq.Y(q0), cirq.X(q0))})
 
 
 def test_from_ops():
