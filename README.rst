@@ -1,3 +1,4 @@
+
 .. image:: https://github.com/quantumlib/cirq/blob/master/docs/Cirq_logo_color.svg
   :alt: Cirq
   :width: 500px
