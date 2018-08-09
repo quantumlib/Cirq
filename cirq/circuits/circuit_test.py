@@ -436,6 +436,7 @@ def test_insert_at_frontier():
 
     class Replacer(PointOptimizer):
         def __init__(self, replacer=(lambda x: x)):
+            super().__init__()
             self.replacer = replacer
 
         def optimization_at(self, circuit, index, op):
