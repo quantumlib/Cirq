@@ -33,6 +33,14 @@ matrix:
     script: check/pytest-and-incremental-coverage master
 
   - os: linux
+    env: NAME=pytest
+    python: "3.6"
+    install:
+      - pip install -r requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest
+
+  - os: linux
     env: NAME=pytest2
     python: "2.7"
     install:
