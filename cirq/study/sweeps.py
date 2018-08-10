@@ -126,7 +126,7 @@ class _Unit(Sweep):
         yield ()
 
     def __repr__(self):
-        return 'cirq.Unit'
+        return 'cirq.UnitSweep'
 
 
 UnitSweep = _Unit()  # singleton instance
@@ -176,7 +176,8 @@ class Product(Sweep):
         return _gen(self.factors)
 
     def __repr__(self):
-        return 'cirq.Product({})'.format(', '.join(repr(f) for f in self.factors))
+        return 'cirq.Product({})'.format(', '.join(
+            repr(f) for f in self.factors))
 
     def __str__(self):
         if not self.factors:

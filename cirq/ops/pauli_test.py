@@ -123,9 +123,9 @@ def test_str():
 
 
 def test_repr():
-    assert repr(cirq.Pauli.X) == 'Pauli.X'
-    assert repr(cirq.Pauli.Y) == 'Pauli.Y'
-    assert repr(cirq.Pauli.Z) == 'Pauli.Z'
+    assert repr(cirq.Pauli.X) == 'cirq.Pauli.X'
+    assert repr(cirq.Pauli.Y) == 'cirq.Pauli.Y'
+    assert repr(cirq.Pauli.Z) == 'cirq.Pauli.Z'
 
 
 def test_third():

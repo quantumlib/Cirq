@@ -56,7 +56,9 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
                 self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
-        return 'cirq.QasmUGate({}, {}, {})'.format(self.lmda, self.theta, self.phi)
+        return 'cirq.QasmUGate({}, {}, {})'.format(self.lmda,
+                                                   self.theta,
+                                                   self.phi)
 
 
 class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
