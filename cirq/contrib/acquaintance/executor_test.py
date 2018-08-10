@@ -20,7 +20,7 @@ import pytest
 
 import cirq
 from cirq.contrib.acquaintance.strategy import (
-    complete_acquaintance_strategy, AcquaintanceStrategy)
+    complete_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
         LinearPermutationGate)
 from cirq.contrib.acquaintance.executor import (
@@ -52,13 +52,17 @@ def test_executor_explicit():
         bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
         GreedyExecutionStrategy(bad_gates, initial_mapping)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         executor(cirq.Circuit())
 
     with pytest.raises(TypeError):
-        bad_strategy = AcquaintanceStrategy(cirq.Circuit())
-        bad_strategy.append(cirq.X(qubits[0]))
+        bad_strategy = cirq.Circuit.from_ops(cirq.X(qubits[0]))
         executor(bad_strategy)
+
+    with pytest.raises(TypeError):
+        op = cirq.X(qubits[0])
+        bad_strategy = cirq.Circuit.from_ops(op)
+        executor.optimization_at(bad_strategy, 0, op)
 
     executor(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()

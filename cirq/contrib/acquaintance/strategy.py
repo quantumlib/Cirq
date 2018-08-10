@@ -17,14 +17,15 @@ from functools import partial
 from operator import ne
 from typing import Sequence, TYPE_CHECKING, Union
 
-from cirq.circuits import Circuit, Moment, ExpandComposite
-from cirq.extension import Extensions
-from cirq.ops import QubitId, GateOperation
+from cirq import circuits, extension, ops
+
 from cirq.contrib.acquaintance.gates import (
-     SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT,
-     op_acquaintance_size)
+     SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate)
+from cirq.contrib.acquaintance.devices import (
+    AcquaintanceDevice, UnconstrainedAcquaintanceDevice,
+    is_acquaintance_strategy, get_acquaintance_size)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -33,89 +34,101 @@ if TYPE_CHECKING:
 
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
-class AcquaintanceStrategy(Circuit):
-    """An acquaintance strategy is a special type of circuit that contains only
-    gates of two types: AcquaintanceOpportunityGate and PermutationGate. It
-    serves as a skeleton for compiling around geometric constraints.
+
+def rectify_acquaintance_strategy(
+        circuit: circuits.Circuit,
+        acquaint_first: bool=True
+        ) -> None:
+    """Splits moments so that they contain either only acquaintance gates
+    or only permutation gates. Orders resulting moments so that the first one
+    is of the same type as the previous one.
+    
+    Args:
+        circuit: The acquaintance strategy to rectify.
+        acquaint_first: Whether to make acquaintance moment first in when
+        splitting the first mixed moment.
     """
 
-    gate_types = (AcquaintanceOpportunityGate, PermutationGate)
+    if not is_acquaintance_strategy(circuit):
+        raise TypeError('not is_acquaintance_strategy(circuit)')
 
-    def __init__(self, circuit: Circuit=None) -> None:
-        if circuit is None:
-            circuit = Circuit()
-        for moment in circuit:
-            for op in moment.operations:
-                if not isinstance(op.gate, self.gate_types):
-                    raise ValueError('An acquaintance strategy can only'
-                        'contain gates of types {}'.format(self.gate_types))
-        super().__init__(circuit._moments)
-
-    def rectify(self, acquaint_first: bool=True):
-        """Splits moments so that they contain either only acquaintance gates
-        or only permutation gates."""
-        last_gate_type = self.gate_types[int(not acquaint_first)]
-        rectified_moments = []
-        for moment in self:
-            gate_type_to_ops = defaultdict(list
-                    ) # type: Dict[Type[STRATEGY_GATE], List[GateOperation]]
-            for op in moment.operations:
-                gate_type_to_ops[type(op.gate)].append(op)
-            if len(gate_type_to_ops) == 1:
-                rectified_moments.append(moment)
-                continue
-            for gate_type in sorted(gate_type_to_ops.keys(),
-                                    key=partial(ne, last_gate_type)):
-                rectified_moments.append(Moment(gate_type_to_ops[gate_type]))
-                last_gate_type = gate_type
-        self._moments = rectified_moments
-
-    def replace_acquaintance_with_swap_network(self,
-                                               qubit_order: Sequence[QubitId],
-                                               acquaintance_size: int=0
-                                               ) -> bool:
-        """Replace every moment containing acquaintance gates (after
-        rectification) with a generalized swap network, with the partition
-        given by the acquaintance gates in that moment (and singletons for the
-        free qubits). Accounts for reversing effect of swap networks.
-        """
-
-        self.rectify()
-        reflected = False
-        reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
-        for moment_index, moment in enumerate(self):
-            if reflected:
-                moment = moment.transform_qubits(reverse_map.__getitem__)
-            if all(isinstance(op.gate, AcquaintanceOpportunityGate)
-                    for op in moment.operations):
-                swap_network_gate = SwapNetworkGate.from_operations(
-                        qubit_order, moment.operations, acquaintance_size)
-                swap_network_op = swap_network_gate(*qubit_order)
-                moment = Moment([swap_network_op])
-                reflected = not reflected
-            self._moments[moment_index] = moment
-        return reflected
-
-    def acquaintance_size(self) -> int:
-        return max(op_acquaintance_size(op) for op in self.all_operations())
+    last_gate_type = AcquaintanceDevice.gate_types[int(not acquaint_first)]
+    rectified_moments = []
+    for moment in circuit:
+        gate_type_to_ops = defaultdict(list
+                ) # type: Dict[Type[STRATEGY_GATE], List[ops.GateOperation]]
+        for op in moment.operations:
+            gate_type_to_ops[type(op.gate)].append(op)
+        if len(gate_type_to_ops) == 1:
+            rectified_moments.append(moment)
+            continue
+        for gate_type in sorted(gate_type_to_ops.keys(),
+                                key=partial(ne, last_gate_type)):
+            rectified_moments.append(circuits.Moment(gate_type_to_ops[gate_type]))
+            last_gate_type = gate_type
+    circuit._moments = rectified_moments
 
 
-class ExposeAcquaintanceGates(ExpandComposite):
+def replace_acquaintance_with_swap_network(
+        circuit: circuits.Circuit,
+        qubit_order: Sequence[ops.QubitId],
+        acquaintance_size: int=0
+        ) -> bool:
+    """
+    Replace every moment containing acquaintance gates (after
+    rectification) with a generalized swap network, with the partition
+    given by the acquaintance gates in that moment (and singletons for the
+    free qubits). Accounts for reversing effect of swap networks.
+    
+    Args:
+        circuit: The acquaintance strategy.
+        qubit_order: The qubits, in order, on which the replacing swap network
+            gate acts on. 
+        acquaintance_size: The acquaintance size of the new swap network gate.
+
+    Returns: Whether or not the overall effect of the inserted swap network
+        gates is to reverse the order of the qubits, i.e. the parity of the
+        number of swap network gates inserted.
+    """
+
+    if not is_acquaintance_strategy(circuit):
+        raise TypeError('not is_acquaintance_strategy(circuit)')
+
+    rectify_acquaintance_strategy(circuit)
+    reflected = False
+    reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
+    for moment_index, moment in enumerate(circuit):
+        if reflected:
+            moment = moment.transform_qubits(reverse_map.__getitem__)
+        if all(isinstance(op.gate, AcquaintanceOpportunityGate)
+                for op in moment.operations):
+            swap_network_gate = SwapNetworkGate.from_operations(
+                    qubit_order, moment.operations, acquaintance_size)
+            swap_network_op = swap_network_gate(*qubit_order)
+            moment = circuits.Moment([swap_network_op])
+            reflected = not reflected
+        circuit._moments[moment_index] = moment
+    return reflected
+
+
+
+
+class ExposeAcquaintanceGates(circuits.ExpandComposite):
     """Decomposes any permutation gates that provide acquaintance opportunities
     in order to make them explicit."""
     def __init__(self):
-        self.extension = Extensions()
+        self.extension = extension.Extensions()
         self.no_decomp = lambda op: (
-                not op_acquaintance_size(op) or
-                (isinstance(op, GateOperation) and
+                not get_acquaintance_size(op) or
+                (isinstance(op, ops.GateOperation) and
                  isinstance(op.gate, AcquaintanceOpportunityGate)))
 
 expose_acquaintance_gates = ExposeAcquaintanceGates()
 
 
-def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
+def complete_acquaintance_strategy(qubit_order: Sequence[ops.QubitId],
                                    acquaintance_size: int=0,
-                                   ) -> AcquaintanceStrategy:
+                                   ) -> circuits.Circuit:
     """
     Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.
@@ -126,18 +139,19 @@ def complete_acquaintance_strategy(qubit_order: Sequence[QubitId],
         an operation.
 
     Returns:
-        An AcquaintanceStrategy capable of implementing any set of k-local
+        An circuit capable of implementing any set of k-local
         operation.
     """
     if acquaintance_size < 0:
         raise ValueError('acquaintance_size must be non-negative.')
     elif acquaintance_size == 0:
-        return AcquaintanceStrategy()
+        return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
 
-    strategy = AcquaintanceStrategy(
-            Circuit.from_ops(ACQUAINT(q) for q in qubit_order))
+    strategy = circuits.Circuit.from_ops(
+            (ACQUAINT(q) for q in qubit_order),
+            device=UnconstrainedAcquaintanceDevice)
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)
-        strategy.replace_acquaintance_with_swap_network(qubit_order,
-                                                        size_to_acquaint)
+        replace_acquaintance_with_swap_network(
+                strategy, qubit_order, size_to_acquaint)
     return strategy

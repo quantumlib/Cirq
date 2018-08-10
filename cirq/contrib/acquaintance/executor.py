@@ -15,17 +15,17 @@
 from collections import defaultdict
 from typing import Dict, TYPE_CHECKING, Sequence
 
-from cirq import abc
-from cirq.circuits import (
-        Circuit, PointOptimizer, PointOptimizationSummary)
-from cirq.ops import Operation, GateOperation, QubitId, OP_TREE
+from cirq import abc, circuits, ops
+
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
+from cirq.contrib.acquaintance.devices import (
+        is_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate,
         LogicalIndex,
         LogicalGates, LogicalMapping)
 from cirq.contrib.acquaintance.strategy import (
-        AcquaintanceStrategy, expose_acquaintance_gates)
+        expose_acquaintance_gates)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -45,40 +45,40 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[QubitId]
-                       ) -> OP_TREE:
+                       qubits: Sequence[ops.QubitId]
+                       ) -> ops.OP_TREE:
         """Gets the logical operations to apply to qubits."""
         pass
 
 
-class StrategyExecutor(PointOptimizer):
-    """Executes an AcquaintanceStrategy."""
+class StrategyExecutor(circuits.PointOptimizer):
+    """Executes an acquaintance strategy."""
 
     def __init__(self, execution_strategy: ExecutionStrategy) -> None:
         self.execution_strategy = execution_strategy
         self.mapping = execution_strategy.initial_mapping.copy()
 
-    def __call__(self, strategy: Circuit):
-        if not isinstance(strategy, AcquaintanceStrategy):
-            raise ValueError('Can only execute an acquaintance strategy.')
+    def __call__(self, strategy: circuits.Circuit):
+        if not is_acquaintance_strategy(strategy):
+            raise TypeError('not is_acquaintance_strategy(strategy)')
         expose_acquaintance_gates(strategy)
         super().optimize_circuit(strategy)
         return self.mapping.copy()
 
-    def optimization_at(self, circuit: Circuit, index: int, op: Operation):
-        if (isinstance(op, GateOperation) and
+    def optimization_at(self, circuit: circuits.Circuit, index: int, op: ops.Operation):
+        if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, AcquaintanceOpportunityGate)):
             logical_indices = tuple(self.mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(
                     logical_indices, op.qubits)
             clear_span = int(not self.execution_strategy.keep_acquaintance)
 
-            return PointOptimizationSummary(
+            return circuits.PointOptimizationSummary(
                     clear_span=clear_span,
                     clear_qubits=op.qubits,
                     new_operations=logical_operations)
 
-        if (isinstance(op, GateOperation) and
+        if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(self.mapping, op.qubits)
             return
@@ -112,8 +112,8 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[QubitId]
-                       ) -> OP_TREE:
+                       qubits: Sequence[ops.QubitId]
+                       ) -> ops.OP_TREE:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
             gates = self.index_set_to_gates.pop(index_set)
