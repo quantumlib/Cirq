@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import networkx
 
 import cirq
@@ -24,6 +26,12 @@ def test_wrapper_eq():
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q0)))
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.Y(q0)))
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q1)))
+
+
+def test_wrapper_ordering():
+    # TODO: Use OrderTester when it is finished
+    with pytest.raises(TypeError):
+        cirq.Unique(5) < object()
 
 
 def test_wrapper_repr():
