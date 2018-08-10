@@ -57,6 +57,32 @@ def test_optimize():
 """.strip()
 
 
+def test_handles_measurement_gate():
+    q0, q1 = cirq.LineQubit.range(2)
+    c_orig = cirq.Circuit.from_ops(
+        cirq.X(q0) ** 0.25,
+        cirq.H(q0),
+        cirq.CZ(q0, q1),
+        cirq.H(q0),
+        cirq.X(q0) ** 0.125,
+        cirq.MeasurementGate('m1')(q1),
+        cirq.MeasurementGate('m0')(q0),
+    )
+    c_opt = pauli_string_optimized_circuit(c_orig)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        c_orig.to_unitary_matrix(),
+        c_opt.to_unitary_matrix(),
+        atol=1e-7,
+    )
+
+    assert c_opt.to_text_diagram() == """
+0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───M('m0')───
+                 │
+1: ──────────────@───M('m1')────────────────────────────────────
+""".strip()
+
+
 def test_optimize_large_circuit():
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
