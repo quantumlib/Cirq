@@ -282,8 +282,9 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str, state: Dict):
         if is_python_3:
             assert_expected_lines_present_in_order(expected_outputs,
                                                    output_lines)
-    except:
-        print('SNIPPET: \n' + _indent([snippet]))
+    except AssertionError as ex:
+        new_msg = ex.args[0] + '\n\nIn snippet:\n{}'.format(_indent([snippet]))
+        ex.args = (new_msg,) + tuple(ex.args[1:])
         raise
 
 
@@ -318,11 +319,17 @@ def assert_expected_lines_present_in_order(expected_lines: List[str],
         while i < len(actual_lines) and actual_lines[i] != expected:
             i += 1
 
-        if i >= len(actual_lines):
-            print('ACTUAL LINES: \n' + _indent(actual_lines))
-            print('EXPECTED LINES: \n' + _indent(expected_lines))
-            raise AssertionError(
-                'Missing expected line: {}'.format(expected))
+        assert i < len(actual_lines), (
+            'Missing expected line: {!r}\n'
+            '\n'
+            'Actual lines:\n'
+            '{}\n'
+            '\n'
+            'Expected lines:\n'
+            '{}\n'.format(expected,
+                          _indent(actual_lines),
+                          _indent(expected_lines))
+        )
         i += 1
 
 

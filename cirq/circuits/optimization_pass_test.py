@@ -48,38 +48,38 @@ def test_equality():
                                                    new_operations=[xa, xa]))
 
 
+class ReplaceWithXGates(PointOptimizer):
+    """Replaces a block of operations with X gates.
+
+    Searches ahead for gates covering a subset of the focused operation's
+    qubits, clears the whole range, and inserts X gates for each cleared
+    operation's qubits.
+    """
+    def optimization_at(self, circuit, index, op):
+        end = index + 1
+        new_ops = [cirq.X(q) for q in op.qubits]
+        done = False
+        while not done:
+            n = circuit.next_moment_operating_on(op.qubits, end)
+            if n is None:
+                break
+            next_ops = {circuit.operation_at(q, n) for q in op.qubits}
+            next_ops = [e for e in next_ops if e]
+            next_ops = sorted(next_ops, key=lambda e: str(e.qubits))
+            for next_op in next_ops:
+                if next_op:
+                    if set(next_op.qubits).issubset(op.qubits):
+                        end = n + 1
+                        new_ops.extend(cirq.X(q) for q in next_op.qubits)
+                    else:
+                        done = True
+
+        return PointOptimizationSummary(clear_span=end - index,
+                                        clear_qubits=op.qubits,
+                                        new_operations=new_ops)
+
+
 def test_point_optimizer_can_write_new_gates_inline():
-
-    class ReplaceWithXGates(PointOptimizer):
-        """Replaces a block of operations with X gates.
-
-        Searches ahead for gates covering a subset of the focused operation's
-        qubits, clears the whole range, and inserts X gates for each cleared
-        operation's qubits.
-        """
-        def optimization_at(self, circuit, index, op):
-            end = index + 1
-            new_ops = [cirq.X(q) for q in op.qubits]
-            done = False
-            while not done:
-                n = circuit.next_moment_operating_on(op.qubits, end)
-                if n is None:
-                    break
-                next_ops = {circuit.operation_at(q, n) for q in op.qubits}
-                next_ops = [e for e in next_ops if e]
-                next_ops = sorted(next_ops, key=lambda e: str(e.qubits))
-                for next_op in next_ops:
-                    if next_op:
-                        if set(next_op.qubits).issubset(op.qubits):
-                            end = n + 1
-                            new_ops.extend(cirq.X(q) for q in next_op.qubits)
-                        else:
-                            done = True
-
-            return PointOptimizationSummary(clear_span=end - index,
-                                            clear_qubits=op.qubits,
-                                            new_operations=new_ops)
-
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
     z = cirq.NamedQubit('z')
@@ -104,6 +104,39 @@ x: ───X───X───X───────X────────�
 y: ───X───X───────X───X───X───X───
 
 z: ───────────────X───X───X───────
+    """.strip()
+
+    assert actual_text_diagram == expected_text_diagram
+
+
+def test_point_optimizer_post_clean_up():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    z = cirq.NamedQubit('z')
+    c = cirq.Circuit.from_ops(
+        cirq.CZ(x, y),
+        cirq.Y(x),
+        cirq.Z(x),
+        cirq.X(y),
+        cirq.CNOT(y, z),
+        cirq.Z(y),
+        cirq.Z(x),
+        cirq.CNOT(y, z),
+        cirq.CNOT(z, y),
+    )
+
+    def clean_up(operations):
+        for op in operations:
+            yield op ** 0.5
+    ReplaceWithXGates(post_clean_up=clean_up)(c)
+
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+x: ───X^0.5───X^0.5───X^0.5───────────X^0.5───────────────────
+
+y: ───X^0.5───X^0.5───────────X^0.5───X^0.5───X^0.5───X^0.5───
+
+z: ───────────────────────────X^0.5───X^0.5───X^0.5───────────
     """.strip()
 
     assert actual_text_diagram == expected_text_diagram
