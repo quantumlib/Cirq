@@ -57,6 +57,8 @@ def test_init():
 
 @cirq.testing.only_test_in_python3
 def test_repr():
+    d = square_device(2, 2, holes=[])
+
     assert repr(d) == ("XmonDevice(measurement_duration=Duration(picos=1000), "
                        "exp_w_duration=Duration(picos=2000), exp_11_duration=Duration(picos=3000) "
                        "qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0), "
