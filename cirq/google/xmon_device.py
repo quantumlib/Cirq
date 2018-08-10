@@ -198,11 +198,9 @@ class XmonDevice(Device):
     def __repr__(self):
         return ('XmonDevice(measurement_duration={!r}, '
                 'exp_w_duration={!r}, '
-                'exp_11_duration={!r}), '
-                'qubits={!r}').format(self._measurement_duration,
-                                      self._exp_w_duration,
-                                      self._exp_z_duration,
-                                      self.qubits)
+                'exp_11_duration={!r})').format(self._measurement_duration,
+                                                self._exp_w_duration,
+                                                self._exp_z_duration)
 
     def __str__(self):
         diagram = TextDiagramDrawer()
