@@ -40,6 +40,10 @@ def _possible_string_placements(
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
+            if (isinstance(out_op, PauliStringPhasor)
+                and out_op.pauli_string.commutes_with(string_op.pauli_string)):
+                # Pass through another Pauli string if they commute
+                continue
             if not (isinstance(out_op, ops.GateOperation) and
                     isinstance(out_op.gate, (ops.CliffordGate,
                                              ops.PauliInteractionGate,
