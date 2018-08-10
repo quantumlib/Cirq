@@ -196,7 +196,11 @@ class XmonDevice(Device):
         return sorted(q for q in self.qubits if q.col == col)
 
     def __repr__(self):
-        return 'cirq.google.Foxtail'
+        return ('XmonDevice(measurement_duration={!r}, '
+                'exp_w_duration={!r}, '
+                'exp_11_duration={!r})').format(self._measurement_duration,
+                                                self._exp_w_duration,
+                                                self._exp_z_duration)
 
     def __str__(self):
         diagram = TextDiagramDrawer()
