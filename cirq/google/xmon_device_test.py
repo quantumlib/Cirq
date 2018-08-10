@@ -57,9 +57,7 @@ def test_init():
 
 @cirq.testing.only_test_in_python3
 def test_repr():
-    assert repr(cirq.google.Foxtail) == ("XmonDevice(measurement_duration=Duration(picos=1000000), "
-                                         "exp_w_duration=Duration(picos=20000), "
-                                         "exp_11_duration=Duration(picos=50000))")
+    assert repr(cirq.google.Foxtail) == 'cirq.google.Foxtail'
 
 
 def test_can_add_operation_into_moment():
