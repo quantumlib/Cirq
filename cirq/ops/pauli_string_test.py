@@ -161,12 +161,12 @@ def test_repr():
     pauli_string = cirq.PauliString({q2: cirq.Pauli.X, q1: cirq.Pauli.Y,
                                      q0: cirq.Pauli.Z})
     assert (repr(pauli_string) ==
-            "PauliString({NamedQubit('q0'): Pauli.Z, "
-            "NamedQubit('q1'): Pauli.Y, NamedQubit('q2'): Pauli.X}, "
+            "PauliString({cirq.NamedQubit('q0'): Pauli.Z, "
+            "cirq.NamedQubit('q1'): Pauli.Y, cirq.NamedQubit('q2'): Pauli.X}, "
             "False)")
     assert (repr(pauli_string.negate()) ==
-            "PauliString({NamedQubit('q0'): Pauli.Z, "
-            "NamedQubit('q1'): Pauli.Y, NamedQubit('q2'): Pauli.X}, "
+            "PauliString({cirq.NamedQubit('q0'): Pauli.Z, "
+            "cirq.NamedQubit('q1'): Pauli.Y, cirq.NamedQubit('q2'): Pauli.X}, "
             "True)")
 
 
@@ -410,6 +410,17 @@ def test_pass_operations_over_cz():
     op0 = cirq.CZ(q0, q1)
     ps_before = cirq.PauliString({q0: cirq.Pauli.Z, q1: cirq.Pauli.Y})
     ps_after = cirq.PauliString({q1: cirq.Pauli.Y})
+    _assert_pass_over([op0], ps_before, ps_after)
+
+
+def test_pass_operations_over_no_common_qubits():
+    class DummyGate(cirq.Gate):
+        pass
+
+    q0, q1 = _make_qubits(2)
+    op0 = DummyGate()(q1)
+    ps_before = cirq.PauliString({q0: cirq.Pauli.Z})
+    ps_after = cirq.PauliString({q0: cirq.Pauli.Z})
     _assert_pass_over([op0], ps_before, ps_after)
 
 
