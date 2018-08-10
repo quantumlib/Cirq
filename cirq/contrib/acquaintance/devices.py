@@ -23,12 +23,16 @@ from cirq.contrib.acquaintance.permutation import (
 
 
 class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
+    """A device that contains only acquaintance and permutation gates."""
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
     def validate_operation(self, operation: ops.Operation) -> None:
         if not (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, self.gate_types)):
             raise TypeError('not isinstance(gate, gate_types)')
+
+    def duration_of(self, operation):
+        raise NotImplementedError()
 
     def validate_scheduled_operation(
             self,
@@ -61,8 +65,6 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
 
 class _UnconstrainedAcquaintanceDevice(AcquaintanceDevice):
     "An acquaintance device with no constraints other than of the gate types."
-    def duration_of(self, operation):
-        return schedules.Duration(picos=0)
 
     def __repr__(self):
         return 'UnconstrainedAcquaintanceDevice'  # coverage: ignore

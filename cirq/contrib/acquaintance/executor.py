@@ -94,15 +94,17 @@ class StrategyExecutor(circuits.PointOptimizer):
 class GreedyExecutionStrategy(ExecutionStrategy):
     """A greedy execution strategy. When an acquaintance opportunity is
     reached, all gates acting on those qubits in any order are inserted.
-
-        Args:
-            gates: The gates to insert.
-            initial_mapping: The initial mapping of qubits to logical indices.
     """
     def __init__(self,
                  gates: LogicalGates,
                  initial_mapping: LogicalMapping
                  ) -> None:
+        """
+        Args:
+            gates: The gates to insert.
+            initial_mapping: The initial mapping of qubits to logical indices.
+        """
+
         if len(set(len(indices) for indices in gates)) > 1:
             raise NotImplementedError(
                     'Can only implement greedy strategy if all gates '
