@@ -42,7 +42,7 @@ def rectify_acquaintance_strategy(
     """Splits moments so that they contain either only acquaintance gates
     or only permutation gates. Orders resulting moments so that the first one
     is of the same type as the previous one.
-    
+
     Args:
         circuit: The acquaintance strategy to rectify.
         acquaint_first: Whether to make acquaintance moment first in when
@@ -64,7 +64,8 @@ def rectify_acquaintance_strategy(
             continue
         for gate_type in sorted(gate_type_to_ops.keys(),
                                 key=partial(ne, last_gate_type)):
-            rectified_moments.append(circuits.Moment(gate_type_to_ops[gate_type]))
+            rectified_moments.append(
+                    circuits.Moment(gate_type_to_ops[gate_type]))
             last_gate_type = gate_type
     circuit._moments = rectified_moments
 
@@ -79,11 +80,11 @@ def replace_acquaintance_with_swap_network(
     rectification) with a generalized swap network, with the partition
     given by the acquaintance gates in that moment (and singletons for the
     free qubits). Accounts for reversing effect of swap networks.
-    
+
     Args:
         circuit: The acquaintance strategy.
         qubit_order: The qubits, in order, on which the replacing swap network
-            gate acts on. 
+            gate acts on.
         acquaintance_size: The acquaintance size of the new swap network gate.
 
     Returns: Whether or not the overall effect of the inserted swap network

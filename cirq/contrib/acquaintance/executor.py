@@ -65,7 +65,10 @@ class StrategyExecutor(circuits.PointOptimizer):
         super().optimize_circuit(strategy)
         return self.mapping.copy()
 
-    def optimization_at(self, circuit: circuits.Circuit, index: int, op: ops.Operation):
+    def optimization_at(self,
+                        circuit: circuits.Circuit,
+                        index: int,
+                        op: ops.Operation):
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, AcquaintanceOpportunityGate)):
             logical_indices = tuple(self.mapping[q] for q in op.qubits)

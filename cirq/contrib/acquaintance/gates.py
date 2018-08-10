@@ -16,9 +16,9 @@ import functools
 import itertools
 import math
 import operator
-from typing import Sequence, Dict, Tuple, List, NamedTuple, Union
+from typing import Sequence, Dict, Tuple, List, NamedTuple
 
-from cirq import circuits, ops
+from cirq import ops
 
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (

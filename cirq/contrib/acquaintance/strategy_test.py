@@ -28,7 +28,7 @@ from cirq.contrib.acquaintance.strategy import (
 from cirq.contrib.acquaintance.gates import (
     ACQUAINT)
 from cirq.contrib.acquaintance.devices import (
-    AcquaintanceDevice, UnconstrainedAcquaintanceDevice,
+    UnconstrainedAcquaintanceDevice,
     get_acquaintance_size)
 
 
