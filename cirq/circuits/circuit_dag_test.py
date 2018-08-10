@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import networkx
 
 import cirq
@@ -24,6 +26,29 @@ def test_wrapper_eq():
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q0)))
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.Y(q0)))
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q1)))
+
+
+def test_wrapper_cmp():
+    u0 = cirq.Unique(0)
+    u1 = cirq.Unique(1)
+    # The ordering of Unique instances is unpredictable
+    u0, u1 = (u1, u0) if u1 < u0 else (u0, u1)
+    assert u0 == u0
+    assert u0 != u1
+    assert u0 <  u1
+    assert u1 >  u0
+    assert u0 <= u0
+    assert u0 <= u1
+    assert u0 >= u0
+    assert u1 >= u0
+
+
+@cirq.testing.only_test_in_python3
+def test_wrapper_cmp_failure():
+    with pytest.raises(TypeError):
+        _ = object() < cirq.Unique(1)
+    with pytest.raises(TypeError):
+        _ = cirq.Unique(1) < object()
 
 
 def test_wrapper_repr():
@@ -126,6 +151,57 @@ def test_to_circuit():
         circuit.to_unitary_matrix(),
         dag.to_circuit().to_unitary_matrix(),
         atol=1e-7)
+
+
+def test_equality():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit1 = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.Z(q1),
+        cirq.CZ(q0, q1),
+        cirq.X(q1),
+        cirq.Y(q1),
+        cirq.Z(q0),
+    )
+    circuit2 = cirq.Circuit.from_ops(
+        cirq.Z(q1),
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.CZ(q0, q1),
+        cirq.Z(q0),
+        cirq.X(q1),
+        cirq.Y(q1),
+    )
+    circuit3 = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.Z(q1),
+        cirq.CZ(q0, q1),
+        cirq.X(q1),
+        cirq.Y(q1),
+        cirq.Z(q0) ** 0.5,
+    )
+    circuit4 = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.Z(q1),
+        cirq.CZ(q0, q1),
+        cirq.X(q1),
+        cirq.Y(q1),
+    )
+
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_group(
+        lambda: cirq.CircuitDag.from_circuit(circuit1),
+        lambda: cirq.CircuitDag.from_circuit(circuit2),
+    )
+    eq.add_equality_group(
+        cirq.CircuitDag.from_circuit(circuit3),
+    )
+    eq.add_equality_group(
+        cirq.CircuitDag.from_circuit(circuit4),
+    )
 
 
 def test_larger_circuit():
