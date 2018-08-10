@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Generic, Iterator, TypeVar
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar
 
 import networkx
 
@@ -37,6 +37,11 @@ class Unique(Generic[T]):
 
     def __repr__(self):
         return 'Unique({}, {!r})'.format(id(self), self.val)
+
+    def __lt__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return hash(self) < hash(other)
 
 
 def _disjoint_qubits(op1: ops.Operation, op2: ops.Operation) -> bool:
@@ -113,6 +118,24 @@ class CircuitDag(networkx.DiGraph):
                              for node in self.nodes
                              if not self.can_reorder(node.val, new_node.val)])
         self.add_node(new_node)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        g1 = self.copy()
+        g2 = other.copy()
+        for node, attr in g1.nodes.items():
+            attr['val'] = node.val
+        for node, attr in g2.nodes.items():
+            attr['val'] = node.val
+        def node_match(attr1: Dict[Any, Any], attr2: Dict[Any, Any]) -> bool:
+            return attr1['val'] == attr2['val']
+        return networkx.is_isomorphic(g1, g2, node_match=node_match)
+
+    def __ne__(self, other):
+        return not self == other
+
+    __hash__ = None  # type: ignore
 
     def ordered_nodes(self) -> Iterator[Unique[ops.Operation]]:
         if not self.nodes:

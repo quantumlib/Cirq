@@ -128,6 +128,57 @@ def test_to_circuit():
         atol=1e-7)
 
 
+def test_equality():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit1 = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.Z(q1),
+        cirq.CZ(q0, q1),
+        cirq.X(q1),
+        cirq.Y(q1),
+        cirq.Z(q0),
+    )
+    circuit2 = cirq.Circuit.from_ops(
+        cirq.Z(q1),
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.CZ(q0, q1),
+        cirq.Z(q0),
+        cirq.X(q1),
+        cirq.Y(q1),
+    )
+    circuit3 = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.Z(q1),
+        cirq.CZ(q0, q1),
+        cirq.X(q1),
+        cirq.Y(q1),
+        cirq.Z(q0) ** 0.5,
+    )
+    circuit4 = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q0),
+        cirq.Z(q1),
+        cirq.CZ(q0, q1),
+        cirq.X(q1),
+        cirq.Y(q1),
+    )
+
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_group(
+        lambda: cirq.CircuitDag.from_circuit(circuit1),
+        lambda: cirq.CircuitDag.from_circuit(circuit2),
+    )
+    eq.add_equality_group(
+        cirq.CircuitDag.from_circuit(circuit3),
+    )
+    eq.add_equality_group(
+        cirq.CircuitDag.from_circuit(circuit4),
+    )
+
+
 def test_larger_circuit():
     q0, q1, q2, q3 = cirq.google.Bristlecone.col(5)[:4]
     # This circuit does not have CZ gates on adjacent qubits because the order
