@@ -413,6 +413,17 @@ def test_pass_operations_over_cz():
     _assert_pass_over([op0], ps_before, ps_after)
 
 
+def test_pass_operations_over_no_common_qubits():
+    class DummyGate(cirq.Gate):
+        pass
+
+    q0, q1 = _make_qubits(2)
+    op0 = DummyGate()(q1)
+    ps_before = cirq.PauliString({q0: cirq.Pauli.Z})
+    ps_after = cirq.PauliString({q0: cirq.Pauli.Z})
+    _assert_pass_over([op0], ps_before, ps_after)
+
+
 def test_pass_unsupported_operations_over():
     q0, = _make_qubits(1)
     pauli_string = cirq.PauliString({q0: cirq.Pauli.X})
