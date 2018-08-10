@@ -27,7 +27,7 @@ class _CCZGate(gate_features.ThreeQubitGate,
                gate_features.CompositeGate,
                gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """A doubly-controlled-Z."""
 
     def default_decompose(self, qubits):
@@ -87,7 +87,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
                gate_features.CompositeGate,
                gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -123,7 +123,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.CompositeGate,
                  gate_features.KnownMatrix,
                  gate_features.InterchangeableQubitsGate,
-                 gate_features.QasmConvertableGate):
+                 gate_features.QasmConvertibleGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):

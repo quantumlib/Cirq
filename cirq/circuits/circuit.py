@@ -231,11 +231,18 @@ class Circuit(ops.ParameterizableEffect):
         return self * repetitions
 
     def __repr__(self):
-        moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
+        if not self._moments and self._device == devices.UnconstrainedDevice:
+            return 'cirq.Circuit()'
+
+        if not self._moments:
+            return 'cirq.Circuit(device={!r})'.format(self._device)
+
+        moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UnconstrainedDevice:
-            return 'Circuit([{}])'.format(','.join(moment_lines))
-        return 'Circuit([{}], device={!r})'.format(','.join(moment_lines),
-                                                   self._device)
+            return 'cirq.Circuit(moments={})'.format(moment_str)
+
+        return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,
+                                                              self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -1132,7 +1139,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1160,7 +1167,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1363,3 +1370,9 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
         raise TypeError(
             'Operation without a known matrix or decomposition: {!r}'.format(
                 op))
+
+
+def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
+    block = '\n'.join([repr(op) + ',' for op in items])
+    indented = '    ' + '\n    '.join(block.split('\n'))
+    return '[\n{}\n]'.format(indented)

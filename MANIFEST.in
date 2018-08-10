@@ -1,2 +1,2 @@
-include runtime-requirements.txt
+include requirements.txt
 include LICENSE

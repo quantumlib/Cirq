@@ -11,4 +11,4 @@
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $(git rev-parse --show-toplevel)
 
-pylint --rcfile=continuous-integration/.pylintrc $@ cirq dev_tools examples
+pylint --rcfile=dev_tools/conf/.pylintrc $@ cirq dev_tools examples

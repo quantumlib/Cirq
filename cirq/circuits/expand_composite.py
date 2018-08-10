@@ -44,6 +44,7 @@ class ExpandComposite(PointOptimizer):
             no_decomp: A predicate that determines whether an operation should
                 be decomposed or not. Defaults to decomposing everything.
         """
+        super().__init__()
         self.extension = composite_gate_extension or extension.Extensions()
         self.no_decomp = no_decomp
 

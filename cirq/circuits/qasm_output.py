@@ -25,7 +25,7 @@ import numpy as np
 from cirq import ops, linalg, extension
 
 
-class QasmUGate(ops.SingleQubitGate, ops.QasmConvertableGate):
+class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
     def __init__(self, lmda, theta, phi) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
@@ -251,7 +251,7 @@ class QasmOutput:
                           output_line_gap: Callable[[int], None],
                           top=True) -> None:
         for op in ops.flatten_op_tree(op_tree):
-            qasm_op = self.ext.try_cast(ops.QasmConvertableOperation, op)
+            qasm_op = self.ext.try_cast(ops.QasmConvertibleOperation, op)
             if qasm_op is not None:
                 out = qasm_op.known_qasm_output(self.args)
                 if out is not None:

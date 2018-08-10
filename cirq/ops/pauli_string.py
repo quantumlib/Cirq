@@ -154,6 +154,11 @@ class PauliString:
         pauli_map = dict(self._qubit_pauli_map)
         inv = self.negated
         for op in ops:
+            if not set(op.qubits) & set(pauli_map.keys()):
+                # op operates on an independent set of qubits from the Pauli
+                # string.  The order can be switched with no change no matter
+                # what op is.
+                continue
             inv ^= PauliString._pass_operation_over(pauli_map,
                                                     op,
                                                     after_to_before)

@@ -279,7 +279,8 @@ def test_bounded_effect_via_extension():
 
 
 def test_repr():
-    assert repr(cirq.ControlledGate(cirq.Z)) == 'ControlledGate(sub_gate=Z)'
+    assert repr(
+        cirq.ControlledGate(cirq.Z)) == 'ControlledGate(sub_gate=cirq.Z)'
 
 
 def test_str():

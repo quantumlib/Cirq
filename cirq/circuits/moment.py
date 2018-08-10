@@ -14,7 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Iterable, TypeVar, Callable
+from typing import Any, Iterable, TypeVar, Callable, Sequence
 
 from cirq import ops
 
@@ -108,7 +108,10 @@ class Moment(object):
         return hash((Moment, self.operations))
 
     def __repr__(self):
-        return 'Moment({})'.format(repr(self.operations))
+        if not self.operations:
+            return 'cirq.Moment()'
+        return 'cirq.Moment(operations={})'.format(
+            _list_repr_with_indented_item_lines(self.operations))
 
     def __str__(self):
         return ' and '.join(str(op) for op in self.operations)
@@ -118,3 +121,9 @@ class Moment(object):
                          ) -> TSelf_Moment:
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
+
+
+def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
+    block = '\n'.join([repr(op) + ',' for op in items])
+    indented = '    ' + '\n    '.join(block.split('\n'))
+    return '[\n{}\n]'.format(indented)
