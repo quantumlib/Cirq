@@ -50,12 +50,6 @@ def _possible_string_placements(
                                                        after_to_before=True)
             yield string_op, i+1, possible_node
 
-        if len(string_op.pauli_string) == 1:
-            # This is as far as any Pauli string can go on this qubit
-            # and this Pauli string can be moved here.
-            # Stop searching to save time.
-            return
-
 
 def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
                                                         circuits.CircuitDag],
