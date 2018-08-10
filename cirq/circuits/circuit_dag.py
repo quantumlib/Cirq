@@ -14,6 +14,7 @@
 
 from typing import Any, Callable, Dict, Generic, Iterator, TypeVar
 
+import functools
 import networkx
 
 from cirq import ops, devices
@@ -22,6 +23,7 @@ from cirq.circuits import circuit
 
 T = TypeVar('T')
 
+@functools.total_ordering
 class Unique(Generic[T]):
     """A wrapper for a value that doesn't compare equal to other instances.
 
@@ -41,7 +43,7 @@ class Unique(Generic[T]):
     def __lt__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return hash(self) < hash(other)
+        return id(self) < id(other)
 
 
 def _disjoint_qubits(op1: ops.Operation, op2: ops.Operation) -> bool:

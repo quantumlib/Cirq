@@ -28,10 +28,28 @@ def test_wrapper_eq():
     eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q1)))
 
 
-def test_wrapper_ordering():
-    # TODO: Use OrderTester when it is finished
+def test_wrapper_cmp():
+    u0 = cirq.Unique(0)
+    u1 = cirq.Unique(1)
+    if u1 < u0:
+        # The ordering of Unique instances is unpredictable
+        u0, u1 = u1, u0
+    assert u0 == u0
+    assert u0 != u1
+    assert u0 <  u1
+    assert u1 >  u0
+    assert u0 <= u0
+    assert u0 <= u1
+    assert u0 >= u0
+    assert u1 >= u0
+
+
+@cirq.testing.only_test_in_python3
+def test_wrapper_cmp_failure():
     with pytest.raises(TypeError):
-        cirq.Unique(5) < object()
+        _ = object() < cirq.Unique(1)
+    with pytest.raises(TypeError):
+        _ = cirq.Unique(1) < object()
 
 
 def test_wrapper_repr():
