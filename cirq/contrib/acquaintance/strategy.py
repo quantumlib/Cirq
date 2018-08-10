@@ -118,6 +118,7 @@ class ExposeAcquaintanceGates(circuits.ExpandComposite):
     """Decomposes any permutation gates that provide acquaintance opportunities
     in order to make them explicit."""
     def __init__(self):
+        circuits.PointOptimizer.__init__(self)
         self.extension = extension.Extensions()
         self.no_decomp = lambda op: (
                 not get_acquaintance_size(op) or

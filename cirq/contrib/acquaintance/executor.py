@@ -55,6 +55,7 @@ class StrategyExecutor(circuits.PointOptimizer):
     """Executes an acquaintance strategy."""
 
     def __init__(self, execution_strategy: ExecutionStrategy) -> None:
+        super().__init__()
         self.execution_strategy = execution_strategy
         self.mapping = execution_strategy.initial_mapping.copy()
 
