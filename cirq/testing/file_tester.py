@@ -12,19 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import Any
 
 import os, shutil, tempfile
 
 
 class TempFilePath:
     """A context manager that provides a temporary file path for use within a
-    with statement.
+    'with' statement.
     """
-    def __enter__(self) -> Union[str, bytes]:
+    def __enter__(self) -> str:
         self.dir_path = tempfile.mkdtemp(prefix='test-output-')
         file_path = os.path.join(self.dir_path, 'test-file')
         return file_path
+
+    def __exit__(self, err_type: Any, err_args: Any, traceback: Any) -> None:
+        shutil.rmtree(self.dir_path)
+
+
+class TempDirectoryPath:
+    """A context manager that provides a temporary directory for use within a
+    'with' statement.
+    """
+    def __enter__(self) -> str:
+        self.dir_path = tempfile.mkdtemp(prefix='test-output-')
+        return self.dir_path
 
     def __exit__(self, err_type: Any, err_args: Any, traceback: Any) -> None:
         shutil.rmtree(self.dir_path)
