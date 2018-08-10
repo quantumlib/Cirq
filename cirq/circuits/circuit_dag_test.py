@@ -31,9 +31,8 @@ def test_wrapper_eq():
 def test_wrapper_cmp():
     u0 = cirq.Unique(0)
     u1 = cirq.Unique(1)
-    if u1 < u0:
-        # The ordering of Unique instances is unpredictable
-        u0, u1 = u1, u0
+    # The ordering of Unique instances is unpredictable
+    u0, u1 = (u1, u0) if u1 < u0 else (u0, u1)
     assert u0 == u0
     assert u0 != u1
     assert u0 <  u1
