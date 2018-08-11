@@ -50,4 +50,4 @@ def test_named_qubit_str():
 @cirq.testing.only_test_in_python3
 def test_named_qubit_repr():
     q = cirq.NamedQubit('a')
-    assert repr(q) == "NamedQubit('a')"
+    assert repr(q) == "cirq.NamedQubit('a')"

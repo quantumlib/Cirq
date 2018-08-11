@@ -362,7 +362,7 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_initial_state_ndarray_not_upconvertable(scheduler):
+def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()
 
     with pytest.raises(TypeError):

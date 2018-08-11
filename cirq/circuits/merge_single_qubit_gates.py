@@ -33,6 +33,7 @@ class MergeSingleQubitGates(PointOptimizer):
 
     def __init__(self,
                  extensions: extension.Extensions = None) -> None:
+        super().__init__()
         self.extensions = extensions or extension.Extensions()
 
     def optimization_at(self,

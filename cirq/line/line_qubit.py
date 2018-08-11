@@ -60,7 +60,7 @@ class LineQubit(ops.QubitId):
         return hash((LineQubit, self.x))
 
     def __repr__(self):
-        return 'LineQubit({})'.format(self.x)
+        return 'cirq.LineQubit({})'.format(self.x)
 
     def __str__(self):
         return '{}'.format(self.x)

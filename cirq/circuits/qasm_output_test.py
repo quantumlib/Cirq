@@ -176,7 +176,7 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.QasmConvertableOperation,
+    class DummyOperation(cirq.Operation, cirq.QasmConvertibleOperation,
                          cirq.CompositeOperation):
         qubits = (q0,)
         with_qubits = NotImplemented

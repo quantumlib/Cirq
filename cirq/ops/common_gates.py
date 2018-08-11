@@ -27,7 +27,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate,
-                gate_features.QasmConvertableGate):
+                gate_features.QasmConvertibleGate):
     """Phases the |11> state of two adjacent qubits by a fixed amount.
 
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
@@ -87,16 +87,21 @@ class Rot11Gate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.half_turns == 1:
             return 'CZ'
         return 'CZ**{!r}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'cirq.CZ'
+        return '(cirq.CZ**{!r})'.format(self.half_turns)
 
 
 class RotXGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -152,16 +157,21 @@ class RotXGate(eigen_gate.EigenGate,
             return args.format('rx({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.half_turns == 1:
             return 'X'
         return 'X**{!r}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'cirq.X'
+        return '(cirq.X**{!r})'.format(self.half_turns)
 
 
 class RotYGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -217,17 +227,22 @@ class RotYGate(eigen_gate.EigenGate,
             return args.format('ry({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.half_turns == 1:
             return 'Y'
         return 'Y**{!r}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'cirq.Y'
+        return '(cirq.Y**{!r})'.format(self.half_turns)
 
 
 class RotZGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
                gate_features.PhaseableEffect,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -298,7 +313,7 @@ class RotZGate(eigen_gate.EigenGate,
             return args.format('rz({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.half_turns == 0.25:
             return 'T'
         if self.half_turns == -0.25:
@@ -309,12 +324,25 @@ class RotZGate(eigen_gate.EigenGate,
             return 'S**-1'
         if self.half_turns == 1:
             return 'Z'
-        return 'Z**{!r}'.format(self.half_turns)
+        return 'Z**{}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 0.25:
+            return 'cirq.T'
+        if self.half_turns == -0.25:
+            return '(cirq.T**-1)'
+        if self.half_turns == 0.5:
+            return 'cirq.S'
+        if self.half_turns == -0.5:
+            return '(cirq.S**-1)'
+        if self.half_turns == 1:
+            return 'cirq.Z'
+        return '(cirq.Z**{!r})'.format(self.half_turns)
 
 
 class MeasurementGate(raw_types.Gate,
                       gate_features.TextDiagrammable,
-                      gate_features.QasmConvertableGate):
+                      gate_features.QasmConvertibleGate):
     """Indicates that qubits should be measured plus a key to identify results.
 
     Attributes:
@@ -467,7 +495,7 @@ class HGate(gate_features.CompositeGate,
             gate_features.ReversibleEffect,
             gate_features.KnownMatrix,
             gate_features.SingleQubitGate,
-            gate_features.QasmConvertableGate):
+            gate_features.QasmConvertibleGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
@@ -493,8 +521,11 @@ class HGate(gate_features.CompositeGate,
         args.validate_version('2.0')
         return args.format('h {0};\n', qubits[0])
 
-    def __repr__(self):
+    def __str__(self):
         return 'H'
+
+    def __repr__(self):
+        return 'cirq.H'
 
 
 H = HGate()  # Hadamard gate.
@@ -504,7 +535,7 @@ class CNotGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.TwoQubitGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """When applying CNOT (controlled-not) to QuBits, you can either use
     positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
     or named arguments CNOT(control=q1, target=q2).
@@ -573,10 +604,15 @@ class CNotGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.half_turns == 1:
             return 'CNOT'
         return 'CNOT**{!r}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'cirq.CNOT'
+        return '(cirq.CNOT**{!r})'.format(self.half_turns)
 
     def on(self, *args: raw_types.QubitId,
            **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
@@ -598,7 +634,7 @@ class SwapGate(eigen_gate.EigenGate,
                gate_features.TwoQubitGate,
                gate_features.CompositeGate,
                gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """Swaps two qubits."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -653,10 +689,15 @@ class SwapGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.half_turns == 1:
             return 'SWAP'
         return 'SWAP**{!r}'.format(self.half_turns)
+
+    def __repr__(self) -> str:
+        if self.half_turns == 1:
+            return 'cirq.SWAP'
+        return '(cirq.SWAP**{!r})'.format(self.half_turns)
 
 
 SWAP = SwapGate()  # Exchanges two qubits' states.
@@ -721,10 +762,15 @@ class ISwapGate(eigen_gate.EigenGate,
             wire_symbols=('iSwap', 'iSwap'),
             exponent=self._exponent)
 
-    def __repr__(self):
+    def __str__(self) -> str:
         if self.exponent == 1:
             return 'ISWAP'
         return 'ISWAP**{!r}'.format(self.exponent)
+
+    def __repr__(self):
+        if self.exponent == 1:
+            return 'cirq.ISWAP'
+        return '(cirq.ISWAP**{!r})'.format(self.exponent)
 
 
 ISWAP = ISwapGate()  # Swaps two qubits while phasing the swapped subspace by i.
