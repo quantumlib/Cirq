@@ -17,7 +17,7 @@ import pytest
 import cirq
 
 from cirq.contrib.acquaintance.devices import (
-        UnconstrainedAcquaintanceDevice, 
+        UnconstrainedAcquaintanceDevice,
         get_acquaintance_size)
 
 
@@ -26,10 +26,10 @@ def test_acquaintance_device():
         op = cirq.X(cirq.NamedQubit('q'))
         UnconstrainedAcquaintanceDevice.validate_operation(op)
 
+
 def test_get_acquaintance_size():
     with pytest.raises(TypeError):
         get_acquaintance_size(cirq.Circuit())
 
     with pytest.raises(TypeError):
         get_acquaintance_size(3)
-

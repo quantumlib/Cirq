@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
-from functools import partial
-from operator import ne
+import collections
+
 from typing import Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, extension, ops
@@ -24,7 +23,7 @@ from cirq.contrib.acquaintance.gates import (
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate)
 from cirq.contrib.acquaintance.devices import (
-    AcquaintanceDevice, UnconstrainedAcquaintanceDevice,
+    UnconstrainedAcquaintanceDevice,
     is_acquaintance_strategy, get_acquaintance_size)
 
 if TYPE_CHECKING:
@@ -52,21 +51,20 @@ def rectify_acquaintance_strategy(
     if not is_acquaintance_strategy(circuit):
         raise TypeError('not is_acquaintance_strategy(circuit)')
 
-    last_gate_type = AcquaintanceDevice.gate_types[int(not acquaint_first)]
     rectified_moments = []
     for moment in circuit:
-        gate_type_to_ops = defaultdict(list
-                ) # type: Dict[Type[STRATEGY_GATE], List[ops.GateOperation]]
+        gate_type_to_ops = collections.defaultdict(list
+                ) # type: Dict[bool, List[ops.GateOperation]]
         for op in moment.operations:
-            gate_type_to_ops[type(op.gate)].append(op)
+            gate_type_to_ops[isinstance(op.gate, AcquaintanceOpportunityGate)
+                    ].append(op)
         if len(gate_type_to_ops) == 1:
             rectified_moments.append(moment)
             continue
-        for gate_type in sorted(gate_type_to_ops.keys(),
-                                key=partial(ne, last_gate_type)):
+        for acquaint_first in sorted(gate_type_to_ops.keys(),
+                                     reverse=acquaint_first):
             rectified_moments.append(
-                    circuits.Moment(gate_type_to_ops[gate_type]))
-            last_gate_type = gate_type
+                    circuits.Moment(gate_type_to_ops[acquaint_first]))
     circuit._moments = rectified_moments
 
 
