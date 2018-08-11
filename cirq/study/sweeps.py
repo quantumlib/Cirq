@@ -176,7 +176,7 @@ class Product(Sweep):
         return _gen(self.factors)
 
     def __repr__(self):
-        return 'cirq.Product({})'.format(', '.join(
+        return 'cirq.study.sweeps.Product({})'.format(', '.join(
             repr(f) for f in self.factors))
 
     def __str__(self):
@@ -230,7 +230,8 @@ class Zip(Sweep):
             yield sum(values, ())
 
     def __repr__(self):
-        return 'cirq.Zip({})'.format(', '.join(repr(s) for s in self.sweeps))
+        return 'cirq.study.sweeps.Zip({})'.format(', '.join(
+            repr(s) for s in self.sweeps))
 
     def __str__(self):
         if not self.sweeps:
