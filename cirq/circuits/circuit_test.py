@@ -345,17 +345,6 @@ def test_append_strategies():
     ])
 
 
-def test_insert_bad_index_for_moments():
-    a = cirq.NamedQubit('alice')
-    b = cirq.NamedQubit('bob')
-
-    c = cirq.Circuit()
-
-    c.insert(0, Moment([cirq.X(a)]))
-    with pytest.raises(IndexError):
-        c.insert(-2, Moment([cirq.H(b)]))
-
-
 def test_insert():
     a = cirq.QubitId()
     b = cirq.QubitId()
@@ -365,20 +354,12 @@ def test_insert():
     c.insert(0, ())
     assert c == Circuit()
 
-    with pytest.raises(IndexError):
-        c.insert(-1, ())
-    with pytest.raises(IndexError):
-        c.insert(1, ())
-
     c.insert(0, [cirq.X(a), cirq.CZ(a, b), cirq.X(b)])
     assert c == Circuit([
         Moment([cirq.X(a)]),
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(b)]),
     ])
-
-    with pytest.raises(IndexError):
-        c.insert(550, ())
 
     c.insert(1, cirq.H(b), strategy=cirq.InsertStrategy.NEW)
     assert c == Circuit([
@@ -395,6 +376,78 @@ def test_insert():
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(b)]),
     ])
+
+
+def test_insert_index_smaller_zero_new():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c1 = cirq.Circuit([
+        Moment([cirq.H(b)]),
+        Moment([cirq.X(a)]),
+    ])
+
+    c2 = cirq.Circuit()
+    c2.insert(0, Moment([cirq.X(a)]), InsertStrategy.NEW)
+    c2.insert(-1, Moment([cirq.H(b)]), InsertStrategy.NEW)
+
+    assert c1 == c2
+
+
+def test_insert_index_smaller_zero_newthaninline():
+    """just check new_than_inline with index smaller zero to avoid duplicate
+    with 'test_insert_inline_near_start'"""
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c1 = cirq.Circuit([
+        Moment([cirq.X(b), cirq.H(a)]),
+        Moment([cirq.X(b)]),
+    ])
+
+    c2 = cirq.Circuit()
+    c2.insert(0, Moment([cirq.X(b)]))
+    c2.insert(-1, [cirq.X(b), cirq.H(a)], InsertStrategy.NEW_THEN_INLINE)
+
+    assert c1 == c2
+
+
+def test_insert_index_smaller_zero_inline():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c1 = cirq.Circuit([
+        Moment([cirq.X(b), cirq.H(a)]),
+        Moment([cirq.X(b)]),
+    ])
+
+    c2 = cirq.Circuit()
+    c2.insert(0, Moment([cirq.X(b)]))
+    i = c2.insert(-1, Moment([cirq.X(b)]))
+    c2.insert(i, cirq.H(a), InsertStrategy.INLINE)
+
+    assert c1 == c2
+
+
+def test_insert_index_smaller_zero_earliest():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+    c = cirq.NamedQubit('carrie')
+
+    c1 = cirq.Circuit([
+        Moment([cirq.H(a), cirq.H(b), cirq.X(c)]),
+        Moment([cirq.X(a)]),
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(c)]),
+    ])
+
+    c2 = cirq.Circuit()
+    i = c2.insert(-10, cirq.X(a), InsertStrategy.NEW)
+    i = c2.insert(i, cirq.X(b), InsertStrategy.NEW)
+    c2.insert(i, cirq.H(c), InsertStrategy.NEW)
+    c2.insert(-2, [cirq.H(a), cirq.H(b), cirq.X(c)], InsertStrategy.EARLIEST)
+
+    assert c1 == c2
 
 
 def test_insert_inline_near_start():

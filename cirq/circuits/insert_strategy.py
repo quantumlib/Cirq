@@ -53,8 +53,8 @@ InsertStrategy.INLINE = InsertStrategy(
     """
     Attempts to add the operation to insert into the moment just before the
     desired insert location. But, if there's already an existing operation
-    affecting any of the qubits touched by the operation to insert, a new moment
-    is created instead.
+    affecting any of the qubits touched by the operation to insert or if the 
+    specified index is smaller than 0, a new moment is created instead.
     """)
 
 InsertStrategy.EARLIEST = InsertStrategy(
@@ -65,7 +65,8 @@ InsertStrategy.EARLIEST = InsertStrategy(
     is added into the moment just after that location.
 
     If the scan reaches the start of the circuit without finding any conflicting
-    operations, the operation is added into the first moment of the circuit.
+    operations or if a negative index is given, the operation is added into the 
+    first moment of the circuit.
 
     The operation is never added into moments after the insert location.
     If the moment just before the insert location has conflicting operations,
