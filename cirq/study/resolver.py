@@ -32,7 +32,7 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __init__(self, param_dict: Dict[str, float]) -> None:
+    def __init__(self, param_dict: Dict[str, Union[float, Symbol]]) -> None:
         self.param_dict = param_dict
         self._param_hash = hash(frozenset(param_dict.items()))
 
@@ -46,8 +46,7 @@ class ParamResolver(object):
         If unable to resolve a name, returns a Symbol with that name.
 
         Args:
-            value: The Symbol or name or float to try to resolve into just
-                a float.
+            value: The Symbol or name or float to try to resolve.
 
         Returns:
             The value of the parameter as resolved by this resolver.
