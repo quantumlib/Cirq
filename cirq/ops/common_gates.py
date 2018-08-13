@@ -420,8 +420,8 @@ class MeasurementGate(raw_types.Gate,
         return ''.join(lines)
 
     def __repr__(self):
-        return 'MeasurementGate({}, {})'.format(repr(self.key),
-                                                repr(self.invert_mask))
+        return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
+                                                     repr(self.invert_mask))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

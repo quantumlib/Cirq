@@ -161,13 +161,13 @@ def test_repr():
     pauli_string = cirq.PauliString({q2: cirq.Pauli.X, q1: cirq.Pauli.Y,
                                      q0: cirq.Pauli.Z})
     assert (repr(pauli_string) ==
-            "PauliString({cirq.NamedQubit('q0'): Pauli.Z, "
-            "cirq.NamedQubit('q1'): Pauli.Y, cirq.NamedQubit('q2'): Pauli.X}, "
-            "False)")
+            "cirq.PauliString({cirq.NamedQubit('q0'): cirq.Pauli.Z, "
+            "cirq.NamedQubit('q1'): cirq.Pauli.Y, cirq.NamedQubit('q2'): "
+            "cirq.Pauli.X}, False)")
     assert (repr(pauli_string.negate()) ==
-            "PauliString({cirq.NamedQubit('q0'): Pauli.Z, "
-            "cirq.NamedQubit('q1'): Pauli.Y, cirq.NamedQubit('q2'): Pauli.X}, "
-            "True)")
+            "cirq.PauliString({cirq.NamedQubit('q0'): cirq.Pauli.Z, "
+            "cirq.NamedQubit('q1'): cirq.Pauli.Y, cirq.NamedQubit('q2'): "
+            "cirq.Pauli.X}, True)")
 
 
 def test_str():

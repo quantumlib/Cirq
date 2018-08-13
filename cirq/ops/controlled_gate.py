@@ -137,4 +137,4 @@ class ControlledGate(raw_types.Gate,
         return 'C' + str(self.sub_gate)
 
     def __repr__(self):
-        return 'ControlledGate(sub_gate={!r})'.format(self.sub_gate)
+        return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)

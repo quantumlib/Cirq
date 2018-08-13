@@ -55,11 +55,11 @@ def test_matrix():
 
 
 def test_str():
-    assert str(cirq.CCX) == 'TOFFOLI'
-    assert str(cirq.TOFFOLI) == 'TOFFOLI'
-    assert str(cirq.CSWAP) == 'FREDKIN'
-    assert str(cirq.FREDKIN) == 'FREDKIN'
-    assert str(cirq.CCZ) == 'CCZ'
+    assert str(cirq.CCX) == 'cirq.TOFFOLI'
+    assert str(cirq.TOFFOLI) == 'cirq.TOFFOLI'
+    assert str(cirq.CSWAP) == 'cirq.FREDKIN'
+    assert str(cirq.FREDKIN) == 'cirq.FREDKIN'
+    assert str(cirq.CCZ) == 'cirq.CCZ'
 
 
 def test_eq():
