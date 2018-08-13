@@ -86,8 +86,7 @@ class PauliString:
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
                              for qubit in
                                 qubit_order.QubitOrder.DEFAULT.order_for(self)))
-        return 'PauliString({{{}}}, {})'.format(map_str,
-                                                self.negated)
+        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
         ordered_qubits = qubit_order.QubitOrder.DEFAULT.order_for(self.qubits())
