@@ -56,7 +56,7 @@ def test_wrapper_repr():
 
     node = cirq.CircuitDag.make_node(cirq.X(q0))
     assert (repr(node) ==
-            'Unique(' + str(id(node)) + ', cirq.X.on(cirq.LineQubit(0)))')
+            'cirq.Unique(' + str(id(node)) + ', cirq.X.on(cirq.LineQubit(0)))')
 
 
 def test_init():

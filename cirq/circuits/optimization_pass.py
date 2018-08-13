@@ -79,7 +79,7 @@ class PointOptimizationSummary:
                      self.new_operations))
 
     def __repr__(self):
-        return 'PointOptimizationSummary({!r}, {!r}, {!r})'.format(
+        return 'cirq.PointOptimizationSummary({!r}, {!r}, {!r})'.format(
             self.clear_span,
             self.clear_qubits,
             self.new_operations)

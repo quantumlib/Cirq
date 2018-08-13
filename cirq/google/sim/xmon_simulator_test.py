@@ -1023,7 +1023,7 @@ def test_simulator_simulate_trial_result_repr():
         final_state=np.array([0, 1, 0, 0]))
 
     assert repr(v) == ("XmonSimulateTrialResult("
-                       "params=ParamResolver({'a': 2}), "
+                       "params=cirq.ParamResolver({'a': 2}), "
                        "measurements={'m': array([1, 2])}, "
                        "final_state=array([0, 1, 0, 0]))")
 
