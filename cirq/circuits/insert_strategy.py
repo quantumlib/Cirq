@@ -31,7 +31,7 @@ class InsertStrategy(object):
         return self.name
 
     def __repr__(self):
-        return 'InsertStrategy.{}'.format(self.name)
+        return 'cirq.InsertStrategy.{}'.format(self.name)
 
 
 InsertStrategy.NEW = InsertStrategy(
