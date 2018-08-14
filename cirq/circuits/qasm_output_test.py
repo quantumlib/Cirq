@@ -25,7 +25,7 @@ def _make_qubits(n):
 
 def test_u_gate_repr():
     gate = QasmUGate(0.1, 0.2, 0.3)
-    assert repr(gate) == 'QasmUGate(0.1, 0.2, 0.3)'
+    assert repr(gate) == 'cirq.QasmUGate(0.1, 0.2, 0.3)'
 
 
 def test_qasm_two_qubit_gate_repr():
@@ -34,11 +34,12 @@ def test_qasm_two_qubit_gate_repr():
                             0.7, 0.8, 0.9,
                             QasmUGate(1.0, 1.1, 1.2),
                             QasmUGate(1.3, 1.4, 1.5))
-    assert repr(gate) == ('QasmTwoQubitGate(QasmUGate(0.1, 0.2, 0.3), '
-                                           'QasmUGate(0.4, 0.5, 0.6), '
-                                           '0.7, 0.8, 0.9, '
-                                           'QasmUGate(1.0, 1.1, 1.2), '
-                                           'QasmUGate(1.3, 1.4, 1.5))')
+    assert repr(gate) == ('cirq.QasmTwoQubitGate('
+                          'cirq.QasmUGate(0.1, 0.2, 0.3), '
+                          'cirq.QasmUGate(0.4, 0.5, 0.6), '
+                          '0.7, 0.8, 0.9, '
+                          'cirq.QasmUGate(1.0, 1.1, 1.2), '
+                          'cirq.QasmUGate(1.3, 1.4, 1.5))')
 
 
 def test_empty_circuit():
@@ -176,7 +177,7 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.QasmConvertableOperation,
+    class DummyOperation(cirq.Operation, cirq.QasmConvertibleOperation,
                          cirq.CompositeOperation):
         qubits = (q0,)
         with_qubits = NotImplemented

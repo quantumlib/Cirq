@@ -362,7 +362,7 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_initial_state_ndarray_not_upconvertable(scheduler):
+def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()
 
     with pytest.raises(TypeError):
@@ -1023,7 +1023,7 @@ def test_simulator_simulate_trial_result_repr():
         final_state=np.array([0, 1, 0, 0]))
 
     assert repr(v) == ("XmonSimulateTrialResult("
-                       "params=ParamResolver({'a': 2}), "
+                       "params=cirq.ParamResolver({'a': 2}), "
                        "measurements={'m': array([1, 2])}, "
                        "final_state=array([0, 1, 0, 0]))")
 

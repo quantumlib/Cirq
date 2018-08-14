@@ -15,6 +15,7 @@
 import pytest
 
 import cirq
+import cirq.google as cg
 
 
 def test_sensitive_to_phase():
@@ -154,3 +155,38 @@ def test_random_same_matrix(circuit):
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, same, atol=1e-8)
 
+
+def test_correct_qubit_ordering():
+    a, b = cirq.LineQubit.range(2)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        cirq.Circuit.from_ops(cirq.Z(a),
+                              cirq.Z(b),
+                              cirq.measure(b)),
+        cirq.Circuit.from_ops(cirq.Z(a),
+                              cirq.measure(b)),
+        atol=1e-8)
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            cirq.Circuit.from_ops(cirq.Z(a),
+                                  cirq.Z(b),
+                                  cirq.measure(b)),
+            cirq.Circuit.from_ops(cirq.Z(b),
+                                  cirq.measure(b)),
+            atol=1e-8)
+
+
+def test_known_old_failure():
+    a, b = cirq.LineQubit.range(2)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        actual=cirq.Circuit.from_ops(
+            cg.ExpWGate(half_turns=0.61351656,
+                        axis_half_turns=0.8034575038876517).on(b),
+            cirq.measure(a, b)),
+        reference=cirq.Circuit.from_ops(
+            cg.ExpWGate(half_turns=0.61351656,
+                        axis_half_turns=0.8034575038876517).on(b),
+            cg.ExpZGate(half_turns=0.5).on(a),
+            cg.ExpZGate(half_turns=0.1).on(b),
+            cirq.measure(a, b)),
+        atol=1e-8)

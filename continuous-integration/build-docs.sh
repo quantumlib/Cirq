@@ -31,6 +31,5 @@ if [ -d "$repo_root/docs/generated" ] ; then
 fi
 
 cd "$repo_root/docs"
-pip install -r dev-requirements.txt
+pip install -r requirements.txt
 make html
-

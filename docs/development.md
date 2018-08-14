@@ -79,17 +79,10 @@ See the previous section for instructions.
     You can install most other dependencies via `apt-get`:
 
     ```bash
-    cat apt-dev-requirements.txt apt-runtime-requirements.txt | xargs sudo apt-get install --yes
+    cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
-    Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is not installable via `apt-get`.
-    You *can* skip this dependency.
-    It is only needed when producing the transpiled python 2.7 code for local testing.
-    The installation process is technical; requiring you to either build from source or manually installing pre-built binaries onto your system.
-    If you want to be able to run the python 2.7 tests on your machine, see ["Protobuf Compiler Installation" on the google/protobuf github repository](https://github.com/google/protobuf#protocol-compiler-installation) for details.
-
-
-2. Prepare a virtual environment with the dev requirements.
+2. Prepare a virtual environment including the dev tools (such as mypy).
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
     If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
@@ -97,7 +90,8 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     pip install --upgrade pip
-    pip install -r dev-requirements.txt
+    pip install -r requirements.txt
+    pip install -r dev_tools/conf/pip-list-dev-tools.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
@@ -119,33 +113,50 @@ See the previous section for instructions.
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
-The simplest and fastest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yourself as follows:
+The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yourself as follows:
 
 ```bash
-pytest .
-pylint --rcfile=continuous-integration/.pylintrc cirq  # note: only tests the cirq subdirectory
-mypy --config-file=continuous-integration/mypy.ini .
+pytest
+pylint --rcfile=dev_tools/conf/.pylintrc cirq
+mypy --config-file=dev_tools/conf/mypy.ini .
 ```
 
-But note that this will not check the incremental coverage or run the python 2 tests, and that during continuous integration pylint is run against more than just the cirq subdirectory.
-
-The script [continuous-integration/simple_check.sh](/continuous-integration/simple_check.sh) will run pytest, mypy, pylint (on all the necessary files) and the incremental coverage check:
+This can be a bit tedious, because you have to specify the configuration files each time.
+A more convenient way to run checks is to via the scripts in the [check/](/check) directory, which specify configuration arguments for you and cover more use cases:
 
 ```bash
-bash continuous-integration/simple_check.sh
+# Run all tests in the repository.
+./check/pytest
+
+# Check all relevant files in the repository for lint.
+./check/pylint
+
+# Typecheck all python files in the repository.
+./check/mypy
+
+# Transpile to python 2 and run tests.
+./check/pytest2  # Note: must be in a python 2 virtual env to run this.
+
+# Compute incremental coverage vs master (or a custom revision of your choice).
+./check/pytest-and-incremental-coverage [BASE_REVISION]
+
+# Only run tests associated with files that have changed when diffed vs master (or a custom revision of your choice).
+./check/pytest-changed-files [BASE_REVISION]
 ```
 
-But this script doesn't guarantee your test environment is up to date, and it does not transpile and test the python 2 code.
-
-Use the script [continuous-integration/check.sh](/continuous-integration/check.sh) to do a proper full local check.
-This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies, transpile the python 2 code, and run all relevant checks.
+The above scripts are convenient and reasonably fast, but they often don't match the results computed by the continuous integration builds run on travis.
+For example, you may be running an older version of `pylint` or `numpy`.
+In order to run a check that is significantly more likely to agree with the travis builds, you can use the [continuous-integration/check.sh](/continuous-integration/check.sh) script:
 
 ```bash
-bash continuous-integration/check.sh
+./continuous-integration/check.sh
 ```
 
-You can run a subset of the checks using the ```--only``` flag.
+This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies, transpile the python 2 code, and run all relevant checks within those clean environments.
+Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `continuous-integration/check.sh` is significantly slower than the simpler check scripts.
+When using this script, you can run a subset of the checks using the ```--only``` flag.
 This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
+
 
 ### Producing the Python 2.7 code
 
@@ -171,10 +182,34 @@ The script does nothing if the output directory already exists.
     `pip` will choose between the two based on whichever version of python the user is using.
     Development versions end with `.dev35` and `.dev27` instead of `.35` and `.27`, e.g. use `0.0.4.dev27` for the python 2 variant of the development version of `0.0.4`.
 
+    Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a followup pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
+
 2. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
 
     ```bash
     bash dev_tools/produce-package.sh
     ```
 
+    The output files will be placed in `dist/`.
+
+3. Do a quick test run of the packages.
+
+    Create fresh python 3 and python 2 virtual environments, and try to `pip install` the produced artifacts.
+    Check that `import cirq` actually finishes after installing.
+
     The output files will be placed in `dist/`, from which they can be uploaded to pypi with a tool such as `twine`.
+
+4. Create a github release.
+
+    Describe major changes (especially breaking changes) in the summary.
+    Make sure you point the tag being created at the one and only revision with the non-dev version number.
+    Attach the package files you produced to the release.
+
+5. Upload to pypi.
+
+    You can use a tool such as `twine` for this.
+    For example:
+
+    ```bash
+    twine upload -u "${PYPI_USERNAME}" -p "${PYPI_PASSWORD}" dist/*
+    ```

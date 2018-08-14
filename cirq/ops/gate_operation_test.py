@@ -184,3 +184,19 @@ def test_known_matrix():
     op3 = cirq.CNOT(a, b)
     np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix(), atol=1e-8)
     np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix(), atol=1e-8)
+
+
+def test_repr():
+    a, b = cirq.LineQubit.range(2)
+    assert repr(cirq.GateOperation(cirq.CZ, (a, b))
+                ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
+
+    class Inconsistent(cirq.Gate):
+        def __repr__(self):
+            return 'Inconsistent'
+
+        def on(self, *qubits):
+            return cirq.GateOperation(Inconsistent(), qubits)
+
+    assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
+            'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')

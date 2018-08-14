@@ -33,6 +33,9 @@ from cirq.circuits.drop_empty_moments import (
 from cirq.circuits.drop_negligible import (
     DropNegligible,
 )
+from cirq.circuits.merge_interactions import (
+    MergeInteractions,
+)
 from cirq.circuits.merge_single_qubit_gates import (
     MergeSingleQubitGates,
 )

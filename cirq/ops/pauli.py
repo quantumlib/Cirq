@@ -70,7 +70,7 @@ class Pauli:
         return self._name
 
     def __repr__(self):
-        return 'Pauli.{!s}'.format(self)
+        return 'cirq.Pauli.{!s}'.format(self)
 
 
 Pauli.X = Pauli(_index=0, _name='X')

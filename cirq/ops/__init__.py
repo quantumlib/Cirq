@@ -53,8 +53,8 @@ from cirq.ops.gate_features import (
     KnownMatrix,
     ParameterizableEffect,
     PhaseableEffect,
-    QasmConvertableGate,
-    QasmConvertableOperation,
+    QasmConvertibleGate,
+    QasmConvertibleOperation,
     QasmOutputArgs,
     ReversibleEffect,
     SingleQubitGate,
@@ -92,9 +92,6 @@ from cirq.ops.clifford_gate import (
 )
 from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,
-)
-from cirq.ops.partial_reflection_gate import (
-    PartialReflectionGate,
 )
 from cirq.ops.pauli_string import (
     PauliString,

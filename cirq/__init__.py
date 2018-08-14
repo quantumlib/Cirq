@@ -15,7 +15,6 @@
 # Import sub-modules.
 
 from cirq import (
-    api,
     circuits,
     devices,
     google,
@@ -38,6 +37,7 @@ from cirq.circuits import (
     exponentiate,
     expectation_value,
     InsertStrategy,
+    MergeInteractions,
     MergeSingleQubitGates,
     Moment,
     OptimizationPass,
@@ -141,14 +141,13 @@ from cirq.ops import (
     OP_TREE,
     Operation,
     ParameterizableEffect,
-    PartialReflectionGate,
     Pauli,
     PauliInteractionGate,
     PauliString,
     PauliTransform,
     PhaseableEffect,
-    QasmConvertableGate,
-    QasmConvertableOperation,
+    QasmConvertibleGate,
+    QasmConvertibleOperation,
     QasmOutputArgs,
     QubitId,
     QubitOrder,
