@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+import "cirq/api/google/v1/operations.proto";
+import "cirq/api/google/v1/params.proto";
+
+
+package cirq.api.google.v1;
+
+option java_package = "com.google.cirq.api.google.v1";
+option java_outer_classname = "HardwareProto";
+option java_multiple_files = true;
+
+// The operations supported by the hardware and the current performance
+// characteristics of these operations.
+message HardwareSpec {
+  // The version name of the hardware.
+  //
+  // Currently supports: `bristlecone`.
+  string processor_name = 1;
+
+  // The supported operations on the hardware. This information is static
+  // and does not change for a given processor_name.
+  GateSet gate_set = 2;
+
+  // The performance characteristics of the hardware, recorded at a particular
+  // time and ordered with the most recent first.
+  repeated Performance performance = 3;
+}
+
+// The supported operations on the hardware.
+message GateSet {
+  // Prototypes of the gate plus the qubits upon which the gate acts.
+  // If the gate supports parameterized gates, then the parameterized float
+  // will have a unique symbol for this parameter. All operations specify the
+  // qubits they act upon.
+  //
+  // Some of the prototype operation fields will not be set. These include
+  // `incremental_delay_picoseconds`, and `key` and `invert_mask` on measurement
+  // gates.
+  repeated Operation prototypes = 1;
+
+  // For the parameterized gates in prototypes, a map from the parameter name
+  // to the accuracy with which the hardware supports specifying this
+  // parameter. Note that this accuracy may be different than the actual
+  // gate fidelity of this gate, this is just the practical limit that the
+  // hardware can support.
+  ParameterDict accuracies = 2;
+}
+
+// A snapshot of the performance of the hardware.
+message Performance {
+  // The time at which the performance was measured, in micros since epoch.
+  uint64 update_time_micros = 1;
+
+  // A list of the calibrated operations. Note that a given gate from the
+  // hardware's gate set may be calibrated for many different parameter
+  // values.
+  repeated CalibratedOperation calibrated_ops = 2;
+}
+
+// The performance of a calibrated.
+message CalibratedOperation {
+  // Which operation (gate plus placed qubits) was calibrated. If the gate is
+  // not parameterized then this will match exactly the prototype from the
+  // gate set. If the gate was parameterized, then this will be the
+  // actual parameter values (up to accuracy) that the calibration was done for.
+  Operation op = 1;
+
+  // Simple fidelities for the operation.
+  Fidelities fidelities = 2;
+}
+
+// Simple measurements of the performance of a gate.
+message Fidelities {
+  // If the gate is unitary, this is the average gate fidelity.
+  repeated float gate_fidelity = 1;
+
+  // The measurement results for a given preparation.
+  message Confusion {
+    // The key in this map is the measurement result and the value is the
+    // probability.  These may not sum to 1.0 due to leakage.
+    map<bool, float> measured = 1;
+  }
+
+  // If the gate is a measurement, this is the confusion matrix. This matrix
+  // describes the probability that a measurement prepared in one
+  // eigenstate of the measurement is measured to be in all other eigenstates.
+  // The key in this map is the prepared state corresponding to True or
+  // False for the measurement.
+  map <bool, Confusion>  confusion = 2;
+}
+
