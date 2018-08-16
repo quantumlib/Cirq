@@ -88,6 +88,9 @@ def replace_acquaintance_with_swap_network(
     Returns: Whether or not the overall effect of the inserted swap network
         gates is to reverse the order of the qubits, i.e. the parity of the
         number of swap network gates inserted.
+
+    Raises:
+        TypeError: circuit is not an acquaintance strategy.
     """
 
     if not is_acquaintance_strategy(circuit):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, cast
 
 from cirq import abc, circuits, devices, ops, schedules
 
@@ -23,13 +23,20 @@ from cirq.contrib.acquaintance.permutation import (
 
 
 class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
-    """A device that contains only acquaintance and permutation gates."""
+    """A device that contains only acquaintance and permutation gates.
+
+    Raises:
+        NotImplementedError: By default, duration_of is undefined. Can be
+            overridden in subclass.
+    """
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
     def validate_operation(self, operation: ops.Operation) -> None:
         if not (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, self.gate_types)):
-            raise TypeError('not isinstance(gate, gate_types)')
+            gate_op = cast(ops.GateOperation, operation)
+            raise ValueError('not isinstance(' + str(gate_op.gate) +
+                             ', gate_types)')
 
     def duration_of(self, operation):
         raise NotImplementedError()
@@ -39,10 +46,20 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
             schedule: schedules.Schedule,
             scheduled_operation: schedules.ScheduledOperation
     ) -> None:
-        raise NotImplementedError()
+        self.validate_operation(scheduled_operation.operation)
+        for other in schedule.operations_happening_at_same_time_as(
+                scheduled_operation):
+            if not set(
+                    scheduled_operation.operation.qubits).isdisjoint(
+                            other.operation.qubits):
+                raise ValueError(
+                        '{} and {}'.format(scheduled_operation, other) +
+                        'act on the same qubits at the same time.')
+
 
     def validate_schedule(self, schedule: schedules.Schedule) -> None:
-        raise NotImplementedError()
+        for scheduled_operation in schedule.scheduled_operations:
+            self.validate_scheduled_operation(schedule, scheduled_operation)
 
 def is_acquaintance_strategy(circuit: circuits.Circuit):
     return isinstance(circuit._device, AcquaintanceDevice)
@@ -51,7 +68,8 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
     if isinstance(obj, circuits.Circuit):
         if not is_acquaintance_strategy(obj):
             raise TypeError('not is_acquaintance_strategy(circuit)')
-        return max(get_acquaintance_size(op) for op in obj.all_operations())
+        return max((get_acquaintance_size(op) for op in obj.all_operations()),
+                   default=0)
     if not isinstance(obj, ops.Operation):
         raise TypeError('not isinstance(obj, (Circuit, Operation))')
     if not isinstance(obj, ops.GateOperation):

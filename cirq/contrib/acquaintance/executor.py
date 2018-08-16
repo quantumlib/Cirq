@@ -32,7 +32,9 @@ if TYPE_CHECKING:
     from typing import Callable, List, DefaultDict
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):
-    """An execution strategy tells StrategyExecutor how to execute an
+    """Tells StrategyExecutor how to execute an acquaintance strategy.
+
+    An execution strategy tells StrategyExecutor how to execute an
     acquaintance strategy, i.e. what gates to implement at the available
     acquaintance opportunities."""
 
@@ -40,7 +42,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     @abc.abstractproperty
     def initial_mapping(self) -> LogicalMapping:
-        pass
+        """The initial mapping of logical indices to qubits."""
 
     @abc.abstractmethod
     def get_operations(self,
@@ -48,7 +50,6 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
                        qubits: Sequence[ops.QubitId]
                        ) -> ops.OP_TREE:
         """Gets the logical operations to apply to qubits."""
-        pass
 
 
 class StrategyExecutor(circuits.PointOptimizer):
@@ -92,8 +93,10 @@ class StrategyExecutor(circuits.PointOptimizer):
                          'PermutationGate.')
 
 class GreedyExecutionStrategy(ExecutionStrategy):
-    """A greedy execution strategy. When an acquaintance opportunity is
-    reached, all gates acting on those qubits in any order are inserted.
+    """A greedy execution strategy.
+
+    When an acquaintance opportunity is reached, all gates acting on those
+    qubits in any order are inserted.
     """
     def __init__(self,
                  gates: LogicalGates,
@@ -131,7 +134,9 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     @staticmethod
     def canonicalize_gates(gates: LogicalGates
         ) -> Dict[frozenset, LogicalGates]:
-        """Takes a set of gates specified by ordered sequences of logical
+        """Canonicalizes a set of gates by the qubits they act on.
+
+        Takes a set of gates specified by ordered sequences of logical
         indices, and groups those that act on the same qubits regardless of
         order."""
         canonicalized_gates = defaultdict(dict
