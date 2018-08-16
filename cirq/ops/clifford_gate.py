@@ -325,7 +325,7 @@ class CliffordGate(raw_types.Gate,
         return self.merged_with(after).merged_with(self.inverse())
 
     def __repr__(self):
-        return 'CliffordGate(X:{}{!s}, Y:{}{!s}, Z:{}{!s})'.format(
+        return 'cirq.CliffordGate(X:{}{!s}, Y:{}{!s}, Z:{}{!s})'.format(
                 '+-'[self.transform(Pauli.X).flip], self.transform(Pauli.X).to,
                 '+-'[self.transform(Pauli.Y).flip], self.transform(Pauli.Y).to,
                 '+-'[self.transform(Pauli.Z).flip], self.transform(Pauli.Z).to)

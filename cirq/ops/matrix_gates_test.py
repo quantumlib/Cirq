@@ -223,3 +223,10 @@ a[            ]+  b  c
 │[            ]+  │  └[            ]+┘
 │[            ]+  │  │
     """.strip(), c.to_text_diagram(transpose=True))
+
+
+def test_repr():
+    assert repr(cirq.SingleQubitMatrixGate(np.eye(2))) == \
+        'cirq.SingleQubitMatrixGate({})'.format(repr(np.eye(2)))
+    assert repr(cirq.TwoQubitMatrixGate(np.eye(4))) == \
+        'cirq.TwoQubitMatrixGate({})'.format(repr(np.eye(4)))

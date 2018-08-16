@@ -108,7 +108,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
         return not self == other
 
     def __repr__(self):
-        return 'SingleQubitMatrixGate({})'.format(repr(self.matrix()))
+        return 'cirq.SingleQubitMatrixGate({})'.format(repr(self.matrix()))
 
     def __str__(self):
         return str(self.matrix().round(3))
@@ -193,7 +193,7 @@ class TwoQubitMatrixGate(raw_types.Gate,
         return not self == other
 
     def __repr__(self):
-        return 'TwoQubitMatrixGate({})'.format(repr(self.matrix()))
+        return 'cirq.TwoQubitMatrixGate({})'.format(repr(self.matrix()))
 
     def __str__(self):
         return str(self.matrix().round(3))

@@ -6,7 +6,7 @@ Choose your operating system:
 - [Installing on Mac OS X](#installing-on-mac-os-x)
 - [Installing on Windows](#installing-on-windows)
 
-If you want to create a development environment, see [docs/development.md](/docs/development.md).
+If you want to create a development environment, see [development.md](development.md).
 
 ---
 
