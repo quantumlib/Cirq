@@ -23,32 +23,38 @@ def chosen_angle_to_half_turns(
         half_turns: Optional[Union[symbol.Symbol, float]] = None,
         rads: Optional[float] = None,
         degs: Optional[float] = None,
+        duration: Optional[float] = None,
         default: float = 1.0,
 ) -> Union[symbol.Symbol, float]:
     """Returns a half_turns value based on the given arguments.
 
-    At most one of half_turns, rads, degs must be specified. If none are
-    specified, the output defaults to half_turns=1.
+    At most one of half_turns, rads, degs, or duration must be specified. If
+    none are specified, the output defaults to half_turns=1.
 
     Args:
         half_turns: The number of half turns to rotate by.
         rads: The number of radians to rotate by.
-        degs: The number of degrees to rotate by
+        degs: The number of degrees to rotate by.
+        duration: The exponent as a duration of time.
         default: The half turns angle to use if nothing else is specified.
 
     Returns:
         A number of half turns.
     """
 
-    if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:
+    if len([1 for e in [half_turns, rads, degs, duration]
+            if e is not None]) > 1:
         raise ValueError('Redundant angle specification. '
-                         'Use ONE of half_turns, rads, or degs.')
+                         'Use ONE of half_turns, rads, degs, or duration.')
 
     if rads is not None:
         return rads / np.pi
 
     if degs is not None:
         return degs / 180
+
+    if duration is not None:
+        return 2 * duration / np.pi
 
     if half_turns is not None:
         return half_turns
@@ -60,28 +66,31 @@ def chosen_angle_to_canonical_half_turns(
         half_turns: Optional[Union[symbol.Symbol, float]] = None,
         rads: Optional[float] = None,
         degs: Optional[float] = None,
+        duration: Optional[float] = None,
         default: float = 1.0,
 ) -> Union[symbol.Symbol, float]:
     """Returns a canonicalized half_turns based on the given arguments.
 
-    At most one of half_turns, rads, degs must be specified. If none are
-    specified, the output defaults to half_turns=1.
+    At most one of half_turns, rads, degs, or duration must be specified. If
+    none are specified, the output defaults to half_turns=1.
 
     Args:
         half_turns: The number of half turns to rotate by.
         rads: The number of radians to rotate by.
-        degs: The number of degrees to rotate by
+        degs: The number of degrees to rotate by.
+        duration: The exponent as a duration of time.
         default: The half turns angle to use if nothing else is specified.
 
     Returns:
         A number of half turns.
     """
     return canonicalize_half_turns(
-            chosen_angle_to_half_turns(
-                half_turns=half_turns,
-                rads=rads,
-                degs=degs,
-                default=default))
+        chosen_angle_to_half_turns(
+            half_turns=half_turns,
+            rads=rads,
+            degs=degs,
+            duration=duration,
+            default=default))
 
 
 def canonicalize_half_turns(
@@ -94,5 +103,3 @@ def canonicalize_half_turns(
     if half_turns > 1:
         half_turns -= 2
     return half_turns
-
-
