@@ -26,8 +26,8 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     """A device that contains only acquaintance and permutation gates.
 
     Raises:
-        NotImplementedError: By default, duration_of is undefined. Can be
-            overridden in subclass.
+        NotImplementedError: Any of the schedule-related methods (duration_of,
+            validate_schedule[d_operation]) is called.
     """
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
@@ -46,25 +46,17 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
             schedule: schedules.Schedule,
             scheduled_operation: schedules.ScheduledOperation
     ) -> None:
-        self.validate_operation(scheduled_operation.operation)
-        for other in schedule.operations_happening_at_same_time_as(
-                scheduled_operation):
-            if not set(
-                    scheduled_operation.operation.qubits).isdisjoint(
-                            other.operation.qubits):
-                raise ValueError(
-                        '{} and {}'.format(scheduled_operation, other) +
-                        'act on the same qubits at the same time.')
+        raise NotImplementedError()
 
 
     def validate_schedule(self, schedule: schedules.Schedule) -> None:
-        for scheduled_operation in schedule.scheduled_operations:
-            self.validate_scheduled_operation(schedule, scheduled_operation)
+        raise NotImplementedError()
 
 def is_acquaintance_strategy(circuit: circuits.Circuit):
     return isinstance(circuit._device, AcquaintanceDevice)
 
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
+    """The maximum number of qubits to be acquainted with each other."""
     if isinstance(obj, circuits.Circuit):
         if not is_acquaintance_strategy(obj):
             raise TypeError('not is_acquaintance_strategy(circuit)')
