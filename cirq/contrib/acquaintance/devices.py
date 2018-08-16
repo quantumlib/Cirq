@@ -60,8 +60,8 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
     if isinstance(obj, circuits.Circuit):
         if not is_acquaintance_strategy(obj):
             raise TypeError('not is_acquaintance_strategy(circuit)')
-        return max((get_acquaintance_size(op) for op in obj.all_operations()),
-                   default=0)
+        return max(tuple(get_acquaintance_size(op)
+                         for op in obj.all_operations()) or (0,))
     if not isinstance(obj, ops.Operation):
         raise TypeError('not isinstance(obj, (Circuit, Operation))')
     if not isinstance(obj, ops.GateOperation):
