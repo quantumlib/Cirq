@@ -79,7 +79,7 @@ class _CCZGate(gate_features.ThreeQubitGate,
         return ''.join(lines)
 
     def __repr__(self) -> str:
-        return 'CCZ'
+        return 'cirq.CCZ'
 
 
 class _CCXGate(gate_features.ThreeQubitGate,
@@ -115,7 +115,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        return 'TOFFOLI'
+        return 'cirq.TOFFOLI'
 
 
 class _CSwapGate(gate_features.ThreeQubitGate,
@@ -235,7 +235,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        return 'FREDKIN'
+        return 'cirq.FREDKIN'
 
 
 # Explicit names.

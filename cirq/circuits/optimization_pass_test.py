@@ -26,8 +26,8 @@ def test_equality():
     eq = EqualsTester()
 
     eq.make_equality_group(lambda: PointOptimizationSummary(clear_span=0,
-                                                           clear_qubits=[],
-                                                           new_operations=[]))
+                                                            clear_qubits=[],
+                                                            new_operations=[]))
     eq.add_equality_group(PointOptimizationSummary(clear_span=1,
                                                    clear_qubits=[a],
                                                    new_operations=[]))
@@ -140,3 +140,8 @@ z: ─────────────────────────�
     """.strip()
 
     assert actual_text_diagram == expected_text_diagram
+
+
+def test_repr():
+    assert repr(cirq.PointOptimizationSummary(clear_span=0, clear_qubits=[
+    ], new_operations=[])) == 'cirq.PointOptimizationSummary(0, (), ())'

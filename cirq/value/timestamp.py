@@ -102,4 +102,4 @@ class Timestamp:
         return 't={}'.format(self._picos)
 
     def __repr__(self):
-        return 'Timestamp(picos={})'.format(repr(self._picos))
+        return 'cirq.Timestamp(picos={})'.format(repr(self._picos))
