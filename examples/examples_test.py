@@ -21,6 +21,7 @@ import examples.place_on_bristlecone
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
+import examples.random_circuits_v2
 import examples.supremacy
 import examples.phase_estimator
 
@@ -93,3 +94,30 @@ def test_example_runs_grover():
 
 def test_example_runs_phase_estimator():
     examples.phase_estimator.main()
+
+
+def test_random_circuits_v2():
+    circuit = examples.random_circuits_v2.generate_random_v2_circuit_grid(
+        n_rows=4, n_cols=5, cz_depth=9, seed=0)
+    # We check that is exactly circuit inst_4x5_10_0
+    # in github.com/sboixo/GRCS cz_v2
+    assert len(circuit) == 11
+    assert sum( 1 for _ in circuit.findall_operations_with_gate_type(
+        cirq.ops.common_gates.Rot11Gate)) == 35
+    assert sum( 1 for _ in circuit.findall_operations_with_gate_type(
+        cirq.ops.common_gates.RotXGate)) == 15
+    assert sum( 1 for _ in circuit.findall_operations_with_gate_type(
+        cirq.ops.common_gates.RotYGate)) == 23
+    assert sum( 1 for _ in circuit.findall_operations_with_gate_type(
+        cirq.ops.common_gates.RotZGate)) == 32
+    assert sum( 1 for _ in circuit.findall_operations_with_gate_type(
+        cirq.ops.common_gates.HGate)) == 40
+    qubits = [cirq.GridQubit(i, j) for i in range(4)
+              for j in range(5)]
+    assert circuit.operation_at(qubits[0], 1).gate == cirq.ops.common_gates.CZ
+    assert circuit.operation_at(qubits[5], 2).gate == cirq.ops.common_gates.CZ
+    assert circuit.operation_at(qubits[8], 3).gate == cirq.ops.common_gates.CZ
+    assert circuit.operation_at(qubits[13], 4).gate == cirq.ops.common_gates.CZ
+    assert circuit.operation_at(qubits[12], 5).gate == cirq.ops.common_gates.CZ
+    assert circuit.operation_at(qubits[13], 6).gate == cirq.ops.common_gates.CZ
+    assert circuit.operation_at(qubits[14], 7).gate == cirq.ops.common_gates.CZ

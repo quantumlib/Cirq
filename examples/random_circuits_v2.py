@@ -21,9 +21,9 @@ from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import common_gates
 
 
-def generate_google_random_v2_circuit(qubits: Iterable[GridQubit],
-                                      cz_depth: int,
-                                      seed: int) -> cirq.Circuit:
+def generate_random_v2_circuit(qubits: Iterable[GridQubit],
+                               cz_depth: int,
+                               seed: int) -> cirq.Circuit:
 
 
     ND_GATES = [common_gates.X**(1/2), common_gates.Y**(1/2)]
@@ -65,9 +65,9 @@ def generate_google_random_v2_circuit(qubits: Iterable[GridQubit],
     return circuit
 
 
-def generate_google_random_v2_circuit_grid(n_rows: int, n_cols: int,
-                                           cz_depth: int, seed: int
-                                           ) -> cirq.Circuit:
+def generate_random_v2_circuit_grid(n_rows: int, n_cols: int,
+                                    cz_depth: int, seed: int
+                                    ) -> cirq.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
 
@@ -86,7 +86,7 @@ def generate_google_random_v2_circuit_grid(n_rows: int, n_cols: int,
     """
     qubits = [cirq.GridQubit(i, j) for i in range(n_rows)
               for j in range(n_cols)]
-    return generate_google_random_v2_circuit(qubits, cz_depth, seed)
+    return generate_random_v2_circuit(qubits, cz_depth, seed)
 
 
 T = TypeVar('T')
