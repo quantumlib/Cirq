@@ -32,8 +32,9 @@ function, i.e. one can retrieve the final wave function from the simulation
 via.
     final_state = sim.simulate(circuit).final_state
 """
-
+import re
 import math
+import itertools
 import collections
 from typing import Dict, Iterator, List, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
@@ -166,6 +167,34 @@ class XmonSimulator:
         """
         self.options = options or XmonOptions()
 
+    def wavefunction(self, state):
+        """
+        Returns the wavefunction as a string in Dirac notation.
+
+        For example:
+        circuit = cirq.Circuit.from_ops(cirq.H(Q1))
+        simulator = cirq.google.XmonSimulator()
+        result = simulator.simulate(circuit)
+
+        print(wavefunction(result.final_state)) -> -0.71j|0> + -0.71j|1>
+        """
+        wvf = state.final_state
+        perm_list = ["".join(seq) for seq in itertools.product(
+            "01", repeat=int(np.log2(len(wvf))))]
+        wvf_string = ""
+
+        for x in range(0, len(perm_list)):
+            rounded_elem = np.around(wvf[x], decimals=2) + np.complex(0, 0)
+            rounded_elem = np.around(rounded_elem, decimals=2)
+
+            if rounded_elem != 0:
+                wvf_string += str(rounded_elem) + "|" + perm_list[x] + "> + "
+
+        wvf_string = re.split(r'(\s+)', wvf_string)[:-4]
+        wvf_string = "".join(wvf_string)
+
+        return wvf_string
+
     def run(
         self,
         circuit: Circuit,
@@ -236,9 +265,9 @@ class XmonSimulator:
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
             xmon_circuit, keys = self._to_xmon_circuit(
-                    circuit,
-                    param_resolver,
-                    extensions or xmon_gate_ext)
+                circuit,
+                param_resolver,
+                extensions or xmon_gate_ext)
             if xmon_circuit.are_all_measurements_terminal():
                 measurements = self._run_sweep_sample(xmon_circuit, repetitions,
                                                       qubit_order)
@@ -436,7 +465,7 @@ class XmonSimulator:
 
         # TODO: Use one optimization pass.
         xmon_circuit = circuit.with_parameters_resolved_by(
-                param_resolver, extensions)
+            param_resolver, extensions)
         converter.optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
@@ -516,7 +545,7 @@ def _simulator_iterator(
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     if perform_measurements:
                         invert_mask = (
-                                gate.invert_mask or len(op.qubits) * (False,))
+                            gate.invert_mask or len(op.qubits) * (False,))
                         for qubit, invert in zip(op.qubits, invert_mask):
                             index = qubit_map[qubit]
                             result = stepper.simulate_measurement(index)
@@ -562,7 +591,7 @@ def _sample_measurements(circuit: Circuit,
         all_qubits.extend(op.qubits)
         current_index += len(op.qubits)
     sample = step_result.sample(all_qubits, repetitions)
-    return {k: [x[s:e] for x in sample] for k,(s, e) in bounds.items()}
+    return {k: [x[s:e] for x in sample] for k, (s, e) in bounds.items()}
 
 
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
