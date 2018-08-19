@@ -188,7 +188,8 @@ class XmonSimulator:
             rounded_elem = np.around(rounded_elem, decimals=2)
 
             if rounded_elem != 0:
-                wvf_string += str(rounded_elem) + "|" + perm_list[x] + "> + "
+                wvf_string += str(rounded_elem) + "|" + \
+                    perm_list[x] + "\u27E9 + "
 
         wvf_string = re.split(r'(\s+)', wvf_string)[:-4]
         wvf_string = "".join(wvf_string)

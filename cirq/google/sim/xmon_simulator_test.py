@@ -99,24 +99,27 @@ def test_wavefunction():
 
     hadamard = cirq.Circuit.from_ops(cirq.H(Q1))
     result = simulator.simulate(hadamard)
-    assert simulator.wavefunction(result) == "-0.71j|0> + -0.71j|1>"
+    assert simulator.wavefunction(result) == "-0.71j|0\u27E9 + -0.71j|1\u27E9"
 
     bell00 = cirq.Circuit.from_ops(cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell00)
-    assert simulator.wavefunction(result) == "(0.71+0j)|00> + (0.71+0j)|11>"
+    assert simulator.wavefunction(
+        result) == "(0.71+0j)|00\u27E9 + (0.71+0j)|11\u27E9"
 
     bell01 = cirq.Circuit.from_ops(cirq.X(Q2), cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell01)
-    assert simulator.wavefunction(result) == "-0.71j|01> + -0.71j|10>"
+    assert simulator.wavefunction(
+        result) == "-0.71j|01\u27E9 + -0.71j|10\u27E9"
 
     bell10 = cirq.Circuit.from_ops(cirq.X(Q1), cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell10)
-    assert simulator.wavefunction(result) == "-0.71j|00> + 0.71j|11>"
+    assert simulator.wavefunction(result) == "-0.71j|00\u27E9 + 0.71j|11\u27E9"
 
     bell11 = cirq.Circuit.from_ops(
         cirq.X(Q1), cirq.X(Q2), cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell11)
-    assert simulator.wavefunction(result) == "(-0.71+0j)|01> + (0.71+0j)|10>"
+    assert simulator.wavefunction(
+        result) == "(-0.71+0j)|01\u27E9 + (0.71+0j)|10\u27E9"
 
 
 SCHEDULERS = [None, cirq.moment_by_moment_schedule]
