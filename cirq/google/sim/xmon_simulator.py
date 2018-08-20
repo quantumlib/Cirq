@@ -167,7 +167,7 @@ class XmonSimulator:
         """
         self.options = options or XmonOptions()
 
-    def wavefunction(self, state):
+    def wavefunction(self, state, decimals=2):
         """
         Returns the wavefunction as a string in Dirac notation.
 
@@ -184,8 +184,8 @@ class XmonSimulator:
         wvf_string = ""
 
         for x in range(0, len(perm_list)):
-            rounded_elem = np.around(wvf[x], decimals=2) + np.complex(0, 0)
-            rounded_elem = np.around(rounded_elem, decimals=2)
+            rounded_elem = np.around(wvf[x], decimals) + np.complex(0, 0)
+            rounded_elem = np.around(rounded_elem, decimals)
 
             if rounded_elem != 0:
                 wvf_string += str(rounded_elem) + "|" + perm_list[x] + "⟩ + "
