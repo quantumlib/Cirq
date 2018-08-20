@@ -20,11 +20,11 @@ from typing import Optional, Dict, Tuple, List, Union
 import numpy as np
 from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT
-from cirq.google import XmonQubit
+from cirq.devices import GridQubit
 
 def exponentiate_qubit_operator(time: Union[int,float], 
                                 operator: Dict[Tuple[int,str], float],
-                                qubits: List[XmonQubit], 
+                                qubits: List[GridQubit],
                                 trotter_steps: int = 0):
     """
     Computes the exponential of an operator O: U = exp(i*time*O)
@@ -42,7 +42,7 @@ def exponentiate_qubit_operator(time: Union[int,float],
                   example:
                   {((0,'Z'), (2,'X')): 3.7, ((3,'Y'),):2 }
 
-        qubits: qubits should be array of cirq.google.XmonQubit(x, y) type
+        qubits: qubits should be array of cirq.GridQubit(x, y) type
 
         trotter_steps: integer for the number of troterization steps
                        to decompose the exponential, e.g.

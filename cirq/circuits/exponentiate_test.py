@@ -20,7 +20,7 @@ from cirq.circuits.exponentiate import exponentiate_qubit_operator
 
 def test_exponentiate_X():
 
-    qubit = [cirq.google.XmonQubit(0, 0)]
+    qubit = [cirq.GridQubit(0, 0)]
     circuit1 = cirq.Circuit()
     circuit1.append([cirq.RotXGate(half_turns=-1 / 2).on(qubit[0])])
     sim = cirq.google.XmonSimulator()
@@ -41,7 +41,7 @@ def test_exponentiate_X():
 
 def test_exponentiate_Y():
 
-    qubit = [cirq.google.XmonQubit(0, 0)]
+    qubit = [cirq.GridQubit(0, 0)]
     circuit1 = cirq.Circuit()
     circuit1.append([cirq.RotYGate(half_turns=-1 / 2).on(qubit[0])])
     sim = cirq.google.XmonSimulator()
@@ -62,7 +62,7 @@ def test_exponentiate_Y():
 
 def test_exponentiate_Z():
 
-    qubit = [cirq.google.XmonQubit(0, 0)]
+    qubit = [cirq.GridQubit(0, 0)]
     circuit1 = cirq.Circuit()
     circuit1.append([cirq.RotZGate(half_turns=-1 / 2).on(qubit[0])])
     sim = cirq.google.XmonSimulator()
@@ -82,7 +82,7 @@ def test_exponentiate_Z():
 
 def test_exponentiate_XZ():
 
-    qubits = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0,1)]
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0,1)]
     op = {((0, 'X'),(1, 'Z')):  -1*np.pi/4}
     circuit = exponentiate_qubit_operator(operator=op,time = 1,
                                           qubits=qubits,trotter_steps=1)
@@ -98,7 +98,7 @@ def test_exponentiate_XZ():
 
 def test_exponentiate_xz_zx():
 
-    qubits = [cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(0,1)]
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0,1)]
     op = {((0, 'X'),(1, 'Z')): +1 * np.pi/2, ((0, 'Z'),(1,'X')): -(1/2)*np.pi/2}
     circuit = exponentiate_qubit_operator(operator=op,time = 1,
                                           qubits=qubits,trotter_steps=0)
