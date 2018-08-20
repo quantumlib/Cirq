@@ -27,7 +27,7 @@ For example, one feature is ``ReversibleEffect``.
 A ``Gate`` that inherits this class is required to implement the method ``inverse`` which returns the inverse gate.
 Algorithms that operate on gates can use ``isinstance(gate, ReversibleEffect)`` to determine whether gates implements ``inverse`` method, and then use it.
 (Note that, even if the gate is not reversible, the algorithm may have been given an ``Extension`` with a cast from the gate to ``ReversibleEffect``.
-See the [extensions documentation](docs/extensions.md) for more information.)
+See the [extensions documentation](extensions.md) for more information.)
 
 We describe some gate features below.
 
