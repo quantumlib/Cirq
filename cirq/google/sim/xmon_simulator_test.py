@@ -97,37 +97,39 @@ def simulate(simulator, circuit, scheduler, **kw):
 
 def test_pretty_state():
     simulator = cirq.google.XmonSimulator()
+    c = cirq.Circuit()
+    one_qubit = [Q1]
+    two_qubits = [Q1, Q2]
 
-    # Testing global wavefunction
-    hadamard = cirq.Circuit.from_ops(cirq.H(Q1))
-    result = simulator.simulate(hadamard)
-    assert pretty_state(result.final_state) == "-0.71|0⟩ + -0.71|1⟩"
+    # Testing global pretty_state()
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=one_qubit, initial_state=state)
+    assert pretty_state(result.final_state) == "0.71|0⟩ + 0.71|1⟩"
 
-    # Testing wavefunction method in XmonStepResult
+    # Testing pretty_state() method in XmonStepResult
     circuit = basic_circuit()
     step = simulator.simulate_moment_steps(circuit)
     result = next(step)
     result.set_state(0)
     assert result.pretty_state() == "1.0|00⟩"
 
-    # Testing wavefunction method in XmonStepResult
-    bell00 = cirq.Circuit.from_ops(cirq.H(Q1), cirq.CNOT(Q1, Q2))
-    result = simulator.simulate(bell00)
+    # Testing pretty_state() method in XmonSimulateTrialResult
+    state = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
     assert result.pretty_state(decimals=1) == "0.7|00⟩ + 0.7|11⟩"
 
-    # XmonSimulateTrialResult
-    bell01 = cirq.Circuit.from_ops(cirq.X(Q2), cirq.H(Q1), cirq.CNOT(Q1, Q2))
-    result = simulator.simulate(bell01)
-    assert result.pretty_state(decimals=2) == "-0.71|01⟩ + -0.71|10⟩"
+    state = np.array([1/np.sqrt(2), 0, 0, -1/np.sqrt(2)], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=2) == "0.71|00⟩ + -0.71|11⟩"
 
-    bell10 = cirq.Circuit.from_ops(cirq.X(Q1), cirq.H(Q1), cirq.CNOT(Q1, Q2))
-    result = simulator.simulate(bell10)
-    assert result.pretty_state(decimals=3) == "-0.707|00⟩ + 0.707|11⟩"
+    state = np.array([0, 1/np.sqrt(2), 1/np.sqrt(2), 0], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=2) == "0.71|01⟩ + 0.71|10⟩"
 
-    bell11 = cirq.Circuit.from_ops(
-        cirq.X(Q1), cirq.X(Q2), cirq.H(Q1), cirq.CNOT(Q1, Q2))
-    result = simulator.simulate(bell11)
-    assert result.pretty_state(decimals=4) == "-0.7071|01⟩ + 0.7071|10⟩"
+    state = np.array([0, 1/np.sqrt(2), -1/np.sqrt(2), 0], dtype=np.complex64)
+    result = simulator.simulate(
+        cirq.Circuit(), qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=4) == "0.7071|01⟩ + -0.7071|10⟩"
 
 
 SCHEDULERS = [None, cirq.moment_by_moment_schedule]
