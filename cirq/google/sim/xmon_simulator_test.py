@@ -25,6 +25,7 @@ import pytest
 
 import cirq
 import cirq.google as cg
+from cirq.google.sim.xmon_simulator import pretty_state
 
 Q1 = cirq.GridQubit(0, 0)
 Q2 = cirq.GridQubit(1, 0)
@@ -94,33 +95,39 @@ def simulate(simulator, circuit, scheduler, **kw):
     return simulator.simulate(program, **kw)
 
 
-def test_wavefunction():
+def test_pretty_state():
     simulator = cirq.google.XmonSimulator()
 
+    # Testing global wavefunction
     hadamard = cirq.Circuit.from_ops(cirq.H(Q1))
     result = simulator.simulate(hadamard)
-    assert simulator.wavefunction(result) == "-0.71j|0⟩ + -0.71j|1⟩"
+    assert pretty_state(result.final_state) == "-0.71|0⟩ + -0.71|1⟩"
 
+    # Testing wavefunction method in XmonStepResult
+    circuit = basic_circuit()
+    step = simulator.simulate_moment_steps(circuit)
+    result = next(step)
+    result.set_state(0)
+    assert result.pretty_state() == "1.0|00⟩"
+
+    # Testing wavefunction method in XmonStepResult
     bell00 = cirq.Circuit.from_ops(cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell00)
-    assert simulator.wavefunction(
-        result, decimals=1) == "(0.7+0j)|00⟩ + (0.7+0j)|11⟩"
+    assert result.pretty_state(decimals=1) == "0.7|00⟩ + 0.7|11⟩"
 
+    # XmonSimulateTrialResult
     bell01 = cirq.Circuit.from_ops(cirq.X(Q2), cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell01)
-    assert simulator.wavefunction(
-        result, decimals=2) == "-0.71j|01⟩ + -0.71j|10⟩"
+    assert result.pretty_state(decimals=2) == "-0.71|01⟩ + -0.71|10⟩"
 
     bell10 = cirq.Circuit.from_ops(cirq.X(Q1), cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell10)
-    assert simulator.wavefunction(
-        result, decimals=3) == "-0.707j|00⟩ + 0.707j|11⟩"
+    assert result.pretty_state(decimals=3) == "-0.707|00⟩ + 0.707|11⟩"
 
     bell11 = cirq.Circuit.from_ops(
         cirq.X(Q1), cirq.X(Q2), cirq.H(Q1), cirq.CNOT(Q1, Q2))
     result = simulator.simulate(bell11)
-    assert simulator.wavefunction(
-        result, decimals=4) == "(-0.7071+0j)|01⟩ + (0.7071+0j)|10⟩"
+    assert result.pretty_state(decimals=4) == "-0.7071|01⟩ + 0.7071|10⟩"
 
 
 SCHEDULERS = [None, cirq.moment_by_moment_schedule]

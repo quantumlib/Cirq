@@ -54,6 +54,37 @@ from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
 
+def pretty_state(wvf, decimals=2):
+    """
+    Returns the wavefunction as a string in Dirac notation.
+
+    For example:
+    circuit = cirq.Circuit.from_ops(cirq.H(Q1))
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.simulate(circuit)
+
+    print(wavefunction(result.final_state)) -> -0.71|0⟩ + -0.71|1⟩
+    """
+
+    perm_list = ["".join(seq) for seq in itertools.product(
+        "01", repeat=int(len(wvf)).bit_length()-1)]
+    wvf_string = ""
+
+    for x in range(len(perm_list)):
+
+        rounded_elem = round(wvf[x].real, decimals) + \
+            round(wvf[x].imag, decimals)
+
+        if rounded_elem != 0:
+            wvf_string += str(rounded_elem) + \
+                "|{}⟩ + ".format(perm_list[x])
+
+    wvf_string = re.split(r'(\s+)', wvf_string)[:-4]
+    wvf_string = "".join(wvf_string)
+
+    return wvf_string
+
+
 class XmonOptions:
     """XmonOptions for the XmonSimulator.
 
@@ -141,6 +172,9 @@ class XmonSimulateTrialResult:
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
 
+    def pretty_state(self, decimals=2):
+        return pretty_state(self.final_state, decimals)
+
 
 class XmonSimulator:
     """XmonSimulator for Xmon class quantum circuits.
@@ -166,35 +200,6 @@ class XmonSimulator:
             options: XmonOptions configuring the simulation.
         """
         self.options = options or XmonOptions()
-
-    def wavefunction(self, state, decimals=2):
-        """
-        Returns the wavefunction as a string in Dirac notation.
-
-        For example:
-        circuit = cirq.Circuit.from_ops(cirq.H(Q1))
-        simulator = cirq.google.XmonSimulator()
-        result = simulator.simulate(circuit)
-
-        print(wavefunction(result.final_state)) -> -0.71j|0> + -0.71j|1>
-        """
-        wvf = state.final_state
-        perm_list = ["".join(seq) for seq in itertools.product(
-            "01", repeat=int(np.log2(len(wvf))))]
-        wvf_string = ""
-
-        for x in range(0, len(perm_list)):
-            rounded_elem = np.around(wvf[x], decimals) + np.complex(0, 0)
-            rounded_elem = np.around(rounded_elem, decimals)
-
-            if rounded_elem != 0:
-                wvf_string += str(rounded_elem) + \
-                    "|{}⟩ + ".format(perm_list[x])
-
-        wvf_string = re.split(r'(\s+)', wvf_string)[:-4]
-        wvf_string = "".join(wvf_string)
-
-        return wvf_string
 
     def run(
         self,
@@ -653,6 +658,9 @@ class XmonStepResult:
                +---+--------+--------+--------+
         """
         return self._stepper.current_state
+
+    def pretty_state(self, decimals=2):
+        return pretty_state(self.state(), decimals)
 
     def set_state(self, state: Union[int, np.ndarray]):
         """Updates the state of the simulator to the given new state.
