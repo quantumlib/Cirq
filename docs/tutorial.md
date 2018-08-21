@@ -201,7 +201,7 @@ Here we see that we can iterate over a `Circuit`'s `Moment`s. The reason
 that two `Moment`s were created was that the `append` method uses an
 `InsertStrategy` of `NEW_THEN_INLINE`. `InsertStrategy`s describe
 how new insertions into `Circuit`s place their gates. Details of these
-strategies can be found in the [circuit documentation](/docs/circuits.md).  If
+strategies can be found in the [circuit documentation](circuits.md).  If
 we wanted to insert the gates so that they form one `Moment`, we could 
 instead use the `EARLIEST` insertion strategy:
 ```python

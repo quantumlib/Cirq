@@ -12,21 +12,21 @@ matrix:
   include:
   - os: linux
     env: NAME=mypy
-    python: "3.5"
+    python: "3.5.2"
     install:
       - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
     script: check/mypy
 
   - os: linux
     env: NAME=pylint
-    python: "3.5"
+    python: "3.5.2"
     install:
       - cat dev_tools/conf/pip-list-dev-tools.txt | grep pylint | xargs pip install
     script: check/pylint
 
   - os: linux
     env: NAME=pytest-and-incremental-coverage
-    python: "3.5"
+    python: "3.5.2"
     install:
       - pip install -r requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
