@@ -1615,6 +1615,14 @@ def test_apply_unitary_effect_to_state():
         np.array([0, 0, 1, 0]),
         atol=1e-8)
 
+    # Dtypes.
+    for dt in (np.complex64, np.complex128, np.complex256):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
+                initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt),
+            np.array([0, 1]),
+            atol=1e-8)
+
 
 def test_is_parameterized():
     a, b = cirq.LineQubit.range(2)
