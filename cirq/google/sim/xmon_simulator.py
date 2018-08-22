@@ -54,26 +54,30 @@ from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 
 
-def pretty_state(wvf, decimals=2):
+def pretty_state(state, decimals=2):
     """
     Returns the wavefunction as a string in Dirac notation.
 
     For example:
-    circuit = cirq.Circuit.from_ops(cirq.H(Q1))
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.simulate(circuit)
 
-    print(wavefunction(result.final_state)) -> -0.71|0⟩ + -0.71|1⟩
+    Q1 = cirq.GridQubit(0, 0)
+
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.simulate(cirq.Circuit(), qubit_order=[
+                            Q1], initial_state=state)
+
+    print(pretty_state(result.final_state)) -> 0.71|0⟩ + 0.71|1⟩
     """
 
     perm_list = ["".join(seq) for seq in itertools.product(
-        "01", repeat=int(len(wvf)).bit_length()-1)]
+        "01", repeat=int(len(state)).bit_length()-1)]
     wvf_string = ""
 
     for x in range(len(perm_list)):
 
-        rounded_elem = round(wvf[x].real, decimals) + \
-            round(wvf[x].imag, decimals)
+        rounded_elem = round(state[x].real, decimals) + \
+            round(state[x].imag, decimals)
 
         if rounded_elem != 0:
             wvf_string += str(rounded_elem) + \
