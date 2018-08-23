@@ -524,10 +524,12 @@ class HGate(eigen_gate.EigenGate,
         return HGate(half_turns=exponent)
 
     def _eigen_components(self):
-        return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        two_plus_sqrt_two = 2 * (2 + np.sqrt(2))
+
+        component = np.array([[(3 + 2 * np.sqrt(2)) / two_plus_sqrt_two, (1 + np.sqrt(2)) /
+                               two_plus_sqrt_two], [(1 + np.sqrt(2)) / two_plus_sqrt_two, (1) / (2 * two_plus_sqrt_two)]])
+
+        return [(0, component), (1, component), ]
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
@@ -554,7 +556,11 @@ class HGate(eigen_gate.EigenGate,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        return args.format('h {0};\n', qubits[0])
+        if self.half_turns == 1:
+            return args.format('h {0};\n', qubits[0])
+        else:
+            return args.format('rh({0:half_turns}) {1};\n',
+                               self.half_turns, qubits[0])
 
     def __str__(self):
         return 'H'
