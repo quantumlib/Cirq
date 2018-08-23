@@ -492,6 +492,7 @@ T = Z**0.25
 
 class HGate(eigen_gate.EigenGate,
             gate_features.TextDiagrammable,
+            gate_features.CompositeGate,
             gate_features.SingleQubitGate,
             gate_features.QasmConvertibleGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
