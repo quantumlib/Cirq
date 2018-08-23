@@ -349,8 +349,8 @@ class MeasurementGate(raw_types.Gate,
         key: The string key of the measurement.
         invert_mask: A list of values indicating whether the corresponding
             qubits should be flipped. The list's length must not be longer than
-            the number of qubits, but it is permitted to be shorted. Qubits with
-            indices past the end of the mask are not flipped.
+            the number of qubits, but it is permitted to be shorted.
+    Qubits with indices past the end of the mask are not flipped.
     """
 
     def __init__(self,
@@ -520,14 +520,16 @@ class HGate(eigen_gate.EigenGate,
         return 2
 
     def _with_exponent(self,
-                       exponent: Union[value.Symbol, float]) -> 'RotXGate':
+                       exponent: Union[value.Symbol, float]) -> 'HGate':
         return HGate(half_turns=exponent)
 
     def _eigen_components(self):
         two_plus_sqrt_two = 2 * (2 + np.sqrt(2))
 
-        component = np.array([[(3 + 2 * np.sqrt(2)) / two_plus_sqrt_two, (1 + np.sqrt(2)) /
-                               two_plus_sqrt_two], [(1 + np.sqrt(2)) / two_plus_sqrt_two, (1) / (2 * two_plus_sqrt_two)]])
+        component = np.array([[(3 + 2 * np.sqrt(2)) / two_plus_sqrt_two,
+                               (1 + np.sqrt(2)) / two_plus_sqrt_two],
+                              [(1 + np.sqrt(2)) / two_plus_sqrt_two,
+                               (1) / (2 * two_plus_sqrt_two)]])
 
         return [(0, component), (1, component), ]
 
