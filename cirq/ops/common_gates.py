@@ -414,7 +414,7 @@ class MeasurementGate(raw_types.Gate,
         for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
             if inv:
                 lines.append(args.format(
-                        'x {0};  // Invert the following measurement\n', qubit))
+                    'x {0};  // Invert the following measurement\n', qubit))
             lines.append(args.format('measure {0} -> {1:meas}[{2}];\n',
                                      qubit, self.key, i))
         return ''.join(lines)
@@ -490,17 +490,48 @@ S = Z**0.5
 T = Z**0.25
 
 
-class HGate(gate_features.CompositeGate,
+class HGate(eigen_gate.EigenGate,
             gate_features.TextDiagrammable,
-            gate_features.ReversibleEffect,
-            gate_features.KnownMatrix,
             gate_features.SingleQubitGate,
             gate_features.QasmConvertibleGate):
     """180 degree rotation around the X+Z axis of the Bloch sphere."""
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(('H',))
+    def __init__(self, *,  # Forces keyword args.
+                 half_turns: Optional[Union[value.Symbol, float]] = None,
+                 rads: Optional[float] = None,
+                 degs: Optional[float] = None) -> None:
+        """Initializes the gate.
+
+        At most one angle argument may be specified. If more are specified,
+        the result is considered ambiguous and an error is thrown. If no angle
+        argument is given, the default value of one half turn is used.
+
+        Args:
+            half_turns: The relative phasing of H's eigenstates, in half_turns.
+            rads: The relative phasing of H's eigenstates, in radians.
+            degs: The relative phasing of H's eigenstates, in degrees.
+        """
+        super().__init__(exponent=value.chosen_angle_to_half_turns(
+            half_turns=half_turns,
+            rads=rads,
+            degs=degs))
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'RotXGate':
+        return HGate(half_turns=exponent)
+
+    def _eigen_components(self):
+        return [
+            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
+            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
+        ]
+
+    @property
+    def half_turns(self) -> Union[value.Symbol, float]:
+        return self._exponent
 
     def default_decompose(self, qubits):
         q = qubits[0]
@@ -514,6 +545,10 @@ class HGate(gate_features.CompositeGate,
         """See base class."""
         s = math.sqrt(0.5)
         return np.array([[s, s], [s, -s]])
+
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(('H',))
 
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
@@ -773,4 +808,5 @@ class ISwapGate(eigen_gate.EigenGate,
         return '(cirq.ISWAP**{!r})'.format(self.exponent)
 
 
-ISWAP = ISwapGate()  # Swaps two qubits while phasing the swapped subspace by i.
+# Swaps two qubits while phasing the swapped subspace by i.
+ISWAP = ISwapGate()
