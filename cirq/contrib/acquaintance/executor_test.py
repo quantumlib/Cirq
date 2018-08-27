@@ -155,8 +155,8 @@ def random_diagonal_gates(n_qubits: int,
       for acquaintance_size, n_qubits in
       ([(2, n) for n in range(2, 9)] +
        [(3, n) for n in range(3, 9)] +
-       [(4, n) for n in (4, 7)] +
-       [(5, n) for n in (5, 8)])
+       [(4, n) for n in (4, 7)] + 
+       [(5, n) for n in (5, 6)])
       for _ in range(2)
       ])
 def test_executor_random(n_qubits: int,
