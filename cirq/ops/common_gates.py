@@ -540,8 +540,9 @@ class HGate(eigen_gate.EigenGate,
 
     def default_decompose(self, qubits):
         q = qubits[0]
-        yield Y(q)**0.5
-        yield X(q)
+        yield Y**0.25,
+        yield X**self.half_turns
+        yield Y**-0.25
 
     def inverse(self):
         return self

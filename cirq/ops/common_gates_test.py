@@ -17,6 +17,10 @@ import pytest
 
 import cirq
 
+import re
+import math
+import itertools
+
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
 QFT2 = np.array([[1, 1, 1, 1],
@@ -152,6 +156,20 @@ def test_x_matrix():
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
 
+def test_h_matrix():
+    assert np.allclose(cirq.HGate(half_turns=1).matrix(),
+                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
+
+    assert np.allclose(cirq.HGate(half_turns=0.5).matrix(),
+                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
+
+    assert np.allclose(cirq.HGate(half_turns=0).matrix(),
+                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
+
+    assert np.allclose(cirq.HGate(half_turns=-0.5).matrix(),
+                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
+
+
 def test_runtime_types_of_rot_gates():
     for gate_type in [cirq.Rot11Gate,
                       cirq.RotXGate,
@@ -256,6 +274,7 @@ def test_cnot_power():
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
+
 def test_cnot_keyword_arguments():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -266,6 +285,7 @@ def test_cnot_keyword_arguments():
     eq_tester.add_equality_group(cirq.CNOT(b, a),
                                  cirq.CNOT(control=b, target=a))
 
+
 def test_cnot_keyword_not_equal():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -274,6 +294,7 @@ def test_cnot_keyword_not_equal():
         eq_tester = cirq.testing.EqualsTester()
         eq_tester.add_equality_group(cirq.CNOT(a, b),
                                      cirq.CNOT(target=a, control=b))
+
 
 def test_cnot_keyword_too_few_arguments():
     a = cirq.NamedQubit('a')
@@ -289,12 +310,14 @@ def test_cnot_mixed_keyword_and_positional_arguments():
     with pytest.raises(ValueError):
         _ = cirq.CNOT(a, target=b)
 
+
 def test_cnot_unknown_keyword_argument():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     with pytest.raises(ValueError):
         _ = cirq.CNOT(target=a, controlled=b)
+
 
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
