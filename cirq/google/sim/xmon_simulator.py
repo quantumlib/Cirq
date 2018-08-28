@@ -59,9 +59,7 @@ def pretty_state(state, decimals=2):
     Returns the wavefunction as a string in Dirac notation.
 
     For example:
-
     state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-
     print(pretty_state(result.final_state)) -> 0.71|0⟩ + 0.71|1⟩
     """
 
