@@ -60,12 +60,7 @@ def pretty_state(state, decimals=2):
 
     For example:
 
-    Q1 = cirq.GridQubit(0, 0)
-
     state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.simulate(cirq.Circuit(), qubit_order=[
-                            Q1], initial_state=state)
 
     print(pretty_state(result.final_state)) -> 0.71|0⟩ + 0.71|1⟩
     """
