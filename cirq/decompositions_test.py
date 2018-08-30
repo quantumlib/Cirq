@@ -15,13 +15,12 @@
 import cmath
 import math
 import random
-from typing import Sequence, cast
+from typing import List, Sequence, cast
 
 import numpy as np
 import pytest
 
 import cirq
-
 
 def _operations_to_matrix(operations, qubits):
     return cirq.Circuit.from_ops(operations).to_unitary_matrix(
@@ -34,7 +33,6 @@ def _gates_to_matrix(gates: Sequence[cirq.KnownMatrix]) -> np.ndarray:
     for gate in gates[1:]:
         m = gate.matrix().dot(m)
     return m
-
 
 def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
                                    intended_effect: np.ndarray,
@@ -194,9 +192,15 @@ def test_controlled_op_to_operations_concrete_case():
         target=t,
         operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
         tolerance=0.0001)
-
-    assert operations == [cirq.Y(t)**-0.5, cirq.CZ(c, t)**1.5,
-                          cirq.Z(c)**0.25, cirq.Y(t)**0.5]
+    # Test closeness as opposed to equality to avoid precision errors
+    assert cirq.allclose_up_to_global_phase(operations[0].matrix(),
+                                            (cirq.Y(t)**-0.5).matrix())
+    assert cirq.allclose_up_to_global_phase(operations[1].matrix(),
+                                            (cirq.CZ(c, t)**1.5).matrix())
+    assert cirq.allclose_up_to_global_phase(operations[2].matrix(),
+                                            (cirq.Z(t)**0.25).matrix())
+    assert cirq.allclose_up_to_global_phase(operations[3].matrix(),
+                                            (cirq.Y(t)**0.5).matrix())
 
 
 def test_controlled_op_to_operations_omits_negligible_global_phase():
