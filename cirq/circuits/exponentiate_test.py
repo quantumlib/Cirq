@@ -25,8 +25,9 @@ def test_exponentiate_X():
     circuit1.append([cirq.RotXGate(half_turns=-1 / 2).on(qubit[0])])
     sim = cirq.google.XmonSimulator()
 
-    op = {((0, 'X'),): np.pi / 4}
-    circuit2 = exponentiate_qubit_operator(operator=op, qubits=qubit,
+    op = {cirq.PauliString(qubit_pauli_map={qubit[0]: cirq.Pauli.X}): np.pi / 4}
+
+    circuit2 = exponentiate_qubit_operator(operator=op,
                                            time=1, trotter_steps=1)
 
     results1 = sim.simulate(circuit1)
@@ -46,8 +47,8 @@ def test_exponentiate_Y():
     circuit1.append([cirq.RotYGate(half_turns=-1 / 2).on(qubit[0])])
     sim = cirq.google.XmonSimulator()
 
-    op = {((0, 'Y'),): np.pi / 4}
-    circuit2 = exponentiate_qubit_operator(operator=op, qubits=qubit,
+    op = {cirq.PauliString(qubit_pauli_map={qubit[0]: cirq.Pauli.Y}): np.pi / 4}
+    circuit2 = exponentiate_qubit_operator(operator=op,
                                            time=1, trotter_steps=1)
 
     results1 = sim.simulate(circuit1)
@@ -67,8 +68,9 @@ def test_exponentiate_Z():
     circuit1.append([cirq.RotZGate(half_turns=-1 / 2).on(qubit[0])])
     sim = cirq.google.XmonSimulator()
 
-    op = {((0, 'Z'),): -1 * np.pi / 4}
-    circuit2 = exponentiate_qubit_operator(operator=op, qubits=qubit,
+    op = {cirq.PauliString(qubit_pauli_map=
+                           {qubit[0]: cirq.Pauli.Z}): -1* np.pi / 4}
+    circuit2 = exponentiate_qubit_operator(operator=op,
                                            time=1, trotter_steps=1)
 
     results1 = sim.simulate(circuit1)
@@ -83,30 +85,41 @@ def test_exponentiate_Z():
 def test_exponentiate_XZ():
 
     qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0,1)]
-    op = {((0, 'X'),(1, 'Z')):  -1*np.pi/4}
-    circuit = exponentiate_qubit_operator(operator=op,time = 1,
-                                          qubits=qubits,trotter_steps=1)
+
+    op = {cirq.PauliString(qubit_pauli_map=
+                           {qubits[0]: cirq.Pauli.X,
+                            qubits[1]: cirq.Pauli.Z}): -1*np.pi / 4}
+
+    circuit = exponentiate_qubit_operator(operator=op, time=1,
+                                          trotter_steps=1)
 
     sim = cirq.google.XmonSimulator()
     results = sim.simulate(circuit)
     res = np.round(results.final_state,6)
     
-    ratio  = np.round(res[0]/res[2],4)
+    ratio = np.round(res[0]/res[2], 4)
 
     assert ratio == 1j
 
 
 def test_exponentiate_xz_zx():
 
-    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0,1)]
-    op = {((0, 'X'),(1, 'Z')): +1 * np.pi/2, ((0, 'Z'),(1,'X')): -(1/2)*np.pi/2}
-    circuit = exponentiate_qubit_operator(operator=op,time = 1,
-                                          qubits=qubits,trotter_steps=0)
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)]
+
+    op = {cirq.PauliString(qubit_pauli_map=
+                           {qubits[0]: cirq.Pauli.X,
+                            qubits[1]: cirq.Pauli.Z}): -1 * np.pi / 2,
+          cirq.PauliString(qubit_pauli_map=
+                           {qubits[0]: cirq.Pauli.Z,
+                            qubits[1]: cirq.Pauli.X}): -(1/2) * np.pi / 2}
+
+    circuit = exponentiate_qubit_operator(operator=op, time=1,
+                                          trotter_steps=0)
 
     sim = cirq.google.XmonSimulator()
     results = sim.simulate(circuit)
-    res = np.round(results.final_state,4)
+    res = np.round(results.final_state, 4)
 
-    ratio = np.round(res[2]/res[3],4)
+    ratio = np.round(res[2]/res[3], 4)
 
     assert ratio == -1j

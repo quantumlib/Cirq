@@ -95,7 +95,7 @@ def expectation_from_sampling(circuit: Circuit,
         for term, coef in operator.items():
 
             # check if identity:
-            identity_coeficient = 0
+            identity_coeficient = 0.
             if term == ():
                 identity_coeficient = coef
                 continue
