@@ -92,7 +92,7 @@ def exponentiate_qubit_operator(time: Union[int, float],
             moment = []
             basis_change = []
             reverse_basis = []
-            cnot_gates: List[Any] = []
+            cnot_gates = []
             prev_qubit = None
             highest_target_qubit = None
 
