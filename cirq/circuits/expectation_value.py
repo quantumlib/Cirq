@@ -28,7 +28,7 @@ from cirq.ops import NamedQubit
 
 # Helper Function to add measurement gates to qubits
 def measurement_gates(circuit: Circuit,
-                      q_dict: Dict[Union[NamedQubit, GridQubit,LineQubit],
+                      q_dict: Dict[Union[NamedQubit, GridQubit, LineQubit],
                                    Union[int, str]]):
     """
     circuit: cirq.Circuit to add measurements to
@@ -46,9 +46,9 @@ def measurement_gates(circuit: Circuit,
 
 
 def expectation_from_sampling(circuit: Circuit,
-                      operator: Dict[PauliString, float],
-                      n_samples: int=100,
-                      quadratic_z: bool =False):
+                              operator: Dict[PauliString, float],
+                              n_samples: int=100,
+                              quadratic_z: bool =False):
     """
     Calculates the expactation value of cost function (operator)
 
@@ -69,7 +69,7 @@ def expectation_from_sampling(circuit: Circuit,
 
         n_samples: number of runs for sampling
 
-        quadratic_z: Boolean that determines whether operator only has terms 
+        quadratic_z: Boolean that determines whether operator only has terms
                      quadratic in Pauli Z
                      If true, computation is faster
 
@@ -103,17 +103,17 @@ def expectation_from_sampling(circuit: Circuit,
             # Add appropriate rotation gates to circuit
             # and add measurement gates
             # dictionary of qubits to be measured and its indices
-            q_dict = dict()  
+            q_dict = dict()
 
             for qubit, pauli in term.items():
 
                 if pauli == Pauli.X:
                     circuit.append(RotYGate(half_turns=-1 / 2).on(
-                            qubit))
+                        qubit))
 
                 elif pauli == Pauli.Y:
                     circuit.append(RotXGate(half_turns=+1 / 2).on(
-                            qubit))
+                        qubit))
 
                 # After rotation we can re-add measurement gates
                 q_dict[qubit] = qubits.index(qubit)
@@ -219,7 +219,7 @@ def expectation_from_sampling(circuit: Circuit,
 
         expectation_mean = np.mean(expectation_samples) + identity_coeficient
 
-        #if print_runs:
+        # if print_runs:
         #    print('current cost is = ', expectation_mean)
 
         return expectation_mean
@@ -305,7 +305,6 @@ def expectation_value(circuit: Circuit,
             if pauli == Pauli.Z:
                 full_op_list[q_idx] = pauli_z
 
-
         # put into matrix form (tensor product)
         if len(full_op_list) == 1:
             full_op = full_op_list[0]
@@ -313,7 +312,6 @@ def expectation_value(circuit: Circuit,
             full_op = np.kron(full_op_list[0], full_op_list[1])
             for i in range(2, len(full_op_list)):
                 full_op = np.kron(full_op, full_op_list[i])
-
 
         # caculates expectation for term
         op_on_state = full_op.dot(final_state)

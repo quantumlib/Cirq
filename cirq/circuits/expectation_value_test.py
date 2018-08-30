@@ -22,7 +22,7 @@ from cirq.circuits.expectation_value import expectation_from_sampling
 def test_sampling_ZZ():
     # op = {((0, 'Z'), (1, 'Z')): 1}
     qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
-    op = {cirq.PauliString(qubit_pauli_map={qubits[0]:cirq.Pauli.Z,
+    op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
                                             qubits[1]: (cirq.Pauli.Z)}): 1}
 
     circuit = cirq.Circuit()
@@ -48,8 +48,8 @@ def test_sampling_XZ():
     circuit.append(cirq.H.on(qubits[0]))
 
     expect = expectation_from_sampling(circuit=circuit,
-                               operator=op,
-                               n_samples=1000)
+                                       operator=op,
+                                       n_samples=1000)
 
     assert np.round(expect, 5) == 1.0
 

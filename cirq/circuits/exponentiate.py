@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Exponentiation tool for Pauli Operators""" 
+""" Exponentiation tool for Pauli Operators"""
 
 # Imports
 from typing import Optional, Dict, Tuple, List, Union
 
 import numpy as np
 from cirq.circuits import Circuit
-from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT,  Pauli, PauliString
+from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT, Pauli, PauliString
 from cirq.devices import GridQubit
 from cirq.line import LineQubit
 from cirq.ops import NamedQubit
 
-def exponentiate_qubit_operator(time: Union[int,float], 
+
+def exponentiate_qubit_operator(time: Union[int, float],
                                 operator: Dict[PauliString, float],
                                 trotter_steps: int = 0):
     """
@@ -51,12 +52,12 @@ def exponentiate_qubit_operator(time: Union[int,float],
                        100*(maximum qubit operator coefficient)
 
     Returns:
-        cirq.circuit() with gates representing the unitary 
+        cirq.circuit() with gates representing the unitary
         obtained by exponentiating operator argument
     """
 
     # Check if input is in correct format
-    if type(operator) == dict:
+    if isinstance(operator, dict):
         terms_dict = operator.items()
     else:
         raise ValueError('Operator should be a'
@@ -65,17 +66,17 @@ def exponentiate_qubit_operator(time: Union[int,float],
 
     # define rotations:
     basis_rotation = {
-        Pauli.X : RotYGate(half_turns=.5),
-        Pauli.Y : RotXGate(half_turns=-.5),
-        Pauli.Z : None,
-        () : None
-        }
+        Pauli.X: RotYGate(half_turns=.5),
+        Pauli.Y: RotXGate(half_turns=-.5),
+        Pauli.Z: None,
+        (): None
+    }
 
     # rotations back to original basis
     undo_rotation = {
-        Pauli.X : RotYGate(half_turns=-.5),
-        Pauli.Y : RotXGate(half_turns=.5)
-        }
+        Pauli.X: RotYGate(half_turns=-.5),
+        Pauli.Y: RotXGate(half_turns=.5)
+    }
 
     # setup trotter steps
     if trotter_steps == 0:
@@ -97,7 +98,7 @@ def exponentiate_qubit_operator(time: Union[int,float],
             cnot_gates = []
             prev_qubit = None
             highest_target_qubit = None
-            
+
             # skip identity
             # if term == ():
             #    continue
@@ -112,7 +113,7 @@ def exponentiate_qubit_operator(time: Union[int,float],
 
                 if prev_qubit is not None:
                     cnot_gates.append(CNOT.on(prev_qubit,
-                                                   qubit))
+                                              qubit))
 
                 prev_qubit = qubit
                 highest_target_qubit = qubit
@@ -121,7 +122,7 @@ def exponentiate_qubit_operator(time: Union[int,float],
             moment.append(cnot_gates)
             moment.append(RotZGate(half_turns=2.0 * (coef / np.pi)
                                    * time / trotter_steps).on(
-                                    highest_target_qubit))
+                highest_target_qubit))
             moment.append(list(reversed(cnot_gates)))
             moment.append(reverse_basis)
 
