@@ -39,7 +39,7 @@ This idea has led to a class of algorithms known as variational quantum
 algorithms. Indeed this approach is not just limited to finding low
 energy eigenstates, but minimizing any objective function that can
 be expressed as a quantum observable. It is an open question to identify 
-under what conditions these quantum variataional algorithms will succeed, 
+under what conditions these quantum variational algorithms will succeed,
 and exploring this class of algorithms is a key part of research 
 for [noisy intermediate scale quantum computers](https://arxiv.org/abs/1801.00862).
 
@@ -278,7 +278,7 @@ gate cos(half_turns * pi) I + i sin(half_turns * pi) X.
 
 There is a lot of freedom defining a variational ansatz. 
 Here we will do a variation on a [QOAO strategy](https://arxiv.org/abs/1411.4028)
-and define an anstaz related to he problem we are trying to solve. 
+and define an anstaz related to the problem we are trying to solve.
 
 First we need to choose how the instances of the 
 problem are represented.  These are the values J and h in the
@@ -335,7 +335,7 @@ qubits where the coupling field term J is +1. If the field
 is -1 apply Rot11Gate conjugated by X gates on all qubits.
 ```python
 def rot_11_layer(jr, jc, half_turns):
-    """Yeilds rotations about |11> conditioned on the jr and jc fields."""
+    """Yields rotations about |11> conditioned on the jr and jc fields."""
     gate = cirq.Rot11Gate(half_turns=half_turns)    
     for i, jr_row in enumerate(jr):
         for j, jr_ij in enumerate(jr_row):
@@ -531,7 +531,7 @@ print(circuit)
 ```
 Note now that the circuit's gates are parameterized.
 
-Parameters are specified at run time using a `ParamResolver` which is
+Parameters are specified at runtime using a `ParamResolver` which is
 which is just a dictionary from `Symbol` keys to runtime values. For example,
 ```python
 resolver = cirq.ParamResolver({'alpha': 0.1, 'beta': 0.3, 'gamma': 0.7})
@@ -565,7 +565,7 @@ for result in results:
 # OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.9)]) 0.94```
 ```
 
-### Finiding the Minimum
+### Finding the Minimum
 
 Now we have all the code to we need to do a simple grid search
 over values to find a minimal value.  Grid search is most definitely
