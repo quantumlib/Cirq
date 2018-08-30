@@ -182,7 +182,7 @@ The script does nothing if the output directory already exists.
     `pip` will choose between the two based on whichever version of python the user is using.
     Development versions end with `.dev35` and `.dev27` instead of `.35` and `.27`, e.g. use `0.0.4.dev27` for the python 2 variant of the development version of `0.0.4`.
 
-    Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a followup pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
+    Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a follow up pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
 
 2. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
 
