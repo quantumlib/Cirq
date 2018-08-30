@@ -15,14 +15,11 @@
 """ Exponentiation tool for Pauli Operators"""
 
 # Imports
-from typing import Optional, Dict, Tuple, List, Union
+from typing import Dict, Union, Any
 
 import numpy as np
 from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT, Pauli, PauliString
-from cirq.devices import GridQubit
-from cirq.line import LineQubit
-from cirq.ops import NamedQubit
 
 
 def exponentiate_qubit_operator(time: Union[int, float],
@@ -87,7 +84,7 @@ def exponentiate_qubit_operator(time: Union[int, float],
     circuit = Circuit()
 
     # trotter loops
-    for n in range(trotter_steps):
+    for _ in range(trotter_steps):
 
         # Define Exponentiatiation:
         # loop through operators
@@ -95,7 +92,7 @@ def exponentiate_qubit_operator(time: Union[int, float],
             moment = []
             basis_change = []
             reverse_basis = []
-            cnot_gates = []
+            cnot_gates: List[Any] = []
             prev_qubit = None
             highest_target_qubit = None
 

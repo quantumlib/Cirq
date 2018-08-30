@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # imports
-import cirq
 import numpy as np
+import cirq
 from cirq.circuits.exponentiate import exponentiate_qubit_operator
 
 

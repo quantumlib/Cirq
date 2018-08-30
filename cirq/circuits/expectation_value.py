@@ -264,7 +264,7 @@ def expectation_value(circuit: Circuit,
     n_qubits = len(qubits)
 
     # setup the bit strings for each final state:
-    bits = [bin(i)[2:].zfill(n_qubits) for i in range(2**n_qubits)]
+    # bits = [bin(i)[2:].zfill(n_qubits) for i in range(2**n_qubits)]
 
     # runs circuit:
     results = sim.simulate(circuit)

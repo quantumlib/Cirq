@@ -13,8 +13,8 @@
 # limitations under the License.
 
 # imports
-import cirq
 import numpy as np
+import cirq
 from cirq.circuits.expectation_value import expectation_value
 from cirq.circuits.expectation_value import expectation_from_sampling
 
