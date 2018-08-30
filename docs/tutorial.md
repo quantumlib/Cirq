@@ -278,11 +278,7 @@ gate cos(half_turns * pi) I + i sin(half_turns * pi) X.
 
 There is a lot of freedom defining a variational ansatz.
 Here we will do a variation on a [QOAO strategy](https://arxiv.org/abs/1411.4028)
-<<<<<<< HEAD
-and define an anstaz related to the problem we are trying to solve.
-=======
-and define an anstaz related to he problem we are trying to solve.
->>>>>>> 9df6d1c5f21329091d958116b0e8ed4d8445fb5a
+and define an ansatz related to the problem we are trying to solve.
 
 First we need to choose how the instances of the
 problem are represented.  These are the values J and h in the
