@@ -24,7 +24,6 @@ import examples.bcs_mean_field
 import examples.supremacy
 import examples.phase_estimator
 import examples.basic_arithmetic
-from examples.supremacy import generate_supremacy_circuit
 
 
 def test_generate_supremacy_circuit():
