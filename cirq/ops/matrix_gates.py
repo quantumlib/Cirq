@@ -14,11 +14,11 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Optional
+from typing import Optional, Union, cast
 
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, value
 from cirq.ops import gate_features, raw_types
 
 
@@ -27,6 +27,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 
 class SingleQubitMatrixGate(raw_types.Gate,
+                            gate_features.TextDiagrammable,
                             gate_features.KnownMatrix,
                             gate_features.PhaseableEffect,
                             gate_features.ExtrapolatableEffect,
@@ -56,8 +57,12 @@ class SingleQubitMatrixGate(raw_types.Gate,
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: float):
-        new_mat = linalg.map_eigenvalues(self.matrix(), lambda e: e**factor)
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'SingleQubitMatrixGate':
+        if isinstance(factor, value.Symbol):
+            raise TypeError('SingleQubitMatrixGate cannot be parameterized.')
+        e = cast(float, factor)
+        new_mat = linalg.map_eigenvalues(self.matrix(), lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
     def trace_distance_bound(self):
@@ -77,6 +82,11 @@ class SingleQubitMatrixGate(raw_types.Gate,
                 'matrix to the init method or else implement the matrix '
                 'method.'.format(type(self)))
         return self._matrix
+
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=(_matrix_to_diagram_symbol(self.matrix(), args),))
 
     def __hash__(self):
         vals = tuple(v for _, v in np.ndenumerate(self.matrix()))
@@ -98,13 +108,14 @@ class SingleQubitMatrixGate(raw_types.Gate,
         return not self == other
 
     def __repr__(self):
-        return 'SingleQubitMatrixGate({})'.format(repr(self.matrix()))
+        return 'cirq.SingleQubitMatrixGate({})'.format(repr(self.matrix()))
 
     def __str__(self):
         return str(self.matrix().round(3))
 
 
 class TwoQubitMatrixGate(raw_types.Gate,
+                         gate_features.TextDiagrammable,
                          gate_features.KnownMatrix,
                          gate_features.PhaseableEffect,
                          gate_features.ExtrapolatableEffect):
@@ -134,8 +145,12 @@ class TwoQubitMatrixGate(raw_types.Gate,
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: float):
-        new_mat = linalg.map_eigenvalues(self.matrix(), lambda e: e**factor)
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'TwoQubitMatrixGate':
+        if isinstance(factor, value.Symbol):
+            raise TypeError('TwoQubitMatrixGate cannot be parameterized.')
+        e = cast(float, factor)
+        new_mat = linalg.map_eigenvalues(self.matrix(), lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)
 
     def phase_by(self, phase_turns: float, qubit_index: int):
@@ -160,6 +175,11 @@ class TwoQubitMatrixGate(raw_types.Gate,
                 'method.'.format(type(self)))
         return self._matrix
 
+    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
+                          ) -> gate_features.TextDiagramInfo:
+        return gate_features.TextDiagramInfo(
+            wire_symbols=(_matrix_to_diagram_symbol(self.matrix(), args), '#2'))
+
     def __hash__(self):
         vals = tuple(v for _, v in np.ndenumerate(self.matrix()))
         return hash((SingleQubitMatrixGate, vals))
@@ -173,7 +193,27 @@ class TwoQubitMatrixGate(raw_types.Gate,
         return not self == other
 
     def __repr__(self):
-        return 'TwoQubitMatrixGate({})'.format(repr(self.matrix()))
+        return 'cirq.TwoQubitMatrixGate({})'.format(repr(self.matrix()))
 
     def __str__(self):
         return str(self.matrix().round(3))
+
+
+def _matrix_to_diagram_symbol(matrix: np.ndarray,
+                              args: gate_features.TextDiagramInfoArgs) -> str:
+    if args.precision is not None:
+        matrix = matrix.round(args.precision)
+    result = str(matrix)
+    if args.use_unicode_characters:
+        lines = result.split('\n')
+        for i in range(len(lines)):
+            lines[i] = lines[i].replace('[[', '')
+            lines[i] = lines[i].replace(' [', '')
+            lines[i] = lines[i].replace(']', '')
+        w = max(len(line) for line in lines)
+        for i in range(len(lines)):
+            lines[i] = '│' + lines[i].ljust(w) + '│'
+        lines.insert(0, '┌' + ' ' * w + '┐')
+        lines.append('└' + ' ' * w + '┘')
+        result = '\n'.join(lines)
+    return result

@@ -17,12 +17,14 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar
+from typing import (
+    Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
+)
 
 import string
 import numpy as np
 
-from cirq import abc
+from cirq import abc, value
 from cirq.ops import op_tree, raw_types
 from cirq.study import ParamResolver
 
@@ -53,7 +55,8 @@ class ExtrapolatableEffect(ReversibleEffect,
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableEffect, factor: float
+    def extrapolate_effect(self: TSelf_ExtrapolatableEffect,
+                           factor: Union[float, value.Symbol]
                            ) -> TSelf_ExtrapolatableEffect:
         """Augments, diminishes, or reverses the effect of the receiving gate.
 
@@ -64,7 +67,8 @@ class ExtrapolatableEffect(ReversibleEffect,
             A gate equivalent to applying the receiving gate 'factor' times.
         """
 
-    def __pow__(self: TSelf_ExtrapolatableEffect, power: float
+    def __pow__(self: TSelf_ExtrapolatableEffect,
+                power: Union[float, value.Symbol]
                 ) -> TSelf_ExtrapolatableEffect:
         """Extrapolates the effect of the gate.
 
@@ -216,7 +220,7 @@ class TextDiagramInfo:
         return hash(self._eq_tuple())
 
     def __repr__(self):
-        return ('TextDiagramInfo(' +
+        return ('cirq.TextDiagramInfo(' +
                 'wire_symbols={!r}, '.format(self.wire_symbols) +
                 'exponent={!r}, '.format(self.exponent) +
                 'connected={!r})'.format(self.connected)
@@ -356,7 +360,7 @@ class QasmOutputArgs(string.Formatter):
     Attributes:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram.
-        version: The QASM version to output.  QasmConvertableGate/Operation may
+        version: The QASM version to output.  QasmConvertibleGate/Operation may
             return different text depending on version.
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
         meas_key_id_map: A dictionary mapping measurement keys to creg QASM
@@ -394,7 +398,7 @@ class QasmOutputArgs(string.Formatter):
                                 self.version))
 
 
-class QasmConvertableGate(metaclass=abc.ABCMeta):
+class QasmConvertibleGate(metaclass=abc.ABCMeta):
     """A gate that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self,
@@ -405,7 +409,7 @@ class QasmConvertableGate(metaclass=abc.ABCMeta):
         """
 
 
-class QasmConvertableOperation(metaclass=abc.ABCMeta):
+class QasmConvertibleOperation(metaclass=abc.ABCMeta):
     """An operation that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self, args: QasmOutputArgs) -> Optional[str]:

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Uses the protobuf compiler to regenerate the python code in cirq/format from
-# the .proto files in that same directory.
+import cirq
 
-# Assumes the current working directory is the root of cirq's git repository.
 
-set -e
-
-dir='cirq/api/google/v1'
-
-find ${dir} | grep '_pb2\.py' | xargs rm -f
-protoc --python_out=. ${dir}/*.proto
+def test_repr():
+    assert repr(cirq.InsertStrategy.NEW) == 'cirq.InsertStrategy.NEW'

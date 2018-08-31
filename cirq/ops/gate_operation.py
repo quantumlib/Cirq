@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension
+from cirq import extension, value
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ LIFTED_POTENTIAL_TYPES = {t: t for t in [
 LIFTED_POTENTIAL_TYPES[
     gate_features.CompositeOperation] = gate_features.CompositeGate
 LIFTED_POTENTIAL_TYPES[
-    gate_features.QasmConvertableOperation] = gate_features.QasmConvertableGate
+    gate_features.QasmConvertibleOperation] = gate_features.QasmConvertibleGate
 
 
 class GateOperation(raw_types.Operation,
@@ -55,7 +55,7 @@ class GateOperation(raw_types.Operation,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
                         gate_features.TextDiagrammable,
-                        gate_features.QasmConvertableOperation,
+                        gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
 
@@ -85,7 +85,15 @@ class GateOperation(raw_types.Operation,
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
-        return 'GateOperation({!r}, {!r})'.format(self.gate, self.qubits)
+        # Abbreviate when possible.
+        if self == self.gate.on(*self.qubits):
+            return '{!r}.on({})'.format(
+                self.gate,
+                ', '.join(repr(q) for q in self.qubits))
+
+        return 'cirq.GateOperation(gate={!r}, qubits={!r})'.format(
+            self.gate,
+            list(self.qubits))
 
     def __str__(self):
         return '{}({})'.format(self.gate,
@@ -153,7 +161,8 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
         return self.with_gate(cast(raw_types.Gate, cast_gate.inverse()))
 
-    def extrapolate_effect(self, factor: float) -> 'GateOperation':
+    def extrapolate_effect(self, factor: Union[float, value.Symbol]
+                           ) -> 'GateOperation':
         cast_gate = extension.cast(gate_features.ExtrapolatableEffect,
                                    self.gate)
         return self.with_gate(cast(raw_types.Gate,
@@ -197,6 +206,6 @@ class GateOperation(raw_types.Operation,
 
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
-        cast_gate = extension.cast(gate_features.QasmConvertableGate,
+        cast_gate = extension.cast(gate_features.QasmConvertibleGate,
                                    self.gate)
         return cast_gate.known_qasm_output(self.qubits, args)

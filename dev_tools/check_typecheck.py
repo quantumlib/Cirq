@@ -31,7 +31,8 @@ class TypeCheck(check.Check):
     def perform_check(self, env: env_tools.PreparedEnv, verbose: bool):
         base_path = cast(str, env.destination_directory)
         config_path = os.path.join(base_path,
-                                   'continuous-integration',
+                                   'dev_tools',
+                                   'conf',
                                    'mypy.ini')
         files = list(env_tools.get_unhidden_ungenerated_python_files(
             base_path))

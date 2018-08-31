@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs pytest on the repository.
+#
+# Usage:
+#     check/pytest [--flags] [file-paths-relative-to-repo-root]
+#
+# You may specify additional flags or specific files to test. The file paths
+# must be relative to the repository root. If no files are specified, everything
+# is tested.
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
+
+pytest $@

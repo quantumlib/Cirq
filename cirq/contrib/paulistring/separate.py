@@ -20,7 +20,9 @@ from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
-def convert_and_separate_circuit(circuit: circuits.Circuit
+def convert_and_separate_circuit(circuit: circuits.Circuit,
+                                 leave_cliffords: bool = True,
+                                 tolerance: float = 1e-8,
                                  ) -> Tuple[circuits.Circuit, circuits.Circuit]:
     """Converts any circuit into two circuits where (circuit_left+circuit_right)
     is equivalent to the given circuit.
@@ -39,11 +41,13 @@ def convert_and_separate_circuit(circuit: circuits.Circuit
         PauliInteractionGate gates.  It also contains MeasurementGates if the
         given circuit contains measurements.
     """
-    circuit = converted_gate_set(circuit)
-    return non_clifford_half(circuit), clifford_half(circuit)
+    circuit = converted_gate_set(circuit,
+                                 no_clifford_gates=not leave_cliffords,
+                                 tolerance=tolerance)
+    return pauli_string_half(circuit), regular_half(circuit)
 
 
-def clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
+def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
     """Return only the Clifford part of a circuit.  See
     convert_and_separate_circuit().
 
@@ -61,7 +65,7 @@ def clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
                                 for moment in circuit)
 
 
-def non_clifford_half(circuit: circuits.Circuit) -> circuits.Circuit:
+def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
     """Return only the non-Clifford part of a circuit.  See
     convert_and_separate_circuit().
 

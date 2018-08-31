@@ -52,6 +52,7 @@ class ConvertToXmonGates(PointOptimizer):
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
+        super().__init__()
         self.extensions = extensions or xmon_gate_ext
         self.ignore_failures = ignore_failures
 

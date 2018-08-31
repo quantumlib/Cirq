@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Optional, Tuple, Set, Any
+from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
 
 import numpy as np
 
 from cirq.devices import GridQubit
-from cirq.google import XmonDevice
-from cirq.line.placement import place_strategy
+from cirq.line.placement import place_strategy, optimization
 from cirq.line.placement.chip import (
     above,
     right_of,
@@ -29,7 +28,10 @@ from cirq.line.placement.sequence import (
     GridQubitLineTuple,
     LineSequence
 )
-from cirq.contrib import optimization
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq.google
 
 _STATE = Tuple[List[List[GridQubit]], Set[EDGE]]
 
@@ -38,7 +40,7 @@ class AnnealSequenceSearch(object):
     """Simulated annealing search heuristic.
     """
 
-    def __init__(self, device: XmonDevice, seed=None) -> None:
+    def __init__(self, device: 'cirq.google.XmonDevice', seed=None) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -365,7 +367,9 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: XmonDevice, length: int) -> GridQubitLineTuple:
+    def place_line(self,
+                   device: 'cirq.google.XmonDevice',
+                   length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

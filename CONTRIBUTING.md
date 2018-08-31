@@ -93,7 +93,7 @@ To ignore coverage for an entire block, start the block with a `# coverage: igno
 - **Lint**.
 Code should meet common style standards for python and be free of error-prone constructs.
 We use [pylint](https://www.pylint.org/) to check for lint.
-To see which lint checks we enforce, see the [continuous-integration/.pylintrc](continuous-integration/.pylintrc) file.
+To see which lint checks we enforce, see the [dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file.
 When pylint produces a false positive, it can be squashed with annotations like `# pylint: disable=unused-import`.
 - **Types**.
 Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).

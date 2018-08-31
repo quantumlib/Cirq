@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import cirq
-from cirq.circuits import ExpandComposite
 from cirq.contrib.acquaintance.shift import CircularShiftGate
-
 
 def test_circular_shift_gate_init():
     g = CircularShiftGate(2)
@@ -38,6 +36,15 @@ def test_circular_shift_gate_eq():
     assert a == b
     assert a != c
 
+def test_circular_shift_gate_permutation():
+    assert (CircularShiftGate(4).permutation(3) ==
+            {0: 2, 1: 0, 2: 1})
+    assert (CircularShiftGate(0).permutation(4) ==
+            {0: 0, 1: 1, 2: 2, 3: 3})
+
+    assert (CircularShiftGate(2).permutation(5) ==
+            {0:3, 1: 4, 2: 0, 3: 1, 4: 2})
+
 
 def test_circular_shift_gate_repr():
     g = CircularShiftGate(2)
@@ -47,7 +54,7 @@ def test_circular_shift_gate_repr():
 def test_circular_shift_gate_decomposition():
     qubits = [cirq.NamedQubit(q) for q in 'abcdef']
 
-    expander = ExpandComposite()
+    expander = cirq.ExpandComposite()
     circular_shift = CircularShiftGate(1, cirq.CZ)(*qubits[:2])
     circuit = cirq.Circuit.from_ops(circular_shift)
     expander.optimize_circuit(circuit)
@@ -57,7 +64,7 @@ def test_circular_shift_gate_decomposition():
 
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
                             op.gate == cirq.SWAP)
-    expander = ExpandComposite(no_decomp=no_decomp)
+    expander = cirq.ExpandComposite(no_decomp=no_decomp)
 
     circular_shift = CircularShiftGate(3)(*qubits)
     circuit = cirq.Circuit.from_ops(circular_shift)

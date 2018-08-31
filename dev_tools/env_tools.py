@@ -42,14 +42,14 @@ def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
 
 
 def create_virtual_env(venv_path: str,
-                       requirements_path: str,
+                       requirements_paths: Iterable[str],
                        python_path: str,
                        verbose: bool) -> None:
     """Creates a new virtual environment and then installs dependencies.
 
     Args:
         venv_path: Where to put the virtual environment's state.
-        requirements_path: Location of the requirements file to -r install.
+        requirements_paths: Location of requirements files to -r install.
         python_path: The python binary to use.
         verbose: When set, more progress output is produced.
     """
@@ -60,12 +60,13 @@ def create_virtual_env(venv_path: str,
                         venv_path,
                         out=sys.stderr)
     pip_path = os.path.join(venv_path, 'bin', 'pip')
-    shell_tools.run_cmd(pip_path,
-                        'install',
-                        None if verbose else '--quiet',
-                        '-r',
-                        requirements_path,
-                        out=sys.stderr)
+    for req_path in requirements_paths:
+        shell_tools.run_cmd(pip_path,
+                            'install',
+                            None if verbose else '--quiet',
+                            '-r',
+                            req_path,
+                            out=sys.stderr)
 
 
 def prepare_temporary_test_environment(
@@ -115,10 +116,14 @@ def prepare_temporary_test_environment(
     # Create virtual environment.
     base_path = cast(str, env.destination_directory)
     env_path = os.path.join(base_path, env_name)
-    req_path = os.path.join(base_path, 'dev-requirements.txt')
+    req_path = os.path.join(base_path, 'requirements.txt')
+    req_path_2 = os.path.join(base_path,
+                              'dev_tools',
+                              'conf',
+                              'pip-list-dev-tools.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
-                       requirements_path=req_path,
+                       requirements_paths=[req_path, req_path_2],
                        verbose=verbose)
 
     return PreparedEnv(github_repo=env.repository,
@@ -163,10 +168,12 @@ def derive_temporary_python2_environment(
 
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
-    req_path = os.path.join(destination_directory, 'dev-requirements.txt')
+    # (These files are output by python2.7-generate.sh.)
+    req_path = os.path.join(destination_directory, 'requirements.txt')
+    req_path_2 = os.path.join(destination_directory, 'pip-list-test-tools.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
-                       requirements_path=req_path,
+                       requirements_paths=[req_path, req_path_2],
                        verbose=verbose)
 
     return PreparedEnv(github_repo=python3_environment.repository,

@@ -37,9 +37,9 @@ def test_cz_str():
 
 
 def test_cz_repr():
-    assert repr(cirq.Rot11Gate()) == 'CZ'
-    assert repr(cirq.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
-    assert repr(cirq.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
+    assert repr(cirq.Rot11Gate()) == 'cirq.CZ'
+    assert repr(cirq.Rot11Gate(half_turns=0.5)) == '(cirq.CZ**0.5)'
+    assert repr(cirq.Rot11Gate(half_turns=-0.25)) == '(cirq.CZ**-0.25)'
 
 
 def test_cz_extrapolate():
@@ -166,9 +166,9 @@ def test_runtime_types_of_rot_gates():
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
         with pytest.raises(ValueError):
             _ = p.matrix()
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.extrapolate_effect(2)
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
@@ -216,7 +216,7 @@ def test_text_diagrams():
         cirq.X(a),
         cirq.Y(a),
         cirq.Z(a),
-        cirq.RotZGate(half_turns=cirq.Symbol('x')).on(a),
+        cirq.Z(a)**cirq.Symbol('x'),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
@@ -256,6 +256,45 @@ def test_cnot_power():
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
+def test_cnot_keyword_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    eq_tester = cirq.testing.EqualsTester()
+    eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                 cirq.CNOT(control=a, target=b))
+    eq_tester.add_equality_group(cirq.CNOT(b, a),
+                                 cirq.CNOT(control=b, target=a))
+
+def test_cnot_keyword_not_equal():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(AssertionError):
+        eq_tester = cirq.testing.EqualsTester()
+        eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                     cirq.CNOT(target=a, control=b))
+
+def test_cnot_keyword_too_few_arguments():
+    a = cirq.NamedQubit('a')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(control=a)
+
+
+def test_cnot_mixed_keyword_and_positional_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(a, target=b)
+
+def test_cnot_unknown_keyword_argument():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(target=a, controlled=b)
 
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
@@ -283,31 +322,31 @@ def test_swap_power():
         atol=1e-8)
 
 
-def test_repr():
-    assert repr(cirq.X) == 'X'
-    assert repr(cirq.X**0.5) == 'X**0.5'
+def test_xyz_repr():
+    assert repr(cirq.X) == 'cirq.X'
+    assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
 
-    assert repr(cirq.Z) == 'Z'
-    assert repr(cirq.Z**0.5) == 'S'
-    assert repr(cirq.Z**0.25) == 'T'
-    assert repr(cirq.Z**0.125) == 'Z**0.125'
+    assert repr(cirq.Z) == 'cirq.Z'
+    assert repr(cirq.Z**0.5) == 'cirq.S'
+    assert repr(cirq.Z**0.25) == 'cirq.T'
+    assert repr(cirq.Z**0.125) == '(cirq.Z**0.125)'
 
-    assert repr(cirq.S) == 'S'
-    assert repr(cirq.S**-1) == 'S**-1'
-    assert repr(cirq.T) == 'T'
-    assert repr(cirq.T**-1) == 'T**-1'
+    assert repr(cirq.S) == 'cirq.S'
+    assert repr(cirq.S**-1) == '(cirq.S**-1)'
+    assert repr(cirq.T) == 'cirq.T'
+    assert repr(cirq.T**-1) == '(cirq.T**-1)'
 
-    assert repr(cirq.Y) == 'Y'
-    assert repr(cirq.Y**0.5) == 'Y**0.5'
+    assert repr(cirq.Y) == 'cirq.Y'
+    assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
 
-    assert repr(cirq.CNOT) == 'CNOT'
-    assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+    assert repr(cirq.CNOT) == 'cirq.CNOT'
+    assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
-    assert repr(cirq.SWAP) == 'SWAP'
-    assert repr(cirq.SWAP ** 0.5) == 'SWAP**0.5'
+    assert repr(cirq.SWAP) == 'cirq.SWAP'
+    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
 
-def test_str():
+def test_xyz_str():
     assert str(cirq.X) == 'X'
     assert str(cirq.X**0.5) == 'X**0.5'
 
@@ -412,9 +451,14 @@ def test_measure_each():
     ]
 
 
+def test_iswap_str():
+    assert str(cirq.ISWAP) == 'ISWAP'
+    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+
+
 def test_iswap_repr():
-    assert repr(cirq.ISWAP) == 'ISWAP'
-    assert repr(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
+    assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
 
 
 def test_iswap_matrix():

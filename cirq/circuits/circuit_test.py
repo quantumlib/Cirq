@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
-from random import randint, random, sample, randrange, seed
+from random import randint, random, sample, randrange
 
 import numpy as np
 import pytest
@@ -25,7 +25,6 @@ from cirq import Circuit, InsertStrategy, Moment
 from cirq.testing import random_circuit
 import cirq.google as cg
 
-seed(5)
 
 def test_equality():
     a = cirq.QubitId()
@@ -109,21 +108,35 @@ def test_append_multiple():
 
 @cirq.testing.only_test_in_python3
 def test_repr():
+    assert repr(cirq.Circuit()) == 'cirq.Circuit()'
+
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = Circuit([
-        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.H(b)]),
+        Moment(),
         Moment([cirq.CZ(a, b)]),
     ])
-    assert repr(c) == """
-Circuit([
-    Moment((GateOperation(H, (NamedQubit('a'),)),)),
-    Moment((GateOperation(CZ, (NamedQubit('a'), NamedQubit('b'))),))])
-    """.strip()
+    assert repr(c) == """cirq.Circuit(moments=[
+    cirq.Moment(operations=[
+        cirq.H.on(cirq.NamedQubit('a')),
+        cirq.H.on(cirq.NamedQubit('b')),
+    ]),
+    cirq.Moment(),
+    cirq.Moment(operations=[
+        cirq.CZ.on(cirq.NamedQubit('a'), cirq.NamedQubit('b')),
+    ]),
+])"""
 
-    c = Circuit.from_ops(cg.ExpWGate().on(cirq.GridQubit(0, 0)),
-                         device=cg.Foxtail)
-    assert 'device' in repr(c)
+    assert repr(Circuit(device=cg.Foxtail)
+                ) == 'cirq.Circuit(device=cirq.google.Foxtail)'
+    assert repr(Circuit.from_ops(
+        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+        device=cg.Foxtail)) == """cirq.Circuit(moments=[
+    cirq.Moment(operations=[
+        ExpWGate(half_turns=1.0, axis_half_turns=0.0).on(cirq.GridQubit(0, 0)),
+    ]),
+], device=cirq.google.Foxtail)"""
 
 
 def test_slice():
@@ -423,6 +436,7 @@ def test_insert_at_frontier():
 
     class Replacer(PointOptimizer):
         def __init__(self, replacer=(lambda x: x)):
+            super().__init__()
             self.replacer = replacer
 
         def optimization_at(self, circuit, index, op):
@@ -1605,9 +1619,9 @@ def test_apply_unitary_effect_to_state():
 def test_is_parameterized():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
-        cirq.Rot11Gate(half_turns=cirq.Symbol('u')).on(a, b),
-        cirq.RotXGate(half_turns=cirq.Symbol('v')).on(a),
-        cirq.RotYGate(half_turns=cirq.Symbol('w')).on(b),
+        cirq.CZ(a, b)**cirq.Symbol('u'),
+        cirq.X(a)**cirq.Symbol('v'),
+        cirq.Y(b)**cirq.Symbol('w'),
     )
     assert circuit.is_parameterized()
 
@@ -1623,9 +1637,9 @@ def test_is_parameterized():
 def test_with_parameters_resolved_by():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
-        cirq.Rot11Gate(half_turns=cirq.Symbol('u')).on(a, b),
-        cirq.RotXGate(half_turns=cirq.Symbol('v')).on(a),
-        cirq.RotYGate(half_turns=cirq.Symbol('w')).on(b),
+        cirq.CZ(a, b)**cirq.Symbol('u'),
+        cirq.X(a)**cirq.Symbol('v'),
+        cirq.Y(b)**cirq.Symbol('w'),
     )
     resolved_circuit = circuit.with_parameters_resolved_by(
             cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))

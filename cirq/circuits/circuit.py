@@ -231,11 +231,18 @@ class Circuit(ops.ParameterizableEffect):
         return self * repetitions
 
     def __repr__(self):
-        moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
+        if not self._moments and self._device == devices.UnconstrainedDevice:
+            return 'cirq.Circuit()'
+
+        if not self._moments:
+            return 'cirq.Circuit(device={!r})'.format(self._device)
+
+        moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UnconstrainedDevice:
-            return 'Circuit([{}])'.format(','.join(moment_lines))
-        return 'Circuit([{}], device={!r})'.format(','.join(moment_lines),
-                                                   self._device)
+            return 'cirq.Circuit(moments={})'.format(moment_str)
+
+        return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,
+                                                              self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -1034,15 +1041,14 @@ class Circuit(ops.ParameterizableEffect):
             use_unicode_characters=use_unicode_characters,
             qubit_name_suffix='' if transpose else ': ',
             precision=precision,
-            qubit_order=qubit_order)
+            qubit_order=qubit_order,
+            transpose=transpose)
 
-        if transpose:
-            return diagram.transpose().render(
-                crossing_char='┼' if use_unicode_characters else '-',
-                use_unicode_characters=use_unicode_characters)
         return diagram.render(
-            crossing_char='┼' if use_unicode_characters else '|',
-            horizontal_spacing=3,
+            crossing_char=(None
+                           if use_unicode_characters
+                           else ('-' if transpose else '|')),
+            horizontal_spacing=1 if transpose else 3,
             use_unicode_characters=use_unicode_characters)
 
     def to_text_diagram_drawer(
@@ -1050,6 +1056,7 @@ class Circuit(ops.ParameterizableEffect):
             ext: extension.Extensions = None,
             use_unicode_characters: bool = True,
             qubit_name_suffix: str = '',
+            transpose: bool = False,
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> TextDiagramDrawer:
@@ -1060,6 +1067,7 @@ class Circuit(ops.ParameterizableEffect):
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             qubit_name_suffix: Appended to qubit names in the diagram.
+            transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
 
@@ -1088,6 +1096,9 @@ class Circuit(ops.ParameterizableEffect):
         w = diagram.width()
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
+
+        if transpose:
+            diagram = diagram.transpose()
 
         return diagram
 
@@ -1128,7 +1139,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1156,7 +1167,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1359,3 +1370,9 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
         raise TypeError(
             'Operation without a known matrix or decomposition: {!r}'.format(
                 op))
+
+
+def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
+    block = '\n'.join([repr(op) + ',' for op in items])
+    indented = '    ' + '\n    '.join(block.split('\n'))
+    return '[\n{}\n]'.format(indented)

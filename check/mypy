@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs mypy on the repository using a preconfigured mypy.ini file.
+#
+# Usage:
+#     check/mypy [--flags]
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
+
+mypy --config-file=dev_tools/conf/mypy.ini $@ .

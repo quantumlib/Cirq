@@ -21,18 +21,30 @@ from cirq.contrib.paulistring.pauli_string_phasor import (
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors,
 )
+from cirq.contrib.paulistring.convert_to_clifford_gates import (
+    ConvertToCliffordGates,
+)
 from cirq.contrib.paulistring.convert_gate_set import (
     converted_gate_set,
 )
 from cirq.contrib.paulistring.separate import (
     convert_and_separate_circuit,
-    clifford_half,
-    non_clifford_half,
+    regular_half,
+    pauli_string_half,
 )
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
 )
 from cirq.contrib.paulistring.recombine import (
-    move_non_clifford_into_clifford,
+    move_pauli_strings_into_circuit,
+)
+from cirq.contrib.paulistring.pauli_string_optimize import (
+    pauli_string_optimized_circuit,
+)
+from cirq.contrib.paulistring.clifford_optimize import (
+    clifford_optimized_circuit,
+)
+from cirq.contrib.paulistring.optimize import (
+    optimized_circuit,
 )
