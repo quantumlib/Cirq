@@ -223,3 +223,44 @@ class TrialResult:
 
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
+
+
+class SimulateTrialResult:
+    """Results of a simulation by a WaveFunctionSimulator.
+
+    Unlike TrialResult these results contain the final state (wave function)
+    of the system.
+
+    Attributes:
+        params: A ParamResolver of settings used for this result.
+        measurements: A dictionary from measurement gate key to measurement
+            results. Measurement results are a numpy ndarray of actual boolean
+            measurement results (ordered by the qubits acted on by the
+            measurement gate.)
+        final_state: The final state (wave function) of the system after the
+            trial finishes.
+    """
+
+    def __init__(self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_state: np.ndarray) -> None:
+        self.params = params
+        self.measurements = measurements
+        self.final_state = final_state
+
+    def __repr__(self):
+        return ('SimulateTrialResult(params={!r}, '
+                'measurements={!r}, '
+                'final_state={!r})').format(self.params,
+                                            self.measurements,
+                                            self.final_state)
+
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        results = sorted(
+            [(key, bitstring(val)) for key, val in self.measurements.items()])
+        return ' '.join(
+            ['{}={}'.format(key, val) for key, val in results])
