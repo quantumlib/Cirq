@@ -387,7 +387,7 @@ class Stepper(object):
             return [[]]
 
         # Calculate probabilities and reshape to tensor of qubits.
-        tensor = np.reshape(np.abs(self.current_state) ** 2,
+        tensor = np.reshape(np.absolute(self.current_state) ** 2,
                             self._num_qubits * [2])
 
         # Tensor axis order is reverse of index order, so we transpose here.
@@ -617,7 +617,7 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
 def _norm_squared(args: Dict[str, Any]) -> float:
     """Returns the norm for each state shard."""
     state = _state_shard(args)
-    return float(np.real(np.dot(state, np.conjugate(state))))
+    return np.sum(np.absolute(state) ** 2)
 
 
 def _renorm(args: Dict[str, Any]):
