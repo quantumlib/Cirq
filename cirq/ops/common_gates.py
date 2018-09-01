@@ -540,17 +540,12 @@ class HGate(eigen_gate.EigenGate,
 
     def default_decompose(self, qubits):
         q = qubits[0]
-        yield Y**0.25,
-        yield X**self.half_turns
-        yield Y**-0.25
+        yield Y(q)**0.25,
+        yield X(q)**self.half_turns
+        yield Y(q)**-0.25
 
     def inverse(self):
         return self
-
-    def matrix(self):
-        """See base class."""
-        s = math.sqrt(0.5)
-        return np.array([[s, s], [s, -s]])
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

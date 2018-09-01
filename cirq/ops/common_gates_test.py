@@ -17,9 +17,6 @@ import pytest
 
 import cirq
 
-import re
-import math
-import itertools
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -157,17 +154,13 @@ def test_x_matrix():
 
 
 def test_h_matrix():
-    assert np.allclose(cirq.HGate(half_turns=1).matrix(),
-                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
+    ket_plus = np.array([[1/np.sqrt(2), 1/np.sqrt(2)],
+                         [1/np.sqrt(2), -1/np.sqrt(2)]])
 
-    assert np.allclose(cirq.HGate(half_turns=0.5).matrix(),
-                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
-
-    assert np.allclose(cirq.HGate(half_turns=0).matrix(),
-                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
-
-    assert np.allclose(cirq.HGate(half_turns=-0.5).matrix(),
-                       np.array([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]]))
+    assert np.allclose(cirq.HGate(half_turns=1).matrix(), ket_plus)
+    assert np.allclose(cirq.HGate(half_turns=0.5).matrix(), ket_plus)
+    assert np.allclose(cirq.HGate(half_turns=0).matrix(), ket_plus)
+    assert np.allclose(cirq.HGate(half_turns=-0.5).matrix(), ket_plus)
 
 
 def test_runtime_types_of_rot_gates():
