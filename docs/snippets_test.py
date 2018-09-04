@@ -57,7 +57,7 @@ def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
     current_line = 1
     for match in matches:
         for newline in newlines:
-            current_line = current_line + 1
+            current_line += 1
             if newline.start() >= match.start():
                 snippets.append((match.group(1), current_line))
                 break
@@ -89,7 +89,8 @@ def deindent_snippet(snippet: str) -> str:
 def find_rst_code_snippets(content: str) -> List[Tuple[str, int]]:
     snippets = find_code_snippets(
         r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)', content)
-    return [(deindent_snippet(snippet[0]), snippet[1]) for snippet in snippets]
+    return [(deindent_snippet(content), line_number)
+            for content, line_number in snippets]
 
 
 def test_find_rst_code_snippets():
@@ -184,8 +185,8 @@ def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]],
     if assume_import:
         exec('import cirq', state)
 
-    for snippet in snippets:
-        assert_code_snippet_executes_correctly(snippet[0], state, snippet[1])
+    for content, line_number in snippets:
+        assert_code_snippet_executes_correctly(content, state, line_number)
 
 
 def _canonicalize_printed_line_chunk(chunk: str) -> str:
