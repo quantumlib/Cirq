@@ -103,27 +103,27 @@ class EigenGate(raw_types.Gate,
                                   [0, 1]])),
                 ]
 
-            Valid eigencomponents for Rz(π) = iZ are:
+            Valid eigencomponents for Rz(π) = -iZ are:
 
                 [
-                    (+0.5, np.array([[1, 0],
+                    (-0.5, np.array([[1, 0],
                                     [0, 0]])),
-                    (-0.5, np.array([[0, 0],
+                    (+0.5, np.array([[0, 0],
                                      [0, 1]])),
                 ]
 
             But in principle you could also use this:
 
                 [
-                    (+0.5, np.array([[1, 0],
+                    (+1.5, np.array([[1, 0],
                                     [0, 0]])),
-                    (+1.5, np.array([[0, 0],
+                    (-0.5, np.array([[0, 0],
                                      [0, 1]])),
                 ]
 
                 The choice between -0.5 and +1.5 does not affect the gate's
-                matrix, but it does affect the gate's square root's matrix
-                because the square root operation simply halves the factor.
+                matrix, but it does affect the matrix of powers of the gates
+                (because (x+2)*s != x*s (mod 2) when s is a real number).
 
             The Pauli X gate's eigencomponents are:
 
