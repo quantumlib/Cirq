@@ -27,9 +27,7 @@ from cirq.circuits.optimization_pass import (
 
 
 class MergeSingleQubitGates(PointOptimizer):
-    """Combines adjacent constant single-qubit rotations into
-    SingleQubitMatrixGates.
-    """
+    """Combines adjacent 1-qubit operations into one SingleQubitMatrixGate."""
 
     def __init__(self,
                  extensions: extension.Extensions = None) -> None:
@@ -45,39 +43,39 @@ class MergeSingleQubitGates(PointOptimizer):
             return None
         q = op.qubits[0]
 
-        indices, operations = self._scan_single_qubit_ops(circuit, index, q)
+        indices, operations = _scan_single_qubit_ops(circuit, index, q)
         if not operations:
             return None
 
-        single_op = self._merge_rotation(q, operations)
+        single_op = _merge_into_matrix_gate_op(q, operations)
 
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
             new_operations=[single_op])
 
-    def _scan_single_qubit_ops(self,
-                               circuit: Circuit,
-                               index: Optional[int],
-                               qubit: ops.QubitId
-                               ) -> Tuple[List[int], List[ops.Operation]]:
-        operations = []  # type: List[ops.Operation]
-        indices = []  # type: List[int]
-        while index is not None:
-            op = cast(ops.Operation, circuit.operation_at(qubit, index))
-            if len(op.qubits) != 1 or protocols.unitary(op, None) is None:
-                break
-            indices.append(index)
-            operations.append(op)
-            index = circuit.next_moment_operating_on([qubit], index + 1)
-        return indices, operations
 
-    def _merge_rotation(self,
-                        qubit: ops.QubitId,
-                        operations: Iterable[ops.Operation]
-                        ) -> ops.Operation:
-        matrix = linalg.dot(
-            np.eye(2, dtype=np.complex128),
-            *(reversed([protocols.unitary(op) for op in operations]))
-        )
-        return ops.SingleQubitMatrixGate(matrix).on(qubit)
+def _scan_single_qubit_ops(circuit: Circuit,
+                           index: Optional[int],
+                           qubit: ops.QubitId
+                           ) -> Tuple[List[int], List[ops.Operation]]:
+    operations = []  # type: List[ops.Operation]
+    indices = []  # type: List[int]
+    while index is not None:
+        op = cast(ops.Operation, circuit.operation_at(qubit, index))
+        if len(op.qubits) != 1 or protocols.unitary(op, None) is None:
+            break
+        indices.append(index)
+        operations.append(op)
+        index = circuit.next_moment_operating_on([qubit], index + 1)
+    return indices, operations
+
+
+def _merge_into_matrix_gate_op(qubit: ops.QubitId,
+                               operations: Iterable[ops.Operation]
+                               ) -> ops.Operation:
+    matrix = linalg.dot(
+        np.eye(2, dtype=np.complex128),
+        *(reversed([protocols.unitary(op) for op in operations]))
+    )
+    return ops.SingleQubitMatrixGate(matrix).on(qubit)
