@@ -200,16 +200,8 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
-    has_unitary_effect,
-    maybe_unitary_effect,
-    SupportsUnitaryEffect,
-    unitary_effect,
-)
-
-# Unflattened sub-modules.
-from cirq import (
-    google,
-    testing,
+    SupportsUnitary,
+    unitary,
 )
 
 # Import version last since it is a relative import.

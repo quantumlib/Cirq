@@ -18,7 +18,7 @@ import cirq
 
 
 class OtherX(cirq.Gate, cirq.CompositeGate):
-    def _unitary_effect_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
     def default_decompose(self, qubits):

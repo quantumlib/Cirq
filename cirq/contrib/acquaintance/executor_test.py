@@ -98,7 +98,7 @@ class DiagonalGate(cirq.Gate, cirq.TextDiagrammable):
         self.n_qubits = n_qubits
         self.diagonal = diagonal
 
-    def _unitary_effect_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return np.diag(self.diagonal)
 
     def text_diagram_info(self, args: cirq.TextDiagramInfoArgs

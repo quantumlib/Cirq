@@ -89,8 +89,8 @@ class ControlledGate(raw_types.Gate,
             return ControlledGate(cast_sub_gate, ext)
         return super().try_cast_to(desired_type, ext)
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
-        sub_matrix = protocols.maybe_unitary_effect(self.sub_gate)
+    def _unitary_(self) -> Optional[np.ndarray]:
+        sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return None
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)

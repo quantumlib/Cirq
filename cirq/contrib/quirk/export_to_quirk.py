@@ -31,7 +31,7 @@ def _try_convert_to_quirk_gate(op: ops.Operation,
     quirk_gate = quirk_gate_ext.try_cast(QuirkOp, op)
     if quirk_gate is not None:
         return quirk_gate
-    matrix_op = single_qubit_matrix_gate(protocols.maybe_unitary_effect(op))
+    matrix_op = single_qubit_matrix_gate(protocols.unitary(op, None))
     if matrix_op is not None:
         return matrix_op
     if prefer_unknown_gate_to_failure:

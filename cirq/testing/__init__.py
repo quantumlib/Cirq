@@ -37,9 +37,6 @@ from cirq.testing.random_circuit import (
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
 )
-from cirq.testing.unitary_effect import (
-    assert_unitary_effect_is,
-)
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,
 )

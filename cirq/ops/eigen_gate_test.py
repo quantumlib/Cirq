@@ -118,43 +118,41 @@ def test_try_cast_to():
 
 def test_matrix():
     np.testing.assert_allclose(
-        cirq.unitary_effect(CExpZinGate(1)),
+        cirq.unitary(CExpZinGate(1)),
         np.diag([1, 1, 1j, -1j]),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary_effect(CExpZinGate(2)),
+        cirq.unitary(CExpZinGate(2)),
         np.diag([1, 1, -1, -1]),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary_effect(CExpZinGate(3)),
+        cirq.unitary(CExpZinGate(3)),
         np.diag([1, 1, -1j, 1j]),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary_effect(CExpZinGate(4)),
+        cirq.unitary(CExpZinGate(4)),
         np.diag([1, 1, 1, 1]),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary_effect(CExpZinGate(0.00001)),
-        cirq.unitary_effect(CExpZinGate(3.99999)),
+        cirq.unitary(CExpZinGate(0.00001)),
+        cirq.unitary(CExpZinGate(3.99999)),
         atol=1e-4)
 
     assert not np.allclose(
-        cirq.unitary_effect(CExpZinGate(0.00001)),
-        cirq.unitary_effect(CExpZinGate(1.99999)),
+        cirq.unitary(CExpZinGate(0.00001)),
+        cirq.unitary(CExpZinGate(1.99999)),
         atol=1e-4)
 
-    assert cirq.has_unitary_effect(CExpZinGate(0.00001))
-    assert cirq.maybe_unitary_effect(CExpZinGate(cirq.Symbol('a'))) is None
-    assert not cirq.has_unitary_effect(CExpZinGate(cirq.Symbol('a')))
+    assert cirq.unitary(CExpZinGate(cirq.Symbol('a')), None) is None
 
 
 def test_matrix_is_exact_for_quarter_turn():
     np.testing.assert_equal(
-        cirq.unitary_effect(CExpZinGate(1)),
+        cirq.unitary(CExpZinGate(1)),
         np.diag([1, 1, 1j, -1j]))
 
 

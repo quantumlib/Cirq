@@ -88,7 +88,7 @@ class ConvertToCliffordGates(PointOptimizer):
             return op
 
         # Single qubit gate with known matrix?
-        mat = protocols.maybe_unitary_effect(op)
+        mat = protocols.unitary(op, None)
         if mat is not None and len(op.qubits) == 1:
             cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
             if cliff_op is not None:

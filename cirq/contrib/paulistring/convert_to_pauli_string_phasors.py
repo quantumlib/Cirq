@@ -97,7 +97,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             return op
 
         # Single qubit gate with known matrix?
-        mat = protocols.maybe_unitary_effect(op)
+        mat = protocols.unitary(op, None)
         if mat is not None and len(op.qubits) == 1:
             return self._matrix_to_pauli_string_phasors(mat, op.qubits[0])
 

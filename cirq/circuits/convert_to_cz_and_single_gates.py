@@ -57,8 +57,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-            and isinstance(op.gate, ops.Rot11Gate)
-            and (self.allow_partial_czs or op.gate.half_turns == 1)):
+                and isinstance(op.gate, ops.Rot11Gate)
+                and (self.allow_partial_czs or op.gate.half_turns == 1)):
             return op
 
         # Measurement?
@@ -66,7 +66,7 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             return op
 
         # Known matrix?
-        mat = protocols.maybe_unitary_effect(op)
+        mat = protocols.unitary(op, None)
         if mat is not None and len(op.qubits) == 1:
             return op
         if mat is not None and len(op.qubits) == 2:

@@ -68,7 +68,7 @@ class MergeRotations(PointOptimizer):
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            matrix = protocols.maybe_unitary_effect(op)
+            matrix = protocols.unitary(op, None)
             if matrix is None:
                 break
             indices.append(index)
@@ -83,7 +83,7 @@ class MergeRotations(PointOptimizer):
     ) -> List[ops.Operation]:
         matrix = linalg.dot(
             np.eye(2, dtype=np.complex128),
-            *reversed([protocols.unitary_effect(op) for op in operations]))
+            *reversed([protocols.unitary(op) for op in operations]))
 
         out_gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
         return [gate(qubit) for gate in out_gates]

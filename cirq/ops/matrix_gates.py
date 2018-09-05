@@ -72,7 +72,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
         phased_matrix = z.dot(self.matrix).dot(np.conj(z.T))
         return SingleQubitMatrixGate(phased_matrix)
 
-    def _unitary_effect_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return self.matrix
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
@@ -156,7 +156,7 @@ class TwoQubitMatrixGate(raw_types.Gate,
                else np.allclose)
         return cmp(self.matrix, other.matrix)
 
-    def _unitary_effect_(self):
+    def _unitary_(self):
         return self.matrix
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs

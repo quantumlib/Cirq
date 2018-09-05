@@ -68,7 +68,7 @@ class ConvertToXmonGates(PointOptimizer):
                 return xmon.on(*op.qubits)
 
         # Known matrix?
-        mat = protocols.maybe_unitary_effect(op)
+        mat = protocols.unitary(op, None)
         if mat is not None and len(op.qubits) == 1:
             gates = single_qubit_matrix_to_native_gates(mat)
             return [g.on(op.qubits[0]) for g in gates]

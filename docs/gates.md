@@ -52,13 +52,13 @@ for these gates a power
 ```python
 import cirq
 import numpy as np
-print(np.around(cirq.unitary_effect(cirq.X)))
+print(np.around(cirq.unitary(cirq.X)))
 # prints
 # [[0.+0.j 1.+0.j]
 #  [1.+0.j 0.+0.j]]
 
 sqrt_x = cirq.X**0.5
-print(cirq.unitary_effect(sqrt_x))
+print(cirq.unitary(sqrt_x))
 # prints
 # [[0.5+0.5j 0.5-0.5j]
 #  [0.5-0.5j 0.5+0.5j]]
@@ -72,7 +72,7 @@ Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the inte
 We've seen this above.
 These are ``Gate`` or ``Operation`` instances which may be described by a
 unitary matrix.
-They implement the ``_maybe_unitary_effect_`` or  ``_unitary_effect_`` method,
+They implement the ``_unitary_`` method,
 which returns a numpy ``ndarray`` matrix which is the unitary gate for the
 gate/operation.
 

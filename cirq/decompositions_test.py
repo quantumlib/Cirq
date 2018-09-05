@@ -32,7 +32,7 @@ def _operations_to_matrix(operations, qubits):
 def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
                                    intended_effect: np.ndarray,
                                    atol: float):
-    actual_effect = cirq.dot(*reversed([cirq.unitary_effect(g) for g in gates]))
+    actual_effect = cirq.dot(*reversed([cirq.unitary(g) for g in gates]))
     cirq.testing.assert_allclose_up_to_global_phase(actual_effect,
                                                     intended_effect,
                                                     atol=atol)
@@ -103,9 +103,9 @@ def test_single_qubit_matrix_to_gates_cases(intended_effect):
 def test_single_qubit_matrix_to_gates_fuzz_half_turns_merge_z_gates(
         pre_turns, post_turns):
     intended_effect = cirq.dot(
-        cirq.unitary_effect(cirq.Z**(2 * pre_turns)),
-        cirq.unitary_effect(cirq.X),
-        cirq.unitary_effect(cirq.Z**(2 * post_turns)))
+        cirq.unitary(cirq.Z**(2 * pre_turns)),
+        cirq.unitary(cirq.X),
+        cirq.unitary(cirq.Z**(2 * post_turns)))
 
     gates = cirq.single_qubit_matrix_to_gates(
         intended_effect, tolerance=1e-7)
@@ -156,20 +156,20 @@ def test_single_qubit_matrix_to_gates_tolerance_half_turn_phasing():
 
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(
-        cirq.unitary_effect(cirq.Y**0.25))
-    assert cirq.allclose_up_to_global_phase(u, cirq.unitary_effect(cirq.X**0.5))
+        cirq.unitary(cirq.Y**0.25))
+    assert cirq.allclose_up_to_global_phase(u, cirq.unitary(cirq.X**0.5))
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
     assert abs(g - 1) < 0.00001
 
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
-    cirq.unitary_effect(cirq.H),
-    cirq.unitary_effect(cirq.X),
-    cirq.unitary_effect(cirq.X**0.5),
-    cirq.unitary_effect(cirq.Y),
-    cirq.unitary_effect(cirq.Z),
-    cirq.unitary_effect(cirq.Z**0.5),
+    cirq.unitary(cirq.H),
+    cirq.unitary(cirq.X),
+    cirq.unitary(cirq.X**0.5),
+    cirq.unitary(cirq.Y),
+    cirq.unitary(cirq.Z),
+    cirq.unitary(cirq.Z**0.5),
 ] + [cirq.testing.random_unitary(2)
      for _ in range(10)])
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
@@ -198,7 +198,7 @@ def test_controlled_op_to_operations_omits_negligible_global_phase():
     operations = cirq.controlled_op_to_operations(
         control=qc,
         target=qt,
-        operation=cirq.unitary_effect(cirq.H),
+        operation=cirq.unitary(cirq.H),
         tolerance=0.0001)
 
     assert operations == [cirq.Y(qt)**-0.25, cirq.CZ(qc, qt), cirq.Y(qt)**0.25]
@@ -206,12 +206,12 @@ def test_controlled_op_to_operations_omits_negligible_global_phase():
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
-    cirq.unitary_effect(cirq.H),
-    cirq.unitary_effect(cirq.X),
-    cirq.unitary_effect(cirq.X**0.5),
-    cirq.unitary_effect(cirq.Y),
-    cirq.unitary_effect(cirq.Z),
-    cirq.unitary_effect(cirq.Z**0.5),
+    cirq.unitary(cirq.H),
+    cirq.unitary(cirq.X),
+    cirq.unitary(cirq.X**0.5),
+    cirq.unitary(cirq.Y),
+    cirq.unitary(cirq.Z),
+    cirq.unitary(cirq.Z**0.5),
 ] + [
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
@@ -250,10 +250,10 @@ def _random_double_full_cz_effect():
     return cirq.dot(
         cirq.kron(cirq.testing.random_unitary(2),
                   cirq.testing.random_unitary(2)),
-        cirq.unitary_effect(cirq.CZ),
+        cirq.unitary(cirq.CZ),
         cirq.kron(cirq.testing.random_unitary(2),
                   cirq.testing.random_unitary(2)),
-        cirq.unitary_effect(cirq.CZ),
+        cirq.unitary(cirq.CZ),
         cirq.kron(cirq.testing.random_unitary(2),
                   cirq.testing.random_unitary(2)))
 
@@ -288,12 +288,12 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
         [0, 1, 0, 0],
         [1, 0, 0, 0j],
     ])),
-    (0, 0, cirq.unitary_effect(cirq.CZ**0.00000001)),
+    (0, 0, cirq.unitary(cirq.CZ**0.00000001)),
 
-    (0.5, 2, cirq.unitary_effect(cirq.CZ**0.5)),
+    (0.5, 2, cirq.unitary(cirq.CZ**0.5)),
 
-    (1, 1, cirq.unitary_effect(cirq.CZ)),
-    (1, 1, cirq.unitary_effect(cirq.CNOT)),
+    (1, 1, cirq.unitary(cirq.CZ)),
+    (1, 1, cirq.unitary(cirq.CNOT)),
     (1, 1, np.array([
         [1, 0, 0, 1j],
         [0, 1, 1j, 0],
@@ -313,12 +313,12 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
         [1j, 0, 0, 1],
     ]) * np.sqrt(0.5)),
 
-    (1.5, 3, cirq.map_eigenvalues(cirq.unitary_effect(cirq.SWAP),
+    (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP),
                                   lambda e: e**0.5)),
 
-    (2, 2, cirq.unitary_effect(cirq.SWAP).dot(cirq.unitary_effect(cirq.CZ))),
+    (2, 2, cirq.unitary(cirq.SWAP).dot(cirq.unitary(cirq.CZ))),
 
-    (3, 3, cirq.unitary_effect(cirq.SWAP)),
+    (3, 3, cirq.unitary(cirq.SWAP)),
     (3, 3, np.array([
         [0, 0, 0, 1],
         [0, 1, 0, 0],

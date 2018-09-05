@@ -104,7 +104,7 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         """
         q1, q2 = qubits
 
-        matrix = protocols.maybe_unitary_effect(op)
+        matrix = protocols.unitary(op, None)
         if matrix is None:
             return None
 

@@ -71,7 +71,7 @@ def test_decompose(gate):
                     gate(q0, q1))
     cirq.ExpandComposite().optimize_circuit(circuit)
     decompose_mat = circuit.to_unitary_matrix()
-    gate_mat = cirq.unitary_effect(gate)
+    gate_mat = cirq.unitary(gate)
     cirq.testing.assert_allclose_up_to_global_phase(
         decompose_mat, gate_mat, rtol=1e-7, atol=1e-7)
 
@@ -79,7 +79,7 @@ def test_decompose(gate):
 def test_exponent():
     cnot = cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.X, False)
     np.testing.assert_almost_equal(
-        cirq.unitary_effect(cnot**0.5),
+        cirq.unitary(cnot**0.5),
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -91,7 +91,7 @@ def test_exponent():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     g = cnot**0.25
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary_effect(g),
+        cirq.unitary(g),
         cirq.Circuit.from_ops(g.default_decompose([q0, q1])
                               ).to_unitary_matrix(),
         rtol=1e-7, atol=1e-7)

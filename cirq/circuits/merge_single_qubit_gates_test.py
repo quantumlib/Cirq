@@ -69,8 +69,8 @@ def test_combines_sequence():
     assert isinstance(opt_summary.new_operations[0].gate,
                       cirq.SingleQubitMatrixGate)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary_effect(opt_summary.new_operations[0]),
-        cirq.unitary_effect(cirq.Y**0.5),
+        cirq.unitary(opt_summary.new_operations[0]),
+        cirq.unitary(cirq.Y**0.5),
         atol=1e-7)
 
 
@@ -107,7 +107,7 @@ def test_stopped_at_2qubit():
         assert isinstance(opt_summary.new_operations[0].gate,
                           cirq.SingleQubitMatrixGate)
         cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.unitary_effect(opt_summary.new_operations[0]),
+            cirq.unitary(opt_summary.new_operations[0]),
             np.eye(2),
             atol=1e-7)
 

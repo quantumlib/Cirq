@@ -212,10 +212,10 @@ class Exp11Gate(XmonGate,
         }
         return {'exp_11': exp_11}
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if isinstance(self.half_turns, value.Symbol):
             return None
-        return protocols.unitary_effect(
+        return protocols.unitary(
             ops.Rot11Gate(half_turns=self.half_turns))
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
@@ -357,12 +357,12 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
             return None
 
-        phase = protocols.unitary_effect(
+        phase = protocols.unitary(
             ops.RotZGate(half_turns=self.axis_half_turns))
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
@@ -527,7 +527,7 @@ class ExpZGate(XmonGate,
             raise ValueError("Don't have a known inverse.")
         return ExpZGate(half_turns=-self.half_turns)
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if isinstance(self.half_turns, value.Symbol):
             return None
         h = cast(float, self.half_turns)

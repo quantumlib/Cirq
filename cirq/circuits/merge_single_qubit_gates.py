@@ -65,7 +65,7 @@ class MergeSingleQubitGates(PointOptimizer):
         indices = []  # type: List[int]
         while index is not None:
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
-            if len(op.qubits) != 1 or not protocols.has_unitary_effect(op):
+            if len(op.qubits) != 1 or protocols.unitary(op, None) is None:
                 break
             indices.append(index)
             operations.append(op)
@@ -78,6 +78,6 @@ class MergeSingleQubitGates(PointOptimizer):
                         ) -> ops.Operation:
         matrix = linalg.dot(
             np.eye(2, dtype=np.complex128),
-            *(reversed([protocols.unitary_effect(op) for op in operations]))
+            *(reversed([protocols.unitary(op) for op in operations]))
         )
         return ops.SingleQubitMatrixGate(matrix).on(qubit)

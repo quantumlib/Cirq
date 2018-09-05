@@ -142,8 +142,8 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
-        return protocols.maybe_unitary_effect(self._gate)
+    def _unitary_(self) -> Optional[np.ndarray]:
+        return protocols.unitary(self._gate, None)
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

@@ -31,7 +31,7 @@ def _operations_to_matrix(operations: Iterable[cirq.Operation],
 
 def assert_gates_implement_unitary(gates: List[cirq.SingleQubitGate],
                                    intended_effect: np.ndarray):
-    actual_effect = cirq.dot(*reversed([cirq.unitary_effect(g) for g in gates]))
+    actual_effect = cirq.dot(*reversed([cirq.unitary(g) for g in gates]))
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
@@ -95,9 +95,9 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
     intended_effect = cirq.dot(
-        cirq.unitary_effect(cirq.RotZGate(half_turns=2 * pre_turns)),
-        cirq.unitary_effect(cirq.X),
-        cirq.unitary_effect(cirq.RotZGate(half_turns=2 * post_turns)))
+        cirq.unitary(cirq.RotZGate(half_turns=2 * pre_turns)),
+        cirq.unitary(cirq.X),
+        cirq.unitary(cirq.RotZGate(half_turns=2 * post_turns)))
 
     gates = decompositions.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)
@@ -167,7 +167,7 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     operations = decompositions.controlled_op_to_native_gates(
         control=qc,
         target=qt,
-        operation=cirq.unitary_effect(cirq.H),
+        operation=cirq.unitary(cirq.H),
         tolerance=0.0001)
 
     assert operations == [cirq.Y(qt)**-0.25, cirq.CZ(qc, qt), cirq.Y(qt)**0.25]
@@ -175,12 +175,12 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
-    cirq.unitary_effect(cirq.H),
-    cirq.unitary_effect(cirq.X),
-    cirq.unitary_effect(cirq.X**0.5),
-    cirq.unitary_effect(cirq.Y),
-    cirq.unitary_effect(cirq.Z),
-    cirq.unitary_effect(cirq.Z**0.5),
+    cirq.unitary(cirq.H),
+    cirq.unitary(cirq.X),
+    cirq.unitary(cirq.X**0.5),
+    cirq.unitary(cirq.Y),
+    cirq.unitary(cirq.Z),
+    cirq.unitary(cirq.Z**0.5),
 ] + [
     cirq.testing.random_unitary(2) for _ in range(10)
 ])

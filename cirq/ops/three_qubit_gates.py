@@ -60,7 +60,7 @@ class _CCZGate(gate_features.ThreeQubitGate,
         yield t(c)**-1
         yield sweep_abc
 
-    def _unitary_effect_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return np.diag([1, 1, 1, 1, 1, 1, 1, -1])
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
@@ -97,7 +97,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
         yield CCZ(c1, c2, t)
         yield common_gates.H(t)
 
-    def _unitary_effect_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]))
 
@@ -213,7 +213,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.X(b)**0.5
         yield common_gates.X(c)**-0.5
 
-    def _unitary_effect_(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]),
                                  np.diag([1]))

@@ -49,25 +49,25 @@ def test_cz_extrapolate():
 
 
 def test_cz_matrix():
-    assert np.allclose(cirq.unitary_effect(cirq.CZ),
+    assert np.allclose(cirq.unitary(cirq.CZ),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.CZ**0.5),
+    assert np.allclose(cirq.unitary(cirq.CZ**0.5),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1j]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.CZ**0),
+    assert np.allclose(cirq.unitary(cirq.CZ**0),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.CZ**-0.5),
+    assert np.allclose(cirq.unitary(cirq.CZ**-0.5),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
@@ -114,41 +114,41 @@ def test_z_extrapolate():
 
 
 def test_z_matrix():
-    assert np.allclose(cirq.unitary_effect(cirq.Z),
+    assert np.allclose(cirq.unitary(cirq.Z),
                        np.array([[1, 0], [0, -1]]))
-    assert np.allclose(cirq.unitary_effect(cirq.Z**0.5),
+    assert np.allclose(cirq.unitary(cirq.Z**0.5),
                        np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(cirq.unitary_effect(cirq.Z**0),
+    assert np.allclose(cirq.unitary(cirq.Z**0),
                        np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cirq.unitary_effect(cirq.Z**-0.5),
+    assert np.allclose(cirq.unitary(cirq.Z**-0.5),
                        np.array([[1, 0], [0, -1j]]))
 
 
 def test_y_matrix():
-    assert np.allclose(cirq.unitary_effect(cirq.Y),
+    assert np.allclose(cirq.unitary(cirq.Y),
                        np.array([[0, -1j], [1j, 0]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.Y**0.5),
+    assert np.allclose(cirq.unitary(cirq.Y**0.5),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.unitary_effect(cirq.Y**0),
+    assert np.allclose(cirq.unitary(cirq.Y**0),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.Y**-0.5),
+    assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
 
 def test_x_matrix():
-    assert np.allclose(cirq.unitary_effect(cirq.X),
+    assert np.allclose(cirq.unitary(cirq.X),
                        np.array([[0, 1], [1, 0]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.X**0.5),
+    assert np.allclose(cirq.unitary(cirq.X**0.5),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.unitary_effect(cirq.X**0),
+    assert np.allclose(cirq.unitary(cirq.X**0),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(cirq.unitary_effect(cirq.X**-0.5),
+    assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
 
@@ -160,7 +160,7 @@ def test_runtime_types_of_rot_gates():
         ext = cirq.Extensions()
 
         p = gate_type(half_turns=cirq.Symbol('a'))
-        assert cirq.maybe_unitary_effect(p) is None
+        assert cirq.unitary(p, None) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
@@ -173,7 +173,7 @@ def test_runtime_types_of_rot_gates():
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
         assert c.try_cast_to(cirq.BoundedEffect, ext) is c
-        assert cirq.has_unitary_effect(c)
+        assert cirq.unitary(c, None) is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
 
@@ -236,7 +236,7 @@ b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
 
 def test_cnot_power():
     np.testing.assert_almost_equal(
-        cirq.unitary_effect(cirq.CNOT**0.5),
+        cirq.unitary(cirq.CNOT**0.5),
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -249,7 +249,7 @@ def test_cnot_power():
     b = cirq.NamedQubit('b')
     g = cirq.CNOT**0.25
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary_effect(g),
+        cirq.unitary(g),
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
@@ -301,7 +301,7 @@ def test_cnot_decomposes_despite_symbol():
 
 def test_swap_power():
     np.testing.assert_almost_equal(
-        cirq.unitary_effect(cirq.SWAP**0.5),
+        cirq.unitary(cirq.SWAP**0.5),
         np.array([
             [1, 0, 0, 0],
             [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
@@ -314,7 +314,7 @@ def test_swap_power():
     b = cirq.NamedQubit('b')
     g = cirq.SWAP**0.25
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary_effect(g),
+        cirq.unitary(g),
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
@@ -460,7 +460,7 @@ def test_iswap_repr():
 
 def test_iswap_matrix():
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary_effect(cirq.ISWAP),
+        cirq.unitary(cirq.ISWAP),
         np.array([[1, 0, 0, 0],
                   [0, 0, 1j, 0],
                   [0, 1j, 0, 0],
@@ -476,7 +476,7 @@ def test_iswap_decompose():
     decomposed = cirq.Circuit.from_ops(original.default_decompose([a, b]))
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary_effect(original),
+        cirq.unitary(original),
         decomposed.to_unitary_matrix(),
         atol=1e-8)
 

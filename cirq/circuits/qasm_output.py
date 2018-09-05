@@ -278,7 +278,7 @@ class QasmOutput:
                 continue
 
             if len(op.qubits) <= 2:
-                matrix = protocols.maybe_unitary_effect(op)
+                matrix = protocols.unitary(op, None)
                 if matrix is not None:
                     if len(op.qubits) == 1:
                         u_op = QasmUGate.from_matrix(matrix)(*op.qubits)

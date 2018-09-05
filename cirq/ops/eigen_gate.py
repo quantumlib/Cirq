@@ -128,7 +128,7 @@ class EigenGate(raw_types.Gate,
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def _maybe_unitary_effect_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if self.is_parameterized():
             return None
         e = cast(float, self._exponent)

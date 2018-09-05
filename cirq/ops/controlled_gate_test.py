@@ -71,22 +71,19 @@ def test_eq():
 
 
 def test_has_matrix_avoids_matrix():
-    class NoMatrix(cirq.Gate, cirq.SupportsUnitaryEffect):
-        def _maybe_unitary_effect_(self):
+    class NoMatrix(cirq.Gate):
+        def _unitary_(self):
             return None
 
-    assert not cirq.has_unitary_effect(cirq.ControlledGate(NoMatrix()))
+    assert cirq.unitary(cirq.ControlledGate(NoMatrix()), None) is None
 
 
 def test_matrix():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
-    assert not cirq.has_unitary_effect(cxa)
-    assert cirq.maybe_unitary_effect(cxa) is None
-    with pytest.raises(ValueError):
-        _ = cirq.unitary_effect(cxa)
+    assert cirq.unitary(cxa, None) is None
 
     np.testing.assert_allclose(
-        cirq.unitary_effect(CY),
+        cirq.unitary(CY),
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -96,7 +93,7 @@ def test_matrix():
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary_effect(CCH),
+        cirq.unitary(CCH),
         np.array([
             [1, 0, 0, 0, 0, 0, 0, 0],
             [0, 1, 0, 0, 0, 0, 0, 0],

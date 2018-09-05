@@ -30,7 +30,7 @@ def test_single_qubit_init():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = cirq.SingleQubitMatrixGate(m)
     assert np.alltrue(x2.matrix == m)
-    assert np.alltrue(cirq.unitary_effect(x2) == m)
+    assert np.alltrue(cirq.unitary(x2) == m)
 
 
 def test_single_qubit_eq():
@@ -95,7 +95,7 @@ def test_single_qubit_extrapolate():
 def test_two_qubit_init():
     x2 = cirq.TwoQubitMatrixGate(QFT2)
     assert np.alltrue(x2.matrix == QFT2)
-    assert np.alltrue(cirq.unitary_effect(x2) == QFT2)
+    assert np.alltrue(cirq.unitary(x2) == QFT2)
 
 
 def test_two_qubit_eq():
@@ -187,8 +187,8 @@ def test_two_qubit_diagram():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     c = cirq.Circuit.from_ops(
-        cirq.TwoQubitMatrixGate(cirq.unitary_effect(cirq.CZ)).on(a, b),
-        cirq.TwoQubitMatrixGate(cirq.unitary_effect(cirq.CZ)).on(c, a))
+        cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(a, b),
+        cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(c, a))
     assert re.match("""
 a: ───┌[            ]+┐───#2─+
       │[0-9\\.+\\-j ]+│   │
