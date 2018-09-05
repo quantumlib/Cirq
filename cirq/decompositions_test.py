@@ -187,21 +187,18 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
 def test_controlled_op_to_operations_concrete_case():
     c = cirq.NamedQubit('c')
     t = cirq.NamedQubit('t')
+    expected = [cirq.Y(t)**-0.5, cirq.CZ(c, t)**1.5,
+                cirq.Z(c)**0.25, cirq.Y(t)**0.5]
     operations = cirq.controlled_op_to_operations(
         control=c,
         target=t,
         operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
         tolerance=0.0001)
     # Test closeness as opposed to equality to avoid precision errors
-    assert cirq.allclose_up_to_global_phase(operations[0].matrix(),
-                                            (cirq.Y(t)**-0.5).matrix())
-    assert cirq.allclose_up_to_global_phase(operations[1].matrix(),
-                                            (cirq.CZ(c, t)**1.5).matrix())
-    assert cirq.allclose_up_to_global_phase(operations[2].matrix(),
-                                            (cirq.Z(t)**0.25).matrix())
-    assert cirq.allclose_up_to_global_phase(operations[3].matrix(),
-                                            (cirq.Y(t)**0.5).matrix())
-
+    for actual_op, expected_op in zip(operations, expected):
+        assert cirq.allclose_up_to_global_phase(actual_op.matrix(),
+                                              expected_op.matrix(),
+                                              atol=1e-8)
 
 def test_controlled_op_to_operations_omits_negligible_global_phase():
     qc = cirq.QubitId()
