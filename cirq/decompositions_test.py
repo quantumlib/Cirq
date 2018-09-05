@@ -197,8 +197,8 @@ def test_controlled_op_to_operations_concrete_case():
     # Test closeness as opposed to equality to avoid precision errors
     for actual_op, expected_op in zip(operations, expected):
         assert cirq.allclose_up_to_global_phase(actual_op.matrix(),
-                                              expected_op.matrix(),
-                                              atol=1e-8)
+                                                expected_op.matrix(),
+                                                atol=1e-8)
 
 def test_controlled_op_to_operations_omits_negligible_global_phase():
     qc = cirq.QubitId()
