@@ -215,7 +215,7 @@ def test_on_each():
 @cirq.testing.only_test_in_python3
 def test_text_diagram_info_repr():
     info = cirq.TextDiagramInfo(('X', 'Y'), 2)
-    assert repr(info) == ("TextDiagramInfo(wire_symbols=('X', 'Y')"
+    assert repr(info) == ("cirq.TextDiagramInfo(wire_symbols=('X', 'Y')"
                           ", exponent=2, connected=True)")
 
 

@@ -12,7 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Flatten sub-modules.
+# Import sub-modules.
+
+from cirq import (
+    circuits,
+    devices,
+    google,
+    linalg,
+    ops,
+    schedules,
+    study,
+    testing,
+)
+
+# Also flatten some of the sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -22,6 +35,7 @@ from cirq.circuits import (
     DropNegligible,
     ExpandComposite,
     InsertStrategy,
+    MergeInteractions,
     MergeSingleQubitGates,
     Moment,
     OptimizationPass,
@@ -194,7 +208,6 @@ from cirq.protocols import (
 
 # Unflattened sub-modules.
 from cirq import (
-    api,
     google,
     testing,
 )

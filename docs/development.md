@@ -82,13 +82,6 @@ See the previous section for instructions.
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
-    Unfortunately, as of this writing, v3.5 of the [protobuf compiler](https://github.com/google/protobuf) is not installable via `apt-get`.
-    You *can* skip this dependency.
-    It is only needed when producing the transpiled python 2.7 code for local testing.
-    The installation process is technical; requiring you to either build from source or manually installing pre-built binaries onto your system.
-    If you want to be able to run the python 2.7 tests on your machine, see ["Protobuf Compiler Installation" on the google/protobuf github repository](https://github.com/google/protobuf#protocol-compiler-installation) for details.
-
-
 2. Prepare a virtual environment including the dev tools (such as mypy).
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
@@ -189,7 +182,7 @@ The script does nothing if the output directory already exists.
     `pip` will choose between the two based on whichever version of python the user is using.
     Development versions end with `.dev35` and `.dev27` instead of `.35` and `.27`, e.g. use `0.0.4.dev27` for the python 2 variant of the development version of `0.0.4`.
 
-    Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a followup pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
+    Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a follow up pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
 
 2. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
 

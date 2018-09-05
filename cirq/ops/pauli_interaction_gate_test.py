@@ -136,22 +136,22 @@ q1: ───X───X──────(-X)───(-X)───Y───@�
 
 @pytest.mark.parametrize('gate,gate_repr', (
     (cirq.PauliInteractionGate(cirq.Pauli.X, False, cirq.Pauli.X, False),
-     'PauliInteractionGate(+X, +X)'),
+     'cirq.PauliInteractionGate(+X, +X)'),
     (cirq.PauliInteractionGate(cirq.Pauli.X, True,  cirq.Pauli.X, False),
-     'PauliInteractionGate(-X, +X)'),
+     'cirq.PauliInteractionGate(-X, +X)'),
     (cirq.PauliInteractionGate(cirq.Pauli.X, False, cirq.Pauli.X, True ),
-     'PauliInteractionGate(+X, -X)'),
+     'cirq.PauliInteractionGate(+X, -X)'),
     (cirq.PauliInteractionGate(cirq.Pauli.X, True,  cirq.Pauli.X, True ),
-     'PauliInteractionGate(-X, -X)'),
+     'cirq.PauliInteractionGate(-X, -X)'),
     (cirq.PauliInteractionGate(cirq.Pauli.X, False, cirq.Pauli.Y, False),
-     'PauliInteractionGate(+X, +Y)'),
+     'cirq.PauliInteractionGate(+X, +Y)'),
     (cirq.PauliInteractionGate(cirq.Pauli.Y, False, cirq.Pauli.Z, False),
-     'PauliInteractionGate(+Y, +Z)'),
+     'cirq.PauliInteractionGate(+Y, +Z)'),
     (cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.Y, False),
-     'PauliInteractionGate(+Z, +Y)'),
+     'cirq.PauliInteractionGate(+Z, +Y)'),
     (cirq.PauliInteractionGate(cirq.Pauli.Y, True,  cirq.Pauli.Z, True ),
-     'PauliInteractionGate(-Y, -Z)'),
+     'cirq.PauliInteractionGate(-Y, -Z)'),
     (cirq.PauliInteractionGate(cirq.Pauli.Z, True,  cirq.Pauli.Y, True ),
-     'PauliInteractionGate(-Z, -Y)')))
+     'cirq.PauliInteractionGate(-Z, -Y)')))
 def test_repr(gate, gate_repr):
     assert repr(gate) == gate_repr

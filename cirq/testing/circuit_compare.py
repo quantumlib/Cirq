@@ -12,59 +12,89 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
+from typing import Tuple, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, ops, linalg
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
 
-def _cancel_qubit_phase(m1: np.ndarray, m2: np.ndarray, k: int) -> None:
-    """Makes the two matrices more similar via phasing of qubit #k.
+
+def _cancel_qubit_phase(m1: np.ndarray,
+                        m2: np.ndarray,
+                        qubits: Sequence[int]
+                        ) -> None:
+    """Makes the two matrices more similar by phasing qubits in ks.
 
     This method mutates the given matrices.
+
+    Works by creating a linear problem of the form:
+
+        m0 + m1 + m2 + m3 = d_000
+           + m1 + m2 + m3 = d_001
+        m0 +    + m2 + m3 = d_010
+           +    + m2 + m3 = d_011
+        m0 + m1 +    + m3 = d_100
+           + m1 +    + m3 = d_101
+        m0 +    +    + m3 = d_110
+           +    +    + m3 = d_111
+
+        - each d_r is the dominant phase difference of row r in each matrix
+        - each m_k column is a qubit phasing operation; included only if k in ks
+
+    The linear problem is then solved, and the m_k values are used to apply
+    qubit phasing operations that should turn one matrix into the other.
 
     Args:
         m1: A unitary matrix.
         m2: Another unitary matrix.
-        k: The index of the qubit we are allowed to phase.
+        qubits: Indices of the qubit we are allowed to phase.
+            'Out of range' qubits correspond to global phasing.
     """
+
     n = m1.shape[0]
-    b = 1 << k
+    assert m1.shape == m2.shape == (n, n)
 
-    # Independently phase the qubit-is-OFF and qubit-is-ON input spaces.
-    for t in [False, True]:
-        # Find a location with a large value to use as a phase reference.
-        best_loc = max([(i, j)
-                        for i in range(n)
-                        for j in range(n)
-                        if t == bool(i & b)],
-                       key=lambda e: max(abs(m1[e]), abs(m2[e])))
-        best_val_1 = m1[best_loc]
-        best_val_2 = m2[best_loc]
+    prob = np.zeros(shape=(n, len(qubits) + 1))
 
-        # Determine how to cancel out the reference phase.
-        if best_val_1 != 0:
-            counter_phase_1 = np.conj(best_val_1) / abs(best_val_1)
-        else:
-            counter_phase_1 = 1
-        if best_val_2 != 0:
-            counter_phase_2 = np.conj(best_val_2) / abs(best_val_2)
-        else:
-            counter_phase_2 = 1
+    # Measurement phase coefficients.
+    for i, k in enumerate(qubits):
+        for row in range(n):
+            prob[row, i] = 0 if row & (1 << k) else 1
 
-        # Cancel using the reference phase.
-        for i in range(n):
-            if t == bool(i & b):
-                m1[i, :] *= counter_phase_1
-                m2[i, :] *= counter_phase_2
+    # Dominant row phase differences.
+    for row in range(n):
+        col = max(range(n), key=lambda c: min(abs(m1[row, c]), abs(m2[row, c])))
+        prob[row, -1] = np.angle(m1[row, col]) - np.angle(m2[row, col])
+
+    # Gram-Schmidt.
+    used = set()  # type: Set[int]
+    for col in range(len(qubits)):
+        chosen_row = min(row for row in range(n)
+                         if row not in used and prob[row, col])
+        used.add(chosen_row)
+        prob[chosen_row, :] /= prob[chosen_row, col]
+        for row in range(n):
+            if row != chosen_row:
+                prob[row, :] -= prob[row, col] * prob[chosen_row, :]
+
+    # Extract and apply phase correction solutions.
+    for col, k in enumerate(qubits):
+        chosen_row = max(range(n), key=lambda r: prob[r, col])
+        adjust = np.exp(1j * prob[chosen_row, -1])
+        for row in range(n):
+            if row & (1 << k):
+                m1[row, :] *= adjust
 
 
 def _canonicalize_up_to_terminal_measurement_phase(
         circuit1: circuits.Circuit,
         circuit2: circuits.Circuit) -> Tuple[np.ndarray, np.ndarray]:
     qubits = circuit1.all_qubits().union(circuit2.all_qubits())
-    order = ops.QubitOrder.DEFAULT.order_for(qubits)
+    order = ops.QubitOrder.DEFAULT.order_for(qubits)[::-1]
     assert circuit1.are_all_measurements_terminal()
     assert circuit2.are_all_measurements_terminal()
 
@@ -80,14 +110,16 @@ def _canonicalize_up_to_terminal_measurement_phase(
 
     matrix1 = circuit1.to_unitary_matrix(qubits_that_should_be_present=qubits)
     matrix2 = circuit2.to_unitary_matrix(qubits_that_should_be_present=qubits)
+    ks = [len(order)]
     for q in measured_1:
-        _cancel_qubit_phase(matrix1, matrix2, order.index(q))
+        ks.append(order.index(q))
+    _cancel_qubit_phase(matrix1, matrix2, ks)
     return matrix1, matrix2
 
 
 def assert_circuits_with_terminal_measurements_are_equivalent(
         actual: circuits.Circuit,
-        expected: circuits.Circuit,
+        reference: circuits.Circuit,
         atol: float) -> None:
     """Determines if two circuits have equivalent effects.
 
@@ -102,17 +134,17 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
 
     Args:
         actual: The circuit that was actually computed by some process.
-        expected: A circuit with the correct function.
+        reference: A circuit with the correct function.
         atol: Absolute error tolerance.
     """
-    m1, m2 = _canonicalize_up_to_terminal_measurement_phase(actual, expected)
+    m1, m2 = _canonicalize_up_to_terminal_measurement_phase(actual, reference)
 
-    similar = linalg.allclose_up_to_global_phase(m1, m2, atol=atol)
-    if not similar:
-        # coverage: ignore
-        print("ACTUAL")
-        print(actual)
-        print("EXPECTED")
-        print(expected)
-
-    assert similar
+    assert linalg.allclose_up_to_global_phase(m1, m2, atol=atol), (
+        "Circuit's effect differs from the reference circuit.\n"
+        '\n'
+        'Diagram of actual circuit:\n'
+        '{}\n'
+        '\n'
+        'Diagram of reference circuit with desired function:\n'
+        '{}\n'.format(actual, reference)
+    )

@@ -14,32 +14,38 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-from typing import List, Tuple, Optional, cast
+from typing import Callable, List, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
-from cirq import circuits, ops, decompositions, protocols
+from cirq import ops, decompositions
+from cirq import protocols
+from cirq.circuits import optimization_pass
+from cirq.circuits.circuit import Circuit
 from cirq.extension import Extensions
-from cirq.google import convert_to_xmon_gates, xmon_gates
 
 
-class MergeInteractions(circuits.PointOptimizer):
+class MergeInteractions(optimization_pass.PointOptimizer):
     """Combines series of adjacent one and two-qubit gates operating on a pair
     of qubits."""
 
     def __init__(self,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 extensions: Extensions = None) -> None:
+                 extensions: Extensions = None,
+                 post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
+                                ] = lambda op_list: op_list
+                 ) -> None:
+        super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
         self.extensions = extensions or Extensions()
 
     def optimization_at(self,
-                        circuit: circuits.Circuit,
+                        circuit: Circuit,
                         index: int,
                         op: ops.Operation
-                        ) -> Optional[circuits.PointOptimizationSummary]:
+    ) -> Optional[optimization_pass.PointOptimizationSummary]:
         if len(op.qubits) != 2:
             return None
 
@@ -60,24 +66,22 @@ class MergeInteractions(circuits.PointOptimizer):
                                      if len(new_op.qubits) == 2])
         switch_to_new = False
         switch_to_new |= new_interaction_count < old_interaction_count
-        switch_to_new |= any(not xmon_gates.XmonGate.is_xmon_op(old_op)
+        switch_to_new |= any(len(old_op.qubits) == 2 and
+                             not (isinstance(old_op, ops.GateOperation) and
+                                  isinstance(old_op.gate, ops.Rot11Gate))
                              for old_op in old_operations)
         if not self.allow_partial_czs:
             switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
-                                 isinstance(old_op.gate, xmon_gates.Exp11Gate)
+                                 isinstance(old_op.gate, ops.Rot11Gate)
                                  and old_op.gate.half_turns != 1
                                  for old_op in old_operations)
         if not switch_to_new:
             return None
 
-        converter = convert_to_xmon_gates.ConvertToXmonGates()
-        new_xmon_operations = [converter.convert(new_op)
-                               for new_op in new_operations]
-
-        return circuits.PointOptimizationSummary(
+        return optimization_pass.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=new_xmon_operations)
+            new_operations=new_operations)
 
     def _op_to_matrix(self,
                       op: Optional[ops.Operation],
@@ -118,7 +122,7 @@ class MergeInteractions(circuits.PointOptimizer):
 
     def _scan_two_qubit_ops_into_matrix(
             self,
-            circuit: circuits.Circuit,
+            circuit: Circuit,
             index: Optional[int],
             qubits: Tuple[ops.QubitId, ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:

@@ -48,6 +48,7 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
+        super().__init__()
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs

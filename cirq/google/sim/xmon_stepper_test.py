@@ -761,6 +761,20 @@ def test_precision(num_prefix_qubits):
                                        decimal=7)
 
 
+def test_renormalize_state_after_w_gate():
+    """This tests that the renormalization after W gates maintains unit norm.
+
+    It is possible to use numerically less stable methods of calculating the
+    norm that what is currently used (numpy absolute). If this test breaks
+    because of a change in how the norm is calculated, then likely one of these
+    less accurate methods was used.
+    """
+    with xmon_stepper.Stepper(num_qubits=21) as s:
+        for x in range(21):
+            s.simulate_w(x, np.random.rand(), np.random.rand())
+        s.reset_state(s.current_state)
+
+
 def test_decode_initial_state():
     np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(
         np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),

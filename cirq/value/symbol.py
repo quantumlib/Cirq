@@ -45,7 +45,7 @@ class Symbol:
                 else 'Symbol({})'.format(_encode(self.name)))
 
     def __repr__(self):
-        return 'Symbol({!r})'.format(self.name)
+        return 'cirq.Symbol({!r})'.format(self.name)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

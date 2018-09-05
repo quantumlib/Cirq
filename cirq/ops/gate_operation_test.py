@@ -163,3 +163,19 @@ def test_parameterizable_effect():
     op2 = op1.with_parameters_resolved_by(r)
     assert not op2.is_parameterized()
     assert op2 == cirq.S.on(q)
+
+
+def test_repr():
+    a, b = cirq.LineQubit.range(2)
+    assert repr(cirq.GateOperation(cirq.CZ, (a, b))
+                ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
+
+    class Inconsistent(cirq.Gate):
+        def __repr__(self):
+            return 'Inconsistent'
+
+        def on(self, *qubits):
+            return cirq.GateOperation(Inconsistent(), qubits)
+
+    assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
+            'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')

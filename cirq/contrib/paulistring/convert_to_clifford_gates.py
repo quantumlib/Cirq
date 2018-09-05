@@ -50,6 +50,7 @@ class ConvertToCliffordGates(PointOptimizer):
             extensions: The extensions instance to use when trying to
                 cast gates to known types.
         """
+        super().__init__()
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.tolerance = tolerance

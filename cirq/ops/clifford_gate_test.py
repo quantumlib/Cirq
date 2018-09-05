@@ -285,10 +285,10 @@ def test_eq_ne_and_hash():
 
 
 @pytest.mark.parametrize('gate,rep', (
-    (cirq.CliffordGate.I,       'CliffordGate(X:+X, Y:+Y, Z:+Z)'),
-    (cirq.CliffordGate.H,       'CliffordGate(X:+Z, Y:-Y, Z:+X)'),
-    (cirq.CliffordGate.X,       'CliffordGate(X:+X, Y:-Y, Z:-Z)'),
-    (cirq.CliffordGate.X_sqrt,  'CliffordGate(X:+X, Y:+Z, Z:-Y)')))
+    (cirq.CliffordGate.I,       'cirq.CliffordGate(X:+X, Y:+Y, Z:+Z)'),
+    (cirq.CliffordGate.H,       'cirq.CliffordGate(X:+Z, Y:-Y, Z:+X)'),
+    (cirq.CliffordGate.X,       'cirq.CliffordGate(X:+X, Y:-Y, Z:-Z)'),
+    (cirq.CliffordGate.X_sqrt,  'cirq.CliffordGate(X:+X, Y:+Z, Z:-Y)')))
 def test_repr(gate, rep):
     assert repr(gate) == rep
 
