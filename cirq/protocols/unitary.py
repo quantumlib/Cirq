@@ -20,11 +20,11 @@ from typing_extensions import Protocol
 from cirq import abc
 
 
-# This is a special value used by the unitary method to determine whether or not
-# the caller provided a 'default' argument. It must of type np.ndarray to ensure
-# the method has the correct type signature in that case. It is checked for
-# using `is`, so it won't have a false positive if the user provides a different
-# np.array([]) value.
+# This is a special indicator value used by the unitary method to determine
+# whether or not the caller provided a 'default' argument. It must be of type
+# np.ndarray to ensure the method has the correct type signature in that case.
+# It is checked for using `is`, so it won't have a false positive if the user
+# provides a different np.array([]) value.
 RaiseTypeErrorIfNotProvided = np.array([])
 
 TDefault = TypeVar('TDefault')
