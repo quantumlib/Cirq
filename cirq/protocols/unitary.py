@@ -51,22 +51,22 @@ class SupportsUnitary(Protocol):
 def unitary(val: Any,
             default: TDefault = RaiseTypeErrorIfNotProvided
             ) -> Union[np.ndarray, TDefault]:
-    """Returns a unitary matrix describing the given value, or else raises.
+    """Returns a unitary matrix describing the given value.
 
     Args:
         val: The value to describe with a unitary matrix.
-        default: Determines the fallback behavior when the value doesn't have
-            a unitary matrix. If default is not set, a TypeError is raised. If
+        default: Determines the fallback behavior when `val` doesn't have
+            a unitary matrix. If `default` is not set, a TypeError is raised. If
             default is set to a value, that value is returned.
 
     Returns:
-        If the given value has a _unitary_ method and its result is not None,
-        that result is returned. Otherwise, if a default value was specified,
-        the default value is returned.
+        If `val` has a _unitary_ method and its result is not None, that result
+        is returned. Otherwise, if a default value was specified, the default
+        value is returned.
 
     Raises:
-        TypeError: The given value does not have a _unitary_ method, or that
-            method returned None, and also no default value was specified.
+        TypeError: `val` doesn't have a _unitary_ method (or that method
+            returned None) and also no default value was specified.
     """
     get = getattr(val, '_unitary_', None)
     result = None if get is None else get()
