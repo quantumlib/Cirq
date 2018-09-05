@@ -40,7 +40,7 @@ class NamedQubit(QubitId):
         return self.name
 
     def __repr__(self):
-        return 'NamedQubit({})'.format(repr(self.name))
+        return 'cirq.NamedQubit({})'.format(repr(self.name))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
