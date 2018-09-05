@@ -220,7 +220,7 @@ class TextDiagramInfo:
         return hash(self._eq_tuple())
 
     def __repr__(self):
-        return ('TextDiagramInfo(' +
+        return ('cirq.TextDiagramInfo(' +
                 'wire_symbols={!r}, '.format(self.wire_symbols) +
                 'exponent={!r}, '.format(self.exponent) +
                 'connected={!r})'.format(self.connected)

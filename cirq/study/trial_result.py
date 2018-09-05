@@ -215,7 +215,7 @@ class TrialResult:
             fold_func=lambda e: fold_func(e[0]))
 
     def __repr__(self):
-        return ('TrialResult(params={!r}, '
+        return ('cirq.TrialResult(params={!r}, '
                 'repetitions={!r}, '
                 'measurements={!r})').format(self.params,
                                              self.repetitions,

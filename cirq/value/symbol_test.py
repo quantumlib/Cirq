@@ -29,6 +29,15 @@ def test_string_representation():
     assert str(cirq.Symbol('')) == 'Symbol("")'
 
 
+@cirq.testing.only_test_in_python3
+def test_repr():
+    assert repr(cirq.Symbol('a1')) == "cirq.Symbol('a1')"
+    assert repr(cirq.Symbol('_b23_')) == "cirq.Symbol('_b23_')"
+    assert repr(cirq.Symbol('1a')) == "cirq.Symbol('1a')"
+    assert repr(cirq.Symbol('&%#')) == "cirq.Symbol('&%#')"
+    assert repr(cirq.Symbol('')) == "cirq.Symbol('')"
+
+
 def test_parameterized_value_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Symbol('a'))
