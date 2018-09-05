@@ -20,6 +20,7 @@ import cirq
 
 def test_unitary():
     m = np.array([[0, 1], [1, 0]])
+    d = np.array([])
 
     class NoMethod:
         pass
@@ -38,8 +39,14 @@ def test_unitary():
         _ = cirq.unitary(ReturnsNone())
     assert cirq.unitary(ReturnsSome()) is m
 
-    assert cirq.try_get_unitary(NoMethod()) is None
-    assert cirq.try_get_unitary(ReturnsNone()) is None
-    assert cirq.try_get_unitary(ReturnsSome()) is m
+    assert cirq.unitary(NoMethod(), None) is None
+    assert cirq.unitary(ReturnsNone(), None) is None
+    assert cirq.unitary(ReturnsSome(), None) is m
 
+    assert cirq.unitary(NoMethod(), 1) == 1
+    assert cirq.unitary(ReturnsNone(), 1) == 1
+    assert cirq.unitary(ReturnsSome(), 1) is m
 
+    assert cirq.unitary(NoMethod(), d) is d
+    assert cirq.unitary(ReturnsNone(), d) is d
+    assert cirq.unitary(ReturnsSome(), d) is m

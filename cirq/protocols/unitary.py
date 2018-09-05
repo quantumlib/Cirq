@@ -12,12 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any, Optional, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq import abc
+
+
+# This is a special value used by the unitary method to determine whether or not
+# the caller provided a 'default' argument. It must of type np.ndarray to ensure
+# the method has the correct type signature in that case. It is checked for
+# using `is`, so it won't have a false positive if the user provides a different
+# np.array([]) value.
+RaiseTypeErrorIfNotProvided = np.array([])
+
+TDefault = TypeVar('TDefault')
 
 
 class SupportsUnitary(Protocol):
@@ -38,36 +48,36 @@ class SupportsUnitary(Protocol):
         """
 
 
-def try_get_unitary(val: Any) -> Optional[np.ndarray]:
-    """Returns a unitary matrix describing the given value, or else None.
-
-    Returns:
-        If the given value has a _unitary_ method, its result is returned.
-        Otherwise None is returned.
-    """
-    get = getattr(val, '_unitary_', None)
-    if get is None:
-        return None
-    return get()
-
-
-def unitary(val: Any) -> np.ndarray:
+def unitary(val: Any,
+            default: TDefault = RaiseTypeErrorIfNotProvided
+            ) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value, or else raises.
+
+    Args:
+        val: The value to describe with a unitary matrix.
+        default: Determines the fallback behavior when the value doesn't have
+            a unitary matrix. If default is not set, a TypeError is raised. If
+            default is set to a value, that value is returned.
 
     Returns:
         If the given value has a _unitary_ method and its result is not None,
-        that result is returned.
+        that result is returned. Otherwise, if a default value was specified,
+        the default value is returned.
 
     Raises:
         TypeError: The given value does not have a _unitary_ method, or that
-            method returned None.
+            method returned None, and also no default value was specified.
     """
     get = getattr(val, '_unitary_', None)
+    result = None if get is None else get()
+
+    if result is not None:
+        return result
+    if default is not RaiseTypeErrorIfNotProvided:
+        return default
+
     if get is None:
-        raise TypeError("object of type '{}' has no _unitary_ method.".format(
-            type(val)))
-    result = get()
-    if result is None:
-        raise TypeError("object of type '{}' does have a _unitary_ method, "
-                        "but it returned None.".format(type(val)))
-    return result
+        raise TypeError("object of type '{}' "
+                        "has no _unitary_ method.".format(type(val)))
+    raise TypeError("object of type '{}' does have a _unitary_ method, "
+                    "but it returned None.".format(type(val)))

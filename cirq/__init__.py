@@ -202,7 +202,6 @@ from cirq.value import (
 
 from cirq.protocols import (
     SupportsUnitary,
-    try_get_unitary,
     unitary,
 )
 
