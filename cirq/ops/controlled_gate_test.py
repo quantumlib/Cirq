@@ -70,14 +70,6 @@ def test_eq():
     eq.add_equality_group(cirq.X)
 
 
-def test_has_matrix_avoids_matrix():
-    class NoMatrix(cirq.Gate):
-        def _unitary_(self):
-            return None
-
-    assert cirq.unitary(cirq.ControlledGate(NoMatrix()), None) is None
-
-
 def test_matrix():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
     assert cirq.unitary(cxa, None) is None
