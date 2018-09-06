@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import abc, extension
-from cirq.ops.gate_features import KnownMatrix
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
 # np.ndarray to ensure the method has the correct type signature in that case.
 # It is checked for using `is`, so it won't have a false positive if the user
 # provides a different np.array([]) value.
-RaiseTypeErrorIfNotProvided = np.array([])
+RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 
 TDefault = TypeVar('TDefault')
 
@@ -33,18 +31,20 @@ TDefault = TypeVar('TDefault')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
-    @abc.abstractmethod
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
-        This method is used by the global cirq.unitary method. If this method is
-        not present, or returns None, it is assumed that the receiving object
-        doesn't have a unitary matrix (resulting in a TypeError being raised by
-        the cirq.unitary method).
+        This method is used by the global `cirq.unitary` method. If this method
+        is not present, or returns NotImplemented, it is assumed that the
+        receiving object doesn't have a unitary matrix (resulting in a TypeError
+        or default result when calling `cirq.unitary` on it). (The ability to
+        return NotImplemented is useful when a class cannot know if it has a
+        matrix until runtime, e.g. cirq.X**c normally has a matrix but
+        cirq.X**cirq.Symbol('a') doesn't.)
 
         Returns:
-            A unitary matrix describing this value, or None if there is no such
-            matrix.
+            A unitary matrix describing this value, or NotImplemented if there
+            is no such matrix.
         """
 
 
@@ -60,29 +60,24 @@ def unitary(val: Any,
             default is set to a value, that value is returned.
 
     Returns:
-        If `val` has a _unitary_ method and its result is not None, that result
-        is returned. Otherwise, if a default value was specified, the default
-        value is returned.
+        If `val` has a _unitary_ method and its result is not NotImplemented,
+        that result is returned. Otherwise, if a default value was specified,
+        the default value is returned.
 
     Raises:
         TypeError: `val` doesn't have a _unitary_ method (or that method
-            returned None) and also no default value was specified.
+            returned NotImplemented) and also no default value was specified.
     """
-    get = getattr(val, '_unitary_', None)
-    result = None if get is None else get()
+    getter = getattr(val, '_unitary_', None)
+    result = NotImplemented if getter is None else getter()
 
-    # Temporary compatibility shim for classes using KnownMatrix.
-    if result is None:
-        known = extension.try_cast(KnownMatrix, val)
-        result = None if known is None else known.matrix()
-
-    if result is not None:
+    if result is not NotImplemented:
         return result
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if get is None:
+    if getter is None:
         raise TypeError("object of type '{}' "
                         "has no _unitary_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _unitary_ method, "
-                    "but it returned None.".format(type(val)))
+                    "but it returned NotImplemented.".format(type(val)))

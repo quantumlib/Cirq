@@ -22,7 +22,6 @@ import pytest
 
 import cirq
 
-
 def _operations_to_matrix(operations, qubits):
     return cirq.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=cirq.QubitOrder.explicit(qubits),
@@ -182,15 +181,18 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
 def test_controlled_op_to_operations_concrete_case():
     c = cirq.NamedQubit('c')
     t = cirq.NamedQubit('t')
+    expected = [cirq.Y(t)**-0.5, cirq.CZ(c, t)**1.5,
+                cirq.Z(c)**0.25, cirq.Y(t)**0.5]
     operations = cirq.controlled_op_to_operations(
         control=c,
         target=t,
         operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
         tolerance=0.0001)
-
-    assert operations == [cirq.Y(t)**-0.5, cirq.CZ(c, t)**1.5,
-                          cirq.Z(c)**0.25, cirq.Y(t)**0.5]
-
+    # Test closeness as opposed to equality to avoid precision errors
+    for actual_op, expected_op in zip(operations, expected):
+        assert cirq.allclose_up_to_global_phase(cirq.unitary(actual_op),
+                                                cirq.unitary(expected_op),
+                                                atol=1e-8)
 
 def test_controlled_op_to_operations_omits_negligible_global_phase():
     qc = cirq.QubitId()
