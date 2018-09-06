@@ -524,11 +524,11 @@ class HGate(eigen_gate.EigenGate,
         return HGate(half_turns=exponent)
 
     def _eigen_components(self):
-        component0 = np.array([[(3 + 2 * np.sqrt(2)), (1 + np.sqrt(2))],
-                               [(1 + np.sqrt(2)), (1)]]) / 2 * (2 + np.sqrt(2))
+        component0 = np.divide(np.array([[(3 + 2 * np.sqrt(2)), (1 + np.sqrt(2))],
+                                         [(1 + np.sqrt(2)), (1)]]), 2 * (2 + np.sqrt(2)))
 
-        component1 = np.array([[(3 - 2 * np.sqrt(2)), (1 - np.sqrt(2))],
-                               [(1 - np.sqrt(2)), (1)]]) / 2 * (2 - np.sqrt(2))
+        component1 = np.divide(np.array([[(3 - 2 * np.sqrt(2)), (1 - np.sqrt(2))],
+                                         [(1 - np.sqrt(2)), (1)]]), 2 * (2 - np.sqrt(2)))
 
         return [(0, component0), (1, component1), ]
 
