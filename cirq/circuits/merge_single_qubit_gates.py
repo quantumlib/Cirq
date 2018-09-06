@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops, extension, protocols
+from cirq import ops, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -30,11 +30,6 @@ class MergeSingleQubitGates(PointOptimizer):
     """Combines adjacent constant single-qubit rotations into
     SingleQubitMatrixGates.
     """
-
-    def __init__(self,
-                 extensions: extension.Extensions = None) -> None:
-        super().__init__()
-        self.extensions = extensions or extension.Extensions()
 
     def optimization_at(self,
                         circuit: Circuit,

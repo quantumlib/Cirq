@@ -120,28 +120,6 @@ def test_ignores_2qubit_target():
     assert c == cirq.Circuit([cirq.Moment([cirq.CZ(q, q2)])])
 
 
-def test_extension():
-    class DummyGate(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.KnownMatrix,
-                 DummyGate,
-                 lambda _: cirq.SingleQubitMatrixGate(
-                     np.array([[0, 1], [1, 0]])))
-    optimizer = cirq.MergeSingleQubitGates(extensions=ext)
-
-    q = cirq.QubitId()
-    c = cirq.Circuit([
-        cirq.Moment([DummyGate().on(q)]),
-    ])
-    assert_optimizes(
-        before=c,
-        after=cirq.Circuit([cirq.Moment([cirq.SingleQubitMatrixGate(
-                                            np.array([[0, 1], [1, 0]]))(q)])]),
-        optimizer=optimizer)
-
-
 def test_ignore_unsupported_gate():
     class UnsupportedDummy(cirq.Gate):
         pass
