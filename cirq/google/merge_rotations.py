@@ -24,7 +24,6 @@ from cirq.circuits import (
     PointOptimizer,
     PointOptimizationSummary,
 )
-from cirq.extension import Extensions
 from cirq.google import convert_to_xmon_gates
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.google.xmon_gates import XmonGate
