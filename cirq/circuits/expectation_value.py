@@ -89,13 +89,15 @@ def expectation_from_sampling(circuit: Circuit,
     # over n_samples circuit runs is computed here
     if not quadratic_z:
 
-        circuit = no_meas(circuit)
-
         expectation = 0
+        identity_coeficient = 0.
+
         for term, coef in operator.items():
 
+            # remove old measurements
+            circuit = no_meas(circuit)
+
             # check if identity:
-            identity_coeficient = 0.
             if term == ():
                 identity_coeficient = coef
                 continue

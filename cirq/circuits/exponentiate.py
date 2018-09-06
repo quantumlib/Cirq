@@ -97,8 +97,8 @@ def exponentiate_qubit_operator(time: Union[int, float],
             highest_target_qubit = None
 
             # skip identity
-            # if term == ():
-            #    continue
+            if term == ():
+               continue
 
             for qubit, pauli in term.items():
                 rotation = basis_rotation[pauli]
