@@ -37,7 +37,7 @@ A `Gate` represents a physical process that occurs on a
 ``Qubit``.  The important property of a `Gate` is that it
 can be applied *on* to one or more qubits.  This can be done
 via the `Gate.on` method itself or via ``()`` and doing this
-turns the `Gate` into an `GateOperation`.
+turns the `Gate` into a `GateOperation`.
 ```python
 # This is an Pauli X gate. It is an object instance.
 x_gate = cirq.X
