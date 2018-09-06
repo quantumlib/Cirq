@@ -154,13 +154,7 @@ def test_x_matrix():
 
 
 def test_h_matrix():
-    ket_plus = np.array([[1/np.sqrt(2), 1/np.sqrt(2)],
-                         [1/np.sqrt(2), -1/np.sqrt(2)]])
-
-    assert np.allclose(cirq.HGate(half_turns=1).matrix(), ket_plus)
-    assert np.allclose(cirq.HGate(half_turns=0.5).matrix(), ket_plus)
-    assert np.allclose(cirq.HGate(half_turns=0).matrix(), ket_plus)
-    assert np.allclose(cirq.HGate(half_turns=-0.5).matrix(), ket_plus)
+    assert np.allclose(((cirq.H**0.5)**2.0).matrix(), (cirq.H).matrix())
 
 
 def test_runtime_types_of_rot_gates():

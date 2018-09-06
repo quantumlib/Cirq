@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Quantum gates that are commonly used in the literature."""
-import math
 from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
 
 import numpy as np
@@ -525,14 +524,13 @@ class HGate(eigen_gate.EigenGate,
         return HGate(half_turns=exponent)
 
     def _eigen_components(self):
-        two_plus_sqrt_two = 2 * (2 + np.sqrt(2))
+        component0 = np.array([[(3 + 2 * np.sqrt(2)), (1 + np.sqrt(2))],
+                               [(1 + np.sqrt(2)), (1)]]) / 2 * (2 + np.sqrt(2))
 
-        component = np.array([[(3 + 2 * np.sqrt(2)) / two_plus_sqrt_two,
-                               (1 + np.sqrt(2)) / two_plus_sqrt_two],
-                              [(1 + np.sqrt(2)) / two_plus_sqrt_two,
-                               (1) / (2 * two_plus_sqrt_two)]])
+        component1 = np.array([[(3 - 2 * np.sqrt(2)), (1 - np.sqrt(2))],
+                               [(1 - np.sqrt(2)), (1)]]) / 2 * (2 - np.sqrt(2))
 
-        return [(0, component), (1, component), ]
+        return [(0, component0), (1, component1), ]
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
@@ -540,7 +538,12 @@ class HGate(eigen_gate.EigenGate,
 
     def default_decompose(self, qubits):
         q = qubits[0]
-        yield Y(q)**0.25,
+
+        if self._exponent == 1:
+            yield Y(q)**0.5, X(q)
+            return
+
+        yield Y(q)**0.25
         yield X(q)**self.half_turns
         yield Y(q)**-0.25
 
