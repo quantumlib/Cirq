@@ -524,11 +524,15 @@ class HGate(eigen_gate.EigenGate,
         return HGate(half_turns=exponent)
 
     def _eigen_components(self):
-        component0 = np.divide(np.array([[(3 + 2 * np.sqrt(2)), (1 + np.sqrt(2))],
-                                         [(1 + np.sqrt(2)), (1)]]), 2 * (2 + np.sqrt(2)))
+        component0 = np.divide(np.array([[(3 + 2 * np.sqrt(2)),
+                                          (1 + np.sqrt(2))],
+                                         [(1 + np.sqrt(2)), (1)]]),
+                               2 * (2 + np.sqrt(2)))
 
-        component1 = np.divide(np.array([[(3 - 2 * np.sqrt(2)), (1 - np.sqrt(2))],
-                                         [(1 - np.sqrt(2)), (1)]]), 2 * (2 - np.sqrt(2)))
+        component1 = np.divide(np.array([[(3 - 2 * np.sqrt(2)),
+                                          (1 - np.sqrt(2))],
+                                         [(1 - np.sqrt(2)), (1)]]),
+                               2 * (2 - np.sqrt(2)))
 
         return [(0, component0), (1, component1), ]
 
@@ -561,8 +565,9 @@ class HGate(eigen_gate.EigenGate,
         if self.half_turns == 1:
             return args.format('h {0};\n', qubits[0])
         else:
-            return args.format('rh({0:half_turns}) {1};\n',
-                               self.half_turns, qubits[0])
+            return args.format('ry({0:half_turns}) {3};\nrx({1:half_turns})'
+            ' {3};\nry({2:half_turns}) {3};\n',
+                                 0.25,  self.half_turns, -0.25, qubits[0])
 
     def __str__(self):
         return 'H'

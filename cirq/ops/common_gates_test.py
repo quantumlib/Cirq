@@ -157,6 +157,18 @@ def test_h_matrix():
     assert np.allclose(((cirq.H**0.5)**2.0).matrix(), (cirq.H).matrix())
 
 
+def test_H_decompose():
+    a = cirq.NamedQubit('a')
+
+    original = cirq.HGate(half_turns=0.5)
+    decomposed = cirq.Circuit.from_ops(original.default_decompose([a]))
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        original.matrix(),
+        decomposed.to_unitary_matrix(),
+        atol=1e-8)
+
+
 def test_runtime_types_of_rot_gates():
     for gate_type in [cirq.Rot11Gate,
                       cirq.RotXGate,

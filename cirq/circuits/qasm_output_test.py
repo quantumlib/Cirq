@@ -134,7 +134,9 @@ include "qelib1.inc";
 qreg q[1];
 
 
-rh(pi*0.25) q[0];
+ry(pi*0.25) q[0];
+rx(pi*0.25) q[0];
+ry(pi*-0.25) q[0];
 """)
 
 
