@@ -49,7 +49,7 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
 
     def known_qasm_output(self,
                           qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> Optional[str]:
+                          args: ops.QasmOutputArgs) -> str:
         args.validate_version('2.0')
         return args.format(
                 'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
@@ -283,7 +283,7 @@ class QasmOutput:
                 if top:
                     output_line_gap(1)
                     output('// {}\n'.format(comment))
-                output(u_op.known_qasm_output(self.args))
+                output(cast(str, u_op.known_qasm_output(self.args)))
                 if top:
                     output_line_gap(1)
                 continue
