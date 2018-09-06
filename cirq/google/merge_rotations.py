@@ -34,11 +34,9 @@ class MergeRotations(PointOptimizer):
     """Combines adjacent constant single-qubit rotations."""
 
     def __init__(self,
-                 tolerance: float = 1e-8,
-                 extensions = None) -> None:
+                 tolerance: float = 1e-8) -> None:
         super().__init__()
         self.tolerance = tolerance
-        self.extensions = extensions or Extensions()
 
     def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 1:

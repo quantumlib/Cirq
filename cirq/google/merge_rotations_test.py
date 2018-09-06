@@ -105,24 +105,3 @@ def test_ignores_2qubit_target():
     m.optimization_at(c, 0, c.operation_at(q, 0))
 
     assert c == cirq.Circuit([cirq.Moment([cirq.CZ(q, q2)])])
-
-
-def test_extension():
-    class DummyGate(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.KnownMatrix,
-                 DummyGate,
-                 lambda _: cirq.SingleQubitMatrixGate(
-                     np.array([[0, 1], [1, 0]])))
-    optimizer = cirq.google.MergeRotations(extensions=ext)
-
-    q = cirq.QubitId()
-    c = cirq.Circuit([
-        cirq.Moment([DummyGate().on(q)]),
-    ])
-    assert_optimizes(
-        before=c,
-        after=cirq.Circuit([cirq.Moment([cirq.X(q)])]),
-        optimizer=optimizer)
