@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.circuits import (
     Circuit,
     PointOptimizer,
@@ -44,13 +44,13 @@ class MergeRotations(PointOptimizer):
         if len(op.qubits) != 1:
             return
 
-        indices, gates = self._scan_single_qubit_ops(circuit, index,
+        indices, opers = self._scan_single_qubit_ops(circuit, index,
                                                      op.qubits[0])
-        if not gates or (len(gates) == 1 and isinstance(gates[0], XmonGate)):
+        if not opers or (len(opers) == 1 and XmonGate.is_xmon_op(opers[0])):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        new_operations = self._merge_rotations(op.qubits[0], gates)
+        new_operations = self._merge_rotations(op.qubits[0], opers)
 
         converter = convert_to_xmon_gates.ConvertToXmonGates()
         new_xmon_operations = [converter.convert(new_op)
@@ -65,29 +65,28 @@ class MergeRotations(PointOptimizer):
             self,
             circuit: Circuit,
             index: Optional[int],
-            qubit: ops.QubitId) -> Tuple[List[int], List[ops.KnownMatrix]]:
-        operations = []  # type: List[ops.KnownMatrix]
+            qubit: ops.QubitId) -> Tuple[List[int], List[ops.Operation]]:
+        operations = []  # type: List[ops.Operation]
         indices = []  # type: List[int]
         while index is not None:
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            operation = self.extensions.try_cast(ops.KnownMatrix, op)
-            if operation is None:
+            if protocols.unitary(op, None) is None:
                 break
             indices.append(index)
-            operations.append(operation)
+            operations.append(op)
             index = circuit.next_moment_operating_on([qubit], index + 1)
         return indices, operations
 
     def _merge_rotations(
             self,
             qubit: ops.QubitId,
-            operations: Iterable[ops.KnownMatrix]
+            operations: Iterable[ops.Operation]
     ) -> List[ops.Operation]:
         matrix = np.eye(2, dtype=np.complex128)
         for op in operations:
-            matrix = np.dot(op.matrix(), matrix)
+            matrix = np.dot(protocols.unitary(op), matrix)
 
         out_gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
         return [gate(qubit) for gate in out_gates]

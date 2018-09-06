@@ -11,32 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Iterable, List
 
 import random
 
 import numpy as np
-
 import pytest
 
 import cirq
 from cirq.google import decompositions
 
 
-def _operations_to_matrix(operations, qubits):
+def _operations_to_matrix(operations: Iterable[cirq.Operation],
+                          qubits: Iterable[cirq.QubitId]):
     return cirq.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=cirq.QubitOrder.explicit(qubits),
         qubits_that_should_be_present=qubits)
 
 
-def _gates_to_matrix(gates):
-    m = gates[0].matrix()
-    for gate in gates[1:]:
-        m = gate.matrix().dot(m)
-    return m
-
-
-def assert_gates_implement_unitary(gates, intended_effect):
-    actual_effect = _gates_to_matrix(gates)
+def assert_gates_implement_unitary(gates: List[cirq.SingleQubitGate],
+                                   intended_effect: np.ndarray):
+    actual_effect = cirq.dot(*reversed([cirq.unitary(g) for g in gates]))
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect)
 
 
@@ -100,9 +95,9 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
     intended_effect = cirq.dot(
-        cirq.RotZGate(half_turns=2 * pre_turns).matrix(),
-        cirq.X.matrix(),
-        cirq.RotZGate(half_turns=2 * post_turns).matrix())
+        cirq.unitary(cirq.RotZGate(half_turns=2 * pre_turns)),
+        cirq.unitary(cirq.X),
+        cirq.unitary(cirq.RotZGate(half_turns=2 * post_turns)))
 
     gates = decompositions.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)
@@ -119,7 +114,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_z():
     assert len(optimized_away) == 0
 
     kept = decompositions.single_qubit_matrix_to_native_gates(z,
-                                                        tolerance=0.0001)
+                                                              tolerance=0.0001)
     assert len(kept) == 1
 
 
@@ -132,7 +127,7 @@ def test_single_qubit_matrix_to_native_gates_tolerance_xy():
     assert len(optimized_away) == 0
 
     kept = decompositions.single_qubit_matrix_to_native_gates(xy,
-                                                        tolerance=0.0001)
+                                                              tolerance=0.0001)
     assert len(kept) == 1
 
 
@@ -170,19 +165,22 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     qc = cirq.QubitId()
     qt = cirq.QubitId()
     operations = decompositions.controlled_op_to_native_gates(
-        control=qc, target=qt, operation=cirq.H.matrix(), tolerance=0.0001)
+        control=qc,
+        target=qt,
+        operation=cirq.unitary(cirq.H),
+        tolerance=0.0001)
 
     assert operations == [cirq.Y(qt)**-0.25, cirq.CZ(qc, qt), cirq.Y(qt)**0.25]
 
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
-    cirq.H.matrix(),
-    cirq.X.matrix(),
-    (cirq.X**0.5).matrix(),
-    cirq.Y.matrix(),
-    cirq.Z.matrix(),
-    (cirq.Z**0.5).matrix(),
+    cirq.unitary(cirq.H),
+    cirq.unitary(cirq.X),
+    cirq.unitary(cirq.X**0.5),
+    cirq.unitary(cirq.Y),
+    cirq.unitary(cirq.Z),
+    cirq.unitary(cirq.Z**0.5),
 ] + [
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
