@@ -63,7 +63,6 @@ def test_compatibility_shim():
         def try_cast_to(self, desired_type, extensions):
             if desired_type is cirq.KnownMatrix:
                 return Known()
-            return None
 
     class PotentiallyUnknown(cirq.PotentialImplementation):
         def try_cast_to(self, desired_type, extensions):
