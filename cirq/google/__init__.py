@@ -29,9 +29,6 @@ from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
 )
-from cirq.google.merge_interactions import (
-    MergeInteractions,
-)
 from cirq.google.merge_rotations import (
     MergeRotations,
 )

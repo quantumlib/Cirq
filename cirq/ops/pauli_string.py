@@ -86,8 +86,7 @@ class PauliString:
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
                              for qubit in
                                 qubit_order.QubitOrder.DEFAULT.order_for(self)))
-        return 'PauliString({{{}}}, {})'.format(map_str,
-                                                self.negated)
+        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
         ordered_qubits = qubit_order.QubitOrder.DEFAULT.order_for(self.qubits())
@@ -154,6 +153,11 @@ class PauliString:
         pauli_map = dict(self._qubit_pauli_map)
         inv = self.negated
         for op in ops:
+            if not set(op.qubits) & set(pauli_map.keys()):
+                # op operates on an independent set of qubits from the Pauli
+                # string.  The order can be switched with no change no matter
+                # what op is.
+                continue
             inv ^= PauliString._pass_operation_over(pauli_map,
                                                     op,
                                                     after_to_before)

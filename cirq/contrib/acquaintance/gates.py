@@ -19,6 +19,7 @@ import operator
 from typing import Sequence, Dict, Tuple, List, NamedTuple
 
 from cirq import ops
+
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
@@ -307,12 +308,4 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
                 enumerate(reversed(range(sum(self.part_lens))))}
 
 
-def op_acquaintance_size(op: ops.Operation):
-    if not isinstance(op, ops.GateOperation):
-        return 0
-    if isinstance(op.gate, AcquaintanceOpportunityGate):
-        return len(op.qubits)
-    if isinstance(op.gate, SwapNetworkGate):
-        if (op.gate.acquaintance_size - 1) in op.gate.part_lens:
-            return op.gate.acquaintance_size
-    return 0
+

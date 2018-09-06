@@ -34,8 +34,8 @@ def test_protobuf_round_trip():
     )
     s1 = moment_by_moment_schedule(device, circuit)
 
-    protos = list(programs.schedule_to_proto(s1))
-    s2 = programs.schedule_from_proto(device, protos)
+    protos = list(programs.schedule_to_proto_dicts(s1))
+    s2 = programs.schedule_from_proto_dicts(device, protos)
 
     assert s2 == s1
 

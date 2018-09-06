@@ -119,7 +119,7 @@ More concretely, the `k`'th amplitude in the wave function
 will correspond to the `k`'th case that would be encountered 
 when nesting loops over the possible values of each qubit.
 The first qubit's computational basis values are looped over
-in the outer-most loop, the last qubit's computational basis 
+in the outermost loop, the last qubit's computational basis
 values are looped over in the inner-most loop, etc:
 
 ```python
@@ -198,7 +198,7 @@ So if you are using a custom gate, there are multiple options
 for getting it to work with the simulator:
 * Define it directly as an ``XmonGate``.
 * Provide a ``CompositeGate`` made up of ``XmonGates``.
-* Supply an ``Exentension`` to the simulator which converts
+* Supply an ``Extension`` to the simulator which converts
 the gate to an ``XmonGate`` or to a ``CompositeGate`` which 
 itself can be decomposed in ``XmonGates``. 
 
