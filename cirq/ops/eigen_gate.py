@@ -128,9 +128,9 @@ class EigenGate(raw_types.Gate,
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         if self.is_parameterized():
-            return None
+            return NotImplemented
         e = cast(float, self._exponent)
         return np.sum(1j**(half_turns * e * 2) * component
                       for half_turns, component in self._eigen_components())

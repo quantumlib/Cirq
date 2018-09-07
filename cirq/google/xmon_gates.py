@@ -214,7 +214,7 @@ class Exp11Gate(XmonGate,
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if isinstance(self.half_turns, value.Symbol):
-            return None
+            return NotImplemented
         return protocols.unitary(
             ops.Rot11Gate(half_turns=self.half_turns))
 
@@ -360,7 +360,7 @@ class ExpWGate(XmonGate,
     def _unitary_(self) -> Optional[np.ndarray]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
-            return None
+            return NotImplemented
 
         phase = protocols.unitary(
             ops.RotZGate(half_turns=self.axis_half_turns))
