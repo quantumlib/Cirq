@@ -77,18 +77,22 @@ def kron_with_controls(*matrices: np.ndarray) -> np.ndarray:
     return product
 
 
-def dot(*values: Union[float, complex, np.ndarray, np.ndarray]
-        ) -> Union[float, complex, np.ndarray, np.ndarray]:
+def dot(*values: Union[float, complex, np.ndarray]
+        ) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
 
-  A *args version of np.linalg.multi_dot.
+    A *args version of np.linalg.multi_dot.
 
-  Args:
-    *values: The values to combine with the dot/matrix product.
+    Args:
+        *values: The values to combine with the dot/matrix product.
 
-  Returns:
-    The resulting value or matrix.
-  """
+    Returns:
+        The resulting value or matrix.
+    """
+    if len(values) == 1:
+        if isinstance(values[0], np.ndarray):
+            return np.array(values[0])
+        return values[0]
     return np.linalg.multi_dot(values)
 
 

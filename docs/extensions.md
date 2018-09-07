@@ -8,7 +8,7 @@ It just so happens that an "EventTrampoline" is a "ReactiveIterable" in all but 
 If there was just some way to translate what library B provides into what library A wants, then one could apply all the great utility methods from library A on the value from library B.
 Alas, there isn't.
 
-The goal of the extension mechanism is to perform the translatation between what B provides and what A wants.
+The goal of the extension mechanism is to perform the translation between what B provides and what A wants.
 Essentially, when library A was written, instead of having code like this:
 
 ```python
