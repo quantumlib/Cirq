@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import numpy as np
 import cirq
 
 from cirq.contrib.paulistring import (
@@ -48,7 +48,8 @@ def test_optimize():
         atol=1e-7,
     )
 
-    assert c_opt == c_expected
+    assert np.allclose(c_opt.to_unitary_matrix(),
+                       c_expected.to_unitary_matrix())
 
     assert c_opt.to_text_diagram() == """
 0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───

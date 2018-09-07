@@ -66,13 +66,13 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                                         mat: np.ndarray,
                                         qubit: ops.QubitId) -> ops.OP_TREE:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
-            mat, self.tolerance)
+                                       mat, self.tolerance)
         out_ops = []  # type: List[ops.Operation]
         for pauli, half_turns in rotations:
             if (self.keep_clifford
-                    and self._tol.all_near_zero_mod(half_turns, 0.5)):
+                and self._tol.all_near_zero_mod(half_turns, 0.5)):
                 cliff_gate = ops.CliffordGate.from_quarter_turns(
-                    pauli, round(half_turns * 2))
+                                    pauli, round(half_turns * 2))
                 if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):
                     op = cast(ops.GateOperation, out_ops[-1])
                     gate = cast(ops.CliffordGate, op.gate)
@@ -83,8 +83,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             else:
                 pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    PauliStringPhasor(pauli_string,
-                                      half_turns=round(half_turns, 10)))
+                    PauliStringPhasor(pauli_string, half_turns=half_turns))
         return out_ops
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
@@ -94,14 +93,14 @@ class ConvertToPauliStringPhasors(PointOptimizer):
 
         if (self.keep_clifford
             and isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.CliffordGate)):
+            and isinstance(op.gate, ops.CliffordGate)):
             return op
 
         # Single qubit gate with known matrix?
         mat = self.extensions.try_cast(ops.KnownMatrix, op)
         if mat is not None and len(op.qubits) == 1:
             return self._matrix_to_pauli_string_phasors(
-                mat.matrix(), op.qubits[0])
+                            mat.matrix(), op.qubits[0])
 
         # Just let it be?
         if self.ignore_failures:
