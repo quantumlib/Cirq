@@ -345,8 +345,8 @@ def test_decompose(gate, gate_equiv):
     (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
     (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_known_matrix(gate, gate_equiv):
-    mat = gate.matrix()
-    mat_check = gate_equiv.matrix()
+    mat = cirq.unitary(gate)
+    mat_check = cirq.unitary(gate_equiv)
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
