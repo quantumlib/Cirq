@@ -17,8 +17,6 @@ from typing import Any, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import extension
-from cirq.ops.gate_features import KnownMatrix
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -72,11 +70,6 @@ def unitary(val: Any,
     """
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()
-
-    # Temporary compatibility shim for classes using KnownMatrix.
-    if result is NotImplemented:
-        known = extension.try_cast(KnownMatrix, val)
-        result = NotImplemented if known is None else known.matrix()
 
     if result is not NotImplemented:
         return result
