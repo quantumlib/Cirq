@@ -156,7 +156,7 @@ def test_x_matrix():
 def test_h_matrix():
     sqrt = (cirq.H**0.5).matrix()
     m = np.dot(sqrt, sqrt)
-    assert np.allclose(m, cirq.H.matrix())
+    assert np.allclose(m, cirq.H.matrix(), atol=1e-8)
 
 
 def test_H_decompose():
