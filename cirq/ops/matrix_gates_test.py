@@ -231,3 +231,8 @@ def test_repr():
         'cirq.SingleQubitMatrixGate({})'.format(repr(np.eye(2)))
     assert repr(cirq.TwoQubitMatrixGate(np.eye(4))) == \
         'cirq.TwoQubitMatrixGate({})'.format(repr(np.eye(4)))
+
+
+def test_str_executes():
+    assert '1' in str(cirq.SingleQubitMatrixGate(np.eye(2)))
+    assert '0' in str(cirq.TwoQubitMatrixGate(np.eye(4)))
