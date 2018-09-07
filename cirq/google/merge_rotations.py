@@ -32,8 +32,7 @@ from cirq.google.xmon_gates import XmonGate
 class MergeRotations(PointOptimizer):
     """Combines adjacent constant single-qubit rotations."""
 
-    def __init__(self,
-                 tolerance: float = 1e-8) -> None:
+    def __init__(self, tolerance: float = 1e-8) -> None:
         super().__init__()
         self.tolerance = tolerance
 
@@ -41,13 +40,14 @@ class MergeRotations(PointOptimizer):
         if len(op.qubits) != 1:
             return
 
-        indices, opers = self._scan_single_qubit_ops(circuit, index,
-                                                     op.qubits[0])
-        if not opers or (len(opers) == 1 and XmonGate.is_xmon_op(opers[0])):
+        indices, operations = self._scan_single_qubit_ops(
+            circuit, index, op.qubits[0])
+        if not operations or (
+                len(operations) == 1 and XmonGate.is_xmon_op(operations[0])):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        new_operations = self._merge_rotations(op.qubits[0], opers)
+        new_operations = self._merge_rotations(op.qubits[0], operations)
 
         converter = convert_to_xmon_gates.ConvertToXmonGates()
         new_xmon_operations = [converter.convert(new_op)
