@@ -165,6 +165,19 @@ def test_parameterizable_effect():
     assert op2 == cirq.S.on(q)
 
 
+def test_unitary():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert cirq.unitary(cirq.measure(a), None) is None
+    np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
+                               np.array([[0, 1], [1, 0]]),
+                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.CNOT(a, b)),
+                               cirq.unitary(cirq.CNOT),
+                               atol=1e-8)
+
+
 def test_repr():
     a, b = cirq.LineQubit.range(2)
     assert repr(cirq.GateOperation(cirq.CZ, (a, b))

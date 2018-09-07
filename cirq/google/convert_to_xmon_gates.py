@@ -30,7 +30,7 @@ class ConvertToXmonGates(PointOptimizer):
     First, checks if the given extensions are able to cast the gate into an
         XmonGate instance.
 
-    Second, checks if the operation SupportsUnitaryEffect. If so, and the gate
+    Second, checks if the operation has a known unitary. If so, and the gate
         is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
         operation.
 
@@ -68,7 +68,7 @@ class ConvertToXmonGates(PointOptimizer):
                 return xmon.on(*op.qubits)
 
         # Known matrix?
-        mat = protocols.unitary(op, None)
+        mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
             gates = single_qubit_matrix_to_native_gates(mat)
             return [g.on(op.qubits[0]) for g in gates]
@@ -90,7 +90,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         raise TypeError("Don't know how to work with {!r}. "
                         "It isn't a GateOperation with an XmonGate, "
-                        "a SupportsUnitaryEffect on 1 or 2 qubits, "
+                        "a 1 or 2 qubit gate with a known unitary, "
                         "or a CompositeOperation.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:

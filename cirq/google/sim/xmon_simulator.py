@@ -17,7 +17,7 @@
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
 the circuit are either an XmonGate or are CompositionOperations or have a
-SupportsUnitaryEffect which can be decomposed into XmonGates. Measurement gates
+known unitary which can be decomposed into XmonGates. Measurement gates
 must all have unique string keys.
 
 A simple example:

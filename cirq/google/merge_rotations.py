@@ -40,13 +40,14 @@ class MergeRotations(PointOptimizer):
         if len(op.qubits) != 1:
             return
 
-        indices, opers = self._scan_single_qubit_ops(circuit, index,
-                                                     op.qubits[0])
-        if not opers or (len(opers) == 1 and isinstance(opers[0], XmonGate)):
+        indices, operations = self._scan_single_qubit_ops(
+            circuit, index, op.qubits[0])
+        if not operations or (
+                len(operations) == 1 and XmonGate.is_xmon_op(operations[0])):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        new_operations = self._merge_rotations(op.qubits[0], opers)
+        new_operations = self._merge_rotations(op.qubits[0], operations)
 
         converter = convert_to_xmon_gates.ConvertToXmonGates()
         new_xmon_operations = [converter.convert(new_op)
@@ -68,8 +69,7 @@ class MergeRotations(PointOptimizer):
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            matrix = protocols.unitary(op, None)
-            if matrix is None:
+            if protocols.unitary(op, None) is None:
                 break
             indices.append(index)
             operations.append(op)

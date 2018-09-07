@@ -30,7 +30,6 @@ def test_single_qubit_init():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = cirq.SingleQubitMatrixGate(m)
     assert np.alltrue(x2.matrix == m)
-    assert np.alltrue(cirq.unitary(x2) == m)
 
 
 def test_single_qubit_eq():
