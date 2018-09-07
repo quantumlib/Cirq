@@ -84,20 +84,20 @@ class ConvertToCliffordGates(PointOptimizer):
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Don't change if it's already a CliffordGate
         if (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, ops.CliffordGate)):
+                isinstance(op.gate, ops.CliffordGate)):
             return op
 
         # Single qubit gate with known matrix?
-        mat = protocols.unitary(op, None)
-        if mat is not None and len(op.qubits) == 1:
-            cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
-            if cliff_op is not None:
-                return cliff_op
-            elif self.ignore_failures:
-                return op
-            else:
-                raise ValueError('Single qubit operation is not in the Clifford'
-                                 'group: {!r}'.format(op))
+        if len(op.qubits) == 1:
+            mat = protocols.unitary(op, None)
+            if mat is not None:
+                cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
+                if cliff_op is not None:
+                    return cliff_op
+                if self.ignore_failures:
+                    return op
+                raise ValueError('Single qubit operation is not in the '
+                                 'Clifford group: {!r}'.format(op))
 
         # Provides a decomposition?
         composite_op = self.extensions.try_cast(ops.CompositeOperation, op)

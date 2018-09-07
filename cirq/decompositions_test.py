@@ -31,7 +31,7 @@ def _operations_to_matrix(operations, qubits):
 def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
                                    intended_effect: np.ndarray,
                                    atol: float):
-    actual_effect = cirq.dot(*reversed([cirq.unitary(g) for g in gates]))
+    actual_effect = cirq.dot(*[cirq.unitary(g) for g in reversed(gates)])
     cirq.testing.assert_allclose_up_to_global_phase(actual_effect,
                                                     intended_effect,
                                                     atol=atol)
