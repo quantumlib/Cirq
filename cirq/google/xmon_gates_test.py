@@ -507,11 +507,8 @@ def test_w_decomposition():
 
 
 def test_w_potential_implementation():
-    assert not cirq.can_cast(cirq.KnownMatrix,
-                             cg.ExpWGate(half_turns=cirq.Symbol('a')))
     assert not cirq.can_cast(cirq.ReversibleEffect,
                              cg.ExpWGate(half_turns=cirq.Symbol('a')))
-    assert cirq.can_cast(cirq.KnownMatrix, cg.ExpWGate())
     assert cirq.can_cast(cirq.ReversibleEffect, cg.ExpWGate())
 
 

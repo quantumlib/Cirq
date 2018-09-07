@@ -20,15 +20,15 @@ import cirq
 
 
 def test_avoids_infinite_cycle_when_matrix_available():
-    class OtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
-        def matrix(self):
+    class OtherX(cirq.Gate, cirq.CompositeGate):
+        def _unitary_(self):
             return np.array([[0, 1], [1, 0]])  # coverage: ignore
 
         def default_decompose(self, qubits):
             raise NotImplementedError()
 
-    class OtherOtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
-        def matrix(self):
+    class OtherOtherX(cirq.Gate, cirq.CompositeGate):
+        def _unitary_(self):
             return np.array([[0, 1], [1, 0]])  # coverage: ignore
 
         def default_decompose(self, qubits):
