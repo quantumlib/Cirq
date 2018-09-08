@@ -1355,7 +1355,7 @@ def test_circuit_to_unitary_matrix():
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
         Circuit.from_ops(cirq.Y(a)**0.25).to_unitary_matrix(),
-        (cirq.Y(a)**0.25).matrix(),
+        cirq.unitary(cirq.Y(a)**0.25),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
         Circuit.from_ops(cirq.Z(a), cirq.X(b)).to_unitary_matrix(),
@@ -1445,7 +1445,7 @@ def test_circuit_to_unitary_matrix():
         cirq.Circuit.from_ops(
             cirq.measure(a, invert_mask=(True,))
         ).to_unitary_matrix(),
-        cirq.X.matrix(),
+        cirq.unitary(cirq.X),
         atol=1e-8)
 
 
@@ -1467,7 +1467,8 @@ def test_simple_circuits_to_unitary_matrix():
         atol=1e-8)
 
     # 2-qubit matrix matches when qubits in order.
-    for expected in [np.diag([1, 1j, -1, -1j]), cirq.CNOT.matrix()]:
+    for expected in [np.diag([1, 1j, -1, -1j]),
+                     cirq.unitary(cirq.CNOT)]:
 
         class Passthrough(cirq.Gate, cirq.KnownMatrix):
             def matrix(self):
@@ -1494,7 +1495,7 @@ def test_composite_gate_to_unitary_matrix():
             cirq.X(b),
             cirq.measure(b))
     mat = c.to_unitary_matrix()
-    mat_expected = cirq.CNOT.matrix()
+    mat_expected = cirq.unitary(cirq.CNOT)
 
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected,
                                                     atol=1e-8)
@@ -2116,7 +2117,7 @@ def test_decomposes_while_appending():
                           cirq.GridQubit(0, 2)))
     cirq.testing.assert_allclose_up_to_global_phase(
         c.to_unitary_matrix(),
-        cirq.TOFFOLI.matrix(),
+        cirq.unitary(cirq.TOFFOLI),
         atol=1e-8)
 
     # But you still have to respect adjacency constraints!
