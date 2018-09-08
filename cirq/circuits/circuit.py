@@ -396,8 +396,9 @@ class Circuit(ops.ParameterizableEffect):
     def _prev_moment_available(
             self,
             op: ops.Operation,
-            end_moment_index: int) -> int:
-        last_available = k = end_moment_index
+            end_moment_index: int) -> Optional[int]:
+        last_available = end_moment_index
+        k = end_moment_index
         while k > 0:
             k -= 1
             if not self._can_commute_past(k, op):
@@ -496,7 +497,7 @@ class Circuit(ops.ParameterizableEffect):
         if (strategy is InsertStrategy.NEW or
                 strategy is InsertStrategy.NEW_THEN_INLINE):
             self._moments.insert(splitter_index, Moment())
-            return splitter_index if splitter_index > 0 else 0
+            return splitter_index
 
         if strategy is InsertStrategy.INLINE:
             if (0 <= splitter_index - 1 < len(self._moments) and
@@ -507,12 +508,12 @@ class Circuit(ops.ParameterizableEffect):
                 splitter_index, op, InsertStrategy.NEW)
 
         if strategy is InsertStrategy.EARLIEST:
-            clipped_index = 0 if splitter_index < 0 else splitter_index
-            if self._can_add_op_at(clipped_index, op):
-                return self._prev_moment_available(op, clipped_index)
+            if self._can_add_op_at(splitter_index, op):
+                p = self._prev_moment_available(op, splitter_index)
+                return p or 0
 
             return self._pick_or_create_inserted_op_moment_index(
-                clipped_index, op, InsertStrategy.INLINE)
+                splitter_index, op, InsertStrategy.INLINE)
 
         raise ValueError('Unrecognized append strategy: {}'.format(strategy))
 
@@ -541,14 +542,13 @@ class Circuit(ops.ParameterizableEffect):
             index: int,
             moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
-        """Inserts operations into the middle of the circuit.
+        """ Inserts a moment or operations into the circuit.
+            Moments are inserted at the specified index.
+            Operations are inserted into the moment specified by the index and
+            'InsertStrategy'.
 
         Args:
             index: The index to insert all of the operations at.
-            Indices smaller or equal to 0 will insert operations at the
-            beginning of the list while an index greater than or equal to the
-            length of operation list will insert the operations at the end of
-            the list.
             moment_or_operation_tree: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
 
@@ -559,11 +559,10 @@ class Circuit(ops.ParameterizableEffect):
         Raises:
             ValueError: Bad insertion strategy.
         """
-
         if isinstance(moment_or_operation_tree, Moment):
             self._device.validate_moment(moment_or_operation_tree)
             self._moments.insert(index, moment_or_operation_tree)
-            return self._moments.index(moment_or_operation_tree) + 1
+            return index + 1
 
         operations = list(ops.flatten_op_tree(ops.transform_op_tree(
             moment_or_operation_tree,
@@ -571,7 +570,9 @@ class Circuit(ops.ParameterizableEffect):
         for op in operations:
             self._device.validate_operation(op)
 
-        k = index
+        # limit index to 0..len(self._moments), also deal with indices smaller 0
+        k = max(min(index if index >= 0 else len(self._moments) + index,
+                    len(self._moments)), 0)
         for op in operations:
             p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
             while p >= len(self._moments):

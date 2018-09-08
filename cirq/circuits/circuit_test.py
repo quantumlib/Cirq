@@ -345,109 +345,229 @@ def test_append_strategies():
     ])
 
 
-def test_insert():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+def test_insert_op_tree_new():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
 
     c = Circuit()
 
-    c.insert(0, ())
-    assert c == Circuit()
+    c.insert(-10, cirq.CZ(a, b), InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.CZ(a, b)]),
+    ])
 
-    c.insert(0, [cirq.X(a), cirq.CZ(a, b), cirq.X(b)])
+    c.insert(-20, cirq.X(a), InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.CZ(a, b)]),
+    ])
+
+    c.insert(20, cirq.X(b), InsertStrategy.NEW)
     assert c == Circuit([
         Moment([cirq.X(a)]),
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(b)]),
     ])
 
-    c.insert(1, cirq.H(b), strategy=cirq.InsertStrategy.NEW)
+    c2 = Circuit()
+    c2.insert(-10, [cirq.X(a), cirq.CZ(a, b), cirq.X(b)], InsertStrategy.NEW)
+    assert c == c2
+
+    c.insert(2, cirq.H(b), InsertStrategy.NEW)
     assert c == Circuit([
         Moment([cirq.X(a)]),
+        Moment([cirq.CZ(a, b)]),
         Moment([cirq.H(b)]),
-        Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(b)]),
     ])
 
-    c.insert(0, cirq.H(b), strategy=cirq.InsertStrategy.EARLIEST)
+    c.insert(-3, cirq.H(a), InsertStrategy.NEW)
     assert c == Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(b)]),
+        Moment([cirq.X(b)]),
+    ])
+
+    c.insert(1, (), InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(b)]),
+        Moment([cirq.X(b)]),
+    ])
+
+
+def test_insert_op_tree_newinline():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c = Circuit()
+
+    c.insert(-5, [cirq.H(a), cirq.X(b)], InsertStrategy.NEW_THEN_INLINE)
+    assert c == Circuit([
+        Moment([cirq.H(a), cirq.X(b)]),
+    ])
+
+    c.insert(-15, [cirq.CZ(a, b)], InsertStrategy.NEW_THEN_INLINE)
+    assert c == Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+    ])
+
+    c.insert(15, [cirq.H(b), cirq.X(a)], InsertStrategy.NEW_THEN_INLINE)
+    assert c == Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b), cirq.X(a)]),
+    ])
+
+    c2 = Circuit()
+    c2.insert(0, [cirq.CZ(a, b), cirq.H(a), cirq.X(b), cirq.H(b), cirq.X(a)],
+              InsertStrategy.NEW_THEN_INLINE)
+    assert c == c2
+
+    c.insert(1, cirq.H(a))
+    c2 = Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b), cirq.X(a)]),
+    ])
+    assert c == c2
+
+    c.insert(-1, cirq.H(b))
+    assert c == Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b)]),
+        Moment([cirq.H(b), cirq.X(a)]),
+    ])
+
+
+def test_insert_op_tree_inline():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c = Circuit([Moment([cirq.H(a)])])
+
+    c.insert(1, [cirq.H(a), cirq.X(b)], InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+    ])
+
+    c.insert(0, [cirq.X(b)], InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+    ])
+
+    c.insert(4, [cirq.H(b)], InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b)]),
+    ])
+
+    c.insert(5, [cirq.H(a)], InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b), cirq.H(a)]),
+    ])
+
+    c.insert(-2, [cirq.X(b)], InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b), cirq.H(a)]),
+    ])
+
+    c.insert(-5, [cirq.CZ(a, b)], InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.H(b), cirq.H(a)]),
+    ])
+
+
+def test_insert_op_tree_earliest():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c = Circuit([Moment([cirq.H(a)])])
+
+    c.insert(5, [cirq.X(a), cirq.X(b)], InsertStrategy.EARLIEST)
+    assert c == Circuit([
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.X(a)]),
+    ])
+
+    c.insert(1, [cirq.H(b)], InsertStrategy.EARLIEST)
+    assert c == Circuit([
+        Moment([cirq.H(a), cirq.X(b)]),
         Moment([cirq.X(a), cirq.H(b)]),
-        Moment([cirq.H(b)]),
+    ])
+
+    c.insert(-4, [cirq.X(b)], InsertStrategy.EARLIEST)
+    c2 = Circuit([
+        Moment([cirq.X(b)]),
+        Moment([cirq.H(a), cirq.X(b)]),
+        Moment([cirq.X(a), cirq.H(b)]),
+    ])
+    assert c == c2
+
+
+def test_insert_moment():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+
+    c = Circuit()
+
+    c.insert(-10, Moment([cirq.CZ(a, b)]))
+    assert c == Circuit([
+        Moment([cirq.CZ(a, b)]),
+    ])
+
+    c.insert(-20, Moment([cirq.X(a)]), InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.CZ(a, b)]),
+    ])
+
+    c.insert(20, Moment([cirq.X(b)]), InsertStrategy.INLINE)
+    assert c == Circuit([
+        Moment([cirq.X(a)]),
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(b)]),
     ])
 
-
-def test_insert_index_smaller_zero_new():
-    a = cirq.NamedQubit('alice')
-    b = cirq.NamedQubit('bob')
-
-    c1 = cirq.Circuit([
+    c.insert(2, Moment([cirq.H(b)]), InsertStrategy.EARLIEST)
+    assert c == Circuit([
+        Moment([cirq.X(a)]),
+        Moment([cirq.CZ(a, b)]),
         Moment([cirq.H(b)]),
+        Moment([cirq.X(b)]),
+    ])
+
+    c.insert(-3, Moment([cirq.H(a)]), InsertStrategy.EARLIEST)
+    assert c == Circuit([
         Moment([cirq.X(a)]),
-    ])
-
-    c2 = cirq.Circuit()
-    c2.insert(0, Moment([cirq.X(a)]), InsertStrategy.NEW)
-    c2.insert(-1, Moment([cirq.H(b)]), InsertStrategy.NEW)
-
-    assert c1 == c2
-
-
-def test_insert_index_smaller_zero_newthaninline():
-    """just check new_than_inline with index smaller zero to avoid duplicate
-    with 'test_insert_inline_near_start'"""
-    a = cirq.NamedQubit('alice')
-    b = cirq.NamedQubit('bob')
-
-    c1 = cirq.Circuit([
-        Moment([cirq.X(b), cirq.H(a)]),
+        Moment([cirq.H(a)]),
+        Moment([cirq.CZ(a, b)]),
+        Moment([cirq.H(b)]),
         Moment([cirq.X(b)]),
     ])
-
-    c2 = cirq.Circuit()
-    c2.insert(0, Moment([cirq.X(b)]))
-    c2.insert(-1, [cirq.X(b), cirq.H(a)], InsertStrategy.NEW_THEN_INLINE)
-
-    assert c1 == c2
-
-
-def test_insert_index_smaller_zero_inline():
-    a = cirq.NamedQubit('alice')
-    b = cirq.NamedQubit('bob')
-
-    c1 = cirq.Circuit([
-        Moment([cirq.X(b), cirq.H(a)]),
-        Moment([cirq.X(b)]),
-    ])
-
-    c2 = cirq.Circuit()
-    c2.insert(0, Moment([cirq.X(b)]))
-    i = c2.insert(-1, Moment([cirq.X(b)]))
-    c2.insert(i, cirq.H(a), InsertStrategy.INLINE)
-
-    assert c1 == c2
-
-
-def test_insert_index_smaller_zero_earliest():
-    a = cirq.NamedQubit('alice')
-    b = cirq.NamedQubit('bob')
-    c = cirq.NamedQubit('carrie')
-
-    c1 = cirq.Circuit([
-        Moment([cirq.H(a), cirq.H(b), cirq.X(c)]),
-        Moment([cirq.X(a)]),
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(c)]),
-    ])
-
-    c2 = cirq.Circuit()
-    i = c2.insert(-10, cirq.X(a), InsertStrategy.NEW)
-    i = c2.insert(i, cirq.X(b), InsertStrategy.NEW)
-    c2.insert(i, cirq.H(c), InsertStrategy.NEW)
-    c2.insert(-2, [cirq.H(a), cirq.H(b), cirq.X(c)], InsertStrategy.EARLIEST)
-
-    assert c1 == c2
 
 
 def test_insert_inline_near_start():
