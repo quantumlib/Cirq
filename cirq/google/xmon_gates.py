@@ -212,7 +212,7 @@ class Exp11Gate(XmonGate,
         }
         return {'exp_11': exp_11}
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         if isinstance(self.half_turns, value.Symbol):
             return NotImplemented
         return protocols.unitary(
@@ -357,7 +357,7 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
             return NotImplemented
@@ -527,9 +527,9 @@ class ExpZGate(XmonGate,
             raise ValueError("Don't have a known inverse.")
         return ExpZGate(half_turns=-self.half_turns)
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         if isinstance(self.half_turns, value.Symbol):
-            return None
+            return NotImplemented
         h = cast(float, self.half_turns)
         return np.diag([(-1j)**h, 1j**h])
 
