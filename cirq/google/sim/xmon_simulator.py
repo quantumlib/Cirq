@@ -17,8 +17,8 @@
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
 the circuit are either an XmonGate or are CompositionOperations or have a
-KnownMatrix which can be decomposed into XmonGates. Measurement gates must all
-have unique string keys.
+known unitary which can be decomposed into XmonGates. Measurement gates
+must all have unique string keys.
 
 A simple example:
     circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])
@@ -32,8 +32,9 @@ function, i.e. one can retrieve the final wave function from the simulation
 via.
     final_state = sim.simulate(circuit).final_state
 """
-
+import re
 import math
+import itertools
 import collections
 from typing import Dict, Iterator, List, Set, Union, cast
 from typing import Tuple  # pylint: disable=unused-import
@@ -51,6 +52,34 @@ from cirq.google.sim import xmon_stepper
 from cirq.ops import raw_types
 from cirq.schedules import Schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
+
+
+def pretty_state(state, decimals=2):
+    """
+    Returns the wavefunction as a string in Dirac notation.
+
+    For example:
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    print(pretty_state(result.final_state)) -> 0.71|0⟩ + 0.71|1⟩
+    """
+
+    perm_list = ["".join(seq) for seq in itertools.product(
+        "01", repeat=int(len(state)).bit_length()-1)]
+    wvf_string = ""
+
+    for x in range(len(perm_list)):
+
+        rounded_elem = round(state[x].real, decimals) + \
+            round(state[x].imag, decimals)
+
+        if rounded_elem != 0:
+            wvf_string += str(rounded_elem) + \
+                "|{}⟩ + ".format(perm_list[x])
+
+    wvf_string = re.split(r'(\s+)', wvf_string)[:-4]
+    wvf_string = "".join(wvf_string)
+
+    return wvf_string
 
 
 class XmonOptions:
@@ -139,6 +168,9 @@ class XmonSimulateTrialResult:
             [(key, bitstring(val)) for key, val in self.measurements.items()])
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
+
+    def pretty_state(self, decimals=2):
+        return pretty_state(self.final_state, decimals)
 
 
 class XmonSimulator:
@@ -236,9 +268,9 @@ class XmonSimulator:
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
             xmon_circuit, keys = self._to_xmon_circuit(
-                    circuit,
-                    param_resolver,
-                    extensions or xmon_gate_ext)
+                circuit,
+                param_resolver,
+                extensions or xmon_gate_ext)
             if xmon_circuit.are_all_measurements_terminal():
                 measurements = self._run_sweep_sample(xmon_circuit, repetitions,
                                                       qubit_order)
@@ -436,7 +468,7 @@ class XmonSimulator:
 
         # TODO: Use one optimization pass.
         xmon_circuit = circuit.with_parameters_resolved_by(
-                param_resolver, extensions)
+            param_resolver, extensions)
         converter.optimize_circuit(xmon_circuit)
         DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
@@ -516,7 +548,7 @@ def _simulator_iterator(
                 elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                     if perform_measurements:
                         invert_mask = (
-                                gate.invert_mask or len(op.qubits) * (False,))
+                            gate.invert_mask or len(op.qubits) * (False,))
                         for qubit, invert in zip(op.qubits, invert_mask):
                             index = qubit_map[qubit]
                             result = stepper.simulate_measurement(index)
@@ -562,7 +594,7 @@ def _sample_measurements(circuit: Circuit,
         all_qubits.extend(op.qubits)
         current_index += len(op.qubits)
     sample = step_result.sample(all_qubits, repetitions)
-    return {k: [x[s:e] for x in sample] for k,(s, e) in bounds.items()}
+    return {k: [x[s:e] for x in sample] for k, (s, e) in bounds.items()}
 
 
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
@@ -623,6 +655,9 @@ class XmonStepResult:
                +---+--------+--------+--------+
         """
         return self._stepper.current_state
+
+    def pretty_state(self, decimals=2):
+        return pretty_state(self.state(), decimals)
 
     def set_state(self, state: Union[int, np.ndarray]):
         """Updates the state of the simulator to the given new state.

@@ -33,7 +33,7 @@ We describe some gate features below.
 
 #### ReversibleEffect, SelfInverseGate
 
-As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gatethat is the inverse of the receiving gate).
+As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gate that is the inverse of the receiving gate).
 ``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
 (so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
 
