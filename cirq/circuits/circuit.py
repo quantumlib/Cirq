@@ -28,7 +28,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study, linalg
+from cirq import devices, ops, extension, study, linalg, protocols
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -901,7 +901,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
             ext: The extensions to use when attempting to cast operations into
-                KnownMatrix instances.
+                CompositeOperation instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -1333,7 +1333,7 @@ def _apply_unitary_circuit(circuit: Circuit,
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
-    for op, qs in _extract_unitaries(circuit.all_operations(), ext):
+    for mat, qs in _extract_unitaries(circuit.all_operations(), ext):
         matrix = op.matrix().astype(dtype).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
         linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
@@ -1343,15 +1343,15 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 def _extract_unitaries(operations: Iterable[ops.Operation],
                        ext: extension.Extensions
-                       ) -> Iterable[Tuple[ops.KnownMatrix,
+                       ) -> Iterable[Tuple[np.ndarray,
                                            Tuple[ops.QubitId, ...]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
     """
     for op in operations:
         # Check if the operation has a known matrix.
-        known_matrix = ext.try_cast(ops.KnownMatrix, op)
-        if known_matrix is not None:
-            yield known_matrix, op.qubits
+        matrix = protocols.unitary(op, None)
+        if matrix is not None:
+            yield matrix, op.qubits
             continue
 
         # If not, check if it has a decomposition.
@@ -1369,7 +1369,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             # Account for bit flips embedded into the measurement operation.
             for i, b in enumerate(gate.invert_mask):
                 if b:
-                    yield ext.cast(ops.KnownMatrix, ops.X), (op.qubits[i],)
+                    yield protocols.unitary(ops.X), (op.qubits[i],)
 
             # This is a private method called in contexts where we know
             # measurement is supposed to be skipped.
