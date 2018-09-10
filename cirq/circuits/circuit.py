@@ -1334,7 +1334,7 @@ def _apply_unitary_circuit(circuit: Circuit,
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
     for mat, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = op.matrix().astype(dtype).reshape((2,) * (2 * len(qs)))
+        matrix = mat.astype(dtype).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
         linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
         state, buffer = buffer, state
