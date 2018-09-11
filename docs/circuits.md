@@ -266,9 +266,12 @@ strategy begins by inserting the `CZ` in a new
 `InsertStrategy.INLINE` so the next `H` on the first
 qubit is appending in the just created `Moment`.
 
-Here is a helpful diagram for the different `InsertStrategies`.
+Here are some helpful animations illustrating the different `InsertStrategies`.
 
-TODO(dabacon): diagram.
+![InsertStrategy.EARLIEST](insert_strategy_earliest.gif)
+![InsertStrategy.NEW](insert_strategy_new.gif)
+![InsertStrategy.INLINE](insert_strategy_inline.gif)
+![InsertStrategy.NEW_THEN_INLINE](insert_strategy_new_then_inline.gif)
 
 ### Patterns for Arguments to Append and Insert
 
