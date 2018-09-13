@@ -1,3 +1,17 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Quantum circuit to prepare the BCS ground states for
 superconductors/superfluids. Such states can be prepared by
 applying pairwise Bogoliubov transformations on basis states
@@ -29,7 +43,7 @@ Zhang Jiang, Kevin J. Sung, Kostyantyn Kechedzhi, Vadim N. Smelyanskiy,
 and Sergio Boixo Phys. Rev. Applied 9, 044036 (2018).
 
 === EXAMPLE OUTPUT ===
-Quantum circuits to prepare the BCS meanfield state.
+Quantum circuits to prepare the BCS mean field state.
 Number of sites =  4
 Number of fermions =  4
 Tunneling strength =  1.0
