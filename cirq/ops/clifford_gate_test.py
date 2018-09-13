@@ -285,10 +285,10 @@ def test_eq_ne_and_hash():
 
 
 @pytest.mark.parametrize('gate,rep', (
-    (cirq.CliffordGate.I,       'CliffordGate(X:+X, Y:+Y, Z:+Z)'),
-    (cirq.CliffordGate.H,       'CliffordGate(X:+Z, Y:-Y, Z:+X)'),
-    (cirq.CliffordGate.X,       'CliffordGate(X:+X, Y:-Y, Z:-Z)'),
-    (cirq.CliffordGate.X_sqrt,  'CliffordGate(X:+X, Y:+Z, Z:-Y)')))
+    (cirq.CliffordGate.I,       'cirq.CliffordGate(X:+X, Y:+Y, Z:+Z)'),
+    (cirq.CliffordGate.H,       'cirq.CliffordGate(X:+Z, Y:-Y, Z:+X)'),
+    (cirq.CliffordGate.X,       'cirq.CliffordGate(X:+X, Y:-Y, Z:-Z)'),
+    (cirq.CliffordGate.X_sqrt,  'cirq.CliffordGate(X:+X, Y:+Z, Z:-Y)')))
 def test_repr(gate, rep):
     assert repr(gate) == rep
 
@@ -345,8 +345,8 @@ def test_decompose(gate, gate_equiv):
     (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
     (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_known_matrix(gate, gate_equiv):
-    mat = gate.matrix()
-    mat_check = gate_equiv.matrix()
+    mat = cirq.unitary(gate)
+    mat_check = cirq.unitary(gate_equiv)
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 

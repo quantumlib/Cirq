@@ -15,7 +15,6 @@
 # Import sub-modules.
 
 from cirq import (
-    api,
     circuits,
     devices,
     google,
@@ -36,6 +35,7 @@ from cirq.circuits import (
     DropNegligible,
     ExpandComposite,
     InsertStrategy,
+    MergeInteractions,
     MergeSingleQubitGates,
     Moment,
     OptimizationPass,
@@ -139,7 +139,6 @@ from cirq.ops import (
     OP_TREE,
     Operation,
     ParameterizableEffect,
-    PartialReflectionGate,
     Pauli,
     PauliInteractionGate,
     PauliString,
@@ -199,6 +198,11 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+)
+
+from cirq.protocols import (
+    SupportsUnitary,
+    unitary,
 )
 
 # Import version last since it is a relative import.

@@ -1,9 +1,9 @@
 # Tutorial
 
 In this tutorial we will go from knowing nothing about Cirq to creating a
-[quantum variational algorithm](https://arxiv.org/abs/1304.3061). 
-Note that this tutorial isn't a quantum computing 101 tutorial, 
-we assume familiarity of quantum computing at about the level of 
+[quantum variational algorithm](https://arxiv.org/abs/1304.3061).
+Note that this tutorial isn't a quantum computing 101 tutorial,
+we assume familiarity of quantum computing at about the level of
 the textbook "Quantum Computation and Quantum Information" by
 Nielsen and Chuang. For a more conceptual overview see the
 [conceptual documentation](table_of_contents.md).
@@ -13,23 +13,23 @@ To begin, please follow the instructions for [installing Cirq](install.md).
 ### Background: Variational quantum algorithms
 
 The [variational method](https://en.wikipedia.org/wiki/Variational_method_(quantum_mechanics))
-in quantum theory is a classical method for finding low energy states 
-of a quantum system. The rough idea of this method is that one defines 
-a trial wave function (sometimes called an ansatz) as a function 
-of some parameters, and then one finds the values of these 
-parameters that minimize the expectation value of the energy 
-with respect to these parameters. This minimized anstaz is then 
-an approximation to the lowest energy eigenstate, and 
+in quantum theory is a classical method for finding low energy states
+of a quantum system. The rough idea of this method is that one defines
+a trial wave function (sometimes called an ansatz) as a function
+of some parameters, and then one finds the values of these
+parameters that minimize the expectation value of the energy
+with respect to these parameters. This minimized ansatz is then
+an approximation to the lowest energy eigenstate, and
 the expectation value serves as an upper bound on the energy of the
 ground state.
 
 In the last few years (see [arXiv:1304.3061](https://arxiv.org/abs/1304.3061)
-and [arXiv:1507.08969](https://arxiv.org/abs/1507.08969) for example), it 
+and [arXiv:1507.08969](https://arxiv.org/abs/1507.08969) for example), it
 has been realized that quantum computers can mimic the
 classical technique and that a quantum computer does so with certain
 advantages.  In particular, when one applies the classical variational
 method to a system of `n` qubits, an exponential number (in `n`)
-of complex numbers are necessary to generically represent the 
+of complex numbers are necessary to generically represent the
 wave function of the system.  However with a quantum computer one
 can directly produce this state using a parameterized quantum
 circuit, and then by repeated measurements estimate the expectation
@@ -39,15 +39,15 @@ This idea has led to a class of algorithms known as variational quantum
 algorithms. Indeed this approach is not just limited to finding low
 energy eigenstates, but minimizing any objective function that can
 be expressed as a quantum observable. It is an open question to identify 
-under what conditions these quantum variataional algorithms will succeed, 
-and exploring this class of algorithms is a key part of research 
+under what conditions these quantum variational algorithms will succeed,
+and exploring this class of algorithms is a key part of research
 for [noisy intermediate scale quantum computers](https://arxiv.org/abs/1801.00862).
 
 The classical problem we will focus on is the 2D +/- Ising model with
 transverse field ([ISING](http://iopscience.iop.org/article/10.1088/0305-4470/15/10/028/meta)).
-This problem is NP-complete so it is highly unlikely that 
+This problem is NP-complete.  So it is highly unlikely that
 quantum computers will be able to efficiently solve it
-across all instances.  Yet this type of problem is illustrative of 
+across all instances.  Yet this type of problem is illustrative of
 the general class of problems that Cirq is designed to tackle.
 
 Consider the energy function
@@ -61,7 +61,7 @@ The problem we would like to solve is, given J<sub>i,j</sub>, and h<sub>i</sub>,
 find an assignment of s<sub>i</sub> values that minimize E.
 
 How does a variational quantum algorithm work for this? One approach is
-to consider `n` qubits and associate them with each of the bits in the 
+to consider `n` qubits and associate them with each of the bits in the
 classical problem.  This maps the classical problem onto the quantum problem
 of minimizing the expectation value of the observable
 
@@ -85,7 +85,7 @@ given ansatz state by
 3. Goto 1.
 
 Note that one cannot always measure H directly (without
-the use of quantum phase estimation), so one often relies
+the use of quantum phase estimation).  So one often relies
 on the linearity of expectation values to measure parts of
 H in step 2. One always needs to repeat the measurements to
 obtain an estimate of the expectation value. How many measurements
@@ -103,19 +103,19 @@ lowest possible value of the objective function.
 
 ### Create a circuit on a Grid
 
-To build the above variational quantum algorithm using Cirq, 
+To build the above variational quantum algorithm using Cirq,
 one begins by building the appropriate [circuit](circuits.md).
 In Cirq circuits are represented either by a `Circuit` object
-or a `Schedule` object.  `Schedule`s offer more control over 
-quantum gates and circuits at the timing level, which we do not 
+or a `Schedule` object.  `Schedule`s offer more control over
+quantum gates and circuits at the timing level, which we do not
 need, so here we will work with `Circuit`s instead.
 
 Conceptually: a `Circuit` is a collection of ``Moments``. A
 `Moment` is a collection of ``Operations`` that all act during
 the same abstract time slice. An `Operation` is a an effect
 that operates on a specific subset of ``Qubits``.
-The most common type of `Operation` is a `Gate` applied 
-to several qubits (a `GateOperation`). The following diagram 
+The most common type of `Operation` is a `Gate` applied
+to several qubits (a `GateOperation`). The following diagram
 should help illustrate these concepts.
 
 ![Circuits and Moments](CircuitMomentOperation.png)
@@ -125,8 +125,8 @@ details on these classes. Because the problem we have
 defined has a natural structure on a grid, we will use 
 Cirq's built in `GridQubit`s as our qubits.
 We will demonstrate some of how this works in an 
-interactive python environment, the following code can
-be run in series in a python environment where you have
+interactive Python environment, the following code can
+be run in series in a Python environment where you have
 Cirq installed.
 
 Let's begin by talking about our qubits. In an interactive
@@ -140,12 +140,12 @@ length = 3
 qubits = [cirq.GridQubit(i, j) for i in range(length) for j in range(length)]
 print(qubits)
 # prints 
-# [GridQubit(0, 0), GridQubit(0, 1), GridQubit(0, 2), GridQubit(1, 0), GridQubit(1, 1), GridQubit(1, 2), GridQubit(2, 0), GridQubit(2, 1), GridQubit(2, 2)]
+# [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2), cirq.GridQubit(1, 0), cirq.GridQubit(1, 1), cirq.GridQubit(1, 2), cirq.GridQubit(2, 0), cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
 ```
 Here we see that we've created a bunch of `GridQubit`s. 
 `GridQubit`s implement the `QubitId` class, which just means
 that they are equatable and hashable. `GridQubit`s in addition
-have a row and column, indicating their position on a grid. 
+have a row and column, indicating their position on a grid.
 
 Now that we have some qubits, let us construct a `Circuit` on these qubits.
 For example, suppose we want to apply the Hadamard gate `H` to
@@ -184,12 +184,12 @@ and a gate object (which is an instantiation of a class).  The second is that ga
 objects are transformed into `Operation`s (technically `GateOperation`s)
 via either the method `on(qubit)` or, as we see for the `X` gates, via simply
 applying the gate to the qubits `(qubit)`. Here we only apply single
-qubit gates, but a similar pattern applies for multiple qubits, but now a 
-sequence of qubits should be supplied as parameters. 
+qubit gates, but a similar pattern applies for multiple qubit gates with a 
+sequence of qubits as parameters.
 
 Another thing one notices about the above circuit is that the circuit has
 staggered gates. This is because the way in which we have applied the
-gates has created two `Moment`s.  
+gates has created two `Moment`s.
 ```python
 for i, m in enumerate(circuit):
     print('Moment {}: {}'.format(i, m))
@@ -201,7 +201,7 @@ Here we see that we can iterate over a `Circuit`'s `Moment`s. The reason
 that two `Moment`s were created was that the `append` method uses an
 `InsertStrategy` of `NEW_THEN_INLINE`. `InsertStrategy`s describe
 how new insertions into `Circuit`s place their gates. Details of these
-strategies can be found in the [circuit documentation](/docs/circuits.md).  If
+strategies can be found in the [circuit documentation](circuits.md).  If
 we wanted to insert the gates so that they form one `Moment`, we could 
 instead use the `EARLIEST` insertion strategy:
 ```python
@@ -236,11 +236,11 @@ over to act at the earliest `Moment` they can.
 
 If you look closely at the circuit creation code above you will see that
 we applied the `append` method to both a `generator` and a `list` (recall that
-in python one can use generator comprehensions in method calls).
+in Python one can use generator comprehensions in method calls).
 Inspecting the [code](/cirq/circuits/circuit.py) for append one sees that
 the append method generally takes an `OP_TREE` (or a `Moment`).  What is
-an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE` 
-is anything that can be flattened, perhaps recursively, into a list 
+an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE`
+is anything that can be flattened, perhaps recursively, into a list
 of operations, or into a single operation. Examples of an `OP_TREE` are
 * A single `Operation`.
 * A list of `Operation`s.
@@ -248,7 +248,7 @@ of operations, or into a single operation. Examples of an `OP_TREE` are
 * A list of a list of `Operations`s.
 * A generator yielding `Operations`. 
 
-This last case yields a nice pattern for defining sub-circuits / layers,
+This last case yields a nice pattern for defining sub-circuits / layers:
 define a function that takes in the relevant parameters and then
 yields the operations for the sub circuit and then this can be appended
 to the Circuit: 
@@ -272,18 +272,18 @@ print(circuit)
 #
 # (1, 1): ───X^0.1───
 ```
-Another important concept here is that the rotation gate is 
+Another important concept here is that the rotation gate is
 specified in "half turns". For a rotation about X this is the
-gate cos(half_turns * pi) I + i sin(half_turns * pi) X. 
+gate cos(half_turns * pi) I + i sin(half_turns * pi) X.
 
-There is a lot of freedom defining a variational ansatz. 
+There is a lot of freedom defining a variational ansatz.
 Here we will do a variation on a [QOAO strategy](https://arxiv.org/abs/1411.4028)
-and define an anstaz related to he problem we are trying to solve. 
+and define an ansatz related to the problem we are trying to solve.
 
-First we need to choose how the instances of the 
+First we need to choose how the instances of the
 problem are represented.  These are the values J and h in the
 Hamiltonian definition.  We will represent these as two dimensional
-arrays (lists of lists).  For J we will use two such lists, 
+arrays (lists of lists).  For J we will use two such lists,
 one for the row links and one for the column links.
 
 Here is code that we can use to generate random problem
@@ -314,9 +314,9 @@ print('column j fields: {}'.format(jc))
 where the actual values will be different for an individual
 run because they are using `random.choice`.
 
-Given this definition of the problem instance we can 
-now introduce our ansatz.  Our ansatz will consist 
-of one steps of a circuit made up of 
+Given this definition of the problem instance we can
+now introduce our ansatz.  Our ansatz will consist
+of one step of a circuit made up of
 1. Apply a RotXGate for the same parameter for all qubits.
 This is the method we have written above.
 2. Apply a RotZGate for the same parameter for all qubits
@@ -335,7 +335,7 @@ qubits where the coupling field term J is +1. If the field
 is -1 apply Rot11Gate conjugated by X gates on all qubits.
 ```python
 def rot_11_layer(jr, jc, half_turns):
-    """Yeilds rotations about |11> conditioned on the jr and jc fields."""
+    """Yields rotations about |11> conditioned on the jr and jc fields."""
     gate = cirq.Rot11Gate(half_turns=half_turns)    
     for i, jr_row in enumerate(jr):
         for j, jr_ij in enumerate(jr_row):
@@ -350,9 +350,14 @@ def rot_11_layer(jr, jc, half_turns):
             
     for i, jc_row in enumerate(jc):
         for j, jc_ij in enumerate(jc_row):
-            if jc_ij == 1:
-                yield gate(cirq.GridQubit(i, j),
-                           cirq.GridQubit(i, j + 1))
+            if jc_ij == -1:
+                yield cirq.X(cirq.GridQubit(i, j))
+                yield cirq.X(cirq.GridQubit(i, j + 1))
+            yield gate(cirq.GridQubit(i, j),
+                       cirq.GridQubit(i, j + 1))
+            if jc_ij == -1:
+                yield cirq.X(cirq.GridQubit(i, j))
+                yield cirq.X(cirq.GridQubit(i, j + 1))
 ```
 
 Putting this together we can create a step that uses just
@@ -371,55 +376,56 @@ def one_step(h, jr, jc, x_half_turns, h_half_turns, j_half_turns):
 h, jr, jc = random_instance(3)
 
 circuit = cirq.Circuit()    
-circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
+circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3),
+               strategy=cirq.InsertStrategy.EARLIEST)
 print(circuit)
 # prints something like
-# (0, 0): ───X^0.1───X───────────@───────X───────────────────────────────────────────────────────@───────────────
-#                                │                                                               │
-# (0, 1): ───X^0.1───Z^0.2───────┼───────X───@───────X───────────────────────────────────────────@^0.3───────────
-#                                │           │
-# (0, 2): ───X^0.1───────────────┼───────────┼───────────@───────────────────────────────────────────────────────
-#                                │           │           │
-# (1, 0): ───X^0.1───Z^0.2───X───@^0.3───X───┼───────X───┼───────@───────X───────────────────────@───────────────
-#                                            │           │       │                               │
-# (1, 1): ───X^0.1───────────────────────X───@^0.3───X───┼───────┼───────X───@───────X───────────@^0.3───@───────
-#                                                        │       │           │                           │
-# (1, 2): ───X^0.1───Z^0.2───────────────────────────────@^0.3───┼───────────┼───────X───@───────X───────@^0.3───
-#                                                                │           │           │
-# (2, 0): ───X^0.1───────────────────────────────────X───────────@^0.3───X───┼───────────┼───────────────────────
-#                                                                            │           │
-# (2, 1): ───X^0.1───Z^0.2───────────────────────────────────────────────X───@^0.3───X───┼───────────────────────
-#                                                                                        │
-# (2, 2): ───X^0.1───Z^0.2───────────────────────────────────────────────────────────X───@^0.3───X───────────────
+# (0, 0): ───X^0.1───────────@───────X───────────────────────────────@───────X───────────────────────────────
+#                            │                                       │
+# (0, 1): ───X^0.1───Z^0.2───┼───────@───────────────────────X───────@^0.3───X───X───────@───────X───────────
+#                            │       │                                                   │
+# (0, 2): ───X^0.1───Z^0.2───┼───────┼───────@───────────────X───────────────────────────@^0.3───X───────────
+#                            │       │       │
+# (1, 0): ───X^0.1───────────@^0.3───┼───────┼───────@───────X───────────────────────────@───────X───────────
+#                                    │       │       │                                   │
+# (1, 1): ───X^0.1───Z^0.2───────────@^0.3───┼───────┼───────X───────@───────X───X───────@^0.3───X───@───────
+#                                            │       │               │                               │
+# (1, 2): ───X^0.1───Z^0.2───────────────────@^0.3───┼───────@───────┼───────────────────────────────@^0.3───
+#                                                    │       │       │
+# (2, 0): ───X^0.1───────────────────────────────────@^0.3───┼───────┼───────────@───────────────────────────
+#                                                            │       │           │
+# (2, 1): ───X^0.1───Z^0.2───────────X───────────────────────┼───────@^0.3───X───@^0.3───@───────────────────
+#                                                            │                           │
+# (2, 2): ───X^0.1───Z^0.2───────────────────────────────────@^0.3───────────────────────@^0.3───────────────
 ```
-Where here we see that we have chosen particular parameter
+Here we see that we have chosen particular parameter
 values (0.1, 0.2, 0.3).
 
 ### Simulation
 
-Now lets see how simulate the circuit corresponding
+Now let's see how to simulate the circuit corresponding
 to creating our ansatz.  In Cirq the simulators make a distinction
-between a "run" and a "simulation". A "run" only allows for a 
+between a "run" and a "simulation". A "run" only allows for a
 simulation that mimics the actual quantum hardware.  For example,
 it does not allow for access to the amplitudes of the wave function
 of the system, since that is not experimentally accessible.
 "Simulate" commands, however, are more broad and allow different forms
-of simulation.  When prototyping small circuits it is useful to 
+of simulation.  When prototyping small circuits it is useful to
 execute "simulate" methods, but one should be wary of relying on
 them when run against actual hardware.
 
 Currently Cirq ships with a simulator tied strongly to the gate
-set of the Google xmon architecture.  However, for convenience, 
-the simulator attempts to automatically convert unknown 
-operations into XmonGates (as long as the operation specifies 
-a matrix or a decomposition into XmonGates). This can in 
-principle allows us to simulate any circuit that has gates 
-that implement one and two qubit  `KnownMatrix` gates. 
+set of the Google xmon architecture.  However, for convenience,
+the simulator attempts to automatically convert unknown
+operations into XmonGates (as long as the operation specifies
+a matrix or a decomposition into XmonGates). This can in
+principle allows us to simulate any circuit that has gates
+that implement one and two qubit  `KnownMatrix` gates.
 Future releases of Cirq will expand these simulators.
 
 Because the simulator is tied to the xmon gate set, the simulator
 lives, in contrast to core Cirq, in the `cirq.google` module.
-To run a simulation of the full circuit we simply create a 
+To run a simulation of the full circuit we simply create a
 simulator, and pass the circuit to the simulator.
 
 ```python
@@ -432,14 +438,14 @@ print(results.histogram(key='x'))
 # prints something like
 # Counter({0: 85, 128: 5, 32: 3, 1: 2, 4: 1, 2: 1, 8: 1, 18: 1, 20: 1})
 ```
-Note that we have run the simulation 100 times and produced a 
+Note that we have run the simulation 100 times and produced a
 histogram of the counts of the measurement results.  What are the
-keys in the histogram counter? Note that we have passed in 
-the order of the qubits. This ordering is then used to translate 
-the order of the measurement results to a register using a 
+keys in the histogram counter? Note that we have passed in
+the order of the qubits. This ordering is then used to translate
+the order of the measurement results to a register using a
 [big endian](https://en.wikipedia.org/wiki/Endianness) representation.
 
-For our optimization problem we will want to calculate the 
+For our optimization problem we will want to calculate the
 value of the objective function for a given result run. One
 way to do this is use the raw measurement data from the result
 of `simulator.run`. Another way to do this is to provide to
@@ -450,8 +456,12 @@ import numpy as np
 
 def energy_func(length, h, jr, jc):
     def energy(measurements):
-        meas_list_of_lists = [measurements[i:i + length] for i in range(length)]
+        # Reshape measurement into array that matches grid shape.
+        meas_list_of_lists = [measurements[i * length:(i + 1) * length]
+                              for i in range(length)]
+        # Convert true/false to +1/-1.
         pm_meas = 1 - 2 * np.array(meas_list_of_lists).astype(np.int32)
+
         tot_energy = np.sum(pm_meas * h)
         for i, jr_row in enumerate(jr):
             for j, jr_ij in enumerate(jr_row):
@@ -463,7 +473,7 @@ def energy_func(length, h, jr, jc):
     return energy
 print(results.histogram(key='x', fold_func=energy_func(3, h, jr, jc)))
 # prints something like
-# Counter({-3: 94, -1: 3, 7: 2, 1: 1})
+# Counter({7: 79, 5: 12, -1: 4, 1: 3, 13: 1, -3: 1})
 ```
 One can then calculate the expectation value over all repetitions
 ```python
@@ -472,21 +482,21 @@ def obj_func(result):
     return np.sum(k * v for k,v in energy_hist.items()) / result.repetitions
 print('Value of the objective function {}'.format(obj_func(results)))
 # prints something like
-# Value of the objective function -2.7
+# Value of the objective function 6.2
 ```
 
 ### Parameterizing the Ansatz
 
-Now that we have constructed a variational ansatz, and shown how to simulate
-it using Cirq, we can now think about optimizing the value. On quantum 
+Now that we have constructed a variational ansatz and shown how to simulate
+it using Cirq, we can now think about optimizing the value. On quantum
 hardware one would most likely want to have the optimization code as close
 to the hardware as possible.  As the classical hardware that is allowed to
 inter-operate with the quantum hardware becomes better specified, this
 language will be better defined.  Without this specification, however,
 Cirq also provides a useful concept for optimizing the looping in many
-optimization algorithms.  This is the fact that many of the value in 
+optimization algorithms.  This is the fact that many of the value in
 the gate sets can, instead of being specified by a float, be specified
-by a `Symbol` and this `Symbol` can be substituted for a value specified 
+by a `Symbol` and this `Symbol` can be substituted for a value specified
 at execution time.
 
 Luckily for us, we have written our code so that using parameterized
@@ -501,27 +511,27 @@ circuit.append(one_step(h, jr, jc, alpha, beta, gamma))
 circuit.append(cirq.measure(*qubits, key='x'))
 print(circuit)
 # prints something like
-# (0, 0): ───X^alpha───X────────────@─────────X─────────────────────────────────────────────────────────────────@───────────────────M───
-#                                   │                                                                           │                   │
-# (0, 1): ───X^alpha───Z^beta───────┼─────────X───@─────────X───────────────────────────────────────────────────@^gamma─────────────M───
-#                                   │             │                                                                                 │
-# (0, 2): ───X^alpha────────────────┼─────────────┼─────────────@───────────────────────────────────────────────────────────────────M───
-#                                   │             │             │                                                                   │
-# (1, 0): ───X^alpha───Z^beta───X───@^gamma───X───┼─────────X───┼─────────@─────────X───────────────────────────@───────────────────M───
-#                                                 │             │         │                                     │                   │
-# (1, 1): ───X^alpha──────────────────────────X───@^gamma───X───┼─────────┼─────────X───@─────────X─────────────@^gamma───@─────────M───
-#                                                               │         │             │                                 │         │
-# (1, 2): ───X^alpha───Z^beta───────────────────────────────────@^gamma───┼─────────────┼─────────X───@─────────X─────────@^gamma───M───
-#                                                                         │             │             │                             │
-# (2, 0): ───X^alpha────────────────────────────────────────X─────────────@^gamma───X───┼─────────────┼─────────────────────────────M───
-#                                                                                       │             │                             │
-# (2, 1): ───X^alpha───Z^beta───────────────────────────────────────────────────────X───@^gamma───X───┼─────────────────────────────M───
-#                                                                                                     │                             │
-# (2, 2): ───X^alpha───Z^beta─────────────────────────────────────────────────────────────────────X───@^gamma───X───────────────────M───
+# (0, 0): ───X^alpha────────────@─────────────────────────────────────────────────────X─────────────@─────────X───────────────────────────────────────────────────────M('x')───
+#                               │                                                                   │                                                                 │
+# (0, 1): ───X^alpha───Z^beta───┼─────────@───────────────────────────────────────────X─────────────@^gamma───X───X───@─────────X─────────────────────────────────────M────────
+#                               │         │                                                                           │                                               │
+# (0, 2): ───X^alpha───Z^beta───┼─────────┼─────────@─────────────────────────────────────────────────────────────X───@^gamma───X─────────────────────────────────────M────────
+#                               │         │         │                                                                                                                 │
+# (1, 0): ───X^alpha────────────@^gamma───┼─────────┼─────────@─────────────────────────────────────────────────────────────────X───@─────────X───────────────────────M────────
+#                                         │         │         │                                                                     │                                 │
+# (1, 1): ───X^alpha───Z^beta─────────────@^gamma───┼─────────┼─────────X───@─────────X─────────────────────────────────────────X───@^gamma───X───@───────────────────M────────
+#                                                   │         │             │                                                                     │                   │
+# (1, 2): ───X^alpha───Z^beta───────────────────────@^gamma───┼─────────────┼─────────────@───────────────────────────────────────────────────────@^gamma─────────────M────────
+#                                                             │             │             │                                                                           │
+# (2, 0): ───X^alpha──────────────────────────────────────────@^gamma───────┼─────────────┼───────────────────────────────────────────────────────@───────────────────M────────
+#                                                                           │             │                                                       │                   │
+# (2, 1): ───X^alpha───Z^beta───────────────────────────────────────────X───@^gamma───X───┼───────────────────────────────────────────────────────@^gamma───@─────────M────────
+#                                                                                         │                                                                 │         │
+# (2, 2): ───X^alpha───Z^beta─────────────────────────────────────────────────────────────@^gamma───────────────────────────────────────────────────────────@^gamma───M────────```
 ```
 Note now that the circuit's gates are parameterized.
 
-Parameters are specified at run time using a `ParamResolver` which is
+Parameters are specified at runtime using a `ParamResolver` which is
 which is just a dictionary from `Symbol` keys to runtime values. For example,
 ```python
 resolver = cirq.ParamResolver({'alpha': 0.1, 'beta': 0.3, 'gamma': 0.7})
@@ -535,7 +545,7 @@ is very useful when one wants to run many circuits for many different
 parameter values.  Sweeps can be created to specify values directly
 (this is one way to get classical information into a circuit), or
 a variety of helper methods.  For example suppose we want to evaluate
-our circuit over an equally spaced grid of parameter values.  We 
+our circuit over an equally spaced grid of parameter values.  We
 can easily create this using `LinSpace`.
 ```python
 sweep = (cirq.Linspace(key='alpha', start=0.1, stop=0.9, length=5)
@@ -545,16 +555,17 @@ results = simulator.run_sweep(circuit, params=sweep, repetitions=100)
 for result in results:
     print(result.params.param_dict, obj_func(result))
 # prints something like
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.1)]) -4.7
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.30000000000000004)]) -4.86
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.5)]) -4.56
-# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.7000000000000001)]) -4.86
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.1)]) 6.42
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.30000000000000004)]) 6.48
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.5)]) 6.44
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.7000000000000001)]) 6.58
+# OrderedDict([('alpha', 0.1), ('beta', 0.1), ('gamma', 0.9)]) 6.58
 ...
-# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.7000000000000001)]) 4.54
-# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.9)]) 4.64
+# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.7000000000000001)]) 0.76
+# OrderedDict([('alpha', 0.9), ('beta', 0.9), ('gamma', 0.9)]) 0.94```
 ```
 
-### Finiding the Minimum
+### Finding the Minimum
 
 Now we have all the code to we need to do a simple grid search
 over values to find a minimal value.  Grid search is most definitely
@@ -576,7 +587,7 @@ for result in results:
         min_params = result.params
 print('Minimum objective value is {}.'.format(min))
 # prints something like
-# Minimum objective value is -5.06.
+# Minimum objective value is -1.42.
 ```
 
 We've created a simple variational quantum algorithm using Cirq.
@@ -584,4 +595,4 @@ Where to go next?  Perhaps you can play around with the above code
 and work on analyzing the algorithms performance.  Add new parameterized
 circuits and build an end to end program for analyzing these circuits.
 Finally a good place to learn more about features of Cirq is to read
-through the [conceptual documentation](table_of_contents.md). 
+through the [conceptual documentation](table_of_contents.md).

@@ -20,7 +20,7 @@ import cirq.google as cg
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     actual = cirq.Circuit(before)
-    opt = cg.MergeInteractions()
+    opt = cirq.MergeInteractions()
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
@@ -49,7 +49,7 @@ def assert_optimization_not_broken(circuit):
     global phase and rounding error) as the unitary matrix of the optimized
     circuit."""
     u_before = circuit.to_unitary_matrix()
-    cg.MergeInteractions().optimize_circuit(circuit)
+    cirq.MergeInteractions().optimize_circuit(circuit)
     u_after = circuit.to_unitary_matrix()
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -71,13 +71,13 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cg.ExpZGate(
+            cirq.Moment([cirq.RotZGate(
                 half_turns=cirq.Symbol('boo'))(a)]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cg.ExpZGate(
+            cirq.Moment([cirq.RotZGate(
                 half_turns=cirq.Symbol('boo'))(a)]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
@@ -147,27 +147,25 @@ def test_optimizes_single_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
-    cg.MergeInteractions().optimize_circuit(c)
+    cirq.MergeInteractions().optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
-    assert all(cg.XmonGate.is_xmon_op(op)
-               for op in c.all_operations())
 
 
 @pytest.mark.parametrize('circuit', (
     cirq.Circuit.from_ops(
-        cg.Exp11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
+        cirq.Rot11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
     ),
     cirq.Circuit.from_ops(
-        cg.Exp11Gate(half_turns=0.2)(*cirq.LineQubit.range(2)),
-        cg.Exp11Gate(half_turns=0.3)(*cirq.LineQubit.range(2)),
+        cirq.Rot11Gate(half_turns=0.2)(*cirq.LineQubit.range(2)),
+        cirq.Rot11Gate(half_turns=0.3)(*cirq.LineQubit.range(2)),
     )))
 def test_decompose_partial_czs(circuit):
-    optimizer = cg.MergeInteractions(allow_partial_czs=False)
+    optimizer = cirq.MergeInteractions(allow_partial_czs=False)
     optimizer.optimize_circuit(circuit)
 
     cz_gates = [op.gate for op in circuit.all_operations()
-                        if cg.XmonGate.is_xmon_op(op) and
-                           isinstance(op.gate, cg.Exp11Gate)]
+                        if isinstance(op, cirq.GateOperation) and
+                           isinstance(op.gate, cirq.Rot11Gate)]
     num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
     num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
     assert num_full_cz == 2
@@ -176,16 +174,47 @@ def test_decompose_partial_czs(circuit):
 
 def test_not_decompose_partial_czs():
     circuit = cirq.Circuit.from_ops(
-        cg.Exp11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
+        cirq.Rot11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
     )
 
-    optimizer = cg.MergeInteractions(allow_partial_czs=True)
+    optimizer = cirq.MergeInteractions(allow_partial_czs=True)
     optimizer.optimize_circuit(circuit)
 
     cz_gates = [op.gate for op in circuit.all_operations()
-                        if cg.XmonGate.is_xmon_op(op) and
-                           isinstance(op.gate, cg.Exp11Gate)]
+                        if isinstance(op, cirq.GateOperation) and
+                           isinstance(op.gate, cirq.Rot11Gate)]
     num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
     num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
     assert num_full_cz == 0
     assert num_part_cz == 1
+
+
+def test_post_clean_up():
+    class Marker(cirq.Gate):
+        pass
+
+    a, b = cirq.LineQubit.range(2)
+    c_orig = cirq.Circuit.from_ops(
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+        cirq.CZ(a, b),
+    )
+    circuit = cirq.Circuit(c_orig)
+
+    def clean_up(operations):
+        yield Marker()(a, b)
+        yield operations
+        yield Marker()(a, b)
+    optimizer = cirq.MergeInteractions(allow_partial_czs=False,
+                                       post_clean_up=clean_up)
+    optimizer.optimize_circuit(circuit)
+
+    assert isinstance(circuit[0].operations[0].gate, Marker)
+    assert isinstance(circuit[-1].operations[0].gate, Marker)
+
+    u_before = c_orig.to_unitary_matrix()
+    u_after = circuit[1:-1].to_unitary_matrix()
+    cirq.testing.assert_allclose_up_to_global_phase(
+        u_before, u_after, atol=1e-8)

@@ -20,7 +20,7 @@ import cirq
 
 
 def test_matrix():
-    np.testing.assert_allclose(cirq.CCX.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -31,7 +31,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 1, 0],
     ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CCZ.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCZ), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -42,7 +42,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 0, -1],
     ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CSWAP.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CSWAP), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -55,11 +55,11 @@ def test_matrix():
 
 
 def test_str():
-    assert str(cirq.CCX) == 'TOFFOLI'
-    assert str(cirq.TOFFOLI) == 'TOFFOLI'
-    assert str(cirq.CSWAP) == 'FREDKIN'
-    assert str(cirq.FREDKIN) == 'FREDKIN'
-    assert str(cirq.CCZ) == 'CCZ'
+    assert str(cirq.CCX) == 'cirq.TOFFOLI'
+    assert str(cirq.TOFFOLI) == 'cirq.TOFFOLI'
+    assert str(cirq.CSWAP) == 'cirq.FREDKIN'
+    assert str(cirq.FREDKIN) == 'cirq.FREDKIN'
+    assert str(cirq.CCZ) == 'cirq.CCZ'
 
 
 def test_eq():

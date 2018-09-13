@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops, extension
+from cirq import ops, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -30,10 +30,6 @@ class MergeSingleQubitGates(PointOptimizer):
     """Combines adjacent constant single-qubit rotations into
     SingleQubitMatrixGates.
     """
-
-    def __init__(self,
-                 extensions: extension.Extensions = None) -> None:
-        self.extensions = extensions or extension.Extensions()
 
     def optimization_at(self,
                         circuit: Circuit,
@@ -60,27 +56,26 @@ class MergeSingleQubitGates(PointOptimizer):
                                circuit: Circuit,
                                index: Optional[int],
                                qubit: ops.QubitId
-                               ) -> Tuple[List[int], List[ops.KnownMatrix]]:
-        operations = []  # type: List[ops.KnownMatrix]
+                               ) -> Tuple[List[int], List[ops.Operation]]:
+        operations = []  # type: List[ops.Operation]
         indices = []  # type: List[int]
         while index is not None:
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            operation = self.extensions.try_cast(ops.KnownMatrix, op)
-            if operation is None:
+            if protocols.unitary(op, None) is None:
                 break
             indices.append(index)
-            operations.append(operation)
+            operations.append(op)
             index = circuit.next_moment_operating_on([qubit], index + 1)
         return indices, operations
 
     def _merge_rotations(self,
                          qubit: ops.QubitId,
-                         operations: Iterable[ops.KnownMatrix]
+                         operations: Iterable[ops.Operation]
                          ) -> List[ops.Operation]:
         matrix = np.eye(2, dtype=np.complex128)
         for op in operations:
-            matrix = np.dot(op.matrix(), matrix)
+            matrix = np.dot(protocols.unitary(op), matrix)
 
         return [ops.SingleQubitMatrixGate(matrix)(qubit)]
