@@ -18,7 +18,7 @@ on a 4 qubit system.
 
 In this example we demonstrate Fourier Transform on
 (1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) vector. To do the same, we prepare
-the input state of the qubit's as |0000>.
+the input state of the qubits as |0000>.
 === EXAMPLE OUTPUT ===
 
 Circuit:
