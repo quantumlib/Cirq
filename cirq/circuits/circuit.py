@@ -1116,6 +1116,12 @@ class Circuit(ops.ParameterizableEffect):
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
 
+        h = diagram.height()
+        for m in diagram.moment_groups:
+            diagram.horizontal_line(h, m.x1, m.x2)
+            diagram.write(m.x1, h, '╶' if not transpose else '╷')
+            diagram.write(m.x2, h, '╴' if not transpose else '╵')
+
         if transpose:
             diagram = diagram.transpose()
 
@@ -1304,6 +1310,10 @@ def _draw_moment_in_diagram(moment: Moment,
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
             out_diagram.vertical_line(x, y1, y2)
+
+        # Group together columns belonging to the same Moment.
+        if x > x0:
+            out_diagram.moment_group(x0, x)
 
         # Print gate qubit labels.
         for s, q in zip(info.wire_symbols, op.qubits):

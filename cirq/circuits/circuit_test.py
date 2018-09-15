@@ -2111,3 +2111,45 @@ qreg q[1];
 
 x q[0];
 """)
+
+
+def test_submoments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit.from_ops(
+        cirq.H.on(a),
+        cirq.H.on(d),
+        cirq.CZ.on(a, d),
+        cirq.CZ.on(b, c),
+        cirq.CZ.on(a, c),
+        cirq.CZ.on(b, d),
+        cirq.H.on(b),
+        cirq.H.on(c),
+    )
+
+    assert circuit.to_text_diagram() == """
+0: ───H───@───────@───────────
+          │       │
+1: ───────┼───@───┼───@───H───
+          │   │   │   │
+2: ───────┼───@───@───┼───H───
+          │           │
+3: ───H───@───────────@───────
+
+          ╶───╴   ╶───╴
+""".strip()
+    assert circuit.to_text_diagram(transpose=True) == """
+0 1 2 3
+│ │ │ │
+H │ │ H
+│ │ │ │
+@─┼─┼─@ ╷
+│ │ │ │ │
+│ @─@ │ ╵
+│ │ │ │
+@─┼─@ │ ╷
+│ │ │ │ │
+│ @─┼─@ ╵
+│ │ │ │
+│ H H │
+│ │ │ │
+""".strip()

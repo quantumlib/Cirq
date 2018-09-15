@@ -29,6 +29,10 @@ _VerticalLine = NamedTuple('VerticalLine', [
     ('y2', int),
     ('emphasize', bool),
 ])
+_MomentGroup = NamedTuple('MomentGroup', [
+    ('x1', int),
+    ('x2', int),
+])
 
 
 class TextDiagramDrawer:
@@ -39,6 +43,7 @@ class TextDiagramDrawer:
         self.entries = dict()  # type: Dict[Tuple[int, int], str]
         self.vertical_lines = []  # type: List[_VerticalLine]
         self.horizontal_lines = []  # type: List[_HorizontalLine]
+        self.moment_groups = []  # type: List[_MomentGroup]
 
     def write(self, x: int, y: int, text: str):
         """Adds text to the given location."""
@@ -93,6 +98,11 @@ class TextDiagramDrawer:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
+
+    def moment_group(self, x1, x2) -> None:
+        """Groups columns x1 to x2 as belonging to the same Moment."""
+        x1, x2 = sorted([x1, x2])
+        self.moment_groups.append(_MomentGroup(x1, x2))
 
     def transpose(self) -> 'TextDiagramDrawer':
         """Returns the same diagram, but mirrored across its diagonal."""
@@ -197,6 +207,10 @@ _BoxChars = [
     ('┤', '┫', '<'),
     ('┬', '┳', 'v'),
     ('┴', '┻', '^'),
+    ('╴', '╸', '+'),
+    ('╵', '╹', '+'),
+    ('╶', '╺', '+'),
+    ('╷', '╻', '+'),
 ]  # type: List[Tuple[str, ...]]
 
 _EmphasisMap = {k: v for k, v, _ in _BoxChars}
