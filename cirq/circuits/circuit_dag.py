@@ -126,9 +126,9 @@ class CircuitDag(networkx.DiGraph):
             return NotImplemented
         g1 = self.copy()
         g2 = other.copy()
-        for node, attr in g1.nodes().items():
+        for node, attr in g1.nodes(data=True):
             attr['val'] = node.val
-        for node, attr in g2.nodes().items():
+        for node, attr in g2.nodes(data=True):
             attr['val'] = node.val
         def node_match(attr1: Dict[Any, Any], attr2: Dict[Any, Any]) -> bool:
             return attr1['val'] == attr2['val']
