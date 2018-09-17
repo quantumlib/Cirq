@@ -15,7 +15,7 @@
 """ Exponentiation tool for Pauli Operators"""
 
 # Imports
-from typing import Dict, Union, Any
+from typing import Dict, Union
 
 import numpy as np
 from cirq.circuits import Circuit
@@ -98,7 +98,7 @@ def exponentiate_qubit_operator(time: Union[int, float],
 
             # skip identity
             if term == ():
-               continue
+                continue
 
             for qubit, pauli in term.items():
                 rotation = basis_rotation[pauli]
