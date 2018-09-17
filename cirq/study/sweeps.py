@@ -126,10 +126,10 @@ class _Unit(Sweep):
         yield ()
 
     def __repr__(self):
-        return 'Unit'
+        return 'cirq.UnitSweep'
 
 
-Unit = _Unit()  # singleton instance
+UnitSweep = _Unit()  # singleton instance
 
 
 class Product(Sweep):
@@ -176,7 +176,8 @@ class Product(Sweep):
         return _gen(self.factors)
 
     def __repr__(self):
-        return 'Product({})'.format(', '.join(repr(f) for f in self.factors))
+        return 'cirq.study.sweeps.Product({})'.format(', '.join(
+            repr(f) for f in self.factors))
 
     def __str__(self):
         if not self.factors:
@@ -229,7 +230,8 @@ class Zip(Sweep):
             yield sum(values, ())
 
     def __repr__(self):
-        return 'Zip({})'.format(', '.join(repr(s) for s in self.sweeps))
+        return 'cirq.study.sweeps.Zip({})'.format(', '.join(
+            repr(s) for s in self.sweeps))
 
     def __str__(self):
         if not self.sweeps:
@@ -285,7 +287,7 @@ class Points(SingleSweep):
         return iter(self.points)
 
     def __repr__(self):
-        return 'Points({!r}, {!r})'.format(self.key, self.points)
+        return 'cirq.Points({!r}, {!r})'.format(self.key, self.points)
 
 
 class Linspace(SingleSweep):
@@ -321,5 +323,5 @@ class Linspace(SingleSweep):
                 yield self.start * (1 - p) + self.stop * p
 
     def __repr__(self):
-        return 'Linspace({!r}, start={!r}, stop={!r}, length={!r})'.format(
+        return 'cirq.Linspace({!r}, start={!r}, stop={!r}, length={!r})'.format(
                 self.key, self.start, self.stop, self.length)

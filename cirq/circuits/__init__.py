@@ -23,11 +23,24 @@ from cirq.circuits.qasm_output import (
 from cirq.circuits.circuit import (
     Circuit,
 )
+from cirq.circuits.circuit_dag import (
+    CircuitDag,
+    Unique,
+)
 from cirq.circuits.drop_empty_moments import (
     DropEmptyMoments,
 )
 from cirq.circuits.drop_negligible import (
     DropNegligible,
+)
+from cirq.circuits.merge_interactions import (
+    MergeInteractions,
+)
+from cirq.circuits.merge_single_qubit_gates import (
+    MergeSingleQubitGates,
+)
+from cirq.circuits.convert_to_cz_and_single_gates import (
+    ConvertToCzAndSingleGates,
 )
 from cirq.circuits.expand_composite import (
     ExpandComposite,

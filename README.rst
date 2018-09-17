@@ -1,4 +1,4 @@
-.. image:: docs/Cirq_logo_color.svg
+.. image:: https://github.com/quantumlib/cirq/blob/master/docs/Cirq_logo_color.svg
   :alt: Cirq
   :width: 500px
 
@@ -16,7 +16,7 @@ Installation
 ------------
 
 Follow these
-`instructions <https://github.com/quantumlib/Cirq/blob/master/docs/install.md>`__.
+`instructions <https://cirq.readthedocs.io/en/latest/install.html>`__.
 
 Hello Qubit
 -----------
@@ -58,9 +58,9 @@ Documentation
 -------------
 
 See
-`here <https://github.com/quantumlib/Cirq/blob/master/docs/table_of_contents.md>`__
+`here <https://cirq.readthedocs.io/en/latest/>`__
 or jump into the
-`tutorial <https://github.com/quantumlib/Cirq/blob/master/docs/tutorial.md>`__.
+`tutorial <https://cirq.readthedocs.io/en/latest/tutorial.html>`__.
 
 Contributing
 ------------

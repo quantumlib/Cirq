@@ -16,11 +16,10 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import Symbol, linalg, Circuit
-from cirq.testing import EqualsTester
+
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
-HH = linalg.kron(H, H)
+HH = cirq.kron(H, H)
 QFT2 = np.array([[1, 1, 1, 1],
                  [1, 1j, -1, -1j],
                  [1, -1, 1, -1],
@@ -39,9 +38,9 @@ def test_cz_str():
 
 
 def test_cz_repr():
-    assert repr(cirq.Rot11Gate()) == 'CZ'
-    assert repr(cirq.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
-    assert repr(cirq.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
+    assert repr(cirq.Rot11Gate()) == 'cirq.CZ'
+    assert repr(cirq.Rot11Gate(half_turns=0.5)) == '(cirq.CZ**0.5)'
+    assert repr(cirq.Rot11Gate(half_turns=-0.25)) == '(cirq.CZ**-0.25)'
 
 
 def test_cz_extrapolate():
@@ -51,25 +50,25 @@ def test_cz_extrapolate():
 
 
 def test_cz_matrix():
-    assert np.allclose(cirq.Rot11Gate(half_turns=1).matrix(),
+    assert np.allclose(cirq.unitary(cirq.CZ),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1]]))
 
-    assert np.allclose(cirq.Rot11Gate(half_turns=0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.CZ**0.5),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1j]]))
 
-    assert np.allclose(cirq.Rot11Gate(half_turns=0).matrix(),
+    assert np.allclose(cirq.unitary(cirq.CZ**0),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.Rot11Gate(half_turns=-0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.CZ**-0.5),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
@@ -82,7 +81,7 @@ def test_z_init():
 
 
 def test_rot_gates_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     gates = [
         cirq.RotXGate,
         cirq.RotYGate,
@@ -116,42 +115,60 @@ def test_z_extrapolate():
 
 
 def test_z_matrix():
-    assert np.allclose(cirq.RotZGate(half_turns=1).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Z),
                        np.array([[1, 0], [0, -1]]))
-    assert np.allclose(cirq.RotZGate(half_turns=0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Z**0.5),
                        np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(cirq.RotZGate(half_turns=0).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Z**0),
                        np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cirq.RotZGate(half_turns=-0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Z**-0.5),
                        np.array([[1, 0], [0, -1j]]))
 
 
 def test_y_matrix():
-    assert np.allclose(cirq.RotYGate(half_turns=1).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Y),
                        np.array([[0, -1j], [1j, 0]]))
 
-    assert np.allclose(cirq.RotYGate(half_turns=0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Y**0.5),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.RotYGate(half_turns=0).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Y**0),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(cirq.RotYGate(half_turns=-0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
 
 def test_x_matrix():
-    assert np.allclose(cirq.RotXGate(half_turns=1).matrix(),
+    assert np.allclose(cirq.unitary(cirq.X),
                        np.array([[0, 1], [1, 0]]))
 
-    assert np.allclose(cirq.RotXGate(half_turns=0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.X**0.5),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.RotXGate(half_turns=0).matrix(),
+    assert np.allclose(cirq.unitary(cirq.X**0),
                        np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(cirq.RotXGate(half_turns=-0.5).matrix(),
+    assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
+
+
+def test_h_matrix():
+    sqrt = (cirq.H**0.5).matrix()
+    m = np.dot(sqrt, sqrt)
+    assert np.allclose(m, cirq.H.matrix(), atol=1e-8)
+
+
+def test_H_decompose():
+    a = cirq.NamedQubit('a')
+
+    original = cirq.HGate(half_turns=0.5)
+    decomposed = cirq.Circuit.from_ops(original.default_decompose([a]))
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        original.matrix(),
+        decomposed.to_unitary_matrix(),
+        atol=1e-8)
 
 
 def test_runtime_types_of_rot_gates():
@@ -161,30 +178,27 @@ def test_runtime_types_of_rot_gates():
                       cirq.RotZGate]:
         ext = cirq.Extensions()
 
-        p = gate_type(half_turns=Symbol('a'))
-        assert p.try_cast_to(cirq.KnownMatrix, ext) is None
+        p = gate_type(half_turns=cirq.Symbol('a'))
+        assert cirq.unitary(p, None) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         assert p.try_cast_to(cirq.BoundedEffect, ext) is p
-        with pytest.raises(ValueError):
-            _ = p.matrix()
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.extrapolate_effect(2)
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             _ = p.inverse()
 
         c = gate_type(half_turns=0.5)
-        assert c.try_cast_to(cirq.KnownMatrix, ext) is c
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
         assert c.try_cast_to(cirq.BoundedEffect, ext) is c
-        assert c.matrix() is not None
+        assert cirq.unitary(c, None) is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None
 
 
 def test_measurement_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.MeasurementGate(''),
                           cirq.MeasurementGate('', invert_mask=()))
     eq.add_equality_group(cirq.MeasurementGate('a'))
@@ -197,7 +211,7 @@ def test_interchangeable_qubit_eq():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(cirq.SWAP(a, b), cirq.SWAP(b, a))
     eq.add_equality_group(cirq.SWAP(a, c))
@@ -213,12 +227,12 @@ def test_interchangeable_qubit_eq():
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = Circuit.from_ops(
+    circuit = cirq.Circuit.from_ops(
         cirq.SWAP(a, b),
         cirq.X(a),
         cirq.Y(a),
         cirq.Z(a),
-        cirq.RotZGate(half_turns=cirq.Symbol('x')).on(a),
+        cirq.Z(a)**cirq.Symbol('x'),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
@@ -241,7 +255,7 @@ b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
 
 def test_cnot_power():
     np.testing.assert_almost_equal(
-        (cirq.CNOT**0.5).matrix(),
+        cirq.unitary(cirq.CNOT**0.5),
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -254,20 +268,64 @@ def test_cnot_power():
     b = cirq.NamedQubit('b')
     g = cirq.CNOT**0.25
     cirq.testing.assert_allclose_up_to_global_phase(
-        g.matrix(),
+        cirq.unitary(g),
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
+
+
+def test_cnot_keyword_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    eq_tester = cirq.testing.EqualsTester()
+    eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                 cirq.CNOT(control=a, target=b))
+    eq_tester.add_equality_group(cirq.CNOT(b, a),
+                                 cirq.CNOT(control=b, target=a))
+
+
+def test_cnot_keyword_not_equal():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(AssertionError):
+        eq_tester = cirq.testing.EqualsTester()
+        eq_tester.add_equality_group(cirq.CNOT(a, b),
+                                     cirq.CNOT(target=a, control=b))
+
+
+def test_cnot_keyword_too_few_arguments():
+    a = cirq.NamedQubit('a')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(control=a)
+
+
+def test_cnot_mixed_keyword_and_positional_arguments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(a, target=b)
+
+
+def test_cnot_unknown_keyword_argument():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    with pytest.raises(ValueError):
+        _ = cirq.CNOT(target=a, controlled=b)
 
 
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.CNotGate(half_turns=Symbol('x')).default_decompose([a, b])
+    assert cirq.CNotGate(half_turns=cirq.Symbol('x')).default_decompose([a, b])
 
 
 def test_swap_power():
     np.testing.assert_almost_equal(
-        (cirq.SWAP**0.5).matrix(),
+        cirq.unitary(cirq.SWAP**0.5),
         np.array([
             [1, 0, 0, 0],
             [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
@@ -280,36 +338,36 @@ def test_swap_power():
     b = cirq.NamedQubit('b')
     g = cirq.SWAP**0.25
     cirq.testing.assert_allclose_up_to_global_phase(
-        g.matrix(),
+        cirq.unitary(g),
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
 
-def test_repr():
-    assert repr(cirq.X) == 'X'
-    assert repr(cirq.X**0.5) == 'X**0.5'
+def test_xyz_repr():
+    assert repr(cirq.X) == 'cirq.X'
+    assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
 
-    assert repr(cirq.Z) == 'Z'
-    assert repr(cirq.Z**0.5) == 'S'
-    assert repr(cirq.Z**0.25) == 'T'
-    assert repr(cirq.Z**0.125) == 'Z**0.125'
+    assert repr(cirq.Z) == 'cirq.Z'
+    assert repr(cirq.Z**0.5) == 'cirq.S'
+    assert repr(cirq.Z**0.25) == 'cirq.T'
+    assert repr(cirq.Z**0.125) == '(cirq.Z**0.125)'
 
-    assert repr(cirq.S) == 'S'
-    assert repr(cirq.S**-1) == 'S**-1'
-    assert repr(cirq.T) == 'T'
-    assert repr(cirq.T**-1) == 'T**-1'
+    assert repr(cirq.S) == 'cirq.S'
+    assert repr(cirq.S**-1) == '(cirq.S**-1)'
+    assert repr(cirq.T) == 'cirq.T'
+    assert repr(cirq.T**-1) == '(cirq.T**-1)'
 
-    assert repr(cirq.Y) == 'Y'
-    assert repr(cirq.Y**0.5) == 'Y**0.5'
+    assert repr(cirq.Y) == 'cirq.Y'
+    assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
 
-    assert repr(cirq.CNOT) == 'CNOT'
-    assert repr(cirq.CNOT**0.5) == 'CNOT**0.5'
+    assert repr(cirq.CNOT) == 'cirq.CNOT'
+    assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
-    assert repr(cirq.SWAP) == 'SWAP'
-    assert repr(cirq.SWAP ** 0.5) == 'SWAP**0.5'
+    assert repr(cirq.SWAP) == 'cirq.SWAP'
+    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
 
-def test_str():
+def test_xyz_str():
     assert str(cirq.X) == 'X'
     assert str(cirq.X**0.5) == 'X**0.5'
 
@@ -339,7 +397,8 @@ def test_measurement_gate_diagram():
             known_qubits=None,
             known_qubit_count=3,
             use_unicode_characters=True,
-            precision=None
+            precision=None,
+            qubit_map=None
         )) == cirq.TextDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
@@ -413,18 +472,24 @@ def test_measure_each():
     ]
 
 
+def test_iswap_str():
+    assert str(cirq.ISWAP) == 'ISWAP'
+    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+
+
 def test_iswap_repr():
-    assert repr(cirq.ISWAP) == 'ISWAP'
-    assert repr(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
+    assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
 
 
 def test_iswap_matrix():
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.ISwapGate().matrix(),
+        cirq.unitary(cirq.ISWAP),
         np.array([[1, 0, 0, 0],
                   [0, 0, 1j, 0],
                   [0, 1j, 0, 0],
-                  [0, 0, 0, 1]]))
+                  [0, 0, 0, 1]]),
+        atol=1e-8)
 
 
 def test_iswap_decompose():
@@ -435,7 +500,7 @@ def test_iswap_decompose():
     decomposed = cirq.Circuit.from_ops(original.default_decompose([a, b]))
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        original.matrix(),
+        cirq.unitary(original),
         decomposed.to_unitary_matrix(),
         atol=1e-8)
 

@@ -195,6 +195,15 @@ class XmonDevice(Device):
         """Returns the qubits in the given column, in ascending order."""
         return sorted(q for q in self.qubits if q.col == col)
 
+    def __repr__(self):
+        return ('XmonDevice(measurement_duration={!r}, '
+                'exp_w_duration={!r}, '
+                'exp_11_duration={!r} '
+                'qubits={!r})').format(self._measurement_duration,
+                                       self._exp_w_duration,
+                                       self._exp_z_duration,
+                                       sorted(self.qubits))
+
     def __str__(self):
         diagram = TextDiagramDrawer()
 

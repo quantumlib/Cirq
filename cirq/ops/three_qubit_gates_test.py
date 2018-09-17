@@ -20,7 +20,7 @@ import cirq
 
 
 def test_matrix():
-    np.testing.assert_allclose(cirq.CCX.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -29,9 +29,9 @@ def test_matrix():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
         [0, 0, 0, 0, 0, 0, 1, 0],
-    ]))
+    ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CCZ.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCZ), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -40,9 +40,9 @@ def test_matrix():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, -1],
-    ]))
+    ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CSWAP.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CSWAP), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -51,15 +51,15 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
-    ]))
+    ]), atol=1e-8)
 
 
 def test_str():
-    assert str(cirq.CCX) == 'TOFFOLI'
-    assert str(cirq.TOFFOLI) == 'TOFFOLI'
-    assert str(cirq.CSWAP) == 'FREDKIN'
-    assert str(cirq.FREDKIN) == 'FREDKIN'
-    assert str(cirq.CCZ) == 'CCZ'
+    assert str(cirq.CCX) == 'cirq.TOFFOLI'
+    assert str(cirq.TOFFOLI) == 'cirq.TOFFOLI'
+    assert str(cirq.CSWAP) == 'cirq.FREDKIN'
+    assert str(cirq.FREDKIN) == 'cirq.FREDKIN'
+    assert str(cirq.CCZ) == 'cirq.CCZ'
 
 
 def test_eq():
@@ -76,16 +76,41 @@ def test_eq():
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
 
 
+@pytest.mark.parametrize('op,max_two_cost', [
+    (cirq.CCZ(*cirq.LineQubit.range(3)), 8),
+    (cirq.CCX(*cirq.LineQubit.range(3)), 8),
+    (cirq.CCZ(cirq.LineQubit(0),
+              cirq.LineQubit(2),
+              cirq.LineQubit(1)), 8),
+    (cirq.CSWAP(*cirq.LineQubit.range(3)), 9),
+    (cirq.CSWAP(*reversed(cirq.LineQubit.range(3))), 9),
+    (cirq.CSWAP(cirq.LineQubit(1),
+                cirq.LineQubit(0),
+                cirq.LineQubit(2)), 12),
+])
+def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
+    ops = tuple(
+        cirq.flatten_op_tree(cirq.google.ConvertToXmonGates().convert(op)))
+    two_cost = len([e for e in ops if len(e.qubits) == 2])
+    over_cost = len([e for e in ops if len(e.qubits) > 2])
+    assert over_cost == 0
+    assert two_cost == max_two_cost
+
+
 @pytest.mark.parametrize('gate', [
     cirq.CCX, cirq.CSWAP, cirq.CCZ,
 ])
 def test_decomposition_matches_matrix(gate):
-    cirq.testing.assert_allclose_up_to_global_phase(
-        gate.matrix(),
-        cirq.Circuit.from_ops(
-            gate.default_decompose(cirq.LineQubit.range(3))
-        ).to_unitary_matrix(),
-        atol=1e-8)
+    a, b, c = cirq.LineQubit.range(3)
+    for x, y, z in itertools.permutations([a, b, c]):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.Circuit.from_ops(
+                gate(x, y, z)
+            ).to_unitary_matrix(),
+            cirq.Circuit.from_ops(
+                gate.default_decompose((x, y, z))
+            ).to_unitary_matrix(),
+            atol=1e-8)
 
 
 @pytest.mark.parametrize('gate', [

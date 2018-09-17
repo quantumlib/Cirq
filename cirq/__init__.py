@@ -15,7 +15,6 @@
 # Import sub-modules.
 
 from cirq import (
-    api,
     circuits,
     devices,
     google,
@@ -30,16 +29,30 @@ from cirq import (
 
 from cirq.circuits import (
     Circuit,
+    CircuitDag,
+    ConvertToCzAndSingleGates,
     DropEmptyMoments,
     DropNegligible,
     ExpandComposite,
     InsertStrategy,
+    MergeInteractions,
+    MergeSingleQubitGates,
     Moment,
     OptimizationPass,
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
     TextDiagramDrawer,
+    Unique,
+)
+
+from cirq.decompositions import (
+    controlled_op_to_operations,
+    is_negligible_turn,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_op_to_framed_phase_form,
+    two_qubit_matrix_to_operations,
 )
 
 from cirq.devices import (
@@ -79,7 +92,9 @@ from cirq.linalg import (
     kron_factor_4x4_to_2x2s,
     kron_with_controls,
     map_eigenvalues,
+    reflection_matrix_pow,
     so4_to_magic_su2s,
+    targeted_left_multiply,
     Tolerance,
 )
 
@@ -95,6 +110,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
+    CliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -122,16 +138,20 @@ from cirq.ops import (
     NamedQubit,
     OP_TREE,
     Operation,
+    ParameterizableEffect,
+    Pauli,
+    PauliInteractionGate,
+    PauliString,
+    PauliTransform,
+    PhaseableEffect,
+    QasmConvertibleGate,
+    QasmConvertibleOperation,
+    QasmOutputArgs,
+    QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
     ReversibleEffect,
-    ParameterizableEffect,
-    PhaseableEffect,
-    QasmConvertableGate,
-    QasmConvertableOperation,
-    QasmOutputArgs,
-    QubitId,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -163,14 +183,12 @@ from cirq.schedules import (
 from cirq.study import (
     Linspace,
     ParamResolver,
+    plot_state_histogram,
     Points,
     Sweep,
     Sweepable,
     TrialResult,
-)
-
-from cirq.study.visualize import (
-    plot_state_histogram,
+    UnitSweep,
 )
 
 from cirq.value import (
@@ -180,6 +198,11 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+)
+
+from cirq.protocols import (
+    SupportsUnitary,
+    unitary,
 )
 
 # Import version last since it is a relative import.

@@ -18,8 +18,7 @@ Job data contains, at minimum, contain a circuit and a parameter sweep of any
 parameters contained in the circuit.
 """
 
-from cirq.circuits import Circuit
-from cirq.study import sweeps
+from cirq import study, circuits
 
 
 class Job(object):
@@ -30,8 +29,8 @@ class Job(object):
     """
 
     def __init__(self,
-                 circuit: Circuit = Circuit(),
-                 sweep: sweeps.Sweep = sweeps.Unit,
+                 circuit: circuits.Circuit = circuits.Circuit(),
+                 sweep: study.Sweep = study.UnitSweep,
                  repetitions: int = 1) -> None:
         self.circuit = circuit
         self.sweep = sweep

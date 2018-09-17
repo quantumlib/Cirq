@@ -19,7 +19,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 from cirq import linalg
-from cirq.ops import gate_features, common_gates, raw_types
+from cirq.ops import gate_features, common_gates, raw_types, op_tree
 
 
 class _CCZGate(gate_features.ThreeQubitGate,
@@ -27,10 +27,18 @@ class _CCZGate(gate_features.ThreeQubitGate,
                gate_features.CompositeGate,
                gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """A doubly-controlled-Z."""
 
     def default_decompose(self, qubits):
+        """An adjacency-respecting decomposition.
+
+        0: ───T───@──────────────@───────@──────────@──────────
+                  │              │       │          │
+        1: ───T───X───@───T^-1───X───@───X──────@───X──────@───
+                      │              │          │          │
+        2: ───T───────X───T──────────X───T^-1───X───T^-1───X───
+        """
         a, b, c = qubits
 
         # Hacky magic: avoid the non-adjacent edge.
@@ -40,26 +48,18 @@ class _CCZGate(gate_features.ThreeQubitGate,
             elif not b.is_adjacent(c):
                 a, b = b, a
 
-        yield common_gates.T.on_each([a, b, c])  # Phase a, b, and c.
-        yield common_gates.CNOT(c, b)
-        yield common_gates.T(b)**-1  # Counter-phase b ⊕ c.
-        yield common_gates.CNOT(a, b)
-        yield common_gates.T(b)  # Phase a ⊕ b ⊕ c.
-        yield common_gates.CNOT(c, b)
-        yield common_gates.T(b)**-1  # Counter-phase a ⊕ b.
-        yield common_gates.CNOT(a, b)
+        t = common_gates.T
+        sweep_abc = [common_gates.CNOT(a, b),
+                     common_gates.CNOT(b, c)]
 
-        # If a then toggle b and c.
-        yield common_gates.CNOT(b, c)
-        yield common_gates.CNOT(a, b)
-        yield common_gates.CNOT(b, c)
-
-        yield common_gates.T(c)**-1  # Counter-phase a ⊕ c.
-
-        # If a then un-toggle b and c.
-        yield common_gates.CNOT(b, c)
-        yield common_gates.CNOT(a, b)
-        yield common_gates.CNOT(b, c)
+        yield t(a), t(b), t(c)
+        yield sweep_abc
+        yield t(b)**-1, t(c)
+        yield sweep_abc
+        yield t(c)**-1
+        yield sweep_abc
+        yield t(c)**-1
+        yield sweep_abc
 
     def matrix(self):
         return np.diag([1, 1, 1, 1, 1, 1, 1, -1])
@@ -79,7 +79,7 @@ class _CCZGate(gate_features.ThreeQubitGate,
         return ''.join(lines)
 
     def __repr__(self) -> str:
-        return 'CCZ'
+        return 'cirq.CCZ'
 
 
 class _CCXGate(gate_features.ThreeQubitGate,
@@ -87,7 +87,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
                gate_features.CompositeGate,
                gate_features.KnownMatrix,
                gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertableGate):
+               gate_features.QasmConvertibleGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -115,7 +115,7 @@ class _CCXGate(gate_features.ThreeQubitGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        return 'TOFFOLI'
+        return 'cirq.TOFFOLI'
 
 
 class _CSwapGate(gate_features.ThreeQubitGate,
@@ -123,7 +123,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.CompositeGate,
                  gate_features.KnownMatrix,
                  gate_features.InterchangeableQubitsGate,
-                 gate_features.QasmConvertableGate):
+                 gate_features.QasmConvertibleGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -132,18 +132,89 @@ class _CSwapGate(gate_features.ThreeQubitGate,
     def default_decompose(self, qubits):
         c, t1, t2 = qubits
 
-        # Hacky magic: cross the non-adjacent edge.
-        need_hop = hasattr(t1, 'is_adjacent') and not t1.is_adjacent(t2)
+        # Hacky magic: special case based on adjacency.
+        if hasattr(t1, 'is_adjacent'):
+            if not t1.is_adjacent(t2):
+                # Targets separated by control.
+                return self._decompose_inside_control(t1, c, t2)
+            if not t1.is_adjacent(c):
+                # Control separated from t1 by t2.
+                return self._decompose_outside_control(c, t2, t1)
 
-        cnot = common_gates.CNOT(t2, t1) if not need_hop else [
-            common_gates.CNOT(t2, c),
-            common_gates.CNOT(c, t1),
-            common_gates.CNOT(t2, c),
-            common_gates.CNOT(c, t1),
-        ]
-        yield cnot
-        yield TOFFOLI(c, t1, t2)
-        yield cnot
+        return self._decompose_outside_control(c, t1, t2)
+
+    def _decompose_inside_control(self,
+                                  target1: raw_types.QubitId,
+                                  control: raw_types.QubitId,
+                                  target2: raw_types.QubitId
+                                  ) -> op_tree.OP_TREE:
+        """A decomposition assuming the control separates the targets.
+
+        target1: ─@─X───────T──────@────────@─────────X───@─────X^-0.5─
+                  │ │              │        │         │   │
+        control: ─X─@─X─────@─T^-1─X─@─T────X─@─X^0.5─@─@─X─@──────────
+                      │     │        │        │         │   │
+        target2: ─────@─H─T─X─T──────X─T^-1───X─T^-1────X───X─H─S^-1───
+        """
+        a, b, c = target1, control, target2
+        yield common_gates.CNOT(a, b)
+        yield common_gates.CNOT(b, a)
+        yield common_gates.CNOT(c, b)
+        yield common_gates.H(c)
+        yield common_gates.T(c)
+        yield common_gates.CNOT(b, c)
+        yield common_gates.T(a)
+        yield common_gates.T(b)**-1
+        yield common_gates.T(c)
+        yield common_gates.CNOT(a, b)
+        yield common_gates.CNOT(b, c)
+        yield common_gates.T(b)
+        yield common_gates.T(c)**-1
+        yield common_gates.CNOT(a, b)
+        yield common_gates.CNOT(b, c)
+        yield common_gates.X(b)**0.5
+        yield common_gates.T(c)**-1
+        yield common_gates.CNOT(b, a)
+        yield common_gates.CNOT(b, c)
+        yield common_gates.CNOT(a, b)
+        yield common_gates.CNOT(b, c)
+        yield common_gates.H(c)
+        yield common_gates.S(c)**-1
+        yield common_gates.X(a)**-0.5
+
+    def _decompose_outside_control(self,
+                                   control: raw_types.QubitId,
+                                   near_target: raw_types.QubitId,
+                                   far_target: raw_types.QubitId
+                                   ) -> op_tree.OP_TREE:
+        """A decomposition assuming one of the targets is in the middle.
+
+        control: ───T──────@────────@───@────────────@────────────────
+                           │        │   │            │
+           near: ─X─T──────X─@─T^-1─X─@─X────@─X^0.5─X─@─X^0.5────────
+                  │          │        │      │         │
+            far: ─@─Y^-0.5─T─X─T──────X─T^-1─X─T^-1────X─S─────X^-0.5─
+        """
+        a, b, c = control, near_target, far_target
+
+        t = common_gates.T
+        sweep_abc = [common_gates.CNOT(a, b),
+                     common_gates.CNOT(b, c)]
+
+        yield common_gates.CNOT(c, b)
+        yield common_gates.Y(c)**-0.5
+        yield t(a), t(b), t(c)
+        yield sweep_abc
+        yield t(b) ** -1, t(c)
+        yield sweep_abc
+        yield t(c) ** -1
+        yield sweep_abc
+        yield t(c) ** -1
+        yield common_gates.X(b)**0.5
+        yield sweep_abc
+        yield common_gates.S(c)
+        yield common_gates.X(b)**0.5
+        yield common_gates.X(c)**-0.5
 
     def matrix(self):
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]),
@@ -164,7 +235,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        return 'FREDKIN'
+        return 'cirq.FREDKIN'
 
 
 # Explicit names.

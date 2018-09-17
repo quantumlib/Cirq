@@ -26,7 +26,7 @@ def test_repr():
         repetitions=2,
         measurements={'m': np.array([[1, 2]])})
 
-    assert repr(v) == ("TrialResult(params=ParamResolver({'a': 2}), "
+    assert repr(v) == ("cirq.TrialResult(params=cirq.ParamResolver({'a': 2}), "
                        "repetitions=2, measurements={'m': array([[1, 2]])})")
 
 

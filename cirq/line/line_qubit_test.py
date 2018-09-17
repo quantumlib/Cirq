@@ -35,7 +35,7 @@ def test_str():
 
 
 def test_repr():
-    assert repr(LineQubit(5)) == 'LineQubit(5)'
+    assert repr(LineQubit(5)) == 'cirq.LineQubit(5)'
 
 
 def test_cmp():

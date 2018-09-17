@@ -15,7 +15,6 @@
 import pytest
 
 import cirq
-from cirq import ops
 from cirq.contrib.quirk.export_to_quirk import circuit_to_quirk_url
 
 
@@ -64,7 +63,7 @@ def test_various_known_gate_types():
         cirq.Z(a)**0.5,
         cirq.Y(a),
         cirq.Y(a)**-0.25,
-        cirq.RotYGate(half_turns=cirq.Symbol('t')).on(a),
+        cirq.Y(a)**cirq.Symbol('t'),
         cirq.H(a),
         cirq.measure(a),
         cirq.measure(a, b, key='not-relevant'),
@@ -144,7 +143,7 @@ def test_unrecognized_single_qubit_gate_with_matrix():
 
 
 def test_unknown_gate():
-    class UnknownGate(ops.Gate):
+    class UnknownGate(cirq.Gate):
         pass
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit.from_ops(UnknownGate()(a))

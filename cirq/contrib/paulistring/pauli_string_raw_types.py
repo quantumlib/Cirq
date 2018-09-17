@@ -18,7 +18,7 @@ from typing import (
 
 from cirq import ops, abc
 
-from cirq.contrib.paulistring import PauliString
+from cirq.ops.pauli_string import PauliString
 
 
 TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',

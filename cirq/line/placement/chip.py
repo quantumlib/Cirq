@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, TYPE_CHECKING
 
 from cirq.devices import GridQubit
-from cirq.google import XmonDevice
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq.google
 
 
 EDGE = Tuple[GridQubit, GridQubit]
@@ -25,10 +28,10 @@ def above(qubit: GridQubit) -> GridQubit:
     """Gives qubit with one unit less on the second coordinate.
 
     Args:
-      qubit: Reference qubit.
+        qubit: Reference qubit.
 
     Returns:
-      New translated qubit.
+        New translated qubit.
     """
     return GridQubit(qubit.row, qubit.col - 1)
 
@@ -37,10 +40,10 @@ def left_of(qubit: GridQubit) -> GridQubit:
     """Gives qubit with one unit less on the first coordinate.
 
     Args:
-      qubit: Reference qubit.
+        qubit: Reference qubit.
 
     Returns:
-      New translated qubit.
+        New translated qubit.
     """
     return GridQubit(qubit.row - 1, qubit.col)
 
@@ -49,10 +52,10 @@ def below(qubit: GridQubit) -> GridQubit:
     """Gives qubit with one unit more on the second coordinate.
 
     Args:
-      qubit: Reference qubit.
+        qubit: Reference qubit.
 
     Returns:
-      New translated qubit.
+        New translated qubit.
     """
     return GridQubit(qubit.row, qubit.col + 1)
 
@@ -61,43 +64,27 @@ def right_of(qubit: GridQubit) -> GridQubit:
     """Gives node with one unit more on the first coordinate.
 
     Args:
-      node: Reference node.
+        qubit: Reference node.
 
     Returns:
-      New translated node.
+        New translated node.
     """
     return GridQubit(qubit.row + 1, qubit.col)
 
 
-def yx_cmp(n: GridQubit, m: GridQubit) -> int:
-    """Comparator that compares first by second and then first coordinate.
-
-    Args:
-      n: Left operand.
-      m: Right operand.
-
-    Returns:
-      0 if qubits are equal, negative number if qubit n is less than m, and
-      positive otherwise.
-    """
-    a = (n.col, n.row)
-    b = (m.col, m.row)
-    return (a > b) - (a < b)
-
-
-def chip_as_adjacency_list(device: XmonDevice) -> Dict[
-    GridQubit, List[GridQubit]]:
+def chip_as_adjacency_list(device: 'cirq.google.XmonDevice',
+                           ) -> Dict[GridQubit, List[GridQubit]]:
     """Gives adjacency list representation of a chip.
 
     The adjacency list is constructed in order of above, left_of, below and
     right_of consecutively.
 
     Args:
-      c: Chip to be converted.
+        device: Chip to be converted.
 
     Returns:
-      Map from nodes to list of qubits which represent all the neighbours of
-      given qubit.
+        Map from nodes to list of qubits which represent all the neighbours of
+        given qubit.
     """
     c_set = set(device.qubits)
     c_adj = {} # type: Dict[GridQubit, List[GridQubit]]

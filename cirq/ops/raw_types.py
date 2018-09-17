@@ -40,7 +40,7 @@ class NamedQubit(QubitId):
         return self.name
 
     def __repr__(self):
-        return 'NamedQubit({})'.format(repr(self.name))
+        return 'cirq.NamedQubit({})'.format(repr(self.name))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -93,8 +93,8 @@ class Gate:
         self.validate_args(qubits)
         return gate_operation.GateOperation(self, list(qubits))
 
-    def __call__(self, *args):
-        return self.on(*args)
+    def __call__(self, *args, **kwargs):
+        return self.on(*args, **kwargs)
 
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')

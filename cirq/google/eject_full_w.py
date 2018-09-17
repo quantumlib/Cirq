@@ -17,8 +17,7 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 
-from cirq import circuits, ops, extension, value
-from cirq.google import decompositions
+from cirq import circuits, ops, extension, value, decompositions
 from cirq.google.xmon_gates import ExpZGate, ExpWGate, Exp11Gate
 
 if TYPE_CHECKING:

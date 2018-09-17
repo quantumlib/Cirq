@@ -2,11 +2,11 @@
 
 Choose your operating system:
 
-- [Installing on Linux](#Installing-on-Linux)
-- [Installing on Mac OS X](#Installing-on-Mac-OS-X)
-- [Installing on Windows](#Installing-on-Windows)
+- [Installing on Linux](#installing-on-linux)
+- [Installing on Mac OS X](#installing-on-mac-os-x)
+- [Installing on Windows](#installing-on-windows)
 
-If you want to create a development environment, see [docs/development.md](/docs/development.md).
+If you want to create a development environment, see [development.md](development.md).
 
 ---
 
@@ -91,7 +91,7 @@ If you want to create a development environment, see [docs/development.md](/docs
 3. Check that it works!
 
     ```bash
-    python -c 'import cirq; print(cirq.google.Foxtail)'
+    python -c "import cirq; print(cirq.google.Foxtail)"
     # should print:
     # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
     # │        │        │        │        │        │        │        │        │        │        │

@@ -21,13 +21,14 @@ import examples.place_on_bristlecone
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
-from examples.supremacy import generate_supremacy_circuit
+import examples.supremacy
+import examples.phase_estimator
 
 
 def test_generate_supremacy_circuit():
     device = cirq.google.Foxtail
 
-    circuit = generate_supremacy_circuit(device, cz_depth=6)
+    circuit = examples.supremacy.generate_supremacy_circuit(device, cz_depth=6)
     # Circuit should have 6 layers of 2 plus a final layer of 1 plus measures.
     assert len(circuit) == 14
 
@@ -44,9 +45,12 @@ def test_generate_supremacy_circuit():
 def test_generate_supremacy_circuit_seeding():
     device = cirq.google.Foxtail
 
-    circuit1 = generate_supremacy_circuit(device, cz_depth=6, seed=42)
-    circuit2 = generate_supremacy_circuit(device, cz_depth=6, seed=42)
-    circuit3 = generate_supremacy_circuit(device, cz_depth=6, seed=43)
+    circuit1 = examples.supremacy.generate_supremacy_circuit(
+        device, cz_depth=6, seed=42)
+    circuit2 = examples.supremacy.generate_supremacy_circuit(
+        device, cz_depth=6, seed=42)
+    circuit3 = examples.supremacy.generate_supremacy_circuit(
+        device, cz_depth=6, seed=43)
 
     assert circuit1 == circuit2
     assert circuit1 != circuit3
@@ -86,3 +90,6 @@ def test_example_runs_bcs_mean_field():
 def test_example_runs_grover():
     examples.grover.main()
 
+
+def test_example_runs_phase_estimator():
+    examples.phase_estimator.main()

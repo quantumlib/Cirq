@@ -103,4 +103,4 @@ class Duration:
         return '{}ps'.format(self._picos)
 
     def __repr__(self):
-        return 'Duration(picos={})'.format(repr(self._picos))
+        return 'cirq.Duration(picos={})'.format(repr(self._picos))
