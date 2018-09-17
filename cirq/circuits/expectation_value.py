@@ -20,9 +20,7 @@ import numpy as np
 from cirq.google import XmonSimulator, XmonMeasurementGate
 from cirq.circuits.circuit import Circuit
 from cirq.ops import RotXGate, RotYGate, MeasurementGate, Pauli, PauliString, \
-    NamedQubit, QubitId
-from cirq.devices import GridQubit
-from cirq.line import LineQubit
+    QubitId
 
 
 def measurement_gates(circuit: Circuit,
