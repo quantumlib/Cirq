@@ -134,8 +134,8 @@ class EigenGate(raw_types.Gate,
         if self.is_parameterized():
             raise ValueError("Parameterized. Don't have a known matrix.")
         e = cast(float, self._exponent)
-        return np.sum(1j**(half_turns * e * 2) * component
-                      for half_turns, component in self._eigen_components())
+        return sum(1j**(half_turns * e * 2) * component
+                   for half_turns, component in self._eigen_components())
 
     def extrapolate_effect(self: TSelf,
                            factor: Union[float, value.Symbol]) -> TSelf:
