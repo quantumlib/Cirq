@@ -15,8 +15,15 @@
 # imports
 import numpy as np
 import cirq
+import pytest
 from cirq.circuits.exponentiate import exponentiate_qubit_operator
 
+def test_op_type_error():
+    op = cirq.Pauli.Z
+
+    with pytest.raises(ValueError, match='Operator'):
+        exponentiate_qubit_operator(operator=op,
+                                    time=1, trotter_steps=1)
 
 def test_exponentiate_X():
 
