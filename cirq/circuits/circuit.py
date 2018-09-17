@@ -888,6 +888,19 @@ class Circuit(ops.ParameterizableEffect):
         """
         return (op for moment in self for op in moment.operations)
 
+    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+        """Converts the circuit into a unitary matrix, if possible.
+
+        If the circuit contains any non-terminal measurements, the conversion
+        into a unitary matrix fails (i.e. returns NotImplemented). Terminal
+        measurements are ignored when computing the unitary matrix. The unitary
+        matrix is the product of the unitary matrix of all operations in the
+        circuit (after expanding them to apply to the whole system).
+        """
+        if not self.are_all_measurements_terminal():
+            return NotImplemented
+        return self.to_unitary_matrix(ignore_terminal_measurements=True)
+
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
