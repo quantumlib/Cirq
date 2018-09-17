@@ -11,15 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import TYPE_CHECKING
 
-from cirq.google import XmonDevice
 from cirq.line.placement import greedy
 from cirq.line.placement.place_strategy import LinePlacementStrategy
 from cirq.line.placement.sequence import GridQubitLineTuple
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq.google
+
 
 def line_on_device(
-        device: XmonDevice,
+        device: 'cirq.google.XmonDevice',
         length: int,
         method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy()
 ) -> GridQubitLineTuple:

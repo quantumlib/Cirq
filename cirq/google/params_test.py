@@ -13,159 +13,276 @@
 # limitations under the License.
 import pytest
 
-from cirq.api.google.v1.params_pb2 import (
-    ParameterSweep,
-    ZipSweep,
-    SingleSweep,
-)
 from cirq.google import params
 from cirq.study.sweeps import Linspace, Points, Product, UnitSweep, Zip
 
 
 def test_gen_sweep_points():
     points = [0.5, 1.0, 1.5, 2.0, 2.5]
-    sweep = SingleSweep()
-    sweep.parameter_key = 'foo'
-    sweep.points.points.extend(points)
-    out = params._sweep_from_single_param_sweep(sweep)
+    sweep = {
+        'parameter_key': 'foo',
+        'points': {
+            'points': list(points)
+        }
+    }
+    out = params._sweep_from_single_param_sweep_proto_dict(sweep)
     assert out == Points('foo', [0.5, 1.0, 1.5, 2.0, 2.5])
 
 
 def test_gen_sweep_linspace():
-    sweep = SingleSweep()
-    sweep.parameter_key = 'bar'
-    sweep.linspace.first_point = 0
-    sweep.linspace.last_point = 10
-    sweep.linspace.num_points = 11
-    out = params._sweep_from_single_param_sweep(sweep)
-    assert out == Linspace('bar', 0, 10, 11)
+    sweep = {
+        'parameter_key': 'foo',
+        'linspace': {
+            'first_point': 0,
+            'last_point': 10,
+            'num_points': 11
+        }
+    }
+    out = params._sweep_from_single_param_sweep_proto_dict(sweep)
+    assert out == Linspace('foo', 0, 10, 11)
 
 
 def test_gen_param_sweep_zip():
-    sweep = ZipSweep()
-    s1 = sweep.sweeps.add()
-    s1.parameter_key = 'foo'
-    s1.points.points.extend([1, 2, 3])
-    s2 = sweep.sweeps.add()
-    s2.parameter_key = 'bar'
-    s2.points.points.extend([4, 5])
-    out = params._sweep_from_param_sweep_zip(sweep)
+    s1 = {
+        'parameter_key': 'foo',
+        'points': {
+            'points': [1, 2, 3]
+        }
+    }
+    s2 = {
+        'parameter_key': 'bar',
+        'points': {
+            'points': [4, 5]
+        }
+    }
+    sweep = {
+        'sweeps': [s1, s2]
+    }
+    out = params._sweep_from_param_sweep_zip_proto_dict(sweep)
     assert out == Points('foo', [1, 2, 3]) + Points('bar', [4, 5])
 
 
 def test_gen_empty_param_sweep():
-    ps = ParameterSweep()
-    out = params.sweep_from_proto(ps)
+    out = params.sweep_from_proto_dict({})
     assert out == UnitSweep
 
 
 def test_gen_param_sweep():
-    ps = ParameterSweep()
-    f1 = ps.sweep.factors.add()
-    s1 = f1.sweeps.add()
-    s1.parameter_key = 'foo'
-    s1.points.points.extend([1, 2, 3])
-    f2 = ps.sweep.factors.add()
-    s2 = f2.sweeps.add()
-    s2.parameter_key = 'bar'
-    s2.points.points.extend([4, 5])
-    out = params.sweep_from_proto(ps)
+    s1 = {
+        'parameter_key': 'foo',
+        'points': {
+            'points': [1, 2, 3]
+        }
+    }
+    s2 = {
+        'parameter_key': 'bar',
+        'points': {
+            'points': [4, 5]
+        }
+    }
+    ps = {
+        'sweep': {
+            'factors': [
+                {
+                    'sweeps': [s1]
+                },
+                {
+                    'sweeps': [s2]
+                }
+
+            ]
+        }
+    }
+    out = params.sweep_from_proto_dict(ps)
     assert out == Product(Zip(Points('foo', [1, 2, 3])),
                           Zip(Points('bar', [4, 5])))
 
 
 def test_empty_param_sweep_keys():
-    ps = ParameterSweep()
-    assert params.sweep_from_proto(ps).keys == []
+    assert params.sweep_from_proto_dict({}).keys == []
+
+
+def test_sweep_from_proto_dict_missing_type():
+    s1 = {
+        'parameter_key': 'foo',
+
+    }
+    ps = {
+        'sweep': {
+            'factors': [
+                {
+                    'sweeps': [s1]
+                },
+            ]
+        }
+    }
+    with pytest.raises(ValueError):
+        params.sweep_from_proto_dict(ps)
 
 
 def test_param_sweep_keys():
-    ps = ParameterSweep()
-    f1 = ps.sweep.factors.add()
-    s11 = f1.sweeps.add()
-    s11.parameter_key = 'foo'
-    s11.points.points.extend(range(5))
-    s12 = f1.sweeps.add()
-    s12.parameter_key = 'bar'
-    s12.points.points.extend(range(7))
-    f2 = ps.sweep.factors.add()
-    s21 = f2.sweeps.add()
-    s21.parameter_key = 'baz'
-    s21.points.points.extend(range(11))
-    s22 = f2.sweeps.add()
-    s22.parameter_key = 'qux'
-    s22.points.points.extend(range(13))
-    out = params.sweep_from_proto(ps)
+    s11 = {
+        'parameter_key': 'foo',
+        'points': {
+            'points': range(5)
+        },
+    }
+    s12 = {
+        'parameter_key': 'bar',
+        'points': {
+            'points': range(7)
+        },
+    }
+
+    s21 = {
+        'parameter_key': 'baz',
+        'points': {
+            'points': range(11)
+        },
+    }
+    s22 = {
+        'parameter_key': 'qux',
+        'points': {
+            'points': range(13)
+        }
+    }
+    ps = {
+        'sweep': {
+            'factors': [
+                {
+                    'sweeps': [s11, s12],
+                },
+                {
+                    'sweeps': [s21, s22]
+                }
+            ]
+        }
+    }
+    out = params.sweep_from_proto_dict(ps)
     assert out.keys == ['foo', 'bar', 'baz', 'qux']
 
 
 def test_empty_param_sweep_size():
-    ps = ParameterSweep()
-    assert len(params.sweep_from_proto(ps)) == 1
+    assert len(params.sweep_from_proto_dict({})) == 1
 
 
 def test_param_sweep_size():
-    ps = ParameterSweep()
-    f1 = ps.sweep.factors.add()
-    s11 = f1.sweeps.add()
-    s11.parameter_key = '11'
-    s11.linspace.num_points = 5
-    s12 = f1.sweeps.add()
-    s12.parameter_key = '12'
-    s12.points.points.extend(range(7))
-    f2 = ps.sweep.factors.add()
-    s21 = f2.sweeps.add()
-    s21.parameter_key = '21'
-    s21.linspace.num_points = 11
-    s22 = f2.sweeps.add()
-    s22.parameter_key = '22'
-    s22.points.points.extend(range(13))
-    assert len(params.sweep_from_proto(ps)) == 5 * 11
+    s11 = {
+        'parameter_key': '11',
+        'linspace': {
+            'first_point': 0,
+            'last_point': 10,
+            'num_points':  5
+        }
+    }
+    s12 = {
+        'parameter_key': '12',
+        'points': {
+            'points': range(7)
+        }
+    }
+    s21 = {
+        'parameter_key': '21',
+        'linspace': {
+            'first_point': 0,
+            'last_point': 10,
+            'num_points': 11
+        }
+    }
+    s22 = {
+        'parameter_key': '22',
+        'points': {
+            'points': range(13)
+        }
+    }
+    ps = {
+        'sweep': {
+            'factors': [
+                {
+                    'sweeps': [s11, s12],
+                },
+                {
+                    'sweeps': [s21, s22]
+                }
+            ]
+        }
+    }
+    # Sweeps sx1 and sx2 are zipped, so should use num number of points.
+    # These are then producted, so this should multiply number of points.
+    assert len(params.sweep_from_proto_dict(ps)) == 5 * 11
 
 
 def test_param_sweep_size_no_sweeps():
-    ps = ParameterSweep()
-    ps.sweep.factors.add()
-    ps.sweep.factors.add()
-    assert len(params.sweep_from_proto(ps)) == 0
+    ps = {
+        'sweep': {
+            'factors': [
+                {
+                },
+                {
+                }
+            ]
+        }
+    }
+    assert len(params.sweep_from_proto_dict(ps)) == 1
 
 
 def example_sweeps():
-    empty_sweep = ParameterSweep()
-
-    empty_product = ParameterSweep()
-
-    empty_zip = ParameterSweep()
-    empty_zip.sweep.factors.add()
-    empty_zip.sweep.factors.add()
-
-    full_sweep = ParameterSweep()
-    f1 = full_sweep.sweep.factors.add()
-    s11 = f1.sweeps.add()
-    s11.parameter_key = '11'
-    s11.linspace.first_point = 0
-    s11.linspace.last_point = 10
-    s11.linspace.num_points = 5
-    s12 = f1.sweeps.add()
-    s12.parameter_key = '12'
-    s12.points.points.extend(range(7))
-
-    f2 = full_sweep.sweep.factors.add()
-    s21 = f2.sweeps.add()
-    s21.parameter_key = '21'
-    s21.linspace.first_point = 0
-    s21.linspace.last_point = 10
-    s21.linspace.num_points = 11
-    s22 = f2.sweeps.add()
-    s22.parameter_key = '22'
-    s22.points.points.extend(range(13))
-
+    empty_sweep = {}
+    empty_product = {
+        'sweep': {}
+    }
+    empty_zip = {
+        'sweep': {
+            'factors': [{}, {}]
+        }
+    }
+    s11 = {
+        'parameter_key': '11',
+        'linspace': {
+            'first_point': 0,
+            'last_point': 10,
+            'num_points':  5
+        }
+    }
+    s12 = {
+        'parameter_key': '12',
+        'points': {
+            'points': range(7)
+        }
+    }
+    s21 = {
+        'parameter_key': '21',
+        'linspace': {
+            'first_point': 0,
+            'last_point': 10,
+            'num_points': 11
+        }
+    }
+    s22 = {
+        'parameter_key': '22',
+        'points': {
+            'points': range(13)
+        }
+    }
+    full_sweep = {
+        'sweep': {
+            'factors': [
+                {
+                    'sweeps': [s11, s12],
+                },
+                {
+                    'sweeps': [s21, s22]
+                }
+            ]
+        }
+    }
     return [empty_sweep, empty_product, empty_zip, full_sweep]
 
 
 @pytest.mark.parametrize('param_sweep', example_sweeps())
 def test_param_sweep_size_versus_gen(param_sweep):
-    sweep = params.sweep_from_proto(param_sweep)
+    sweep = params.sweep_from_proto_dict(param_sweep)
+    print(sweep)
     predicted_size = len(sweep)
     out = list(sweep)
     assert len(out) == predicted_size
@@ -213,9 +330,11 @@ def test_param_sweep_size_versus_gen(param_sweep):
         ),
     ),
 ])
-def test_sweep_to_proto(sweep, expected):
-    proto = params.sweep_to_proto(sweep)
-    out = params.sweep_from_proto(proto)
+
+
+def test_sweep_to_proto_dict(sweep, expected):
+    proto = params.sweep_to_proto_dict(sweep)
+    out = params.sweep_from_proto_dict(proto)
     assert out == expected
 
 
@@ -224,4 +343,4 @@ def test_sweep_to_proto(sweep, expected):
 ])
 def test_sweep_to_proto_fail(bad_sweep):
     with pytest.raises(ValueError):
-        params.sweep_to_proto(bad_sweep)
+        params.sweep_to_proto_dict(bad_sweep)

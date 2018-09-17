@@ -17,10 +17,10 @@ import random
 from typing import Callable, Iterable
 
 import cirq
-from cirq import devices, google
+import cirq.google as cg
 
 
-def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
+def generate_supremacy_circuit(device: cg.XmonDevice, cz_depth: int,
                                seed: int = None, measure: bool = True,
                                ) -> cirq.Circuit:
 
@@ -39,22 +39,22 @@ def generate_supremacy_circuit(device: google.XmonDevice, cz_depth: int,
 
     circuit.append(_make_random_single_qubit_op_layer(device, randint))
     if measure:
-        circuit.append([google.XmonMeasurementGate(key='').on(*device.qubits)])
+        circuit.append([cg.XmonMeasurementGate(key='').on(*device.qubits)])
 
     return circuit
 
 
 def _make_random_single_qubit_op_layer(
-        device: google.XmonDevice,
+        device: cg.XmonDevice,
         randint: Callable[[int, int], int]) -> Iterable[cirq.Operation]:
     for q in device.qubits:
         angle = randint(0, 3) / 2
         axis = randint(0, 7) / 4
         if angle:
-            yield google.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
+            yield cg.ExpWGate(half_turns=angle, axis_half_turns=axis).on(q)
 
 
-def _make_cz_layer(device: google.XmonDevice, layer_index: int
+def _make_cz_layer(device: cg.XmonDevice, layer_index: int
                    ) -> Iterable[cirq.Operation]:
     """
     Each layer index corresponds to a shift/transpose of this CZ pattern:
@@ -99,10 +99,10 @@ def _make_cz_layer(device: google.XmonDevice, layer_index: int
     shift = (layer_index >> 1) % 4
 
     for q in device.qubits:
-        q2 = devices.GridQubit(q.row + dir_row, q.col + dir_col)
+        q2 = cirq.GridQubit(q.row + dir_row, q.col + dir_col)
         if q2 not in device.qubits:
             continue  # This edge isn't on the device.
         if (q.row * (2 - dir_row) + q.col * (2 - dir_col)) % 4 != shift:
             continue  # No CZ along this edge for this layer.
 
-        yield google.Exp11Gate().on(q, q2)
+        yield cg.Exp11Gate().on(q, q2)

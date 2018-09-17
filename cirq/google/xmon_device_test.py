@@ -55,6 +55,19 @@ def test_init():
         _ = d.duration_of(cirq.Gate().on(q00))
 
 
+@cirq.testing.only_test_in_python3
+def test_repr():
+    d = square_device(2, 2, holes=[])
+
+    assert repr(d) == ("XmonDevice("
+                       "measurement_duration=cirq.Duration(picos=1000), "
+                       "exp_w_duration=cirq.Duration(picos=2000), "
+                       "exp_11_duration=cirq.Duration(picos=3000) "
+                       "qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), "
+                       "cirq.GridQubit(1, 0), "
+                       "cirq.GridQubit(1, 1)])")
+
+
 def test_can_add_operation_into_moment():
     d = square_device(2, 2)
     q00 = cirq.GridQubit(0, 0)
@@ -126,7 +139,8 @@ def test_validate_operation_supported_gate():
     d.validate_operation(cirq.GateOperation(cg.ExpZGate(),
                                             [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
-        d.validate_operation(cirq.GateOperation(MyGate, [cirq.GridQubit(0, 0)]))
+        d.validate_operation(cirq.GateOperation(
+            MyGate, [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(NotImplementedOperation())
 
@@ -204,7 +218,7 @@ def test_xmon_device_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: square_device(3, 3))
     eq.make_equality_group(
-        lambda: square_device(3, 3,holes=[cirq.GridQubit(1, 1)]))
+        lambda: square_device(3, 3, holes=[cirq.GridQubit(1, 1)]))
     eq.make_equality_group(
         lambda: cg.XmonDevice(cirq.Duration(nanos=1), cirq.Duration(nanos=2),
                               cirq.Duration(nanos=3), []))

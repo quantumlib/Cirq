@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension, value
+from cirq import extension, protocols, value
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
-    gate_features.KnownMatrix,
     gate_features.ParameterizableEffect,
     gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
@@ -50,7 +49,6 @@ class GateOperation(raw_types.Operation,
                         gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
-                        gate_features.KnownMatrix,
                         gate_features.ParameterizableEffect,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
@@ -85,7 +83,15 @@ class GateOperation(raw_types.Operation,
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
-        return 'GateOperation({!r}, {!r})'.format(self.gate, self.qubits)
+        # Abbreviate when possible.
+        if self == self.gate.on(*self.qubits):
+            return '{!r}.on({})'.format(
+                self.gate,
+                ', '.join(repr(q) for q in self.qubits))
+
+        return 'cirq.GateOperation(gate={!r}, qubits={!r})'.format(
+            self.gate,
+            list(self.qubits))
 
     def __str__(self):
         return '{}({})'.format(self.gate,
@@ -136,9 +142,8 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
-    def matrix(self) -> np.ndarray:
-        cast_gate = extension.cast(gate_features.KnownMatrix, self.gate)
-        return cast_gate.matrix()
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+        return protocols.unitary(self._gate, NotImplemented)
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

@@ -18,13 +18,13 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.circuits import (
     Circuit,
     PointOptimizer,
     PointOptimizationSummary,
 )
-from cirq.extension import Extensions
+from cirq.google import convert_to_xmon_gates
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.google.xmon_gates import XmonGate
 
@@ -32,56 +32,58 @@ from cirq.google.xmon_gates import XmonGate
 class MergeRotations(PointOptimizer):
     """Combines adjacent constant single-qubit rotations."""
 
-    def __init__(self,
-                 tolerance: float = 1e-8,
-                 extensions = None) -> None:
+    def __init__(self, tolerance: float = 1e-8) -> None:
+        super().__init__()
         self.tolerance = tolerance
-        self.extensions = extensions or Extensions()
 
     def optimization_at(self, circuit, index, op):
         if len(op.qubits) != 1:
             return
 
-        indices, gates = self._scan_single_qubit_ops(circuit, index,
-                                                     op.qubits[0])
-        if not gates or (len(gates) == 1 and isinstance(gates[0], XmonGate)):
+        indices, operations = self._scan_single_qubit_ops(
+            circuit, index, op.qubits[0])
+        if not operations or (
+                len(operations) == 1 and XmonGate.is_xmon_op(operations[0])):
             return
 
         # Replace the gates with a max-2-op XY + Z construction.
-        operations = self._merge_rotations(op.qubits[0], gates)
+        new_operations = self._merge_rotations(op.qubits[0], operations)
+
+        converter = convert_to_xmon_gates.ConvertToXmonGates()
+        new_xmon_operations = [converter.convert(new_op)
+                               for new_op in new_operations]
 
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=operations)
+            new_operations=new_xmon_operations)
 
     def _scan_single_qubit_ops(
             self,
             circuit: Circuit,
             index: Optional[int],
-            qubit: ops.QubitId) -> Tuple[List[int], List[ops.KnownMatrix]]:
-        operations = []  # type: List[ops.KnownMatrix]
+            qubit: ops.QubitId) -> Tuple[List[int], List[ops.Operation]]:
+        operations = []  # type: List[ops.Operation]
         indices = []  # type: List[int]
         while index is not None:
             op = cast(ops.Operation, circuit.operation_at(qubit, index))
             if len(op.qubits) != 1:
                 break
-            operation = self.extensions.try_cast(ops.KnownMatrix, op)
-            if operation is None:
+            if protocols.unitary(op, None) is None:
                 break
             indices.append(index)
-            operations.append(operation)
+            operations.append(op)
             index = circuit.next_moment_operating_on([qubit], index + 1)
         return indices, operations
 
     def _merge_rotations(
             self,
             qubit: ops.QubitId,
-            operations: Iterable[ops.KnownMatrix]
+            operations: Iterable[ops.Operation]
     ) -> List[ops.Operation]:
         matrix = np.eye(2, dtype=np.complex128)
         for op in operations:
-            matrix = np.dot(op.matrix(), matrix)
+            matrix = np.dot(protocols.unitary(op), matrix)
 
         out_gates = single_qubit_matrix_to_native_gates(matrix, self.tolerance)
         return [gate(qubit) for gate in out_gates]
