@@ -20,7 +20,7 @@ from cirq.circuits.expectation_value import expectation_from_sampling
 
 
 def test_sampling_ZZ():
-    # op = {((0, 'Z'), (1, 'Z')): 1}
+
     qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
     op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
                                             qubits[1]: (cirq.Pauli.Z)}): 1}

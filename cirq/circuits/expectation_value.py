@@ -14,28 +14,30 @@
 
 """Expectation value tool for pauli operators given a circuit"""
 
-# imports
 from typing import Dict, Union
 
 import numpy as np
 from cirq.google import XmonSimulator, XmonMeasurementGate
-from cirq.circuits import Circuit
-from cirq.ops import RotXGate, RotYGate, MeasurementGate, Pauli, PauliString
+from cirq.circuits.circuit import Circuit
+from cirq.ops import RotXGate, RotYGate, MeasurementGate, Pauli, PauliString, \
+    NamedQubit, QubitId
 from cirq.devices import GridQubit
 from cirq.line import LineQubit
-from cirq.ops import NamedQubit
 
 
-# Helper Function to add measurement gates to qubits
 def measurement_gates(circuit: Circuit,
-                      q_dict: Dict[Union[NamedQubit, GridQubit, LineQubit],
+                      q_dict: Dict[QubitId,
                                    Union[int, str]]):
     """
-    circuit: cirq.Circuit to add measurements to
-    q_dict: dictionary of qubits, keys are integers or strings,
-        values are corresponding qubits
+    Helper Function to add measurement gates to qubits
 
-    return: circuit with measurements added
+    Args:
+        circuit: cirq.Circuit to add measurements to
+        q_dict: dictionary of qubits, keys are integers or strings,
+            values are corresponding qubits
+
+    Returns:
+         circuit with measurements added
     """
     meas = [XmonMeasurementGate(key=index).on(
         qubit) for qubit, index in q_dict.items()]
@@ -47,15 +49,13 @@ def measurement_gates(circuit: Circuit,
 
 def expectation_from_sampling(circuit: Circuit,
                               operator: Dict[PauliString, float],
-                              n_samples: int=100,
-                              quadratic_z: bool =False):
+                              n_samples: int):
     """
     Calculates the expactation value of cost function (operator)
 
     Args:
         circuit: circ.Circuit type which prepares the state we are interested
                  in calculating the expectation value of operator
-
         operator: Operator input as a dictionary where keys are
                     cirq.ops.PauliString type and values are coefficients
                   example:
@@ -64,14 +64,7 @@ def expectation_from_sampling(circuit: Circuit,
                   paulistring2 = cirq.PauliString(qubit_pauli_map=
                     {qubits[0]:cirq.Pauli.Z, qubits[2]: (cirq.Pauli.Y)})
                   operator = {paulistring: 1.234, paulistring2: -5.678}
-
-                sampling is for future incorporation with QPU (not simulator)
-
         n_samples: number of runs for sampling
-
-        quadratic_z: Boolean that determines whether operator only has terms
-                     quadratic in Pauli Z
-                     If true, computation is faster
 
     Returns:
         expectation value of operator argument
@@ -84,6 +77,26 @@ def expectation_from_sampling(circuit: Circuit,
     # remove measurements from circuit such that appropriate rotations
     # can be applied, measurements are added later
     circuit = no_meas(circuit)
+
+    # check if operator is quadratic in Pauli Z:
+    quadratic_z = True
+    zz = [Pauli.Z, Pauli.Z]
+    for key in operator.keys():
+        if (len(key) != 2):
+            quadratic_z = False
+            break
+        if list(key.values()) != zz:
+            quadratic_z = False
+            break
+
+    # if operator is only of the form ZZ then call helper function
+    if quadratic_z:
+
+        expectation = _expectation_from_sampling_assuming_quadratic(circuit,
+                                                                    operator,
+                                                                    n_samples)
+        return expectation
+
 
     # For general operators, the expectation value by sampling
     # over n_samples circuit runs is computed here
@@ -129,8 +142,8 @@ def expectation_from_sampling(circuit: Circuit,
             operator_meas = 1
 
             for qubit_key in results.measurements.keys():
-                operator_meas *= results.measurements[qubit_key][:, 0].astype(
-                    int) * (-2) + 1
+                operator_meas *= results.measurements[qubit_key][:, 0] \
+                                 * (-2) + 1
 
             mean_measurement = np.mean(operator_meas)
 
@@ -141,90 +154,113 @@ def expectation_from_sampling(circuit: Circuit,
 
         return expectation
 
-    if quadratic_z:
 
-        # Check whether circuit already has measurement gates:
-        # only applicable if calculating expectation by measurement
+def _expectation_from_sampling_assuming_quadratic(
+        circuit: Circuit,
+        operator: Dict[PauliString, float],
+        n_samples: int):
+    """
+    Helper function that calculates expectation value if operator is
+    quadratic and contains only Pauli Z operators.
 
-        last_moment_index = len(circuit) - 1
-        last_operations = circuit[last_moment_index].operations
+    Args:
+        circuit: circ.Circuit type which prepares the state we are interested
+                 in calculating the expectation value of operator
+        operator: Operator input as a dictionary where keys are
+                    cirq.ops.PauliString type and values are coefficients
+                  example:
+                  paulistring = cirq.PauliString(qubit_pauli_map=
+                    {qubits[0]:cirq.Pauli.X, qubits[1]: (cirq.Pauli.Z)})
+                  paulistring2 = cirq.PauliString(qubit_pauli_map=
+                    {qubits[0]:cirq.Pauli.Z, qubits[2]: (cirq.Pauli.Y)})
+                  operator = {paulistring: 1.234, paulistring2: -5.678}
+        n_samples: number of runs for sampling
 
-        measurement_qubits = list(qubits)
-        indices_measurement = list(range(len(qubits)))
+    Returns:
+        expectation value of operator argument
+    """
 
-        for operation in last_operations:
-            if MeasurementGate.is_measurement(operation):
-                measurement_qubits.remove(operation.qubits[0])
-                indices_measurement.remove(qubits.index(operation.qubits[0]))
+    qubits = list(circuit.all_qubits())
+    sim = XmonSimulator()
 
-        assert len(indices_measurement) == len(
-            measurement_qubits), 'Indices do not match qubits'
+    # Check whether circuit already has measurement gates:
+    last_moment_index = len(circuit) - 1
+    last_operations = circuit[last_moment_index].operations
 
-        q_dict = {}
-        for index in indices_measurement:
-            q_dict[measurement_qubits[index]] = index
+    measurement_qubits = list(qubits)
+    indices_measurement = list(range(len(qubits)))
 
-        # add measurement gate to appropriate qubits
+    for operation in last_operations:
+        if MeasurementGate.is_measurement(operation):
+            measurement_qubits.remove(operation.qubits[0])
+            indices_measurement.remove(qubits.index(operation.qubits[0]))
 
-        circuit = measurement_gates(circuit, q_dict)
+    assert len(indices_measurement) == len(
+        measurement_qubits), 'Indices do not match qubits'
 
-        # run circuit and store results
-        results = sim.run(circuit, repetitions=n_samples)
-        results_dict = results.measurements
+    q_dict = {}
+    for index in indices_measurement:
+        q_dict[measurement_qubits[index]] = index
 
-        identity_coeficient = 0
-        expectation_samples = []
-        for rep in range(n_samples):
-            rep_term = rep
-            expectation = 0
+    # add measurement gate to appropriate qubits
 
-            # loop over terms in cost function
-            for term, coef in operator.items():
-                # skip over identity terms
-                if len(term) == 0:
-                    identity_coeficient = coef
-                    continue
+    circuit = measurement_gates(circuit, q_dict)
 
-                # here we enforce that hamiltonian is quadratic in pauli.Z
+    # run circuit and store results
+    results = sim.run(circuit, repetitions=n_samples)
+    results_dict = results.measurements
 
-                # no more than 2 terms
-                assert len(term) <= 2, \
-                    'quadratic_z flag only accepts quadratic Operators'
+    identity_coeficient = 0
+    expectation_samples = []
+    for rep in range(n_samples):
+        rep_term = rep
+        expectation = 0
 
-                # enforce that operators are pauli.Z
-                # first create a pauli string of Z acting on same qubits
-                z_paulis = {}
-                for qubit in term.keys():
-                    z_paulis[qubit] = Pauli.Z
+        # loop over terms in cost function
+        for term, coef in operator.items():
+            # skip over identity terms
+            if len(term) == 0:
+                identity_coeficient = coef
+                continue
 
-                new_pauli_string = PauliString(qubit_pauli_map=z_paulis)
+            # here we enforce that hamiltonian is quadratic in pauli.Z
 
-                # enforce commutativity with new string
-                assert term.commutes_with(new_pauli_string), \
-                    'Operator must be diagonal in computational basis' \
-                    'and can only contain Pauli.Z is quadratic_z == True'
+            # no more than 2 terms
+            assert len(term) <= 2, \
+                'quadratic_z flag only accepts quadratic Operators'
 
-                # caculates expectation
+            # enforce that operators are pauli.Z
+            # first create a pauli string of Z acting on same qubits
+            z_paulis = {}
+            for qubit in term.keys():
+                z_paulis[qubit] = Pauli.Z
 
-                q1 = q_dict[list(term.qubits())[0]]
-                if len(term) == 2:
-                    q2 = q_dict[list(term.qubits())[1]]
-                else:
-                    q2 = q1
+            new_pauli_string = PauliString(qubit_pauli_map=z_paulis)
 
-                x1 = int(results_dict[q1][rep_term][0])
-                x2 = int(results_dict[q2][rep_term][0])
+            # enforce commutativity with new string
+            assert term.commutes_with(new_pauli_string), \
+                'Operator must be diagonal in computational basis' \
+                'and can only contain Pauli.Z is quadratic_z == True'
 
-                expectation += x1 * coef * x2
+            # caculates expectation
 
-            expectation_samples.append(expectation)
+            q1 = q_dict[list(term.qubits())[0]]
+            if len(term) == 2:
+                q2 = q_dict[list(term.qubits())[1]]
+            else:
+                q2 = q1
 
-        expectation_mean = np.mean(expectation_samples) + identity_coeficient
+            x1 = -2 * int(results_dict[q1][rep_term][0]) + 1
+            x2 = -2 * int(results_dict[q2][rep_term][0]) + 1
+            print(x1,x2)
 
-        # if print_runs:
-        #    print('current cost is = ', expectation_mean)
+            expectation += x1 * coef * x2
 
-        return expectation_mean
+        expectation_samples.append(expectation)
+
+    expectation_mean = np.mean(expectation_samples) + identity_coeficient
+
+    return expectation_mean
 
 
 def expectation_value(circuit: Circuit,
