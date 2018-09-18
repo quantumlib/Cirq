@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops, extension, linalg, protocols
+from cirq import ops, linalg, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
