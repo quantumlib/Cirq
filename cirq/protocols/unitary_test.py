@@ -26,11 +26,11 @@ def test_unitary():
         pass
 
     class ReturnsNotImplemented:
-        def _unitary_(self):
+        def _unitary_(self) -> type(NotImplemented):
             return NotImplemented
 
     class ReturnsMatrix:
-        def _unitary_(self):
+        def _unitary_(self) -> np.ndarray:
             return m
 
     with pytest.raises(TypeError, match='no _unitary_ method'):
