@@ -18,7 +18,7 @@ from typing import Iterable, List, Tuple, cast, Optional
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import ops, extension, linalg, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -27,9 +27,12 @@ from cirq.circuits.optimization_pass import (
 
 
 class MergeSingleQubitGates(PointOptimizer):
-    """Combines adjacent constant single-qubit rotations into
-    SingleQubitMatrixGates.
-    """
+    """Combines adjacent 1-qubit operations into one SingleQubitMatrixGate."""
+
+    def __init__(self,
+                 extensions: extension.Extensions = None) -> None:
+        super().__init__()
+        self.extensions = extensions or extension.Extensions()
 
     def optimization_at(self,
                         circuit: Circuit,
@@ -38,44 +41,41 @@ class MergeSingleQubitGates(PointOptimizer):
                         ) -> Optional[PointOptimizationSummary]:
         if len(op.qubits) != 1:
             return None
+        q = op.qubits[0]
 
-        indices, gates = self._scan_single_qubit_ops(circuit, index,
-                                                     op.qubits[0])
-        if not gates:
+        indices, operations = _scan_single_qubit_ops(circuit, index, q)
+        if not operations:
             return None
 
-        # Replace the gates with a max-2-op XY + Z construction.
-        operations = self._merge_rotations(op.qubits[0], gates)
+        single_op = _merge_into_matrix_gate_op(q, operations)
 
         return PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=operations)
+            new_operations=[single_op])
 
-    def _scan_single_qubit_ops(self,
-                               circuit: Circuit,
-                               index: Optional[int],
-                               qubit: ops.QubitId
-                               ) -> Tuple[List[int], List[ops.Operation]]:
-        operations = []  # type: List[ops.Operation]
-        indices = []  # type: List[int]
-        while index is not None:
-            op = cast(ops.Operation, circuit.operation_at(qubit, index))
-            if len(op.qubits) != 1:
-                break
-            if protocols.unitary(op, None) is None:
-                break
-            indices.append(index)
-            operations.append(op)
-            index = circuit.next_moment_operating_on([qubit], index + 1)
-        return indices, operations
 
-    def _merge_rotations(self,
-                         qubit: ops.QubitId,
-                         operations: Iterable[ops.Operation]
-                         ) -> List[ops.Operation]:
-        matrix = np.eye(2, dtype=np.complex128)
-        for op in operations:
-            matrix = np.dot(protocols.unitary(op), matrix)
+def _scan_single_qubit_ops(circuit: Circuit,
+                           index: Optional[int],
+                           qubit: ops.QubitId
+                           ) -> Tuple[List[int], List[ops.Operation]]:
+    operations = []  # type: List[ops.Operation]
+    indices = []  # type: List[int]
+    while index is not None:
+        op = cast(ops.Operation, circuit.operation_at(qubit, index))
+        if len(op.qubits) != 1 or protocols.unitary(op, None) is None:
+            break
+        indices.append(index)
+        operations.append(op)
+        index = circuit.next_moment_operating_on([qubit], index + 1)
+    return indices, operations
 
-        return [ops.SingleQubitMatrixGate(matrix)(qubit)]
+
+def _merge_into_matrix_gate_op(qubit: ops.QubitId,
+                               operations: Iterable[ops.Operation]
+                               ) -> ops.Operation:
+    matrix = linalg.dot(
+        np.eye(2, dtype=np.complex128),
+        *(reversed([protocols.unitary(op) for op in operations]))
+    )
+    return ops.SingleQubitMatrixGate(matrix).on(qubit)

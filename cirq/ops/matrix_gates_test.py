@@ -29,7 +29,7 @@ QFT2 = np.array([[1, 1, 1, 1],
 def test_single_qubit_init():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = cirq.SingleQubitMatrixGate(m)
-    assert np.alltrue(cirq.unitary(x2) == m)
+    assert np.alltrue(x2.matrix == m)
 
 
 def test_single_qubit_eq():
@@ -74,7 +74,7 @@ def test_single_qubit_extrapolate():
     x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = cirq.SingleQubitMatrixGate(
         np.array([[1, 1j], [1j, 1]]) * (1 - 1j) / 2)
-    x2i = cirq.SingleQubitMatrixGate(np.conj(cirq.unitary(x2).T))
+    x2i = cirq.SingleQubitMatrixGate(np.conj(x2.matrix.T))
 
     assert x.extrapolate_effect(0).approx_eq(i)
     assert x2.extrapolate_effect(0).approx_eq(i)
@@ -93,6 +93,7 @@ def test_single_qubit_extrapolate():
 
 def test_two_qubit_init():
     x2 = cirq.TwoQubitMatrixGate(QFT2)
+    assert np.alltrue(x2.matrix == QFT2)
     assert np.alltrue(cirq.unitary(x2) == QFT2)
 
 

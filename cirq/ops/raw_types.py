@@ -26,7 +26,11 @@ if TYPE_CHECKING:
 class QubitId:
     """Identifies a qubit. Child classes provide specific types of qubits.
 
-    Child classes must be equatable and hashable."""
+    Child classes should:
+    - implement __eq__ and __ne__ (value equality semantics).
+    - implement __hash__ (usable as dictionary keys).
+    - implement __str__ and __repr__ (describable in circuit diagrams).
+    """
     pass
 
 
