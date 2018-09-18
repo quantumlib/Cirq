@@ -17,8 +17,6 @@ from typing import Any, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import extension
-from cirq.ops.gate_features import KnownMatrix
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -43,6 +41,14 @@ class SupportsUnitary(Protocol):
         return NotImplemented is useful when a class cannot know if it has a
         matrix until runtime, e.g. cirq.X**c normally has a matrix but
         cirq.X**cirq.Symbol('a') doesn't.)
+
+        The order of cells in the matrix is always implicit with respect to the
+        object being called. For example, for gates the matrix must be ordered
+        with respect to the list of qubits that the gate is applied to. For
+        operations, the matrix is ordered to match the list returned by its
+        `qubits` attribute. The qubit-to-amplitude order mapping matches the
+        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        than the qubit B.
 
         Returns:
             A unitary matrix describing this value, or NotImplemented if there
@@ -72,11 +78,6 @@ def unitary(val: Any,
     """
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()
-
-    # Temporary compatibility shim for classes using KnownMatrix.
-    if result is NotImplemented:
-        known = extension.try_cast(KnownMatrix, val)
-        result = NotImplemented if known is None else known.matrix()
 
     if result is not NotImplemented:
         return result
