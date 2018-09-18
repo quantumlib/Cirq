@@ -201,6 +201,8 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    apply_unitary_to_tensor,
+    SupportsApplyUnitaryToTensor,
     SupportsUnitary,
     unitary,
 )

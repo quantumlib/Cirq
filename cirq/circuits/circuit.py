@@ -1324,17 +1324,22 @@ def _apply_unitary_circuit(circuit: Circuit,
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=np.complex128)
-    for mat, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = mat.astype(np.complex128).reshape((2,) * (2 * len(qs)))
+    for op, qs in _extract_unitaries(circuit.all_operations(), ext):
         indices = [qubit_map[q] for q in qs]
-        linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
-        state, buffer = buffer, state
+        result = protocols.apply_unitary_to_tensor(
+            val=op,
+            target_tensor=state,
+            available_buffer=buffer,
+            axes=indices)
+        if result is buffer:
+            buffer = state
+        state = result
     return state
 
 
 def _extract_unitaries(operations: Iterable[ops.Operation],
                        ext: extension.Extensions
-                       ) -> Iterable[Tuple[np.ndarray,
+                       ) -> Iterable[Tuple[Any,
                                            Tuple[ops.QubitId, ...]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
     """
@@ -1342,7 +1347,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
         # Check if the operation has a known matrix.
         matrix = protocols.unitary(op, None)
         if matrix is not None:
-            yield matrix, op.qubits
+            yield op, op.qubits
             continue
 
         # If not, check if it has a decomposition.

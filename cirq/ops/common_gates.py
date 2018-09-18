@@ -13,12 +13,63 @@
 # limitations under the License.
 
 """Quantum gates that are commonly used in the literature."""
-from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
+from typing import Union, Tuple, Optional, List, Callable, cast, Iterable, \
+    Sequence, Any
 
 import numpy as np
 
 from cirq import value
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+
+
+def sub_slice(index_bits: int, index_axes: Sequence[int]
+              ) -> Tuple[Union[slice, int, type(...)], ...]:
+    result = [slice(None)] * (max(index_axes) + 2)
+    for k, axis in enumerate(index_axes):
+        result[axis] = (index_bits >> k) & 1
+    result[-1] = ...
+    return tuple(result)
+
+
+def apply_phased_permutation_to_tensor(
+        func: Callable[[int], Tuple[int, complex]],
+        tensor: np.ndarray,
+        axes: Sequence[int],
+        out: Optional[np.ndarray] = None,
+        ) -> Union[np.ndarray, type(NotImplemented)]:
+
+        if out is None:
+            out = np.empty(dtype=tensor.dtype, shape=tensor.shape)
+
+        for index_in in range(1 << len(axes)):
+            index_out, phase_factor = func(index_in)
+            slice_out = sub_slice(index_out, axes)
+            slice_in = sub_slice(index_in, axes)
+            out[slice_out] = tensor[slice_in]
+            if phase_factor != 1:
+                out[slice_out] *= phase_factor
+
+        return out
+
+
+def apply_phases_to_tensor(
+        func: Callable[[int], complex],
+        tensor: np.ndarray,
+        axes: Sequence[int],
+        out: Optional[np.ndarray] = None,
+) -> np.ndarray:
+
+    if out is None:
+        out = np.copy(tensor)
+    else:
+        out[...] = tensor
+
+    for k in range(1 << len(axes)):
+        phase_factor = func(k)
+        if phase_factor != 1:
+            out[sub_slice(k, axes)] *= phase_factor
+
+    return out
 
 
 class Rot11Gate(eigen_gate.EigenGate,
@@ -57,6 +108,18 @@ class Rot11Gate(eigen_gate.EigenGate,
             (0, np.diag([1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 1])),
         ]
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.is_parameterized():
+            return NotImplemented
+
+        c = np.exp(1j * np.pi * self.half_turns)
+        target_tensor[sub_slice(3, axes)] *= c
+        return target_tensor
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -122,6 +185,19 @@ class RotXGate(eigen_gate.EigenGate,
             half_turns=half_turns,
             rads=rads,
             degs=degs))
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+        zero = sub_slice(0, axes)
+        one = sub_slice(1, axes)
+        available_buffer[zero] = target_tensor[one]
+        available_buffer[one] = target_tensor[zero]
+        return available_buffer
 
     def _eigen_components(self):
         return [
@@ -263,6 +339,19 @@ class RotZGate(eigen_gate.EigenGate,
             half_turns=half_turns,
             rads=rads,
             degs=degs))
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.is_parameterized():
+            return NotImplemented
+
+        one = sub_slice(1, axes)
+        c = np.exp(1j * np.pi * self.half_turns)
+        target_tensor[one] *= c
+        return target_tensor
 
     def _eigen_components(self):
         return [
@@ -539,6 +628,22 @@ class HGate(eigen_gate.EigenGate,
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zero = sub_slice(0, axes)
+        one = sub_slice(1, axes)
+        target_tensor[one] -= target_tensor[zero]
+        target_tensor[one] *= -0.5
+        target_tensor[zero] -= target_tensor[one]
+        target_tensor *= np.sqrt(2)
+        return target_tensor
 
     def default_decompose(self, qubits):
         q = qubits[0]

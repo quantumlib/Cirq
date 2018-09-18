@@ -17,3 +17,7 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
 )
+from cirq.protocols.apply_unitary_to_tensor import (
+    SupportsApplyUnitaryToTensor,
+    apply_unitary_to_tensor,
+)
