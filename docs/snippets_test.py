@@ -30,9 +30,8 @@ if TYPE_CHECKING:
 def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
     readme_path = os.path.join(
-        os.path.dirname(__file__),  # Start at this file's directory.
-        '..', 'docs',  # Hacky check that we're under docs/.
-        '..', 'README.rst')     # Get the readme one level up.
+        os.path.split(os.path.dirname(__file__))[0], 'README.rst')
+    assert readme_path is not None
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 

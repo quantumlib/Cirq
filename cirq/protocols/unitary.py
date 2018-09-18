@@ -42,6 +42,14 @@ class SupportsUnitary(Protocol):
         matrix until runtime, e.g. cirq.X**c normally has a matrix but
         cirq.X**cirq.Symbol('a') doesn't.)
 
+        The order of cells in the matrix is always implicit with respect to the
+        object being called. For example, for gates the matrix must be ordered
+        with respect to the list of qubits that the gate is applied to. For
+        operations, the matrix is ordered to match the list returned by its
+        `qubits` attribute. The qubit-to-amplitude order mapping matches the
+        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        than the qubit B.
+
         Returns:
             A unitary matrix describing this value, or NotImplemented if there
             is no such matrix.
