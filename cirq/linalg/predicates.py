@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
+from typing import Sequence, Union, Tuple
 
 import numpy as np
 
@@ -189,3 +190,40 @@ def allclose_up_to_global_phase(
 
     # Should now be equivalent.
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+
+def binary_sub_tensor_slice(index_bits: int,
+                            index_axes: Sequence[int],
+                            ) -> Tuple[Union[slice, int, type(...)], ...]:
+    """Returns an index corresponding to a desired subset of an np.ndarray.
+
+    Example:
+        # A '4 qubit' tensor with values from 0 to 15.
+        r = np.array(range(16)).reshape((2,) * 4)
+
+        # We want to index into the subset where qubit #1 and qubit #3 are ON.
+        s = cirq.binary_indexed_tensor_slice(0b11, [1, 3])
+        print(s)
+        # (slice(None, None, None), 1, slice(None, None, None), 1, Ellipsis)
+
+        # Get that subset. It corresponds to numbers of the form 0b*1*1.
+        print(r[s])
+        # [[ 5  7]
+        #  [13 15]]
+
+    Args:
+        index_bits: An integer whose bits specify what index to enter for each
+            axis.
+        index_axes: The axes that are specified by the index bits. All other
+            axes are unconstrained.
+
+    Returns:
+        An index object that will slice out a mutable view of the desired subset
+        of a tensor.
+    """
+    n = max(index_axes) if index_axes else -1
+    result = [slice(None)] * (n + 2)
+    for k, axis in enumerate(index_axes):
+        result[axis] = (index_bits >> k) & 1
+    result[-1] = ...
+    return tuple(result)

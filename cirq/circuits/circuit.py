@@ -1345,7 +1345,7 @@ def _apply_unitary_circuit(circuit: Circuit,
         The left-multiplied state tensor.
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    buffer = np.zeros(state.shape, dtype=np.dtype)
+    buffer = np.zeros(state.shape, dtype=dtype)
     for op, qs in _extract_unitaries(circuit.all_operations(), ext):
         indices = [qubit_map[q] for q in qs]
         result = protocols.apply_unitary_to_tensor(
@@ -1387,7 +1387,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             # Account for bit flips embedded into the measurement operation.
             for i, b in enumerate(gate.invert_mask):
                 if b:
-                    yield protocols.unitary(ops.X), (op.qubits[i],)
+                    yield ops.X, (op.qubits[i],)
 
             # This is a private method called in contexts where we know
             # measurement is supposed to be skipped.

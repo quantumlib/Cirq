@@ -21,11 +21,11 @@ from cirq import linalg
 from cirq.protocols.unitary import unitary
 
 
-# This is a special indicator value used by the unitary method to determine
-# whether or not the caller provided a 'default' argument. It must be of type
-# np.ndarray to ensure the method has the correct type signature in that case.
-# It is checked for using `is`, so it won't have a false positive if the user
-# provides a different np.array([]) value.
+# This is a special indicator value used by the apply_unitary_to_tensor method
+# to determine whether or not the caller provided a 'default' argument. It must
+# be of type np.ndarray to ensure the method has the correct type signature in
+# that case. It is checked for using `is`, so it won't have a false positive if
+# the user provides a different np.array([]) value.
 RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 
 TDefault = TypeVar('TDefault')
@@ -50,7 +50,8 @@ class SupportsApplyUnitaryToTensor(Protocol):
 
         Args:
             target_tensor: The input tensor that needs to be left-multiplied by
-                the unitary effect of the receiving object.
+                the unitary effect of the receiving object. The tensor will
+                have the shape (2, 2, 2, ..., 2).
             available_buffer: Pre-allocated workspace with the same shape and
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
@@ -86,7 +87,8 @@ def apply_unitary_to_tensor(val: Any,
         val: The value with a unitary effect to apply to the target tensor.
         target_tensor: The input tensor that needs to be left-multiplied by
             the unitary effect of `val`. Note that this value may be mutated
-            inline into the output.
+            inline into the output. The tensor will have the shape
+            (2, 2, 2, ..., 2).
         available_buffer: Pre-allocated workspace with the same shape and
             dtype as the target tensor. Note that the output may be written
             into this buffer.

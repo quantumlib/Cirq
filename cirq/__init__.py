@@ -73,6 +73,7 @@ from cirq.linalg import (
     allclose_up_to_global_phase,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    binary_sub_tensor_slice,
     block_diag,
     match_global_phase,
     commutes,

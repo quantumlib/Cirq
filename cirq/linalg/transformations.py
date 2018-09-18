@@ -14,7 +14,7 @@
 
 """Utility methods for transforming matrices."""
 
-from typing import Tuple, List, Optional, Sequence
+from typing import Tuple, Optional, Sequence
 
 import numpy as np
 
