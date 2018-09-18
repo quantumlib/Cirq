@@ -702,7 +702,7 @@ def auto_merge_multiple_pull_requests(repo: GithubRepository,
             leave_status_comment(repo,
                                  pull_id,
                                  None,
-                                 'waiting for up to date status checks...')
+                                 'started')
             auto_merge_pull_request(repo, pull_id)
             leave_status_comment(repo,
                                  pull_id,
