@@ -215,7 +215,7 @@ def _expectation_from_sampling_assuming_quadratic(
 
             # no more than 2 terms
             assert(len(term) <= 2,
-                   'quadratic_z flag only accepts quadratic Operators')
+                   'quadratic_z method only accepts quadratic operators')
 
             # enforce that operators are pauli.Z
             # first create a pauli string of Z acting on same qubits
@@ -227,8 +227,8 @@ def _expectation_from_sampling_assuming_quadratic(
 
             # enforce commutativity with new string
             assert(term.commutes_with(new_pauli_string),
-                   'Operator must be diagonal in computational basis' 
-                   'and can only contain Pauli.Z is quadratic_z == True')
+                   'Operator must be diagonal in computational basis'
+                   'and can only contain Pauli.Z')
 
             # caculates expectation
 
@@ -245,7 +245,7 @@ def _expectation_from_sampling_assuming_quadratic(
         expectation_sum += expectation
 
     # expectation_mean = np.mean(expectation_samples) + identity_coeficient
-    expectation_mean = expectation_sum/n_samples
+    expectation_mean = expectation_sum/n_samples + identity_coeficient
 
     return expectation_mean
 
