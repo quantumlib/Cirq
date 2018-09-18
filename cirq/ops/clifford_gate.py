@@ -26,7 +26,6 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
 class CliffordGate(raw_types.Gate,
-                   gate_features.KnownMatrix,
                    gate_features.CompositeGate,
                    gate_features.ReversibleEffect,
                    gate_features.TextDiagrammable):
@@ -249,7 +248,7 @@ class CliffordGate(raw_types.Gate,
         return CliffordGate.from_xz_map((x_final_pauli, x_flip1 ^ x_flip2),
                                           (z_final_pauli, z_flip1 ^ z_flip2))
 
-    def matrix(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         mat = np.eye(2)
         qubit = raw_types.QubitId()
         for op in op_tree.flatten_op_tree(self.default_decompose((qubit,))):
