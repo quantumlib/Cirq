@@ -888,7 +888,7 @@ class Circuit(ops.ParameterizableEffect):
         """
         return (op for moment in self for op in moment.operations)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         """Converts the circuit into a unitary matrix, if possible.
 
         If the circuit contains any non-terminal measurements, the conversion
