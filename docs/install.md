@@ -12,7 +12,7 @@ If you want to create a development environment, see [development.md](developmen
 
 ### Installing on Linux
 
-0. Make sure you have python 3.5 or greater (or else python 2.7).
+0. Make sure you have python 3.5.2 or greater (or else python 2.7).
 
     See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) @ the hitchhiker's guide to python.
 
