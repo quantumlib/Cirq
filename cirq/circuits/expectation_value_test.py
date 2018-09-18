@@ -23,7 +23,7 @@ def test_sampling_ZZ():
 
     qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
     op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
-                                            qubits[1]: (cirq.Pauli.Z)}): 1}
+                                            qubits[1]: cirq.Pauli.Z}): 1}
 
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on(qubits[0]))
@@ -53,6 +53,35 @@ def test_sampling_XZ():
 
     assert np.round(expect, 5) == 1.0
 
+def test_id():
+    qubit = [cirq.NamedQubit('q0')]
+    op = {(): 1}
+    circuit = cirq.Circuit()
+    circuit.append(cirq.RotXGate(half_turns=-1 / 2).on(qubit[0]))
+
+    expect = expectation_from_sampling(circuit=circuit,
+                                       operator=op,
+                                       n_samples=1000)
+
+    assert np.round(expect, 5) == 1.0
+
+    expect = expectation_value(circuit=circuit,
+                               operator=op)
+
+    assert np.round(expect, 5) == 1.0
+
+def test_sampling_Y():
+    qubit = [cirq.NamedQubit('q0')]
+    op = {cirq.PauliString(qubit_pauli_map={qubit[0]: cirq.Pauli.Y
+                                            }): 1}
+    circuit = cirq.Circuit()
+    circuit.append(cirq.RotXGate(half_turns=-1 / 2).on(qubit[0]))
+
+    expect = expectation_from_sampling(circuit=circuit,
+                                       operator=op,
+                                       n_samples=1000)
+
+    assert np.round(expect, 5) == 1.0
 
 def test_expectation_Y():
     qubit = [cirq.NamedQubit('q0')]
@@ -92,7 +121,21 @@ def test_expectation_X():
 def test_expectation_ZZ():
     qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
     op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
-                                            qubits[1]: (cirq.Pauli.Z)}): 1}
+                                            qubits[1]: cirq.Pauli.Z}): 1}
+    circuit = cirq.Circuit()
+    circuit.append(cirq.H.on(qubits[0]))
+    circuit.append(cirq.CNOT.on(qubits[0], qubits[1]))
+
+    expect = expectation_value(circuit=circuit, operator=op)
+
+    assert np.round(expect, 5) == 1.0
+
+def test_expectation_ZZZ():
+    qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1'),
+              cirq.NamedQubit('q2')]
+    op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
+                                            qubits[1]: cirq.Pauli.Z,
+                                            qubits[2]: cirq.Pauli.Z}): 1}
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on(qubits[0]))
     circuit.append(cirq.CNOT.on(qubits[0], qubits[1]))

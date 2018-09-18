@@ -319,27 +319,40 @@ def expectation_value(circuit: Circuit,
 
     identity_coeficient = 0
     for term, coef in operator.items():
-        # reset operator
-        full_op_list = [identity for i in range(n_qubits)]
+        # reset operator and value for qubits not in circuit
+        full_op_list = [identity for _ in range(n_qubits)]
+        additional_qubits_pauli_term = 1
 
         # skip over identity terms
         if len(term) == 0:
             identity_coeficient = coef
             continue
 
-        # contruct correct operator
+        # construct correct operator
         for qubit, pauli in term.items():
 
-            q_idx = qubits.index(qubit)
+            if qubit in qubits:
+                q_idx = qubits.index(qubit)
 
-            if pauli == Pauli.X:
-                full_op_list[q_idx] = pauli_x
+                if pauli == Pauli.X:
+                    full_op_list[q_idx] = pauli_x
 
-            if pauli == Pauli.Y:
-                full_op_list[q_idx] = pauli_y
+                if pauli == Pauli.Y:
+                    full_op_list[q_idx] = pauli_y
 
-            if pauli == Pauli.Z:
-                full_op_list[q_idx] = pauli_z
+                if pauli == Pauli.Z:
+                    full_op_list[q_idx] = pauli_z
+
+            # if qubit not in circuit, then final state is just a product
+            # state with additional qubits on state 0
+            # and expectation value of term is multiplied by expectation value
+            # of additional pauli on state 0
+            else:
+                if pauli == Pauli.X or pauli == Pauli.Y:
+                    additional_qubits_pauli_term *= 0
+
+                if pauli == Pauli.Z:
+                    additional_qubits_pauli_term *= 1
 
         # put into matrix form (tensor product)
         if len(full_op_list) == 1:
@@ -356,7 +369,9 @@ def expectation_value(circuit: Circuit,
 
         expectation += inner_product * coef
 
+    # adds identity back and multiplies by pauli on unchanged qubits if needed
     expectation += identity_coeficient
+    expectation *= additional_qubits_pauli_term
     return expectation.real
 
 
