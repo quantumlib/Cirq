@@ -43,7 +43,7 @@ And EventTrampolines would be automatically converted into ReactiveIterables eve
 An important part of the extension mechanism is the ability for classes to say *at runtime* whether or not they support a specific kind of functionality.
 Classes that implement `PotentialImplementation` have a `try_cast(desired_type, extensions)` method that they use to tell a caller whether or not they support some desired functionality.
 
-For example, the `RotZGate` can have its effect scaled when the amount of rotation is a symbol instead of a number.
+For example, the `RotZGate` can't have its effect scaled when the amount of rotation is a symbol instead of a number.
 So it has a `try_cast` method that, when `desired_type` is set to `ExtrapolatableEffect`, returns `None` when the rotation angle is a symbol.
 Otherwise it returns itself (indicating that its `matrix` method will not raise an error when called).
 

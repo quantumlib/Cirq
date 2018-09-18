@@ -191,7 +191,7 @@ for the binary expansion of the passed integer.
 
 The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying an ``XmonGate``,
 a ``CompositeOperation`` that decomposes (recursively) to ``XmonGates``,
-or a 1-qubit or 2-qubit operation with a known unitary matrix (``has _unitary_``).
+or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
 By default the xmon simulator uses an ``Extension`` defined in ``xgate_gate_extensions`` to try to resolve gates that are not ``XmonGates`` to ``XmonGates``.
 
 So if you are using a custom gate, there are multiple options
