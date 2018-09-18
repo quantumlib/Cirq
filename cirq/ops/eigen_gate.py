@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Union, List, Optional, cast, TypeVar
+from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
 import numpy as np
 
@@ -23,13 +23,30 @@ from cirq.ops import gate_features, raw_types
 TSelf = TypeVar('TSelf', bound='EigenGate')
 
 
+EigenComponent = NamedTuple(
+    'EigenComponent',
+    [
+        # The θ in λ = exp(i π θ) where λ is a unique eigenvalue. The exponent
+        # factor is used, instead of just a raw unit complex number, because it
+        # disambiguates several cases. For example, when λ=-1 you can set θ to
+        # -1 instead of +1 resulting in square root operations returning -i
+        # instead of +1.
+        ('eigenvalue_exponent_factor', float),
+
+        # The projection matrix onto the eigenspace of the eigenvalue. Must
+        # equal Σ_k |λ_k⟩⟨λ_k| where the |λ_k⟩ vectors form an orthonormal
+        # basis for the eigenspace.
+        ('eigenspace_projector', np.ndarray),
+    ]
+)
+
+
 class EigenGate(raw_types.Gate,
                 gate_features.BoundedEffect,
                 gate_features.ParameterizableEffect,
                 extension.PotentialImplementation[Union[
                     gate_features.ExtrapolatableEffect,
-                    gate_features.ReversibleEffect,
-                    gate_features.KnownMatrix]]):
+                    gate_features.ReversibleEffect]]):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -64,23 +81,57 @@ class EigenGate(raw_types.Gate,
         pass
 
     @abc.abstractmethod
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        """A decomposition of the gate into (λ_half_turns, Σ|λ⟩⟨λ|) pieces.
+    def _eigen_components(self) -> List[Union[EigenComponent,
+                                              Tuple[float, np.ndarray]]]:
+        """Describes the eigendecomposition of the gate's matrix.
 
         Returns:
-            A list of tuples. Each tuple corresponds to an eigenspace of the
-            gate. The first component of a tuple is how much that eigenspace
-            should be phased by applying the gate, in half_turn units.
-            The second component is the projection of the gate's matrix into
-            that eigenspace.
+            A list of EigenComponent tuples. Each tuple in the list
+            corresponds to one of the eigenspaces of the gate's matrix. Each
+            tuple has two elements. The first element of a tuple is the θ in
+            λ = exp(i π θ) (where λ is the eigenvalue of the eigenspace). The
+            second element is a projection matrix onto the eigenspace.
 
-            For example, the Pauli X gate's eigen components method would
-            return [
-                (0, np.array([[0.5, 0.5],
-                              [0.5, 0.5]])),
-                (1, np.array([[+0.5, -0.5],
-                              [-0.5, +0.5]])),
-            ].
+        Examples:
+            The Pauli Z gate's eigencomponents are:
+
+                [
+                    (0, np.array([[1, 0],
+                                  [0, 0]])),
+                    (1, np.array([[0, 0],
+                                  [0, 1]])),
+                ]
+
+            Valid eigencomponents for Rz(π) = -iZ are:
+
+                [
+                    (-0.5, np.array([[1, 0],
+                                    [0, 0]])),
+                    (+0.5, np.array([[0, 0],
+                                     [0, 1]])),
+                ]
+
+            But in principle you could also use this:
+
+                [
+                    (+1.5, np.array([[1, 0],
+                                    [0, 0]])),
+                    (-0.5, np.array([[0, 0],
+                                     [0, 1]])),
+                ]
+
+                The choice between -0.5 and +1.5 does not affect the gate's
+                matrix, but it does affect the matrix of powers of the gates
+                (because (x+2)*s != x*s (mod 2) when s is a real number).
+
+            The Pauli X gate's eigencomponents are:
+
+                [
+                    (0, np.array([[0.5, 0.5],
+                                  [0.5, 0.5]])),
+                    (1, np.array([[+0.5, -0.5],
+                                  [-0.5, +0.5]])),
+                ]
         """
         pass
 
@@ -124,15 +175,14 @@ class EigenGate(raw_types.Gate,
 
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
-                             gate_features.ReversibleEffect,
-                             gate_features.KnownMatrix] and
+                             gate_features.ReversibleEffect] and
                 not self.is_parameterized()):
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def matrix(self) -> np.ndarray:
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         if self.is_parameterized():
-            raise ValueError("Parameterized. Don't have a known matrix.")
+            return NotImplemented
         e = cast(float, self._exponent)
         return np.sum(1j**(half_turns * e * 2) * component
                       for half_turns, component in self._eigen_components())

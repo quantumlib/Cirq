@@ -19,7 +19,7 @@ from typing import cast, Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from cirq import abc, ops, value
+from cirq import abc, ops, value, protocols
 from cirq.extension import PotentialImplementation
 from cirq.devices.grid_qubit import GridQubit
 
@@ -160,6 +160,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
+                ops.TwoQubitGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
@@ -224,7 +225,7 @@ class Exp11Gate(XmonGate,
     def matrix(self):
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
-        return ops.Rot11Gate(half_turns=self.half_turns).matrix()
+        return protocols.unitary(ops.Rot11Gate(half_turns=self.half_turns))
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
@@ -375,7 +376,7 @@ class ExpWGate(XmonGate,
     def matrix(self):
         if not self.has_matrix():
             raise ValueError("Don't have a known matrix.")
-        phase = ops.RotZGate(half_turns=self.axis_half_turns).matrix()
+        phase = protocols.unitary(ops.RotZGate(half_turns=self.axis_half_turns))
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return phase.dot(rot).dot(np.conj(phase))

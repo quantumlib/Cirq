@@ -906,7 +906,8 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: extension.Extensions = None) -> np.ndarray:
+            ext: extension.Extensions = None,
+            dtype: np.dtype = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -920,6 +921,8 @@ class Circuit(ops.ParameterizableEffect):
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
+            dtype: The numpy dtype for the returned unitary. Must be a complex
+                dtype.
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -950,7 +953,7 @@ class Circuit(ops.ParameterizableEffect):
         state = np.eye(1 << n, dtype=np.complex128)
         state.shape = (2,) * (2 * n)
 
-        result = _apply_unitary_circuit(self, state, qs, ext)
+        result = _apply_unitary_circuit(self, state, qs, ext, dtype)
         return result.reshape((1 << n, 1 << n))
 
     def apply_unitary_effect_to_state(
@@ -959,7 +962,8 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: extension.Extensions = None) -> np.ndarray:
+            ext: extension.Extensions = None,
+            dtype: np.dtype = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
         A circuit's "unitary effect" is the unitary matrix produced by
@@ -991,7 +995,9 @@ class Circuit(ops.ParameterizableEffect):
                 the circuit are ignored instead of causing the method to
                 fail.
             ext: The extensions to use when attempting to cast operations into
-                CompositeOperation instances.
+                KnownMatrix instances.
+            dtype: The numpy dtype for the returned unitary. Must be a complex
+                dtype.
 
         Returns:
             A (possibly gigantic) numpy array storing the superposition that
@@ -1020,13 +1026,13 @@ class Circuit(ops.ParameterizableEffect):
         n = len(qs)
 
         if isinstance(initial_state, int):
-            state = np.zeros(1 << n, dtype=np.complex128)
+            state = np.zeros(1 << n, dtype=dtype)
             state[initial_state] = 1
         else:
-            state = initial_state.astype(np.complex128)
+            state = initial_state.astype(dtype)
         state.shape = (2,) * n
 
-        result = _apply_unitary_circuit(self, state, qs, ext)
+        result = _apply_unitary_circuit(self, state, qs, ext, dtype)
         return result.reshape((1 << n,))
 
     def to_text_diagram(
@@ -1312,7 +1318,8 @@ def _draw_moment_in_diagram(moment: Moment,
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           ext: extension.Extensions) -> np.ndarray:
+                           ext: extension.Extensions,
+                           dtype: np.dtype) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.
@@ -1331,14 +1338,16 @@ def _apply_unitary_circuit(circuit: Circuit,
             operate on the k'th axis of the state tensor.
         ext: Extensions used when attempting to get matrices and decompositions
             of the operations.
+        dtype: The numpy dtype to use for applying the unitary. Must be a
+            complex dtype.
 
     Returns:
         The left-multiplied state tensor.
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    buffer = np.zeros(state.shape, dtype=np.complex128)
+    buffer = np.zeros(state.shape, dtype=dtype)
     for mat, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = mat.astype(np.complex128).reshape((2,) * (2 * len(qs)))
+        matrix = mat.astype(dtype).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
         linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
         state, buffer = buffer, state
