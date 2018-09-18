@@ -225,5 +225,5 @@ def binary_sub_tensor_slice(index_bits: int,
     result = [slice(None)] * (n + 2)
     for k, axis in enumerate(index_axes):
         result[axis] = (index_bits >> k) & 1
-    result[-1] = ...
+    result[-1] = Ellipsis
     return tuple(result)

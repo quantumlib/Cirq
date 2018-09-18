@@ -74,6 +74,21 @@ def test_cz_matrix():
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1j]]))
 
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.CZ**0.5,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.CZ**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.CZ**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
+
 
 def test_z_init():
     z = cirq.RotZGate(half_turns=5)
@@ -131,6 +146,13 @@ def test_z_matrix():
                                      [0]),
         cirq.unitary(cirq.Z))
 
+    assert cirq.apply_unitary_to_tensor(
+        cirq.Z**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
+
 
 def test_y_matrix():
     assert np.allclose(cirq.unitary(cirq.Y),
@@ -151,6 +173,13 @@ def test_y_matrix():
                                      np.eye(2, dtype=np.complex128),
                                      [0]),
         cirq.unitary(cirq.Y))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.Y**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
 
 
 def test_x_matrix():
@@ -173,6 +202,13 @@ def test_x_matrix():
                                      [0]),
         cirq.unitary(cirq.X))
 
+    assert cirq.apply_unitary_to_tensor(
+        cirq.X**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
+
 
 def test_h_matrix():
     sqrt = cirq.unitary(cirq.H**0.5)
@@ -185,6 +221,13 @@ def test_h_matrix():
                                      np.eye(2, dtype=np.complex128),
                                      [0]),
         cirq.unitary(cirq.H))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.H**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
 
 
 def test_h_decompose():
@@ -316,6 +359,13 @@ def test_cnot_power():
             [0, 1]),
         cirq.unitary(cirq.CNOT**0.5).reshape((2,) * 4))
 
+    assert cirq.apply_unitary_to_tensor(
+        cirq.CNOT**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
+
 
 def test_cnot_keyword_arguments():
     a = cirq.NamedQubit('a')
@@ -401,6 +451,13 @@ def test_swap_power():
             np.eye(4, dtype=np.complex128).reshape((2,) * 4),
             [0, 1]),
         cirq.unitary(cirq.SWAP**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.SWAP**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
 
 
 def test_xyz_repr():
@@ -566,6 +623,13 @@ def test_iswap_matrix():
             np.eye(4, dtype=np.complex128).reshape((2,) * 4),
             [0, 1]),
         cirq.unitary(cirq.ISWAP**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.ISWAP**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
 
 
 def test_iswap_decompose():
