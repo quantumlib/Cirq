@@ -198,7 +198,8 @@ def _expectation_from_sampling_assuming_quadratic(
     results_dict = results.measurements
 
     identity_coeficient = 0
-    expectation_samples = []
+    # expectation_samples = []
+    expectation_sum = 0
     for rep in range(n_samples):
         rep_term = rep
         expectation = 0
@@ -240,9 +241,11 @@ def _expectation_from_sampling_assuming_quadratic(
 
             expectation += x1 * coef * x2
 
-        expectation_samples.append(expectation)
+        # expectation_samples.append(expectation)
+        expectation_sum += expectation
 
-    expectation_mean = np.mean(expectation_samples) + identity_coeficient
+    # expectation_mean = np.mean(expectation_samples) + identity_coeficient
+    expectation_mean = expectation_sum/n_samples
 
     return expectation_mean
 
