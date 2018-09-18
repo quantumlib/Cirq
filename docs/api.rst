@@ -53,7 +53,6 @@ Gate Features and Effects
 .. autosummary::
     :toctree: generated
 
-    KnownMatrix
     ParameterizableEffect
     CompositeGate
     ExtrapolatableEffect
