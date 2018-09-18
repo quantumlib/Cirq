@@ -154,9 +154,9 @@ def test_x_matrix():
 
 
 def test_h_matrix():
-    sqrt = (cirq.H**0.5).matrix()
+    sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
-    assert np.allclose(m, cirq.H.matrix(), atol=1e-8)
+    assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
 
 
 def test_H_decompose():
@@ -166,7 +166,7 @@ def test_H_decompose():
     decomposed = cirq.Circuit.from_ops(original.default_decompose([a]))
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        original.matrix(),
+        cirq.unitary(original),
         decomposed.to_unitary_matrix(),
         atol=1e-8)
 
