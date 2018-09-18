@@ -14,29 +14,48 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from cirq import linalg
-from cirq.ops import gate_features, common_gates, raw_types, op_tree
+from cirq import linalg, value
+from cirq.ops import gate_features, common_gates, raw_types, op_tree, eigen_gate
 
 
-class _CCZGate(gate_features.ThreeQubitGate,
+class _CCZGate(eigen_gate.EigenGate,
+               gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.InterchangeableQubitsGate,
                gate_features.QasmConvertibleGate):
     """A doubly-controlled-Z."""
 
+    def __init__(self, exponent: Union[value.Symbol, float]=1.0):
+        super().__init__(exponent=exponent)
+
+    def _eigen_components(self):
+        return [
+            (0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])),
+            (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self, exponent: Union[value.Symbol, float]
+                       ) -> '_CCZGate':
+        return _CCZGate(exponent=exponent)
+
     def default_decompose(self, qubits):
         """An adjacency-respecting decomposition.
 
-        0: ───T───@──────────────@───────@──────────@──────────
+        0: ───p───@──────────────@───────@──────────@──────────
                   │              │       │          │
-        1: ───T───X───@───T^-1───X───@───X──────@───X──────@───
+        1: ───p───X───@───p^-1───X───@───X──────@───X──────@───
                       │              │          │          │
-        2: ───T───────X───T──────────X───T^-1───X───T^-1───X───
+        2: ───p───────X───p──────────X───p^-1───X───p^-1───X───
+
+        where p = T**self._exponent
         """
         a, b, c = qubits
 
@@ -47,29 +66,30 @@ class _CCZGate(gate_features.ThreeQubitGate,
             elif not b.is_adjacent(c):
                 a, b = b, a
 
-        t = common_gates.T
+        p = common_gates.T**self._exponent
         sweep_abc = [common_gates.CNOT(a, b),
                      common_gates.CNOT(b, c)]
 
-        yield t(a), t(b), t(c)
+        yield p(a), p(b), p(c)
         yield sweep_abc
-        yield t(b)**-1, t(c)
+        yield p(b)**-1, p(c)
         yield sweep_abc
-        yield t(c)**-1
+        yield p(c)**-1
         yield sweep_abc
-        yield t(c)**-1
+        yield p(c)**-1
         yield sweep_abc
-
-    def _unitary_(self) -> np.ndarray:
-        return np.diag([1, 1, 1, 1, 1, 1, 1, -1])
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(('@', '@', '@'))
+        return gate_features.TextDiagramInfo(('@', '@', '@'),
+                                             exponent=self._exponent)
 
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
+        if self._exponent != 1:
+            return None
+
         args.validate_version('2.0')
         lines = [
             args.format('h {0};\n', qubits[2]),
@@ -78,42 +98,68 @@ class _CCZGate(gate_features.ThreeQubitGate,
         return ''.join(lines)
 
     def __repr__(self) -> str:
-        return 'cirq.CCZ'
+        if self._exponent == 1:
+            return 'cirq.CCZ'
+        return 'cirq.CCZ**{!r}'.format(self._exponent)
 
 
-class _CCXGate(gate_features.ThreeQubitGate,
+class _CCXGate(eigen_gate.EigenGate,
+               gate_features.ThreeQubitGate,
                gate_features.TextDiagrammable,
                gate_features.CompositeGate,
                gate_features.InterchangeableQubitsGate,
                gate_features.QasmConvertibleGate):
     """A doubly-controlled-NOT. The Toffoli gate."""
 
+    def __init__(self, exponent: Union[value.Symbol, float]=1.0):
+        super().__init__(exponent=exponent)
+
+    def _eigen_components(self):
+        (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
+        (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
+
+        return [
+            (0, linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
+                                  np.array([[0.5, 0.5], [0.5, 0.5]]))),
+            (1, linalg.block_diag(np.diag([0, 0, 0, 0, 0, 0]),
+                                  np.array([[0.5, -0.5], [-0.5, 0.5]]))),
+        ]
+
+    def _with_exponent(self, exponent: Union[value.Symbol, float]
+                       ) -> '_CCXGate':
+        return _CCXGate(exponent=exponent)
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
     def qubit_index_to_equivalence_group_key(self, index):
-        return 0 if index < 2 else 1
+        return index < 2
 
     def default_decompose(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
-        yield CCZ(c1, c2, t)
+        yield CCZ(c1, c2, t)**self._exponent
         yield common_gates.H(t)
-
-    def _unitary_(self) -> np.ndarray:
-        return linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
-                                 np.array([[0, 1], [1, 0]]))
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(('@', '@', 'X'))
+        return gate_features.TextDiagramInfo(('@', '@', 'X'),
+                                             exponent=self._exponent)
 
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
+        if self._exponent != 1:
+            return None
+
         args.validate_version('2.0')
         return args.format('ccx {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        return 'cirq.TOFFOLI'
+        if self._exponent == 1:
+            return 'cirq.TOFFOLI'
+        return 'cirq.TOFFOLI**{!r}'.format(self._exponent)
 
 
 class _CSwapGate(gate_features.ThreeQubitGate,
