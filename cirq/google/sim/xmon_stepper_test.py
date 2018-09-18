@@ -659,9 +659,9 @@ def test_large_circuit_unitary(num_prefix_qubits, use_processes):
                         s.simulate_w(op[1], op[2], op[3])
                 s.simulate_phases(phase_map)
             columns.append(s.current_state)
-    unitary = np.matrix(columns).transpose()
+    unitary = np.array(columns).transpose()
     np.testing.assert_almost_equal(
-        np.dot(unitary, unitary.H), np.eye(2 ** 5), decimal=6)
+        np.dot(unitary, np.conj(unitary.T)), np.eye(2 ** 5), decimal=6)
 
 
 def random_moments(num_qubits, num_ops):
