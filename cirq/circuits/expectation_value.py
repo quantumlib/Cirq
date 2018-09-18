@@ -18,14 +18,14 @@ from typing import Dict, Union
 
 import numpy as np
 from cirq.google import XmonSimulator, XmonMeasurementGate
-from cirq.circuits.circuit import Circuit
+from cirq.circuits.circuit import Circuit, Moment
 from cirq.ops import RotXGate, RotYGate, MeasurementGate, Pauli, PauliString, \
     QubitId
 
 
-def measurement_gates(circuit: Circuit,
-                      q_dict: Dict[QubitId,
-                                   Union[int, str]]):
+def append_measurement_gates(circuit: Circuit,
+                             q_dict: Dict[QubitId,
+                                          Union[int, str]]):
     """
     Helper Function to add measurement gates to qubits
 
@@ -52,7 +52,7 @@ def expectation_from_sampling(circuit: Circuit,
     Calculates the expactation value of cost function (operator)
 
     Args:
-        circuit: circ.Circuit type which prepares the state we are interested
+        circuit: cirq.Circuit type which prepares the state we are interested
                  in calculating the expectation value of operator
         operator: Operator input as a dictionary where keys are
                     cirq.ops.PauliString type and values are coefficients
@@ -74,83 +74,73 @@ def expectation_from_sampling(circuit: Circuit,
 
     # remove measurements from circuit such that appropriate rotations
     # can be applied, measurements are added later
-    circuit = no_meas(circuit)
+    circuit = without_measurements(circuit)
 
     # check if operator is quadratic in Pauli Z:
-    quadratic_z = True
-    zz = [Pauli.Z, Pauli.Z]
-    for key in operator.keys():
-        if (len(key) != 2):
-            quadratic_z = False
-            break
-        if list(key.values()) != zz:
-            quadratic_z = False
-            break
+    quadratic_z = all(len(d) == 2 and list(d.values()) == [Pauli.Z, Pauli.Z]
+                      for d in operator.keys())
 
     # if operator is only of the form ZZ then call helper function
     if quadratic_z:
 
-        expectation = _expectation_from_sampling_assuming_quadratic(circuit,
-                                                                    operator,
-                                                                    n_samples)
-        return expectation
-
+        return _expectation_from_sampling_assuming_quadratic(circuit,
+                                                             operator,
+                                                             n_samples)
 
     # For general operators, the expectation value by sampling
     # over n_samples circuit runs is computed here
-    if not quadratic_z:
 
-        expectation = 0
-        identity_coeficient = 0.
+    expectation = 0
+    identity_coeficient = 0.
 
-        for term, coef in operator.items():
+    for term, coef in operator.items():
 
-            # remove old measurements
-            circuit = no_meas(circuit)
+        # remove old measurements
+        circuit = without_measurements(circuit)
 
-            # check if identity:
-            if term == ():
-                identity_coeficient = coef
-                continue
+        # check if identity:
+        if term == ():
+            identity_coeficient = coef
+            continue
 
-            # Add appropriate rotation gates to circuit
-            # and add measurement gates
-            # dictionary of qubits to be measured and its indices
-            q_dict = dict()
+        # Add appropriate rotation gates to circuit
+        # and add measurement gates
+        # dictionary of qubits to be measured and its indices
+        q_dict = dict()
 
-            for qubit, pauli in term.items():
+        for qubit, pauli in term.items():
 
-                if pauli == Pauli.X:
-                    circuit.append(RotYGate(half_turns=-1 / 2).on(
-                        qubit))
+            if pauli == Pauli.X:
+                circuit.append(RotYGate(half_turns=-1 / 2).on(
+                    qubit))
 
-                elif pauli == Pauli.Y:
-                    circuit.append(RotXGate(half_turns=+1 / 2).on(
-                        qubit))
+            elif pauli == Pauli.Y:
+                circuit.append(RotXGate(half_turns=+1 / 2).on(
+                    qubit))
 
-                # After rotation we can re-add measurement gates
-                q_dict[qubit] = qubits.index(qubit)
+            # After rotation we can re-add measurement gates
+            q_dict[qubit] = qubits.index(qubit)
 
-            # Add Measurement gates:
-            circuit = measurement_gates(circuit, q_dict)
+        # Add Measurement gates:
+        circuit = append_measurement_gates(circuit, q_dict)
 
-            # run circuit:
-            results = sim.run(circuit, repetitions=n_samples)
+        # run circuit:
+        results = sim.run(circuit, repetitions=n_samples)
 
-            operator_meas = 1
+        operator_meas = 1
 
-            for qubit_key in results.measurements.keys():
-                operator_meas *= results.measurements[qubit_key][:, 0] \
-                                 * (-2) + 1
+        for qubit_key in results.measurements.keys():
+            operator_meas *= (results.measurements[qubit_key][:, 0]
+                              * (-2) + 1)
 
-            mean_measurement = np.mean(operator_meas)
+        mean_measurement = np.mean(operator_meas)
 
-            expectation += mean_measurement * coef
+        expectation += mean_measurement * coef
 
-        # add identity term:
-        expectation += identity_coeficient
+    # add identity term:
+    expectation += identity_coeficient
 
-        return expectation
+    return expectation
 
 
 def _expectation_from_sampling_assuming_quadratic(
@@ -162,7 +152,7 @@ def _expectation_from_sampling_assuming_quadratic(
     quadratic and contains only Pauli Z operators.
 
     Args:
-        circuit: circ.Circuit type which prepares the state we are interested
+        circuit: cirq.Circuit type which prepares the state we are interested
                  in calculating the expectation value of operator
         operator: Operator input as a dictionary where keys are
                     cirq.ops.PauliString type and values are coefficients
@@ -196,13 +186,12 @@ def _expectation_from_sampling_assuming_quadratic(
     assert len(indices_measurement) == len(
         measurement_qubits), 'Indices do not match qubits'
 
-    q_dict = {}
-    for index in indices_measurement:
-        q_dict[measurement_qubits[index]] = index
-
     # add measurement gate to appropriate qubits
+    q_dict = {measurement_qubits[index]: index for index in indices_measurement}
+    meas = [XmonMeasurementGate(key=index).on(
+            measurement_qubits[index]) for index in indices_measurement]
 
-    circuit = measurement_gates(circuit, q_dict)
+    circuit.append(meas)
 
     # run circuit and store results
     results = sim.run(circuit, repetitions=n_samples)
@@ -224,8 +213,8 @@ def _expectation_from_sampling_assuming_quadratic(
             # here we enforce that hamiltonian is quadratic in pauli.Z
 
             # no more than 2 terms
-            assert len(term) <= 2, \
-                'quadratic_z flag only accepts quadratic Operators'
+            assert(len(term) <= 2,
+                   'quadratic_z flag only accepts quadratic Operators')
 
             # enforce that operators are pauli.Z
             # first create a pauli string of Z acting on same qubits
@@ -236,21 +225,18 @@ def _expectation_from_sampling_assuming_quadratic(
             new_pauli_string = PauliString(qubit_pauli_map=z_paulis)
 
             # enforce commutativity with new string
-            assert term.commutes_with(new_pauli_string), \
-                'Operator must be diagonal in computational basis' \
-                'and can only contain Pauli.Z is quadratic_z == True'
+            assert(term.commutes_with(new_pauli_string),
+                   'Operator must be diagonal in computational basis' 
+                   'and can only contain Pauli.Z is quadratic_z == True')
 
             # caculates expectation
 
-            q1 = q_dict[list(term.qubits())[0]]
-            if len(term) == 2:
-                q2 = q_dict[list(term.qubits())[1]]
-            else:
-                q2 = q1
+            qs = [q_dict[q] for q in term.qubits()]
+            q1 = qs[0]
+            q2 = qs[1] if len(qs) == 2 else q1
 
             x1 = -2 * int(results_dict[q1][rep_term][0]) + 1
             x2 = -2 * int(results_dict[q2][rep_term][0]) + 1
-            print(x1,x2)
 
             expectation += x1 * coef * x2
 
@@ -270,7 +256,7 @@ def expectation_value(circuit: Circuit,
     the wavefunction
 
     Args:
-        circuit: circ.Circuit type which prepares the state we are interested
+        circuit: cirq.Circuit type which prepares the state we are interested
                  in calculating the expectation value of
 
         operator: Operator input as a dictionary where keys are
@@ -317,6 +303,11 @@ def expectation_value(circuit: Circuit,
     pauli_z = np.array([[1, 0], [0, -1]])
     identity = np.identity(2)
 
+    # construct dictionary to convert between array and cirq.Pauli
+    pauli_to_full_op = {Pauli.X: pauli_x,
+                        Pauli.Y: pauli_y,
+                        Pauli.Z: pauli_z}
+
     identity_coeficient = 0
     for term, coef in operator.items():
         # reset operator and value for qubits not in circuit
@@ -328,20 +319,14 @@ def expectation_value(circuit: Circuit,
             identity_coeficient = coef
             continue
 
+
         # construct correct operator
         for qubit, pauli in term.items():
 
             if qubit in qubits:
                 q_idx = qubits.index(qubit)
 
-                if pauli == Pauli.X:
-                    full_op_list[q_idx] = pauli_x
-
-                if pauli == Pauli.Y:
-                    full_op_list[q_idx] = pauli_y
-
-                if pauli == Pauli.Z:
-                    full_op_list[q_idx] = pauli_z
+                full_op_list[q_idx] = pauli_to_full_op[pauli]
 
             # if qubit not in circuit, then final state is just a product
             # state with additional qubits on state 0
@@ -374,11 +359,18 @@ def expectation_value(circuit: Circuit,
     expectation *= additional_qubits_pauli_term
     return expectation.real
 
+# function to remove measurements from circuit
+def without_measurements(circuit: Circuit) -> Circuit:
+    """
+    Helper function to remove measurement gates
+    ensures there are no measurement gates since rotation gates
+    must still be added
+    Args:
+        circuit: cirq.Circuit type which contains measurements
 
-# Helper function to remove measurement gates
-# ensures there are no measurement gates since rotation gates
-# must still be added:
-def no_meas(circuit: Circuit):
+    Returns:
+        cirq.Circuit, circuit without measurements
+    """
     cir2 = Circuit()
     for moment in circuit:
         new_moment = []
@@ -386,6 +378,6 @@ def no_meas(circuit: Circuit):
             if not MeasurementGate.is_measurement(op):
                 new_moment.append(op)
 
-        cir2.append(new_moment)
+        cir2.append(Moment(new_moment))
 
     return cir2

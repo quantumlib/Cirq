@@ -21,7 +21,7 @@ from cirq.circuits.expectation_value import expectation_from_sampling
 
 def test_sampling_ZZ():
 
-    qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
+    qubits = cirq.LineQubit.range(2)
     op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
                                             qubits[1]: cirq.Pauli.Z}): 1}
 
@@ -39,7 +39,7 @@ def test_sampling_ZZ():
 
 def test_sampling_XZ():
 
-    qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
+    qubits = cirq.LineQubit.range(2)
     op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.X,
                                             qubits[1]: (cirq.Pauli.Z)}): 1}
     circuit = cirq.Circuit()
@@ -54,6 +54,7 @@ def test_sampling_XZ():
     assert np.round(expect, 5) == 1.0
 
 def test_id():
+
     qubit = [cirq.NamedQubit('q0')]
     op = {(): 1}
     circuit = cirq.Circuit()
@@ -71,6 +72,7 @@ def test_id():
     assert np.round(expect, 5) == 1.0
 
 def test_sampling_Y():
+
     qubit = [cirq.NamedQubit('q0')]
     op = {cirq.PauliString(qubit_pauli_map={qubit[0]: cirq.Pauli.Y
                                             }): 1}
@@ -84,6 +86,7 @@ def test_sampling_Y():
     assert np.round(expect, 5) == 1.0
 
 def test_expectation_Y():
+
     qubit = [cirq.NamedQubit('q0')]
     op = {cirq.PauliString(qubit_pauli_map={qubit[0]: cirq.Pauli.Y
                                             }): 1}
@@ -119,7 +122,8 @@ def test_expectation_X():
 
 
 def test_expectation_ZZ():
-    qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]
+
+    qubits = cirq.LineQubit.range(2)
     op = {cirq.PauliString(qubit_pauli_map={qubits[0]: cirq.Pauli.Z,
                                             qubits[1]: cirq.Pauli.Z}): 1}
     circuit = cirq.Circuit()
@@ -129,6 +133,7 @@ def test_expectation_ZZ():
     expect = expectation_value(circuit=circuit, operator=op)
 
     assert np.round(expect, 5) == 1.0
+
 
 def test_expectation_ZZZ():
     qubits = [cirq.NamedQubit('q0'), cirq.NamedQubit('q1'),
