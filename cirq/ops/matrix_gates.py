@@ -156,7 +156,7 @@ class TwoQubitMatrixGate(raw_types.Gate,
                else np.allclose)
         return cmp(self._matrix, other._matrix)
 
-    def _unitary_(self):
+    def _unitary_(self) -> np.ndarray:
         return self._matrix
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
