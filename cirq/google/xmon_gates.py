@@ -160,6 +160,7 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
+                ops.TwoQubitGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
