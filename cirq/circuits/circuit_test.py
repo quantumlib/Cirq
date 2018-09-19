@@ -311,7 +311,6 @@ def test_bad_index():
     with pytest.raises(TypeError):
         _ = c['string']
 
-
 def test_append_strategies():
     a = cirq.QubitId()
     b = cirq.QubitId()
@@ -417,7 +416,6 @@ def test_insert_inline_near_start():
         Moment(),
     ])
 
-
 def test_insert_at_frontier_init():
     x = cirq.NamedQubit('x')
     op = cirq.X(x)
@@ -433,7 +431,6 @@ def test_insert_at_frontier_init():
         circuit = Circuit([Moment(), Moment([op])])
         frontier = {x: 2}
         circuit.insert_at_frontier(op, 0, frontier)
-
 
 def test_insert_at_frontier():
 
