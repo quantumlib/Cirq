@@ -63,14 +63,25 @@ def test_matrix():
 
 
 def test_str():
-    assert str(cirq.CCX) == 'cirq.TOFFOLI'
-    assert str(cirq.TOFFOLI) == 'cirq.TOFFOLI'
-    assert str(cirq.CSWAP) == 'cirq.FREDKIN'
-    assert str(cirq.FREDKIN) == 'cirq.FREDKIN'
-    assert str(cirq.CCZ) == 'cirq.CCZ'
+    assert str(cirq.CCX) == 'TOFFOLI'
+    assert str(cirq.TOFFOLI) == 'TOFFOLI'
+    assert str(cirq.CSWAP) == 'FREDKIN'
+    assert str(cirq.FREDKIN) == 'FREDKIN'
+    assert str(cirq.CCZ) == 'CCZ'
 
-    assert str(cirq.CCX**0.5) == 'cirq.TOFFOLI**0.5'
-    assert str(cirq.CCZ**0.5) == 'cirq.CCZ**0.5'
+    assert str(cirq.CCX**0.5) == 'TOFFOLI**0.5'
+    assert str(cirq.CCZ**0.5) == 'CCZ**0.5'
+
+
+def test_repr():
+    assert repr(cirq.CCX) == 'cirq.TOFFOLI'
+    assert repr(cirq.TOFFOLI) == 'cirq.TOFFOLI'
+    assert repr(cirq.CSWAP) == 'cirq.FREDKIN'
+    assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
+    assert repr(cirq.CCZ) == 'cirq.CCZ'
+
+    assert repr(cirq.CCX**0.5) == 'cirq.TOFFOLI**0.5'
+    assert repr(cirq.CCZ**0.5) == 'cirq.CCZ**0.5'
 
 
 def test_eq():

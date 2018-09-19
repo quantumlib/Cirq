@@ -102,6 +102,11 @@ class _CCZGate(eigen_gate.EigenGate,
             return 'cirq.CCZ'
         return 'cirq.CCZ**{!r}'.format(self._exponent)
 
+    def __str__(self) -> str:
+        if self._exponent == 1:
+            return 'CCZ'
+        return 'CCZ**{}'.format(self._exponent)
+
 
 class _CCXGate(eigen_gate.EigenGate,
                gate_features.ThreeQubitGate,
@@ -160,6 +165,11 @@ class _CCXGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return 'cirq.TOFFOLI'
         return 'cirq.TOFFOLI**{!r}'.format(self._exponent)
+
+    def __str__(self) -> str:
+        if self._exponent == 1:
+            return 'TOFFOLI'
+        return 'TOFFOLI**{}'.format(self._exponent)
 
 
 class _CSwapGate(gate_features.ThreeQubitGate,

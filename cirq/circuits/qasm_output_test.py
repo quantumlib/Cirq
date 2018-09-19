@@ -232,6 +232,8 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.CCZ(q0, q1, q2),
         cirq.CCX(q0, q1, q2),
+        cirq.CCZ(q0, q1, q2)**0.5,
+        cirq.CCX(q0, q1, q2)**0.5,
         cirq.CSWAP(q0, q1, q2),
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
@@ -397,6 +399,43 @@ h q[2];
 ccx q[0],q[1],q[2];
 h q[2];
 ccx q[0],q[1],q[2];
+
+// Gate: CCZ**0.5
+rz(pi*0.125) q[0];
+rz(pi*0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+
+// Gate: TOFFOLI**0.5
+h q[2];
+rz(pi*0.125) q[0];
+rz(pi*0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+h q[2];
+
 cswap q[0],q[1],q[2];
 
 // Gate: ISWAP
