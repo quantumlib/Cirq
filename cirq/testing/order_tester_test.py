@@ -16,9 +16,21 @@ import fractions
 import pytest
 
 from cirq.testing.order_tester import OrderTester
-from cirq.testing.order_tester import ClassLargerThanEverythingElse
-from cirq.testing.order_tester import ClassSmallerThanEverythingElse
-from cirq.testing.order_tester import UnorderableClass
+
+class UnorderableClass:
+    """Assume that the element of this class is less than anything else."""
+
+    def __eq__(self, other):
+        return isinstance(other, UnorderableClass)
+
+    def __ne__(self, other):
+        return not isinstance(other, UnorderableClass)
+
+    def __lt__(self, other):
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(UnorderableClass)
 
 def test_add_ordering_group_correct():
     ot = OrderTester()
@@ -26,14 +38,13 @@ def test_add_ordering_group_correct():
     ot.add_ascending(1, 2)
     ot.add_ascending_equivalence_group(fractions.Fraction(6, 2),
                                        fractions.Fraction(12, 4), 3, 3.0)
-    ot.add_ascending_equivalence_group(ClassLargerThanEverythingElse(),
-        ClassLargerThanEverythingElse())
+    ot.add_ascending_equivalence_group(float('inf'), float('inf'))
 
 def test_add_ordering_group_incorrect():
     ot = OrderTester()
+    ot.add_ascending(0)
     with pytest.raises(AssertionError):
-        ot.add_ascending_equivalence_group(ClassSmallerThanEverythingElse(),
-            ClassSmallerThanEverythingElse())
+        ot.add_ascending_equivalence_group(0, 0)
     ot.add_ascending(1, 2)
     with pytest.raises(AssertionError):
         ot.add_ascending(object, object)  # not ascending within call

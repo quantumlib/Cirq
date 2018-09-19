@@ -27,52 +27,39 @@ from typing import Any
 
 from cirq.testing.equals_tester import EqualsTester
 
+def TryComparison(elem, comp):
+    result = elem
+    try:
+        result = comp() or elem
+    except TypeError:
+        pass
+    return result
 
 class OrderTester(EqualsTester):
     """Tests ordering against user-provided disjoint ordered groups or items."""
 
     def __init__(self):
-        self.groups = [(ClassSmallerThanEverythingElse(),)]
+        self.groups = []
 
     def _verify_ascending(self, v1, v2):
         """Verifies that (v1, v2) is a strictly ascending sequence."""
-        lt_1 = NotImplemented
-        not_lt_2 = NotImplemented
-        gt_2 = NotImplemented
-        not_gt_1 = NotImplemented
-        le_1 = NotImplemented
-        not_le_2 = NotImplemented
-        ge_2 = NotImplemented
-        not_ge_1 = NotImplemented
 
-        try:
-            lt_1 = v1 < v2
-        except TypeError:
-            pass
+        lt_1 = TryComparison(NotImplemented, lambda: v1 < v2)
+        not_lt_2 = TryComparison(NotImplemented, lambda: not v2 < v1)
 
-        try:
-            not_lt_2 = not v2 < v1
-        except TypeError:
-            pass
-
-        assert(lt_1, not_lt_2) in [
+        assert (lt_1, not_lt_2) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
             (NotImplemented, NotImplemented)
-                ]
+        ], ("__lt__ is inconsistent: {!r},{!r}".format(lt_1, not_lt_2))
 
-        try:
-            gt_2 = not hasattr(v2, '__gt__') or v2 > v1
-        except TypeError:
-            pass
+        gt_2 = TryComparison(NotImplemented,
+            lambda: not hasattr(v2, '__gt__') or v2 > v1)
+        not_gt_1 = TryComparison(NotImplemented,
+            lambda: not hasattr(v1, '__gt__') or not v1 > v2)
 
-        try:
-            not_gt_1 = not hasattr(v1, '__gt__') or not v1 > v2
-        except TypeError:
-            pass
-
-        assert(gt_2, not_gt_1) in [
+        assert (gt_2, not_gt_1) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
@@ -80,45 +67,39 @@ class OrderTester(EqualsTester):
                 ]
 
         # at least one strict ordering operator should work
-        assert(lt_1, gt_2) in [
+        assert (lt_1, gt_2) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
-        ]
+        ], ("__gt__ is inconsistent: {!r},{!r}".format(lt_1, gt_2))
 
-        try:
-            le_1 = not hasattr(v1, '__le__') or v1 <= v2
-        except TypeError:
-            pass
+        le_1 = TryComparison(NotImplemented,
+            lambda: not hasattr(v1, '__le__') or v1 <= v2)
+        not_le_2 = TryComparison(NotImplemented,
+            lambda: not hasattr(v2, '__le__') or not v2 <= v1)
 
-        try:
-            not_le_2 = not hasattr(v2, '__le__') or not v2 <= v1
-        except TypeError:
-            pass
-
-        assert(le_1, not_le_2) in [
+        assert (le_1, not_le_2) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
             (NotImplemented, NotImplemented),
-                ]
+        ], ("__le__ is inconsistent: {!r},{!r}".format(le_1, not_le_2))
 
-        try:
-            ge_2 = not hasattr(v2, '__ge__') or v2 >= v1
-        except TypeError:
-            pass
+        ge_2 = TryComparison(NotImplemented,
+            lambda: not hasattr(v2, '__ge__') or v2 >= v1)
+        not_ge_1 = TryComparison(NotImplemented,
+            lambda: not hasattr(v1, '__ge__') or not v1 >= v2)
 
-        try:
-            not_ge_1 = not hasattr(v1, '__ge__') or not v1 >= v2
-        except TypeError:
-            pass
-
-        assert(ge_2, not_ge_1) in [
+        assert (ge_2, not_ge_1) in [
             (True, True),
             (True, NotImplemented),
             (NotImplemented, True),
             (NotImplemented, NotImplemented),
-                ]
+        ], ("__ge__ is inconsistent: {!r},{!r}".format(ge_2, not_ge_1))
+
+    def _assert_not_implemented_vs_unknown(self, item: Any):
+        self._verify_ascending(ClassSmallerThanEverythingElse(), item)
+        self._verify_ascending(item, ClassLargerThanEverythingElse())
 
     def verify_ascending_group(self, *group_items: Any):
         """Verifies that the given items are strictly ascending
@@ -153,6 +134,7 @@ class OrderTester(EqualsTester):
         assert items
 
         for item in items:
+            self._assert_not_implemented_vs_unknown(item)
             self.add_ascending_equivalence_group(item)
 
     def add_ascending_equivalence_group(self, *group_items: Any):
@@ -199,7 +181,7 @@ class ClassSmallerThanEverythingElse:
 
 
 class ClassLargerThanEverythingElse:
-    """Assume that the element of this class is less than anything else."""
+    """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
         return isinstance(other, ClassLargerThanEverythingElse)
@@ -213,18 +195,3 @@ class ClassLargerThanEverythingElse:
     def __hash__(self):
         return hash(ClassLargerThanEverythingElse)
 
-
-class UnorderableClass:
-    """Assume that the element of this class is less than anything else."""
-
-    def __eq__(self, other):
-        return isinstance(other, UnorderableClass)
-
-    def __ne__(self, other):
-        return not isinstance(other, UnorderableClass)
-
-    def __lt__(self, other):
-        return NotImplemented
-
-    def __hash__(self):
-        return hash(UnorderableClass)
