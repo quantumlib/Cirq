@@ -120,9 +120,6 @@ class _CCXGate(eigen_gate.EigenGate,
         super().__init__(exponent=exponent)
 
     def _eigen_components(self):
-        (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-        (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-
         return [
             (0, linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
                                   np.array([[0.5, 0.5], [0.5, 0.5]]))),
@@ -286,6 +283,9 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
+
+    def __str__(self) -> str:
+        return 'FREDKIN'
 
     def __repr__(self) -> str:
         return 'cirq.FREDKIN'
