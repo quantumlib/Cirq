@@ -64,7 +64,7 @@ class ConvertToCliffordGates(PointOptimizer):
         elif quarter_turns == 2:
             return ops.CliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
-            return ops.CliffordGate.from_pauli(pauli, True).inverse()
+            return ops.CliffordGate.from_pauli(pauli, True)**-1
         else:
             return ops.CliffordGate.I
 

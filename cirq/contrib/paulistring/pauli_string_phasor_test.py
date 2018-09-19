@@ -112,7 +112,9 @@ def test_extrapolate_effect_with_symbol():
 def test_inverse():
     op1 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.25)
     op2 = PauliStringPhasor(cirq.PauliString({}), half_turns=-0.25)
-    assert op1.inverse() == op2
+    op3 = PauliStringPhasor(cirq.PauliString({}), half_turns=cirq.Symbol('s'))
+    assert cirq.inverse(op1) == op2
+    assert cirq.inverse(op3, None) is None
 
 
 def test_can_merge_with():
@@ -181,29 +183,6 @@ def test_merge_with():
             cirq.PauliString({q0: cirq.Pauli.Y}, True), half_turns=0.75)
     with pytest.raises(ValueError):
         op1.merged_with(op2)
-
-
-def test_try_cast_to():
-    class Dummy: pass
-    op = PauliStringPhasor(cirq.PauliString({}))
-    ext = cirq.Extensions()
-    assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert not op.try_cast_to(cirq.ParameterizableEffect, ext) is None
-    assert not op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert not op.try_cast_to(cirq.ReversibleEffect, ext) is None
-    assert op.try_cast_to(Dummy, ext) is None
-
-    op = PauliStringPhasor(cirq.PauliString({}),
-                           half_turns=cirq.Symbol('a'))
-    ext = cirq.Extensions()
-    assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert not op.try_cast_to(cirq.ParameterizableEffect, ext) is None
-    assert op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert op.try_cast_to(cirq.ReversibleEffect, ext) is None
-    assert op.try_cast_to(Dummy, ext) is None
-
 
 
 def test_is_parametrized():

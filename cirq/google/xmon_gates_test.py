@@ -506,10 +506,9 @@ def test_w_decomposition():
         atol=1e-8)
 
 
-def test_w_potential_implementation():
-    assert not cirq.can_cast(cirq.ReversibleEffect,
-                             cg.ExpWGate(half_turns=cirq.Symbol('a')))
-    assert cirq.can_cast(cirq.ReversibleEffect, cg.ExpWGate())
+def test_w_inverse():
+    assert cirq.inverse(cg.ExpWGate(half_turns=cirq.Symbol('a')), None) is None
+    assert cirq.inverse(cg.ExpWGate()) == cg.ExpWGate()
 
 
 def test_w_parameterize():
@@ -536,11 +535,9 @@ def test_trace_bound():
         half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
 
 
-def test_has_inverse():
-    assert cg.ExpZGate(half_turns=.1).has_inverse()
-    assert cg.ExpWGate(half_turns=.1).has_inverse()
-    assert not cg.ExpZGate(half_turns=cirq.Symbol('a')).has_inverse()
-    assert not cg.ExpWGate(half_turns=cirq.Symbol('a')).has_inverse()
+def test_z_inverse():
+    assert cirq.inverse(cg.ExpZGate(half_turns=cirq.Symbol('a')), None) is None
+    assert cirq.inverse(cg.ExpZGate()) == cg.ExpZGate()
 
 
 def test_measure_key_on():

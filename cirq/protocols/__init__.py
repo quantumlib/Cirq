@@ -13,6 +13,10 @@
 # limitations under the License.
 
 
+from cirq.protocols.inverse import (
+    inverse,
+    extrapolate,
+)
 from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,

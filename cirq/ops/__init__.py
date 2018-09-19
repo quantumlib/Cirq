@@ -48,14 +48,12 @@ from cirq.ops.gate_features import (
     BoundedEffect,
     CompositeGate,
     CompositeOperation,
-    ExtrapolatableEffect,
     InterchangeableQubitsGate,
     ParameterizableEffect,
     PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
-    ReversibleEffect,
     SingleQubitGate,
     TextDiagrammable,
     TextDiagramInfo,
@@ -102,7 +100,6 @@ from cirq.ops.raw_types import (
     QubitId,
 )
 from cirq.ops.reversible_composite_gate import (
-    inverse,
     ReversibleCompositeGate,
 )
 from cirq.ops.three_qubit_gates import (

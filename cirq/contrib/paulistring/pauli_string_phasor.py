@@ -16,7 +16,7 @@ from typing import (
     Dict, Hashable, Iterable, Optional, Tuple, Type, TypeVar, Union, cast
 )
 
-from cirq import ops, value, study, extension
+from cirq import ops, value, study, extension, protocols
 
 from cirq.ops.pauli_string import PauliString
 from cirq.contrib.paulistring.pauli_string_raw_types import (
@@ -30,10 +30,7 @@ class PauliStringPhasor(PauliStringGateOperation,
                         ops.CompositeOperation,
                         ops.BoundedEffect,
                         ops.ParameterizableEffect,
-                        ops.TextDiagrammable,
-                        extension.PotentialImplementation[Union[
-                            ops.ExtrapolatableEffect,
-                            ops.ReversibleEffect]]):
+                        ops.TextDiagrammable):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
@@ -86,15 +83,12 @@ class PauliStringPhasor(PauliStringGateOperation,
                          ) -> 'PauliStringPhasor':
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'PauliStringPhasor':
-        return self._with_half_turns(self.half_turns * factor)  # type: ignore
-
     def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
-        return self.extrapolate_effect(power)
-
-    def inverse(self) -> 'PauliStringPhasor':
-        return self.extrapolate_effect(-1)
+        if isinstance(power, value.Symbol) and self.half_turns != 1:
+            return NotImplemented
+        if isinstance(self.half_turns, value.Symbol) and power != 1:
+            return NotImplemented
+        return self._with_half_turns(self.half_turns * power)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         return self.pauli_string.equal_up_to_sign(op.pauli_string)
@@ -126,8 +120,8 @@ class PauliStringPhasor(PauliStringGateOperation,
             half_turns = self.half_turns * (-1 if self.pauli_string.negated
                                                else 1)
             yield ops.Z(any_qubit) ** half_turns
-        yield ops.inverse(xor_decomp)
-        yield ops.inverse(to_z_ops)
+        yield protocols.inverse(xor_decomp)
+        yield protocols.inverse(to_z_ops)
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
@@ -137,16 +131,6 @@ class PauliStringPhasor(PauliStringGateOperation,
 
     def trace_distance_bound(self) -> float:
         return ops.RotZGate(half_turns=self.half_turns).trace_distance_bound()
-
-    def try_cast_to(self,
-                    desired_type: Type[T_DESIRED],
-                    ext: extension.Extensions
-                    ) -> Optional[T_DESIRED]:
-        if (desired_type in [ops.ExtrapolatableEffect,
-                             ops.ReversibleEffect] and
-                not self.is_parameterized()):
-            return cast(T_DESIRED, self)
-        return super().try_cast_to(desired_type, ext)
 
     def is_parameterized(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)

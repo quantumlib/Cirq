@@ -15,7 +15,7 @@
 """Gates that can be directly described to the API, without decomposition."""
 
 import json
-from typing import cast, Dict, Optional, Tuple, Union
+from typing import cast, Dict, Optional, Tuple, Union, Any
 
 import numpy as np
 
@@ -263,9 +263,7 @@ class ExpWGate(XmonGate,
                ops.TextDiagrammable,
                ops.PhaseableEffect,
                ops.BoundedEffect,
-               ops.ParameterizableEffect,
-               PotentialImplementation[Union[
-                   ops.ReversibleEffect]]):
+               ops.ParameterizableEffect):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -344,17 +342,9 @@ class ExpWGate(XmonGate,
         }
         return {'exp_w': exp_w}
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.ReversibleEffect and self.has_inverse():
-            return self
-        return super().try_cast_to(desired_type, ext)
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def inverse(self):
-        if not self.has_inverse():
-            raise ValueError("Don't have a known inverse.")
+    def __pow__(self, exponent: Any):
+        if exponent != -1 or self.is_parameterized():
+            return NotImplemented
         return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
@@ -450,9 +440,7 @@ class ExpZGate(XmonGate,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
                ops.BoundedEffect,
-               ops.QasmConvertibleGate,
-               PotentialImplementation[Union[
-                   ops.ReversibleEffect]]):
+               ops.QasmConvertibleGate):
     """A rotation around the Z axis of the Bloch sphere.
 
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
@@ -510,23 +498,15 @@ class ExpZGate(XmonGate,
             return args.format('rz({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.ReversibleEffect and self.has_inverse():
-            return self
-        return super().try_cast_to(desired_type, ext)
+    def __pow__(self, exponent: Any):
+        if exponent != -1 or self.is_parameterized():
+            return NotImplemented
+        return ExpZGate(half_turns=-self.half_turns)
 
     def phase_by(self,
                  phase_turns: float,
                  qubit_index: int):
         return self
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def inverse(self):
-        if not self.has_inverse():
-            raise ValueError("Don't have a known inverse.")
-        return ExpZGate(half_turns=-self.half_turns)
 
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         if isinstance(self.half_turns, value.Symbol):

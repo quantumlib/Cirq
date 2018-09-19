@@ -29,7 +29,6 @@ def _phase_matrix(turns: float) -> np.ndarray:
 class SingleQubitMatrixGate(raw_types.Gate,
                             gate_features.TextDiagrammable,
                             gate_features.PhaseableEffect,
-                            gate_features.ExtrapolatableEffect,
                             gate_features.BoundedEffect):
     """A 1-qubit gate defined by its matrix.
 
@@ -54,10 +53,9 @@ class SingleQubitMatrixGate(raw_types.Gate,
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'SingleQubitMatrixGate':
-        if isinstance(factor, value.Symbol):
-            raise TypeError('SingleQubitMatrixGate cannot be parameterized.')
+    def __pow__(self, factor) -> 'SingleQubitMatrixGate':
+        if not isinstance(factor, (int, float)):
+            return NotImplemented
         e = cast(float, factor)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
@@ -108,8 +106,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
 
 class TwoQubitMatrixGate(raw_types.Gate,
                          gate_features.TextDiagrammable,
-                         gate_features.PhaseableEffect,
-                         gate_features.ExtrapolatableEffect):
+                         gate_features.PhaseableEffect):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like CZGate, but more expensive and
@@ -134,10 +131,9 @@ class TwoQubitMatrixGate(raw_types.Gate,
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'TwoQubitMatrixGate':
-        if isinstance(factor, value.Symbol):
-            raise TypeError('TwoQubitMatrixGate cannot be parameterized.')
+    def __pow__(self, factor) -> 'SingleQubitMatrixGate':
+        if not isinstance(factor, (int, float)):
+            return NotImplemented
         e = cast(float, factor)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)

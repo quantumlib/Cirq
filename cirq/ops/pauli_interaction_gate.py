@@ -110,8 +110,8 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                                     z_to=(self.pauli0, self.invert0))
         right_gate1 = CliffordGate.from_single_map(
                                     z_to=(self.pauli1, self.invert1))
-        left_gate0 = right_gate0.inverse()
-        left_gate1 = right_gate1.inverse()
+        left_gate0 = right_gate0**-1
+        left_gate1 = right_gate1**-1
         yield left_gate0(q0)
         yield left_gate1(q1)
         yield common_gates.Rot11Gate(half_turns=self._exponent)(q0, q1)

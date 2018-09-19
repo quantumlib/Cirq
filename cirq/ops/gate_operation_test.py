@@ -85,16 +85,11 @@ def test_extrapolate():
 
     # If the gate isn't extrapolatable, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ExtrapolatableEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.extrapolate_effect(0.5)
     with pytest.raises(TypeError):
         _ = op0**0.5
 
     op1 = cirq.GateOperation(cirq.Y, [q])
-    assert cirq.can_cast(cirq.ExtrapolatableEffect, op1)
-    assert op1**0.5 == op1.extrapolate_effect(0.5) == cirq.GateOperation(
-        cirq.Y**0.5, [q])
+    assert op1**0.5 == cirq.GateOperation(cirq.Y**0.5, [q])
     assert (cirq.Y**0.5).on(q) == cirq.Y(q)**0.5
 
 
@@ -103,14 +98,11 @@ def test_inverse():
 
     # If the gate isn't reversible, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ReversibleEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.inverse()
+    assert cirq.inverse(op0, None) is None
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.can_cast(cirq.ReversibleEffect, op1)
-    assert op1.inverse() == cirq.GateOperation(cirq.S.inverse(), [q])
-    assert cirq.S.inverse().on(q) == cirq.S.on(q).inverse()
+    assert cirq.inverse(op1) == op1**-1 == cirq.GateOperation(cirq.S**-1, [q])
+    assert cirq.inverse(cirq.S).on(q) == cirq.inverse(cirq.S.on(q))
 
 
 def test_text_diagrammable():

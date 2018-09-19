@@ -31,10 +31,8 @@ if TYPE_CHECKING:
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.BoundedEffect,
-    gate_features.ExtrapolatableEffect,
     gate_features.ParameterizableEffect,
     gate_features.PhaseableEffect,
-    gate_features.ReversibleEffect,
     gate_features.TextDiagrammable,
 ]}
 
@@ -48,10 +46,8 @@ class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
-                        gate_features.ExtrapolatableEffect,
                         gate_features.ParameterizableEffect,
                         gate_features.PhaseableEffect,
-                        gate_features.ReversibleEffect,
                         gate_features.TextDiagrammable,
                         gate_features.QasmConvertibleOperation,
                     ]]):
@@ -154,17 +150,6 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
         return cast_gate.trace_distance_bound()
 
-    def inverse(self) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
-        return self.with_gate(cast(raw_types.Gate, cast_gate.inverse()))
-
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ExtrapolatableEffect,
-                                   self.gate)
-        return self.with_gate(cast(raw_types.Gate,
-                                   cast_gate.extrapolate_effect(factor)))
-
     def phase_by(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
         cast_gate = extension.cast(gate_features.PhaseableEffect,
                                    self.gate)
@@ -172,7 +157,7 @@ class GateOperation(raw_types.Operation,
                                    cast_gate.phase_by(phase_turns,
                                                       qubit_index)))
 
-    def __pow__(self, power: float) -> 'GateOperation':
+    def __pow__(self, power: Union[float, value.Symbol]) -> 'GateOperation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
@@ -186,7 +171,12 @@ class GateOperation(raw_types.Operation,
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
-        return self.extrapolate_effect(power)
+        new_gate = protocols.extrapolate(self.gate,
+                                         power,
+                                         NotImplemented)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        return self.with_gate(new_gate)
 
     def is_parameterized(self) -> bool:
         cast_gate = extension.cast(gate_features.ParameterizableEffect,

@@ -36,66 +36,6 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
-
-class ReversibleEffect(metaclass=abc.ABCMeta):
-    """A gate whose effect can be undone in a known way."""
-
-    @abc.abstractmethod
-    def inverse(self) -> 'ReversibleEffect':
-        """Returns a gate with an exactly opposite effect."""
-
-
-TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
-                                     bound='ExtrapolatableEffect')
-
-
-class ExtrapolatableEffect(ReversibleEffect,
-                           metaclass=abc.ABCMeta):
-    """A gate whose effect can be continuously scaled up/down/negated."""
-
-    @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableEffect,
-                           factor: Union[float, value.Symbol]
-                           ) -> TSelf_ExtrapolatableEffect:
-        """Augments, diminishes, or reverses the effect of the receiving gate.
-
-        Args:
-            factor: The amount to scale the gate's effect by.
-
-        Returns:
-            A gate equivalent to applying the receiving gate 'factor' times.
-        """
-
-    def __pow__(self: TSelf_ExtrapolatableEffect,
-                power: Union[float, value.Symbol]
-                ) -> TSelf_ExtrapolatableEffect:
-        """Extrapolates the effect of the gate.
-
-        Note that there are cases where (G**a)**b != G**(a*b). For example,
-        start with a 90 degree rotation then cube it then raise it to a
-        non-integer power such as 3/2. Assuming that rotations are always
-        normalized into the range (-180, 180], note that:
-
-            ((rot 90)**3)**1.5 = (rot 270)**1.5 = (rot -90)**1.5 = rot -135
-
-        but
-
-            (rot 90)**(3*1.5) = (rot 90)**4.5 = rot 405 = rot 35
-
-        Because normalization discards the winding number.
-
-        Args:
-          power: The extrapolation factor.
-
-        Returns:
-          A gate with the extrapolated effect.
-        """
-        return self.extrapolate_effect(power)
-
-    def inverse(self: TSelf_ExtrapolatableEffect) -> TSelf_ExtrapolatableEffect:
-        return self.extrapolate_effect(-1)
-
-
 class CompositeOperation(metaclass=abc.ABCMeta):
     """An operation with a known decomposition into simpler operations."""
 

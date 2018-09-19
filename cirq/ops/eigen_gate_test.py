@@ -77,19 +77,10 @@ def test_pow():
         _ = CExpZinGate(cirq.Symbol('a'))**1.5
 
 
-def test_extrapolate_effect():
-    assert CExpZinGate(0.25).extrapolate_effect(2) == CExpZinGate(0.5)
-    assert CExpZinGate(0.25).extrapolate_effect(-1) == CExpZinGate(-0.25)
-    assert CExpZinGate(0.25).extrapolate_effect(0) == CExpZinGate(0)
-    assert CExpZinGate(0).extrapolate_effect(0) == CExpZinGate(0)
-    with pytest.raises(TypeError):
-        _ = CExpZinGate(cirq.Symbol('a')).extrapolate_effect(1.5)
-
-
 def test_inverse():
-    assert CExpZinGate(0.25).inverse() == CExpZinGate(-0.25)
+    assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
     with pytest.raises(TypeError):
-        _ = CExpZinGate(cirq.Symbol('a')).inverse()
+        _ = cirq.inverse(CExpZinGate(cirq.Symbol('a')))
 
 
 def test_trace_distance_bound():
@@ -97,23 +88,18 @@ def test_trace_distance_bound():
     assert CExpZinGate(cirq.Symbol('a')).trace_distance_bound() >= 1
 
 
-def test_try_cast_to():
-    ext = cirq.Extensions()
-
+def test_extrapolate():
     h = CExpZinGate(2)
-    assert h.try_cast_to(cirq.ExtrapolatableEffect, ext) is h
-    assert h.try_cast_to(cirq.ReversibleEffect, ext) is h
-    assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.extrapolate(h, 1.5) is not None
+    assert cirq.inverse(h, None) is not None
 
     p = CExpZinGate(0.1)
-    assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is p
-    assert p.try_cast_to(cirq.ReversibleEffect, ext) is p
-    assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.extrapolate(p, 1.5) is not None
+    assert cirq.inverse(p) is not None
 
     s = CExpZinGate(cirq.Symbol('a'))
-    assert s.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert s.try_cast_to(cirq.ReversibleEffect, ext) is None
-    assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.extrapolate(s, 1.5, None) is None
+    assert cirq.inverse(s, None) is None
 
 
 def test_matrix():

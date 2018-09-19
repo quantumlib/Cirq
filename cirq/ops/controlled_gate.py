@@ -23,9 +23,7 @@ T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.BoundedEffect,
-    gate_features.ExtrapolatableEffect,
     gate_features.ParameterizableEffect,
-    gate_features.ReversibleEffect,
     gate_features.TextDiagrammable,
 )
 
@@ -33,9 +31,7 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
 class ControlledGate(raw_types.Gate,
                      extension.PotentialImplementation[Union[
                          gate_features.BoundedEffect,
-                         gate_features.ExtrapolatableEffect,
                          gate_features.ParameterizableEffect,
-                         gate_features.ReversibleEffect,
                          gate_features.TextDiagrammable,
                      ]]):
     """Augments existing gates with a control qubit."""
@@ -95,19 +91,13 @@ class ControlledGate(raw_types.Gate,
             return NotImplemented
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
-    def extrapolate_effect(self, factor) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableEffect)
-        new_sub_gate = cast_sub_gate.extrapolate_effect(factor)
-        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
-                              self.default_extensions)
-
     def __pow__(self, power: float) -> 'ControlledGate':
-        return self.extrapolate_effect(power)
-
-    def inverse(self) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleEffect)
-        return ControlledGate(cast(raw_types.Gate, cast_sub_gate.inverse()),
-                              self.default_extensions)
+        new_sub_gate = protocols.extrapolate(self.sub_gate,
+                                             power,
+                                             NotImplemented)
+        if new_sub_gate is NotImplemented:
+            return NotImplemented
+        return ControlledGate(new_sub_gate, self.default_extensions)
 
     def is_parameterized(self) -> bool:
         cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)

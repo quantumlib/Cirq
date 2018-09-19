@@ -27,7 +27,6 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 class CliffordGate(raw_types.Gate,
                    gate_features.CompositeGate,
-                   gate_features.ReversibleEffect,
                    gate_features.TextDiagrammable):
     """Any single qubit Clifford rotation."""
     I = None  # type: CliffordGate
@@ -157,7 +156,7 @@ class CliffordGate(raw_types.Gate,
         elif quarter_turns == 2:
             return CliffordGate.from_pauli(pauli)
         else:
-            return CliffordGate.from_pauli(pauli, True).inverse()
+            return CliffordGate.from_pauli(pauli, True)**-1
 
     @staticmethod
     def _validate_map_input(required_transform_count: int,
@@ -207,7 +206,9 @@ class CliffordGate(raw_types.Gate,
     def __hash__(self):
         return hash(self._eq_tuple())
 
-    def inverse(self) -> 'CliffordGate':
+    def __pow__(self, exponent) -> 'CliffordGate':
+        if exponent != -1:
+            return NotImplemented
         return CliffordGate(_rotation_map=self._inverse_map,
                             _inverse_map=self._rotation_map)
 
@@ -322,7 +323,7 @@ class CliffordGate(raw_types.Gate,
         """Returns a CliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self.inverse())
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self):
         return 'cirq.CliffordGate(X:{}{!s}, Y:{}{!s}, Z:{}{!s})'.format(

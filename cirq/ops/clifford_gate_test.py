@@ -150,7 +150,7 @@ def test_init_90rot_from_single(trans, frm):
     # Check that flipping the transform produces the inverse rotation
     trans_rev = cirq.PauliTransform(trans.to, not trans.flip)
     gate_rev = cirq.CliffordGate.from_single_map({frm: trans_rev})
-    assert gate.inverse() == gate_rev
+    assert gate**-1 == gate_rev
 
 
 @pytest.mark.parametrize('trans,frm',
@@ -352,14 +352,14 @@ def test_known_matrix(gate, gate_equiv):
 
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_inverse(gate):
-    assert gate == gate.inverse().inverse()
+    assert gate == cirq.inverse(cirq.inverse(gate))
 
 
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_inverse_matrix(gate):
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit.from_ops(gate(q0)).to_unitary_matrix()
-    mat_inv = cirq.Circuit.from_ops(gate.inverse()(q0)).to_unitary_matrix()
+    mat_inv = cirq.Circuit.from_ops(cirq.inverse(gate)(q0)).to_unitary_matrix()
     assert_allclose_up_to_global_phase(mat, mat_inv.T.conj(),
                                        rtol=1e-7, atol=1e-7)
 

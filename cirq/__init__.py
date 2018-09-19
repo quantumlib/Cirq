@@ -119,7 +119,6 @@ from cirq.ops import (
     CSWAP,
     CZ,
     EigenGate,
-    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
@@ -128,7 +127,6 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
     ISwapGate,
     measure,
@@ -150,7 +148,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -200,6 +197,8 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    extrapolate,
+    inverse,
     SupportsUnitary,
     unitary,
 )
