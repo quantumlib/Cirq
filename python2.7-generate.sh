@@ -72,11 +72,6 @@ cp -r "${in_dir}/examples" "${out_dir}/examples"
 "${three_to_two_path}" --nofix=numliterals --no-diffs --write --processes=16 "${out_dir}" >/dev/null 2> "${out_dir}/err_tmp.log"
 find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 
-# Build protobufs.
-proto_dir="${out_dir}/${project_name}/api/google/v1"
-find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
-protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
-
 # Include requirements files.
 cp "${in_dir}/python2.7-requirements.txt" "${out_dir}/requirements.txt"
 cp "${in_dir}/dev_tools/conf/pip-list-python2.7-test-tools.txt" "${out_dir}/pip-list-test-tools.txt"
@@ -88,8 +83,8 @@ cp "${in_dir}/LICENSE" "${out_dir}/LICENSE"
 cp "${in_dir}/setup.py" "${out_dir}/setup.py"
 
 # Substitute versions (failing via grep triggering -e if not present.)
-grep "python_requires='>=3.5.3'" "${out_dir}/setup.py" > /dev/null
-sed -i "s/python_requires='>=3.5.3'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
+grep "python_requires='>=3.5.2'" "${out_dir}/setup.py" > /dev/null
+sed -i "s/python_requires='>=3.5.2'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")

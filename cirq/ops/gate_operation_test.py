@@ -165,22 +165,30 @@ def test_parameterizable_effect():
     assert op2 == cirq.S.on(q)
 
 
-def test_known_matrix():
+def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    # If the gate has no matrix, you get a type error.
-    op0 = cirq.measure(a)
-    assert not cirq.can_cast(cirq.KnownMatrix, op0)
-    with pytest.raises(TypeError):
-        _ = op0.matrix()
-
-    op1 = cirq.X(a)
-    assert cirq.can_cast(cirq.KnownMatrix, op1)
-    np.testing.assert_allclose(op1.matrix(),
+    assert cirq.unitary(cirq.measure(a), None) is None
+    np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
                                np.array([[0, 1], [1, 0]]),
                                atol=1e-8)
-    op2 = cirq.CNOT(a, b)
-    op3 = cirq.CNOT(a, b)
-    np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix(), atol=1e-8)
-    np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix(), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.CNOT(a, b)),
+                               cirq.unitary(cirq.CNOT),
+                               atol=1e-8)
+
+
+def test_repr():
+    a, b = cirq.LineQubit.range(2)
+    assert repr(cirq.GateOperation(cirq.CZ, (a, b))
+                ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
+
+    class Inconsistent(cirq.Gate):
+        def __repr__(self):
+            return 'Inconsistent'
+
+        def on(self, *qubits):
+            return cirq.GateOperation(Inconsistent(), qubits)
+
+    assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
+            'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')

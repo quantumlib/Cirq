@@ -22,6 +22,7 @@ from cirq.circuits import (
     DropNegligible,
     ExpandComposite,
     InsertStrategy,
+    MergeInteractions,
     MergeSingleQubitGates,
     Moment,
     OptimizationPass,
@@ -117,7 +118,6 @@ from cirq.ops import (
     inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -125,7 +125,6 @@ from cirq.ops import (
     OP_TREE,
     Operation,
     ParameterizableEffect,
-    PartialReflectionGate,
     Pauli,
     PauliInteractionGate,
     PauliString,
@@ -187,26 +186,18 @@ from cirq.value import (
     Timestamp,
 )
 
+from cirq.protocols import (
+    SupportsUnitary,
+    unitary,
+)
+
 # Unflattened sub-modules.
 
 from cirq import (
-    api,
-    # contrib,
+    contrib,
     google,
     testing,
 )
 
 # Import version last since it is a relative import.
 from ._version import __version__
-
-# As far as the user is concerned, flattened modules don't exist.
-# pylint: disable=undefined-variable
-# del circuits
-# del devices
-# del extension
-# del linalg
-# del line
-# del ops
-# del schedules
-# del study
-# del value

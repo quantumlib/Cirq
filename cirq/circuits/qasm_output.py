@@ -22,7 +22,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import ops, linalg, extension
+from cirq import ops, linalg, extension, protocols
 
 
 class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
@@ -49,14 +49,16 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
 
     def known_qasm_output(self,
                           qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> Optional[str]:
+                          args: ops.QasmOutputArgs) -> str:
         args.validate_version('2.0')
         return args.format(
                 'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
                 self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
-        return 'QasmUGate({}, {}, {})'.format(self.lmda, self.theta, self.phi)
+        return 'cirq.QasmUGate({}, {}, {})'.format(self.lmda,
+                                                   self.theta,
+                                                   self.phi)
 
 
 class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
@@ -121,7 +123,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
         yield self.after1(q1)
 
     def __repr__(self) -> str:
-        return 'QasmTwoQubitGate({}, {}, {}, {}, {}, {}, {})'.format(
+        return 'cirq.QasmTwoQubitGate({}, {}, {}, {}, {}, {}, {})'.format(
                 self.before0, self.before1, self.x, self.y, self.z,
                 self.after0, self.after1)
 
@@ -275,20 +277,19 @@ class QasmOutput:
                     output_line_gap(1)
                 continue
 
-            matrix_op = self.ext.try_cast(ops.KnownMatrix, op)
-            if matrix_op is not None and len(op.qubits) == 1:
-                u_op = QasmUGate.from_matrix(matrix_op.matrix())(*op.qubits)
+            mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
+            if mat is not None and len(op.qubits) == 1:
+                u_op = QasmUGate.from_matrix(mat).on(*op.qubits)
                 if top:
                     output_line_gap(1)
                     output('// {}\n'.format(comment))
-                output(u_op.known_qasm_output(self.args))
+                output(cast(str, u_op.known_qasm_output(self.args)))
                 if top:
                     output_line_gap(1)
                 continue
 
-            if matrix_op is not None and len(op.qubits) == 2:
-                u_op = QasmTwoQubitGate.from_matrix(matrix_op.matrix()
-                                                    )(*op.qubits)
+            if mat is not None and len(op.qubits) == 2:
+                u_op = QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
                 if top:
                     output_line_gap(1)
                     output('// {}\n'.format(comment))

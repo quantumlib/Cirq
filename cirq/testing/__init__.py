@@ -20,6 +20,10 @@ from cirq.testing.circuit_compare import (
 from cirq.testing.equals_tester import (
     EqualsTester,
 )
+from cirq.testing.file_tester import (
+    TempDirectoryPath,
+    TempFilePath,
+)
 from cirq.testing.lin_alg_utils import (
     random_orthogonal,
     random_special_orthogonal,
@@ -32,10 +36,6 @@ from cirq.testing.random_circuit import (
 )
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
-)
-from cirq.testing.file_tester import (
-    TempDirectoryPath,
-    TempFilePath,
 )
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,

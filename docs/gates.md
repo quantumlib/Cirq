@@ -27,13 +27,13 @@ For example, one feature is ``ReversibleEffect``.
 A ``Gate`` that inherits this class is required to implement the method ``inverse`` which returns the inverse gate.
 Algorithms that operate on gates can use ``isinstance(gate, ReversibleEffect)`` to determine whether gates implements ``inverse`` method, and then use it.
 (Note that, even if the gate is not reversible, the algorithm may have been given an ``Extension`` with a cast from the gate to ``ReversibleEffect``.
-See the [extensions documentation](docs/extensions.md) for more information.)
+See the [extensions documentation](extensions.md) for more information.)
 
 We describe some gate features below.
 
 #### ReversibleEffect, SelfInverseGate
 
-As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gatethat is the inverse of the receiving gate).
+As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gate that is the inverse of the receiving gate).
 ``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
 (so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
 
@@ -50,15 +50,15 @@ The primary use of ``ExtrapolatableEffect`` is to allow
 easy *powering* of gates.  That is one can define
 for these gates a power
 ```python
+import cirq
 import numpy as np
-from cirq.ops import X
-print(np.around(X.matrix()))
+print(np.around(cirq.unitary(cirq.X)))
 # prints
 # [[0.+0.j 1.+0.j]
 #  [1.+0.j 0.+0.j]]
 
-sqrt_x = X**0.5
-print(sqrt_x.matrix())
+sqrt_x = cirq.X**0.5
+print(cirq.unitary(sqrt_x))
 # prints
 # [[0.5+0.5j 0.5-0.5j]
 #  [0.5-0.5j 0.5+0.5j]]
@@ -67,11 +67,16 @@ print(sqrt_x.matrix())
 The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
 Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the intermediate values normalizing rotation angles into a canonical range.
 
-#### KnownMatrix
+#### `cirq.unitary` and `def _unitary_` 
 
 We've seen this above.
-These are ``Gate`` or ``Operation`` instances which implement the ``matrix`` method.
-This returns a numpy ``ndarray`` matrix which is the unitary gate for the gate/operation.
+These are ``Gate`` or ``Operation`` instances which may be described by a
+unitary matrix.
+They implement the ``_unitary_`` method,
+which returns a numpy ``ndarray`` matrix which is the unitary gate for the
+gate/operation.
+The method may also return `NotImplemented`, in which case `cirq.unitary`
+behaves as if the method is not implemented.
 
 #### CompositeGate and CompositeOperation
 
