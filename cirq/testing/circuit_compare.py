@@ -13,11 +13,8 @@
 # limitations under the License.
 
 from typing import Tuple, Sequence, TYPE_CHECKING
-try:
-    from itertools import zip_longest as zip_longest
-except:
-    from itertools import izip_longest as zip_longest
 
+import itertools
 import numpy as np
 
 from cirq import circuits, ops, linalg
@@ -126,11 +123,11 @@ def _text_diagram_diff(
         actual_diagram: str,
         desired_diagram: str) -> str:
     diff = ""
-    for actual_line, desired_line in zip_longest(
+    for actual_line, desired_line in itertools.zip_longest(
             actual_diagram.splitlines(), desired_diagram.splitlines(),
             fillvalue=""):
         diff += "".join(a if a == b else "█"
-                        for a, b in zip_longest(
+                        for a, b in itertools.zip_longest(
                             actual_line, desired_line, fillvalue="")) + "\n"
     return diff
 

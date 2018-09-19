@@ -192,6 +192,7 @@ def test_known_old_failure():
         atol=1e-8)
 
 
+@cirq.testing.only_test_in_python3
 def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b))
