@@ -377,27 +377,28 @@ def test_allclose_up_to_global_phase():
 
 
 def test_binary_sub_tensor_slice():
-    e = slice(None)
+    a = slice(None)
+    e = Ellipsis
 
-    assert cirq.binary_sub_tensor_slice(0, []) == (...,)
-    assert cirq.binary_sub_tensor_slice(0b0, [0]) == (0, ...)
-    assert cirq.binary_sub_tensor_slice(0b1, [0]) == (1, ...)
-    assert cirq.binary_sub_tensor_slice(0b0, [1]) == (e, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b1, [1]) == (e, 1, ...)
-    assert cirq.binary_sub_tensor_slice(0b0, [2]) == (e, e, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b1, [2]) == (e, e, 1, ...)
+    assert cirq.binary_sub_tensor_slice(0, []) == (e,)
+    assert cirq.binary_sub_tensor_slice(0b0, [0]) == (0, e)
+    assert cirq.binary_sub_tensor_slice(0b1, [0]) == (1, e)
+    assert cirq.binary_sub_tensor_slice(0b0, [1]) == (a, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b1, [1]) == (a, 1, e)
+    assert cirq.binary_sub_tensor_slice(0b0, [2]) == (a, a, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b1, [2]) == (a, a, 1, e)
 
-    assert cirq.binary_sub_tensor_slice(0b00, [0, 1]) == (0, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b00, [1, 2]) == (e, 0, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b00, [1, 3]) == (e, 0, e, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b10, [1, 3]) == (e, 0, e, 1, ...)
-    assert cirq.binary_sub_tensor_slice(0b10, [3, 1]) == (e, 1, e, 0, ...)
+    assert cirq.binary_sub_tensor_slice(0b00, [0, 1]) == (0, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b00, [1, 2]) == (a, 0, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b00, [1, 3]) == (a, 0, a, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b10, [1, 3]) == (a, 0, a, 1, e)
+    assert cirq.binary_sub_tensor_slice(0b10, [3, 1]) == (a, 1, a, 0, e)
 
-    assert cirq.binary_sub_tensor_slice(0b001, [2, 1, 0]) == (0, 0, 1, ...)
-    assert cirq.binary_sub_tensor_slice(0b010, [2, 1, 0]) == (0, 1, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b100, [2, 1, 0]) == (1, 0, 0, ...)
-    assert cirq.binary_sub_tensor_slice(0b101, [0, 1, 2]) == (1, 0, 1, ...)
-    assert cirq.binary_sub_tensor_slice(0b101, [0, 2, 1]) == (1, 1, 0, ...)
+    assert cirq.binary_sub_tensor_slice(0b001, [2, 1, 0]) == (0, 0, 1, e)
+    assert cirq.binary_sub_tensor_slice(0b010, [2, 1, 0]) == (0, 1, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b100, [2, 1, 0]) == (1, 0, 0, e)
+    assert cirq.binary_sub_tensor_slice(0b101, [0, 1, 2]) == (1, 0, 1, e)
+    assert cirq.binary_sub_tensor_slice(0b101, [0, 2, 1]) == (1, 1, 0, e)
 
     m = np.array([0] * 16).reshape((2, 2, 2, 2))
     for k in range(16):
