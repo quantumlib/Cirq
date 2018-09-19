@@ -1385,6 +1385,25 @@ def test_circuit_to_unitary_matrix():
         atol=1e-8)
 
 
+def test_circuit_unitary():
+    q = cirq.NamedQubit('q')
+
+    with_inner_measure = cirq.Circuit.from_ops(
+        cirq.H(q), cirq.measure(q), cirq.H(q))
+    assert cirq.unitary(with_inner_measure, None) is None
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(Circuit.from_ops(
+            cirq.X(q)**0.5),
+            cirq.measure(q),
+        ),
+        np.array([
+            [1j, 1],
+            [1, 1j],
+        ]) * np.sqrt(0.5),
+        atol=1e-8)
+
+
 def test_simple_circuits_to_unitary_matrix():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1406,8 +1425,8 @@ def test_simple_circuits_to_unitary_matrix():
     for expected in [np.diag([1, 1j, -1, -1j]),
                      cirq.unitary(cirq.CNOT)]:
 
-        class Passthrough(cirq.Gate, cirq.KnownMatrix):
-            def matrix(self):
+        class Passthrough(cirq.Gate):
+            def _unitary_(self) -> np.ndarray:
                 return expected
 
         c = Circuit.from_ops(Passthrough()(a, b))

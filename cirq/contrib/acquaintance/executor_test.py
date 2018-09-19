@@ -86,9 +86,8 @@ def test_executor_explicit():
     print(actual_text_diagram)
     assert actual_text_diagram == expected_text_diagram
 
-class DiagonalGate(cirq.Gate,
-                   cirq.KnownMatrix,
-                   cirq.TextDiagrammable):
+
+class DiagonalGate(cirq.Gate, cirq.TextDiagrammable):
     def __init__(self, n_qubits: int, diagonal: np.ndarray) -> None:
         dimension = 2 ** n_qubits
         if (diagonal.shape != (dimension,) or not
@@ -99,7 +98,7 @@ class DiagonalGate(cirq.Gate,
         self.n_qubits = n_qubits
         self.diagonal = diagonal
 
-    def matrix(self) -> np.ndarray:
+    def _unitary_(self) -> np.ndarray:
         return np.diag(self.diagonal)
 
     def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
