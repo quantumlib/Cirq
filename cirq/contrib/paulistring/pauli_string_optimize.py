@@ -74,6 +74,6 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
 
 def remove_negligible_strings(string_dag: circuits.CircuitDag,
                               tolerance=linalg.Tolerance.DEFAULT) -> None:
-    for node in tuple(string_dag.nodes):
+    for node in tuple(string_dag.nodes()):
         if tolerance.all_near_zero_mod(node.val.half_turns, 2):
             string_dag.remove_node(node)
