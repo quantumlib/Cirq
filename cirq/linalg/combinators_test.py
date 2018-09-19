@@ -21,8 +21,8 @@ def test_dot():
     assert cirq.dot(2) == 2
     assert cirq.dot(2.5, 2.5) == 6.25
 
-    a = np.matrix([[1, 2], [3, 4]])
-    b = np.matrix([[5, 6], [7, 8]])
+    a = np.array([[1, 2], [3, 4]])
+    b = np.array([[5, 6], [7, 8]])
     assert cirq.dot(a) is not a
     np.testing.assert_allclose(cirq.dot(a),
                                a,
