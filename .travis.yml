@@ -47,3 +47,7 @@ matrix:
       - pip install -r python2.7-requirements.txt
       - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
     script: check/pytest2
+
+  - os: linux
+    env: NAME=bazel
+    script: check/bazel
