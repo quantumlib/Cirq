@@ -108,8 +108,7 @@ class DepolarizerChannel(object):
                     errors = np.random.random(self.realizations) < self.p
                     if any(errors):
                         key = self._parameter_name + str(error_number)
-                        new_error_gate = copy.deepcopy(gate)
-                        new_error_gate.half_turns = Symbol(key)
+                        new_error_gate = gate**Symbol(key)
                         error_gates.append(new_error_gate.on(q))
                         error_sweep += Points(key, list(errors * 1.0))
                         error_number += 1

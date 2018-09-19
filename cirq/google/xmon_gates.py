@@ -344,6 +344,10 @@ class ExpWGate(XmonGate,
         }
         return {'exp_w': exp_w}
 
+    def __pow__(self, power):
+        return ExpWGate(half_turns=self.half_turns * power,
+                        axis_half_turns=self.axis_half_turns)
+
     def try_cast_to(self, desired_type, ext):
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
@@ -444,15 +448,7 @@ class ExpWGate(XmonGate,
                 axis_half_turns=param_resolver.value_of(self.axis_half_turns))
 
 
-class ExpZGate(XmonGate,
-               ops.SingleQubitGate,
-               ops.TextDiagrammable,
-               ops.ParameterizableEffect,
-               ops.PhaseableEffect,
-               ops.BoundedEffect,
-               ops.QasmConvertibleGate,
-               PotentialImplementation[Union[
-                   ops.ReversibleEffect]]):
+class ExpZGate(XmonGate, ops.RotZGate):
     """A rotation around the Z axis of the Bloch sphere.
 
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
@@ -479,65 +475,14 @@ class ExpZGate(XmonGate,
             rads: The relative phasing of Z's eigenstates, in radians.
             degs: The relative phasing of Z's eigenstates, in degrees.
         """
-        self.half_turns = value.chosen_angle_to_canonical_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs)
+        super().__init__(half_turns=half_turns,
+                         rads=rads,
+                         degs=degs,
+                         global_shift_in_half_turns=-0.5)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
-        if self.half_turns in [-0.25, 0.25]:
-            return ops.TextDiagramInfo(
-                wire_symbols=('T',),
-                exponent=cast(float, self.half_turns) * 4)
-
-        if self.half_turns in [-0.5, 0.5]:
-            return ops.TextDiagramInfo(
-                wire_symbols=('S',),
-                exponent=cast(float, self.half_turns) * 2)
-
-        return ops.TextDiagramInfo(
-            wire_symbols=('Z',),
-            exponent=self.half_turns)
-
-    def known_qasm_output(self,
-                          qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> Optional[str]:
-        args.validate_version('2.0')
-        if self.half_turns == 1:
-            return args.format('z {0};\n', qubits[0])
-        else:
-            return args.format('rz({0:half_turns}) {1};\n',
-                               self.half_turns, qubits[0])
-
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.ReversibleEffect and self.has_inverse():
-            return self
-        return super().try_cast_to(desired_type, ext)
-
-    def phase_by(self,
-                 phase_turns: float,
-                 qubit_index: int):
-        return self
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def inverse(self):
-        if not self.has_inverse():
-            raise ValueError("Don't have a known inverse.")
-        return ExpZGate(half_turns=-self.half_turns)
-
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if isinstance(self.half_turns, value.Symbol):
-            return NotImplemented
-        h = cast(float, self.half_turns)
-        return np.diag([(-1j)**h, 1j**h])
-
-    def trace_distance_bound(self):
-        if isinstance(self.half_turns, value.Symbol):
-            return 1
-        return abs(self.half_turns) * 3.5
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'ExpZGate':
+        return ExpZGate(half_turns=exponent)
 
     def to_proto_dict(self, *qubits):
         if len(qubits) != 1:
@@ -549,34 +494,8 @@ class ExpZGate(XmonGate,
                  }
         return {'exp_z': exp_z}
 
-    def __str__(self):
-        if self.half_turns == 0.5:
-            return 'S'
-        if self.half_turns == 0.25:
-            return 'T'
-        if self.half_turns == -0.5:
-            return 'S^-1'
-        if self.half_turns == -0.25:
-            return 'T^-1'
-        return 'Z^{}'.format(self.half_turns)
-
     def __repr__(self):
-        return 'ExpZGate(half_turns={})'.format(
-            repr(self.half_turns))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ExpZGate, self.half_turns))
-
-    def is_parameterized(self) -> bool:
-        return isinstance(self.half_turns, value.Symbol)
+        return 'ExpZGate(half_turns={!r})'.format(self.half_turns)
 
     def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))

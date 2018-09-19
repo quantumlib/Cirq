@@ -59,7 +59,29 @@ class EigenGate(raw_types.Gate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
+                 exponent: Union[value.Symbol, float] = 1.0,
+                 global_shift_in_half_turns: float = 0.0) -> None:
+        """Initializes the parameters used to compute the gate's matrix.
+
+        The eigenvalue of an eigenspace of the gate is computed by:
+        1. Starting with an angle returned by the _eigen_components method.
+            θ
+        2. Shifting the angle by the global_shift_in_half_turns.
+            θ + s
+        3. Scaling the angle by the exponent.
+            (θ + s) * e
+        4. Converting from half turns to a complex unit vector.
+            exp(i * pi * (θ + s) * e)
+
+        Args:
+            exponent: How much to scale the eigencomponents' angles by when
+                computing the gate's matrix.
+            global_shift_in_half_turns: How much to shift the eigencomponents'
+                angles by (before multiplying by the exponent).
+        """
+
+        self._exponent = exponent
+        self._global_shift_in_half_turns = global_shift_in_half_turns
 
         # Canonicalize the exponent.
         period = self._canonical_exponent_period()
@@ -74,11 +96,17 @@ class EigenGate(raw_types.Gate,
 
         self._exponent = exponent
 
-    @abc.abstractmethod
+    # virtual method
     def _with_exponent(self: TSelf,
                        exponent: Union[value.Symbol, float]) -> TSelf:
-        """Return the same kind of gate, but with a different exponent."""
-        pass
+        """Return the same kind of gate, but with a different exponent.
+
+        Child classes should override this method if they have an __init__
+        method with a differing signature.
+        """
+        return type(self)(
+            exponent=exponent,
+            global_phase_shift_exponent=self._global_phase_shift_exponent)
 
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
@@ -156,13 +184,14 @@ class EigenGate(raw_types.Gate,
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._exponent == other._exponent
+        return (self._exponent == other._exponent and
+                self._global_shift_in_half_turns == other._global_shift_in_half_turns)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((type(self), self._exponent))
+        return hash((type(self), self._exponent, self._global_shift_in_half_turns))
 
     def trace_distance_bound(self):
         if isinstance(self._exponent, value.Symbol):
@@ -184,8 +213,11 @@ class EigenGate(raw_types.Gate,
         if self.is_parameterized():
             return NotImplemented
         e = cast(float, self._exponent)
-        return np.sum([1j**(half_turns * e * 2) * component for half_turns,
-                       component in self._eigen_components()], axis=0)
+        return np.sum([
+            component * 1j**(
+                    2 * e * (half_turns + self._global_shift_in_half_turns))
+            for half_turns, component in self._eigen_components()
+        ], axis=0)
 
     def extrapolate_effect(self: TSelf,
                            factor: Union[float, value.Symbol]) -> TSelf:
