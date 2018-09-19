@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Implements the inverse method of a CompositeOperation & ReversibleEffect."""
-from typing import TypeVar, Generic, cast
+from typing import TypeVar, Generic
 
 from cirq import abc, protocols
 from cirq.ops import gate_features
