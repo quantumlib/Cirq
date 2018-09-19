@@ -22,16 +22,23 @@ from cirq import linalg, value
 from cirq.ops import gate_features, common_gates, raw_types, op_tree, eigen_gate
 
 
-class _CCZGate(eigen_gate.EigenGate,
-               gate_features.ThreeQubitGate,
-               gate_features.TextDiagrammable,
-               gate_features.CompositeGate,
-               gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertibleGate):
-    """A doubly-controlled-Z."""
+class _CCZPowerGate(eigen_gate.EigenGate,
+                    gate_features.ThreeQubitGate,
+                    gate_features.TextDiagrammable,
+                    gate_features.CompositeGate,
+                    gate_features.InterchangeableQubitsGate,
+                    gate_features.QasmConvertibleGate):
+    """A doubly-controlled-Z that can be raised to a power.
+
+    The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
+    """
 
     def __init__(self, exponent: Union[value.Symbol, float]=1.0):
         super().__init__(exponent=exponent)
+
+    @property
+    def exponent(self):
+        return self._exponent
 
     def _eigen_components(self):
         return [
@@ -43,8 +50,8 @@ class _CCZGate(eigen_gate.EigenGate,
         return 2
 
     def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCZGate':
-        return _CCZGate(exponent=exponent)
+                       ) -> '_CCZPowerGate':
+        return _CCZPowerGate(exponent=exponent)
 
     def default_decompose(self, qubits):
         """An adjacency-respecting decomposition.
@@ -108,16 +115,23 @@ class _CCZGate(eigen_gate.EigenGate,
         return 'CCZ**{}'.format(self._exponent)
 
 
-class _CCXGate(eigen_gate.EigenGate,
-               gate_features.ThreeQubitGate,
-               gate_features.TextDiagrammable,
-               gate_features.CompositeGate,
-               gate_features.InterchangeableQubitsGate,
-               gate_features.QasmConvertibleGate):
-    """A doubly-controlled-NOT. The Toffoli gate."""
+class _CCXPowerGate(eigen_gate.EigenGate,
+                    gate_features.ThreeQubitGate,
+                    gate_features.TextDiagrammable,
+                    gate_features.CompositeGate,
+                    gate_features.InterchangeableQubitsGate,
+                    gate_features.QasmConvertibleGate):
+    """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
+
+    The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
+    """
 
     def __init__(self, exponent: Union[value.Symbol, float]=1.0):
         super().__init__(exponent=exponent)
+
+    @property
+    def exponent(self):
+        return self._exponent
 
     def _eigen_components(self):
         return [
@@ -128,8 +142,8 @@ class _CCXGate(eigen_gate.EigenGate,
         ]
 
     def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCXGate':
-        return _CCXGate(exponent=exponent)
+                       ) -> '_CCXPowerGate':
+        return _CCXPowerGate(exponent=exponent)
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -292,8 +306,8 @@ class _CSwapGate(gate_features.ThreeQubitGate,
 
 
 # Explicit names.
-CCZ = _CCZGate()
-CCX = _CCXGate()
+CCZ = _CCZPowerGate()
+CCX = _CCXPowerGate()
 CSWAP = _CSwapGate()
 
 # Common names.

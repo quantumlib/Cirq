@@ -19,6 +19,13 @@ import pytest
 import cirq
 
 
+def test_init():
+    assert (cirq.CCZ**0.5).exponent == 0.5
+    assert (cirq.CCZ**0.25).exponent == 0.25
+    assert (cirq.CCX**0.5).exponent == 0.5
+    assert (cirq.CCX**0.25).exponent == 0.25
+
+
 def test_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
@@ -90,6 +97,12 @@ def test_eq():
     eq.add_equality_group(cirq.CCZ(a, b, c),
                           cirq.CCZ(a, c, b),
                           cirq.CCZ(b, c, a))
+    eq.add_equality_group(cirq.CCZ(a, b, c)**0.5,
+                          cirq.CCZ(a, c, b)**2.5,
+                          cirq.CCZ(b, c, a)**-1.5)
+    eq.add_equality_group(cirq.TOFFOLI(a, b, c)**0.5,
+                          cirq.TOFFOLI(b, a, c)**2.5,
+                          cirq.TOFFOLI(a, b, c)**-1.5)
     eq.add_equality_group(cirq.CCZ(a, b, d))
     eq.add_equality_group(cirq.TOFFOLI(a, b, c), cirq.CCX(a, b, c))
     eq.add_equality_group(cirq.TOFFOLI(a, c, b), cirq.TOFFOLI(c, a, b))
