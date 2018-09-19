@@ -17,7 +17,9 @@ import numpy as np
 import cirq
 
 
-def assert_optimizes(before, after, optimizer=None):
+def assert_optimizes(before: cirq.Circuit,
+                     expected: cirq.Circuit,
+                     optimizer: cirq.OptimizationPass=None):
     if optimizer is None:
         optimizer = cirq.MergeSingleQubitGates()
     optimizer.optimize_circuit(before)
@@ -29,13 +31,17 @@ def assert_optimizes(before, after, optimizer=None):
     ]
     for post in followup_optimizations:
         post.optimize_circuit(before)
-        post.optimize_circuit(after)
+        post.optimize_circuit(expected)
 
-    if before != after:
+    try:
+        assert before == expected
+    except AssertionError:  # coverage: ignore
         # coverage: ignore
-        print("before:", before)
-        print("after:", after)
-    assert before == after
+        print("BEFORE")
+        print(before)
+        print("EXPECTED")
+        print(expected)
+        raise
 
 
 def test_leaves_singleton():
@@ -51,11 +57,10 @@ def test_leaves_singleton():
 def test_combines_sequence():
     m = cirq.MergeSingleQubitGates()
     q = cirq.QubitId()
-    c = cirq.Circuit([
-        cirq.Moment([cirq.X(q)**0.5]),
-        cirq.Moment([cirq.Z(q)**0.5]),
-        cirq.Moment([cirq.X(q)**-0.5]),
-    ])
+    c = cirq.Circuit.from_ops(
+        cirq.X(q)**0.5,
+        cirq.Z(q)**0.5,
+        cirq.X(q)**-0.5)
 
     opt_summary = m.optimization_at(c, 0, c.operation_at(q, 0))
     assert opt_summary.clear_span == 3
@@ -78,7 +83,7 @@ def test_removes_identity_sequence():
             cirq.Moment([cirq.X(q)]),
             cirq.Moment([cirq.H(q)]),
         ]),
-        after=cirq.Circuit())
+        expected=cirq.Circuit())
 
 
 def test_stopped_at_2qubit():

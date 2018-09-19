@@ -131,7 +131,6 @@ from cirq.ops import (
     inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
