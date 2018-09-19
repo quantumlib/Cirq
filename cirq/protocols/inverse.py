@@ -16,7 +16,6 @@ from typing import Any
 
 import collections
 
-from cirq import extension, ops
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -50,7 +49,8 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
             iterable containing invertible items. Also, no `default` argument
             was specified.
     """
-    # TODO: remove this backwards compatibility shim.
+    # TODO: remove this compatibility shim when ReversibleEffect is gone.
+    from cirq import extension, ops
     reversible = extension.try_cast(ops.ReversibleEffect, val)
     if reversible is not None:
         return reversible.inverse()
