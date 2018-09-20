@@ -240,17 +240,17 @@ def test_text_diagrams():
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
 
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
       │                     │   │   │       │       │
 b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
 """)
 
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
       |                        |   |   |       |       |
 b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
-    """.strip()
+""", use_unicode_characters=False)
 
 
 def test_cnot_power():
@@ -409,19 +409,19 @@ def test_measurement_gate_diagram():
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    cirq.testing.assert_same_diagram(
+    cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(cirq.measure(a, b)), """
 a: ───M───
       │
 b: ───M───
 """)
-    cirq.testing.assert_same_diagram(
+    cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))), """
 a: ───!M───
       │
 b: ───M────
 """)
-    cirq.testing.assert_same_diagram(
+    cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(cirq.measure(a, b, key='test')), """
 a: ───M('test')───
       │
@@ -505,7 +505,7 @@ def test_iswap_decompose():
         decomposed.to_unitary_matrix(),
         atol=1e-8)
 
-    cirq.testing.assert_same_diagram(decomposed, """
+    cirq.testing.assert_has_diagram(decomposed, """
 a: ───@───H───X───T───X───T^-1───H───@───
       │       │       │              │
 b: ───X───────@───────@──────────────X───

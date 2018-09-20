@@ -237,8 +237,8 @@ def test_larger_circuit():
 
 (3, 5): ───T───────────────────────────
 """
-    cirq.testing.assert_same_diagram(circuit, desired)
-    cirq.testing.assert_same_diagram(dag.to_circuit(), desired)
+    cirq.testing.assert_has_diagram(circuit, desired)
+    cirq.testing.assert_has_diagram(dag.to_circuit(), desired)
 
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),

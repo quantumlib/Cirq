@@ -37,7 +37,7 @@ def test_optimize():
         cirq.CZ(q1, q2),
         cirq.X(q2) ** 0.125,
     )
-    cirq.testing.assert_same_diagram(c_orig, """
+    cirq.testing.assert_has_diagram(c_orig, """
 0: ───X^0.5─────────────────────────@────────────────────────────────────
                                     │
 1: ───X───────@───S─────────Y^0.5───@───S───@───S──────────@─────────────
@@ -53,7 +53,7 @@ def test_optimize():
         atol=1e-7,
     )
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 0: ───X^0.5────────────@─────────────────────────────────────────
                        │
 1: ───@───────X^-0.5───@───@─────────────────@───Z^-0.5──────────

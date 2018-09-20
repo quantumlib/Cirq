@@ -49,7 +49,7 @@ def test_optimize():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 0: ───@───[Z]^0.25───@───
       │              │
 1: ───@───[X]^0.25───@───
@@ -78,7 +78,7 @@ def test_remove_czs():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 0: ───Z^0.5───
 """)
 
@@ -105,7 +105,7 @@ def test_remove_staggered_czs():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 1: ───@───
       │
 2: ───@───
@@ -137,7 +137,7 @@ def test_with_measurements():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 0: ───@───X───M('m')───
       │       │
 1: ───@───Z───M────────

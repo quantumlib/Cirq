@@ -16,7 +16,7 @@
 
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
-    assert_same_diagram,
+    assert_has_diagram,
 )
 from cirq.testing.equals_tester import (
     EqualsTester,

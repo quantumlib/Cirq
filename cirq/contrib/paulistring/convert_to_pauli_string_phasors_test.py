@@ -35,7 +35,7 @@ def test_convert():
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
         atol=1e-7)
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───[X]────────[Z]^0.125─────────
 
 1: ───[Y]^0.25───[Y]^-0.5────[Z]───
@@ -57,7 +57,7 @@ def test_convert_keep_clifford():
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
         atol=1e-7)
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───X──────────[Z]^0.125───
 
 1: ───[Y]^0.25───H───────────

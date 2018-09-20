@@ -587,7 +587,7 @@ def test_cirq_symbol_diagrams():
         cg.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
         cg.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
     )
-    cirq.testing.assert_same_diagram(c, """
+    cirq.testing.assert_has_diagram(c, """
 (0, 0): ───W(a)^b───@─────
                     │
 (0, 1): ───Z^c──────@^d───
@@ -604,7 +604,7 @@ def test_z_diagram_chars():
         cg.ExpZGate(half_turns=-0.5).on(q),
         cg.ExpZGate(half_turns=-0.25).on(q),
     )
-    cirq.testing.assert_same_diagram(c, """
+    cirq.testing.assert_has_diagram(c, """
 (0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
 """)
 
@@ -617,6 +617,6 @@ def test_w_diagram_chars():
         cg.ExpWGate(axis_half_turns=0.5).on(q),
         cg.ExpWGate(axis_half_turns=cirq.Symbol('a')).on(q),
     )
-    cirq.testing.assert_same_diagram(c, """
+    cirq.testing.assert_has_diagram(c, """
 (0, 1): ───X───W(0.25)───Y───W(a)───
 """)

@@ -165,24 +165,19 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     )
 
 
-def assert_same_diagram(
+def assert_has_diagram(
         actual: circuits.Circuit,
         desired: str,
-        use_unicode_characters: bool = True,
-        transpose: bool = False) -> None:
+        **kwargs) -> None:
     """Determines if a given circuit has the desired text diagram.
 
     Args:
         actual: The circuit that was actually computed by some process.
         desired: The desired text diagram as a string. Whitespace at the
             beginning and end are ignored.
-        use_unicode_characters: Determines if unicode characters are
-            allowed (as opposed to ascii-only diagrams).
-        transpose: Arranges qubit wires vertically instead of horizontally.
+        **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
-    actual_diagram = actual.to_text_diagram(
-        use_unicode_characters=use_unicode_characters, transpose=transpose
-    ).strip()
+    actual_diagram = actual.to_text_diagram(**kwargs).strip()
     desired_diagram = desired.strip()
     assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"
@@ -193,7 +188,7 @@ def assert_same_diagram(
         'Desired text diagram:\n'
         '{}\n'
         '\n'
-        'Diff:\n'
+        'Highlighted differences:\n'
         '{}\n'.format(actual_diagram, desired_diagram,
                       _text_diagram_diff(actual_diagram, desired_diagram))
     )

@@ -192,10 +192,10 @@ def test_known_old_failure():
         atol=1e-8)
 
 
-def test_assert_same_diagram():
+def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b))
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───@───
       │
 1: ───X───
@@ -213,18 +213,16 @@ Desired text diagram:
       │
 1: ───Z───
 
-Diff:
+Highlighted differences:
 0: ───@───
       │
 1: ───█───
 
 """
 
-    try:
-        cirq.testing.assert_same_diagram(circuit, """
+    with pytest.raises(AssertionError, match=expected_error):
+        cirq.testing.assert_has_diagram(circuit, """
 0: ───@───
       │
 1: ───Z───
 """)
-    except AssertionError as ex:
-        assert ex.args[0] == expected_error

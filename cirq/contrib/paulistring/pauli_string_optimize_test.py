@@ -50,7 +50,7 @@ def test_optimize():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───
                  │
 1: ──────────────@────────────────────────────────────
@@ -76,7 +76,7 @@ def test_handles_measurement_gate():
         atol=1e-7,
     )
 
-    cirq.testing.assert_same_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(c_opt, """
 0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───M('m0')───
                  │
 1: ──────────────@───M('m1')────────────────────────────────────

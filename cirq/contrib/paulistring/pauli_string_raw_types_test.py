@@ -83,7 +83,7 @@ def test_default_text_diagram():
         DiagramGate(ps),
         DiagramGate(ps.negate()),
     )
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 q0: ───[X]───[X]───
        │     │
 q1: ───[Y]───[Y]───

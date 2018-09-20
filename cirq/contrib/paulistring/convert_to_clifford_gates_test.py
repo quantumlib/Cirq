@@ -40,7 +40,7 @@ def test_convert():
         c_orig.to_unitary_matrix(),
         atol=1e-7)
 
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────Z^-0.5───H───
 
 1: ───Y^0.5───I────────────
@@ -97,7 +97,7 @@ def test_convert_composite():
         c_orig.to_unitary_matrix(),
         atol=1e-7)
 
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────H───
 
 1: ───Y^0.5───────

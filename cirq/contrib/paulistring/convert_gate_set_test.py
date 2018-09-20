@@ -156,7 +156,7 @@ def test_converts_large_circuit():
             after.to_unitary_matrix(),
             atol=1e-7)
 
-    cirq.testing.assert_same_diagram(after, '''
+    cirq.testing.assert_has_diagram(after, '''
 0: ───Y^0.5───@───[Z]^-0.304───[X]^0.333───[Z]^0.446───@───
               │                                        │
 1: ───────────@───@────────────────────────────────────@───

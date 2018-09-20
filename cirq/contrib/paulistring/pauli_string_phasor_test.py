@@ -322,13 +322,13 @@ def test_decompose_with_symbol():
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
-    cirq.testing.assert_same_diagram(circuit, "q0: ───X^0.5───Z^a───X^-0.5───")
+    cirq.testing.assert_has_diagram(circuit, "q0: ───X^0.5───Z^a───X^-0.5───")
 
     ps = cirq.PauliString({q0: cirq.Pauli.Y}, True)
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
-    cirq.testing.assert_same_diagram(
+    cirq.testing.assert_has_diagram(
         circuit, "q0: ───X^0.5───X───Z^a───X───X^-0.5───")
 
 
@@ -352,7 +352,7 @@ def test_text_diagram():
                                             q2: cirq.Pauli.X}, True),
                           half_turns=cirq.Symbol('b')))
 
-    cirq.testing.assert_same_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, """
 q0: ───[Z]───[Y]^0.25───[Z]───[Z]────────[Z]─────[Z]──────
                         │     │          │       │
 q1: ────────────────────[Z]───[Y]────────[Y]─────[Y]──────
