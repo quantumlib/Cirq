@@ -98,6 +98,11 @@ def test_pow():
     assert CExpZinGate(0.25)**0 == CExpZinGate(0)
     with pytest.raises(TypeError):
         _ = CExpZinGate(cirq.Symbol('a'))**1.5
+    assert ZGateDef(exponent=0.25)**2 == ZGateDef(exponent=0.5)
+    assert ZGateDef(exponent=0.25,
+                    global_shift_in_half_turns=0.5)**2 == ZGateDef(
+        exponent=0.5,
+        global_shift_in_half_turns=0.5)
 
 
 def test_extrapolate_effect():

@@ -106,7 +106,7 @@ class EigenGate(raw_types.Gate,
         """
         return type(self)(
             exponent=exponent,
-            global_phase_shift_exponent=self._global_phase_shift_exponent)
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
