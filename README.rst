@@ -71,7 +71,7 @@ We welcome contributions. Please follow these
 We use
 `Github issues <https://github.com/quantumlib/Cirq/issues>`__
 for tracking requests and bugs. Please post questions to
-`Stack Overflow <https://quantumcomputing.stackexchange.com/>`__ with a `cirq` tag.
+`Stack Overflow <https://quantumcomputing.stackexchange.com/>`__ with a 'cirq' tag.
 
 See Also
 --------
