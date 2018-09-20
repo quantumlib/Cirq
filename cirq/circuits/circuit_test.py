@@ -2114,42 +2114,46 @@ x q[0];
 
 
 def test_submoments():
-    a, b, c, d = cirq.LineQubit.range(4)
+    a, b, c, d, e, f = cirq.LineQubit.range(6)
     circuit = cirq.Circuit.from_ops(
         cirq.H.on(a),
         cirq.H.on(d),
         cirq.CZ.on(a, d),
         cirq.CZ.on(b, c),
-        cirq.CZ.on(a, c),
-        cirq.CZ.on(b, d),
-        cirq.H.on(b),
+        (cirq.CNOT**0.5).on(a, d),
+        (cirq.CNOT**0.5).on(b, e),
+        (cirq.CNOT**0.5).on(c, f),
         cirq.H.on(c),
+        cirq.H.on(e),
     )
 
-    assert circuit.to_text_diagram() == """
-0: ───H───@───────@───────────
-          │       │
-1: ───────┼───@───┼───@───H───
-          │   │   │   │
-2: ───────┼───@───@───┼───H───
-          │           │
-3: ───H───@───────────@───────
-
-          ╶───╴   ╶───╴
-""".strip()
-    assert circuit.to_text_diagram(transpose=True) == """
-0 1 2 3
-│ │ │ │
-H │ │ H
-│ │ │ │
-@─┼─┼─@ ╷
-│ │ │ │ │
-│ @─@ │ ╵
-│ │ │ │
-@─┼─@ │ ╷
-│ │ │ │ │
-│ @─┼─@ ╵
-│ │ │ │
-│ H H │
-│ │ │ │
-""".strip()
+    cirq.testing.assert_has_diagram(circuit, """
+         ├──┤ ├───────────────┤
+0: ───H───@────@─────────────────────
+          │    │
+1: ───────┼@───┼────@────────────────
+          ││   │    │
+2: ───────┼@───┼────┼────@───────H───
+          │    │    │    │
+3: ───H───@────X^0.5┼────┼───────────
+                    │    │
+4: ─────────────────X^0.5┼───────H───
+                         │
+5: ──────────────────────X^0.5───────
+         ├──┤ ├───────────────┤
+""")
+    cirq.testing.assert_has_diagram(circuit, """
+  0 1 2 3     4     5
+  │ │ │ │     │     │
+  H │ │ H     │     │
+  │ │ │ │     │     │
+┬ @─┼─┼─@     │     │     ┬
+┴ │ @─@ │     │     │     ┴
+  │ │ │ │     │     │
+┬ @─┼─┼─X^0.5 │     │     ┬
+│ │ @─┼─┼─────X^0.5 │     │
+┴ │ │ @─┼─────┼─────X^0.5 ┴
+  │ │ │ │     │     │
+  │ │ H │     H     │
+  │ │ │ │     │     │
+""", transpose=True)

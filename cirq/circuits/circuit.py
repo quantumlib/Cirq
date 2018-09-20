@@ -1116,12 +1116,6 @@ class Circuit(ops.ParameterizableEffect):
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
 
-        h = diagram.height()
-        for m in diagram.moment_groups:
-            diagram.horizontal_line(h, m.x1, m.x2)
-            diagram.write(m.x1, h, '╶' if not transpose else '╷')
-            diagram.write(m.x2, h, '╴' if not transpose else '╵')
-
         if transpose:
             diagram = diagram.transpose()
 

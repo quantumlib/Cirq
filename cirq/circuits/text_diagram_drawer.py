@@ -30,8 +30,13 @@ _VerticalLine = NamedTuple('VerticalLine', [
     ('emphasize', bool),
 ])
 _MomentGroup = NamedTuple('MomentGroup', [
-    ('x1', int),
-    ('x2', int),
+    ('start', int),
+    ('end', int),
+])
+_MomentGroupParts = NamedTuple('MomentGroupParts', [
+    ('start_char', str),
+    ('mid_char', str),
+    ('end_char', str),
 ])
 
 
@@ -44,6 +49,7 @@ class TextDiagramDrawer:
         self.vertical_lines = []  # type: List[_VerticalLine]
         self.horizontal_lines = []  # type: List[_HorizontalLine]
         self.moment_groups = []  # type: List[_MomentGroup]
+        self.groups_are_vertical = False
 
     def write(self, x: int, y: int, text: str):
         """Adds text to the given location."""
@@ -99,10 +105,10 @@ class TextDiagramDrawer:
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
 
-    def moment_group(self, x1, x2) -> None:
-        """Groups columns x1 to x2 as belonging to the same Moment."""
-        x1, x2 = sorted([x1, x2])
-        self.moment_groups.append(_MomentGroup(x1, x2))
+    def moment_group(self, start, end) -> None:
+        """Groups columns start to end as belonging to the same Moment."""
+        start, end = sorted([start, end])
+        self.moment_groups.append(_MomentGroup(start, end))
 
     def transpose(self) -> 'TextDiagramDrawer':
         """Returns the same diagram, but mirrored across its diagonal."""
@@ -112,6 +118,9 @@ class TextDiagramDrawer:
                               for e in self.horizontal_lines]
         out.horizontal_lines = [_HorizontalLine(*e)
                                 for e in self.vertical_lines]
+        out.moment_groups = [_MomentGroup(*e)
+                             for e in self.moment_groups]
+        out.groups_are_vertical = not self.groups_are_vertical
         return out
 
     def width(self) -> int:
@@ -181,13 +190,26 @@ class TextDiagramDrawer:
         for (x, y), v in self.entries.items():
             grid[y][x] = v
 
+        # Prepare Moment groups.
+        if self.groups_are_vertical:
+            moment_group_parts = (char('┬', False),
+                                  char('│', False),
+                                  char('┴', False))
+        else:
+            moment_group_parts = (char('├', False),
+                                  char('─', False),
+                                  char('┤', False))
+
         # Pad rows and columns to fit contents with desired spacing.
         multiline_grid = _pad_into_multiline(w,
                                              grid,
                                              horizontal_separator,
                                              vertical_separator,
                                              horizontal_spacing,
-                                             vertical_spacing)
+                                             vertical_spacing,
+                                             self.moment_groups,
+                                             moment_group_parts,
+                                             self.groups_are_vertical)
 
         # Concatenate it all together.
         return '\n'.join(''.join(sub_row).rstrip()
@@ -202,15 +224,11 @@ _BoxChars = [
     ('└', '┗', '\\'),
     ('┐', '┓', '\\'),
     ('┘', '┛', '/'),
-    ('├', '┣', '>'),
+    ('├', '┣', '|'),
     ('┼', '╋', '+'),
-    ('┤', '┫', '<'),
-    ('┬', '┳', 'v'),
-    ('┴', '┻', '^'),
-    ('╴', '╸', '+'),
-    ('╵', '╹', '+'),
-    ('╶', '╺', '+'),
-    ('╷', '╻', '+'),
+    ('┤', '┫', '|'),
+    ('┬', '┳', '-'),
+    ('┴', '┻', '-'),
 ]  # type: List[Tuple[str, ...]]
 
 _EmphasisMap = {k: v for k, v, _ in _BoxChars}
@@ -235,20 +253,74 @@ def _cross_char(use_ascii: bool, horizontal_emph: bool, vertical_emph: bool
     return _normal_char('┼', horizontal_emph)
 
 
+def _pad_border(border: List[str],
+                index: int,
+                length: int,
+                spacing: int,
+                moment_groups: List[_MomentGroup],
+                moment_group_parts: _MomentGroupParts) -> int:
+    """Pad a border with indicators for Moment groups.
+
+    Args:
+        border: A list of cells corresponding to the border of a circuit grid.
+        index: The index of the border cell to be padded.
+        length: The width (if horizontal) or height (if vertical) of the
+            longest contents of a cell.
+        spacing: The number of spaces (if horizontal) or rows (if vertical)
+            between this border cell and the next. If spacing is 2 or greater,
+            the start and end of each interval is drawn in the adjacent cell.
+        moment_groups: A set of intervals each of which groups together
+            columns (if horizontal) or rows (if vertical) belonging to
+            the same Moment.
+        moment_group_parts: The characters to use for drawing the start,
+            middle, and end of an interval indicating a Moment group.
+
+    Returns:
+        The new length for that border cell.
+    """
+    (start_char, middle_char, end_char) = moment_group_parts
+    overshoot = spacing >= 2
+    if any(index in range(start, end) for (start, end) in moment_groups):
+        border.append(middle_char * length)
+    else:
+        new_length = length + spacing
+        if any(index == end for (_, end) in moment_groups):
+            middle_char_length = length if overshoot else length - 1
+            border.append((middle_char * middle_char_length +
+                           end_char).ljust(new_length, ' '))
+        else:
+            border.append(' ' * new_length)
+        length = new_length
+    if any(index == start for (start, _) in moment_groups):
+        if overshoot:
+            border[index - 1] = border[index - 1][:-1] + start_char
+        else:
+            border[index] = start_char + border[index][1:]
+    return length
+
+
 def _pad_into_multiline(width: int,
                         grid: List[List[str]],
                         horizontal_separator: List[List[str]],
                         vertical_separator: List[List[str]],
                         horizontal_spacing: int,
-                        vertical_spacing: int
+                        vertical_spacing: int,
+                        moment_groups: List[_MomentGroup],
+                        moment_group_parts: _MomentGroupParts,
+                        groups_are_vertical: bool
                         ) -> List[List[List[str]]]:
     multiline_grid = []  # type: List[List[List[str]]]
+    border = []
 
     # Vertical padding.
     for row in range(len(grid)):
         multiline_cells = [cell.split('\n') for cell in grid[row]]
         row_height = max(1, max(len(cell) for cell in multiline_cells))
-        row_height += vertical_spacing
+        if groups_are_vertical:
+            row_height = _pad_border(border, row, row_height, vertical_spacing,
+                                     moment_groups, moment_group_parts)
+        elif row < len(grid) - 1:
+            row_height += vertical_spacing
 
         multiline_row = []
         for sub_row in range(row_height):
@@ -267,7 +339,11 @@ def _pad_into_multiline(width: int,
         col_width = max(1, max(len(sub_row[col])
                                for row in multiline_grid
                                for sub_row in row))
-        col_width += horizontal_spacing
+        if groups_are_vertical:
+            col_width += horizontal_spacing
+        else:
+            col_width = _pad_border(border, col, col_width, horizontal_spacing,
+                                    moment_groups, moment_group_parts)
         for row in range(len(multiline_grid)):
             for sub_row in range(len(multiline_grid[row])):
                 sub_row_contents = multiline_grid[row][sub_row]
@@ -277,4 +353,14 @@ def _pad_into_multiline(width: int,
                 sub_row_contents[col] = sub_row_contents[col].ljust(
                     col_width, pad_char)
 
+    if moment_groups:
+        if groups_are_vertical:
+            for row in range(len(multiline_grid)):
+                for sub_row in range(len(multiline_grid[row])):
+                    sub_row_contents = multiline_grid[row][sub_row]
+                    sub_row_contents.insert(0, border[row][sub_row] + ' ')
+                    sub_row_contents.append(border[row][sub_row])
+        else:
+            multiline_grid.insert(0, [border])
+            multiline_grid.append([border])
     return multiline_grid
