@@ -24,16 +24,10 @@ It will also check that a==b implies hash(a)==hash(b).
 """
 
 from typing import Any
+import sys
 
 from cirq.testing.equals_tester import EqualsTester
 
-def TryComparison(elem, comp):
-    result = elem
-    try:
-        result = comp() or elem
-    except TypeError:
-        pass
-    return result
 
 class OrderTester(EqualsTester):
     """Tests ordering against user-provided disjoint ordered groups or items."""
@@ -41,61 +35,54 @@ class OrderTester(EqualsTester):
     def __init__(self):
         self.groups = []
 
+    def _old_python(self):
+        return sys.version_info < (3,)
+
+    def _try_comparison(self, comp):
+        result = NotImplemented
+        try:
+            result = comp()
+        except TypeError:
+            pass # will return NotImplemented
+        return result
+
+    def _do_assert(self, one, two, symbol):
+
+        condition = one or two  # bool(NotImplemented) == True
+        message = "{} is inconsistent: {!r},{!r}".format(symbol, one, two)
+
+        assert condition, message
+
+
     def _verify_ascending(self, v1, v2):
         """Verifies that (v1, v2) is a strictly ascending sequence."""
 
-        lt_1 = TryComparison(NotImplemented, lambda: v1 < v2)
-        not_lt_2 = TryComparison(NotImplemented, lambda: not v2 < v1)
+        lt_1 = self._try_comparison(lambda: v1 < v2)
+        not_lt_2 = self._try_comparison(lambda: not v2 < v1)
 
-        assert (lt_1, not_lt_2) in [
-            (True, True),
-            (True, NotImplemented),
-            (NotImplemented, True),
-            (NotImplemented, NotImplemented)
-        ], ("__lt__ is inconsistent: {!r},{!r}".format(lt_1, not_lt_2))
+        self._do_assert(lt_1, not_lt_2, "{!r}__lt__{!r}".format(v1, v2))
 
-        gt_2 = TryComparison(NotImplemented,
-            lambda: not hasattr(v2, '__gt__') or v2 > v1)
-        not_gt_1 = TryComparison(NotImplemented,
-            lambda: not hasattr(v1, '__gt__') or not v1 > v2)
+        gt_2 = self._try_comparison(lambda: v2 > v1)
+        not_gt_1 = self._try_comparison(lambda: not v1 > v2)
 
-        assert (gt_2, not_gt_1) in [
-            (True, True),
-            (True, NotImplemented),
-            (NotImplemented, True),
-            (NotImplemented, NotImplemented),
-                ]
+        self._do_assert(gt_2, not_gt_1, "{!r}__gt__{!r}".format(v1, v2))
 
-        # at least one strict ordering operator should work
-        assert (lt_1, gt_2) in [
-            (True, True),
-            (True, NotImplemented),
-            (NotImplemented, True),
-        ], ("__gt__ is inconsistent: {!r},{!r}".format(lt_1, gt_2))
+        # at least one strict ordering operator should be defined
+        # for the new element
+        self._do_assert(lt_1 == True, gt_2 == True,
+            "{!r}__lt__/__gt__{!r}".format(v1, v2))
 
-        le_1 = TryComparison(NotImplemented,
-            lambda: not hasattr(v1, '__le__') or v1 <= v2)
-        not_le_2 = TryComparison(NotImplemented,
-            lambda: not hasattr(v2, '__le__') or not v2 <= v1)
+        if not self._old_python():
 
-        assert (le_1, not_le_2) in [
-            (True, True),
-            (True, NotImplemented),
-            (NotImplemented, True),
-            (NotImplemented, NotImplemented),
-        ], ("__le__ is inconsistent: {!r},{!r}".format(le_1, not_le_2))
+            le_1 = self._try_comparison(lambda: v1 <= v2)
+            not_le_2 = self._try_comparison(lambda: not v2 <= v1)
 
-        ge_2 = TryComparison(NotImplemented,
-            lambda: not hasattr(v2, '__ge__') or v2 >= v1)
-        not_ge_1 = TryComparison(NotImplemented,
-            lambda: not hasattr(v1, '__ge__') or not v1 >= v2)
+            self._do_assert(le_1, not_le_2, "__le__")
 
-        assert (ge_2, not_ge_1) in [
-            (True, True),
-            (True, NotImplemented),
-            (NotImplemented, True),
-            (NotImplemented, NotImplemented),
-        ], ("__ge__ is inconsistent: {!r},{!r}".format(ge_2, not_ge_1))
+            ge_2 = self._try_comparison(lambda: v2 >= v1)
+            not_ge_1 = self._try_comparison(lambda: v1 >= v2)
+
+            self._do_assert(ge_2, not_ge_1, "__ge__")
 
     def _assert_not_implemented_vs_unknown(self, item: Any):
         self._verify_ascending(ClassSmallerThanEverythingElse(), item)
@@ -195,3 +182,21 @@ class ClassLargerThanEverythingElse:
     def __hash__(self):
         return hash(ClassLargerThanEverythingElse)
 
+
+class UnorderableClass:
+    """Assume that the element of this class is less than anything else."""
+
+    def __eq__(self, other):
+        return isinstance(other, UnorderableClass)
+
+    def __ne__(self, other):
+        return not isinstance(other, UnorderableClass)
+
+    def __lt__(self, other):
+        return NotImplemented
+
+    def __cmp__(self, other):
+        raise TypeError  # for python2
+
+    def __hash__(self):
+        return hash(UnorderableClass)
