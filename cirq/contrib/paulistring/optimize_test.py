@@ -37,13 +37,13 @@ def test_optimize():
         cirq.CZ(q1, q2),
         cirq.X(q2) ** 0.125,
     )
-    assert c_orig.to_text_diagram() == """
+    cirq.testing.assert_same_diagram(c_orig, """
 0: ───X^0.5─────────────────────────@────────────────────────────────────
                                     │
 1: ───X───────@───S─────────Y^0.5───@───S───@───S──────────@─────────────
               │                             │              │
 2: ───────────@───X^0.125───────────────────@───X^0.0625───@───X^0.125───
-""".strip()
+""")
 
     c_opt = optimized_circuit(c_orig)
 
@@ -53,13 +53,13 @@ def test_optimize():
         atol=1e-7,
     )
 
-    assert c_opt.to_text_diagram() == """
+    cirq.testing.assert_same_diagram(c_opt, """
 0: ───X^0.5────────────@─────────────────────────────────────────
                        │
 1: ───@───────X^-0.5───@───@─────────────────@───Z^-0.5──────────
       │                    │                 │
 2: ───@────────────────────@───[X]^-0.0625───@───[X]^-0.25───Z───
-""".strip()
+""")
 
 
 def test_optimize_large_circuit():

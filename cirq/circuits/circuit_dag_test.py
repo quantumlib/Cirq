@@ -228,9 +228,7 @@ def test_larger_circuit():
     assert circuit.device == dag.to_circuit().device
     # Operation order within a moment is non-deterministic
     # but text diagrams still look the same.
-    assert (circuit.to_text_diagram() ==
-            dag.to_circuit().to_text_diagram() ==
-"""
+    desired = """
 (0, 5): ───X───@───Y───Z───X───Y───@───
                │                   │
 (1, 5): ───@───@───@───────────────@───
@@ -238,7 +236,9 @@ def test_larger_circuit():
 (2, 5): ───@───────@───────────────────
 
 (3, 5): ───T───────────────────────────
-""".strip())
+"""
+    cirq.testing.assert_same_diagram(circuit, desired)
+    cirq.testing.assert_same_diagram(dag.to_circuit(), desired)
 
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),

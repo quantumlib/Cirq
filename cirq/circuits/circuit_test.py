@@ -459,15 +459,13 @@ def test_insert_at_frontier():
 
     prepend_two_Xs_append_one_Y.optimize_circuit(circuit)
 
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_same_diagram(circuit, """
 a: ───Z───Z───@───Y───────────────Z───Z───@───Y───
               │                           │
 b: ───────────@───Z───Z───@───Y───────────@───────
                           │
 c: ───────────────────────@───────────────────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
     prepender = lambda op: (cirq.X(op.qubits[0]),) * 3 + (op,)
     prepend_3_Xs = Replacer(prepender)
@@ -477,15 +475,13 @@ c: ───────────────────────@──�
         Moment([cirq.CNOT(c, b)])
     ])
     prepend_3_Xs.optimize_circuit(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_same_diagram(circuit, """
 a: ───X───X───X───@───────────────────────────────────
                   │
 b: ───────────────X───X───X───X───@───────────────X───
                                   │               │
 c: ───────────────────────────────X───X───X───X───@───
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
     duplicate = Replacer(lambda op: (op,) * 2)
     circuit = Circuit([
@@ -494,8 +490,7 @@ c: ─────────────────────────�
         for i in range(4)])
 
     duplicate.optimize_circuit(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_same_diagram(circuit, """
 a: ───@───@───────────@───@───────────
       │   │           │   │
 b: ───@───@───@───@───@───@───@───@───
@@ -507,8 +502,7 @@ d: ───@───@───@───@───@───@───@──�
 e: ───@───@───@───@───@───@───@───@───
       │   │           │   │
 f: ───@───@───────────@───@───────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
     circuit = Circuit([
         Moment([cirq.CZ(*qubits[2:4]), cirq.CNOT(*qubits[:2])]),
@@ -516,8 +510,7 @@ f: ───@───@───────────@───@────�
         ])
 
     duplicate.optimize_circuit(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_same_diagram(circuit, """
 a: ───@───@───X───X───
       │   │   │   │
 b: ───X───X───@───@───
@@ -525,8 +518,7 @@ b: ───X───X───@───@───
 c: ───@───────@───────
       │       │
 d: ───@───────@───────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
 
 def test_insert_into_range():
@@ -534,13 +526,11 @@ def test_insert_into_range():
     y = cirq.NamedQubit('y')
     c = Circuit([Moment([cirq.X(x)])] * 4)
     c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
-    actual_text_diagram = c.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_same_diagram(c, """
 x: ───X───X───Z───@───X───X───
                   │
 y: ───────────────@───────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
 
 def test_next_moment_operating_on():
@@ -1000,7 +990,7 @@ def test_to_text_diagram_teleportation_to_diagram():
         Moment([cirq.CZ(bob, tmp)]),
     ])
 
-    assert c.to_text_diagram().strip() == """
+    cirq.testing.assert_same_diagram(c, """
 (0, 0): ───H───@───────────X───────M───@───────────
                │           │           │
 (0, 1): ───────X───────────┼───────────X───────@───
@@ -1008,8 +998,9 @@ def test_to_text_diagram_teleportation_to_diagram():
 (1, 0): ───────────X^0.5───@───H───M───────@───┼───
                                            │   │
 (1, 1): ───────────────────────────────────X───@───
-    """.strip()
-    assert c.to_text_diagram(use_unicode_characters=False).strip() == """
+""")
+
+    cirq.testing.assert_same_diagram(c, """
 (0, 0): ---H---@-----------X-------M---@-----------
                |           |           |
 (0, 1): -------X-----------|-----------X-------@---
@@ -1017,10 +1008,9 @@ def test_to_text_diagram_teleportation_to_diagram():
 (1, 0): -----------X^0.5---@---H---M-------@---|---
                                            |   |
 (1, 1): -----------------------------------X---@---
-        """.strip()
+""", use_unicode_characters=False)
 
-    assert c.to_text_diagram(transpose=True,
-                             use_unicode_characters=False).strip() == """
+    cirq.testing.assert_same_diagram(c, """
 (0, 0) (0, 1) (1, 0) (1, 1)
 |      |      |      |
 H      |      |      |
@@ -1041,7 +1031,7 @@ M      |      M      |
 |      |      |      |
 |      @-------------@
 |      |      |      |
-        """.strip()
+""", use_unicode_characters=False, transpose=True)
 
 
 def test_diagram_with_unknown_exponent():
@@ -1063,7 +1053,7 @@ def test_diagram_with_unknown_exponent():
     )
 
     # The hyphen in the exponent should cause parens to appear.
-    assert c.to_text_diagram() == 'q: ───B^fancy───W^(fancy-that)───'
+    cirq.testing.assert_same_diagram(c, 'q: ───B^fancy───W^(fancy-that)───')
 
 
 def test_to_text_diagram_extended_gate():
@@ -1122,26 +1112,26 @@ def test_to_text_diagram_multi_qubit_gate():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
     c = Circuit.from_ops(cirq.measure(q1, q2, q3, key='msg'))
-    assert c.to_text_diagram().strip() == """
+    cirq.testing.assert_same_diagram(c, """
 (0, 0): ───M('msg')───
            │
 (0, 1): ───M──────────
            │
 (0, 2): ───M──────────
-    """.strip()
-    assert c.to_text_diagram(use_unicode_characters=False).strip() == """
+""")
+    cirq.testing.assert_same_diagram(c, """
 (0, 0): ---M('msg')---
            |
 (0, 1): ---M----------
            |
 (0, 2): ---M----------
-    """.strip()
-    assert c.to_text_diagram(transpose=True).strip() == """
+""", use_unicode_characters=False)
+    cirq.testing.assert_same_diagram(c, """
 (0, 0)   (0, 1) (0, 2)
 │        │      │
 M('msg')─M──────M
 │        │      │
-    """.strip()
+""", transpose=True)
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
@@ -1472,23 +1462,23 @@ def test_expanding_gate_symbols():
     t1 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a))
     t2 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a, b))
 
-    assert t0.to_text_diagram().strip() == """
+    cirq.testing.assert_same_diagram(t0, """
 c: ───@───
-    """.strip()
+""")
 
-    assert t1.to_text_diagram().strip() == """
+    cirq.testing.assert_same_diagram(t1, """
 a: ───Z───
       │
 c: ───@───
-    """.strip()
+""")
 
-    assert t2.to_text_diagram().strip() == """
+    cirq.testing.assert_same_diagram(t2, """
 a: ───Z───
       │
 b: ───Z───
       │
 c: ───@───
-    """.strip()
+""")
 
 
 def test_transposed_diagram_exponent_order():
@@ -1671,11 +1661,11 @@ def test_with_parameters_resolved_by():
     )
     resolved_circuit = circuit.with_parameters_resolved_by(
             cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
-    assert resolved_circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_same_diagram(resolved_circuit, """
 0: ───@───────X^0.3───
       │
 1: ───@^0.1───Y^0.2───
-""".strip()
+""")
 
 
 def test_items():

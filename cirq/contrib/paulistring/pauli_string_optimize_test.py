@@ -50,11 +50,11 @@ def test_optimize():
 
     assert c_opt == c_expected
 
-    assert c_opt.to_text_diagram() == """
+    cirq.testing.assert_same_diagram(c_opt, """
 0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───
                  │
 1: ──────────────@────────────────────────────────────
-""".strip()
+""")
 
 
 def test_handles_measurement_gate():
@@ -76,11 +76,11 @@ def test_handles_measurement_gate():
         atol=1e-7,
     )
 
-    assert c_opt.to_text_diagram() == """
+    cirq.testing.assert_same_diagram(c_opt, """
 0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───M('m0')───
                  │
 1: ──────────────@───M('m1')────────────────────────────────────
-""".strip()
+""")
 
 
 def test_optimize_large_circuit():

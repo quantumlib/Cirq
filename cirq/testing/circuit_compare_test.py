@@ -190,3 +190,41 @@ def test_known_old_failure():
             cg.ExpZGate(half_turns=0.1).on(b),
             cirq.measure(a, b)),
         atol=1e-8)
+
+
+def test_assert_same_diagram():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b))
+    cirq.testing.assert_same_diagram(circuit, """
+0: ───@───
+      │
+1: ───X───
+""")
+
+    expected_error = """Circuit's text diagram differs from the desired diagram.
+
+Diagram of actual circuit:
+0: ───@───
+      │
+1: ───X───
+
+Desired text diagram:
+0: ───@───
+      │
+1: ───Z───
+
+Diff:
+0: ───@───
+      │
+1: ───█───
+
+"""
+
+    try:
+        cirq.testing.assert_same_diagram(circuit, """
+0: ───@───
+      │
+1: ───Z───
+""")
+    except AssertionError as ex:
+        assert ex.args[0] == expected_error

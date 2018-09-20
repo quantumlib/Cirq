@@ -83,10 +83,10 @@ def test_default_text_diagram():
         DiagramGate(ps),
         DiagramGate(ps.negate()),
     )
-    assert circuit.to_text_diagram() == """
+    cirq.testing.assert_same_diagram(circuit, """
 q0: ───[X]───[X]───
        │     │
 q1: ───[Y]───[Y]───
        │     │
 q2: ───[Z]───[Z]───
-""".strip()
+""")

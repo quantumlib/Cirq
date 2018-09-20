@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Tuple, Sequence, TYPE_CHECKING
+from itertools import zip_longest
 
 import numpy as np
 
@@ -67,7 +68,8 @@ def _cancel_qubit_phase(m1: np.ndarray,
 
     # Dominant row phase differences.
     for row in range(n):
-        col = max(range(n), key=lambda c: min(abs(m1[row, c]), abs(m2[row, c])))
+        col = max(range(n), key=lambda c: min(
+            abs(m1[row, c]), abs(m2[row, c])))
         prob[row, -1] = np.angle(m1[row, col]) - np.angle(m2[row, col])
 
     # Gram-Schmidt.
@@ -117,6 +119,19 @@ def _canonicalize_up_to_terminal_measurement_phase(
     return matrix1, matrix2
 
 
+def _text_diagram_diff(
+        actual_diagram: str,
+        desired_diagram: str) -> str:
+    diff = ""
+    for actual_line, desired_line in zip_longest(
+            actual_diagram.splitlines(), desired_diagram.splitlines(),
+            fillvalue=""):
+        diff += ''.join(a if a == b else '█'
+                        for a, b in zip_longest(
+                            actual_line, desired_line, fillvalue="")) + '\n'
+    return diff
+
+
 def assert_circuits_with_terminal_measurements_are_equivalent(
         actual: circuits.Circuit,
         reference: circuits.Circuit,
@@ -147,4 +162,38 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         '\n'
         'Diagram of reference circuit with desired function:\n'
         '{}\n'.format(actual, reference)
+    )
+
+
+def assert_same_diagram(
+        actual: circuits.Circuit,
+        desired: str,
+        use_unicode_characters: bool = True,
+        transpose: bool = False) -> None:
+    """Determines if a given circuit has the desired text diagram.
+
+    Args:
+        actual: The circuit that was actually computed by some process.
+        desired: The desired text diagram as a string. Whitespace at the
+            beginning and end are ignored.
+        use_unicode_characters: Determines if unicode characters are
+            allowed (as opposed to ascii-only diagrams).
+        transpose: Arranges qubit wires vertically instead of horizontally.
+    """
+    actual_diagram = actual.to_text_diagram(
+        use_unicode_characters=use_unicode_characters, transpose=transpose
+    ).strip()
+    desired_diagram = desired.strip()
+    assert actual_diagram == desired_diagram, (
+        "Circuit's text diagram differs from the desired diagram.\n"
+        '\n'
+        'Diagram of actual circuit:\n'
+        '{}\n'
+        '\n'
+        'Desired text diagram:\n'
+        '{}\n'
+        '\n'
+        'Diff:\n'
+        '{}\n'.format(actual_diagram, desired_diagram,
+                      _text_diagram_diff(actual_diagram, desired_diagram))
     )
