@@ -15,7 +15,7 @@
 """Gates that can be directly described to the API, without decomposition."""
 
 import json
-from typing import cast, Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 

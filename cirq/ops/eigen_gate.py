@@ -163,7 +163,7 @@ class EigenGate(raw_types.Gate,
         """
         pass
 
-    @abc.abstractmethod
+    # virtual method
     def _canonical_exponent_period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized.
 
@@ -173,7 +173,7 @@ class EigenGate(raw_types.Gate,
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        pass
+        return None
 
     def __pow__(self: TSelf, power: float) -> TSelf:
         return self.extrapolate_effect(power)
@@ -181,17 +181,21 @@ class EigenGate(raw_types.Gate,
     def inverse(self: TSelf) -> TSelf:
         return self.extrapolate_effect(-1)
 
+    def _identity_tuple(self):
+        return (type(self),
+                self._exponent,
+                self._global_shift_in_half_turns)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self._exponent == other._exponent and
-                self._global_shift_in_half_turns == other._global_shift_in_half_turns)
+        return self._identity_tuple() == other._identity_tuple()
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((type(self), self._exponent, self._global_shift_in_half_turns))
+        return hash(self._identity_tuple())
 
     def trace_distance_bound(self):
         if isinstance(self._exponent, value.Symbol):

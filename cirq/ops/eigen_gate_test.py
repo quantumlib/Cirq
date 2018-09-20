@@ -48,6 +48,18 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         return 4
 
 
+class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
+    @property
+    def exponent(self):
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, np.diag([1, 0])),
+            (1, np.diag([0, 1])),
+        ]
+
+
 def test_init():
     assert CExpZinGate(1).exponent == 1
     assert CExpZinGate(0.5).exponent == 0.5
@@ -55,6 +67,8 @@ def test_init():
     assert CExpZinGate(1.5).exponent == 1.5
     assert CExpZinGate(3.5).exponent == -0.5
     assert CExpZinGate(cirq.Symbol('a')).exponent == cirq.Symbol('a')
+
+    assert ZGateDef(exponent=0.5).exponent == 0.5
 
 
 def test_eq():
@@ -67,6 +81,15 @@ def test_eq():
     eq.add_equality_group(CExpZinGate(2.25))
     eq.make_equality_group(lambda: cirq.Symbol('a'))
     eq.add_equality_group(cirq.Symbol('b'))
+
+    eq.add_equality_group(ZGateDef(exponent=0.5,
+                                   global_shift_in_half_turns=0.0))
+    eq.add_equality_group(ZGateDef(exponent=-0.5,
+                                   global_shift_in_half_turns=0.0))
+    eq.add_equality_group(ZGateDef(exponent=0.5,
+                                   global_shift_in_half_turns=0.5))
+    eq.add_equality_group(ZGateDef(exponent=1.0,
+                                   global_shift_in_half_turns=0.5))
 
 
 def test_pow():
@@ -148,6 +171,36 @@ def test_matrix():
         atol=1e-4)
 
     assert cirq.unitary(CExpZinGate(cirq.Symbol('a')), None) is None
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0)),
+        np.eye(2),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=1)),
+        np.diag([1, -1]),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5)),
+        np.diag([1, 1j]),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=1, global_shift_in_half_turns=0.5)),
+        np.diag([1j, -1j]),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift_in_half_turns=0.5)),
+        np.diag([1+1j, -1+1j])/np.sqrt(2),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift_in_half_turns=-0.5)),
+        np.diag([1-1j, 1+1j])/np.sqrt(2),
+        atol=1e-8)
 
 
 def test_matrix_is_exact_for_quarter_turn():
