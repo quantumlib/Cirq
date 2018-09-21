@@ -16,6 +16,7 @@
 
 from typing import Dict, Union
 
+import warnings
 import numpy as np
 from cirq.google import XmonSimulator, XmonMeasurementGate
 from cirq.circuits.circuit import Circuit, Moment
@@ -171,27 +172,38 @@ def _expectation_from_sampling_assuming_quadratic(
     qubits = list(circuit.all_qubits())
     sim = XmonSimulator()
 
+    # check whether all measurements are terminal
+    if not circuit.are_all_measurements_terminal():
+        warnings.warn('Not all measurements are terminal'
+                      'removing all intermediate measurements and'
+                      'placing them at the end of the circuit')
+
+        # remove all measurements
+        circuit.batch_remove(removals=[(num, op) for num, op, _ in
+                            circuit.findall_operations_with_gate_type(
+                                gate_type=MeasurementGate)])
+
+        # append measurements to all qubits:
+        q_dict = {q:qubits.index(q) for q in qubits}
+        circuit = append_measurement_gates(circuit, q_dict)
+
     # Check whether circuit already has measurement gates:
-    last_moment_index = len(circuit) - 1
-    last_operations = circuit[last_moment_index].operations
+    measurement_moments = circuit.findall_operations_with_gate_type(
+        gate_type=MeasurementGate)
 
-    measurement_qubits = list(qubits)
-    indices_measurement = list(range(len(qubits)))
+    measurement_operations = [op for _, op, _ in measurement_moments]
 
-    for operation in last_operations:
-        if MeasurementGate.is_measurement(operation):
-            measurement_qubits.remove(operation.qubits[0])
-            indices_measurement.remove(qubits.index(operation.qubits[0]))
+    measurement_qubits = [q for op in measurement_operations for q in op.qubits]
+    q_dict = {q: qubits.index(q) for q in qubits}
 
-    assert len(indices_measurement) == len(
-        measurement_qubits), 'Indices do not match qubits'
+    # remove qubits already measured
+    map(q_dict.pop, measurement_qubits)
+
+    assert(len(q_dict) + len(measurement_qubits) == len(qubits),
+           'Incorrect amount of measurements in circuit')
 
     # add measurement gate to appropriate qubits
-    q_dict = {measurement_qubits[index]: index for index in indices_measurement}
-    meas = [XmonMeasurementGate(key=index).on(
-            measurement_qubits[index]) for index in indices_measurement]
-
-    circuit.append(meas)
+    circuit = append_measurement_gates(circuit, q_dict)
 
     # run circuit and store results
     results = sim.run(circuit, repetitions=n_samples)
