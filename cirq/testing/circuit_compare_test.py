@@ -217,3 +217,42 @@ def test_assert_same_circuits():
             cirq.Circuit.from_ops(cirq.CNOT(a, b)),
             cirq.Circuit.from_ops(cirq.ControlledGate(cirq.X).on(a, b)),
         )
+
+
+def test_assert_has_diagram():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b))
+    cirq.testing.assert_has_diagram(circuit, """
+0: ───@───
+      │
+1: ───X───
+""")
+
+    expected_error = """Circuit's text diagram differs from the desired diagram.
+
+Diagram of actual circuit:
+0: ───@───
+      │
+1: ───X───
+
+Desired text diagram:
+0: ───@───
+      │
+1: ───Z───
+
+Highlighted differences:
+0: ───@───
+      │
+1: ───█───
+
+"""
+
+    # Work around an issue when this test is run in python2, where using
+    # match=expected_error causes an UnicodeEncodeError.
+    with pytest.raises(AssertionError) as ex_info:
+        cirq.testing.assert_has_diagram(circuit, u"""
+0: ───@───
+      │
+1: ───Z───
+""")
+    assert expected_error in ex_info.value.args[0]
