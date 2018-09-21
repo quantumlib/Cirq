@@ -29,7 +29,7 @@ Zhang Jiang, Kevin J. Sung, Kostyantyn Kechedzhi, Vadim N. Smelyanskiy,
 and Sergio Boixo Phys. Rev. Applied 9, 044036 (2018).
 
 === EXAMPLE OUTPUT ===
-Quantum circuits to prepare the BCS meanfield state.
+Quantum circuits to prepare the BCS mean field state.
 Number of sites =  4
 Number of fermions =  4
 Tunneling strength =  1.0
