@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Sequence, TYPE_CHECKING
+from typing import Tuple, Sequence, TYPE_CHECKING, Optional
 
 import numpy as np
+import itertools
 
 from cirq import circuits, ops, linalg
 
@@ -148,3 +149,45 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         'Diagram of reference circuit with desired function:\n'
         '{}\n'.format(actual, reference)
     )
+
+
+def assert_same_circuits(actual: circuits.Circuit,
+                         expected: circuits.Circuit,
+                         ) -> None:
+    """Asserts that two circuits are identical, with a descriptive error.
+
+    Args:
+        actual: A circuit computed by some code under test.
+        expected: The circuit that should have been computed.
+    """
+    assert actual == expected, (
+        "Actual circuit differs from expected circuit.\n"
+        "\n"
+        "Diagram of actual circuit:\n"
+        "{}\n"
+        "\n"
+        "Diagram of expected circuit:\n"
+        "{}\n"
+        "\n"
+        "Index of first differing moment:\n"
+        "{}\n"
+        "\n"
+        "Full repr of actual circuit:\n"
+        "{!r}\n"
+        "\n"
+        "Full repr of expected circuit:\n"
+        "{!r}\n").format(actual,
+                         expected,
+                         _first_differing_moment_index(actual, expected),
+                         actual,
+                         expected)
+
+
+def _first_differing_moment_index(circuit1: circuits.Circuit,
+                                  circuit2: circuits.Circuit) -> Optional[int]:
+    differences = [
+        i
+        for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2))
+        if m1 != m2
+    ]
+    return differences[0] if differences else None
