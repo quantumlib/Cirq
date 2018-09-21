@@ -192,7 +192,6 @@ def test_known_old_failure():
         atol=1e-8)
 
 
-@cirq.testing.only_test_in_python3
 def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b))
@@ -221,9 +220,12 @@ Highlighted differences:
 
 """
 
-    with pytest.raises(AssertionError, match=expected_error):
-        cirq.testing.assert_has_diagram(circuit, """
+    # Work around an issue when this test is run in python2, where using
+    # match=expected_error causes an UnicodeEncodeError.
+    with pytest.raises(AssertionError) as ex_info:
+        cirq.testing.assert_has_diagram(circuit, u"""
 0: ───@───
       │
 1: ───Z───
 """)
+    assert expected_error in ex_info.value.args[0]
