@@ -32,7 +32,7 @@ def test_add_ordering_group_incorrect():
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(0, 0)
     ot.add_ascending(1, 2)
-    with pytest.raises(TypeError):
+    with pytest.raises(AssertionError):
         ot.add_ascending(object)  # incompatible type
     with pytest.raises(AssertionError):
         ot.add_ascending(1, 3)  # not ascending w.r.t. previous call
@@ -49,9 +49,9 @@ def test_add_ordering_equivalence_group_incorrect():
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(0, 0.)  # not ascending w.r.t
                                                    # previous items
-    with pytest.raises(TypeError):
+    with pytest.raises(AssertionError):
         ot.add_ascending(UnorderableClass())
-    with pytest.raises(TypeError):
+    with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(UnorderableClass(),
             UnorderableClass())                    # incompatible class
 

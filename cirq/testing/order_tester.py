@@ -42,8 +42,8 @@ class OrderTester(EqualsTester):
         result = NotImplemented
         try:
             result = comp()
-        except TypeError:
-            pass # will return NotImplemented
+        except TypeError as inst:
+            assert False, inst
         return result
 
     def _do_assert(self, one, two, symbol):
@@ -57,13 +57,13 @@ class OrderTester(EqualsTester):
     def _verify_ascending(self, v1, v2):
         """Verifies that (v1, v2) is a strictly ascending sequence."""
 
-        lt_1 =  v1 < v2
-        not_lt_2 = not v2 < v1
+        lt_1 =  self._try_comparison(lambda: v1 < v2)
+        not_lt_2 = self._try_comparison(lambda: not v2 < v1)
 
         self._do_assert(lt_1, not_lt_2, "{!r}__lt__{!r}".format(v1, v2))
 
-        gt_2 = v2 > v1
-        not_gt_1 = not v1 > v2
+        gt_2 = self._try_comparison(lambda: v2 > v1)
+        not_gt_1 = self._try_comparison(lambda: not v1 > v2)
 
         self._do_assert(gt_2, not_gt_1, "{!r}__gt__{!r}".format(v1, v2))
 
@@ -74,13 +74,13 @@ class OrderTester(EqualsTester):
 
         if not self._old_python():
 
-            le_1 = v1 <= v2
-            not_le_2 = not v2 <= v1
+            le_1 = self._try_comparison(lambda: v1 <= v2)
+            not_le_2 = self._try_comparison(lambda: not v2 <= v1)
 
             self._do_assert(le_1, not_le_2, "__le__")
 
-            ge_2 = v2 >= v1
-            not_ge_1 = v1 >= v2
+            ge_2 = self._try_comparison(lambda: v2 >= v1)
+            not_ge_1 = self._try_comparison(lambda: v1 >= v2)
 
             self._do_assert(ge_2, not_ge_1, "__ge__")
 
