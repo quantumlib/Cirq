@@ -32,8 +32,8 @@ def test_add_ordering_group_incorrect():
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(0, 0)
     ot.add_ascending(1, 2)
-    with pytest.raises(AssertionError):
-        ot.add_ascending(object, object)  # not ascending within call
+    with pytest.raises(TypeError):
+        ot.add_ascending(object)  # incompatible type
     with pytest.raises(AssertionError):
         ot.add_ascending(1, 3)  # not ascending w.r.t. previous call
     with pytest.raises(AssertionError):
@@ -49,11 +49,11 @@ def test_add_ordering_equivalence_group_incorrect():
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(0, 0.)  # not ascending w.r.t
                                                    # previous items
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         ot.add_ascending(UnorderableClass())
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         ot.add_ascending_equivalence_group(UnorderableClass(),
-            UnorderableClass())
+            UnorderableClass())                    # incompatible class
 
 def test_add_ordering_equivalence_group_bad_hash():
     class KeyHash:
@@ -69,6 +69,9 @@ def test_add_ordering_equivalence_group_bad_hash():
 
         def __lt__(self, other):
             return isinstance(other, KeyHash) and self._k < other._k
+
+        def __le__(self, other):
+            return isinstance(other, KeyHash) and self._k <= other._k
 
         def __hash__(self):
             return self._h
