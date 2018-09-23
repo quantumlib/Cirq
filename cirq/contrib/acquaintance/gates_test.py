@@ -21,7 +21,9 @@ import pytest
 
 import cirq
 from cirq.contrib.acquaintance.gates import (
-        ACQUAINT, SwapNetworkGate, op_acquaintance_size)
+        ACQUAINT, SwapNetworkGate)
+from cirq.contrib.acquaintance.devices import (
+        get_acquaintance_size)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         update_mapping, LinearPermutationGate)
@@ -216,36 +218,36 @@ class OtherOperation(cirq.Operation):
         return (isinstance(other, type(self)) and
                 self.qubits == other.qubits)
 
-def test_op_acquaintance_size():
+def test_get_acquaintance_size():
     qubits = cirq.LineQubit.range(5)
     op = OtherOperation(qubits)
     assert op.with_qubits(qubits) == op
-    assert op_acquaintance_size(op) == 0
+    assert get_acquaintance_size(op) == 0
 
     for s, _ in enumerate(qubits):
         op = ACQUAINT(*qubits[:s + 1])
-        assert op_acquaintance_size(op) == s + 1
+        assert get_acquaintance_size(op) == s + 1
 
     part_lens = (2, 2, 2, 2)
     acquaintance_size = 3
     gate = SwapNetworkGate(part_lens, acquaintance_size)
     op = gate(*qubits[:sum(part_lens)])
-    assert op_acquaintance_size(op) == 3
+    assert get_acquaintance_size(op) == 3
 
     part_lens = (2, 2, 2, 2)
     acquaintance_size = 4
     gate = SwapNetworkGate(part_lens, acquaintance_size)
     op = gate(*qubits[:sum(part_lens)])
-    assert op_acquaintance_size(op) == 0
+    assert get_acquaintance_size(op) == 0
 
     part_lens = (2, 2, 2, 2)
     acquaintance_size = 1
     gate = SwapNetworkGate(part_lens, acquaintance_size)
     op = gate(*qubits[:sum(part_lens)])
-    assert op_acquaintance_size(op) == 0
+    assert get_acquaintance_size(op) == 0
 
     part_lens = (2, 2, 2, 2)
     acquaintance_size = 1
     gate = SwapNetworkGate(part_lens, acquaintance_size)
     op = gate(*qubits[:sum(part_lens)])
-    assert op_acquaintance_size(op) == 0
+    assert get_acquaintance_size(op) == 0

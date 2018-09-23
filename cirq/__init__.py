@@ -131,7 +131,6 @@ from cirq.ops import (
     inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -198,6 +197,11 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+)
+
+from cirq.protocols import (
+    SupportsUnitary,
+    unitary,
 )
 
 # Import version last since it is a relative import.

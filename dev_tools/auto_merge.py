@@ -202,7 +202,7 @@ def leave_status_comment(repo: GithubRepository,
     if success:
         body = 'Automerge done.'
     elif success is None:
-        body = 'Automerge pending: {}'.format(state_description)
+        body = 'Automerge: {}'.format(state_description)
     else:
         body = 'Automerge cancelled: {}'.format(state_description)
     if cur is None:
@@ -265,7 +265,7 @@ def wait_for_status(repo: GithubRepository,
     while True:
         pr = PullRequestDetails.from_github(repo, pull_id)
         if pr.payload['state'] != 'open':
-            raise CurrentStuckGoToNextError('Not an open PR.')
+            raise CurrentStuckGoToNextError('Not an open pull request.')
 
         if prev_pr and pr.branch_sha == prev_pr.branch_sha:
             if fail_if_same:
@@ -276,7 +276,7 @@ def wait_for_status(repo: GithubRepository,
         if not pr.marked_automergeable:
             raise CurrentStuckGoToNextError('"automerge" label was removed.')
         if pr.base_branch_name != 'master':
-            raise CurrentStuckGoToNextError('Failed to merge into master.')
+            raise CurrentStuckGoToNextError('Can only automerge into master.')
 
         review_status = get_pr_review_status(pr)
         if not any(review['state'] == 'APPROVED' for review in review_status):
@@ -478,6 +478,13 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
         # Merge conflict.
         raise CurrentStuckGoToNextError("There's a merge conflict.")
 
+    if response.status_code == 403:
+        # Permission denied.
+        raise CurrentStuckGoToNextError(
+            "Spurious failure. Github API requires me to be an admin on the "
+            "fork repository to merge master into the PR branch. Hit "
+            "'Update Branch' for me before trying again.")
+
     raise RuntimeError('Sync with master failed. Code: {}. Content: {}.'.format(
         response.status_code, response.content))
 
@@ -529,6 +536,14 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         return False
 
     remote = pr.remote_repo
+    if (pr.repo.organization.lower() != remote.organization.lower() or
+            pr.repo.name.lower() != remote.name.lower()):
+        print('Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
+            pr.branch_name,
+            pr.remote_repo.organization,
+            pr.remote_repo.name))
+        return False
+
     url = ("https://api.github.com/repos/{}/{}/git/refs/heads/{}"
            "?access_token={}".format(remote.organization,
                                      remote.name,
@@ -644,7 +659,8 @@ def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
               `-----------------`------------> TERMINAL_FAILURE
     """
 
-    print('Auto-merging PR#{}'.format(pull_id))
+    pr = PullRequestDetails.from_github(repo, pull_id)
+    print('Auto-merging PR#{} ({})'.format(pull_id, repr(pr.title)))
     prev_pr = None
     fail_if_same = False
     while True:
@@ -686,7 +702,7 @@ def auto_merge_multiple_pull_requests(repo: GithubRepository,
             leave_status_comment(repo,
                                  pull_id,
                                  None,
-                                 'syncing and waiting...')
+                                 'started')
             auto_merge_pull_request(repo, pull_id)
             leave_status_comment(repo,
                                  pull_id,

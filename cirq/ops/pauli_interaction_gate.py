@@ -131,7 +131,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             exponent=self._exponent)
 
     def __repr__(self):
-        return 'PauliInteractionGate({}{!s}, {}{!s})'.format(
+        return 'cirq.PauliInteractionGate({}{!s}, {}{!s})'.format(
                '+-'[self.invert0], self.pauli0, '+-'[self.invert1], self.pauli1)
 
 

@@ -90,3 +90,10 @@ def test_equality():
         lambda: cirq.Points('a', [1, 2]) *
                      (cirq.Linspace('b', 0, 5, 6) +
                       cirq.Linspace('c', 10, 15, 6)))
+
+
+def test_repr():
+    assert repr(cirq.study.sweeps.Product(cirq.UnitSweep)) == \
+        'cirq.study.sweeps.Product(cirq.UnitSweep)'
+    assert repr(cirq.study.sweeps.Zip(cirq.UnitSweep)) == \
+        'cirq.study.sweeps.Zip(cirq.UnitSweep)'

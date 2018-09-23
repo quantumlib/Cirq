@@ -40,28 +40,6 @@ def test_reversible_gate_is_abstract_can_implement():
     assert isinstance(Included(), gate_features.ReversibleEffect)
 
 
-def test_known_matrix_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = gate_features.KnownMatrix()
-
-
-def test_known_matrix_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(gate_features.KnownMatrix):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_known_matrix_gate_is_abstract_can_implement():
-    class Included(gate_features.KnownMatrix):
-        def matrix(self):
-            pass
-
-    assert isinstance(Included(), gate_features.KnownMatrix)
-
-
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = gate_features.ExtrapolatableEffect()
@@ -237,7 +215,7 @@ def test_on_each():
 @cirq.testing.only_test_in_python3
 def test_text_diagram_info_repr():
     info = cirq.TextDiagramInfo(('X', 'Y'), 2)
-    assert repr(info) == ("TextDiagramInfo(wire_symbols=('X', 'Y')"
+    assert repr(info) == ("cirq.TextDiagramInfo(wire_symbols=('X', 'Y')"
                           ", exponent=2, connected=True)")
 
 
