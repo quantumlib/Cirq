@@ -211,7 +211,7 @@ class UnorderableClass:
         return not isinstance(other, UnorderableClass)
 
     def __lt__(self, other):
-        return NotImplemented
+        raise TypeError
 
     def __cmp__(self, other):
         raise TypeError  # for python2
