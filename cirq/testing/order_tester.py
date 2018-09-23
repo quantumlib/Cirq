@@ -155,10 +155,10 @@ class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassSmallerThanEverythingElse)
+        return isinstance(other, ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other, ClassSmallerThanEverythingElse)
+        return not isinstance(other, ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
         return not isinstance(other, ClassSmallerThanEverythingElse)
@@ -180,10 +180,10 @@ class ClassLargerThanEverythingElse:
     """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassLargerThanEverythingElse)
+        return isinstance(other, ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other, ClassLargerThanEverythingElse)
+        return not isinstance(other, ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
         return False
@@ -198,7 +198,7 @@ class ClassLargerThanEverythingElse:
         return True
 
     def __hash__(self):
-        return hash(ClassLargerThanEverythingElse)
+        return hash(ClassLargerThanEverythingElse)  # coverage: ignore
 
 
 class UnorderableClass:
@@ -214,7 +214,7 @@ class UnorderableClass:
         raise TypeError
 
     def __cmp__(self, other):
-        raise TypeError  # for python2
+        raise TypeError  # coverage: ignore
 
     def __hash__(self):
         return hash(UnorderableClass)
