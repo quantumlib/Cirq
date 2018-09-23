@@ -155,10 +155,12 @@ class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassSmallerThanEverythingElse)  # coverage: ignore
+        return isinstance(other,
+        ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other, ClassSmallerThanEverythingElse)  # coverage: ignore
+        return not isinstance(other,
+        ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
         return not isinstance(other, ClassSmallerThanEverythingElse)
@@ -180,10 +182,12 @@ class ClassLargerThanEverythingElse:
     """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassLargerThanEverythingElse)  # coverage: ignore
+        return isinstance(other,
+        ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other, ClassLargerThanEverythingElse)  # coverage: ignore
+        return not isinstance(other,
+        ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
         return False
