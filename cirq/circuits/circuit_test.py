@@ -348,47 +348,17 @@ def test_append_strategies():
 def test_insert_op_tree_new():
     a = cirq.NamedQubit('alice')
     b = cirq.NamedQubit('bob')
-
     c = Circuit()
 
-    c.insert(-10, cirq.CZ(a, b), InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.CZ(a, b)]),
-    ])
+    op_tree_list = [(-10, 0, cirq.CZ(a, b), a),
+                    (-20, 0, cirq.X(a), a),
+                    (20, 2, cirq.X(b), b),
+                    (2, 2, cirq.H(b), b),
+                    (-3, 1, cirq.H(a), a)]
 
-    c.insert(-20, cirq.X(a), InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.CZ(a, b)]),
-    ])
-
-    c.insert(20, cirq.X(b), InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.X(b)]),
-    ])
-
-    c2 = Circuit()
-    c2.insert(-10, [cirq.X(a), cirq.CZ(a, b), cirq.X(b)], InsertStrategy.NEW)
-    assert c == c2
-
-    c.insert(2, cirq.H(b), InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(b)]),
-        Moment([cirq.X(b)]),
-    ])
-
-    c.insert(-3, cirq.H(a), InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(b)]),
-        Moment([cirq.X(b)]),
-    ])
+    for given_index, actual_index, operation, qubit in op_tree_list:
+        c.insert(given_index, operation, InsertStrategy.NEW)
+        assert c.operation_at(qubit, actual_index) == operation
 
     c.insert(1, (), InsertStrategy.NEW)
     assert c == Circuit([
@@ -403,171 +373,70 @@ def test_insert_op_tree_new():
 def test_insert_op_tree_newinline():
     a = cirq.NamedQubit('alice')
     b = cirq.NamedQubit('bob')
-
     c = Circuit()
 
-    c.insert(-5, [cirq.H(a), cirq.X(b)], InsertStrategy.NEW_THEN_INLINE)
-    assert c == Circuit([
-        Moment([cirq.H(a), cirq.X(b)]),
-    ])
+    op_tree_list = [(-5, 0, [cirq.H(a), cirq.X(b)], [a, b]),
+                    (-15, 0, [cirq.CZ(a, b)], [a]),
+                    (15, 2, [cirq.H(b), cirq.X(a)], [b, a])]
 
-    c.insert(-15, [cirq.CZ(a, b)], InsertStrategy.NEW_THEN_INLINE)
-    assert c == Circuit([
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-    ])
-
-    c.insert(15, [cirq.H(b), cirq.X(a)], InsertStrategy.NEW_THEN_INLINE)
-    assert c == Circuit([
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b), cirq.X(a)]),
-    ])
+    for given_index, actual_index, op_list, qubits in op_tree_list:
+        c.insert(given_index, op_list, InsertStrategy.NEW_THEN_INLINE)
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], actual_index) == op_list[i]
 
     c2 = Circuit()
     c2.insert(0, [cirq.CZ(a, b), cirq.H(a), cirq.X(b), cirq.H(b), cirq.X(a)],
               InsertStrategy.NEW_THEN_INLINE)
     assert c == c2
 
-    c.insert(1, cirq.H(a))
-    c2 = Circuit([
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b), cirq.X(a)]),
-    ])
-    assert c == c2
-
-    c.insert(-1, cirq.H(b))
-    assert c == Circuit([
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b)]),
-        Moment([cirq.H(b), cirq.X(a)]),
-    ])
-
 
 def test_insert_op_tree_inline():
     a = cirq.NamedQubit('alice')
     b = cirq.NamedQubit('bob')
-
     c = Circuit([Moment([cirq.H(a)])])
 
-    c.insert(1, [cirq.H(a), cirq.X(b)], InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.H(a)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-    ])
+    op_tree_list = [(1, 1, [cirq.H(a), cirq.X(b)], [a, b]),
+                    (0, 0, [cirq.X(b)], [b]),
+                    (4, 3, [cirq.H(b)], [b]),
+                    (5, 3, [cirq.H(a)], [a]),
+                    (-2, 0, [cirq.X(b)], [b]),
+                    (-5, 0, [cirq.CZ(a, b)], [a])]
 
-    c.insert(0, [cirq.X(b)], InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-    ])
-
-    c.insert(4, [cirq.H(b)], InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b)]),
-    ])
-
-    c.insert(5, [cirq.H(a)], InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b), cirq.H(a)]),
-    ])
-
-    c.insert(-2, [cirq.X(b)], InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b), cirq.H(a)]),
-    ])
-
-    c.insert(-5, [cirq.CZ(a, b)], InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.H(b), cirq.H(a)]),
-    ])
+    for given_index, actual_index, op_list, qubits in op_tree_list:
+        c.insert(given_index, op_list, InsertStrategy.INLINE)
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], actual_index) == op_list[i]
 
 
 def test_insert_op_tree_earliest():
     a = cirq.NamedQubit('alice')
     b = cirq.NamedQubit('bob')
-
     c = Circuit([Moment([cirq.H(a)])])
 
-    c.insert(5, [cirq.X(a), cirq.X(b)], InsertStrategy.EARLIEST)
-    assert c == Circuit([
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.X(a)]),
-    ])
+    op_tree_list = [(5, [1, 0], [cirq.X(a), cirq.X(b)], [a, b]),
+                    (1, [1], [cirq.H(b)], [b]),
+                    (-4, [0], [cirq.X(b)], [b])]
 
-    c.insert(1, [cirq.H(b)], InsertStrategy.EARLIEST)
-    assert c == Circuit([
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.X(a), cirq.H(b)]),
-    ])
-
-    c.insert(-4, [cirq.X(b)], InsertStrategy.EARLIEST)
-    c2 = Circuit([
-        Moment([cirq.X(b)]),
-        Moment([cirq.H(a), cirq.X(b)]),
-        Moment([cirq.X(a), cirq.H(b)]),
-    ])
-    assert c == c2
+    for given_index, actual_index, op_list, qubits in op_tree_list:
+        c.insert(given_index, op_list, InsertStrategy.EARLIEST)
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], actual_index[i]) == op_list[i]
 
 
 def test_insert_moment():
     a = cirq.NamedQubit('alice')
     b = cirq.NamedQubit('bob')
-
     c = Circuit()
 
-    c.insert(-10, Moment([cirq.CZ(a, b)]))
-    assert c == Circuit([
-        Moment([cirq.CZ(a, b)]),
-    ])
+    moment_list = [(-10, 0, [cirq.CZ(a, b)], a, InsertStrategy.NEW_THEN_INLINE),
+                   (-20, 0, [cirq.X(a)], a, InsertStrategy.NEW),
+                   (20, 2, [cirq.X(b)], b, InsertStrategy.INLINE),
+                   (2, 2, [cirq.H(b)], b, InsertStrategy.EARLIEST),
+                   (-3, 1, [cirq.H(a)], a, InsertStrategy.EARLIEST)]
 
-    c.insert(-20, Moment([cirq.X(a)]), InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.CZ(a, b)]),
-    ])
-
-    c.insert(20, Moment([cirq.X(b)]), InsertStrategy.INLINE)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.X(b)]),
-    ])
-
-    c.insert(2, Moment([cirq.H(b)]), InsertStrategy.EARLIEST)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(b)]),
-        Moment([cirq.X(b)]),
-    ])
-
-    c.insert(-3, Moment([cirq.H(a)]), InsertStrategy.EARLIEST)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.H(a)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.H(b)]),
-        Moment([cirq.X(b)]),
-    ])
+    for given_index, actual_index, operation, qubit, strat in moment_list:
+        c.insert(given_index, Moment(operation), strat)
+        assert c.operation_at(qubit, actual_index) == operation[0]
 
 
 def test_insert_inline_near_start():
