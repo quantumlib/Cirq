@@ -160,12 +160,12 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 
 class Exp11Gate(XmonGate,
+                ops.TwoQubitGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
-                ops.QasmConvertibleGate,
-                PotentialImplementation[ops.KnownMatrix]):
+                ops.QasmConvertibleGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
     This gate is exp(i * pi * |11><11|  * half_turn).
@@ -213,18 +213,11 @@ class Exp11Gate(XmonGate,
         }
         return {'exp_11': exp_11}
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrix and self.has_matrix():
-            return self
-        return super().try_cast_to(desired_type, ext)
-
-    def has_matrix(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def matrix(self):
-        if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
-        return protocols.unitary(ops.Rot11Gate(half_turns=self.half_turns))
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+        if isinstance(self.half_turns, value.Symbol):
+            return NotImplemented
+        return protocols.unitary(
+            ops.Rot11Gate(half_turns=self.half_turns))
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
@@ -272,7 +265,6 @@ class ExpWGate(XmonGate,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
                PotentialImplementation[Union[
-                   ops.KnownMatrix,
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
@@ -353,8 +345,6 @@ class ExpWGate(XmonGate,
         return {'exp_w': exp_w}
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrix and self.has_matrix():
-            return self
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
@@ -368,17 +358,16 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
-    def has_matrix(self):
-        return (not isinstance(self.half_turns, value.Symbol) and
-                not isinstance(self.axis_half_turns, value.Symbol))
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+        if (isinstance(self.half_turns, value.Symbol) or
+                isinstance(self.axis_half_turns, value.Symbol)):
+            return NotImplemented
 
-    def matrix(self):
-        if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
-        phase = protocols.unitary(ops.RotZGate(half_turns=self.axis_half_turns))
+        phase = protocols.unitary(
+            ops.RotZGate(half_turns=self.axis_half_turns))
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
-        return phase.dot(rot).dot(np.conj(phase))
+        return np.dot(np.dot(phase, rot), np.conj(phase))
 
     def phase_by(self, phase_turns, qubit_index):
         return ExpWGate(
@@ -463,7 +452,6 @@ class ExpZGate(XmonGate,
                ops.BoundedEffect,
                ops.QasmConvertibleGate,
                PotentialImplementation[Union[
-                   ops.KnownMatrix,
                    ops.ReversibleEffect]]):
     """A rotation around the Z axis of the Bloch sphere.
 
@@ -523,8 +511,6 @@ class ExpZGate(XmonGate,
                                self.half_turns, qubits[0])
 
     def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.KnownMatrix and self.has_matrix():
-            return self
         if desired_type is ops.ReversibleEffect and self.has_inverse():
             return self
         return super().try_cast_to(desired_type, ext)
@@ -542,13 +528,11 @@ class ExpZGate(XmonGate,
             raise ValueError("Don't have a known inverse.")
         return ExpZGate(half_turns=-self.half_turns)
 
-    def has_matrix(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def matrix(self):
-        if not self.has_matrix():
-            raise ValueError("Don't have a known matrix.")
-        return np.diag([(-1j)**self.half_turns, 1j**self.half_turns])
+    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+        if isinstance(self.half_turns, value.Symbol):
+            return NotImplemented
+        h = cast(float, self.half_turns)
+        return np.diag([(-1j)**h, 1j**h])
 
     def trace_distance_bound(self):
         if isinstance(self.half_turns, value.Symbol):

@@ -128,10 +128,8 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -201,6 +199,7 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    inverse,
     SupportsUnitary,
     unitary,
 )

@@ -17,18 +17,15 @@ import numpy as np
 import cirq
 
 
-class OtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
-    def matrix(self):
+class OtherX(cirq.Gate, cirq.CompositeGate):
+    def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
     def default_decompose(self, qubits):
         return OtherOtherX().on(*qubits)
 
 
-class OtherOtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
-    def matrix(self):
-        return np.array([[0, 1], [1, 0]])
-
+class OtherOtherX(cirq.Gate, cirq.CompositeGate):
     def default_decompose(self, qubits):
         return OtherX().on(*qubits)
 
@@ -37,4 +34,4 @@ def test_avoids_infinite_cycle_when_matrix_available():
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit.from_ops(OtherX().on(q), OtherOtherX().on(q))
     cirq.google.ConvertToXmonGates().optimize_circuit(c)
-    assert c.to_text_diagram() == '(0, 0): ───X───X───'
+    cirq.testing.assert_has_diagram(c, '(0, 0): ───X───X───')
