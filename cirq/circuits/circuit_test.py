@@ -1864,13 +1864,87 @@ def test_batch_insert():
                         (0, cirq.CNOT(a, b)),
                         (1, cirq.Z(b))])
     assert after == cirq.Circuit([
-        cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.Z(b)]),
         cirq.Moment(),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
+
+
+def test_batch_insert_multiple_same_index():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit()
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.Z(b)),
+                    (0, cirq.Z(a))])
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
+        cirq.Moment([cirq.Z(a)]),
+    ])
+
+
+def test_batch_insert_reverses_order_for_same_index_inserts():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit()
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.CZ(a, b)),
+                    (0, cirq.Z(b))])
+    assert c == cirq.Circuit.from_ops(cirq.Z(b),
+                                      cirq.CZ(a, b),
+                                      cirq.Z(a))
+
+
+def test_batch_insert_maintains_order_despite_multiple_previous_inserts():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.H(a))
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.Z(a)),
+                    (0, cirq.Z(a)),
+                    (1, cirq.CZ(a, b))])
+    assert c == cirq.Circuit.from_ops([cirq.Z(a)]*3, cirq.H(a), cirq.CZ(a, b))
+
+
+def test_batch_insert_doesnt_overshift_due_to_previous_shifts():
+    a = cirq.NamedQubit('a')
+    c = cirq.Circuit().from_ops([cirq.H(a)] * 3)
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.Z(a)),
+                    (1, cirq.X(a)),
+                    (2, cirq.Y(a))])
+    assert c == cirq.Circuit.from_ops(
+        cirq.Z(a),
+        cirq.Z(a),
+        cirq.H(a),
+        cirq.X(a),
+        cirq.H(a),
+        cirq.Y(a),
+        cirq.H(a),
+    )
+
+
+def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit().from_ops(
+        cirq.SWAP(a, b),
+        cirq.SWAP(a, b),
+        cirq.H(a),
+        cirq.SWAP(a, b),
+        cirq.SWAP(a, b))
+    c.batch_insert([(0, cirq.X(a)),
+                    (3, cirq.X(b)),
+                    (4, cirq.Y(a))])
+    assert c == cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.SWAP(a, b),
+        cirq.SWAP(a, b),
+        cirq.H(a), cirq.X(b),
+        cirq.SWAP(a, b),
+        cirq.Y(a),
+        cirq.SWAP(a, b)
+    )
+
 
 def test_next_moments_operating_on():
     for _ in range(20):
