@@ -31,16 +31,22 @@ def assert_optimizes(before: cirq.Circuit,
             circuit, expected, 1e-8)
 
     # And match the expected circuit.
-    if circuit != expected:
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("EXPECTED")
-        print(expected)
-        print("AFTER")
-        print(circuit)
-        print(repr(circuit))
-    assert circuit == expected
+    assert circuit == expected, (
+        "Circuit wasn't optimized as expected.\n"
+        "INPUT:\n"
+        "{}\n"
+        "\n"
+        "EXPECTED OUTPUT:\n"
+        "{}\n"
+        "\n"
+        "ACTUAL OUTPUT:\n"
+        "{}\n"
+        "\n"
+        "EXPECTED OUTPUT (detailed):\n"
+        "{!r}\n"
+        "\n"
+        "ACTUAL OUTPUT (detailed):\n"
+        "{!r}").format(before, expected, circuit, expected, circuit)
 
     # And it should be idempotent.
     opt.optimize_circuit(circuit)
@@ -139,8 +145,8 @@ def test_crosses_czs():
             [],
             [],
             [cirq.CZ(a, b)**0.25],
-            [cg.ExpWGate(axis_half_turns=0.25).on(a),
-             cg.ExpWGate(axis_half_turns=0.5).on(b)],
+            [cg.ExpWGate(axis_half_turns=0.5).on(b),
+             cg.ExpWGate(axis_half_turns=0.25).on(a)],
         ))
 
 
