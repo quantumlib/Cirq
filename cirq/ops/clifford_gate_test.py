@@ -58,19 +58,20 @@ def _all_rotation_pairs():
 
 def _all_clifford_gates():
     for trans_x, trans_z in _all_rotation_pairs():
-        yield cirq.CliffordGate.from_xz_map(trans_x, trans_z)
+        yield cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
 
 
 @pytest.mark.parametrize('pauli,flip_x,flip_z',
     itertools.product(cirq.Pauli.XYZ, _bools, _bools))
 def test_init_value_error(pauli, flip_x, flip_z):
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_xz_map((pauli, flip_x), (pauli, flip_z))
+        cirq.SingleQubitCliffordGate.from_xz_map((pauli, flip_x),
+                                                 (pauli, flip_z))
 
 
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
 def test_init_from_xz(trans_x, trans_z):
-    gate = cirq.CliffordGate.from_xz_map(trans_x, trans_z)
+    gate = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
     assert gate.transform(cirq.Pauli.X) == trans_x
     assert gate.transform(cirq.Pauli.Z) == trans_z
     _assert_not_mirror(gate)
@@ -86,9 +87,10 @@ def test_init_from_xz(trans_x, trans_z):
 def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
     from2 = from1 + 1
     from1_str, from2_str = (str(frm).lower()+'_to' for frm in (from1, from2))
-    gate_kw = cirq.CliffordGate.from_double_map(**{from1_str: trans1,
+    gate_kw = cirq.SingleQubitCliffordGate.from_double_map(**{from1_str: trans1,
                                                    from2_str: trans2})
-    gate_map = cirq.CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    gate_map = cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
+                                                             from2: trans2})
     # Test initializes the same gate
     assert gate_kw == gate_map
 
@@ -103,7 +105,8 @@ def test_init_from_double_invalid(trans1, trans2, from1):
     from2 = from1 + 1
     # Test throws on invalid arguments
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_double_map({from1: trans1, from2: trans2})
+        cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
+                                                      from2: trans2})
 
 
 @pytest.mark.parametrize('trans1,trans2,from1',
@@ -114,7 +117,8 @@ def test_init_from_double_invalid(trans1, trans2, from1):
      if trans1.to != trans2.to))
 def test_init_from_double(trans1, trans2, from1):
     from2 = from1 + 1
-    gate = cirq.CliffordGate.from_double_map({from1: trans1, from2: trans2})
+    gate = cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
+                                                         from2: trans2})
     # Test initializes what was expected
     assert gate.transform(from1) == trans1
     assert gate.transform(from2) == trans2
@@ -128,8 +132,8 @@ def test_init_from_double(trans1, trans2, from1):
 def test_init_from_single_map_vs_kwargs(trans, frm):
     from_str = str(frm).lower()+'_to'
     # pylint: disable=unexpected-keyword-arg
-    gate_kw = cirq.CliffordGate.from_single_map(**{from_str: trans})
-    gate_map = cirq.CliffordGate.from_single_map({frm: trans})
+    gate_kw = cirq.SingleQubitCliffordGate.from_single_map(**{from_str: trans})
+    gate_map = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
     assert gate_kw == gate_map
 
 
@@ -138,7 +142,7 @@ def test_init_from_single_map_vs_kwargs(trans, frm):
      for trans, frm in itertools.product(_all_rotations(), cirq.Pauli.XYZ)
      if trans.to != frm))
 def test_init_90rot_from_single(trans, frm):
-    gate = cirq.CliffordGate.from_single_map({frm: trans})
+    gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
@@ -146,10 +150,10 @@ def test_init_90rot_from_single(trans, frm):
     assert len(gate.decompose_rotation()) == 1
     # Check that this is a 90 degree rotation gate
     assert (gate.merged_with(gate).merged_with(gate).merged_with(gate)
-            == cirq.CliffordGate.I)
+            == cirq.SingleQubitCliffordGate.I)
     # Check that flipping the transform produces the inverse rotation
     trans_rev = cirq.PauliTransform(trans.to, not trans.flip)
-    gate_rev = cirq.CliffordGate.from_single_map({frm: trans_rev})
+    gate_rev = cirq.SingleQubitCliffordGate.from_single_map({frm: trans_rev})
     assert gate.inverse() == gate_rev
 
 
@@ -158,14 +162,14 @@ def test_init_90rot_from_single(trans, frm):
      for trans, frm in itertools.product(_all_rotations(), cirq.Pauli.XYZ)
      if trans.to == frm and trans.flip))
 def test_init_180rot_from_single(trans, frm):
-    gate = cirq.CliffordGate.from_single_map({frm: trans})
+    gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to one gate
     assert len(gate.decompose_rotation()) == 1
     # Check that this is a 180 degree rotation gate
-    assert gate.merged_with(gate) == cirq.CliffordGate.I
+    assert gate.merged_with(gate) == cirq.SingleQubitCliffordGate.I
 
 
 @pytest.mark.parametrize('trans,frm',
@@ -173,154 +177,165 @@ def test_init_180rot_from_single(trans, frm):
      for trans, frm in itertools.product(_all_rotations(), cirq.Pauli.XYZ)
      if trans.to == frm and not trans.flip))
 def test_init_ident_from_single(trans, frm):
-    gate = cirq.CliffordGate.from_single_map({frm: trans})
+    gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
     assert gate.transform(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to zero gates
     assert len(gate.decompose_rotation()) == 0
     # Check that this is an identity gate
-    assert gate == cirq.CliffordGate.I
+    assert gate == cirq.SingleQubitCliffordGate.I
 
 
 @pytest.mark.parametrize('pauli,sqrt,expected', (
-        (cirq.Pauli.X, False, cirq.CliffordGate.X),
-        (cirq.Pauli.Y, False, cirq.CliffordGate.Y),
-        (cirq.Pauli.Z, False, cirq.CliffordGate.Z),
-        (cirq.Pauli.X, True, cirq.CliffordGate.X_sqrt),
-        (cirq.Pauli.Y, True, cirq.CliffordGate.Y_sqrt),
-        (cirq.Pauli.Z, True, cirq.CliffordGate.Z_sqrt)))
+        (cirq.Pauli.X, False, cirq.SingleQubitCliffordGate.X),
+        (cirq.Pauli.Y, False, cirq.SingleQubitCliffordGate.Y),
+        (cirq.Pauli.Z, False, cirq.SingleQubitCliffordGate.Z),
+        (cirq.Pauli.X, True, cirq.SingleQubitCliffordGate.X_sqrt),
+        (cirq.Pauli.Y, True, cirq.SingleQubitCliffordGate.Y_sqrt),
+        (cirq.Pauli.Z, True, cirq.SingleQubitCliffordGate.Z_sqrt)))
 def test_init_from_pauli(pauli, sqrt, expected):
-    gate = cirq.CliffordGate.from_pauli(pauli, sqrt=sqrt)
+    gate = cirq.SingleQubitCliffordGate.from_pauli(pauli, sqrt=sqrt)
     assert gate == expected
 
 
 def test_init_from_quarter_turns():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 0),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 0),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 0),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 4),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 4),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 4),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 8),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 8),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 8),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, -4),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, -4),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, -4)
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 0),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, 0),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, 0),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 4),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, 4),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, 4),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 8),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, 8),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, 8),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, -4),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, -4),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, -4)
     )
     eq.add_equality_group(
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 1),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 5),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 9),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, -3),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 1),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 5),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 9),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, -3),
     )
     eq.add_equality_group(
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 1),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 5),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, 9),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Y, -3),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, 1),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, 5),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, 9),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Y, -3),
     )
     eq.add_equality_group(
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 1),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 5),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, 9),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.Z, -3),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, 1),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, 5),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, 9),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.Z, -3),
     )
     eq.add_equality_group(
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 2),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 6),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 2),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 6),
     )
     eq.add_equality_group(
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 3),
-        cirq.CliffordGate.from_quarter_turns(cirq.Pauli.X, 7),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 3),
+        cirq.SingleQubitCliffordGate.from_quarter_turns(cirq.Pauli.X, 7),
     )
 
 
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_init_from_quarter_turns_reconstruct(gate):
     new_gate = functools.reduce(
-                    cirq.CliffordGate.merged_with,
-                    (cirq.CliffordGate.from_quarter_turns(pauli, qt)
+                    cirq.SingleQubitCliffordGate.merged_with,
+                    (cirq.SingleQubitCliffordGate.from_quarter_turns(pauli, qt)
                      for pauli, qt in gate.decompose_rotation()),
-                    cirq.CliffordGate.I)
+                    cirq.SingleQubitCliffordGate.I)
     assert gate == new_gate
 
 
 def test_init_invalid():
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_single_map()
+        cirq.SingleQubitCliffordGate.from_single_map()
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_single_map({})
+        cirq.SingleQubitCliffordGate \
+            .from_single_map({})
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.X, False)},
+        cirq.SingleQubitCliffordGate.from_single_map(
+            {cirq.Pauli.X: (cirq.Pauli.X, False)},
                                           y_to=(cirq.Pauli.Y, False))
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.X, False),
-                                           cirq.Pauli.Y: (cirq.Pauli.Y, False)})
+        cirq.SingleQubitCliffordGate.from_single_map(
+            {cirq.Pauli.X: (cirq.Pauli.X, False),
+             cirq.Pauli.Y: (cirq.Pauli.Y, False)})
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_double_map()
+        cirq.SingleQubitCliffordGate.from_double_map()
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_double_map({})
+        cirq.SingleQubitCliffordGate.from_double_map({})
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_double_map({cirq.Pauli.X: (cirq.Pauli.X, False)})
+        cirq.SingleQubitCliffordGate.from_double_map(
+            {cirq.Pauli.X: (cirq.Pauli.X, False)})
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_double_map(x_to=(cirq.Pauli.X, False))
+        cirq.SingleQubitCliffordGate.from_double_map(x_to=(cirq.Pauli.X, False))
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.Y, False),
-                                           cirq.Pauli.Y: (cirq.Pauli.Z, False),
-                                           cirq.Pauli.Z: (cirq.Pauli.X, False)})
+        cirq.SingleQubitCliffordGate.from_single_map(
+            {cirq.Pauli.X: (cirq.Pauli.Y, False),
+             cirq.Pauli.Y: (cirq.Pauli.Z, False),
+             cirq.Pauli.Z: (cirq.Pauli.X, False)})
     with pytest.raises(ValueError):
-        cirq.CliffordGate.from_single_map({cirq.Pauli.X: (cirq.Pauli.X, False),
-                                           cirq.Pauli.Y: (cirq.Pauli.X, False)})
+        cirq.SingleQubitCliffordGate.from_single_map(
+            {cirq.Pauli.X: (cirq.Pauli.X, False),
+             cirq.Pauli.Y: (cirq.Pauli.X, False)})
 
 
 def test_eq_ne_and_hash():
     eq = EqualsTester()
     for trans_x, trans_z in _all_rotation_pairs():
-        gate_gen = lambda: cirq.CliffordGate.from_xz_map(trans_x, trans_z)
+        gate_gen = lambda: cirq.SingleQubitCliffordGate.from_xz_map(trans_x,
+                                                                    trans_z)
         eq.make_equality_group(gate_gen)
 
 
 @pytest.mark.parametrize('gate,rep', (
-    (cirq.CliffordGate.I,       'cirq.CliffordGate(X:+X, Y:+Y, Z:+Z)'),
-    (cirq.CliffordGate.H,       'cirq.CliffordGate(X:+Z, Y:-Y, Z:+X)'),
-    (cirq.CliffordGate.X,       'cirq.CliffordGate(X:+X, Y:-Y, Z:-Z)'),
-    (cirq.CliffordGate.X_sqrt,  'cirq.CliffordGate(X:+X, Y:+Z, Z:-Y)')))
+    (cirq.SingleQubitCliffordGate.I,
+     'cirq.SingleQubitCliffordGate(X:+X, Y:+Y, Z:+Z)'),
+    (cirq.SingleQubitCliffordGate.H,
+     'cirq.SingleQubitCliffordGate(X:+Z, Y:-Y, Z:+X)'),
+    (cirq.SingleQubitCliffordGate.X,
+     'cirq.SingleQubitCliffordGate(X:+X, Y:-Y, Z:-Z)'),
+    (cirq.SingleQubitCliffordGate.X_sqrt,
+     'cirq.SingleQubitCliffordGate(X:+X, Y:+Z, Z:-Y)')))
 def test_repr(gate, rep):
     assert repr(gate) == rep
 
 
 @pytest.mark.parametrize('gate,trans_y', (
-    (cirq.CliffordGate.I,       (cirq.Pauli.Y, False)),
-    (cirq.CliffordGate.H,       (cirq.Pauli.Y, True)),
-    (cirq.CliffordGate.X,       (cirq.Pauli.Y, True)),
-    (cirq.CliffordGate.Y,       (cirq.Pauli.Y, False)),
-    (cirq.CliffordGate.Z,       (cirq.Pauli.Y, True)),
-    (cirq.CliffordGate.X_sqrt,  (cirq.Pauli.Z, False)),
-    (cirq.CliffordGate.X_nsqrt, (cirq.Pauli.Z, True)),
-    (cirq.CliffordGate.Y_sqrt,  (cirq.Pauli.Y, False)),
-    (cirq.CliffordGate.Y_nsqrt, (cirq.Pauli.Y, False)),
-    (cirq.CliffordGate.Z_sqrt,  (cirq.Pauli.X, True)),
-    (cirq.CliffordGate.Z_nsqrt, (cirq.Pauli.X, False))))
+    (cirq.SingleQubitCliffordGate.I,       (cirq.Pauli.Y, False)),
+    (cirq.SingleQubitCliffordGate.H,       (cirq.Pauli.Y, True)),
+    (cirq.SingleQubitCliffordGate.X,       (cirq.Pauli.Y, True)),
+    (cirq.SingleQubitCliffordGate.Y,       (cirq.Pauli.Y, False)),
+    (cirq.SingleQubitCliffordGate.Z,       (cirq.Pauli.Y, True)),
+    (cirq.SingleQubitCliffordGate.X_sqrt,  (cirq.Pauli.Z, False)),
+    (cirq.SingleQubitCliffordGate.X_nsqrt, (cirq.Pauli.Z, True)),
+    (cirq.SingleQubitCliffordGate.Y_sqrt,  (cirq.Pauli.Y, False)),
+    (cirq.SingleQubitCliffordGate.Y_nsqrt, (cirq.Pauli.Y, False)),
+    (cirq.SingleQubitCliffordGate.Z_sqrt,  (cirq.Pauli.X, True)),
+    (cirq.SingleQubitCliffordGate.Z_nsqrt, (cirq.Pauli.X, False))))
 def test_y_rotation(gate, trans_y):
     assert gate.transform(cirq.Pauli.Y) == trans_y
 
 
 @pytest.mark.parametrize('gate,gate_equiv', (
-    (cirq.CliffordGate.I,       cirq.X ** 0),
-    (cirq.CliffordGate.H,       cirq.H),
-    (cirq.CliffordGate.X,       cirq.X),
-    (cirq.CliffordGate.Y,       cirq.Y),
-    (cirq.CliffordGate.Z,       cirq.Z),
-    (cirq.CliffordGate.X_sqrt,  cirq.X ** 0.5),
-    (cirq.CliffordGate.X_nsqrt, cirq.X ** -0.5),
-    (cirq.CliffordGate.Y_sqrt,  cirq.Y ** 0.5),
-    (cirq.CliffordGate.Y_nsqrt, cirq.Y ** -0.5),
-    (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
-    (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
+    (cirq.SingleQubitCliffordGate.I,       cirq.X ** 0),
+    (cirq.SingleQubitCliffordGate.H,       cirq.H),
+    (cirq.SingleQubitCliffordGate.X,       cirq.X),
+    (cirq.SingleQubitCliffordGate.Y,       cirq.Y),
+    (cirq.SingleQubitCliffordGate.Z,       cirq.Z),
+    (cirq.SingleQubitCliffordGate.X_sqrt,  cirq.X ** 0.5),
+    (cirq.SingleQubitCliffordGate.X_nsqrt, cirq.X ** -0.5),
+    (cirq.SingleQubitCliffordGate.Y_sqrt,  cirq.Y ** 0.5),
+    (cirq.SingleQubitCliffordGate.Y_nsqrt, cirq.Y ** -0.5),
+    (cirq.SingleQubitCliffordGate.Z_sqrt,  cirq.Z ** 0.5),
+    (cirq.SingleQubitCliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_decompose(gate, gate_equiv):
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit.from_ops(
@@ -333,17 +348,17 @@ def test_decompose(gate, gate_equiv):
 
 
 @pytest.mark.parametrize('gate,gate_equiv', (
-    (cirq.CliffordGate.I,       cirq.X ** 0),
-    (cirq.CliffordGate.H,       cirq.H),
-    (cirq.CliffordGate.X,       cirq.X),
-    (cirq.CliffordGate.Y,       cirq.Y),
-    (cirq.CliffordGate.Z,       cirq.Z),
-    (cirq.CliffordGate.X_sqrt,  cirq.X ** 0.5),
-    (cirq.CliffordGate.X_nsqrt, cirq.X ** -0.5),
-    (cirq.CliffordGate.Y_sqrt,  cirq.Y ** 0.5),
-    (cirq.CliffordGate.Y_nsqrt, cirq.Y ** -0.5),
-    (cirq.CliffordGate.Z_sqrt,  cirq.Z ** 0.5),
-    (cirq.CliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
+    (cirq.SingleQubitCliffordGate.I,       cirq.X ** 0),
+    (cirq.SingleQubitCliffordGate.H,       cirq.H),
+    (cirq.SingleQubitCliffordGate.X,       cirq.X),
+    (cirq.SingleQubitCliffordGate.Y,       cirq.Y),
+    (cirq.SingleQubitCliffordGate.Z,       cirq.Z),
+    (cirq.SingleQubitCliffordGate.X_sqrt,  cirq.X ** 0.5),
+    (cirq.SingleQubitCliffordGate.X_nsqrt, cirq.X ** -0.5),
+    (cirq.SingleQubitCliffordGate.Y_sqrt,  cirq.Y ** 0.5),
+    (cirq.SingleQubitCliffordGate.Y_nsqrt, cirq.Y ** -0.5),
+    (cirq.SingleQubitCliffordGate.Z_sqrt,  cirq.Z ** 0.5),
+    (cirq.SingleQubitCliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_known_matrix(gate, gate_equiv):
     mat = cirq.unitary(gate)
     mat_check = cirq.unitary(gate_equiv)
@@ -422,13 +437,13 @@ def test_single_qubit_gate_after_switching_order(gate, other):
 
 
 @pytest.mark.parametrize('gate,sym,exp', (
-    (cirq.CliffordGate.I,       'I', 1),
-    (cirq.CliffordGate.H,       'H', 1),
-    (cirq.CliffordGate.X,       'X', 1),
-    (cirq.CliffordGate.X_sqrt,  'X', 0.5),
-    (cirq.CliffordGate.X_nsqrt, 'X', -0.5),
+    (cirq.SingleQubitCliffordGate.I,       'I', 1),
+    (cirq.SingleQubitCliffordGate.H,       'H', 1),
+    (cirq.SingleQubitCliffordGate.X,       'X', 1),
+    (cirq.SingleQubitCliffordGate.X_sqrt,  'X', 0.5),
+    (cirq.SingleQubitCliffordGate.X_nsqrt, 'X', -0.5),
     (
-        cirq.CliffordGate.from_xz_map(
+        cirq.SingleQubitCliffordGate.from_xz_map(
                 (cirq.Pauli.Y, False), (cirq.Pauli.X, True)),
         '(X^-0.5-Z^0.5)',
         1
