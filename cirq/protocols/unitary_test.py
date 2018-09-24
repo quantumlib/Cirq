@@ -26,11 +26,11 @@ def test_unitary():
         pass
 
     class ReturnsNotImplemented:
-        def _unitary_(self):
+        def _unitary_(self) -> type(NotImplemented):
             return NotImplemented
 
     class ReturnsMatrix:
-        def _unitary_(self):
+        def _unitary_(self) -> np.ndarray:
             return m
 
     with pytest.raises(TypeError, match='no _unitary_ method'):
@@ -55,28 +55,3 @@ def test_unitary():
     assert cirq.unitary(NoMethod(), d) is d
     assert cirq.unitary(ReturnsNotImplemented(), d) is d
     assert cirq.unitary(ReturnsMatrix(), d) is m
-
-
-def test_compatibility_shim():
-    m = np.array([[0, 1], [1, 0]])
-
-    class Known(cirq.KnownMatrix):
-        def matrix(self):
-            return m
-
-    class PotentiallyKnown(cirq.PotentialImplementation):
-        def try_cast_to(self, desired_type, extensions):
-            if desired_type is cirq.KnownMatrix:
-                return Known()
-
-    class PotentiallyUnknown(cirq.PotentialImplementation):
-        def try_cast_to(self, desired_type, extensions):
-            return None
-
-    assert cirq.unitary(Known()) is m
-    assert cirq.unitary(PotentiallyKnown()) is m
-    assert cirq.unitary(PotentiallyUnknown(), None) is None
-
-    # Works with existing gate.
-    np.testing.assert_allclose(cirq.unitary(cirq.X), m)
-    assert cirq.unitary(cirq.X**cirq.Symbol('a'), None) is None
