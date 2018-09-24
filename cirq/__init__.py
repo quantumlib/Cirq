@@ -180,6 +180,13 @@ from cirq.schedules import (
     moment_by_moment_schedule,
 )
 
+from cirq.sim import (
+    RunSimulator,
+    StepResult,
+    SimulateTrialResult,
+    WaveFunctionSimulator,
+)
+
 from cirq.study import (
     Linspace,
     ParamResolver,

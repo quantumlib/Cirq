@@ -12,24 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods for running studies (repeated trials)."""
+"""Base simulation classes and generic simulators."""
 
-from cirq.study.resolver import (
-    ParamResolver,
+from cirq.sim.simulator import (
+    RunSimulator,
+    StepResult,
+    WaveFunctionSimulator,
+    SimulateTrialResult,
+
 )
-from cirq.study.sweepable import (
-    Sweepable,
-    to_resolvers,
-)
-from cirq.study.sweeps import (
-    Linspace,
-    Points,
-    Sweep,
-    UnitSweep,
-)
-from cirq.study.trial_result import (
-    TrialResult,
-)
-from cirq.study.visualize import (
-    plot_state_histogram,
+
+from cirq.sim.state import (
+    pretty_state,
+    decode_initial_state,
+    check_state
 )

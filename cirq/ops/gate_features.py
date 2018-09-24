@@ -18,7 +18,8 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 from typing import (
-    Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
+    Any, Dict, Optional, Sequence, Tuple, Iterable, TYPE_CHECKING, TypeVar,
+    Union,
 )
 
 import string
@@ -26,7 +27,8 @@ import numpy as np
 
 from cirq import abc, value
 from cirq.ops import op_tree, raw_types
-from cirq.study import ParamResolver
+if TYPE_CHECKING:
+    from cirq import study
 
 
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
@@ -346,7 +348,7 @@ class ParameterizableEffect(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
-                                    param_resolver: ParamResolver
+                                    param_resolver: 'study.ParamResolver'
                                     ) -> TSelf_ParameterizableEffect:
         """Resolve the parameters in the effect.
 

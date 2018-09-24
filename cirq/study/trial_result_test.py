@@ -132,3 +132,12 @@ def test_multi_measurement_histogram():
         ((False, True), (True,)): 2,
         ((True, False), (False,)): 1,
     })
+
+
+def test_simulate_trial_result_pretty_state():
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    result = cirq.SimulateTrialResult(final_state=state,
+                                      params=cirq.ParamResolve({}),
+                                      measurements={})
+    assert result.pretty_state(2) == "0.71|0⟩ + 0.71|1⟩"
+    assert result.pretty_state(1) == "0.7|0⟩ + 0.7|1⟩"
