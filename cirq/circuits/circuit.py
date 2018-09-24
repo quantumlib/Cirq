@@ -1305,10 +1305,6 @@ def _draw_moment_in_diagram(moment: Moment,
         if y2 > y1 and info.connected:
             out_diagram.vertical_line(x, y1, y2)
 
-        # Group together columns belonging to the same Moment.
-        if x > x0:
-            out_diagram.moment_group(x0, x)
-
         # Print gate qubit labels.
         for s, q in zip(info.wire_symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
@@ -1317,6 +1313,10 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _formatted_exponent(info, args)
         if exponent is not None:
             out_diagram.write(x, y2, '^' + exponent)
+
+    # Group together columns belonging to the same Moment.
+    if moment.operations and x > x0:
+        out_diagram.moment_group(x0, x)
 
 
 def _apply_unitary_circuit(circuit: Circuit,
