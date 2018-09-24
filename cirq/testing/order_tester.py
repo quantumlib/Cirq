@@ -24,7 +24,6 @@ It will also check that a==b implies hash(a)==hash(b).
 """
 
 from typing import Any
-import sys
 
 from cirq.testing.equals_tester import EqualsTester
 
@@ -39,9 +38,6 @@ class OrderTester:
 
     def _groups(self):
         return self.eq_tester.groups
-
-    def _old_python(self):
-        return sys.version_info < (3,)
 
     def _try_comparison(self, comp):
         result = NotImplemented
@@ -77,17 +73,15 @@ class OrderTester:
         self._do_assert(lt_1 == True, gt_2 == True,
             "{!r}__lt__/__gt__{!r}".format(v1, v2))
 
-        if not self._old_python():
+        le_1 = self._try_comparison(lambda: v1 <= v2)
+        not_le_2 = self._try_comparison(lambda: not v2 <= v1)
 
-            le_1 = self._try_comparison(lambda: v1 <= v2)
-            not_le_2 = self._try_comparison(lambda: not v2 <= v1)
+        self._do_assert(le_1, not_le_2, "__le__")
 
-            self._do_assert(le_1, not_le_2, "__le__")
+        ge_2 = self._try_comparison(lambda: v2 >= v1)
+        not_ge_1 = self._try_comparison(lambda: v1 >= v2)
 
-            ge_2 = self._try_comparison(lambda: v2 >= v1)
-            not_ge_1 = self._try_comparison(lambda: v1 >= v2)
-
-            self._do_assert(ge_2, not_ge_1, "__ge__")
+        self._do_assert(ge_2, not_ge_1, "__ge__")
 
     def _assert_not_implemented_vs_unknown(self, item: Any):
         self._verify_ascending(ClassSmallerThanEverythingElse(), item)
