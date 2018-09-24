@@ -15,10 +15,6 @@
 import numpy as np
 import pyswarm
 
-import sys
-sys.path.insert(0,'/Users/Fabio/QC-Ware/Cirq/Git_Cirq/Forked_Cirq/Cirq')
-import cirq
-
 from scipy.optimize import minimize
 from cirq.google import XmonSimulator, XmonMeasurementGate
 from cirq.circuits import Circuit
