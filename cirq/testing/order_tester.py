@@ -29,11 +29,16 @@ import sys
 from cirq.testing.equals_tester import EqualsTester
 
 
-class OrderTester(EqualsTester):
+class OrderTester:
     """Tests ordering against user-provided disjoint ordered groups or items."""
 
     def __init__(self):
-        self.groups = []
+        self.eq_tester = EqualsTester()
+        self.eq_tester.groups = []  # otherwise ClassUnknownToSubjects
+                                    # throws TypeError for comparisons
+
+    def _groups(self):
+        return self.eq_tester.groups
 
     def _old_python(self):
         return sys.version_info < (3,)
@@ -94,7 +99,7 @@ class OrderTester(EqualsTester):
         """
         assert group_items
 
-        for lesser_group in self.groups:
+        for lesser_group in self._groups():
             for lesser_item in lesser_group:
                 for larger_item in group_items:
                     self._verify_ascending(lesser_item, larger_item)
@@ -141,14 +146,14 @@ class OrderTester(EqualsTester):
         """
         # Check that elements are equal with regard to each other
         # and not equal to any other group.
-        super(OrderTester, self).verify_equality_group(*group_items)
+        self.eq_tester.verify_equality_group(*group_items)
 
         # Check that the new group is strictly ascending with regard to
         # the groups which have been added before.
         self.verify_ascending_group(*group_items)
 
         # Remember this group.
-        self.groups.append(tuple(group_items))
+        self.eq_tester.groups.append(tuple(group_items))
 
 
 class ClassSmallerThanEverythingElse:
