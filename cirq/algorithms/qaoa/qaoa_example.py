@@ -20,7 +20,7 @@ if __name__ == '__main__':
                           (): 1/2}
 
     # set optimization method
-    optimization_method = 'swarm'
+    optimization_method = 'nelder-mead'
 
     # set value of p (number of alternating applications of
     # Unitaries constructed from the objective function and mixing op

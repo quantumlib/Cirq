@@ -21,8 +21,6 @@ criterion is met.
 
 
 ## Running example code
-The code requires the cirq install for python 3.6
-
 
 To run the code, modify the file qaoa_example.py and run the
 script:
