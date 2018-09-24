@@ -42,8 +42,8 @@ class OrderTester(EqualsTester):
         result = NotImplemented
         try:
             result = comp()
-        except TypeError:
-            pass # will return NotImplemented
+        except TypeError as inst:
+            assert False, inst
         return result
 
     def _do_assert(self, one, two, symbol):
@@ -57,7 +57,7 @@ class OrderTester(EqualsTester):
     def _verify_ascending(self, v1, v2):
         """Verifies that (v1, v2) is a strictly ascending sequence."""
 
-        lt_1 = self._try_comparison(lambda: v1 < v2)
+        lt_1 =  self._try_comparison(lambda: v1 < v2)
         not_lt_2 = self._try_comparison(lambda: not v2 < v1)
 
         self._do_assert(lt_1, not_lt_2, "{!r}__lt__{!r}".format(v1, v2))
@@ -155,13 +155,24 @@ class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassSmallerThanEverythingElse)
+        return isinstance(other,
+        ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other, ClassSmallerThanEverythingElse)
+        return not isinstance(other,
+        ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
         return not isinstance(other, ClassSmallerThanEverythingElse)
+
+    def __le__(self, other):
+        return True
+
+    def __gt__(self, other):
+        return False
+
+    def __ge__(self, other):
+        return isinstance(other, ClassSmallerThanEverythingElse)
 
     def __hash__(self):
         return hash(ClassSmallerThanEverythingElse)  # coverage: ignore
@@ -171,16 +182,27 @@ class ClassLargerThanEverythingElse:
     """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other, ClassLargerThanEverythingElse)
+        return isinstance(other,
+        ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other, ClassLargerThanEverythingElse)
+        return not isinstance(other,
+        ClassLargerThanEverythingElse)  # coverage: ignore
+
+    def __lt__(self, other):
+        return False
+
+    def __le__(self, other):
+        return isinstance(other, ClassLargerThanEverythingElse)
 
     def __gt__(self, other):
         return not isinstance(other, ClassLargerThanEverythingElse)
 
+    def __ge__(self, other):
+        return True
+
     def __hash__(self):
-        return hash(ClassLargerThanEverythingElse)
+        return hash(ClassLargerThanEverythingElse)  # coverage: ignore
 
 
 class UnorderableClass:
@@ -193,10 +215,10 @@ class UnorderableClass:
         return not isinstance(other, UnorderableClass)
 
     def __lt__(self, other):
-        return NotImplemented
+        raise TypeError
 
     def __cmp__(self, other):
-        raise TypeError  # for python2
+        raise TypeError  # coverage: ignore
 
     def __hash__(self):
         return hash(UnorderableClass)
