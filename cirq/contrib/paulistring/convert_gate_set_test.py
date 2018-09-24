@@ -156,11 +156,10 @@ def test_converts_large_circuit():
             after.to_unitary_matrix(),
             atol=1e-7)
 
-    assert after.to_text_diagram() == '''
+    cirq.testing.assert_has_diagram(after, '''
 0: ───Y^0.5───@───[Z]^-0.304───[X]^0.333───[Z]^0.446───@───
               │                                        │
 1: ───────────@───@────────────────────────────────────@───
                   │
 2: ───────────────@────────────────────────────────────────
-'''.strip()
-
+''')

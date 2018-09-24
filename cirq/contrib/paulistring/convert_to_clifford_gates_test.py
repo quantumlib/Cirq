@@ -40,11 +40,11 @@ def test_convert():
         c_orig.to_unitary_matrix(),
         atol=1e-7)
 
-    assert circuit.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────Z^-0.5───H───
 
 1: ───Y^0.5───I────────────
-""".strip()
+""")
 
 
 def test_non_clifford_known_matrix():
@@ -97,11 +97,11 @@ def test_convert_composite():
         c_orig.to_unitary_matrix(),
         atol=1e-7)
 
-    assert circuit.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────H───
 
 1: ───Y^0.5───────
-""".strip()
+""")
 
 
 def test_ignore_unsupported_gate():
