@@ -155,11 +155,11 @@ class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other,
+        return isinstance(other,         # coverage: ignore
         ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other,
+        return not isinstance(other,     # coverage: ignore
         ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
@@ -174,19 +174,19 @@ class ClassSmallerThanEverythingElse:
     def __ge__(self, other):
         return isinstance(other, ClassSmallerThanEverythingElse)
 
-    def __hash__(self):
-        return hash(ClassSmallerThanEverythingElse)  # coverage: ignore
+    def __hash__(self):                                 # coverage: ignore
+        return hash(ClassSmallerThanEverythingElse)     # coverage: ignore
 
 
 class ClassLargerThanEverythingElse:
     """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other,
+        return isinstance(other,        # coverage: ignore
         ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other,
+        return not isinstance(other,    # coverage: ignore
         ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
@@ -201,7 +201,7 @@ class ClassLargerThanEverythingElse:
     def __ge__(self, other):
         return True
 
-    def __hash__(self):
+    def __hash__(self):                             # coverage: ignore
         return hash(ClassLargerThanEverythingElse)  # coverage: ignore
 
 
@@ -217,8 +217,8 @@ class UnorderableClass:
     def __lt__(self, other):
         raise TypeError
 
-    def __cmp__(self, other):
-        raise TypeError  # coverage: ignore
+    def __cmp__(self, other):   # coverage: ignore
+        raise TypeError         # coverage: ignore
 
     def __hash__(self):
         return hash(UnorderableClass)

@@ -17,8 +17,6 @@ import pytest
 
 from cirq.testing.order_tester import OrderTester
 from cirq.testing.order_tester import UnorderableClass
-from cirq.testing.order_tester import ClassSmallerThanEverythingElse
-from cirq.testing.order_tester import ClassLargerThanEverythingElse
 
 def test_add_ordering_group_correct():
     ot = OrderTester()
@@ -30,8 +28,6 @@ def test_add_ordering_group_correct():
 
 def test_add_ordering_group_incorrect():
     ot = OrderTester()
-    with pytest.raises(AssertionError):
-        ot.add_ascending(ClassSmallerThanEverythingElse(), ClassSmallerThanEverythingElse())
     ot.add_ascending(0)
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(0, 0)
@@ -44,9 +40,6 @@ def test_add_ordering_group_incorrect():
         ot.add_ascending(6, 6)  # not ascending within call
     with pytest.raises(AssertionError):
         ot.add_ascending(99, 10)  # not ascending within call
-    with pytest.raises(AssertionError):
-        ot.add_ascending(ClassLargerThanEverythingElse(), ClassLargerThanEverythingElse())
-    ot.add_ascending(ClassLargerThanEverythingElse())
     with pytest.raises(AssertionError):
         ot.add_ascending(0)
 
