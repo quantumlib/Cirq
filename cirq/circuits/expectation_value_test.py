@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# imports
 import numpy as np
 import cirq
 from cirq.circuits.expectation_value import expectation_value
