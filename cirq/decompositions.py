@@ -20,7 +20,7 @@ import math
 import cmath
 import numpy as np
 
-from cirq import ops, linalg
+from cirq import ops, linalg, protocols
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
@@ -173,7 +173,7 @@ def controlled_op_to_operations(
         del u_gates[-1]
 
     ops_before = [gate(target) for gate in u_gates]
-    ops_after = ops.inverse(ops_before)
+    ops_after = protocols.inverse(ops_before)
     effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
     kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
 
