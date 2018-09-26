@@ -199,12 +199,10 @@ def assert_same_circuits(actual: circuits.Circuit,
 
 def _first_differing_moment_index(circuit1: circuits.Circuit,
                                   circuit2: circuits.Circuit) -> Optional[int]:
-    differences = [
-        i
-        for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2))
-        if m1 != m2
-    ]
-    return differences[0] if differences else None
+    for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
+        if m1 != m2:
+            return i
+    return None
 
 
 def assert_has_diagram(
