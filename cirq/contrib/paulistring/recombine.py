@@ -45,7 +45,7 @@ def _possible_string_placements(
                 # Pass through another Pauli string if they commute
                 continue
             if not (isinstance(out_op, ops.GateOperation) and
-                    isinstance(out_op.gate, (ops.CliffordGate,
+                    isinstance(out_op.gate, (ops.SingleQubitCliffordGate,
                                              ops.PauliInteractionGate,
                                              ops.Rot11Gate))):
                 # This is as far through as this Pauli string can move

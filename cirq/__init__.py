@@ -110,7 +110,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
-    CliffordGate,
+    SingleQubitCliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,

@@ -21,15 +21,15 @@ from cirq.contrib.paulistring import converted_gate_set
 
 
 @pytest.mark.parametrize('op,expected_ops', (lambda q0, q1: (
-    (cirq.X(q0), cirq.CliffordGate.X(q0)),
-    (cirq.Y(q0), cirq.CliffordGate.Y(q0)),
-    (cirq.Z(q0), cirq.CliffordGate.Z(q0)),
-    (cirq.X(q0) ** 0.5, cirq.CliffordGate.X_sqrt(q0)),
-    (cirq.Y(q0) ** 0.5, cirq.CliffordGate.Y_sqrt(q0)),
-    (cirq.Z(q0) ** 0.5, cirq.CliffordGate.Z_sqrt(q0)),
-    (cirq.X(q0) ** -0.5, cirq.CliffordGate.X_nsqrt(q0)),
-    (cirq.Y(q0) ** -0.5, cirq.CliffordGate.Y_nsqrt(q0)),
-    (cirq.Z(q0) ** -0.5, cirq.CliffordGate.Z_nsqrt(q0)),
+    (cirq.X(q0), cirq.SingleQubitCliffordGate.X(q0)),
+    (cirq.Y(q0), cirq.SingleQubitCliffordGate.Y(q0)),
+    (cirq.Z(q0), cirq.SingleQubitCliffordGate.Z(q0)),
+    (cirq.X(q0) ** 0.5, cirq.SingleQubitCliffordGate.X_sqrt(q0)),
+    (cirq.Y(q0) ** 0.5, cirq.SingleQubitCliffordGate.Y_sqrt(q0)),
+    (cirq.Z(q0) ** 0.5, cirq.SingleQubitCliffordGate.Z_sqrt(q0)),
+    (cirq.X(q0) ** -0.5, cirq.SingleQubitCliffordGate.X_nsqrt(q0)),
+    (cirq.Y(q0) ** -0.5, cirq.SingleQubitCliffordGate.Y_nsqrt(q0)),
+    (cirq.Z(q0) ** -0.5, cirq.SingleQubitCliffordGate.Z_nsqrt(q0)),
 
     (cirq.X(q0) ** 0.25,
      PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Pauli.X)) ** 0.25),
@@ -71,7 +71,7 @@ def test_degenerate_single_qubit_decompose():
         cirq.Z(q0) ** 0.1,
     )
     expected = cirq.Circuit.from_ops(
-        cirq.CliffordGate.X(q0),
+        cirq.SingleQubitCliffordGate.X(q0),
     )
 
     after = converted_gate_set(before)
