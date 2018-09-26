@@ -22,7 +22,8 @@ def converted_gate_set(circuit: circuits.Circuit,
                        no_clifford_gates: bool = False,
                        tolerance: float = 1e-8,
                        ) -> circuits.Circuit:
-    """Returns a new, equivalent circuit using the gate set {CliffordGate,
+    """Returns a new, equivalent circuit using the gate set
+    {SingleQubitCliffordGate,
     CZ/PauliInteractionGate, PauliStringPhasor}.
     """
     conv_circuit = circuits.Circuit(circuit)
