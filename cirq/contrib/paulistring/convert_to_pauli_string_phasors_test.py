@@ -48,7 +48,7 @@ def test_convert_keep_clifford():
         cirq.X(q0),
         cirq.Y(q1) ** 0.25,
         cirq.Z(q0) ** 0.125,
-        cirq.CliffordGate.H(q1),
+        cirq.SingleQubitCliffordGate.H(q1),
     )
     c_orig = cirq.Circuit(circuit)
     ConvertToPauliStringPhasors(keep_clifford=True).optimize_circuit(circuit)

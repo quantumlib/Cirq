@@ -110,7 +110,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
-    CliffordGate,
+    SingleQubitCliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -128,7 +128,6 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
     ISwapGate,
     measure,
@@ -200,6 +199,7 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    inverse,
     SupportsUnitary,
     unitary,
 )
