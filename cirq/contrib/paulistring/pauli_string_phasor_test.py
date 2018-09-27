@@ -71,7 +71,8 @@ def test_map_qubits():
 def test_pass_operations_over():
     q0, q1 = _make_qubits(2)
     X, Y, Z = cirq.Pauli.XYZ
-    op = cirq.CliffordGate.from_double_map({Z: (X,False), X: (Z,False)})(q0)
+    op = cirq.SingleQubitCliffordGate.from_double_map({Z: (X,False),
+                                                       X: (Z,False)})(q0)
     ps_before = cirq.PauliString({q0: X, q1: Y}, True)
     ps_after = cirq.PauliString({q0: Z, q1: Y}, True)
     before = PauliStringPhasor(ps_before, half_turns=0.1)
@@ -301,13 +302,14 @@ def test_decompose_with_symbol():
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
-    assert circuit.to_text_diagram() == "q0: ───X^0.5───Z^a───X^-0.5───"
+    cirq.testing.assert_has_diagram(circuit, "q0: ───X^0.5───Z^a───X^-0.5───")
 
     ps = cirq.PauliString({q0: cirq.Pauli.Y}, True)
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
-    assert circuit.to_text_diagram() == "q0: ───X^0.5───X───Z^a───X───X^-0.5───"
+    cirq.testing.assert_has_diagram(
+        circuit, "q0: ───X^0.5───X───Z^a───X───X^-0.5───")
 
 
 def test_text_diagram():
@@ -329,13 +331,14 @@ def test_text_diagram():
                                             q1: cirq.Pauli.Y,
                                             q2: cirq.Pauli.X}, True),
                           half_turns=cirq.Symbol('b')))
-    assert circuit.to_text_diagram() == """
+
+    cirq.testing.assert_has_diagram(circuit, """
 q0: ───[Z]───[Y]^0.25───[Z]───[Z]────────[Z]─────[Z]──────
                         │     │          │       │
 q1: ────────────────────[Z]───[Y]────────[Y]─────[Y]──────
                         │     │          │       │
 q2: ────────────────────[Z]───[X]^-0.5───[X]^a───[X]^-b───
-""".strip()
+""")
 
 
 def test_repr():

@@ -84,7 +84,7 @@ from cirq.ops.pauli import (
     Pauli,
 )
 from cirq.ops.clifford_gate import (
-    CliffordGate,
+    SingleQubitCliffordGate,
     PauliTransform,
 )
 from cirq.ops.pauli_interaction_gate import (

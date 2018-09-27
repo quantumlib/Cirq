@@ -19,7 +19,7 @@ import numpy as np
 from cirq import value
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, op_tree
 from cirq.ops.pauli import Pauli
-from cirq.ops.clifford_gate import CliffordGate
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 
 pauli_eigen_map = {
@@ -106,9 +106,9 @@ class PauliInteractionGate(eigen_gate.EigenGate,
     def default_decompose(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
         q0, q1 = qubits
-        right_gate0 = CliffordGate.from_single_map(
+        right_gate0 = SingleQubitCliffordGate.from_single_map(
                                     z_to=(self.pauli0, self.invert0))
-        right_gate1 = CliffordGate.from_single_map(
+        right_gate1 = SingleQubitCliffordGate.from_single_map(
                                     z_to=(self.pauli1, self.invert1))
         left_gate0 = right_gate0**-1
         left_gate1 = right_gate1**-1

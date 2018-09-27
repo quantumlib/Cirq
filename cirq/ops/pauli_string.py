@@ -19,7 +19,7 @@ from cirq.ops import (
     raw_types, gate_operation, common_gates, qubit_order, op_tree
 )
 from cirq.ops.pauli import Pauli
-from cirq.ops.clifford_gate import CliffordGate
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
 
@@ -127,7 +127,8 @@ class PauliString:
         """Returns operations to convert the qubits to the computational basis.
         """
         for qubit, pauli in self.items():
-            yield CliffordGate.from_single_map({pauli: (Pauli.Z, False)})(qubit)
+            yield SingleQubitCliffordGate.from_single_map(
+                {pauli: (Pauli.Z, False)})(qubit)
 
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],
@@ -169,7 +170,7 @@ class PauliString:
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
             gate = op.gate
-            if isinstance(gate, CliffordGate):
+            if isinstance(gate, SingleQubitCliffordGate):
                 return PauliString._pass_single_clifford_gate_over(
                     pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
@@ -184,7 +185,7 @@ class PauliString:
     @staticmethod
     def _pass_single_clifford_gate_over(pauli_map: Dict[raw_types.QubitId,
                                                         Pauli],
-                                        gate: CliffordGate,
+                                        gate: SingleQubitCliffordGate,
                                         qubit: raw_types.QubitId,
                                         after_to_before: bool = False) -> bool:
         if qubit not in pauli_map:
