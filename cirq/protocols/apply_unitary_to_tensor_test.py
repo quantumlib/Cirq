@@ -55,8 +55,8 @@ def test_apply_unitary_to_tensor_presence_absence():
                                       available_buffer: np.ndarray,
                                       axes: Sequence[int],
                                       ) -> np.ndarray:
-            zero = cirq.binary_sub_tensor_slice(0, axes)
-            one = cirq.binary_sub_tensor_slice(1, axes)
+            zero = cirq.slice_for_qubits_equal_to(axes, 0)
+            one = cirq.slice_for_qubits_equal_to(axes, 1)
             available_buffer[zero] = target_tensor[zero]
             available_buffer[one] = -target_tensor[one]
             return available_buffer
@@ -67,7 +67,7 @@ def test_apply_unitary_to_tensor_presence_absence():
                                       available_buffer: np.ndarray,
                                       axes: Sequence[int],
                                       ) -> np.ndarray:
-            one = cirq.binary_sub_tensor_slice(1, axes)
+            one = cirq.slice_for_qubits_equal_to(axes, 1)
             target_tensor[one] *= -1
             return target_tensor
 

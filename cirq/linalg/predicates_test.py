@@ -380,27 +380,27 @@ def test_binary_sub_tensor_slice():
     a = slice(None)
     e = Ellipsis
 
-    assert cirq.binary_sub_tensor_slice(0, []) == (e,)
-    assert cirq.binary_sub_tensor_slice(0b0, [0]) == (0, e)
-    assert cirq.binary_sub_tensor_slice(0b1, [0]) == (1, e)
-    assert cirq.binary_sub_tensor_slice(0b0, [1]) == (a, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b1, [1]) == (a, 1, e)
-    assert cirq.binary_sub_tensor_slice(0b0, [2]) == (a, a, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b1, [2]) == (a, a, 1, e)
+    assert cirq.slice_for_qubits_equal_to([], 0) == (e,)
+    assert cirq.slice_for_qubits_equal_to([0], 0b0) == (0, e)
+    assert cirq.slice_for_qubits_equal_to([0], 0b1) == (1, e)
+    assert cirq.slice_for_qubits_equal_to([1], 0b0) == (a, 0, e)
+    assert cirq.slice_for_qubits_equal_to([1], 0b1) == (a, 1, e)
+    assert cirq.slice_for_qubits_equal_to([2], 0b0) == (a, a, 0, e)
+    assert cirq.slice_for_qubits_equal_to([2], 0b1) == (a, a, 1, e)
 
-    assert cirq.binary_sub_tensor_slice(0b00, [0, 1]) == (0, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b00, [1, 2]) == (a, 0, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b00, [1, 3]) == (a, 0, a, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b10, [1, 3]) == (a, 0, a, 1, e)
-    assert cirq.binary_sub_tensor_slice(0b10, [3, 1]) == (a, 1, a, 0, e)
+    assert cirq.slice_for_qubits_equal_to([0, 1], 0b00) == (0, 0, e)
+    assert cirq.slice_for_qubits_equal_to([1, 2], 0b00) == (a, 0, 0, e)
+    assert cirq.slice_for_qubits_equal_to([1, 3], 0b00) == (a, 0, a, 0, e)
+    assert cirq.slice_for_qubits_equal_to([1, 3], 0b10) == (a, 0, a, 1, e)
+    assert cirq.slice_for_qubits_equal_to([3, 1], 0b10) == (a, 1, a, 0, e)
 
-    assert cirq.binary_sub_tensor_slice(0b001, [2, 1, 0]) == (0, 0, 1, e)
-    assert cirq.binary_sub_tensor_slice(0b010, [2, 1, 0]) == (0, 1, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b100, [2, 1, 0]) == (1, 0, 0, e)
-    assert cirq.binary_sub_tensor_slice(0b101, [0, 1, 2]) == (1, 0, 1, e)
-    assert cirq.binary_sub_tensor_slice(0b101, [0, 2, 1]) == (1, 1, 0, e)
+    assert cirq.slice_for_qubits_equal_to([2, 1, 0], 0b001) == (0, 0, 1, e)
+    assert cirq.slice_for_qubits_equal_to([2, 1, 0], 0b010) == (0, 1, 0, e)
+    assert cirq.slice_for_qubits_equal_to([2, 1, 0], 0b100) == (1, 0, 0, e)
+    assert cirq.slice_for_qubits_equal_to([0, 1, 2], 0b101) == (1, 0, 1, e)
+    assert cirq.slice_for_qubits_equal_to([0, 2, 1], 0b101) == (1, 1, 0, e)
 
     m = np.array([0] * 16).reshape((2, 2, 2, 2))
     for k in range(16):
-        m[cirq.binary_sub_tensor_slice(k, [3, 2, 1, 0])] = k
+        m[cirq.slice_for_qubits_equal_to([3, 2, 1, 0], k)] = k
     assert list(m.reshape(16)) == list(range(16))

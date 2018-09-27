@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""A protocol for implementing high performance unitary left-multiplies."""
+
+
 from typing import Any, Union, Sequence, TypeVar
 
 import numpy as np
@@ -48,10 +51,16 @@ class SupportsApplyUnitaryToTensor(Protocol):
         write specialized simulation methods that run without performing large
         allocations, significantly increasing simulation performance.
 
+        The target may represent a wavefunction, a unitary matrix, or some other
+        tensor. Implementations will work in all of these cases as long as they
+        correctly focus on only operating on the given axes.
+
         Args:
             target_tensor: The input tensor that needs to be left-multiplied by
                 the unitary effect of the receiving object. The tensor will
-                have the shape (2, 2, 2, ..., 2).
+                have the shape (2, 2, 2, ..., 2). It usually corresponds to
+                a multi-qubit superposition, but it could also be a multi-qubit
+                unitary transformation or some other concept.
             available_buffer: Pre-allocated workspace with the same shape and
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
@@ -61,11 +70,18 @@ class SupportsApplyUnitaryToTensor(Protocol):
             If the receiving object is not able to apply its unitary effect,
             NotImplemented should be returned.
 
-            Otherwise, the result should be either target_tensor or
-            available_buffer; whichever now contains the output. It is permitted
-            to allocate and return a new np.ndarray holding the output, but not
-            recommended (because this implies lower performance and higher
-            memory usage).
+            If the receiving object is able to work inline, it should directly
+            mutate target_tensor and then return target_tensor. The caller will
+            understand this to mean that the result is in target_tensor.
+
+            If the receiving object is unable to work inline, it can write its
+            output over available_buffer and then return available_buffer. The
+            caller will understand this to mean that the result is in
+            available_buffer (and so what was available_buffer will become
+            target_tensor in the next call, and vice versa).
+
+            The receiving object is also permitted to allocate a new
+            numpy.ndarray and return that as its result.
         """
 
 
@@ -75,7 +91,7 @@ def apply_unitary_to_tensor(val: Any,
                             axes: Sequence[int],
                             default: TDefault = RaiseTypeErrorIfNotProvided
                             ) -> Union[np.ndarray, TDefault]:
-    """Left-multiplies a object's unitary effect onto a tensor.
+    """High performance left-multiplication of a unitary effect onto a tensor.
 
     If `val` defines an _apply_unitary_to_tensor_ method, that method will be
     used to apply `val`'s unitary effect to the target tensor. Otherwise, if
@@ -83,25 +99,47 @@ def apply_unitary_to_tensor(val: Any,
     applied using a generic method. Otherwise the application fails, and either
     an exception is raised or the specified default value is returned.
 
+        The target may represent a wavefunction, a unitary matrix, or some other
+        tensor. Implementations will work in all of these cases as long as they
+        correctly focus on only operating on the given axes. See also:
+        `cirq.slice_for_qubits_equal_to(axes, int)`, which does the correct
+        thing in all these cases.
+
     Args:
         val: The value with a unitary effect to apply to the target tensor.
         target_tensor: The input tensor that needs to be left-multiplied by
             the unitary effect of `val`. Note that this value may be mutated
             inline into the output. The tensor will have the shape
-            (2, 2, 2, ..., 2).
+            (2, 2, 2, ..., 2). target_tensor may correspond to a multi-qubit
+            superposition (with each axis being a qubit), a multi-qubit unitary
+            transformation (with some axes being qubit inputs and others being
+            qubit outputs), or some other concept.
         available_buffer: Pre-allocated workspace with the same shape and
             dtype as the target tensor. Note that the output may be written
             into this buffer.
         axes: Which axes the unitary effect is being applied to (e.g. the
-            qubits that the gate is operating on).
+            qubits that the gate is operating on). For example, a CNOT being
+            applied to qubits #4 and #2 of a circuit would result in
+            axes=(4, 2).
         default: What should be returned if `val` doesn't have a unitary effect.
-            If not specified, an exception is raised instead of returning
+            If not specified, a TypeError is raised instead of returning
             a default value.
 
     Returns:
-        The np.ndarray containing the result (typically either
-        `target_tensor` or `available_buffer`), or else `default` if `val` had
-         no unitary effect and a default value was specified.
+        If the receiving object is not able to apply its unitary effect,
+        the specified default value is returned (or a TypeError is raised).
+
+        If the receiving object was able to work inline, directly
+        mutating target_tensor it will return target_tensor. The caller is
+        responsible for checking if the result is target_tensor.
+
+        If the receiving object wrote its output over available_buffer, the
+        result will be available_buffer. The caller is responsible for
+        checking if the result is available_buffer (and e.g. swapping
+        the buffer for the target tensor before the next call).
+
+        The receiving object may also write its output over a new buffer
+        that it created, in which case that new array is returned.
 
     Raises:
         TypeError: `val` doesn't have a unitary effect and `default` wasn't

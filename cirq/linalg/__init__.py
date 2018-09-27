@@ -41,7 +41,7 @@ from cirq.linalg.diagonalize import (
 )
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
-    binary_sub_tensor_slice,
+    slice_for_qubits_equal_to,
     commutes,
     is_diagonal,
     is_hermitian,

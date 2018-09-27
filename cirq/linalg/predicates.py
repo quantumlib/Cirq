@@ -192,10 +192,12 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def binary_sub_tensor_slice(index_bits: int,
-                            index_axes: Sequence[int],
-                            ) -> Tuple[Union[slice, int, type(...)], ...]:
+def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
+                              little_endian_qureg_value: int,
+                              ) -> Tuple[Union[slice, int, type(...)], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
+
+    It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
 
     Example:
         # A '4 qubit' tensor with values from 0 to 15.
@@ -212,18 +214,22 @@ def binary_sub_tensor_slice(index_bits: int,
         #  [13 15]]
 
     Args:
-        index_bits: An integer whose bits specify what index to enter for each
-            axis.
-        index_axes: The axes that are specified by the index bits. All other
-            axes are unconstrained.
+        target_qubit_axes: The qubits that are specified by the index bits. All
+            other axes of the slice are unconstrained.
+        little_endian_qureg_value: An integer whose bits specify what value is
+            desired for of the target qubits. The integer is little endian
+            w.r.t. the target quit axes, meaning the low bit of the integer
+            determines the desired value of the first targeted qubit, and so
+            forth with the k'th targeted qubit's value set to
+            bool(qureg_value & (1 << k)).
 
     Returns:
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
     """
-    n = max(index_axes) if index_axes else -1
+    n = max(target_qubit_axes) if target_qubit_axes else -1
     result = [slice(None)] * (n + 2)
-    for k, axis in enumerate(index_axes):
-        result[axis] = (index_bits >> k) & 1
+    for k, axis in enumerate(target_qubit_axes):
+        result[axis] = (little_endian_qureg_value >> k) & 1
     result[-1] = Ellipsis
     return tuple(result)

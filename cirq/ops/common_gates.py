@@ -69,7 +69,7 @@ class Rot11Gate(eigen_gate.EigenGate,
             return NotImplemented
 
         c = np.exp(1j * np.pi * self.half_turns)
-        one_one = linalg.binary_sub_tensor_slice(0b11, axes)
+        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one_one] *= c
         return target_tensor
 
@@ -145,8 +145,8 @@ class RotXGate(eigen_gate.EigenGate,
                                   ) -> Union[np.ndarray, type(NotImplemented)]:
         if self.half_turns != 1:
             return NotImplemented
-        zero = linalg.binary_sub_tensor_slice(0, axes)
-        one = linalg.binary_sub_tensor_slice(1, axes)
+        zero = linalg.slice_for_qubits_equal_to(axes, 0)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
         available_buffer[zero] = target_tensor[one]
         available_buffer[one] = target_tensor[zero]
         return available_buffer
@@ -300,7 +300,7 @@ class RotZGate(eigen_gate.EigenGate,
         if self.is_parameterized():
             return NotImplemented
 
-        one = linalg.binary_sub_tensor_slice(1, axes)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
         c = np.exp(1j * np.pi * self.half_turns)
         target_tensor[one] *= c
         return target_tensor
@@ -589,8 +589,8 @@ class HGate(eigen_gate.EigenGate,
         if self.half_turns != 1:
             return NotImplemented
 
-        zero = linalg.binary_sub_tensor_slice(0, axes)
-        one = linalg.binary_sub_tensor_slice(1, axes)
+        zero = linalg.slice_for_qubits_equal_to(axes, 0)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
         target_tensor[one] -= target_tensor[zero]
         target_tensor[one] *= -0.5
         target_tensor[zero] -= target_tensor[one]
