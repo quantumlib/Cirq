@@ -50,7 +50,6 @@ from cirq.ops.gate_features import (
     CompositeOperation,
     ExtrapolatableEffect,
     InterchangeableQubitsGate,
-    KnownMatrix,
     ParameterizableEffect,
     PhaseableEffect,
     QasmConvertibleGate,
@@ -87,7 +86,7 @@ from cirq.ops.pauli import (
     Pauli,
 )
 from cirq.ops.clifford_gate import (
-    CliffordGate,
+    SingleQubitCliffordGate,
     PauliTransform,
 )
 from cirq.ops.pauli_interaction_gate import (
@@ -103,7 +102,6 @@ from cirq.ops.raw_types import (
     QubitId,
 )
 from cirq.ops.reversible_composite_gate import (
-    inverse,
     ReversibleCompositeGate,
 )
 from cirq.ops.three_qubit_gates import (

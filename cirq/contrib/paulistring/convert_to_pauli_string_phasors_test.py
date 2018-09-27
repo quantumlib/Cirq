@@ -35,11 +35,11 @@ def test_convert():
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
         atol=1e-7)
-    assert circuit.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───[X]────────[Z]^0.125─────────
 
 1: ───[Y]^0.25───[Y]^-0.5────[Z]───
-""".strip()
+""")
 
 
 def test_convert_keep_clifford():
@@ -48,7 +48,7 @@ def test_convert_keep_clifford():
         cirq.X(q0),
         cirq.Y(q1) ** 0.25,
         cirq.Z(q0) ** 0.125,
-        cirq.CliffordGate.H(q1),
+        cirq.SingleQubitCliffordGate.H(q1),
     )
     c_orig = cirq.Circuit(circuit)
     ConvertToPauliStringPhasors(keep_clifford=True).optimize_circuit(circuit)
@@ -57,11 +57,11 @@ def test_convert_keep_clifford():
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
         atol=1e-7)
-    assert circuit.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───X──────────[Z]^0.125───
 
 1: ───[Y]^0.25───H───────────
-""".strip()
+""")
 
 
 def test_already_converted():

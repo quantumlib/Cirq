@@ -110,7 +110,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
-    CliffordGate,
+    SingleQubitCliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -128,10 +128,8 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
@@ -198,6 +196,12 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+)
+
+from cirq.protocols import (
+    inverse,
+    SupportsUnitary,
+    unitary,
 )
 
 # Import version last since it is a relative import.

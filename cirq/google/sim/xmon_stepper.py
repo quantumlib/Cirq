@@ -617,7 +617,7 @@ def _one_prob_per_shard(args: Dict[str, Any]) -> float:
 def _norm_squared(args: Dict[str, Any]) -> float:
     """Returns the norm for each state shard."""
     state = _state_shard(args)
-    return float(np.real(np.dot(state, np.conjugate(state))))
+    return np.sum(np.abs(state) ** 2)
 
 
 def _renorm(args: Dict[str, Any]):

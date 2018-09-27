@@ -218,21 +218,20 @@ def test_z_invalid_dict():
 
 
 def test_z_matrix():
-    assert np.allclose(cg.ExpZGate(half_turns=1).matrix(),
+    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=1)),
                        np.array([[-1j, 0], [0, 1j]]))
-    assert np.allclose(cg.ExpZGate(half_turns=0.5).matrix(),
+    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=0.5)),
                        np.array([[1 - 1j, 0], [0, 1 + 1j]]) / np.sqrt(2))
-    assert np.allclose(cg.ExpZGate(half_turns=0).matrix(),
+    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=0)),
                        np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cg.ExpZGate(half_turns=-0.5).matrix(),
+    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=-0.5)),
                        np.array([[1 + 1j, 0], [0, 1 - 1j]]) / np.sqrt(2))
 
 
 def test_z_parameterize():
     parameterized_gate = cg.ExpZGate(half_turns=cirq.Symbol('a'))
     assert parameterized_gate.is_parameterized()
-    with pytest.raises(ValueError):
-        _ = parameterized_gate.matrix()
+    assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.ExpZGate(half_turns=0.1)
@@ -343,16 +342,14 @@ def test_cz_invalid_dict():
 
 
 def test_cz_potential_implementation():
-    assert not cirq.can_cast(cirq.KnownMatrix,
-                             cg.Exp11Gate(half_turns=cirq.Symbol('a')))
-    assert cirq.can_cast(cirq.KnownMatrix, cg.Exp11Gate())
+    assert cirq.unitary(cg.Exp11Gate(half_turns=cirq.Symbol('a')), None) is None
+    assert cirq.unitary(cg.Exp11Gate()) is not None
 
 
 def test_cz_parameterize():
     parameterized_gate = cg.Exp11Gate(half_turns=cirq.Symbol('a'))
     assert parameterized_gate.is_parameterized()
-    with pytest.raises(ValueError):
-        _ = parameterized_gate.matrix()
+    assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
@@ -510,11 +507,8 @@ def test_w_decomposition():
 
 
 def test_w_potential_implementation():
-    assert not cirq.can_cast(cirq.KnownMatrix,
-                             cg.ExpWGate(half_turns=cirq.Symbol('a')))
     assert not cirq.can_cast(cirq.ReversibleEffect,
                              cg.ExpWGate(half_turns=cirq.Symbol('a')))
-    assert cirq.can_cast(cirq.KnownMatrix, cg.ExpWGate())
     assert cirq.can_cast(cirq.ReversibleEffect, cg.ExpWGate())
 
 
@@ -522,8 +516,7 @@ def test_w_parameterize():
     parameterized_gate = cg.ExpWGate(half_turns=cirq.Symbol('a'),
                                      axis_half_turns=cirq.Symbol('b'))
     assert parameterized_gate.is_parameterized()
-    with pytest.raises(ValueError):
-        _ = parameterized_gate.matrix()
+    assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
     assert resolved_gate == cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)
@@ -594,11 +587,11 @@ def test_cirq_symbol_diagrams():
         cg.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
         cg.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
     )
-    assert c.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(c, """
 (0, 0): ───W(a)^b───@─────
                     │
 (0, 1): ───Z^c──────@^d───
-    """.strip()
+""")
 
 
 def test_z_diagram_chars():
@@ -611,9 +604,9 @@ def test_z_diagram_chars():
         cg.ExpZGate(half_turns=-0.5).on(q),
         cg.ExpZGate(half_turns=-0.25).on(q),
     )
-    assert c.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(c, """
 (0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
-    """.strip()
+""")
 
 
 def test_w_diagram_chars():
@@ -624,6 +617,6 @@ def test_w_diagram_chars():
         cg.ExpWGate(axis_half_turns=0.5).on(q),
         cg.ExpWGate(axis_half_turns=cirq.Symbol('a')).on(q),
     )
-    assert c.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(c, """
 (0, 1): ───X───W(0.25)───Y───W(a)───
-    """.strip()
+""")

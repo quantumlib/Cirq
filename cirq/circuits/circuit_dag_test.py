@@ -62,8 +62,8 @@ def test_wrapper_repr():
 def test_init():
     dag = cirq.CircuitDag()
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert list(dag.nodes) == []
-    assert list(dag.edges) == []
+    assert list(dag.nodes()) == []
+    assert list(dag.edges()) == []
 
 
 def test_append():
@@ -71,10 +71,10 @@ def test_append():
     dag = cirq.CircuitDag()
     dag.append(cirq.X(q0))
     dag.append(cirq.Y(q0))
-    print(dag.edges)
+    print(dag.edges())
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert len(dag.nodes) == 2
-    assert ([(n1.val, n2.val) for n1, n2 in dag.edges] ==
+    assert len(dag.nodes()) == 2
+    assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
 
 
@@ -85,8 +85,8 @@ def test_two_identical_ops():
     dag.append(cirq.Y(q0))
     dag.append(cirq.X(q0))
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert len(dag.nodes) == 3
-    assert (set((n1.val, n2.val) for n1, n2 in dag.edges) ==
+    assert len(dag.nodes()) == 3
+    assert (set((n1.val, n2.val) for n1, n2 in dag.edges()) ==
             {(cirq.X(q0), cirq.Y(q0)),
              (cirq.X(q0), cirq.X(q0)),
              (cirq.Y(q0), cirq.X(q0))})
@@ -98,8 +98,8 @@ def test_from_ops():
         cirq.X(q0),
         cirq.Y(q0))
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert len(dag.nodes) == 2
-    assert ([(n1.val, n2.val) for n1, n2 in dag.edges] ==
+    assert len(dag.nodes()) == 2
+    assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
 
 
@@ -110,8 +110,8 @@ def test_from_circuit():
         cirq.Y(q0))
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert len(dag.nodes) == 2
-    assert ([(n1.val, n2.val) for n1, n2 in dag.edges] ==
+    assert len(dag.nodes()) == 2
+    assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
 
 
@@ -124,8 +124,8 @@ def test_from_circuit_with_device():
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert dag.device == circuit.device
-    assert len(dag.nodes) == 2
-    assert ([(n1.val, n2.val) for n1, n2 in dag.edges] ==
+    assert len(dag.nodes()) == 2
+    assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
 
 
@@ -228,9 +228,7 @@ def test_larger_circuit():
     assert circuit.device == dag.to_circuit().device
     # Operation order within a moment is non-deterministic
     # but text diagrams still look the same.
-    assert (circuit.to_text_diagram() ==
-            dag.to_circuit().to_text_diagram() ==
-"""
+    desired = """
 (0, 5): ───X───@───Y───Z───X───Y───@───
                │                   │
 (1, 5): ───@───@───@───────────────@───
@@ -238,7 +236,9 @@ def test_larger_circuit():
 (2, 5): ───@───────@───────────────────
 
 (3, 5): ───T───────────────────────────
-""".strip())
+"""
+    cirq.testing.assert_has_diagram(circuit, desired)
+    cirq.testing.assert_has_diagram(dag.to_circuit(), desired)
 
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),
