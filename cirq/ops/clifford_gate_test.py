@@ -199,6 +199,18 @@ def test_init_from_pauli(pauli, sqrt, expected):
     assert gate == expected
 
 
+def test_pow():
+    assert cirq.SingleQubitCliffordGate.X**-1 == cirq.SingleQubitCliffordGate.X
+    assert cirq.SingleQubitCliffordGate.H**-1 == cirq.SingleQubitCliffordGate.H
+    assert (cirq.SingleQubitCliffordGate.X_sqrt**-1 ==
+            cirq.SingleQubitCliffordGate.X_nsqrt)
+    assert cirq.inverse(cirq.SingleQubitCliffordGate.X_nsqrt) == (
+        cirq.SingleQubitCliffordGate.X_sqrt
+    )
+    with pytest.raises(TypeError):
+        _ = cirq.SingleQubitCliffordGate.Z**0.25
+
+
 def test_init_from_quarter_turns():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(

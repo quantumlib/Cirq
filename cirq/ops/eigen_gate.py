@@ -16,7 +16,7 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
 import numpy as np
 
-from cirq import abc, extension, value, protocols
+from cirq import abc, extension, value
 from cirq.ops import gate_features, raw_types
 
 
