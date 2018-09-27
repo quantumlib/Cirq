@@ -35,17 +35,17 @@ def test_FallbackQCircuitSymbolsGate():
     g = TestGate()
     f = _FallbackQCircuitGate(g)
     actual_info = f.qcircuit_diagram_info(
-            cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
-    expected_info = cirq.TextDiagramInfo(('\\text{T:0}',))
+            cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
+    expected_info = cirq.CircuitDiagramInfo(('\\text{T:0}',))
     assert actual_info == expected_info
 
-    actual_info = f.qcircuit_diagram_info(cirq.TextDiagramInfoArgs(
+    actual_info = f.qcircuit_diagram_info(cirq.CircuitDiagramInfoArgs(
         known_qubits=None,
         known_qubit_count=2,
         use_unicode_characters=True,
         precision=None,
         qubit_map=None))
-    expected_info = cirq.TextDiagramInfo(('\\text{T:0}', '\\text{T:1}'))
+    expected_info = cirq.CircuitDiagramInfo(('\\text{T:0}', '\\text{T:1}'))
     assert actual_info == expected_info
 
 def test_TextToQCircuitDiagrammable():
@@ -55,13 +55,13 @@ def test_TextToQCircuitDiagrammable():
     f = _TextToQCircuitDiagrammable(g)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     actual_info = f.qcircuit_diagram_info(
-            cirq.TextDiagramInfoArgs(known_qubits=qubits,
-                                     known_qubit_count=None,
-                                     use_unicode_characters=True,
-                                     precision=3,
-                                     qubit_map=qubit_map))
+            cirq.CircuitDiagramInfoArgs(known_qubits=qubits,
+                                        known_qubit_count=None,
+                                        use_unicode_characters=True,
+                                        precision=3,
+                                        qubit_map=qubit_map))
     name = '{\\text{SWAP}^{0.5}}'
-    expected_info = cirq.TextDiagramInfo(
+    expected_info = cirq.CircuitDiagramInfo(
             ('\multigate{1}' + name, '\ghost' + name),
             exponent=0.5,
             connected=False)
@@ -71,28 +71,28 @@ def test_TextToQCircuitDiagrammable():
     f = _TextToQCircuitDiagrammable(g)
     qubit_map = {q: i for q, i in zip(qubits, (4, 3))}
     actual_info = f.qcircuit_diagram_info(
-            cirq.TextDiagramInfoArgs(known_qubits=qubits,
-                                     known_qubit_count=None,
-                                     use_unicode_characters=True,
-                                     precision=3,
-                                     qubit_map=qubit_map))
-    expected_info = cirq.TextDiagramInfo(
+            cirq.CircuitDiagramInfoArgs(known_qubits=qubits,
+                                        known_qubit_count=None,
+                                        use_unicode_characters=True,
+                                        precision=3,
+                                        qubit_map=qubit_map))
+    expected_info = cirq.CircuitDiagramInfo(
             ('\ghost{\\text{SWAP}}', '\multigate{1}{\\text{SWAP}}'),
             connected=False)
     assert actual_info == expected_info
 
     qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
     actual_info = f.qcircuit_diagram_info(
-            cirq.TextDiagramInfoArgs(known_qubits=qubits,
-                                     known_qubit_count=None,
-                                     use_unicode_characters=True,
-                                     precision=3,
-                                     qubit_map=qubit_map))
-    expected_info = cirq.TextDiagramInfo(('\\gate{\\text{×}}',) * 2)
+            cirq.CircuitDiagramInfoArgs(known_qubits=qubits,
+                                        known_qubit_count=None,
+                                        use_unicode_characters=True,
+                                        precision=3,
+                                        qubit_map=qubit_map))
+    expected_info = cirq.CircuitDiagramInfo(('\\gate{\\text{×}}',) * 2)
     assert actual_info == expected_info
 
     actual_info = f.qcircuit_diagram_info(
-            cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+            cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
     assert actual_info == expected_info
 
 

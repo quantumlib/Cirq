@@ -159,7 +159,7 @@ def test_h_matrix():
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
 
 
-def test_H_decompose():
+def test_h_decompose():
     a = cirq.NamedQubit('a')
 
     original = cirq.HGate(half_turns=0.5)
@@ -237,19 +237,20 @@ def test_text_diagrams():
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
         cirq.H(a),
+        cirq.H(b)**0.5,
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
-      │                     │   │   │       │       │
-b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+a: ───×───X───Y───Z───Z^x───@───@───X───H───────iSwap───iSwap──────
+      │                     │   │   │           │       │
+b: ───×─────────────────────@───X───@───H^0.5───iSwap───iSwap^-1───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
-      |                        |   |   |       |       |
-b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
+a: ---swap---X---Y---Z---Z^x---@---@---X---H-------iSwap---iSwap------
+      |                        |   |   |           |       |
+b: ---swap---------------------@---X---@---H^0.5---iSwap---iSwap^-1---
 """, use_unicode_characters=False)
 
 
@@ -384,27 +385,28 @@ def test_xyz_str():
 
 def test_measurement_gate_diagram():
     # Shows key.
-    assert cirq.MeasurementGate().text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('')",))
-    assert cirq.MeasurementGate(key='test').text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('test')",))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(),
+    ) == cirq.CircuitDiagramInfo(("M('')",))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(key='test'),
+    ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
-    assert cirq.MeasurementGate().text_diagram_info(
-        cirq.TextDiagramInfoArgs(
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(),
+        cirq.CircuitDiagramInfoArgs(
             known_qubits=None,
             known_qubit_count=3,
             use_unicode_characters=True,
             precision=None,
             qubit_map=None
-        )) == cirq.TextDiagramInfo(("M('')", 'M', 'M'))
+        )) == cirq.CircuitDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
-    assert cirq.MeasurementGate(invert_mask=(False, True)).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('')", "!M"))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(invert_mask=(False, True)),
+    ) == cirq.CircuitDiagramInfo(("M('')", "!M"))
 
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')

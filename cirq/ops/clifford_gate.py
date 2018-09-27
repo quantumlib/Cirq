@@ -27,8 +27,7 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 class SingleQubitCliffordGate(raw_types.Gate,
                    gate_features.CompositeGate,
-                   gate_features.ReversibleEffect,
-                   gate_features.TextDiagrammable):
+                   gate_features.ReversibleEffect):
     """Any single qubit Clifford rotation."""
     I = None  # type: SingleQubitCliffordGate
     H = None  # type: SingleQubitCliffordGate
@@ -339,8 +338,8 @@ class SingleQubitCliffordGate(raw_types.Gate,
                 '+-'[self.transform(Pauli.Y).flip], self.transform(Pauli.Y).to,
                 '+-'[self.transform(Pauli.Z).flip], self.transform(Pauli.Z).to)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         well_known_map = {
             SingleQubitCliffordGate.I: 'I',
             SingleQubitCliffordGate.H: 'H',
@@ -362,7 +361,7 @@ class SingleQubitCliffordGate(raw_types.Gate,
                 str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
                 for r, qt in rotations)
             symbol = '({})'.format(symbol)
-        return gate_features.TextDiagramInfo(
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(symbol,),
             exponent={
                 SingleQubitCliffordGate.X_sqrt: 0.5,

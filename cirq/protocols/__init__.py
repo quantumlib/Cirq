@@ -20,3 +20,9 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
 )
+from cirq.protocols.diagram_info import (
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
+    SupportsCircuitDiagramInfo,
+)

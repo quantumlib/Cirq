@@ -25,8 +25,8 @@ def test_circular_shift_gate_init():
 
 def test_circular_shift_gate_unknown_qubit_count():
     g = CircularShiftGate(2)
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    assert g.text_diagram_info(args) == NotImplemented
+    assert cirq.circuit_diagram_info(g, default=NotImplemented
+                                     ) == NotImplemented
 
 
 def test_circular_shift_gate_eq():

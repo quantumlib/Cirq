@@ -448,8 +448,7 @@ def test_single_qubit_gate_after_switching_order(gate, other):
         '(X^-0.5-Z^0.5)',
         1
     )))
-def test_text_diagram_info(gate, sym, exp):
-    assert gate.text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            wire_symbols=(sym,),
-            exponent=exp)
+def test_circuit_diagram_info(gate, sym, exp):
+    assert cirq.circuit_diagram_info(gate) == cirq.CircuitDiagramInfo(
+        wire_symbols=(sym,),
+        exponent=exp)

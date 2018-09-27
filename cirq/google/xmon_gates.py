@@ -161,7 +161,6 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
 
 class Exp11Gate(XmonGate,
                 ops.TwoQubitGate,
-                ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
                 ops.ParameterizableEffect,
@@ -219,9 +218,10 @@ class Exp11Gate(XmonGate,
         return protocols.unitary(
             ops.Rot11Gate(half_turns=self.half_turns))
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
-        return ops.TextDiagramInfo(('@', '@'), self.half_turns)
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(('@', '@'), self.half_turns)
 
     def known_qasm_output(self,
                           qubits: Tuple[ops.QubitId, ...],
@@ -260,7 +260,6 @@ class Exp11Gate(XmonGate,
 
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
-               ops.TextDiagrammable,
                ops.PhaseableEffect,
                ops.BoundedEffect,
                ops.ParameterizableEffect,
@@ -379,8 +378,9 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         e = 0 if args.precision is None else 10**-args.precision
         half_turns = self.half_turns
         if isinstance(self.axis_half_turns, value.Symbol):
@@ -398,11 +398,10 @@ class ExpWGate(XmonGate,
                 self.axis_half_turns)
         else:
             s = 'W({})'.format(self.axis_half_turns)
-        return ops.TextDiagramInfo((s,), half_turns)
+        return protocols.CircuitDiagramInfo((s,), half_turns)
 
     def __str__(self):
-        info = self.text_diagram_info(
-            ops.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+        info = protocols.circuit_diagram_info(self)
         if info.exponent == 1:
             return info.wire_symbols[0]
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
@@ -446,7 +445,6 @@ class ExpWGate(XmonGate,
 
 class ExpZGate(XmonGate,
                ops.SingleQubitGate,
-               ops.TextDiagrammable,
                ops.ParameterizableEffect,
                ops.PhaseableEffect,
                ops.BoundedEffect,
@@ -484,19 +482,20 @@ class ExpZGate(XmonGate,
             rads=rads,
             degs=degs)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         if self.half_turns in [-0.25, 0.25]:
-            return ops.TextDiagramInfo(
+            return protocols.CircuitDiagramInfo(
                 wire_symbols=('T',),
                 exponent=cast(float, self.half_turns) * 4)
 
         if self.half_turns in [-0.5, 0.5]:
-            return ops.TextDiagramInfo(
+            return protocols.CircuitDiagramInfo(
                 wire_symbols=('S',),
                 exponent=cast(float, self.half_turns) * 2)
 
-        return ops.TextDiagramInfo(
+        return protocols.CircuitDiagramInfo(
             wire_symbols=('Z',),
             exponent=self.half_turns)
 

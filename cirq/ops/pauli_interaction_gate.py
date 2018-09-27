@@ -16,7 +16,7 @@ from typing import Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq import value
+from cirq import value, protocols
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, op_tree
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -34,8 +34,7 @@ pauli_eigen_map = {
 
 class PauliInteractionGate(eigen_gate.EigenGate,
                            gate_features.CompositeGate,
-                           gate_features.InterchangeableQubitsGate,
-                           gate_features.TextDiagrammable):
+                           gate_features.InterchangeableQubitsGate):
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
 
@@ -118,15 +117,16 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         labels = {Pauli.X: 'X', Pauli.Y: 'Y', Pauli.Z: '@'}
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
         l0, l1 = ('(-{})'.format(l) if inv else l
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
-        return gate_features.TextDiagramInfo(
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(l0, l1),
             exponent=self._exponent)
 

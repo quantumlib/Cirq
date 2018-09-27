@@ -14,18 +14,18 @@
 
 from typing import Dict, Sequence, Tuple, TypeVar
 
-from cirq import abc
+from cirq import abc, protocols
 from cirq.ops import (
         CompositeGate, Gate, QubitId, OP_TREE, SWAP,
-        flatten_op_tree, GateOperation, TextDiagrammable,
-        gate_features)
+        flatten_op_tree, GateOperation)
 
 LogicalIndex = TypeVar('LogicalIndex', int, QubitId)
 LogicalGates = Dict[Tuple[LogicalIndex, ...], Gate]
 LogicalMappingKey = TypeVar('LogicalMappingKey', bound=QubitId)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
-class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
+
+class PermutationGate(Gate, metaclass=abc.ABCMeta):
     """A permutation gate indicates a change in the mapping from qubits to
     logical indices.
 
@@ -37,13 +37,11 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
     def __init__(self, swap_gate: Gate=SWAP) -> None:
         self.swap_gate = swap_gate
 
-
     @abc.abstractmethod
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         """permutation = {i: s[i]} indicates that the i-th element is mapped to
         the s[i]-th element."""
         pass
-
 
     def update_mapping(self, mapping: Dict[QubitId, LogicalIndex],
                        keys: Sequence[QubitId]
@@ -61,7 +59,6 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
         old_elements = [mapping[keys[i]] for i in indices]
         mapping.update(zip(new_keys, old_elements))
 
-
     @staticmethod
     def validate_permutation(permutation: Dict[int, int],
                              n_elements: int=None) -> None:
@@ -75,15 +72,16 @@ class PermutationGate(Gate, TextDiagrammable, metaclass=abc.ABCMeta):
             if max(permutation) >= n_elements:
                 raise IndexError('key is out of bounds.')
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-            ) -> gate_features.TextDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation(args.known_qubit_count)
         arrow = '↦' if args.use_unicode_characters else '->'
         wire_symbols = tuple(str(i) + arrow + str(permutation.get(i, i))
                         for i in range(args.known_qubit_count))
-        return gate_features.TextDiagramInfo(wire_symbols=wire_symbols)
+        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
 
 class SwapPermutationGate(PermutationGate, CompositeGate):
@@ -95,6 +93,7 @@ class SwapPermutationGate(PermutationGate, CompositeGate):
     def default_decompose(
             self, qubits: Sequence[QubitId]) -> OP_TREE:
         yield self.swap_gate(*qubits)
+
 
 class LinearPermutationGate(PermutationGate, CompositeGate):
     """A permutation gate that decomposes a given permutation using a linear
@@ -110,9 +109,9 @@ class LinearPermutationGate(PermutationGate, CompositeGate):
             permutation: The permutation effected by the gate.
             swap_gate: The swap gate used in decompositions.
         """
+        super().__init__(swap_gate)
         PermutationGate.validate_permutation(permutation)
         self._permutation = permutation
-        self.swap_gate = swap_gate
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         return self._permutation
@@ -126,6 +125,7 @@ class LinearPermutationGate(PermutationGate, CompositeGate):
                 if mapping[i] > mapping[i + 1]:
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
+
 
 def update_mapping(mapping: Dict[QubitId, LogicalIndex],
                    operations: OP_TREE

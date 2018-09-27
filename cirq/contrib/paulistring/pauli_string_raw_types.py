@@ -16,7 +16,7 @@ from typing import (
     Any, Dict, Sequence, Tuple, TypeVar
 )
 
-from cirq import ops, abc
+from cirq import ops, abc, protocols
 
 from cirq.ops.pauli_string import PauliString
 
@@ -57,10 +57,10 @@ class PauliStringGateOperation(ops.Operation,
         return tuple(self.pauli_string)
 
     def _pauli_string_diagram_info(self,
-                                   args: ops.TextDiagramInfoArgs,
+                                   args: protocols.CircuitDiagramInfoArgs,
                                    exponent: Any = 1,
                                    exponent_absorbs_sign: bool = False,
-                                   ) -> ops.TextDiagramInfo:
+                                   ) -> protocols.CircuitDiagramInfo:
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
         syms = tuple('[{}]'.format(self.pauli_string[qubit])
                      for qubit in qubits)
@@ -69,4 +69,5 @@ class PauliStringGateOperation(ops.Operation,
                 exponent = -exponent
             else:
                 exponent = '-{!s}'.format(exponent)
-        return ops.TextDiagramInfo(wire_symbols=syms, exponent=exponent)
+        return protocols.CircuitDiagramInfo(wire_symbols=syms,
+                                            exponent=exponent)

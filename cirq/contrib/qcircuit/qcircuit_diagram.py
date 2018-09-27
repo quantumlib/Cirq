@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import cast
 
-from cirq import circuits, extension, ops
+from cirq import circuits, ops, protocols
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
     fallback_qcircuit_extensions,
+    _TextToQCircuitDiagrammable,
+    _FallbackQCircuitGate,
 )
 
 
@@ -42,15 +45,16 @@ class _QCircuitQubit(ops.QubitId):
         return hash((_QCircuitQubit, self.sub))
 
 
-class _QCircuitOperation(ops.Operation, ops.TextDiagrammable):
+class _QCircuitOperation(ops.Operation):
     def __init__(self,
                  sub_operation: ops.Operation,
                  diagrammable: QCircuitDiagrammable) -> None:
         self.sub_operation = sub_operation
         self.diagrammable = diagrammable
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         return self.diagrammable.qcircuit_diagram_info(args)
 
     @property
@@ -98,31 +102,32 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     return output
 
 
-def _wrap_operation(op: ops.Operation,
-                    ext: extension.Extensions) -> ops.Operation:
+def _wrap_operation(op: ops.Operation) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    diagrammable = ext.try_cast(QCircuitDiagrammable, op)
+    diagrammable = fallback_qcircuit_extensions.try_cast(
+        QCircuitDiagrammable, op)
     if diagrammable is None:
-        diagrammable = fallback_qcircuit_extensions.cast(
-            QCircuitDiagrammable, op)
+        info = protocols.circuit_diagram_info(op, default=None)
+        if info is not None:
+            diagrammable = _TextToQCircuitDiagrammable(
+                cast(protocols.SupportsCircuitDiagramInfo, op))
+        else:
+            diagrammable = _FallbackQCircuitGate(
+                cast(ops.GateOperation, op).gate)
     return _QCircuitOperation(op, diagrammable).with_qubits(*new_qubits)
 
 
-def _wrap_moment(moment: circuits.Moment,
-                 ext: extension.Extensions) -> circuits.Moment:
-    return circuits.Moment(_wrap_operation(op, ext)
+def _wrap_moment(moment: circuits.Moment) -> circuits.Moment:
+    return circuits.Moment(_wrap_operation(op)
                            for op in moment.operations)
 
 
-def _wrap_circuit(circuit: circuits.Circuit,
-                  ext: extension.Extensions) -> circuits.Circuit:
-    return circuits.Circuit(_wrap_moment(moment, ext)
-                            for moment in circuit)
+def _wrap_circuit(circuit: circuits.Circuit) -> circuits.Circuit:
+    return circuits.Circuit(_wrap_moment(moment) for moment in circuit)
 
 
 def circuit_to_latex_using_qcircuit(
         circuit: circuits.Circuit,
-        ext: extension.Extensions = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
@@ -136,16 +141,13 @@ def circuit_to_latex_using_qcircuit(
     Returns:
         Latex code for the diagram.
     """
-    if ext is None:
-        ext = extension.Extensions()
-    qcircuit = _wrap_circuit(circuit, ext)
+    qcircuit = _wrap_circuit(circuit)
 
     # Note: can't be a lambda because we need the type hint.
     def get_sub(q: _QCircuitQubit) -> ops.QubitId:
         return q.sub
 
     diagram = qcircuit.to_text_diagram_drawer(
-        ext,
         qubit_name_suffix='',
         qubit_order=ops.QubitOrder.as_qubit_order(qubit_order).map(
             internalize=get_sub, externalize=_QCircuitQubit))

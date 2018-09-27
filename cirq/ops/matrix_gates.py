@@ -14,11 +14,11 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Union, cast
+from typing import Union, cast, Tuple
 
 import numpy as np
 
-from cirq import linalg, value
+from cirq import linalg, value, protocols
 from cirq.ops import gate_features, raw_types
 
 
@@ -27,7 +27,6 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 
 class SingleQubitMatrixGate(raw_types.Gate,
-                            gate_features.TextDiagrammable,
                             gate_features.PhaseableEffect,
                             gate_features.ExtrapolatableEffect,
                             gate_features.BoundedEffect):
@@ -75,10 +74,10 @@ class SingleQubitMatrixGate(raw_types.Gate,
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
-            wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> str:
+        return _matrix_to_diagram_symbol(self._matrix, args)
 
     def __hash__(self):
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))
@@ -107,7 +106,6 @@ class SingleQubitMatrixGate(raw_types.Gate,
 
 
 class TwoQubitMatrixGate(raw_types.Gate,
-                         gate_features.TextDiagrammable,
                          gate_features.PhaseableEffect,
                          gate_features.ExtrapolatableEffect):
     """A 2-qubit gate defined only by its matrix.
@@ -159,10 +157,10 @@ class TwoQubitMatrixGate(raw_types.Gate,
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
-            wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> Tuple[str, str]:
+        return _matrix_to_diagram_symbol(self._matrix, args), '#2'
 
     def __hash__(self):
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))
@@ -184,7 +182,7 @@ class TwoQubitMatrixGate(raw_types.Gate,
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,
-                              args: gate_features.TextDiagramInfoArgs) -> str:
+                              args: protocols.CircuitDiagramInfoArgs) -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)

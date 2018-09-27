@@ -97,7 +97,7 @@ that can be used to override the CompositeGate.
 
 A ``CompositeOperation`` is just like a ``CompositeGate``, except it already knows the qubits it should be applied to.
 
-#### TextDiagrammable
+#### SupportsCircuitDiagramInfo
 
 Text diagrams of ``Circuits`` are actually quite useful for visualizing the moment structure of a ``Circuit``.
 Gates that implement this feature can specify compact representations to use in the diagram (e.g. '×' instead of 'SWAP').

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
@@ -1035,17 +1036,19 @@ M      |      M      |
 
 
 def test_diagram_with_unknown_exponent():
-    class WeirdGate(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(wire_symbols=('B',),
-                                        exponent='fancy')
+    class WeirdGate(cirq.Gate):
+        def _circuit_diagram_info_(self,
+                                   args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=('B',),
+                                           exponent='fancy')
 
-    class WeirderGate(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(wire_symbols=('W',),
-                                        exponent='fancy-that')
+    class WeirderGate(cirq.Gate):
+        def _circuit_diagram_info_(self,
+                                   args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=('W',),
+                                           exponent='fancy-that')
 
     c = cirq.Circuit.from_ops(
         WeirdGate().on(cirq.NamedQubit('q')),
@@ -1056,7 +1059,7 @@ def test_diagram_with_unknown_exponent():
     cirq.testing.assert_has_diagram(c, 'q: ───B^fancy───W^(fancy-that)───')
 
 
-def test_to_text_diagram_extended_gate():
+def test_circuit_diagram_on_gate_without_info():
     q = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -1066,10 +1069,6 @@ def test_to_text_diagram_extended_gate():
             return 'python-object-FGate:arbitrary-digits'
 
     f = FGate()
-    c = Circuit([
-        Moment([f.on(q)]),
-    ])
-
     # Fallback to repr without extension.
     cirq.testing.assert_has_diagram(Circuit([
         Moment([f.on(q)]),
@@ -1081,26 +1080,12 @@ def test_to_text_diagram_extended_gate():
     cirq.testing.assert_has_diagram(Circuit([
         Moment([f.on(q, q3, q2)]),
     ]), """
-(0, 0): ---python-object-FGate:arbitrary-digits:0---
+(0, 0): ---python-object-FGate:arbitrary-digits---
            |
-(0, 1): ---python-object-FGate:arbitrary-digits:2---
+(0, 1): ---#2-------------------------------------
            |
-(0, 2): ---python-object-FGate:arbitrary-digits:1---
+(0, 2): ---#1-------------------------------------
 """, use_unicode_characters=False)
-
-    # Succeeds with extension.
-    class FGateAsText(cirq.Gate, cirq.TextDiagrammable):
-        def __init__(self, f_gate):
-            self.f_gate = f_gate
-
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs):
-            return cirq.TextDiagramInfo(('F',))
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammable, FGate, FGateAsText)
-    cirq.testing.assert_has_diagram(c, """
-(0, 0): ---F---
-""", ext=ext, use_unicode_characters=False)
 
 
 def test_to_text_diagram_multi_qubit_gate():
@@ -1131,10 +1116,10 @@ M('msg')─M──────M
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
-    class BadGate(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(wire_symbols=('a', 'a'))
+    class BadGate(cirq.Gate):
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                   ) -> Tuple[str, str]:
+            return 'a', 'a'
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -1146,13 +1131,13 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 def test_to_text_diagram_parameterized_value():
     q = cirq.NamedQubit('cube')
 
-    class PGate(cirq.Gate, cirq.TextDiagrammable):
+    class PGate(cirq.Gate):
         def __init__(self, val):
             self.val = val
 
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(('P',), self.val)
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(('P',), self.val)
 
     c = Circuit.from_ops(
         PGate(1).on(q),
@@ -1436,13 +1421,12 @@ def test_composite_gate_to_unitary_matrix():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self,
-                              args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
+    class MultiTargetCZ(cirq.Gate):
+        def _circuit_diagram_info_(self,
+                                   args: cirq.CircuitDiagramInfoArgs
+                                   ) -> Tuple[str, ...]:
             assert args.known_qubit_count is not None
-            return cirq.TextDiagramInfo(
-                ('@',) + ('Z',) * (args.known_qubit_count - 1))
+            return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

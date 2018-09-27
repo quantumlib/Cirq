@@ -160,9 +160,6 @@ from cirq.ops import (
     SWAP,
     SwapGate,
     T,
-    TextDiagrammable,
-    TextDiagramInfo,
-    TextDiagramInfoArgs,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -199,7 +196,11 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
     inverse,
+    SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,
 )
