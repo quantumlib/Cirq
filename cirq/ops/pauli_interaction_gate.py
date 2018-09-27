@@ -23,8 +23,8 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 
 pauli_eigen_map = {
-    Pauli.X: (np.array([[0.5,  0.5 ], [0.5,   0.5]]),
-              np.array([[0.5, -0.5 ], [-0.5,  0.5]])),
+    Pauli.X: (np.array([[0.5,  0.5], [0.5,   0.5]]),
+              np.array([[0.5, -0.5], [-0.5,  0.5]])),
     Pauli.Y: (np.array([[0.5, -0.5j], [0.5j,  0.5]]),
               np.array([[0.5,  0.5j], [-0.5j, 0.5]])),
     Pauli.Z: (np.diag([1, 0]),
@@ -107,9 +107,9 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                           ) -> op_tree.OP_TREE:
         q0, q1 = qubits
         right_gate0 = SingleQubitCliffordGate.from_single_map(
-                                    z_to=(self.pauli0, self.invert0))
+            z_to=(self.pauli0, self.invert0))
         right_gate1 = SingleQubitCliffordGate.from_single_map(
-                                    z_to=(self.pauli1, self.invert1))
+            z_to=(self.pauli1, self.invert1))
         left_gate0 = right_gate0.inverse()
         left_gate1 = right_gate1.inverse()
         yield left_gate0(q0)
@@ -131,9 +131,10 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             exponent=self._exponent)
 
     def __repr__(self):
-        return 'cirq.PauliInteractionGate({}{!s}, {}{!s})'.format(
-               '+-'[self.invert0], self.pauli0, '+-'[self.invert1], self.pauli1)
+        return 'cirq.PauliInteractionGate(cirq.{}, {!s}, cirq.{}, {!s})'.format(
+            self.pauli0, self.invert0, self.pauli1, self.invert1)
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(Pauli.Z, False, Pauli.Z, False)
-PauliInteractionGate.CNOT = PauliInteractionGate(Pauli.Z, False, Pauli.X, False)
+PauliInteractionGate.CNOT = PauliInteractionGate(
+    Pauli.Z, False, Pauli.X, False)
