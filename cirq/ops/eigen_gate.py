@@ -16,7 +16,7 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
 import numpy as np
 
-from cirq import abc, extension, value
+from cirq import abc, extension, value, protocols
 from cirq.ops import gate_features, raw_types
 
 
@@ -148,6 +148,8 @@ class EigenGate(raw_types.Gate,
         pass
 
     def __pow__(self: TSelf, power: float) -> TSelf:
+        if power != 1 and self.is_parameterized():
+            return NotImplemented
         return self.extrapolate_effect(power)
 
     def inverse(self: TSelf) -> TSelf:

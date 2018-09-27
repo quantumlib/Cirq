@@ -80,8 +80,8 @@ def test_child_class():
             yield _FlipGate(2)(*qubits), _FlipGate(3)(*qubits)
 
     gate = Impl()
-    reversed_gate = gate.inverse()
-    assert gate is reversed_gate.inverse()
+    reversed_gate = gate**-1
+    assert gate is reversed_gate**-1
 
     q = cirq.QubitId()
     assert (
