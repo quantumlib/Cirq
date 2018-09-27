@@ -70,6 +70,7 @@ def generate_random_v2_circuit_grid(n_rows: int, n_cols: int,
                                     ) -> cirq.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
+    See also https://arxiv.org/abs/1807.10749
 
     Args:
         n_rows: number of rows of a 2D lattice.
