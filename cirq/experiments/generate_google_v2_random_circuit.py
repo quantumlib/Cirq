@@ -17,22 +17,36 @@ from typing import Callable, Iterable, TypeVar
 
 import cirq
 from cirq.circuits import InsertStrategy
-from cirq.devices.grid_qubit import GridQubit
-from cirq.ops import common_gates
+from cirq import ops
 
 
-def generate_random_v2_circuit(qubits: Iterable[GridQubit],
+def generate_random_v2_circuit(qubits: Iterable[cirq.GridQubit],
                                cz_depth: int,
                                seed: int) -> cirq.Circuit:
+    """
+    Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
+    See also https://arxiv.org/abs/1807.10749
 
+    Args:
+        qubits: qubit grid in which to generate the circuit.
+        cz_depth: number of layers with CZ gates.
+        seed: seed for the random instance.
 
-    ND_GATES = [common_gates.X**(1/2), common_gates.Y**(1/2)]
+    Returns:
+        A circuit corresponding to instance
+        inst_{n_rows}x{n_cols}_{cz_depth+1}_{seed}
+
+    The mapping of qubits is cirq.GridQubit(j,k) -> q[j*n_cols+k]
+    (as in the QASM mapping)
+    """
+
+    non_diagonal_gates = [ops.common_gates.X**(1/2), ops.common_gates.Y**(1/2)]
     rand_gen = random.Random(seed).random
 
     circuit = cirq.Circuit()
 
     # Add an initial moment of Hadamards
-    circuit.append(common_gates.H(qubit) for qubit in qubits)
+    circuit.append(ops.common_gates.H(qubit) for qubit in qubits)
 
     layer_index = 0
     if cz_depth:
@@ -40,7 +54,7 @@ def generate_random_v2_circuit(qubits: Iterable[GridQubit],
         # In the first moment, add T gates when possible
         for qubit in qubits:
             if not circuit.operation_at(qubit, 1):
-                circuit.append(common_gates.T(qubit),
+                circuit.append(ops.common_gates.T(qubit),
                                strategy=InsertStrategy.EARLIEST)
 
     for moment_index in range(2, cz_depth+1):
@@ -51,16 +65,17 @@ def generate_random_v2_circuit(qubits: Iterable[GridQubit],
                 last_gate = circuit.operation_at(qubit, moment_index-1)
                 if last_gate:
                     # Add a random non diagonal gate after a CZ
-                    if last_gate.gate == common_gates.CZ:
-                        circuit.append(_choice(rand_gen, ND_GATES).on(qubit),
+                    if last_gate.gate == ops.common_gates.CZ:
+                        circuit.append(_choice(rand_gen,
+                                               non_diagonal_gates).on(qubit),
                                        strategy=InsertStrategy.EARLIEST)
                     # Add a T gate after a non diagonal gate
-                    elif not last_gate.gate == common_gates.T:
-                        circuit.append(common_gates.T(qubit),
+                    elif not last_gate.gate == ops.common_gates.T:
+                        circuit.append(ops.common_gates.T(qubit),
                                        strategy=InsertStrategy.EARLIEST)
 
     # Add a final moment of Hadamards
-    circuit.append(common_gates.H(qubit) for qubit in qubits)
+    circuit.append(ops.common_gates.H(qubit) for qubit in qubits)
 
     return circuit
 
@@ -110,7 +125,7 @@ def _add_cz_layer(layer_index: int, circuit: cirq.Circuit) -> int:
     return layer_index
 
 
-def _make_cz_layer(qubits: Iterable[GridQubit], layer_index: int
+def _make_cz_layer(qubits: Iterable[cirq.GridQubit], layer_index: int
                    ) -> Iterable[cirq.Operation]:
     """
     Each layer index corresponds to a shift/transpose of this CZ pattern:
@@ -168,4 +183,4 @@ def _make_cz_layer(qubits: Iterable[GridQubit], layer_index: int
         if (q.row * (2 - dir_row) + q.col * (2 - dir_col)) % 4 != shift:
             continue  # No CZ along this edge for this layer.
 
-        yield common_gates.CZ(q, q2)
+        yield ops.common_gates.CZ(q, q2)
