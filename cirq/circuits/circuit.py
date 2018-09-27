@@ -1251,7 +1251,8 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
-                        args: protocols.CircuitDiagramInfoArgs) -> Optional[str]:
+                        args: protocols.CircuitDiagramInfoArgs
+                        ) -> Optional[str]:
     # 1 is not shown.
     if info.exponent == 1:
         return None

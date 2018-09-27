@@ -16,7 +16,7 @@ from itertools import chain
 from typing import Sequence, Dict
 
 from cirq import CompositeGate, protocols
-from cirq.ops import Gate, gate_features, SWAP, OP_TREE, QubitId
+from cirq.ops import Gate, SWAP, OP_TREE, QubitId
 from cirq.contrib.acquaintance.permutation import PermutationGate
 
 
