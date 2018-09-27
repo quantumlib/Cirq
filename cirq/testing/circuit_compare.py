@@ -202,7 +202,7 @@ def _first_differing_moment_index(circuit1: circuits.Circuit,
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
-    return None
+    return None  # coverage: ignore
 
 
 def assert_has_diagram(
