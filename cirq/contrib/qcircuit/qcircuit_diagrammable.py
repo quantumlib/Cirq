@@ -107,9 +107,9 @@ class _FallbackQCircuitGate(QCircuitDiagrammable):
                        (args.known_qubits is not None) else 1)
                        if args.known_qubit_count is None
                        else args.known_qubit_count)
-        symbols = tuple(_escape_text_for_latex('{}:{}'.format(name, i))
-                        for i in range(qubit_count))
-        return protocols.CircuitDiagramInfo(symbols)
+        symbols = [name] + ['#{}'.format(i) for i in range(1, qubit_count)]
+        escaped_symbols = tuple(_escape_text_for_latex(s)  for s in symbols)
+        return protocols.CircuitDiagramInfo(escaped_symbols)
 
 
 fallback_qcircuit_extensions = Extensions()

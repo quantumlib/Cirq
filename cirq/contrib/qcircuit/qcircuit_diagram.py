@@ -79,25 +79,19 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
           for y, x1, x2, _ in diagram.horizontal_lines
           for x in range(x1, x2)}
 
-    rows = []
+    diagram2 = circuits.TextDiagramDrawer()
     for y in range(h):
-        row = []
-        for x in range(w):
-            cell = []
+        for x in range(max(0, w - 1)):
             key = (x, y)
-            v = diagram.entries.get(key)
-            if v is not None:
-                cell.append(' ' + v + ' ')
-            if key in qw:
-                cell.append('\\qw ')
-            if key in qwx:
-                cell.append('\\qwx ')
-            row.append(''.join(cell))
-        rows.append('&'.join(row) + '\qw')
+            v = '&' + (diagram.entries.get(key) or '') + ' '
+            diagram2.write(2*x + 1, y, v)
+            post1 = '\\qw' if key in qw else ''
+            post2 = '\\qwx' if key in qwx else ''
+            diagram2.write(2*x + 2, y, post1 + post2)
+        diagram2.write(2*w - 1, y, '&\\qw\\\\')
+    grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
-    grid = '\\\\\n'.join(rows)
-
-    output = '\Qcircuit @R=1em @C=0.75em { \\\\ \n' + grid + ' \\\\ \n \\\\ }'
+    output = '\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
 
     return output
 
