@@ -1067,7 +1067,7 @@ class Circuit(ops.ParameterizableEffect):
             crossing_char=(None
                            if use_unicode_characters
                            else ('-' if transpose else '|')),
-            default_horizontal_padding=1 if transpose else 3,
+            horizontal_spacing=1 if transpose else 3,
             use_unicode_characters=use_unicode_characters)
 
     def to_text_diagram_drawer(

@@ -175,8 +175,8 @@ class TextDiagramDrawer:
             for y, padding in self.vertical_padding.items()}
 
     def render(self,
-               default_horizontal_padding: int = 1,
-               default_vertical_padding: int = 1,
+               horizontal_spacing: int = 1,
+               vertical_spacing: int = 1,
                crossing_char: str = None,
                use_unicode_characters: bool = True) -> str:
         """Outputs text containing the diagram."""
@@ -224,8 +224,8 @@ class TextDiagramDrawer:
                                              grid,
                                              horizontal_separator,
                                              vertical_separator,
-                                             default_horizontal_padding,
-                                             default_vertical_padding,
+                                             horizontal_spacing,
+                                             vertical_spacing,
                                              self.horizontal_padding,
                                              self.vertical_padding)
 
@@ -275,8 +275,8 @@ def _pad_into_multiline(width: int,
                         grid: List[List[str]],
                         horizontal_separator: List[List[str]],
                         vertical_separator: List[List[str]],
-                        default_horizontal_padding: int,
-                        default_vertical_padding: int,
+                        horizontal_spacing: int,
+                        vertical_spacing: int,
                         horizontal_padding: Dict[int, int],
                         vertical_padding: Dict[int, int]
                         ) -> List[List[List[str]]]:
@@ -286,7 +286,7 @@ def _pad_into_multiline(width: int,
     for row in range(len(grid)):
         multiline_cells = [cell.split('\n') for cell in grid[row]]
         row_height = max(1, max(len(cell) for cell in multiline_cells))
-        row_height += vertical_padding.get(row, default_vertical_padding)
+        row_height += vertical_padding.get(row, vertical_spacing)
 
         multiline_row = []
         for sub_row in range(row_height):
@@ -305,7 +305,7 @@ def _pad_into_multiline(width: int,
         col_width = max(1, max(len(sub_row[col])
                                for row in multiline_grid
                                for sub_row in row))
-        col_width += horizontal_padding.get(col, default_horizontal_padding)
+        col_width += horizontal_padding.get(col, horizontal_spacing)
         for row in range(len(multiline_grid)):
             for sub_row in range(len(multiline_grid[row])):
                 sub_row_contents = multiline_grid[row][sub_row]
