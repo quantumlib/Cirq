@@ -1067,7 +1067,7 @@ class Circuit(ops.ParameterizableEffect):
             crossing_char=(None
                            if use_unicode_characters
                            else ('-' if transpose else '|')),
-            horizontal_spacing=1 if transpose else 3,
+            default_horizontal_padding=1 if transpose else 3,
             use_unicode_characters=use_unicode_characters)
 
     def to_text_diagram_drawer(
@@ -1104,17 +1104,25 @@ class Circuit(ops.ParameterizableEffect):
         for q, i in qubit_map.items():
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
+        moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
             _draw_moment_in_diagram(moment,
                                     ext,
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
-                                    precision)
+                                    precision,
+                                    moment_groups)
 
         w = diagram.width()
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
+
+        if moment_groups:
+            _draw_moment_groups_in_diagram(moment_groups,
+                                           use_unicode_characters,
+                                           diagram,
+                                           transpose)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1280,7 +1288,8 @@ def _draw_moment_in_diagram(moment: Moment,
                             use_unicode_characters: bool,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
-                            precision: Optional[int]):
+                            precision: Optional[int],
+                            moment_groups: List[Tuple[int, int]]):
     x0 = out_diagram.width()
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
@@ -1291,6 +1300,7 @@ def _draw_moment_in_diagram(moment: Moment,
         x = x0
         while any(out_diagram.content_present(x, y)
                   for y in range(y1, y2 + 1)):
+            out_diagram.force_horizontal_padding_after(x, 0)
             x += 1
 
         args = ops.TextDiagramInfoArgs(
@@ -1316,7 +1326,46 @@ def _draw_moment_in_diagram(moment: Moment,
 
     # Group together columns belonging to the same Moment.
     if moment.operations and x > x0:
-        out_diagram.moment_group(x0, x)
+        moment_groups.append([x0, x])
+
+
+def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
+                                   use_unicode_characters: bool,
+                                   out_diagram: TextDiagramDrawer,
+                                   transpose: bool):
+    out_diagram.shift_vertically(0, 1)
+    h = out_diagram.height()
+
+    left_end = '├' if use_unicode_characters else '|'
+    top_end = '┬' if use_unicode_characters else '-'
+    right_end = '┤' if use_unicode_characters else '|'
+    bottom_end = '┴' if use_unicode_characters else '-'
+
+    # Insert columns starting from the back since the insertion
+    # affects subsequent indices.
+    for (x1, x2) in reversed(moment_groups):
+        out_diagram.shift_horizontally(x2 + 1, 1)
+        out_diagram.force_horizontal_padding_after(x2, 0)
+
+        for y in [0, h]:
+            out_diagram.write(x2 + 1, y, right_end, bottom_end)
+        out_diagram.force_horizontal_padding_after(x2 + 1,
+            2 if not transpose else 0)
+
+        for y in [0, h]:
+            out_diagram.horizontal_line(y, x1, x2 + 1)
+
+        out_diagram.shift_horizontally(x1, 1)
+        out_diagram.force_horizontal_padding_after(x1, 0)
+        for y in [0, h]:
+            out_diagram.write(x1, y, left_end, top_end)
+
+        out_diagram.force_horizontal_padding_after(x1 - 1,
+           2 if not transpose else 0)
+
+    if not transpose:
+        out_diagram.force_vertical_padding_after(0, 0)
+        out_diagram.force_vertical_padding_after(h - 1, 0)
 
 
 def _apply_unitary_circuit(circuit: Circuit,
