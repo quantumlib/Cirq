@@ -150,12 +150,12 @@ class TextDiagramDrawer:
         self.transposed_entries = {(x + (offset if x >= index else 0), y): text
                         for (x, y), text in self.transposed_entries.items()}
         self.vertical_lines = [_VerticalLine(
-            x + (offset if x >= index else 0), *e)
-            for x, *e in self.vertical_lines]
+            x + (offset if x >= index else 0), y1, y2, emph)
+            for x, y1, y2, emph in self.vertical_lines]
         self.horizontal_lines = [_HorizontalLine(y,
             x1 + (offset if x1 >= index else 0),
-            x2 + (offset if x2 >= index else 0), *e)
-            for y, x1, x2, *e in self.horizontal_lines]
+            x2 + (offset if x2 >= index else 0), emph)
+            for y, x1, x2, emph in self.horizontal_lines]
         self.horizontal_padding = {x + (offset if x >= index else 0): padding
             for x, padding in self.horizontal_padding.items()}
 
@@ -166,11 +166,11 @@ class TextDiagramDrawer:
                         for (x, y), text in self.transposed_entries.items()}
         self.vertical_lines = [_VerticalLine(x,
             y1 + (offset if y1 >= index else 0),
-            y2 + (offset if y2 >= index else 0), *e)
-            for x, y1, y2, *e in self.vertical_lines]
+            y2 + (offset if y2 >= index else 0), emph)
+            for x, y1, y2, emph in self.vertical_lines]
         self.horizontal_lines = [_HorizontalLine(
-            y + (offset if y >= index else 0), *e)
-            for y, *e in self.horizontal_lines]
+            y + (offset if y >= index else 0), x1, x2, emph)
+            for y, x1, x2, emph in self.horizontal_lines]
         self.vertical_padding = {y + (offset if y >= index else 0): padding
             for y, padding in self.vertical_padding.items()}
 
