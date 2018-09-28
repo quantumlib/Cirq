@@ -118,6 +118,7 @@ def test_try_cast_to():
 
     # Supported sub features that are not present on sub gate.
     assert cirq.inverse(CRestricted, None) is None
+    assert cirq.inverse(CY) == CY**-1 == CY
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
     assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
