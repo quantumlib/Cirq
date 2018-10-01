@@ -159,7 +159,7 @@ class SingleQubitCliffordGate(raw_types.Gate,
         elif quarter_turns == 2:
             return SingleQubitCliffordGate.from_pauli(pauli)
         else:
-            return SingleQubitCliffordGate.from_pauli(pauli, True).inverse()
+            return SingleQubitCliffordGate.from_pauli(pauli, True)**-1
 
     @staticmethod
     def _validate_map_input(required_transform_count: int,
@@ -209,9 +209,14 @@ class SingleQubitCliffordGate(raw_types.Gate,
     def __hash__(self):
         return hash(self._eq_tuple())
 
+    def __pow__(self, power):
+        if power != -1:
+            return NotImplemented
+        return self.inverse()
+
     def inverse(self) -> 'SingleQubitCliffordGate':
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
-                            _inverse_map=self._rotation_map)
+                                       _inverse_map=self._rotation_map)
 
     def commutes_with(self,
                       gate_or_pauli: Union['SingleQubitCliffordGate', Pauli]
@@ -330,7 +335,7 @@ class SingleQubitCliffordGate(raw_types.Gate,
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self.inverse())
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self):
         return 'cirq.SingleQubitCliffordGate(X:{}{!s}, Y:{}{!s}, Z:{}{!s})' \

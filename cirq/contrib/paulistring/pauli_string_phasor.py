@@ -91,6 +91,8 @@ class PauliStringPhasor(PauliStringGateOperation,
         return self._with_half_turns(self.half_turns * factor)  # type: ignore
 
     def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
+        if power != 1 and self.is_parameterized():
+            return NotImplemented
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PauliStringPhasor':
