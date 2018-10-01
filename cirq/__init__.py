@@ -179,9 +179,12 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
+    check_state,
+    decode_initial_state,
+    pretty_state,
     RunSimulator,
-    StepResult,
     SimulateTrialResult,
+    StepResult,
     WaveFunctionSimulator,
 )
 

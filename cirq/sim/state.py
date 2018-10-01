@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helpers for handling states."""
 
-import itertools, re
+import itertools
 
 from typing import Sequence, Union
 
@@ -38,22 +38,26 @@ def pretty_state(state: Sequence, decimals: int=2) -> str:
         and non-zero floats of the specified accuracy.
     """
     perm_list = ["".join(seq) for seq in itertools.product(
-        "01", repeat=int(len(state)).bit_length()-1)]
-    pretty_str = ""
+        "01", repeat=int(len(state)).bit_length() - 1)]
 
+    components = []
+    ket = "|{}⟩"
     for x in range(len(perm_list)):
+        format_str = "({:." + str(decimals) + "g})"
+        val = round(state[x], decimals)
+        print(val)
+        if round(val.real, decimals) == 0:
+            val = val.imag
+            format_str = "({:." + str(decimals) + "g}j)"
+        if round(val.imag, decimals) == 0:
+            val = val.real
+        if val != 0:
+            if round(state[x], decimals) == 1:
+                components.append(ket.format(perm_list[x]))
+            else:
+                components.append((format_str + ket).format(val, perm_list[x]))
 
-        rounded_elem = round(state[x].real, decimals) + \
-                       round(state[x].imag, decimals)
-
-        if rounded_elem != 0:
-            pretty_str += str(rounded_elem) + \
-                          "|{}⟩ + ".format(perm_list[x])
-
-    pretty_str = re.split(r'(\s+)', pretty_str)[:-4]
-    pretty_str = "".join(pretty_str)
-
-    return pretty_str
+    return ' + '.join(components)
 
 
 def decode_initial_state(initial_state: Union[int, np.ndarray],

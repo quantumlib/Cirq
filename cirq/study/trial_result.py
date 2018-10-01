@@ -224,3 +224,17 @@ class TrialResult:
 
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
+
+    def _eq_tuple(self):
+        return (TrialResult, self.measurements, self.repetitions, self.params)
+
+    def __eq__(self, other):
+        if not isinstance(other, TrialResult):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self, other):
+        return hash(self._eq_tuple())

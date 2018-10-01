@@ -798,7 +798,6 @@ def test_handedness_of_xmon_exp_11_gate():
                                     cg.Exp11Gate(half_turns=0.5).on(Q1, Q2))
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
-    print(np.round(result.state(), 3))
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
         np.array([1, 1, 1, 1j]) / 2,
@@ -1051,7 +1050,6 @@ def test_simulator_implied_measurement_key():
         cirq.measure(q, key='other'),
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
-    print(result.measurements)
     assert str(result) == "(0, 0)=11111\nother=11111"
 
 

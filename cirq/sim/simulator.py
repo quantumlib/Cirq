@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Abstract base classes for different types of simulators."""
+"""Abstract base classes for different types of simulators.
+
+Simultor types include
+    RunSimulator: mimics the interface of quantum hardware.
+    WavefunctionSimulator: Allows access to the wave function.
+"""
 
 import abc
 import collections
@@ -28,7 +33,7 @@ from cirq.sim import state
 class RunSimulator:
     """Simulator that mimics running on quantum hardware.
 
-    Implementors of this class should implement the _run method.
+    Implementors of this interface should implement the _run method.
     """
 
     def run(
@@ -46,6 +51,7 @@ class RunSimulator:
             repetitions: The number of repetitions to simulate.
             extensions: Extensions that will be applied during the run. See
                 documentation of class for details.
+
         Returns:
             TrialResult for a run.
         """
@@ -62,6 +68,9 @@ class RunSimulator:
         extensions: extension.Extensions = None
     ) -> List[study.TrialResult]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
+
+        In contrast to run, this allows for sweeping over different parameter
+        values.
 
         Args:
             program: The circuit or schedule to simulate.
@@ -116,6 +125,10 @@ class RunSimulator:
 
 
 class WaveFunctionSimulator:
+    """Simulator that allows access to a quantum computer's wavefunction.
+
+    Implementors of this interface should implement the __simulator_iterator.
+    """
 
     def simulate(
         self,
@@ -127,7 +140,8 @@ class WaveFunctionSimulator:
     ) -> 'SimulateTrialResult':
         """Simulates the entire supplied Circuit.
 
-        This method returns the final wave function.
+        This method returns a result which allows access to the entire
+        wave function.
 
         Args:
             circuit: The circuit to simulate.
@@ -135,12 +149,12 @@ class WaveFunctionSimulator:
             qubit_order: Determines the canonical ordering of the qubits used
                 to define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state.
-                Otherwise  if this is a np.ndarray it is the full initial
-                state. In this case it must be the correct size, be normalized
-                (an L2 norm of 1), and be safely castable to a np.complex64.
-            extensions: Extensions that will be applied during the run. See
-                documentation of class for details.
+                basis state corresponding to this state. Otherwise  if this
+                is a np.ndarray it is the full initial state. In this case it
+                must be the correct size, be normalized (an L2 norm of 1), and
+                be safely castable to an appropriate dtype for the simulator.
+            extensions: Extensions that will be applied during the simulate.
+                See documentation of class for details.
 
         Returns:
             SimulateTrialResults for the simulation. Includes the final wave
@@ -159,6 +173,10 @@ class WaveFunctionSimulator:
     ) -> List['SimulateTrialResult']:
         """Simulates the entire supplied Circuit.
 
+        This method returns a result which allows access to the entire
+        wave function. In contrast to simulate, this allows for sweeping
+        over different parameter values.
+
         Args:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
@@ -168,9 +186,10 @@ class WaveFunctionSimulator:
                 basis state corresponding to this state.
                 Otherwise if this is a np.ndarray it is the full initial state.
                 In this case it must be the correct size, be normalized (an L2
-                norm of 1), and be safely castable to a np.complex64.
-            extensions: Extensions that will be applied during the run. See
-                documentation of class for details.
+                norm of 1), and  be safely castable to an appropriate
+                dtype for the simulator.
+            extensions: Extensions that will be applied during the simulate.
+                See documentation of class for details.
 
         Returns:
             List of SimulatorTrialResults for this run, one for each
@@ -197,9 +216,10 @@ class WaveFunctionSimulator:
                 final_state = step_result.state()
             else:
                 # Empty circuit, so final state should be initial state.
+                print(circuit)
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
                 final_state = state.decode_initial_state(initial_state,
-                                                       num_qubits)
+                                                         num_qubits)
             trial_results.append(SimulateTrialResult(
                 params=param_resolver,
                 measurements=measurements,
@@ -214,26 +234,25 @@ class WaveFunctionSimulator:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
         extensions: extension.Extensions = None) -> Iterator['StepResult']:
-        """Returns an iterator of XmonStepResults for each moment simulated.
+        """Returns an iterator of StepResults for each moment simulated.
 
         Args:
             circuit: The Circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state.
-                Otherwise if this is a np.ndarray it is the full initial state.
-                In this case it must be the correct size, be normalized (an L2
-                norm of 1), and be safely castable to a np.complex64.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            extensions: Extensions that will be applied while trying to
-                decompose the circuit's gates into XmonGates. If None, this
-                uses the default of xmon_gate_ext.
+                basis state corresponding to this state. Otherwise if this is
+                a np.ndarray it is the full initial state. In this case it must
+                be the correct size, be normalized (an L2 norm of 1), and
+                be safely castable to an appropriate dtype for the simulator.
+            extensions: Extensions that will be applied during the simulate.
+                See documentation of class for details.
 
         Returns:
-            SimulatorIterator that steps through the simulation, simulating
-            each moment and returning a XmonStepResult for each moment.
+            Iterator that steps through the simulation, simulating each
+            moment and returning a StepResult for each moment.
         """
         param_resolver = param_resolver or study.ParamResolver({})
         return self._simulator_iterator(circuit, param_resolver, qubit_order,
@@ -252,16 +271,20 @@ class WaveFunctionSimulator:
 
         Args:
             circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: The full initial state. This must be the correct
                 size, be normalized (an L2 norm of 1), and be safely
                 castable to a complex type handled by the simulator.
+            extensions: Extensions that will be applied during the simulate.
+                See documentation of class for details.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        raise NotImplementedError();
+        raise NotImplementedError()
 
 
 class StepResult:
@@ -342,7 +365,21 @@ class StepResult:
         raise NotImplementedError()
 
     def pretty_state(self, decimals=2):
+        """Returns the wavefunction as a string in Dirac notation.
+
+        Args:
+            state: A sequence representing a wave function in which the ordering
+                mapping to qubits follows the standard Kronecker convention of
+                numpy.kron.
+            decimals: How many decimals to include in the pretty print.
+
+        Returns:
+            A pretty string consisting of a sum of computational basis kets
+            and non-zero floats of the specified accuracy."""
         return state.pretty_state(self.state, decimals)
+
+    def _repr_pretty_(self, cycle=False):
+        return self.pretty_state()
 
 
 class SimulateTrialResult:
@@ -387,3 +424,16 @@ class SimulateTrialResult:
 
     def pretty_state(self, decimals=2):
         return state.pretty_state(self.final_state, decimals)
+
+    def _repr_pretty_(self, cycle=False):
+        return self.pretty_state()
+
+    def _eq_tuple(self):
+        measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
+        return SimulateTrialResult, self.params, measurements, self.final_state.tolist()
+
+    def __eq__(self, other):
+        if not isinstance(other, SimulateTrialResult):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+

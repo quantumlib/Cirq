@@ -19,7 +19,6 @@ from cirq.sim.simulator import (
     StepResult,
     WaveFunctionSimulator,
     SimulateTrialResult,
-
 )
 
 from cirq.sim.state import (

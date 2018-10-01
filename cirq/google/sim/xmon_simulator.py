@@ -41,6 +41,7 @@ import numpy as np
 
 from cirq import circuits, extension, ops, sim, study
 from cirq import google as cg
+from cirq.google.sim import xmon_stepper
 
 class XmonOptions:
     """XmonOptions for the XmonSimulator.
@@ -252,7 +253,7 @@ class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
         if isinstance(initial_state, np.ndarray):
             initial_state = initial_state.astype(dtype=np.complex64,
                                                  casting='safe')
-        with cg.Stepper(
+        with xmon_stepper.Stepper(
             num_qubits=len(qubits),
             num_prefix_qubits=self.options.num_prefix_qubits,
             initial_state=initial_state,

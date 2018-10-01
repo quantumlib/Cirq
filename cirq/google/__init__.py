@@ -53,7 +53,6 @@ from cirq.google.sim import (
     XmonSimulator,
     XmonStepResult,
     XmonSimulateTrialResult,
-    Stepper,
 )
 from cirq.google.engine import (
     engine_from_environment,
