@@ -44,8 +44,7 @@ def test_cz_repr():
 
 
 def test_cz_extrapolate():
-    assert cirq.Rot11Gate(
-        half_turns=1).extrapolate_effect(0.5) == cirq.Rot11Gate(half_turns=0.5)
+    assert cirq.Rot11Gate(half_turns=1)**0.5 == cirq.Rot11Gate(half_turns=0.5)
     assert cirq.CZ**-0.25 == cirq.Rot11Gate(half_turns=1.75)
 
 
@@ -107,8 +106,7 @@ def test_rot_gates_eq():
 
 
 def test_z_extrapolate():
-    assert cirq.RotZGate(
-        half_turns=1).extrapolate_effect(0.5) == cirq.RotZGate(half_turns=0.5)
+    assert cirq.RotZGate(half_turns=1)**0.5 == cirq.RotZGate(half_turns=0.5)
     assert cirq.Z**-0.25 == cirq.RotZGate(half_turns=1.75)
     assert cirq.RotZGate(half_turns=0.5).phase_by(0.25, 0) == cirq.RotZGate(
         half_turns=0.5)
