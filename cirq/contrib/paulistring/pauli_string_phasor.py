@@ -16,7 +16,7 @@ from typing import (
     Dict, Hashable, Iterable, Optional, Tuple, Type, TypeVar, Union, cast
 )
 
-from cirq import ops, value, study, extension
+from cirq import ops, value, study, extension, protocols
 
 from cirq.ops.pauli_string import PauliString
 from cirq.contrib.paulistring.pauli_string_raw_types import (
@@ -91,6 +91,8 @@ class PauliStringPhasor(PauliStringGateOperation,
         return self._with_half_turns(self.half_turns * factor)  # type: ignore
 
     def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
+        if power != 1 and self.is_parameterized():
+            return NotImplemented
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PauliStringPhasor':
@@ -126,8 +128,8 @@ class PauliStringPhasor(PauliStringGateOperation,
             half_turns = self.half_turns * (-1 if self.pauli_string.negated
                                                else 1)
             yield ops.Z(any_qubit) ** half_turns
-        yield ops.inverse(xor_decomp)
-        yield ops.inverse(to_z_ops)
+        yield protocols.inverse(xor_decomp)
+        yield protocols.inverse(to_z_ops)
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:

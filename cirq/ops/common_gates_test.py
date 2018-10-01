@@ -44,8 +44,7 @@ def test_cz_repr():
 
 
 def test_cz_extrapolate():
-    assert cirq.Rot11Gate(
-        half_turns=1).extrapolate_effect(0.5) == cirq.Rot11Gate(half_turns=0.5)
+    assert cirq.Rot11Gate(half_turns=1)**0.5 == cirq.Rot11Gate(half_turns=0.5)
     assert cirq.CZ**-0.25 == cirq.Rot11Gate(half_turns=1.75)
 
 
@@ -107,8 +106,7 @@ def test_rot_gates_eq():
 
 
 def test_z_extrapolate():
-    assert cirq.RotZGate(
-        half_turns=1).extrapolate_effect(0.5) == cirq.RotZGate(half_turns=0.5)
+    assert cirq.RotZGate(half_turns=1)**0.5 == cirq.RotZGate(half_turns=0.5)
     assert cirq.Z**-0.25 == cirq.RotZGate(half_turns=1.75)
     assert cirq.RotZGate(half_turns=0.5).phase_by(0.25, 0) == cirq.RotZGate(
         half_turns=0.5)
@@ -240,17 +238,17 @@ def test_text_diagrams():
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
 
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
       │                     │   │   │       │       │
 b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
-    """.strip()
+""")
 
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
       |                        |   |   |       |       |
 b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
-    """.strip()
+""", use_unicode_characters=False)
 
 
 def test_cnot_power():
@@ -409,23 +407,24 @@ def test_measurement_gate_diagram():
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.Circuit.from_ops(cirq.measure(a, b)).to_text_diagram() == """
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(cirq.measure(a, b)), """
 a: ───M───
       │
 b: ───M───
-    """.strip()
-    assert cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))
-                                 ).to_text_diagram() == """
+""")
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))), """
 a: ───!M───
       │
 b: ───M────
-    """.strip()
-    assert cirq.Circuit.from_ops(cirq.measure(a, b, key='test')
-                                 ).to_text_diagram() == """
+""")
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(cirq.measure(a, b, key='test')), """
 a: ───M('test')───
       │
 b: ───M───────────
-    """.strip()
+""")
 
 
 def test_measure():
@@ -504,11 +503,11 @@ def test_iswap_decompose():
         decomposed.to_unitary_matrix(),
         atol=1e-8)
 
-    assert decomposed.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(decomposed, """
 a: ───@───H───X───T───X───T^-1───H───@───
       │       │       │              │
 b: ───X───────@───────@──────────────X───
-    """.strip()
+""")
 
 
 class NotImplementedOperation(cirq.Operation):
