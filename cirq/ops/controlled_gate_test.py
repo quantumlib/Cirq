@@ -120,14 +120,12 @@ def test_try_cast_to():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.inverse(CY) == CY**-1 == CY
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
     assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert cirq.inverse(CY, None) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
-    assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
     assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
     assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
@@ -188,38 +186,26 @@ def test_parameterizable_via_extension():
     assert not with_ext.is_parameterized()
 
 
-def test_text_diagram_info():
-    assert CY.text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+def test_circuit_diagram_info():
+    assert cirq.circuit_diagram_info(CY) == cirq.CircuitDiagramInfo(
         wire_symbols=('@', 'Y'),
         exponent=1)
 
-    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            wire_symbols=('@', 'Y'),
-            exponent=0.5)
-
-    assert cirq.ControlledGate(cirq.S).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            wire_symbols=('@', 'S'),
-            exponent=1)
-
-
-def test_text_diagrammable_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammable,
-                 RestrictedGate,
-                 lambda _: cirq.Y**0.5)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    with pytest.raises(TypeError):
-        _ = without_ext.text_diagram_info(args)
-
-    assert with_ext.text_diagram_info(args) == cirq.TextDiagramInfo(
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.Y**0.5)
+                                     ) == cirq.CircuitDiagramInfo(
         wire_symbols=('@', 'Y'),
         exponent=0.5)
+
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.S)
+                                     ) == cirq.CircuitDiagramInfo(
+        wire_symbols=('@', 'S'),
+        exponent=1)
+
+    class UndiagrammableGate(cirq.Gate):
+        pass
+
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(UndiagrammableGate()),
+                                     default=None) is None
 
 
 def test_bounded_effect():

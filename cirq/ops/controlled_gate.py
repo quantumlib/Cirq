@@ -26,7 +26,6 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.ExtrapolatableEffect,
     gate_features.ParameterizableEffect,
     gate_features.ReversibleEffect,
-    gate_features.TextDiagrammable,
 )
 
 
@@ -36,7 +35,6 @@ class ControlledGate(raw_types.Gate,
                          gate_features.ExtrapolatableEffect,
                          gate_features.ParameterizableEffect,
                          gate_features.ReversibleEffect,
-                         gate_features.TextDiagrammable,
                      ]]):
     """Augments existing gates with a control qubit."""
 
@@ -129,11 +127,13 @@ class ControlledGate(raw_types.Gate,
         cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
         return cast_sub_gate.trace_distance_bound()
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammable)
-        sub_info = cast_sub_gate.text_diagram_info(args)
-        return gate_features.TextDiagramInfo(
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        sub_info = protocols.circuit_diagram_info(self.sub_gate, args, None)
+        if sub_info is None:
+            return NotImplemented
+        return protocols.CircuitDiagramInfo(
             wire_symbols=('@',) + sub_info.wire_symbols,
             exponent=sub_info.exponent)
 
