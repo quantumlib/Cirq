@@ -27,6 +27,11 @@ class ReversibleCompositeGate(gate_features.CompositeGate,
                               metaclass=abc.ABCMeta):
     """A composite gate that gets decomposed into reversible gates."""
 
+    def __pow__(self, power):
+        if power != -1:
+            return NotImplemented
+        return self.inverse()
+
     def inverse(self: TOriginal
                 ) -> '_ReversedReversibleCompositeGate[TOriginal]':
         return _ReversedReversibleCompositeGate(self)
@@ -39,6 +44,11 @@ class _ReversedReversibleCompositeGate(Generic[TOriginal],
 
     def __init__(self, forward_form: TOriginal) -> None:
         self.forward_form = forward_form
+
+    def __pow__(self, power):
+        if power != -1:
+            return NotImplemented
+        return self.inverse()
 
     def inverse(self) -> TOriginal:
         return self.forward_form
