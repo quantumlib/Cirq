@@ -60,6 +60,7 @@ from cirq.linalg import (
     allclose_up_to_global_phase,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    slice_for_qubits_equal_to,
     block_diag,
     match_global_phase,
     commutes,
@@ -186,10 +187,12 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    apply_unitary_to_tensor,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     inverse,
+    SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,

@@ -14,7 +14,7 @@
 
 """Utility methods for transforming matrices."""
 
-from typing import Tuple, List, Optional
+from typing import Tuple, Optional, Sequence
 
 import numpy as np
 
@@ -90,7 +90,7 @@ def match_global_phase(a: np.ndarray,
 
 def targeted_left_multiply(left_matrix: np.ndarray,
                            right_target: np.ndarray,
-                           target_axes: List[int],
+                           target_axes: Sequence[int],
                            out: Optional[np.ndarray] = None
                            ) -> np.ndarray:
     """Left-multiplies the given axes of the target tensor by the given matrix.
