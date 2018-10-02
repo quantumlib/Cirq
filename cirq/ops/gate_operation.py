@@ -186,6 +186,11 @@ class GateOperation(raw_types.Operation,
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
+        if power == -1:
+            inv_gate = protocols.inverse(self.gate, None)
+            if inv_gate is None:
+                return NotImplemented
+            return self.with_gate(inv_gate)
         return self.extrapolate_effect(power)
 
     def is_parameterized(self) -> bool:

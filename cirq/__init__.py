@@ -12,20 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Import sub-modules.
-
-from cirq import (
-    circuits,
-    devices,
-    google,
-    linalg,
-    ops,
-    schedules,
-    study,
-    testing,
-)
-
-# Also flatten some of the sub-modules.
+# Flattened sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -203,6 +190,14 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,
+)
+
+# Unflattened sub-modules.
+
+from cirq import (
+    contrib,
+    google,
+    testing,
 )
 
 # Import version last since it is a relative import.

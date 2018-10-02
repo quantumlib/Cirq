@@ -142,6 +142,32 @@ def circuit_diagram_info(val: Any,
                          args: Optional[CircuitDiagramInfoArgs] = None,
                          default: TDefault = RaiseTypeErrorIfNotProvided,
                          ) -> Union[CircuitDiagramInfo, TDefault]:
+    """Requests information on drawing an operation in a circuit diagram.
+
+    Calls _circuit_diagram_info_ on `val`. If `val` doesn't have
+    _circuit_diagram_info_, or it returns NotImplemented, that indicates that
+    diagram information is not available.
+
+    Args:
+        val: The operation or gate that will need to be drawn.
+        args: A CircuitDiagramInfoArgs describing the desired drawing style.
+        default: A default result to return if the value doesn't have circuit
+            diagram information. If not specified, a TypeError is raised
+            instead.
+
+    Returns:
+        If `val` has no _circuit_diagram_info_ method or it returns
+        NotImplemented, then `default` is returned (or a TypeError is
+        raised if no `default` is specified).
+
+        Otherwise, the value returned by _circuit_diagram_info_ is returned.
+
+    Raises:
+        TypeError:
+            `val` doesn't have circuit diagram information and `default` was
+            not specified.
+    """
+
     # Attempt.
     if args is None:
         args = CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
@@ -160,8 +186,8 @@ def circuit_diagram_info(val: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if getter is None:
-        raise TypeError("object of type '{}' "
-                        "has no _circuit_diagram_info_ method.".format(
-            type(val)))
+        raise TypeError(
+            "object of type '{}' "
+            "has no _circuit_diagram_info_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
                     "method, but it returned NotImplemented.".format(type(val)))

@@ -100,6 +100,11 @@ class ControlledGate(raw_types.Gate,
                               self.default_extensions)
 
     def __pow__(self, power: float) -> 'ControlledGate':
+        if power == -1:
+            inv_gate = protocols.inverse(self.sub_gate, None)
+            if inv_gate is None:
+                return NotImplemented
+            return ControlledGate(inv_gate, self.default_extensions)
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'ControlledGate':

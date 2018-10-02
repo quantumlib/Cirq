@@ -191,7 +191,7 @@ class PauliString:
         if qubit not in pauli_map:
             return False
         if not after_to_before:
-            gate = gate.inverse()
+            gate **= -1
         pauli, inv = gate.transform(pauli_map[qubit])
         pauli_map[qubit] = pauli
         return inv
