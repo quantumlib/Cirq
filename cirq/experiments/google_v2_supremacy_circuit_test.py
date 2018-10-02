@@ -1,10 +1,10 @@
 from cirq import GridQubit
 from cirq import ops
-import cirq.experiments.generate_google_v2_random_circuit as random_circuit_v2
+import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 
 
-def test_generate_google_v2_random_circuit():
-    circuit = random_circuit_v2.generate_random_v2_circuit_grid(
+def test_google_v2_supremacy_circuit():
+    circuit = supremacy_v2.google_v2_supremacy_circuit_grid(
         n_rows=4, n_cols=5, cz_depth=9, seed=0)
     # We check that is exactly circuit inst_4x5_10_0
     # in github.com/sboixo/GRCS cz_v2

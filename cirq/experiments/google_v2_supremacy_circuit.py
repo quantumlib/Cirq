@@ -20,7 +20,7 @@ from cirq.circuits import InsertStrategy
 from cirq import ops
 
 
-def generate_random_v2_circuit(qubits: Iterable[cirq.GridQubit],
+def google_v2_supremacy_circuit(qubits: Iterable[cirq.GridQubit],
                                cz_depth: int,
                                seed: int) -> cirq.Circuit:
     """
@@ -80,7 +80,7 @@ def generate_random_v2_circuit(qubits: Iterable[cirq.GridQubit],
     return circuit
 
 
-def generate_random_v2_circuit_grid(n_rows: int, n_cols: int,
+def google_v2_supremacy_circuit_grid(n_rows: int, n_cols: int,
                                     cz_depth: int, seed: int
                                     ) -> cirq.Circuit:
     """
@@ -102,7 +102,7 @@ def generate_random_v2_circuit_grid(n_rows: int, n_cols: int,
     """
     qubits = [cirq.GridQubit(i, j) for i in range(n_rows)
               for j in range(n_cols)]
-    return generate_random_v2_circuit(qubits, cz_depth, seed)
+    return google_v2_supremacy_circuit(qubits, cz_depth, seed)
 
 
 T = TypeVar('T')
