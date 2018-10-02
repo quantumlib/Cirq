@@ -68,6 +68,11 @@ Contributing
 We welcome contributions. Please follow these
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
 
+We use
+`Github issues <https://github.com/quantumlib/Cirq/issues>`__
+for tracking requests and bugs. Please post questions to the
+`Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with a 'cirq' tag.
+
 See Also
 --------
 

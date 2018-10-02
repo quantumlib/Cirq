@@ -28,7 +28,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study, linalg, protocols
+from cirq import devices, ops, extension, study, protocols
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -832,6 +832,11 @@ class Circuit(ops.ParameterizableEffect):
 
         All insertions are done with the strategy 'EARLIEST'.
 
+        When multiple inserts occur at the same index, the gates from the later
+        inserts end up before the gates from the earlier inserts (exactly as if
+        you'd called list.insert several times with the same index: the later
+        inserts shift the earliest inserts forward).
+
         Args:
             insertions: A sequence of (insert_index, operations) pairs
                 indicating operations to add into the circuit at specific
@@ -840,11 +845,18 @@ class Circuit(ops.ParameterizableEffect):
         # Work on a copy in case validation fails halfway through.
         copy = self.copy()
         shift = 0
-        for i, tree in sorted(insertions, key=lambda e: e[0]):
-            for op in ops.flatten_op_tree(tree):
-                next_index = copy.insert(i + shift, op, InsertStrategy.EARLIEST)
-                if next_index > i:
-                    shift += 1
+        # Note: python `sorted` is guaranteed to be stable. This matters.
+        insertions = sorted(insertions, key=lambda e: e[0])
+        groups = _group_until_different(insertions,
+                                        key=lambda e: e[0],
+                                        value=lambda e: e[1])
+        for i, group in groups:
+            insert_index = i + shift
+            next_index = copy.insert(insert_index,
+                                     reversed(group),
+                                     InsertStrategy.EARLIEST)
+            if next_index > insert_index:
+                shift += next_index - insert_index
         self._moments = copy._moments
 
     def append(
@@ -1346,17 +1358,22 @@ def _apply_unitary_circuit(circuit: Circuit,
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
-    for mat, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = mat.astype(dtype).reshape((2,) * (2 * len(qs)))
+    for op, qs in _extract_unitaries(circuit.all_operations(), ext):
         indices = [qubit_map[q] for q in qs]
-        linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
-        state, buffer = buffer, state
+        result = protocols.apply_unitary_to_tensor(
+            val=op,
+            target_tensor=state,
+            available_buffer=buffer,
+            axes=indices)
+        if result is buffer:
+            buffer = state
+        state = result
     return state
 
 
 def _extract_unitaries(operations: Iterable[ops.Operation],
                        ext: extension.Extensions
-                       ) -> Iterable[Tuple[np.ndarray,
+                       ) -> Iterable[Tuple[Any,
                                            Tuple[ops.QubitId, ...]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
     """
@@ -1364,7 +1381,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
         # Check if the operation has a known matrix.
         matrix = protocols.unitary(op, None)
         if matrix is not None:
-            yield matrix, op.qubits
+            yield op, op.qubits
             continue
 
         # If not, check if it has a decomposition.
@@ -1382,7 +1399,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             # Account for bit flips embedded into the measurement operation.
             for i, b in enumerate(gate.invert_mask):
                 if b:
-                    yield protocols.unitary(ops.X), (op.qubits[i],)
+                    yield ops.X, (op.qubits[i],)
 
             # This is a private method called in contexts where we know
             # measurement is supposed to be skipped.
@@ -1398,3 +1415,48 @@ def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
     block = '\n'.join([repr(op) + ',' for op in items])
     indented = '    ' + '\n    '.join(block.split('\n'))
     return '[\n{}\n]'.format(indented)
+
+
+TIn = TypeVar('TIn')
+TOut = TypeVar('TOut')
+TKey = TypeVar('TKey')
+
+
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value: Callable[[TIn], TOut] = lambda e: e
+                           ) -> Iterable[Tuple[TKey, List[TOut]]]:
+    """Groups runs of items that are identical according to a keying function.
+
+    Args:
+        items: The items to group.
+        key: If two adjacent items produce the same output from this function,
+            they will be grouped.
+        value: Maps each item into a value to put in the group. Defaults to the
+            item itself.
+
+    Examples:
+        _group_until_different(range(11), key=is_prime) yields
+            (False, [0, 1])
+            (True, [2, 3])
+            (False, [4])
+            (True, [5])
+            (False, [6])
+            (True, [7])
+            (False, [8, 9, 10])
+
+    Yields:
+        Tuples containing the group key and item values.
+    """
+    prev_item_key = None
+    cur_items = []
+    for item in items:
+        item_key = key(item)
+        if cur_items and item_key != prev_item_key:
+            yield prev_item_key, cur_items
+            cur_items = []
+        cur_items.append(value(item))
+        prev_item_key = item_key
+
+    if cur_items:
+        yield prev_item_key, cur_items

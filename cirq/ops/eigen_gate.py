@@ -176,6 +176,8 @@ class EigenGate(raw_types.Gate,
         return None
 
     def __pow__(self: TSelf, power: float) -> TSelf:
+        if power != 1 and self.is_parameterized():
+            return NotImplemented
         return self.extrapolate_effect(power)
 
     def inverse(self: TSelf) -> TSelf:

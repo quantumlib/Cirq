@@ -44,8 +44,7 @@ def test_cz_repr():
 
 
 def test_cz_extrapolate():
-    assert cirq.Rot11Gate(
-        half_turns=1).extrapolate_effect(0.5) == cirq.Rot11Gate(half_turns=0.5)
+    assert cirq.Rot11Gate(half_turns=1)**0.5 == cirq.Rot11Gate(half_turns=0.5)
     assert cirq.CZ**-0.25 == cirq.Rot11Gate(half_turns=1.75)
 
 
@@ -73,6 +72,21 @@ def test_cz_matrix():
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1j]]))
+
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.CZ**0.5,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.CZ**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.CZ**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
 
 
 def test_z_init():
@@ -117,8 +131,7 @@ def test_rot_gates_eq():
 
 
 def test_z_extrapolate():
-    assert cirq.RotZGate(
-        half_turns=1).extrapolate_effect(0.5) == cirq.RotZGate(half_turns=0.5)
+    assert cirq.RotZGate(half_turns=1)**0.5 == cirq.RotZGate(half_turns=0.5)
     assert cirq.Z**-0.25 == cirq.RotZGate(half_turns=1.75)
     assert cirq.RotZGate(half_turns=0.5).phase_by(0.25, 0) == cirq.RotZGate(
         half_turns=0.5)
@@ -134,6 +147,20 @@ def test_z_matrix():
     assert np.allclose(cirq.unitary(cirq.Z**-0.5),
                        np.array([[1, 0], [0, -1j]]))
 
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(cirq.Z,
+                                     np.eye(2, dtype=np.complex128),
+                                     np.eye(2, dtype=np.complex128),
+                                     [0]),
+        cirq.unitary(cirq.Z))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.Z**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
+
 
 def test_y_matrix():
     assert np.allclose(cirq.unitary(cirq.Y),
@@ -147,6 +174,20 @@ def test_y_matrix():
 
     assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
+
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(cirq.Y,
+                                     np.eye(2, dtype=np.complex128),
+                                     np.eye(2, dtype=np.complex128),
+                                     [0]),
+        cirq.unitary(cirq.Y))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.Y**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
 
 
 def test_x_matrix():
@@ -162,14 +203,42 @@ def test_x_matrix():
     assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(cirq.X,
+                                     np.eye(2, dtype=np.complex128),
+                                     np.eye(2, dtype=np.complex128),
+                                     [0]),
+        cirq.unitary(cirq.X))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.X**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
+
 
 def test_h_matrix():
     sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
 
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(cirq.H,
+                                     np.eye(2, dtype=np.complex128),
+                                     np.eye(2, dtype=np.complex128),
+                                     [0]),
+        cirq.unitary(cirq.H))
 
-def test_H_decompose():
+    assert cirq.apply_unitary_to_tensor(
+        cirq.H**cirq.Symbol('s'),
+        np.eye(2, dtype=np.complex128),
+        np.eye(2, dtype=np.complex128),
+        [0],
+        default=None) is None
+
+
+def test_h_decompose():
     a = cirq.NamedQubit('a')
 
     original = cirq.HGate(half_turns=0.5)
@@ -250,17 +319,17 @@ def test_text_diagrams():
         cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1)
 
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
       │                     │   │   │       │       │
 b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
-    """.strip()
+""")
 
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
       |                        |   |   |       |       |
 b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
-    """.strip()
+""", use_unicode_characters=False)
 
 
 def test_cnot_power():
@@ -281,6 +350,29 @@ def test_cnot_power():
         cirq.unitary(g),
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
+
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.CNOT,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.CNOT).reshape((2,) * 4))
+
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.CNOT**0.5,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.CNOT**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.CNOT**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
 
 
 def test_cnot_keyword_arguments():
@@ -352,6 +444,29 @@ def test_swap_power():
         cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
         atol=1e-8)
 
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.SWAP,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.SWAP).reshape((2,) * 4))
+
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.SWAP**0.5,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.SWAP**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.SWAP**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
+
 
 def test_xyz_repr():
     assert repr(cirq.X) == 'cirq.X'
@@ -419,23 +534,24 @@ def test_measurement_gate_diagram():
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.Circuit.from_ops(cirq.measure(a, b)).to_text_diagram() == """
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(cirq.measure(a, b)), """
 a: ───M───
       │
 b: ───M───
-    """.strip()
-    assert cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))
-                                 ).to_text_diagram() == """
+""")
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))), """
 a: ───!M───
       │
 b: ───M────
-    """.strip()
-    assert cirq.Circuit.from_ops(cirq.measure(a, b, key='test')
-                                 ).to_text_diagram() == """
+""")
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(cirq.measure(a, b, key='test')), """
 a: ───M('test')───
       │
 b: ───M───────────
-    """.strip()
+""")
 
 
 def test_measure():
@@ -501,6 +617,29 @@ def test_iswap_matrix():
                   [0, 0, 0, 1]]),
         atol=1e-8)
 
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.ISWAP,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.ISWAP).reshape((2,) * 4))
+
+    assert np.allclose(
+        cirq.apply_unitary_to_tensor(
+            cirq.ISWAP**0.5,
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+            [0, 1]),
+        cirq.unitary(cirq.ISWAP**0.5).reshape((2,) * 4))
+
+    assert cirq.apply_unitary_to_tensor(
+        cirq.ISWAP**cirq.Symbol('s'),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        np.eye(4, dtype=np.complex128).reshape((2,) * 4),
+        [0, 1],
+        default=None) is None
+
 
 def test_iswap_decompose():
     a = cirq.NamedQubit('a')
@@ -514,23 +653,22 @@ def test_iswap_decompose():
         decomposed.to_unitary_matrix(),
         atol=1e-8)
 
-    assert decomposed.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(decomposed, """
 a: ───@───H───X───T───X───T^-1───H───@───
       │       │       │              │
 b: ───X───────@───────@──────────────X───
-    """.strip()
-
-
-class NotImplementedOperation(cirq.Operation):
-    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
-        raise NotImplementedError()
-
-    @property
-    def qubits(self):
-        raise NotImplementedError()
+""")
 
 
 def test_is_measurement():
+    class NotImplementedOperation(cirq.Operation):
+        def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            raise NotImplementedError()
+
     q = cirq.NamedQubit('q')
     assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
     assert cirq.MeasurementGate.is_measurement(cirq.MeasurementGate(key='b'))

@@ -115,9 +115,9 @@ def test_extrapolate_effect():
 
 
 def test_inverse():
-    assert CExpZinGate(0.25).inverse() == CExpZinGate(-0.25)
+    assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
     with pytest.raises(TypeError):
-        _ = CExpZinGate(cirq.Symbol('a')).inverse()
+        _ = cirq.inverse(CExpZinGate(cirq.Symbol('a')))
 
 
 def test_trace_distance_bound():
@@ -130,18 +130,18 @@ def test_try_cast_to():
 
     h = CExpZinGate(2)
     assert h.try_cast_to(cirq.ExtrapolatableEffect, ext) is h
-    assert h.try_cast_to(cirq.ReversibleEffect, ext) is h
     assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.inverse(h, None) is not None
 
     p = CExpZinGate(0.1)
     assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is p
-    assert p.try_cast_to(cirq.ReversibleEffect, ext) is p
     assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.inverse(p) is not None
 
     s = CExpZinGate(cirq.Symbol('a'))
     assert s.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert s.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.inverse(s, None) is None
 
 
 def test_matrix():

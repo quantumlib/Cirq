@@ -13,6 +13,19 @@
 # limitations under the License.
 
 
+from cirq.protocols.apply_unitary_to_tensor import (
+    SupportsApplyUnitaryToTensor,
+    apply_unitary_to_tensor,
+)
+from cirq.protocols.circuit_diagram_info import (
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
+    SupportsCircuitDiagramInfo,
+)
+from cirq.protocols.inverse import (
+    inverse,
+)
 from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,

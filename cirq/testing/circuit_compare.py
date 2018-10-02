@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Sequence, TYPE_CHECKING
+from typing import Tuple, Sequence, TYPE_CHECKING, Optional
 
+import itertools
 import numpy as np
 
 from cirq import circuits, ops, linalg
@@ -67,7 +68,8 @@ def _cancel_qubit_phase(m1: np.ndarray,
 
     # Dominant row phase differences.
     for row in range(n):
-        col = max(range(n), key=lambda c: min(abs(m1[row, c]), abs(m2[row, c])))
+        col = max(range(n), key=lambda c: min(
+            abs(m1[row, c]), abs(m2[row, c])))
         prob[row, -1] = np.angle(m1[row, col]) - np.angle(m2[row, col])
 
     # Gram-Schmidt.
@@ -117,6 +119,19 @@ def _canonicalize_up_to_terminal_measurement_phase(
     return matrix1, matrix2
 
 
+def _text_diagram_diff(
+        actual_diagram: str,
+        desired_diagram: str) -> str:
+    diff = ""
+    for actual_line, desired_line in itertools.zip_longest(
+            actual_diagram.splitlines(), desired_diagram.splitlines(),
+            fillvalue=""):
+        diff += "".join(a if a == b else "█"
+                        for a, b in itertools.zip_longest(
+                            actual_line, desired_line, fillvalue="")) + "\n"
+    return diff
+
+
 def assert_circuits_with_terminal_measurements_are_equivalent(
         actual: circuits.Circuit,
         reference: circuits.Circuit,
@@ -147,4 +162,73 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         '\n'
         'Diagram of reference circuit with desired function:\n'
         '{}\n'.format(actual, reference)
+    )
+
+
+def assert_same_circuits(actual: circuits.Circuit,
+                         expected: circuits.Circuit,
+                         ) -> None:
+    """Asserts that two circuits are identical, with a descriptive error.
+
+    Args:
+        actual: A circuit computed by some code under test.
+        expected: The circuit that should have been computed.
+    """
+    assert actual == expected, (
+        "Actual circuit differs from expected circuit.\n"
+        "\n"
+        "Diagram of actual circuit:\n"
+        "{}\n"
+        "\n"
+        "Diagram of expected circuit:\n"
+        "{}\n"
+        "\n"
+        "Index of first differing moment:\n"
+        "{}\n"
+        "\n"
+        "Full repr of actual circuit:\n"
+        "{!r}\n"
+        "\n"
+        "Full repr of expected circuit:\n"
+        "{!r}\n").format(actual,
+                         expected,
+                         _first_differing_moment_index(actual, expected),
+                         actual,
+                         expected)
+
+
+def _first_differing_moment_index(circuit1: circuits.Circuit,
+                                  circuit2: circuits.Circuit) -> Optional[int]:
+    for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
+        if m1 != m2:
+            return i
+    return None  # coverage: ignore
+
+
+def assert_has_diagram(
+        actual: circuits.Circuit,
+        desired: str,
+        **kwargs) -> None:
+    """Determines if a given circuit has the desired text diagram.
+
+    Args:
+        actual: The circuit that was actually computed by some process.
+        desired: The desired text diagram as a string. Whitespace at the
+            beginning and end are ignored.
+        **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
+    """
+    actual_diagram = actual.to_text_diagram(**kwargs).strip()
+    desired_diagram = desired.strip()
+    assert actual_diagram == desired_diagram, (
+        "Circuit's text diagram differs from the desired diagram.\n"
+        '\n'
+        'Diagram of actual circuit:\n'
+        '{}\n'
+        '\n'
+        'Desired text diagram:\n'
+        '{}\n'
+        '\n'
+        'Highlighted differences:\n'
+        '{}\n'.format(actual_diagram, desired_diagram,
+                      _text_diagram_diff(actual_diagram, desired_diagram))
     )
