@@ -186,7 +186,11 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
     inverse,
+    SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,
 )
