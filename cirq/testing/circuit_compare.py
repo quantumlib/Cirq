@@ -17,7 +17,7 @@ from typing import Tuple, Sequence, TYPE_CHECKING, Optional, Any
 import itertools
 import numpy as np
 
-from cirq import circuits, ops, linalg
+from cirq import circuits, ops, linalg, protocols
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -259,12 +259,13 @@ def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
     for exponent in exponents:
         val_exp = val if exponent == 1 else val**exponent
         eye = np.eye(1 << n, dtype=np.complex128).reshape((2,) * (2 * n))
-        actual = cirq.apply_unitary_to_tensor(val_exp,
-                                              eye,
-                                              np.zeros_like(eye),
-                                              list(range(n)),
-                                              default=None)
-        expected = cirq.unitary(val_exp, default=None)
+        actual = protocols.apply_unitary_to_tensor(
+            val=val_exp,
+            target_tensor=eye,
+            available_buffer=np.ones_like(eye) * float('nan'),
+            axes=list(range(n)),
+            default=None)
+        expected = protocols.unitary(val_exp, default=None)
 
         # If you don't have a unitary, you shouldn't be able to apply a unitary.
         if expected is None:
