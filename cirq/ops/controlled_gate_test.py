@@ -70,7 +70,7 @@ def test_eq():
     eq.add_equality_group(cirq.X)
 
 
-def test_matrix():
+def test_unitary():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
     assert cirq.unitary(cxa, None) is None
 
@@ -97,6 +97,21 @@ def test_matrix():
             [0, 0, 0, 0, 0, 0, np.sqrt(0.5), -np.sqrt(0.5)],
         ]),
         atol=1e-8)
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.X,
+    cirq.Z,
+    cirq.H,
+    cirq.CNOT,
+    cirq.SWAP,
+    cirq.CCZ,
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
+])
+def test_apply_unitary_to_tensor(gate: cirq.Gate):
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.ControlledGate(gate),
+        exponents=[1, 0.5, cirq.Symbol('s')])
 
 
 def test_try_cast_to():

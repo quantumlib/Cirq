@@ -151,6 +151,7 @@ from cirq.ops import (
     TextDiagrammable,
     TextDiagramInfo,
     TextDiagramInfoArgs,
+    ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
