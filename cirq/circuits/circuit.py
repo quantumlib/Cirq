@@ -1245,7 +1245,8 @@ def _get_operation_circuit_diagram_info_with_fallback(
         name = name[:-len(redundant_tail)]
 
     # Include ordering in the qubit labels.
-    symbols = (name,) + tuple('#{}'.format(i) for i in range(1, len(op.qubits)))
+    symbols = (name,) + tuple('#{}'.format(i + 1)
+                              for i in range(1, len(op.qubits)))
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
