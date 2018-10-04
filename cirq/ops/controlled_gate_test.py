@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Union, Sequence
 
 import numpy as np
 import pytest
@@ -70,7 +71,7 @@ def test_eq():
     eq.add_equality_group(cirq.X)
 
 
-def test_matrix():
+def test_unitary():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
     assert cirq.unitary(cxa, None) is None
 
@@ -97,6 +98,64 @@ def test_matrix():
             [0, 0, 0, 0, 0, 0, np.sqrt(0.5), -np.sqrt(0.5)],
         ]),
         atol=1e-8)
+
+
+class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
+                                        cirq.ExtrapolatableEffect):
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        available_buffer[...] = target_tensor
+        target_tensor[...] = 0
+        return available_buffer
+
+    def _unitary_(self):
+        return np.eye(2)
+
+    def extrapolate_effect(self, factor):
+        return self
+
+
+class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
+                                      cirq.ExtrapolatableEffect):
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        assert len(axes) == 1
+        a = axes[0]
+        zero = (slice(None),)*a + (0, Ellipsis)
+        one = (slice(None),)*a + (1, Ellipsis)
+        result = np.zeros(target_tensor.shape, target_tensor.dtype)
+        result[zero] = target_tensor[zero]*2 + target_tensor[one]*3
+        result[one] = target_tensor[zero]*5 + target_tensor[one]*7
+        return result
+
+    def _unitary_(self):
+        return np.matrix([[2, 3], [5, 7]])
+
+    def extrapolate_effect(self, factor):
+        return self
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.X,
+    cirq.Z,
+    cirq.H,
+    cirq.CNOT,
+    cirq.SWAP,
+    cirq.CCZ,
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
+    GateUsingWorkspaceForApplyUnitary(),
+    GateAllocatingNewSpaceForResult(),
+])
+def test_apply_unitary_to_tensor(gate: cirq.Gate):
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.ControlledGate(gate),
+        exponents=[1, 0.5, cirq.Symbol('s')])
 
 
 def test_try_cast_to():

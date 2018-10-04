@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension, protocols, value
+from cirq import extension, value, protocols
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
@@ -139,6 +139,18 @@ class GateOperation(raw_types.Operation,
     def default_decompose(self):
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        return protocols.apply_unitary_to_tensor(
+            self.gate,
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
 
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         return protocols.unitary(self._gate, NotImplemented)

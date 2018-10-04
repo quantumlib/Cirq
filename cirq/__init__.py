@@ -58,8 +58,10 @@ from cirq.extension import (
 
 from cirq.linalg import (
     allclose_up_to_global_phase,
+    apply_matrix_to_slices,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    slice_for_qubits_equal_to,
     block_diag,
     match_global_phase,
     commutes,
@@ -150,6 +152,7 @@ from cirq.ops import (
     TextDiagrammable,
     TextDiagramInfo,
     TextDiagramInfoArgs,
+    ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -186,10 +189,12 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    apply_unitary_to_tensor,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     inverse,
+    SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,

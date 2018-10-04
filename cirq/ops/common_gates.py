@@ -13,11 +13,13 @@
 # limitations under the License.
 
 """Quantum gates that are commonly used in the literature."""
-from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
+from typing import (
+    Union, Tuple, Optional, List, Callable, cast, Iterable, Sequence,
+)
 
 import numpy as np
 
-from cirq import value
+from cirq import value, linalg
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
@@ -57,6 +59,19 @@ class Rot11Gate(eigen_gate.EigenGate,
             (0, np.diag([1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 1])),
         ]
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.is_parameterized():
+            return NotImplemented
+
+        c = np.exp(1j * np.pi * self.half_turns)
+        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
+        target_tensor[one_one] *= c
+        return target_tensor
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -122,6 +137,19 @@ class RotXGate(eigen_gate.EigenGate,
             half_turns=half_turns,
             rads=rads,
             degs=degs))
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+        zero = linalg.slice_for_qubits_equal_to(axes, 0)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        available_buffer[zero] = target_tensor[one]
+        available_buffer[one] = target_tensor[zero]
+        return available_buffer
 
     def _eigen_components(self):
         return [
@@ -263,6 +291,19 @@ class RotZGate(eigen_gate.EigenGate,
             half_turns=half_turns,
             rads=rads,
             degs=degs))
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.is_parameterized():
+            return NotImplemented
+
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        c = np.exp(1j * np.pi * self.half_turns)
+        target_tensor[one] *= c
+        return target_tensor
 
     def _eigen_components(self):
         return [
@@ -540,6 +581,22 @@ class HGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zero = linalg.slice_for_qubits_equal_to(axes, 0)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        target_tensor[one] -= target_tensor[zero]
+        target_tensor[one] *= -0.5
+        target_tensor[zero] -= target_tensor[one]
+        target_tensor *= np.sqrt(2)
+        return target_tensor
+
     def default_decompose(self, qubits):
         q = qubits[0]
 
@@ -645,6 +702,21 @@ class CNotGate(eigen_gate.EigenGate,
             wire_symbols=('@', 'X'),
             exponent=self._exponent)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        oo = linalg.slice_for_qubits_equal_to(axes, 0b11)
+        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        available_buffer[oo] = target_tensor[oo]
+        target_tensor[oo] = target_tensor[zo]
+        target_tensor[zo] = available_buffer[oo]
+        return target_tensor
+
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
@@ -708,6 +780,21 @@ class SwapGate(eigen_gate.EigenGate,
                           [0, -0.5,  0.5, 0],
                           [0,  0,    0,   0]])),
         ]
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        return target_tensor
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -804,6 +891,23 @@ class ISwapGate(eigen_gate.EigenGate,
         yield S(a)**-self.exponent
         yield H(a)
         yield CNOT(a, b)
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.exponent != 1:
+            return NotImplemented
+
+        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        target_tensor[zo] *= 1j
+        target_tensor[oz] *= 1j
+        return target_tensor
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
