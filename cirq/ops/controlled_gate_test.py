@@ -117,14 +117,15 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.CompositeGate, ext) is None
 
     # Supported sub features that are not present on sub gate.
-    assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
+    assert cirq.inverse(CRestricted, None) is None
+    assert cirq.inverse(CY) == CY**-1 == CY
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
     assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
-    assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
+    assert cirq.inverse(CY, None) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
     assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
     assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
@@ -162,20 +163,8 @@ def test_extrapolatable_via_extension():
 
 
 def test_reversible():
-    assert (cirq.ControlledGate(cirq.S).inverse() ==
-            cirq.ControlledGate(cirq.S.inverse()))
-
-
-def test_reversible_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.S)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.inverse()
-
-    assert with_ext.inverse() == cirq.ControlledGate(cirq.S.inverse())
+    assert (cirq.inverse(cirq.ControlledGate(cirq.S)) ==
+            cirq.ControlledGate(cirq.S**-1))
 
 
 def test_parameterizable():
