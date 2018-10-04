@@ -165,3 +165,47 @@ def test_targeted_left_multiply_out():
         result,
         np.array([-1, -2]),
         atol=1e-8)
+
+
+def test_apply_matrix_to_slices():
+    np.testing.assert_allclose(
+        cirq.apply_matrix_to_slices(
+            target=np.array(range(5)),
+            matrix=np.eye(0),
+            slices=[]),
+        np.array(range(5)))
+
+    np.testing.assert_allclose(
+        cirq.apply_matrix_to_slices(
+            target=np.eye(4),
+            matrix=np.array([[2, 3], [5, 7]]),
+            slices=[1, 2]),
+        np.array([
+            [1, 0, 0, 0],
+            [0, 2, 3, 0],
+            [0, 5, 7, 0],
+            [0, 0, 0, 1]
+        ]))
+
+    np.testing.assert_allclose(
+        cirq.apply_matrix_to_slices(
+            target=np.eye(4),
+            matrix=np.array([[2, 3], [5, 7]]),
+            slices=[2, 1]),
+        np.array([
+            [1, 0, 0, 0],
+            [0, 7, 5, 0],
+            [0, 3, 2, 0],
+            [0, 0, 0, 1]
+        ]))
+
+    np.testing.assert_allclose(
+        cirq.apply_matrix_to_slices(
+            target=np.array(range(8)).reshape((2, 2, 2)),
+            matrix=np.array([[0, 1], [1, 0]]),
+            slices=[
+                (0, slice(None), 0),
+                (1, slice(None), 0)
+            ]
+        ).reshape((8,)),
+        [4, 1, 6, 3, 0, 5, 2, 7])
