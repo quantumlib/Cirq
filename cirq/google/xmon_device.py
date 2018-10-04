@@ -125,6 +125,8 @@ class XmonDevice(Device):
             return False
         if isinstance(other_op.gate, xmon_gates.ExpWGate):
             return False
+        if isinstance(other_op.gate, xmon_gates.XmonMeasurementGate):
+            return False
 
         return any(cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
                    for q in exp11_op.qubits
