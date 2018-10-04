@@ -275,22 +275,30 @@ class RotZGate(eigen_gate.EigenGate,
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
+                 degs: Optional[float] = None,
+                 global_shift_in_half_turns: float = 0.0) -> None:
         """Initializes the gate.
 
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
+        At most one relative phasing angle argument may be specified. If more
+        are specified, the result is considered ambiguous and an error is
+        thrown. If no angle argument is given, the default value of one half
+        turn is used.
 
         Args:
             half_turns: The relative phasing of Z's eigenstates, in half_turns.
             rads: The relative phasing of Z's eigenstates, in radians.
             degs: The relative phasing of Z's eigenstates, in degrees.
+            global_shift_in_half_turns: Offsets the eigenvalues of the gate.
+                The default shift of 0 gives the Z gate's matrix eigenvalues of
+                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
+                -i and +i. The shift is always specified assuming an exponent of
+                one (i.e. a 180 degree rotation).
         """
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
-            degs=degs))
+            degs=degs),
+            global_shift_in_half_turns=global_shift_in_half_turns)
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -312,11 +320,17 @@ class RotZGate(eigen_gate.EigenGate,
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
+        if self._global_shift_in_half_turns == 0:
+            return 2
+        if abs(self._global_shift_in_half_turns) == 0.5:
+            return 4
+        return None
 
     def _with_exponent(self,
                        exponent: Union[value.Symbol, float]) -> 'RotZGate':
-        return RotZGate(half_turns=exponent)
+        return RotZGate(
+            half_turns=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
