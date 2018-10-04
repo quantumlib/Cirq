@@ -1049,7 +1049,7 @@ class Circuit(ops.ParameterizableEffect):
 
     def to_text_diagram(
             self,
-            ext: extension.Extensions = None,
+            *,
             use_unicode_characters: bool = True,
             transpose: bool = False,
             precision: Optional[int] = 3,
@@ -1057,7 +1057,6 @@ class Circuit(ops.ParameterizableEffect):
         """Returns text containing a diagram describing the circuit.
 
         Args:
-            ext: For extending operations/gates to implement TextDiagrammable.
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
@@ -1068,7 +1067,6 @@ class Circuit(ops.ParameterizableEffect):
             The text diagram.
         """
         diagram = self.to_text_diagram_drawer(
-            ext=ext,
             use_unicode_characters=use_unicode_characters,
             qubit_name_suffix='' if transpose else ': ',
             precision=precision,
@@ -1084,17 +1082,16 @@ class Circuit(ops.ParameterizableEffect):
 
     def to_text_diagram_drawer(
             self,
-            ext: extension.Extensions = None,
+            *,
             use_unicode_characters: bool = True,
             qubit_name_suffix: str = '',
             transpose: bool = False,
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
-            ext: For extending operations/gates to implement TextDiagrammable.
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             qubit_name_suffix: Appended to qubit names in the diagram.
@@ -1105,9 +1102,6 @@ class Circuit(ops.ParameterizableEffect):
         Returns:
             The TextDiagramDrawer instance.
         """
-        if ext is None:
-            ext = extension.Extensions()
-
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
@@ -1118,7 +1112,6 @@ class Circuit(ops.ParameterizableEffect):
 
         for moment in self._moments:
             _draw_moment_in_diagram(moment,
-                                    ext,
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
@@ -1228,19 +1221,17 @@ def _resolve_operations(
     return resolved_operations
 
 
-def _get_operation_text_diagram_info_with_fallback(
+def _get_operation_circuit_diagram_info_with_fallback(
         op: ops.Operation,
-        args: ops.TextDiagramInfoArgs,
-        ext: extension.Extensions) -> ops.TextDiagramInfo:
-    text_diagrammable_op = ext.try_cast(ops.TextDiagrammable, op)
-    if text_diagrammable_op is not None:
-        info = text_diagrammable_op.text_diagram_info(args)
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+    info = protocols.circuit_diagram_info(op, args, None)
+    if info is not None:
         if len(op.qubits) != len(info.wire_symbols):
             raise ValueError(
                 'Wanted diagram info from {!r} for {} '
                 'qubits but got {!r}'.format(
                     op,
-                    len(info.wire_symbols),
+                    len(op.qubits),
                     info))
         return info
 
@@ -1254,17 +1245,15 @@ def _get_operation_text_diagram_info_with_fallback(
         name = name[:-len(redundant_tail)]
 
     # Include ordering in the qubit labels.
-    if len(op.qubits) != 1:
-        symbols = tuple('{}:{}'.format(name, i)
-                        for i in range(len(op.qubits)))
-    else:
-        symbols = (name,)
+    symbols = (name,) + tuple('#{}'.format(i + 1)
+                              for i in range(1, len(op.qubits)))
 
-    return ops.TextDiagramInfo(wire_symbols=symbols)
+    return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
 
-def _formatted_exponent(info: ops.TextDiagramInfo,
-                        args: ops.TextDiagramInfoArgs) -> Optional[str]:
+def _formatted_exponent(info: protocols.CircuitDiagramInfo,
+                        args: protocols.CircuitDiagramInfoArgs
+                        ) -> Optional[str]:
     # 1 is not shown.
     if info.exponent == 1:
         return None
@@ -1288,7 +1277,6 @@ def _formatted_exponent(info: ops.TextDiagramInfo,
 
 
 def _draw_moment_in_diagram(moment: Moment,
-                            ext: extension.Extensions,
                             use_unicode_characters: bool,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
@@ -1305,13 +1293,13 @@ def _draw_moment_in_diagram(moment: Moment,
                   for y in range(y1, y2 + 1)):
             x += 1
 
-        args = ops.TextDiagramInfoArgs(
+        args = protocols.CircuitDiagramInfoArgs(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
             qubit_map=qubit_map,
             precision=precision)
-        info = _get_operation_text_diagram_info_with_fallback(op, args, ext)
+        info = _get_operation_circuit_diagram_info_with_fallback(op, args)
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:

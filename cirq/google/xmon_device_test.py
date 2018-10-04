@@ -173,6 +173,20 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
     d.validate_schedule(s)
 
 
+def test_validate_scheduled_operation_adjacent_exp_11_measure():
+    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(1, 0)
+    q2 = cirq.GridQubit(2, 0)
+    s = cirq.Schedule(d, [
+        cirq.ScheduledOperation.op_at_on(
+            cg.XmonMeasurementGate().on(q0), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
+    ])
+    d.validate_schedule(s)
+
+
 def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
     d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
     q0 = cirq.GridQubit(0, 0)
