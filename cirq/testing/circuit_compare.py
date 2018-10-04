@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Sequence, TYPE_CHECKING, Optional
+from typing import Tuple, Sequence, TYPE_CHECKING, Optional, Any
 
 import itertools
 import numpy as np
 
-from cirq import circuits, ops, linalg
+from cirq import circuits, ops, linalg, protocols
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -232,3 +232,49 @@ def assert_has_diagram(
         '{}\n'.format(actual_diagram, desired_diagram,
                       _text_diagram_diff(actual_diagram, desired_diagram))
     )
+
+
+def _infer_qubit_count(val: Any) -> int:
+    if isinstance(val, ops.Operation):
+        return len(val.qubits)
+    if isinstance(val, ops.SingleQubitGate):
+        return 1
+    if isinstance(val, ops.TwoQubitGate):
+        return 2
+    if isinstance(val, ops.ThreeQubitGate):
+        return 3
+    if isinstance(val, ops.ControlledGate):
+        return 1 + _infer_qubit_count(val.sub_gate)
+    raise NotImplementedError(
+        'Failed to infer qubit count of <{!r}>. Specify it.'.format(val))
+
+
+def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        val: Any,
+        exponents: Sequence[float] = (1,),
+        qubit_count: Optional[int] = None) -> None:
+
+    n = qubit_count if qubit_count is not None else _infer_qubit_count(val)
+
+    for exponent in exponents:
+        val_exp = val if exponent == 1 else val**exponent
+        eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
+        actual = protocols.apply_unitary_to_tensor(
+            val=val_exp,
+            target_tensor=eye,
+            available_buffer=np.ones_like(eye) * float('nan'),
+            axes=list(range(n)),
+            default=None)
+        expected = protocols.unitary(val_exp, default=None)
+
+        # If you don't have a unitary, you shouldn't be able to apply a unitary.
+        if expected is None:
+            assert actual is None
+        else:
+            expected = np.kron(expected, np.eye(2))
+
+        # If you applied a unitary, it should match the one you say you have.
+        if actual is not None:
+            np.testing.assert_allclose(
+                actual.reshape(2 << n, 2 << n),
+                expected)
