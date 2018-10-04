@@ -537,7 +537,8 @@ def test_trace_bound():
 
 def test_z_inverse():
     assert cirq.inverse(cg.ExpZGate(half_turns=cirq.Symbol('a')), None) is None
-    assert cirq.inverse(cg.ExpZGate()) == cg.ExpZGate()
+    assert cirq.inverse(cg.ExpZGate()) == cg.ExpZGate(half_turns=-1)
+    assert cirq.inverse(cg.ExpZGate()) != cg.ExpZGate()
 
 
 def test_measure_key_on():

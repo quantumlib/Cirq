@@ -345,6 +345,8 @@ class ExpWGate(XmonGate,
         return {'exp_w': exp_w}
 
     def __pow__(self, power):
+        if self.is_parameterized() and power != 1:
+            return NotImplemented
         return ExpWGate(half_turns=self.half_turns * power,
                         axis_half_turns=self.axis_half_turns)
 
