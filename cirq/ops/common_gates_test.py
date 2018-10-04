@@ -103,6 +103,16 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.RotXGate(), cirq.RotXGate(half_turns=1), cirq.X)
     eq.add_equality_group(cirq.RotYGate(), cirq.RotYGate(half_turns=1), cirq.Y)
     eq.add_equality_group(cirq.RotZGate(), cirq.RotZGate(half_turns=1), cirq.Z)
+    eq.add_equality_group(cirq.RotZGate(half_turns=1,
+                                        global_shift_in_half_turns=-0.5),
+                          cirq.RotZGate(half_turns=5,
+                                        global_shift_in_half_turns=-0.5))
+    eq.add_equality_group(cirq.RotZGate(half_turns=3,
+                                        global_shift_in_half_turns=-0.5))
+    eq.add_equality_group(cirq.RotZGate(half_turns=1,
+                                        global_shift_in_half_turns=-0.1))
+    eq.add_equality_group(cirq.RotZGate(half_turns=5,
+                                        global_shift_in_half_turns=-0.1))
     eq.add_equality_group(cirq.CNotGate(),
                           cirq.CNotGate(half_turns=1), cirq.CNOT)
     eq.add_equality_group(cirq.Rot11Gate(),
