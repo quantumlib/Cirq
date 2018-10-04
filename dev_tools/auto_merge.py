@@ -273,6 +273,33 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
+def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
+    has_failed = False
+    has_pending = False
+
+    check_status = get_pr_check_status(pr)
+    state = check_status['state']
+    if state == 'failure':
+        has_failed = True
+    elif state == 'pending':
+        has_pending = True
+    elif state != 'success':
+        raise RuntimeError('Unrecognized status state: {!r}'.format(state))
+
+    check_data = get_pr_checks(pr)
+    for check in check_data['check_runs']:
+        if check['status'] != 'completed':
+            has_pending = True
+        elif check['conclusion'] != 'success':
+            has_failed = True
+
+    if has_failed:
+        return False
+    if has_pending:
+        return None
+    return True
+
+
 def get_pr_review_status(pr: PullRequestDetails) -> Any:
     """
     References:
@@ -293,6 +320,28 @@ def get_pr_review_status(pr: PullRequestDetails) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
+def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
+    """
+    References:
+        https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
+    """
+    url = ("https://api.github.com/repos/{}/{}/commits/{}/check-runs"
+           "?access_token={}".format(pr.repo.organization,
+                                     pr.repo.name,
+                                     pr.branch_sha,
+                                     pr.repo.access_token))
+    response = requests.get(
+        url,
+        headers={'Accept': 'application/vnd.github.antiope-preview+json'})
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Get check-runs failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    return json.JSONDecoder().decode(response.content.decode())
+
+
 def wait_a_tick():
     print('.', end='', flush=True)
     time.sleep(5)
@@ -301,9 +350,12 @@ def wait_a_tick():
 def absent_status_checks(pr: PullRequestDetails) -> Set[str]:
     branch_data = get_branch_details(pr.repo, pr.base_branch_name)
     status_data = get_pr_statuses(pr)
+    check_data = get_pr_checks(pr)
+
     statuses_present = {status['context'] for status in status_data}
+    checks_present = {check['name'] for check in check_data['check_runs']}
     reqs = branch_data['protection']['required_status_checks']['contexts']
-    return set(reqs) - statuses_present
+    return set(reqs) - statuses_present - checks_present
 
 
 def wait_for_status(repo: GithubRepository,
@@ -334,11 +386,11 @@ def wait_for_status(repo: GithubRepository,
                for review in review_status):
             raise CurrentStuckGoToNextError('A review is requesting changes.')
 
-        check_status = get_pr_check_status(pr)
-        if check_status['state'] == 'pending':
+        check_status = classify_pr_status_check_state(pr)
+        if check_status is None:
             wait_a_tick()
             continue
-        if check_status['state'] != 'success':
+        if not check_status:
             raise CurrentStuckGoToNextError('A status check is failing.')
 
         if pr.payload['mergeable'] is None:
