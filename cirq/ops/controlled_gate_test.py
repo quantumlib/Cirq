@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Union, Sequence
 
 import numpy as np
 import pytest
@@ -99,6 +100,24 @@ def test_unitary():
         atol=1e-8)
 
 
+class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
+                                        cirq.ExtrapolatableEffect):
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        available_buffer[...] = target_tensor
+        target_tensor[...] = 0
+        return available_buffer
+
+    def _unitary_(self):
+        return np.eye(2)
+
+    def extrapolate_effect(self, factor):
+        return self
+
+
 @pytest.mark.parametrize('gate', [
     cirq.X,
     cirq.Z,
@@ -107,6 +126,7 @@ def test_unitary():
     cirq.SWAP,
     cirq.CCZ,
     cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
+    GateUsingWorkspaceForApplyUnitary(),
 ])
 def test_apply_unitary_to_tensor(gate: cirq.Gate):
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(

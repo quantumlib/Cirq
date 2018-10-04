@@ -367,8 +367,14 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         UnknownCountEffect(),
-        qubit_count=1),
+        qubit_count=1)
 
     with pytest.raises(NotImplementedError):
         cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-            UnknownCountEffect()),
+            UnknownCountEffect())
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.X)
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.X.on(cirq.NamedQubit('q')))

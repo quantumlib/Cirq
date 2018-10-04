@@ -90,19 +90,24 @@ class ControlledGate(raw_types.Gate,
         rest = axes[1:]
         active = linalg.slice_for_qubits_equal_to([control], 1)
         sub_axes = [r - int(r > control) for r in rest]
+        target_view = target_tensor[active]
+        buffer_view = available_buffer[active]
         result = protocols.apply_unitary_to_tensor(
             self.sub_gate,
-            target_tensor[active],
-            available_buffer[active],
+            target_view,
+            buffer_view,
             sub_axes,
             default=NotImplemented)
 
-        if result is NotImplemented or result is target_tensor:
-            return result
+        if result is NotImplemented:
+            return NotImplemented
 
-        if result is available_buffer:
-            inactive = linalg.slice_for_qubits_equal_to([control], 1)
-            available_buffer[inactive] = target_tensor[active]
+        if result is target_view:
+            return target_tensor
+
+        if result is buffer_view:
+            inactive = linalg.slice_for_qubits_equal_to([control], 0)
+            available_buffer[inactive] = target_tensor[inactive]
             return available_buffer
 
         # HACK: assume they didn't somehow escape the slice view and edit the
