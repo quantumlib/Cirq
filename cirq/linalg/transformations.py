@@ -158,8 +158,7 @@ def apply_matrix_to_slices(
         matrix: np.ndarray,
         slices: List[_TSlice],
         *,
-        out: Optional[np.ndarray] = None,
-        workspace: Optional[np.ndarray] = None) -> np.ndarray:
+        out: Optional[np.ndarray] = None) -> np.ndarray:
     """Left-multiplies an NxN matrix onto N slices of a numpy array.
 
     Example:
@@ -194,11 +193,6 @@ def apply_matrix_to_slices(
         out: Where to write the output. If not specified, a new numpy array is
             created, with the same shape and dtype as the target, to store the
             output.
-        workspace: Where to put temporary values. Must have the same shape as
-            target[slices[i]] for all i. If not specified, a new numpy
-            array with the same shape and dtype as one of the slices is used. It
-            is permitted for `workspace` to be a slice of `target` that doesn't
-            overlap with the slices being operated on.
 
     Returns:
         The transformed array.
@@ -214,16 +208,11 @@ def apply_matrix_to_slices(
         out = np.copy(target)
     else:
         out[...] = target[...]
-    if workspace is None and slices:
-        workspace = np.copy(target[slices[0]])
 
     # Apply operation.
     for i, s_i in enumerate(slices):
-        s_i = slices[i]
         out[s_i] = 0
         for j, s_j in enumerate(slices):
-            workspace[...] = target[s_j]
-            workspace *= matrix[i, j]
-            out[s_i] += workspace
+            out[s_i] += target[s_j] * matrix[i, j]
 
     return out
