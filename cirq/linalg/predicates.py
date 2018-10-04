@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import Sequence, Union, Tuple, List, Optional
+from typing import Sequence, Union, Tuple
 
 import numpy as np
 

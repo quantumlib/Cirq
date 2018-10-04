@@ -258,7 +258,7 @@ def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
 
     for exponent in exponents:
         val_exp = val if exponent == 1 else val**exponent
-        eye = np.eye(1 << n, dtype=np.complex128).reshape((2,) * (2 * n))
+        eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
         actual = protocols.apply_unitary_to_tensor(
             val=val_exp,
             target_tensor=eye,
@@ -270,9 +270,11 @@ def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         # If you don't have a unitary, you shouldn't be able to apply a unitary.
         if expected is None:
             assert actual is None
+        else:
+            expected = np.kron(expected, np.eye(2))
 
         # If you applied a unitary, it should match the one you say you have.
         if actual is not None:
             np.testing.assert_allclose(
-                actual.reshape(1 << n, 1 << n),
+                actual.reshape(2 << n, 2 << n),
                 expected)
