@@ -70,7 +70,7 @@ class EigenGate(raw_types.Gate,
             θ + s
         3. Scaling the angle by the exponent.
             (θ + s) * e
-        4. Converting from half turns to a complex unit vector.
+        4. Converting from half turns to a complex number on the unit circle.
             exp(i * pi * (θ + s) * e)
 
         Args:
