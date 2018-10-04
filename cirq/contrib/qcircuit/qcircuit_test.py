@@ -41,9 +41,9 @@ def test_fallback_diagram():
     assert diagram.strip() == r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{a}}& \qw&\text{\#1}       \qw    &\qw\\
+ &\lstick{\text{a}}& \qw&\text{\#2}       \qw    &\qw\\
  &\lstick{\text{b}}& \qw&\text{MagicGate} \qw\qwx&\qw\\
- &\lstick{\text{c}}& \qw&\text{\#2}       \qw\qwx&\qw\\
+ &\lstick{\text{c}}& \qw&\text{\#3}       \qw\qwx&\qw\\
  \\
 }""".strip()
 
