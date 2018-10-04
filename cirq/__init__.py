@@ -58,7 +58,6 @@ from cirq.extension import (
 
 from cirq.linalg import (
     allclose_up_to_global_phase,
-    apply_matrix_to_slices,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     slice_for_qubits_equal_to,

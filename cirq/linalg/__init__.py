@@ -54,7 +54,6 @@ from cirq.linalg.tolerance import (
     Tolerance,
 )
 from cirq.linalg.transformations import (
-    apply_matrix_to_slices,
     match_global_phase,
     reflection_matrix_pow,
     targeted_left_multiply,
