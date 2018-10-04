@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Set
 
 import json
 import os
@@ -211,6 +211,47 @@ def leave_status_comment(repo: GithubRepository,
         edit_comment(repo, body, cur['id'])
 
 
+def get_branch_details(repo: GithubRepository, branch: str) -> Any:
+    """
+    References:
+        https://developer.github.com/v3/repos/branches/#get-branch
+    """
+    url = ("https://api.github.com/repos/{}/{}/branches/{}"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     branch,
+                                     repo.access_token))
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Failed to get branch details. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    return json.JSONDecoder().decode(response.content.decode())
+
+
+def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
+    """
+    References:
+        https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+    """
+
+    url = ("https://api.github.com/repos/{}/{}/commits/{}/statuses"
+           "?access_token={}".format(pr.repo.organization,
+                                     pr.repo.name,
+                                     pr.branch_sha,
+                                     pr.repo.access_token))
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Get statuses failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    return json.JSONDecoder().decode(response.content.decode())
+
+
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
     """
     References:
@@ -257,6 +298,14 @@ def wait_a_tick():
     time.sleep(5)
 
 
+def absent_status_checks(pr: PullRequestDetails) -> Set[str]:
+    branch_data = get_branch_details(pr.repo, pr.base_branch_name)
+    status_data = get_pr_statuses(pr)
+    statuses_present = {status['context'] for status in status_data}
+    reqs = branch_data['protection']['required_status_checks']['contexts']
+    return set(reqs) - statuses_present
+
+
 def wait_for_status(repo: GithubRepository,
                     pull_id: int,
                     prev_pr: Optional[PullRequestDetails],
@@ -296,6 +345,18 @@ def wait_for_status(repo: GithubRepository,
             # Github still computing mergeable flag.
             wait_a_tick()
             continue
+
+        if pr.payload['mergeable_state'] == 'blocked':
+            # Note: not sure if moving this into the main loop would create a
+            # race between status checks starting and auto merge moving on.
+            missing_statuses = absent_status_checks(pr)
+            if missing_statuses:
+                raise CurrentStuckGoToNextError(
+                    'A required status check is not present.\n\n'
+                    'Missing statuses: {!r}'.format(sorted(missing_statuses)))
+
+            raise CurrentStuckGoToNextError(
+                "Merging is blocked but I don't understand why.")
 
         return pr
 
