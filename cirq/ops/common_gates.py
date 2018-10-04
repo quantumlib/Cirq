@@ -773,6 +773,23 @@ class SwapGate(eigen_gate.EigenGate,
                        exponent: Union[value.Symbol, float]) -> 'SwapGate':
         return SwapGate(half_turns=exponent)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+        zero_zero = linalg.slice_for_qubits_equal_to(axes, 0b00)
+        zero_one = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        one_zero = linalg.slice_for_qubits_equal_to(axes, 0b10)
+        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
+        available_buffer[zero_zero] = target_tensor[zero_zero]
+        available_buffer[zero_one] = target_tensor[one_zero]
+        available_buffer[one_zero] = target_tensor[zero_one]
+        available_buffer[one_one] = target_tensor[one_one]
+        return available_buffer
+
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
@@ -850,6 +867,23 @@ class ISwapGate(eigen_gate.EigenGate,
                        ) -> 'ISwapGate':
         return ISwapGate(exponent=exponent)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        if self.half_turns != 1:
+            return NotImplemented
+        zero_zero = linalg.slice_for_qubits_equal_to(axes, 0b00)
+        zero_one = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        one_zero = linalg.slice_for_qubits_equal_to(axes, 0b10)
+        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
+        available_buffer[zero_zero] = target_tensor[zero_zero]
+        available_buffer[zero_one] = 1j*target_tensor[one_zero]
+        available_buffer[one_zero] = 1j*target_tensor[zero_one]
+        available_buffer[one_one] = target_tensor[one_one]
+        return available_buffer
+
     def default_decompose(self, qubits):
         a, b = qubits
 
@@ -861,6 +895,10 @@ class ISwapGate(eigen_gate.EigenGate,
         yield S(a)**-self.exponent
         yield H(a)
         yield CNOT(a, b)
+
+    @property
+    def half_turns(self) -> Union[value.Symbol, float]:
+        return self._exponent
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
