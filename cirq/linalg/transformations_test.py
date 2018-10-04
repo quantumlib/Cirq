@@ -170,7 +170,7 @@ def test_targeted_left_multiply_out():
 
 def test_apply_matrix_to_slices():
     # Output is input.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='out'):
         target = np.eye(2)
         _ = cirq.apply_matrix_to_slices(
             target=target,
@@ -179,12 +179,11 @@ def test_apply_matrix_to_slices():
             slices=[0, 1])
 
     # Wrong matrix size.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='shape'):
         target = np.eye(2)
         _ = cirq.apply_matrix_to_slices(
             target=target,
             matrix=np.eye(3),
-            out=target,
             slices=[0, 1])
 
     # Empty case.
