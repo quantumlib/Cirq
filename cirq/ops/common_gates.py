@@ -291,7 +291,7 @@ class RotZGate(eigen_gate.EigenGate,
             global_shift_in_half_turns: Offsets the eigenvalues of the gate.
                 The default shift of 0 gives the Z gate's matrix eigenvalues of
                 +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
-                i and -i. The shift is always specified assuming an exponent of
+                -i and +i. The shift is always specified assuming an exponent of
                 one (i.e. a 180 degree rotation).
         """
         super().__init__(exponent=value.chosen_angle_to_half_turns(
