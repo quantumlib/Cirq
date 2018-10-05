@@ -18,13 +18,11 @@ aids in mocking during tests.  Thus we prefer
 from cirq import ops
 qubit = ops.NamedQubit('a')
 ```
-
 in contrast to
 ```python
 from cirq.ops import NamedQubit
-qubit = ops.NamedQubit('a')
-```
-
+qubit = NamedQubit('a')
+``` 
 or (the one we would prefer, but doing this causes cyclic dependencies)
 ```python
 import cirq
@@ -48,7 +46,7 @@ for example work in `contrib`, one should use the highest level possible for tes
 import cirq
 from cirq import contrib
 contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
-```
+``` 
 
 Of course, if this import style fundamentally cannot be used, do not let this block submitting
 a pull request for the code as we will definitely grant exceptions.
