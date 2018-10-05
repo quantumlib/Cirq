@@ -79,7 +79,7 @@ See the previous section for instructions.
     You can install most other dependencies via `apt-get`:
 
     ```bash
-    cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
+    cat dev_tools/conf/apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
 2. Prepare a virtual environment including the dev tools (such as mypy).
@@ -160,10 +160,10 @@ This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `increment
 
 ### Producing the Python 2.7 code
 
-Run [python2.7-generate.sh](/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
+Run [dev_tools/python2.7-generate.sh](dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
 
 ```bash
-bash python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
+bash dev_tools/python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
 ```
 
 If you don't specify any arguments then the input directory will be the current
@@ -184,7 +184,7 @@ The script does nothing if the output directory already exists.
 
     Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a follow up pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
 
-2. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
+2. Run [prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
 
     ```bash
     bash dev_tools/produce-package.sh

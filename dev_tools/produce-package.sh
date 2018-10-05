@@ -31,7 +31,7 @@ python3 setup.py -q sdist bdist_wheel
 echo "Generating python 2.7 source..."
 cur_dir=$(pwd)
 tmp_py2_dir="$(pwd)/python2.7-package-tmp"
-bash python2.7-generate.sh "${tmp_py2_dir}" "${cur_dir}"
+bash dev_tools/python2.7-generate.sh "${tmp_py2_dir}" "${cur_dir}"
 
 echo "Producing python 2.7 package files..."
 export PYTHONPATH=${tmp_py2_dir}
