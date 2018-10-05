@@ -27,6 +27,7 @@ from typing import (
 )
 
 import numpy as np
+import cirq
 
 from cirq import devices, ops, extension, study, protocols
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -37,7 +38,7 @@ from cirq.circuits.qasm_output import QasmOutput
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
-class Circuit(ops.ParameterizableEffect):
+class Circuit:
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
@@ -1133,13 +1134,11 @@ class Circuit(ops.ParameterizableEffect):
 
         return diagram
 
-    def is_parameterized(self,
-                         ext: extension.Extensions = None) -> bool:
-        if ext is None:
-            ext = extension.Extensions()
-        return any(cast(ops.ParameterizableEffect, op).is_parameterized()
-                   for op in self.all_operations()
-                   if ext.try_cast(ops.ParameterizableEffect, op) is not None)
+    def is_parameterized(self) -> bool:
+        for op in self.all_operations():
+            if cirq.is_parameterized(op):
+                return True
+        return False
 
     def with_parameters_resolved_by(self,
                                     param_resolver: study.ParamResolver,
@@ -1217,14 +1216,7 @@ def _resolve_operations(
         ext: extension.Extensions) -> List[ops.Operation]:
     resolved_operations = []  # type: List[ops.Operation]
     for op in operations:
-        cast_op = ext.try_cast(ops.ParameterizableEffect, op)
-        if cast_op is None:
-            resolved_op = op
-        else:
-            resolved_op = cast(
-                    ops.Operation,
-                    cast_op.with_parameters_resolved_by(param_resolver))
-        resolved_operations.append(resolved_op)
+        resolved_operations.append(cirq.resolve_parameters(op, param_resolver))
     return resolved_operations
 
 

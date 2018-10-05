@@ -25,7 +25,6 @@ import string
 
 from cirq import abc, value
 from cirq.ops import op_tree, raw_types
-from cirq.study import ParamResolver
 
 
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
@@ -303,31 +302,6 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(
                 'Three-qubit gate not applied to three qubits: {}({})'.
                 format(self, qubits))
-
-
-TSelf_ParameterizableEffect = TypeVar('TSelf_ParameterizableEffect',
-                                      bound='ParameterizableEffect')
-
-
-class ParameterizableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be parameterized by Symbols."""
-
-    @abc.abstractmethod
-    def is_parameterized(self) -> bool:
-        """Whether the effect is parameterized.
-
-        Returns True if the gate has any unresolved Symbols and False otherwise.
-        """
-
-    @abc.abstractmethod
-    def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
-                                    param_resolver: ParamResolver
-                                    ) -> TSelf_ParameterizableEffect:
-        """Resolve the parameters in the effect.
-
-        Returns a gate or operation of the same type, but with all Symbols
-        replaced with floats according to the given ParamResolver.
-        """
 
 
 class QasmOutputArgs(string.Formatter):

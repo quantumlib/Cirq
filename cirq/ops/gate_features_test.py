@@ -162,43 +162,6 @@ def test_three_qubit_gate_validate():
         g.validate_args([a, b, c, d])
 
 
-def test_parameterizable_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = gate_features.ParameterizableEffect()
-
-
-def test_parameterizable_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class MissingBoth(gate_features.ParameterizableEffect):
-        pass
-    # noinspection PyAbstractClass
-    class MissingOne(gate_features.ParameterizableEffect):
-        def is_parameterized(self):
-            pass
-    # noinspection PyAbstractClass
-    class MissingOtherOne(gate_features.ParameterizableEffect):
-        def with_parameters_resolved_by(self, param_resolver):
-            pass
-
-    with pytest.raises(TypeError):
-        _ = MissingBoth()
-    with pytest.raises(TypeError):
-        _ = MissingOne()
-    with pytest.raises(TypeError):
-        _ = MissingOtherOne()
-
-
-def test_parameterizable_gate_is_abstract_can_implement():
-    class Included(gate_features.ParameterizableEffect):
-        def is_parameterized(self):
-            pass
-
-        def with_parameters_resolved_by(self, param_resolver):
-            pass
-
-    assert isinstance(Included(), gate_features.ParameterizableEffect)
-
-
 def test_on_each():
     class CustomGate(gate_features.SingleQubitGate):
         pass

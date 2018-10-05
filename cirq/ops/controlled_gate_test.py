@@ -122,14 +122,12 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
     assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert cirq.inverse(CY, None) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
     assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
     assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
-    assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
 
 def test_extrapolatable_effect():
@@ -171,21 +169,9 @@ def test_parameterizable():
     a = cirq.Symbol('a')
     cz = cirq.ControlledGate(cirq.RotYGate(half_turns=1))
     cza = cirq.ControlledGate(cirq.RotYGate(half_turns=a))
-    assert cza.is_parameterized()
-    assert not cz.is_parameterized()
-    assert cza.with_parameters_resolved_by(cirq.ParamResolver({'a': 1})) == cz
-
-
-def test_parameterizable_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableEffect, RestrictedGate, lambda _: cirq.S)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.is_parameterized()
-
-    assert not with_ext.is_parameterized()
+    assert cirq.is_parameterized(cza)
+    assert not cirq.is_parameterized(cz)
+    assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
 
 
 def test_text_diagram_info():

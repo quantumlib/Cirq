@@ -164,7 +164,6 @@ class Exp11Gate(XmonGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
-                ops.ParameterizableEffect,
                 ops.QasmConvertibleGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -251,10 +250,10 @@ class Exp11Gate(XmonGate,
     def __hash__(self):
         return hash((Exp11Gate, self.half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'Exp11Gate':
+    def _resolve_parameters_(self, param_resolver) -> 'Exp11Gate':
         return Exp11Gate(half_turns=param_resolver.value_of(self.half_turns))
 
 
@@ -263,7 +262,6 @@ class ExpWGate(XmonGate,
                ops.TextDiagrammable,
                ops.PhaseableEffect,
                ops.BoundedEffect,
-               ops.ParameterizableEffect,
                PotentialImplementation[Union[
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
@@ -434,11 +432,11 @@ class ExpWGate(XmonGate,
             return hash((ops.RotYGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol))
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpWGate':
+    def _resolve_parameters_(self, param_resolver) -> 'ExpWGate':
         return ExpWGate(
                 half_turns=param_resolver.value_of(self.half_turns),
                 axis_half_turns=param_resolver.value_of(self.axis_half_turns))
@@ -447,7 +445,6 @@ class ExpWGate(XmonGate,
 class ExpZGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
-               ops.ParameterizableEffect,
                ops.PhaseableEffect,
                ops.BoundedEffect,
                ops.QasmConvertibleGate,
@@ -575,8 +572,8 @@ class ExpZGate(XmonGate,
     def __hash__(self):
         return hash((ExpZGate, self.half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
+    def _resolve_parameters_(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))
