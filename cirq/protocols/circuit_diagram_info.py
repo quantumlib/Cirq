@@ -174,6 +174,13 @@ def circuit_diagram_info(val: Any,
     getter = getattr(val, '_circuit_diagram_info_', None)
     result = NotImplemented if getter is None else getter(args)
 
+    # TODO: remove compatibility shim when deleting TextDiagrammable.
+    from cirq import ops, extension
+    if result is NotImplemented and extension.can_cast(ops.TextDiagrammable,
+                                                       val):
+        return extension.cast(ops.TextDiagrammable,
+                              val).text_diagram_info(args)  # type: ignore
+
     # Success?
     if isinstance(result, str):
         return CircuitDiagramInfo(wire_symbols=(result,))

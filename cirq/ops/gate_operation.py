@@ -34,7 +34,6 @@ LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.ExtrapolatableEffect,
     gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
-    gate_features.TextDiagrammable,
 ]}
 
 LIFTED_POTENTIAL_TYPES[
@@ -50,7 +49,6 @@ class GateOperation(raw_types.Operation,
                         gate_features.ExtrapolatableEffect,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
-                        gate_features.TextDiagrammable,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -162,10 +160,12 @@ class GateOperation(raw_types.Operation,
         resolved_gate = protocols.resolve_parameters(self._gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        cast_gate = extension.cast(gate_features.TextDiagrammable, self.gate)
-        return cast_gate.text_diagram_info(args)
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.circuit_diagram_info(self.gate,
+                                              args,
+                                              NotImplemented)
 
     def trace_distance_bound(self) -> float:
         cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
