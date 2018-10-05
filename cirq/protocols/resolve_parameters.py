@@ -19,7 +19,8 @@ from cirq.study import ParamResolver
 TDefault = TypeVar('TDefault')
 
 class SupportsParameterization(Protocol):
-    """An object that may be describable by a unitary matrix."""
+    """An object that can be parameterized by Symbols and resolved
+    via a ParamResolver"""
 
     def _is_parameterized_(self: Any) -> bool:
         """Whether the gate is parameterized by any Symbols that require
