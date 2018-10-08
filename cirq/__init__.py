@@ -12,20 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Import sub-modules.
-
-from cirq import (
-    circuits,
-    devices,
-    google,
-    linalg,
-    ops,
-    schedules,
-    study,
-    testing,
-)
-
-# Also flatten some of the sub-modules.
+# Flattened sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -71,8 +58,10 @@ from cirq.extension import (
 
 from cirq.linalg import (
     allclose_up_to_global_phase,
+    apply_matrix_to_slices,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    slice_for_qubits_equal_to,
     block_diag,
     match_global_phase,
     commutes,
@@ -110,7 +99,7 @@ from cirq.ops import (
     BoundedEffect,
     CCX,
     CCZ,
-    CliffordGate,
+    SingleQubitCliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -163,6 +152,7 @@ from cirq.ops import (
     TextDiagrammable,
     TextDiagramInfo,
     TextDiagramInfoArgs,
+    ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -209,9 +199,23 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    apply_unitary_to_tensor,
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
     inverse,
+    SupportsApplyUnitaryToTensor,
+    SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,
+)
+
+# Unflattened sub-modules.
+
+from cirq import (
+    contrib,
+    google,
+    testing,
 )
 
 # Import version last since it is a relative import.

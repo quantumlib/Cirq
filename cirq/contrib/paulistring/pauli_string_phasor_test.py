@@ -71,7 +71,8 @@ def test_map_qubits():
 def test_pass_operations_over():
     q0, q1 = _make_qubits(2)
     X, Y, Z = cirq.Pauli.XYZ
-    op = cirq.CliffordGate.from_double_map({Z: (X,False), X: (Z,False)})(q0)
+    op = cirq.SingleQubitCliffordGate.from_double_map({Z: (X,False),
+                                                       X: (Z,False)})(q0)
     ps_before = cirq.PauliString({q0: X, q1: Y}, True)
     ps_after = cirq.PauliString({q0: Z, q1: Y}, True)
     before = PauliStringPhasor(ps_before, half_turns=0.1)
@@ -112,7 +113,9 @@ def test_extrapolate_effect_with_symbol():
 def test_inverse():
     op1 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.25)
     op2 = PauliStringPhasor(cirq.PauliString({}), half_turns=-0.25)
-    assert op1.inverse() == op2
+    op3 = PauliStringPhasor(cirq.PauliString({}), half_turns=cirq.Symbol('s'))
+    assert cirq.inverse(op1) == op2
+    assert cirq.inverse(op3, None) is None
 
 
 def test_can_merge_with():

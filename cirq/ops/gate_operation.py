@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension, protocols, value
+from cirq import extension, value, protocols
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
@@ -35,7 +35,6 @@ LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.ParameterizableEffect,
     gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
-    gate_features.TextDiagrammable,
 ]}
 
 LIFTED_POTENTIAL_TYPES[
@@ -52,7 +51,6 @@ class GateOperation(raw_types.Operation,
                         gate_features.ParameterizableEffect,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
-                        gate_features.TextDiagrammable,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -142,13 +140,27 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        return protocols.apply_unitary_to_tensor(
+            self.gate,
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         return protocols.unitary(self._gate, NotImplemented)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        cast_gate = extension.cast(gate_features.TextDiagrammable, self.gate)
-        return cast_gate.text_diagram_info(args)
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.circuit_diagram_info(self.gate,
+                                              args,
+                                              NotImplemented)
 
     def trace_distance_bound(self) -> float:
         cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
@@ -186,6 +198,11 @@ class GateOperation(raw_types.Operation,
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
+        if power == -1:
+            inv_gate = protocols.inverse(self.gate, None)
+            if inv_gate is None:
+                return NotImplemented
+            return self.with_gate(inv_gate)
         return self.extrapolate_effect(power)
 
     def is_parameterized(self) -> bool:
