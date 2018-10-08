@@ -68,7 +68,6 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
     for key in sorted(vals.keys()):
         reps = vals[key]
         n = 0 if len(reps) == 0 else len(reps[0])
-        print(reps)
         all_bits = ', '.join([_bitstring(reps[:, i])
                               for i in range(n)])
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
@@ -232,9 +231,3 @@ class TrialResult:
         if not isinstance(other, TrialResult):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self, other):
-        return hash(self._eq_tuple())

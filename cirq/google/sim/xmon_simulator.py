@@ -34,13 +34,13 @@ via.
 """
 import math
 import collections
-from typing import Dict, Iterator, List, Set, Union, cast
+from typing import cast, Dict, Iterator, List, Set, Union
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
 from cirq import circuits, extension, ops, sim, study
-from cirq import google as cg
+from cirq.google import convert_to_xmon_gates, xmon_gates, xmon_gate_ext
 from cirq.google.sim import xmon_stepper
 
 class XmonOptions:
@@ -90,63 +90,20 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulateTrialResult(study.TrialResult):
-    """Results of a simulation of the XmonSimulator.
-
-    Unlike TrialResult these results contain the final state (wave function)
-    of the system.
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
-            measurement results (ordered by the qubits acted on by the
-            measurement gate.)
-        final_state: The final state (wave function) of the system after the
-            trial finishes.
-    """
-
-    def __init__(self,
-                 params: study.ParamResolver,
-                 measurements: Dict[str, np.ndarray],
-                 final_state: np.ndarray) -> None:
-        super(XmonSimulateTrialResult, self).__init__(params=params,
-                                                      measurements=measurements,
-                                                      repetitions=1)
-        self.final_state = final_state
-
-    def __repr__(self):
-        return ('XmonSimulateTrialResult(params={!r}, '
-                'measurements={!r}, '
-                'final_state={!r})').format(self.params,
-                                            self.measurements,
-                                            self.final_state)
-
-    def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        results = sorted(
-            [(key, bitstring(val)) for key, val in self.measurements.items()])
-        return ' '.join(
-            ['{}={}'.format(key, val) for key, val in results])
-
-    def pretty_state(self, decimals=2):
-        return sim.pretty_state(self.final_state, decimals)
-
-
 class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
+
     For simulations that mimic the quantum hardware, the run methods are
-    provided:
+    defined in the RunSimulator interface:
         run
         run_sweep
     These methods do not return or give access to the full wave function.
 
     To get access to the wave function during a simulation, including being
-    able to set the wave function, the simulate methods are provided:
+    able to set the wave function, the simulate methods are defined in the
+    WaveFunctionSimulator interface:
         simulate
         simulate_sweep
         simulate_moment_steps (for stepping through a circuit moment by moment)
@@ -167,29 +124,11 @@ class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
         repetitions: int,
         extensions: extension.Extensions,
     ) -> Dict[str, List[np.ndarray]]:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
-
-        If one wants access to the wave function (both setting and getting),
-        the "simulate" methods should be used.
-
-        The initial state of the  run methods is the all zeros state in the
-        computational basis.
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-            extensions: Extensions that will be applied while trying to
-                decompose the circuit's gates into XmonGates. If None, this
-                uses the default of xmon_gate_ext.
-
-        Returns:
-            TrialResult for a run.
-        """
+        """Runs the entire supplied Circuit, mimicking the quantum hardware."""
         xmon_circuit, keys = self._to_xmon_circuit(
             circuit,
             param_resolver,
-            extensions or cg.xmon_gate_ext)
+            extensions or xmon_gate_ext)
         if xmon_circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(xmon_circuit, repetitions)
         else:
@@ -233,7 +172,7 @@ class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
         param_resolver = param_resolver or study.ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(circuit,
                                                 param_resolver,
-                                                extensions or cg.xmon_gate_ext)
+                                                extensions or xmon_gate_ext)
         return self._base_iterator(xmon_circuit,
                                    qubit_order,
                                    initial_state,
@@ -266,21 +205,21 @@ class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
                 phase_map = {}  # type: Dict[Tuple[int, ...], float]
                 for op in moment.operations:
                     gate = cast(ops.GateOperation, op).gate
-                    if isinstance(gate, cg.ExpZGate):
+                    if isinstance(gate, xmon_gates.ExpZGate):
                         index = qubit_map[op.qubits[0]]
                         phase_map[(index,)] = cast(float, gate.half_turns)
-                    elif isinstance(gate, cg.Exp11Gate):
+                    elif isinstance(gate, xmon_gates.Exp11Gate):
                         index0 = qubit_map[op.qubits[0]]
                         index1 = qubit_map[op.qubits[1]]
                         phase_map[(index0, index1)] = cast(float,
                                                            gate.half_turns)
-                    elif isinstance(gate, cg.ExpWGate):
+                    elif isinstance(gate, xmon_gates.ExpWGate):
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(
                             index=index,
                             half_turns=gate.half_turns,
                             axis_half_turns=gate.axis_half_turns)
-                    elif isinstance(gate, cg.XmonMeasurementGate):
+                    elif isinstance(gate, xmon_gates.XmonMeasurementGate):
                         if perform_measurements:
                             invert_mask = (
                                 gate.invert_mask or len(op.qubits) * (False,))
@@ -291,6 +230,7 @@ class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
                                     result = not result
                                 measurements[cast(str, gate.key)].append(result)
                     else:
+                        # coverage: ignore
                         raise TypeError('{!r} is not supported by the '
                                         'xmon simulator.'.format(gate))
                 stepper.simulate_phases(phase_map)
@@ -302,7 +242,7 @@ class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
         param_resolver: study.ParamResolver,
         extensions: extension.Extensions = None) -> Tuple[
             circuits.Circuit, Set[str]]:
-        converter = cg.ConvertToXmonGates(extensions)
+        converter = convert_to_xmon_gates.ConvertToXmonGates(extensions)
         extensions = converter.extensions
 
         # TODO: Use one optimization pass.
@@ -340,19 +280,20 @@ def _sample_measurements(circuit: circuits.Circuit,
     all_qubits = []  # type: List[raw_types.QubitId]
     current_index = 0
     for _, op, gate in circuit.findall_operations_with_gate_type(
-            cg.XmonMeasurementGate):
+            xmon_gates.XmonMeasurementGate):
         key = gate.key
         bounds[key] = (current_index, current_index + len(op.qubits))
         all_qubits.extend(op.qubits)
         current_index += len(op.qubits)
     sample = step_result.sample(all_qubits, repetitions)
-    return {k: np.array([x[s:e] for x in sample]) for k, (s, e) in bounds.items()}
+    return {k: np.array([x[s:e] for x in sample]) for k, (s, e) in
+            bounds.items()}
 
 
 def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
     keys = set()  # type: Set[str]
     for _, _, gate in circuit.findall_operations_with_gate_type(
-            cg.XmonMeasurementGate):
+            xmon_gates.XmonMeasurementGate):
         key = gate.key
         if key in keys:
             raise ValueError('Repeated Measurement key {}'.format(key))

@@ -14,9 +14,9 @@
 
 """Abstract base classes for different types of simulators.
 
-Simultor types include
+Simulator types include
     RunSimulator: mimics the interface of quantum hardware.
-    WavefunctionSimulator: Allows access to the wave function.
+    WaveFunctionSimulator: allows access to the wave function.
 """
 
 import abc
@@ -238,8 +238,7 @@ class WaveFunctionSimulator:
 
         Args:
             circuit: The Circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
+            param_resolver: A ParamResolver for determining values of Symbols.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
             initial_state: If an int, the state is set to the computational
@@ -378,9 +377,6 @@ class StepResult:
             and non-zero floats of the specified accuracy."""
         return state.pretty_state(self.state, decimals)
 
-    def _repr_pretty_(self, cycle=False):
-        return self.pretty_state()
-
 
 class SimulateTrialResult:
     """Results of a simulation by a WaveFunctionSimulator.
@@ -425,12 +421,11 @@ class SimulateTrialResult:
     def pretty_state(self, decimals=2):
         return state.pretty_state(self.final_state, decimals)
 
-    def _repr_pretty_(self, cycle=False):
-        return self.pretty_state()
-
     def _eq_tuple(self):
-        measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return SimulateTrialResult, self.params, measurements, self.final_state.tolist()
+        measurements = {k: v.tolist() for k, v in
+                        sorted(self.measurements.items())}
+        return (SimulateTrialResult, self.params, measurements,
+                self.final_state.tolist())
 
     def __eq__(self, other):
         if not isinstance(other, SimulateTrialResult):

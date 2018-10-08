@@ -134,9 +134,10 @@ def test_multi_measurement_histogram():
     })
 
 
-def test_simulate_trial_result_pretty_state():
-    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-    result = cirq.SimulateTrialResult(final_state=state,
-                                      params=cirq.ParamResolver({}),
-                                      measurements={})
-    assert result.pretty_state(2) == "(0.71)|0⟩ + (0.71)|1⟩"
+def test_trial_result_equality():
+    et = cirq.testing.EqualsTester()
+    et.add_equality_group(cirq.TrialResult(
+        params=cirq.ParamResolver({}),
+        repetitions=5,
+        measurements={'a': np.array([[0]])})
+    )

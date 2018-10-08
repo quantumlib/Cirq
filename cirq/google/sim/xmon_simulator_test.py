@@ -1013,20 +1013,6 @@ def test_simulator_trial_repeated_result():
     assert str(result) == 'ab=00000, 11111\nc=00000'
 
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
-def test_simulator_simulate_trial_result_repr():
-    v = cg.XmonSimulateTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-
-    assert repr(v) == ("XmonSimulateTrialResult("
-                       "params=cirq.ParamResolver({'a': 2}), "
-                       "measurements={'m': array([1, 2])}, "
-                       "final_state=array([0, 1, 0, 0]))")
-
-
 def test_simulator_simulate_trial_result_str():
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(0, 1)

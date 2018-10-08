@@ -25,7 +25,7 @@ class ParamResolver(object):
     A Symbol is a wrapped parameter name (str). A ParamResolver is an object
     that can be used to assign values for these keys.
 
-    ParamResolvers are hashable.
+    ParamResolvers are hashable and equal
 
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
@@ -63,6 +63,11 @@ class ParamResolver(object):
 
     def __hash__(self):
         return self._param_hash
+
+    def __eq__(self, other):
+        if not isinstance(other, ParamResolver):
+            return NotImplemented
+        return self.param_dict == other.param_dict
 
     def __repr__(self):
         return 'cirq.ParamResolver({})'.format(repr(self.param_dict))

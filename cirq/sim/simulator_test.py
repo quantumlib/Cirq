@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for simulator.py"""
+from typing import List, Dict
 
 import numpy as np
 
@@ -46,7 +47,8 @@ def test_run_simulator_sweeps():
     expected_measurements = {'a': [[1]]}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
-    param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
+    param_resolvers = [mock.Mock(cirq.ParamResolver),
+                       mock.Mock(cirq.ParamResolver)]
     extensions = mock.Mock(cirq.Extensions)
     expected_results = [cirq.TrialResult(repetitions=10,
                                          measurements=expected_measurements,
@@ -133,7 +135,8 @@ def test_wave_simulator_sweeps():
 
     simulator._simulator_iterator.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
-    param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
+    param_resolvers = [mock.Mock(cirq.ParamResolver),
+                       mock.Mock(cirq.ParamResolver)]
     qubit_order = mock.Mock(cirq.QubitOrder)
     extensions = mock.Mock(cirq.Extensions)
     results = simulator.simulate_sweep(program=circuit,
@@ -152,3 +155,65 @@ def test_wave_simulator_sweeps():
             final_state=final_state)
     ]
     assert results == expected_results
+
+
+# Python 2 gives a different repr due to unicode strings being prefixed with u.
+@cirq.testing.only_test_in_python3
+def test_simulator_simulate_trial_result_repr():
+    v = cirq.SimulateTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]))
+
+    assert repr(v) == ("SimulateTrialResult("
+                       "params=cirq.ParamResolver({'a': 2}), "
+                       "measurements={'m': array([1, 2])}, "
+                       "final_state=array([0, 1, 0, 0]))")
+
+
+def test_simulator_trial_result_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.SimulateTrialResult(
+            params=cirq.ParamResolver({'a': 2}),
+            measurements={'m': np.array([1, 2])},
+            final_state=np.array([0, 1, 0, 0])),
+        cirq.SimulateTrialResult(
+            params=cirq.ParamResolver({'a': 2}),
+            measurements={'m': np.array([1, 2])},
+            final_state=np.array([0, 1, 0, 0])))
+    eq.add_equality_group(
+        cirq.SimulateTrialResult(
+            params=cirq.ParamResolver({'a': 2}),
+            measurements={'m': np.array([1, 2])},
+            final_state=np.array([0, 0, 1, 0])))
+    eq.add_equality_group(
+        cirq.SimulateTrialResult(
+            params=cirq.ParamResolver({'a': 3}),
+            measurements={'m': np.array([1, 2])},
+            final_state=np.array([0, 0, 1, 0])))
+
+
+def test_simulator_trial_pretty_state():
+    result = cirq.SimulateTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]))
+    assert result.pretty_state() == '|01⟩'
+
+
+class BasicStepResult(cirq.StepResult):
+
+    def __init__(self, qubit_map: Dict,
+        measurements: Dict[str, List[bool]]) -> None:
+        super().__init__(qubit_map, measurements)
+
+    @property
+    def state(self) -> np.ndarray:
+        return np.array([0, 1, 0, 0])
+
+
+def test_step_result_pretty_state():
+    step_result = BasicStepResult({}, {})
+    assert step_result.pretty_state() == '|01⟩'
+
