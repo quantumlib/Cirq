@@ -145,10 +145,11 @@ class ControlledGate(raw_types.Gate,
                               self.default_extensions)
 
     def _is_parameterized_(self):
-        return cirq.is_parameterized(self.sub_gate)
+        return protocols.is_parameterized(self.sub_gate)
 
     def _resolve_parameters_(self, param_resolver):
-        new_sub_gate = cirq.resolve_parameters(self.sub_gate, param_resolver)
+        new_sub_gate = protocols.resolve_parameters(self.sub_gate,
+                                                    param_resolver)
         return ControlledGate(new_sub_gate, self.default_extensions)
 
     def trace_distance_bound(self):
