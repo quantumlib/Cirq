@@ -432,3 +432,5 @@ class SimulateTrialResult:
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
 
+    def __ne__(self, other):
+        return not self == other

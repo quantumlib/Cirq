@@ -39,17 +39,17 @@ def pretty_state(state: Sequence, decimals: int=2) -> str:
     """
     perm_list = ["".join(seq) for seq in itertools.product(
         "01", repeat=int(len(state)).bit_length() - 1)]
-
     components = []
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        val = round(state[x], decimals)
-        print(val)
-        if round(val.real, decimals) == 0:
+        # Python 2 rounds imaginary numbers to 0, so need to round separately.
+        val = (round(state[x].real, decimals)
+               + 1j * round(state[x].imag, decimals))
+        if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag
             format_str = "({:." + str(decimals) + "g}j)"
-        if round(val.imag, decimals) == 0:
+        if round(val.imag, decimals) == 0 and round(val.real, decimals) != 0:
             val = val.real
         if val != 0:
             if round(state[x], decimals) == 1:

@@ -177,10 +177,6 @@ def test_simulator_trial_result_equality():
         cirq.SimulateTrialResult(
             params=cirq.ParamResolver({'a': 2}),
             measurements={'m': np.array([1, 2])},
-            final_state=np.array([0, 1, 0, 0])),
-        cirq.SimulateTrialResult(
-            params=cirq.ParamResolver({'a': 2}),
-            measurements={'m': np.array([1, 2])},
             final_state=np.array([0, 1, 0, 0])))
     eq.add_equality_group(
         cirq.SimulateTrialResult(

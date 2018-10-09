@@ -139,5 +139,12 @@ def test_trial_result_equality():
     et.add_equality_group(cirq.TrialResult(
         params=cirq.ParamResolver({}),
         repetitions=5,
-        measurements={'a': np.array([[0]])})
-    )
+        measurements={'a': np.array([[0]])}))
+    et.add_equality_group(cirq.TrialResult(
+        params=cirq.ParamResolver({}),
+        repetitions=6,
+        measurements={'a': np.array([[0]])}))
+    et.add_equality_group(cirq.TrialResult(
+        params=cirq.ParamResolver({}),
+        repetitions=5,
+        measurements={'a': np.array([[1]])}))
