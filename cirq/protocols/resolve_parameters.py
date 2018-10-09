@@ -33,11 +33,14 @@ class SupportsParameterization(Protocol):
 
 
 def is_parameterized(val: Any) -> bool:
-    """Returns whether a gate is parameterizable.
+    """Returns whether the object is parameterized with any Symbols.
+    This function uses the magic method "_is_parameterized_" of the
+    passed in object to determine the result.
 
     Returns:
         True if the gate has any unresolved Symbols
-        and False otherwise.
+        and False otherwise. If no implementation of the magic
+        method above exists, will default to False.
     """
     getter = getattr(val, '_is_parameterized_', None)
     result = NotImplemented if getter is None else getter()
@@ -49,17 +52,20 @@ def is_parameterized(val: Any) -> bool:
 
 
 def resolve_parameters(val: Any, param_resolver: ParamResolver) -> Any:
-    """Resolve the parameters in the effect.
+    """Resolve the parameters in the effect by returning a copy of the
+    given value, but with symbols replaced by concrete values from the
+    given parameter resolver. This function uses the magic method
+    "_resolve_parameters_" of the passed in object to determine the result.
 
     Args:
-        val: The gate to resolve
+        val: The object to resolve (e.g. the gate, operation, etc)
         param_resolver: the object to use for resolving all symbols
 
     Returns:
         a gate or operation of the same type, but with all Symbols
         replaced with floats according to the given ParamResolver.
-        If no implementation exists, this will return the input
-        unmodified.
+        If no implementation of the above magic method exists,
+        this will return the input unmodified.
     """
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)

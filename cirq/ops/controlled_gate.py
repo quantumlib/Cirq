@@ -15,7 +15,6 @@
 from typing import Optional, TypeVar, Type, cast, Union, Sequence
 
 import numpy as np
-import cirq
 
 from cirq import linalg, extension, protocols
 from cirq.ops import raw_types, gate_features

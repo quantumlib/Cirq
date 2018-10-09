@@ -1128,10 +1128,7 @@ class Circuit:
         return diagram
 
     def is_parameterized(self) -> bool:
-        for op in self.all_operations():
-            if cirq.is_parameterized(op):
-                return True
-        return False
+        return any(cirq.is_parameterized(op) for op in self.all_operations())
 
     def with_parameters_resolved_by(self,
                                     param_resolver: study.ParamResolver,

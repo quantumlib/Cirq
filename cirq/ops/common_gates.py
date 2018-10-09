@@ -18,9 +18,8 @@ from typing import (
 )
 
 import numpy as np
-import cirq
 
-from cirq import value, linalg
+from cirq import value, linalg, protocols
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
