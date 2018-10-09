@@ -314,7 +314,7 @@ class XmonStepResult(sim.StepResult):
 
     def __init__(
             self,
-            stepper: 'Stepper',
+            stepper: xmon_stepper.Stepper,
             qubit_map: Dict,
             measurements: Dict[str, np.ndarray]) -> None:
         self.qubit_map = qubit_map or {}

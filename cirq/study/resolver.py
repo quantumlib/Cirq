@@ -25,7 +25,7 @@ class ParamResolver(object):
     A Symbol is a wrapped parameter name (str). A ParamResolver is an object
     that can be used to assign values for these keys.
 
-    ParamResolvers are hashable and equal
+    ParamResolvers are hashable.
 
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
