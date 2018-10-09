@@ -34,13 +34,15 @@ class SupportsParameterization(Protocol):
 
 def is_parameterized(val: Any) -> bool:
     """Returns whether the object is parameterized with any Symbols.
-    This function uses the magic method "_is_parameterized_" of the
-    passed in object to determine the result.
+
+    A value is parameterized when it has an is_parameterized method and
+    that method returns a truthy value.
 
     Returns:
         True if the gate has any unresolved Symbols
         and False otherwise. If no implementation of the magic
-        method above exists, will default to False.
+        method above exists or if that method returns NotImplemented,
+        this will default to False.
     """
     getter = getattr(val, '_is_parameterized_', None)
     result = NotImplemented if getter is None else getter()
@@ -52,10 +54,11 @@ def is_parameterized(val: Any) -> bool:
 
 
 def resolve_parameters(val: Any, param_resolver: ParamResolver) -> Any:
-    """Resolve the parameters in the effect by returning a copy of the
-    given value, but with symbols replaced by concrete values from the
-    given parameter resolver. This function uses the magic method
-    "_resolve_parameters_" of the passed in object to determine the result.
+    """Resolves symbol parameters in the effect using the param resolver.
+
+    This function will use the `_resolve_parameters_` magic method
+    of `val` to resolve any Symbols with concrete values from the given
+    parameter resolver.
 
     Args:
         val: The object to resolve (e.g. the gate, operation, etc)
@@ -64,8 +67,8 @@ def resolve_parameters(val: Any, param_resolver: ParamResolver) -> Any:
     Returns:
         a gate or operation of the same type, but with all Symbols
         replaced with floats according to the given ParamResolver.
-        If no implementation of the above magic method exists,
-        this will return the input unmodified.
+        If `val` has no `_resolve_parameters_` method or if it returns
+        NotImplemented, `val` itself is returned.
     """
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)
