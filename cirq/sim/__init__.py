@@ -15,14 +15,14 @@
 """Base simulation classes and generic simulators."""
 
 from cirq.sim.simulator import (
-    RunSimulator,
+    SampleSimulator,
     StepResult,
     WaveFunctionSimulator,
     SimulateTrialResult,
 )
 
 from cirq.sim.state import (
-    pretty_state,
-    decode_initial_state,
-    check_state
+    dirac_notation,
+    to_valid_state_vector,
+    validate_normalized_state
 )

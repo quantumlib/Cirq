@@ -169,10 +169,10 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    check_state,
-    decode_initial_state,
-    pretty_state,
-    RunSimulator,
+    validate_normalized_state,
+    to_valid_state_vector,
+    dirac_notation,
+    SampleSimulator,
     SimulateTrialResult,
     StepResult,
     WaveFunctionSimulator,

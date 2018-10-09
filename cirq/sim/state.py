@@ -20,7 +20,7 @@ from typing import Sequence, Union
 import numpy as np
 
 
-def pretty_state(state: Sequence, decimals: int=2) -> str:
+def dirac_notation(state: Sequence, decimals: int=2) -> str:
     """Returns the wavefunction as a string in Dirac notation.
 
     For example:
@@ -60,33 +60,54 @@ def pretty_state(state: Sequence, decimals: int=2) -> str:
     return ' + '.join(components)
 
 
-def decode_initial_state(initial_state: Union[int, np.ndarray],
+def to_valid_state_vector(state_rep: Union[int, np.ndarray],
     num_qubits: int, dtype: np.dtype = np.complex64) -> np.ndarray:
-    """Verifies the initial_state is valid and converts it to ndarray form."""
-    if isinstance(initial_state, np.ndarray):
-        if len(initial_state) != 2 ** num_qubits:
+    """Verifies the initial_state is valid and converts it to ndarray form.
+
+    This method is used to support passing in an integer representing a
+    computational basis state or a full wave function as a representation of
+    a state.
+
+    Args:
+        state_rep: If an int, the state returned is the state corresponding to
+            a computational basis state. If an numpy array this is the full
+            wave function. Both of these are validated for the given number
+            of qubits, and the state must be properly normalized and of the
+            appropriate dtype.
+        num_qubits: The number of qubits for the state. The state_rep must be
+            valid for this number of qubits.
+        dtype: The numpy dtype of the state, will be used when creating the
+            state for a computational basis state, or validated against if
+            state_rep is a numpy array.
+
+    Returns:
+        A numpy ndarray corresponding to the state on the given number of
+        qubits.
+    """
+    if isinstance(state_rep, np.ndarray):
+        if len(state_rep) != 2 ** num_qubits:
             raise ValueError(
                 'initial state was of size {} '
                 'but expected state for {} qubits'.format(
-                    len(initial_state), num_qubits))
-        state = initial_state
-    elif isinstance(initial_state, int):
-        if initial_state < 0:
+                    len(state_rep), num_qubits))
+        state = state_rep
+    elif isinstance(state_rep, int):
+        if state_rep < 0:
             raise ValueError('initial_state must be positive')
-        elif initial_state >= 2 ** num_qubits:
+        elif state_rep >= 2 ** num_qubits:
             raise ValueError(
                 'initial state was {} but expected state for {} qubits'.format(
-                    initial_state, num_qubits))
+                    state_rep, num_qubits))
         else:
             state = np.zeros(2 ** num_qubits, dtype=dtype)
-            state[initial_state] = 1.0
+            state[state_rep] = 1.0
     else:
         raise TypeError('initial_state was not of type int or ndarray')
-    check_state(state, num_qubits)
+    validate_normalized_state(state, num_qubits)
     return state
 
 
-def check_state(state: np.ndarray, num_qubits: int,
+def validate_normalized_state(state: np.ndarray, num_qubits: int,
     dtype: np.dtype = np.complex64):
     """Validates that the given state is a valid wave function."""
     if state.size != 1 << num_qubits:

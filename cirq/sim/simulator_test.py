@@ -20,9 +20,9 @@ import cirq
 from cirq.testing.mock import mock
 
 
-@mock.patch.multiple(cirq.RunSimulator, _run=mock.Mock())
+@mock.patch.multiple(cirq.SampleSimulator, _run=mock.Mock())
 def test_run_simulator_run():
-    simulator = cirq.RunSimulator()
+    simulator = cirq.SampleSimulator()
     expected_measurements = {'a': [[1]]}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
@@ -41,9 +41,9 @@ def test_run_simulator_run():
                                            extensions=extensions)
 
 
-@mock.patch.multiple(cirq.RunSimulator, _run=mock.Mock())
+@mock.patch.multiple(cirq.SampleSimulator, _run=mock.Mock())
 def test_run_simulator_sweeps():
-    simulator = cirq.RunSimulator()
+    simulator = cirq.SampleSimulator()
     expected_measurements = {'a': [[1]]}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
@@ -176,17 +176,22 @@ def test_simulator_trial_result_equality():
     eq.add_equality_group(
         cirq.SimulateTrialResult(
             params=cirq.ParamResolver({'a': 2}),
-            measurements={'m': np.array([1, 2])},
+            measurements={'m': np.array([1, 0])},
             final_state=np.array([0, 1, 0, 0])))
     eq.add_equality_group(
         cirq.SimulateTrialResult(
             params=cirq.ParamResolver({'a': 2}),
-            measurements={'m': np.array([1, 2])},
+            measurements={'m': np.array([1, 0])},
             final_state=np.array([0, 0, 1, 0])))
     eq.add_equality_group(
         cirq.SimulateTrialResult(
             params=cirq.ParamResolver({'a': 3}),
-            measurements={'m': np.array([1, 2])},
+            measurements={'m': np.array([1, 0])},
+            final_state=np.array([0, 0, 1, 0])))
+    eq.add_equality_group(
+        cirq.SimulateTrialResult(
+            params=cirq.ParamResolver({'a': 3}),
+            measurements={'m': np.array([0, 1])},
             final_state=np.array([0, 0, 1, 0])))
 
 
@@ -195,7 +200,7 @@ def test_simulator_trial_pretty_state():
         params=cirq.ParamResolver({'a': 2}),
         measurements={'m': np.array([1, 2])},
         final_state=np.array([0, 1, 0, 0]))
-    assert result.pretty_state() == '|01⟩'
+    assert result.dirac_notation() == '|01⟩'
 
 
 class BasicStepResult(cirq.StepResult):
@@ -211,5 +216,5 @@ class BasicStepResult(cirq.StepResult):
 
 def test_step_result_pretty_state():
     step_result = BasicStepResult({}, {})
-    assert step_result.pretty_state() == '|01⟩'
+    assert step_result.dirac_notation() == '|01⟩'
 

@@ -90,13 +90,13 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulator(sim.RunSimulator, sim.WaveFunctionSimulator):
+class XmonSimulator(sim.SampleSimulator, sim.WaveFunctionSimulator):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
 
     For simulations that mimic the quantum hardware, the run methods are
-    defined in the RunSimulator interface:
+    defined in the SampleSimulator interface:
         run
         run_sweep
     These methods do not return or give access to the full wave function.

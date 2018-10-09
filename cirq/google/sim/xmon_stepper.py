@@ -181,7 +181,7 @@ class Stepper(object):
     def _init_state(self, initial_state: Union[int, np.ndarray]):
         """Initializes a the shard wavefunction and sets the initial state."""
         state = np.reshape(
-            sim.decode_initial_state(initial_state, self._num_qubits),
+            sim.to_valid_state_vector(initial_state, self._num_qubits),
             (self._num_shards, self._shard_size))
         state_handle = mem_manager.SharedMemManager.create_array(
             state.view(dtype=np.float32))
@@ -263,7 +263,7 @@ class Stepper(object):
             self._pool.map(_reset_state,
                            self._shard_num_args({'reset_state': reset_state}))
         elif isinstance(reset_state, np.ndarray):
-            sim.check_state(reset_state, self._num_qubits)
+            sim.validate_normalized_state(reset_state, self._num_qubits)
             args = []
             for kwargs in self._shard_num_args():
                 shard_num = kwargs['shard_num']

@@ -15,7 +15,7 @@
 """Abstract base classes for different types of simulators.
 
 Simulator types include
-    RunSimulator: mimics the interface of quantum hardware.
+    SampleSimulator: mimics the interface of quantum hardware.
     WaveFunctionSimulator: allows access to the wave function.
 """
 
@@ -30,7 +30,7 @@ from cirq import circuits, extension, ops, schedules, study
 from cirq.sim import state
 
 
-class RunSimulator:
+class SampleSimulator:
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
@@ -218,8 +218,8 @@ class WaveFunctionSimulator:
                 # Empty circuit, so final state should be initial state.
                 print(circuit)
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = state.decode_initial_state(initial_state,
-                                                         num_qubits)
+                final_state = state.to_valid_state_vector(initial_state,
+                                                          num_qubits)
             trial_results.append(SimulateTrialResult(
                 params=param_resolver,
                 measurements=measurements,
@@ -363,7 +363,7 @@ class StepResult:
         """
         raise NotImplementedError()
 
-    def pretty_state(self, decimals=2):
+    def dirac_notation(self, decimals=2):
         """Returns the wavefunction as a string in Dirac notation.
 
         Args:
@@ -375,7 +375,7 @@ class StepResult:
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return state.pretty_state(self.state, decimals)
+        return state.dirac_notation(self.state, decimals)
 
 
 class SimulateTrialResult:
@@ -418,8 +418,8 @@ class SimulateTrialResult:
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
 
-    def pretty_state(self, decimals=2):
-        return state.pretty_state(self.final_state, decimals)
+    def dirac_notation(self, decimals=2):
+        return state.dirac_notation(self.final_state, decimals)
 
     def _eq_tuple(self):
         measurements = {k: v.tolist() for k, v in
