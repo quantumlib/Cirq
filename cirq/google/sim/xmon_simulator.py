@@ -90,7 +90,7 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulator(sim.SampleSimulator, sim.WaveFunctionSimulator):
+class XmonSimulator(sim.SampleSimulator, sim.StepSimulator):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
@@ -168,7 +168,8 @@ class XmonSimulator(sim.SampleSimulator, sim.WaveFunctionSimulator):
         initial_state: Union[int, np.ndarray],
         extensions: extension.Extensions,
         perform_measurements: bool = True,
-    ):
+    ) -> Iterator['XmonStepResult']:
+        """See definition in WaveFunctionSimulator."""
         param_resolver = param_resolver or study.ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(circuit,
                                                 param_resolver,
@@ -186,6 +187,7 @@ class XmonSimulator(sim.SampleSimulator, sim.WaveFunctionSimulator):
         initial_state: Union[int, np.ndarray],
         perform_measurements: bool=True,
     ) -> Iterator['XmonStepResult']:
+        """See _simulator_iterator."""
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(reversed(qubits))}

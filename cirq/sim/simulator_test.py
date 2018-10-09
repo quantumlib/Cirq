@@ -67,10 +67,10 @@ def test_run_simulator_sweeps():
     assert simulator._run.call_count == 2
 
 
-@mock.patch.multiple(cirq.WaveFunctionSimulator,
+@mock.patch.multiple(cirq.StepSimulator,
                      _simulator_iterator=mock.Mock())
 def test_wave_simulator():
-    simulator = cirq.WaveFunctionSimulator()
+    simulator = cirq.StepSimulator()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
@@ -99,10 +99,10 @@ def test_wave_simulator():
     np.testing.assert_equal(result.final_state, final_state)
 
 
-@mock.patch.multiple(cirq.WaveFunctionSimulator,
+@mock.patch.multiple(cirq.StepSimulator,
                      _simulator_iterator=mock.Mock())
 def test_wave_simulator_no_steps():
-    simulator = cirq.WaveFunctionSimulator()
+    simulator = cirq.StepSimulator()
 
     initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
 
@@ -121,10 +121,10 @@ def test_wave_simulator_no_steps():
     np.testing.assert_equal(result.final_state, initial_state)
 
 
-@mock.patch.multiple(cirq.WaveFunctionSimulator,
+@mock.patch.multiple(cirq.StepSimulator,
                      _simulator_iterator=mock.Mock())
 def test_wave_simulator_sweeps():
-    simulator = cirq.WaveFunctionSimulator()
+    simulator = cirq.StepSimulator()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
@@ -145,11 +145,11 @@ def test_wave_simulator_sweeps():
                                        initial_state=2,
                                        extensions=extensions)
     expected_results = [
-        cirq.SimulateTrialResult(
+        cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[0],
             final_state=final_state),
-        cirq.SimulateTrialResult(
+        cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[1],
             final_state=final_state)
@@ -160,12 +160,12 @@ def test_wave_simulator_sweeps():
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
 @cirq.testing.only_test_in_python3
 def test_simulator_simulate_trial_result_repr():
-    v = cirq.SimulateTrialResult(
+    v = cirq.SimulationTrialResult(
         params=cirq.ParamResolver({'a': 2}),
         measurements={'m': np.array([1, 2])},
         final_state=np.array([0, 1, 0, 0]))
 
-    assert repr(v) == ("SimulateTrialResult("
+    assert repr(v) == ("SimulationTrialResult("
                        "params=cirq.ParamResolver({'a': 2}), "
                        "measurements={'m': array([1, 2])}, "
                        "final_state=array([0, 1, 0, 0]))")
@@ -174,29 +174,29 @@ def test_simulator_simulate_trial_result_repr():
 def test_simulator_trial_result_equality():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
-        cirq.SimulateTrialResult(
+        cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'a': 2}),
             measurements={'m': np.array([1, 0])},
             final_state=np.array([0, 1, 0, 0])))
     eq.add_equality_group(
-        cirq.SimulateTrialResult(
+        cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'a': 2}),
             measurements={'m': np.array([1, 0])},
             final_state=np.array([0, 0, 1, 0])))
     eq.add_equality_group(
-        cirq.SimulateTrialResult(
+        cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'a': 3}),
             measurements={'m': np.array([1, 0])},
             final_state=np.array([0, 0, 1, 0])))
     eq.add_equality_group(
-        cirq.SimulateTrialResult(
+        cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'a': 3}),
             measurements={'m': np.array([0, 1])},
             final_state=np.array([0, 0, 1, 0])))
 
 
 def test_simulator_trial_pretty_state():
-    result = cirq.SimulateTrialResult(
+    result = cirq.SimulationTrialResult(
         params=cirq.ParamResolver({'a': 2}),
         measurements={'m': np.array([1, 2])},
         final_state=np.array([0, 1, 0, 0]))

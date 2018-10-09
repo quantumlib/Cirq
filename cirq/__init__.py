@@ -169,13 +169,14 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    validate_normalized_state,
-    to_valid_state_vector,
     dirac_notation,
     SampleSimulator,
-    SimulateTrialResult,
+    SimulationTrialResult,
     StepResult,
+    StepSimulator,
+    to_valid_state_vector,
     WaveFunctionSimulator,
+    validate_normalized_state,
 )
 
 from cirq.study import (

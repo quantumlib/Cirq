@@ -127,7 +127,10 @@ class SampleSimulator:
 class WaveFunctionSimulator:
     """Simulator that allows access to a quantum computer's wavefunction.
 
-    Implementors of this interface should implement the __simulator_iterator.
+    Implementors of this interface should implement the simulate_sweep
+    method. This simulator only returns the wave function for the final
+    step of a simulation. For simulators that also allow stepping through
+    a circuit see `StepSimulator`.
     """
 
     def simulate(
@@ -137,7 +140,7 @@ class WaveFunctionSimulator:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
         extensions: extension.Extensions = None,
-    ) -> 'SimulateTrialResult':
+    ) -> 'SimulationTrialResult':
         """Simulates the entire supplied Circuit.
 
         This method returns a result which allows access to the entire
@@ -163,6 +166,7 @@ class WaveFunctionSimulator:
         return self.simulate_sweep(circuit, [param_resolver], qubit_order,
                                    initial_state, extensions)[0]
 
+    @abc.abstractmethod
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
@@ -170,7 +174,111 @@ class WaveFunctionSimulator:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
         extensions: extension.Extensions = None
-    ) -> List['SimulateTrialResult']:
+    ) -> List['SimulationTrialResult']:
+        """Simulates the entire supplied Circuit.
+
+        This method returns a result which allows access to the entire
+        wave function. In contrast to simulate, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state.
+                Otherwise if this is a np.ndarray it is the full initial state.
+                In this case it must be the correct size, be normalized (an L2
+                norm of 1), and  be safely castable to an appropriate
+                dtype for the simulator.
+            extensions: Extensions that will be applied during the simulate.
+                See documentation of class for details.
+
+        Returns:
+            List of SimulatorTrialResults for this run, one for each
+            possible parameter resolver.
+        """
+        raise NotImplementedError()
+
+
+class SimulationTrialResult:
+    """Results of a simulation by a WaveFunctionSimulator.
+
+    Unlike TrialResult these results contain the final state (wave function)
+    of the system.
+
+    Attributes:
+        params: A ParamResolver of settings used for this result.
+        measurements: A dictionary from measurement gate key to measurement
+            results. Measurement results are a numpy ndarray of actual boolean
+            measurement results (ordered by the qubits acted on by the
+            measurement gate.)
+        final_state: The final state (wave function) of the system after the
+            trial finishes.
+    """
+
+    def __init__(self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_state: np.ndarray) -> None:
+        self.params = params
+        self.measurements = measurements
+        self.final_state = final_state
+
+    def __repr__(self):
+        return ('SimulationTrialResult(params={!r}, '
+                'measurements={!r}, '
+                'final_state={!r})').format(self.params,
+                                            self.measurements,
+                                            self.final_state)
+
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        results = sorted(
+            [(key, bitstring(val)) for key, val in self.measurements.items()])
+        return ' '.join(
+            ['{}={}'.format(key, val) for key, val in results])
+
+    def dirac_notation(self, decimals=2):
+        return state.dirac_notation(self.final_state, decimals)
+
+    def _eq_tuple(self):
+        measurements = {k: v.tolist() for k, v in
+                        sorted(self.measurements.items())}
+        return (SimulationTrialResult, self.params, measurements,
+                self.final_state.tolist())
+
+    def __eq__(self, other):
+        if not isinstance(other, SimulationTrialResult):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
+
+
+class StepSimulator(WaveFunctionSimulator):
+    """A WaveFunctionSimulator that simulates a circuit by moments.
+
+    Whereas a general WaveFunctionSimulator may return the entire wave
+    function at the end of a circuit, a StepSimulator can simulate stepping
+    through the moments of a circuit.
+
+    Implementors of this interface should implement the _simulator_iterator
+    method.
+    """
+
+    def simulate_sweep(
+        self,
+        program: Union[circuits.Circuit, schedules.Schedule],
+        params: study.Sweepable = study.ParamResolver({}),
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Union[int, np.ndarray] = 0,
+        extensions: extension.Extensions = None
+    ) -> List['SimulationTrialResult']:
         """Simulates the entire supplied Circuit.
 
         This method returns a result which allows access to the entire
@@ -199,7 +307,7 @@ class WaveFunctionSimulator:
                    else program.to_circuit())
         param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
 
-        trial_results = []  # type: List[SimulateTrialResult]
+        trial_results = []  # type: List[SimulationTrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
             step_result = None
@@ -220,12 +328,13 @@ class WaveFunctionSimulator:
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
                 final_state = state.to_valid_state_vector(initial_state,
                                                           num_qubits)
-            trial_results.append(SimulateTrialResult(
+            trial_results.append(SimulationTrialResult(
                 params=param_resolver,
                 measurements=measurements,
                 final_state=final_state))
 
         return trial_results
+
 
     def simulate_moment_steps(
         self,
@@ -257,6 +366,7 @@ class WaveFunctionSimulator:
         return self._simulator_iterator(circuit, param_resolver, qubit_order,
                                         initial_state, extensions)
 
+
     @abc.abstractmethod
     def _simulator_iterator(
         self,
@@ -284,6 +394,7 @@ class WaveFunctionSimulator:
             StepResults from simulating a Moment of the Circuit.
         """
         raise NotImplementedError()
+
 
 
 class StepResult:
@@ -376,61 +487,3 @@ class StepResult:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
         return state.dirac_notation(self.state, decimals)
-
-
-class SimulateTrialResult:
-    """Results of a simulation by a WaveFunctionSimulator.
-
-    Unlike TrialResult these results contain the final state (wave function)
-    of the system.
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
-            measurement results (ordered by the qubits acted on by the
-            measurement gate.)
-        final_state: The final state (wave function) of the system after the
-            trial finishes.
-    """
-
-    def __init__(self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_state: np.ndarray) -> None:
-        self.params = params
-        self.measurements = measurements
-        self.final_state = final_state
-
-    def __repr__(self):
-        return ('SimulateTrialResult(params={!r}, '
-                'measurements={!r}, '
-                'final_state={!r})').format(self.params,
-                                            self.measurements,
-                                            self.final_state)
-
-    def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        results = sorted(
-            [(key, bitstring(val)) for key, val in self.measurements.items()])
-        return ' '.join(
-            ['{}={}'.format(key, val) for key, val in results])
-
-    def dirac_notation(self, decimals=2):
-        return state.dirac_notation(self.final_state, decimals)
-
-    def _eq_tuple(self):
-        measurements = {k: v.tolist() for k, v in
-                        sorted(self.measurements.items())}
-        return (SimulateTrialResult, self.params, measurements,
-                self.final_state.tolist())
-
-    def __eq__(self, other):
-        if not isinstance(other, SimulateTrialResult):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
