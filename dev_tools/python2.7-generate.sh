@@ -77,7 +77,7 @@ cp "${in_dir}/python2.7-requirements.txt" "${out_dir}/requirements.txt"
 cp "${in_dir}/dev_tools/conf/pip-list-python2.7-test-tools.txt" "${out_dir}/pip-list-test-tools.txt"
 
 # Include packaging files.
-cp "${in_dir}/MANIFEST.in" "${out_dir}/MANIFEST.in"
+cp "${in_dir}/dev_tools/MANIFEST.in" "${out_dir}/MANIFEST.in"
 cp "${in_dir}/README.rst" "${out_dir}/README.rst"
 cp "${in_dir}/LICENSE" "${out_dir}/LICENSE"
 cp "${in_dir}/setup.py" "${out_dir}/setup.py"

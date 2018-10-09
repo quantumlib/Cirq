@@ -66,7 +66,7 @@ Contributing
 ------------
 
 We welcome contributions. Please follow these
-`guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
+`guidelines <https://github.com/quantumlib/cirq/blob/master/dev_tools/CONTRIBUTING.md>`__.
 
 We use
 `Github issues <https://github.com/quantumlib/Cirq/issues>`__

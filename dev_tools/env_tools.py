@@ -157,7 +157,7 @@ def derive_temporary_python2_environment(
     os.chdir(input_directory)
     conversion_script_path = os.path.join(
         input_directory,
-        'python2.7-generate.sh')
+        'dev_tools/python2.7-generate.sh')
     shell_tools.run_cmd('bash',
                         conversion_script_path,
                         destination_directory,
