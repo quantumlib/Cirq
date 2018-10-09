@@ -83,8 +83,8 @@ cp "${in_dir}/LICENSE" "${out_dir}/LICENSE"
 cp "${in_dir}/setup.py" "${out_dir}/setup.py"
 
 # Substitute versions (failing via grep triggering -e if not present.)
-grep "python_requires='>=3.5.3'" "${out_dir}/setup.py" > /dev/null
-sed -i "s/python_requires='>=3.5.3'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
+grep "python_requires='>=3.5.2'" "${out_dir}/setup.py" > /dev/null
+sed -i "s/python_requires='>=3.5.2'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")
@@ -94,7 +94,12 @@ done
 
 # Whenever a __str__ method is defined, delegate to __unicode__.
 for file in ${files_to_update}; do
-      sed -i "s/^\(\s\+\?\)def __str__(self):/\1def __str__(self):\n\1    return unicode(self).encode('utf-8')\n\n\1def __unicode__(self):/" ${file}
+    sed -i "s/^\(\s\+\?\)def __str__(self):/\1def __str__(self):\n\1    return unicode(self).encode('utf-8')\n\n\1def __unicode__(self):/" ${file}
+done
+
+# Replace itertools.zip_longest with itertools.izip_longest.
+for file in ${files_to_update}; do
+    sed -i "s/\bitertools.zip_longest\b/itertools.izip_longest/g" ${file}
 done
 
 rm -f "${out_dir}/err_tmp.log"

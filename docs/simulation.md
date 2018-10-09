@@ -119,7 +119,7 @@ More concretely, the `k`'th amplitude in the wave function
 will correspond to the `k`'th case that would be encountered 
 when nesting loops over the possible values of each qubit.
 The first qubit's computational basis values are looped over
-in the outer-most loop, the last qubit's computational basis 
+in the outermost loop, the last qubit's computational basis
 values are looped over in the inner-most loop, etc:
 
 ```python
@@ -191,14 +191,14 @@ for the binary expansion of the passed integer.
 
 The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying an ``XmonGate``,
 a ``CompositeOperation`` that decomposes (recursively) to ``XmonGates``,
-or a 1-qubit or 2-qubit operation with a ``KnownMatrix``.
+or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
 By default the xmon simulator uses an ``Extension`` defined in ``xgate_gate_extensions`` to try to resolve gates that are not ``XmonGates`` to ``XmonGates``.
 
 So if you are using a custom gate, there are multiple options
 for getting it to work with the simulator:
 * Define it directly as an ``XmonGate``.
 * Provide a ``CompositeGate`` made up of ``XmonGates``.
-* Supply an ``Exentension`` to the simulator which converts
+* Supply an ``Extension`` to the simulator which converts
 the gate to an ``XmonGate`` or to a ``CompositeGate`` which 
 itself can be decomposed in ``XmonGates``. 
 

@@ -22,7 +22,6 @@ from typing import (
 )
 
 import string
-import numpy as np
 
 from cirq import abc, value
 from cirq.ops import op_tree, raw_types
@@ -115,30 +114,6 @@ class CompositeGate(metaclass=abc.ABCMeta):
 
         Args:
             qubits: The qubits the gate should be applied to.
-        """
-
-
-class KnownMatrix(metaclass=abc.ABCMeta):
-    """An effect that can be described by a matrix."""
-
-    @abc.abstractmethod
-    def matrix(self) -> np.ndarray:
-        """The unitary matrix of the gate/operation.
-
-        The matrix order is implicit for both gates and operations. For a gate,
-        the matrix must be in order with respect to the list of qubits that the
-        gate is applied to. For an operation, the order must be with respect to
-        its qubits attribute. The qubit-to-amplitude order mapping matches the
-        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
-        than the qubit B.
-
-        For example, when applying a CNOT gate the control qubit goes first and
-        so the CNOT gate's matrix is:
-
-            1 _ _ _
-            _ 1 _ _
-            _ _ _ 1
-            _ _ 1 _
         """
 
 

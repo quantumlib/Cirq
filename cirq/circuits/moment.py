@@ -14,10 +14,11 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Iterable, Any, Sequence
+from typing import Any, Iterable, TypeVar, Callable, Sequence
 
 from cirq import ops
 
+TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 class Moment(object):
     """A simplified time-slice of operations within a sequenced circuit.
@@ -114,6 +115,12 @@ class Moment(object):
 
     def __str__(self):
         return ' and '.join(str(op) for op in self.operations)
+
+    def transform_qubits(self: TSelf_Moment,
+                         func: Callable[[ops.QubitId], ops.QubitId]
+                         ) -> TSelf_Moment:
+        return self.__class__(op.transform_qubits(func)
+                for op in self.operations)
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:

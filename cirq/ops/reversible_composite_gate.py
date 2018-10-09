@@ -13,48 +13,10 @@
 # limitations under the License.
 
 """Implements the inverse method of a CompositeOperation & ReversibleEffect."""
-from typing import TypeVar, Generic, cast
+from typing import TypeVar, Generic
 
-from cirq import abc
-from cirq.extension import Extensions
-from cirq.ops import gate_features, op_tree, raw_types
-
-
-def _reverse_operation(operation: raw_types.Operation,
-                       ext: Extensions) -> raw_types.Operation:
-    """Returns the inverse of an operation, if possible.
-
-    Args:
-        operation: The operation to reverse.
-        ext: Used when casting the operation into a reversible effect.
-
-    Returns:
-        An operation on the same qubits but with the inverse gate.
-
-    Raises:
-        TypeError: The operation isn't reversible.
-    """
-    reversible_op = ext.cast(gate_features.ReversibleEffect, operation)
-    return cast(raw_types.Operation, reversible_op.inverse())
-
-
-def inverse(root: op_tree.OP_TREE,
-            extensions: Extensions = None
-            ) -> op_tree.OP_TREE:
-    """Generates OP_TREE inverses.
-
-    Args:
-        root: An operation tree containing only invertible operations.
-        extensions: For caller-provided implementations of gate inverses.
-
-    Returns:
-        An OP_TREE that performs the inverse operation of the given OP_TREE.
-    """
-    ext = extensions or Extensions()
-    return op_tree.transform_op_tree(
-        root=root,
-        op_transformation=lambda e: _reverse_operation(e, ext),
-        iter_transformation=lambda e: reversed(list(e)))
+from cirq import abc, protocols
+from cirq.ops import gate_features
 
 
 TOriginal = TypeVar('TOriginal', bound='ReversibleCompositeGate')
@@ -64,6 +26,11 @@ class ReversibleCompositeGate(gate_features.CompositeGate,
                               gate_features.ReversibleEffect,
                               metaclass=abc.ABCMeta):
     """A composite gate that gets decomposed into reversible gates."""
+
+    def __pow__(self, power):
+        if power != -1:
+            return NotImplemented
+        return self.inverse()
 
     def inverse(self: TOriginal
                 ) -> '_ReversedReversibleCompositeGate[TOriginal]':
@@ -78,8 +45,13 @@ class _ReversedReversibleCompositeGate(Generic[TOriginal],
     def __init__(self, forward_form: TOriginal) -> None:
         self.forward_form = forward_form
 
+    def __pow__(self, power):
+        if power != -1:
+            return NotImplemented
+        return self.inverse()
+
     def inverse(self) -> TOriginal:
         return self.forward_form
 
     def default_decompose(self, qubits):
-        return inverse(self.forward_form.default_decompose(qubits))
+        return protocols.inverse(self.forward_form.default_decompose(qubits))

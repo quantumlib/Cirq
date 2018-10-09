@@ -16,7 +16,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, decompositions, extension, linalg
+from cirq import ops, decompositions, extension, linalg, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -33,9 +33,9 @@ class ConvertToPauliStringPhasors(PointOptimizer):
     """Attempts to convert single-qubit gates into single-qubit
     PauliStringPhasor operations.
 
-    Checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit gate, then decomposes it
-        into x, y, or z rotations and creates a PauliStringPhasor for each.
+    Checks if the operation has a known unitary effect. If so, and the gate is a
+        1-qubit gate, then decomposes it into x, y, or z rotations and creates a
+        PauliStringPhasor for each.
     """
 
     def __init__(self,
@@ -48,7 +48,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
             keep_clifford: If set, single qubit rotations in the Clifford group
-                are converted to CliffordGates.
+                are converted to SingleQubitCliffordGates.
             tolerance: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
@@ -66,16 +66,16 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                                         mat: np.ndarray,
                                         qubit: ops.QubitId) -> ops.OP_TREE:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
-                                       mat, self.tolerance)
+            mat, self.tolerance)
         out_ops = []  # type: List[ops.Operation]
         for pauli, half_turns in rotations:
             if (self.keep_clifford
-                and self._tol.all_near_zero_mod(half_turns, 0.5)):
-                cliff_gate = ops.CliffordGate.from_quarter_turns(
-                                    pauli, round(half_turns * 2))
+                    and self._tol.all_near_zero_mod(half_turns, 0.5)):
+                cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
+                    pauli, round(half_turns * 2))
                 if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):
                     op = cast(ops.GateOperation, out_ops[-1])
-                    gate = cast(ops.CliffordGate, op.gate)
+                    gate = cast(ops.SingleQubitCliffordGate, op.gate)
                     out_ops[-1] = gate.merged_with(cliff_gate)(qubit)
                 else:
                     out_ops.append(
@@ -83,7 +83,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             else:
                 pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    PauliStringPhasor(pauli_string, half_turns=half_turns))
+                    PauliStringPhasor(pauli_string,
+                                      half_turns=round(half_turns, 10)))
         return out_ops
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
@@ -93,21 +94,22 @@ class ConvertToPauliStringPhasors(PointOptimizer):
 
         if (self.keep_clifford
             and isinstance(op, ops.GateOperation)
-            and isinstance(op.gate, ops.CliffordGate)):
+                and isinstance(op.gate, ops.SingleQubitCliffordGate)):
             return op
 
         # Single qubit gate with known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
-        if mat is not None and len(op.qubits) == 1:
-            return self._matrix_to_pauli_string_phasors(
-                            mat.matrix(), op.qubits[0])
+        if len(op.qubits) == 1:
+            mat = protocols.unitary(op, None)
+            if mat is not None:
+                return self._matrix_to_pauli_string_phasors(mat, op.qubits[0])
 
         # Just let it be?
         if self.ignore_failures:
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit KnownMatrix.".format(op))
+                        "It isn't a 1-qubit operation with a known unitary "
+                        "effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

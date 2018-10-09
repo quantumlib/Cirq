@@ -46,7 +46,7 @@ def test_empty_circuit():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -57,11 +57,10 @@ qreg q[1];
 
 def test_header():
     q0, = _make_qubits(1)
-    output = cirq.QasmOutput((), (q0,), header=
-"""My test circuit
+    output = cirq.QasmOutput((), (q0,), header="""My test circuit
 Device: Bristlecone""")
     assert (str(output) ==
-"""// My test circuit
+            """// My test circuit
 // Device: Bristlecone
 
 OPENQASM 2.0;
@@ -72,13 +71,12 @@ include "qelib1.inc";
 qreg q[1];
 """)
 
-    output = cirq.QasmOutput((), (q0,), header=
-"""
+    output = cirq.QasmOutput((), (q0,), header="""
 My test circuit
 Device: Bristlecone
 """)
     assert (str(output) ==
-"""//
+            """//
 // My test circuit
 // Device: Bristlecone
 //
@@ -96,7 +94,7 @@ def test_single_gate_no_parameter():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0),), (q0,))
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -112,7 +110,7 @@ def test_single_gate_with_parameter():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.25,), (q0,))
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -124,11 +122,29 @@ rx(pi*0.25) q[0];
 """)
 
 
+def test_h_gate_with_parameter():
+    q0, = _make_qubits(1)
+    output = cirq.QasmOutput((cirq.H(q0) ** 0.25,), (q0,))
+    assert (str(output) ==
+            """OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q0]
+qreg q[1];
+
+
+ry(pi*0.25) q[0];
+rx(pi*0.25) q[0];
+ry(pi*-0.25) q[0];
+""")
+
+
 def test_precision():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -155,7 +171,7 @@ def test_save_to_file():
         with open(file_path, 'r') as f:
             file_content = f.read()
     assert (file_content ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -193,7 +209,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-
         def default_decompose(self):
             return cirq.X(self.qubits[0])
 
@@ -217,6 +232,8 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.CCZ(q0, q1, q2),
         cirq.CCX(q0, q1, q2),
+        cirq.CCZ(q0, q1, q2)**0.5,
+        cirq.CCX(q0, q1, q2)**0.5,
         cirq.CSWAP(q0, q1, q2),
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
@@ -287,7 +304,7 @@ def test_output_unitary_same_as_qiskit():
     qiskit_unitary = result.get_unitary()
 
     cirq.testing.assert_allclose_up_to_global_phase(
-                    cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+        cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
 
 
 def test_output_format():
@@ -301,7 +318,7 @@ def test_output_format():
                              precision=5)
     assert (filter_unpredictable_numbers(str(output)) ==
             filter_unpredictable_numbers(
-"""// Generated from Cirq
+        """// Generated from Cirq
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -382,6 +399,43 @@ h q[2];
 ccx q[0],q[1],q[2];
 h q[2];
 ccx q[0],q[1],q[2];
+
+// Gate: CCZ**0.5
+rz(pi*0.125) q[0];
+rz(pi*0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+
+// Gate: TOFFOLI**0.5
+h q[2];
+rz(pi*0.125) q[0];
+rz(pi*0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+h q[2];
+
 cswap q[0],q[1],q[2];
 
 // Gate: ISWAP

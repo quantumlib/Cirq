@@ -103,14 +103,11 @@ def test_inverse():
 
     # If the gate isn't reversible, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ReversibleEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.inverse()
+    assert cirq.inverse(op0, None) is None
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.can_cast(cirq.ReversibleEffect, op1)
-    assert op1.inverse() == cirq.GateOperation(cirq.S.inverse(), [q])
-    assert cirq.S.inverse().on(q) == cirq.S.on(q).inverse()
+    assert cirq.inverse(op1) == op1**-1 == cirq.GateOperation(cirq.S**-1, [q])
+    assert cirq.inverse(cirq.S).on(q) == cirq.inverse(cirq.S.on(q))
 
 
 def test_text_diagrammable():
@@ -118,15 +115,12 @@ def test_text_diagrammable():
 
     # If the gate isn't diagrammable, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.TextDiagrammable, op0)
     with pytest.raises(TypeError):
-        _ = op0.text_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+        _ = cirq.circuit_diagram_info(op0)
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.can_cast(cirq.TextDiagrammable, op1)
-    actual = op1.text_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
-    expected = cirq.S.text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+    actual = cirq.circuit_diagram_info(op1)
+    expected = cirq.circuit_diagram_info(cirq.S)
     assert actual == expected
 
 
@@ -165,25 +159,17 @@ def test_parameterizable_effect():
     assert op2 == cirq.S.on(q)
 
 
-def test_known_matrix():
+def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    # If the gate has no matrix, you get a type error.
-    op0 = cirq.measure(a)
-    assert not cirq.can_cast(cirq.KnownMatrix, op0)
-    with pytest.raises(TypeError):
-        _ = op0.matrix()
-
-    op1 = cirq.X(a)
-    assert cirq.can_cast(cirq.KnownMatrix, op1)
-    np.testing.assert_allclose(op1.matrix(),
+    assert cirq.unitary(cirq.measure(a), None) is None
+    np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
                                np.array([[0, 1], [1, 0]]),
                                atol=1e-8)
-    op2 = cirq.CNOT(a, b)
-    op3 = cirq.CNOT(a, b)
-    np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix(), atol=1e-8)
-    np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix(), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.CNOT(a, b)),
+                               cirq.unitary(cirq.CNOT),
+                               atol=1e-8)
 
 
 def test_repr():

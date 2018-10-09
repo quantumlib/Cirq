@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
@@ -459,15 +460,13 @@ def test_insert_at_frontier():
 
     prepend_two_Xs_append_one_Y.optimize_circuit(circuit)
 
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───Z───Z───@───Y───────────────Z───Z───@───Y───
               │                           │
 b: ───────────@───Z───Z───@───Y───────────@───────
                           │
 c: ───────────────────────@───────────────────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
     prepender = lambda op: (cirq.X(op.qubits[0]),) * 3 + (op,)
     prepend_3_Xs = Replacer(prepender)
@@ -477,15 +476,13 @@ c: ───────────────────────@──�
         Moment([cirq.CNOT(c, b)])
     ])
     prepend_3_Xs.optimize_circuit(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───X───X───X───@───────────────────────────────────
                   │
 b: ───────────────X───X───X───X───@───────────────X───
                                   │               │
 c: ───────────────────────────────X───X───X───X───@───
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
     duplicate = Replacer(lambda op: (op,) * 2)
     circuit = Circuit([
@@ -494,8 +491,7 @@ c: ─────────────────────────�
         for i in range(4)])
 
     duplicate.optimize_circuit(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───@───@───────────@───@───────────
       │   │           │   │
 b: ───@───@───@───@───@───@───@───@───
@@ -507,8 +503,7 @@ d: ───@───@───@───@───@───@───@──�
 e: ───@───@───@───@───@───@───@───@───
       │   │           │   │
 f: ───@───@───────────@───@───────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
     circuit = Circuit([
         Moment([cirq.CZ(*qubits[2:4]), cirq.CNOT(*qubits[:2])]),
@@ -516,8 +511,7 @@ f: ───@───@───────────@───@────�
         ])
 
     duplicate.optimize_circuit(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───@───@───X───X───
       │   │   │   │
 b: ───X───X───@───@───
@@ -525,8 +519,7 @@ b: ───X───X───@───@───
 c: ───@───────@───────
       │       │
 d: ───@───────@───────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
 
 def test_insert_into_range():
@@ -534,13 +527,11 @@ def test_insert_into_range():
     y = cirq.NamedQubit('y')
     c = Circuit([Moment([cirq.X(x)])] * 4)
     c.insert_into_range([cirq.Z(x), cirq.CZ(x, y)], 2, 2)
-    actual_text_diagram = c.to_text_diagram().strip()
-    expected_text_diagram = """
+    cirq.testing.assert_has_diagram(c, """
 x: ───X───X───Z───@───X───X───
                   │
 y: ───────────────@───────────
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+""")
 
 
 def test_next_moment_operating_on():
@@ -1000,7 +991,7 @@ def test_to_text_diagram_teleportation_to_diagram():
         Moment([cirq.CZ(bob, tmp)]),
     ])
 
-    assert c.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(c, """
 (0, 0): ───H───@───────────X───────M───@───────────
                │           │           │
 (0, 1): ───────X───────────┼───────────X───────@───
@@ -1008,8 +999,9 @@ def test_to_text_diagram_teleportation_to_diagram():
 (1, 0): ───────────X^0.5───@───H───M───────@───┼───
                                            │   │
 (1, 1): ───────────────────────────────────X───@───
-    """.strip()
-    assert c.to_text_diagram(use_unicode_characters=False).strip() == """
+""")
+
+    cirq.testing.assert_has_diagram(c, """
 (0, 0): ---H---@-----------X-------M---@-----------
                |           |           |
 (0, 1): -------X-----------|-----------X-------@---
@@ -1017,10 +1009,9 @@ def test_to_text_diagram_teleportation_to_diagram():
 (1, 0): -----------X^0.5---@---H---M-------@---|---
                                            |   |
 (1, 1): -----------------------------------X---@---
-        """.strip()
+""", use_unicode_characters=False)
 
-    assert c.to_text_diagram(transpose=True,
-                             use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(c, """
 (0, 0) (0, 1) (1, 0) (1, 1)
 |      |      |      |
 H      |      |      |
@@ -1041,21 +1032,23 @@ M      |      M      |
 |      |      |      |
 |      @-------------@
 |      |      |      |
-        """.strip()
+""", use_unicode_characters=False, transpose=True)
 
 
 def test_diagram_with_unknown_exponent():
-    class WeirdGate(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(wire_symbols=('B',),
-                                        exponent='fancy')
+    class WeirdGate(cirq.Gate):
+        def _circuit_diagram_info_(self,
+                                   args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=('B',),
+                                           exponent='fancy')
 
-    class WeirderGate(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(wire_symbols=('W',),
-                                        exponent='fancy-that')
+    class WeirderGate(cirq.Gate):
+        def _circuit_diagram_info_(self,
+                                   args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=('W',),
+                                           exponent='fancy-that')
 
     c = cirq.Circuit.from_ops(
         WeirdGate().on(cirq.NamedQubit('q')),
@@ -1063,10 +1056,10 @@ def test_diagram_with_unknown_exponent():
     )
 
     # The hyphen in the exponent should cause parens to appear.
-    assert c.to_text_diagram() == 'q: ───B^fancy───W^(fancy-that)───'
+    cirq.testing.assert_has_diagram(c, 'q: ───B^fancy───W^(fancy-that)───')
 
 
-def test_to_text_diagram_extended_gate():
+def test_circuit_diagram_on_gate_without_info():
     q = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -1076,45 +1069,23 @@ def test_to_text_diagram_extended_gate():
             return 'python-object-FGate:arbitrary-digits'
 
     f = FGate()
-    c = Circuit([
-        Moment([f.on(q)]),
-    ])
-
     # Fallback to repr without extension.
-    diagram = Circuit([
+    cirq.testing.assert_has_diagram(Circuit([
         Moment([f.on(q)]),
-    ]).to_text_diagram(use_unicode_characters=False)
-    assert diagram.strip() == """
+    ]), """
 (0, 0): ---python-object-FGate:arbitrary-digits---
-        """.strip()
+""", use_unicode_characters=False)
 
     # When used on multiple qubits, show the qubit order as a digit suffix.
-    diagram = Circuit([
+    cirq.testing.assert_has_diagram(Circuit([
         Moment([f.on(q, q3, q2)]),
-    ]).to_text_diagram(use_unicode_characters=False)
-    assert diagram.strip() == """
-(0, 0): ---python-object-FGate:arbitrary-digits:0---
+    ]), """
+(0, 0): ---python-object-FGate:arbitrary-digits---
            |
-(0, 1): ---python-object-FGate:arbitrary-digits:2---
+(0, 1): ---#3-------------------------------------
            |
-(0, 2): ---python-object-FGate:arbitrary-digits:1---
-            """.strip()
-
-    # Succeeds with extension.
-    class FGateAsText(cirq.Gate, cirq.TextDiagrammable):
-        def __init__(self, f_gate):
-            self.f_gate = f_gate
-
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs):
-            return cirq.TextDiagramInfo(('F',))
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammable, FGate, FGateAsText)
-    diagram = c.to_text_diagram(ext, use_unicode_characters=False)
-
-    assert diagram.strip() == """
-(0, 0): ---F---
-        """.strip()
+(0, 2): ---#2-------------------------------------
+""", use_unicode_characters=False)
 
 
 def test_to_text_diagram_multi_qubit_gate():
@@ -1122,33 +1093,33 @@ def test_to_text_diagram_multi_qubit_gate():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
     c = Circuit.from_ops(cirq.measure(q1, q2, q3, key='msg'))
-    assert c.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(c, """
 (0, 0): ───M('msg')───
            │
 (0, 1): ───M──────────
            │
 (0, 2): ───M──────────
-    """.strip()
-    assert c.to_text_diagram(use_unicode_characters=False).strip() == """
+""")
+    cirq.testing.assert_has_diagram(c, """
 (0, 0): ---M('msg')---
            |
 (0, 1): ---M----------
            |
 (0, 2): ---M----------
-    """.strip()
-    assert c.to_text_diagram(transpose=True).strip() == """
+""", use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(c, """
 (0, 0)   (0, 1) (0, 2)
 │        │      │
 M('msg')─M──────M
 │        │      │
-    """.strip()
+""", transpose=True)
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
-    class BadGate(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(wire_symbols=('a', 'a'))
+    class BadGate(cirq.Gate):
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                   ) -> Tuple[str, str]:
+            return 'a', 'a'
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -1160,13 +1131,13 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 def test_to_text_diagram_parameterized_value():
     q = cirq.NamedQubit('cube')
 
-    class PGate(cirq.Gate, cirq.TextDiagrammable):
+    class PGate(cirq.Gate):
         def __init__(self, val):
             self.val = val
 
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
-            return cirq.TextDiagramInfo(('P',), self.val)
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(('P',), self.val)
 
     c = Circuit.from_ops(
         PGate(1).on(q),
@@ -1183,45 +1154,40 @@ def test_to_text_diagram_custom_order():
     qc = cirq.NamedQubit('4')
 
     c = Circuit([Moment([cirq.X(qa), cirq.X(qb), cirq.X(qc)])])
-    diagram = c.to_text_diagram(
-        qubit_order=cirq.QubitOrder.sorted_by(lambda e: int(str(e)) % 3),
-        use_unicode_characters=False)
-    assert diagram.strip() == """
+    cirq.testing.assert_has_diagram(c, """
 3: ---X---
 
 4: ---X---
 
 2: ---X---
-    """.strip()
+""", qubit_order=cirq.QubitOrder.sorted_by(lambda e: int(str(e)) % 3),
+use_unicode_characters=False)
 
 
 def test_overly_precise_diagram():
     # Test default precision of 3
     qa = cirq.NamedQubit('a')
     c = Circuit([Moment([cirq.X(qa)**0.12345678])])
-    diagram = c.to_text_diagram(use_unicode_characters=False)
-    assert diagram.strip() == """
+    cirq.testing.assert_has_diagram(c, """
 a: ---X^0.123---
-    """.strip()
+""", use_unicode_characters=False)
 
 
 def test_none_precision_diagram():
     # Test default precision of 3
     qa = cirq.NamedQubit('a')
     c = Circuit([Moment([cirq.X(qa)**0.4921875])])
-    diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
-    assert diagram.strip() == """
+    cirq.testing.assert_has_diagram(c, """
 a: ---X^0.4921875---
-    """.strip()
+""", use_unicode_characters=False, precision=None)
 
 
 def test_diagram_custom_precision():
     qa = cirq.NamedQubit('a')
     c = Circuit([Moment([cirq.X(qa)**0.12341234])])
-    diagram = c.to_text_diagram(use_unicode_characters=False, precision=5)
-    assert diagram.strip() == """
+    cirq.testing.assert_has_diagram(c, """
 a: ---X^0.12341---
-    """.strip()
+""", use_unicode_characters=False, precision=5)
 
 
 def test_diagram_wgate():
@@ -1229,10 +1195,9 @@ def test_diagram_wgate():
     test_wgate = cg.ExpWGate(
         half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
-    diagram = c.to_text_diagram(use_unicode_characters=False, precision=2)
-    assert diagram.strip() == """
+    cirq.testing.assert_has_diagram(c, """
 a: ---W(0.43)^0.12---
-    """.strip()
+""", use_unicode_characters=False, precision=2)
 
 
 def test_diagram_wgate_none_precision():
@@ -1240,10 +1205,9 @@ def test_diagram_wgate_none_precision():
     test_wgate = cg.ExpWGate(
         half_turns=0.12341234, axis_half_turns=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
-    diagram = c.to_text_diagram(use_unicode_characters=False, precision=None)
-    assert diagram.strip() == """
+    cirq.testing.assert_has_diagram(c, """
 a: ---W(0.43214321)^0.12341234---
-    """.strip()
+""", use_unicode_characters=False, precision=None)
 
 
 def test_text_diagram_jupyter():
@@ -1291,7 +1255,7 @@ def test_circuit_to_unitary_matrix():
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
         Circuit.from_ops(cirq.Y(a)**0.25).to_unitary_matrix(),
-        (cirq.Y(a)**0.25).matrix(),
+        cirq.unitary(cirq.Y(a)**0.25),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
         Circuit.from_ops(cirq.Z(a), cirq.X(b)).to_unitary_matrix(),
@@ -1381,7 +1345,26 @@ def test_circuit_to_unitary_matrix():
         cirq.Circuit.from_ops(
             cirq.measure(a, invert_mask=(True,))
         ).to_unitary_matrix(),
-        cirq.X.matrix(),
+        cirq.unitary(cirq.X),
+        atol=1e-8)
+
+
+def test_circuit_unitary():
+    q = cirq.NamedQubit('q')
+
+    with_inner_measure = cirq.Circuit.from_ops(
+        cirq.H(q), cirq.measure(q), cirq.H(q))
+    assert cirq.unitary(with_inner_measure, None) is None
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(Circuit.from_ops(
+            cirq.X(q)**0.5),
+            cirq.measure(q),
+        ),
+        np.array([
+            [1j, 1],
+            [1, 1j],
+        ]) * np.sqrt(0.5),
         atol=1e-8)
 
 
@@ -1403,10 +1386,11 @@ def test_simple_circuits_to_unitary_matrix():
         atol=1e-8)
 
     # 2-qubit matrix matches when qubits in order.
-    for expected in [np.diag([1, 1j, -1, -1j]), cirq.CNOT.matrix()]:
+    for expected in [np.diag([1, 1j, -1, -1j]),
+                     cirq.unitary(cirq.CNOT)]:
 
-        class Passthrough(cirq.Gate, cirq.KnownMatrix):
-            def matrix(self):
+        class Passthrough(cirq.Gate):
+            def _unitary_(self) -> np.ndarray:
                 return expected
 
         c = Circuit.from_ops(Passthrough()(a, b))
@@ -1430,20 +1414,19 @@ def test_composite_gate_to_unitary_matrix():
             cirq.X(b),
             cirq.measure(b))
     mat = c.to_unitary_matrix()
-    mat_expected = cirq.CNOT.matrix()
+    mat_expected = cirq.unitary(cirq.CNOT)
 
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected,
                                                     atol=1e-8)
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.Gate, cirq.TextDiagrammable):
-        def text_diagram_info(self,
-                              args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
+    class MultiTargetCZ(cirq.Gate):
+        def _circuit_diagram_info_(self,
+                                   args: cirq.CircuitDiagramInfoArgs
+                                   ) -> Tuple[str, ...]:
             assert args.known_qubit_count is not None
-            return cirq.TextDiagramInfo(
-                ('@',) + ('Z',) * (args.known_qubit_count - 1))
+            return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1452,23 +1435,23 @@ def test_expanding_gate_symbols():
     t1 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a))
     t2 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a, b))
 
-    assert t0.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(t0, """
 c: ───@───
-    """.strip()
+""")
 
-    assert t1.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(t1, """
 a: ───Z───
       │
 c: ───@───
-    """.strip()
+""")
 
-    assert t2.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(t2, """
 a: ───Z───
       │
 b: ───Z───
       │
 c: ───@───
-    """.strip()
+""")
 
 
 def test_transposed_diagram_exponent_order():
@@ -1478,7 +1461,7 @@ def test_transposed_diagram_exponent_order():
         cirq.CZ(a, c)**0.5,
         cirq.CZ(b, c)**0.125,
     )
-    assert circuit.to_text_diagram(transpose=True).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0 1      2
 │ │      │
 @─@^-0.5 │
@@ -1487,7 +1470,7 @@ def test_transposed_diagram_exponent_order():
 │ │      │
 │ @──────@^0.125
 │ │      │
-    """.strip()
+""", transpose=True)
 
 
 def test_insert_moments():
@@ -1615,6 +1598,14 @@ def test_apply_unitary_effect_to_state():
         np.array([0, 0, 1, 0]),
         atol=1e-8)
 
+    # Dtypes.
+    for dt in (np.complex64, np.complex128, np.complex256):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
+                initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt),
+            np.array([0, 1]),
+            atol=1e-8)
+
 
 def test_is_parameterized():
     a, b = cirq.LineQubit.range(2)
@@ -1643,11 +1634,11 @@ def test_with_parameters_resolved_by():
     )
     resolved_circuit = circuit.with_parameters_resolved_by(
             cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
-    assert resolved_circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(resolved_circuit, """
 0: ───@───────X^0.3───
       │
 1: ───@^0.1───Y^0.2───
-""".strip()
+""")
 
 
 def test_items():
@@ -1857,13 +1848,87 @@ def test_batch_insert():
                         (0, cirq.CNOT(a, b)),
                         (1, cirq.Z(b))])
     assert after == cirq.Circuit([
-        cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.Z(b)]),
         cirq.Moment(),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
+
+
+def test_batch_insert_multiple_same_index():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit()
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.Z(b)),
+                    (0, cirq.Z(a))])
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
+        cirq.Moment([cirq.Z(a)]),
+    ])
+
+
+def test_batch_insert_reverses_order_for_same_index_inserts():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit()
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.CZ(a, b)),
+                    (0, cirq.Z(b))])
+    assert c == cirq.Circuit.from_ops(cirq.Z(b),
+                                      cirq.CZ(a, b),
+                                      cirq.Z(a))
+
+
+def test_batch_insert_maintains_order_despite_multiple_previous_inserts():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.H(a))
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.Z(a)),
+                    (0, cirq.Z(a)),
+                    (1, cirq.CZ(a, b))])
+    assert c == cirq.Circuit.from_ops([cirq.Z(a)]*3, cirq.H(a), cirq.CZ(a, b))
+
+
+def test_batch_insert_doesnt_overshift_due_to_previous_shifts():
+    a = cirq.NamedQubit('a')
+    c = cirq.Circuit().from_ops([cirq.H(a)] * 3)
+    c.batch_insert([(0, cirq.Z(a)),
+                    (0, cirq.Z(a)),
+                    (1, cirq.X(a)),
+                    (2, cirq.Y(a))])
+    assert c == cirq.Circuit.from_ops(
+        cirq.Z(a),
+        cirq.Z(a),
+        cirq.H(a),
+        cirq.X(a),
+        cirq.H(a),
+        cirq.Y(a),
+        cirq.H(a),
+    )
+
+
+def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit().from_ops(
+        cirq.SWAP(a, b),
+        cirq.SWAP(a, b),
+        cirq.H(a),
+        cirq.SWAP(a, b),
+        cirq.SWAP(a, b))
+    c.batch_insert([(0, cirq.X(a)),
+                    (3, cirq.X(b)),
+                    (4, cirq.Y(a))])
+    assert c == cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.SWAP(a, b),
+        cirq.SWAP(a, b),
+        cirq.H(a), cirq.X(b),
+        cirq.SWAP(a, b),
+        cirq.Y(a),
+        cirq.SWAP(a, b)
+    )
+
 
 def test_next_moments_operating_on():
     for _ in range(20):
@@ -2052,7 +2117,7 @@ def test_decomposes_while_appending():
                           cirq.GridQubit(0, 2)))
     cirq.testing.assert_allclose_up_to_global_phase(
         c.to_unitary_matrix(),
-        cirq.TOFFOLI.matrix(),
+        cirq.unitary(cirq.TOFFOLI),
         atol=1e-8)
 
     # But you still have to respect adjacency constraints!
