@@ -3,7 +3,6 @@ syntax = "proto3";
 import "cirq/api/google/v1/operations.proto";
 import "cirq/api/google/v1/params.proto";
 
-
 package cirq.api.google.v1;
 
 option java_package = "com.google.cirq.api.google.v1";
@@ -22,29 +21,82 @@ message HardwareSpec {
   // and does not change for a given processor_name.
   GateSet gate_set = 2;
 
-  // The performance characteristics of the hardware, recorded at a particular
-  // time and ordered with the most recent first.
-  repeated Performance performance = 3;
+  // The expected performance characteristics of the hardware at a particular
+  // snapshot in time.
+  Performance performance = 3;
+}
+
+// Gate prototypes, representing a gate that can be applied to specific qubits.
+message Prototype {
+  // A prototype is a gate plus the qubits upon which the gate acts.
+  //
+  // If the gate supports parameterized gates, then the parameterized floats
+  // will have string keys that can be mapped to accuracies and float ranges
+  // (see `parameter_ranges` in `GateSet`.)
+  //
+  // There is a prototype for every qubits upon which the gate can act.
+  //
+  // Some of the prototype operation fields will not be set. These include
+  // the `key` and `invert_mask` on measurement gates, and
+  // `incremental_delay_picoseconds` on all operations
+  Operation operation = 1;
+
+  // The resolution with which the gate can be offset (values of
+  // `incremental_delay_picoseconds` will be rounded to values in increments
+  // of this size).
+  uint64 timing_resolution_picoseconds = 2;
+}
+
+// The range that a parameter can take along with the accuracy with which
+// the parameter can be supplied.
+message ParameterRange {
+  // The lowest allowed value for the parameter.
+  float lower = 1;
+
+  // The highest allowed value for the parameter.
+  float upper = 2;
+
+  // The accuracy supported by the hardware for the parameter. Note that this
+  // accuracy may be different than the actual gate fidelity of this gate,
+  // this is just the practical limit that the hardware can support. Parameter
+  // a rounded to ticks of this step size starting from the lower limit
+  // specified above.
+  float step_size = 3;
 }
 
 // The supported operations on the hardware.
 message GateSet {
-  // Prototypes of the gate plus the qubits upon which the gate acts.
-  // If the gate supports parameterized gates, then the parameterized float
-  // will have a unique symbol for this parameter. All operations specify the
-  // qubits they act upon.
-  //
-  // Some of the prototype operation fields will not be set. These include
-  // `incremental_delay_picoseconds`, and `key` and `invert_mask` on measurement
-  // gates.
-  repeated Operation prototypes = 1;
+  // Prototypes of the gate, including the qubits upon which the gate acts,
+  // and timing resolution. There is a prototype for every general gate
+  // that can be applied to specific qubits on the device (i.e. every single
+  // qubit gate on every qubit will have a prototype, and similar for every
+  // two qubit gate.)
+  repeated Prototype prototypes = 1;
 
-  // For the parameterized gates in prototypes, a map from the parameter name
-  // to the accuracy with which the hardware supports specifying this
-  // parameter. Note that this accuracy may be different than the actual
-  // gate fidelity of this gate, this is just the practical limit that the
-  // hardware can support.
-  ParameterDict accuracies = 2;
+  // For the parameterized float keys in prototypes, a map to the parameter
+  // ranges describing allowed parameter values and accuracies.  Note that
+  // multiple prototypes may have the same key and hence have the same
+  // parameter range.
+  map<string, ParameterRange> parameter_ranges = 2;
+}
+
+// The results of a randomized benchmarking protocol over a set of qubits.
+message RandomizedBenchmarking {
+  // The qubits over which the randomized benchmarking has been run.
+  repeated Qubit qubits = 1;
+
+  // This is one minus the average gate fidelity as reported by the
+  // randomized benchmarking protocol.
+  float average_gate_error = 2;
+}
+
+// A simple representation of measurement errors on single qubits.
+message MeasurementError {
+  // Which qubit is being characterized.
+  Qubit qubit = 1;
+
+  // The probability that a given measurement values is incorrect.
+  map<bool, float> error = 2;
 }
 
 // A snapshot of the performance of the hardware.
@@ -52,41 +104,11 @@ message Performance {
   // The time at which the performance was measured, in micros since epoch.
   uint64 update_time_micros = 1;
 
-  // A list of the calibrated operations. Note that a given gate from the
-  // hardware's gate set may be calibrated for many different parameter
-  // values.
-  repeated CalibratedOperation calibrated_ops = 2;
+  // Characterization of the performance of the unitary gates on particular
+  // qubits according to a randomized benchmarking protocol.
+  repeated RandomizedBenchmarking randomized_benchmarking = 2;
+
+  // Characterization of the errors in performing measurements on
+  // particular qubits.
+  repeated MeasurementError measurement_error = 3;
 }
-
-// The performance of a calibrated.
-message CalibratedOperation {
-  // Which operation (gate plus placed qubits) was calibrated. If the gate is
-  // not parameterized then this will match exactly the prototype from the
-  // gate set. If the gate was parameterized, then this will be the
-  // actual parameter values (up to accuracy) that the calibration was done for.
-  Operation op = 1;
-
-  // Simple fidelities for the operation.
-  Fidelities fidelities = 2;
-}
-
-// Simple measurements of the performance of a gate.
-message Fidelities {
-  // If the gate is unitary, this is the average gate fidelity.
-  repeated float gate_fidelity = 1;
-
-  // The measurement results for a given preparation.
-  message Confusion {
-    // The key in this map is the measurement result and the value is the
-    // probability.  These may not sum to 1.0 due to leakage.
-    map<bool, float> measured = 1;
-  }
-
-  // If the gate is a measurement, this is the confusion matrix. This matrix
-  // describes the probability that a measurement prepared in one
-  // eigenstate of the measurement is measured to be in all other eigenstates.
-  // The key in this map is the prepared state corresponding to True or
-  // False for the measurement.
-  map <bool, Confusion>  confusion = 2;
-}
-
