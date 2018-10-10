@@ -237,7 +237,7 @@ class Exp11Gate(XmonGate,
         return self.__repr__()
 
     def __repr__(self):
-        return 'Exp11Gate(half_turns={})'.format(
+        return 'cirq.google.Exp11Gate(half_turns={})'.format(
             repr(self.half_turns))
 
     def __eq__(self, other):
@@ -414,9 +414,10 @@ class ExpWGate(XmonGate,
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
 
     def __repr__(self):
-        return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(
-                    repr(self.half_turns),
-                    repr(self.axis_half_turns)))
+        return (
+            'cirq.google.ExpWGate(half_turns={}, axis_half_turns={})'.format(
+                repr(self.half_turns),
+                repr(self.axis_half_turns)))
 
     def __eq__(self, other):
         if isinstance(other, ops.RotXGate):
@@ -497,7 +498,7 @@ class ExpZGate(XmonGate, ops.RotZGate):
         return {'exp_z': exp_z}
 
     def __repr__(self):
-        return 'ExpZGate(half_turns={!r})'.format(self.half_turns)
+        return 'cirq.google.ExpZGate(half_turns={!r})'.format(self.half_turns)
 
     def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))
