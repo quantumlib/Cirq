@@ -422,8 +422,8 @@ class Circuit(ops.ParameterizableEffect):
 
             OR
 
-            b) There is no operation at L and prev(L) = (qubit, moment_index-1) is
-                reachable and L is within the bounds of the circuit.
+            b) There is no operation at L and prev(L) = (qubit, moment_index-1)
+                is reachable and L is within the bounds of the circuit.
 
             OR
 
@@ -432,14 +432,14 @@ class Circuit(ops.ParameterizableEffect):
                 prev(M) = (q', moment_index-1) is reachable. Also, P must not be
                 classified as a blocker by the given `is_blocker` argument.
 
-        In other words, the reachable region extends horizontally along each qubit
-        until it hits a blocked operation or an operation that crosses into the
-        set of not-involved-at-the-moment qubits.
+        In other words, the reachable region extends horizontally along each
+        qubit until it hits a blocked operation or an operation that crosses
+        into the set of not-involved-at-the-moment qubits.
 
         For each qubit q in `start_frontier`, the reachable locations will
-        correspond to a contiguous range starting at start_frontier[q] and ending
-        just before some index end_q. The result of this method is a dictionary, and
-        that dictionary maps each qubit q to its end_q.
+        correspond to a contiguous range starting at start_frontier[q] and
+        ending just before some index end_q. The result of this method is a
+        dictionary, and that dictionary maps each qubit q to its end_q.
 
         Examples:
 
@@ -523,8 +523,7 @@ class Circuit(ops.ParameterizableEffect):
         """
         active = set()
         end_frontier = {}
-        queue = BucketPriorityQueue(
-            drop_duplicates=True)  # type: BucketPriorityQueue[ops.Operation]
+        queue = BucketPriorityQueue[ops.Operation](drop_duplicates=True)
 
         def enqueue_next(qubit: ops.QubitId, moment: int) -> None:
             next_moment = self.next_moment_operating_on([qubit], moment)
@@ -595,8 +594,7 @@ class Circuit(ops.ParameterizableEffect):
             operation itself. The list is sorted so that the moment index
             increases monotonically.
         """
-        result = BucketPriorityQueue(
-            drop_duplicates=True)  # type: BucketPriorityQueue[ops.Operation]
+        result = BucketPriorityQueue[ops.Operation](drop_duplicates=True)
 
         involved_qubits = set(start_frontier.keys()) | set(end_frontier.keys())
         for q in ops.QubitOrder.DEFAULT.order_for(involved_qubits):

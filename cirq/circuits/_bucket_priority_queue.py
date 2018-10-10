@@ -134,8 +134,8 @@ class BucketPriorityQueue(Generic[TItem]):
         return 'BucketPriorityQueue {' + _indent(lines) + '\n}'
 
     def __repr__(self):
-        return '{!r}(items={!r}, drop_duplicates={!r})'.format(
-            type(self),
+        return '{}(items={!r}, drop_duplicates={!r})'.format(
+            'cirq.circuits._bucket_priority_queue.BucketPriorityQueue',
             list(self),
             self._drop_set is not None)
 
