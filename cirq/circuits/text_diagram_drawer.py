@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, List, NamedTuple, TYPE_CHECKING
+from typing import Callable, Dict, List, NamedTuple, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -29,6 +29,10 @@ _VerticalLine = NamedTuple('VerticalLine', [
     ('y2', int),
     ('emphasize', bool),
 ])
+_DiagramText = NamedTuple('DiagramText', [
+    ('text', str),
+    ('transposed_text', str),
+])
 
 
 class TextDiagramDrawer:
@@ -36,23 +40,31 @@ class TextDiagramDrawer:
     """
 
     def __init__(self):
-        self.entries = dict()  # type: Dict[Tuple[int, int], str]
-        self.transposed_entries = dict()  # type: Dict[Tuple[int, int], str]
+        self.entries = dict()  # type: Dict[Tuple[int, int], Tuple[str, str]]
         self.vertical_lines = []  # type: List[_VerticalLine]
         self.horizontal_lines = []  # type: List[_HorizontalLine]
         self.horizontal_padding = {}  # type: Dict[int, int]
         self.vertical_padding = {}  # type: Dict[int, int]
 
     def write(self, x: int, y: int, text: str, transposed_text: str = None):
-        """Adds text to the given location."""
-        if transposed_text == None:
+        """Adds text to the given location.
+
+        Args:
+            x: The column in which to write the text.
+            y: The row in which to write the text.
+            text: The text to write at location (x, y).
+            transposted_text: Optional text to write instead, if the text
+                diagram is transposed.
+        """
+        if transposed_text is None:
             transposed_text = text
         if (x, y) in self.entries:
-            self.entries[(x, y)] += text
-            self.transposed_entries[(x, y)] += transposed_text
+            entry = self.entries[(x, y)]
+            self.entries[(x, y)] = _DiagramText(
+                entry.text + text,
+                entry.transposed_text + transposed_text)
         else:
-            self.entries[(x, y)] = text
-            self.transposed_entries[(x, y)] = transposed_text
+            self.entries[(x, y)] = _DiagramText(text, transposed_text)
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
@@ -95,7 +107,7 @@ class TextDiagramDrawer:
         y1, y2 = sorted([y1, y2])
         self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize))
 
-    def horizontal_line(self, y, x1, x2, emphasize: bool = False
+    def horizontal_line(self, y: int, x1: int, x2: int, emphasize: bool = False
                         ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
@@ -104,10 +116,8 @@ class TextDiagramDrawer:
     def transpose(self) -> 'TextDiagramDrawer':
         """Returns the same diagram, but mirrored across its diagonal."""
         out = TextDiagramDrawer()
-        out.entries = {(y, x): v
-                       for (x, y), v in self.transposed_entries.items()}
-        out.transposed_entries = {(y, x): v
-                                  for (x, y), v in self.entries.items()}
+        out.entries = {(y, x): _DiagramText(v.transposed_text, v.text)
+                       for (x, y), v in self.entries.items()}
         out.vertical_lines = [_VerticalLine(*e)
                               for e in self.horizontal_lines]
         out.horizontal_lines = [_HorizontalLine(*e)
@@ -138,41 +148,43 @@ class TextDiagramDrawer:
             max_y = max(max_y, v.y1, v.y2)
         return 1 + max_y
 
-    def force_horizontal_padding_after(self, index, padding) -> None:
+    def force_horizontal_padding_after(self, index: int, padding: int) -> None:
+        """Change the padding after the given column."""
         self.horizontal_padding[index] = padding
 
-    def force_vertical_padding_after(self, index, padding) -> None:
+    def force_vertical_padding_after(self, index: int, padding: int) -> None:
+        """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
-    def shift_horizontally(self, index, offset) -> None:
-        self.entries = {(x + (offset if x >= index else 0), y): text
-                        for (x, y), text in self.entries.items()}
-        self.transposed_entries = {(x + (offset if x >= index else 0), y): text
-                        for (x, y), text in self.transposed_entries.items()}
-        self.vertical_lines = [_VerticalLine(
-            x + (offset if x >= index else 0), y1, y2, emph)
+    def _transform_coordinates(self, func: Callable[[int, int], Tuple[int, int]]) -> None:
+        """Helper method to transformer either row or column coordinates."""
+        def func_x(x: int) -> int:
+            return func(x, 0)[0]
+        def func_y(y: int) -> int:
+            return func(0, y)[1]
+        self.entries = {func(x, y): v for (x, y), v in self.entries.items()}
+        self.vertical_lines = [
+            _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph)
             for x, y1, y2, emph in self.vertical_lines]
-        self.horizontal_lines = [_HorizontalLine(y,
-            x1 + (offset if x1 >= index else 0),
-            x2 + (offset if x2 >= index else 0), emph)
+        self.horizontal_lines = [
+            _HorizontalLine(func_y(y), func_x(x1), func_x(x2), emph)
             for y, x1, x2, emph in self.horizontal_lines]
-        self.horizontal_padding = {x + (offset if x >= index else 0): padding
+        self.horizontal_padding = {func_x(x): padding
             for x, padding in self.horizontal_padding.items()}
-
-    def shift_vertically(self, index, offset) -> None:
-        self.entries = {(x, y + (offset if y >= index else 0)): text
-                        for (x, y), text in self.entries.items()}
-        self.transposed_entries = {(x, y + (offset if y >= index else 0)): text
-                        for (x, y), text in self.transposed_entries.items()}
-        self.vertical_lines = [_VerticalLine(x,
-            y1 + (offset if y1 >= index else 0),
-            y2 + (offset if y2 >= index else 0), emph)
-            for x, y1, y2, emph in self.vertical_lines]
-        self.horizontal_lines = [_HorizontalLine(
-            y + (offset if y >= index else 0), x1, x2, emph)
-            for y, x1, x2, emph in self.horizontal_lines]
-        self.vertical_padding = {y + (offset if y >= index else 0): padding
+        self.vertical_padding = {func_y(y): padding
             for y, padding in self.vertical_padding.items()}
+
+    def insert_empty_columns(self, x: int, amount: int = 1) -> None:
+        """Insert a number of columns after the given column."""
+        def transform_columns(column: int, row: int) -> Tuple[int, int]:
+            return (column + (amount if column >= x else 0), row)
+        self._transform_coordinates(transform_columns)
+
+    def insert_empty_rows(self, y: int, amount: int = 1) -> None:
+        """Insert a number of rows after the given row."""
+        def transform_rows(column: int, row: int) -> Tuple[int, int]:
+            return (column, row + (amount if row >= y else 0))
+        self._transform_coordinates(transform_rows)
 
     def render(self,
                horizontal_spacing: int = 1,
@@ -217,7 +229,7 @@ class TextDiagramDrawer:
 
         # Place entries.
         for (x, y), v in self.entries.items():
-            grid[y][x] = v
+            grid[y][x] = v.text
 
         # Pad rows and columns to fit contents with desired spacing.
         multiline_grid = _pad_into_multiline(w,

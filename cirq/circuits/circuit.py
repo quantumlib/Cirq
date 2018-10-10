@@ -1333,32 +1333,32 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
                                    use_unicode_characters: bool,
                                    out_diagram: TextDiagramDrawer,
                                    transpose: bool):
-    out_diagram.shift_vertically(0, 1)
+    out_diagram.insert_empty_rows(0)
     h = out_diagram.height()
 
-    left_end = '├' if use_unicode_characters else '|'
-    top_end = '┬' if use_unicode_characters else '-'
-    right_end = '┤' if use_unicode_characters else '|'
-    bottom_end = '┴' if use_unicode_characters else '-'
+    top_left = '┌' if use_unicode_characters else '/'
+    top_right = '┐' if use_unicode_characters else '\\'
+    bottom_left = '└' if use_unicode_characters else '\\'
+    bottom_right = '┘' if use_unicode_characters else '/'
 
     # Insert columns starting from the back since the insertion
     # affects subsequent indices.
-    for (x1, x2) in reversed(moment_groups):
-        out_diagram.shift_horizontally(x2 + 1, 1)
+    for x1, x2 in reversed(moment_groups):
+        out_diagram.insert_empty_columns(x2 + 1)
         out_diagram.force_horizontal_padding_after(x2, 0)
 
-        for y in [0, h]:
-            out_diagram.write(x2 + 1, y, right_end, bottom_end)
+        out_diagram.write(x2 + 1, 0, top_right, bottom_left)
+        out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
         out_diagram.force_horizontal_padding_after(x2 + 1,
             2 if not transpose else 0)
 
         for y in [0, h]:
             out_diagram.horizontal_line(y, x1, x2 + 1)
 
-        out_diagram.shift_horizontally(x1, 1)
+        out_diagram.insert_empty_columns(x1)
         out_diagram.force_horizontal_padding_after(x1, 0)
-        for y in [0, h]:
-            out_diagram.write(x1, y, left_end, top_end)
+        out_diagram.write(x1, 0, top_left, top_left)
+        out_diagram.write(x1, h, bottom_left, top_right)
 
         out_diagram.force_horizontal_padding_after(x1 - 1,
            2 if not transpose else 0)
