@@ -58,7 +58,7 @@ class PauliString:
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
-    def get(self, key: raw_types.QubitId, default: Union[Pauli, TDefault] = None
+    def get(self, key: raw_types.QubitId, default: TDefault = None
             ) -> Union[Pauli, TDefault] :
         return self._qubit_pauli_map.get(key, default)
 
