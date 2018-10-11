@@ -35,7 +35,7 @@ class SupportsParameterization(Protocol):
 def is_parameterized(val: Any) -> bool:
     """Returns whether the object is parameterized with any Symbols.
 
-    A value is parameterized when it has an is_parameterized method and
+    A value is parameterized when it has an `_is_parameterized_` method and
     that method returns a truthy value.
 
     Returns:

@@ -27,7 +27,6 @@ from typing import (
 )
 
 import numpy as np
-import cirq
 
 from cirq import devices, ops, extension, study, protocols
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -1128,7 +1127,8 @@ class Circuit:
         return diagram
 
     def is_parameterized(self) -> bool:
-        return any(cirq.is_parameterized(op) for op in self.all_operations())
+        return any(protocols.is_parameterized(op)
+                   for op in self.all_operations())
 
     def with_parameters_resolved_by(self,
                                     param_resolver: study.ParamResolver,
@@ -1140,8 +1140,7 @@ class Circuit:
         for moment in self:
             resolved_circuit.append(_resolve_operations(
                 moment.operations,
-                param_resolver,
-                ext))
+                param_resolver))
         return resolved_circuit
 
     def to_qasm(self,
@@ -1202,11 +1201,11 @@ class Circuit:
 
 def _resolve_operations(
         operations: Iterable[ops.Operation],
-        param_resolver: study.ParamResolver,
-        ext: extension.Extensions) -> List[ops.Operation]:
+        param_resolver: study.ParamResolver) -> List[ops.Operation]:
     resolved_operations = []  # type: List[ops.Operation]
     for op in operations:
-        resolved_operations.append(cirq.resolve_parameters(op, param_resolver))
+        resolved_operations.append(protocols.resolve_parameters(
+            op, param_resolver))
     return resolved_operations
 
 
