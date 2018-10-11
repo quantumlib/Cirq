@@ -230,10 +230,10 @@ def test_z_matrix():
 
 def test_z_parameterize():
     parameterized_gate = cg.ExpZGate(half_turns=cirq.Symbol('a'))
-    assert parameterized_gate.is_parameterized()
+    assert cirq.is_parameterized(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1})
-    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cg.ExpZGate(half_turns=0.1)
 
 
@@ -348,10 +348,10 @@ def test_cz_potential_implementation():
 
 def test_cz_parameterize():
     parameterized_gate = cg.Exp11Gate(half_turns=cirq.Symbol('a'))
-    assert parameterized_gate.is_parameterized()
+    assert cirq.is_parameterized(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1})
-    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
 
 
@@ -514,10 +514,10 @@ def test_w_inverse():
 def test_w_parameterize():
     parameterized_gate = cg.ExpWGate(half_turns=cirq.Symbol('a'),
                                      axis_half_turns=cirq.Symbol('b'))
-    assert parameterized_gate.is_parameterized()
+    assert cirq.is_parameterized(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
-    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)
 
 
