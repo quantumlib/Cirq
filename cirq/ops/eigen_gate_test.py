@@ -48,6 +48,18 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         return 4
 
 
+class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
+    @property
+    def exponent(self):
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, np.diag([1, 0])),
+            (1, np.diag([0, 1])),
+        ]
+
+
 def test_init():
     assert CExpZinGate(1).exponent == 1
     assert CExpZinGate(0.5).exponent == 0.5
@@ -55,6 +67,8 @@ def test_init():
     assert CExpZinGate(1.5).exponent == 1.5
     assert CExpZinGate(3.5).exponent == -0.5
     assert CExpZinGate(cirq.Symbol('a')).exponent == cirq.Symbol('a')
+
+    assert ZGateDef(exponent=0.5).exponent == 0.5
 
 
 def test_eq():
@@ -68,6 +82,15 @@ def test_eq():
     eq.make_equality_group(lambda: cirq.Symbol('a'))
     eq.add_equality_group(cirq.Symbol('b'))
 
+    eq.add_equality_group(ZGateDef(exponent=0.5,
+                                   global_shift_in_half_turns=0.0))
+    eq.add_equality_group(ZGateDef(exponent=-0.5,
+                                   global_shift_in_half_turns=0.0))
+    eq.add_equality_group(ZGateDef(exponent=0.5,
+                                   global_shift_in_half_turns=0.5))
+    eq.add_equality_group(ZGateDef(exponent=1.0,
+                                   global_shift_in_half_turns=0.5))
+
 
 def test_pow():
     assert CExpZinGate(0.25)**2 == CExpZinGate(0.5)
@@ -75,6 +98,11 @@ def test_pow():
     assert CExpZinGate(0.25)**0 == CExpZinGate(0)
     with pytest.raises(TypeError):
         _ = CExpZinGate(cirq.Symbol('a'))**1.5
+    assert ZGateDef(exponent=0.25)**2 == ZGateDef(exponent=0.5)
+    assert ZGateDef(exponent=0.25,
+                    global_shift_in_half_turns=0.5)**2 == ZGateDef(
+        exponent=0.5,
+        global_shift_in_half_turns=0.5)
 
 
 def test_extrapolate_effect():
@@ -87,9 +115,9 @@ def test_extrapolate_effect():
 
 
 def test_inverse():
-    assert CExpZinGate(0.25).inverse() == CExpZinGate(-0.25)
+    assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
     with pytest.raises(TypeError):
-        _ = CExpZinGate(cirq.Symbol('a')).inverse()
+        _ = cirq.inverse(CExpZinGate(cirq.Symbol('a')))
 
 
 def test_trace_distance_bound():
@@ -102,18 +130,18 @@ def test_try_cast_to():
 
     h = CExpZinGate(2)
     assert h.try_cast_to(cirq.ExtrapolatableEffect, ext) is h
-    assert h.try_cast_to(cirq.ReversibleEffect, ext) is h
     assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.inverse(h, None) is not None
 
     p = CExpZinGate(0.1)
     assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is p
-    assert p.try_cast_to(cirq.ReversibleEffect, ext) is p
     assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.inverse(p) is not None
 
     s = CExpZinGate(cirq.Symbol('a'))
     assert s.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert s.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.inverse(s, None) is None
 
 
 def test_matrix():
@@ -149,6 +177,36 @@ def test_matrix():
 
     assert cirq.unitary(CExpZinGate(cirq.Symbol('a')), None) is None
 
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0)),
+        np.eye(2),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=1)),
+        np.diag([1, -1]),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5)),
+        np.diag([1, 1j]),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=1, global_shift_in_half_turns=0.5)),
+        np.diag([1j, -1j]),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift_in_half_turns=0.5)),
+        np.diag([1+1j, -1+1j])/np.sqrt(2),
+        atol=1e-8)
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift_in_half_turns=-0.5)),
+        np.diag([1-1j, 1+1j])/np.sqrt(2),
+        atol=1e-8)
+
 
 def test_matrix_is_exact_for_quarter_turn():
     np.testing.assert_equal(
@@ -157,15 +215,15 @@ def test_matrix_is_exact_for_quarter_turn():
 
 
 def test_is_parameterized():
-    assert not CExpZinGate(0).is_parameterized()
-    assert not CExpZinGate(1).is_parameterized()
-    assert not CExpZinGate(3).is_parameterized()
-    assert CExpZinGate(cirq.Symbol('a')).is_parameterized()
+    assert not cirq.is_parameterized(CExpZinGate(0))
+    assert not cirq.is_parameterized(CExpZinGate(1))
+    assert not cirq.is_parameterized(CExpZinGate(3))
+    assert cirq.is_parameterized(CExpZinGate(cirq.Symbol('a')))
 
 
-def test_with_parameters_resolved_by():
-    assert CExpZinGate(cirq.Symbol('a')).with_parameters_resolved_by(
+def test_resolve_parameters():
+    assert cirq.resolve_parameters(CExpZinGate(cirq.Symbol('a')),
         cirq.ParamResolver({'a': 0.5})) == CExpZinGate(0.5)
 
-    assert CExpZinGate(0.25).with_parameters_resolved_by(
+    assert cirq.resolve_parameters(CExpZinGate(0.25),
         cirq.ParamResolver({})) == CExpZinGate(0.25)
