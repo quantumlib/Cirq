@@ -125,7 +125,6 @@ from cirq.ops import (
     NamedQubit,
     OP_TREE,
     Operation,
-    ParameterizableEffect,
     Pauli,
     PauliInteractionGate,
     PauliString,
@@ -197,6 +196,9 @@ from cirq.protocols import (
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
+    SupportsParameterization,
+    is_parameterized,
+    resolve_parameters,
     unitary,
 )
 

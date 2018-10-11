@@ -30,3 +30,8 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
 )
+from cirq.protocols.resolve_parameters import (
+    SupportsParameterization,
+    is_parameterized,
+    resolve_parameters,
+)
