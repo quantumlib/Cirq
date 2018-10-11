@@ -456,7 +456,7 @@ u3(pi*0.25,pi*1.625,pi*0.375) q[1];
 
 cz q[0],q[1];
 
-// Gate: Exp11Gate(half_turns=-0.75)
+// Gate: cirq.google.Exp11Gate(half_turns=-0.75)
 u3(pi*0.5,0,pi*1.54081) q[0];
 u3(pi*0.5,pi*1.0,pi*0.04081) q[1];
 rx(pi*0.5) q[0];
