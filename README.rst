@@ -82,7 +82,8 @@ chemistry and materials science, we encourage exploring
 its sister library for compiling quantum simulation algorithms in Cirq,
 `OpenFermion-Cirq <https://github.com/quantumlib/openfermion-cirq>`__.
 
-Disclaimer
+Disclaimers
 ----------
-
-Copyright 2018 The Cirq Developers. This is not an official Google product.
+* Cirq is currently in Alpha
+* Cirq is not an official Google product
+* Copyright 2018 The Cirq Developers
