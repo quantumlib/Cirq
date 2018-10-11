@@ -84,6 +84,6 @@ its sister library for compiling quantum simulation algorithms in Cirq,
 
 Disclaimers
 ----------
-* Cirq is currently in Alpha
+* Cirq is currently in Alpha. This means that the developer team is not investing effort to provide backward compatibility between releases. Users should target specific versions to avoid backward incompatible changes.
 * Cirq is not an official Google product
 * Copyright 2018 The Cirq Developers

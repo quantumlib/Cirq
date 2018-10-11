@@ -100,4 +100,4 @@ If you want to create a development environment, see [development.md](developmen
     ```
 ### Disclaimer
 
-- Cirq is currently in Alpha
+-  Cirq is currently in Alpha. This means that the developer team is not investing effort to provide backward compatibility between releases. Users should target specific versions to avoid backward incompatible changes.
