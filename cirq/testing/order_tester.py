@@ -138,12 +138,12 @@ class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other,         # coverage: ignore
-        ClassSmallerThanEverythingElse)  # coverage: ignore
+        # coverage: ignore
+        return isinstance(other, ClassSmallerThanEverythingElse)
 
     def __ne__(self, other):
-        return not isinstance(other,     # coverage: ignore
-        ClassSmallerThanEverythingElse)  # coverage: ignore
+        # coverage: ignore
+        return not isinstance(other, ClassSmallerThanEverythingElse)
 
     def __lt__(self, other):
         return not isinstance(other, ClassSmallerThanEverythingElse)
@@ -157,20 +157,21 @@ class ClassSmallerThanEverythingElse:
     def __ge__(self, other):
         return isinstance(other, ClassSmallerThanEverythingElse)
 
-    def __hash__(self):                                 # coverage: ignore
-        return hash(ClassSmallerThanEverythingElse)     # coverage: ignore
+    def __hash__(self):
+        # coverage: ignore
+        return hash(ClassSmallerThanEverythingElse)
 
 
 class ClassLargerThanEverythingElse:
     """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other,        # coverage: ignore
-        ClassLargerThanEverythingElse)  # coverage: ignore
+        # coverage: ignore
+        return isinstance(other, ClassLargerThanEverythingElse)
 
     def __ne__(self, other):
-        return not isinstance(other,    # coverage: ignore
-        ClassLargerThanEverythingElse)  # coverage: ignore
+        # coverage: ignore
+        return not isinstance(other, ClassLargerThanEverythingElse)
 
     def __lt__(self, other):
         return False
@@ -184,5 +185,6 @@ class ClassLargerThanEverythingElse:
     def __ge__(self, other):
         return True
 
-    def __hash__(self):                             # coverage: ignore
-        return hash(ClassLargerThanEverythingElse)  # coverage: ignore
+    def __hash__(self):
+        # coverage: ignore
+        return hash(ClassLargerThanEverythingElse)
