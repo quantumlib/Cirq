@@ -20,6 +20,7 @@ from cirq.google import XmonSimulator, XmonMeasurementGate
 from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, MeasurementGate, H, Pauli, PauliString
 from cirq.devices import GridQubit
+from cirq.line import LineQubit
 from exponentiate import exponentiate_qubit_operator
 from expectation_value import expectation_value, expectation_from_sampling
 from bayes_opt import BayesianOptimization
@@ -37,19 +38,21 @@ class QAOA:
         Initializes the QAOA object
 
         Args:
-            n_qubits: number of qubits used in the circuit
+            n_qubits: number of qubits used in the circuit.
             objective_function: Dict[PauliString: Coefficient]
-                the objective function QAOA wants to maximize
-            mixing_operator: Dict[PauliString: Coefficient]
-                default set to 'X' which sets it to pauli H on every qubit
+                the objective function QAOA wants to maximize.
+            mixing_operator: Union[Dict[PauliString: Coefficient], str]
+                This is the B operator in the original QAOA paper. It is used
+                to compute the unitary U_B through exponentiating
+                U_B = exp(i*\beta*B).
+                Default set to 'X' which sets it to pauli X on every qubit.
         """
 
-        # QAOA details
         self.objective_function = objective_function
 
         # setup cirq circuit and device
         self.circuit = Circuit()
-        self.qubits = [GridQubit(0, i) for i in range(n_qubits)]
+        self.qubits = [LineQubit(i) for i in range(n_qubits)]
 
         # set mixing, or use standard if 'X'
         if mixing_operator == 'X':
@@ -63,7 +66,7 @@ class QAOA:
         sets new objective_function
 
         Args:
-            objective_function: the objective function QAOA wants to maximize
+            objective_function: the objective function QAOA wants to maximize.
         """
         self.objective_function = objective_function
 
@@ -75,8 +78,8 @@ class QAOA:
         Args:
             mixing_operator: Dict[PauliString: Coefficient]
                 operator B in QAOA paper, used to create unitary by
-                exponentiation default set to 'X' which sets it to pauli H on
-                every qubit
+                exponentiation default set to 'X' which sets it to pauli X on
+                every qubit.
         """
 
         # initialize operator dict
@@ -100,7 +103,7 @@ class QAOA:
 
         Args:
             n_connections: integer determining the number of connections
-                for each vertex in the regular tree graph
+                for each vertex in the regular tree graph.
         """
         z = Pauli.Z
 
@@ -147,9 +150,9 @@ class QAOA:
             p: number of repetitions of the unitaries U_C and U_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
-                parameters we want to optimize
+                parameters we want to optimize.
             params: list with values of gammas and betas, gammas
-                are the entries params[0:p] and betas are params[p:2p]
+                are the entries params[0:p] and betas are params[p:2p].
         """
 
         # initial uniform superposition
@@ -179,28 +182,28 @@ class QAOA:
             # print(self.circuit)
 
     def run_circuit(self, params, p,
-                    expectation_method = 'wavefunction',
-                    min_flag = False):
+                    expectation_method='wavefunction',
+                    min_flag=False):
         """
         Sets up circuit and returns expectation value
 
         Args:
             params: list with values of gammas and betas, gammas are the
-                entries params[0:p] and betas are params[p:2p]
+                entries params[0:p] and betas are params[p:2p].
             p: number of repetitions of the unitaries U_C and U_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
-                parameters we want to optimize
+                parameters we want to optimize.
             expectation_method: determines whether expectation value
                 is obtained by an inner product with the final state or
                 by sampling from measurements given repeated runs from the
                 circuit if sampling is desired, enter int corresponding to the
-                number of samples used to get expectation value
-            min_flag: bool that determines whether to return negative of cost
+                number of samples used to get expectation value.
+            min_flag: bool that determines whether to return negative of cost.
 
         Returns:
             expectation value of self.objective_function in state prepared
-                by circuit created using params
+                by circuit created using params.
         """
 
         # clears old circuit
@@ -230,6 +233,88 @@ class QAOA:
 
         return cost
 
+    def return_configuration_from_circuit(self, params, p,
+                                          sampling=0):
+        """
+        Sets up circuit and returns expectation value
+
+        Args:
+            params: list with values of gammas and betas, gammas are the
+                entries params[0:p] and betas are params[p:2p].
+            p: number of repetitions of the unitaries U_C and U_B used in
+                the state preparation in QAOA. Since each time a unitary is
+                applied we introduce a new parameter, there are 2*p total
+                parameters we want to optimize.
+            sampling: int determining whether we are sampling from the circuit
+                or returning the result which has the largest probability
+                amplitude
+
+        Returns:
+            dict with results of measurements or probability amplitudes
+             of QAOA runs
+        """
+        measurement_dict = {}
+
+        # clears old circuit
+        self.circuit = Circuit()
+
+        # new circuit to prepare QAOA state with appropriate params
+        self.setup_circuit(p, params)
+
+        # setup simulator
+        sim = XmonSimulator()
+
+        # calculates expectation value in state according to method
+        if sampling == 0:
+
+            # run simulator
+            sim_result = sim.simulate(self.circuit)
+
+            # get final state and norm
+            final_state_prob = np.absolute(sim_result.final_state)**2
+            max_prob_index = np.argmax(final_state_prob)
+
+            # list with bits
+            bits = [bin(i)[2:].zfill(n_qubits) for i in range(2 ** n_qubits)]
+
+            # return probability of measurement and the bitstring that
+            # corresponds to it
+            measurement_dict['max_probability'] = final_state_prob[
+                max_prob_index]
+
+            measurement_dict['bits'] = bits[max_prob_index]
+
+            return measurement_dict
+
+        elif isinstance(sampling, int):
+
+            # append measurements to circuit:
+            meas = [XmonMeasurementGate(key=index).on(
+                self.qubits[index]) for index in range(len(self.qubits))]
+
+            self.circuit.append(meas)
+
+            # run simulator
+            sim_result = sim.run(circuit=self.circuit,
+                                 repetitions=sampling)
+            # measurement keys
+            keys = [gate.key for _, _, gate in
+                    circuit.findall_operations_with_gate_type(
+                        XmonMeasurementGate)]
+
+            # histogram of measurements
+            counter = sim_result.multi_measurement_histogram(keys=keys)
+
+            # most common measurement
+            most_common = counter.most_common()[0]
+
+            # most common measurement dict:
+            measurement_dict['most_common_measurement'] = most_common[0]
+            measurement_dict['most_common_measurement_number'] = most_common[1]
+            measurement_dict['number_measurements'] = sampling
+
+            return measurement_dict
+
     def optimization(self, p,
                      initial_params=None,
                      optimizer='swarm',
@@ -241,9 +326,9 @@ class QAOA:
             p: number of repetitions of the unitaries U_C and U_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
-                parameters we want to optimize
+                parameters we want to optimize.
             initial_params: set initialization parameters if allowed by
-                optimizer
+                optimizer.
             optimizer: string that sets the optimization method used to
                 obtain the parameters gamma and beta that maximize the objective
                 function. Currently supports:
@@ -254,15 +339,15 @@ class QAOA:
                 is obtained by an inner product with the final state or
                 by sampling from measurements given repeated runs from the
                 circuit if sampling is desired, enter int corresponding to the
-                number of samples used to get expectation value
+                number of samples used to get expectation value.
 
         Returns:
             returns a dictionary of the solution found using the given
-                optimization method
+                optimization method.
                 keys:
-                cost - final value of the objective function we are maximizing
-                gammas - list containing the p optimal gammas
-                betas - list containing the p  optimal gammas
+                cost - final value of the objective function we are maximizing.
+                gammas - list containing the p optimal gammas.
+                betas - list containing the p  optimal betas.
         """
 
         if optimizer == 'swarm':
@@ -290,20 +375,20 @@ class QAOA:
             p: number of repetitions of the unitaries U_C and U_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
-                parameters we want to optimize
+                parameters we want to optimize.
             expectation_method: determines whether expectation value
                 is obtained by an inner product with the final state or
                 by sampling from measurements given repeated runs from the
                 circuit if sampling is desired, enter int corresponding to the
-                number of samples used to get expectation value
+                number of samples used to get expectation value.
 
         Returns:
             returns a dictionary of the solution found using the given
-                optimization method
+                optimization method.
                 keys:
-                cost - final value of the objective function we are maximizing
-                gammas - list containing the p optimal gammas
-                betas - list containing the p  optimal gammas
+                cost - final value of the objective function we are maximizing.
+                gammas - list containing the p optimal gammas.
+                betas - list containing the p  optimal betas.
         """
 
         # initialize solution dict
@@ -339,22 +424,22 @@ class QAOA:
             p: number of repetitions of the unitaries U_C and U_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
-                parameters we want to optimize
+                parameters we want to optimize.
             initial_params: set initialization parameters if allowed by
-                optimizer
+                optimizer.
             expectation_method: determines whether expectation value
                 is obtained by an inner product with the final state or
                 by sampling from measurements given repeated runs from the
                 circuit if sampling is desired, enter int corresponding to the
-                number of samples used to get expectation value
+                number of samples used to get expectation value.
 
         Returns:
             returns a dictionary of the solution found using the given
-                optimization method
+                optimization method.
                 keys:
-                cost - final value of the objective function we are maximizing
-                gammas - list containing the p optimal gammas
-                betas - list containing the p  optimal gammas
+                cost - final value of the objective function we are maximizing.
+                gammas - list containing the p optimal gammas.
+                betas - list containing the p  optimal betas.
         """
 
         # initialize solution dict
@@ -391,20 +476,20 @@ class QAOA:
             p: number of repetitions of the unitaries U_C and U_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
-                parameters we want to optimize
+                parameters we want to optimize.
             expectation_method: determines whether expectation value
                 is obtained by an inner product with the final state or
                 by sampling from measurements given repeated runs from the
                 circuit if sampling is desired, enter int corresponding to the
-                number of samples used to get expectation value
+                number of samples used to get expectation value.
 
         Returns:
             returns a dictionary of the solution found using the given
-                optimization method
+                optimization method.
                 keys:
-                cost - final value of the objective function we are maximizing
-                gammas - list containing the p optimal gammas
-                betas - list containing the p  optimal gammas
+                cost - final value of the objective function we are maximizing.
+                gammas - list containing the p optimal gammas.
+                betas - list containing the p  optimal betas.
         """
 
         # initialize solution dict
