@@ -199,7 +199,7 @@ def _expectation_from_sampling_assuming_quadratic(
     # remove qubits already measured
     map(q_dict.pop, measurement_qubits)
 
-    assert(len(q_dict) + len(measurement_qubits) == len(qubits),
+    assert len(q_dict) + len(measurement_qubits) == len(qubits), (
            'Incorrect amount of measurements in circuit')
 
     # add measurement gate to appropriate qubits
@@ -226,7 +226,7 @@ def _expectation_from_sampling_assuming_quadratic(
             # here we enforce that hamiltonian is quadratic in pauli.Z
 
             # no more than 2 terms
-            assert(len(term) <= 2,
+            assert len(term) <= 2, (
                    'quadratic_z method only accepts quadratic operators')
 
             # enforce that operators are pauli.Z
@@ -238,7 +238,7 @@ def _expectation_from_sampling_assuming_quadratic(
             new_pauli_string = PauliString(qubit_pauli_map=z_paulis)
 
             # enforce commutativity with new string
-            assert(term.commutes_with(new_pauli_string),
+            assert term.commutes_with(new_pauli_string), (
                    'Operator must be diagonal in computational basis'
                    'and can only contain Pauli.Z')
 
