@@ -199,7 +199,7 @@ from cirq.protocols import (
     is_parameterized,
     resolve_parameters,
     unitary,
-    TraceDistanceBound,
+    SupportsTraceDistanceBound,
     trace_distance_bound,
 )
 

@@ -24,6 +24,10 @@ def test_trace_distance_bound():
         def _trace_distance_bound_(self) -> type(NotImplemented):
             return NotImplemented
 
+    class ReturnsTwo:
+        def _trace_distance_bound_(self) -> float:
+            return 2.0
+
     class ReturnsConstant:
         def __init__(self, bound):
             self.bound = bound
@@ -31,8 +35,10 @@ def test_trace_distance_bound():
         def _trace_distance_bound_(self) -> float:
             return self.bound
 
-    infinity = float("inf")
-    assert cirq.trace_distance_bound(NoMethod()) == infinity
-    assert cirq.trace_distance_bound(ReturnsNotImplemented()) == infinity
+    assert cirq.trace_distance_bound(NoMethod()) == 1.0
+    assert cirq.trace_distance_bound(ReturnsNotImplemented()) == 1.0
+    assert cirq.trace_distance_bound(ReturnsTwo()) == 1.0
+    assert cirq.trace_distance_bound(ReturnsConstant(0.1)) == 0.1
     assert cirq.trace_distance_bound(ReturnsConstant(0.5)) == 0.5
     assert cirq.trace_distance_bound(ReturnsConstant(1.0)) == 1.0
+    assert cirq.trace_distance_bound(ReturnsConstant(2.0)) == 1.0

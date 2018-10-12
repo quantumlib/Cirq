@@ -19,7 +19,7 @@ from typing_extensions import Protocol
 TDefault = TypeVar('TDefault')
 
 
-class TraceDistanceBound(Protocol):
+class SupportsTraceDistanceBound(Protocol):
     """An effect with known bounds on how easy it is to detect.
 
     Used when deciding whether or not an operation is negligible. For example,
@@ -29,12 +29,13 @@ class TraceDistanceBound(Protocol):
     """
 
     def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this effect's input/output.
+        """A maximum on the trace distance between `val`'s input and output.
 
         Generally this method is used when deciding whether to keep gates, so
         only the behavior near 0 is important. Approximations that overestimate
-        the maximum trace distance are permitted. Even ones that exceed 1.
-        Underestimates are not permitted.
+        the maximum trace distance are permitted. If, for any case, the bound
+        exceeds 1, this function will return 1.  Underestimates are not
+        permitted.
         """
 
 def trace_distance_bound(val: Any) -> float:
@@ -48,13 +49,14 @@ def trace_distance_bound(val: Any) -> float:
 
     Returns:
         If `val` has a _trace_distance_bound_ method and its result is not
-        NotImplemented, that result is returned. Otherwise, positive infinity
-        is returned.
+        NotImplemented, that result is returned. Otherwise, 1 is returned.
+        Result is capped at a maximum of 1, even if the underlying function
+        produces a result greater than 1.
 
     """
     getter = getattr(val, '_trace_distance_bound_', None)
     result = NotImplemented if getter is None else getter()
 
-    if result is not NotImplemented:
+    if result is not NotImplemented and result < 1.0:
         return result
-    return float("inf")
+    return 1.0
