@@ -29,8 +29,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
 class SingleQubitMatrixGate(raw_types.Gate,
                             gate_features.TextDiagrammable,
                             gate_features.PhaseableEffect,
-                            gate_features.ExtrapolatableEffect,
-                            gate_features.BoundedEffect):
+                            gate_features.ExtrapolatableEffect):
     """A 1-qubit gate defined by its matrix.
 
     More general than specialized classes like ZGate, but more expensive and
@@ -62,7 +61,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         vals = np.linalg.eigvals(self._matrix)
         rotation_angle = abs(np.angle(vals[0] / vals[1]))
         return rotation_angle * 1.2

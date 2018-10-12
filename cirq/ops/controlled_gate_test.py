@@ -179,13 +179,11 @@ def test_try_cast_to():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.inverse(CY) == CY**-1 == CY
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
     assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert cirq.inverse(CY, None) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
-    assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
     assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
 
@@ -268,19 +266,7 @@ def test_circuit_diagram_info():
 
 
 def test_bounded_effect():
-    assert (CY**0.001).trace_distance_bound() < 0.01
-
-
-def test_bounded_effect_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.BoundedEffect, RestrictedGate, lambda _: cirq.Y)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.trace_distance_bound()
-
-    assert with_ext.trace_distance_bound() < 100
+    assert cirq.trace_distance_bound(CY**0.001) < 0.01
 
 
 def test_repr():

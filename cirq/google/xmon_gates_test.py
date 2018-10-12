@@ -527,12 +527,12 @@ def test_w_repr():
 
 
 def test_trace_bound():
-    assert cg.ExpZGate(half_turns=.001).trace_distance_bound() < 0.01
-    assert cg.ExpWGate(half_turns=.001).trace_distance_bound() < 0.01
-    assert cg.ExpZGate(
-        half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
-    assert cg.ExpWGate(
-        half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
+    assert cirq.trace_distance_bound(cg.ExpZGate(half_turns=.001)) < 0.01
+    assert cirq.trace_distance_bound(cg.ExpWGate(half_turns=.001)) < 0.01
+    assert cirq.trace_distance_bound(cg.ExpZGate(
+        half_turns=cirq.Symbol('a'))) >= 1
+    assert cirq.trace_distance_bound(cg.ExpWGate(
+        half_turns=cirq.Symbol('a'))) >= 1
 
 
 def test_z_inverse():

@@ -244,26 +244,6 @@ class PhaseableEffect(metaclass=abc.ABCMeta):
         """
 
 
-class BoundedEffect(metaclass=abc.ABCMeta):
-    """An effect with known bounds on how easy it is to detect.
-
-    Used when deciding whether or not an operation is negligible. For example,
-    the trace distance between the states before and after a Z**0.00000001
-    operation is very close to 0, so it would typically be considered
-    negligible.
-    """
-
-    @abc.abstractmethod
-    def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this effect's input/output.
-
-        Generally this method is used when deciding whether to keep gates, so
-        only the behavior near 0 is important. Approximations that overestimate
-        the maximum trace distance are permitted. Even ones that exceed 1.
-        Underestimates are not permitted.
-        """
-
-
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 

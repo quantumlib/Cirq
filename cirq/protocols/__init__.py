@@ -30,3 +30,7 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
 )
+from cirq.protocols.trace_distance_bound import (
+    TraceDistanceBound,
+    trace_distance_bound,
+)

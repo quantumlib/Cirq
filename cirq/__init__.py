@@ -96,7 +96,6 @@ from cirq.line import (
 )
 
 from cirq.ops import (
-    BoundedEffect,
     CCX,
     CCZ,
     SingleQubitCliffordGate,
@@ -198,6 +197,8 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     unitary,
+    TraceDistanceBound,
+    trace_distance_bound,
 )
 
 # Unflattened sub-modules.

@@ -121,8 +121,8 @@ def test_inverse():
 
 
 def test_trace_distance_bound():
-    assert CExpZinGate(0.001).trace_distance_bound() < 0.01
-    assert CExpZinGate(cirq.Symbol('a')).trace_distance_bound() >= 1
+    assert cirq.trace_distance_bound(CExpZinGate(0.001)) < 0.01
+    assert cirq.trace_distance_bound(CExpZinGate(cirq.Symbol('a'))) >= 1
 
 
 def test_try_cast_to():
