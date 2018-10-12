@@ -31,7 +31,6 @@ if TYPE_CHECKING:
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.ExtrapolatableEffect,
-    gate_features.ParameterizableEffect,
     gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
 ]}
@@ -46,7 +45,6 @@ class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
-                        gate_features.ParameterizableEffect,
                         gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
                         gate_features.QasmConvertibleOperation,
@@ -153,6 +151,13 @@ class GateOperation(raw_types.Operation,
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         return protocols.unitary(self._gate, NotImplemented)
 
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._gate)
+
+    def _resolve_parameters_(self, resolver):
+        resolved_gate = protocols.resolve_parameters(self._gate, resolver)
+        return GateOperation(resolved_gate, self._qubits)
+
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -202,18 +207,6 @@ class GateOperation(raw_types.Operation,
             return self.with_gate(inv_gate)
         return self.extrapolate_effect(power)
 
-    def is_parameterized(self) -> bool:
-        cast_gate = extension.cast(gate_features.ParameterizableEffect,
-                                   self.gate)
-        return cast_gate.is_parameterized()
-
-    def with_parameters_resolved_by(self,
-                                    param_resolver: 'study.ParamResolver',
-                                    ) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ParameterizableEffect,
-                                   self.gate)
-        new_gate = cast_gate.with_parameters_resolved_by(param_resolver)
-        return self.with_gate(cast(raw_types.Gate, new_gate))
 
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:

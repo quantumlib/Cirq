@@ -42,7 +42,6 @@ EigenComponent = NamedTuple(
 
 
 class EigenGate(raw_types.Gate,
-                gate_features.ParameterizableEffect,
                 extension.PotentialImplementation[Union[
                     gate_features.ExtrapolatableEffect,
                     gate_features.ReversibleEffect]]):
@@ -175,7 +174,7 @@ class EigenGate(raw_types.Gate,
         return None
 
     def __pow__(self: TSelf, power: float) -> TSelf:
-        if power != 1 and self.is_parameterized():
+        if power != 1 and self._is_parameterized_():
             return NotImplemented
         return self.extrapolate_effect(power)
 
@@ -210,12 +209,12 @@ class EigenGate(raw_types.Gate,
     def try_cast_to(self, desired_type, ext):
         if (desired_type in [gate_features.ExtrapolatableEffect,
                              gate_features.ReversibleEffect] and
-                not self.is_parameterized()):
+                not self._is_parameterized_()):
             return self
         return super().try_cast_to(desired_type, ext)
 
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if self.is_parameterized():
+        if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
         return np.sum([
@@ -229,9 +228,9 @@ class EigenGate(raw_types.Gate,
         return self._with_exponent(
             exponent=self._exponent * factor)  # type: ignore
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self._exponent, value.Symbol)
 
-    def with_parameters_resolved_by(self: TSelf, param_resolver) -> TSelf:
+    def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))

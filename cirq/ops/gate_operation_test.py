@@ -139,19 +139,10 @@ def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    # If the gate isn't parameterizable, you get a type error.
-    op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ParameterizableEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.is_parameterized()
-    with pytest.raises(TypeError):
-        _ = op0.with_parameters_resolved_by(r)
-
     op1 = cirq.GateOperation(cirq.RotZGate(half_turns=cirq.Symbol('a')), [q])
-    assert cirq.can_cast(cirq.ParameterizableEffect, op1)
-    assert op1.is_parameterized()
-    op2 = op1.with_parameters_resolved_by(r)
-    assert not op2.is_parameterized()
+    assert cirq.is_parameterized(op1)
+    op2 = cirq.resolve_parameters(op1, r)
+    assert not cirq.is_parameterized(op2)
     assert op2 == cirq.S.on(q)
 
 

@@ -34,3 +34,8 @@ from cirq.protocols.trace_distance_bound import (
     TraceDistanceBound,
     trace_distance_bound,
 )
+from cirq.protocols.resolve_parameters import (
+    SupportsParameterization,
+    is_parameterized,
+    resolve_parameters,
+)

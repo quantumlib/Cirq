@@ -164,7 +164,6 @@ class Exp11Gate(XmonGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
-                ops.ParameterizableEffect,
                 ops.QasmConvertibleGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -251,10 +250,10 @@ class Exp11Gate(XmonGate,
     def __hash__(self):
         return hash((Exp11Gate, self.half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'Exp11Gate':
+    def _resolve_parameters_(self, param_resolver) -> 'Exp11Gate':
         return Exp11Gate(half_turns=param_resolver.value_of(self.half_turns))
 
 
@@ -262,7 +261,6 @@ class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.PhaseableEffect,
-               ops.ParameterizableEffect,
                PotentialImplementation[Union[
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
@@ -344,7 +342,7 @@ class ExpWGate(XmonGate,
         return {'exp_w': exp_w}
 
     def __pow__(self, power):
-        if self.is_parameterized() and power != 1:
+        if protocols.is_parameterized(self) and power != 1:
             return NotImplemented
         return ExpWGate(half_turns=self.half_turns * power,
                         axis_half_turns=self.axis_half_turns)
@@ -439,11 +437,11 @@ class ExpWGate(XmonGate,
             return hash((ops.RotYGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol))
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpWGate':
+    def _resolve_parameters_(self, param_resolver) -> 'ExpWGate':
         return ExpWGate(
                 half_turns=param_resolver.value_of(self.half_turns),
                 axis_half_turns=param_resolver.value_of(self.axis_half_turns))
@@ -498,5 +496,8 @@ class ExpZGate(XmonGate, ops.RotZGate):
     def __repr__(self):
         return 'ExpZGate(half_turns={!r})'.format(self.half_turns)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
+    def _is_parameterized_(self) -> bool:
+        return isinstance(self.half_turns, value.Symbol)
+
+    def _resolve_parameters_(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))
