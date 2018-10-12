@@ -14,12 +14,13 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Sequence
 
 import numpy as np
 
-from cirq import linalg, value
-from cirq.ops import gate_features, common_gates, raw_types, op_tree, eigen_gate
+from cirq import linalg, value, protocols
+from cirq.ops import gate_features, common_gates, raw_types, op_tree, \
+    eigen_gate, controlled_gate
 
 
 class _CCZPowerGate(eigen_gate.EigenGate,
@@ -86,6 +87,17 @@ class _CCZPowerGate(eigen_gate.EigenGate,
         yield p(c)**-1
         yield sweep_abc
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> np.ndarray:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        ooo = linalg.slice_for_qubits_equal_to(axes, 0b111)
+        target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
+        return target_tensor
+
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
         return gate_features.TextDiagramInfo(('@', '@', '@'),
@@ -150,6 +162,20 @@ class _CCXPowerGate(eigen_gate.EigenGate,
 
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> np.ndarray:
+        return protocols.apply_unitary_to_tensor(
+            controlled_gate.ControlledGate(
+                controlled_gate.ControlledGate(
+                    common_gates.X**self.exponent)),
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
 
     def default_decompose(self, qubits):
         c1, c2, t = qubits
@@ -245,6 +271,18 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.H(c)
         yield common_gates.S(c)**-1
         yield common_gates.X(a)**-0.5
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> np.ndarray:
+        return protocols.apply_unitary_to_tensor(
+            controlled_gate.ControlledGate(common_gates.SWAP),
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
 
     def _decompose_outside_control(self,
                                    control: raw_types.QubitId,

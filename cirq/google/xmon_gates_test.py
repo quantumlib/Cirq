@@ -230,16 +230,16 @@ def test_z_matrix():
 
 def test_z_parameterize():
     parameterized_gate = cg.ExpZGate(half_turns=cirq.Symbol('a'))
-    assert parameterized_gate.is_parameterized()
+    assert cirq.is_parameterized(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1})
-    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cg.ExpZGate(half_turns=0.1)
 
 
 def test_z_repr():
-    gate = cg.ExpZGate(half_turns=0.1)
-    assert repr(gate) == 'ExpZGate(half_turns=0.1)'
+    gate = cg.ExpZGate(half_turns=0.25)
+    assert repr(gate) == 'ExpZGate(half_turns=0.25)'
 
 
 def test_cz_eq():
@@ -348,10 +348,10 @@ def test_cz_potential_implementation():
 
 def test_cz_parameterize():
     parameterized_gate = cg.Exp11Gate(half_turns=cirq.Symbol('a'))
-    assert parameterized_gate.is_parameterized()
+    assert cirq.is_parameterized(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1})
-    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
 
 
@@ -506,19 +506,18 @@ def test_w_decomposition():
         atol=1e-8)
 
 
-def test_w_potential_implementation():
-    assert not cirq.can_cast(cirq.ReversibleEffect,
-                             cg.ExpWGate(half_turns=cirq.Symbol('a')))
-    assert cirq.can_cast(cirq.ReversibleEffect, cg.ExpWGate())
+def test_w_inverse():
+    assert cirq.inverse(cg.ExpWGate(half_turns=cirq.Symbol('a')), None) is None
+    assert cirq.inverse(cg.ExpWGate()) == cg.ExpWGate()
 
 
 def test_w_parameterize():
     parameterized_gate = cg.ExpWGate(half_turns=cirq.Symbol('a'),
                                      axis_half_turns=cirq.Symbol('b'))
-    assert parameterized_gate.is_parameterized()
+    assert cirq.is_parameterized(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
-    resolved_gate = parameterized_gate.with_parameters_resolved_by(resolver)
+    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)
 
 
@@ -536,11 +535,10 @@ def test_trace_bound():
         half_turns=cirq.Symbol('a')).trace_distance_bound() >= 1
 
 
-def test_has_inverse():
-    assert cg.ExpZGate(half_turns=.1).has_inverse()
-    assert cg.ExpWGate(half_turns=.1).has_inverse()
-    assert not cg.ExpZGate(half_turns=cirq.Symbol('a')).has_inverse()
-    assert not cg.ExpWGate(half_turns=cirq.Symbol('a')).has_inverse()
+def test_z_inverse():
+    assert cirq.inverse(cg.ExpZGate(half_turns=cirq.Symbol('a')), None) is None
+    assert cirq.inverse(cg.ExpZGate()) == cg.ExpZGate(half_turns=-1)
+    assert cirq.inverse(cg.ExpZGate()) != cg.ExpZGate()
 
 
 def test_measure_key_on():
