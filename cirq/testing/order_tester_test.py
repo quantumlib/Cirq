@@ -40,9 +40,13 @@ def test_add_ordering_group_incorrect():
         ot.add_ascending(6, 6)  # not ascending within call
     with pytest.raises(AssertionError):
         ot.add_ascending(99, 10)  # not ascending within call
+    with pytest.raises(AssertionError):
+        ot.add_ascending(0)
 
 def test_add_ordering_equivalence_group_incorrect():
     ot = OrderTester()
+    with pytest.raises(AssertionError):
+        ot.add_ascending(UnorderableClass())
     with pytest.raises(AssertionError):
         ot.add_ascending_equivalence_group(1, 3)  # not an equivalence group
     ot.add_ascending(1)

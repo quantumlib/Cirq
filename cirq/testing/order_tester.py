@@ -24,19 +24,20 @@ It will also check that a==b implies hash(a)==hash(b).
 """
 
 from typing import Any
-import sys
 
 from cirq.testing.equals_tester import EqualsTester
 
 
-class OrderTester(EqualsTester):
+class OrderTester:
     """Tests ordering against user-provided disjoint ordered groups or items."""
 
     def __init__(self):
-        self.groups = []
+        self.eq_tester = EqualsTester()
+        self.eq_tester.groups = []  # otherwise ClassUnknownToSubjects
+                                    # throws TypeError for comparisons
 
-    def _old_python(self):
-        return sys.version_info < (3,)
+    def _groups(self):
+        return self.eq_tester.groups
 
     def _try_comparison(self, comp):
         result = NotImplemented
@@ -72,17 +73,15 @@ class OrderTester(EqualsTester):
         self._do_assert(lt_1 == True, gt_2 == True,
             "{!r}__lt__/__gt__{!r}".format(v1, v2))
 
-        if not self._old_python():
+        le_1 = self._try_comparison(lambda: v1 <= v2)
+        not_le_2 = self._try_comparison(lambda: not v2 <= v1)
 
-            le_1 = self._try_comparison(lambda: v1 <= v2)
-            not_le_2 = self._try_comparison(lambda: not v2 <= v1)
+        self._do_assert(le_1, not_le_2, "__le__")
 
-            self._do_assert(le_1, not_le_2, "__le__")
+        ge_2 = self._try_comparison(lambda: v2 >= v1)
+        not_ge_1 = self._try_comparison(lambda: v1 >= v2)
 
-            ge_2 = self._try_comparison(lambda: v2 >= v1)
-            not_ge_1 = self._try_comparison(lambda: v1 >= v2)
-
-            self._do_assert(ge_2, not_ge_1, "__ge__")
+        self._do_assert(ge_2, not_ge_1, "__ge__")
 
     def _assert_not_implemented_vs_unknown(self, item: Any):
         self._verify_ascending(ClassSmallerThanEverythingElse(), item)
@@ -94,7 +93,7 @@ class OrderTester(EqualsTester):
         """
         assert group_items
 
-        for lesser_group in self.groups:
+        for lesser_group in self._groups():
             for lesser_item in lesser_group:
                 for larger_item in group_items:
                     self._verify_ascending(lesser_item, larger_item)
@@ -141,25 +140,25 @@ class OrderTester(EqualsTester):
         """
         # Check that elements are equal with regard to each other
         # and not equal to any other group.
-        super(OrderTester, self).verify_equality_group(*group_items)
+        self.eq_tester.verify_equality_group(*group_items)
 
         # Check that the new group is strictly ascending with regard to
         # the groups which have been added before.
         self.verify_ascending_group(*group_items)
 
         # Remember this group.
-        self.groups.append(tuple(group_items))
+        self.eq_tester.groups.append(tuple(group_items))
 
 
 class ClassSmallerThanEverythingElse:
     """Assume that the element of this class is less than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other,
+        return isinstance(other,         # coverage: ignore
         ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other,
+        return not isinstance(other,     # coverage: ignore
         ClassSmallerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
@@ -174,19 +173,19 @@ class ClassSmallerThanEverythingElse:
     def __ge__(self, other):
         return isinstance(other, ClassSmallerThanEverythingElse)
 
-    def __hash__(self):
-        return hash(ClassSmallerThanEverythingElse)  # coverage: ignore
+    def __hash__(self):                                 # coverage: ignore
+        return hash(ClassSmallerThanEverythingElse)     # coverage: ignore
 
 
 class ClassLargerThanEverythingElse:
     """Assume that the element of this class is larger than anything else."""
 
     def __eq__(self, other):
-        return isinstance(other,
+        return isinstance(other,        # coverage: ignore
         ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __ne__(self, other):
-        return not isinstance(other,
+        return not isinstance(other,    # coverage: ignore
         ClassLargerThanEverythingElse)  # coverage: ignore
 
     def __lt__(self, other):
@@ -201,7 +200,7 @@ class ClassLargerThanEverythingElse:
     def __ge__(self, other):
         return True
 
-    def __hash__(self):
+    def __hash__(self):                             # coverage: ignore
         return hash(ClassLargerThanEverythingElse)  # coverage: ignore
 
 
@@ -217,8 +216,8 @@ class UnorderableClass:
     def __lt__(self, other):
         raise TypeError
 
-    def __cmp__(self, other):
-        raise TypeError  # coverage: ignore
+    def __cmp__(self, other):   # coverage: ignore
+        raise TypeError         # coverage: ignore
 
     def __hash__(self):
         return hash(UnorderableClass)
