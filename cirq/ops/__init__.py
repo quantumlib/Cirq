@@ -50,7 +50,6 @@ from cirq.ops.gate_features import (
     CompositeOperation,
     ExtrapolatableEffect,
     InterchangeableQubitsGate,
-    ParameterizableEffect,
     PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
