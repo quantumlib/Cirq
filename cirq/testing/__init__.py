@@ -34,6 +34,9 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
     assert_allclose_up_to_global_phase,
 )
+from cirq.testing.order_tester import (
+    OrderTester,
+)
 from cirq.testing.random_circuit import (
     random_circuit,
 )
