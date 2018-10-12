@@ -39,49 +39,33 @@ class OrderTester:
     def _groups(self):
         return self.eq_tester.groups
 
-    def _try_comparison(self, comp):
-        result = NotImplemented
+    def _try_comparison(self, comp, a, b) -> bool:
         try:
-            result = comp()
+            return comp(a, b)
         except TypeError as inst:
             assert False, inst
-        return result
-
-    def _do_assert(self, one, two, symbol):
-
-        condition = one or two  # bool(NotImplemented) == True
-        message = "{} is inconsistent: {!r},{!r}".format(symbol, one, two)
-
-        assert condition, message
-
 
     def _verify_ascending(self, v1, v2):
         """Verifies that (v1, v2) is a strictly ascending sequence."""
 
-        lt_1 =  self._try_comparison(lambda: v1 < v2)
-        not_lt_2 = self._try_comparison(lambda: not v2 < v1)
+        comparisons = [
+            ('<', lambda a, b: a < b),
+            ('>', lambda a, b: a > b),
+            ('<=', lambda a, b: a <= b),
+            ('>=', lambda a, b: a >= b)
+        ]
 
-        self._do_assert(lt_1, not_lt_2, "{!r}__lt__{!r}".format(v1, v2))
-
-        gt_2 = self._try_comparison(lambda: v2 > v1)
-        not_gt_1 = self._try_comparison(lambda: not v1 > v2)
-
-        self._do_assert(gt_2, not_gt_1, "{!r}__gt__{!r}".format(v1, v2))
-
-        # at least one strict ordering operator should be defined
-        # for the new element
-        self._do_assert(lt_1 == True, gt_2 == True,
-            "{!r}__lt__/__gt__{!r}".format(v1, v2))
-
-        le_1 = self._try_comparison(lambda: v1 <= v2)
-        not_le_2 = self._try_comparison(lambda: not v2 <= v1)
-
-        self._do_assert(le_1, not_le_2, "__le__")
-
-        ge_2 = self._try_comparison(lambda: v2 >= v1)
-        not_ge_1 = self._try_comparison(lambda: v1 >= v2)
-
-        self._do_assert(ge_2, not_ge_1, "__ge__")
+        for s, f in comparisons:
+            first_int = f(1, 2)
+            second_int = f(2, 1)
+            first_elem = self._try_comparison(f, v1, v2)
+            second_elem = self._try_comparison(f, v2, v1)
+            assert first_elem == first_int, (
+                '{} {} {} returned {} instead of {}'.
+            format(v1, s, v2, first_elem, first_int))
+            assert second_elem == second_int, (
+                '{} {} {} returned {} instead of {}'.
+            format(v2, s, v1, second_elem, second_int))
 
     def _assert_not_implemented_vs_unknown(self, item: Any):
         self._verify_ascending(ClassSmallerThanEverythingElse(), item)
@@ -202,22 +186,3 @@ class ClassLargerThanEverythingElse:
 
     def __hash__(self):                             # coverage: ignore
         return hash(ClassLargerThanEverythingElse)  # coverage: ignore
-
-
-class UnorderableClass:
-    """Assume that the element of this class is less than anything else."""
-
-    def __eq__(self, other):
-        return isinstance(other, UnorderableClass)
-
-    def __ne__(self, other):
-        return not isinstance(other, UnorderableClass)
-
-    def __lt__(self, other):
-        raise TypeError
-
-    def __cmp__(self, other):   # coverage: ignore
-        raise TypeError         # coverage: ignore
-
-    def __hash__(self):
-        return hash(UnorderableClass)

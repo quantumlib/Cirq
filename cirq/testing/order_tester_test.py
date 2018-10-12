@@ -16,7 +16,26 @@ import fractions
 import pytest
 
 from cirq.testing.order_tester import OrderTester
-from cirq.testing.order_tester import UnorderableClass
+
+
+class UnorderableClass:
+    """Assume that the element of this class is less than anything else."""
+
+    def __eq__(self, other):
+        return isinstance(other, UnorderableClass)
+
+    def __ne__(self, other):
+        return not isinstance(other, UnorderableClass)
+
+    def __lt__(self, other):
+        raise TypeError
+
+    def __cmp__(self, other):   # coverage: ignore
+        raise TypeError         # coverage: ignore
+
+    def __hash__(self):
+        return hash(UnorderableClass)
+
 
 def test_add_ordering_group_correct():
     ot = OrderTester()
