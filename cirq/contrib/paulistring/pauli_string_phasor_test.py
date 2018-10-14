@@ -191,7 +191,6 @@ def test_try_cast_to():
     op = PauliStringPhasor(cirq.PauliString({}))
     ext = cirq.Extensions()
     assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.BoundedEffect, ext) is None
     assert not op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert not op.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert op.try_cast_to(Dummy, ext) is None
@@ -200,7 +199,6 @@ def test_try_cast_to():
                            half_turns=cirq.Symbol('a'))
     ext = cirq.Extensions()
     assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.BoundedEffect, ext) is None
     assert op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
     assert op.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert op.try_cast_to(Dummy, ext) is None

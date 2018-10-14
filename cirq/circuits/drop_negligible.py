@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING
 
-from cirq import ops, extension
+from cirq import extension, protocols
 from cirq.circuits import optimization_pass, circuit as _circuit
 
 if TYPE_CHECKING:
@@ -37,8 +37,7 @@ class DropNegligible(optimization_pass.OptimizationPass):
         deletions = []  # type: List[Tuple[int, ops.Operation]]
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
-                bounded = self.extensions.try_cast(ops.BoundedEffect, op)
-                if (bounded is not None and
-                        bounded.trace_distance_bound() <= self.tolerance):
+                if (op is not None and
+                        protocols.trace_distance_bound(op) <= self.tolerance):
                     deletions.append((moment_index, op))
         circuit.batch_remove(deletions)

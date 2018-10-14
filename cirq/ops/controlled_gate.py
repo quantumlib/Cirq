@@ -22,7 +22,6 @@ from cirq.ops import raw_types, gate_features
 T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
     gate_features.ReversibleEffect,
 )
@@ -30,7 +29,6 @@ POTENTIALLY_EXPOSED_SUB_TYPES = (
 
 class ControlledGate(raw_types.Gate,
                      extension.PotentialImplementation[Union[
-                         gate_features.BoundedEffect,
                          gate_features.ExtrapolatableEffect,
                          gate_features.ReversibleEffect,
                      ]]):
@@ -152,9 +150,8 @@ class ControlledGate(raw_types.Gate,
                                                     param_resolver)
         return ControlledGate(new_sub_gate, self.default_extensions)
 
-    def trace_distance_bound(self):
-        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
-        return cast_sub_gate.trace_distance_bound()
+    def _trace_distance_bound_(self):
+        return protocols.trace_distance_bound(self.sub_gate)
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
