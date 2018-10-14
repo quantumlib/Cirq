@@ -261,7 +261,6 @@ class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
                ops.PhaseableEffect,
-               ops.BoundedEffect,
                PotentialImplementation[Union[
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
@@ -378,7 +377,7 @@ class ExpWGate(XmonGate,
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         if isinstance(self.half_turns, value.Symbol):
             return 1
         return abs(self.half_turns) * 3.5

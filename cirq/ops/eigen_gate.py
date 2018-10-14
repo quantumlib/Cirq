@@ -42,7 +42,6 @@ EigenComponent = NamedTuple(
 
 
 class EigenGate(raw_types.Gate,
-                gate_features.BoundedEffect,
                 extension.PotentialImplementation[Union[
                     gate_features.ExtrapolatableEffect,
                     gate_features.ReversibleEffect]]):
@@ -198,7 +197,7 @@ class EigenGate(raw_types.Gate,
     def __hash__(self):
         return hash(self._identity_tuple())
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):
             return 1
 
