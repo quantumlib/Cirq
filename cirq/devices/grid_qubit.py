@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import operator
 from typing import Dict
 
 from cirq import ops
