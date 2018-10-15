@@ -659,9 +659,9 @@ def test_large_circuit_unitary(num_prefix_qubits, use_processes):
                         s.simulate_w(op[1], op[2], op[3])
                 s.simulate_phases(phase_map)
             columns.append(s.current_state)
-    unitary = np.matrix(columns).transpose()
+    unitary = np.array(columns).transpose()
     np.testing.assert_almost_equal(
-        np.dot(unitary, unitary.H), np.eye(2 ** 5), decimal=6)
+        np.dot(unitary, np.conj(unitary.T)), np.eye(2 ** 5), decimal=6)
 
 
 def random_moments(num_qubits, num_ops):
@@ -759,6 +759,20 @@ def test_precision(num_prefix_qubits):
         np.testing.assert_almost_equal(expected, s.current_state, decimal=6)
         np.testing.assert_almost_equal(1, np.linalg.norm(s.current_state),
                                        decimal=7)
+
+
+def test_renormalize_state_after_w_gate():
+    """This tests that the renormalization after W gates maintains unit norm.
+
+    It is possible to use numerically less stable methods of calculating the
+    norm that what is currently used (numpy absolute). If this test breaks
+    because of a change in how the norm is calculated, then likely one of these
+    less accurate methods was used.
+    """
+    with xmon_stepper.Stepper(num_qubits=21) as s:
+        for x in range(21):
+            s.simulate_w(x, np.random.rand(), np.random.rand())
+        s.reset_state(s.current_state)
 
 
 def test_decode_initial_state():

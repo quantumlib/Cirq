@@ -1,8 +1,11 @@
+# Runtime requirements for the transpiled python 2.7 version of cirq.
+
 google-api-python-client~=1.6
 matplotlib~=2.1
 networkx~=2.1
-numpy~=1.13
+numpy~=1.14
 protobuf~=3.5
 sortedcontainers~=1.5
 typing~=3.6
 scipy~=1.1.0
+typing_extensions

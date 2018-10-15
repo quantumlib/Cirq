@@ -40,8 +40,12 @@ def _possible_string_placements(
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
+            if (isinstance(out_op, PauliStringPhasor)
+                and out_op.pauli_string.commutes_with(string_op.pauli_string)):
+                # Pass through another Pauli string if they commute
+                continue
             if not (isinstance(out_op, ops.GateOperation) and
-                    isinstance(out_op.gate, (ops.CliffordGate,
+                    isinstance(out_op.gate, (ops.SingleQubitCliffordGate,
                                              ops.PauliInteractionGate,
                                              ops.Rot11Gate))):
                 # This is as far through as this Pauli string can move
@@ -69,8 +73,8 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
                         cast(circuits.Circuit, circuit_left))
     output_ops = list(circuit_right.all_operations())
 
-    rightmost_nodes = (set(string_dag.nodes)
-                       - set(before for before, _ in string_dag.edges))
+    rightmost_nodes = (set(string_dag.nodes())
+                       - set(before for before, _ in string_dag.edges()))
 
     while rightmost_nodes:
         # Pick the Pauli string that can be moved furthest through the Clifford
@@ -90,7 +94,7 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
             if len(string_dag.succ[pred_node]) <= 1)
         string_dag.remove_node(best_node)
 
-    assert not string_dag.nodes, 'There was a cycle in the CircuitDag'
+    assert not string_dag.nodes(), 'There was a cycle in the CircuitDag'
 
     return circuits.Circuit.from_ops(
             output_ops,

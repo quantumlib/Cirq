@@ -103,14 +103,11 @@ def test_inverse():
 
     # If the gate isn't reversible, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ReversibleEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.inverse()
+    assert cirq.inverse(op0, None) is None
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.can_cast(cirq.ReversibleEffect, op1)
-    assert op1.inverse() == cirq.GateOperation(cirq.S.inverse(), [q])
-    assert cirq.S.inverse().on(q) == cirq.S.on(q).inverse()
+    assert cirq.inverse(op1) == op1**-1 == cirq.GateOperation(cirq.S**-1, [q])
+    assert cirq.inverse(cirq.S).on(q) == cirq.inverse(cirq.S.on(q))
 
 
 def test_text_diagrammable():
@@ -118,15 +115,12 @@ def test_text_diagrammable():
 
     # If the gate isn't diagrammable, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.TextDiagrammable, op0)
     with pytest.raises(TypeError):
-        _ = op0.text_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+        _ = cirq.circuit_diagram_info(op0)
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.can_cast(cirq.TextDiagrammable, op1)
-    actual = op1.text_diagram_info(cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
-    expected = cirq.S.text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+    actual = cirq.circuit_diagram_info(op1)
+    expected = cirq.circuit_diagram_info(cirq.S)
     assert actual == expected
 
 
@@ -135,52 +129,47 @@ def test_bounded_effect():
 
     # If the gate isn't bounded, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.BoundedEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.trace_distance_bound()
-
+    assert cirq.trace_distance_bound(op0) >= 1
     op1 = cirq.GateOperation(cirq.Z**0.000001, [q])
-    assert cirq.can_cast(cirq.BoundedEffect, op1)
-    assert op1.trace_distance_bound() == (cirq.Z**0.000001
-                                          ).trace_distance_bound()
+    op1_bound = cirq.trace_distance_bound(op1)
+    assert op1_bound == cirq.trace_distance_bound(cirq.Z**0.000001)
 
 
 def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    # If the gate isn't parameterizable, you get a type error.
-    op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ParameterizableEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.is_parameterized()
-    with pytest.raises(TypeError):
-        _ = op0.with_parameters_resolved_by(r)
-
     op1 = cirq.GateOperation(cirq.RotZGate(half_turns=cirq.Symbol('a')), [q])
-    assert cirq.can_cast(cirq.ParameterizableEffect, op1)
-    assert op1.is_parameterized()
-    op2 = op1.with_parameters_resolved_by(r)
-    assert not op2.is_parameterized()
+    assert cirq.is_parameterized(op1)
+    op2 = cirq.resolve_parameters(op1, r)
+    assert not cirq.is_parameterized(op2)
     assert op2 == cirq.S.on(q)
 
 
-def test_known_matrix():
+def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    # If the gate has no matrix, you get a type error.
-    op0 = cirq.measure(a)
-    assert not cirq.can_cast(cirq.KnownMatrix, op0)
-    with pytest.raises(TypeError):
-        _ = op0.matrix()
-
-    op1 = cirq.X(a)
-    assert cirq.can_cast(cirq.KnownMatrix, op1)
-    np.testing.assert_allclose(op1.matrix(),
+    assert cirq.unitary(cirq.measure(a), None) is None
+    np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
                                np.array([[0, 1], [1, 0]]),
                                atol=1e-8)
-    op2 = cirq.CNOT(a, b)
-    op3 = cirq.CNOT(a, b)
-    np.testing.assert_allclose(op2.matrix(), cirq.CNOT.matrix(), atol=1e-8)
-    np.testing.assert_allclose(op3.matrix(), cirq.CNOT.matrix(), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.CNOT(a, b)),
+                               cirq.unitary(cirq.CNOT),
+                               atol=1e-8)
+
+
+def test_repr():
+    a, b = cirq.LineQubit.range(2)
+    assert repr(cirq.GateOperation(cirq.CZ, (a, b))
+                ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
+
+    class Inconsistent(cirq.Gate):
+        def __repr__(self):
+            return 'Inconsistent'
+
+        def on(self, *qubits):
+            return cirq.GateOperation(Inconsistent(), qubits)
+
+    assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
+            'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')

@@ -16,7 +16,7 @@ from typing import (
     Dict, Hashable, Iterable, Optional, Tuple, Type, TypeVar, Union, cast
 )
 
-from cirq import ops, value, study, extension
+from cirq import ops, value, study, extension, protocols
 
 from cirq.ops.pauli_string import PauliString
 from cirq.contrib.paulistring.pauli_string_raw_types import (
@@ -28,8 +28,6 @@ T_DESIRED = TypeVar('T_DESIRED')
 
 class PauliStringPhasor(PauliStringGateOperation,
                         ops.CompositeOperation,
-                        ops.BoundedEffect,
-                        ops.ParameterizableEffect,
                         ops.TextDiagrammable,
                         extension.PotentialImplementation[Union[
                             ops.ExtrapolatableEffect,
@@ -91,6 +89,8 @@ class PauliStringPhasor(PauliStringGateOperation,
         return self._with_half_turns(self.half_turns * factor)  # type: ignore
 
     def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
+        if power != 1 and self._is_parameterized_():
+            return NotImplemented
         return self.extrapolate_effect(power)
 
     def inverse(self) -> 'PauliStringPhasor':
@@ -126,8 +126,8 @@ class PauliStringPhasor(PauliStringGateOperation,
             half_turns = self.half_turns * (-1 if self.pauli_string.negated
                                                else 1)
             yield ops.Z(any_qubit) ** half_turns
-        yield ops.inverse(xor_decomp)
-        yield ops.inverse(to_z_ops)
+        yield protocols.inverse(xor_decomp)
+        yield protocols.inverse(to_z_ops)
 
     def text_diagram_info(self, args: ops.TextDiagramInfoArgs
                           ) -> ops.TextDiagramInfo:
@@ -135,8 +135,9 @@ class PauliStringPhasor(PauliStringGateOperation,
                                                exponent=self.half_turns,
                                                exponent_absorbs_sign=True)
 
-    def trace_distance_bound(self) -> float:
-        return ops.RotZGate(half_turns=self.half_turns).trace_distance_bound()
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(
+            ops.RotZGate(half_turns=self.half_turns))
 
     def try_cast_to(self,
                     desired_type: Type[T_DESIRED],
@@ -144,14 +145,14 @@ class PauliStringPhasor(PauliStringGateOperation,
                     ) -> Optional[T_DESIRED]:
         if (desired_type in [ops.ExtrapolatableEffect,
                              ops.ReversibleEffect] and
-                not self.is_parameterized()):
+                not self._is_parameterized_()):
             return cast(T_DESIRED, self)
         return super().try_cast_to(desired_type, ext)
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver: study.ParamResolver
+    def _resolve_parameters_(self, param_resolver: study.ParamResolver
                                     ) -> 'PauliStringPhasor':
         return self._with_half_turns(
                         param_resolver.value_of(self.half_turns))

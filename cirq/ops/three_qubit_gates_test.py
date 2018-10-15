@@ -19,8 +19,15 @@ import pytest
 import cirq
 
 
+def test_init():
+    assert (cirq.CCZ**0.5).exponent == 0.5
+    assert (cirq.CCZ**0.25).exponent == 0.25
+    assert (cirq.CCX**0.5).exponent == 0.5
+    assert (cirq.CCX**0.25).exponent == 0.25
+
+
 def test_matrix():
-    np.testing.assert_allclose(cirq.CCX.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -31,18 +38,26 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 1, 0],
     ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CCZ.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCX**0.5), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 1, 0, 0, 0, 0],
         [0, 0, 0, 0, 1, 0, 0, 0],
         [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 0, 0, 0, -1],
+        [0, 0, 0, 0, 0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
+        [0, 0, 0, 0, 0, 0, 0.5 - 0.5j, 0.5 + 0.5j],
     ]), atol=1e-8)
 
-    np.testing.assert_allclose(cirq.CSWAP.matrix(), np.array([
+    np.testing.assert_allclose(cirq.unitary(cirq.CCZ),
+                               np.diag([1, 1, 1, 1, 1, 1, 1, -1]),
+                               atol=1e-8)
+
+    np.testing.assert_allclose(cirq.unitary(cirq.CCZ**0.5),
+                               np.diag([1, 1, 1, 1, 1, 1, 1, 1j]),
+                               atol=1e-8)
+
+    np.testing.assert_allclose(cirq.unitary(cirq.CSWAP), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0],
@@ -52,6 +67,15 @@ def test_matrix():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CCZ,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CCX,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CSWAP)
 
 
 def test_str():
@@ -61,6 +85,20 @@ def test_str():
     assert str(cirq.FREDKIN) == 'FREDKIN'
     assert str(cirq.CCZ) == 'CCZ'
 
+    assert str(cirq.CCX**0.5) == 'TOFFOLI**0.5'
+    assert str(cirq.CCZ**0.5) == 'CCZ**0.5'
+
+
+def test_repr():
+    assert repr(cirq.CCX) == 'cirq.TOFFOLI'
+    assert repr(cirq.TOFFOLI) == 'cirq.TOFFOLI'
+    assert repr(cirq.CSWAP) == 'cirq.FREDKIN'
+    assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
+    assert repr(cirq.CCZ) == 'cirq.CCZ'
+
+    assert repr(cirq.CCX**0.5) == 'cirq.TOFFOLI**0.5'
+    assert repr(cirq.CCZ**0.5) == 'cirq.CCZ**0.5'
+
 
 def test_eq():
     a, b, c, d = cirq.LineQubit.range(4)
@@ -68,6 +106,12 @@ def test_eq():
     eq.add_equality_group(cirq.CCZ(a, b, c),
                           cirq.CCZ(a, c, b),
                           cirq.CCZ(b, c, a))
+    eq.add_equality_group(cirq.CCZ(a, b, c)**0.5,
+                          cirq.CCZ(a, c, b)**2.5,
+                          cirq.CCZ(b, c, a)**-1.5)
+    eq.add_equality_group(cirq.TOFFOLI(a, b, c)**0.5,
+                          cirq.TOFFOLI(b, a, c)**2.5,
+                          cirq.TOFFOLI(a, b, c)**-1.5)
     eq.add_equality_group(cirq.CCZ(a, b, d))
     eq.add_equality_group(cirq.TOFFOLI(a, b, c), cirq.CCX(a, b, c))
     eq.add_equality_group(cirq.TOFFOLI(a, c, b), cirq.TOFFOLI(c, a, b))
@@ -101,14 +145,28 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     cirq.CCX, cirq.CSWAP, cirq.CCZ,
 ])
 def test_decomposition_matches_matrix(gate):
-    a, b, c = cirq.LineQubit.range(3)
-    for x, y, z in itertools.permutations([a, b, c]):
+    for x, y, z in itertools.permutations(cirq.LineQubit.range(3)):
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.Circuit.from_ops(
                 gate(x, y, z)
             ).to_unitary_matrix(),
             cirq.Circuit.from_ops(
                 gate.default_decompose((x, y, z))
+            ).to_unitary_matrix(),
+            atol=1e-8)
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.CCX, cirq.CCZ,
+])
+def test_decomposition_matches_matrix_partial_power(gate):
+    for x, y, z in itertools.permutations(cirq.LineQubit.range(3)):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.Circuit.from_ops(
+                gate(x, y, z)**0.5
+            ).to_unitary_matrix(),
+            cirq.Circuit.from_ops(
+                (gate**0.5).default_decompose((x, y, z))
             ).to_unitary_matrix(),
             atol=1e-8)
 
@@ -131,26 +189,28 @@ def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(
         cirq.TOFFOLI(a, b, c),
+        cirq.TOFFOLI(a, b, c)**0.5,
         cirq.CCX(a, c, b),
         cirq.CCZ(a, d, b),
+        cirq.CCZ(a, d, b)**0.5,
         cirq.CSWAP(a, c, d),
         cirq.FREDKIN(a, b, c)
     )
-    assert circuit.to_text_diagram() == """
-0: ───@───@───@───@───@───
-      │   │   │   │   │
-1: ───@───X───@───┼───×───
-      │   │   │   │   │
-2: ───X───@───┼───×───×───
-              │   │
-3: ───────────@───×───────
-""".strip()
-    assert circuit.to_text_diagram(use_unicode_characters=False) == """
-0: ---@---@---@---@------@------
-      |   |   |   |      |
-1: ---@---X---@---|------swap---
-      |   |   |   |      |
-2: ---X---@---|---swap---swap---
-              |   |
-3: -----------@---swap----------
-""".strip()
+    cirq.testing.assert_has_diagram(circuit, """
+0: ───@───@───────@───@───@───────@───@───
+      │   │       │   │   │       │   │
+1: ───@───@───────X───@───@───────┼───×───
+      │   │       │   │   │       │   │
+2: ───X───X^0.5───@───┼───┼───────×───×───
+                      │   │       │
+3: ───────────────────@───@^0.5───×───────
+""")
+    cirq.testing.assert_has_diagram(circuit, """
+0: ---@---@-------@---@---@-------@------@------
+      |   |       |   |   |       |      |
+1: ---@---@-------X---@---@-------|------swap---
+      |   |       |   |   |       |      |
+2: ---X---X^0.5---@---|---|-------swap---swap---
+                      |   |       |
+3: -------------------@---@^0.5---swap----------
+""", use_unicode_characters=False)

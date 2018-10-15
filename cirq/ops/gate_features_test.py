@@ -15,16 +15,17 @@
 import pytest
 
 import cirq
+from cirq.ops import gate_features, raw_types, common_gates
 
 
 def test_reversible_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = cirq.ReversibleEffect()
+        _ = gate_features.ReversibleEffect()
 
 
 def test_reversible_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(cirq.ReversibleEffect):
+    class Missing(gate_features.ReversibleEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -32,43 +33,21 @@ def test_reversible_gate_is_abstract_must_implement():
 
 
 def test_reversible_gate_is_abstract_can_implement():
-    class Included(cirq.ReversibleEffect):
+    class Included(gate_features.ReversibleEffect):
         def inverse(self):
             pass
 
-    assert isinstance(Included(), cirq.ReversibleEffect)
-
-
-def test_known_matrix_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = cirq.KnownMatrix()
-
-
-def test_known_matrix_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(cirq.KnownMatrix):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_known_matrix_gate_is_abstract_can_implement():
-    class Included(cirq.KnownMatrix):
-        def matrix(self):
-            pass
-
-    assert isinstance(Included(), cirq.KnownMatrix)
+    assert isinstance(Included(), gate_features.ReversibleEffect)
 
 
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = cirq.ExtrapolatableEffect()
+        _ = gate_features.ExtrapolatableEffect()
 
 
 def test_extrapolatable_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(cirq.ExtrapolatableEffect):
+    class Missing(gate_features.ExtrapolatableEffect):
         pass
 
     with pytest.raises(TypeError):
@@ -76,21 +55,21 @@ def test_extrapolatable_gate_is_abstract_must_implement():
 
 
 def test_extrapolatable_gate_is_abstract_can_implement():
-    class Included(cirq.ExtrapolatableEffect):
+    class Included(gate_features.ExtrapolatableEffect):
         def extrapolate_effect(self, factor):
             pass
 
-    assert isinstance(Included(), cirq.ExtrapolatableEffect)
+    assert isinstance(Included(), gate_features.ExtrapolatableEffect)
 
 
 def test_composite_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = cirq.CompositeGate()
+        _ = gate_features.CompositeGate()
 
 
 def test_composite_gate_is_abstract_must_implement():
     # noinspection PyAbstractClass
-    class Missing(cirq.CompositeGate):
+    class Missing(gate_features.CompositeGate):
         pass
 
     with pytest.raises(TypeError):
@@ -98,21 +77,21 @@ def test_composite_gate_is_abstract_must_implement():
 
 
 def test_composite_gate_is_abstract_can_implement():
-    class Included(cirq.CompositeGate):
+    class Included(gate_features.CompositeGate):
         def default_decompose(self, qubits):
             pass
 
-    assert isinstance(Included(), cirq.CompositeGate)
+    assert isinstance(Included(), gate_features.CompositeGate)
 
 
 def test_single_qubit_gate_validate_args():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(gate_features.SingleQubitGate):
         def matrix(self):
             pass
 
     g = Dummy()
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = raw_types.QubitId()
+    q2 = raw_types.QubitId()
 
     g.validate_args([q1])
     g.validate_args([q2])
@@ -123,23 +102,23 @@ def test_single_qubit_gate_validate_args():
 
 
 def test_two_qubit_gate_is_abstract_can_implement():
-    class Included(cirq.TwoQubitGate):
+    class Included(gate_features.TwoQubitGate):
         def matrix(self):
             pass
 
     assert isinstance(Included(),
-                      cirq.TwoQubitGate)
+                      gate_features.TwoQubitGate)
 
 
 def test_two_qubit_gate_validate_pass():
-    class Dummy(cirq.TwoQubitGate):
+    class Dummy(gate_features.TwoQubitGate):
         def matrix(self):
             pass
 
     g = Dummy()
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
-    q3 = cirq.QubitId()
+    q1 = raw_types.QubitId()
+    q2 = raw_types.QubitId()
+    q3 = raw_types.QubitId()
 
     g.validate_args([q1, q2])
     g.validate_args([q2, q3])
@@ -147,14 +126,14 @@ def test_two_qubit_gate_validate_pass():
 
 
 def test_two_qubit_gate_validate_wrong_number():
-    class Dummy(cirq.TwoQubitGate):
+    class Dummy(gate_features.TwoQubitGate):
         def matrix(self):
             pass
 
     g = Dummy()
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
-    q3 = cirq.QubitId()
+    q1 = raw_types.QubitId()
+    q2 = raw_types.QubitId()
+    q3 = raw_types.QubitId()
 
     with pytest.raises(ValueError):
         g.validate_args([])
@@ -165,7 +144,7 @@ def test_two_qubit_gate_validate_wrong_number():
 
 
 def test_three_qubit_gate_validate():
-    class Dummy(cirq.ThreeQubitGate):
+    class Dummy(gate_features.ThreeQubitGate):
         def matrix(self):
             pass
 
@@ -183,48 +162,11 @@ def test_three_qubit_gate_validate():
         g.validate_args([a, b, c, d])
 
 
-def test_parameterizable_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = cirq.ParameterizableEffect()
-
-
-def test_parameterizable_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class MissingBoth(cirq.ParameterizableEffect):
-        pass
-    # noinspection PyAbstractClass
-    class MissingOne(cirq.ParameterizableEffect):
-        def is_parameterized(self):
-            pass
-    # noinspection PyAbstractClass
-    class MissingOtherOne(cirq.ParameterizableEffect):
-        def with_parameters_resolved_by(self, param_resolver):
-            pass
-
-    with pytest.raises(TypeError):
-        _ = MissingBoth()
-    with pytest.raises(TypeError):
-        _ = MissingOne()
-    with pytest.raises(TypeError):
-        _ = MissingOtherOne()
-
-
-def test_parameterizable_gate_is_abstract_can_implement():
-    class Included(cirq.ParameterizableEffect):
-        def is_parameterized(self):
-            pass
-
-        def with_parameters_resolved_by(self, param_resolver):
-            pass
-
-    assert isinstance(Included(), cirq.ParameterizableEffect)
-
-
 def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(gate_features.SingleQubitGate):
         pass
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
+    a = raw_types.NamedQubit('a')
+    b = raw_types.NamedQubit('b')
     c = CustomGate()
 
     assert c.on_each([]) == []
@@ -236,7 +178,7 @@ def test_on_each():
 @cirq.testing.only_test_in_python3
 def test_text_diagram_info_repr():
     info = cirq.TextDiagramInfo(('X', 'Y'), 2)
-    assert repr(info) == ("TextDiagramInfo(wire_symbols=('X', 'Y')"
+    assert repr(info) == ("cirq.TextDiagramInfo(wire_symbols=('X', 'Y')"
                           ", exponent=2, connected=True)")
 
 
@@ -259,10 +201,10 @@ def test_qasm_output_args_validate():
 
 
 def test_qasm_output_args_format():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    m_a = cirq.MeasurementGate('meas_a')(a)
-    m_b = cirq.MeasurementGate('meas_b')(b)
+    a = raw_types.NamedQubit('a')
+    b = raw_types.NamedQubit('b')
+    m_a = common_gates.MeasurementGate('meas_a')(a)
+    m_b = common_gates.MeasurementGate('meas_b')(b)
     args = cirq.QasmOutputArgs(
                     precision=4,
                     version='2.0',

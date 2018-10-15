@@ -7,33 +7,53 @@ branches:
 
 before_install:
   - pip install --upgrade pip setuptools wheel
+  - sudo apt-get install openjdk-8-jdk
+  - sudo add-apt-repository ppa:webupd8team/java -y
+  - sudo apt-get update && sudo apt-get install oracle-java8-installer
+  - echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+  - curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+  - sudo apt-get update && sudo apt-get install bazel
 
 matrix:
   include:
   - os: linux
     env: NAME=mypy
-    python: "3.5"
+    python: "3.5.2"
     install:
-      - cat dev-requirements.txt | grep mypy | xargs pip install
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
     script: check/mypy
 
   - os: linux
     env: NAME=pylint
-    python: "3.5"
+    python: "3.5.2"
     install:
-      - cat dev-requirements.txt | grep pylint | xargs pip install
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep pylint | xargs pip install
     script: check/pylint
 
   - os: linux
     env: NAME=pytest-and-incremental-coverage
-    python: "3.5"
+    python: "3.5.2"
     install:
-      - pip install -r dev-requirements.txt
+      - pip install -r requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master
+
+  - os: linux
+    env: NAME=pytest
+    python: "3.6"
+    install:
+      - pip install -r requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest
 
   - os: linux
     env: NAME=pytest2
     python: "2.7"
     install:
-      - pip install -r python2.7-dev-requirements.txt
-    script: continuous-integration/travis-pytest2.sh
+      - pip install -r python2.7-requirements.txt
+      - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
+    script: check/pytest2
+
+  - os: linux
+    env: NAME=bazel
+    script: check/bazel

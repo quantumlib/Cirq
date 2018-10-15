@@ -12,21 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Import sub-modules.
-
-from cirq import (
-    api,
-    circuits,
-    devices,
-    google,
-    linalg,
-    ops,
-    schedules,
-    study,
-    testing,
-)
-
-# Also flatten some of the sub-modules.
+# Flattened sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -36,6 +22,7 @@ from cirq.circuits import (
     DropNegligible,
     ExpandComposite,
     InsertStrategy,
+    MergeInteractions,
     MergeSingleQubitGates,
     Moment,
     OptimizationPass,
@@ -71,8 +58,10 @@ from cirq.extension import (
 
 from cirq.linalg import (
     allclose_up_to_global_phase,
+    apply_matrix_to_slices,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    slice_for_qubits_equal_to,
     block_diag,
     match_global_phase,
     commutes,
@@ -107,10 +96,9 @@ from cirq.line import (
 )
 
 from cirq.ops import (
-    BoundedEffect,
     CCX,
     CCZ,
-    CliffordGate,
+    SingleQubitCliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -128,25 +116,21 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
     ISwapGate,
-    KnownMatrix,
     measure,
     measure_each,
     MeasurementGate,
     NamedQubit,
     OP_TREE,
     Operation,
-    ParameterizableEffect,
-    PartialReflectionGate,
     Pauli,
     PauliInteractionGate,
     PauliString,
     PauliTransform,
     PhaseableEffect,
-    QasmConvertableGate,
-    QasmConvertableOperation,
+    QasmConvertibleGate,
+    QasmConvertibleOperation,
     QasmOutputArgs,
     QubitId,
     QubitOrder,
@@ -200,6 +184,31 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+)
+
+from cirq.protocols import (
+    apply_unitary_to_tensor,
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
+    inverse,
+    SupportsApplyUnitaryToTensor,
+    SupportsCircuitDiagramInfo,
+    SupportsUnitary,
+    SupportsParameterization,
+    is_parameterized,
+    resolve_parameters,
+    unitary,
+    SupportsTraceDistanceBound,
+    trace_distance_bound,
+)
+
+# Unflattened sub-modules.
+
+from cirq import (
+    contrib,
+    google,
+    testing,
 )
 
 # Import version last since it is a relative import.

@@ -25,6 +25,7 @@ import pytest
 
 import cirq
 import cirq.google as cg
+from cirq.google.sim.xmon_simulator import pretty_state
 
 Q1 = cirq.GridQubit(0, 0)
 Q2 = cirq.GridQubit(1, 0)
@@ -92,6 +93,43 @@ def simulate(simulator, circuit, scheduler, **kw):
     else:
         program = scheduler(cirq.UnconstrainedDevice, circuit)
     return simulator.simulate(program, **kw)
+
+
+def test_pretty_state():
+    simulator = cirq.google.XmonSimulator()
+    c = cirq.Circuit()
+    one_qubit = [Q1]
+    two_qubits = [Q1, Q2]
+
+    # Testing global pretty_state()
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=one_qubit, initial_state=state)
+    assert pretty_state(result.final_state) == "0.71|0⟩ + 0.71|1⟩"
+
+    # Testing pretty_state() method in XmonStepResult
+    circuit = basic_circuit()
+    step = simulator.simulate_moment_steps(circuit)
+    result = next(step)
+    result.set_state(0)
+    assert result.pretty_state() == "1.0|00⟩"
+
+    # Testing pretty_state() method in XmonSimulateTrialResult
+    state = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=1) == "0.7|00⟩ + 0.7|11⟩"
+
+    state = np.array([1/np.sqrt(2), 0, 0, -1/np.sqrt(2)], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=2) == "0.71|00⟩ + -0.71|11⟩"
+
+    state = np.array([0, 1/np.sqrt(2), 1/np.sqrt(2), 0], dtype=np.complex64)
+    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=2) == "0.71|01⟩ + 0.71|10⟩"
+
+    state = np.array([0, 1/np.sqrt(2), -1/np.sqrt(2), 0], dtype=np.complex64)
+    result = simulator.simulate(
+        cirq.Circuit(), qubit_order=two_qubits, initial_state=state)
+    assert result.pretty_state(decimals=4) == "0.7071|01⟩ + -0.7071|10⟩"
 
 
 SCHEDULERS = [None, cirq.moment_by_moment_schedule]
@@ -362,7 +400,7 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_initial_state_ndarray_not_upconvertable(scheduler):
+def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()
 
     with pytest.raises(TypeError):
@@ -1023,7 +1061,7 @@ def test_simulator_simulate_trial_result_repr():
         final_state=np.array([0, 1, 0, 0]))
 
     assert repr(v) == ("XmonSimulateTrialResult("
-                       "params=ParamResolver({'a': 2}), "
+                       "params=cirq.ParamResolver({'a': 2}), "
                        "measurements={'m': array([1, 2])}, "
                        "final_state=array([0, 1, 0, 0]))")
 
@@ -1054,23 +1092,3 @@ def test_simulator_implied_measurement_key():
     assert str(result) == "(0, 0)=11111\nother=11111"
 
 
-def test_supports_extensions_for_parameter_resolving():
-    class DummyGate(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableEffect,
-                 DummyGate,
-                 lambda _: cg.ExpWGate(half_turns=cirq.Symbol('x')))
-
-    a = cirq.NamedQubit('a')
-    circuit = cirq.Circuit.from_ops(
-        DummyGate().on(a),
-        cg.XmonMeasurementGate('a').on(a)
-    )
-    results = cirq.google.XmonSimulator().run(
-        circuit=circuit,
-        param_resolver=cirq.ParamResolver({'x': 1}),
-        extensions=ext)
-
-    assert str(results) == 'a=1'

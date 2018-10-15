@@ -125,6 +125,8 @@ class XmonDevice(Device):
             return False
         if isinstance(other_op.gate, xmon_gates.ExpWGate):
             return False
+        if isinstance(other_op.gate, xmon_gates.XmonMeasurementGate):
+            return False
 
         return any(cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
                    for q in exp11_op.qubits
@@ -194,6 +196,15 @@ class XmonDevice(Device):
     def col(self, col: int) -> List[GridQubit]:
         """Returns the qubits in the given column, in ascending order."""
         return sorted(q for q in self.qubits if q.col == col)
+
+    def __repr__(self):
+        return ('XmonDevice(measurement_duration={!r}, '
+                'exp_w_duration={!r}, '
+                'exp_11_duration={!r} '
+                'qubits={!r})').format(self._measurement_duration,
+                                       self._exp_w_duration,
+                                       self._exp_z_duration,
+                                       sorted(self.qubits))
 
     def __str__(self):
         diagram = TextDiagramDrawer()
