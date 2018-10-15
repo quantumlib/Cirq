@@ -22,18 +22,14 @@ from cirq.ops import raw_types, gate_features
 T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
-    gate_features.ParameterizableEffect,
     gate_features.ReversibleEffect,
 )
 
 
 class ControlledGate(raw_types.Gate,
                      extension.PotentialImplementation[Union[
-                         gate_features.BoundedEffect,
                          gate_features.ExtrapolatableEffect,
-                         gate_features.ParameterizableEffect,
                          gate_features.ReversibleEffect,
                      ]]):
     """Augments existing gates with a control qubit."""
@@ -146,20 +142,16 @@ class ControlledGate(raw_types.Gate,
         return ControlledGate(cast(raw_types.Gate, cast_sub_gate.inverse()),
                               self.default_extensions)
 
-    def is_parameterized(self) -> bool:
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
-        return cast_sub_gate.is_parameterized()
+    def _is_parameterized_(self):
+        return protocols.is_parameterized(self.sub_gate)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
-        new_sub_gate = cast_sub_gate.with_parameters_resolved_by(
-            param_resolver)
-        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
-                              self.default_extensions)
+    def _resolve_parameters_(self, param_resolver):
+        new_sub_gate = protocols.resolve_parameters(self.sub_gate,
+                                                    param_resolver)
+        return ControlledGate(new_sub_gate, self.default_extensions)
 
-    def trace_distance_bound(self):
-        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
-        return cast_sub_gate.trace_distance_bound()
+    def _trace_distance_bound_(self):
+        return protocols.trace_distance_bound(self.sub_gate)
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
