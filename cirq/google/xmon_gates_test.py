@@ -29,6 +29,16 @@ def test_measurement_eq():
                                                           invert_mask=(False,)))
 
 
+def test_is_supported():
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(1, 0)
+    assert cg.XmonGate.is_supported_op(cirq.CZ(a, b))
+    assert cg.XmonGate.is_supported_op(cg.ExpZGate(half_turns=1).on(a))
+    assert not cg.XmonGate.is_supported_op(cirq.CCZ(a, b, c))
+    assert not cg.XmonGate.is_supported_op(cirq.SWAP(a, b))
+
+
 def test_z_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cg.ExpZGate(half_turns=0))
