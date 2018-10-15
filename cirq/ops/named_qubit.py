@@ -21,42 +21,14 @@ class NamedQubit(raw_types.QubitId):
     def __init__(self, name: str) -> None:
         self.name = name
 
+    def _comparison_key(self):
+        return _pad_digits(self.name)
+
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return 'cirq.NamedQubit({})'.format(repr(self.name))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __ge__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return _pad_digits(self.name) >= _pad_digits(other.name)
-
-    def __gt__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return _pad_digits(self.name) > _pad_digits(other.name)
-
-    def __le__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return _pad_digits(self.name) <= _pad_digits(other.name)
-
-    def __lt__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return _pad_digits(self.name) < _pad_digits(other.name)
-
-    def __hash__(self):
-        return hash((NamedQubit, self.name))
 
 
 def _pad_digits(text: str) -> str:

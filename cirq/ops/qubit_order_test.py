@@ -21,8 +21,13 @@ def test_default():
     a2 = cirq.NamedQubit('a2')
     a10 = cirq.NamedQubit('a10')
     b = cirq.NamedQubit('b')
+    q4 = cirq.LineQubit(4)
+    q5 = cirq.LineQubit(5)
     assert cirq.QubitOrder.DEFAULT.order_for([]) == ()
     assert cirq.QubitOrder.DEFAULT.order_for([a10, a2, b]) == (a2, a10, b)
+    assert sorted([]) == []
+    assert sorted([a10, a2, b]) == [a2, a10, b]
+    assert sorted([q5, a10, a2, b, q4]) == [q4, q5, a2, a10, b]
 
 
 def test_default_grouping():

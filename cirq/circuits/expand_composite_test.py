@@ -44,7 +44,7 @@ def test_empty_moment():
 
 
 def test_ignore_non_composite():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append([X(q0), Y(q1), CZ(q0, q1), Z(q0)])
     expected = circuit.copy()
@@ -54,7 +54,7 @@ def test_ignore_non_composite():
 
 
 def test_composite_default():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     cnot = CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(cnot)
@@ -66,7 +66,7 @@ def test_composite_default():
 
 
 def test_multiple_composite_default():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     cnot = CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append([cnot, cnot])
@@ -79,7 +79,7 @@ def test_multiple_composite_default():
 
 
 def test_mix_composite_non_composite():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
 
     actual = cirq.Circuit.from_ops(X(q0), CNOT(q0, q1), X(q1))
     opt = cirq.ExpandComposite()
@@ -95,7 +95,7 @@ def test_mix_composite_non_composite():
 
 
 def test_recursive_composite():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     swap = SWAP(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(swap)
@@ -121,7 +121,7 @@ def test_decompose_returns_not_flat_op_tree():
             # Yield a tuple of gates instead of yielding a gate
             yield X(q0),
 
-    q0 = QubitId()
+    q0 = cirq.NamedQubit('q0')
     circuit = cirq.Circuit.from_ops(DummyGate()(q0))
 
     opt = cirq.ExpandComposite()
@@ -147,7 +147,7 @@ def test_decompose_returns_deep_op_tree():
             # Yield nested generators
             yield generator(2)
 
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(DummyGate()(q0, q1))
 
     opt = cirq.ExpandComposite()
@@ -199,7 +199,7 @@ y: ───X───────@───────@───────�
 
 
 def test_composite_extension_overrides():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     cnot = CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(cnot)
@@ -212,7 +212,7 @@ def test_composite_extension_overrides():
     assert_equal_mod_empty(expected, circuit)
 
 def test_recursive_composite_extension_overrides():
-    q0, q1 = QubitId(), QubitId()
+    q0, q1 = cirq.LineQubit.range(2)
     swap = SWAP(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(swap)

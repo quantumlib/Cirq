@@ -45,7 +45,12 @@ class QubitOrder:
         self._explicit_func = explicit_func
 
     DEFAULT = None  # type: QubitOrder
-    """A basis that orders qubits based on their names."""
+    """A basis that orders qubits in the same way that calling `sorted` does.
+
+    Specifically, qubits are ordered first by their type name and then by
+    whatever comparison value qubits of a given type provide (e.g. for LineQubit
+    it is the x coordinate of the qubit).
+    """
 
     @staticmethod
     def explicit(fixed_qubits: Iterable[raw_types.QubitId],
@@ -152,4 +157,4 @@ class QubitOrder:
         return QubitOrder(func)
 
 
-QubitOrder.DEFAULT = QubitOrder.sorted_by(lambda v: (repr(type(v)), v))
+QubitOrder.DEFAULT = QubitOrder.sorted_by(lambda v: v)

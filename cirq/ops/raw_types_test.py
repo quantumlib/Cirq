@@ -24,9 +24,9 @@ def test_gate_calls_validate():
                 raise ValueError()
 
     g = ValiGate()
-    q00 = cirq.QubitId()
-    q01 = cirq.QubitId()
-    q10 = cirq.QubitId()
+    q00 = cirq.NamedQubit('q00')
+    q01 = cirq.NamedQubit('q01')
+    q10 = cirq.NamedQubit('q10')
 
     _ = g.on(q00)
     _ = g.on(q01)
