@@ -21,20 +21,18 @@ import cirq.google as cg
 from cirq.schedules import moment_by_moment_schedule
 
 
-def assert_proto_dict_convert(gate_cls,
-                              gate: cirq.Gate,
+def assert_proto_dict_convert(gate: cirq.Gate,
                               proto_dict: Dict,
                               *qubits: cirq.QubitId):
-    from cirq.google.programs import gate_to_proto_dict
-    assert gate_to_proto_dict(gate, qubits) == proto_dict
-    assert gate_cls.from_proto_dict(proto_dict) == gate(*qubits)
+    assert cg.gate_to_proto_dict(gate, qubits) == proto_dict
+    assert cg.XmonGate.from_proto_dict(proto_dict) == gate(*qubits)
 
 
 def test_protobuf_round_trip():
     device = cg.Foxtail
     circuit = cirq.Circuit.from_ops(
         [
-            cirq.google.ExpWGate(half_turns=0.5).on(q)
+            cg.ExpWGate(half_turns=0.5).on(q)
             for q in device.qubits
         ],
         [
@@ -168,7 +166,7 @@ def test_unpack_results():
 
 
 def test_single_qubit_measurement_proto_dict_convert():
-    gate = cg.XmonMeasurementGate('test')
+    gate = cirq.MeasurementGate('test')
     proto_dict = {
         'measurement': {
             'targets': [
@@ -180,12 +178,13 @@ def test_single_qubit_measurement_proto_dict_convert():
             'key': 'test'
         }
     }
-    assert_proto_dict_convert(cg.XmonMeasurementGate, gate, proto_dict,
+    assert_proto_dict_convert(gate,
+                              proto_dict,
                               cirq.GridQubit(2, 3))
 
 
 def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
-    gate = cg.XmonMeasurementGate('test', invert_mask=(True,))
+    gate = cirq.MeasurementGate('test', invert_mask=(True,))
     proto_dict = {
         'measurement': {
             'targets': [
@@ -198,12 +197,11 @@ def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
             'invert_mask': ['true']
         }
     }
-    assert_proto_dict_convert(cg.XmonMeasurementGate, gate, proto_dict,
-                              cirq.GridQubit(2, 3))
+    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
 
 def test_multi_qubit_measurement_to_proto_dict():
-    gate = cg.XmonMeasurementGate('test')
+    gate = cirq.MeasurementGate('test')
     proto_dict = {
         'measurement': {
             'targets': [
@@ -219,7 +217,7 @@ def test_multi_qubit_measurement_to_proto_dict():
             'key': 'test'
         }
     }
-    assert_proto_dict_convert(cg.XmonMeasurementGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
 
@@ -236,7 +234,7 @@ def test_z_proto_dict_convert():
             }
         }
     }
-    assert_proto_dict_convert(cg.ExpZGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
     gate = cg.ExpZGate(half_turns=0.5)
@@ -251,7 +249,7 @@ def test_z_proto_dict_convert():
             }
         }
     }
-    assert_proto_dict_convert(cg.ExpZGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
 
@@ -272,7 +270,7 @@ def test_cz_proto_dict_convert():
             }
         }
     }
-    assert_proto_dict_convert(cg.XmonGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
     gate = cirq.CZ**0.5
@@ -291,7 +289,7 @@ def test_cz_proto_dict_convert():
             }
         }
     }
-    assert_proto_dict_convert(cg.XmonGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
 
@@ -356,7 +354,7 @@ def test_w_to_proto_dict():
             }
         }
     }
-    assert_proto_dict_convert(cg.ExpWGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
     gate = cg.ExpWGate(half_turns=0.5, axis_half_turns=cirq.Symbol('j'))
@@ -374,7 +372,7 @@ def test_w_to_proto_dict():
             }
         }
     }
-    assert_proto_dict_convert(cg.ExpWGate, gate, proto_dict,
+    assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
 
@@ -439,9 +437,8 @@ def test_unsupported_op():
 
 
 def test_invalid_to_proto_dict_qubit_number():
-    from cirq.google.programs import gate_to_proto_dict
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        _ = gate_to_proto_dict(cirq.CZ**0.5, (cirq.GridQubit(2, 3),))
+        _ = cg.gate_to_proto_dict(cirq.CZ**0.5, (cirq.GridQubit(2, 3),))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
         cg.ExpZGate(half_turns=0.5).to_proto_dict(cirq.GridQubit(2, 3),
                                                   cirq.GridQubit(3, 4))
@@ -475,7 +472,7 @@ def test_single_qubit_measurement_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonMeasurementGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'measurement': {
@@ -488,15 +485,17 @@ def test_single_qubit_measurement_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonMeasurementGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
 
 def test_invalid_measurement_gate():
     with pytest.raises(ValueError, match='length'):
-        cg.XmonMeasurementGate('test', invert_mask=(True,)).to_proto_dict(
-            cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
+        _ = cg.gate_to_proto_dict(
+            cirq.MeasurementGate('test', invert_mask=(True,)),
+            (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='no qubits'):
-        cg.XmonMeasurementGate('test').to_proto_dict()
+        _ = cg.gate_to_proto_dict(
+            cirq.MeasurementGate('test'), ())
 
 
 def test_z_invalid_dict():

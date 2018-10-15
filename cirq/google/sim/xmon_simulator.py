@@ -545,7 +545,7 @@ def _simulator_iterator(
                         index=index,
                         half_turns=gate.half_turns,
                         axis_half_turns=gate.axis_half_turns)
-                elif isinstance(gate, xmon_gates.XmonMeasurementGate):
+                elif isinstance(gate, ops.MeasurementGate):
                     if perform_measurements:
                         invert_mask = (
                             gate.invert_mask or len(op.qubits) * (False,))
@@ -588,7 +588,7 @@ def _sample_measurements(circuit: Circuit,
     all_qubits = []  # type: List[raw_types.QubitId]
     current_index = 0
     for _, op, gate in circuit.findall_operations_with_gate_type(
-            xmon_gates.XmonMeasurementGate):
+            ops.MeasurementGate):
         key = gate.key
         bounds[key] = (current_index, current_index + len(op.qubits))
         all_qubits.extend(op.qubits)
@@ -600,7 +600,7 @@ def _sample_measurements(circuit: Circuit,
 def find_measurement_keys(circuit: Circuit) -> Set[str]:
     keys = set()  # type: Set[str]
     for _, _, gate in circuit.findall_operations_with_gate_type(
-            xmon_gates.XmonMeasurementGate):
+            ops.MeasurementGate):
         key = gate.key
         if key in keys:
             raise ValueError('Repeated Measurement key {}'.format(key))

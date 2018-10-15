@@ -103,7 +103,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
                 invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
             if 'key' not in meas or 'targets' not in meas:
                 raise_missing_fields('Measurement')
-            return XmonMeasurementGate(
+            return ops.MeasurementGate(
                 key=meas['key'],
                 invert_mask=invert_mask
             ).on(*[qubit(q) for q in meas['targets']])
@@ -129,36 +129,6 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         else:
             out['raw'] = float(param)
         return out
-
-
-class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
-    """Indicates that qubits should be measured, and where the result goes.
-
-    This measurement is done in the computational basis.
-    """
-
-    def to_proto_dict(self, *qubits):
-        if len(qubits) == 0:
-            raise ValueError('Measurement gate on no qubits.')
-        if self.invert_mask and len(self.invert_mask) != len(qubits):
-            raise ValueError('Measurement gate had invert mask of length '
-                             'different than number of qubits it acts on.')
-        measurement = {
-            'targets': [q.to_proto_dict() for q in qubits],
-            'key': self.key,
-        }
-        if self.invert_mask:
-            measurement['invert_mask'] = [json.dumps(x) for x in
-                                          self.invert_mask]
-        return {'measurement': measurement}
-
-    def with_bits_flipped(self, *bit_positions: int) -> 'XmonMeasurementGate':
-        sup = super().with_bits_flipped(*bit_positions)
-        return XmonMeasurementGate(key=sup.key, invert_mask=sup.invert_mask)
-
-    def __repr__(self):
-        return 'XmonMeasurementGate({}, {})'.format(repr(self.key),
-                                                    repr(self.invert_mask))
 
 
 class ExpWGate(XmonGate,

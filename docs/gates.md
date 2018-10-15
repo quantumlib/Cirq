@@ -126,11 +126,11 @@ axis.  The gate is ``exp(-i pi Z half_turns / 2)`` where
 quantum computing hardware, this gate is often compiled
 out of the circuit (TODO: explain this in more detail)
 
-**Exp11Gate** This is a two qubit gate and is a rotation
+**cirq.Rot11Gate** This is a two qubit gate and is a rotation
 about the ``|11><11|`` projector.  It takes a single parameter 
 ``half_turns`` and is the gate ``exp(i pi |11><11| half_turns)``.
 
-**XmonMeasurementGate** This is a single qubit measurement
+**cirq.MeasurementGate** This is a single qubit measurement
 in the computational basis. 
 
 ### CommonGates
