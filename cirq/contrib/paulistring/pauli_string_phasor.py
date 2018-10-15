@@ -28,7 +28,6 @@ T_DESIRED = TypeVar('T_DESIRED')
 
 class PauliStringPhasor(PauliStringGateOperation,
                         ops.CompositeOperation,
-                        ops.BoundedEffect,
                         ops.TextDiagrammable,
                         extension.PotentialImplementation[Union[
                             ops.ExtrapolatableEffect,
@@ -136,8 +135,9 @@ class PauliStringPhasor(PauliStringGateOperation,
                                                exponent=self.half_turns,
                                                exponent_absorbs_sign=True)
 
-    def trace_distance_bound(self) -> float:
-        return ops.RotZGate(half_turns=self.half_turns).trace_distance_bound()
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(
+            ops.RotZGate(half_turns=self.half_turns))
 
     def try_cast_to(self,
                     desired_type: Type[T_DESIRED],

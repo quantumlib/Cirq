@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
-    gate_features.BoundedEffect,
     gate_features.ExtrapolatableEffect,
     gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
@@ -44,7 +43,6 @@ LIFTED_POTENTIAL_TYPES[
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
-                        gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
                         gate_features.PhaseableEffect,
@@ -167,9 +165,8 @@ class GateOperation(raw_types.Operation,
                                               args,
                                               NotImplemented)
 
-    def trace_distance_bound(self) -> float:
-        cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
-        return cast_gate.trace_distance_bound()
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(self.gate)
 
     def inverse(self) -> 'GateOperation':
         cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
