@@ -50,7 +50,7 @@ def test_init():
     assert d.duration_of(cirq.measure(q00)) == ns
     assert d.duration_of(cirq.measure(q00, q01)) == ns
     assert d.duration_of(cg.ExpWGate().on(q00)) == 2 * ns
-    assert d.duration_of(cg.Exp11Gate().on(q00, q01)) == 3 * ns
+    assert d.duration_of(cirq.CZ(q00, q01)) == 3 * ns
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.Gate().on(q00))
 
@@ -74,9 +74,9 @@ def test_can_add_operation_into_moment():
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)
     q11 = cirq.GridQubit(1, 1)
-    m = cirq.Moment([cg.Exp11Gate().on(q00, q01)])
+    m = cirq.Moment([cirq.CZ(q00, q01)])
     assert not d.can_add_operation_into_moment(
-        cg.Exp11Gate().on(q10, q11), m)
+        cirq.CZ(q10, q11), m)
 
 
 def test_validate_moment():
@@ -85,8 +85,8 @@ def test_validate_moment():
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)
     q11 = cirq.GridQubit(1, 1)
-    m = cirq.Moment([cg.Exp11Gate().on(q00, q01),
-                     cg.Exp11Gate().on(q10, q11)])
+    m = cirq.Moment([cirq.CZ(q00, q01),
+                     cirq.CZ(q10, q11)])
     with pytest.raises(ValueError):
         d.validate_moment(m)
 
@@ -95,12 +95,12 @@ def test_validate_operation_adjacent_qubits():
     d = square_device(3, 3)
 
     d.validate_operation(cirq.GateOperation(
-        cg.Exp11Gate(),
+        cirq.CZ,
         (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Non-local interaction'):
         d.validate_operation(cirq.GateOperation(
-            cg.Exp11Gate(),
+            cirq.CZ,
             (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
 
 
@@ -116,18 +116,18 @@ def test_validate_operation_existing_qubits():
     d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
 
     d.validate_operation(cirq.GateOperation(
-        cg.Exp11Gate(),
+        cirq.CZ,
         (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
     d.validate_operation(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
 
     with pytest.raises(ValueError):
         d.validate_operation(
-            cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(-1, 0)))
+            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
         d.validate_operation(cg.ExpZGate().on(cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
         d.validate_operation(
-            cg.Exp11Gate().on(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)))
+            cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)))
 
 
 def test_validate_operation_supported_gate():
@@ -154,7 +154,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
         cirq.ScheduledOperation.op_at_on(
             cg.ExpWGate().on(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
-            cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
+            cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 
@@ -168,7 +168,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
         cirq.ScheduledOperation.op_at_on(
             cg.ExpZGate().on(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
-            cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
+            cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 
@@ -182,7 +182,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_measure():
         cirq.ScheduledOperation.op_at_on(
             cg.XmonMeasurementGate().on(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
-            cg.Exp11Gate().on(q1, q2), cirq.Timestamp(), d),
+            cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 
@@ -196,7 +196,7 @@ def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
         cirq.ScheduledOperation.op_at_on(
             cg.ExpWGate().on(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
-            cg.Exp11Gate().on(p1, p2), cirq.Timestamp(), d),
+            cirq.CZ(p1, p2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 

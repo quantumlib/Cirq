@@ -20,7 +20,8 @@ import cirq.google as cg
 
 
 def assert_proto_dict_convert(gate_cls, gate, proto_dict, *qubits):
-    assert gate.to_proto_dict(*qubits) == proto_dict
+    from cirq.google.programs import _gate_to_proto_dict
+    assert _gate_to_proto_dict(gate, qubits) == proto_dict
     assert gate_cls.from_proto_dict(proto_dict) == gate(*qubits)
 
 
@@ -242,22 +243,8 @@ def test_z_repr():
     assert repr(gate) == 'ExpZGate(half_turns=0.25)'
 
 
-def test_cz_eq():
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cg.Exp11Gate(half_turns=0))
-    eq.add_equality_group(cg.Exp11Gate(),
-                          cg.Exp11Gate(half_turns=1),
-                          cg.Exp11Gate(degs=180),
-                          cg.Exp11Gate(rads=np.pi))
-    eq.make_equality_group(lambda: cg.Exp11Gate(half_turns=cirq.Symbol('a')))
-    eq.make_equality_group(lambda: cg.Exp11Gate(half_turns=cirq.Symbol('b')))
-    eq.add_equality_group(
-        cg.Exp11Gate(half_turns=-1.5),
-        cg.Exp11Gate(half_turns=6.5))
-
-
 def test_cz_proto_dict_convert():
-    gate = cg.Exp11Gate(half_turns=cirq.Symbol('k'))
+    gate = cirq.CZ**cirq.Symbol('k')
     proto_dict = {
         'exp_11': {
             'target1': {
@@ -273,10 +260,10 @@ def test_cz_proto_dict_convert():
             }
         }
     }
-    assert_proto_dict_convert(cg.Exp11Gate, gate, proto_dict,
+    assert_proto_dict_convert(cg.XmonGate, gate, proto_dict,
                               cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
-    gate = cg.Exp11Gate(half_turns=0.5)
+    gate = cirq.CZ**0.5
     proto_dict = {
         'exp_11': {
             'target1': {
@@ -292,7 +279,7 @@ def test_cz_proto_dict_convert():
             }
         }
     }
-    assert_proto_dict_convert(cg.Exp11Gate, gate, proto_dict,
+    assert_proto_dict_convert(cg.XmonGate, gate, proto_dict,
                               cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
 
@@ -308,8 +295,8 @@ def test_cz_invalid_dict():
             }
         }
     }
-    with pytest.raises(ValueError):
-        cg.Exp11Gate.from_proto_dict(proto_dict)
+    with pytest.raises(ValueError, match='missing required fields'):
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_11': {
@@ -322,8 +309,8 @@ def test_cz_invalid_dict():
             }
         }
     }
-    with pytest.raises(ValueError):
-        cg.Exp11Gate.from_proto_dict(proto_dict)
+    with pytest.raises(ValueError, match='missing required fields'):
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_11': {
@@ -337,27 +324,8 @@ def test_cz_invalid_dict():
             },
         }
     }
-    with pytest.raises(ValueError):
-        cg.Exp11Gate.from_proto_dict(proto_dict)
-
-
-def test_cz_potential_implementation():
-    assert cirq.unitary(cg.Exp11Gate(half_turns=cirq.Symbol('a')), None) is None
-    assert cirq.unitary(cg.Exp11Gate()) is not None
-
-
-def test_cz_parameterize():
-    parameterized_gate = cg.Exp11Gate(half_turns=cirq.Symbol('a'))
-    assert cirq.is_parameterized(parameterized_gate)
-    assert cirq.unitary(parameterized_gate, None) is None
-    resolver = cirq.ParamResolver({'a': 0.1})
-    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
-    assert resolved_gate == cg.Exp11Gate(half_turns=0.1)
-
-
-def test_cz_repr():
-    gate = cg.Exp11Gate(half_turns=0.1)
-    assert repr(gate) == 'Exp11Gate(half_turns=0.1)'
+    with pytest.raises(ValueError, match='missing required fields'):
+        cg.XmonGate.from_proto_dict(proto_dict)
 
 
 def test_w_eq():
@@ -566,12 +534,13 @@ def test_unsupported_op():
 
 
 def test_invalid_to_proto_dict_qubit_number():
-    with pytest.raises(ValueError):
-        cg.Exp11Gate(half_turns=0.5).to_proto_dict(cirq.GridQubit(2, 3))
-    with pytest.raises(ValueError):
+    from cirq.google.programs import _gate_to_proto_dict
+    with pytest.raises(ValueError, match='Wrong number of qubits'):
+        _ = _gate_to_proto_dict(cirq.CZ**0.5, (cirq.GridQubit(2, 3),))
+    with pytest.raises(ValueError, match='Wrong number of qubits'):
         cg.ExpZGate(half_turns=0.5).to_proto_dict(cirq.GridQubit(2, 3),
                                                   cirq.GridQubit(3, 4))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Wrong number of qubits'):
         cg.ExpWGate(half_turns=0.5, axis_half_turns=0).to_proto_dict(
             cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
@@ -583,7 +552,7 @@ def test_cirq_symbol_diagrams():
         cg.ExpWGate(axis_half_turns=cirq.Symbol('a'),
                     half_turns=cirq.Symbol('b')).on(q00),
         cg.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
-        cg.Exp11Gate(half_turns=cirq.Symbol('d')).on(q00, q01),
+        cirq.CZ(q00, q01)**cirq.Symbol('d'),
     )
     cirq.testing.assert_has_diagram(c, """
 (0, 0): ───W(a)^b───@─────
