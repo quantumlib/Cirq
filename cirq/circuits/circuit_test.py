@@ -1678,7 +1678,7 @@ def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.Circuit.from_ops(cirq.X(a), cirq.CZ(a, b), cirq.Z(a), cirq.Z(b))
-    assert c == c.copy() == c.__copy__() == c.__deepcopy__()
+    assert c == c.copy() == c.__copy__()
     c2 = c.copy()
     assert c2 == c
     c2[:] = []
