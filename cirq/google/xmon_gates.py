@@ -15,7 +15,7 @@
 """Gates that can be directly described to the API, without decomposition."""
 
 import json
-from typing import cast, Dict, Optional, Tuple, Union, Any
+from typing import Dict, Optional, Tuple, Union, Any
 
 import numpy as np
 
@@ -164,7 +164,6 @@ class Exp11Gate(XmonGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
                 ops.PhaseableEffect,
-                ops.ParameterizableEffect,
                 ops.QasmConvertibleGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -251,19 +250,17 @@ class Exp11Gate(XmonGate,
     def __hash__(self):
         return hash((Exp11Gate, self.half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'Exp11Gate':
+    def _resolve_parameters_(self, param_resolver) -> 'Exp11Gate':
         return Exp11Gate(half_turns=param_resolver.value_of(self.half_turns))
 
 
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
-               ops.PhaseableEffect,
-               ops.BoundedEffect,
-               ops.ParameterizableEffect):
+               ops.PhaseableEffect):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -343,9 +340,11 @@ class ExpWGate(XmonGate,
         return {'exp_w': exp_w}
 
     def __pow__(self, exponent: Any):
-        if exponent != -1 or self.is_parameterized():
+        if self._is_parameterized_() and exponent != 1:
             return NotImplemented
-        return ExpWGate(half_turns=-self.half_turns,
+        if self.half_turns != 1 and isinstance(exponent, value.Symbol):
+            return NotImplemented
+        return ExpWGate(half_turns=self.half_turns * exponent,
                         axis_half_turns=self.axis_half_turns)
 
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
@@ -364,7 +363,7 @@ class ExpWGate(XmonGate,
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         if isinstance(self.half_turns, value.Symbol):
             return 1
         return abs(self.half_turns) * 3.5
@@ -424,29 +423,21 @@ class ExpWGate(XmonGate,
             return hash((ops.RotYGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol))
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpWGate':
+    def _resolve_parameters_(self, param_resolver) -> 'ExpWGate':
         return ExpWGate(
                 half_turns=param_resolver.value_of(self.half_turns),
                 axis_half_turns=param_resolver.value_of(self.axis_half_turns))
 
 
-class ExpZGate(XmonGate,
-               ops.SingleQubitGate,
-               ops.TextDiagrammable,
-               ops.ParameterizableEffect,
-               ops.PhaseableEffect,
-               ops.BoundedEffect,
-               ops.QasmConvertibleGate):
+class ExpZGate(XmonGate, ops.RotZGate):
     """A rotation around the Z axis of the Bloch sphere.
-
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
         Z = [[1, 0],
              [0, -1]]
-
     Note the half_turn nomenclature here comes from viewing this as a rotation
     on the Bloch sphere. Two half_turns correspond to a rotation in the
     bloch sphere of 360 degrees.
@@ -457,67 +448,22 @@ class ExpZGate(XmonGate,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
         """Initializes the gate.
-
         At most one angle argument may be specified. If more are specified,
         the result is considered ambiguous and an error is thrown. If no angle
         argument is given, the default value of one half turn is used.
-
         Args:
             half_turns: The relative phasing of Z's eigenstates, in half_turns.
             rads: The relative phasing of Z's eigenstates, in radians.
             degs: The relative phasing of Z's eigenstates, in degrees.
         """
-        self.half_turns = value.chosen_angle_to_canonical_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs)
+        super().__init__(half_turns=half_turns,
+                         rads=rads,
+                         degs=degs,
+                         global_shift_in_half_turns=-0.5)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
-        if self.half_turns in [-0.25, 0.25]:
-            return ops.TextDiagramInfo(
-                wire_symbols=('T',),
-                exponent=cast(float, self.half_turns) * 4)
-
-        if self.half_turns in [-0.5, 0.5]:
-            return ops.TextDiagramInfo(
-                wire_symbols=('S',),
-                exponent=cast(float, self.half_turns) * 2)
-
-        return ops.TextDiagramInfo(
-            wire_symbols=('Z',),
-            exponent=self.half_turns)
-
-    def known_qasm_output(self,
-                          qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> Optional[str]:
-        args.validate_version('2.0')
-        if self.half_turns == 1:
-            return args.format('z {0};\n', qubits[0])
-        else:
-            return args.format('rz({0:half_turns}) {1};\n',
-                               self.half_turns, qubits[0])
-
-    def __pow__(self, exponent: Any):
-        if exponent != -1 or self.is_parameterized():
-            return NotImplemented
-        return ExpZGate(half_turns=-self.half_turns)
-
-    def phase_by(self,
-                 phase_turns: float,
-                 qubit_index: int):
-        return self
-
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if isinstance(self.half_turns, value.Symbol):
-            return NotImplemented
-        h = cast(float, self.half_turns)
-        return np.diag([(-1j)**h, 1j**h])
-
-    def trace_distance_bound(self):
-        if isinstance(self.half_turns, value.Symbol):
-            return 1
-        return abs(self.half_turns) * 3.5
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'ExpZGate':
+        return ExpZGate(half_turns=exponent)
 
     def to_proto_dict(self, *qubits):
         if len(qubits) != 1:
@@ -529,34 +475,11 @@ class ExpZGate(XmonGate,
                  }
         return {'exp_z': exp_z}
 
-    def __str__(self):
-        if self.half_turns == 0.5:
-            return 'S'
-        if self.half_turns == 0.25:
-            return 'T'
-        if self.half_turns == -0.5:
-            return 'S^-1'
-        if self.half_turns == -0.25:
-            return 'T^-1'
-        return 'Z^{}'.format(self.half_turns)
-
     def __repr__(self):
-        return 'ExpZGate(half_turns={})'.format(
-            repr(self.half_turns))
+        return 'ExpZGate(half_turns={!r})'.format(self.half_turns)
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ExpZGate, self.half_turns))
-
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
+    def _resolve_parameters_(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))

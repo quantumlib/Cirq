@@ -41,9 +41,7 @@ EigenComponent = NamedTuple(
 )
 
 
-class EigenGate(raw_types.Gate,
-                gate_features.BoundedEffect,
-                gate_features.ParameterizableEffect):
+class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -56,7 +54,29 @@ class EigenGate(raw_types.Gate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
+                 exponent: Union[value.Symbol, float] = 1.0,
+                 global_shift_in_half_turns: float = 0.0) -> None:
+        """Initializes the parameters used to compute the gate's matrix.
+
+        The eigenvalue of an eigenspace of the gate is computed by:
+        1. Starting with an angle returned by the _eigen_components method.
+            θ
+        2. Shifting the angle by the global_shift_in_half_turns.
+            θ + s
+        3. Scaling the angle by the exponent.
+            (θ + s) * e
+        4. Converting from half turns to a complex number on the unit circle.
+            exp(i * pi * (θ + s) * e)
+
+        Args:
+            exponent: How much to scale the eigencomponents' angles by when
+                computing the gate's matrix.
+            global_shift_in_half_turns: How much to shift the eigencomponents'
+                angles by (before multiplying by the exponent).
+        """
+
+        self._exponent = exponent
+        self._global_shift_in_half_turns = global_shift_in_half_turns
 
         # Canonicalize the exponent.
         period = self._canonical_exponent_period()
@@ -71,11 +91,17 @@ class EigenGate(raw_types.Gate,
 
         self._exponent = exponent
 
-    @abc.abstractmethod
+    # virtual method
     def _with_exponent(self: TSelf,
                        exponent: Union[value.Symbol, float]) -> TSelf:
-        """Return the same kind of gate, but with a different exponent."""
-        pass
+        """Return the same kind of gate, but with a different exponent.
+
+        Child classes should override this method if they have an __init__
+        method with a differing signature.
+        """
+        return type(self)(
+            exponent=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
@@ -132,7 +158,7 @@ class EigenGate(raw_types.Gate,
         """
         pass
 
-    @abc.abstractmethod
+    # virtual method
     def _canonical_exponent_period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized.
 
@@ -142,7 +168,7 @@ class EigenGate(raw_types.Gate,
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        pass
+        return None
 
     def __pow__(self: TSelf, power: Union[float, value.Symbol]) -> TSelf:
         if power != 1 and isinstance(self._exponent, value.Symbol):
@@ -151,18 +177,23 @@ class EigenGate(raw_types.Gate,
             return NotImplemented
         return self._with_exponent(exponent=self._exponent * power)
 
+    def _identity_tuple(self):
+        return (type(self),
+                self._exponent,
+                self._global_shift_in_half_turns)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._exponent == other._exponent
+        return self._identity_tuple() == other._identity_tuple()
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((type(self), self._exponent))
+        return hash(self._identity_tuple())
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):
             return 1
 
@@ -172,15 +203,18 @@ class EigenGate(raw_types.Gate,
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if self.is_parameterized():
+        if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
-        return np.sum([1j**(half_turns * e * 2) * component for half_turns,
-                       component in self._eigen_components()], axis=0)
+        return np.sum([
+            component * 1j**(
+                    2 * e * (half_turns + self._global_shift_in_half_turns))
+            for half_turns, component in self._eigen_components()
+        ], axis=0)
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self._exponent, value.Symbol)
 
-    def with_parameters_resolved_by(self: TSelf, param_resolver) -> TSelf:
+    def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))

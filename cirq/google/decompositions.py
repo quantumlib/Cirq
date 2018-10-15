@@ -16,7 +16,7 @@
 
 import cmath
 import math
-from typing import List, Tuple, cast
+from typing import List, Tuple
 
 import numpy as np
 
@@ -81,7 +81,7 @@ def single_qubit_matrix_to_native_gates(
     ]
     result = [
         g for g in result
-        if cast(ops.BoundedEffect, g).trace_distance_bound() > tolerance
+        if protocols.trace_distance_bound(g) > tolerance
     ]
 
     # Special case: XY half-turns can absorb Z rotations.

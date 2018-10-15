@@ -188,16 +188,16 @@ def test_merge_with():
 
 def test_is_parametrized():
     op = PauliStringPhasor(cirq.PauliString({}))
-    assert not op.is_parameterized()
-    assert not (op ** 0.1).is_parameterized()
-    assert (op ** cirq.Symbol('a')).is_parameterized()
+    assert not cirq.is_parameterized(op)
+    assert not cirq.is_parameterized(op ** 0.1)
+    assert cirq.is_parameterized(op ** cirq.Symbol('a'))
 
 
 def test_with_parameters_resolved_by():
     op = PauliStringPhasor(cirq.PauliString({}),
                            half_turns=cirq.Symbol('a'))
     resolver = cirq.ParamResolver({'a': 0.1})
-    actual = op.with_parameters_resolved_by(resolver)
+    actual = cirq.resolve_parameters(op, resolver)
     expected = PauliStringPhasor(cirq.PauliString({}), half_turns=0.1)
     assert actual == expected
 

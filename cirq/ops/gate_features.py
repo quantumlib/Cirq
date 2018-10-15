@@ -25,7 +25,6 @@ import string
 
 from cirq import abc, value
 from cirq.ops import op_tree, raw_types
-from cirq.study import ParamResolver
 
 
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
@@ -184,26 +183,6 @@ class PhaseableEffect(metaclass=abc.ABCMeta):
         """
 
 
-class BoundedEffect(metaclass=abc.ABCMeta):
-    """An effect with known bounds on how easy it is to detect.
-
-    Used when deciding whether or not an operation is negligible. For example,
-    the trace distance between the states before and after a Z**0.00000001
-    operation is very close to 0, so it would typically be considered
-    negligible.
-    """
-
-    @abc.abstractmethod
-    def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this effect's input/output.
-
-        Generally this method is used when deciding whether to keep gates, so
-        only the behavior near 0 is important. Approximations that overestimate
-        the maximum trace distance are permitted. Even ones that exceed 1.
-        Underestimates are not permitted.
-        """
-
-
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 
@@ -243,31 +222,6 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(
                 'Three-qubit gate not applied to three qubits: {}({})'.
                 format(self, qubits))
-
-
-TSelf_ParameterizableEffect = TypeVar('TSelf_ParameterizableEffect',
-                                      bound='ParameterizableEffect')
-
-
-class ParameterizableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be parameterized by Symbols."""
-
-    @abc.abstractmethod
-    def is_parameterized(self) -> bool:
-        """Whether the effect is parameterized.
-
-        Returns True if the gate has any unresolved Symbols and False otherwise.
-        """
-
-    @abc.abstractmethod
-    def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
-                                    param_resolver: ParamResolver
-                                    ) -> TSelf_ParameterizableEffect:
-        """Resolve the parameters in the effect.
-
-        Returns a gate or operation of the same type, but with all Symbols
-        replaced with floats according to the given ParamResolver.
-        """
 
 
 class QasmOutputArgs(string.Formatter):

@@ -23,13 +23,8 @@ from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation)
 
 
-T_DESIRED = TypeVar('T_DESIRED')
-
-
 class PauliStringPhasor(PauliStringGateOperation,
                         ops.CompositeOperation,
-                        ops.BoundedEffect,
-                        ops.ParameterizableEffect,
                         ops.TextDiagrammable):
     """An operation that phases a Pauli string."""
     def __init__(self,
@@ -129,13 +124,14 @@ class PauliStringPhasor(PauliStringGateOperation,
                                                exponent=self.half_turns,
                                                exponent_absorbs_sign=True)
 
-    def trace_distance_bound(self) -> float:
-        return ops.RotZGate(half_turns=self.half_turns).trace_distance_bound()
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(
+            ops.RotZGate(half_turns=self.half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
 
-    def with_parameters_resolved_by(self, param_resolver: study.ParamResolver
+    def _resolve_parameters_(self, param_resolver: study.ParamResolver
                                     ) -> 'PauliStringPhasor':
         return self._with_half_turns(
                         param_resolver.value_of(self.half_turns))

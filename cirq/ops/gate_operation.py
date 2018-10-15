@@ -20,18 +20,15 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension, protocols, value
+from cirq import extension, value, protocols
 from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq import study
     from typing import Dict, List
 
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
-    gate_features.BoundedEffect,
-    gate_features.ParameterizableEffect,
     gate_features.PhaseableEffect,
     gate_features.TextDiagrammable,
 ]}
@@ -44,10 +41,7 @@ LIFTED_POTENTIAL_TYPES[
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
-                        gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
-                        gate_features.ParameterizableEffect,
-                        gate_features.PhaseableEffect,
                         gate_features.TextDiagrammable,
                         gate_features.QasmConvertibleOperation,
                     ]]):
@@ -138,17 +132,37 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+        return protocols.apply_unitary_to_tensor(
+            self.gate,
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
         return protocols.unitary(self._gate, NotImplemented)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        cast_gate = extension.cast(gate_features.TextDiagrammable, self.gate)
-        return cast_gate.text_diagram_info(args)
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._gate)
 
-    def trace_distance_bound(self) -> float:
-        cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
-        return cast_gate.trace_distance_bound()
+    def _resolve_parameters_(self, resolver):
+        resolved_gate = protocols.resolve_parameters(self._gate, resolver)
+        return GateOperation(resolved_gate, self._qubits)
+
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.circuit_diagram_info(self.gate,
+                                              args,
+                                              NotImplemented)
+
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(self.gate)
 
     def phase_by(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
         cast_gate = extension.cast(gate_features.PhaseableEffect,
@@ -178,18 +192,6 @@ class GateOperation(raw_types.Operation,
             return NotImplemented
         return self.with_gate(new_gate)
 
-    def is_parameterized(self) -> bool:
-        cast_gate = extension.cast(gate_features.ParameterizableEffect,
-                                   self.gate)
-        return cast_gate.is_parameterized()
-
-    def with_parameters_resolved_by(self,
-                                    param_resolver: 'study.ParamResolver',
-                                    ) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ParameterizableEffect,
-                                   self.gate)
-        new_gate = cast_gate.with_parameters_resolved_by(param_resolver)
-        return self.with_gate(cast(raw_types.Gate, new_gate))
 
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:

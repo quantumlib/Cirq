@@ -84,6 +84,10 @@ def test_child_class():
     gate = Impl()
     reversed_gate = gate**-1
     assert gate is reversed_gate**-1
+    with pytest.raises(TypeError):
+        _ = gate**0.5
+    with pytest.raises(TypeError):
+        _ = reversed_gate**0.5
 
     q = cirq.QubitId()
     assert (

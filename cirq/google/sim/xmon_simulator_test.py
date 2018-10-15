@@ -1092,23 +1092,3 @@ def test_simulator_implied_measurement_key():
     assert str(result) == "(0, 0)=11111\nother=11111"
 
 
-def test_supports_extensions_for_parameter_resolving():
-    class DummyGate(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableEffect,
-                 DummyGate,
-                 lambda _: cg.ExpWGate(half_turns=cirq.Symbol('x')))
-
-    a = cirq.NamedQubit('a')
-    circuit = cirq.Circuit.from_ops(
-        DummyGate().on(a),
-        cg.XmonMeasurementGate('a').on(a)
-    )
-    results = cirq.google.XmonSimulator().run(
-        circuit=circuit,
-        param_resolver=cirq.ParamResolver({'x': 1}),
-        extensions=ext)
-
-    assert str(results) == 'a=1'

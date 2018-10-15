@@ -15,8 +15,10 @@
 """Utilities for testing code."""
 
 from cirq.testing.circuit_compare import (
+    assert_apply_unitary_to_tensor_is_consistent_with_unitary,
     assert_circuits_with_terminal_measurements_are_equivalent,
     assert_has_diagram,
+    assert_same_circuits,
 )
 from cirq.testing.equals_tester import (
     EqualsTester,
@@ -31,6 +33,9 @@ from cirq.testing.lin_alg_utils import (
     random_special_unitary,
     random_unitary,
     assert_allclose_up_to_global_phase,
+)
+from cirq.testing.order_tester import (
+    OrderTester,
 )
 from cirq.testing.random_circuit import (
     random_circuit,

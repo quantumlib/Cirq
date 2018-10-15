@@ -13,6 +13,16 @@
 # limitations under the License.
 
 
+from cirq.protocols.apply_unitary_to_tensor import (
+    SupportsApplyUnitaryToTensor,
+    apply_unitary_to_tensor,
+)
+from cirq.protocols.circuit_diagram_info import (
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
+    SupportsCircuitDiagramInfo,
+)
 from cirq.protocols.inverse import (
     inverse,
     extrapolate,
@@ -20,4 +30,13 @@ from cirq.protocols.inverse import (
 from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
+)
+from cirq.protocols.trace_distance_bound import (
+    SupportsTraceDistanceBound,
+    trace_distance_bound,
+)
+from cirq.protocols.resolve_parameters import (
+    SupportsParameterization,
+    is_parameterized,
+    resolve_parameters,
 )

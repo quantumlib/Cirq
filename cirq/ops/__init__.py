@@ -45,11 +45,9 @@ from cirq.ops.eigen_gate import (
     EigenGate,
 )
 from cirq.ops.gate_features import (
-    BoundedEffect,
     CompositeGate,
     CompositeOperation,
     InterchangeableQubitsGate,
-    ParameterizableEffect,
     PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,

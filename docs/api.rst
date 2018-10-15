@@ -53,7 +53,6 @@ Gate Features and Effects
 .. autosummary::
     :toctree: generated
 
-    ParameterizableEffect
     CompositeGate
     ExtrapolatableEffect
     ReversibleEffect
