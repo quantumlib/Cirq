@@ -31,7 +31,6 @@ if TYPE_CHECKING:
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.ExtrapolatableEffect,
-    gate_features.PhaseableEffect,
     gate_features.ReversibleEffect,
 ]}
 
@@ -45,7 +44,6 @@ class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
-                        gate_features.PhaseableEffect,
                         gate_features.ReversibleEffect,
                         gate_features.QasmConvertibleOperation,
                     ]]):
@@ -179,12 +177,13 @@ class GateOperation(raw_types.Operation,
         return self.with_gate(cast(raw_types.Gate,
                                    cast_gate.extrapolate_effect(factor)))
 
-    def phase_by(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.PhaseableEffect,
-                                   self.gate)
-        return self.with_gate(cast(raw_types.Gate,
-                                   cast_gate.phase_by(phase_turns,
-                                                      qubit_index)))
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'GateOperation':
+        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
+                                         default=None)
+        if phased_gate is None:
+            return NotImplemented
+        return GateOperation(phased_gate, self._qubits)
 
     def __pow__(self, power: float) -> 'GateOperation':
         """Raise gate to a power, then reapply to the same qubits.

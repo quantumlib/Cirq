@@ -128,7 +128,6 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
@@ -196,11 +195,13 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     SupportsParameterization,
+    SupportsPhase,
+    SupportsTraceDistanceBound,
     is_parameterized,
     resolve_parameters,
     unitary,
-    SupportsTraceDistanceBound,
     trace_distance_bound,
+    phase_by,
 )
 
 # Unflattened sub-modules.

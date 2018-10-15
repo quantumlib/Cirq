@@ -24,7 +24,6 @@ from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
 class Rot11Gate(eigen_gate.EigenGate,
-                gate_features.PhaseableEffect,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate,
@@ -80,7 +79,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                        exponent: Union[value.Symbol, float]) -> 'Rot11Gate':
         return Rot11Gate(half_turns=exponent)
 
-    def phase_by(self, phase_turns, qubit_index):
+    def _phase_by_(self, phase_turns, qubit_index):
         return self
 
     @property
@@ -268,7 +267,6 @@ class RotYGate(eigen_gate.EigenGate,
 class RotZGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
-               gate_features.PhaseableEffect,
                gate_features.QasmConvertibleGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
@@ -336,7 +334,7 @@ class RotZGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def phase_by(self,
+    def _phase_by_(self,
                  phase_turns: float,
                  qubit_index: int):
         return self

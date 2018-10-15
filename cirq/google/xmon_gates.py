@@ -163,7 +163,6 @@ class Exp11Gate(XmonGate,
                 ops.TwoQubitGate,
                 ops.TextDiagrammable,
                 ops.InterchangeableQubitsGate,
-                ops.PhaseableEffect,
                 ops.QasmConvertibleGate):
     """A two-qubit interaction that phases the amplitude of the 11 state.
 
@@ -197,7 +196,7 @@ class Exp11Gate(XmonGate,
             rads=rads,
             degs=degs)
 
-    def phase_by(self, phase_turns, qubit_index):
+    def _phase_by_(self, phase_turns, qubit_index):
         return self
 
     def to_proto_dict(self, *qubits):
@@ -260,7 +259,6 @@ class Exp11Gate(XmonGate,
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
-               ops.PhaseableEffect,
                PotentialImplementation[Union[
                    ops.ReversibleEffect]]):
     """A rotation around an axis in the XY plane of the Bloch sphere.
@@ -372,7 +370,7 @@ class ExpWGate(XmonGate,
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return np.dot(np.dot(phase, rot), np.conj(phase))
 
-    def phase_by(self, phase_turns, qubit_index):
+    def _phase_by_(self, phase_turns, qubit_index):
         return ExpWGate(
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
