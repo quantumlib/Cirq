@@ -31,7 +31,7 @@ class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
     def __init__(self):
-        self.groups = [(_ClassUnknownToSubjects(),)]
+        self._groups = [(_ClassUnknownToSubjects(),)]
 
     @staticmethod
     def _eq_check(v1: Any, v2: Any) -> bool:
@@ -42,7 +42,7 @@ class EqualsTester:
                           "between {!r} and {!r}".format(v1, v2))
         return eq
 
-    def verify_equality_group(self, *group_items: Any):
+    def _verify_equality_group(self, *group_items: Any):
         """Verifies that a group is an equivalence group.
 
         This methods asserts that items within the group must all be equal to
@@ -70,7 +70,7 @@ class EqualsTester:
                 "They're not equal.".format(v1, v2))
 
         # Between-group items must be unequal.
-        for other_group in self.groups:
+        for other_group in self._groups:
             for v1, v2 in itertools.product(group_items, other_group):
                 assert not EqualsTester._eq_check(v1, v2), (
                     "{!r} and {!r} can't be in different equality groups. "
@@ -105,10 +105,10 @@ class EqualsTester:
                 group, or the items violate the equals-implies-same-hash rule.
         """
 
-        self.verify_equality_group(*group_items)
+        self._verify_equality_group(*group_items)
 
         # Remember this group, to enable disjoint checks vs later groups.
-        self.groups.append(group_items)
+        self._groups.append(group_items)
 
     def make_equality_group(self, *factories: Callable[[], Any]):
         """Tries to add a disjoint equivalence group to the equality tester.
