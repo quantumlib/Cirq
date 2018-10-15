@@ -25,8 +25,8 @@ if TYPE_CHECKING:
     from typing import Optional  # pylint: disable=unused-import
 
 
-def _gate_to_proto_dict(gate: ops.Gate,
-                        qubits: Tuple[ops.QubitId, ...]) -> Dict:
+def gate_to_proto_dict(gate: ops.Gate,
+                       qubits: Tuple[ops.QubitId, ...]) -> Dict:
     xmon_gate = xmon_gate_ext.try_cast(xmon_gates.XmonGate, gate)
     if xmon_gate is not None:
         return xmon_gate.to_proto_dict(*qubits)
@@ -63,7 +63,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        op = _gate_to_proto_dict(
+        op = gate_to_proto_dict(
             cast(ops.GateOperation, so.operation).gate,
             so.operation.qubits)
         time_picos = so.time.raw_picos()

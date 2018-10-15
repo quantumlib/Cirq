@@ -58,3 +58,10 @@ from cirq.google.engine import (
     Engine,
     JobConfig,
 )
+from cirq.google.programs import (
+    gate_to_proto_dict,
+    schedule_from_proto_dicts,
+    schedule_to_proto_dicts,
+    pack_results,
+    unpack_results,
+)
