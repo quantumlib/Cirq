@@ -98,3 +98,6 @@ If you want to create a development environment, see [development.md](developmen
     # │        │        │        │        │        │        │        │        │        │        │
     # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
     ```
+### Disclaimer
+
+-  Cirq is currently in Alpha. This means that the developer team is not investing effort to provide backward compatibility between releases. Users should target specific versions to avoid backward incompatible changes.
