@@ -16,7 +16,13 @@ from cirq.ops import raw_types
 
 
 class NamedQubit(raw_types.QubitId):
-    """A qubit identified by name."""
+    """A qubit identified by name.
+
+    By default, NamedQubit has a lexicographic order except that numbers within
+    the name are handled correctly. So, for example, if you print a circuit
+    containing cirq.NamedQubit('qubit22') and cirq.NamedQubit('qubit3'), the
+    wire for 'qubit3' will come before 'qubit22'.
+    """
 
     def __init__(self, name: str) -> None:
         self.name = name
