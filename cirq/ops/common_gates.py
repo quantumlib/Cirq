@@ -19,7 +19,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import value, linalg
+from cirq import value, linalg, protocols
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 
@@ -65,7 +65,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
                                   ) -> Union[np.ndarray, type(NotImplemented)]:
-        if self.is_parameterized():
+        if protocols.is_parameterized(self):
             return NotImplemented
 
         c = np.exp(1j * np.pi * self.half_turns)
@@ -305,7 +305,7 @@ class RotZGate(eigen_gate.EigenGate,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
                                   ) -> Union[np.ndarray, type(NotImplemented)]:
-        if self.is_parameterized():
+        if protocols.is_parameterized(self):
             return NotImplemented
 
         one = linalg.slice_for_qubits_equal_to(axes, 1)
