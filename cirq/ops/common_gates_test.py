@@ -210,7 +210,6 @@ def test_runtime_types_of_rot_gates():
         assert cirq.unitary(p, None) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
         assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
-        assert p.try_cast_to(cirq.BoundedEffect, ext) is p
         with pytest.raises(TypeError):
             _ = p.extrapolate_effect(2)
         with pytest.raises(TypeError):
@@ -219,7 +218,6 @@ def test_runtime_types_of_rot_gates():
         c = gate_type(half_turns=0.5)
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
-        assert c.try_cast_to(cirq.BoundedEffect, ext) is c
         assert cirq.unitary(c, None) is not None
         assert c.extrapolate_effect(2) is not None
         assert c.inverse() is not None

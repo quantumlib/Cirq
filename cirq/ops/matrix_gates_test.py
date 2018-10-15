@@ -54,8 +54,8 @@ def test_single_qubit_trace_distance_bound():
     x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = cirq.SingleQubitMatrixGate(
         np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5))
-    assert x.trace_distance_bound() >= 1
-    assert x2.trace_distance_bound() >= 0.5
+    assert cirq.trace_distance_bound(x) >= 1
+    assert cirq.trace_distance_bound(x2) >= 0.5
 
 
 def test_single_qubit_approx_eq():
