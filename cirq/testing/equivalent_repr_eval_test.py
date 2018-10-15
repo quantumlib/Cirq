@@ -37,12 +37,14 @@ def test_external():
 
 def test_custom_class_repr():
     class CustomRepr:
+        # coverage: ignore
+
         setup_code = """class CustomRepr:
             def __init__(self, eq_val):
                 self.eq_val = eq_val
         """
 
-        def __init__(self, eq_val, repr_str=None):
+        def __init__(self, eq_val, repr_str: str):
             self.eq_val = eq_val
             self.repr_str = repr_str
 
@@ -53,8 +55,6 @@ def test_custom_class_repr():
             return not self == other
 
         def __repr__(self):
-            if self.repr_str is None:
-                return super().__repr__()
             return self.repr_str
 
     cirq.testing.assert_equivalent_repr(
