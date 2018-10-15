@@ -38,19 +38,23 @@ def test_external():
 def test_custom_class_repr():
     class CustomRepr:
         setup_code = """class CustomRepr:
-            def __init__(self, val):
-                self.val = val
+            def __init__(self, eq_val):
+                self.eq_val = eq_val
         """
 
-        def __init__(self, val, repr_str=None):
-            self.val = val
+        def __init__(self, eq_val, repr_str=None):
+            self.eq_val = eq_val
             self.repr_str = repr_str
 
         def __eq__(self, other):
-            return type(other).__name__.endswith(
-                'CustomRepr') and self.val == other.val
+            return self.eq_val == getattr(other, 'eq_val', None)
+
+        def __ne__(self, other):
+            return not self == other
 
         def __repr__(self):
+            if self.repr_str is None:
+                return super().__repr__()
             return self.repr_str
 
     cirq.testing.assert_equivalent_repr(
