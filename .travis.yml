@@ -7,7 +7,6 @@ branches:
 
 before_install:
   - pip install --upgrade pip setuptools wheel
-  - sudo apt-get update && sudo apt-get install bazel
 
 matrix:
   include:
