@@ -28,6 +28,7 @@ RaiseTypeErrorIfNotProvided = ([],)
 TDefault = TypeVar('TDefault')
 
 
+# pylint: disable=function-redefined
 @overload
 def inverse(val: 'cirq.Gate') -> 'cirq.Gate':
     pass
@@ -107,3 +108,4 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         "object of type '{}' isn't invertable. "
         "It has no __pow__ method (or the method returned NotImplemented) "
         "and it isn't an iterable of invertable objects.".format(type(val)))
+# pylint: enable=function-redefined

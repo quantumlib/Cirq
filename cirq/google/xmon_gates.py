@@ -20,7 +20,6 @@ from typing import Dict, Optional, Tuple, Union
 import numpy as np
 
 from cirq import abc, ops, value, protocols
-from cirq.extension import PotentialImplementation
 from cirq.devices.grid_qubit import GridQubit
 
 
