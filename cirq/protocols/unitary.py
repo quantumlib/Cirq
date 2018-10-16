@@ -31,7 +31,7 @@ TDefault = TypeVar('TDefault')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
         This method is used by the global `cirq.unitary` method. If this method

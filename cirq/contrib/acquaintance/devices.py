@@ -14,8 +14,9 @@
 
 from typing import Union, cast
 
-from cirq import abc, circuits, devices, ops, schedules
+import abc
 
+from cirq import circuits, devices, ops, schedules
 from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)
 from cirq.contrib.acquaintance.permutation import (

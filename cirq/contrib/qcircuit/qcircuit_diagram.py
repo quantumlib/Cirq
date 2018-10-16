@@ -98,7 +98,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 def _wrap_operation(op: ops.Operation) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    diagrammable = fallback_qcircuit_extensions.try_cast(
+    diagrammable = fallback_qcircuit_extensions.try_cast(  # type: ignore
         QCircuitDiagrammable, op)
     if diagrammable is None:
         info = protocols.circuit_diagram_info(op, default=None)

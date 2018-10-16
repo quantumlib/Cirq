@@ -37,7 +37,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        gate = xmon_gate_ext.cast(
+        gate = xmon_gate_ext.cast(  # type: ignore
             xmon_gates.XmonGate,
             cast(ops.GateOperation, so.operation).gate)
         op = gate.to_proto_dict(*so.operation.qubits)

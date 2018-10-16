@@ -13,12 +13,16 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import Sequence, Union, Tuple
+from typing import Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq.linalg.tolerance import Tolerance
 from cirq.linalg.transformations import match_global_phase
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List
 
 
 def is_diagonal(
@@ -194,7 +198,7 @@ def allclose_up_to_global_phase(
 
 def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
                               little_endian_qureg_value: int,
-                              ) -> Tuple[Union[slice, int, type(...)], ...]:
+                              ) -> Tuple[Union[slice, int, ellipsis], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -228,7 +232,7 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         of a tensor.
     """
     n = max(target_qubit_axes) if target_qubit_axes else -1
-    result = [slice(None)] * (n + 2)
+    result = [slice(None)] * (n + 2)  # type: List[Union[slice, int, ellipsis]]
     for k, axis in enumerate(target_qubit_axes):
         result[axis] = (little_endian_qureg_value >> k) & 1
     result[-1] = Ellipsis

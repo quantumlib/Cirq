@@ -41,7 +41,7 @@ class SupportsApplyUnitaryToTensor(Protocol):
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         """Left-multiplies a unitary effect onto a tensor with good performance.
 
         This method is given both the target tensor and workspace of the same

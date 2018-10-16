@@ -64,7 +64,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
@@ -142,7 +142,7 @@ class RotXGate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if self.half_turns != 1:
             return NotImplemented
         zero = linalg.slice_for_qubits_equal_to(axes, 0)
@@ -304,7 +304,7 @@ class RotZGate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
@@ -599,7 +599,7 @@ class HGate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if self.half_turns != 1:
             return NotImplemented
 
@@ -717,7 +717,7 @@ class CNotGate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if self.half_turns != 1:
             return NotImplemented
 
@@ -796,7 +796,7 @@ class SwapGate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if self.half_turns != 1:
             return NotImplemented
 
@@ -907,7 +907,7 @@ class ISwapGate(eigen_gate.EigenGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         if self.exponent != 1:
             return NotImplemented
 

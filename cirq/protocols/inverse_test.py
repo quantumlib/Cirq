@@ -22,7 +22,7 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
-    def __pow__(self, exponent) -> type(NotImplemented):
+    def __pow__(self, exponent) -> NotImplemented:
         return NotImplemented
 
 

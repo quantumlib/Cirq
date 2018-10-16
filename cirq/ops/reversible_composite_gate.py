@@ -15,7 +15,9 @@
 """Implements the inverse method of a reversible CompositeOperation."""
 from typing import TypeVar, Generic
 
-from cirq import abc, protocols
+import abc
+
+from cirq import protocols
 from cirq.ops import gate_features
 
 

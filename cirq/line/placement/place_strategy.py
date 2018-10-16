@@ -13,7 +13,8 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq import abc
+import abc
+
 from cirq.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:

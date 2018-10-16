@@ -138,7 +138,7 @@ class GateOperation(raw_types.Operation,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplemented]:
         return protocols.apply_unitary_to_tensor(
             self.gate,
             target_tensor,
@@ -146,7 +146,7 @@ class GateOperation(raw_types.Operation,
             axes,
             default=NotImplemented)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
         return protocols.unitary(self._gate, NotImplemented)
 
     def _is_parameterized_(self) -> bool:
@@ -168,14 +168,16 @@ class GateOperation(raw_types.Operation,
 
     def extrapolate_effect(self, factor: Union[float, value.Symbol]
                            ) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ExtrapolatableEffect,
-                                   self.gate)
+        cast_gate = extension.cast(  # type: ignore
+            gate_features.ExtrapolatableEffect,
+            self.gate)
         return self.with_gate(cast(raw_types.Gate,
                                    cast_gate.extrapolate_effect(factor)))
 
     def phase_by(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.PhaseableEffect,
-                                   self.gate)
+        cast_gate = extension.cast(  # type: ignore
+            gate_features.PhaseableEffect,
+            self.gate)
         return self.with_gate(cast(raw_types.Gate,
                                    cast_gate.phase_by(phase_turns,
                                                       qubit_index)))
@@ -201,9 +203,9 @@ class GateOperation(raw_types.Operation,
             return self.with_gate(inv_gate)
         return self.extrapolate_effect(power)
 
-
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
-        cast_gate = extension.cast(gate_features.QasmConvertibleGate,
-                                   self.gate)
+        cast_gate = extension.cast(  # type: ignore
+            gate_features.QasmConvertibleGate,
+            self.gate)
         return cast_gate.known_qasm_output(self.qubits, args)

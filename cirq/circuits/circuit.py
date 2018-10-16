@@ -722,8 +722,8 @@ class Circuit:
                              'same length.')
         self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
                                                   len(self))]
-        # type: Dict[int, List[ops.Operation]]
-        moment_to_ops = defaultdict(list)
+        moment_to_ops = defaultdict(list
+                                    )  # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
@@ -896,7 +896,7 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
         """Converts the circuit into a unitary matrix, if possible.
 
         If the circuit contains any non-terminal measurements, the conversion
@@ -1357,7 +1357,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             continue
 
         # If not, check if it has a decomposition.
-        composite_op = ext.try_cast(ops.CompositeOperation, op)
+        composite_op = ext.try_cast(ops.CompositeOperation, op)  # type: ignore
         if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_op.default_decompose()
@@ -1394,10 +1394,24 @@ TOut = TypeVar('TOut')
 TKey = TypeVar('TKey')
 
 
+@overload
 def _group_until_different(items: Iterable[TIn],
                            key: Callable[[TIn], TKey],
-                           value: Callable[[TIn], TOut] = lambda e: e
+                           ) -> Iterable[Tuple[TKey, List[TIn]]]:
+    pass
+
+
+@overload
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value: Callable[[TIn], TOut]
                            ) -> Iterable[Tuple[TKey, List[TOut]]]:
+    pass
+
+
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value=lambda e: e):
     """Groups runs of items that are identical according to a keying function.
 
     Args:
@@ -1421,7 +1435,7 @@ def _group_until_different(items: Iterable[TIn],
         Tuples containing the group key and item values.
     """
     prev_item_key = None
-    cur_items = []
+    cur_items = []  # type: List[Any]
     for item in items:
         item_key = key(item)
         if cur_items and item_key != prev_item_key:

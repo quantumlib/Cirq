@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict
+from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict, \
+    cast, overload
 
 from typing_extensions import Protocol
 
@@ -138,10 +139,36 @@ TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 
 
+@overload
 def circuit_diagram_info(val: Any,
                          args: Optional[CircuitDiagramInfoArgs] = None,
-                         default: TDefault = RaiseTypeErrorIfNotProvided,
+                         ) -> CircuitDiagramInfo:
+    pass
+
+
+@overload
+def circuit_diagram_info(val: Any,
+                         args: Optional[CircuitDiagramInfoArgs],
+                         default: TDefault
                          ) -> Union[CircuitDiagramInfo, TDefault]:
+    pass
+
+
+@overload
+def circuit_diagram_info(val: Any,
+                         *,
+                         default: TDefault
+                         ) -> Union[CircuitDiagramInfo, TDefault]:
+    pass
+
+
+def purposeful_failure() -> type(NotImplemented):
+    return NotImplemented
+
+
+def circuit_diagram_info(val: Any,
+                         args: Optional[CircuitDiagramInfoArgs] = None,
+                         default=RaiseTypeErrorIfNotProvided):
     """Requests information on drawing an operation in a circuit diagram.
 
     Calls _circuit_diagram_info_ on `val`. If `val` doesn't have
@@ -176,10 +203,13 @@ def circuit_diagram_info(val: Any,
 
     # TODO: remove compatibility shim when deleting TextDiagrammable.
     from cirq import ops, extension
-    if result is NotImplemented and extension.can_cast(ops.TextDiagrammable,
-                                                       val):
-        return extension.cast(ops.TextDiagrammable,
-                              val).text_diagram_info(args)  # type: ignore
+    if result is NotImplemented and extension.can_cast(  # type: ignore
+            ops.TextDiagrammable, val):
+        return cast(
+            CircuitDiagramInfo,
+            extension.cast(  # type: ignore
+                ops.TextDiagrammable, val).text_diagram_info(
+                    cast(ops.TextDiagramInfoArgs, args)))
 
     # Success?
     if isinstance(result, str):

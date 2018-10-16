@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView)
+                    Tuple, TypeVar, Union, ValuesView, overload)
 
 from cirq.ops import (
     raw_types, gate_operation, common_gates, qubit_order, op_tree
@@ -58,8 +58,16 @@ class PauliString:
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
-    def get(self, key: raw_types.QubitId, default: TDefault = None
-            ) -> Union[Pauli, TDefault] :
+    @overload
+    def get(self, key: raw_types.QubitId) -> Pauli:
+        pass
+
+    @overload
+    def get(self, key: raw_types.QubitId, default: TDefault
+            ) -> Union[Pauli, TDefault]:
+        pass
+
+    def get(self, key: raw_types.QubitId, default=None):
         return self._qubit_pauli_map.get(key, default)
 
     def __contains__(self, key: raw_types.QubitId) -> bool:

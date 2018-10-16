@@ -21,10 +21,10 @@ def test_resolve_parameters():
         pass
 
     class ReturnsNotImplemented:
-        def _is_parameterized_(self) -> type(NotImplemented):
+        def _is_parameterized_(self) -> NotImplemented:
             return NotImplemented
 
-        def _resolve_parameters_(self, resolver) -> type(NotImplemented):
+        def _resolve_parameters_(self, resolver) -> NotImplemented:
             return NotImplemented
 
     class SimpleParameterSwitch:
