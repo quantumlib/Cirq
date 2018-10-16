@@ -18,14 +18,15 @@ print(CNOT(q0, q1))
 
 ### Magic Methods
 
-A raw ``Gate`` class can be applied to qubits to produce an ``Operation``, but that's about it.
-In order to support other functionality, such as being understood by simulators or looking good in diagrams, it is necessary to implement several *magic methods*.
-A magic method is a special method that, if present on a value, enables new functionality (think `__add__`, `__eq__`, `__len__`, and etc).
+A class that implements ``Gate`` can be applied to qubits to produce an ``Operation``.
+In order to support functionality beyond that basic task, it is necessary to implement several *magic methods*.
 
+Standard magic methods in python are `__add__`, `__eq__`, and `__len__`.
+Cirq defines several additional magic methods, for functionality such as parameterization, diagramming, and simulation.
 For example, if a gate specifies a `_unitary_` method that returns a matrix for the gate, then simulators will be able to simulate applying the gate.
 Or, if a gate specifies a `__pow__` method that works for an exponent of -1, then `cirq.inverse` will start to work on lists including the gate.
 
-We describe some gate features below.
+We describe some magic methods below.
 
 #### ReversibleEffect, SelfInverseGate
 
