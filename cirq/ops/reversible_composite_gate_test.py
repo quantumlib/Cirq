@@ -22,8 +22,7 @@ class _FlipGate(cirq.Gate):
         self.val = val
 
     def __pow__(self, exponent):
-        if exponent != -1:
-            return NotImplemented
+        assert exponent == -1
         return _FlipGate(~self.val)
 
     def __eq__(self, other):
