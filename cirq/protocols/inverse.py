@@ -12,14 +12,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
 
 import collections
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
 RaiseTypeErrorIfNotProvided = ([],)
+
+
+TDefault = TypeVar('TDefault')
+
+
+@overload
+def inverse(val: 'cirq.Gate') -> 'cirq.Gate':
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Operation') -> 'cirq.Operation':
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Gate',
+            default: TDefault = RaiseTypeErrorIfNotProvided
+            ) -> Union[TDefault, 'cirq.Gate']:
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Operation',
+            default: TDefault = RaiseTypeErrorIfNotProvided
+            ) -> Union[TDefault, 'cirq.Operation']:
+    pass
+
+
+@overload
+def inverse(val: 'cirq.OP_TREE',
+            default: TDefault = RaiseTypeErrorIfNotProvided
+            ) -> Union[TDefault, 'cirq.OP_TREE']:
+    pass
 
 
 def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
@@ -49,12 +86,6 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
             iterable containing invertible items. Also, no `default` argument
             was specified.
     """
-    # TODO: remove this compatibility shim when ReversibleEffect is gone.
-    from cirq import extension, ops
-    reversible = extension.try_cast(ops.ReversibleEffect, val)
-    if reversible is not None:
-        return reversible.inverse()
-
     # Check if object defines an inverse via __pow__.
     raiser = getattr(val, '__pow__', None)
     result = NotImplemented if raiser is None else raiser(-1)

@@ -16,18 +16,14 @@ print(CNOT(q0, q1))
 # CNOT((0, 0), (0, 1))
 ```
 
-### Gate Features
+### Magic Methods
 
-The raw ``Gate`` class itself simply describes that a ``Gate``
-can be applied to qubits to produce an ``Operation``. We then
-use marker classes for ``Gates`` indicated what additional
-features a ``Gate`` has.  
+A raw ``Gate`` class can be applied to qubits to produce an ``Operation``, but that's about it.
+In order to support other functionality, such as being understood by simulators or looking good in diagrams, it is necessary to implement several *magic methods*.
+A magic method is a special method that, if present on a value, enables new functionality (think `__add__`, `__eq__`, `__len__`, and etc).
 
-For example, one feature is ``ReversibleEffect``.
-A ``Gate`` that inherits this class is required to implement the method ``inverse`` which returns the inverse gate.
-Algorithms that operate on gates can use ``isinstance(gate, ReversibleEffect)`` to determine whether gates implements ``inverse`` method, and then use it.
-(Note that, even if the gate is not reversible, the algorithm may have been given an ``Extension`` with a cast from the gate to ``ReversibleEffect``.
-See the [extensions documentation](extensions.md) for more information.)
+For example, if a gate specifies a `_unitary_` method that returns a matrix for the gate, then simulators will be able to simulate applying the gate.
+Or, if a gate specifies a `__pow__` method that works for an exponent of -1, then `cirq.inverse` will start to work on lists including the gate.
 
 We describe some gate features below.
 

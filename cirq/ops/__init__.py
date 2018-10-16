@@ -53,7 +53,6 @@ from cirq.ops.gate_features import (
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
-    ReversibleEffect,
     SingleQubitGate,
     TextDiagrammable,
     TextDiagramInfo,

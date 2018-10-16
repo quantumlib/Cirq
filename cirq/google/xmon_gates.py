@@ -260,9 +260,7 @@ class Exp11Gate(XmonGate,
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
                ops.TextDiagrammable,
-               ops.PhaseableEffect,
-               PotentialImplementation[Union[
-                   ops.ReversibleEffect]]):
+               ops.PhaseableEffect):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -345,20 +343,6 @@ class ExpWGate(XmonGate,
         if protocols.is_parameterized(self) and power != 1:
             return NotImplemented
         return ExpWGate(half_turns=self.half_turns * power,
-                        axis_half_turns=self.axis_half_turns)
-
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.ReversibleEffect and self.has_inverse():
-            return self
-        return super().try_cast_to(desired_type, ext)
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def inverse(self):
-        if not self.has_inverse():
-            raise ValueError("Don't have a known inverse.")
-        return ExpWGate(half_turns=-self.half_turns,
                         axis_half_turns=self.axis_half_turns)
 
     def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:

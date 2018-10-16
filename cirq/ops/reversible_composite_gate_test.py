@@ -17,11 +17,13 @@ import pytest
 import cirq
 
 
-class _FlipGate(cirq.Gate, cirq.ReversibleEffect):
+class _FlipGate(cirq.Gate):
     def __init__(self, val):
         self.val = val
 
-    def inverse(self):
+    def __pow__(self, exponent):
+        if exponent != -1:
+            return NotImplemented
         return _FlipGate(~self.val)
 
     def __eq__(self, other):

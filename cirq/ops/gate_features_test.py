@@ -18,28 +18,6 @@ import cirq
 from cirq.ops import gate_features, raw_types, common_gates
 
 
-def test_reversible_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = gate_features.ReversibleEffect()
-
-
-def test_reversible_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(gate_features.ReversibleEffect):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_reversible_gate_is_abstract_can_implement():
-    class Included(gate_features.ReversibleEffect):
-        def inverse(self):
-            pass
-
-    assert isinstance(Included(), gate_features.ReversibleEffect)
-
-
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = gate_features.ExtrapolatableEffect()
