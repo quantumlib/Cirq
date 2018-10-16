@@ -163,10 +163,6 @@ def circuit_diagram_info(val: Any,
     pass
 
 
-def purposeful_failure() -> type(NotImplemented):
-    return NotImplemented
-
-
 def circuit_diagram_info(val: Any,
                          args: Optional[CircuitDiagramInfoArgs] = None,
                          default=RaiseTypeErrorIfNotProvided):
