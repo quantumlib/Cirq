@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 
 
@@ -38,8 +40,11 @@ def test_phase_by():
     rin = ReturnsNotImplemented()
 
     # Without default
-    assert cirq.phase_by(n, 1, 0) == n
-    assert cirq.phase_by(rin, 1, 0) == rin
+
+    with pytest.raises(TypeError, match='no _phase_by_ method'):
+        _ = cirq.phase_by(n, 1, 0)
+    with pytest.raises(TypeError, match='returned NotImplemented'):
+        _ = cirq.phase_by(rin, 1, 0)
 
     # With default
     assert cirq.phase_by(n, 1, 0, default=None) == None
