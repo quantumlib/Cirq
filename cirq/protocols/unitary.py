@@ -17,6 +17,7 @@ from typing import Any, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -31,7 +32,7 @@ TDefault = TypeVar('TDefault')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
         This method is used by the global `cirq.unitary` method. If this method

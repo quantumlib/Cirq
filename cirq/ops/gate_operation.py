@@ -22,6 +22,7 @@ import numpy as np
 
 from cirq import extension, value, protocols
 from cirq.ops import raw_types, gate_features
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -138,7 +139,7 @@ class GateOperation(raw_types.Operation,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplemented]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         return protocols.apply_unitary_to_tensor(
             self.gate,
             target_tensor,
@@ -146,7 +147,7 @@ class GateOperation(raw_types.Operation,
             axes,
             default=NotImplemented)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
 
     def _is_parameterized_(self) -> bool:

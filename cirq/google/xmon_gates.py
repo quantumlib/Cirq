@@ -24,6 +24,8 @@ import numpy as np
 from cirq import ops, value, protocols
 from cirq.devices.grid_qubit import GridQubit
 
+from cirq.type_workarounds import NotImplementedType
+
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     """A gate with a known mechanism for encoding into google API protos."""
@@ -213,7 +215,7 @@ class Exp11Gate(XmonGate,
         }
         return {'exp_11': exp_11}
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if isinstance(self.half_turns, value.Symbol):
             return NotImplemented
         return protocols.unitary(
@@ -346,7 +348,7 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=self.half_turns * power,
                         axis_half_turns=self.axis_half_turns)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
             return NotImplemented

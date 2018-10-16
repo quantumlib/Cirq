@@ -21,7 +21,7 @@ def test_trace_distance_bound():
         pass
 
     class ReturnsNotImplemented:
-        def _trace_distance_bound_(self) -> NotImplemented:
+        def _trace_distance_bound_(self):
             return NotImplemented
 
     class ReturnsTwo:

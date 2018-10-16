@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 class RestrictedGate(cirq.Gate):
@@ -106,7 +107,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplemented]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         available_buffer[...] = target_tensor
         target_tensor[...] = 0
         return available_buffer
@@ -124,7 +125,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplemented]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         assert len(axes) == 1
         a = axes[0]
         seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],

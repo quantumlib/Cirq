@@ -18,6 +18,7 @@ import numpy as np
 
 from cirq import linalg, extension, protocols
 from cirq.ops import raw_types, gate_features
+from cirq.type_workarounds import NotImplementedType
 
 T_DESIRED = TypeVar('T_DESIRED')
 
@@ -115,7 +116,7 @@ class ControlledGate(raw_types.Gate,
             return ControlledGate(cast_sub_gate, ext)
         return super().try_cast_to(desired_type, ext)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplemented]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return NotImplemented
