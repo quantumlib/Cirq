@@ -58,6 +58,7 @@ class PauliString:
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
+    # pylint: disable=function-redefined
     @overload
     def get(self, key: raw_types.QubitId) -> Pauli:
         pass
@@ -69,6 +70,7 @@ class PauliString:
 
     def get(self, key: raw_types.QubitId, default=None):
         return self._qubit_pauli_map.get(key, default)
+    # pylint: enable=function-redefined
 
     def __contains__(self, key: raw_types.QubitId) -> bool:
         return key in self._qubit_pauli_map

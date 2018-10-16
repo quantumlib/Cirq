@@ -127,7 +127,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
                                   ) -> Union[np.ndarray, NotImplemented]:
         assert len(axes) == 1
         a = axes[0]
-        seed = cast(Tuple[Union[int, slice, ellipsis], ...],
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
                     (slice(None),))
         zero = seed*a + (0, Ellipsis)
         one = seed*a + (1, Ellipsis)

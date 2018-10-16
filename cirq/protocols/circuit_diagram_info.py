@@ -139,6 +139,7 @@ TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 
 
+# pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(val: Any,
                          args: Optional[CircuitDiagramInfoArgs] = None,
@@ -228,3 +229,4 @@ def circuit_diagram_info(val: Any,
             "has no _circuit_diagram_info_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
                     "method, but it returned NotImplemented.".format(type(val)))
+# pylint: enable=function-redefined
