@@ -37,7 +37,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def is_supported_op(op: ops.Operation) -> bool:
         if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, ops.Rot11Gate)):
+                isinstance(op.gate, (ops.Rot11Gate, ops.MeasurementGate))):
             return True
         return XmonGate.try_get_xmon_gate(op) is not None
 
