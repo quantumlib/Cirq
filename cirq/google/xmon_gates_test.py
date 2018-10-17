@@ -18,17 +18,6 @@ import cirq
 import cirq.google as cg
 
 
-def test_measurement_eq():
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cg.XmonMeasurementGate(key=''))
-    eq.make_equality_group(lambda: cg.XmonMeasurementGate('a'))
-    eq.make_equality_group(lambda: cg.XmonMeasurementGate('b'))
-    eq.make_equality_group(lambda: cg.XmonMeasurementGate(key='',
-                                                          invert_mask=(True,)))
-    eq.make_equality_group(lambda: cg.XmonMeasurementGate(key='',
-                                                          invert_mask=(False,)))
-
-
 def test_is_supported():
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(0, 1)
@@ -53,12 +42,6 @@ def test_z_eq():
     eq.add_equality_group(
         cg.ExpZGate(half_turns=-1.5),
         cg.ExpZGate(half_turns=10.5))
-
-
-@cirq.testing.only_test_in_python3
-def test_measurement_repr():
-    gate = cg.XmonMeasurementGate('test', invert_mask=(True,))
-    assert repr(gate) == "XmonMeasurementGate('test', (True,))"
 
 
 def test_z_matrix():
@@ -184,17 +167,6 @@ def test_z_inverse():
     assert cirq.inverse(cg.ExpZGate(half_turns=cirq.Symbol('a')), None) is None
     assert cirq.inverse(cg.ExpZGate()) == cg.ExpZGate(half_turns=-1)
     assert cirq.inverse(cg.ExpZGate()) != cg.ExpZGate()
-
-
-def test_measure_key_on():
-    q = cirq.GridQubit(0, 0)
-
-    assert cg.XmonMeasurementGate(key='').on(q) == cirq.GateOperation(
-        gate=cg.XmonMeasurementGate(key=''),
-        qubits=(q,))
-    assert cg.XmonMeasurementGate(key='a').on(q) == cirq.GateOperation(
-        gate=cg.XmonMeasurementGate(key='a'),
-        qubits=(q,))
 
 
 def test_cirq_symbol_diagrams():

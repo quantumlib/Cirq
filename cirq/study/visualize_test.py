@@ -33,8 +33,8 @@ def test_plot_state_histogram():
     q1 = GridQubit(1, 0)
     circuit = cirq.Circuit()
     circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
-    circuit.append([cg.XmonMeasurementGate(key='q0')(q0),
-                    cg.XmonMeasurementGate(key='q1')(q1)])
+    circuit.append([cirq.MeasurementGate(key='q0')(q0),
+                    cirq.MeasurementGate(key='q1')(q1)])
     results = simulator.run_sweep(program=circuit,
                                   repetitions=5)
 

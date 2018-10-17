@@ -45,7 +45,6 @@ from cirq.google.xmon_gates import (
     ExpWGate,
     ExpZGate,
     XmonGate,
-    XmonMeasurementGate,
 )
 from cirq.google.sim import (
     XmonOptions,
