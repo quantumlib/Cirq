@@ -120,7 +120,6 @@ from cirq.ops import (
     ISwapGate,
     measure,
     measure_each,
-    MeasurementGate,
     NamedQubit,
     OP_TREE,
     Operation,
