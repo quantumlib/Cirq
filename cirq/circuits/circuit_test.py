@@ -2062,35 +2062,35 @@ def test_insert_operations_errors():
 def test_validates_while_editing():
     c = cirq.Circuit(device=cg.Foxtail)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Unsupported qubit type'):
         # Wrong type of qubit.
         c.append(cg.ExpZGate().on(cirq.NamedQubit('q')))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Qubit not on device'):
         # A qubit that's not on the device.
         c[:] = [cirq.Moment([
             cg.ExpZGate().on(cirq.GridQubit(-5, 100))])]
     c.append(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Non-local interaction'):
         # Non-adjacent CZ.
-        c[0] = cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
-                                                       cirq.GridQubit(2, 2))])
+        c[0] = cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0),
+                                    cirq.GridQubit(1, 2))])
 
-    c.insert(0, cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+    c.insert(0, cirq.CZ(cirq.GridQubit(0, 0),
                                            cirq.GridQubit(1, 0)))
 
 
 def test_respects_additional_adjacency_constraints():
     c = cirq.Circuit(device=cg.Foxtail)
-    c.append(cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+    c.append(cirq.CZ(cirq.GridQubit(0, 0),
                                cirq.GridQubit(0, 1)))
-    c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+    c.append(cirq.CZ(cirq.GridQubit(1, 0),
                                cirq.GridQubit(1, 1)),
              strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0),
                                        cirq.GridQubit(0, 1))]),
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(1, 0),
                                        cirq.GridQubit(1, 1))]),
     ], device=cg.Foxtail)
 
@@ -2100,17 +2100,17 @@ def test_commutes_past_adjacency_constraints():
             cirq.Moment(),
             cirq.Moment(),
             cirq.Moment([
-                cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))])
+                cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))])
         ],
         device=cg.Foxtail)
-    c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+    c.append(cirq.CZ(cirq.GridQubit(1, 0),
                                cirq.GridQubit(1, 1)),
              strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(1, 0),
                                        cirq.GridQubit(1, 1))]),
         cirq.Moment(),
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0),
                                        cirq.GridQubit(0, 1))]),
     ], device=cg.Foxtail)
 

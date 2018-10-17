@@ -108,7 +108,7 @@ def test_depolarizer_parameterized_gates():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     cnot_param = cirq.Symbol('cnot_turns')
-    cnot_gate = xmon_gates.Exp11Gate(half_turns=cnot_param).on(q1, q2)
+    cnot_gate = cirq.CZ(q1, q2)**cnot_param
 
     job_sweep = cirq.Points('cnot_turns', [0.5])
 
