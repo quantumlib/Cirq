@@ -22,6 +22,7 @@ from cirq.circuits import optimization_pass, circuit as _circuit
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import List, Tuple
+    from cirq import ops
 
 
 class DropNegligible(optimization_pass.OptimizationPass):

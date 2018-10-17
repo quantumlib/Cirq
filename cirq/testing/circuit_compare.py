@@ -251,7 +251,7 @@ def _infer_qubit_count(val: Any) -> int:
 
 def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val: Any,
-        exponents: Sequence[float] = (1,),
+        exponents: Sequence[Any] = (1,),
         qubit_count: Optional[int] = None) -> None:
 
     n = qubit_count if qubit_count is not None else _infer_qubit_count(val)

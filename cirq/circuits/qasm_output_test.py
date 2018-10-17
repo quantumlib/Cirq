@@ -241,9 +241,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
         cirq.google.ExpZGate()(q3),
         cirq.google.ExpZGate(half_turns=0.75)(q3),
         cirq.google.ExpWGate(axis_half_turns=0.125, half_turns=0.25)(q1),
-        cirq.google.Exp11Gate()(q0, q1),
-        # Requires 2-qubit decomposition
-        cirq.google.Exp11Gate(half_turns=1.25)(q0, q1),
 
         (
             cirq.MeasurementGate('xX')(q0),
@@ -453,22 +450,6 @@ rz(pi*0.75) q[3];
 
 // Gate: W(0.125)^0.25
 u3(pi*0.25,pi*1.625,pi*0.375) q[1];
-
-cz q[0],q[1];
-
-// Gate: Exp11Gate(half_turns=-0.75)
-u3(pi*0.5,0,pi*1.54081) q[0];
-u3(pi*0.5,pi*1.0,pi*0.04081) q[1];
-rx(pi*0.5) q[0];
-cx q[0],q[1];
-rx(pi*0.125) q[0];
-ry(pi*0.5) q[1];
-cx q[1],q[0];
-rx(pi*-0.5) q[1];
-rz(pi*0.5) q[1];
-cx q[0],q[1];
-u3(pi*0.5,pi*1.08419,pi*1.0) q[0];
-u3(pi*0.5,pi*0.58419,0) q[1];
 
 measure q[0] -> m_xX[0];
 measure q[2] -> m_x_a[0];

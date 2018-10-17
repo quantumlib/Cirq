@@ -21,9 +21,10 @@ from typing import (
     Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
 )
 
+import abc
 import string
 
-from cirq import abc, value
+from cirq import value
 from cirq.ops import op_tree, raw_types
 
 
