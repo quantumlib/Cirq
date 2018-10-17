@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 
 import numpy as np
@@ -32,6 +33,8 @@ def gate_to_proto_dict(gate: ops.Gate,
     if xmon_gate is not None:
         return xmon_gate.to_proto_dict(*qubits)
 
+    if isinstance(gate, ops.MeasurementGate):
+        return _measure_to_proto_dict(gate, qubits)
     if isinstance(gate, ops.Rot11Gate):
         if len(qubits) != 2:
             raise ValueError('Wrong number of qubits.')
@@ -50,6 +53,23 @@ def _cz_to_proto_dict(gate: ops.Rot11Gate,
             gate.half_turns)
     }
     return {'exp_11': exp_11}
+
+
+def _measure_to_proto_dict(gate: ops.MeasurementGate,
+                           qubits: Sequence[ops.QubitId]):
+    if len(qubits) == 0:
+        raise ValueError('Measurement gate on no qubits.')
+    if gate.invert_mask and len(gate.invert_mask) != len(qubits):
+        raise ValueError('Measurement gate had invert mask of length '
+                         'different than number of qubits it acts on.')
+    measurement = {
+        'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
+        'key': gate.key,
+    }
+    if gate.invert_mask:
+        measurement['invert_mask'] = [json.dumps(x) for x in
+                                      gate.invert_mask]
+    return {'measurement': measurement}
 
 
 def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:

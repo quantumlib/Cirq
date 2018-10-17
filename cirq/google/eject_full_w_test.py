@@ -191,11 +191,11 @@ def test_toggles_measurements():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate(axis_half_turns=0.25).on(a)],
-            [cg.XmonMeasurementGate(key='t').on(a, b)],
+            [cirq.measure(a, b, key='t')],
         ),
         expected=quick_circuit(
             [],
-            [cg.XmonMeasurementGate(key='t', invert_mask=(True,)).on(a, b)],
+            [cirq.measure(a, b, invert_mask=(True,), key='t')],
         ))
 
 
