@@ -19,10 +19,11 @@ import collections
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
+    from typing import Tuple, List
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ([],)
+RaiseTypeErrorIfNotProvided = ([],)  # type: Tuple[List[Any]]
 
 
 TDefault = TypeVar('TDefault')
@@ -40,22 +41,27 @@ def inverse(val: 'cirq.Operation') -> 'cirq.Operation':
 
 
 @overload
+def inverse(val: 'cirq.OP_TREE') -> 'cirq.OP_TREE':
+    pass
+
+
+@overload
 def inverse(val: 'cirq.Gate',
-            default: TDefault = RaiseTypeErrorIfNotProvided
+            default: TDefault
             ) -> Union[TDefault, 'cirq.Gate']:
     pass
 
 
 @overload
 def inverse(val: 'cirq.Operation',
-            default: TDefault = RaiseTypeErrorIfNotProvided
+            default: TDefault
             ) -> Union[TDefault, 'cirq.Operation']:
     pass
 
 
 @overload
 def inverse(val: 'cirq.OP_TREE',
-            default: TDefault = RaiseTypeErrorIfNotProvided
+            default: TDefault
             ) -> Union[TDefault, 'cirq.OP_TREE']:
     pass
 
@@ -96,7 +102,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     # Maybe it's an iterable of invertable items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
     if isinstance(val, collections.Iterable) and not isinstance(val, str):
-        unique_indicator = []
+        unique_indicator = []  # type: List[Any]
         results = tuple(inverse(e, unique_indicator) for e in val)
         if all(e is not unique_indicator for e in results):
             return results[::-1]
