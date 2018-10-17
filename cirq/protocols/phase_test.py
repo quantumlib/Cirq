@@ -22,7 +22,7 @@ def test_phase_by():
         pass
 
     class ReturnsNotImplemented:
-        def _phase_by_(self, phase_turns, qubit_on) -> type(NotImplemented):
+        def _phase_by_(self, phase_turns, qubit_on):
             return NotImplemented
 
     class PhaseIsAddition:
