@@ -30,8 +30,7 @@ if TYPE_CHECKING:
 
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
-    gate_features.ExtrapolatableEffect,
-    gate_features.ReversibleEffect,
+    gate_features.ExtrapolatableEffect
 ]}
 
 LIFTED_POTENTIAL_TYPES[
@@ -44,7 +43,6 @@ class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
-                        gate_features.ReversibleEffect,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -165,10 +163,6 @@ class GateOperation(raw_types.Operation,
 
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.gate)
-
-    def inverse(self) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
-        return self.with_gate(cast(raw_types.Gate, cast_gate.inverse()))
 
     def extrapolate_effect(self, factor: Union[float, value.Symbol]
                            ) -> 'GateOperation':

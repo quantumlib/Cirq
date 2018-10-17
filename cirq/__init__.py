@@ -135,7 +135,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,

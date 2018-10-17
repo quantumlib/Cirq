@@ -620,9 +620,6 @@ class HGate(eigen_gate.EigenGate,
         yield X(q)**self.half_turns
         yield Y(q)**-0.25
 
-    def inverse(self):
-        return self
-
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
         return gate_features.TextDiagramInfo(('H',))
