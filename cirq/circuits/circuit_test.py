@@ -118,6 +118,7 @@ def test_repr():
         Moment(),
         Moment([cirq.CZ(a, b)]),
     ])
+    cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == """cirq.Circuit(moments=[
     cirq.Moment(operations=[
         cirq.H.on(cirq.NamedQubit('a')),
@@ -129,13 +130,17 @@ def test_repr():
     ]),
 ])"""
 
-    assert repr(Circuit(device=cg.Foxtail)
-                ) == 'cirq.Circuit(device=cirq.google.Foxtail)'
-    assert repr(Circuit.from_ops(
-        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
-        device=cg.Foxtail)) == """cirq.Circuit(moments=[
+    c = Circuit(device=cg.Foxtail)
+    cirq.testing.assert_equivalent_repr(c)
+    assert repr(c) == 'cirq.Circuit(device=cirq.google.Foxtail)'
+
+    c = Circuit.from_ops(
+        cg.ExpZGate().on(cirq.GridQubit(0, 0)),
+        device=cg.Foxtail)
+    cirq.testing.assert_equivalent_repr(c)
+    assert repr(c) == """cirq.Circuit(moments=[
     cirq.Moment(operations=[
-        ExpWGate(half_turns=1.0, axis_half_turns=0.0).on(cirq.GridQubit(0, 0)),
+        cirq.google.ExpZGate(half_turns=1.0).on(cirq.GridQubit(0, 0)),
     ]),
 ], device=cirq.google.Foxtail)"""
 

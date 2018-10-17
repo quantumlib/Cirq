@@ -23,6 +23,9 @@ from cirq.testing.circuit_compare import (
 from cirq.testing.equals_tester import (
     EqualsTester,
 )
+from cirq.testing.equivalent_repr_eval import (
+    assert_equivalent_repr,
+)
 from cirq.testing.file_tester import (
     TempDirectoryPath,
     TempFilePath,
