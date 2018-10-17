@@ -66,7 +66,7 @@ def test_z_parameterize():
 
 def test_z_repr():
     gate = cg.ExpZGate(half_turns=0.25)
-    assert repr(gate) == 'ExpZGate(half_turns=0.25)'
+    assert repr(gate) == 'cirq.google.ExpZGate(half_turns=0.25)'
 
 
 def test_w_eq():
@@ -151,7 +151,8 @@ def test_w_parameterize():
 
 def test_w_repr():
     gate = cg.ExpWGate(half_turns=0.1, axis_half_turns=0.2)
-    assert repr(gate) == 'ExpWGate(half_turns=0.1, axis_half_turns=0.2)'
+    assert repr(gate
+                ) == 'cirq.google.ExpWGate(half_turns=0.1, axis_half_turns=0.2)'
 
 
 def test_trace_bound():
