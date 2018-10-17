@@ -17,19 +17,13 @@ from typing import Optional, TypeVar, Type, Union, Sequence
 import numpy as np
 
 from cirq import linalg, extension, protocols
-from cirq.ops import raw_types, gate_features
+from cirq.ops import raw_types
+from cirq.type_workarounds import NotImplementedType
 
 T_DESIRED = TypeVar('T_DESIRED')
 
-POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.TextDiagrammable,
-)
 
-
-class ControlledGate(raw_types.Gate,
-                     extension.PotentialImplementation[Union[
-                         gate_features.TextDiagrammable,
-                     ]]):
+class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
     def __init__(self,
@@ -43,9 +37,9 @@ class ControlledGate(raw_types.Gate,
             default_extensions: The extensions method that should be used when
                 determining if the controlled gate supports certain gate
                 features. For example, if this extensions instance is able to
-                cast sub_gate to a ReversibleEffect then the controlled gate
-                can also be cast to a ReversibleEffect. When this value is None,
-                an empty extensions instance is used instead.
+                cast sub_gate to a ExtrapolatableEffect then the controlled gate
+                can also be cast to a ExtrapolatableEffect. When this value is
+                None, an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
         self.default_extensions = default_extensions
@@ -107,15 +101,7 @@ class ControlledGate(raw_types.Gate,
         target_tensor[active] = result
         return target_tensor
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type in POTENTIALLY_EXPOSED_SUB_TYPES:
-            cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
-            if cast_sub_gate is None:
-                return None
-            return ControlledGate(cast_sub_gate, ext)
-        return super().try_cast_to(desired_type, ext)
-
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return NotImplemented

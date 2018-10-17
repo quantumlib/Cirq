@@ -12,29 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+from typing import Any
 
-import cirq
-
-
-def test_gate_calls_validate():
-    class ValiGate(cirq.Gate):
-        def validate_args(self, qubits):
-            if len(qubits) == 3:
-                raise ValueError()
-
-    g = ValiGate()
-    q00 = cirq.NamedQubit('q00')
-    q01 = cirq.NamedQubit('q01')
-    q10 = cirq.NamedQubit('q10')
-
-    _ = g.on(q00)
-    _ = g.on(q01)
-    _ = g.on(q00, q10)
-    with pytest.raises(ValueError):
-        _ = g.on(q00, q10, q01)
-
-    _ = g(q00)
-    _ = g(q00, q10)
-    with pytest.raises(ValueError):
-        _ = g(q10, q01, q00)
+# At the moment there's no reliable way to say 'NotImplementedType'.
+# - There is a NotImplementedType in python 2, but not python 3.
+# - type(NotImplemented) causes mypy to error.
+# - Just NotImplemented causes runtime errors (it's not a type).
+# - The string "NotImplemented" causes runtime errors (in some python versions).
+NotImplementedType = Any

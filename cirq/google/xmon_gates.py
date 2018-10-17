@@ -14,14 +14,17 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
+from typing import Dict, Optional, Union, Tuple, Any, cast
+
+import abc
 import json
-from typing import Dict, Optional, Tuple, Union, Any
 
 import numpy as np
 
-from cirq import abc, ops, value, protocols
-from cirq.extension import PotentialImplementation
+from cirq import ops, value, protocols
 from cirq.devices.grid_qubit import GridQubit
+
+from cirq.type_workarounds import NotImplementedType
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -36,7 +39,10 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @staticmethod
-    def is_xmon_op(op: ops.Operation) -> bool:
+    def is_supported_op(op: ops.Operation) -> bool:
+        if (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, ops.Rot11Gate)):
+            return True
         return XmonGate.try_get_xmon_gate(op) is not None
 
     @staticmethod
@@ -91,12 +97,11 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
             if ('half_turns' not in exp_11 or 'target1' not in exp_11
                     or 'target2' not in exp_11):
                 raise_missing_fields('Exp11')
-            return Exp11Gate(
-                half_turns=param(exp_11['half_turns'])
-            ).on(qubit(exp_11['target1']), qubit(exp_11['target2']))
+            return ops.CZ(qubit(exp_11['target1']),
+                          qubit(exp_11['target2']))**param(exp_11['half_turns'])
         elif 'measurement' in proto_dict:
             meas = proto_dict['measurement']
-            invert_mask = () # type: Tuple
+            invert_mask = cast(Tuple[Any, ...], ())
             if 'invert_mask' in meas:
                 invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
             if 'key' not in meas or 'targets' not in meas:
@@ -157,104 +162,6 @@ class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
     def __repr__(self):
         return 'XmonMeasurementGate({}, {})'.format(repr(self.key),
                                                     repr(self.invert_mask))
-
-
-class Exp11Gate(XmonGate,
-                ops.TwoQubitGate,
-                ops.TextDiagrammable,
-                ops.InterchangeableQubitsGate,
-                ops.PhaseableEffect,
-                ops.QasmConvertibleGate):
-    """A two-qubit interaction that phases the amplitude of the 11 state.
-
-    This gate is exp(i * pi * |11><11|  * half_turn).
-
-    Note that this half_turn parameter is such that a full turn is the
-    identity matrix, in contrast to the single qubit gates, where a full
-    turn is minus identity. The single qubit half-turn gates are defined
-    so that a full turn corresponds to a rotation on the Bloch sphere of a
-    360 degree rotation. For two qubit gates, there isn't a Bloch sphere,
-    so the half_turn corresponds to half of a full rotation in U(4).
-    """
-
-    def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
-        """Initializes the gate.
-
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
-        Args:
-            half_turns: The amount of phasing of the 11 state, in half_turns.
-            rads: The amount of phasing of the 11 state, in radians.
-            degs: The amount of phasing of the 11 state, in degrees.
-        """
-        self.half_turns = value.chosen_angle_to_canonical_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs)
-
-    def phase_by(self, phase_turns, qubit_index):
-        return self
-
-    def to_proto_dict(self, *qubits):
-        if len(qubits) != 2:
-            raise ValueError('Wrong number of qubits.')
-        p, q = qubits
-        exp_11 = {
-            'target1': p.to_proto_dict(),
-            'target2': q.to_proto_dict(),
-            'half_turns': self.parameterized_value_to_proto_dict(
-                self.half_turns)
-        }
-        return {'exp_11': exp_11}
-
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if isinstance(self.half_turns, value.Symbol):
-            return NotImplemented
-        return protocols.unitary(
-            ops.Rot11Gate(half_turns=self.half_turns))
-
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
-        return ops.TextDiagramInfo(('@', '@'), self.half_turns)
-
-    def known_qasm_output(self,
-                          qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> Optional[str]:
-        if self.half_turns != 1:
-            return None  # Don't have an equivalent gate in QASM
-        args.validate_version('2.0')
-        return args.format('cz {0},{1};\n', qubits[0], qubits[1])
-
-    def __str__(self):
-        if self.half_turns == 1:
-            return 'CZ'
-        return self.__repr__()
-
-    def __repr__(self):
-        return 'Exp11Gate(half_turns={})'.format(
-            repr(self.half_turns))
-
-    def __eq__(self, other):
-        if not isinstance(other, (ops.Rot11Gate, type(self))):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((Exp11Gate, self.half_turns))
-
-    def _is_parameterized_(self) -> bool:
-        return isinstance(self.half_turns, value.Symbol)
-
-    def _resolve_parameters_(self, param_resolver) -> 'Exp11Gate':
-        return Exp11Gate(half_turns=param_resolver.value_of(self.half_turns))
 
 
 class ExpWGate(XmonGate,
@@ -347,7 +254,7 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=self.half_turns * exponent,
                         axis_half_turns=self.axis_half_turns)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
             return NotImplemented

@@ -28,7 +28,7 @@ def test_init():
 
 
 def test_eq():
-    q0 = cirq.QubitId()
+    q0 = cirq.NamedQubit('q0')
 
     eq = EqualsTester()
     eq.make_equality_group(

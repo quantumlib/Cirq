@@ -22,8 +22,7 @@ class _FlipGate(cirq.Gate):
         self.val = val
 
     def __pow__(self, exponent):
-        if exponent != -1:
-            return NotImplemented
+        assert exponent == -1
         return _FlipGate(~self.val)
 
     def __eq__(self, other):
@@ -89,7 +88,7 @@ def test_child_class():
     with pytest.raises(TypeError):
         _ = reversed_gate**0.5
 
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     assert (
         cirq.freeze_op_tree(gate.default_decompose([q])) ==
         (_FlipGate(1)(q), (_FlipGate(2)(q), _FlipGate(3)(q))))

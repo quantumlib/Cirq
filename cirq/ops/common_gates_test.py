@@ -562,3 +562,8 @@ def test_is_measurement():
     assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
     assert not cirq.MeasurementGate.is_measurement(cirq.X)
     assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())
+
+
+def test_h_pow():
+    assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
+    assert cirq.inverse(cirq.H) == cirq.H

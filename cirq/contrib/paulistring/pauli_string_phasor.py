@@ -13,19 +13,16 @@
 # limitations under the License.
 
 from typing import (
-    Dict, Hashable, Iterable, Optional, Tuple, Type, TypeVar, Union, cast
+    Dict, Hashable, Iterable, Optional, Tuple, Union, cast
 )
 
-from cirq import ops, value, study, extension, protocols
-
-from cirq.ops.pauli_string import PauliString
+from cirq import ops, value, study, protocols
 from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation)
+from cirq.ops.pauli_string import PauliString
 
 
-class PauliStringPhasor(PauliStringGateOperation,
-                        ops.CompositeOperation,
-                        ops.TextDiagrammable):
+class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,

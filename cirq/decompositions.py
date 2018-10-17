@@ -342,10 +342,8 @@ def _non_local_part(q0: ops.QubitId,
     if (allow_partial_czs or
         all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):
         return [
-            _parity_interaction(q0, q1, x, tolerance,
-                                ops.Y**-0.5),
-            _parity_interaction(q0, q1, y, tolerance,
-                                ops.X**0.5),
+            _parity_interaction(q0, q1, x, tolerance, ops.Y**-0.5),
+            _parity_interaction(q0, q1, y, tolerance, ops.X**0.5),
             _parity_interaction(q0, q1, z, tolerance)
         ]
 

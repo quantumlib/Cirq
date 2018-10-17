@@ -15,9 +15,10 @@
 """Defines the OptimizationPass type."""
 from typing import Callable, Iterable, Optional, Sequence, TYPE_CHECKING
 
+import abc
 from collections import defaultdict
 
-from cirq import abc, ops
+from cirq import ops
 from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:

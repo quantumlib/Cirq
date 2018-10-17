@@ -18,7 +18,7 @@ import cirq
 
 
 def test_gate_operation_init():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     g = cirq.Gate()
     v = cirq.GateOperation(g, (q,))
     assert v.gate == g
@@ -28,8 +28,8 @@ def test_gate_operation_init():
 def test_gate_operation_eq():
     g1 = cirq.Gate()
     g2 = cirq.Gate()
-    r1 = [cirq.QubitId()]
-    r2 = [cirq.QubitId()]
+    r1 = [cirq.NamedQubit('r1')]
+    r2 = [cirq.NamedQubit('r2')]
     r12 = r1 + r2
     r21 = r2 + r1
 
@@ -60,8 +60,8 @@ def test_gate_operation_eq():
 
 def test_gate_operation_pow():
     Y = cirq.Y
-    qubit = cirq.QubitId()
-    assert (Y ** 0.5)(qubit) == Y(qubit) ** 0.5
+    q = cirq.NamedQubit('q')
+    assert (Y ** 0.5)(q) == Y(q) ** 0.5
 
 
 def test_with_qubits_and_transform_qubits():

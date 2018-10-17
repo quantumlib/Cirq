@@ -66,9 +66,9 @@ class XmonDevice(Device):
 
     def duration_of(self, operation):
         if isinstance(operation, ops.GateOperation):
-            g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
-            if isinstance(g, xmon_gates.Exp11Gate):
+            if isinstance(operation.gate, ops.Rot11Gate):
                 return self._exp_z_duration
+            g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
             if isinstance(g, xmon_gates.ExpWGate):
                 return self._exp_w_duration
             if isinstance(g, xmon_gates.XmonMeasurementGate):
@@ -84,7 +84,7 @@ class XmonDevice(Device):
         Raises:
             ValueError: Unsupported gate.
         """
-        if not isinstance(gate, (xmon_gates.Exp11Gate,
+        if not isinstance(gate, (ops.Rot11Gate,
                                  xmon_gates.ExpWGate,
                                  xmon_gates.XmonMeasurementGate,
                                  xmon_gates.ExpZGate)):
@@ -135,8 +135,7 @@ class XmonDevice(Device):
     def validate_scheduled_operation(self, schedule, scheduled_operation):
         self.validate_operation(scheduled_operation.operation)
 
-        if isinstance(scheduled_operation.operation.gate,
-                      xmon_gates.Exp11Gate):
+        if isinstance(scheduled_operation.operation.gate, ops.Rot11Gate):
             for other in schedule.operations_happening_at_same_time_as(
                     scheduled_operation):
                 if self._check_if_exp11_operation_interacts(
@@ -154,7 +153,7 @@ class XmonDevice(Device):
         super().validate_moment(moment)
         for op in moment.operations:
             if (isinstance(op, ops.GateOperation) and
-                    isinstance(op.gate, xmon_gates.Exp11Gate)):
+                    isinstance(op.gate, ops.Rot11Gate)):
                 for other in moment.operations:
                     if (other is not op and
                             self._check_if_exp11_operation_interacts(
@@ -171,7 +170,7 @@ class XmonDevice(Device):
         if not super().can_add_operation_into_moment(operation, moment):
             return False
         if (isinstance(operation, ops.GateOperation) and
-                isinstance(operation.gate, xmon_gates.Exp11Gate)):
+                isinstance(operation.gate, ops.Rot11Gate)):
             return not self._check_if_exp11_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
                 cast(Iterable[ops.GateOperation], moment.operations))
