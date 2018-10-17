@@ -46,7 +46,7 @@ def assert_optimizes(before: cirq.Circuit,
 
 def test_leaves_singleton():
     m = cirq.MergeSingleQubitGates()
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     c = cirq.Circuit([cirq.Moment([cirq.X(q)])])
 
     m.optimization_at(c, 0, c.operation_at(q, 0))
@@ -56,7 +56,7 @@ def test_leaves_singleton():
 
 def test_combines_sequence():
     m = cirq.MergeSingleQubitGates()
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     c = cirq.Circuit.from_ops(
         cirq.X(q)**0.5,
         cirq.Z(q)**0.5,
@@ -75,7 +75,7 @@ def test_combines_sequence():
 
 
 def test_removes_identity_sequence():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.Z(q)]),
@@ -88,8 +88,8 @@ def test_removes_identity_sequence():
 
 def test_stopped_at_2qubit():
     m = cirq.MergeSingleQubitGates()
-    q = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q = cirq.NamedQubit('q')
+    q2 = cirq.NamedQubit('q2')
     c = cirq.Circuit([
         cirq.Moment([cirq.Z(q)]),
         cirq.Moment([cirq.H(q)]),
@@ -114,8 +114,8 @@ def test_stopped_at_2qubit():
 
 def test_ignores_2qubit_target():
     m = cirq.MergeSingleQubitGates()
-    q = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q = cirq.NamedQubit('q')
+    q2 = cirq.NamedQubit('q2')
     c = cirq.Circuit([
         cirq.Moment([cirq.CZ(q, q2)]),
     ])
