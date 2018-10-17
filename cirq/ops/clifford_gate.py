@@ -28,7 +28,6 @@ PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 class SingleQubitCliffordGate(raw_types.Gate,
                    gate_features.CompositeGate,
-                   gate_features.ReversibleEffect,
                    gate_features.TextDiagrammable):
     """Any single qubit Clifford rotation."""
     I = None  # type: SingleQubitCliffordGate
@@ -213,9 +212,6 @@ class SingleQubitCliffordGate(raw_types.Gate,
     def __pow__(self, power):
         if power != -1:
             return NotImplemented
-        return self.inverse()
-
-    def inverse(self) -> 'SingleQubitCliffordGate':
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)
 

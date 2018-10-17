@@ -192,7 +192,6 @@ def test_try_cast_to():
     ext = cirq.Extensions()
     assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
     assert not op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert not op.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert op.try_cast_to(Dummy, ext) is None
 
     op = PauliStringPhasor(cirq.PauliString({}),
@@ -200,9 +199,7 @@ def test_try_cast_to():
     ext = cirq.Extensions()
     assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
     assert op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert op.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert op.try_cast_to(Dummy, ext) is None
-
 
 
 def test_is_parametrized():

@@ -36,20 +36,11 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 
 
-class ReversibleEffect(metaclass=abc.ABCMeta):
-    """A gate whose effect can be undone in a known way."""
-
-    @abc.abstractmethod
-    def inverse(self) -> 'ReversibleEffect':
-        """Returns a gate with an exactly opposite effect."""
-
-
 TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
                                      bound='ExtrapolatableEffect')
 
 
-class ExtrapolatableEffect(ReversibleEffect,
-                           metaclass=abc.ABCMeta):
+class ExtrapolatableEffect(metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
@@ -90,9 +81,6 @@ class ExtrapolatableEffect(ReversibleEffect,
           A gate with the extrapolated effect.
         """
         return self.extrapolate_effect(power)
-
-    def inverse(self: TSelf_ExtrapolatableEffect) -> TSelf_ExtrapolatableEffect:
-        return self.extrapolate_effect(-1)
 
 
 class CompositeOperation(metaclass=abc.ABCMeta):
