@@ -18,7 +18,7 @@
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 
 from cirq import circuits, ops, extension, value, decompositions
-from cirq.google.xmon_gates import ExpZGate, ExpWGate, Exp11Gate
+from cirq.google.xmon_gates import ExpZGate, ExpWGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -256,7 +256,7 @@ def _single_cross_over_cz(moment_index: int,
     """
     t = cast(float, _try_get_known_cz_half_turns(op))
     other_qubit = op.qubits[0] if qubit_with_w == op.qubits[1] else op.qubits[1]
-    negated_cz = Exp11Gate(half_turns=-t).on(*op.qubits)
+    negated_cz = ops.CZ(*op.qubits)**-t
     kickback = ExpZGate(half_turns=t).on(other_qubit)
 
     state.deletions.append((moment_index, op))
@@ -305,7 +305,7 @@ def _double_cross_over_cz(op: ops.Operation,
 
 def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
     if (not isinstance(op, ops.GateOperation) or
-            not isinstance(op.gate, (Exp11Gate, ops.Rot11Gate))):
+            not isinstance(op.gate, ops.Rot11Gate)):
         return None
     h = op.gate.half_turns
     if isinstance(h, value.Symbol):

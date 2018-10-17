@@ -38,11 +38,6 @@ xmon_gate_ext.add_cast(
 
 xmon_gate_ext.add_cast(
     desired_type=xmon_gates.XmonGate,
-    actual_type=ops.Rot11Gate,
-    conversion=lambda e: xmon_gates.Exp11Gate(half_turns=e.half_turns))
-
-xmon_gate_ext.add_cast(
-    desired_type=xmon_gates.XmonGate,
     actual_type=ops.MeasurementGate,
     conversion=lambda e: xmon_gates.XmonMeasurementGate(
         key=e.key,

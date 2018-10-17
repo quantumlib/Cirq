@@ -25,6 +25,32 @@ if TYPE_CHECKING:
     from typing import Optional  # pylint: disable=unused-import
 
 
+def gate_to_proto_dict(gate: ops.Gate,
+                       qubits: Tuple[ops.QubitId, ...]) -> Dict:
+    xmon_gate = xmon_gate_ext.try_cast(xmon_gates.XmonGate, gate)
+    if xmon_gate is not None:
+        return xmon_gate.to_proto_dict(*qubits)
+
+    if isinstance(gate, ops.Rot11Gate):
+        if len(qubits) != 2:
+            raise ValueError('Wrong number of qubits.')
+        return _cz_to_proto_dict(gate, *qubits)
+
+    raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
+
+
+def _cz_to_proto_dict(gate: ops.Rot11Gate,
+                      p: ops.QubitId,
+                      q: ops.QubitId) -> Dict:
+    exp_11 = {
+        'target1': p.to_proto_dict(),
+        'target2': q.to_proto_dict(),
+        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+            gate.half_turns)
+    }
+    return {'exp_11': exp_11}
+
+
 def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """Convert a schedule into an iterable of proto dictionaries.
 
@@ -37,10 +63,9 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        gate = xmon_gate_ext.cast(
-            xmon_gates.XmonGate,
-            cast(ops.GateOperation, so.operation).gate)
-        op = gate.to_proto_dict(*so.operation.qubits)
+        op = gate_to_proto_dict(
+            cast(ops.GateOperation, so.operation).gate,
+            so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
             op['incremental_delay_picoseconds'] = time_picos

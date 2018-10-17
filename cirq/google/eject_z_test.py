@@ -261,7 +261,7 @@ def test_removes_zs():
         cirq.Z(a),
         cirq.Z(b),
         cirq.CZ(a, b),
-        cirq.google.Exp11Gate().on(a, b),
+        cirq.CZ(a, b),
         cirq.measure(a, b)))
 
 
