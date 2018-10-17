@@ -17,28 +17,6 @@ import pytest
 import cirq
 
 
-def test_reversible_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = cirq.ReversibleEffect()
-
-
-def test_reversible_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(cirq.ReversibleEffect):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_reversible_gate_is_abstract_can_implement():
-    class Included(cirq.ReversibleEffect):
-        def inverse(self):
-            pass
-
-    assert isinstance(Included(), cirq.ReversibleEffect)
-
-
 def test_extrapolatable_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = cirq.ExtrapolatableEffect()

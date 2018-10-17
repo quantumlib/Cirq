@@ -206,12 +206,9 @@ def test_extrapolatable_via_extension():
         _ = without_ext.extrapolate_effect(0.5)
     with pytest.raises(TypeError):
         _ = without_ext**0.5
-    with pytest.raises(TypeError):
-        _ = without_ext.inverse()
 
     assert (with_ext.extrapolate_effect(0.5) ==
             cirq.ControlledGate(cirq.X.extrapolate_effect(0.5)))
-    assert with_ext.inverse() == cirq.ControlledGate(cirq.X)
     assert with_ext**0.5 == cirq.ControlledGate(cirq.X.extrapolate_effect(0.5))
 
 

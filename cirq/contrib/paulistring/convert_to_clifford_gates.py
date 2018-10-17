@@ -65,7 +65,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         elif quarter_turns == 2:
             return ops.SingleQubitCliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True).inverse()
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
         else:
             return ops.SingleQubitCliffordGate.I
 
