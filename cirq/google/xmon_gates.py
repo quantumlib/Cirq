@@ -271,9 +271,10 @@ class ExpWGate(XmonGate,
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
 
     def __repr__(self):
-        return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(
-                    repr(self.half_turns),
-                    repr(self.axis_half_turns)))
+        return (
+            'cirq.google.ExpWGate(half_turns={}, axis_half_turns={})'.format(
+                repr(self.half_turns),
+                repr(self.axis_half_turns)))
 
     def __eq__(self, other):
         if isinstance(other, ops.RotXGate):
@@ -354,7 +355,7 @@ class ExpZGate(XmonGate, ops.RotZGate):
         return {'exp_z': exp_z}
 
     def __repr__(self):
-        return 'ExpZGate(half_turns={!r})'.format(self.half_turns)
+        return 'cirq.google.ExpZGate(half_turns={!r})'.format(self.half_turns)
 
     def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)
