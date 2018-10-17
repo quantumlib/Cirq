@@ -63,7 +63,7 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
         raise ValueError('Measurement gate had invert mask of length '
                          'different than number of qubits it acts on.')
     measurement = {
-        'targets': [q.to_proto_dict() for q in qubits],
+        'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
         'key': gate.key,
     }
     if gate.invert_mask:
