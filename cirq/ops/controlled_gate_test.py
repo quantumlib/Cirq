@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple, cast
 
 import numpy as np
 import pytest
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 class RestrictedGate(cirq.Gate):
@@ -106,7 +107,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         available_buffer[...] = target_tensor
         target_tensor[...] = 0
         return available_buffer
@@ -124,11 +125,13 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         assert len(axes) == 1
         a = axes[0]
-        zero = (slice(None),)*a + (0, Ellipsis)
-        one = (slice(None),)*a + (1, Ellipsis)
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
+                    (slice(None),))
+        zero = seed*a + (0, Ellipsis)
+        one = seed*a + (1, Ellipsis)
         result = np.zeros(target_tensor.shape, target_tensor.dtype)
         result[zero] = target_tensor[zero]*2 + target_tensor[one]*3
         result[one] = target_tensor[zero]*5 + target_tensor[one]*7

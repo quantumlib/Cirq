@@ -79,7 +79,8 @@ class EjectZ(circuits.OptimizationPass):
                 if all(is_negligible_turn(p, self.tolerance) for p in phases):
                     continue
 
-                phaseable = self.ext.try_cast(ops.PhaseableEffect, op)
+                phaseable = self.ext.try_cast(  # type: ignore
+                    ops.PhaseableEffect, op)
                 if phaseable is not None:
                     for i, p in enumerate(phases):
                         if p:
