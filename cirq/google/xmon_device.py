@@ -68,11 +68,11 @@ class XmonDevice(Device):
         if isinstance(operation, ops.GateOperation):
             if isinstance(operation.gate, ops.Rot11Gate):
                 return self._exp_z_duration
+            if isinstance(operation.gate, ops.MeasurementGate):
+                return self._measurement_duration
             g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
             if isinstance(g, xmon_gates.ExpWGate):
                 return self._exp_w_duration
-            if isinstance(g, ops.MeasurementGate):
-                return self._measurement_duration
             if isinstance(g, xmon_gates.ExpZGate):
                 # Z gates are performed in the control software.
                 return Duration()
