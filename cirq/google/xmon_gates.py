@@ -14,7 +14,7 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Union, Tuple, Any, cast
 
 import abc
 import json
@@ -101,7 +101,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
                           qubit(exp_11['target2']))**param(exp_11['half_turns'])
         elif 'measurement' in proto_dict:
             meas = proto_dict['measurement']
-            invert_mask = ()
+            invert_mask = cast(Tuple[Any, ...], ())
             if 'invert_mask' in meas:
                 invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
             if 'key' not in meas or 'targets' not in meas:
