@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Dict
 
 
 def assert_equivalent_repr(
@@ -28,8 +32,8 @@ def assert_equivalent_repr(
             Ideally this should just be a series of 'import' lines.
     """
 
-    global_vals = {}
-    local_vals = {}
+    global_vals = {}  # type: Dict[str, Any]
+    local_vals = {}  # type: Dict[str, Any]
     exec(setup_code, global_vals, local_vals)
 
     try:
