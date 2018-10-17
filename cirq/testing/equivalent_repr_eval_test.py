@@ -19,12 +19,9 @@ import cirq
 
 
 def test_external():
-    cirq.testing.assert_equivalent_repr(
-        1, 2, 3, 'a', 0.5, 2**0.5, 1.1, 1j)
-
-    cirq.testing.assert_equivalent_repr(
-        1, 2, 3, 'a', 0.5, 2**0.5, 1.1, 1j,
-        setup_code='')
+    for t in [1, 2, 3, 'a', 0.5, 2**0.5, 1.1, 1j]:
+        cirq.testing.assert_equivalent_repr(t)
+        cirq.testing.assert_equivalent_repr(t, setup_code='')
 
     cirq.testing.assert_equivalent_repr(
         np.array([5]),
@@ -58,8 +55,10 @@ def test_custom_class_repr():
             return self.repr_str
 
     cirq.testing.assert_equivalent_repr(
-        CustomRepr('a', "CustomRepr('a')"),
         CustomRepr('b', "CustomRepr('b')"),
+        setup_code=CustomRepr.setup_code)
+    cirq.testing.assert_equivalent_repr(
+        CustomRepr('a', "CustomRepr('a')"),
         setup_code=CustomRepr.setup_code)
 
     # Non-equal values.
@@ -73,8 +72,6 @@ def test_custom_class_repr():
     # Single failure out of many.
     with pytest.raises(AssertionError, match=r'eval\(repr\(value\)\): a'):
         cirq.testing.assert_equivalent_repr(
-            1,
-            5,
             CustomRepr('a', "'a'"))
 
     # Syntax errors.
