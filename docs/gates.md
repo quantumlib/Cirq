@@ -28,11 +28,20 @@ Or, if a gate specifies a `__pow__` method that works for an exponent of -1, the
 
 We describe some magic methods below.
 
-#### ReversibleEffect, SelfInverseGate
+#### `cirq.inverse` and `__pow__`
 
-As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gate that is the inverse of the receiving gate).
-``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
-(so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
+Gates and operations are considered to be *invertable* when they implement a `__pow__` method that returns a result besides `NotImplemented` for an exponent of -1.
+This inverse can be accessed either directly as `value**-1`, or via the utility method `cirq.inverse(value)`.
+If you are sure that `value` has an inverse, saying `value**-1` is more convenient than saying `cirq.inverse(value)`.
+`cirq.inverse` is for cases where you aren't sure if `value` is invertable, or where `value` might be a *sequence* of invertible operations.
+
+`cirq.inverse` has a `default` parameter used as a fallback when `value` isn't invertable.
+For example, `cirq.inverse(value, default=None)` returns the inverse of `value`, or else returns `None` if `value` isn't invertable.
+(If no `default` is specified and `value` isn't invertible, a `TypeError` is raised.)
+
+When you give `cirq.inverse` a list, or any other kind of iterable thing, it will return a sequence of operations that (if run in order) undoes the operations of the original sequence (if run in order).
+Basically, the items of the list are individually inverted and returned in reverse order.
+For example, the expression `cirq.inverse([cirq.S(b), cirq.CNOT(a, b)])` will return the tuple `(cirq.CNOT(a, b), cirq.S(b)**-1)`.
 
 #### ExtrapolatableEffect
 
