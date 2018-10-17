@@ -33,7 +33,7 @@ def test_equality():
         return cirq.Schedule(device=UnconstrainedDevice,
                              scheduled_operations=scheduled_ops)
 
-    q0, q1 = cirq.QubitId(), cirq.QubitId()
+    q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     et.make_equality_group(lambda: simple_schedule(q0))
     et.make_equality_group(lambda: simple_schedule(q1))
     et.make_equality_group(lambda: simple_schedule(q0, start_picos=1000))
@@ -43,7 +43,7 @@ def test_equality():
 
 
 def test_query_point_operation_inclusive():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     op = cirq.ScheduledOperation(zero, cirq.Duration(), cirq.H(q))
@@ -73,7 +73,7 @@ def test_query_point_operation_inclusive():
 
 
 def test_query_point_operation_exclusive():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     op = cirq.ScheduledOperation(zero, cirq.Duration(), cirq.H(q))
@@ -105,7 +105,7 @@ def test_query_point_operation_exclusive():
 
 
 def test_query_overlapping_operations_inclusive():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     op1 = cirq.ScheduledOperation(zero, 2 * ps, cirq.H(q))
@@ -133,7 +133,7 @@ def test_query_overlapping_operations_inclusive():
 
 
 def test_query_overlapping_operations_exclusive():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     op1 = cirq.ScheduledOperation(zero, 2 * ps, cirq.H(q))
@@ -154,8 +154,8 @@ def test_query_overlapping_operations_exclusive():
 
 
 def test_slice_operations():
-    q0 = cirq.QubitId()
-    q1 = cirq.QubitId()
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     op1 = cirq.ScheduledOperation(zero, ps, cirq.H(q0))
@@ -177,8 +177,8 @@ def test_slice_operations():
 
 
 def test_include():
-    q0 = cirq.QubitId()
-    q1 = cirq.QubitId()
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     schedule = cirq.Schedule(device=UnconstrainedDevice)
@@ -200,7 +200,7 @@ def test_include():
 
 
 def test_exclude():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     zero = cirq.Timestamp(picos=0)
     ps = cirq.Duration(picos=1)
     op = cirq.ScheduledOperation(zero, ps, cirq.H(q))

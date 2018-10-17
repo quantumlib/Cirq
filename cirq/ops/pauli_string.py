@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Optional, Tuple, ValuesView)
+                    Tuple, TypeVar, Union, ValuesView)
 
 from cirq.ops import (
     raw_types, gate_operation, common_gates, qubit_order, op_tree
@@ -22,6 +22,7 @@ from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
+TDefault = TypeVar('TDefault')
 
 class PauliString:
     def __init__(self,
@@ -57,8 +58,8 @@ class PauliString:
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
-    def get(self, key: raw_types.QubitId, default: Optional[Pauli] = None
-            ) -> Optional[Pauli]:
+    def get(self, key: raw_types.QubitId, default: TDefault = None
+            ) -> Union[Pauli, TDefault] :
         return self._qubit_pauli_map.get(key, default)
 
     def __contains__(self, key: raw_types.QubitId) -> bool:
