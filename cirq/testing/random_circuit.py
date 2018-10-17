@@ -34,7 +34,7 @@ DEFAULT_GATE_DOMAIN = {
     ops.X: 1,
     ops.Y: 1,
     ops.Z: 1
-    }
+}  # type: Dict[ops.Gate, int]
 
 
 def random_circuit(qubits: Union[Sequence[ops.QubitId], int],

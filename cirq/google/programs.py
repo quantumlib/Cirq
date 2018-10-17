@@ -15,7 +15,7 @@ from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 
 import numpy as np
 
-from cirq import ops
+from cirq import ops, devices
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 
 def gate_to_proto_dict(gate: ops.Gate,
                        qubits: Tuple[ops.QubitId, ...]) -> Dict:
-    xmon_gate = xmon_gate_ext.try_cast(xmon_gates.XmonGate, gate)
+    xmon_gate = xmon_gate_ext.try_cast(  # type: ignore
+        xmon_gates.XmonGate, gate)
     if xmon_gate is not None:
         return xmon_gate.to_proto_dict(*qubits)
 
@@ -43,8 +44,8 @@ def _cz_to_proto_dict(gate: ops.Rot11Gate,
                       p: ops.QubitId,
                       q: ops.QubitId) -> Dict:
     exp_11 = {
-        'target1': p.to_proto_dict(),
-        'target2': q.to_proto_dict(),
+        'target1': cast(devices.GridQubit, p).to_proto_dict(),
+        'target2': cast(devices.GridQubit, q).to_proto_dict(),
         'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
             gate.half_turns)
     }
