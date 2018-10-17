@@ -101,7 +101,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                                  'Clifford group: {!r}'.format(op))
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extensions.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 

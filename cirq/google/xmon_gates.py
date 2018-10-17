@@ -14,13 +14,17 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
+from typing import Dict, Optional, Union, Tuple, Any, cast
+
+import abc
 import json
-from typing import Dict, Optional, Union
 
 import numpy as np
 
-from cirq import abc, ops, value, protocols
+from cirq import ops, value, protocols
 from cirq.devices.grid_qubit import GridQubit
+
+from cirq.type_workarounds import NotImplementedType
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -97,7 +101,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
                           qubit(exp_11['target2']))**param(exp_11['half_turns'])
         elif 'measurement' in proto_dict:
             meas = proto_dict['measurement']
-            invert_mask = ()
+            invert_mask = cast(Tuple[Any, ...], ())
             if 'invert_mask' in meas:
                 invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
             if 'key' not in meas or 'targets' not in meas:
@@ -218,7 +222,7 @@ class ExpWGate(XmonGate,
         return ExpWGate(half_turns=self.half_turns * power,
                         axis_half_turns=self.axis_half_turns)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
             return NotImplemented

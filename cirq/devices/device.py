@@ -14,7 +14,8 @@
 
 from typing import TYPE_CHECKING
 
-from cirq import abc
+import abc
+
 from cirq.value import Duration
 
 

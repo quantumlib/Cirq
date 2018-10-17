@@ -13,4 +13,7 @@ cd $(git rev-parse --show-toplevel)
 
 echo -e -n "\e[31m"
 mypy --config-file=dev_tools/conf/mypy.ini $@ .
+result=$?
 echo -e -n "\e[0m"
+
+exit ${result}
