@@ -14,4 +14,9 @@
 
 from typing import Any
 
+# At the moment there's no reliable way to say 'NotImplementedType'.
+# - There is a NotImplementedType in python 2, but not python 3.
+# - type(NotImplemented) causes mypy to error.
+# - Just NotImplemented causes runtime errors (it's not a type).
+# - The string "NotImplemented" causes runtime errors (in some python versions).
 NotImplementedType = Any

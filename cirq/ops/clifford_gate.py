@@ -18,7 +18,8 @@ from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import raw_types, gate_features, common_gates, op_tree
+from cirq.ops import raw_types, gate_features, common_gates, op_tree, \
+    named_qubit
 from cirq.ops.pauli import Pauli
 
 
@@ -258,7 +259,7 @@ class SingleQubitCliffordGate(raw_types.Gate,
 
     def _unitary_(self) -> np.ndarray:
         mat = np.eye(2)
-        qubit = raw_types.QubitId()
+        qubit = named_qubit.NamedQubit('arbitrary')
         for op in op_tree.flatten_op_tree(self.default_decompose((qubit,))):
             mat = protocols.unitary(op).dot(mat)
         return mat

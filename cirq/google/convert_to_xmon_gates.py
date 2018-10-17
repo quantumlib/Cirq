@@ -58,7 +58,8 @@ class ConvertToXmonGates(PointOptimizer):
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Already supported?
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, XmonGate):
+        if (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, (ops.Rot11Gate, XmonGate))):
             return op
 
         # Maybe we know how to wrap it?

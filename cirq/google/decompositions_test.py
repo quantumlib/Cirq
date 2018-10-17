@@ -162,8 +162,8 @@ def test_controlled_op_to_gates_concrete_case():
 
 
 def test_controlled_op_to_gates_omits_negligible_global_phase():
-    qc = cirq.QubitId()
-    qt = cirq.QubitId()
+    qc = cirq.NamedQubit('c')
+    qt = cirq.NamedQubit('qt')
     operations = decompositions.controlled_op_to_native_gates(
         control=qc,
         target=qt,
@@ -185,8 +185,8 @@ def test_controlled_op_to_gates_omits_negligible_global_phase():
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_controlled_op_to_gates_equivalent_on_known_and_random(mat):
-    qc = cirq.QubitId()
-    qt = cirq.QubitId()
+    qc = cirq.NamedQubit('c')
+    qt = cirq.NamedQubit('qt')
     operations = decompositions.controlled_op_to_native_gates(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))

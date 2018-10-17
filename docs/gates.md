@@ -18,20 +18,30 @@ print(CNOT(q0, q1))
 
 ### Magic Methods
 
-A raw ``Gate`` class can be applied to qubits to produce an ``Operation``, but that's about it.
-In order to support other functionality, such as being understood by simulators or looking good in diagrams, it is necessary to implement several *magic methods*.
-A magic method is a special method that, if present on a value, enables new functionality (think `__add__`, `__eq__`, `__len__`, and etc).
+A class that implements ``Gate`` can be applied to qubits to produce an ``Operation``.
+In order to support functionality beyond that basic task, it is necessary to implement several *magic methods*.
 
+Standard magic methods in python are `__add__`, `__eq__`, and `__len__`.
+Cirq defines several additional magic methods, for functionality such as parameterization, diagramming, and simulation.
 For example, if a gate specifies a `_unitary_` method that returns a matrix for the gate, then simulators will be able to simulate applying the gate.
 Or, if a gate specifies a `__pow__` method that works for an exponent of -1, then `cirq.inverse` will start to work on lists including the gate.
 
-We describe some gate features below.
+We describe some magic methods below.
 
-#### ReversibleEffect, SelfInverseGate
+#### `cirq.inverse` and `__pow__`
 
-As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gate that is the inverse of the receiving gate).
-``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
-(so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
+Gates and operations are considered to be *invertable* when they implement a `__pow__` method that returns a result besides `NotImplemented` for an exponent of -1.
+This inverse can be accessed either directly as `value**-1`, or via the utility method `cirq.inverse(value)`.
+If you are sure that `value` has an inverse, saying `value**-1` is more convenient than saying `cirq.inverse(value)`.
+`cirq.inverse` is for cases where you aren't sure if `value` is invertable, or where `value` might be a *sequence* of invertible operations.
+
+`cirq.inverse` has a `default` parameter used as a fallback when `value` isn't invertable.
+For example, `cirq.inverse(value, default=None)` returns the inverse of `value`, or else returns `None` if `value` isn't invertable.
+(If no `default` is specified and `value` isn't invertible, a `TypeError` is raised.)
+
+When you give `cirq.inverse` a list, or any other kind of iterable thing, it will return a sequence of operations that (if run in order) undoes the operations of the original sequence (if run in order).
+Basically, the items of the list are individually inverted and returned in reverse order.
+For example, the expression `cirq.inverse([cirq.S(b), cirq.CNOT(a, b)])` will return the tuple `(cirq.CNOT(a, b), cirq.S(b)**-1)`.
 
 #### ExtrapolatableEffect
 
