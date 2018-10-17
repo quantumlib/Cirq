@@ -26,6 +26,9 @@ class _QCircuitQubit(ops.QubitId):
     def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
 
+    def _comparison_key(self):
+        return self.sub
+
     def __repr__(self):
         return '_QCircuitQubit({!r})'.format(self.sub)
 

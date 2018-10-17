@@ -18,8 +18,8 @@ from cirq.google import xmon_gates
 
 
 def test_depolarizer_no_errors():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -29,8 +29,8 @@ def test_depolarizer_no_errors():
 
 
 def test_depolarizer_all_errors():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -52,8 +52,8 @@ def test_depolarizer_all_errors():
 
 
 def test_depolarizer_different_gate():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -82,8 +82,8 @@ def test_depolarizer_different_gate():
 
 
 def test_depolarizer_multiple_realizations():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -105,8 +105,8 @@ def test_depolarizer_multiple_realizations():
 
 
 def test_depolarizer_parameterized_gates():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot_param = cirq.Symbol('cnot_turns')
     cnot_gate = cirq.CZ(q1, q2)**cnot_param
 

@@ -209,18 +209,15 @@ def test_runtime_types_of_rot_gates():
         p = gate_type(half_turns=cirq.Symbol('a'))
         assert cirq.unitary(p, None) is None
         assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-        assert p.try_cast_to(cirq.ReversibleEffect, ext) is None
         with pytest.raises(TypeError):
             _ = p.extrapolate_effect(2)
-        with pytest.raises(TypeError):
-            _ = p.inverse()
+        assert cirq.inverse(p, None) is None
 
         c = gate_type(half_turns=0.5)
         assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
-        assert c.try_cast_to(cirq.ReversibleEffect, ext) is c
         assert cirq.unitary(c, None) is not None
         assert c.extrapolate_effect(2) is not None
-        assert c.inverse() is not None
+        assert cirq.inverse(c) is not None
 
 
 def test_measurement_eq():
@@ -566,3 +563,8 @@ def test_is_measurement():
     assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
     assert not cirq.MeasurementGate.is_measurement(cirq.X)
     assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())
+
+
+def test_h_pow():
+    assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
+    assert cirq.inverse(cirq.H) == cirq.H
