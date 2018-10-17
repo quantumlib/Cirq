@@ -38,7 +38,7 @@ class MockValue:
         self._le = le
         self._ge = ge
 
-    __hash__ = None
+    __hash__ = None  # type: ignore
 
     def __eq__(self, other):
         return self._eq(self, other)

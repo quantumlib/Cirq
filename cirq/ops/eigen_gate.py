@@ -14,10 +14,13 @@
 
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
+import abc
+
 import numpy as np
 
-from cirq import abc, extension, value
+from cirq import extension, value
 from cirq.ops import gate_features, raw_types
+from cirq.type_workarounds import NotImplementedType
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -208,7 +211,7 @@ class EigenGate(raw_types.Gate,
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)

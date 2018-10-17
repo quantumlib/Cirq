@@ -14,9 +14,10 @@
 
 from typing import Optional, Tuple, Any
 
+import abc
+
 import cirq
 from cirq import Extensions, ops, protocols
-from cirq import abc
 from cirq.ops import gate_features
 
 
@@ -113,36 +114,37 @@ class _FallbackQCircuitGate(QCircuitDiagrammable):
 
 
 fallback_qcircuit_extensions = Extensions()
-fallback_qcircuit_extensions.add_recursive_cast(
+fallback_qcircuit_extensions.add_recursive_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.GateOperation,
-    lambda ext, op: ext.try_cast(QCircuitDiagrammable, op.gate))
-fallback_qcircuit_extensions.add_cast(
+    lambda ext, op: ext.try_cast(QCircuitDiagrammable, op.gate)  # type: ignore
+)
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.RotXGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
         if gate.half_turns == 1
         else None)
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.MeasurementGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\meter'))
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     cirq.google.ExpWGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
         if gate.half_turns == 1 and gate.axis_half_turns == 0
         else None)
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.Rot11Gate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\control', '\\control')
         if gate.half_turns == 1
         else None)
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.CNotGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\control', '\\targ'))

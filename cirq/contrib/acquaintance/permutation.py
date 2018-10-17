@@ -14,7 +14,8 @@
 
 from typing import Dict, Sequence, Tuple, TypeVar
 
-from cirq import abc
+import abc
+
 from cirq.ops import (
         CompositeGate, Gate, QubitId, OP_TREE, SWAP,
         flatten_op_tree, GateOperation, TextDiagrammable,

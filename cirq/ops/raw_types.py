@@ -16,7 +16,7 @@
 
 from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, Any
 
-from cirq import abc
+import abc
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
