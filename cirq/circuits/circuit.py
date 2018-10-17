@@ -117,9 +117,6 @@ class Circuit:
     def __copy__(self) -> 'Circuit':
         return self.copy()
 
-    def __deepcopy__(self) -> 'Circuit':
-        return self.copy()
-
     def copy(self) -> 'Circuit':
         return Circuit(self._moments, self._device)
 
@@ -197,8 +194,8 @@ class Circuit:
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device
-                    if other.device is devices.UnconstrainedDevice
-                    else other.device)
+                  if other.device is devices.UnconstrainedDevice
+                  else other.device)
         device_2 = (other.device
                     if self._device is devices.UnconstrainedDevice
                     else self._device)
@@ -253,7 +250,7 @@ class Circuit:
             self,
             new_device: devices.Device,
             qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
-            ) -> 'Circuit':
+    ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
         Args:
@@ -326,9 +323,9 @@ class Circuit:
             range(start_moment_index, start_moment_index + max_distance))
 
     def next_moments_operating_on(self,
-                                 qubits: Iterable[ops.QubitId],
-                                 start_moment_index: int = 0
-                                 ) -> Dict[ops.QubitId, int]:
+                                  qubits: Iterable[ops.QubitId],
+                                  start_moment_index: int = 0
+                                  ) -> Dict[ops.QubitId, int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -344,7 +341,8 @@ class Circuit:
         """
         next_moments = {}
         for q in qubits:
-            next_moment = self.next_moment_operating_on([q], start_moment_index)
+            next_moment = self.next_moment_operating_on(
+                [q], start_moment_index)
             next_moments[q] = (len(self._moments) if next_moment is None else
                                next_moment)
         return next_moments
@@ -451,9 +449,9 @@ class Circuit:
     def findall_operations_with_gate_type(
             self,
             gate_type: Type[T_DESIRED_GATE_TYPE]
-            ) -> Iterable[Tuple[int,
-                                ops.GateOperation,
-                                T_DESIRED_GATE_TYPE]]:
+    ) -> Iterable[Tuple[int,
+                        ops.GateOperation,
+                        T_DESIRED_GATE_TYPE]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -659,12 +657,11 @@ class Circuit:
 
         return moment_indices, frontier
 
-
     def _push_frontier(self,
-                      early_frontier: Dict[ops.QubitId, int],
-                      late_frontier: Dict[ops.QubitId, int],
-                      update_qubits: Iterable[ops.QubitId]=None
-                      ) -> Tuple[int, int]:
+                       early_frontier: Dict[ops.QubitId, int],
+                       late_frontier: Dict[ops.QubitId, int],
+                       update_qubits: Iterable[ops.QubitId]=None
+                       ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
@@ -696,7 +693,7 @@ class Circuit:
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self._moments[insert_index:insert_index] = (
-                    [Moment()] * n_new_moments)
+                [Moment()] * n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -704,8 +701,8 @@ class Circuit:
         return (0, 0)
 
     def _insert_operations(self,
-                          operations: Sequence[ops.Operation],
-                          insertion_indices: Sequence[int]) -> None:
+                           operations: Sequence[ops.Operation],
+                           insertion_indices: Sequence[int]) -> None:
         """Inserts operations at the specified moments. Appends new moments if
         necessary.
 
@@ -725,13 +722,13 @@ class Circuit:
                              'same length.')
         self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
                                                   len(self))]
-        moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
+        # type: Dict[int, List[ops.Operation]]
+        moment_to_ops = defaultdict(list)
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
             self._moments[moment_index] = Moment(
-                    self._moments[moment_index].operations + tuple(new_ops))
-
+                self._moments[moment_index].operations + tuple(new_ops))
 
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
@@ -759,14 +756,13 @@ class Circuit:
         next_moments = self.next_moments_operating_on(qubits, start)
 
         insertion_indices, _ = self._pick_inserted_ops_moment_indices(
-                operations, start, frontier)
+            operations, start, frontier)
 
         self._push_frontier(frontier, next_moments)
 
         self._insert_operations(operations, insertion_indices)
 
         return frontier
-
 
     def batch_remove(self,
                      removals: Iterable[Tuple[int, ops.Operation]]) -> None:

@@ -28,8 +28,8 @@ import cirq.google as cg
 
 
 def test_equality():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     eq = cirq.testing.EqualsTester()
 
@@ -67,7 +67,7 @@ def test_equality():
 
 
 def test_append_single():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit()
     c.append(())
@@ -83,8 +83,8 @@ def test_append_single():
 
 
 def test_append_multiple():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     c.append([cirq.X(a), cirq.X(b)], cirq.InsertStrategy.NEW)
@@ -141,8 +141,8 @@ def test_repr():
 
 
 def test_slice():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     c = Circuit([
         Moment([cirq.H(a), cirq.H(b)]),
         Moment([cirq.CZ(a, b)]),
@@ -161,8 +161,8 @@ def test_slice():
 
 
 def test_concatenate():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     d = Circuit([Moment([cirq.X(b)])])
@@ -260,7 +260,7 @@ def test_set_device():
 
 
 def test_multiply():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit()
     d = Circuit([Moment([cirq.X(a)])])
@@ -287,8 +287,8 @@ def test_multiply():
 
 
 def test_container_methods():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     c = Circuit([
         Moment([cirq.H(a), cirq.H(b)]),
         Moment([cirq.CZ(a, b)]),
@@ -306,15 +306,15 @@ def test_container_methods():
 
 
 def test_bad_index():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     c = Circuit([Moment([cirq.H(a), cirq.H(b)])])
     with pytest.raises(TypeError):
         _ = c['string']
 
 def test_append_strategies():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     stream = [cirq.X(a), cirq.CZ(a, b), cirq.X(b), cirq.X(b), cirq.X(a)]
 
     c = Circuit()
@@ -347,8 +347,8 @@ def test_append_strategies():
 
 
 def test_insert():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
 
@@ -388,8 +388,8 @@ def test_insert():
 
 
 def test_insert_inline_near_start():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit([
         Moment(),
@@ -535,8 +535,8 @@ y: ───────────────@──────────�
 
 
 def test_next_moment_operating_on():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     assert c.next_moment_operating_on([a]) is None
@@ -577,7 +577,7 @@ def test_next_moment_operating_on():
 
 
 def test_next_moment_operating_on_distance():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit([
         Moment(),
@@ -610,8 +610,8 @@ def test_next_moment_operating_on_distance():
 
 
 def test_prev_moment_operating_on():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     assert c.prev_moment_operating_on([a]) is None
@@ -652,7 +652,7 @@ def test_prev_moment_operating_on():
 
 
 def test_prev_moment_operating_on_distance():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit([
         Moment(),
@@ -687,8 +687,8 @@ def test_prev_moment_operating_on_distance():
 
 
 def test_operation_at():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     assert c.operation_at(a, 0) is None
@@ -709,8 +709,8 @@ def test_operation_at():
 
 
 def test_findall_operations():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     xa = cirq.X.on(a)
     xb = cirq.X.on(b)
@@ -777,8 +777,8 @@ def test_findall_operations_with_gate():
 
 
 def test_are_all_measurements_terminal():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     xa = cirq.X.on(a)
     xb = cirq.X.on(b)
@@ -821,8 +821,8 @@ def test_are_all_measurements_terminal():
 
 
 def test_clear_operations_touching():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     c.clear_operations_touching([a, b], range(10))
@@ -874,8 +874,8 @@ def test_clear_operations_touching():
 
 
 def test_all_qubits():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit([
         Moment([cirq.X(a)]),
@@ -951,8 +951,8 @@ def test_all_operations():
 
 
 def test_from_ops():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     actual = Circuit.from_ops(
         cirq.X(a),
@@ -1678,7 +1678,7 @@ def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.Circuit.from_ops(cirq.X(a), cirq.CZ(a, b), cirq.Z(a), cirq.Z(b))
-    assert c == c.copy() == c.__copy__() == c.__deepcopy__()
+    assert c == c.copy() == c.__copy__()
     c2 = c.copy()
     assert c2 == c
     c2[:] = []
@@ -1975,7 +1975,7 @@ def test_pick_inserted_ops_moment_indices():
 
 
 def test_push_frontier_new_moments():
-    operation = cirq.X(cirq.QubitId())
+    operation = cirq.X(cirq.NamedQubit('q'))
     insertion_index = 3
     circuit = Circuit()
     circuit._insert_operations([operation], [insertion_index])

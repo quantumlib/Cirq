@@ -30,8 +30,7 @@ class PauliStringPhasor(PauliStringGateOperation,
                         ops.CompositeOperation,
                         ops.TextDiagrammable,
                         extension.PotentialImplementation[Union[
-                            ops.ExtrapolatableEffect,
-                            ops.ReversibleEffect]]):
+                            ops.ExtrapolatableEffect]]):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
@@ -93,9 +92,6 @@ class PauliStringPhasor(PauliStringGateOperation,
             return NotImplemented
         return self.extrapolate_effect(power)
 
-    def inverse(self) -> 'PauliStringPhasor':
-        return self.extrapolate_effect(-1)
-
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         return self.pauli_string.equal_up_to_sign(op.pauli_string)
 
@@ -143,8 +139,7 @@ class PauliStringPhasor(PauliStringGateOperation,
                     desired_type: Type[T_DESIRED],
                     ext: extension.Extensions
                     ) -> Optional[T_DESIRED]:
-        if (desired_type in [ops.ExtrapolatableEffect,
-                             ops.ReversibleEffect] and
+        if (desired_type in [ops.ExtrapolatableEffect] and
                 not self._is_parameterized_()):
             return cast(T_DESIRED, self)
         return super().try_cast_to(desired_type, ext)
