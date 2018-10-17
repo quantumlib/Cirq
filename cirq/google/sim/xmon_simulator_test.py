@@ -35,11 +35,10 @@ Q3 = cirq.GridQubit(2, 0)
 def basic_circuit():
     sqrt_x = cg.ExpWGate(half_turns=-0.5, axis_half_turns=0.0)
     z = cg.ExpZGate()
-    cz = cg.Exp11Gate()
     circuit = cirq.Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
-         cz(Q1, Q2),
+         cirq.CZ(Q1, Q2),
          sqrt_x(Q1), sqrt_x(Q2),
          z(Q1)])
     return circuit
@@ -49,12 +48,11 @@ def large_circuit():
     np.random.seed(0)
     qubits = [cirq.GridQubit(i, 0) for i in range(10)]
     sqrt_x = cg.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    cz = cg.Exp11Gate()
     circuit = cirq.Circuit()
     for _ in range(11):
         circuit.append(
             [sqrt_x(qubit) for qubit in qubits if np.random.random() < 0.5])
-        circuit.append([cz(qubits[i], qubits[i + 1]) for i in range(9)])
+        circuit.append([cirq.CZ(qubits[i], qubits[i + 1]) for i in range(9)])
     circuit.append([cg.XmonMeasurementGate(key='meas')(*qubits)])
     return circuit
 
@@ -601,9 +599,8 @@ def test_param_resolver_exp_z_half_turns():
 
 
 def test_param_resolver_exp_11_half_turns():
-    exp_11 = cg.Exp11Gate(half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit()
-    circuit.append(exp_11(Q1, Q2))
+    circuit.append(cirq.CZ(Q1, Q2)**cirq.Symbol('a'))
     resolver = cirq.ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver, num_qubits=2)
     # Slight hack: doesn't depend on order of qubits.
@@ -833,7 +830,7 @@ def test_handedness_of_xmon_exp_z_gate():
 def test_handedness_of_xmon_exp_11_gate():
     circuit = cirq.Circuit.from_ops(cirq.H(Q1),
                                     cirq.H(Q2),
-                                    cg.Exp11Gate(half_turns=0.5).on(Q1, Q2))
+                                    cirq.CZ(Q1, Q2)**0.5)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     print(np.round(result.state(), 3))

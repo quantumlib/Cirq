@@ -535,7 +535,7 @@ def _simulator_iterator(
                 if isinstance(gate, xmon_gates.ExpZGate):
                     index = qubit_map[op.qubits[0]]
                     phase_map[(index,)] = cast(float, gate.half_turns)
-                elif isinstance(gate, xmon_gates.Exp11Gate):
+                elif isinstance(gate, ops.Rot11Gate):
                     index0 = qubit_map[op.qubits[0]]
                     index1 = qubit_map[op.qubits[1]]
                     phase_map[(index0, index1)] = cast(float, gate.half_turns)
