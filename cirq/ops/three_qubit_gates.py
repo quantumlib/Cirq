@@ -34,7 +34,7 @@ class _CCZPowerGate(eigen_gate.EigenGate,
     The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
     """
 
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0):
+    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
         super().__init__(exponent=exponent)
 
     @property
@@ -92,7 +92,7 @@ class _CCZPowerGate(eigen_gate.EigenGate,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
                                   ) -> np.ndarray:
-        if self.is_parameterized():
+        if protocols.is_parameterized(self):
             return NotImplemented
         ooo = linalg.slice_for_qubits_equal_to(axes, 0b111)
         target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
@@ -138,7 +138,7 @@ class _CCXPowerGate(eigen_gate.EigenGate,
     The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
     """
 
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0):
+    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
         super().__init__(exponent=exponent)
 
     @property

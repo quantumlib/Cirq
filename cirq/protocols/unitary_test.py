@@ -26,7 +26,7 @@ def test_unitary():
         pass
 
     class ReturnsNotImplemented:
-        def _unitary_(self) -> type(NotImplemented):
+        def _unitary_(self):
             return NotImplemented
 
     class ReturnsMatrix:

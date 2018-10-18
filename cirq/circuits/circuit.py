@@ -34,11 +34,12 @@ from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
+from cirq.type_workarounds import NotImplementedType
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
-class Circuit(ops.ParameterizableEffect):
+class Circuit:
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
@@ -118,9 +119,6 @@ class Circuit(ops.ParameterizableEffect):
     def __copy__(self) -> 'Circuit':
         return self.copy()
 
-    def __deepcopy__(self) -> 'Circuit':
-        return self.copy()
-
     def copy(self) -> 'Circuit':
         return Circuit(self._moments, self._device)
 
@@ -198,8 +196,8 @@ class Circuit(ops.ParameterizableEffect):
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device
-                    if other.device is devices.UnconstrainedDevice
-                    else other.device)
+                  if other.device is devices.UnconstrainedDevice
+                  else other.device)
         device_2 = (other.device
                     if self._device is devices.UnconstrainedDevice
                     else self._device)
@@ -254,7 +252,7 @@ class Circuit(ops.ParameterizableEffect):
             self,
             new_device: devices.Device,
             qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
-            ) -> 'Circuit':
+    ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
         Args:
@@ -327,9 +325,9 @@ class Circuit(ops.ParameterizableEffect):
             range(start_moment_index, start_moment_index + max_distance))
 
     def next_moments_operating_on(self,
-                                 qubits: Iterable[ops.QubitId],
-                                 start_moment_index: int = 0
-                                 ) -> Dict[ops.QubitId, int]:
+                                  qubits: Iterable[ops.QubitId],
+                                  start_moment_index: int = 0
+                                  ) -> Dict[ops.QubitId, int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -345,7 +343,8 @@ class Circuit(ops.ParameterizableEffect):
         """
         next_moments = {}
         for q in qubits:
-            next_moment = self.next_moment_operating_on([q], start_moment_index)
+            next_moment = self.next_moment_operating_on(
+                [q], start_moment_index)
             next_moments[q] = (len(self._moments) if next_moment is None else
                                next_moment)
         return next_moments
@@ -654,9 +653,9 @@ class Circuit(ops.ParameterizableEffect):
     def findall_operations_with_gate_type(
             self,
             gate_type: Type[T_DESIRED_GATE_TYPE]
-            ) -> Iterable[Tuple[int,
-                                ops.GateOperation,
-                                T_DESIRED_GATE_TYPE]]:
+    ) -> Iterable[Tuple[int,
+                        ops.GateOperation,
+                        T_DESIRED_GATE_TYPE]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -862,12 +861,11 @@ class Circuit(ops.ParameterizableEffect):
 
         return moment_indices, frontier
 
-
     def _push_frontier(self,
-                      early_frontier: Dict[ops.QubitId, int],
-                      late_frontier: Dict[ops.QubitId, int],
-                      update_qubits: Iterable[ops.QubitId]=None
-                      ) -> Tuple[int, int]:
+                       early_frontier: Dict[ops.QubitId, int],
+                       late_frontier: Dict[ops.QubitId, int],
+                       update_qubits: Iterable[ops.QubitId]=None
+                       ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
@@ -899,7 +897,7 @@ class Circuit(ops.ParameterizableEffect):
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self._moments[insert_index:insert_index] = (
-                    [Moment()] * n_new_moments)
+                [Moment()] * n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -907,8 +905,8 @@ class Circuit(ops.ParameterizableEffect):
         return (0, 0)
 
     def _insert_operations(self,
-                          operations: Sequence[ops.Operation],
-                          insertion_indices: Sequence[int]) -> None:
+                           operations: Sequence[ops.Operation],
+                           insertion_indices: Sequence[int]) -> None:
         """Inserts operations at the specified moments. Appends new moments if
         necessary.
 
@@ -928,13 +926,13 @@ class Circuit(ops.ParameterizableEffect):
                              'same length.')
         self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
                                                   len(self))]
-        moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
+        moment_to_ops = defaultdict(list
+                                    )  # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
             self._moments[moment_index] = Moment(
-                    self._moments[moment_index].operations + tuple(new_ops))
-
+                self._moments[moment_index].operations + tuple(new_ops))
 
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
@@ -962,14 +960,13 @@ class Circuit(ops.ParameterizableEffect):
         next_moments = self.next_moments_operating_on(qubits, start)
 
         insertion_indices, _ = self._pick_inserted_ops_moment_indices(
-                operations, start, frontier)
+            operations, start, frontier)
 
         self._push_frontier(frontier, next_moments)
 
         self._insert_operations(operations, insertion_indices)
 
         return frontier
-
 
     def batch_remove(self,
                      removals: Iterable[Tuple[int, ops.Operation]]) -> None:
@@ -1103,7 +1100,7 @@ class Circuit(ops.ParameterizableEffect):
         """
         return (op for moment in self for op in moment.operations)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """Converts the circuit into a unitary matrix, if possible.
 
         If the circuit contains any non-terminal measurements, the conversion
@@ -1195,14 +1192,14 @@ class Circuit(ops.ParameterizableEffect):
         circuit.to_unitary_matrix(...), but computed in a more efficient way.
 
         Args:
-            qubit_order: Determines how qubits are ordered when passing matrices
-                into np.kron.
             initial_state: The input state for the circuit. This can be an int
                 or a vector. When this is an int, it refers to a computational
                 basis state (e.g. 5 means initialize to |5> = |...000101>). If
                 this is a state vector, it directly specifies the initial
                 state's amplitudes. The vector must be a flat numpy array with a
                 type that can be converted to np.complex128.
+            qubit_order: Determines how qubits are ordered when passing matrices
+                into np.kron.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
@@ -1329,13 +1326,9 @@ class Circuit(ops.ParameterizableEffect):
 
         return diagram
 
-    def is_parameterized(self,
-                         ext: extension.Extensions = None) -> bool:
-        if ext is None:
-            ext = extension.Extensions()
-        return any(cast(ops.ParameterizableEffect, op).is_parameterized()
-                   for op in self.all_operations()
-                   if ext.try_cast(ops.ParameterizableEffect, op) is not None)
+    def is_parameterized(self) -> bool:
+        return any(protocols.is_parameterized(op)
+                   for op in self.all_operations())
 
     def with_parameters_resolved_by(self,
                                     param_resolver: study.ParamResolver,
@@ -1347,8 +1340,7 @@ class Circuit(ops.ParameterizableEffect):
         for moment in self:
             resolved_circuit.append(_resolve_operations(
                 moment.operations,
-                param_resolver,
-                ext))
+                param_resolver))
         return resolved_circuit
 
     def to_qasm(self,
@@ -1409,18 +1401,11 @@ class Circuit(ops.ParameterizableEffect):
 
 def _resolve_operations(
         operations: Iterable[ops.Operation],
-        param_resolver: study.ParamResolver,
-        ext: extension.Extensions) -> List[ops.Operation]:
+        param_resolver: study.ParamResolver) -> List[ops.Operation]:
     resolved_operations = []  # type: List[ops.Operation]
     for op in operations:
-        cast_op = ext.try_cast(ops.ParameterizableEffect, op)
-        if cast_op is None:
-            resolved_op = op
-        else:
-            resolved_op = cast(
-                    ops.Operation,
-                    cast_op.with_parameters_resolved_by(param_resolver))
-        resolved_operations.append(resolved_op)
+        resolved_operations.append(protocols.resolve_parameters(
+            op, param_resolver))
     return resolved_operations
 
 
@@ -1576,7 +1561,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             continue
 
         # If not, check if it has a decomposition.
-        composite_op = ext.try_cast(ops.CompositeOperation, op)
+        composite_op = ext.try_cast(ops.CompositeOperation, op)  # type: ignore
         if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_op.default_decompose()
@@ -1613,10 +1598,24 @@ TOut = TypeVar('TOut')
 TKey = TypeVar('TKey')
 
 
+@overload
 def _group_until_different(items: Iterable[TIn],
                            key: Callable[[TIn], TKey],
-                           value: Callable[[TIn], TOut] = lambda e: e
+                           ) -> Iterable[Tuple[TKey, List[TIn]]]:
+    pass
+
+
+@overload
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value: Callable[[TIn], TOut]
                            ) -> Iterable[Tuple[TKey, List[TOut]]]:
+    pass
+
+
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value=lambda e: e):
     """Groups runs of items that are identical according to a keying function.
 
     Args:
@@ -1640,7 +1639,7 @@ def _group_until_different(items: Iterable[TIn],
         Tuples containing the group key and item values.
     """
     prev_item_key = None
-    cur_items = []
+    cur_items = []  # type: List[Any]
     for item in items:
         item_key = key(item)
         if cur_items and item_key != prev_item_key:

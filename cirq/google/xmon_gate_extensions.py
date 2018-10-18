@@ -19,31 +19,19 @@ from cirq.google import xmon_gates
 
 xmon_gate_ext = Extensions()
 
-xmon_gate_ext.add_cast(
+xmon_gate_ext.add_cast(  # type: ignore
     desired_type=xmon_gates.XmonGate,
     actual_type=ops.RotXGate,
     conversion=lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
                                              axis_half_turns=0))
 
-xmon_gate_ext.add_cast(
+xmon_gate_ext.add_cast(  # type: ignore
     desired_type=xmon_gates.XmonGate,
     actual_type=ops.RotYGate,
     conversion=lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
                                              axis_half_turns=0.5))
 
-xmon_gate_ext.add_cast(
+xmon_gate_ext.add_cast(  # type: ignore
     desired_type=xmon_gates.XmonGate,
     actual_type=ops.RotZGate,
     conversion=lambda e: xmon_gates.ExpZGate(half_turns=e.half_turns))
-
-xmon_gate_ext.add_cast(
-    desired_type=xmon_gates.XmonGate,
-    actual_type=ops.Rot11Gate,
-    conversion=lambda e: xmon_gates.Exp11Gate(half_turns=e.half_turns))
-
-xmon_gate_ext.add_cast(
-    desired_type=xmon_gates.XmonGate,
-    actual_type=ops.MeasurementGate,
-    conversion=lambda e: xmon_gates.XmonMeasurementGate(
-        key=e.key,
-        invert_mask=e.invert_mask))

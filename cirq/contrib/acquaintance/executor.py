@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
 from typing import Dict, TYPE_CHECKING, Sequence
 
-from cirq import abc, circuits, ops
+import abc
+from collections import defaultdict
 
+from cirq import circuits, ops
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.devices import (
         is_acquaintance_strategy)

@@ -14,10 +14,13 @@
 
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
+import abc
+
 import numpy as np
 
-from cirq import abc, extension, value
+from cirq import extension, value
 from cirq.ops import gate_features, raw_types
+from cirq.type_workarounds import NotImplementedType
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -42,11 +45,8 @@ EigenComponent = NamedTuple(
 
 
 class EigenGate(raw_types.Gate,
-                gate_features.BoundedEffect,
-                gate_features.ParameterizableEffect,
                 extension.PotentialImplementation[Union[
-                    gate_features.ExtrapolatableEffect,
-                    gate_features.ReversibleEffect]]):
+                    gate_features.ExtrapolatableEffect]]):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -176,12 +176,9 @@ class EigenGate(raw_types.Gate,
         return None
 
     def __pow__(self: TSelf, power: float) -> TSelf:
-        if power != 1 and self.is_parameterized():
+        if power != 1 and self._is_parameterized_():
             return NotImplemented
         return self.extrapolate_effect(power)
-
-    def inverse(self: TSelf) -> TSelf:
-        return self.extrapolate_effect(-1)
 
     def _identity_tuple(self):
         return (type(self),
@@ -199,7 +196,7 @@ class EigenGate(raw_types.Gate,
     def __hash__(self):
         return hash(self._identity_tuple())
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):
             return 1
 
@@ -209,14 +206,13 @@ class EigenGate(raw_types.Gate,
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableEffect,
-                             gate_features.ReversibleEffect] and
-                not self.is_parameterized()):
+        if (desired_type in [gate_features.ExtrapolatableEffect] and
+                not self._is_parameterized_()):
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if self.is_parameterized():
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
         return np.sum([
@@ -230,9 +226,9 @@ class EigenGate(raw_types.Gate,
         return self._with_exponent(
             exponent=self._exponent * factor)  # type: ignore
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return isinstance(self._exponent, value.Symbol)
 
-    def with_parameters_resolved_by(self: TSelf, param_resolver) -> TSelf:
+    def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
