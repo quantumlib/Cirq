@@ -23,8 +23,7 @@ from collections import defaultdict
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload,
-    Set)
+    Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
 import numpy as np
 
@@ -35,6 +34,11 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
+
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
