@@ -146,6 +146,7 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
+
 class QasmOutputArgs(string.Formatter):
     """
     Attributes:

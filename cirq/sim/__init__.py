@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simulators specific to Google's quantum hardware.
-"""
+"""Base simulation classes and generic simulators."""
 
-from cirq.google.sim.xmon_simulator import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
+from cirq.sim.simulator import (
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesIntermediateWaveFunction,
+    SimulatesFinalWaveFunction,
 )
-from cirq.google.sim.xmon_stepper import (
-    Stepper,
+
+from cirq.sim.state import (
+    dirac_notation,
+    to_valid_state_vector,
+    validate_normalized_state
 )

@@ -161,6 +161,17 @@ from cirq.schedules import (
     moment_by_moment_schedule,
 )
 
+from cirq.sim import (
+    dirac_notation,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesIntermediateWaveFunction,
+    to_valid_state_vector,
+    SimulatesFinalWaveFunction,
+    validate_normalized_state,
+)
+
 from cirq.study import (
     Linspace,
     ParamResolver,
@@ -168,6 +179,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    to_resolvers,
     TrialResult,
     UnitSweep,
 )
