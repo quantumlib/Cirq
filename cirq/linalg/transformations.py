@@ -211,8 +211,9 @@ def apply_matrix_to_slices(
 
     # Apply operation.
     for i, s_i in enumerate(slices):
-        out[s_i] = 0
+        out[s_i] *= matrix[i, i]
         for j, s_j in enumerate(slices):
-            out[s_i] += target[s_j] * matrix[i, j]
+            if i != j:
+                out[s_i] += target[s_j] * matrix[i, j]
 
     return out
