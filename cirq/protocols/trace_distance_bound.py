@@ -28,7 +28,7 @@ class SupportsTraceDistanceBound(Protocol):
     negligible.
     """
 
-    def trace_distance_bound(self) -> float:
+    def _trace_distance_bound_(self) -> float:
         """A maximum on the trace distance between `val`'s input and output.
 
         Generally this method is used when deciding whether to keep gates, so
