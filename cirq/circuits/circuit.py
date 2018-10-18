@@ -23,8 +23,8 @@ from collections import defaultdict
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload
-)
+    Sequence, Union, Type, Tuple, cast, TypeVar, overload,
+    Set)
 
 import numpy as np
 
@@ -431,9 +431,9 @@ class Circuit:
                 prev(M) = (q', moment_index-1) is reachable. Also, P must not be
                 classified as a blocker by the given `is_blocker` argument.
 
-        In other words, the reachable region extends horizontally along each
-        qubit until it hits a blocked operation or an operation that crosses
-        into the set of not-involved-at-the-moment qubits.
+        In other words, the reachable region extends forward through time along
+        each qubit until it hits a blocked operation or an operation that
+        crosses into the set of not-involved-at-the-moment qubits.
 
         For each qubit q in `start_frontier`, the reachable locations will
         correspond to a contiguous range starting at start_frontier[q] and
@@ -520,7 +520,7 @@ class Circuit:
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active = set()
+        active = set()  # type: Set[ops.QubitId]
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicates=True)
 
@@ -532,6 +532,7 @@ class Circuit:
                     active.remove(qubit)
             else:
                 next_op = self.operation_at(qubit, next_moment)
+                assert next_op is not None
                 queue.enqueue(next_moment, next_op)
 
         for start_qubit, start_moment in start_frontier.items():
@@ -596,7 +597,8 @@ class Circuit:
         result = BucketPriorityQueue[ops.Operation](drop_duplicates=True)
 
         involved_qubits = set(start_frontier.keys()) | set(end_frontier.keys())
-        for q in ops.QubitOrder.DEFAULT.order_for(involved_qubits):
+        # Note: only sorted to ensure a deterministic result ordering.
+        for q in sorted(involved_qubits):
             for i in range(start_frontier.get(q, 0),
                            end_frontier.get(q, len(self))):
                 op = self.operation_at(q, i)

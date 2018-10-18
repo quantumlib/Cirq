@@ -1,4 +1,5 @@
-from typing import Tuple, List, TypeVar, Generic, Iterable, Iterator, Any
+from typing import Tuple, List, TypeVar, Generic, Iterable, Iterator, Any, \
+    Optional, Set
 
 TItem = TypeVar('TItem')
 
@@ -23,20 +24,30 @@ class BucketPriorityQueue(Generic[TItem]):
     """
 
     def __init__(self,
-                 items: Iterable[Tuple[int, TItem]] = (),
+                 entries: Iterable[Tuple[int, TItem]] = (),
                  *,
-                 drop_duplicates: bool=False):
-        """Initializes a new priority queue."""
+                 drop_duplicate_entries: bool=False):
+        """Initializes a new priority queue.
+
+        Args:
+            entries: Initial contents of the priority queue.
+            drop_duplicate_entries: If set, the priority queue will ignore
+                operations that enqueue a (priority, item) pair that is already
+                in the priority queue. Note that duplicates of an item may still
+                be enqueued, as long as they have different priorities.
+        """
         self._buckets = []  # type: List[List[TItem]]
         self._offset = 0
         self._len = 0
-        self._drop_set = set() if drop_duplicates else None
+        self._drop_set = (set()
+                          if drop_duplicate_entries
+                          else None)  # type: Optional[Set[Tuple[int, TItem]]]
 
-        for p, e in items:
+        for p, e in entries:
             self.enqueue(p, e)
 
     @property
-    def drop_duplicates(self) -> bool:
+    def drop_duplicate_entries(self) -> bool:
         return self._drop_set is not None
 
     def __bool__(self) -> bool:
@@ -48,12 +59,17 @@ class BucketPriorityQueue(Generic[TItem]):
         return self._len
 
     def __iter__(self) -> Iterator[Tuple[int, TItem]]:
+        """Iterates the (priority, item) entries in the queue."""
         for i, bucket in enumerate(self._buckets):
             for item in bucket:
                 yield i + self._offset, item
 
     def enqueue(self, priority: int, item: TItem) -> bool:
-        """Adds an item to the priority queue.
+        """Adds an entry to the priority queue.
+
+        If drop_duplicate_entries is set and there is already a (priority, item)
+        entry in the queue, then the enqueue is ignored. Check the return value
+        to determine if an enqueue was kept or dropped.
 
         Args:
             priority: The priority of the item. Lower priorities dequeue before
@@ -61,10 +77,10 @@ class BucketPriorityQueue(Generic[TItem]):
             item: The item associated with the given priority.
 
         Returns:
-            True if the item was enqueued. False if drop_duplicates is
+            True if the item was enqueued. False if drop_duplicate_entries is
             set and the item is already in the queue.
         """
-        if self.drop_duplicates:
+        if self._drop_set is not None:
             if (priority, item) in self._drop_set:
                 return False
             self._drop_set.add((priority, item))
@@ -117,7 +133,7 @@ class BucketPriorityQueue(Generic[TItem]):
         item = self._buckets[0].pop(0)
         priority = self._offset
         self._len -= 1
-        if self.drop_duplicates:
+        if self._drop_set is not None:
             self._drop_set.remove((priority, item))
 
         # Note: do not eagerly clear out empty buckets after pulling the item!
@@ -134,17 +150,17 @@ class BucketPriorityQueue(Generic[TItem]):
         return 'BucketPriorityQueue {' + _indent(lines) + '\n}'
 
     def __repr__(self):
-        return '{}(items={!r}, drop_duplicates={!r})'.format(
+        return '{}(entries={!r}, drop_duplicate_entries={!r})'.format(
             'cirq.circuits._bucket_priority_queue.BucketPriorityQueue',
             list(self),
             self._drop_set is not None)
 
-    __hash__ = None
+    __hash__ = None  # type: ignore
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self.drop_duplicates == other.drop_duplicates and
+        return (self.drop_duplicate_entries == other.drop_duplicate_entries and
                 list(self) == list(other))
 
     def __ne__(self, other):
