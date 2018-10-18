@@ -26,13 +26,12 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq import study
     from typing import Dict, List
 
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
     gate_features.ExtrapolatableEffect
-]}
+]}  # type: Dict[type, type]
 
 LIFTED_POTENTIAL_TYPES[
     gate_features.CompositeOperation] = gate_features.CompositeGate

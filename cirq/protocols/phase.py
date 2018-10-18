@@ -19,7 +19,7 @@ from typing_extensions import Protocol
 # This is a special value to indicate that a type error should be returned.
 # This is used within phase_by to raise an error if no underlying
 # implementation of _phase_by_ exists.
-RaiseTypeErrorIfNotProvided = ([],)
+RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 TDefault = TypeVar('TDefault')
 
@@ -52,12 +52,22 @@ def phase_by(val: Any, phase_turns: float, qubit_index: int,
         val: The value to describe with a unitary matrix.
         phase_turns: The amount to phase the gate, in fractions of a whole
             turn.  Divide by 2pi to get radians.
-        qubit_index: The index of the target qubit the phasing applies to.
+        qubit_index: The index of the target qubit the phasing applies to. For
+            operations this is the index of the qubit within the operation's
+            qubit list. For gates it's the index of the qubit within the tuple
+            of qubits taken by the gate's `on` method.
+        default: The default value to return if `val` can't be phased. If not
+            specified, an error is raised when `val` can't be phased.
 
     Returns:
         If `val` has a _phase_by_ method and its result is not NotImplemented,
         that result is returned. Otherwise, the function will return the
         default value provided or raise a TypeError if none was provided.
+
+    Raises:
+        TypeError:
+            `val` doesn't have a _phase_by_ method (or that method returned
+            NotImplemented) and no `default` was specified.
     """
     getter = getattr(val, '_phase_by_', None)
     result = NotImplemented if getter is None else getter(
