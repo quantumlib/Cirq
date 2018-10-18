@@ -63,30 +63,3 @@ def test_clears_known_empties_even_at_zero_tolerance():
                              cirq.Moment([cirq.X(a)**-0.0000001]),
                              cirq.Moment(),
                          ]))
-
-
-def test_supports_extensions():
-
-    class DummyGate(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.BoundedEffect, DummyGate, lambda e: cirq.Z**0.00001)
-    big_ext = cirq.Extensions()
-    big_ext.add_cast(cirq.BoundedEffect, DummyGate, lambda e: cirq.Z**0.75)
-    with_ext = cirq.DropNegligible(tolerance=0.001, extensions=ext)
-    with_big_ext = cirq.DropNegligible(tolerance=0.001, extensions=big_ext)
-    without_ext = cirq.DropNegligible(tolerance=0.001)
-
-    a = cirq.NamedQubit('a')
-    circuit = cirq.Circuit.from_ops(DummyGate().on(a))
-    cleared = cirq.Circuit([cirq.Moment()])
-    assert_optimizes(without_ext,
-                     initial_circuit=circuit,
-                     expected_circuit=circuit)
-    assert_optimizes(with_ext,
-                     initial_circuit=circuit,
-                     expected_circuit=cleared)
-    assert_optimizes(with_big_ext,
-                     initial_circuit=circuit,
-                     expected_circuit=circuit)

@@ -68,6 +68,15 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CCZ,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CCX,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CSWAP)
+
 
 def test_str():
     assert str(cirq.CCX) == 'TOFFOLI'
@@ -187,7 +196,7 @@ def test_diagram():
         cirq.CSWAP(a, c, d),
         cirq.FREDKIN(a, b, c)
     )
-    assert circuit.to_text_diagram() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───@───@───────@───@───@───────@───@───
       │   │       │   │   │       │   │
 1: ───@───@───────X───@───@───────┼───×───
@@ -195,8 +204,8 @@ def test_diagram():
 2: ───X───X^0.5───@───┼───┼───────×───×───
                       │   │       │
 3: ───────────────────@───@^0.5───×───────
-""".strip()
-    assert circuit.to_text_diagram(use_unicode_characters=False) == """
+""")
+    cirq.testing.assert_has_diagram(circuit, """
 0: ---@---@-------@---@---@-------@------@------
       |   |       |   |   |       |      |
 1: ---@---@-------X---@---@-------|------swap---
@@ -204,4 +213,4 @@ def test_diagram():
 2: ---X---X^0.5---@---|---|-------swap---swap---
                       |   |       |
 3: -------------------@---@^0.5---swap----------
-""".strip()
+""", use_unicode_characters=False)

@@ -12,20 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Import sub-modules.
-
-from cirq import (
-    circuits,
-    devices,
-    google,
-    linalg,
-    ops,
-    schedules,
-    study,
-    testing,
-)
-
-# Also flatten some of the sub-modules.
+# Flattened sub-modules.
 
 from cirq.circuits import (
     Circuit,
@@ -71,8 +58,10 @@ from cirq.extension import (
 
 from cirq.linalg import (
     allclose_up_to_global_phase,
+    apply_matrix_to_slices,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    slice_for_qubits_equal_to,
     block_diag,
     match_global_phase,
     commutes,
@@ -107,10 +96,9 @@ from cirq.line import (
 )
 
 from cirq.ops import (
-    BoundedEffect,
     CCX,
     CCZ,
-    CliffordGate,
+    SingleQubitCliffordGate,
     CNOT,
     CNotGate,
     CompositeGate,
@@ -128,7 +116,6 @@ from cirq.ops import (
     H,
     HGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
     ISwapGate,
     measure,
@@ -137,12 +124,10 @@ from cirq.ops import (
     NamedQubit,
     OP_TREE,
     Operation,
-    ParameterizableEffect,
     Pauli,
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
@@ -150,7 +135,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -164,6 +148,7 @@ from cirq.ops import (
     TextDiagrammable,
     TextDiagramInfo,
     TextDiagramInfoArgs,
+    ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -179,6 +164,17 @@ from cirq.schedules import (
     moment_by_moment_schedule,
 )
 
+from cirq.sim import (
+    dirac_notation,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesIntermediateWaveFunction,
+    to_valid_state_vector,
+    SimulatesFinalWaveFunction,
+    validate_normalized_state,
+)
+
 from cirq.study import (
     Linspace,
     ParamResolver,
@@ -186,6 +182,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    to_resolvers,
     TrialResult,
     UnitSweep,
 )
@@ -200,8 +197,30 @@ from cirq.value import (
 )
 
 from cirq.protocols import (
+    apply_unitary_to_tensor,
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
+    inverse,
+    SupportsApplyUnitaryToTensor,
+    SupportsCircuitDiagramInfo,
     SupportsUnitary,
+    SupportsParameterization,
+    SupportsPhase,
+    SupportsTraceDistanceBound,
+    is_parameterized,
+    resolve_parameters,
     unitary,
+    trace_distance_bound,
+    phase_by,
+)
+
+# Unflattened sub-modules.
+
+from cirq import (
+    contrib,
+    google,
+    testing,
 )
 
 # Import version last since it is a relative import.

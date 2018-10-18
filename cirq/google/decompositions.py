@@ -16,11 +16,11 @@
 
 import cmath
 import math
-from typing import List, Tuple, cast
+from typing import List, Tuple
 
 import numpy as np
 
-from cirq import ops, linalg
+from cirq import ops, linalg, protocols
 from cirq.decompositions import single_qubit_op_to_framed_phase_form
 from cirq.google.xmon_gates import ExpWGate
 
@@ -81,7 +81,7 @@ def single_qubit_matrix_to_native_gates(
     ]
     result = [
         g for g in result
-        if cast(ops.BoundedEffect, g).trace_distance_bound() > tolerance
+        if protocols.trace_distance_bound(g) > tolerance
     ]
 
     # Special case: XY half-turns can absorb Z rotations.
@@ -120,7 +120,7 @@ def controlled_op_to_native_gates(
         del u_gates[-1]
 
     ops_before = [gate(target) for gate in u_gates]
-    ops_after = ops.inverse(ops_before)
+    ops_after = protocols.inverse(ops_before)
     effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
     kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
 

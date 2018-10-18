@@ -13,16 +13,18 @@
 # limitations under the License.
 
 """Quantum gates that are commonly used in the literature."""
-from typing import Union, Tuple, Optional, List, Callable, cast, Iterable
+from typing import (
+    Union, Tuple, Optional, List, Callable, cast, Iterable, Sequence,
+)
 
 import numpy as np
 
-from cirq import value
+from cirq import value, linalg, protocols
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.type_workarounds import NotImplementedType
 
 
 class Rot11Gate(eigen_gate.EigenGate,
-                gate_features.PhaseableEffect,
                 gate_features.TwoQubitGate,
                 gate_features.TextDiagrammable,
                 gate_features.InterchangeableQubitsGate,
@@ -58,6 +60,19 @@ class Rot11Gate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 1])),
         ]
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+
+        c = np.exp(1j * np.pi * self.half_turns)
+        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
+        target_tensor[one_one] *= c
+        return target_tensor
+
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
@@ -65,7 +80,7 @@ class Rot11Gate(eigen_gate.EigenGate,
                        exponent: Union[value.Symbol, float]) -> 'Rot11Gate':
         return Rot11Gate(half_turns=exponent)
 
-    def phase_by(self, phase_turns, qubit_index):
+    def _phase_by_(self, phase_turns, qubit_index):
         return self
 
     @property
@@ -122,6 +137,19 @@ class RotXGate(eigen_gate.EigenGate,
             half_turns=half_turns,
             rads=rads,
             degs=degs))
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if self.half_turns != 1:
+            return NotImplemented
+        zero = linalg.slice_for_qubits_equal_to(axes, 0)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        available_buffer[zero] = target_tensor[one]
+        available_buffer[one] = target_tensor[zero]
+        return available_buffer
 
     def _eigen_components(self):
         return [
@@ -240,29 +268,49 @@ class RotYGate(eigen_gate.EigenGate,
 class RotZGate(eigen_gate.EigenGate,
                gate_features.TextDiagrammable,
                gate_features.SingleQubitGate,
-               gate_features.PhaseableEffect,
                gate_features.QasmConvertibleGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
+                 degs: Optional[float] = None,
+                 global_shift_in_half_turns: float = 0.0) -> None:
         """Initializes the gate.
 
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
+        At most one relative phasing angle argument may be specified. If more
+        are specified, the result is considered ambiguous and an error is
+        thrown. If no angle argument is given, the default value of one half
+        turn is used.
 
         Args:
             half_turns: The relative phasing of Z's eigenstates, in half_turns.
             rads: The relative phasing of Z's eigenstates, in radians.
             degs: The relative phasing of Z's eigenstates, in degrees.
+            global_shift_in_half_turns: Offsets the eigenvalues of the gate.
+                The default shift of 0 gives the Z gate's matrix eigenvalues of
+                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
+                -i and +i. The shift is always specified assuming an exponent of
+                one (i.e. a 180 degree rotation).
         """
         super().__init__(exponent=value.chosen_angle_to_half_turns(
             half_turns=half_turns,
             rads=rads,
-            degs=degs))
+            degs=degs),
+            global_shift_in_half_turns=global_shift_in_half_turns)
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        c = np.exp(1j * np.pi * self.half_turns)
+        target_tensor[one] *= c
+        return target_tensor
 
     def _eigen_components(self):
         return [
@@ -271,17 +319,23 @@ class RotZGate(eigen_gate.EigenGate,
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
+        if self._global_shift_in_half_turns == 0:
+            return 2
+        if abs(self._global_shift_in_half_turns) == 0.5:
+            return 4
+        return None
 
     def _with_exponent(self,
                        exponent: Union[value.Symbol, float]) -> 'RotZGate':
-        return RotZGate(half_turns=exponent)
+        return RotZGate(
+            half_turns=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def phase_by(self,
+    def _phase_by_(self,
                  phase_turns: float,
                  qubit_index: int):
         return self
@@ -540,6 +594,22 @@ class HGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zero = linalg.slice_for_qubits_equal_to(axes, 0)
+        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        target_tensor[one] -= target_tensor[zero]
+        target_tensor[one] *= -0.5
+        target_tensor[zero] -= target_tensor[one]
+        target_tensor *= np.sqrt(2)
+        return target_tensor
+
     def default_decompose(self, qubits):
         q = qubits[0]
 
@@ -550,9 +620,6 @@ class HGate(eigen_gate.EigenGate,
         yield Y(q)**0.25
         yield X(q)**self.half_turns
         yield Y(q)**-0.25
-
-    def inverse(self):
-        return self
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:
@@ -645,6 +712,21 @@ class CNotGate(eigen_gate.EigenGate,
             wire_symbols=('@', 'X'),
             exponent=self._exponent)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        oo = linalg.slice_for_qubits_equal_to(axes, 0b11)
+        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        available_buffer[oo] = target_tensor[oo]
+        target_tensor[oo] = target_tensor[zo]
+        target_tensor[zo] = available_buffer[oo]
+        return target_tensor
+
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
@@ -708,6 +790,21 @@ class SwapGate(eigen_gate.EigenGate,
                           [0, -0.5,  0.5, 0],
                           [0,  0,    0,   0]])),
         ]
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if self.half_turns != 1:
+            return NotImplemented
+
+        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        return target_tensor
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -804,6 +901,23 @@ class ISwapGate(eigen_gate.EigenGate,
         yield S(a)**-self.exponent
         yield H(a)
         yield CNOT(a, b)
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if self.exponent != 1:
+            return NotImplemented
+
+        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
+        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        target_tensor[zo] *= 1j
+        target_tensor[oz] *= 1j
+        return target_tensor
 
     def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
                           ) -> gate_features.TextDiagramInfo:

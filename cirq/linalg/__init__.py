@@ -41,6 +41,7 @@ from cirq.linalg.diagonalize import (
 )
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
+    slice_for_qubits_equal_to,
     commutes,
     is_diagonal,
     is_hermitian,
@@ -53,6 +54,7 @@ from cirq.linalg.tolerance import (
     Tolerance,
 )
 from cirq.linalg.transformations import (
+    apply_matrix_to_slices,
     match_global_phase,
     reflection_matrix_pow,
     targeted_left_multiply,

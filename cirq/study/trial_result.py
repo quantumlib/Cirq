@@ -159,7 +159,7 @@ class TrialResult:
         """
         fixed_keys = tuple(keys)
         samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])
+                        for sub_key in fixed_keys])  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
@@ -223,3 +223,14 @@ class TrialResult:
 
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
+
+    def _eq_tuple(self):
+        return (TrialResult, self.measurements, self.repetitions, self.params)
+
+    def __eq__(self, other):
+        if not isinstance(other, TrialResult):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
