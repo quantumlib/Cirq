@@ -140,7 +140,7 @@ class ControlledGate(raw_types.Gate,
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         if qubit_index == 0:
             return self
-        phased_gate = cirq.phase_by(
+        phased_gate = protocols.phase_by(
             self.sub_gate, phase_turns, qubit_index, None)
         if phased_gate is None:
             return NotImplemented
