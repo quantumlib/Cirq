@@ -44,7 +44,7 @@ def assert_equivalent_repr(
             '\n'
             'setup_code={!r}\n'
             'value={!r}\n'
-            'error={}'.format(ex, setup_code, value))
+            'error={}'.format(setup_code, value, ex))
 
     assert eval_repr_value == value, (
         "The repr of a value of type {} didn't evaluate to something equal "

@@ -26,13 +26,13 @@ from cirq.contrib.acquaintance.permutation import (
 from cirq.contrib.acquaintance.executor import (
         StrategyExecutor, GreedyExecutionStrategy)
 
-class ExampleGate(cirq.Gate, cirq.TextDiagrammable):
+class ExampleGate(cirq.Gate):
     def __init__(self, wire_symbols: Sequence[str]) -> None:
         self._wire_symbols = tuple(wire_symbols)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        return cirq.CircuitDiagramInfo(
                 wire_symbols=self._wire_symbols)
 
 
@@ -87,7 +87,7 @@ def test_executor_explicit():
     assert actual_text_diagram == expected_text_diagram
 
 
-class DiagonalGate(cirq.Gate, cirq.TextDiagrammable):
+class DiagonalGate(cirq.Gate):
     def __init__(self, n_qubits: int, diagonal: np.ndarray) -> None:
         dimension = 2 ** n_qubits
         if (diagonal.shape != (dimension,) or not
@@ -101,20 +101,19 @@ class DiagonalGate(cirq.Gate, cirq.TextDiagrammable):
     def _unitary_(self) -> np.ndarray:
         return np.diag(self.diagonal)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
-        if args.known_qubit_count is None:
-            raise ValueError('args.known_qubit_count is None')
-        wire_symbols = ('Diag',) * args.known_qubit_count
-        return cirq.TextDiagramInfo(
-                wire_symbols=wire_symbols)
-
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
+        qubit_count = int(np.round(np.log2(len(self.diagonal))))
+        if (args.known_qubit_count is not None and
+                args.known_qubit_count != qubit_count):
+            raise ValueError('args.known_qubit_count is wrong')
+        return ('Diag',) * qubit_count
 
     @staticmethod
     def random(n_qubits: int):
         dimension = 2 ** n_qubits
         diagonal = np.exp(2j * np.pi * np.random.random(dimension))
         return DiagonalGate(n_qubits, diagonal)
+
 
 def test_diagonal_gate():
     with pytest.raises(ValueError):
@@ -124,9 +123,8 @@ def test_diagonal_gate():
         diagonal = np.ndarray(range(4))
         DiagonalGate(2, diagonal)
     gate = DiagonalGate.random(2)
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    with pytest.raises(ValueError):
-        gate.text_diagram_info(args)
+    assert cirq.circuit_diagram_info(gate) == cirq.CircuitDiagramInfo(
+        wire_symbols=('Diag', 'Diag'))
 
     qubits = cirq.LineQubit.range(2)
     gate = DiagonalGate.random(2)
@@ -138,6 +136,7 @@ def test_diagonal_gate():
 1: ───Diag───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+
 
 def random_diagonal_gates(n_qubits: int,
                  acquaintance_size: int
