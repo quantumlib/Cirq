@@ -103,9 +103,8 @@ class DiagonalGate(cirq.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         qubit_count = int(np.round(np.log2(len(self.diagonal))))
-        if (args.known_qubit_count is not None and
-                args.known_qubit_count != qubit_count):
-            raise ValueError('args.known_qubit_count is wrong')
+        assert (args.known_qubit_count is None or
+                args.known_qubit_count == qubit_count)
         return ('Diag',) * qubit_count
 
     @staticmethod
