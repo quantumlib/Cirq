@@ -128,7 +128,6 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
@@ -136,7 +135,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -166,6 +164,17 @@ from cirq.schedules import (
     moment_by_moment_schedule,
 )
 
+from cirq.sim import (
+    dirac_notation,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesIntermediateWaveFunction,
+    to_valid_state_vector,
+    SimulatesFinalWaveFunction,
+    validate_normalized_state,
+)
+
 from cirq.study import (
     Linspace,
     ParamResolver,
@@ -173,6 +182,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    to_resolvers,
     TrialResult,
     UnitSweep,
 )
@@ -196,11 +206,13 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     SupportsParameterization,
+    SupportsPhase,
+    SupportsTraceDistanceBound,
     is_parameterized,
     resolve_parameters,
     unitary,
-    SupportsTraceDistanceBound,
     trace_distance_bound,
+    phase_by,
 )
 
 # Unflattened sub-modules.

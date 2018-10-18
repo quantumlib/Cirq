@@ -13,13 +13,12 @@
 # limitations under the License.
 
 
-import operator
 from typing import Dict
 
-from cirq.ops import QubitId
+from cirq import ops
 
 
-class GridQubit(QubitId):
+class GridQubit(ops.QubitId):
     """A qubit on a 2d square lattice.
 
     GridQubits use row-major ordering:
@@ -31,36 +30,13 @@ class GridQubit(QubitId):
         self.row = row
         self.col = col
 
-    def is_adjacent(self, other: QubitId) -> bool:
+    def _comparison_key(self):
+        return self.row, self.col
+
+    def is_adjacent(self, other: ops.QubitId) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
-
-    def _compare(self, other, op):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return op((self.row, self.col), (other.row, other.col))
-
-    def __eq__(self, other):
-        return self._compare(other, operator.eq)
-
-    def __ne__(self, other):
-        return self._compare(other, operator.ne)
-
-    def __lt__(self, other):
-        return self._compare(other, operator.lt)
-
-    def __gt__(self, other):
-        return self._compare(other, operator.gt)
-
-    def __le__(self, other):
-        return self._compare(other, operator.le)
-
-    def __ge__(self, other):
-        return self._compare(other, operator.ge)
-
-    def __hash__(self):
-        return hash((GridQubit, self.row, self.col))
 
     def __repr__(self):
         return 'cirq.GridQubit({}, {})'.format(self.row, self.col)

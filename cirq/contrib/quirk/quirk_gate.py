@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq import ops, Symbol
 from cirq.extension import Extensions
-from cirq.google.xmon_gates import ExpZGate, Exp11Gate, ExpWGate
+from cirq.google.xmon_gates import ExpZGate, ExpWGate
 
 
 class QuirkOp:
@@ -98,7 +98,7 @@ def y_to_known(gate: Union[ops.RotYGate, ExpWGate]) -> Optional[QuirkOp]:
     return QuirkOp('Y' + e)
 
 
-def cz_to_known(gate: Union[ops.Rot11Gate, Exp11Gate]) -> Optional[QuirkOp]:
+def cz_to_known(gate: ops.Rot11Gate) -> Optional[QuirkOp]:
     e = angle_to_exponent_key(gate.half_turns)
     if e is None:
         return None
@@ -152,7 +152,6 @@ quirk_gate_ext.add_cast(QuirkOp, ops.RotZGate, z_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ExpZGate, z_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ExpWGate, w_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ops.Rot11Gate, cz_to_known)
-quirk_gate_ext.add_cast(QuirkOp, Exp11Gate, cz_to_known)
 quirk_gate_ext.add_cast(QuirkOp,
                         ops.CNotGate,
                         lambda e: QuirkOp('•', 'X',

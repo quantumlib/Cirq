@@ -65,7 +65,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         elif quarter_turns == 2:
             return ops.SingleQubitCliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True).inverse()
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
         else:
             return ops.SingleQubitCliffordGate.I
 
@@ -101,7 +101,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                                  'Clifford group: {!r}'.format(op))
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extensions.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 

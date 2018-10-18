@@ -14,10 +14,13 @@
 
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
+import abc
+
 import numpy as np
 
-from cirq import abc, extension, value
+from cirq import extension, value
 from cirq.ops import gate_features, raw_types
+from cirq.type_workarounds import NotImplementedType
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -43,8 +46,7 @@ EigenComponent = NamedTuple(
 
 class EigenGate(raw_types.Gate,
                 extension.PotentialImplementation[Union[
-                    gate_features.ExtrapolatableEffect,
-                    gate_features.ReversibleEffect]]):
+                    gate_features.ExtrapolatableEffect]]):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -178,9 +180,6 @@ class EigenGate(raw_types.Gate,
             return NotImplemented
         return self.extrapolate_effect(power)
 
-    def inverse(self: TSelf) -> TSelf:
-        return self.extrapolate_effect(-1)
-
     def _identity_tuple(self):
         return (type(self),
                 self._exponent,
@@ -207,13 +206,12 @@ class EigenGate(raw_types.Gate,
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
     def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableEffect,
-                             gate_features.ReversibleEffect] and
+        if (desired_type in [gate_features.ExtrapolatableEffect] and
                 not self._is_parameterized_()):
             return self
         return super().try_cast_to(desired_type, ext)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)

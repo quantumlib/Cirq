@@ -49,11 +49,9 @@ from cirq.ops.gate_features import (
     CompositeOperation,
     ExtrapolatableEffect,
     InterchangeableQubitsGate,
-    PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
-    ReversibleEffect,
     SingleQubitGate,
     TextDiagrammable,
     TextDiagramInfo,
@@ -73,6 +71,9 @@ from cirq.ops.qubit_order_or_list import (
 from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
+)
+from cirq.ops.named_qubit import (
+    NamedQubit,
 )
 from cirq.ops.op_tree import (
     OP_TREE,
@@ -95,7 +96,6 @@ from cirq.ops.pauli_string import (
 )
 from cirq.ops.raw_types import (
     Gate,
-    NamedQubit,
     Operation,
     QubitId,
 )

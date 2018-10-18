@@ -18,19 +18,18 @@ import numpy as np
 
 from cirq import linalg, extension, protocols
 from cirq.ops import raw_types, gate_features
+from cirq.type_workarounds import NotImplementedType
 
 T_DESIRED = TypeVar('T_DESIRED')
 
 POTENTIALLY_EXPOSED_SUB_TYPES = (
     gate_features.ExtrapolatableEffect,
-    gate_features.ReversibleEffect,
 )
 
 
 class ControlledGate(raw_types.Gate,
                      extension.PotentialImplementation[Union[
                          gate_features.ExtrapolatableEffect,
-                         gate_features.ReversibleEffect,
                      ]]):
     """Augments existing gates with a control qubit."""
 
@@ -45,9 +44,9 @@ class ControlledGate(raw_types.Gate,
             default_extensions: The extensions method that should be used when
                 determining if the controlled gate supports certain gate
                 features. For example, if this extensions instance is able to
-                cast sub_gate to a ReversibleEffect then the controlled gate
-                can also be cast to a ReversibleEffect. When this value is None,
-                an empty extensions instance is used instead.
+                cast sub_gate to a ExtrapolatableEffect then the controlled gate
+                can also be cast to a ExtrapolatableEffect. When this value is
+                None, an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
         self.default_extensions = default_extensions
@@ -117,14 +116,15 @@ class ControlledGate(raw_types.Gate,
             return ControlledGate(cast_sub_gate, ext)
         return super().try_cast_to(desired_type, ext)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return NotImplemented
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
     def extrapolate_effect(self, factor) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableEffect)
+        cast_sub_gate = self._cast_sub_gate(  # type: ignore
+            gate_features.ExtrapolatableEffect)
         new_sub_gate = cast_sub_gate.extrapolate_effect(factor)
         return ControlledGate(cast(raw_types.Gate, new_sub_gate),
                               self.default_extensions)
@@ -136,11 +136,6 @@ class ControlledGate(raw_types.Gate,
                 return NotImplemented
             return ControlledGate(inv_gate, self.default_extensions)
         return self.extrapolate_effect(power)
-
-    def inverse(self) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleEffect)
-        return ControlledGate(cast(raw_types.Gate, cast_sub_gate.inverse()),
-                              self.default_extensions)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)

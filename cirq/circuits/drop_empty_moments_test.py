@@ -22,8 +22,8 @@ def assert_optimizes(before, after):
 
 
 def test_drop():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment(),

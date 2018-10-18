@@ -433,7 +433,7 @@ simulator = cirq.google.XmonSimulator()
 circuit = cirq.Circuit()    
 circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
 circuit.append(cirq.measure(*qubits, key='x'))
-results = simulator.run(circuit, repetitions=100, qubit_order=qubits)
+results = simulator.run(circuit, repetitions=100)
 print(results.histogram(key='x'))
 # prints something like
 # Counter({0: 85, 128: 5, 32: 3, 1: 2, 4: 1, 2: 1, 8: 1, 18: 1, 20: 1})
