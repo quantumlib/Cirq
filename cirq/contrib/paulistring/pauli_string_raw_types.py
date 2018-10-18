@@ -68,4 +68,5 @@ class PauliStringGateOperation(ops.Operation,
                 exponent = -exponent
             else:
                 exponent = '-{!s}'.format(exponent)
-        return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=exponent)
+        return protocols.CircuitDiagramInfo(wire_symbols=syms,
+                                            exponent=exponent)
