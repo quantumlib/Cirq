@@ -121,8 +121,8 @@ def test_inverse():
 
 
 def test_trace_distance_bound():
-    assert CExpZinGate(0.001).trace_distance_bound() < 0.01
-    assert CExpZinGate(cirq.Symbol('a')).trace_distance_bound() >= 1
+    assert cirq.trace_distance_bound(CExpZinGate(0.001)) < 0.01
+    assert cirq.trace_distance_bound(CExpZinGate(cirq.Symbol('a'))) >= 1
 
 
 def test_try_cast_to():
@@ -215,15 +215,15 @@ def test_matrix_is_exact_for_quarter_turn():
 
 
 def test_is_parameterized():
-    assert not CExpZinGate(0).is_parameterized()
-    assert not CExpZinGate(1).is_parameterized()
-    assert not CExpZinGate(3).is_parameterized()
-    assert CExpZinGate(cirq.Symbol('a')).is_parameterized()
+    assert not cirq.is_parameterized(CExpZinGate(0))
+    assert not cirq.is_parameterized(CExpZinGate(1))
+    assert not cirq.is_parameterized(CExpZinGate(3))
+    assert cirq.is_parameterized(CExpZinGate(cirq.Symbol('a')))
 
 
-def test_with_parameters_resolved_by():
-    assert CExpZinGate(cirq.Symbol('a')).with_parameters_resolved_by(
+def test_resolve_parameters():
+    assert cirq.resolve_parameters(CExpZinGate(cirq.Symbol('a')),
         cirq.ParamResolver({'a': 0.5})) == CExpZinGate(0.5)
 
-    assert CExpZinGate(0.25).with_parameters_resolved_by(
+    assert cirq.resolve_parameters(CExpZinGate(0.25),
         cirq.ParamResolver({})) == CExpZinGate(0.25)

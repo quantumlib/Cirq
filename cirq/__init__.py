@@ -96,7 +96,6 @@ from cirq.line import (
 )
 
 from cirq.ops import (
-    BoundedEffect,
     CCX,
     CCZ,
     SingleQubitCliffordGate,
@@ -125,12 +124,10 @@ from cirq.ops import (
     NamedQubit,
     OP_TREE,
     Operation,
-    ParameterizableEffect,
     Pauli,
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
@@ -138,7 +135,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
     Rot11Gate,
     RotXGate,
     RotYGate,
@@ -209,7 +205,14 @@ from cirq.protocols import (
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
+    SupportsParameterization,
+    SupportsPhase,
+    SupportsTraceDistanceBound,
+    is_parameterized,
+    resolve_parameters,
     unitary,
+    trace_distance_bound,
+    phase_by,
 )
 
 # Unflattened sub-modules.

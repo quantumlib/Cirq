@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements the inverse method of a CompositeOperation & ReversibleEffect."""
+"""Implements the inverse method of a reversible CompositeOperation."""
 from typing import TypeVar, Generic
 
-from cirq import abc, protocols
+import abc
+
+from cirq import protocols
 from cirq.ops import gate_features
 
 
@@ -23,34 +25,26 @@ TOriginal = TypeVar('TOriginal', bound='ReversibleCompositeGate')
 
 
 class ReversibleCompositeGate(gate_features.CompositeGate,
-                              gate_features.ReversibleEffect,
                               metaclass=abc.ABCMeta):
     """A composite gate that gets decomposed into reversible gates."""
 
-    def __pow__(self, power):
+    def __pow__(self: TOriginal,
+                power) -> '_ReversedReversibleCompositeGate[TOriginal]':
         if power != -1:
             return NotImplemented
-        return self.inverse()
-
-    def inverse(self: TOriginal
-                ) -> '_ReversedReversibleCompositeGate[TOriginal]':
         return _ReversedReversibleCompositeGate(self)
 
 
 class _ReversedReversibleCompositeGate(Generic[TOriginal],
-                                       gate_features.CompositeGate,
-                                       gate_features.ReversibleEffect):
+                                       gate_features.CompositeGate):
     """A reversed reversible composite gate."""
 
     def __init__(self, forward_form: TOriginal) -> None:
         self.forward_form = forward_form
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> TOriginal:
         if power != -1:
             return NotImplemented
-        return self.inverse()
-
-    def inverse(self) -> TOriginal:
         return self.forward_form
 
     def default_decompose(self, qubits):

@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any, Dict, Sequence, Tuple, TypeVar
-)
+from typing import Any, Dict, Sequence, Tuple, TypeVar
 
-from cirq import ops, abc
+import abc
 
+from cirq import ops
 from cirq.ops.pauli_string import PauliString
 
 

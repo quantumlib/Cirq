@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple, cast
 
 import numpy as np
 import pytest
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 class RestrictedGate(cirq.Gate):
@@ -106,7 +107,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         available_buffer[...] = target_tensor
         target_tensor[...] = 0
         return available_buffer
@@ -124,11 +125,13 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         assert len(axes) == 1
         a = axes[0]
-        zero = (slice(None),)*a + (0, Ellipsis)
-        one = (slice(None),)*a + (1, Ellipsis)
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
+                    (slice(None),))
+        zero = seed*a + (0, Ellipsis)
+        one = seed*a + (1, Ellipsis)
         result = np.zeros(target_tensor.shape, target_tensor.dtype)
         result[zero] = target_tensor[zero]*2 + target_tensor[one]*3
         result[one] = target_tensor[zero]*5 + target_tensor[one]*7
@@ -179,14 +182,10 @@ def test_try_cast_to():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.inverse(CY) == CY**-1 == CY
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert cirq.inverse(CY, None) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
-    assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
-    assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
 
 
 def test_extrapolatable_effect():
@@ -210,12 +209,9 @@ def test_extrapolatable_via_extension():
         _ = without_ext.extrapolate_effect(0.5)
     with pytest.raises(TypeError):
         _ = without_ext**0.5
-    with pytest.raises(TypeError):
-        _ = without_ext.inverse()
 
     assert (with_ext.extrapolate_effect(0.5) ==
             cirq.ControlledGate(cirq.X.extrapolate_effect(0.5)))
-    assert with_ext.inverse() == cirq.ControlledGate(cirq.X)
     assert with_ext**0.5 == cirq.ControlledGate(cirq.X.extrapolate_effect(0.5))
 
 
@@ -228,21 +224,9 @@ def test_parameterizable():
     a = cirq.Symbol('a')
     cz = cirq.ControlledGate(cirq.RotYGate(half_turns=1))
     cza = cirq.ControlledGate(cirq.RotYGate(half_turns=a))
-    assert cza.is_parameterized()
-    assert not cz.is_parameterized()
-    assert cza.with_parameters_resolved_by(cirq.ParamResolver({'a': 1})) == cz
-
-
-def test_parameterizable_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableEffect, RestrictedGate, lambda _: cirq.S)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.is_parameterized()
-
-    assert not with_ext.is_parameterized()
+    assert cirq.is_parameterized(cza)
+    assert not cirq.is_parameterized(cz)
+    assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
 
 
 def test_circuit_diagram_info():
@@ -268,19 +252,7 @@ def test_circuit_diagram_info():
 
 
 def test_bounded_effect():
-    assert (CY**0.001).trace_distance_bound() < 0.01
-
-
-def test_bounded_effect_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.BoundedEffect, RestrictedGate, lambda _: cirq.Y)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.trace_distance_bound()
-
-    assert with_ext.trace_distance_bound() < 100
+    assert cirq.trace_distance_bound(CY**0.001) < 0.01
 
 
 def test_repr():

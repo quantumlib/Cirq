@@ -235,7 +235,7 @@ def test_removes_zs():
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.XmonMeasurementGate('k').on(a)))
+        cirq.measure(a, key='k')))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.google.ExpZGate().on(a),
@@ -261,7 +261,7 @@ def test_removes_zs():
         cirq.Z(a),
         cirq.Z(b),
         cirq.CZ(a, b),
-        cirq.google.Exp11Gate().on(a, b),
+        cirq.CZ(a, b),
         cirq.measure(a, b)))
 
 

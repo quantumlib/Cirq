@@ -18,7 +18,7 @@ import cirq
 
 
 def test_gate_operation_init():
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     g = cirq.Gate()
     v = cirq.GateOperation(g, (q,))
     assert v.gate == g
@@ -28,8 +28,8 @@ def test_gate_operation_init():
 def test_gate_operation_eq():
     g1 = cirq.Gate()
     g2 = cirq.Gate()
-    r1 = [cirq.QubitId()]
-    r2 = [cirq.QubitId()]
+    r1 = [cirq.NamedQubit('r1')]
+    r2 = [cirq.NamedQubit('r2')]
     r12 = r1 + r2
     r21 = r2 + r1
 
@@ -60,8 +60,8 @@ def test_gate_operation_eq():
 
 def test_gate_operation_pow():
     Y = cirq.Y
-    qubit = cirq.QubitId()
-    assert (Y ** 0.5)(qubit) == Y(qubit) ** 0.5
+    q = cirq.NamedQubit('q')
+    assert (Y ** 0.5)(q) == Y(q) ** 0.5
 
 
 def test_with_qubits_and_transform_qubits():
@@ -129,33 +129,20 @@ def test_bounded_effect():
 
     # If the gate isn't bounded, you get a type error.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.BoundedEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.trace_distance_bound()
-
+    assert cirq.trace_distance_bound(op0) >= 1
     op1 = cirq.GateOperation(cirq.Z**0.000001, [q])
-    assert cirq.can_cast(cirq.BoundedEffect, op1)
-    assert op1.trace_distance_bound() == (cirq.Z**0.000001
-                                          ).trace_distance_bound()
+    op1_bound = cirq.trace_distance_bound(op1)
+    assert op1_bound == cirq.trace_distance_bound(cirq.Z**0.000001)
 
 
 def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    # If the gate isn't parameterizable, you get a type error.
-    op0 = cirq.GateOperation(cirq.Gate(), [q])
-    assert not cirq.can_cast(cirq.ParameterizableEffect, op0)
-    with pytest.raises(TypeError):
-        _ = op0.is_parameterized()
-    with pytest.raises(TypeError):
-        _ = op0.with_parameters_resolved_by(r)
-
     op1 = cirq.GateOperation(cirq.RotZGate(half_turns=cirq.Symbol('a')), [q])
-    assert cirq.can_cast(cirq.ParameterizableEffect, op1)
-    assert op1.is_parameterized()
-    op2 = op1.with_parameters_resolved_by(r)
-    assert not op2.is_parameterized()
+    assert cirq.is_parameterized(op1)
+    op2 = cirq.resolve_parameters(op1, r)
+    assert not cirq.is_parameterized(op2)
     assert op2 == cirq.S.on(q)
 
 

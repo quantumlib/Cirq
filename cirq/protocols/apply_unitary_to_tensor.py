@@ -22,6 +22,7 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq.protocols.unitary import unitary
+from cirq.type_workarounds import NotImplementedType
 
 
 # This is a special indicator value used by the apply_unitary_to_tensor method
@@ -29,6 +30,7 @@ from cirq.protocols.unitary import unitary
 # be of type np.ndarray to ensure the method has the correct type signature in
 # that case. It is checked for using `is`, so it won't have a false positive if
 # the user provides a different np.array([]) value.
+
 RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 
 TDefault = TypeVar('TDefault')
@@ -41,7 +43,7 @@ class SupportsApplyUnitaryToTensor(Protocol):
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
-                                  ) -> Union[np.ndarray, type(NotImplemented)]:
+                                  ) -> Union[np.ndarray, NotImplementedType]:
         """Left-multiplies a unitary effect onto a tensor with good performance.
 
         This method is given both the target tensor and workspace of the same
@@ -156,6 +158,16 @@ def apply_unitary_to_tensor(val: Any,
     # Fallback to using the object's _unitary_ matrix.
     matrix = unitary(val, None)
     if matrix is not None:
+        # Special case for single-qubit operations.
+        if matrix.shape == (2, 2):
+            zero = linalg.slice_for_qubits_equal_to(axes, 0)
+            one = linalg.slice_for_qubits_equal_to(axes, 1)
+            return linalg.apply_matrix_to_slices(target_tensor,
+                                                 matrix,
+                                                 [zero, one],
+                                                 out=available_buffer)
+
+        # Fallback to np.einsum for the general case.
         return linalg.targeted_left_multiply(
             matrix.astype(target_tensor.dtype).reshape((2,) * (2 * len(axes))),
             target_tensor,

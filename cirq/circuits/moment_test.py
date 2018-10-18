@@ -19,10 +19,10 @@ from cirq import Moment
 
 
 def test_validation():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
-    c = cirq.QubitId()
-    d = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    d = cirq.NamedQubit('d')
 
     _ = Moment([])
     _ = Moment([cirq.X(a)])
@@ -41,10 +41,10 @@ def test_validation():
 
 
 def test_equality():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
-    c = cirq.QubitId()
-    d = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    d = cirq.NamedQubit('d')
 
     eq = cirq.testing.EqualsTester()
 
@@ -71,9 +71,9 @@ def test_equality():
 
 
 def test_operates_on():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
-    c = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
 
     # Empty case.
     assert not Moment().operates_on([])
@@ -107,8 +107,8 @@ def test_operates_on():
 
 
 def test_with_operation():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     assert Moment().with_operation(cirq.X(a)) == Moment([cirq.X(a)])
 
@@ -120,9 +120,9 @@ def test_with_operation():
 
 
 def test_without_operations_touching():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
-    c = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
 
     # Empty case.
     assert Moment().without_operations_touching([]) == Moment()
@@ -169,8 +169,8 @@ def test_without_operations_touching():
 
 
 def test_copy():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     original = Moment([cirq.CZ(a, b)])
     copy = original.__copy__()
     assert original == copy
@@ -178,8 +178,8 @@ def test_copy():
 
 
 def test_qubits():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     assert Moment([cirq.X(a), cirq.X(b)]).qubits == {a , b}
     assert Moment([cirq.X(a)]).qubits == {a}

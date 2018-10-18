@@ -14,14 +14,17 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
+from typing import Dict, Optional, Union, Tuple, Any, cast
+
+import abc
 import json
-from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from cirq import abc, ops, value, protocols
-from cirq.extension import PotentialImplementation
+from cirq import ops, value, protocols
 from cirq.devices.grid_qubit import GridQubit
+
+from cirq.type_workarounds import NotImplementedType
 
 
 class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
@@ -36,7 +39,10 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @staticmethod
-    def is_xmon_op(op: ops.Operation) -> bool:
+    def is_supported_op(op: ops.Operation) -> bool:
+        if (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, (ops.Rot11Gate, ops.MeasurementGate))):
+            return True
         return XmonGate.try_get_xmon_gate(op) is not None
 
     @staticmethod
@@ -91,17 +97,16 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
             if ('half_turns' not in exp_11 or 'target1' not in exp_11
                     or 'target2' not in exp_11):
                 raise_missing_fields('Exp11')
-            return Exp11Gate(
-                half_turns=param(exp_11['half_turns'])
-            ).on(qubit(exp_11['target1']), qubit(exp_11['target2']))
+            return ops.CZ(qubit(exp_11['target1']),
+                          qubit(exp_11['target2']))**param(exp_11['half_turns'])
         elif 'measurement' in proto_dict:
             meas = proto_dict['measurement']
-            invert_mask = () # type: Tuple
+            invert_mask = cast(Tuple[Any, ...], ())
             if 'invert_mask' in meas:
                 invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
             if 'key' not in meas or 'targets' not in meas:
                 raise_missing_fields('Measurement')
-            return XmonMeasurementGate(
+            return ops.MeasurementGate(
                 key=meas['key'],
                 invert_mask=invert_mask
             ).on(*[qubit(q) for q in meas['targets']])
@@ -129,143 +134,9 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         return out
 
 
-class XmonMeasurementGate(XmonGate, ops.MeasurementGate):
-    """Indicates that qubits should be measured, and where the result goes.
-
-    This measurement is done in the computational basis.
-    """
-
-    def to_proto_dict(self, *qubits):
-        if len(qubits) == 0:
-            raise ValueError('Measurement gate on no qubits.')
-        if self.invert_mask and len(self.invert_mask) != len(qubits):
-            raise ValueError('Measurement gate had invert mask of length '
-                             'different than number of qubits it acts on.')
-        measurement = {
-            'targets': [q.to_proto_dict() for q in qubits],
-            'key': self.key,
-        }
-        if self.invert_mask:
-            measurement['invert_mask'] = [json.dumps(x) for x in
-                                          self.invert_mask]
-        return {'measurement': measurement}
-
-    def with_bits_flipped(self, *bit_positions: int) -> 'XmonMeasurementGate':
-        sup = super().with_bits_flipped(*bit_positions)
-        return XmonMeasurementGate(key=sup.key, invert_mask=sup.invert_mask)
-
-    def __repr__(self):
-        return 'XmonMeasurementGate({}, {})'.format(repr(self.key),
-                                                    repr(self.invert_mask))
-
-
-class Exp11Gate(XmonGate,
-                ops.TwoQubitGate,
-                ops.TextDiagrammable,
-                ops.InterchangeableQubitsGate,
-                ops.PhaseableEffect,
-                ops.ParameterizableEffect,
-                ops.QasmConvertibleGate):
-    """A two-qubit interaction that phases the amplitude of the 11 state.
-
-    This gate is exp(i * pi * |11><11|  * half_turn).
-
-    Note that this half_turn parameter is such that a full turn is the
-    identity matrix, in contrast to the single qubit gates, where a full
-    turn is minus identity. The single qubit half-turn gates are defined
-    so that a full turn corresponds to a rotation on the Bloch sphere of a
-    360 degree rotation. For two qubit gates, there isn't a Bloch sphere,
-    so the half_turn corresponds to half of a full rotation in U(4).
-    """
-
-    def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
-        """Initializes the gate.
-
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
-        Args:
-            half_turns: The amount of phasing of the 11 state, in half_turns.
-            rads: The amount of phasing of the 11 state, in radians.
-            degs: The amount of phasing of the 11 state, in degrees.
-        """
-        self.half_turns = value.chosen_angle_to_canonical_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs)
-
-    def phase_by(self, phase_turns, qubit_index):
-        return self
-
-    def to_proto_dict(self, *qubits):
-        if len(qubits) != 2:
-            raise ValueError('Wrong number of qubits.')
-        p, q = qubits
-        exp_11 = {
-            'target1': p.to_proto_dict(),
-            'target2': q.to_proto_dict(),
-            'half_turns': self.parameterized_value_to_proto_dict(
-                self.half_turns)
-        }
-        return {'exp_11': exp_11}
-
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
-        if isinstance(self.half_turns, value.Symbol):
-            return NotImplemented
-        return protocols.unitary(
-            ops.Rot11Gate(half_turns=self.half_turns))
-
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
-        return ops.TextDiagramInfo(('@', '@'), self.half_turns)
-
-    def known_qasm_output(self,
-                          qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> Optional[str]:
-        if self.half_turns != 1:
-            return None  # Don't have an equivalent gate in QASM
-        args.validate_version('2.0')
-        return args.format('cz {0},{1};\n', qubits[0], qubits[1])
-
-    def __str__(self):
-        if self.half_turns == 1:
-            return 'CZ'
-        return self.__repr__()
-
-    def __repr__(self):
-        return 'Exp11Gate(half_turns={})'.format(
-            repr(self.half_turns))
-
-    def __eq__(self, other):
-        if not isinstance(other, (ops.Rot11Gate, type(self))):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((Exp11Gate, self.half_turns))
-
-    def is_parameterized(self) -> bool:
-        return isinstance(self.half_turns, value.Symbol)
-
-    def with_parameters_resolved_by(self, param_resolver) -> 'Exp11Gate':
-        return Exp11Gate(half_turns=param_resolver.value_of(self.half_turns))
-
-
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
-               ops.TextDiagrammable,
-               ops.PhaseableEffect,
-               ops.BoundedEffect,
-               ops.ParameterizableEffect,
-               PotentialImplementation[Union[
-                   ops.ReversibleEffect]]):
+               ops.TextDiagrammable):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -345,26 +216,12 @@ class ExpWGate(XmonGate,
         return {'exp_w': exp_w}
 
     def __pow__(self, power):
-        if self.is_parameterized() and power != 1:
+        if protocols.is_parameterized(self) and power != 1:
             return NotImplemented
         return ExpWGate(half_turns=self.half_turns * power,
                         axis_half_turns=self.axis_half_turns)
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type is ops.ReversibleEffect and self.has_inverse():
-            return self
-        return super().try_cast_to(desired_type, ext)
-
-    def has_inverse(self):
-        return not isinstance(self.half_turns, value.Symbol)
-
-    def inverse(self):
-        if not self.has_inverse():
-            raise ValueError("Don't have a known inverse.")
-        return ExpWGate(half_turns=-self.half_turns,
-                        axis_half_turns=self.axis_half_turns)
-
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol)):
             return NotImplemented
@@ -375,12 +232,12 @@ class ExpWGate(XmonGate,
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return np.dot(np.dot(phase, rot), np.conj(phase))
 
-    def phase_by(self, phase_turns, qubit_index):
+    def _phase_by_(self, phase_turns, qubit_index):
         return ExpWGate(
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)
 
-    def trace_distance_bound(self):
+    def _trace_distance_bound_(self):
         if isinstance(self.half_turns, value.Symbol):
             return 1
         return abs(self.half_turns) * 3.5
@@ -414,9 +271,10 @@ class ExpWGate(XmonGate,
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
 
     def __repr__(self):
-        return ('ExpWGate(half_turns={}, axis_half_turns={})'.format(
-                    repr(self.half_turns),
-                    repr(self.axis_half_turns)))
+        return (
+            'cirq.google.ExpWGate(half_turns={}, axis_half_turns={})'.format(
+                repr(self.half_turns),
+                repr(self.axis_half_turns)))
 
     def __eq__(self, other):
         if isinstance(other, ops.RotXGate):
@@ -440,11 +298,11 @@ class ExpWGate(XmonGate,
             return hash((ops.RotYGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return (isinstance(self.half_turns, value.Symbol) or
                 isinstance(self.axis_half_turns, value.Symbol))
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpWGate':
+    def _resolve_parameters_(self, param_resolver) -> 'ExpWGate':
         return ExpWGate(
                 half_turns=param_resolver.value_of(self.half_turns),
                 axis_half_turns=param_resolver.value_of(self.axis_half_turns))
@@ -497,7 +355,10 @@ class ExpZGate(XmonGate, ops.RotZGate):
         return {'exp_z': exp_z}
 
     def __repr__(self):
-        return 'ExpZGate(half_turns={!r})'.format(self.half_turns)
+        return 'cirq.google.ExpZGate(half_turns={!r})'.format(self.half_turns)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ExpZGate':
+    def _is_parameterized_(self) -> bool:
+        return isinstance(self.half_turns, value.Symbol)
+
+    def _resolve_parameters_(self, param_resolver) -> 'ExpZGate':
         return ExpZGate(half_turns=param_resolver.value_of(self.half_turns))

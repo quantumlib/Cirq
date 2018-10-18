@@ -12,14 +12,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
 
 import collections
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
+    from typing import Tuple, List
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ([],)
+RaiseTypeErrorIfNotProvided = ([],)  # type: Tuple[List[Any]]
+
+
+TDefault = TypeVar('TDefault')
+
+
+# pylint: disable=function-redefined
+@overload
+def inverse(val: 'cirq.Gate') -> 'cirq.Gate':
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Operation') -> 'cirq.Operation':
+    pass
+
+
+@overload
+def inverse(val: 'cirq.OP_TREE') -> 'cirq.OP_TREE':
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Gate',
+            default: TDefault
+            ) -> Union[TDefault, 'cirq.Gate']:
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Operation',
+            default: TDefault
+            ) -> Union[TDefault, 'cirq.Operation']:
+    pass
+
+
+@overload
+def inverse(val: 'cirq.OP_TREE',
+            default: TDefault
+            ) -> Union[TDefault, 'cirq.OP_TREE']:
+    pass
 
 
 def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
@@ -49,12 +93,6 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
             iterable containing invertible items. Also, no `default` argument
             was specified.
     """
-    # TODO: remove this compatibility shim when ReversibleEffect is gone.
-    from cirq import extension, ops
-    reversible = extension.try_cast(ops.ReversibleEffect, val)
-    if reversible is not None:
-        return reversible.inverse()
-
     # Check if object defines an inverse via __pow__.
     raiser = getattr(val, '__pow__', None)
     result = NotImplemented if raiser is None else raiser(-1)
@@ -64,7 +102,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     # Maybe it's an iterable of invertable items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
     if isinstance(val, collections.Iterable) and not isinstance(val, str):
-        unique_indicator = []
+        unique_indicator = []  # type: List[Any]
         results = tuple(inverse(e, unique_indicator) for e in val)
         if all(e is not unique_indicator for e in results):
             return results[::-1]
@@ -76,3 +114,4 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         "object of type '{}' isn't invertable. "
         "It has no __pow__ method (or the method returned NotImplemented) "
         "and it isn't an iterable of invertable objects.".format(type(val)))
+# pylint: enable=function-redefined

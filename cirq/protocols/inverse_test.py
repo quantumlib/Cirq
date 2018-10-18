@@ -22,7 +22,7 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
-    def __pow__(self, exponent) -> type(NotImplemented):
+    def __pow__(self, exponent):
         return NotImplemented
 
 
@@ -36,9 +36,9 @@ class SelfInverse:
         return self
 
 
-class ImplementsReversible(cirq.ReversibleEffect):
-    def inverse(self):
-        return 6
+class ImplementsReversible:
+    def __pow__(self, exponent):
+        return 6 if exponent == -1 else NotImplemented
 
 
 class IsIterable:

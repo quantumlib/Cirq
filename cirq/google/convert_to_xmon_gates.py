@@ -58,12 +58,12 @@ class ConvertToXmonGates(PointOptimizer):
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Already supported?
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, XmonGate):
+        if XmonGate.is_supported_op(op):
             return op
 
         # Maybe we know how to wrap it?
         if isinstance(op, ops.GateOperation):
-            xmon = self.extensions.try_cast(XmonGate, op.gate)
+            xmon = self.extensions.try_cast(XmonGate, op.gate)  # type: ignore
             if xmon is not None:
                 return xmon.on(*op.qubits)
 
@@ -80,7 +80,8 @@ class ConvertToXmonGates(PointOptimizer):
                 allow_partial_czs=True)
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extensions.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 

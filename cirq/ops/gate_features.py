@@ -21,9 +21,10 @@ from typing import (
     Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
 )
 
+import abc
 import string
 
-from cirq import abc, study, value
+from cirq import study, value
 from cirq.ops import op_tree, raw_types
 
 
@@ -36,20 +37,11 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 
 
-class ReversibleEffect(metaclass=abc.ABCMeta):
-    """A gate whose effect can be undone in a known way."""
-
-    @abc.abstractmethod
-    def inverse(self) -> 'ReversibleEffect':
-        """Returns a gate with an exactly opposite effect."""
-
-
 TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
                                      bound='ExtrapolatableEffect')
 
 
-class ExtrapolatableEffect(ReversibleEffect,
-                           metaclass=abc.ABCMeta):
+class ExtrapolatableEffect(metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
@@ -90,9 +82,6 @@ class ExtrapolatableEffect(ReversibleEffect,
           A gate with the extrapolated effect.
         """
         return self.extrapolate_effect(power)
-
-    def inverse(self: TSelf_ExtrapolatableEffect) -> TSelf_ExtrapolatableEffect:
-        return self.extrapolate_effect(-1)
 
 
 class CompositeOperation(metaclass=abc.ABCMeta):
@@ -218,51 +207,6 @@ class TextDiagrammable(metaclass=abc.ABCMeta):
         """
 
 
-TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect',
-                                bound='PhaseableEffect')
-
-
-class PhaseableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be phased around the Z axis of target qubits."""
-
-    @abc.abstractmethod
-    def phase_by(self: TSelf_PhaseableEffect,
-                 phase_turns: float,
-                 qubit_index: int) -> TSelf_PhaseableEffect:
-        """Returns a phased version of the effect.
-
-        For example, an X gate phased by 90 degrees would be a Y gate.
-
-        Args:
-            phase_turns: The amount to phase the gate, in fractions of a whole
-                turn.
-            qubit_index: The index of the target qubit the phasing applies to.
-
-        Returns:
-            The phased gate or operation.
-        """
-
-
-class BoundedEffect(metaclass=abc.ABCMeta):
-    """An effect with known bounds on how easy it is to detect.
-
-    Used when deciding whether or not an operation is negligible. For example,
-    the trace distance between the states before and after a Z**0.00000001
-    operation is very close to 0, so it would typically be considered
-    negligible.
-    """
-
-    @abc.abstractmethod
-    def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this effect's input/output.
-
-        Generally this method is used when deciding whether to keep gates, so
-        only the behavior near 0 is important. Approximations that overestimate
-        the maximum trace distance are permitted. Even ones that exceed 1.
-        Underestimates are not permitted.
-        """
-
-
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 
@@ -303,30 +247,6 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 'Three-qubit gate not applied to three qubits: {}({})'.
                 format(self, qubits))
 
-
-TSelf_ParameterizableEffect = TypeVar('TSelf_ParameterizableEffect',
-                                      bound='ParameterizableEffect')
-
-
-class ParameterizableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be parameterized by Symbols."""
-
-    @abc.abstractmethod
-    def is_parameterized(self) -> bool:
-        """Whether the effect is parameterized.
-
-        Returns True if the gate has any unresolved Symbols and False otherwise.
-        """
-
-    @abc.abstractmethod
-    def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
-                                    param_resolver: study.ParamResolver,
-                                    ) -> TSelf_ParameterizableEffect:
-        """Resolve the parameters in the effect.
-
-        Returns a gate or operation of the same type, but with all Symbols
-        replaced with floats according to the given ParamResolver.
-        """
 
 
 class QasmOutputArgs(string.Formatter):

@@ -28,8 +28,8 @@ import cirq.google as cg
 
 
 def test_equality():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     eq = cirq.testing.EqualsTester()
 
@@ -67,7 +67,7 @@ def test_equality():
 
 
 def test_append_single():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit()
     c.append(())
@@ -83,8 +83,8 @@ def test_append_single():
 
 
 def test_append_multiple():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     c.append([cirq.X(a), cirq.X(b)], cirq.InsertStrategy.NEW)
@@ -118,6 +118,7 @@ def test_repr():
         Moment(),
         Moment([cirq.CZ(a, b)]),
     ])
+    cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == """cirq.Circuit(moments=[
     cirq.Moment(operations=[
         cirq.H.on(cirq.NamedQubit('a')),
@@ -129,20 +130,24 @@ def test_repr():
     ]),
 ])"""
 
-    assert repr(Circuit(device=cg.Foxtail)
-                ) == 'cirq.Circuit(device=cirq.google.Foxtail)'
-    assert repr(Circuit.from_ops(
-        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
-        device=cg.Foxtail)) == """cirq.Circuit(moments=[
+    c = Circuit(device=cg.Foxtail)
+    cirq.testing.assert_equivalent_repr(c)
+    assert repr(c) == 'cirq.Circuit(device=cirq.google.Foxtail)'
+
+    c = Circuit.from_ops(
+        cg.ExpZGate().on(cirq.GridQubit(0, 0)),
+        device=cg.Foxtail)
+    cirq.testing.assert_equivalent_repr(c)
+    assert repr(c) == """cirq.Circuit(moments=[
     cirq.Moment(operations=[
-        ExpWGate(half_turns=1.0, axis_half_turns=0.0).on(cirq.GridQubit(0, 0)),
+        cirq.google.ExpZGate(half_turns=1.0).on(cirq.GridQubit(0, 0)),
     ]),
 ], device=cirq.google.Foxtail)"""
 
 
 def test_slice():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     c = Circuit([
         Moment([cirq.H(a), cirq.H(b)]),
         Moment([cirq.CZ(a, b)]),
@@ -161,8 +166,8 @@ def test_slice():
 
 
 def test_concatenate():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     d = Circuit([Moment([cirq.X(b)])])
@@ -260,7 +265,7 @@ def test_set_device():
 
 
 def test_multiply():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit()
     d = Circuit([Moment([cirq.X(a)])])
@@ -287,8 +292,8 @@ def test_multiply():
 
 
 def test_container_methods():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     c = Circuit([
         Moment([cirq.H(a), cirq.H(b)]),
         Moment([cirq.CZ(a, b)]),
@@ -306,15 +311,15 @@ def test_container_methods():
 
 
 def test_bad_index():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     c = Circuit([Moment([cirq.H(a), cirq.H(b)])])
     with pytest.raises(TypeError):
         _ = c['string']
 
 def test_append_strategies():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
     stream = [cirq.X(a), cirq.CZ(a, b), cirq.X(b), cirq.X(b), cirq.X(a)]
 
     c = Circuit()
@@ -347,8 +352,8 @@ def test_append_strategies():
 
 
 def test_insert():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
 
@@ -388,8 +393,8 @@ def test_insert():
 
 
 def test_insert_inline_near_start():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit([
         Moment(),
@@ -535,8 +540,8 @@ y: ───────────────@──────────�
 
 
 def test_next_moment_operating_on():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     assert c.next_moment_operating_on([a]) is None
@@ -577,7 +582,7 @@ def test_next_moment_operating_on():
 
 
 def test_next_moment_operating_on_distance():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit([
         Moment(),
@@ -610,8 +615,8 @@ def test_next_moment_operating_on_distance():
 
 
 def test_prev_moment_operating_on():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     assert c.prev_moment_operating_on([a]) is None
@@ -652,7 +657,7 @@ def test_prev_moment_operating_on():
 
 
 def test_prev_moment_operating_on_distance():
-    a = cirq.QubitId()
+    a = cirq.NamedQubit('a')
 
     c = Circuit([
         Moment(),
@@ -687,8 +692,8 @@ def test_prev_moment_operating_on_distance():
 
 
 def test_operation_at():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     assert c.operation_at(a, 0) is None
@@ -709,8 +714,8 @@ def test_operation_at():
 
 
 def test_findall_operations():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     xa = cirq.X.on(a)
     xb = cirq.X.on(b)
@@ -777,8 +782,8 @@ def test_findall_operations_with_gate():
 
 
 def test_are_all_measurements_terminal():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     xa = cirq.X.on(a)
     xb = cirq.X.on(b)
@@ -821,8 +826,8 @@ def test_are_all_measurements_terminal():
 
 
 def test_clear_operations_touching():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit()
     c.clear_operations_touching([a, b], range(10))
@@ -874,8 +879,8 @@ def test_clear_operations_touching():
 
 
 def test_all_qubits():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     c = Circuit([
         Moment([cirq.X(a)]),
@@ -951,8 +956,8 @@ def test_all_operations():
 
 
 def test_from_ops():
-    a = cirq.QubitId()
-    b = cirq.QubitId()
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
 
     actual = Circuit.from_ops(
         cirq.X(a),
@@ -1678,7 +1683,7 @@ def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.Circuit.from_ops(cirq.X(a), cirq.CZ(a, b), cirq.Z(a), cirq.Z(b))
-    assert c == c.copy() == c.__copy__() == c.__deepcopy__()
+    assert c == c.copy() == c.__copy__()
     c2 = c.copy()
     assert c2 == c
     c2[:] = []
@@ -1975,7 +1980,7 @@ def test_pick_inserted_ops_moment_indices():
 
 
 def test_push_frontier_new_moments():
-    operation = cirq.X(cirq.QubitId())
+    operation = cirq.X(cirq.NamedQubit('q'))
     insertion_index = 3
     circuit = Circuit()
     circuit._insert_operations([operation], [insertion_index])
@@ -2057,35 +2062,35 @@ def test_insert_operations_errors():
 def test_validates_while_editing():
     c = cirq.Circuit(device=cg.Foxtail)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Unsupported qubit type'):
         # Wrong type of qubit.
         c.append(cg.ExpZGate().on(cirq.NamedQubit('q')))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Qubit not on device'):
         # A qubit that's not on the device.
         c[:] = [cirq.Moment([
             cg.ExpZGate().on(cirq.GridQubit(-5, 100))])]
     c.append(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Non-local interaction'):
         # Non-adjacent CZ.
-        c[0] = cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
-                                                       cirq.GridQubit(2, 2))])
+        c[0] = cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0),
+                                    cirq.GridQubit(1, 2))])
 
-    c.insert(0, cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+    c.insert(0, cirq.CZ(cirq.GridQubit(0, 0),
                                            cirq.GridQubit(1, 0)))
 
 
 def test_respects_additional_adjacency_constraints():
     c = cirq.Circuit(device=cg.Foxtail)
-    c.append(cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+    c.append(cirq.CZ(cirq.GridQubit(0, 0),
                                cirq.GridQubit(0, 1)))
-    c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+    c.append(cirq.CZ(cirq.GridQubit(1, 0),
                                cirq.GridQubit(1, 1)),
              strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0),
                                        cirq.GridQubit(0, 1))]),
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(1, 0),
                                        cirq.GridQubit(1, 1))]),
     ], device=cg.Foxtail)
 
@@ -2095,17 +2100,17 @@ def test_commutes_past_adjacency_constraints():
             cirq.Moment(),
             cirq.Moment(),
             cirq.Moment([
-                cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))])
+                cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))])
         ],
         device=cg.Foxtail)
-    c.append(cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+    c.append(cirq.CZ(cirq.GridQubit(1, 0),
                                cirq.GridQubit(1, 1)),
              strategy=cirq.InsertStrategy.EARLIEST)
     assert c == cirq.Circuit([
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(1, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(1, 0),
                                        cirq.GridQubit(1, 1))]),
         cirq.Moment(),
-        cirq.Moment([cg.Exp11Gate().on(cirq.GridQubit(0, 0),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0),
                                        cirq.GridQubit(0, 1))]),
     ], device=cg.Foxtail)
 

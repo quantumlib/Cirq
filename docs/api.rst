@@ -53,14 +53,11 @@ Gate Features and Effects
 .. autosummary::
     :toctree: generated
 
-    ParameterizableEffect
     CompositeGate
     ExtrapolatableEffect
     ReversibleEffect
     InterchangeableQubitsGate
-    PhaseableEffect
     TextDiagrammable
-    BoundedEffect
     SingleQubitGate
     TwoQubitGate
     QasmConvertibleGate

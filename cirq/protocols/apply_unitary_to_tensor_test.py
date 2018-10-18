@@ -33,16 +33,14 @@ def test_apply_unitary_to_tensor_presence_absence():
         def _apply_unitary_to_tensor_(self,
                                       target_tensor: np.ndarray,
                                       available_buffer: np.ndarray,
-                                      axes: Sequence[int],
-                                      ) -> type(NotImplemented):
+                                      axes: Sequence[int]):
             return NotImplemented
 
     class HasApplyReturnsNotImplementedButHasUnitary:
         def _apply_unitary_to_tensor_(self,
                                       target_tensor: np.ndarray,
                                       available_buffer: np.ndarray,
-                                      axes: Sequence[int],
-                                      ) -> type(NotImplemented):
+                                      axes: Sequence[int]):
             return NotImplemented
 
         def _unitary_(self) -> np.ndarray:
