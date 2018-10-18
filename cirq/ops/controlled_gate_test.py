@@ -101,8 +101,7 @@ def test_unitary():
         atol=1e-8)
 
 
-class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
-                                        cirq.ExtrapolatableEffect):
+class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
@@ -115,12 +114,11 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
     def _unitary_(self):
         return np.eye(2)
 
-    def extrapolate_effect(self, factor):
+    def __pow__(self, factor):
         return self
 
 
-class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
-                                      cirq.ExtrapolatableEffect):
+class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
@@ -140,7 +138,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
     def _unitary_(self):
         return np.matrix([[2, 3], [5, 7]])
 
-    def extrapolate_effect(self, factor):
+    def __pow__(self, factor):
         return self
 
 
@@ -180,39 +178,28 @@ def test_try_cast_to():
 
     # Supported sub features that are not present on sub gate.
     assert cirq.inverse(CRestricted, None) is None
-    assert cirq.inverse(CY) == CY**-1 == CY
-    assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
+    assert cirq.pow(CRestricted, 1.5, None) is None
+    assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
 
     # Supported sub features that are present on sub gate.
     assert cirq.inverse(CY, None) is not None
-    assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
+    assert cirq.pow(CY, 1.5) is not None
+    assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
+
+    assert cirq.inverse(CY) == CY**-1 == CY
+
+    # Supported sub features that are present on sub gate.
+    assert cirq.inverse(CY, None) is not None
 
 
 def test_extrapolatable_effect():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    assert (cirq.ControlledGate(cirq.Z).extrapolate_effect(0.5) ==
-            cirq.ControlledGate(cirq.Z.extrapolate_effect(0.5)))
+    assert cirq.ControlledGate(cirq.Z)**0.5 == cirq.ControlledGate(cirq.Z**0.5)
 
     assert (cirq.ControlledGate(cirq.Z).on(a, b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5).on(a, b))
-
-
-def test_extrapolatable_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ExtrapolatableEffect, RestrictedGate, lambda _: cirq.X)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.extrapolate_effect(0.5)
-    with pytest.raises(TypeError):
-        _ = without_ext**0.5
-
-    assert (with_ext.extrapolate_effect(0.5) ==
-            cirq.ControlledGate(cirq.X.extrapolate_effect(0.5)))
-    assert with_ext**0.5 == cirq.ControlledGate(cirq.X.extrapolate_effect(0.5))
 
 
 def test_reversible():

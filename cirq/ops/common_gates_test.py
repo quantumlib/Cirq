@@ -204,19 +204,14 @@ def test_runtime_types_of_rot_gates():
                       cirq.RotXGate,
                       cirq.RotYGate,
                       cirq.RotZGate]:
-        ext = cirq.Extensions()
-
         p = gate_type(half_turns=cirq.Symbol('a'))
         assert cirq.unitary(p, None) is None
-        assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-        with pytest.raises(TypeError):
-            _ = p.extrapolate_effect(2)
+        assert cirq.pow(p, 2, None) is None
         assert cirq.inverse(p, None) is None
 
         c = gate_type(half_turns=0.5)
-        assert c.try_cast_to(cirq.ExtrapolatableEffect, ext) is c
         assert cirq.unitary(c, None) is not None
-        assert c.extrapolate_effect(2) is not None
+        assert cirq.pow(c, 2) is not None
         assert cirq.inverse(c) is not None
 
 

@@ -17,14 +17,11 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import (
-    Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
-)
+from typing import Any, Dict, Optional, Sequence, Tuple, Iterable
 
 import abc
 import string
 
-from cirq import value
 from cirq.ops import op_tree, raw_types
 
 
@@ -34,54 +31,6 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         """Returns a key that differs between non-interchangeable qubits."""
         return 0
-
-
-
-TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
-                                     bound='ExtrapolatableEffect')
-
-
-class ExtrapolatableEffect(metaclass=abc.ABCMeta):
-    """A gate whose effect can be continuously scaled up/down/negated."""
-
-    @abc.abstractmethod
-    def extrapolate_effect(self: TSelf_ExtrapolatableEffect,
-                           factor: Union[float, value.Symbol]
-                           ) -> TSelf_ExtrapolatableEffect:
-        """Augments, diminishes, or reverses the effect of the receiving gate.
-
-        Args:
-            factor: The amount to scale the gate's effect by.
-
-        Returns:
-            A gate equivalent to applying the receiving gate 'factor' times.
-        """
-
-    def __pow__(self: TSelf_ExtrapolatableEffect,
-                power: Union[float, value.Symbol]
-                ) -> TSelf_ExtrapolatableEffect:
-        """Extrapolates the effect of the gate.
-
-        Note that there are cases where (G**a)**b != G**(a*b). For example,
-        start with a 90 degree rotation then cube it then raise it to a
-        non-integer power such as 3/2. Assuming that rotations are always
-        normalized into the range (-180, 180], note that:
-
-            ((rot 90)**3)**1.5 = (rot 270)**1.5 = (rot -90)**1.5 = rot -135
-
-        but
-
-            (rot 90)**(3*1.5) = (rot 90)**4.5 = rot 405 = rot 35
-
-        Because normalization discards the winding number.
-
-        Args:
-          power: The extrapolation factor.
-
-        Returns:
-          A gate with the extrapolated effect.
-        """
-        return self.extrapolate_effect(power)
 
 
 class CompositeOperation(metaclass=abc.ABCMeta):

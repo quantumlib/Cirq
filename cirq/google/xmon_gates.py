@@ -215,10 +215,12 @@ class ExpWGate(XmonGate,
         }
         return {'exp_w': exp_w}
 
-    def __pow__(self, power):
-        if protocols.is_parameterized(self) and power != 1:
+    def __pow__(self, exponent: Any):
+        if self._is_parameterized_() and exponent != 1:
             return NotImplemented
-        return ExpWGate(half_turns=self.half_turns * power,
+        if self.half_turns != 1 and isinstance(exponent, value.Symbol):
+            return NotImplemented
+        return ExpWGate(half_turns=self.half_turns * exponent,
                         axis_half_turns=self.axis_half_turns)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
@@ -310,11 +312,9 @@ class ExpWGate(XmonGate,
 
 class ExpZGate(XmonGate, ops.RotZGate):
     """A rotation around the Z axis of the Bloch sphere.
-
     This gate is exp(-i * pi * Z * half_turns / 2) where Z is the Z matrix
         Z = [[1, 0],
              [0, -1]]
-
     Note the half_turn nomenclature here comes from viewing this as a rotation
     on the Bloch sphere. Two half_turns correspond to a rotation in the
     bloch sphere of 360 degrees.
@@ -325,11 +325,9 @@ class ExpZGate(XmonGate, ops.RotZGate):
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
         """Initializes the gate.
-
         At most one angle argument may be specified. If more are specified,
         the result is considered ambiguous and an error is thrown. If no angle
         argument is given, the default value of one half turn is used.
-
         Args:
             half_turns: The relative phasing of Z's eigenstates, in half_turns.
             rads: The relative phasing of Z's eigenstates, in radians.

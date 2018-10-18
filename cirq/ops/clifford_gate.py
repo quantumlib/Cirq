@@ -209,8 +209,8 @@ class SingleQubitCliffordGate(raw_types.Gate,
     def __hash__(self):
         return hash(self._eq_tuple())
 
-    def __pow__(self, power):
-        if power != -1:
+    def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+        if exponent != -1:
             return NotImplemented
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)

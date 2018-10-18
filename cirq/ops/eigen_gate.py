@@ -18,8 +18,8 @@ import abc
 
 import numpy as np
 
-from cirq import extension, value
-from cirq.ops import gate_features, raw_types
+from cirq import value
+from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -44,9 +44,7 @@ EigenComponent = NamedTuple(
 )
 
 
-class EigenGate(raw_types.Gate,
-                extension.PotentialImplementation[Union[
-                    gate_features.ExtrapolatableEffect]]):
+class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of
@@ -175,10 +173,12 @@ class EigenGate(raw_types.Gate,
         """
         return None
 
-    def __pow__(self: TSelf, power: float) -> TSelf:
-        if power != 1 and self._is_parameterized_():
+    def __pow__(self: TSelf, power: Union[float, value.Symbol]) -> TSelf:
+        if power != 1 and isinstance(self._exponent, value.Symbol):
             return NotImplemented
-        return self.extrapolate_effect(power)
+        if self._exponent != 1 and isinstance(power, value.Symbol):
+            return NotImplemented
+        return self._with_exponent(exponent=self._exponent * power)
 
     def _identity_tuple(self):
         return (type(self),
@@ -205,12 +205,6 @@ class EigenGate(raw_types.Gate,
         max_angle = max(angles)
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
-    def try_cast_to(self, desired_type, ext):
-        if (desired_type in [gate_features.ExtrapolatableEffect] and
-                not self._is_parameterized_()):
-            return self
-        return super().try_cast_to(desired_type, ext)
-
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._is_parameterized_():
             return NotImplemented
@@ -220,11 +214,6 @@ class EigenGate(raw_types.Gate,
                     2 * e * (half_turns + self._global_shift_in_half_turns))
             for half_turns, component in self._eigen_components()
         ], axis=0)
-
-    def extrapolate_effect(self: TSelf,
-                           factor: Union[float, value.Symbol]) -> TSelf:
-        return self._with_exponent(
-            exponent=self._exponent * factor)  # type: ignore
 
     def _is_parameterized_(self) -> bool:
         return isinstance(self._exponent, value.Symbol)
