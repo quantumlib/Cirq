@@ -137,6 +137,15 @@ class ControlledGate(raw_types.Gate,
             return ControlledGate(inv_gate, self.default_extensions)
         return self.extrapolate_effect(power)
 
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
+        if qubit_index == 0:
+            return self
+        phased_gate = cirq.phase_by(
+            self.sub_gate, phase_turns, qubit_index, None)
+        if phased_gate is None:
+            return NotImplemented
+        return ControlledGate(phased_gate, self.default_extensions)
+
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)
 
