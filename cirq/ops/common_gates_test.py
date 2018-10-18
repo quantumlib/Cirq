@@ -122,8 +122,8 @@ def test_rot_gates_eq():
 def test_z_extrapolate():
     assert cirq.RotZGate(half_turns=1)**0.5 == cirq.RotZGate(half_turns=0.5)
     assert cirq.Z**-0.25 == cirq.RotZGate(half_turns=1.75)
-    assert cirq.RotZGate(half_turns=0.5).phase_by(0.25, 0) == cirq.RotZGate(
-        half_turns=0.5)
+    assert cirq.phase_by(cirq.RotZGate(half_turns=0.5),
+                         0.25, 0) == cirq.RotZGate(half_turns=0.5)
 
 
 def test_z_matrix():

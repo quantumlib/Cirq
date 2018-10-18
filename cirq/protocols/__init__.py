@@ -39,3 +39,7 @@ from cirq.protocols.resolve_parameters import (
     is_parameterized,
     resolve_parameters,
 )
+from cirq.protocols.phase import (
+    SupportsPhase,
+    phase_by,
+)
