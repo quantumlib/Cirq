@@ -568,3 +568,91 @@ def test_is_measurement():
 def test_h_pow():
     assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
     assert cirq.inverse(cirq.H) == cirq.H
+
+
+def test_rx_ry_rz_repr():
+    assert repr(cirq.Rx(np.pi / 2)) == 'cirq.Rx(np.pi*0.5)'
+    cirq.testing.assert_equivalent_repr(cirq.Rx(np.pi / 8))
+    cirq.testing.assert_equivalent_repr(cirq.Ry(np.pi / 8))
+    cirq.testing.assert_equivalent_repr(cirq.Rz(np.pi / 8))
+
+
+def test_rx_matrix():
+    s = np.sqrt(0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(np.pi / 2)),
+        np.array([[s, -s*1j], [-s*1j, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(-np.pi / 2)),
+        np.array([[s, s*1j], [s*1j, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(0)),
+        np.array([[1, 0], [0, 1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(2 * np.pi)),
+        np.array([[-1, 0], [0, -1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(np.pi)),
+        np.array([[0, -1j], [-1j, 0]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(-np.pi)),
+        np.array([[0, 1j], [1j, 0]]))
+
+
+def test_ry_matrix():
+    s = np.sqrt(0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(np.pi / 2)),
+        np.array([[s, -s], [s, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(-np.pi / 2)),
+        np.array([[s, s], [-s, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(0)),
+        np.array([[1, 0], [0, 1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(2 * np.pi)),
+        np.array([[-1, 0], [0, -1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(np.pi)),
+        np.array([[0, -1], [1, 0]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(-np.pi)),
+        np.array([[0, 1], [-1, 0]]))
+
+
+def test_rz_matrix():
+    s = np.sqrt(0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(np.pi / 2)),
+        np.array([[s - s*1j, 0], [0, s + s*1j]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(-np.pi / 2)),
+        np.array([[s + s*1j, 0], [0, s - s*1j]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(0)),
+        np.array([[1, 0], [0, 1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(2 * np.pi)),
+        np.array([[-1, 0], [0, -1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(np.pi)),
+        np.array([[-1j, 0], [0, 1j]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(-np.pi)),
+        np.array([[1j, 0], [0, -1j]]))
