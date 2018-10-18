@@ -26,14 +26,12 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq import study
     from typing import Dict, List
 
 
 LIFTED_POTENTIAL_TYPES = {t: t for t in [
-    gate_features.ExtrapolatableEffect,
-    gate_features.PhaseableEffect,
-]}
+    gate_features.ExtrapolatableEffect
+]}  # type: Dict[type, type]
 
 LIFTED_POTENTIAL_TYPES[
     gate_features.CompositeOperation] = gate_features.CompositeGate
@@ -45,7 +43,6 @@ class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.CompositeOperation,
                         gate_features.ExtrapolatableEffect,
-                        gate_features.PhaseableEffect,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -175,13 +172,13 @@ class GateOperation(raw_types.Operation,
         return self.with_gate(cast(raw_types.Gate,
                                    cast_gate.extrapolate_effect(factor)))
 
-    def phase_by(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
-        cast_gate = extension.cast(  # type: ignore
-            gate_features.PhaseableEffect,
-            self.gate)
-        return self.with_gate(cast(raw_types.Gate,
-                                   cast_gate.phase_by(phase_turns,
-                                                      qubit_index)))
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'GateOperation':
+        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
+                                         default=None)
+        if phased_gate is None:
+            return NotImplemented
+        return GateOperation(phased_gate, self._qubits)
 
     def __pow__(self, power: float) -> 'GateOperation':
         """Raise gate to a power, then reapply to the same qubits.

@@ -207,31 +207,6 @@ class TextDiagrammable(metaclass=abc.ABCMeta):
         """
 
 
-TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect',
-                                bound='PhaseableEffect')
-
-
-class PhaseableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be phased around the Z axis of target qubits."""
-
-    @abc.abstractmethod
-    def phase_by(self: TSelf_PhaseableEffect,
-                 phase_turns: float,
-                 qubit_index: int) -> TSelf_PhaseableEffect:
-        """Returns a phased version of the effect.
-
-        For example, an X gate phased by 90 degrees would be a Y gate.
-
-        Args:
-            phase_turns: The amount to phase the gate, in fractions of a whole
-                turn.
-            qubit_index: The index of the target qubit the phasing applies to.
-
-        Returns:
-            The phased gate or operation.
-        """
-
-
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 

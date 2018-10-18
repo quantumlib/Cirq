@@ -28,7 +28,6 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 class SingleQubitMatrixGate(raw_types.Gate,
                             gate_features.TextDiagrammable,
-                            gate_features.PhaseableEffect,
                             gate_features.ExtrapolatableEffect):
     """A 1-qubit gate defined by its matrix.
 
@@ -66,7 +65,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
         rotation_angle = abs(np.angle(vals[0] / vals[1]))
         return rotation_angle * 1.2
 
-    def phase_by(self, phase_turns: float, qubit_index: int):
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
         z = _phase_matrix(phase_turns)
         phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
         return SingleQubitMatrixGate(phased_matrix)
@@ -107,7 +106,6 @@ class SingleQubitMatrixGate(raw_types.Gate,
 
 class TwoQubitMatrixGate(raw_types.Gate,
                          gate_features.TextDiagrammable,
-                         gate_features.PhaseableEffect,
                          gate_features.ExtrapolatableEffect):
     """A 2-qubit gate defined only by its matrix.
 
@@ -141,7 +139,7 @@ class TwoQubitMatrixGate(raw_types.Gate,
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)
 
-    def phase_by(self, phase_turns: float, qubit_index: int):
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
         i = np.eye(2)
         z = _phase_matrix(phase_turns)
         z2 = np.kron(z, i) if qubit_index else np.kron(i, z)
