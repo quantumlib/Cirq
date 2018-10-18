@@ -30,12 +30,8 @@ CRestricted = cirq.ControlledGate(RestrictedGate())
 
 
 def test_init():
-    ext = cirq.Extensions()
-    gate = cirq.ControlledGate(cirq.Z, ext)
-    assert gate.default_extensions is ext
+    gate = cirq.ControlledGate(cirq.Z)
     assert gate.sub_gate is cirq.Z
-
-    assert cirq.ControlledGate(cirq.X).default_extensions is None
 
 
 def test_validate_args():
@@ -159,37 +155,11 @@ def test_apply_unitary_to_tensor(gate: cirq.Gate):
         exponents=[1, 0.5, cirq.Symbol('s')])
 
 
-def test_try_cast_to():
-    ext = cirq.Extensions()
-
-    # Already of the given type.
-    assert CRestricted.try_cast_to(cirq.Gate, ext) is not None
-    assert CRestricted.try_cast_to(cirq.ControlledGate, ext) is not None
-    assert CY.try_cast_to(cirq.Gate, ext) is not None
-    assert CY.try_cast_to(cirq.ControlledGate, ext) is not None
-
-    # Unsupported sub features.
-    assert CCH.try_cast_to(cirq.CompositeGate, ext) is None
-    assert CCH.try_cast_to(cirq.EigenGate, ext) is None
-    assert CY.try_cast_to(cirq.CompositeGate, ext) is None
-    assert CY.try_cast_to(cirq.EigenGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.EigenGate, ext) is None
-    assert CRestricted.try_cast_to(cirq.CompositeGate, ext) is None
-
-    # Supported sub features that are not present on sub gate.
+def test_pow_inverse():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.pow(CRestricted, 1.5, None) is None
-    assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
-
-    # Supported sub features that are present on sub gate.
-    assert cirq.inverse(CY, None) is not None
-    assert cirq.pow(CY, 1.5) is not None
-    assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
-
+    assert cirq.pow(CY, 1.5) == cirq.ControlledGate(cirq.Y**1.5)
     assert cirq.inverse(CY) == CY**-1 == CY
-
-    # Supported sub features that are present on sub gate.
-    assert cirq.inverse(CY, None) is not None
 
 
 def test_extrapolatable_effect():

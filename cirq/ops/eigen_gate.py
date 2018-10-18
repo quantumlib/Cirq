@@ -174,9 +174,8 @@ class EigenGate(raw_types.Gate):
         return None
 
     def __pow__(self: TSelf, power: Union[float, value.Symbol]) -> TSelf:
-        if power != 1 and isinstance(self._exponent, value.Symbol):
-            return NotImplemented
-        if self._exponent != 1 and isinstance(power, value.Symbol):
+        if ((power != 1 and isinstance(self._exponent, value.Symbol)) or
+                (self._exponent != 1 and isinstance(power, value.Symbol))):
             return NotImplemented
         return self._with_exponent(exponent=self._exponent * power)
 

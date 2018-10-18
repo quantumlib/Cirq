@@ -216,9 +216,9 @@ class ExpWGate(XmonGate,
         return {'exp_w': exp_w}
 
     def __pow__(self, exponent: Any):
-        if self._is_parameterized_() and exponent != 1:
-            return NotImplemented
-        if self.half_turns != 1 and isinstance(exponent, value.Symbol):
+        if ((self._is_parameterized_() and exponent != 1)
+                or (self.half_turns != 1 and isinstance(exponent, value.Symbol))
+                ):
             return NotImplemented
         return ExpWGate(half_turns=self.half_turns * exponent,
                         axis_half_turns=self.axis_half_turns)
