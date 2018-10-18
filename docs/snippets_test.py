@@ -440,6 +440,13 @@ def test_find_expected_outputs():
     """) == ['abc']
 
     assert find_expected_outputs("""
+#print:
+# abc
+
+# def
+    """) == ['abc']
+
+    assert find_expected_outputs("""
 # prints:
 # abc
 
