@@ -136,8 +136,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
 
 class ExpWGate(XmonGate,
                ops.SingleQubitGate,
-               ops.TextDiagrammable,
-               ops.PhaseableEffect):
+               ops.TextDiagrammable):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -233,7 +232,7 @@ class ExpWGate(XmonGate,
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return np.dot(np.dot(phase, rot), np.conj(phase))
 
-    def phase_by(self, phase_turns, qubit_index):
+    def _phase_by_(self, phase_turns, qubit_index):
         return ExpWGate(
             half_turns=self.half_turns,
             axis_half_turns=self.axis_half_turns + phase_turns * 2)

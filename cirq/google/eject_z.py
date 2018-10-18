@@ -18,7 +18,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 from collections import defaultdict
 
-from cirq import circuits, ops, extension, value
+from cirq import circuits, ops, extension, value, protocols
 from cirq.decompositions import is_negligible_turn
 from cirq.google.xmon_gates import ExpZGate
 
@@ -79,18 +79,18 @@ class EjectZ(circuits.OptimizationPass):
                 if all(is_negligible_turn(p, self.tolerance) for p in phases):
                     continue
 
-                phaseable = self.ext.try_cast(  # type: ignore
-                    ops.PhaseableEffect, op)
-                if phaseable is not None:
-                    for i, p in enumerate(phases):
-                        if p:
-                            phaseable = phaseable.phase_by(-p, i)
+                phased_op = op
+                for i, p in enumerate(phases):
+                    if p and phased_op is not None:
+                        phased_op = protocols.phase_by(phased_op, -p, i,
+                                                       default=None)
+
+                if phased_op is not None:
                     deletions.append((moment_index, op))
                     inline_intos.append((moment_index,
-                                         cast(ops.Operation, phaseable)))
-                    continue
-
-                dump_phases(op.qubits, moment_index)
+                                     cast(ops.Operation, phased_op)))
+                else:
+                    dump_phases(op.qubits, moment_index)
 
         dump_phases(turns_state.keys(), len(circuit))
         circuit.batch_remove(deletions)

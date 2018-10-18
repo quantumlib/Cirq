@@ -45,9 +45,9 @@ def test_single_qubit_phase_by():
     x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     y = cirq.SingleQubitMatrixGate(np.array([[0, -1j], [1j, 0]]))
     z = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, -1]]))
-    assert x.phase_by(0.25, 0).approx_eq(y)
-    assert y.phase_by(-0.25, 0).approx_eq(x)
-    assert z.phase_by(0.25, 0).approx_eq(z)
+    assert cirq.phase_by(x, 0.25, 0).approx_eq(y)
+    assert cirq.phase_by(y, -0.25, 0).approx_eq(x)
+    assert cirq.phase_by(z, 0.25, 0).approx_eq(z)
 
 
 def test_single_qubit_trace_distance_bound():
@@ -112,14 +112,14 @@ def test_two_qubit_phase_by():
     yx = cirq.TwoQubitMatrixGate(np.kron(x, y))
     xy = cirq.TwoQubitMatrixGate(np.kron(y, x))
     yy = cirq.TwoQubitMatrixGate(np.kron(y, y))
-    assert xx.phase_by(0.25, 0).approx_eq(yx)
-    assert xx.phase_by(0.25, 1).approx_eq(xy)
-    assert xy.phase_by(0.25, 0).approx_eq(yy)
-    assert xy.phase_by(-0.25, 1).approx_eq(xx)
+    assert cirq.phase_by(xx, 0.25, 0).approx_eq(yx)
+    assert cirq.phase_by(xx, 0.25, 1).approx_eq(xy)
+    assert cirq.phase_by(xy, 0.25, 0).approx_eq(yy)
+    assert cirq.phase_by(xy, -0.25, 1).approx_eq(xx)
 
     zz = cirq.TwoQubitMatrixGate(np.kron(z, z))
-    assert zz.phase_by(0.25, 0).approx_eq(zz)
-    assert zz.phase_by(0.25, 1).approx_eq(zz)
+    assert cirq.phase_by(zz, 0.25, 0).approx_eq(zz)
+    assert cirq.phase_by(zz, 0.25, 1).approx_eq(zz)
 
 
 def test_two_qubit_approx_eq():
