@@ -75,7 +75,7 @@ def test_cz_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.CZ,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_z_init():
@@ -138,7 +138,7 @@ def test_z_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.Z,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_y_matrix():
@@ -156,7 +156,7 @@ def test_y_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.Y,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_x_matrix():
@@ -174,7 +174,7 @@ def test_x_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.X,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_h_matrix():
@@ -184,7 +184,7 @@ def test_h_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.H,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_h_decompose():
@@ -297,7 +297,7 @@ def test_cnot_power():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.CNOT,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_cnot_keyword_arguments():
@@ -371,7 +371,7 @@ def test_swap_power():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.SWAP,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_xyz_repr():
@@ -525,7 +525,7 @@ def test_iswap_matrix():
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.ISWAP,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_iswap_decompose():

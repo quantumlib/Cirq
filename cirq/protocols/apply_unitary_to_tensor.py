@@ -158,6 +158,16 @@ def apply_unitary_to_tensor(val: Any,
     # Fallback to using the object's _unitary_ matrix.
     matrix = unitary(val, None)
     if matrix is not None:
+        # Special case for single-qubit operations.
+        if matrix.shape == (2, 2):
+            zero = linalg.slice_for_qubits_equal_to(axes, 0)
+            one = linalg.slice_for_qubits_equal_to(axes, 1)
+            return linalg.apply_matrix_to_slices(target_tensor,
+                                                 matrix,
+                                                 [zero, one],
+                                                 out=available_buffer)
+
+        # Fallback to np.einsum for the general case.
         return linalg.targeted_left_multiply(
             matrix.astype(target_tensor.dtype).reshape((2,) * (2 * len(axes))),
             target_tensor,
