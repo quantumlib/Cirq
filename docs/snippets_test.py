@@ -406,7 +406,8 @@ def find_expected_outputs(snippet: str) -> List[str]:
                 expected.append(rest)
             else:
                 printing = False
-        elif line.startswith(start_key):
+        # Matches '# print', '# prints', '# print:', and '# prints':
+        elif re.match('^# prints?:?\s*$', line):
             rest = line[len(start_key):]
             if not rest.strip():
                 printing = True

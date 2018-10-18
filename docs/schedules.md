@@ -97,10 +97,10 @@ CZ = Exp11Gate(half_turns=1.0)
 X = ExpWGate(half_turns=1.0)
 circuit.append([CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
 print(circuit)
-# prints
-# (0, 0): ───@───X───
+# prints:
+# (0, 0): ───Z───X───
 #            │
-# (1, 0): ───@───────
+# (1, 0): ───Z───────
 ```
 This can be converted over into a schedule using the moment by
 moment schedule
