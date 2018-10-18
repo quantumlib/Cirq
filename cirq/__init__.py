@@ -166,12 +166,12 @@ from cirq.schedules import (
 
 from cirq.sim import (
     dirac_notation,
-    SampleSimulator,
+    SimulatesSamples,
     SimulationTrialResult,
     StepResult,
-    StepSimulator,
+    SimulatesIntermediateWaveFunction,
     to_valid_state_vector,
-    WaveFunctionSimulator,
+    SimulatesFinalWaveFunction,
     validate_normalized_state,
 )
 

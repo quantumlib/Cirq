@@ -34,7 +34,7 @@ via.
 """
 import math
 import collections
-from typing import cast, Dict, Iterator, List, Set, Union
+from typing import cast, Dict, Iterator, List, Optional, Set, Union
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
@@ -90,20 +90,21 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulator(sim.SampleSimulator, sim.StepSimulator):
+class XmonSimulator(sim.SimulatesSamples,
+                    sim.SimulatesIntermediateWaveFunction):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
 
     For simulations that mimic the quantum hardware, the run methods are
-    defined in the SampleSimulator interface:
+    defined in the SimulatesSamples interface:
         run
         run_sweep
     These methods do not return or give access to the full wave function.
 
     To get access to the wave function during a simulation, including being
     able to set the wave function, the simulate methods are defined in the
-    WaveFunctionSimulator interface:
+    SimulatesFinalWaveFunction interface:
         simulate
         simulate_sweep
         simulate_moment_steps (for stepping through a circuit moment by moment)
@@ -122,7 +123,7 @@ class XmonSimulator(sim.SampleSimulator, sim.StepSimulator):
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         repetitions: int,
-        extensions: extension.Extensions,
+        extensions: Optional[extension.Extensions],
     ) -> Dict[str, List[np.ndarray]]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware."""
         xmon_circuit, keys = self._to_xmon_circuit(
@@ -166,10 +167,10 @@ class XmonSimulator(sim.SampleSimulator, sim.StepSimulator):
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[int, np.ndarray],
-        extensions: extension.Extensions,
+        extensions: Optional[extension.Extensions],
         perform_measurements: bool = True,
     ) -> Iterator['XmonStepResult']:
-        """See definition in WaveFunctionSimulator."""
+        """See definition in SimulatesFinalWaveFunction."""
         param_resolver = param_resolver or study.ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(circuit,
                                                 param_resolver,
@@ -279,7 +280,7 @@ def _sample_measurements(circuit: circuits.Circuit,
     if step_result is None:
         return {}
     bounds = {}
-    all_qubits = []  # type: List[raw_types.QubitId]
+    all_qubits = []  # type: List[ops.QubitId]
     current_index = 0
     for _, op, gate in circuit.findall_operations_with_gate_type(
             ops.MeasurementGate):

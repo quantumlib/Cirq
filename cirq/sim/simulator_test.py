@@ -20,9 +20,9 @@ import cirq
 from cirq.testing.mock import mock
 
 
-@mock.patch.multiple(cirq.SampleSimulator, _run=mock.Mock())
+@mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
 def test_run_simulator_run():
-    simulator = cirq.SampleSimulator()
+    simulator = cirq.SimulatesSamples()
     expected_measurements = {'a': [[1]]}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
@@ -41,9 +41,9 @@ def test_run_simulator_run():
                                            extensions=extensions)
 
 
-@mock.patch.multiple(cirq.SampleSimulator, _run=mock.Mock())
+@mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
 def test_run_simulator_sweeps():
-    simulator = cirq.SampleSimulator()
+    simulator = cirq.SimulatesSamples()
     expected_measurements = {'a': [[1]]}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
@@ -67,10 +67,10 @@ def test_run_simulator_sweeps():
     assert simulator._run.call_count == 2
 
 
-@mock.patch.multiple(cirq.StepSimulator,
+@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
                      _simulator_iterator=mock.Mock())
 def test_wave_simulator():
-    simulator = cirq.StepSimulator()
+    simulator = cirq.SimulatesIntermediateWaveFunction()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
@@ -99,10 +99,10 @@ def test_wave_simulator():
     np.testing.assert_equal(result.final_state, final_state)
 
 
-@mock.patch.multiple(cirq.StepSimulator,
+@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
                      _simulator_iterator=mock.Mock())
 def test_wave_simulator_no_steps():
-    simulator = cirq.StepSimulator()
+    simulator = cirq.SimulatesIntermediateWaveFunction()
 
     initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
 
@@ -121,10 +121,10 @@ def test_wave_simulator_no_steps():
     np.testing.assert_equal(result.final_state, initial_state)
 
 
-@mock.patch.multiple(cirq.StepSimulator,
+@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
                      _simulator_iterator=mock.Mock())
 def test_wave_simulator_sweeps():
-    simulator = cirq.StepSimulator()
+    simulator = cirq.SimulatesIntermediateWaveFunction()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):

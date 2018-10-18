@@ -15,11 +15,11 @@
 """Base simulation classes and generic simulators."""
 
 from cirq.sim.simulator import (
-    SampleSimulator,
+    SimulatesSamples,
     SimulationTrialResult,
     StepResult,
-    StepSimulator,
-    WaveFunctionSimulator,
+    SimulatesIntermediateWaveFunction,
+    SimulatesFinalWaveFunction,
 )
 
 from cirq.sim.state import (

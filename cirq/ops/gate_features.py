@@ -24,7 +24,7 @@ from typing import (
 import abc
 import string
 
-from cirq import study, value
+from cirq import value
 from cirq.ops import op_tree, raw_types
 
 

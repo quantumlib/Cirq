@@ -15,14 +15,14 @@
 """Abstract base classes for different types of simulators.
 
 Simulator types include
-    SampleSimulator: mimics the interface of quantum hardware.
-    WaveFunctionSimulator: allows access to the wave function.
+    SimulatesSamples: mimics the interface of quantum hardware.
+    SimulatesFinalWaveFunction: allows access to the wave function.
 """
 
 import abc
 import collections
 
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 import numpy as np
 
@@ -30,7 +30,7 @@ from cirq import circuits, extension, ops, schedules, study
 from cirq.sim import state
 
 
-class SampleSimulator:
+class SimulatesSamples:
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
@@ -104,7 +104,8 @@ class SampleSimulator:
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         repetitions: int,
-        extensions: extension.Extensions) -> Dict[str, List[np.ndarray]]:
+        extensions: Optional[extension.Extensions]) -> Dict[str,
+                                                            List[np.ndarray]]:
         """Run a simulation, mimicking quantum hardware.
 
         Args:
@@ -124,13 +125,13 @@ class SampleSimulator:
         raise NotImplementedError()
 
 
-class WaveFunctionSimulator:
+class SimulatesFinalWaveFunction:
     """Simulator that allows access to a quantum computer's wavefunction.
 
     Implementors of this interface should implement the simulate_sweep
     method. This simulator only returns the wave function for the final
     step of a simulation. For simulators that also allow stepping through
-    a circuit see `StepSimulator`.
+    a circuit see `SimulatesIntermediateWaveFunction`.
     """
 
     def simulate(
@@ -203,7 +204,7 @@ class WaveFunctionSimulator:
 
 
 class SimulationTrialResult:
-    """Results of a simulation by a WaveFunctionSimulator.
+    """Results of a simulation by a SimulatesFinalWaveFunction.
 
     Unlike TrialResult these results contain the final state (wave function)
     of the system.
@@ -260,12 +261,12 @@ class SimulationTrialResult:
         return not self == other
 
 
-class StepSimulator(WaveFunctionSimulator):
-    """A WaveFunctionSimulator that simulates a circuit by moments.
+class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
+    """A SimulatesFinalWaveFunction that simulates a circuit by moments.
 
-    Whereas a general WaveFunctionSimulator may return the entire wave
-    function at the end of a circuit, a StepSimulator can simulate stepping
-    through the moments of a circuit.
+    Whereas a general SimulatesFinalWaveFunction may return the entire wave
+    function at the end of a circuit, a SimulatesIntermediateWaveFunction can
+    simulate stepping through the moments of a circuit.
 
     Implementors of this interface should implement the _simulator_iterator
     method.
@@ -374,7 +375,7 @@ class StepSimulator(WaveFunctionSimulator):
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[int, np.ndarray],
-        extensions: extension.Extensions
+        extensions: Optional[extension.Extensions]
     ) -> Iterator['StepResult']:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -398,7 +399,7 @@ class StepSimulator(WaveFunctionSimulator):
 
 
 class StepResult:
-    """Results of a step of a WaveFunctionSimulator.
+    """Results of a step of a SimulatesFinalWaveFunction.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
