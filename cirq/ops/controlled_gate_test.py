@@ -220,8 +220,10 @@ def test_reversible():
             cirq.ControlledGate(cirq.S**-1))
 
 def test_phase_by():
-    assert cirq.phase_by(cirq.ControlledGate(cirq.S), 0.25, 0) == cirq.ControlledGate(cirq.S)
-    assert cirq.phase_by(cirq.ControlledGate(cirq.S), 0.25, 1) == cirq.ControlledGate(cirq.phase_by(cirq.S, 0.25, 1))
+    assert (cirq.phase_by(cirq.ControlledGate(cirq.S), 0.25, 0) ==
+            cirq.ControlledGate(cirq.S))
+    assert (cirq.phase_by(cirq.ControlledGate(cirq.S), 0.25, 1) ==
+            cirq.ControlledGate(cirq.phase_by(cirq.S, 0.25, 1)))
 
 def test_parameterizable():
     a = cirq.Symbol('a')
