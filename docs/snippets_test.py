@@ -407,10 +407,8 @@ def find_expected_outputs(snippet: str) -> List[str]:
             else:
                 printing = False
         # Matches '# print', '# prints', '# print:', and '# prints:'
-        elif re.match('^# prints?:?\s*$', line):
-            rest = line[len(start_key):]
-            if not rest.strip():
-                printing = True
+        elif re.match('^#\s*prints?:?\s*$', line):
+            printing = True
 
     return expected
 
@@ -421,7 +419,35 @@ def _indent(lines: List[str]) -> str:
 
 def test_find_expected_outputs():
     assert find_expected_outputs("""
+# print
+# abc
+
+# def
+    """) == ['abc']
+
+    assert find_expected_outputs("""
 # prints
+# abc
+
+# def
+    """) == ['abc']
+
+    assert find_expected_outputs("""
+# print:
+# abc
+
+# def
+    """) == ['abc']
+
+    assert find_expected_outputs("""
+# prints:
+# abc
+
+# def
+    """) == ['abc']
+
+    assert find_expected_outputs("""
+# prints:
 # abc
 
 # def
