@@ -44,6 +44,7 @@ class ExpandComposite(PointOptimizer):
             no_decomp: A predicate that determines whether an operation should
                 be decomposed or not. Defaults to decomposing everything.
         """
+        super().__init__()
         self.extension = composite_gate_extension or extension.Extensions()
         self.no_decomp = no_decomp
 
@@ -62,7 +63,8 @@ class ExpandComposite(PointOptimizer):
         skip = self.no_decomp(op)
         if skip and (skip is not NotImplemented):
             return op
-        composite_op = self.extension.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extension.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is None:
             return op
         op_iter = ops.flatten_op_tree(composite_op.default_decompose())

@@ -39,6 +39,14 @@ class Pauli:
     def difference(self, second: 'Pauli') -> int:
         return (self._index - second._index + 1) % 3 - 1
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._index == other._index
+
+    def __ne__(self, other):
+        return not self == other
+
     def __gt__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
@@ -51,6 +59,9 @@ class Pauli:
 
     def __add__(self, shift: int) -> 'Pauli':
         return Pauli.XYZ[(self._index + shift) % 3]
+
+    def __hash__(self):
+        return hash(self._index)
 
     # pylint: disable=function-redefined
     @overload
@@ -70,7 +81,7 @@ class Pauli:
         return self._name
 
     def __repr__(self):
-        return 'Pauli.{!s}'.format(self)
+        return 'cirq.Pauli.{!s}'.format(self)
 
 
 Pauli.X = Pauli(_index=0, _name='X')

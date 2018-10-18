@@ -159,7 +159,7 @@ class TrialResult:
         """
         fixed_keys = tuple(keys)
         samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])
+                        for sub_key in fixed_keys])  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
@@ -215,7 +215,7 @@ class TrialResult:
             fold_func=lambda e: fold_func(e[0]))
 
     def __repr__(self):
-        return ('TrialResult(params={!r}, '
+        return ('cirq.TrialResult(params={!r}, '
                 'repetitions={!r}, '
                 'measurements={!r})').format(self.params,
                                              self.repetitions,

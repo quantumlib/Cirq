@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 
 import numpy as np
 
-from cirq import ops
-from cirq.api.google.v1 import operations_pb2
+from cirq import ops, devices
 from cirq.google import xmon_gates, xmon_gate_ext
 from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
@@ -26,42 +26,90 @@ if TYPE_CHECKING:
     from typing import Optional  # pylint: disable=unused-import
 
 
-def schedule_to_proto(schedule: Schedule) -> Iterable[operations_pb2.Operation]:
-    """Convert a schedule into protobufs.
+def gate_to_proto_dict(gate: ops.Gate,
+                       qubits: Tuple[ops.QubitId, ...]) -> Dict:
+    xmon_gate = xmon_gate_ext.try_cast(  # type: ignore
+        xmon_gates.XmonGate, gate)
+    if xmon_gate is not None:
+        return xmon_gate.to_proto_dict(*qubits)
+
+    if isinstance(gate, ops.MeasurementGate):
+        return _measure_to_proto_dict(gate, qubits)
+    if isinstance(gate, ops.Rot11Gate):
+        if len(qubits) != 2:
+            raise ValueError('Wrong number of qubits.')
+        return _cz_to_proto_dict(gate, *qubits)
+
+    raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
+
+
+def _cz_to_proto_dict(gate: ops.Rot11Gate,
+                      p: ops.QubitId,
+                      q: ops.QubitId) -> Dict:
+    exp_11 = {
+        'target1': cast(devices.GridQubit, p).to_proto_dict(),
+        'target2': cast(devices.GridQubit, q).to_proto_dict(),
+        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+            gate.half_turns)
+    }
+    return {'exp_11': exp_11}
+
+
+def _measure_to_proto_dict(gate: ops.MeasurementGate,
+                           qubits: Sequence[ops.QubitId]):
+    if len(qubits) == 0:
+        raise ValueError('Measurement gate on no qubits.')
+    if gate.invert_mask and len(gate.invert_mask) != len(qubits):
+        raise ValueError('Measurement gate had invert mask of length '
+                         'different than number of qubits it acts on.')
+    measurement = {
+        'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
+        'key': gate.key,
+    }
+    if gate.invert_mask:
+        measurement['invert_mask'] = [json.dumps(x) for x in
+                                      gate.invert_mask]
+    return {'measurement': measurement}
+
+
+def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
+    """Convert a schedule into an iterable of proto dictionaries.
 
     Args:
-        schedule: The schedule to convert to protobufs. Must contain only gates
-            that can be cast to xmon gates.
+        schedule: The schedule to convert to a proto dict. Must contain only
+            gates that can be cast to xmon gates.
 
     Yields:
-        operations_pb2.Operation
+        A proto dictionary corresponding to an Operation proto.
     """
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
-        gate = xmon_gate_ext.cast(
-            xmon_gates.XmonGate,
-            cast(ops.GateOperation, so.operation).gate)
-        op = gate.to_proto(*so.operation.qubits)
+        op = gate_to_proto_dict(
+            cast(ops.GateOperation, so.operation).gate,
+            so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
-            op.incremental_delay_picoseconds = time_picos
+            op['incremental_delay_picoseconds'] = time_picos
         else:
-            op.incremental_delay_picoseconds = time_picos - last_time_picos
+            op['incremental_delay_picoseconds'] = time_picos - last_time_picos
         last_time_picos = time_picos
         yield op
 
 
-def schedule_from_proto(
+def schedule_from_proto_dicts(
         device: XmonDevice,
-        ops: Iterable[operations_pb2.Operation],
+        ops: Iterable[Dict],
 ) -> Schedule:
-    """Convert protobufs into a Schedule for the given device."""
+    """Convert proto dictionaries into a Schedule for the given device."""
     scheduled_ops = []
     last_time_picos = 0
     for op in ops:
-        time_picos = last_time_picos + op.incremental_delay_picoseconds
+        delay_picos = 0
+        if 'incremental_delay_picoseconds' in op:
+            delay_picos = op['incremental_delay_picoseconds']
+        time_picos = last_time_picos + delay_picos
         last_time_picos = time_picos
-        xmon_op = xmon_gates.XmonGate.from_proto(op)
+        xmon_op = xmon_gates.XmonGate.from_proto_dict(op)
         scheduled_ops.append(ScheduledOperation.op_at_on(
             operation=xmon_op,
             time=Timestamp(picos=time_picos),

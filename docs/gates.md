@@ -16,26 +16,32 @@ print(CNOT(q0, q1))
 # CNOT((0, 0), (0, 1))
 ```
 
-### Gate Features
+### Magic Methods
 
-The raw ``Gate`` class itself simply describes that a ``Gate``
-can be applied to qubits to produce an ``Operation``. We then
-use marker classes for ``Gates`` indicated what additional
-features a ``Gate`` has.  
+A class that implements ``Gate`` can be applied to qubits to produce an ``Operation``.
+In order to support functionality beyond that basic task, it is necessary to implement several *magic methods*.
 
-For example, one feature is ``ReversibleEffect``.
-A ``Gate`` that inherits this class is required to implement the method ``inverse`` which returns the inverse gate.
-Algorithms that operate on gates can use ``isinstance(gate, ReversibleEffect)`` to determine whether gates implements ``inverse`` method, and then use it.
-(Note that, even if the gate is not reversible, the algorithm may have been given an ``Extension`` with a cast from the gate to ``ReversibleEffect``.
-See the [extensions documentation](docs/extensions.md) for more information.)
+Standard magic methods in python are `__add__`, `__eq__`, and `__len__`.
+Cirq defines several additional magic methods, for functionality such as parameterization, diagramming, and simulation.
+For example, if a gate specifies a `_unitary_` method that returns a matrix for the gate, then simulators will be able to simulate applying the gate.
+Or, if a gate specifies a `__pow__` method that works for an exponent of -1, then `cirq.inverse` will start to work on lists including the gate.
 
-We describe some gate features below.
+We describe some magic methods below.
 
-#### ReversibleEffect, SelfInverseGate
+#### `cirq.inverse` and `__pow__`
 
-As described above, a ``ReversibleEffect`` implements the ``inverse`` method (returns a gatethat is the inverse of the receiving gate).
-``SelfInverseGate`` is a ``Gate`` for which the ``inverse`` is simply the ``Gate`` itself
-(so the feature ``SelfInverseGate`` doesn't need to implement ``inverse``, it already just returns ``self``).
+Gates and operations are considered to be *invertable* when they implement a `__pow__` method that returns a result besides `NotImplemented` for an exponent of -1.
+This inverse can be accessed either directly as `value**-1`, or via the utility method `cirq.inverse(value)`.
+If you are sure that `value` has an inverse, saying `value**-1` is more convenient than saying `cirq.inverse(value)`.
+`cirq.inverse` is for cases where you aren't sure if `value` is invertable, or where `value` might be a *sequence* of invertible operations.
+
+`cirq.inverse` has a `default` parameter used as a fallback when `value` isn't invertable.
+For example, `cirq.inverse(value, default=None)` returns the inverse of `value`, or else returns `None` if `value` isn't invertable.
+(If no `default` is specified and `value` isn't invertible, a `TypeError` is raised.)
+
+When you give `cirq.inverse` a list, or any other kind of iterable thing, it will return a sequence of operations that (if run in order) undoes the operations of the original sequence (if run in order).
+Basically, the items of the list are individually inverted and returned in reverse order.
+For example, the expression `cirq.inverse([cirq.S(b), cirq.CNOT(a, b)])` will return the tuple `(cirq.CNOT(a, b), cirq.S(b)**-1)`.
 
 #### ExtrapolatableEffect
 
@@ -50,15 +56,15 @@ The primary use of ``ExtrapolatableEffect`` is to allow
 easy *powering* of gates.  That is one can define
 for these gates a power
 ```python
+import cirq
 import numpy as np
-from cirq.ops import X
-print(np.around(X.matrix()))
+print(np.around(cirq.unitary(cirq.X)))
 # prints
 # [[0.+0.j 1.+0.j]
 #  [1.+0.j 0.+0.j]]
 
-sqrt_x = X**0.5
-print(sqrt_x.matrix())
+sqrt_x = cirq.X**0.5
+print(cirq.unitary(sqrt_x))
 # prints
 # [[0.5+0.5j 0.5-0.5j]
 #  [0.5-0.5j 0.5+0.5j]]
@@ -67,11 +73,16 @@ print(sqrt_x.matrix())
 The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
 Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the intermediate values normalizing rotation angles into a canonical range.
 
-#### KnownMatrix
+#### `cirq.unitary` and `def _unitary_` 
 
 We've seen this above.
-These are ``Gate`` or ``Operation`` instances which implement the ``matrix`` method.
-This returns a numpy ``ndarray`` matrix which is the unitary gate for the gate/operation.
+These are ``Gate`` or ``Operation`` instances which may be described by a
+unitary matrix.
+They implement the ``_unitary_`` method,
+which returns a numpy ``ndarray`` matrix which is the unitary gate for the
+gate/operation.
+The method may also return `NotImplemented`, in which case `cirq.unitary`
+behaves as if the method is not implemented.
 
 #### CompositeGate and CompositeOperation
 
@@ -121,11 +132,11 @@ axis.  The gate is ``exp(-i pi Z half_turns / 2)`` where
 quantum computing hardware, this gate is often compiled
 out of the circuit (TODO: explain this in more detail)
 
-**Exp11Gate** This is a two qubit gate and is a rotation
+**cirq.Rot11Gate** This is a two qubit gate and is a rotation
 about the ``|11><11|`` projector.  It takes a single parameter 
 ``half_turns`` and is the gate ``exp(i pi |11><11| half_turns)``.
 
-**XmonMeasurementGate** This is a single qubit measurement
+**cirq.MeasurementGate** This is a single qubit measurement
 in the computational basis. 
 
 ### CommonGates

@@ -93,13 +93,13 @@ To ignore coverage for an entire block, start the block with a `# coverage: igno
 - **Lint**.
 Code should meet common style standards for python and be free of error-prone constructs.
 We use [pylint](https://www.pylint.org/) to check for lint.
-To see which lint checks we enforce, see the [continuous-integration/.pylintrc](continuous-integration/.pylintrc) file.
+To see which lint checks we enforce, see the [dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file.
 When pylint produces a false positive, it can be squashed with annotations like `# pylint: disable=unused-import`.
 - **Types**.
 Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
 We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
 When type checking produces a false positive, it can be ignored with annotations like `# type: ignore`.
-- **Python 2 Convertability**.
+- **Python 2 Convertibility**.
 Code must avoid constructs which fail to translate to python 2.
 Cirq is written in python 3, but we use [3to2](https://pypi.org/project/3to2/) (and some custom tooling) to automatically translate the code into runnable python 2 code.
 This translation step is not perfect.

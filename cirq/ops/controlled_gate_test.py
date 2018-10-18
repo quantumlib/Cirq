@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Union, Sequence, Tuple, cast
 
 import numpy as np
 import pytest
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 class RestrictedGate(cirq.Gate):
@@ -70,9 +72,12 @@ def test_eq():
     eq.add_equality_group(cirq.X)
 
 
-def test_matrix():
+def test_unitary():
+    cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
+    assert cirq.unitary(cxa, None) is None
+
     np.testing.assert_allclose(
-        CY.matrix(),
+        cirq.unitary(CY),
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -82,7 +87,7 @@ def test_matrix():
         atol=1e-8)
 
     np.testing.assert_allclose(
-        CCH.matrix(),
+        cirq.unitary(CCH),
         np.array([
             [1, 0, 0, 0, 0, 0, 0, 0],
             [0, 1, 0, 0, 0, 0, 0, 0],
@@ -96,24 +101,64 @@ def test_matrix():
         atol=1e-8)
 
 
-def test_matrix_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.KnownMatrix, RestrictedGate, lambda _: cirq.X)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
+class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate,
+                                        cirq.ExtrapolatableEffect):
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        available_buffer[...] = target_tensor
+        target_tensor[...] = 0
+        return available_buffer
 
-    with pytest.raises(TypeError):
-        _ = without_ext.matrix()
+    def _unitary_(self):
+        return np.eye(2)
 
-    np.testing.assert_allclose(
-        with_ext.matrix(),
-        np.array([
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-        ]),
-        atol=1e-8)
+    def extrapolate_effect(self, factor):
+        return self
+
+
+class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate,
+                                      cirq.ExtrapolatableEffect):
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        assert len(axes) == 1
+        a = axes[0]
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
+                    (slice(None),))
+        zero = seed*a + (0, Ellipsis)
+        one = seed*a + (1, Ellipsis)
+        result = np.zeros(target_tensor.shape, target_tensor.dtype)
+        result[zero] = target_tensor[zero]*2 + target_tensor[one]*3
+        result[one] = target_tensor[zero]*5 + target_tensor[one]*7
+        return result
+
+    def _unitary_(self):
+        return np.matrix([[2, 3], [5, 7]])
+
+    def extrapolate_effect(self, factor):
+        return self
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.X,
+    cirq.Z,
+    cirq.H,
+    cirq.CNOT,
+    cirq.SWAP,
+    cirq.CCZ,
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
+    GateUsingWorkspaceForApplyUnitary(),
+    GateAllocatingNewSpaceForResult(),
+])
+def test_apply_unitary_to_tensor(gate: cirq.Gate):
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.ControlledGate(gate),
+        exponents=[1, 0.5, cirq.Symbol('s')])
 
 
 def test_try_cast_to():
@@ -134,30 +179,13 @@ def test_try_cast_to():
     assert CRestricted.try_cast_to(cirq.CompositeGate, ext) is None
 
     # Supported sub features that are not present on sub gate.
-    assert CRestricted.try_cast_to(cirq.KnownMatrix, ext) is None
-    assert CRestricted.try_cast_to(cirq.ReversibleEffect, ext) is None
+    assert cirq.inverse(CRestricted, None) is None
+    assert cirq.inverse(CY) == CY**-1 == CY
     assert CRestricted.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.TextDiagrammable, ext) is None
-    assert CRestricted.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert CRestricted.try_cast_to(cirq.ParameterizableEffect, ext) is None
 
     # Supported sub features that are present on sub gate.
-    assert CY.try_cast_to(cirq.KnownMatrix, ext) is not None
-    assert CY.try_cast_to(cirq.ReversibleEffect, ext) is not None
+    assert cirq.inverse(CY, None) is not None
     assert CY.try_cast_to(cirq.ExtrapolatableEffect, ext) is not None
-    assert CY.try_cast_to(cirq.TextDiagrammable, ext) is not None
-    assert CY.try_cast_to(cirq.BoundedEffect, ext) is not None
-    assert CY.try_cast_to(cirq.ParameterizableEffect, ext) is not None
-
-    # Extensions stick around after casting.
-    ext.add_cast(cirq.KnownMatrix, RestrictedGate, lambda _: cirq.X)
-    ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.X)
-    casted = CRestricted.try_cast_to(cirq.KnownMatrix, ext)
-    assert casted is not None
-    assert casted.default_extensions is ext
-    assert casted.inverse() is not None
-    with pytest.raises(TypeError):
-        _ = CRestricted.inverse()
 
 
 def test_extrapolatable_effect():
@@ -181,105 +209,55 @@ def test_extrapolatable_via_extension():
         _ = without_ext.extrapolate_effect(0.5)
     with pytest.raises(TypeError):
         _ = without_ext**0.5
-    with pytest.raises(TypeError):
-        _ = without_ext.inverse()
 
     assert (with_ext.extrapolate_effect(0.5) ==
             cirq.ControlledGate(cirq.X.extrapolate_effect(0.5)))
-    assert with_ext.inverse() == cirq.ControlledGate(cirq.X)
     assert with_ext**0.5 == cirq.ControlledGate(cirq.X.extrapolate_effect(0.5))
 
 
 def test_reversible():
-    assert (cirq.ControlledGate(cirq.S).inverse() ==
-            cirq.ControlledGate(cirq.S.inverse()))
-
-
-def test_reversible_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ReversibleEffect, RestrictedGate, lambda _: cirq.S)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.inverse()
-
-    assert with_ext.inverse() == cirq.ControlledGate(cirq.S.inverse())
+    assert (cirq.inverse(cirq.ControlledGate(cirq.S)) ==
+            cirq.ControlledGate(cirq.S**-1))
 
 
 def test_parameterizable():
     a = cirq.Symbol('a')
     cz = cirq.ControlledGate(cirq.RotYGate(half_turns=1))
     cza = cirq.ControlledGate(cirq.RotYGate(half_turns=a))
-    assert cza.is_parameterized()
-    assert not cz.is_parameterized()
-    assert cza.with_parameters_resolved_by(cirq.ParamResolver({'a': 1})) == cz
+    assert cirq.is_parameterized(cza)
+    assert not cirq.is_parameterized(cz)
+    assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
 
 
-def test_parameterizable_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.ParameterizableEffect, RestrictedGate, lambda _: cirq.S)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.is_parameterized()
-
-    assert not with_ext.is_parameterized()
-
-
-def test_text_diagram_info():
-    assert CY.text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
+def test_circuit_diagram_info():
+    assert cirq.circuit_diagram_info(CY) == cirq.CircuitDiagramInfo(
         wire_symbols=('@', 'Y'),
         exponent=1)
 
-    assert cirq.ControlledGate(cirq.Y**0.5).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            wire_symbols=('@', 'Y'),
-            exponent=0.5)
-
-    assert cirq.ControlledGate(cirq.S).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            wire_symbols=('@', 'S'),
-            exponent=1)
-
-
-def test_text_diagrammable_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.TextDiagrammable,
-                 RestrictedGate,
-                 lambda _: cirq.Y**0.5)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    with pytest.raises(TypeError):
-        _ = without_ext.text_diagram_info(args)
-
-    assert with_ext.text_diagram_info(args) == cirq.TextDiagramInfo(
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.Y**0.5)
+                                     ) == cirq.CircuitDiagramInfo(
         wire_symbols=('@', 'Y'),
         exponent=0.5)
 
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.S)
+                                     ) == cirq.CircuitDiagramInfo(
+        wire_symbols=('@', 'S'),
+        exponent=1)
+
+    class UndiagrammableGate(cirq.Gate):
+        pass
+
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(UndiagrammableGate()),
+                                     default=None) is None
+
 
 def test_bounded_effect():
-    assert (CY**0.001).trace_distance_bound() < 0.01
-
-
-def test_bounded_effect_via_extension():
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.BoundedEffect, RestrictedGate, lambda _: cirq.Y)
-    without_ext = cirq.ControlledGate(RestrictedGate())
-    with_ext = cirq.ControlledGate(RestrictedGate(), ext)
-
-    with pytest.raises(TypeError):
-        _ = without_ext.trace_distance_bound()
-
-    assert with_ext.trace_distance_bound() < 100
+    assert cirq.trace_distance_bound(CY**0.001) < 0.01
 
 
 def test_repr():
-    assert repr(cirq.ControlledGate(cirq.Z)) == 'ControlledGate(sub_gate=Z)'
+    assert repr(
+        cirq.ControlledGate(cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
 
 
 def test_str():

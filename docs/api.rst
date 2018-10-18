@@ -24,7 +24,7 @@ Operations
     Operation
     GateOperation
     CompositeOperation
-    QasmConvertableOperation
+    QasmConvertibleOperation
 
 
 Schedules
@@ -53,18 +53,14 @@ Gate Features and Effects
 .. autosummary::
     :toctree: generated
 
-    KnownMatrix
-    ParameterizableEffect
     CompositeGate
     ExtrapolatableEffect
     ReversibleEffect
     InterchangeableQubitsGate
-    PhaseableEffect
     TextDiagrammable
-    BoundedEffect
     SingleQubitGate
     TwoQubitGate
-    QasmConvertableGate
+    QasmConvertibleGate
     EigenGate
 
 Single Qubit Gates

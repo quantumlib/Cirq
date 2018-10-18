@@ -1,8 +1,0 @@
-google-api-python-client~=1.6
-matplotlib~=2.2
-networkx~=2.1
-numpy~=1.14
-protobuf~=3.5
-requests~=2.18
-sortedcontainers~=2.0
-scipy~=1.1.0

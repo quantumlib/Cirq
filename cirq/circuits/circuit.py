@@ -28,16 +28,17 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study, linalg
+from cirq import devices, ops, extension, study, protocols
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
+from cirq.type_workarounds import NotImplementedType
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
-class Circuit(ops.ParameterizableEffect):
+class Circuit:
     """A mutable list of groups of operations to apply to some qubits.
 
     Methods returning information about the circuit:
@@ -117,9 +118,6 @@ class Circuit(ops.ParameterizableEffect):
     def __copy__(self) -> 'Circuit':
         return self.copy()
 
-    def __deepcopy__(self) -> 'Circuit':
-        return self.copy()
-
     def copy(self) -> 'Circuit':
         return Circuit(self._moments, self._device)
 
@@ -197,8 +195,8 @@ class Circuit(ops.ParameterizableEffect):
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device
-                    if other.device is devices.UnconstrainedDevice
-                    else other.device)
+                  if other.device is devices.UnconstrainedDevice
+                  else other.device)
         device_2 = (other.device
                     if self._device is devices.UnconstrainedDevice
                     else self._device)
@@ -231,11 +229,18 @@ class Circuit(ops.ParameterizableEffect):
         return self * repetitions
 
     def __repr__(self):
-        moment_lines = ('\n    ' + repr(moment) for moment in self._moments)
+        if not self._moments and self._device == devices.UnconstrainedDevice:
+            return 'cirq.Circuit()'
+
+        if not self._moments:
+            return 'cirq.Circuit(device={!r})'.format(self._device)
+
+        moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UnconstrainedDevice:
-            return 'Circuit([{}])'.format(','.join(moment_lines))
-        return 'Circuit([{}], device={!r})'.format(','.join(moment_lines),
-                                                   self._device)
+            return 'cirq.Circuit(moments={})'.format(moment_str)
+
+        return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,
+                                                              self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -246,7 +251,7 @@ class Circuit(ops.ParameterizableEffect):
             self,
             new_device: devices.Device,
             qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
-            ) -> 'Circuit':
+    ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
         Args:
@@ -319,9 +324,9 @@ class Circuit(ops.ParameterizableEffect):
             range(start_moment_index, start_moment_index + max_distance))
 
     def next_moments_operating_on(self,
-                                 qubits: Iterable[ops.QubitId],
-                                 start_moment_index: int = 0
-                                 ) -> Dict[ops.QubitId, int]:
+                                  qubits: Iterable[ops.QubitId],
+                                  start_moment_index: int = 0
+                                  ) -> Dict[ops.QubitId, int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -337,7 +342,8 @@ class Circuit(ops.ParameterizableEffect):
         """
         next_moments = {}
         for q in qubits:
-            next_moment = self.next_moment_operating_on([q], start_moment_index)
+            next_moment = self.next_moment_operating_on(
+                [q], start_moment_index)
             next_moments[q] = (len(self._moments) if next_moment is None else
                                next_moment)
         return next_moments
@@ -444,9 +450,9 @@ class Circuit(ops.ParameterizableEffect):
     def findall_operations_with_gate_type(
             self,
             gate_type: Type[T_DESIRED_GATE_TYPE]
-            ) -> Iterable[Tuple[int,
-                                ops.GateOperation,
-                                T_DESIRED_GATE_TYPE]]:
+    ) -> Iterable[Tuple[int,
+                        ops.GateOperation,
+                        T_DESIRED_GATE_TYPE]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -652,12 +658,11 @@ class Circuit(ops.ParameterizableEffect):
 
         return moment_indices, frontier
 
-
     def _push_frontier(self,
-                      early_frontier: Dict[ops.QubitId, int],
-                      late_frontier: Dict[ops.QubitId, int],
-                      update_qubits: Iterable[ops.QubitId]=None
-                      ) -> Tuple[int, int]:
+                       early_frontier: Dict[ops.QubitId, int],
+                       late_frontier: Dict[ops.QubitId, int],
+                       update_qubits: Iterable[ops.QubitId]=None
+                       ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
@@ -689,7 +694,7 @@ class Circuit(ops.ParameterizableEffect):
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self._moments[insert_index:insert_index] = (
-                    [Moment()] * n_new_moments)
+                [Moment()] * n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -697,8 +702,8 @@ class Circuit(ops.ParameterizableEffect):
         return (0, 0)
 
     def _insert_operations(self,
-                          operations: Sequence[ops.Operation],
-                          insertion_indices: Sequence[int]) -> None:
+                           operations: Sequence[ops.Operation],
+                           insertion_indices: Sequence[int]) -> None:
         """Inserts operations at the specified moments. Appends new moments if
         necessary.
 
@@ -718,13 +723,13 @@ class Circuit(ops.ParameterizableEffect):
                              'same length.')
         self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
                                                   len(self))]
-        moment_to_ops = defaultdict(list) # type: Dict[int, List[ops.Operation]]
+        moment_to_ops = defaultdict(list
+                                    )  # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
             self._moments[moment_index] = Moment(
-                    self._moments[moment_index].operations + tuple(new_ops))
-
+                self._moments[moment_index].operations + tuple(new_ops))
 
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
@@ -752,14 +757,13 @@ class Circuit(ops.ParameterizableEffect):
         next_moments = self.next_moments_operating_on(qubits, start)
 
         insertion_indices, _ = self._pick_inserted_ops_moment_indices(
-                operations, start, frontier)
+            operations, start, frontier)
 
         self._push_frontier(frontier, next_moments)
 
         self._insert_operations(operations, insertion_indices)
 
         return frontier
-
 
     def batch_remove(self,
                      removals: Iterable[Tuple[int, ops.Operation]]) -> None:
@@ -825,6 +829,11 @@ class Circuit(ops.ParameterizableEffect):
 
         All insertions are done with the strategy 'EARLIEST'.
 
+        When multiple inserts occur at the same index, the gates from the later
+        inserts end up before the gates from the earlier inserts (exactly as if
+        you'd called list.insert several times with the same index: the later
+        inserts shift the earliest inserts forward).
+
         Args:
             insertions: A sequence of (insert_index, operations) pairs
                 indicating operations to add into the circuit at specific
@@ -833,11 +842,18 @@ class Circuit(ops.ParameterizableEffect):
         # Work on a copy in case validation fails halfway through.
         copy = self.copy()
         shift = 0
-        for i, tree in sorted(insertions, key=lambda e: e[0]):
-            for op in ops.flatten_op_tree(tree):
-                next_index = copy.insert(i + shift, op, InsertStrategy.EARLIEST)
-                if next_index > i:
-                    shift += 1
+        # Note: python `sorted` is guaranteed to be stable. This matters.
+        insertions = sorted(insertions, key=lambda e: e[0])
+        groups = _group_until_different(insertions,
+                                        key=lambda e: e[0],
+                                        value=lambda e: e[1])
+        for i, group in groups:
+            insert_index = i + shift
+            next_index = copy.insert(insert_index,
+                                     reversed(group),
+                                     InsertStrategy.EARLIEST)
+            if next_index > insert_index:
+                shift += next_index - insert_index
         self._moments = copy._moments
 
     def append(
@@ -881,25 +897,41 @@ class Circuit(ops.ParameterizableEffect):
         """
         return (op for moment in self for op in moment.operations)
 
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        """Converts the circuit into a unitary matrix, if possible.
+
+        If the circuit contains any non-terminal measurements, the conversion
+        into a unitary matrix fails (i.e. returns NotImplemented). Terminal
+        measurements are ignored when computing the unitary matrix. The unitary
+        matrix is the product of the unitary matrix of all operations in the
+        circuit (after expanding them to apply to the whole system).
+        """
+        if not self.are_all_measurements_terminal():
+            return NotImplemented
+        return self.to_unitary_matrix(ignore_terminal_measurements=True)
+
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: extension.Extensions = None) -> np.ndarray:
+            ext: extension.Extensions = None,
+            dtype: np.dtype = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
             ext: The extensions to use when attempting to cast operations into
-                KnownMatrix instances.
+                CompositeOperation instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
+            dtype: The numpy dtype for the returned unitary. Must be a complex
+                dtype.
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -930,7 +962,7 @@ class Circuit(ops.ParameterizableEffect):
         state = np.eye(1 << n, dtype=np.complex128)
         state.shape = (2,) * (2 * n)
 
-        result = _apply_unitary_circuit(self, state, qs, ext)
+        result = _apply_unitary_circuit(self, state, qs, ext, dtype)
         return result.reshape((1 << n, 1 << n))
 
     def apply_unitary_effect_to_state(
@@ -939,7 +971,8 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: extension.Extensions = None) -> np.ndarray:
+            ext: extension.Extensions = None,
+            dtype: np.dtype = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
         A circuit's "unitary effect" is the unitary matrix produced by
@@ -972,6 +1005,8 @@ class Circuit(ops.ParameterizableEffect):
                 fail.
             ext: The extensions to use when attempting to cast operations into
                 KnownMatrix instances.
+            dtype: The numpy dtype for the returned unitary. Must be a complex
+                dtype.
 
         Returns:
             A (possibly gigantic) numpy array storing the superposition that
@@ -1000,18 +1035,18 @@ class Circuit(ops.ParameterizableEffect):
         n = len(qs)
 
         if isinstance(initial_state, int):
-            state = np.zeros(1 << n, dtype=np.complex128)
+            state = np.zeros(1 << n, dtype=dtype)
             state[initial_state] = 1
         else:
-            state = initial_state.astype(np.complex128)
+            state = initial_state.astype(dtype)
         state.shape = (2,) * n
 
-        result = _apply_unitary_circuit(self, state, qs, ext)
+        result = _apply_unitary_circuit(self, state, qs, ext, dtype)
         return result.reshape((1 << n,))
 
     def to_text_diagram(
             self,
-            ext: extension.Extensions = None,
+            *,
             use_unicode_characters: bool = True,
             transpose: bool = False,
             precision: Optional[int] = 3,
@@ -1019,7 +1054,6 @@ class Circuit(ops.ParameterizableEffect):
         """Returns text containing a diagram describing the circuit.
 
         Args:
-            ext: For extending operations/gates to implement TextDiagrammable.
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
@@ -1030,7 +1064,6 @@ class Circuit(ops.ParameterizableEffect):
             The text diagram.
         """
         diagram = self.to_text_diagram_drawer(
-            ext=ext,
             use_unicode_characters=use_unicode_characters,
             qubit_name_suffix='' if transpose else ': ',
             precision=precision,
@@ -1046,17 +1079,16 @@ class Circuit(ops.ParameterizableEffect):
 
     def to_text_diagram_drawer(
             self,
-            ext: extension.Extensions = None,
+            *,
             use_unicode_characters: bool = True,
             qubit_name_suffix: str = '',
             transpose: bool = False,
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
-            ext: For extending operations/gates to implement TextDiagrammable.
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             qubit_name_suffix: Appended to qubit names in the diagram.
@@ -1067,9 +1099,6 @@ class Circuit(ops.ParameterizableEffect):
         Returns:
             The TextDiagramDrawer instance.
         """
-        if ext is None:
-            ext = extension.Extensions()
-
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
@@ -1080,7 +1109,6 @@ class Circuit(ops.ParameterizableEffect):
 
         for moment in self._moments:
             _draw_moment_in_diagram(moment,
-                                    ext,
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
@@ -1095,13 +1123,9 @@ class Circuit(ops.ParameterizableEffect):
 
         return diagram
 
-    def is_parameterized(self,
-                         ext: extension.Extensions = None) -> bool:
-        if ext is None:
-            ext = extension.Extensions()
-        return any(cast(ops.ParameterizableEffect, op).is_parameterized()
-                   for op in self.all_operations()
-                   if ext.try_cast(ops.ParameterizableEffect, op) is not None)
+    def is_parameterized(self) -> bool:
+        return any(protocols.is_parameterized(op)
+                   for op in self.all_operations())
 
     def with_parameters_resolved_by(self,
                                     param_resolver: study.ParamResolver,
@@ -1113,8 +1137,7 @@ class Circuit(ops.ParameterizableEffect):
         for moment in self:
             resolved_circuit.append(_resolve_operations(
                 moment.operations,
-                param_resolver,
-                ext))
+                param_resolver))
         return resolved_circuit
 
     def to_qasm(self,
@@ -1132,7 +1155,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1160,7 +1183,7 @@ class Circuit(ops.ParameterizableEffect):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
             ext: For extending operations/gates to implement
-                QasmConvertableOperation/QasmConvertableGate.
+                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1175,34 +1198,25 @@ class Circuit(ops.ParameterizableEffect):
 
 def _resolve_operations(
         operations: Iterable[ops.Operation],
-        param_resolver: study.ParamResolver,
-        ext: extension.Extensions) -> List[ops.Operation]:
+        param_resolver: study.ParamResolver) -> List[ops.Operation]:
     resolved_operations = []  # type: List[ops.Operation]
     for op in operations:
-        cast_op = ext.try_cast(ops.ParameterizableEffect, op)
-        if cast_op is None:
-            resolved_op = op
-        else:
-            resolved_op = cast(
-                    ops.Operation,
-                    cast_op.with_parameters_resolved_by(param_resolver))
-        resolved_operations.append(resolved_op)
+        resolved_operations.append(protocols.resolve_parameters(
+            op, param_resolver))
     return resolved_operations
 
 
-def _get_operation_text_diagram_info_with_fallback(
+def _get_operation_circuit_diagram_info_with_fallback(
         op: ops.Operation,
-        args: ops.TextDiagramInfoArgs,
-        ext: extension.Extensions) -> ops.TextDiagramInfo:
-    text_diagrammable_op = ext.try_cast(ops.TextDiagrammable, op)
-    if text_diagrammable_op is not None:
-        info = text_diagrammable_op.text_diagram_info(args)
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+    info = protocols.circuit_diagram_info(op, args, None)
+    if info is not None:
         if len(op.qubits) != len(info.wire_symbols):
             raise ValueError(
                 'Wanted diagram info from {!r} for {} '
                 'qubits but got {!r}'.format(
                     op,
-                    len(info.wire_symbols),
+                    len(op.qubits),
                     info))
         return info
 
@@ -1216,17 +1230,15 @@ def _get_operation_text_diagram_info_with_fallback(
         name = name[:-len(redundant_tail)]
 
     # Include ordering in the qubit labels.
-    if len(op.qubits) != 1:
-        symbols = tuple('{}:{}'.format(name, i)
-                        for i in range(len(op.qubits)))
-    else:
-        symbols = (name,)
+    symbols = (name,) + tuple('#{}'.format(i + 1)
+                              for i in range(1, len(op.qubits)))
 
-    return ops.TextDiagramInfo(wire_symbols=symbols)
+    return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
 
-def _formatted_exponent(info: ops.TextDiagramInfo,
-                        args: ops.TextDiagramInfoArgs) -> Optional[str]:
+def _formatted_exponent(info: protocols.CircuitDiagramInfo,
+                        args: protocols.CircuitDiagramInfoArgs
+                        ) -> Optional[str]:
     # 1 is not shown.
     if info.exponent == 1:
         return None
@@ -1250,7 +1262,6 @@ def _formatted_exponent(info: ops.TextDiagramInfo,
 
 
 def _draw_moment_in_diagram(moment: Moment,
-                            ext: extension.Extensions,
                             use_unicode_characters: bool,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
@@ -1267,13 +1278,13 @@ def _draw_moment_in_diagram(moment: Moment,
                   for y in range(y1, y2 + 1)):
             x += 1
 
-        args = ops.TextDiagramInfoArgs(
+        args = protocols.CircuitDiagramInfoArgs(
             known_qubits=op.qubits,
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
             qubit_map=qubit_map,
             precision=precision)
-        info = _get_operation_text_diagram_info_with_fallback(op, args, ext)
+        info = _get_operation_circuit_diagram_info_with_fallback(op, args)
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
@@ -1292,7 +1303,8 @@ def _draw_moment_in_diagram(moment: Moment,
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           ext: extension.Extensions) -> np.ndarray:
+                           ext: extension.Extensions,
+                           dtype: np.dtype) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.
@@ -1311,35 +1323,42 @@ def _apply_unitary_circuit(circuit: Circuit,
             operate on the k'th axis of the state tensor.
         ext: Extensions used when attempting to get matrices and decompositions
             of the operations.
+        dtype: The numpy dtype to use for applying the unitary. Must be a
+            complex dtype.
 
     Returns:
         The left-multiplied state tensor.
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    buffer = np.zeros(state.shape, dtype=np.complex128)
+    buffer = np.zeros(state.shape, dtype=dtype)
     for op, qs in _extract_unitaries(circuit.all_operations(), ext):
-        matrix = op.matrix().astype(np.complex128).reshape((2,) * (2 * len(qs)))
         indices = [qubit_map[q] for q in qs]
-        linalg.targeted_left_multiply(matrix, state, indices, out=buffer)
-        state, buffer = buffer, state
+        result = protocols.apply_unitary_to_tensor(
+            val=op,
+            target_tensor=state,
+            available_buffer=buffer,
+            axes=indices)
+        if result is buffer:
+            buffer = state
+        state = result
     return state
 
 
 def _extract_unitaries(operations: Iterable[ops.Operation],
                        ext: extension.Extensions
-                       ) -> Iterable[Tuple[ops.KnownMatrix,
+                       ) -> Iterable[Tuple[Any,
                                            Tuple[ops.QubitId, ...]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
     """
     for op in operations:
         # Check if the operation has a known matrix.
-        known_matrix = ext.try_cast(ops.KnownMatrix, op)
-        if known_matrix is not None:
-            yield known_matrix, op.qubits
+        matrix = protocols.unitary(op, None)
+        if matrix is not None:
+            yield op, op.qubits
             continue
 
         # If not, check if it has a decomposition.
-        composite_op = ext.try_cast(ops.CompositeOperation, op)
+        composite_op = ext.try_cast(ops.CompositeOperation, op)  # type: ignore
         if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_op.default_decompose()
@@ -1353,7 +1372,7 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             # Account for bit flips embedded into the measurement operation.
             for i, b in enumerate(gate.invert_mask):
                 if b:
-                    yield ext.cast(ops.KnownMatrix, ops.X), (op.qubits[i],)
+                    yield ops.X, (op.qubits[i],)
 
             # This is a private method called in contexts where we know
             # measurement is supposed to be skipped.
@@ -1363,3 +1382,68 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
         raise TypeError(
             'Operation without a known matrix or decomposition: {!r}'.format(
                 op))
+
+
+def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
+    block = '\n'.join([repr(op) + ',' for op in items])
+    indented = '    ' + '\n    '.join(block.split('\n'))
+    return '[\n{}\n]'.format(indented)
+
+
+TIn = TypeVar('TIn')
+TOut = TypeVar('TOut')
+TKey = TypeVar('TKey')
+
+
+@overload
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           ) -> Iterable[Tuple[TKey, List[TIn]]]:
+    pass
+
+
+@overload
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value: Callable[[TIn], TOut]
+                           ) -> Iterable[Tuple[TKey, List[TOut]]]:
+    pass
+
+
+def _group_until_different(items: Iterable[TIn],
+                           key: Callable[[TIn], TKey],
+                           value=lambda e: e):
+    """Groups runs of items that are identical according to a keying function.
+
+    Args:
+        items: The items to group.
+        key: If two adjacent items produce the same output from this function,
+            they will be grouped.
+        value: Maps each item into a value to put in the group. Defaults to the
+            item itself.
+
+    Examples:
+        _group_until_different(range(11), key=is_prime) yields
+            (False, [0, 1])
+            (True, [2, 3])
+            (False, [4])
+            (True, [5])
+            (False, [6])
+            (True, [7])
+            (False, [8, 9, 10])
+
+    Yields:
+        Tuples containing the group key and item values.
+    """
+    prev_item_key = None
+    cur_items = []  # type: List[Any]
+    for item in items:
+        item_key = key(item)
+        if cur_items and item_key != prev_item_key:
+            yield prev_item_key, cur_items
+            cur_items = []
+        cur_items.append(value(item))
+        prev_item_key = item_key
+
+    if cur_items:
+        yield prev_item_key, cur_items

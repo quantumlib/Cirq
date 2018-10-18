@@ -15,19 +15,18 @@ Here is a simple circuit
 import cirq
 from cirq import Circuit
 from cirq.devices import GridQubit
-from cirq.google import ExpWGate, Exp11Gate, XmonMeasurementGate
+from cirq.google import ExpWGate
 
 q0 = GridQubit(0, 0)
 q1 = GridQubit(1, 0)
 
 def basic_circuit(meas=True):
     sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    cz = Exp11Gate()
     yield sqrt_x(q0), sqrt_x(q1)
-    yield cz(q0, q1)
+    yield cirq.CZ(q0, q1)
     yield sqrt_x(q0), sqrt_x(q1)
     if meas:
-        yield XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)
+        yield cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')
    
 circuit = Circuit()
 circuit.append(basic_circuit())
@@ -119,7 +118,7 @@ More concretely, the `k`'th amplitude in the wave function
 will correspond to the `k`'th case that would be encountered 
 when nesting loops over the possible values of each qubit.
 The first qubit's computational basis values are looped over
-in the outer-most loop, the last qubit's computational basis 
+in the outermost loop, the last qubit's computational basis
 values are looped over in the inner-most loop, etc:
 
 ```python
@@ -191,14 +190,14 @@ for the binary expansion of the passed integer.
 
 The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying an ``XmonGate``,
 a ``CompositeOperation`` that decomposes (recursively) to ``XmonGates``,
-or a 1-qubit or 2-qubit operation with a ``KnownMatrix``.
+or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
 By default the xmon simulator uses an ``Extension`` defined in ``xgate_gate_extensions`` to try to resolve gates that are not ``XmonGates`` to ``XmonGates``.
 
 So if you are using a custom gate, there are multiple options
 for getting it to work with the simulator:
 * Define it directly as an ``XmonGate``.
 * Provide a ``CompositeGate`` made up of ``XmonGates``.
-* Supply an ``Exentension`` to the simulator which converts
+* Supply an ``Extension`` to the simulator which converts
 the gate to an ``XmonGate`` or to a ``CompositeGate`` which 
 itself can be decomposed in ``XmonGates``. 
 
@@ -242,7 +241,7 @@ in the ``TrialContext`` object).  Example:
 resolvers = [ParamResolver({'x': y / 2.0}) for y in range(3)]
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
-circuit.append([XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)])
+circuit.append([cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')])
 results = simulator.run_sweep(program=circuit,
                               params=resolvers,
                               repetitions=2)

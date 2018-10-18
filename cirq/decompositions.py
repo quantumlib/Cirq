@@ -20,7 +20,7 @@ import math
 import cmath
 import numpy as np
 
-from cirq import ops, linalg
+from cirq import ops, linalg, protocols
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
@@ -173,7 +173,7 @@ def controlled_op_to_operations(
         del u_gates[-1]
 
     ops_before = [gate(target) for gate in u_gates]
-    ops_after = ops.inverse(ops_before)
+    ops_after = protocols.inverse(ops_before)
     effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
     kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
 
@@ -302,7 +302,7 @@ def _parity_interaction(q0: ops.QubitId,
                         q1: ops.QubitId,
                         rads: float,
                         tolerance: float,
-                        gate: Optional[ops.ReversibleEffect] = None):
+                        gate: Optional[ops.Gate] = None):
     """Yields a ZZ interaction framed by the given operation."""
     if abs(rads) < tolerance:
         return
@@ -321,7 +321,7 @@ def _parity_interaction(q0: ops.QubitId,
     yield ops.Z(q0)**h
     yield ops.Z(q1)**h
     if gate is not None:
-        g = cast(ops.Gate, gate.inverse())
+        g = protocols.inverse(gate)
         yield g.on(q0), g.on(q1)
 
 
@@ -342,10 +342,8 @@ def _non_local_part(q0: ops.QubitId,
     if (allow_partial_czs or
         all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):
         return [
-            _parity_interaction(q0, q1, x, tolerance,
-                                cast(ops.ReversibleEffect, ops.Y**-0.5)),
-            _parity_interaction(q0, q1, y, tolerance,
-                                cast(ops.ReversibleEffect, ops.X**0.5)),
+            _parity_interaction(q0, q1, x, tolerance, ops.Y**-0.5),
+            _parity_interaction(q0, q1, y, tolerance, ops.X**0.5),
             _parity_interaction(q0, q1, z, tolerance)
         ]
 

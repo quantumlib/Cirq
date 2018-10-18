@@ -68,6 +68,11 @@ Contributing
 We welcome contributions. Please follow these
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
 
+We use
+`Github issues <https://github.com/quantumlib/Cirq/issues>`__
+for tracking requests and bugs. Please post questions to the
+`Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with a 'cirq' tag.
+
 See Also
 --------
 
@@ -77,7 +82,8 @@ chemistry and materials science, we encourage exploring
 its sister library for compiling quantum simulation algorithms in Cirq,
 `OpenFermion-Cirq <https://github.com/quantumlib/openfermion-cirq>`__.
 
-Disclaimer
+Disclaimers
 ----------
-
-Copyright 2018 The Cirq Developers. This is not an official Google product.
+***Cirq is currently in alpha.** We are still making breaking changes, and we *will* break your code when we make new releases. We recommend that you pin a specific version of cirq in `requirements.txt` files, and periodically bump to the latest release. That way you have control over when a breaking change affects you.
+* Cirq is not an official Google product
+* Copyright 2018 The Cirq Developers

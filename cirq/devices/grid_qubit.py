@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import operator
 
-from cirq.api.google.v1 import operations_pb2
-from cirq.ops import QubitId
+from typing import Dict
+
+from cirq import ops
 
 
-class GridQubit(QubitId):
+class GridQubit(ops.QubitId):
     """A qubit on a 2d square lattice.
 
     GridQubits use row-major ordering:
@@ -30,52 +30,31 @@ class GridQubit(QubitId):
         self.row = row
         self.col = col
 
-    def is_adjacent(self, other: QubitId) -> bool:
+    def _comparison_key(self):
+        return self.row, self.col
+
+    def is_adjacent(self, other: ops.QubitId) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
-    def _compare(self, other, op):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return op((self.row, self.col), (other.row, other.col))
-
-    def __eq__(self, other):
-        return self._compare(other, operator.eq)
-
-    def __ne__(self, other):
-        return self._compare(other, operator.ne)
-
-    def __lt__(self, other):
-        return self._compare(other, operator.lt)
-
-    def __gt__(self, other):
-        return self._compare(other, operator.gt)
-
-    def __le__(self, other):
-        return self._compare(other, operator.le)
-
-    def __ge__(self, other):
-        return self._compare(other, operator.ge)
-
-    def __hash__(self):
-        return hash((GridQubit, self.row, self.col))
-
     def __repr__(self):
-        return 'GridQubit({}, {})'.format(self.row, self.col)
+        return 'cirq.GridQubit({}, {})'.format(self.row, self.col)
 
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
-    def to_proto(
-            self, out: operations_pb2.Qubit = None) -> operations_pb2.Qubit:
-        """Return the proto form, mutating supplied form if supplied."""
-        if out is None:
-            out = operations_pb2.Qubit()
-        out.row = self.row
-        out.col = self.col
-        return out
+    def to_proto_dict(self) -> Dict:
+        """Return the proto in dictionary form."""
+        return {
+            'row': self.row,
+            'col': self.col,
+        }
 
     @staticmethod
-    def from_proto(q: operations_pb2.Qubit) -> 'GridQubit':
-        return GridQubit(row=q.row, col=q.col)
+    def from_proto_dict(proto_dict: Dict) -> 'GridQubit':
+        """Proto dict must have 'row' and 'col' keys."""
+        if 'row' not in proto_dict or 'col' not in proto_dict:
+            raise ValueError(
+                'Proto dict does not contain row or col: {}'.format(proto_dict))
+        return GridQubit(row=proto_dict['row'], col=proto_dict['col'])

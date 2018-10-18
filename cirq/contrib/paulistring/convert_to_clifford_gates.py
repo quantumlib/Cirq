@@ -16,7 +16,7 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import ops, linalg, decompositions, extension
+from cirq import ops, linalg, decompositions, extension, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -24,14 +24,14 @@ from cirq.circuits.optimization_pass import (
 )
 
 
-class ConvertToCliffordGates(PointOptimizer):
+class ConvertToSingleQubitCliffordGates(PointOptimizer):
     """Attempts to convert single-qubit gates into single-qubit
-    CliffordGates.
+    SingleQubitCliffordGates.
 
-    First, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit gate, then decomposes it
-        and tries to make a CliffordGate. It fails if the operation is not in
-        the Clifford group.
+    First, checks if the operation has a known unitary effect. If so, and the
+        gate is a 1-qubit gate, then decomposes it and tries to make a
+        SingleQubitCliffordGate. It fails if the operation is not in the
+    Clifford group.
 
     Second, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
@@ -51,28 +51,29 @@ class ConvertToCliffordGates(PointOptimizer):
             extensions: The extensions instance to use when trying to
                 cast gates to known types.
         """
+        super().__init__()
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.tolerance = tolerance
         self._tol = linalg.Tolerance(atol=tolerance)
 
     def _rotation_to_clifford_gate(self, pauli: ops.Pauli, half_turns: float
-                                   ) -> ops.CliffordGate:
+                                   ) -> ops.SingleQubitCliffordGate:
         quarter_turns = round(half_turns * 2) % 4
         if quarter_turns == 1:
-            return ops.CliffordGate.from_pauli(pauli, True)
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)
         elif quarter_turns == 2:
-            return ops.CliffordGate.from_pauli(pauli)
+            return ops.SingleQubitCliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
-            return ops.CliffordGate.from_pauli(pauli, True).inverse()
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
         else:
-            return ops.CliffordGate.I
+            return ops.SingleQubitCliffordGate.I
 
     def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.QubitId
                                ) -> Optional[ops.Operation]:
         rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
                                        mat, self.tolerance)
-        clifford_gate = ops.CliffordGate.I
+        clifford_gate = ops.SingleQubitCliffordGate.I
         for pauli, half_turns in rotations:
             if self._tol.all_near_zero_mod(half_turns, 0.5):
                 clifford_gate = clifford_gate.merged_with(
@@ -82,25 +83,26 @@ class ConvertToCliffordGates(PointOptimizer):
         return clifford_gate(qubit)
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Don't change if it's already a CliffordGate
+        # Don't change if it's already a SingleQubitCliffordGate
         if (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, ops.CliffordGate)):
+                isinstance(op.gate, ops.SingleQubitCliffordGate)):
             return op
 
         # Single qubit gate with known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
-        if mat is not None and len(op.qubits) == 1:
-            cliff_op = self._matrix_to_clifford_op(mat.matrix(), op.qubits[0])
-            if cliff_op is not None:
-                return cliff_op
-            elif self.ignore_failures:
-                return op
-            else:
-                raise ValueError('Single qubit operation is not in the Clifford'
-                                 'group: {!r}'.format(op))
+        if len(op.qubits) == 1:
+            mat = protocols.unitary(op, None)
+            if mat is not None:
+                cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
+                if cliff_op is not None:
+                    return cliff_op
+                if self.ignore_failures:
+                    return op
+                raise ValueError('Single qubit operation is not in the '
+                                 'Clifford group: {!r}'.format(op))
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extensions.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 
@@ -109,8 +111,8 @@ class ConvertToCliffordGates(PointOptimizer):
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit KnownMatrix, "
-                        "or a CompositeOperation.".format(op))
+                        "It isn't a CompositeOperation or a 1-qubit operation "
+                        "with a known unitary effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

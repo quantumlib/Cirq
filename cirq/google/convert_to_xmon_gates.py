@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
@@ -30,9 +30,9 @@ class ConvertToXmonGates(PointOptimizer):
     First, checks if the given extensions are able to cast the gate into an
         XmonGate instance.
 
-    Second, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit gate, then
-        performs circuit synthesis of the operation.
+    Second, checks if the operation has a known unitary. If so, and the gate
+        is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
+        operation.
 
     Third, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
@@ -52,34 +52,36 @@ class ConvertToXmonGates(PointOptimizer):
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
+        super().__init__()
         self.extensions = extensions or xmon_gate_ext
         self.ignore_failures = ignore_failures
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Already supported?
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, XmonGate):
+        if XmonGate.is_supported_op(op):
             return op
 
         # Maybe we know how to wrap it?
         if isinstance(op, ops.GateOperation):
-            xmon = self.extensions.try_cast(XmonGate, op.gate)
+            xmon = self.extensions.try_cast(XmonGate, op.gate)  # type: ignore
             if xmon is not None:
                 return xmon.on(*op.qubits)
 
         # Known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
+        mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
-            gates = single_qubit_matrix_to_native_gates(mat.matrix())
+            gates = single_qubit_matrix_to_native_gates(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
             return two_qubit_matrix_to_operations(
                 op.qubits[0],
                 op.qubits[1],
-                mat.matrix(),
+                mat,
                 allow_partial_czs=True)
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extensions.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 
@@ -89,8 +91,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         raise TypeError("Don't know how to work with {!r}. "
                         "It isn't a GateOperation with an XmonGate, "
-                        "a 1-qubit KnownMatrix, "
-                        "a 2-qubit KnownMatrix, "
+                        "a 1 or 2 qubit gate with a known unitary, "
                         "or a CompositeOperation.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:

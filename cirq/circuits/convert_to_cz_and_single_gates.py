@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from cirq import ops, decompositions, extension
+from cirq import ops, decompositions, extension, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -26,9 +26,9 @@ class ConvertToCzAndSingleGates(PointOptimizer):
     """Attempts to convert strange multi-qubit gates into CZ and single qubit
     gates.
 
-    First, checks if the given extensions are able to cast the operation into a
-        KnownMatrix. If so, and the gate is a 1-qubit or 2-qubit gate, then
-        performs circuit synthesis of the operation.
+    First, checks if the operation has a unitary effect. If so, and the gate is
+        a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
+        operation.
 
     Second, checks if the given extensions are able to cast the operation into a
         CompositeOperation. If so, recurses on the decomposition.
@@ -48,6 +48,7 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
+        super().__init__()
         self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs
@@ -56,23 +57,28 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-            and isinstance(op.gate, ops.Rot11Gate)
-            and (self.allow_partial_czs or op.gate.half_turns == 1)):
+                and isinstance(op.gate, ops.Rot11Gate)
+                and (self.allow_partial_czs or op.gate.half_turns == 1)):
+            return op
+
+        # Measurement?
+        if ops.MeasurementGate.is_measurement(op):
             return op
 
         # Known matrix?
-        mat = self.extensions.try_cast(ops.KnownMatrix, op)
+        mat = protocols.unitary(op, None)
         if mat is not None and len(op.qubits) == 1:
             return op
         if mat is not None and len(op.qubits) == 2:
             return decompositions.two_qubit_matrix_to_operations(
                 op.qubits[0],
                 op.qubits[1],
-                mat.matrix(),
+                mat,
                 allow_partial_czs=False)
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = self.extensions.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 
@@ -81,9 +87,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit KnownMatrix, "
-                        "a 2-qubit KnownMatrix, "
-                        "or a CompositeOperation.".format(op))
+                        "It isn't a CompositeOperation or an operation with a "
+                        "known unitary effect on 1 or 2 qubits.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)

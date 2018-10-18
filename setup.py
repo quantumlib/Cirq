@@ -31,7 +31,7 @@ stream.readline()
 long_description += stream.read()
 
 # Read in requirements
-requirements = open('runtime-requirements.txt').readlines()
+requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 cirq_packages = ['cirq'] + [
@@ -44,7 +44,7 @@ setup(
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
     author_email='cirq@googlegroups.com',
-    python_requires='>=3.5.3',
+    python_requires='>=3.5.2',
     install_requires=requirements,
     license='Apache 2',
     description=description,

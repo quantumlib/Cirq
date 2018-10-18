@@ -21,12 +21,11 @@ from typing import (
     Any, Dict, Optional, Sequence, Tuple, Iterable, TypeVar, Union,
 )
 
+import abc
 import string
-import numpy as np
 
-from cirq import abc, value
+from cirq import value
 from cirq.ops import op_tree, raw_types
-from cirq.study import ParamResolver
 
 
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
@@ -38,20 +37,11 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 
 
-class ReversibleEffect(metaclass=abc.ABCMeta):
-    """A gate whose effect can be undone in a known way."""
-
-    @abc.abstractmethod
-    def inverse(self) -> 'ReversibleEffect':
-        """Returns a gate with an exactly opposite effect."""
-
-
 TSelf_ExtrapolatableEffect = TypeVar('TSelf_ExtrapolatableEffect',
                                      bound='ExtrapolatableEffect')
 
 
-class ExtrapolatableEffect(ReversibleEffect,
-                           metaclass=abc.ABCMeta):
+class ExtrapolatableEffect(metaclass=abc.ABCMeta):
     """A gate whose effect can be continuously scaled up/down/negated."""
 
     @abc.abstractmethod
@@ -93,9 +83,6 @@ class ExtrapolatableEffect(ReversibleEffect,
         """
         return self.extrapolate_effect(power)
 
-    def inverse(self: TSelf_ExtrapolatableEffect) -> TSelf_ExtrapolatableEffect:
-        return self.extrapolate_effect(-1)
-
 
 class CompositeOperation(metaclass=abc.ABCMeta):
     """An operation with a known decomposition into simpler operations."""
@@ -115,30 +102,6 @@ class CompositeGate(metaclass=abc.ABCMeta):
 
         Args:
             qubits: The qubits the gate should be applied to.
-        """
-
-
-class KnownMatrix(metaclass=abc.ABCMeta):
-    """An effect that can be described by a matrix."""
-
-    @abc.abstractmethod
-    def matrix(self) -> np.ndarray:
-        """The unitary matrix of the gate/operation.
-
-        The matrix order is implicit for both gates and operations. For a gate,
-        the matrix must be in order with respect to the list of qubits that the
-        gate is applied to. For an operation, the order must be with respect to
-        its qubits attribute. The qubit-to-amplitude order mapping matches the
-        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
-        than the qubit B.
-
-        For example, when applying a CNOT gate the control qubit goes first and
-        so the CNOT gate's matrix is:
-
-            1 _ _ _
-            _ 1 _ _
-            _ _ _ 1
-            _ _ 1 _
         """
 
 
@@ -220,7 +183,7 @@ class TextDiagramInfo:
         return hash(self._eq_tuple())
 
     def __repr__(self):
-        return ('TextDiagramInfo(' +
+        return ('cirq.TextDiagramInfo(' +
                 'wire_symbols={!r}, '.format(self.wire_symbols) +
                 'exponent={!r}, '.format(self.exponent) +
                 'connected={!r})'.format(self.connected)
@@ -241,51 +204,6 @@ class TextDiagrammable(metaclass=abc.ABCMeta):
 
         Returns:
              A TextDiagramInfo instance describing what to print.
-        """
-
-
-TSelf_PhaseableEffect = TypeVar('TSelf_PhaseableEffect',
-                                bound='PhaseableEffect')
-
-
-class PhaseableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be phased around the Z axis of target qubits."""
-
-    @abc.abstractmethod
-    def phase_by(self: TSelf_PhaseableEffect,
-                 phase_turns: float,
-                 qubit_index: int) -> TSelf_PhaseableEffect:
-        """Returns a phased version of the effect.
-
-        For example, an X gate phased by 90 degrees would be a Y gate.
-
-        Args:
-            phase_turns: The amount to phase the gate, in fractions of a whole
-                turn.
-            qubit_index: The index of the target qubit the phasing applies to.
-
-        Returns:
-            The phased gate or operation.
-        """
-
-
-class BoundedEffect(metaclass=abc.ABCMeta):
-    """An effect with known bounds on how easy it is to detect.
-
-    Used when deciding whether or not an operation is negligible. For example,
-    the trace distance between the states before and after a Z**0.00000001
-    operation is very close to 0, so it would typically be considered
-    negligible.
-    """
-
-    @abc.abstractmethod
-    def trace_distance_bound(self) -> float:
-        """A maximum on the trace distance between this effect's input/output.
-
-        Generally this method is used when deciding whether to keep gates, so
-        only the behavior near 0 is important. Approximations that overestimate
-        the maximum trace distance are permitted. Even ones that exceed 1.
-        Underestimates are not permitted.
         """
 
 
@@ -330,37 +248,12 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-TSelf_ParameterizableEffect = TypeVar('TSelf_ParameterizableEffect',
-                                      bound='ParameterizableEffect')
-
-
-class ParameterizableEffect(metaclass=abc.ABCMeta):
-    """An effect that can be parameterized by Symbols."""
-
-    @abc.abstractmethod
-    def is_parameterized(self) -> bool:
-        """Whether the effect is parameterized.
-
-        Returns True if the gate has any unresolved Symbols and False otherwise.
-        """
-
-    @abc.abstractmethod
-    def with_parameters_resolved_by(self: TSelf_ParameterizableEffect,
-                                    param_resolver: ParamResolver
-                                    ) -> TSelf_ParameterizableEffect:
-        """Resolve the parameters in the effect.
-
-        Returns a gate or operation of the same type, but with all Symbols
-        replaced with floats according to the given ParamResolver.
-        """
-
-
 class QasmOutputArgs(string.Formatter):
     """
     Attributes:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram.
-        version: The QASM version to output.  QasmConvertableGate/Operation may
+        version: The QASM version to output.  QasmConvertibleGate/Operation may
             return different text depending on version.
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
         meas_key_id_map: A dictionary mapping measurement keys to creg QASM
@@ -398,7 +291,7 @@ class QasmOutputArgs(string.Formatter):
                                 self.version))
 
 
-class QasmConvertableGate(metaclass=abc.ABCMeta):
+class QasmConvertibleGate(metaclass=abc.ABCMeta):
     """A gate that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self,
@@ -409,7 +302,7 @@ class QasmConvertableGate(metaclass=abc.ABCMeta):
         """
 
 
-class QasmConvertableOperation(metaclass=abc.ABCMeta):
+class QasmConvertibleOperation(metaclass=abc.ABCMeta):
     """An operation that knows its representation in QASM."""
     @abc.abstractmethod
     def known_qasm_output(self, args: QasmOutputArgs) -> Optional[str]:

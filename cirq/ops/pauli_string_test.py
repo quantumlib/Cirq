@@ -161,13 +161,13 @@ def test_repr():
     pauli_string = cirq.PauliString({q2: cirq.Pauli.X, q1: cirq.Pauli.Y,
                                      q0: cirq.Pauli.Z})
     assert (repr(pauli_string) ==
-            "PauliString({NamedQubit('q0'): Pauli.Z, "
-            "NamedQubit('q1'): Pauli.Y, NamedQubit('q2'): Pauli.X}, "
-            "False)")
+            "cirq.PauliString({cirq.NamedQubit('q0'): cirq.Pauli.Z, "
+            "cirq.NamedQubit('q1'): cirq.Pauli.Y, cirq.NamedQubit('q2'): "
+            "cirq.Pauli.X}, False)")
     assert (repr(pauli_string.negate()) ==
-            "PauliString({NamedQubit('q0'): Pauli.Z, "
-            "NamedQubit('q1'): Pauli.Y, NamedQubit('q2'): Pauli.X}, "
-            "True)")
+            "cirq.PauliString({cirq.NamedQubit('q0'): cirq.Pauli.Z, "
+            "cirq.NamedQubit('q1'): cirq.Pauli.Y, cirq.NamedQubit('q2'): "
+            "cirq.Pauli.X}, True)")
 
 
 def test_str():
@@ -342,23 +342,24 @@ def test_pass_operations_over_single(shift, t_or_f):
     q0, q1 = _make_qubits(2)
     X, Y, Z = (pauli+shift for pauli in cirq.Pauli.XYZ)
 
-    op0 = cirq.CliffordGate.from_pauli(Y)(q1)
+    op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
     ps_before = cirq.PauliString({q0: X}, t_or_f)
     ps_after = ps_before
     _assert_pass_over([op0], ps_before, ps_after)
 
-    op0 = cirq.CliffordGate.from_pauli(X)(q0)
-    op1 = cirq.CliffordGate.from_pauli(Y)(q1)
+    op0 = cirq.SingleQubitCliffordGate.from_pauli(X)(q0)
+    op1 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
     ps_before = cirq.PauliString({q0: X, q1: Y}, t_or_f)
     ps_after = ps_before
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
-    op0 = cirq.CliffordGate.from_double_map({Z: (X,False), X: (Z,False)})(q0)
+    op0 = cirq.SingleQubitCliffordGate.from_double_map({Z: (X,False),
+                                                        X: (Z,False)})(q0)
     ps_before = cirq.PauliString({q0: X, q1: Y}, t_or_f)
     ps_after = cirq.PauliString({q0: Z, q1: Y}, t_or_f)
     _assert_pass_over([op0], ps_before, ps_after)
 
-    op1 = cirq.CliffordGate.from_pauli(X)(q1)
+    op1 = cirq.SingleQubitCliffordGate.from_pauli(X)(q1)
     ps_before = cirq.PauliString({q0: X, q1: Y}, t_or_f)
     ps_after = ps_before.negate()
     _assert_pass_over([op1], ps_before, ps_after)
@@ -366,8 +367,8 @@ def test_pass_operations_over_single(shift, t_or_f):
     ps_after = cirq.PauliString({q0: Z, q1: Y}, not t_or_f)
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
-    op0 = cirq.CliffordGate.from_pauli(Z, True)(q0)
-    op1 = cirq.CliffordGate.from_pauli(X, True)(q0)
+    op0 = cirq.SingleQubitCliffordGate.from_pauli(Z, True)(q0)
+    op1 = cirq.SingleQubitCliffordGate.from_pauli(X, True)(q0)
     ps_before = cirq.PauliString({q0: X}, t_or_f)
     ps_after = cirq.PauliString({q0: Y}, not t_or_f)
     _assert_pass_over([op0, op1], ps_before, ps_after)
@@ -410,6 +411,17 @@ def test_pass_operations_over_cz():
     op0 = cirq.CZ(q0, q1)
     ps_before = cirq.PauliString({q0: cirq.Pauli.Z, q1: cirq.Pauli.Y})
     ps_after = cirq.PauliString({q1: cirq.Pauli.Y})
+    _assert_pass_over([op0], ps_before, ps_after)
+
+
+def test_pass_operations_over_no_common_qubits():
+    class DummyGate(cirq.Gate):
+        pass
+
+    q0, q1 = _make_qubits(2)
+    op0 = DummyGate()(q1)
+    ps_before = cirq.PauliString({q0: cirq.Pauli.Z})
+    ps_after = cirq.PauliString({q0: cirq.Pauli.Z})
     _assert_pass_over([op0], ps_before, ps_after)
 
 

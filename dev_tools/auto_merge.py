@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Set
 
 import json
 import os
@@ -202,13 +202,54 @@ def leave_status_comment(repo: GithubRepository,
     if success:
         body = 'Automerge done.'
     elif success is None:
-        body = 'Automerge pending: {}'.format(state_description)
+        body = 'Automerge: {}'.format(state_description)
     else:
         body = 'Automerge cancelled: {}'.format(state_description)
     if cur is None:
         add_comment(repo, pull_id, body)
     else:
         edit_comment(repo, body, cur['id'])
+
+
+def get_branch_details(repo: GithubRepository, branch: str) -> Any:
+    """
+    References:
+        https://developer.github.com/v3/repos/branches/#get-branch
+    """
+    url = ("https://api.github.com/repos/{}/{}/branches/{}"
+           "?access_token={}".format(repo.organization,
+                                     repo.name,
+                                     branch,
+                                     repo.access_token))
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Failed to get branch details. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    return json.JSONDecoder().decode(response.content.decode())
+
+
+def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
+    """
+    References:
+        https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+    """
+
+    url = ("https://api.github.com/repos/{}/{}/commits/{}/statuses"
+           "?access_token={}".format(pr.repo.organization,
+                                     pr.repo.name,
+                                     pr.branch_sha,
+                                     pr.repo.access_token))
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Get statuses failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    return json.JSONDecoder().decode(response.content.decode())
 
 
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
@@ -232,6 +273,33 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
+def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
+    has_failed = False
+    has_pending = False
+
+    check_status = get_pr_check_status(pr)
+    state = check_status['state']
+    if state == 'failure':
+        has_failed = True
+    elif state == 'pending':
+        has_pending = True
+    elif state != 'success':
+        raise RuntimeError('Unrecognized status state: {!r}'.format(state))
+
+    check_data = get_pr_checks(pr)
+    for check in check_data['check_runs']:
+        if check['status'] != 'completed':
+            has_pending = True
+        elif check['conclusion'] != 'success':
+            has_failed = True
+
+    if has_failed:
+        return False
+    if has_pending:
+        return None
+    return True
+
+
 def get_pr_review_status(pr: PullRequestDetails) -> Any:
     """
     References:
@@ -252,9 +320,42 @@ def get_pr_review_status(pr: PullRequestDetails) -> Any:
     return json.JSONDecoder().decode(response.content.decode())
 
 
+def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
+    """
+    References:
+        https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
+    """
+    url = ("https://api.github.com/repos/{}/{}/commits/{}/check-runs"
+           "?access_token={}".format(pr.repo.organization,
+                                     pr.repo.name,
+                                     pr.branch_sha,
+                                     pr.repo.access_token))
+    response = requests.get(
+        url,
+        headers={'Accept': 'application/vnd.github.antiope-preview+json'})
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Get check-runs failed. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    return json.JSONDecoder().decode(response.content.decode())
+
+
 def wait_a_tick():
     print('.', end='', flush=True)
     time.sleep(5)
+
+
+def absent_status_checks(pr: PullRequestDetails) -> Set[str]:
+    branch_data = get_branch_details(pr.repo, pr.base_branch_name)
+    status_data = get_pr_statuses(pr)
+    check_data = get_pr_checks(pr)
+
+    statuses_present = {status['context'] for status in status_data}
+    checks_present = {check['name'] for check in check_data['check_runs']}
+    reqs = branch_data['protection']['required_status_checks']['contexts']
+    return set(reqs) - statuses_present - checks_present
 
 
 def wait_for_status(repo: GithubRepository,
@@ -265,7 +366,7 @@ def wait_for_status(repo: GithubRepository,
     while True:
         pr = PullRequestDetails.from_github(repo, pull_id)
         if pr.payload['state'] != 'open':
-            raise CurrentStuckGoToNextError('Not an open PR.')
+            raise CurrentStuckGoToNextError('Not an open pull request.')
 
         if prev_pr and pr.branch_sha == prev_pr.branch_sha:
             if fail_if_same:
@@ -276,7 +377,7 @@ def wait_for_status(repo: GithubRepository,
         if not pr.marked_automergeable:
             raise CurrentStuckGoToNextError('"automerge" label was removed.')
         if pr.base_branch_name != 'master':
-            raise CurrentStuckGoToNextError('Failed to merge into master.')
+            raise CurrentStuckGoToNextError('Can only automerge into master.')
 
         review_status = get_pr_review_status(pr)
         if not any(review['state'] == 'APPROVED' for review in review_status):
@@ -285,17 +386,29 @@ def wait_for_status(repo: GithubRepository,
                for review in review_status):
             raise CurrentStuckGoToNextError('A review is requesting changes.')
 
-        check_status = get_pr_check_status(pr)
-        if check_status['state'] == 'pending':
+        check_status = classify_pr_status_check_state(pr)
+        if check_status is None:
             wait_a_tick()
             continue
-        if check_status['state'] != 'success':
+        if not check_status:
             raise CurrentStuckGoToNextError('A status check is failing.')
 
         if pr.payload['mergeable'] is None:
             # Github still computing mergeable flag.
             wait_a_tick()
             continue
+
+        if pr.payload['mergeable_state'] == 'blocked':
+            # Note: not sure if moving this into the main loop would create a
+            # race between status checks starting and auto merge moving on.
+            missing_statuses = absent_status_checks(pr)
+            if missing_statuses:
+                raise CurrentStuckGoToNextError(
+                    'A required status check is not present.\n\n'
+                    'Missing statuses: {!r}'.format(sorted(missing_statuses)))
+
+            raise CurrentStuckGoToNextError(
+                "Merging is blocked but I don't understand why.")
 
         return pr
 
@@ -478,6 +591,13 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
         # Merge conflict.
         raise CurrentStuckGoToNextError("There's a merge conflict.")
 
+    if response.status_code == 403:
+        # Permission denied.
+        raise CurrentStuckGoToNextError(
+            "Spurious failure. Github API requires me to be an admin on the "
+            "fork repository to merge master into the PR branch. Hit "
+            "'Update Branch' for me before trying again.")
+
     raise RuntimeError('Sync with master failed. Code: {}. Content: {}.'.format(
         response.status_code, response.content))
 
@@ -529,6 +649,14 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         return False
 
     remote = pr.remote_repo
+    if (pr.repo.organization.lower() != remote.organization.lower() or
+            pr.repo.name.lower() != remote.name.lower()):
+        print('Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
+            pr.branch_name,
+            pr.remote_repo.organization,
+            pr.remote_repo.name))
+        return False
+
     url = ("https://api.github.com/repos/{}/{}/git/refs/heads/{}"
            "?access_token={}".format(remote.organization,
                                      remote.name,
@@ -644,7 +772,8 @@ def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
               `-----------------`------------> TERMINAL_FAILURE
     """
 
-    print('Auto-merging PR#{}'.format(pull_id))
+    pr = PullRequestDetails.from_github(repo, pull_id)
+    print('Auto-merging PR#{} ({})'.format(pull_id, repr(pr.title)))
     prev_pr = None
     fail_if_same = False
     while True:
@@ -686,7 +815,7 @@ def auto_merge_multiple_pull_requests(repo: GithubRepository,
             leave_status_comment(repo,
                                  pull_id,
                                  None,
-                                 'syncing and waiting...')
+                                 'started')
             auto_merge_pull_request(repo, pull_id)
             leave_status_comment(repo,
                                  pull_id,

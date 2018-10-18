@@ -71,7 +71,8 @@ def test_map_qubits():
 def test_pass_operations_over():
     q0, q1 = _make_qubits(2)
     X, Y, Z = cirq.Pauli.XYZ
-    op = cirq.CliffordGate.from_double_map({Z: (X,False), X: (Z,False)})(q0)
+    op = cirq.SingleQubitCliffordGate.from_double_map({Z: (X,False),
+                                                       X: (Z,False)})(q0)
     ps_before = cirq.PauliString({q0: X, q1: Y}, True)
     ps_after = cirq.PauliString({q0: Z, q1: Y}, True)
     before = PauliStringPhasor(ps_before, half_turns=0.1)
@@ -112,7 +113,9 @@ def test_extrapolate_effect_with_symbol():
 def test_inverse():
     op1 = PauliStringPhasor(cirq.PauliString({}), half_turns=0.25)
     op2 = PauliStringPhasor(cirq.PauliString({}), half_turns=-0.25)
-    assert op1.inverse() == op2
+    op3 = PauliStringPhasor(cirq.PauliString({}), half_turns=cirq.Symbol('s'))
+    assert cirq.inverse(op1) == op2
+    assert cirq.inverse(op3, None) is None
 
 
 def test_can_merge_with():
@@ -188,36 +191,29 @@ def test_try_cast_to():
     op = PauliStringPhasor(cirq.PauliString({}))
     ext = cirq.Extensions()
     assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert not op.try_cast_to(cirq.ParameterizableEffect, ext) is None
     assert not op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert not op.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert op.try_cast_to(Dummy, ext) is None
 
     op = PauliStringPhasor(cirq.PauliString({}),
                            half_turns=cirq.Symbol('a'))
     ext = cirq.Extensions()
     assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.BoundedEffect, ext) is None
-    assert not op.try_cast_to(cirq.ParameterizableEffect, ext) is None
     assert op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert op.try_cast_to(cirq.ReversibleEffect, ext) is None
     assert op.try_cast_to(Dummy, ext) is None
-
 
 
 def test_is_parametrized():
     op = PauliStringPhasor(cirq.PauliString({}))
-    assert not op.is_parameterized()
-    assert not (op ** 0.1).is_parameterized()
-    assert (op ** cirq.Symbol('a')).is_parameterized()
+    assert not cirq.is_parameterized(op)
+    assert not cirq.is_parameterized(op ** 0.1)
+    assert cirq.is_parameterized(op ** cirq.Symbol('a'))
 
 
 def test_with_parameters_resolved_by():
     op = PauliStringPhasor(cirq.PauliString({}),
                            half_turns=cirq.Symbol('a'))
     resolver = cirq.ParamResolver({'a': 0.1})
-    actual = op.with_parameters_resolved_by(resolver)
+    actual = cirq.resolve_parameters(op, resolver)
     expected = PauliStringPhasor(cirq.PauliString({}), half_turns=0.1)
     assert actual == expected
 
@@ -302,8 +298,8 @@ def test_default_decompose(paulis, half_turns, neg):
     ).to_unitary_matrix()
 
     # Calculate expected matrix
-    to_z_mats = {cirq.Pauli.X: (cirq.Y ** -0.5).matrix(),
-                 cirq.Pauli.Y: (cirq.X ** 0.5).matrix(),
+    to_z_mats = {cirq.Pauli.X: cirq.unitary(cirq.Y ** -0.5),
+                 cirq.Pauli.Y: cirq.unitary(cirq.X ** 0.5),
                  cirq.Pauli.Z: np.eye(2)}
     expected_convert = np.eye(1)
     for pauli in paulis:
@@ -322,13 +318,14 @@ def test_decompose_with_symbol():
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
-    assert circuit.to_text_diagram() == "q0: ───X^0.5───Z^a───X^-0.5───"
+    cirq.testing.assert_has_diagram(circuit, "q0: ───X^0.5───Z^a───X^-0.5───")
 
     ps = cirq.PauliString({q0: cirq.Pauli.Y}, True)
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
-    assert circuit.to_text_diagram() == "q0: ───X^0.5───X───Z^a───X───X^-0.5───"
+    cirq.testing.assert_has_diagram(
+        circuit, "q0: ───X^0.5───X───Z^a───X───X^-0.5───")
 
 
 def test_text_diagram():
@@ -350,13 +347,14 @@ def test_text_diagram():
                                             q1: cirq.Pauli.Y,
                                             q2: cirq.Pauli.X}, True),
                           half_turns=cirq.Symbol('b')))
-    assert circuit.to_text_diagram() == """
+
+    cirq.testing.assert_has_diagram(circuit, """
 q0: ───[Z]───[Y]^0.25───[Z]───[Z]────────[Z]─────[Z]──────
                         │     │          │       │
 q1: ────────────────────[Z]───[Y]────────[Y]─────[Y]──────
                         │     │          │       │
 q2: ────────────────────[Z]───[X]^-0.5───[X]^a───[X]^-b───
-""".strip()
+""")
 
 
 def test_repr():

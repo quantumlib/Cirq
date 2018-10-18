@@ -35,7 +35,7 @@ class _UnconstrainedDeviceType(Device):
         pass
 
     def __repr__(self):
-        return 'UnconstrainedDevice'  # coverage: ignore
+        return 'cirq.UnconstrainedDevice'  # coverage: ignore
 
 
 UnconstrainedDevice = _UnconstrainedDeviceType()

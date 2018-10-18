@@ -8,9 +8,12 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${own_directory}
-repo_dir=$(git rev-parse --show-toplevel)
-cd ${repo_dir}
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
 
-mypy --config-file=continuous-integration/mypy.ini $@ .
+echo -e -n "\e[31m"
+mypy --config-file=dev_tools/conf/mypy.ini $@ .
+result=$?
+echo -e -n "\e[0m"
+
+exit ${result}

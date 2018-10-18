@@ -31,7 +31,63 @@ class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
     def __init__(self):
-        self.groups = [(_ClassUnknownToSubjects(),)]
+        self._groups = [(_ClassUnknownToSubjects(),)]
+
+    @staticmethod
+    def _eq_check(v1: Any, v2: Any) -> bool:
+        eq = v1 == v2
+        ne = v1 != v2
+
+        assert eq != ne, ("__eq__ is inconsistent with __ne__ "
+                          "between {!r} and {!r}".format(v1, v2))
+        return eq
+
+    def _verify_equality_group(self, *group_items: Any):
+        """Verifies that a group is an equivalence group.
+
+        This methods asserts that items within the group must all be equal to
+        each other, but not equal to any items in other groups that have been
+        or will be added.
+
+        Args:
+          *group_items: The items making up the equivalence group.
+
+        Raises:
+            AssertionError: Items within the group are not equal to each other,
+                or items in another group are equal to items within the new
+                group, or the items violate the equals-implies-same-hash rule.
+        """
+
+        assert group_items
+
+        # Within-group items must be equal.
+        for v1, v2 in itertools.product(group_items, group_items):
+            same = EqualsTester._eq_check(v1, v2)
+            assert same or v1 is not v2, "{!r} isn't equal to itself!".format(
+                v1)
+            assert same, (
+                "{!r} and {!r} can't be in the same equality group. "
+                "They're not equal.".format(v1, v2))
+
+        # Between-group items must be unequal.
+        for other_group in self._groups:
+            for v1, v2 in itertools.product(group_items, other_group):
+                assert not EqualsTester._eq_check(v1, v2), (
+                    "{!r} and {!r} can't be in different equality groups. "
+                    "They're equal.".format(v1, v2))
+
+        # Check that group items hash to the same thing, or are all unhashable.
+        hashes = [hash(v) if isinstance(v, collections.Hashable) else None
+                  for v in group_items]
+        if len(set(hashes)) > 1:
+            examples = ((v1, h1, v2, h2)
+                        for v1, h1 in zip(group_items, hashes)
+                        for v2, h2 in zip(group_items, hashes)
+                        if h1 != h2)
+            example = next(examples)
+            raise AssertionError(
+                'Items in the same group produced different hashes. '
+                'Example: hash({}) is {} but hash({}) is {}.'.format(*example))
 
     def add_equality_group(self, *group_items: Any):
         """Tries to add a disjoint equivalence group to the equality tester.
@@ -49,56 +105,10 @@ class EqualsTester:
                 group, or the items violate the equals-implies-same-hash rule.
         """
 
-        assert group_items
-
-        # Check that group items are equivalent to each other.
-        for v1, v2 in itertools.product(group_items, group_items):
-            # Binary operators should always work.
-            assert v1 == v2
-            assert not v1 != v2
-
-            # __eq__ and __neq__ should both be correct or not implemented.
-            assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
-            # Careful: python2 int doesn't have __eq__ or __ne__.
-            if hasattr(v1, '__eq__'):
-                eq = v1.__eq__(v2)
-                ne = v1.__ne__(v2)
-                assert (eq, ne) in [(True, False),
-                                    (NotImplemented, False),
-                                    (NotImplemented, NotImplemented)]
-
-        # Check that this group's items don't overlap with other groups.
-        for other_group in self.groups:
-            for v1, v2 in itertools.product(group_items, other_group):
-                # Binary operators should always work.
-                assert not v1 == v2
-                assert v1 != v2
-
-                # __eq__ and __neq__ should both be correct or not implemented.
-                assert hasattr(v1, '__eq__') == hasattr(v1, '__ne__')
-                # Careful: python2 int doesn't have __eq__ or __ne__.
-                if hasattr(v1, '__eq__'):
-                    eq = v1.__eq__(v2)
-                    ne = v1.__ne__(v2)
-                    assert (eq, ne) in [(False, True),
-                                        (NotImplemented, True),
-                                        (NotImplemented, NotImplemented)]
-
-        # Check that group items hash to the same thing, or are all unhashable.
-        hashes = [hash(v) if isinstance(v, collections.Hashable) else None
-                  for v in group_items]
-        if len(set(hashes)) > 1:
-            examples = ((v1, h1, v2, h2)
-                        for v1, h1 in zip(group_items, hashes)
-                        for v2, h2 in zip(group_items, hashes)
-                        if h1 != h2)
-            example = next(examples)
-            raise AssertionError(
-                'Items in the same group produced different hashes. '
-                'Example: hash({}) is {} but hash({}) is {}.'.format(*example))
+        self._verify_equality_group(*group_items)
 
         # Remember this group, to enable disjoint checks vs later groups.
-        self.groups.append(group_items)
+        self._groups.append(group_items)
 
     def make_equality_group(self, *factories: Callable[[], Any]):
         """Tries to add a disjoint equivalence group to the equality tester.

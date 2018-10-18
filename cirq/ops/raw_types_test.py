@@ -24,9 +24,9 @@ def test_gate_calls_validate():
                 raise ValueError()
 
     g = ValiGate()
-    q00 = cirq.QubitId()
-    q01 = cirq.QubitId()
-    q10 = cirq.QubitId()
+    q00 = cirq.NamedQubit('q00')
+    q01 = cirq.NamedQubit('q01')
+    q10 = cirq.NamedQubit('q10')
 
     _ = g.on(q00)
     _ = g.on(q01)
@@ -38,6 +38,7 @@ def test_gate_calls_validate():
     _ = g(q00, q10)
     with pytest.raises(ValueError):
         _ = g(q10, q01, q00)
+<<<<<<< HEAD
 
 
 def test_named_qubit_str():
@@ -50,3 +51,5 @@ def test_named_qubit_str():
 def test_named_qubit_repr():
     q = cirq.NamedQubit('a')
     assert repr(q) == "NamedQubit('a')"
+=======
+>>>>>>> upstream/master

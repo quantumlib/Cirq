@@ -6,13 +6,13 @@ Choose your operating system:
 - [Installing on Mac OS X](#installing-on-mac-os-x)
 - [Installing on Windows](#installing-on-windows)
 
-If you want to create a development environment, see [docs/development.md](/docs/development.md).
+If you want to create a development environment, see [development.md](development.md).
 
 ---
 
 ### Installing on Linux
 
-0. Make sure you have python 3.5 or greater (or else python 2.7).
+0. Make sure you have python 3.5.2 or greater (or else python 2.7).
 
     See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) @ the hitchhiker's guide to python.
 
@@ -98,3 +98,6 @@ If you want to create a development environment, see [docs/development.md](/docs
     # │        │        │        │        │        │        │        │        │        │        │
     # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
     ```
+### Disclaimer
+
+-  **Cirq is currently in alpha.** We are still making breaking changes, and we *will* break your code when we make new releases. We recommend that you pin a specific version of cirq in `requirements.txt` files, and periodically bump to the latest release. That way you have control over when a breaking change affects you.

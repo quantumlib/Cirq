@@ -20,15 +20,15 @@ import cirq
 
 
 def test_avoids_infinite_cycle_when_matrix_available():
-    class OtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
-        def matrix(self):
+    class OtherX(cirq.Gate, cirq.CompositeGate):
+        def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])  # coverage: ignore
 
         def default_decompose(self, qubits):
             raise NotImplementedError()
 
-    class OtherOtherX(cirq.Gate, cirq.KnownMatrix, cirq.CompositeGate):
-        def matrix(self):
+    class OtherOtherX(cirq.Gate, cirq.CompositeGate):
+        def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])  # coverage: ignore
 
         def default_decompose(self, qubits):
@@ -120,6 +120,17 @@ def test_fail_unsupported_gate():
     )
     with pytest.raises(TypeError):
         cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
+
+
+def test_passes_through_measurements():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.MeasurementGate('m0')(q0),
+        cirq.MeasurementGate('m1', invert_mask=(True, False))(q1, q2),
+    )
+    c_orig = cirq.Circuit(circuit)
+    cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
+    assert circuit == c_orig
 
 
 def test_allow_partial_czs():

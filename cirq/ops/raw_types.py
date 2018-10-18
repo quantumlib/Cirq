@@ -14,44 +14,71 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar
+from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, Any
 
-from cirq import abc
+import abc
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from cirq.ops import gate_operation
 
 
-class QubitId:
-    """Identifies a qubit. Child classes provide specific types of qubits.
+class QubitId(metaclass=abc.ABCMeta):
+    """Identifies a qubit. Child classes implement specific types of qubits.
 
-    Child classes must be equatable and hashable."""
-    pass
+    The main criteria that a "qubit id" must satisfy is *comparability*. Child
+    classes meet this criteria by implementing the _comparison_key method. For
+    example, cirq.LineQubit's _comparison_key method returns `self.x`. This
+    ensures that line qubits with the same `x` are equal, and that line qubits
+    will be sorted ascending by `x`. QubitId implements all equality,
+    comparison, and hashing methods via`_comparison_key`.
+    """
 
+    @abc.abstractmethod
+    def _comparison_key(self) -> Any:
+        """Returns a value used to sort and compare this qubit with others.
 
-class NamedQubit(QubitId):
-    """A qubit identified by name."""
+        By default, qubits of differing type are sorted ascending according to
+        their type name. Qubits of the same type are then sorted using their
+        comparison key.
+        """
+        pass
 
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return 'NamedQubit({})'.format(repr(self.name))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return not self == other
+    def _cmp_tuple(self):
+        return type(self).__name__, repr(type(self)), self._comparison_key()
 
     def __hash__(self):
-        return hash((NamedQubit, self.name))
+        return hash((QubitId, self._comparison_key()))
+
+    def __eq__(self, other):
+        if not isinstance(other, QubitId):
+            return NotImplemented
+        return self._cmp_tuple() == other._cmp_tuple()
+
+    def __ne__(self, other):
+        if not isinstance(other, QubitId):
+            return NotImplemented
+        return self._cmp_tuple() != other._cmp_tuple()
+
+    def __lt__(self, other):
+        if not isinstance(other, QubitId):
+            return NotImplemented
+        return self._cmp_tuple() < other._cmp_tuple()
+
+    def __gt__(self, other):
+        if not isinstance(other, QubitId):
+            return NotImplemented
+        return self._cmp_tuple() > other._cmp_tuple()
+
+    def __le__(self, other):
+        if not isinstance(other, QubitId):
+            return NotImplemented
+        return self._cmp_tuple() <= other._cmp_tuple()
+
+    def __ge__(self, other):
+        if not isinstance(other, QubitId):
+            return NotImplemented
+        return self._cmp_tuple() >= other._cmp_tuple()
 
 
 class Gate:
