@@ -980,15 +980,15 @@ ISWAP = ISwapGate()
 
 
 def Rx(rads: float) -> RotXGate:
-    """Returns a gate with the matrix e^{-i X rads}."""
+    """Returns a gate with the matrix e^{-i X rads / 2}."""
     return RotXGate(rads=rads, global_shift_in_half_turns=-0.5)
 
 
 def Ry(rads: float) -> RotYGate:
-    """Returns a gate with the matrix e^{-i Y rads}."""
+    """Returns a gate with the matrix e^{-i Y rads / 2}."""
     return RotYGate(rads=rads, global_shift_in_half_turns=-0.5)
 
 
 def Rz(rads: float) -> RotZGate:
-    """Returns a gate with the matrix e^{-i Z rads}."""
+    """Returns a gate with the matrix e^{-i Z rads / 2}."""
     return RotZGate(rads=rads, global_shift_in_half_turns=-0.5)
