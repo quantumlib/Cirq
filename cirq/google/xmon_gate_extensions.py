@@ -30,8 +30,3 @@ xmon_gate_ext.add_cast(  # type: ignore
     actual_type=ops.RotYGate,
     conversion=lambda e: xmon_gates.ExpWGate(half_turns=e.half_turns,
                                              axis_half_turns=0.5))
-
-xmon_gate_ext.add_cast(  # type: ignore
-    desired_type=xmon_gates.XmonGate,
-    actual_type=ops.RotZGate,
-    conversion=lambda e: xmon_gates.ExpZGate(half_turns=e.half_turns))

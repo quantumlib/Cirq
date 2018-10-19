@@ -18,7 +18,7 @@
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 
 from cirq import circuits, ops, extension, value, decompositions
-from cirq.google.xmon_gates import ExpZGate, ExpWGate
+from cirq.google.xmon_gates import ExpWGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -190,7 +190,7 @@ def _potential_cross_whole_w(moment_index: int,
         state.held_w_phases[q] = None
         t = 2*(b - a)
         if not decompositions.is_negligible_turn(t / 2, tolerance):
-            leftover_phase = ExpZGate(half_turns=t).on(q)
+            leftover_phase = ops.Z(q)**t
             state.inline_intos.append((moment_index, leftover_phase))
 
 
@@ -255,7 +255,7 @@ def _single_cross_over_cz(moment_index: int,
     t = cast(float, _try_get_known_cz_half_turns(op))
     other_qubit = op.qubits[0] if qubit_with_w == op.qubits[1] else op.qubits[1]
     negated_cz = ops.CZ(*op.qubits)**-t
-    kickback = ExpZGate(half_turns=t).on(other_qubit)
+    kickback = ops.Z(other_qubit)**t
 
     state.deletions.append((moment_index, op))
     state.inline_intos.append((moment_index, negated_cz))
@@ -322,7 +322,7 @@ def _try_get_known_w(op: ops.Operation) -> Optional[ExpWGate]:
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if (not isinstance(op, ops.GateOperation) or
-            not isinstance(op.gate, (ExpZGate, ops.RotZGate))):
+            not isinstance(op.gate, ops.RotZGate)):
         return None
     h = op.gate.half_turns
     if isinstance(h, value.Symbol):

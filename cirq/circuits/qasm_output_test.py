@@ -238,8 +238,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
 
-        cirq.google.ExpZGate()(q3),
-        cirq.google.ExpZGate(half_turns=0.75)(q3),
         cirq.google.ExpWGate(axis_half_turns=0.125, half_turns=0.25)(q1),
 
         (
@@ -444,9 +442,6 @@ cx q[0],q[2];
 rz(pi*-0.5) q[2];
 h q[2];
 cx q[2],q[0];
-
-z q[3];
-rz(pi*0.75) q[3];
 
 // Gate: W(0.125)^0.25
 u3(pi*0.25,pi*1.625,pi*0.375) q[1];
