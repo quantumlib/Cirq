@@ -21,6 +21,7 @@ import re
 
 import pytest
 
+import cirq
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -190,6 +191,15 @@ def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]],
 
 def _canonicalize_printed_line_chunk(chunk: str) -> str:
     chunk = ' ' + chunk + ' '
+
+    # Reduce trailing '.0' at end of number.
+    chunk = chunk.replace('.0-', '. -')
+    chunk = chunk.replace('.0+', '. +')
+
+    # Remove leading spacing.
+    while '[ ' in chunk:
+        chunk = chunk.replace('[ ', '[')
+
     # Remove sign before zero.
     chunk = chunk.replace('-0 ', '+0 ')
     chunk = chunk.replace('-0. ', '+0. ')
@@ -375,9 +385,17 @@ def assert_expected_lines_present_in_order(expected_lines: List[str],
             '{}\n'
             '\n'
             'Expected lines:\n'
-            '{}\n'.format(expected,
-                          _indent(actual_lines),
-                          _indent(expected_lines))
+            '{}\n'
+            '\n'
+            'Highlighted Differences:\n'
+            '{}\n'
+            ''.format(
+                expected,
+                _indent(actual_lines),
+                _indent(expected_lines),
+                _indent([cirq.testing.highlight_text_differences(
+                    '\n'.join(actual_lines),
+                    '\n'.join(expected_lines))]))
         )
         i += 1
 
