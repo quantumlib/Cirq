@@ -18,13 +18,13 @@ import math
 import operator
 from typing import Sequence, Dict, Tuple, List, NamedTuple
 
-from cirq import ops
+from cirq import ops, protocols
 
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
 
-class AcquaintanceOpportunityGate(ops.Gate, ops.TextDiagrammable):
+class AcquaintanceOpportunityGate(ops.Gate):
     """Represents an acquaintance opportunity. An acquaintance opportunity is
     essentially a placeholder in a swap network that may later be replaced with
     a logical gate."""
@@ -32,14 +32,13 @@ class AcquaintanceOpportunityGate(ops.Gate, ops.TextDiagrammable):
     def __repr__(self):
         return 'Acq'
 
-    def text_diagram_info(self,
-                          args: ops.gate_features.TextDiagramInfoArgs):
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs):
         if args.known_qubit_count is None:
             return NotImplemented
         wire_symbol = '█' if args.use_unicode_characters else 'Acq'
         wire_symbols = (wire_symbol,) * args.known_qubit_count
-        return ops.gate_features.TextDiagramInfo(
-                wire_symbols=wire_symbols)
+        return wire_symbols
 
 ACQUAINT = AcquaintanceOpportunityGate()
 
@@ -219,11 +218,11 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
                  acquaintance_size: int=0,
                  swap_gate: ops.Gate=ops.SWAP
                  ) -> None:
+        super().__init__(swap_gate)
         if len(part_lens) < 2:
             raise ValueError('len(part_lens) < 2.')
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
-        self.swap_gate = swap_gate
 
 
     def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
@@ -271,14 +270,14 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
                 yield LinearPermutationGate(reverse_permutation,
                         self.swap_gate)(*part)
 
-    def text_diagram_info(self,
-                          args: ops.gate_features.TextDiagramInfoArgs):
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs):
         wire_symbol = ('×' if args.use_unicode_characters else 'swap')
         wire_symbols = tuple(
             wire_symbol + '({},{})'.format(part_index, qubit_index)
             for part_index, part_len in enumerate(self.part_lens)
             for qubit_index in range(part_len))
-        return ops.gate_features.TextDiagramInfo(
+        return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols)
 
     @staticmethod
@@ -299,7 +298,6 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
         assert sum(parts, ()) == tuple(qubit_order)
 
         return SwapNetworkGate(part_sizes, acquaintance_size)
-
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         if qubit_count < sum(self.part_lens):

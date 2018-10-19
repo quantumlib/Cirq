@@ -27,6 +27,14 @@ def test_circuit_diagram_info_value_wrapping():
         def _circuit_diagram_info_(self, args):
             return 'Single',
 
+    class ReturnList:
+        def _circuit_diagram_info_(self, args):
+            return ('Single' for _ in range(1))
+
+    class ReturnGenerator:
+        def _circuit_diagram_info_(self, args):
+            return ['Single']
+
     class ReturnString:
         def _circuit_diagram_info_(self, args):
             return 'Single'
@@ -34,6 +42,8 @@ def test_circuit_diagram_info_value_wrapping():
     assert (cirq.circuit_diagram_info(ReturnInfo()) ==
             cirq.circuit_diagram_info(ReturnTuple()) ==
             cirq.circuit_diagram_info(ReturnString()) ==
+            cirq.circuit_diagram_info(ReturnList()) ==
+            cirq.circuit_diagram_info(ReturnGenerator()) ==
             single_info)
 
     double_info = cirq.CircuitDiagramInfo(('Single', 'Double',))
@@ -56,11 +66,9 @@ def test_circuit_diagram_info_validate():
         _ = cirq.CircuitDiagramInfo('X')
 
 
-@cirq.testing.only_test_in_python3
 def test_circuit_diagram_info_repr():
-    info = cirq.CircuitDiagramInfo(('X', 'Y'), 2)
-    assert repr(info) == ("cirq.DiagramInfo(wire_symbols=('X', 'Y')"
-                          ", exponent=2, connected=True)")
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitDiagramInfo(('X', 'Y'), 2))
 
 
 def test_circuit_diagram_info_eq():
@@ -95,3 +103,48 @@ def test_circuit_diagram_info_pass_fail():
     with pytest.raises(TypeError, match='returned NotImplemented'):
         _ = cirq.circuit_diagram_info(D())
     assert cirq.circuit_diagram_info(E()) == cirq.CircuitDiagramInfo(('X',))
+
+
+def test_circuit_diagram_info_args_eq():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
+    eq.add_equality_group(cirq.CircuitDiagramInfoArgs(
+        known_qubits=None,
+        known_qubit_count=None,
+        use_unicode_characters=False,
+        precision=None,
+        qubit_map=None))
+    eq.add_equality_group(cirq.CircuitDiagramInfoArgs(
+        known_qubits=None,
+        known_qubit_count=None,
+        use_unicode_characters=True,
+        precision=None,
+        qubit_map=None))
+    eq.add_equality_group(cirq.CircuitDiagramInfoArgs(
+        known_qubits=cirq.LineQubit.range(3),
+        known_qubit_count=3,
+        use_unicode_characters=False,
+        precision=None,
+        qubit_map=None))
+    eq.add_equality_group(cirq.CircuitDiagramInfoArgs(
+        known_qubits=cirq.LineQubit.range(2),
+        known_qubit_count=2,
+        use_unicode_characters=False,
+        precision=None,
+        qubit_map=None))
+    eq.add_equality_group(cirq.CircuitDiagramInfoArgs(
+        known_qubits=cirq.LineQubit.range(2),
+        known_qubit_count=2,
+        use_unicode_characters=False,
+        precision=None,
+        qubit_map={cirq.LineQubit(0): 5, cirq.LineQubit(1): 7}))
+
+
+def test_circuit_diagram_info_args_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=cirq.LineQubit.range(2),
+            known_qubit_count=2,
+            use_unicode_characters=True,
+            precision=5,
+            qubit_map={cirq.LineQubit(0): 5, cirq.LineQubit(1): 7}))
