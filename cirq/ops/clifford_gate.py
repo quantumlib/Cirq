@@ -26,19 +26,25 @@ from cirq.ops.pauli import Pauli
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
+def _pretend_initialized() -> 'SingleQubitCliffordGate':
+    # HACK: This is a workaround to fool mypy and pylint into correctly handling
+    # class fields that can't be initialized until after the class is defined.
+    pass
+
+
 class SingleQubitCliffordGate(raw_types.Gate, gate_features.CompositeGate):
     """Any single qubit Clifford rotation."""
-    I = None  # type: SingleQubitCliffordGate
-    H = None  # type: SingleQubitCliffordGate
-    X = None  # type: SingleQubitCliffordGate
-    Y = None  # type: SingleQubitCliffordGate
-    Z = None  # type: SingleQubitCliffordGate
-    X_sqrt  = None  # type: SingleQubitCliffordGate
-    X_nsqrt = None  # type: SingleQubitCliffordGate
-    Y_sqrt  = None  # type: SingleQubitCliffordGate
-    Y_nsqrt = None  # type: SingleQubitCliffordGate
-    Z_sqrt  = None  # type: SingleQubitCliffordGate
-    Z_nsqrt = None  # type: SingleQubitCliffordGate
+    I = _pretend_initialized()
+    H = _pretend_initialized()
+    X = _pretend_initialized()
+    Y = _pretend_initialized()
+    Z = _pretend_initialized()
+    X_sqrt = _pretend_initialized()
+    Y_sqrt = _pretend_initialized()
+    Z_sqrt = _pretend_initialized()
+    X_nsqrt = _pretend_initialized()
+    Y_nsqrt = _pretend_initialized()
+    Z_nsqrt = _pretend_initialized()
 
     def __init__(self, *,
                  _rotation_map: Dict[Pauli, PauliTransform],
@@ -207,8 +213,8 @@ class SingleQubitCliffordGate(raw_types.Gate, gate_features.CompositeGate):
     def __hash__(self):
         return hash(self._eq_tuple())
 
-    def __pow__(self, power):
-        if power != -1:
+    def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+        if exponent != -1:
             return NotImplemented
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)

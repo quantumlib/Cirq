@@ -12,31 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast, Union, Sequence
+from typing import Union, Sequence, Any
 
 import numpy as np
 
-from cirq import linalg, extension, protocols
-from cirq.ops import raw_types, gate_features
+from cirq import linalg, protocols
+from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
-T_DESIRED = TypeVar('T_DESIRED')
 
-POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.ExtrapolatableEffect,
-)
-
-
-class ControlledGate(raw_types.Gate,
-                     extension.PotentialImplementation[Union[
-                         gate_features.ExtrapolatableEffect,
-                     ]]):
+class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
-    def __init__(self,
-                 sub_gate: raw_types.Gate,
-                 default_extensions: Optional[extension.Extensions] = None
-                 ) -> None:
+    def __init__(self, sub_gate: raw_types.Gate) -> None:
         """Initializes the controlled gate.
 
         Args:
@@ -49,7 +37,6 @@ class ControlledGate(raw_types.Gate,
                 None, an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
-        self.default_extensions = default_extensions
 
     def validate_args(self, qubits) -> None:
         if len(qubits) < 1:
@@ -66,13 +53,6 @@ class ControlledGate(raw_types.Gate,
 
     def __hash__(self):
         return hash((ControlledGate, self.sub_gate))
-
-    def _cast_sub_gate(self, desired_type: Type[T_DESIRED]) -> T_DESIRED:
-        ext = self.default_extensions or extension.Extensions()
-        cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
-        if cast_sub_gate is None:
-            raise TypeError('sub_gate is not a {}', desired_type)
-        return cast_sub_gate
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -108,34 +88,19 @@ class ControlledGate(raw_types.Gate,
         target_tensor[active] = result
         return target_tensor
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type in POTENTIALLY_EXPOSED_SUB_TYPES:
-            cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
-            if cast_sub_gate is None:
-                return None
-            return ControlledGate(cast_sub_gate, ext)
-        return super().try_cast_to(desired_type, ext)
-
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return NotImplemented
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
-    def extrapolate_effect(self, factor) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(  # type: ignore
-            gate_features.ExtrapolatableEffect)
-        new_sub_gate = cast_sub_gate.extrapolate_effect(factor)
-        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
-                              self.default_extensions)
-
-    def __pow__(self, power: float) -> 'ControlledGate':
-        if power == -1:
-            inv_gate = protocols.inverse(self.sub_gate, None)
-            if inv_gate is None:
-                return NotImplemented
-            return ControlledGate(inv_gate, self.default_extensions)
-        return self.extrapolate_effect(power)
+    def __pow__(self, exponent: Any) -> 'ControlledGate':
+        new_sub_gate = protocols.pow(self.sub_gate,
+                                     exponent,
+                                     NotImplemented)
+        if new_sub_gate is NotImplemented:
+            return NotImplemented
+        return ControlledGate(new_sub_gate)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)
@@ -143,7 +108,7 @@ class ControlledGate(raw_types.Gate,
     def _resolve_parameters_(self, param_resolver):
         new_sub_gate = protocols.resolve_parameters(self.sub_gate,
                                                     param_resolver)
-        return ControlledGate(new_sub_gate, self.default_extensions)
+        return ControlledGate(new_sub_gate)
 
     def _trace_distance_bound_(self):
         return protocols.trace_distance_bound(self.sub_gate)
