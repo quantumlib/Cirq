@@ -479,7 +479,7 @@ One can then calculate the expectation value over all repetitions
 ```python
 def obj_func(result):
     energy_hist = result.histogram(key='x', fold_func=energy_func(3, h, jr, jc))
-    return np.sum(k * v for k,v in energy_hist.items()) / result.repetitions
+    return np.sum([k * v for k,v in energy_hist.items()]) / result.repetitions
 print('Value of the objective function {}'.format(obj_func(results)))
 # prints something like
 # Value of the objective function 6.2

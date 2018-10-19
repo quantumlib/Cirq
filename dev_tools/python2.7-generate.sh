@@ -30,7 +30,7 @@
 #         create test environments.)
 #
 # Example usage:
-#    bash python2.7-generate.sh /tmp/converted-code ./ ~/virtual-envs/cirq3
+#    dev_tools/python2.7-generate.sh /tmp/converted-code ./ ~/virtual-envs/cirq3
 
 set -e
 
@@ -68,12 +68,14 @@ trap print_cached_err ERR
 # Copy into output directory and convert in-place.
 cp -r "${in_dir}/${project_name}" "${out_dir}/${project_name}"
 cp -r "${in_dir}/docs" "${out_dir}/docs"
-cp -r "${in_dir}/examples" "${out_dir}/examples"
 "${three_to_two_path}" --nofix=numliterals --no-diffs --write --processes=16 "${out_dir}" >/dev/null 2> "${out_dir}/err_tmp.log"
 find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 
+# Move examples without conversion (they must be cross-compatible).
+cp -r "${in_dir}/examples" "${out_dir}/examples"
+
 # Include requirements files.
-cp "${in_dir}/python2.7-requirements.txt" "${out_dir}/requirements.txt"
+cp "${in_dir}/dev_tools/python2.7-requirements.txt" "${out_dir}/requirements.txt"
 cp "${in_dir}/dev_tools/conf/pip-list-python2.7-test-tools.txt" "${out_dir}/pip-list-test-tools.txt"
 
 # Include packaging files.
