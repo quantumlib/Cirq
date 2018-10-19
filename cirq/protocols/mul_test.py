@@ -49,11 +49,6 @@ class MulSevenRMulEight:
         return 8
 
 
-class ReturnsExponent:
-    def __pow__(self, exponent) -> int:
-        return exponent
-
-
 def test_equivalent_to_builtin_mul():
     test_vals = [
         0, 1, 1j, -2.5,

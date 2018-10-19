@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension, value, protocols
+from cirq import extension, protocols
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
