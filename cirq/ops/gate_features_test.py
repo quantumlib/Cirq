@@ -17,28 +17,6 @@ import pytest
 import cirq
 
 
-def test_extrapolatable_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = cirq.ExtrapolatableEffect()
-
-
-def test_extrapolatable_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(cirq.ExtrapolatableEffect):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_extrapolatable_gate_is_abstract_can_implement():
-    class Included(cirq.ExtrapolatableEffect):
-        def extrapolate_effect(self, factor):
-            pass
-
-    assert isinstance(Included(), cirq.ExtrapolatableEffect)
-
-
 def test_composite_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = cirq.CompositeGate()

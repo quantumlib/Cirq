@@ -15,12 +15,12 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
-)
+    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
+    Any)
 
 import numpy as np
 
-from cirq import extension, value, protocols
+from cirq import extension, protocols
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
@@ -29,20 +29,15 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-LIFTED_POTENTIAL_TYPES = {t: t for t in [
-    gate_features.ExtrapolatableEffect
-]}  # type: Dict[type, type]
-
-LIFTED_POTENTIAL_TYPES[
-    gate_features.CompositeOperation] = gate_features.CompositeGate
-LIFTED_POTENTIAL_TYPES[
-    gate_features.QasmConvertibleOperation] = gate_features.QasmConvertibleGate
+LIFTED_POTENTIAL_TYPES = {
+    gate_features.CompositeOperation: gate_features.CompositeGate,
+    gate_features.QasmConvertibleOperation: gate_features.QasmConvertibleGate
+}
 
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.CompositeOperation,
-                        gate_features.ExtrapolatableEffect,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -164,14 +159,6 @@ class GateOperation(raw_types.Operation,
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.gate)
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'GateOperation':
-        cast_gate = extension.cast(  # type: ignore
-            gate_features.ExtrapolatableEffect,
-            self.gate)
-        return self.with_gate(cast(raw_types.Gate,
-                                   cast_gate.extrapolate_effect(factor)))
-
     def _phase_by_(self, phase_turns: float,
                    qubit_index: int) -> 'GateOperation':
         phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
@@ -180,7 +167,7 @@ class GateOperation(raw_types.Operation,
             return NotImplemented
         return GateOperation(phased_gate, self._qubits)
 
-    def __pow__(self, power: float) -> 'GateOperation':
+    def __pow__(self, exponent: Any) -> 'GateOperation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
@@ -189,17 +176,17 @@ class GateOperation(raw_types.Operation,
             (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
 
         Args:
-            power: The amount to scale the gate's effect by.
+            exponent: The amount to scale the gate's effect by.
 
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
-        if power == -1:
-            inv_gate = protocols.inverse(self.gate, None)
-            if inv_gate is None:
-                return NotImplemented
-            return self.with_gate(inv_gate)
-        return self.extrapolate_effect(power)
+        new_gate = protocols.pow(self.gate,
+                                 exponent,
+                                 NotImplemented)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        return self.with_gate(new_gate)
 
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:

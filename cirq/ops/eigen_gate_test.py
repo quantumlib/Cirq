@@ -105,15 +105,6 @@ def test_pow():
         global_shift_in_half_turns=0.5)
 
 
-def test_extrapolate_effect():
-    assert CExpZinGate(0.25).extrapolate_effect(2) == CExpZinGate(0.5)
-    assert CExpZinGate(0.25).extrapolate_effect(-1) == CExpZinGate(-0.25)
-    assert CExpZinGate(0.25).extrapolate_effect(0) == CExpZinGate(0)
-    assert CExpZinGate(0).extrapolate_effect(0) == CExpZinGate(0)
-    with pytest.raises(TypeError):
-        _ = CExpZinGate(cirq.Symbol('a')).extrapolate_effect(1.5)
-
-
 def test_inverse():
     assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
     with pytest.raises(TypeError):
@@ -125,22 +116,17 @@ def test_trace_distance_bound():
     assert cirq.trace_distance_bound(CExpZinGate(cirq.Symbol('a'))) >= 1
 
 
-def test_try_cast_to():
-    ext = cirq.Extensions()
-
+def test_extrapolate():
     h = CExpZinGate(2)
-    assert h.try_cast_to(cirq.ExtrapolatableEffect, ext) is h
-    assert h.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.pow(h, 1.5) is not None
     assert cirq.inverse(h, None) is not None
 
     p = CExpZinGate(0.1)
-    assert p.try_cast_to(cirq.ExtrapolatableEffect, ext) is p
-    assert p.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.pow(p, 1.5) is not None
     assert cirq.inverse(p) is not None
 
     s = CExpZinGate(cirq.Symbol('a'))
-    assert s.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert s.try_cast_to(cirq.SingleQubitGate, ext) is None
+    assert cirq.pow(s, 1.5, None) is None
     assert cirq.inverse(s, None) is None
 
 
