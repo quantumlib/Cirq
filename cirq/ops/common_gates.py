@@ -207,7 +207,7 @@ class RotXGate(eigen_gate.EigenGate,
             return '(cirq.X**{!r})'.format(self.half_turns)
         return (
             'cirq.RotXGate(half_turns={!r}, '
-            'global_shift_in_half_turns={!r}'
+            'global_shift_in_half_turns={!r})'
         ).format(self.half_turns, self._global_shift_in_half_turns)
 
 
@@ -293,7 +293,7 @@ class RotYGate(eigen_gate.EigenGate,
             return '(cirq.Y**{!r})'.format(self.half_turns)
         return (
             'cirq.RotYGate(half_turns={!r}, '
-            'global_shift_in_half_turns={!r}'
+            'global_shift_in_half_turns={!r})'
         ).format(self.half_turns, self._global_shift_in_half_turns)
 
 
@@ -426,7 +426,7 @@ class RotZGate(eigen_gate.EigenGate,
             return '(cirq.Z**{!r})'.format(self.half_turns)
         return (
             'cirq.RotZGate(half_turns={!r}, '
-            'global_shift_in_half_turns={!r}'
+            'global_shift_in_half_turns={!r})'
         ).format(self.half_turns, self._global_shift_in_half_turns)
 
 

@@ -656,3 +656,11 @@ def test_rz_matrix():
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rz(-np.pi)),
         np.array([[1j, 0], [0, -1j]]))
+
+def test_arbitrary_xyz_repr():
+    cirq.testing.assert_equivalent_repr(cirq.RotXGate(
+        half_turns=0.1, global_shift_in_half_turns=0.2))
+    cirq.testing.assert_equivalent_repr(cirq.RotYGate(
+        half_turns=0.1, global_shift_in_half_turns=0.2))
+    cirq.testing.assert_equivalent_repr(cirq.RotZGate(
+        half_turns=0.1, global_shift_in_half_turns=0.2))
