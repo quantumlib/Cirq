@@ -17,7 +17,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.extension import Extensions
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.decompositions import two_qubit_matrix_to_operations
 from cirq.google.xmon_gate_extensions import xmon_gate_ext
@@ -41,19 +40,13 @@ class ConvertToXmonGates(PointOptimizer):
         Otherwise raises a TypeError.
     """
 
-    def __init__(self,
-                 extensions: Extensions=None,
-                 ignore_failures=False) -> None:
+    def __init__(self, ignore_failures=False) -> None:
         """
         Args:
-            extensions: The extensions instance to use when trying to
-                cast gates to known types. Defaults to the standard xmon
-                gate extension.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
         super().__init__()
-        self.extensions = extensions or xmon_gate_ext
         self.ignore_failures = ignore_failures
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
@@ -63,7 +56,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         # Maybe we know how to wrap it?
         if isinstance(op, ops.GateOperation):
-            xmon = self.extensions.try_cast(XmonGate, op.gate)  # type: ignore
+            xmon = xmon_gate_ext.try_cast(XmonGate, op.gate)  # type: ignore
             if xmon is not None:
                 return xmon.on(*op.qubits)
 
@@ -80,7 +73,7 @@ class ConvertToXmonGates(PointOptimizer):
                 allow_partial_czs=True)
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(  # type: ignore
+        composite_op = xmon_gate_ext.try_cast(  # type: ignore
             ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()

@@ -1124,23 +1124,23 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: extension.Extensions = None,
             dtype: np.dtype = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
-            ext: The extensions to use when attempting to cast operations into
-                CompositeOperation instances.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. Must be a complex
-                dtype.
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -1152,9 +1152,6 @@ class Circuit:
             TypeError: The circuit contains gates that don't have a known
                 unitary matrix, e.g. gates parameterized by a Symbol.
         """
-
-        if ext is None:
-            ext = extension.Extensions()
 
         if not ignore_terminal_measurements and any(
                 ops.MeasurementGate.is_measurement(op)
@@ -1171,7 +1168,7 @@ class Circuit:
         state = np.eye(1 << n, dtype=np.complex128)
         state.shape = (2,) * (2 * n)
 
-        result = _apply_unitary_circuit(self, state, qs, ext, dtype)
+        result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((1 << n, 1 << n))
 
     def apply_unitary_effect_to_state(
@@ -1180,7 +1177,6 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            ext: extension.Extensions = None,
             dtype: np.dtype = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
@@ -1212,10 +1208,11 @@ class Circuit:
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            ext: The extensions to use when attempting to cast operations into
-                KnownMatrix instances.
-            dtype: The numpy dtype for the returned unitary. Must be a complex
-                dtype.
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
             A (possibly gigantic) numpy array storing the superposition that
@@ -1227,9 +1224,6 @@ class Circuit:
             TypeError: The circuit contains gates that don't have a known
                 unitary matrix, e.g. gates parameterized by a Symbol.
         """
-
-        if ext is None:
-            ext = extension.Extensions()
 
         if not ignore_terminal_measurements and any(
                 ops.MeasurementGate.is_measurement(op)
@@ -1250,7 +1244,7 @@ class Circuit:
             state = initial_state.astype(dtype)
         state.shape = (2,) * n
 
-        result = _apply_unitary_circuit(self, state, qs, ext, dtype)
+        result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((1 << n,))
 
     def to_text_diagram(
@@ -1332,16 +1326,12 @@ class Circuit:
 
         return diagram
 
-    def is_parameterized(self) -> bool:
+    def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op)
                    for op in self.all_operations())
 
-    def with_parameters_resolved_by(self,
-                                    param_resolver: study.ParamResolver,
-                                    ext: extension.Extensions = None
-                                    ) -> 'Circuit':
-        if ext is None:
-            ext = extension.Extensions()
+    def _resolve_parameters_(self,
+                             param_resolver: study.ParamResolver) -> 'Circuit':
         resolved_circuit = Circuit()
         for moment in self:
             resolved_circuit.append(_resolve_operations(
@@ -1353,7 +1343,6 @@ class Circuit:
                 header: str = 'Generated from Cirq',
                 precision: int = 10,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-                ext: extension.Extensions = None
                 ) -> str:
         """Returns QASM equivalent to the circuit.
 
@@ -1363,8 +1352,6 @@ class Circuit:
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
-            ext: For extending operations/gates to implement
-                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
@@ -1372,8 +1359,7 @@ class Circuit:
                             qubits=qubits,
                             header=header,
                             precision=precision,
-                            version='2.0',
-                            ext=ext)
+                            version='2.0')
         return str(output)
 
     def save_qasm(self,
@@ -1381,11 +1367,11 @@ class Circuit:
                   header: str = 'Generated from Cirq',
                   precision: int = 10,
                   qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-                  ext: extension.Extensions = None
                   ) -> None:
         """Save a QASM file equivalent to the circuit.
 
         Args:
+            file_path: The location of the file where the qasm will be written.
             header: A multi-line string that is placed in a comment at the top
                 of the QASM.
             precision: Number of digits to use when representing numbers.
@@ -1400,8 +1386,7 @@ class Circuit:
                             qubits=qubits,
                             header=header,
                             precision=precision,
-                            version='2.0',
-                            ext=ext)
+                            version='2.0')
         output.save(file_path)
 
 
@@ -1512,7 +1497,6 @@ def _draw_moment_in_diagram(moment: Moment,
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           ext: extension.Extensions,
                            dtype: np.dtype) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
@@ -1530,8 +1514,6 @@ def _apply_unitary_circuit(circuit: Circuit,
         qubits: The qubits in the state tensor. Determines which axes operations
             apply to. An operation targeting the k'th qubit in this list will
             operate on the k'th axis of the state tensor.
-        ext: Extensions used when attempting to get matrices and decompositions
-            of the operations.
         dtype: The numpy dtype to use for applying the unitary. Must be a
             complex dtype.
 
@@ -1540,7 +1522,7 @@ def _apply_unitary_circuit(circuit: Circuit,
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
-    for op, qs in _extract_unitaries(circuit.all_operations(), ext):
+    for op, qs in _extract_unitaries(circuit.all_operations()):
         indices = [qubit_map[q] for q in qs]
         result = protocols.apply_unitary_to_tensor(
             val=op,
@@ -1554,7 +1536,6 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _extract_unitaries(operations: Iterable[ops.Operation],
-                       ext: extension.Extensions
                        ) -> Iterable[Tuple[Any,
                                            Tuple[ops.QubitId, ...]]]:
     """Yields a sequence of unitary matrices equivalent to the circuit's effect.
@@ -1567,12 +1548,13 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             continue
 
         # If not, check if it has a decomposition.
-        composite_op = ext.try_cast(ops.CompositeOperation, op)  # type: ignore
+        composite_op = extension.try_cast(  # type: ignore
+            ops.CompositeOperation,  op)
         if composite_op is not None:
             # Recurse decomposition to get known matrix gates.
             op_tree = composite_op.default_decompose()
             op_list = ops.flatten_op_tree(op_tree)
-            for op2 in _extract_unitaries(op_list, ext):
+            for op2 in _extract_unitaries(op_list):
                 yield op2
             continue
 

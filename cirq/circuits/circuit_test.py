@@ -1619,15 +1619,15 @@ def test_is_parameterized():
         cirq.X(a)**cirq.Symbol('v'),
         cirq.Y(b)**cirq.Symbol('w'),
     )
-    assert circuit.is_parameterized()
+    assert cirq.is_parameterized(circuit)
 
-    circuit = circuit.with_parameters_resolved_by(
-            cirq.ParamResolver({'u': 0.1, 'v': 0.3}))
-    assert circuit.is_parameterized()
+    circuit = cirq.resolve_parameters(circuit,
+                                      cirq.ParamResolver({'u': 0.1, 'v': 0.3}))
+    assert cirq.is_parameterized(circuit)
 
-    circuit = circuit.with_parameters_resolved_by(
-            cirq.ParamResolver({'w': 0.2}))
-    assert not circuit.is_parameterized()
+    circuit = cirq.resolve_parameters(circuit,
+                                      cirq.ParamResolver({'w': 0.2}))
+    assert not cirq.is_parameterized(circuit)
 
 
 def test_with_parameters_resolved_by():
@@ -1637,8 +1637,9 @@ def test_with_parameters_resolved_by():
         cirq.X(a)**cirq.Symbol('v'),
         cirq.Y(b)**cirq.Symbol('w'),
     )
-    resolved_circuit = circuit.with_parameters_resolved_by(
-            cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    resolved_circuit = cirq.resolve_parameters(
+        circuit,
+        cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
     cirq.testing.assert_has_diagram(resolved_circuit, """
 0: ───@───────X^0.3───
       │

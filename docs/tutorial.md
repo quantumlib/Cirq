@@ -535,7 +535,7 @@ Parameters are specified at runtime using a `ParamResolver` which is
 which is just a dictionary from `Symbol` keys to runtime values. For example,
 ```python
 resolver = cirq.ParamResolver({'alpha': 0.1, 'beta': 0.3, 'gamma': 0.7})
-resolved_circuit = circuit.with_parameters_resolved_by(resolver)
+resolved_circuit = cirq.resolve_parameters(circuit, resolver)
 ```
 resolves the parameters to actual values in the above circuit.
 
