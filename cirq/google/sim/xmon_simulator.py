@@ -40,8 +40,9 @@ from typing import Tuple  # pylint: disable=unused-import
 import numpy as np
 
 from cirq import circuits, ops, sim, study, protocols
-from cirq.google import convert_to_xmon_gates, xmon_gates, xmon_gate_ext
+from cirq.google import convert_to_xmon_gates, xmon_gates
 from cirq.google.sim import xmon_stepper
+
 
 class XmonOptions:
     """XmonOptions for the XmonSimulator.
