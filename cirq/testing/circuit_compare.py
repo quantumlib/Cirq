@@ -96,7 +96,7 @@ def _canonicalize_up_to_terminal_measurement_phase(
         circuit1: circuits.Circuit,
         circuit2: circuits.Circuit) -> Tuple[np.ndarray, np.ndarray]:
     qubits = circuit1.all_qubits().union(circuit2.all_qubits())
-    order = ops.QubitOrder.DEFAULT.order_for(qubits)[::-1]
+    order = sorted(qubits)[::-1]
     assert circuit1.are_all_measurements_terminal()
     assert circuit2.are_all_measurements_terminal()
 
