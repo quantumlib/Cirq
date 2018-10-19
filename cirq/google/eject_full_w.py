@@ -138,10 +138,8 @@ def _absorb_z_into_w(moment_index: int,
 def _dump_held(qubits: Iterable[ops.QubitId],
                moment_index: int,
                state: _OptimizerState):
-    # Avoid non-determinism in in the inserted operations.
-    sorted_qubits = ops.QubitOrder.DEFAULT.order_for(qubits)
-
-    for q in sorted_qubits:
+    # Note: sorting is to avoid non-determinism in the insertion order.
+    for q in sorted(qubits):
         p = state.held_w_phases.get(q)
         if p is not None:
             dump_op = ExpWGate(axis_half_turns=p).on(q)
