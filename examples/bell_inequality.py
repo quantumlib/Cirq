@@ -100,7 +100,7 @@ def make_bell_test_circuit():
     return circuit
 
 
-def bitstring(bits: Iterable[Union[bool, int]]) -> str:
+def bitstring(bits):
     return ''.join('1' if e else '_' for e in bits)
 
 
