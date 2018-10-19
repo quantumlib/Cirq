@@ -23,8 +23,6 @@ y: 11_111_____1_1_111__11111_111_1____1____11_____11___11_1_1___1_111111_1_1_1
 Win rate: 84.0%
 """
 
-from typing import Union, Iterable
-
 import numpy as np
 
 import cirq

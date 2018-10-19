@@ -131,7 +131,6 @@ S^-1   │         │      │
 
 """
 
-from typing import List, Tuple, cast
 import numpy as np
 import scipy.optimize
 import cirq
@@ -329,7 +328,6 @@ def bcs_parameters(n_site, n_fermi, u, t) :
 
     # Superconducting gap
     delta = scipy.optimize.bisect(_bcs_gap, 0.01, 10000. * abs(u))
-    delta = cast(float, delta)
     # The amplitude of the double excitation state
     bcs_v = np.sqrt(0.5 * (1 - hop_erg / np.sqrt(hop_erg ** 2 + delta ** 2)))
     # The rotational angle in the Bogoliubov transformation.
