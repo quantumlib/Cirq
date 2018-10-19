@@ -415,27 +415,27 @@ def test_xyz_str():
 
 def test_measurement_gate_diagram():
     # Shows key.
-    assert cirq.MeasurementGate().text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('')",))
-    assert cirq.MeasurementGate(key='test').text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('test')",))
+    assert cirq.circuit_diagram_info(cirq.MeasurementGate()
+                                     ) == cirq.CircuitDiagramInfo(("M('')",))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(key='test')
+    ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
-    assert cirq.MeasurementGate().text_diagram_info(
-        cirq.TextDiagramInfoArgs(
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(),
+        cirq.CircuitDiagramInfoArgs(
             known_qubits=None,
             known_qubit_count=3,
             use_unicode_characters=True,
             precision=None,
             qubit_map=None
-        )) == cirq.TextDiagramInfo(("M('')", 'M', 'M'))
+        )) == cirq.CircuitDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
-    assert cirq.MeasurementGate(invert_mask=(False, True)).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('')", "!M"))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(invert_mask=(False, True))
+    ) == cirq.CircuitDiagramInfo(("M('')", "!M"))
 
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')
@@ -568,3 +568,99 @@ def test_is_measurement():
 def test_h_pow():
     assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
     assert cirq.inverse(cirq.H) == cirq.H
+
+
+def test_rx_ry_rz_repr():
+    assert repr(cirq.Rx(np.pi / 2)) == 'cirq.Rx(np.pi*0.5)'
+    cirq.testing.assert_equivalent_repr(cirq.Rx(np.pi / 8))
+    cirq.testing.assert_equivalent_repr(cirq.Ry(np.pi / 8))
+    cirq.testing.assert_equivalent_repr(cirq.Rz(np.pi / 8))
+
+
+def test_rx_matrix():
+    s = np.sqrt(0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(np.pi / 2)),
+        np.array([[s, -s*1j], [-s*1j, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(-np.pi / 2)),
+        np.array([[s, s*1j], [s*1j, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(0)),
+        np.array([[1, 0], [0, 1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(2 * np.pi)),
+        np.array([[-1, 0], [0, -1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(np.pi)),
+        np.array([[0, -1j], [-1j, 0]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rx(-np.pi)),
+        np.array([[0, 1j], [1j, 0]]))
+
+
+def test_ry_matrix():
+    s = np.sqrt(0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(np.pi / 2)),
+        np.array([[s, -s], [s, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(-np.pi / 2)),
+        np.array([[s, s], [-s, s]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(0)),
+        np.array([[1, 0], [0, 1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(2 * np.pi)),
+        np.array([[-1, 0], [0, -1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(np.pi)),
+        np.array([[0, -1], [1, 0]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Ry(-np.pi)),
+        np.array([[0, 1], [-1, 0]]))
+
+
+def test_rz_matrix():
+    s = np.sqrt(0.5)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(np.pi / 2)),
+        np.array([[s - s*1j, 0], [0, s + s*1j]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(-np.pi / 2)),
+        np.array([[s + s*1j, 0], [0, s - s*1j]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(0)),
+        np.array([[1, 0], [0, 1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(2 * np.pi)),
+        np.array([[-1, 0], [0, -1]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(np.pi)),
+        np.array([[-1j, 0], [0, 1j]]))
+
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.Rz(-np.pi)),
+        np.array([[1j, 0], [0, -1j]]))
+
+def test_arbitrary_xyz_repr():
+    cirq.testing.assert_equivalent_repr(cirq.RotXGate(
+        half_turns=0.1, global_shift_in_half_turns=0.2))
+    cirq.testing.assert_equivalent_repr(cirq.RotYGate(
+        half_turns=0.1, global_shift_in_half_turns=0.2))
+    cirq.testing.assert_equivalent_repr(cirq.RotZGate(
+        half_turns=0.1, global_shift_in_half_turns=0.2))
