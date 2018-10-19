@@ -152,23 +152,6 @@ def test_on_each():
     assert c.on_each([b, a]) == [c(b), c(a)]
 
 
-@cirq.testing.only_test_in_python3
-def test_text_diagram_info_repr():
-    info = cirq.TextDiagramInfo(('X', 'Y'), 2)
-    assert repr(info) == ("cirq.TextDiagramInfo(wire_symbols=('X', 'Y')"
-                          ", exponent=2, connected=True)")
-
-
-def test_text_diagram_info_eq():
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cirq.TextDiagramInfo(('X',)))
-    eq.add_equality_group(cirq.TextDiagramInfo(('X', 'Y')),
-                          cirq.TextDiagramInfo(('X', 'Y'), 1))
-    eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 2))
-    eq.add_equality_group(cirq.TextDiagramInfo(('Z', 'Z'), 2))
-    eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 3))
-
-
 def test_qasm_output_args_validate():
     args = cirq.QasmOutputArgs(version='2.0')
     args.validate_version('2.0')
