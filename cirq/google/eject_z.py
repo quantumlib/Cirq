@@ -20,7 +20,6 @@ from collections import defaultdict
 
 from cirq import circuits, ops, extension, value, protocols
 from cirq.decompositions import is_negligible_turn
-from cirq.google.xmon_gates import ExpZGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -55,7 +54,7 @@ class EjectZ(circuits.OptimizationPass):
             for q in qubits:
                 p = turns_state[q]
                 if not is_negligible_turn(p, self.tolerance):
-                    dump_op = ExpZGate(half_turns=p * 2).on(q)
+                    dump_op = ops.Z(q)**(p * 2)
                     insertions.append((index, dump_op))
                 turns_state[q] = 0
 
@@ -101,7 +100,7 @@ class EjectZ(circuits.OptimizationPass):
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op, ops.GateOperation):
         return None
-    if not isinstance(op.gate, (ExpZGate, ops.RotZGate)):
+    if not isinstance(op.gate, ops.RotZGate):
         return None
     h = op.gate.half_turns
     if isinstance(h, value.Symbol):

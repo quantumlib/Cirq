@@ -13,16 +13,14 @@
 # limitations under the License.
 
 from itertools import chain
-from typing import Sequence, Dict
+from typing import Sequence, Dict, Tuple
 
-from cirq import CompositeGate, TextDiagrammable
-from cirq.ops import Gate, gate_features, SWAP, OP_TREE, QubitId
+from cirq import CompositeGate, protocols
+from cirq.ops import Gate, SWAP, OP_TREE, QubitId
 from cirq.contrib.acquaintance.permutation import PermutationGate
 
 
-class CircularShiftGate(PermutationGate,
-                        CompositeGate,
-                        TextDiagrammable):
+class CircularShiftGate(PermutationGate, CompositeGate):
     """Performs a cyclical permutation of the qubits to the left by a specified
     amount.
 
@@ -34,8 +32,8 @@ class CircularShiftGate(PermutationGate,
     def __init__(self,
                  shift: int,
                  swap_gate: Gate=SWAP) -> None:
+        super().__init__(swap_gate)
         self.shift = shift
-        self.swap_gate = swap_gate
 
     def __repr__(self):
         return 'CircularShiftGate'
@@ -58,8 +56,8 @@ class CircularShiftGate(PermutationGate,
             for k in range(i, j, 2):
                 yield self.swap_gate(*qubits[k:k+2])
 
-    def text_diagram_info(self,
-                          args: gate_features.TextDiagramInfoArgs):
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
         direction_symbols = (
@@ -70,8 +68,7 @@ class CircularShiftGate(PermutationGate,
                 str(i) +
                 direction_symbols[int(i < self.shift)]
                 for i in range(args.known_qubit_count))
-        return gate_features.TextDiagramInfo(
-                wire_symbols=wire_symbols)
+        return wire_symbols
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         shift = self.shift % qubit_count
