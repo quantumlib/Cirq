@@ -273,6 +273,10 @@ def test_canonicalize_printed_line():
                           '[ 0.]',
                           '[0.]']}) == 1
 
+    a = '[[ 0.+0.j 1.+0.j]'
+    b = '[[0.+0.j 1.+0.j]'
+    assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
+
 
 def assert_code_snippet_executes_correctly(snippet: str,
                                            state: Dict,
