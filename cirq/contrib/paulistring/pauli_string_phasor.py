@@ -22,9 +22,7 @@ from cirq.contrib.paulistring.pauli_string_raw_types import (
 from cirq.ops.pauli_string import PauliString
 
 
-class PauliStringPhasor(PauliStringGateOperation,
-                        ops.TextDiagrammable,
-                        ops.CompositeOperation):
+class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
@@ -117,8 +115,8 @@ class PauliStringPhasor(PauliStringGateOperation,
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         return self._pauli_string_diagram_info(args,
                                                exponent=self.half_turns,
                                                exponent_absorbs_sign=True)

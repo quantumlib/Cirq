@@ -18,15 +18,15 @@ from typing import cast, Any
 
 import numpy as np
 
-from cirq import linalg
-from cirq.ops import gate_features, raw_types
+from cirq import linalg, protocols
+from cirq.ops import raw_types
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
+class SingleQubitMatrixGate(raw_types.Gate):
     """A 1-qubit gate defined by its matrix.
 
     More general than specialized classes like ZGate, but more expensive and
@@ -70,9 +70,9 @@ class SingleQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
 
     def __hash__(self):
@@ -101,7 +101,7 @@ class SingleQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
         return str(self._matrix.round(3))
 
 
-class TwoQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
+class TwoQubitMatrixGate(raw_types.Gate):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like CZGate, but more expensive and
@@ -150,9 +150,9 @@ class TwoQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
 
     def __hash__(self):
@@ -175,7 +175,7 @@ class TwoQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,
-                              args: gate_features.TextDiagramInfoArgs) -> str:
+                              args: protocols.CircuitDiagramInfoArgs) -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)

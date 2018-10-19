@@ -410,27 +410,27 @@ def test_xyz_str():
 
 def test_measurement_gate_diagram():
     # Shows key.
-    assert cirq.MeasurementGate().text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('')",))
-    assert cirq.MeasurementGate(key='test').text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('test')",))
+    assert cirq.circuit_diagram_info(cirq.MeasurementGate()
+                                     ) == cirq.CircuitDiagramInfo(("M('')",))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(key='test')
+    ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
-    assert cirq.MeasurementGate().text_diagram_info(
-        cirq.TextDiagramInfoArgs(
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(),
+        cirq.CircuitDiagramInfoArgs(
             known_qubits=None,
             known_qubit_count=3,
             use_unicode_characters=True,
             precision=None,
             qubit_map=None
-        )) == cirq.TextDiagramInfo(("M('')", 'M', 'M'))
+        )) == cirq.CircuitDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
-    assert cirq.MeasurementGate(invert_mask=(False, True)).text_diagram_info(
-        cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT) == cirq.TextDiagramInfo(
-            ("M('')", "!M"))
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(invert_mask=(False, True))
+    ) == cirq.CircuitDiagramInfo(("M('')", "!M"))
 
     # Omits key when it is the default.
     a = cirq.NamedQubit('a')

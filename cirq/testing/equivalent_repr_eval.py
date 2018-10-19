@@ -43,8 +43,9 @@ def assert_equivalent_repr(
             'eval(repr(value)) raised an exception.\n'
             '\n'
             'setup_code={!r}\n'
+            'type(value): {}\n'
             'value={!r}\n'
-            'error={}'.format(ex, setup_code, value))
+            'error={!r}'.format(setup_code, type(value), value, ex))
 
     assert eval_repr_value == value, (
         "The repr of a value of type {} didn't evaluate to something equal "

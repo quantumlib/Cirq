@@ -134,9 +134,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         return out
 
 
-class ExpWGate(XmonGate,
-               ops.SingleQubitGate,
-               ops.TextDiagrammable):
+class ExpWGate(XmonGate, ops.SingleQubitGate):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -243,8 +241,8 @@ class ExpWGate(XmonGate,
             return 1
         return abs(self.half_turns) * 3.5
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         e = 0 if args.precision is None else 10**-args.precision
         half_turns = self.half_turns
         if isinstance(self.axis_half_turns, value.Symbol):
@@ -262,11 +260,10 @@ class ExpWGate(XmonGate,
                 self.axis_half_turns)
         else:
             s = 'W({})'.format(self.axis_half_turns)
-        return ops.TextDiagramInfo((s,), half_turns)
+        return protocols.CircuitDiagramInfo((s,), half_turns)
 
     def __str__(self):
-        info = self.text_diagram_info(
-            ops.TextDiagramInfoArgs.UNINFORMED_DEFAULT)
+        info = protocols.circuit_diagram_info(self)
         if info.exponent == 1:
             return info.wire_symbols[0]
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
