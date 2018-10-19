@@ -23,50 +23,9 @@ def test_is_supported():
     b = cirq.GridQubit(0, 1)
     c = cirq.GridQubit(1, 0)
     assert cg.XmonGate.is_supported_op(cirq.CZ(a, b))
-    assert cg.XmonGate.is_supported_op(cg.ExpZGate(half_turns=1).on(a))
+    assert cg.XmonGate.is_supported_op(cirq.Z(a)**1)
     assert not cg.XmonGate.is_supported_op(cirq.CCZ(a, b, c))
     assert not cg.XmonGate.is_supported_op(cirq.SWAP(a, b))
-
-
-def test_z_eq():
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cg.ExpZGate(half_turns=0))
-    eq.add_equality_group(cg.ExpZGate(),
-                          cg.ExpZGate(half_turns=1),
-                          cg.ExpZGate(degs=180),
-                          cg.ExpZGate(rads=np.pi))
-    eq.make_equality_group(
-        lambda: cg.ExpZGate(half_turns=cirq.Symbol('a')))
-    eq.make_equality_group(
-        lambda: cg.ExpZGate(half_turns=cirq.Symbol('b')))
-    eq.add_equality_group(
-        cg.ExpZGate(half_turns=-1.5),
-        cg.ExpZGate(half_turns=10.5))
-
-
-def test_z_matrix():
-    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=1)),
-                       np.array([[-1j, 0], [0, 1j]]))
-    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=0.5)),
-                       np.array([[1 - 1j, 0], [0, 1 + 1j]]) / np.sqrt(2))
-    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=0)),
-                       np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cirq.unitary(cg.ExpZGate(half_turns=-0.5)),
-                       np.array([[1 + 1j, 0], [0, 1 - 1j]]) / np.sqrt(2))
-
-
-def test_z_parameterize():
-    parameterized_gate = cg.ExpZGate(half_turns=cirq.Symbol('a'))
-    assert cirq.is_parameterized(parameterized_gate)
-    assert cirq.unitary(parameterized_gate, None) is None
-    resolver = cirq.ParamResolver({'a': 0.1})
-    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
-    assert resolved_gate == cg.ExpZGate(half_turns=0.1)
-
-
-def test_z_repr():
-    gate = cg.ExpZGate(half_turns=0.25)
-    assert repr(gate) == 'cirq.google.ExpZGate(half_turns=0.25)'
 
 
 def test_w_eq():
@@ -156,18 +115,9 @@ def test_w_repr():
 
 
 def test_trace_bound():
-    assert cirq.trace_distance_bound(cg.ExpZGate(half_turns=.001)) < 0.01
     assert cirq.trace_distance_bound(cg.ExpWGate(half_turns=.001)) < 0.01
-    assert cirq.trace_distance_bound(cg.ExpZGate(
-        half_turns=cirq.Symbol('a'))) >= 1
     assert cirq.trace_distance_bound(cg.ExpWGate(
         half_turns=cirq.Symbol('a'))) >= 1
-
-
-def test_z_inverse():
-    assert cirq.inverse(cg.ExpZGate(half_turns=cirq.Symbol('a')), None) is None
-    assert cirq.inverse(cg.ExpZGate()) == cg.ExpZGate(half_turns=-1)
-    assert cirq.inverse(cg.ExpZGate()) != cg.ExpZGate()
 
 
 def test_cirq_symbol_diagrams():
@@ -176,7 +126,7 @@ def test_cirq_symbol_diagrams():
     c = cirq.Circuit.from_ops(
         cg.ExpWGate(axis_half_turns=cirq.Symbol('a'),
                     half_turns=cirq.Symbol('b')).on(q00),
-        cg.ExpZGate(half_turns=cirq.Symbol('c')).on(q01),
+        cirq.Z(q01)**cirq.Symbol('c'),
         cirq.CZ(q00, q01)**cirq.Symbol('d'),
     )
     cirq.testing.assert_has_diagram(c, """
@@ -189,12 +139,12 @@ def test_cirq_symbol_diagrams():
 def test_z_diagram_chars():
     q = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(
-        cg.ExpZGate().on(q),
-        cg.ExpZGate(half_turns=0.5).on(q),
-        cg.ExpZGate(half_turns=0.25).on(q),
-        cg.ExpZGate(half_turns=0.125).on(q),
-        cg.ExpZGate(half_turns=-0.5).on(q),
-        cg.ExpZGate(half_turns=-0.25).on(q),
+        cirq.Z(q),
+        cirq.Z(q)**0.5,
+        cirq.Z(q)**0.25,
+        cirq.Z(q)**0.125,
+        cirq.Z(q)**-0.5,
+        cirq.Z(q)**-0.25,
     )
     cirq.testing.assert_has_diagram(c, """
 (0, 1): ───Z───S───T───Z^0.125───S^-1───T^-1───
