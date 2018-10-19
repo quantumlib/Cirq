@@ -16,7 +16,7 @@ from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload)
 
 from cirq.ops import (
-    raw_types, gate_operation, common_gates, qubit_order, op_tree
+    raw_types, gate_operation, common_gates, op_tree
 )
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -95,12 +95,11 @@ class PauliString:
 
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
-                             for qubit in
-                                qubit_order.QubitOrder.DEFAULT.order_for(self)))
+                             for qubit in sorted(self.qubits())))
         return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
-        ordered_qubits = qubit_order.QubitOrder.DEFAULT.order_for(self.qubits())
+        ordered_qubits = sorted(self.qubits())
         return '{{{}, {}}}'.format('+-'[self.negated],
                                    ', '.join(('{!s}:{!s}'.format(q, self[q])
                                              for q in ordered_qubits)))
