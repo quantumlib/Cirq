@@ -213,10 +213,11 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
         }
         return {'exp_w': exp_w}
 
-    def __pow__(self, power):
-        if protocols.is_parameterized(self) and power != 1:
+    def __pow__(self, exponent: Any) -> 'ExpWGate':
+        new_exponent = protocols.mul(self.half_turns, exponent, NotImplemented)
+        if new_exponent is NotImplemented:
             return NotImplemented
-        return ExpWGate(half_turns=self.half_turns * power,
+        return ExpWGate(half_turns=new_exponent,
                         axis_half_turns=self.axis_half_turns)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
