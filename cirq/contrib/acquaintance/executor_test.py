@@ -26,14 +26,13 @@ from cirq.contrib.acquaintance.permutation import (
 from cirq.contrib.acquaintance.executor import (
         StrategyExecutor, GreedyExecutionStrategy)
 
+
 class ExampleGate(cirq.Gate):
     def __init__(self, wire_symbols: Sequence[str]) -> None:
         self._wire_symbols = tuple(wire_symbols)
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                               ) -> cirq.CircuitDiagramInfo:
-        return cirq.CircuitDiagramInfo(
-                wire_symbols=self._wire_symbols)
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
+        return self._wire_symbols
 
 
 def test_executor_explicit():
@@ -102,7 +101,7 @@ class DiagonalGate(cirq.Gate):
         return np.diag(self.diagonal)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
-        qubit_count = int(np.round(np.log2(len(self.diagonal))))
+        qubit_count = len(self.diagonal).bit_length()
         assert (args.known_qubit_count is None or
                 args.known_qubit_count == qubit_count)
         return ('Diag',) * qubit_count

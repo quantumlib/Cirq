@@ -33,7 +33,7 @@ class AcquaintanceOpportunityGate(ops.Gate):
         return 'Acq'
 
     def _circuit_diagram_info_(self,
-                          args: protocols.CircuitDiagramInfoArgs):
+                               args: protocols.CircuitDiagramInfoArgs):
         if args.known_qubit_count is None:
             return NotImplemented
         wire_symbol = '█' if args.use_unicode_characters else 'Acq'
@@ -271,7 +271,7 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
                         self.swap_gate)(*part)
 
     def _circuit_diagram_info_(self,
-                          args: protocols.CircuitDiagramInfoArgs):
+                               args: protocols.CircuitDiagramInfoArgs):
         wire_symbol = ('×' if args.use_unicode_characters else 'swap')
         wire_symbols = tuple(
             wire_symbol + '({},{})'.format(part_index, qubit_index)
@@ -298,7 +298,6 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
         assert sum(parts, ()) == tuple(qubit_order)
 
         return SwapNetworkGate(part_sizes, acquaintance_size)
-
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         if qubit_count < sum(self.part_lens):
