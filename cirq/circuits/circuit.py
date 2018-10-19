@@ -23,17 +23,22 @@ from collections import defaultdict
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload
-)
+    Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import devices, ops, extension, study, protocols
+from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set
+
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -405,6 +410,210 @@ class Circuit:
             if self._can_add_op_at(k, op):
                 last_available = k
         return last_available
+
+    def reachable_frontier_from(
+            self,
+            start_frontier: Dict[ops.QubitId, int],
+            *,
+            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+    ) -> Dict[ops.QubitId, int]:
+        """Determines how far can be reached into a circuit under certain rules.
+
+        The location L = (qubit, moment_index) is *reachable* if and only if:
+
+            a) L is one of the items in `start_frontier`.
+
+            OR
+
+            b) There is no operation at L and prev(L) = (qubit, moment_index-1)
+                is reachable and L is within the bounds of the circuit.
+
+            OR
+
+            c) There is an operation P covering L and, for every location
+                M = (q', moment_index) that P covers, the location
+                prev(M) = (q', moment_index-1) is reachable. Also, P must not be
+                classified as a blocker by the given `is_blocker` argument.
+
+        In other words, the reachable region extends forward through time along
+        each qubit until it hits a blocked operation or an operation that
+        crosses into the set of not-involved-at-the-moment qubits.
+
+        For each qubit q in `start_frontier`, the reachable locations will
+        correspond to a contiguous range starting at start_frontier[q] and
+        ending just before some index end_q. The result of this method is a
+        dictionary, and that dictionary maps each qubit q to its end_q.
+
+        Examples:
+
+            If start_frontier is {
+                cirq.LineQubit(0): 6,
+                cirq.LineQubit(1): 2,
+                cirq.LineQubit(2): 2,
+            } then the reachable wire locations in the following circuit are
+            highlighted with '█' characters:
+
+                0   1   2   3   4   5   6   7   8   9   10  11  12  13
+            0: ───H───@─────────────────█████████████████████─@───H───
+                      │                                       │
+            1: ───────@─██H███@██████████████████████─@───H───@───────
+                              │                       │
+            2: ─────────██████@███H██─@───────@───H───@───────────────
+                                      │       │
+            3: ───────────────────────@───H───@───────────────────────
+
+            And the computed end_frontier is {
+                cirq.LineQubit(0): 11,
+                cirq.LineQubit(1): 9,
+                cirq.LineQubit(2): 6,
+            }
+
+            Note that the frontier indices (shown above the circuit) are
+            best thought of (and shown) as happening *between* moment indices.
+
+            If we specify a blocker as follows:
+
+                is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
+                                                 cirq.LineQubit(2))
+
+            and use this start_frontier:
+
+                {
+                    cirq.LineQubit(0): 0,
+                    cirq.LineQubit(1): 0,
+                    cirq.LineQubit(2): 0,
+                    cirq.LineQubit(3): 0,
+                }
+
+            Then this is the reachable area:
+
+                0   1   2   3   4   5   6   7   8   9   10  11  12  13
+            0: ─██H███@██████████████████████████████████████─@───H───
+                      │                                       │
+            1: ─██████@███H██─@───────────────────────@───H───@───────
+                              │                       │
+            2: ─█████████████─@───H───@───────@───H───@───────────────
+                                      │       │
+            3: ─█████████████████████─@───H───@───────────────────────
+
+            and the computed end_frontier is:
+
+                {
+                    cirq.LineQubit(0): 11,
+                    cirq.LineQubit(1): 3,
+                    cirq.LineQubit(2): 3,
+                    cirq.LineQubit(3): 5,
+                }
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            An end_frontier dictionary, containing an end index for each qubit q
+            mapped to a start index by the given `start_frontier` dictionary.
+
+            To determine if a location (q, i) was reachable, you can use
+            this expression:
+
+                q in start_frontier and start_frontier[q] <= i < end_frontier[q]
+
+            where i is the moment index, q is the qubit, and end_frontier is the
+            result of this method.
+        """
+        active = set()  # type: Set[ops.QubitId]
+        end_frontier = {}
+        queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
+
+        def enqueue_next(qubit: ops.QubitId, moment: int) -> None:
+            next_moment = self.next_moment_operating_on([qubit], moment)
+            if next_moment is None:
+                end_frontier[qubit] = max(len(self), start_frontier[qubit])
+                if qubit in active:
+                    active.remove(qubit)
+            else:
+                next_op = self.operation_at(qubit, next_moment)
+                assert next_op is not None
+                queue.enqueue(next_moment, next_op)
+
+        for start_qubit, start_moment in start_frontier.items():
+            enqueue_next(start_qubit, start_moment)
+
+        while queue:
+            cur_moment, cur_op = queue.dequeue()
+            for q in cur_op.qubits:
+                if (q in start_frontier and
+                        cur_moment >= start_frontier[q] and
+                        q not in end_frontier):
+                    active.add(q)
+
+            continue_past = (
+                    cur_op is not None and
+                    active.issuperset(cur_op.qubits) and
+                    not is_blocker(cur_op)
+            )
+            if continue_past:
+                for q in cur_op.qubits:
+                    enqueue_next(q, cur_moment + 1)
+            else:
+                for q in cur_op.qubits:
+                    if q in active:
+                        end_frontier[q] = cur_moment
+                        active.remove(q)
+
+        return end_frontier
+
+    def findall_operations_between(self,
+                                   start_frontier: Dict[ops.QubitId, int],
+                                   end_frontier: Dict[ops.QubitId, int],
+                                   omit_crossing_operations: bool = False
+                                   ) -> List[Tuple[int, ops.Operation]]:
+        """Finds operations between the two given frontiers.
+
+        If a qubit is in `start_frontier` but not `end_frontier`, its end index
+        defaults to the end of the circuit. If a qubit is in `end_frontier` but
+        not `start_frontier`, its start index defaults to the start of the
+        circuit. Operations on qubits not mentioned in either frontier are not
+        included in the results.
+
+        Args:
+            start_frontier: Just before where to start searching for operations,
+                for each qubit of interest. Start frontier indices are
+                inclusive.
+            end_frontier: Just before where to stop searching for operations,
+                for each qubit of interest. End frontier indices are exclusive.
+            omit_crossing_operations: Determines whether or not operations that
+                cross from a location between the two frontiers to a location
+                outside the two frontiers are included or excluded. (Operations
+                completely inside are always included, and operations completely
+                outside are always excluded.)
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the two frontiers. The first item of each tuple is the index of the
+            moment containing the operation, and the second item is the
+            operation itself. The list is sorted so that the moment index
+            increases monotonically.
+        """
+        result = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
+
+        involved_qubits = set(start_frontier.keys()) | set(end_frontier.keys())
+        # Note: only sorted to ensure a deterministic result ordering.
+        for q in sorted(involved_qubits):
+            for i in range(start_frontier.get(q, 0),
+                           end_frontier.get(q, len(self))):
+                op = self.operation_at(q, i)
+                if op is None:
+                    continue
+                if (omit_crossing_operations and
+                        not involved_qubits.issuperset(op.qubits)):
+                    continue
+                result.enqueue(i, op)
+
+        return list(result)
 
     def operation_at(self,
                      qubit: ops.QubitId,

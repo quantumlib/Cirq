@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 def assert_equivalent_repr(
         value: Any,
         *,
-        setup_code: str = 'import cirq') -> None:
+        setup_code: str = 'import cirq\nimport numpy as np') -> None:
     """Checks that eval(repr(v)) == v.
 
     Args:

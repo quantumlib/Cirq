@@ -119,7 +119,8 @@ class RotXGate(eigen_gate.EigenGate,
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
+                 degs: Optional[float] = None,
+                 global_shift_in_half_turns: float = 0.0) -> None:
         """Initializes the gate.
 
         At most one angle argument may be specified. If more are specified,
@@ -131,10 +132,12 @@ class RotXGate(eigen_gate.EigenGate,
             rads: The relative phasing of X's eigenstates, in radians.
             degs: The relative phasing of X's eigenstates, in degrees.
         """
-        super().__init__(exponent=value.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs))
+        super().__init__(
+            exponent=value.chosen_angle_to_half_turns(
+                half_turns=half_turns,
+                rads=rads,
+                degs=degs),
+            global_shift_in_half_turns=global_shift_in_half_turns)
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -156,11 +159,17 @@ class RotXGate(eigen_gate.EigenGate,
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
+        if self._global_shift_in_half_turns == 0:
+            return 2
+        if abs(self._global_shift_in_half_turns) == 0.5:
+            return 4
+        return None
 
     def _with_exponent(self,
                        exponent: Union[value.Symbol, float]) -> 'RotXGate':
-        return RotXGate(half_turns=exponent)
+        return RotXGate(
+            half_turns=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
@@ -188,9 +197,16 @@ class RotXGate(eigen_gate.EigenGate,
         return 'X**{!r}'.format(self.half_turns)
 
     def __repr__(self) -> str:
-        if self.half_turns == 1:
-            return 'cirq.X'
-        return '(cirq.X**{!r})'.format(self.half_turns)
+        if self._global_shift_in_half_turns == -0.5:
+            return 'cirq.Rx(np.pi*{!r})'.format(self.half_turns)
+        if self._global_shift_in_half_turns == 0:
+            if self.half_turns == 1:
+                return 'cirq.X'
+            return '(cirq.X**{!r})'.format(self.half_turns)
+        return (
+            'cirq.RotXGate(half_turns={!r}, '
+            'global_shift_in_half_turns={!r})'
+        ).format(self.half_turns, self._global_shift_in_half_turns)
 
 
 class RotYGate(eigen_gate.EigenGate,
@@ -201,7 +217,8 @@ class RotYGate(eigen_gate.EigenGate,
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[value.Symbol, float]] = None,
                  rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
+                 degs: Optional[float] = None,
+                 global_shift_in_half_turns: float = 0.0) -> None:
         """Initializes the gate.
 
         At most one angle argument may be specified. If more are specified,
@@ -213,10 +230,12 @@ class RotYGate(eigen_gate.EigenGate,
             rads: The relative phasing of Y's eigenstates, in radians.
             degs: The relative phasing of Y's eigenstates, in degrees.
         """
-        super().__init__(exponent=value.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs))
+        super().__init__(
+            exponent=value.chosen_angle_to_half_turns(
+                half_turns=half_turns,
+                rads=rads,
+                degs=degs),
+            global_shift_in_half_turns=global_shift_in_half_turns)
 
     def _eigen_components(self):
         return [
@@ -225,11 +244,17 @@ class RotYGate(eigen_gate.EigenGate,
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
+        if self._global_shift_in_half_turns == 0:
+            return 2
+        if abs(self._global_shift_in_half_turns) == 0.5:
+            return 4
+        return None
 
     def _with_exponent(self,
                        exponent: Union[value.Symbol, float]) -> 'RotYGate':
-        return RotYGate(half_turns=exponent)
+        return RotYGate(
+            half_turns=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
@@ -257,9 +282,16 @@ class RotYGate(eigen_gate.EigenGate,
         return 'Y**{!r}'.format(self.half_turns)
 
     def __repr__(self) -> str:
-        if self.half_turns == 1:
-            return 'cirq.Y'
-        return '(cirq.Y**{!r})'.format(self.half_turns)
+        if self._global_shift_in_half_turns == -0.5:
+            return 'cirq.Ry(np.pi*{!r})'.format(self.half_turns)
+        if self._global_shift_in_half_turns == 0:
+            if self.half_turns == 1:
+                return 'cirq.Y'
+            return '(cirq.Y**{!r})'.format(self.half_turns)
+        return (
+            'cirq.RotYGate(half_turns={!r}, '
+            'global_shift_in_half_turns={!r})'
+        ).format(self.half_turns, self._global_shift_in_half_turns)
 
 
 class RotZGate(eigen_gate.EigenGate,
@@ -331,9 +363,7 @@ class RotZGate(eigen_gate.EigenGate,
     def half_turns(self) -> Union[value.Symbol, float]:
         return self._exponent
 
-    def _phase_by_(self,
-                 phase_turns: float,
-                 qubit_index: int):
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -376,17 +406,24 @@ class RotZGate(eigen_gate.EigenGate,
         return 'Z**{}'.format(self.half_turns)
 
     def __repr__(self) -> str:
-        if self.half_turns == 0.25:
-            return 'cirq.T'
-        if self.half_turns == -0.25:
-            return '(cirq.T**-1)'
-        if self.half_turns == 0.5:
-            return 'cirq.S'
-        if self.half_turns == -0.5:
-            return '(cirq.S**-1)'
-        if self.half_turns == 1:
-            return 'cirq.Z'
-        return '(cirq.Z**{!r})'.format(self.half_turns)
+        if self._global_shift_in_half_turns == -0.5:
+            return 'cirq.Rz(np.pi*{!r})'.format(self.half_turns)
+        if self._global_shift_in_half_turns == 0:
+            if self.half_turns == 0.25:
+                return 'cirq.T'
+            if self.half_turns == -0.25:
+                return '(cirq.T**-1)'
+            if self.half_turns == 0.5:
+                return 'cirq.S'
+            if self.half_turns == -0.5:
+                return '(cirq.S**-1)'
+            if self.half_turns == 1:
+                return 'cirq.Z'
+            return '(cirq.Z**{!r})'.format(self.half_turns)
+        return (
+            'cirq.RotZGate(half_turns={!r}, '
+            'global_shift_in_half_turns={!r})'
+        ).format(self.half_turns, self._global_shift_in_half_turns)
 
 
 class MeasurementGate(raw_types.Gate, gate_features.QasmConvertibleGate):
@@ -571,17 +608,19 @@ class HGate(eigen_gate.EigenGate,
         return HGate(half_turns=exponent)
 
     def _eigen_components(self):
-        component0 = (np.array([[(3 + 2 * np.sqrt(2)),
-                                 (1 + np.sqrt(2))],
-                                [(1 + np.sqrt(2)),
-                                 (1)]])) / (2 * (2 + np.sqrt(2)))
+        s = np.sqrt(2)
 
-        component1 = (np.array([[(3 - 2 * np.sqrt(2)),
-                                 (1 - np.sqrt(2))],
-                                [(1 - np.sqrt(2)),
-                                 (1)]])) / (2 * (2 - np.sqrt(2)))
+        component0 = np.array([
+            [3 + 2 * s, 1 + s],
+            [1 + s, 1]
+        ]) / (4 + 2 * s)
 
-        return [(0, component0), (1, component1), ]
+        component1 = np.array([
+            [3 - 2 * s, 1 - s],
+            [1 - s, 1]
+        ]) / (4 - 2 * s)
+
+        return [(0, component0), (1, component1)]
 
     @property
     def half_turns(self) -> Union[value.Symbol, float]:
@@ -928,3 +967,18 @@ class ISwapGate(eigen_gate.EigenGate,
 
 # Swaps two qubits while phasing the swapped subspace by i.
 ISWAP = ISwapGate()
+
+
+def Rx(rads: float) -> RotXGate:
+    """Returns a gate with the matrix e^{-i X rads / 2}."""
+    return RotXGate(rads=rads, global_shift_in_half_turns=-0.5)
+
+
+def Ry(rads: float) -> RotYGate:
+    """Returns a gate with the matrix e^{-i Y rads / 2}."""
+    return RotYGate(rads=rads, global_shift_in_half_turns=-0.5)
+
+
+def Rz(rads: float) -> RotZGate:
+    """Returns a gate with the matrix e^{-i Z rads / 2}."""
+    return RotZGate(rads=rads, global_shift_in_half_turns=-0.5)

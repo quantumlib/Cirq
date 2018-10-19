@@ -2174,3 +2174,207 @@ qreg q[1];
 
 x q[0];
 """)
+
+
+def test_findall_operations_between():
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    #    0: ───H───@───────────────────────────────────────@───H───
+    #              │                                       │
+    #    1: ───────@───H───@───────────────────────@───H───@───────
+    #                      │                       │
+    #    2: ───────────────@───H───@───────@───H───@───────────────
+    #                              │       │
+    #    3: ───────────────────────@───H───@───────────────────────
+    #
+    # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
+    circuit = cirq.Circuit.from_ops(
+        cirq.H(a),
+        cirq.CZ(a, b),
+        cirq.H(b),
+        cirq.CZ(b, c),
+        cirq.H(c),
+        cirq.CZ(c, d),
+        cirq.H(d),
+        cirq.CZ(c, d),
+        cirq.H(c),
+        cirq.CZ(b, c),
+        cirq.H(b),
+        cirq.CZ(a, b),
+        cirq.H(a))
+
+    # Empty frontiers means no results.
+    actual = circuit.findall_operations_between(
+        start_frontier={},
+        end_frontier={})
+    assert actual == []
+
+    # Empty range is empty.
+    actual = circuit.findall_operations_between(
+        start_frontier={a: 5},
+        end_frontier={a: 5})
+    assert actual == []
+
+    # Default end_frontier value is len(circuit.
+    actual = circuit.findall_operations_between(
+        start_frontier={a: 5},
+        end_frontier={})
+    assert actual == [
+        (11, cirq.CZ(a, b)),
+        (12, cirq.H(a)),
+    ]
+
+    # Default start_frontier value is 0.
+    actual = circuit.findall_operations_between(
+        start_frontier={},
+        end_frontier={a: 5})
+    assert actual == [
+        (0, cirq.H(a)),
+        (1, cirq.CZ(a, b))
+    ]
+
+    # omit_crossing_operations omits crossing operations.
+    actual = circuit.findall_operations_between(
+        start_frontier={a: 5},
+        end_frontier={},
+        omit_crossing_operations=True)
+    assert actual == [
+        (12, cirq.H(a)),
+    ]
+
+    # omit_crossing_operations keeps operations across included regions.
+    actual = circuit.findall_operations_between(
+        start_frontier={a: 5, b: 5},
+        end_frontier={},
+        omit_crossing_operations=True)
+    assert actual == [
+        (10, cirq.H(b)),
+        (11, cirq.CZ(a, b)),
+        (12, cirq.H(a)),
+    ]
+
+    # Regions are OR'd together, not AND'd together.
+    actual = circuit.findall_operations_between(
+        start_frontier={a: 5},
+        end_frontier={b: 5})
+    assert actual == [
+        (1, cirq.CZ(a, b)),
+        (2, cirq.H(b)),
+        (3, cirq.CZ(b, c)),
+        (11, cirq.CZ(a, b)),
+        (12, cirq.H(a)),
+    ]
+
+    # Regions are OR'd together, not AND'd together (2).
+    actual = circuit.findall_operations_between(
+        start_frontier={a: 5},
+        end_frontier={a: 5, b: 5})
+    assert actual == [
+        (1, cirq.CZ(a, b)),
+        (2, cirq.H(b)),
+        (3, cirq.CZ(b, c)),
+    ]
+
+    # Inclusive start, exclusive end.
+    actual = circuit.findall_operations_between(
+        start_frontier={c: 4},
+        end_frontier={c: 8})
+    assert actual == [
+        (4, cirq.H(c)),
+        (5, cirq.CZ(c, d)),
+        (7, cirq.CZ(c, d)),
+    ]
+
+    # Out of range is clamped.
+    actual = circuit.findall_operations_between(
+        start_frontier={a: -100},
+        end_frontier={a: +100})
+    assert actual == [
+        (0, cirq.H(a)),
+        (1, cirq.CZ(a, b)),
+        (11, cirq.CZ(a, b)),
+        (12, cirq.H(a)),
+    ]
+
+
+def test_reachable_frontier_from():
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    #    0: ───H───@───────────────────────────────────────@───H───
+    #              │                                       │
+    #    1: ───────@───H───@───────────────────────@───H───@───────
+    #                      │                       │
+    #    2: ───────────────@───H───@───────@───H───@───────────────
+    #                              │       │
+    #    3: ───────────────────────@───H───@───────────────────────
+    #
+    # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
+    circuit = cirq.Circuit.from_ops(
+        cirq.H(a),
+        cirq.CZ(a, b),
+        cirq.H(b),
+        cirq.CZ(b, c),
+        cirq.H(c),
+        cirq.CZ(c, d),
+        cirq.H(d),
+        cirq.CZ(c, d),
+        cirq.H(c),
+        cirq.CZ(b, c),
+        cirq.H(b),
+        cirq.CZ(a, b),
+        cirq.H(a))
+
+    # Empty cases.
+    assert cirq.Circuit().reachable_frontier_from(start_frontier={}) == {}
+    assert circuit.reachable_frontier_from(start_frontier={}) == {}
+
+    # Clamped input cases.
+    assert cirq.Circuit().reachable_frontier_from(
+        start_frontier={a: 5}) == {a: 5}
+    assert cirq.Circuit().reachable_frontier_from(
+        start_frontier={a: -100}) == {a: 0}
+    assert circuit.reachable_frontier_from(
+        start_frontier={a: 100}) == {a: 100}
+
+    # Stopped by crossing outside case.
+    assert circuit.reachable_frontier_from({a: -1}) == {a: 1}
+    assert circuit.reachable_frontier_from({a: 0}) == {a: 1}
+    assert circuit.reachable_frontier_from({a: 1}) == {a: 1}
+    assert circuit.reachable_frontier_from({a: 2}) == {a: 11}
+    assert circuit.reachable_frontier_from({a: 5}) == {a: 11}
+    assert circuit.reachable_frontier_from({a: 10}) == {a: 11}
+    assert circuit.reachable_frontier_from({a: 11}) == {a: 11}
+    assert circuit.reachable_frontier_from({a: 12}) == {a: 13}
+    assert circuit.reachable_frontier_from({a: 13}) == {a: 13}
+    assert circuit.reachable_frontier_from({a: 14}) == {a: 14}
+
+    # Inside crossing works only before blocked case.
+    assert circuit.reachable_frontier_from({a: 0, b: 0}) == {a: 11, b: 3}
+    assert circuit.reachable_frontier_from({a: 2, b: 2}) == {a: 11, b: 3}
+    assert circuit.reachable_frontier_from({a: 0, b: 4}) == {a: 1, b: 9}
+    assert circuit.reachable_frontier_from({a: 3, b: 4}) == {a: 11, b: 9}
+    assert circuit.reachable_frontier_from({a: 3, b: 9}) == {a: 11, b: 9}
+    assert circuit.reachable_frontier_from({a: 3, b: 10}) == {a: 13, b: 13}
+
+    # Travelling shadow.
+    assert circuit.reachable_frontier_from({a: 0, b: 0, c: 0}) == {a: 11,
+                                                                   b: 9,
+                                                                   c: 5}
+
+    # Full circuit
+    assert circuit.reachable_frontier_from({a: 0, b: 0, c: 0, d: 0}) == {
+        a: 13,
+        b: 13,
+        c: 13,
+        d: 13
+    }
+
+    # Blocker.
+    assert circuit.reachable_frontier_from(
+        {a: 0, b: 0, c: 0, d: 0},
+        is_blocker=lambda op: op == cirq.CZ(b, c)) == {
+            a: 11,
+            b: 3,
+            c: 3,
+            d: 5
+        }
