@@ -219,13 +219,13 @@ circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
     result = simulator.simulate(circuit, resolver)
-    print(np.around(result.final_state, 2))
-# prints
-# [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-# [ 0.85+0.j    0.  -0.35j  0.  -0.35j -0.15+0.j  ]
-# [ 0.5+0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
-# [ 0.15+0.j    0.  -0.35j  0.  -0.35j -0.85+0.j  ]
-# [ 0.+0.j  0.-0.j  0.-0.j -1.+0.j]
+    print(np.round(result.final_state, 2))
+# prints something like
+# [1.  +0.j  0.+0.j   0.+0.j    0.  +0.j]
+# [0.85+0.j  0.-0.35j 0.-0.35j -0.15+0.j]
+# [0.5 +0.j  0.-0.5j  0.-0.5j  -0.5 +0.j]
+# [0.15+0.j  0.-0.35j 0.-0.35j -0.85+0.j]
+# [0.  +0.j  0.-0.j   0.-0.j   -1.  +0.j]
 ```
 Here we see that the ``Symbol`` is used in two gates, and then the resolver
 provide this value at run time.

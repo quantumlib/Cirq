@@ -125,7 +125,7 @@ def test_circuit_device_validation_fails(build):
     # Purposefully create an invalid Circuit by fiddling with internal bits.
     # This simulates a failure in the incremental checks.
     circuit._moments.append(cirq.Moment([
-        cg.ExpZGate().on(cirq.NamedQubit("dorothy"))]))
+        cirq.Z(cirq.NamedQubit("dorothy"))]))
 
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         cg.Engine(api_key="key").run(program=circuit,

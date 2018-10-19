@@ -29,6 +29,14 @@ from cirq.protocols.circuit_diagram_info import (
 from cirq.protocols.inverse import (
     inverse,
 )
+from cirq.protocols.mul import (
+    mul,
+)
+# pylint: disable=redefined-builtin
+from cirq.protocols.pow import (
+    pow,
+)
+# pylint: enable=redefined-builtin
 from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,

@@ -479,7 +479,7 @@ One can then calculate the expectation value over all repetitions
 ```python
 def obj_func(result):
     energy_hist = result.histogram(key='x', fold_func=energy_func(3, h, jr, jc))
-    return np.sum(k * v for k,v in energy_hist.items()) / result.repetitions
+    return np.sum([k * v for k,v in energy_hist.items()]) / result.repetitions
 print('Value of the objective function {}'.format(obj_func(results)))
 # prints something like
 # Value of the objective function 6.2
@@ -535,7 +535,7 @@ Parameters are specified at runtime using a `ParamResolver` which is
 which is just a dictionary from `Symbol` keys to runtime values. For example,
 ```python
 resolver = cirq.ParamResolver({'alpha': 0.1, 'beta': 0.3, 'gamma': 0.7})
-resolved_circuit = circuit.with_parameters_resolved_by(resolver)
+resolved_circuit = cirq.resolve_parameters(circuit, resolver)
 ```
 resolves the parameters to actual values in the above circuit.
 
