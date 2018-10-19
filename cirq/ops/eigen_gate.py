@@ -18,7 +18,7 @@ import abc
 
 import numpy as np
 
-from cirq import value
+from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -173,11 +173,11 @@ class EigenGate(raw_types.Gate):
         """
         return None
 
-    def __pow__(self: TSelf, power: Union[float, value.Symbol]) -> TSelf:
-        if ((power != 1 and isinstance(self._exponent, value.Symbol)) or
-                (self._exponent != 1 and isinstance(power, value.Symbol))):
+    def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
+        new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
+        if new_exponent is NotImplemented:
             return NotImplemented
-        return self._with_exponent(exponent=self._exponent * power)
+        return self._with_exponent(exponent=new_exponent)
 
     def _identity_tuple(self):
         return (type(self),

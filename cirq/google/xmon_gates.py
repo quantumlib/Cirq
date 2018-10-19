@@ -215,12 +215,11 @@ class ExpWGate(XmonGate,
         }
         return {'exp_w': exp_w}
 
-    def __pow__(self, exponent: Any):
-        if ((self._is_parameterized_() and exponent != 1)
-                or (self.half_turns != 1 and isinstance(exponent, value.Symbol))
-                ):
+    def __pow__(self, exponent: Any) -> 'ExpWGate':
+        new_exponent = protocols.mul(self.half_turns, exponent, NotImplemented)
+        if new_exponent is NotImplemented:
             return NotImplemented
-        return ExpWGate(half_turns=self.half_turns * exponent,
+        return ExpWGate(half_turns=new_exponent,
                         axis_half_turns=self.axis_half_turns)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:

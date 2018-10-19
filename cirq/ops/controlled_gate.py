@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Sequence
+from typing import Union, Sequence, Any
 
 import numpy as np
 
@@ -94,9 +94,9 @@ class ControlledGate(raw_types.Gate):
             return NotImplemented
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
-    def __pow__(self, power: float) -> 'ControlledGate':
+    def __pow__(self, exponent: Any) -> 'ControlledGate':
         new_sub_gate = protocols.pow(self.sub_gate,
-                                     power,
+                                     exponent,
                                      NotImplemented)
         if new_sub_gate is NotImplemented:
             return NotImplemented

@@ -15,8 +15,8 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING
-)
+    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
+    Any)
 
 import numpy as np
 
@@ -167,7 +167,7 @@ class GateOperation(raw_types.Operation,
             return NotImplemented
         return GateOperation(phased_gate, self._qubits)
 
-    def __pow__(self, power: Union[float, value.Symbol]) -> 'GateOperation':
+    def __pow__(self, exponent: Any) -> 'GateOperation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
@@ -176,13 +176,13 @@ class GateOperation(raw_types.Operation,
             (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
 
         Args:
-            power: The amount to scale the gate's effect by.
+            exponent: The amount to scale the gate's effect by.
 
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
         new_gate = protocols.pow(self.gate,
-                                 power,
+                                 exponent,
                                  NotImplemented)
         if new_gate is NotImplemented:
             return NotImplemented

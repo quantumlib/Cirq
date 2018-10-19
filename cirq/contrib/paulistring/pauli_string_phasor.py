@@ -77,12 +77,12 @@ class PauliStringPhasor(PauliStringGateOperation,
                          ) -> 'PauliStringPhasor':
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
-        if isinstance(power, value.Symbol) and self.half_turns != 1:
+    def __pow__(self,
+                exponent: Union[float, value.Symbol]) -> 'PauliStringPhasor':
+        new_exponent = protocols.mul(self.half_turns, exponent, NotImplemented)
+        if new_exponent is NotImplemented:
             return NotImplemented
-        if isinstance(self.half_turns, value.Symbol) and power != 1:
-            return NotImplemented
-        return self._with_half_turns(self.half_turns * power)
+        return self._with_half_turns(new_exponent)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         return self.pauli_string.equal_up_to_sign(op.pauli_string)

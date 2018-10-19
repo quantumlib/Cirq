@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast
+from typing import cast, Any
 
 import numpy as np
 
@@ -50,10 +50,10 @@ class SingleQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
                     self, qubits))
 
-    def __pow__(self, factor) -> 'SingleQubitMatrixGate':
-        if not isinstance(factor, (int, float)):
+    def __pow__(self, exponent: Any) -> 'SingleQubitMatrixGate':
+        if not isinstance(exponent, (int, float)):
             return NotImplemented
-        e = cast(float, factor)
+        e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
@@ -126,10 +126,10 @@ class TwoQubitMatrixGate(raw_types.Gate, gate_features.TextDiagrammable):
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
                     self, qubits))
 
-    def __pow__(self, factor) -> 'TwoQubitMatrixGate':
-        if not isinstance(factor, (int, float)):
+    def __pow__(self, exponent: Any) -> 'TwoQubitMatrixGate':
+        if not isinstance(exponent, (int, float)):
             return NotImplemented
-        e = cast(float, factor)
+        e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)
 

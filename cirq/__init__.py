@@ -202,6 +202,7 @@ from cirq.protocols import (
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     inverse,
+    mul,
     pow,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
