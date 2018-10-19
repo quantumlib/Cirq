@@ -110,7 +110,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.eye(2)
 
-    def __pow__(self, factor):
+    def __pow__(self, exponent):
         return self
 
 
