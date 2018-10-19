@@ -101,7 +101,7 @@ class DiagonalGate(cirq.Gate):
         return np.diag(self.diagonal)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
-        qubit_count = len(self.diagonal).bit_length()
+        qubit_count = len(self.diagonal).bit_length() - 1
         assert (args.known_qubit_count is None or
                 args.known_qubit_count == qubit_count)
         return ('Diag',) * qubit_count
