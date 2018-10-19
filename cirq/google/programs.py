@@ -35,12 +35,25 @@ def gate_to_proto_dict(gate: ops.Gate,
 
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
+    if isinstance(gate, ops.RotZGate):
+        if len(qubits) != 1:
+            raise ValueError('Wrong number of qubits.')
+        return _z_to_proto_dict(gate, qubits[0])
     if isinstance(gate, ops.Rot11Gate):
         if len(qubits) != 2:
             raise ValueError('Wrong number of qubits.')
         return _cz_to_proto_dict(gate, *qubits)
 
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
+
+
+def _z_to_proto_dict(gate: ops.RotZGate, q: ops.QubitId) -> Dict:
+    exp_z = {
+        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+            gate.half_turns),
+    }
+    return {'exp_z': exp_z}
 
 
 def _cz_to_proto_dict(gate: ops.Rot11Gate,

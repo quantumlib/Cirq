@@ -35,7 +35,7 @@ trap "exit" INT
 # Convert code from python3 to python2.7.
 echo "Transpiling to python 2 with destination '${out_dir}'..."
 set -e
-./python2.7-generate.sh "${out_dir}"
+./dev_tools/python2.7-generate.sh "${out_dir}"
 set +e
 
 # Run tests against converted code.

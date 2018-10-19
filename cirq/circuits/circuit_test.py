@@ -135,12 +135,12 @@ def test_repr():
     assert repr(c) == 'cirq.Circuit(device=cirq.google.Foxtail)'
 
     c = Circuit.from_ops(
-        cg.ExpZGate().on(cirq.GridQubit(0, 0)),
+        cirq.Z(cirq.GridQubit(0, 0)),
         device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == """cirq.Circuit(moments=[
     cirq.Moment(operations=[
-        cirq.google.ExpZGate(half_turns=1.0).on(cirq.GridQubit(0, 0)),
+        cirq.Z.on(cirq.GridQubit(0, 0)),
     ]),
 ], device=cirq.google.Foxtail)"""
 
@@ -2064,12 +2064,12 @@ def test_validates_while_editing():
 
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         # Wrong type of qubit.
-        c.append(cg.ExpZGate().on(cirq.NamedQubit('q')))
+        c.append(cirq.Z(cirq.NamedQubit('q')))
     with pytest.raises(ValueError, match='Qubit not on device'):
         # A qubit that's not on the device.
         c[:] = [cirq.Moment([
-            cg.ExpZGate().on(cirq.GridQubit(-5, 100))])]
-    c.append(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
+            cirq.Z(cirq.GridQubit(-5, 100))])]
+    c.append(cirq.Z(cirq.GridQubit(0, 0)))
 
     with pytest.raises(ValueError, match='Non-local interaction'):
         # Non-adjacent CZ.

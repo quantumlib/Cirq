@@ -107,7 +107,6 @@ from cirq.ops import (
     CSWAP,
     CZ,
     EigenGate,
-    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
@@ -196,12 +195,15 @@ from cirq.value import (
     Timestamp,
 )
 
+# pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_unitary_to_tensor,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     inverse,
+    mul,
+    pow,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
@@ -214,6 +216,7 @@ from cirq.protocols import (
     trace_distance_bound,
     phase_by,
 )
+# pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
 
