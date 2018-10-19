@@ -526,7 +526,7 @@ class Circuit:
         """
         active = set()  # type: Set[ops.QubitId]
         end_frontier = {}
-        queue = BucketPriorityQueue[ops.Operation](drop_duplicates=True)
+        queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
         def enqueue_next(qubit: ops.QubitId, moment: int) -> None:
             next_moment = self.next_moment_operating_on([qubit], moment)
@@ -598,7 +598,7 @@ class Circuit:
             operation itself. The list is sorted so that the moment index
             increases monotonically.
         """
-        result = BucketPriorityQueue[ops.Operation](drop_duplicates=True)
+        result = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
         involved_qubits = set(start_frontier.keys()) | set(end_frontier.keys())
         # Note: only sorted to ensure a deterministic result ordering.
