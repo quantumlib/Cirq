@@ -21,7 +21,7 @@ import timeit
 import numpy as np
 
 import cirq
-from cirq.google import ExpWGate, ExpZGate, XmonOptions, XmonSimulator
+from cirq.google import ExpWGate, XmonOptions, XmonSimulator
 
 
 _XMON = 'xmon'
@@ -44,8 +44,8 @@ def simulate(
                 np.random.randint(num_qubits)),
                 strategy=cirq.InsertStrategy.EARLIEST)
         elif which == 'expz':
-            circuit.append(ExpZGate(half_turns=np.random.random()).on(
-                np.random.randint(num_qubits)),
+            circuit.append(
+                cirq.Z(np.random.randint(num_qubits))**np.random.random(),
                 strategy=cirq.InsertStrategy.EARLIEST)
         elif which == 'exp11':
             q1, q2 = np.random.choice(num_qubits, 2, replace=False)

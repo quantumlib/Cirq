@@ -157,6 +157,7 @@ def derive_temporary_python2_environment(
     os.chdir(input_directory)
     conversion_script_path = os.path.join(
         input_directory,
+        'dev_tools',
         'python2.7-generate.sh')
     shell_tools.run_cmd('bash',
                         conversion_script_path,
@@ -168,7 +169,7 @@ def derive_temporary_python2_environment(
 
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
-    # (These files are output by python2.7-generate.sh.)
+    # (These files are output by dev_tools/python2.7-generate.sh.)
     req_path = os.path.join(destination_directory, 'requirements.txt')
     req_path_2 = os.path.join(destination_directory, 'pip-list-test-tools.txt')
     create_virtual_env(venv_path=env_path,
