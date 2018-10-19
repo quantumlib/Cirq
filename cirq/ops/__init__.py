@@ -15,6 +15,14 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.clifford_gate import (
+    SingleQubitCliffordGate,
+    PauliTransform,
+)
+from cirq.ops.common_channels import (
+    AsymmetricDepolarizingChannel,
+    DepolarizingChannel,
+)
 from cirq.ops.common_gates import (
     CNOT,
     CNotGate,
@@ -82,10 +90,6 @@ from cirq.ops.op_tree import (
 )
 from cirq.ops.pauli import (
     Pauli,
-)
-from cirq.ops.clifford_gate import (
-    SingleQubitCliffordGate,
-    PauliTransform,
 )
 from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,
