@@ -33,13 +33,12 @@ Q3 = cirq.GridQubit(2, 0)
 
 def basic_circuit():
     sqrt_x = cg.ExpWGate(half_turns=-0.5, axis_half_turns=0.0)
-    z = cg.ExpZGate()
     circuit = cirq.Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
          cirq.CZ(Q1, Q2),
          sqrt_x(Q1), sqrt_x(Q2),
-         z(Q1)])
+         cirq.Z(Q1)])
     return circuit
 
 
@@ -549,7 +548,7 @@ def test_param_resolver_exp_w_multiple_params():
 
 
 def test_param_resolver_exp_z_half_turns():
-    exp_z = cg.ExpZGate(half_turns=cirq.Symbol('a'))
+    exp_z = cirq.Z**cirq.Symbol('a')
     circuit = cirq.Circuit()
     circuit.append(exp_z(Q1))
     resolver = cirq.ParamResolver({'a': -0.5})
@@ -780,7 +779,7 @@ def test_handedness_of_xmon_exp_y_gate():
 
 def test_handedness_of_xmon_exp_z_gate():
     circuit = cirq.Circuit.from_ops(cirq.H(Q1),
-                                    cg.ExpZGate(half_turns=0.5).on(Q1))
+                                    cirq.Z(Q1)**0.5)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -857,7 +856,7 @@ def test_handedness_of_basic_gates():
 def test_handedness_of_xmon_gates():
     circuit = cirq.Circuit.from_ops(
         cg.ExpWGate(half_turns=-0.5).on(Q1),
-        cg.ExpZGate(half_turns=-0.5).on(Q1),
+        cirq.Z(Q1)**-0.5,
         cg.ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(Q1),
         cirq.MeasurementGate(key='').on(Q1),
     )

@@ -132,7 +132,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         return result
 
     def _unitary_(self):
-        return np.matrix([[2, 3], [5, 7]])
+        return np.array([[2, 3], [5, 7]])
 
     def __pow__(self, factor):
         return self

@@ -43,7 +43,6 @@ from cirq.google.optimize import (
 )
 from cirq.google.xmon_gates import (
     ExpWGate,
-    ExpZGate,
     XmonGate,
 )
 from cirq.google.sim import (
