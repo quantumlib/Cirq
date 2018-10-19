@@ -18,7 +18,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 from collections import defaultdict
 
-from cirq import circuits, ops, extension, value, protocols
+from cirq import circuits, ops, value, protocols
 from cirq.decompositions import is_negligible_turn
 
 if TYPE_CHECKING:
@@ -33,19 +33,14 @@ class EjectZ(circuits.OptimizationPass):
     measurements, cross CZ gates, cross W gates (by phasing them), etc.
     """
 
-    def __init__(self,
-                 tolerance: float = 0.0,
-                 ext: extension.Extensions=None) -> None:
+    def __init__(self, tolerance: float = 0.0) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
-            ext: Extensions object used for determining if gates are phaseable
-                (i.e. if Z gates can pass through them).
         """
         self.tolerance = tolerance
-        self.ext = ext or extension.Extensions()
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         turns_state = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
