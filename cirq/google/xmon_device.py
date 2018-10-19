@@ -73,7 +73,7 @@ class XmonDevice(Device):
             g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
             if isinstance(g, xmon_gates.ExpWGate):
                 return self._exp_w_duration
-            if isinstance(g, xmon_gates.ExpZGate):
+            if isinstance(operation.gate, ops.RotZGate):
                 # Z gates are performed in the control software.
                 return Duration()
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
@@ -87,7 +87,7 @@ class XmonDevice(Device):
         if not isinstance(gate, (ops.Rot11Gate,
                                  xmon_gates.ExpWGate,
                                  ops.MeasurementGate,
-                                 xmon_gates.ExpZGate)):
+                                 ops.RotZGate)):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation: ops.Operation):
@@ -121,7 +121,7 @@ class XmonDevice(Device):
             self,
             exp11_op: ops.GateOperation,
             other_op: ops.GateOperation) -> bool:
-        if isinstance(other_op.gate, xmon_gates.ExpZGate):
+        if isinstance(other_op.gate, ops.RotZGate):
             return False
         if isinstance(other_op.gate, xmon_gates.ExpWGate):
             return False

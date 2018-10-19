@@ -189,8 +189,8 @@ def test_known_old_failure():
         reference=cirq.Circuit.from_ops(
             cg.ExpWGate(half_turns=0.61351656,
                         axis_half_turns=0.8034575038876517).on(b),
-            cg.ExpZGate(half_turns=0.5).on(a),
-            cg.ExpZGate(half_turns=0.1).on(b),
+            cirq.Z(a)**0.5,
+            cirq.Z(b)**0.1,
             cirq.measure(a, b)),
         atol=1e-8)
 

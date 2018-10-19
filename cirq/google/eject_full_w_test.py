@@ -107,7 +107,7 @@ def test_crosses_czs():
             [cirq.CZ(a, b)],
         ),
         expected=quick_circuit(
-            [cg.ExpZGate().on(b)],
+            [cirq.Z(b)],
             [cirq.CZ(a, b)],
             [cg.ExpWGate(axis_half_turns=0.25).on(a)],
         ))
@@ -117,7 +117,7 @@ def test_crosses_czs():
             [cirq.CZ(b, a)],
         ),
         expected=quick_circuit(
-            [cg.ExpZGate().on(b)],
+            [cirq.Z(b)],
             [cirq.CZ(a, b)],
             [cg.ExpWGate(axis_half_turns=0.125).on(a)],
         ))
@@ -129,7 +129,7 @@ def test_crosses_czs():
             [cirq.CZ(a, b)**0.25],
         ),
         expected=quick_circuit(
-            [cg.ExpZGate(half_turns=0.25).on(b)],
+            [cirq.Z(b)**0.25],
             [cirq.CZ(a, b)**-0.25],
             [cg.ExpWGate().on(a)],
         ))
@@ -219,7 +219,7 @@ def test_cancels_other_full_w():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpZGate(half_turns=-0.25).on(q)],
+            [cirq.Z(q)**-0.25],
         ))
 
     assert_optimizes(
@@ -229,7 +229,7 @@ def test_cancels_other_full_w():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpZGate(half_turns=0.5).on(q)],
+            [cirq.Z(q)**0.5],
         ))
 
     assert_optimizes(
@@ -239,7 +239,7 @@ def test_cancels_other_full_w():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpZGate(half_turns=-0.5).on(q)],
+            [cirq.Z(q)**-0.5],
         ))
 
 
@@ -310,12 +310,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate().on(a)],
-            [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
+            [cirq.Z(a)**cirq.Symbol('z')],
             [cg.ExpWGate().on(a)],
         ),
         expected=quick_circuit(
             [cg.ExpWGate().on(a)],
-            [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
+            [cirq.Z(a)**cirq.Symbol('z')],
             [cg.ExpWGate().on(a)],
         ),
         compare_unitaries=False)
