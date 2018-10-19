@@ -412,7 +412,6 @@ def find_expected_outputs(snippet: str) -> List[str]:
     skipped instead of included. For example, for random output say
     '# prints something like' to avoid checking the following lines.
     """
-    start_key = '# prints'
     continue_key = '# '
     expected = []
 

@@ -228,7 +228,8 @@ def assert_has_diagram(
         '\n'
         'Highlighted differences:\n'
         '{}\n'.format(actual_diagram, desired_diagram,
-                      highlight_text_differences(actual_diagram, desired_diagram))
+                      highlight_text_differences(actual_diagram,
+                                                 desired_diagram))
     )
 
 
