@@ -77,7 +77,7 @@ def test_channel():
     assert cirq.channel(ReturnsChannel()) is c
     assert cirq.channel(ReturnsChannel(), None) is c
     assert cirq.channel(ReturnsChannel(), NotImplemented) is c
-    assert cirq.channel(ReturnsChannel(), 1) is c
+    assert cirq.channel(ReturnsChannel(), (1,)) is c
     assert cirq.channel(ReturnsChannel(), LOCAL_DEFAULT) is c
 
 
@@ -92,5 +92,5 @@ def test_channel_fallback_to_unitary():
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), None), (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), NotImplemented),
                             (u,))
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), 1), (u,))
+    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), (1,)), (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), LOCAL_DEFAULT), (u,))

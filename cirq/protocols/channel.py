@@ -14,7 +14,7 @@
 
 """Protocol and methods for quantum channels."""
 
-from typing import Any, Sequence, TypeVar, Union
+from typing import Any, Iterable, Tuple, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -36,7 +36,7 @@ TDefault = TypeVar('TDefault')
 class SupportsChannel(Protocol):
     """An object that may be describable as a quantum channel."""
 
-    def _channel_(self) -> Union[Sequence[np.ndarray], NotImplementedType]:
+    def _channel_(self) -> Union[Iterable[np.ndarray], NotImplementedType]:
         """A list of matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of
@@ -69,8 +69,8 @@ class SupportsChannel(Protocol):
 
 
 def channel(val: Any,
-            default: Sequence[TDefault] = RaiseTypeErrorIfNotProvided
-            ) -> Union[Sequence[np.ndarray], Sequence[TDefault]]:
+            default: Iterable[TDefault] = RaiseTypeErrorIfNotProvided
+            ) -> Union[Tuple[np.ndarray], Iterable[TDefault]]:
     """Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
@@ -105,7 +105,7 @@ def channel(val: Any,
         NotImplemented if channel_getter is None else channel_getter())
 
     if channel_result is not NotImplemented:
-        return channel_result
+        return tuple(channel_result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = (
