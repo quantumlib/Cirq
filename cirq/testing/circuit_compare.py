@@ -145,6 +145,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     #     |yr> = Cr|x>
     #
     # Ca and Cr are equivalent according to the definition above iff
+    # for each |x>:
     #  - probability of each measurement outcome is the same for |ya>
     #    and |yr> (across measured qubits),
     #  - amplitudes of each post-measurement state are the same for |ya>
@@ -152,8 +153,8 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     #
     # These conditions are satisfied iff the matrices of the two circuits
     # are identical except perhaps for an overall phase factor for each
-    # rectangular block spanning all columns and rows corresponding to
-    # the measurement subspaces.
+    # rectangular block spanning rows corresponding to the measurement
+    # subspaces and all columns.
     #
     # Note two special cases of the rule above:
     #  - if no qubits are measured then the circuits are equivalent if
