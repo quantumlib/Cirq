@@ -177,8 +177,7 @@ def test_reversible():
             cirq.ControlledGate(cirq.S**-1))
 
 class UnphasableGate(cirq.SingleQubitGate):
-    def __pow__(self, factor):
-        return self
+    pass
 
 def test_phase_by():
     assert (cirq.phase_by(
