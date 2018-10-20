@@ -29,12 +29,6 @@ class ControlledGate(raw_types.Gate):
 
         Args:
             sub_gate: The gate to add a control qubit to.
-            default_extensions: The extensions method that should be used when
-                determining if the controlled gate supports certain gate
-                features. For example, if this extensions instance is able to
-                cast sub_gate to a ExtrapolatableEffect then the controlled gate
-                can also be cast to a ExtrapolatableEffect. When this value is
-                None, an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
 
@@ -109,7 +103,7 @@ class ControlledGate(raw_types.Gate):
             self.sub_gate, phase_turns, qubit_index, None)
         if phased_gate is None:
             return NotImplemented
-        return ControlledGate(phased_gate, self.default_extensions)
+        return ControlledGate(phased_gate)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)

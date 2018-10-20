@@ -176,11 +176,22 @@ def test_reversible():
     assert (cirq.inverse(cirq.ControlledGate(cirq.S)) ==
             cirq.ControlledGate(cirq.S**-1))
 
+class UnphasableGate(cirq.SingleQubitGate):
+    def __pow__(self, factor):
+        return self
+
 def test_phase_by():
-    assert (cirq.phase_by(cirq.ControlledGate(cirq.S), 0.25, 0) ==
-            cirq.ControlledGate(cirq.S))
-    assert (cirq.phase_by(cirq.ControlledGate(cirq.S), 0.25, 1) ==
-            cirq.ControlledGate(cirq.phase_by(cirq.S, 0.25, 1)))
+    assert (cirq.phase_by(
+                cirq.ControlledGate(UnphasableGate), 0.25, 1, default=None) ==
+            None)
+    sub_gate = cirq.google.ExpWGate(axis_half_turns = 0.5)
+    assert cirq.phase_by(sub_gate, 0.25, 1) != sub_gate
+    assert (cirq.phase_by(cirq.ControlledGate(sub_gate), 0.25, 0) ==
+            cirq.ControlledGate(sub_gate))
+    assert (cirq.phase_by(cirq.ControlledGate(sub_gate), 0.25, 1) !=
+            cirq.ControlledGate(sub_gate))
+    assert (cirq.phase_by(cirq.ControlledGate(sub_gate), 0.25, 1) ==
+            cirq.ControlledGate(cirq.phase_by(sub_gate, 0.25, 1)))
 
 def test_parameterizable():
     a = cirq.Symbol('a')
