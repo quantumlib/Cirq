@@ -17,28 +17,6 @@ import pytest
 import cirq
 
 
-def test_extrapolatable_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = cirq.ExtrapolatableEffect()
-
-
-def test_extrapolatable_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(cirq.ExtrapolatableEffect):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_extrapolatable_gate_is_abstract_can_implement():
-    class Included(cirq.ExtrapolatableEffect):
-        def extrapolate_effect(self, factor):
-            pass
-
-    assert isinstance(Included(), cirq.ExtrapolatableEffect)
-
-
 def test_composite_gate_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = cirq.CompositeGate()
@@ -150,23 +128,6 @@ def test_on_each():
     assert c.on_each([a]) == [c(a)]
     assert c.on_each([a, b]) == [c(a), c(b)]
     assert c.on_each([b, a]) == [c(b), c(a)]
-
-
-@cirq.testing.only_test_in_python3
-def test_text_diagram_info_repr():
-    info = cirq.TextDiagramInfo(('X', 'Y'), 2)
-    assert repr(info) == ("cirq.TextDiagramInfo(wire_symbols=('X', 'Y')"
-                          ", exponent=2, connected=True)")
-
-
-def test_text_diagram_info_eq():
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cirq.TextDiagramInfo(('X',)))
-    eq.add_equality_group(cirq.TextDiagramInfo(('X', 'Y')),
-                          cirq.TextDiagramInfo(('X', 'Y'), 1))
-    eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 2))
-    eq.add_equality_group(cirq.TextDiagramInfo(('Z', 'Z'), 2))
-    eq.add_equality_group(cirq.TextDiagramInfo(('Z',), 3))
 
 
 def test_qasm_output_args_validate():

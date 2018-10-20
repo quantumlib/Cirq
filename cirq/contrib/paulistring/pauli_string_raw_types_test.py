@@ -68,11 +68,12 @@ def test_on_wrong_number_qubits():
 
 
 def test_default_text_diagram():
-    class DiagramGate(PauliStringGateOperation, cirq.TextDiagrammable):
+    class DiagramGate(PauliStringGateOperation):
         def map_qubits(self, qubit_map):
             pass
-        def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                              ) -> cirq.TextDiagramInfo:
+
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                   ) -> cirq.CircuitDiagramInfo:
             return self._pauli_string_diagram_info(args)
 
     q0, q1, q2 = _make_qubits(3)

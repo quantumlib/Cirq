@@ -14,21 +14,19 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Union, cast
+from typing import cast, Any
 
 import numpy as np
 
-from cirq import linalg, value
-from cirq.ops import gate_features, raw_types
+from cirq import linalg, protocols
+from cirq.ops import raw_types
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(raw_types.Gate,
-                            gate_features.TextDiagrammable,
-                            gate_features.ExtrapolatableEffect):
+class SingleQubitMatrixGate(raw_types.Gate):
     """A 1-qubit gate defined by its matrix.
 
     More general than specialized classes like ZGate, but more expensive and
@@ -52,11 +50,10 @@ class SingleQubitMatrixGate(raw_types.Gate,
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'SingleQubitMatrixGate':
-        if isinstance(factor, value.Symbol):
-            raise TypeError('SingleQubitMatrixGate cannot be parameterized.')
-        e = cast(float, factor)
+    def __pow__(self, exponent: Any) -> 'SingleQubitMatrixGate':
+        if not isinstance(exponent, (int, float)):
+            return NotImplemented
+        e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
@@ -73,9 +70,9 @@ class SingleQubitMatrixGate(raw_types.Gate,
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
 
     def __hash__(self):
@@ -104,9 +101,7 @@ class SingleQubitMatrixGate(raw_types.Gate,
         return str(self._matrix.round(3))
 
 
-class TwoQubitMatrixGate(raw_types.Gate,
-                         gate_features.TextDiagrammable,
-                         gate_features.ExtrapolatableEffect):
+class TwoQubitMatrixGate(raw_types.Gate):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like CZGate, but more expensive and
@@ -131,11 +126,10 @@ class TwoQubitMatrixGate(raw_types.Gate,
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
                     self, qubits))
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'TwoQubitMatrixGate':
-        if isinstance(factor, value.Symbol):
-            raise TypeError('TwoQubitMatrixGate cannot be parameterized.')
-        e = cast(float, factor)
+    def __pow__(self, exponent: Any) -> 'TwoQubitMatrixGate':
+        if not isinstance(exponent, (int, float)):
+            return NotImplemented
+        e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)
 
@@ -156,9 +150,9 @@ class TwoQubitMatrixGate(raw_types.Gate,
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
 
     def __hash__(self):
@@ -181,7 +175,7 @@ class TwoQubitMatrixGate(raw_types.Gate,
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,
-                              args: gate_features.TextDiagramInfoArgs) -> str:
+                              args: protocols.CircuitDiagramInfoArgs) -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)

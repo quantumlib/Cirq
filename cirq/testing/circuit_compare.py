@@ -96,7 +96,7 @@ def _canonicalize_up_to_terminal_measurement_phase(
         circuit1: circuits.Circuit,
         circuit2: circuits.Circuit) -> Tuple[np.ndarray, np.ndarray]:
     qubits = circuit1.all_qubits().union(circuit2.all_qubits())
-    order = ops.QubitOrder.DEFAULT.order_for(qubits)[::-1]
+    order = sorted(qubits)[::-1]
     assert circuit1.are_all_measurements_terminal()
     assert circuit2.are_all_measurements_terminal()
 
@@ -119,12 +119,10 @@ def _canonicalize_up_to_terminal_measurement_phase(
     return matrix1, matrix2
 
 
-def _text_diagram_diff(
-        actual_diagram: str,
-        desired_diagram: str) -> str:
+def highlight_text_differences(actual: str, expected: str) -> str:
     diff = ""
     for actual_line, desired_line in itertools.zip_longest(
-            actual_diagram.splitlines(), desired_diagram.splitlines(),
+            actual.splitlines(), expected.splitlines(),
             fillvalue=""):
         diff += "".join(a if a == b else "█"
                         for a, b in itertools.zip_longest(
@@ -230,7 +228,8 @@ def assert_has_diagram(
         '\n'
         'Highlighted differences:\n'
         '{}\n'.format(actual_diagram, desired_diagram,
-                      _text_diagram_diff(actual_diagram, desired_diagram))
+                      highlight_text_differences(actual_diagram,
+                                                 desired_diagram))
     )
 
 

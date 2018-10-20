@@ -106,7 +106,9 @@ def test_get(qubit_pauli_map):
     for key in qubit_pauli_map:
         assert qubit_pauli_map.get(key) == pauli_string.get(key)
     assert qubit_pauli_map.get(other) == pauli_string.get(other) == None
+    # pylint: disable=too-many-function-args
     assert qubit_pauli_map.get(other, 5) == pauli_string.get(other, 5) == 5
+    # pylint: enable=too-many-function-args
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())

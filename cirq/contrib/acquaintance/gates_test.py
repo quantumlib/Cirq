@@ -45,10 +45,9 @@ z: ───█───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
+
 def test_acquaintance_gate_unknown_qubit_count():
-    g = ACQUAINT
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    assert g.text_diagram_info(args) == NotImplemented
+    assert cirq.circuit_diagram_info(ACQUAINT, default=None) is None
 
 
 def test_swap_network_gate():

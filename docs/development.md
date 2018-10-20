@@ -160,10 +160,10 @@ This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `increment
 
 ### Producing the Python 2.7 code
 
-Run [python2.7-generate.sh](/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
+Run [dev_tools/python2.7-generate.sh](/dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
 
 ```bash
-bash python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
+bash dev_tools/python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
 ```
 
 If you don't specify any arguments then the input directory will be the current

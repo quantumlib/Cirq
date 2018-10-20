@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Union, Tuple
 import numpy as np
 
 from cirq.google.sim import mem_manager
+from cirq import sim
 
 
 I_PI_OVER_2 = 0.5j * np.pi
@@ -180,7 +181,7 @@ class Stepper(object):
     def _init_state(self, initial_state: Union[int, np.ndarray]):
         """Initializes a the shard wavefunction and sets the initial state."""
         state = np.reshape(
-            decode_initial_state(initial_state, self._num_qubits),
+            sim.to_valid_state_vector(initial_state, self._num_qubits),
             (self._num_shards, self._shard_size))
         state_handle = mem_manager.SharedMemManager.create_array(
             state.view(dtype=np.float32))
@@ -262,7 +263,7 @@ class Stepper(object):
             self._pool.map(_reset_state,
                            self._shard_num_args({'reset_state': reset_state}))
         elif isinstance(reset_state, np.ndarray):
-            check_state(reset_state, self._num_qubits)
+            sim.validate_normalized_state(reset_state, self._num_qubits)
             args = []
             for kwargs in self._shard_num_args():
                 shard_num = kwargs['shard_num']
@@ -418,45 +419,6 @@ class Stepper(object):
             ::-1]).tolist()
 
 
-def decode_initial_state(initial_state: Union[int, np.ndarray],
-                         num_qubits: int) -> np.ndarray:
-    """Verifies the initial_state is valid and converts it to ndarray form."""
-    if isinstance(initial_state, np.ndarray):
-        if len(initial_state) != 2 ** num_qubits:
-            raise ValueError(
-                'initial state was of size {} '
-                'but expected state for {} qubits'.format(
-                    len(initial_state), num_qubits))
-        state = initial_state
-    elif isinstance(initial_state, int):
-        if initial_state < 0:
-            raise ValueError('initial_state must be positive')
-        elif initial_state >= 2 ** num_qubits:
-            raise ValueError(
-                'initial state was {} but expected state for {} qubits'.format(
-                    initial_state, num_qubits))
-        else:
-            state = np.zeros(2 ** num_qubits, dtype=np.complex64)
-            state[initial_state] = 1.0
-    else:
-        raise TypeError('initial_state was not of type int or ndarray')
-    check_state(state, num_qubits)
-    return state
-
-
-def check_state(state: np.ndarray, num_qubits: int):
-    """Validates that the given state is a valid wave function."""
-    if state.size != 1 << num_qubits:
-        raise ValueError(
-            'State has incorrect size. Expected {} but was {}.'.format(
-                1 << num_qubits, state.size))
-    if state.dtype != np.complex64:
-        raise ValueError(
-            'State has invalid dtype. Expected {} but was {}'.format(
-                np.complex64, state.dtype))
-    norm = np.sum(np.abs(state) ** 2)
-    if not np.isclose(norm, 1):
-        raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
 def _state_shard(args: Dict[str, Any]) -> np.ndarray:

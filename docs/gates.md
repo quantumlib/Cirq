@@ -103,10 +103,18 @@ that can be used to override the CompositeGate.
 
 A ``CompositeOperation`` is just like a ``CompositeGate``, except it already knows the qubits it should be applied to.
 
-#### TextDiagrammable
+#### `_circuit_diagram_info_(self, args)` and `cirq.circuit_diagram_info(val, [args], [default])`
 
-Text diagrams of ``Circuits`` are actually quite useful for visualizing the moment structure of a ``Circuit``.
-Gates that implement this feature can specify compact representations to use in the diagram (e.g. '×' instead of 'SWAP').
+Circuit diagrams are useful for visualizing the structure of a `Circuit`.
+Gates can specify compact representations to use in diagrams by implementing a `_circuit_diagram_info_` method.
+For example, this is why SWAP gates are shown as linked '×' characters in diagrams.
+
+The `_circuit_diagram_info_` method takes an `args` parameter of type `cirq.CircuitDiagramInfoArgs` and returns either
+a string (typically the gate's name), a sequence of strings (a label to use on each qubit targeted by the gate), or an
+instance of `cirq.CircuitDiagramInfo` (which can specify more advanced properties such as exponents and will expand
+in the future).
+
+You can query the circuit diagram info of a value by passing it into `cirq.circuit_diagram_info`.
 
 ### XmonGates
 
@@ -126,15 +134,16 @@ rotated about in the ``XY`` plane.  In particular if we define
 ``axis_half_turns`` is ``theta``.  And the full gate is
 ``exp(-i pi half_turns W(axis_half_turns) / 2)``.
 
-**ExpZGate** This gate is a rotation about the Pauli ``Z``
-axis.  The gate is ``exp(-i pi Z half_turns / 2)`` where
-``half_turns`` is the supplied parameter.  Note that in 
-quantum computing hardware, this gate is often compiled
-out of the circuit (TODO: explain this in more detail)
+**cirq.Z / cirq.Rz** Rotations about the Pauli ``Z`` axis.
+The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.Rz(θ)` is `exp(-i Z θ/2)`.
+Note that in quantum computing hardware, this gate is often implemented in the
+classical control hardware as a phase change on later operations, instead of as
+a physical modification applied to the qubits.
+(TODO: explain this in more detail)
 
-**cirq.Rot11Gate** This is a two qubit gate and is a rotation
-about the ``|11><11|`` projector.  It takes a single parameter 
-``half_turns`` and is the gate ``exp(i pi |11><11| half_turns)``.
+**cirq.CZ** The controlled-Z gate.
+A two qubit gate that phases the ``|11>`` state.
+The matrix of `cirq.CZ**t` is ``exp(i pi |11><11| t)``.
 
 **cirq.MeasurementGate** This is a single qubit measurement
 in the computational basis. 

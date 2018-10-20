@@ -39,8 +39,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def __init__(self,
                  ignore_failures: bool = False,
-                 tolerance: float = 0,
-                 extensions: extension.Extensions = None) -> None:
+                 tolerance: float = 0) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -48,11 +47,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
             tolerance: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
-            extensions: The extensions instance to use when trying to
-                cast gates to known types.
         """
         super().__init__()
-        self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.tolerance = tolerance
         self._tol = linalg.Tolerance(atol=tolerance)
@@ -101,7 +97,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                                  'Clifford group: {!r}'.format(op))
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(  # type: ignore
+        composite_op = extension.try_cast(  # type: ignore
             ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()

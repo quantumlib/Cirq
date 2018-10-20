@@ -43,14 +43,12 @@ from cirq.google.optimize import (
 )
 from cirq.google.xmon_gates import (
     ExpWGate,
-    ExpZGate,
     XmonGate,
 )
 from cirq.google.sim import (
     XmonOptions,
     XmonSimulator,
     XmonStepResult,
-    XmonSimulateTrialResult,
 )
 from cirq.google.engine import (
     engine_from_environment,

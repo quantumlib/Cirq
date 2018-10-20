@@ -20,9 +20,9 @@ import numpy as np
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.circuit import Moment
 from cirq.contrib.jobs import Job
-from cirq.google import xmon_gates
 from cirq.study.sweeps import Points, Zip
 from cirq.value import Symbol
+from cirq import ops
 
 
 class DepolarizerChannel(object):
@@ -55,7 +55,7 @@ class DepolarizerChannel(object):
     _parameter_name = 'error_parameter'
 
     def __init__(self, probability=0.001, realizations=1,
-                 depolarizing_gates=(xmon_gates.ExpZGate(),)):
+                 depolarizing_gates=(ops.Z,)):
         self.p = probability
         self.realizations = realizations
         self.depolarizing_gates = depolarizing_gates

@@ -19,6 +19,7 @@ from cirq.study.resolver import (
 )
 from cirq.study.sweepable import (
     Sweepable,
+    to_resolvers,
 )
 from cirq.study.sweeps import (
     Linspace,
