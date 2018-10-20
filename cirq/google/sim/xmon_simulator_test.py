@@ -25,7 +25,6 @@ import pytest
 
 import cirq
 import cirq.google as cg
-from cirq.google.sim.xmon_simulator import pretty_state
 
 Q1 = cirq.GridQubit(0, 0)
 Q2 = cirq.GridQubit(1, 0)
@@ -34,13 +33,12 @@ Q3 = cirq.GridQubit(2, 0)
 
 def basic_circuit():
     sqrt_x = cg.ExpWGate(half_turns=-0.5, axis_half_turns=0.0)
-    z = cg.ExpZGate()
     circuit = cirq.Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
          cirq.CZ(Q1, Q2),
          sqrt_x(Q1), sqrt_x(Q2),
-         z(Q1)])
+         cirq.Z(Q1)])
     return circuit
 
 
@@ -91,43 +89,6 @@ def simulate(simulator, circuit, scheduler, **kw):
     else:
         program = scheduler(cirq.UnconstrainedDevice, circuit)
     return simulator.simulate(program, **kw)
-
-
-def test_pretty_state():
-    simulator = cirq.google.XmonSimulator()
-    c = cirq.Circuit()
-    one_qubit = [Q1]
-    two_qubits = [Q1, Q2]
-
-    # Testing global pretty_state()
-    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-    result = simulator.simulate(c, qubit_order=one_qubit, initial_state=state)
-    assert pretty_state(result.final_state) == "0.71|0⟩ + 0.71|1⟩"
-
-    # Testing pretty_state() method in XmonStepResult
-    circuit = basic_circuit()
-    step = simulator.simulate_moment_steps(circuit)
-    result = next(step)
-    result.set_state(0)
-    assert result.pretty_state() == "1.0|00⟩"
-
-    # Testing pretty_state() method in XmonSimulateTrialResult
-    state = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)], dtype=np.complex64)
-    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
-    assert result.pretty_state(decimals=1) == "0.7|00⟩ + 0.7|11⟩"
-
-    state = np.array([1/np.sqrt(2), 0, 0, -1/np.sqrt(2)], dtype=np.complex64)
-    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
-    assert result.pretty_state(decimals=2) == "0.71|00⟩ + -0.71|11⟩"
-
-    state = np.array([0, 1/np.sqrt(2), 1/np.sqrt(2), 0], dtype=np.complex64)
-    result = simulator.simulate(c, qubit_order=two_qubits, initial_state=state)
-    assert result.pretty_state(decimals=2) == "0.71|01⟩ + 0.71|10⟩"
-
-    state = np.array([0, 1/np.sqrt(2), -1/np.sqrt(2), 0], dtype=np.complex64)
-    result = simulator.simulate(
-        cirq.Circuit(), qubit_order=two_qubits, initial_state=state)
-    assert result.pretty_state(decimals=4) == "0.7071|01⟩ + -0.7071|10⟩"
 
 
 SCHEDULERS = [None, cirq.moment_by_moment_schedule]
@@ -587,7 +548,7 @@ def test_param_resolver_exp_w_multiple_params():
 
 
 def test_param_resolver_exp_z_half_turns():
-    exp_z = cg.ExpZGate(half_turns=cirq.Symbol('a'))
+    exp_z = cirq.Z**cirq.Symbol('a')
     circuit = cirq.Circuit()
     circuit.append(exp_z(Q1))
     resolver = cirq.ParamResolver({'a': -0.5})
@@ -694,27 +655,6 @@ def test_unsupported_gate_composite(scheduler):
         _ = run(simulator, circuit, scheduler)
 
 
-def test_extensions():
-    # We test that an extension is being applied, by fixing an incorrect
-    # gate with an extension.
-
-    class WrongH(cirq.Gate):
-        pass
-
-    ext = cirq.Extensions()
-    ext.add_cast(cirq.CompositeGate, WrongH, lambda _: cirq.H)
-
-    circuit = cirq.Circuit()
-    circuit.append([WrongH().on(Q1)])
-
-    simulator = cg.XmonSimulator()
-    results = simulator.simulate(circuit, extensions=ext)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        results.final_state,
-        np.array([np.sqrt(0.5), np.sqrt(0.5)]),
-        atol=1e-8)
-
-
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_qubit_order(scheduler):
     circuit = cirq.Circuit()
@@ -818,7 +758,7 @@ def test_handedness_of_xmon_exp_y_gate():
 
 def test_handedness_of_xmon_exp_z_gate():
     circuit = cirq.Circuit.from_ops(cirq.H(Q1),
-                                    cg.ExpZGate(half_turns=0.5).on(Q1))
+                                    cirq.Z(Q1)**0.5)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -833,7 +773,6 @@ def test_handedness_of_xmon_exp_11_gate():
                                     cirq.CZ(Q1, Q2)**0.5)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
-    print(np.round(result.state(), 3))
     cirq.testing.assert_allclose_up_to_global_phase(
         result.state(),
         np.array([1, 1, 1, 1j]) / 2,
@@ -896,7 +835,7 @@ def test_handedness_of_basic_gates():
 def test_handedness_of_xmon_gates():
     circuit = cirq.Circuit.from_ops(
         cg.ExpWGate(half_turns=-0.5).on(Q1),
-        cg.ExpZGate(half_turns=-0.5).on(Q1),
+        cirq.Z(Q1)**-0.5,
         cg.ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(Q1),
         cirq.MeasurementGate(key='').on(Q1),
     )
@@ -1047,20 +986,6 @@ def test_simulator_trial_repeated_result():
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == 'ab=00000, 11111\nc=00000'
-
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
-def test_simulator_simulate_trial_result_repr():
-    v = cg.XmonSimulateTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-
-    assert repr(v) == ("XmonSimulateTrialResult("
-                       "params=cirq.ParamResolver({'a': 2}), "
-                       "measurements={'m': array([1, 2])}, "
-                       "final_state=array([0, 1, 0, 0]))")
 
 
 def test_simulator_simulate_trial_result_str():

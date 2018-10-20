@@ -222,7 +222,7 @@ def test_multi_qubit_measurement_to_proto_dict():
 
 
 def test_z_proto_dict_convert():
-    gate = cg.ExpZGate(half_turns=cirq.Symbol('k'))
+    gate = cirq.Z**cirq.Symbol('k')
     proto_dict = {
         'exp_z': {
             'target': {
@@ -237,7 +237,7 @@ def test_z_proto_dict_convert():
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
-    gate = cg.ExpZGate(half_turns=0.5)
+    gate = cirq.Z**0.5
     proto_dict = {
         'exp_z': {
             'target': {
@@ -440,8 +440,8 @@ def test_invalid_to_proto_dict_qubit_number():
     with pytest.raises(ValueError, match='Wrong number of qubits'):
         _ = cg.gate_to_proto_dict(cirq.CZ**0.5, (cirq.GridQubit(2, 3),))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.ExpZGate(half_turns=0.5).to_proto_dict(cirq.GridQubit(2, 3),
-                                                  cirq.GridQubit(3, 4))
+        cg.gate_to_proto_dict(cirq.Z**0.5, (cirq.GridQubit(2, 3),
+                                            cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
         cg.ExpWGate(half_turns=0.5, axis_half_turns=0).to_proto_dict(
             cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
@@ -508,7 +508,7 @@ def test_z_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpZGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_z': {
@@ -518,4 +518,4 @@ def test_z_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpZGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)

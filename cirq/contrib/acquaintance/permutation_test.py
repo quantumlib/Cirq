@@ -55,8 +55,7 @@ def test_validate_permutation_errors():
         validate_permutation({0: 3, 3: 0}, 2)
 
     gate = SwapPermutationGate()
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    assert gate.text_diagram_info(args) == NotImplemented
+    assert cirq.circuit_diagram_info(gate, default=None) is None
 
 
 def test_diagram():

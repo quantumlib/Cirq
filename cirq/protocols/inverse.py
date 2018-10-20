@@ -75,7 +75,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     each inverted, in reverse order.
 
     Args:
-        val: The value (or iterable of invertable values) to invert.
+        val: The value (or iterable of invertible values) to invert.
         default: Determines the fallback behavior when `val` doesn't have
             an inverse defined. If `default` is not set, a TypeError is raised.
             If `default` is set to a value, that value is returned.
@@ -99,7 +99,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     if result is not NotImplemented:
         return result
 
-    # Maybe it's an iterable of invertable items?
+    # Maybe it's an iterable of invertible items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
     if isinstance(val, collections.Iterable) and not isinstance(val, str):
         unique_indicator = []  # type: List[Any]
@@ -111,7 +111,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-        "object of type '{}' isn't invertable. "
+        "object of type '{}' isn't invertible. "
         "It has no __pow__ method (or the method returned NotImplemented) "
-        "and it isn't an iterable of invertable objects.".format(type(val)))
+        "and it isn't an iterable of invertible objects.".format(type(val)))
 # pylint: enable=function-redefined

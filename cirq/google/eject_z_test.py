@@ -204,15 +204,13 @@ def test_symbols_block():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
-            cirq.Moment([cg.ExpZGate(
-                half_turns=cirq.Symbol('a'))(q)]),
-            cirq.Moment([cg.ExpZGate(half_turns=0.25)(q)]),
+            cirq.Moment([cirq.Z(q)]),
+            cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
+            cirq.Moment([cirq.Z(q)**0.25]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(
-                half_turns=cirq.Symbol('a'))(q)]),
-            cirq.Moment([cg.ExpZGate(half_turns=1.25)(q)]),
+            cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
+            cirq.Moment([cirq.Z(q)**1.25]),
         ]))
 
 
@@ -236,15 +234,6 @@ def test_removes_zs():
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
         cirq.measure(a, key='k')))
-
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.google.ExpZGate().on(a),
-        cirq.measure(a)))
-
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.google.ExpZGate().on(a),
-        cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
@@ -280,10 +269,10 @@ def test_unknown_operation_blocks():
 
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u]),
         ]))

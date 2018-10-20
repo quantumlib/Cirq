@@ -46,7 +46,7 @@ def test_init():
     q10 = cirq.GridQubit(1, 0)
 
     assert d.qubits == {q00, q01, q10}
-    assert d.duration_of(cg.ExpZGate().on(q00)) == 0 * ns
+    assert d.duration_of(cirq.Z(q00)) == 0 * ns
     assert d.duration_of(cirq.measure(q00)) == ns
     assert d.duration_of(cirq.measure(q00, q01)) == ns
     assert d.duration_of(cg.ExpWGate().on(q00)) == 2 * ns
@@ -118,13 +118,13 @@ def test_validate_operation_existing_qubits():
     d.validate_operation(cirq.GateOperation(
         cirq.CZ,
         (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
-    d.validate_operation(cg.ExpZGate().on(cirq.GridQubit(0, 0)))
+    d.validate_operation(cirq.Z(cirq.GridQubit(0, 0)))
 
     with pytest.raises(ValueError):
         d.validate_operation(
             cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
-        d.validate_operation(cg.ExpZGate().on(cirq.GridQubit(-1, 0)))
+        d.validate_operation(cirq.Z(cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
         d.validate_operation(
             cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)))
@@ -136,8 +136,7 @@ def test_validate_operation_supported_gate():
     class MyGate(cirq.Gate):
         pass
 
-    d.validate_operation(cirq.GateOperation(cg.ExpZGate(),
-                                            [cirq.GridQubit(0, 0)]))
+    d.validate_operation(cirq.GateOperation(cirq.Z, [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(cirq.GateOperation(
             MyGate, [cirq.GridQubit(0, 0)]))
@@ -166,7 +165,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
     q2 = cirq.GridQubit(2, 0)
     s = cirq.Schedule(d, [
         cirq.ScheduledOperation.op_at_on(
-            cg.ExpZGate().on(q0), cirq.Timestamp(), d),
+            cirq.Z(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
             cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])

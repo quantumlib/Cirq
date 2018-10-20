@@ -16,8 +16,7 @@ from typing import Optional, Tuple, Any
 
 import abc
 
-import cirq
-from cirq import Extensions, ops, protocols
+from cirq import Extensions, ops, protocols, google
 from cirq.ops import gate_features
 
 
@@ -74,7 +73,7 @@ class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
 
     def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
-        info = cirq.circuit_diagram_info(self.sub, args)
+        info = protocols.circuit_diagram_info(self.sub, args)
         multigate_parameters = _get_multigate_parameters(self.sub, args)
         if multigate_parameters is not None:
             min_index, n_qubits = multigate_parameters
@@ -132,7 +131,7 @@ fallback_qcircuit_extensions.add_cast(  # type: ignore
     lambda gate: _HardcodedQCircuitSymbolsGate('\\meter'))
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    cirq.google.ExpWGate,
+    google.ExpWGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
         if gate.half_turns == 1 and gate.axis_half_turns == 0

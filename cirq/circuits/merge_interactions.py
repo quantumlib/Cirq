@@ -22,7 +22,6 @@ from cirq import ops, decompositions
 from cirq import protocols
 from cirq.circuits import optimization_pass
 from cirq.circuits.circuit import Circuit
-from cirq.extension import Extensions
 
 
 class MergeInteractions(optimization_pass.PointOptimizer):
@@ -32,14 +31,12 @@ class MergeInteractions(optimization_pass.PointOptimizer):
     def __init__(self,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 extensions: Extensions = None,
                  post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
                                 ] = lambda op_list: op_list
                  ) -> None:
         super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
-        self.extensions = extensions or Extensions()
 
     def optimization_at(self,
                         circuit: Circuit,

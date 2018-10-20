@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING
 
-from cirq import extension, protocols
+from cirq import protocols
 from cirq.circuits import optimization_pass, circuit as _circuit
 
 if TYPE_CHECKING:
@@ -28,11 +28,8 @@ if TYPE_CHECKING:
 class DropNegligible(optimization_pass.OptimizationPass):
     """An optimization pass that removes operations with tiny effects."""
 
-    def __init__(self,
-                 tolerance: float = 1e-8,
-                 extensions: extension.Extensions = None) -> None:
+    def __init__(self, tolerance: float = 1e-8) -> None:
         self.tolerance = tolerance
-        self.extensions = extensions or extension.Extensions()
 
     def optimize_circuit(self, circuit: _circuit.Circuit) -> None:
         deletions = []  # type: List[Tuple[int, ops.Operation]]
