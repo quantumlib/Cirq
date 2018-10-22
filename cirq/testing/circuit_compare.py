@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Sequence, TYPE_CHECKING, Optional, Any
+from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING
 
+from collections import defaultdict
 import itertools
 import numpy as np
 
@@ -21,102 +22,7 @@ from cirq import circuits, ops, linalg, protocols
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Set
-
-
-def _cancel_qubit_phase(m1: np.ndarray,
-                        m2: np.ndarray,
-                        qubits: Sequence[int]
-                        ) -> None:
-    """Makes the two matrices more similar by phasing qubits in ks.
-
-    This method mutates the given matrices.
-
-    Works by creating a linear problem of the form:
-
-        m0 + m1 + m2 + m3 = d_000
-           + m1 + m2 + m3 = d_001
-        m0 +    + m2 + m3 = d_010
-           +    + m2 + m3 = d_011
-        m0 + m1 +    + m3 = d_100
-           + m1 +    + m3 = d_101
-        m0 +    +    + m3 = d_110
-           +    +    + m3 = d_111
-
-        - each d_r is the dominant phase difference of row r in each matrix
-        - each m_k column is a qubit phasing operation; included only if k in ks
-
-    The linear problem is then solved, and the m_k values are used to apply
-    qubit phasing operations that should turn one matrix into the other.
-
-    Args:
-        m1: A unitary matrix.
-        m2: Another unitary matrix.
-        qubits: Indices of the qubit we are allowed to phase.
-            'Out of range' qubits correspond to global phasing.
-    """
-
-    n = m1.shape[0]
-    assert m1.shape == m2.shape == (n, n)
-
-    prob = np.zeros(shape=(n, len(qubits) + 1))
-
-    # Measurement phase coefficients.
-    for i, k in enumerate(qubits):
-        for row in range(n):
-            prob[row, i] = 0 if row & (1 << k) else 1
-
-    # Dominant row phase differences.
-    for row in range(n):
-        col = max(range(n), key=lambda c: min(
-            abs(m1[row, c]), abs(m2[row, c])))
-        prob[row, -1] = np.angle(m1[row, col]) - np.angle(m2[row, col])
-
-    # Gram-Schmidt.
-    used = set()  # type: Set[int]
-    for col in range(len(qubits)):
-        chosen_row = min(row for row in range(n)
-                         if row not in used and prob[row, col])
-        used.add(chosen_row)
-        prob[chosen_row, :] /= prob[chosen_row, col]
-        for row in range(n):
-            if row != chosen_row:
-                prob[row, :] -= prob[row, col] * prob[chosen_row, :]
-
-    # Extract and apply phase correction solutions.
-    for col, k in enumerate(qubits):
-        chosen_row = max(range(n), key=lambda r: prob[r, col])
-        adjust = np.exp(1j * prob[chosen_row, -1])
-        for row in range(n):
-            if row & (1 << k):
-                m1[row, :] *= adjust
-
-
-def _canonicalize_up_to_terminal_measurement_phase(
-        circuit1: circuits.Circuit,
-        circuit2: circuits.Circuit) -> Tuple[np.ndarray, np.ndarray]:
-    qubits = circuit1.all_qubits().union(circuit2.all_qubits())
-    order = sorted(qubits)[::-1]
-    assert circuit1.are_all_measurements_terminal()
-    assert circuit2.are_all_measurements_terminal()
-
-    measured_1 = {q
-                  for op in circuit1.all_operations()
-                  if ops.MeasurementGate.is_measurement(op)
-                  for q in op.qubits}
-    measured_2 = {q
-                  for op in circuit2.all_operations()
-                  if ops.MeasurementGate.is_measurement(op)
-                  for q in op.qubits}
-    assert measured_1 == measured_2
-
-    matrix1 = circuit1.to_unitary_matrix(qubits_that_should_be_present=qubits)
-    matrix2 = circuit2.to_unitary_matrix(qubits_that_should_be_present=qubits)
-    ks = [len(order)]
-    for q in measured_1:
-        ks.append(order.index(q))
-    _cancel_qubit_phase(matrix1, matrix2, ks)
-    return matrix1, matrix2
+    from typing import Dict, List, Set
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -130,6 +36,63 @@ def highlight_text_differences(actual: str, expected: str) -> str:
     return diff
 
 
+def _measurement_subspaces(
+        measured_qubits: Iterable[ops.QubitId],
+        n_qubits: int,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+) -> Sequence[Sequence[int]]:
+    """Computes subspaces associated with projective measurement.
+
+    The function computes a partioning of the computational basis such
+    that the subspace spanned by each partition corresponds to a distinct
+    measurement outcome. In particular, if all qubits are measured then
+    2**n singleton partitions are returned. If no qubits are measured then
+    a single partition consisting of all basis states is returned.
+
+    Args:
+        measured_qubits: Qubits subject to measurement
+        n_qubits: Total number of qubits in circuit
+        qubit_order: Qubit order to determine computational basis
+    Returns:
+        Sequence of subspaces where each subspace is a sequence of
+            computational basis states in order corresponding to qubit_order
+    """
+    # Consider projective measurement in the computational basis on a subset
+    # of qubits. Each projection operator associated with the measurement is
+    # uniquely determined by its range, here called a measurement subspace.
+    #
+    # Suppose that qubit q is not measured. Then computational basis states
+    # whose indices have binary representations that differ only at position
+    # q belong to the same measurement subspace. Generally, if computational
+    # basis states a and b are such that
+    #
+    #     a & measurement_mask == b & measurement_mask
+    #
+    # then a and b belong to the same measurement subspace. In this case the
+    # value of the expression on either side in the formula above is the
+    # computational basis state in the measurement subspace containing
+    # a and b which has the lowest index.
+    qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(measured_qubits)
+    measurement_mask = 0
+    for i, _ in enumerate(qs):
+        measurement_mask |= (1 << i)
+
+    # Keyed by computational basis state with lowest index.
+    measurement_subspaces = defaultdict(list)  # type: Dict[int, List[int]]
+    computational_basis = range(0, 1 << n_qubits)
+
+    for basis_state in computational_basis:
+        subspace_key = basis_state & measurement_mask
+        measurement_subspaces[subspace_key].append(basis_state)
+
+    subspaces = list(measurement_subspaces.values())
+
+    # Verify this is a partitioning (i.e. full coverage, no overlaps).
+    assert sorted(itertools.chain(*subspaces)) == list(computational_basis)
+
+    return subspaces
+
+
 def assert_circuits_with_terminal_measurements_are_equivalent(
         actual: circuits.Circuit,
         reference: circuits.Circuit,
@@ -138,8 +101,11 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
 
     The circuits can contain measurements, but the measurements must be at the
     end of the circuit. Circuits are equivalent if, for all possible inputs,
-    their outputs (both classical via measurements and quantum via
-    not-measurements) are observationally indistinguishable up to a tolerance.
+    their outputs (classical bits for lines terminated with measurement and
+    qubits for lines without measurement) are observationally indistinguishable
+    up to a tolerance. Note that under this definition of equivalence circuits
+    that differ solely in the overall phase of the post-measurement state of
+    measured qubits are considered equivalent.
 
     For example, applying an extra Z gate to an unmeasured qubit changes the
     effect of a circuit. But inserting a Z gate operation just before a
@@ -150,17 +116,63 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         reference: A circuit with the correct function.
         atol: Absolute error tolerance.
     """
-    m1, m2 = _canonicalize_up_to_terminal_measurement_phase(actual, reference)
+    measured_qubits_actual = {qubit
+                              for op in actual.all_operations()
+                              if ops.MeasurementGate.is_measurement(op)
+                              for qubit in op.qubits}
+    measured_qubits_reference = {qubit
+                                 for op in reference.all_operations()
+                                 if ops.MeasurementGate.is_measurement(op)
+                                 for qubit in op.qubits}
+    assert actual.are_all_measurements_terminal()
+    assert reference.are_all_measurements_terminal()
+    assert measured_qubits_actual == measured_qubits_reference
 
-    assert linalg.allclose_up_to_global_phase(m1, m2, atol=atol), (
-        "Circuit's effect differs from the reference circuit.\n"
-        '\n'
-        'Diagram of actual circuit:\n'
-        '{}\n'
-        '\n'
-        'Diagram of reference circuit with desired function:\n'
-        '{}\n'.format(actual, reference)
-    )
+    qubits = actual.all_qubits().union(reference.all_qubits())
+    matrix_actual = actual.to_unitary_matrix(
+            qubits_that_should_be_present=qubits)
+    matrix_reference = reference.to_unitary_matrix(
+            qubits_that_should_be_present=qubits)
+
+    n_qubits = len(qubits)
+    n = matrix_actual.shape[0]
+    assert n == (1 << n_qubits)
+    assert matrix_actual.shape == matrix_reference.shape == (n, n)
+
+    # Consider the action of the two circuits Ca and Cr on state |x>:
+    #
+    #     |ya> = Ca|x>
+    #     |yr> = Cr|x>
+    #
+    # Ca and Cr are equivalent according to the definition above iff
+    #  - probability of each measurement outcome is the same for |ya>
+    #    and |yr> (across measured qubits),
+    #  - amplitudes of each post-measurement state are the same for |ya>
+    #    and |yr> except perhaps for an overall phase factor.
+    #
+    # These conditions are satisfied iff the matrices of the two circuits
+    # are identical except perhaps for an overall phase factor for each
+    # rectangular block spanning all columns and rows corresponding to
+    # the measurement subspaces.
+    #
+    # Note two special cases of the rule above:
+    #  - if no qubits are measured then the circuits are equivalent if
+    #    their matrices are identical except for the global phase factor,
+    #  - if all qubits are measured then the circuits are equivalent if
+    #    their matrices differ by a diagonal unitary factor.
+    subspaces = _measurement_subspaces(measured_qubits_actual, n_qubits)
+    for subspace in subspaces:
+        m_actual = matrix_actual[subspace, :]
+        m_reference = matrix_reference[subspace, :]
+        assert linalg.allclose_up_to_global_phase(
+                m_actual, m_reference, atol=atol), (
+                        "Circuit's effect differs from the reference circuit.\n"
+                        '\n'
+                        'Diagram of actual circuit:\n'
+                        '{}\n'
+                        '\n'
+                        'Diagram of reference circuit with desired function:\n'
+                        '{}\n'.format(actual, reference))
 
 
 def assert_same_circuits(actual: circuits.Circuit,
