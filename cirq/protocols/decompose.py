@@ -1,6 +1,20 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import collections
 from typing import TYPE_CHECKING, Callable, Union, Any, Tuple, Iterable, \
-    TypeVar, List, Optional
+    TypeVar, List, Optional, overload
 
 from typing_extensions import Protocol
 
@@ -14,9 +28,9 @@ if TYPE_CHECKING:
 
 TDefault = TypeVar('TDefault')
 
-TError = TypeVar('TError', Exception)
+TError = TypeVar('TError', bound=Exception)
 
-RaiseTypeErrorIfNotProvided = ([],)
+RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
@@ -26,14 +40,46 @@ def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
 
 
 class SupportsDecompose(Protocol):
-    """An object that may be describable by a unitary matrix."""
+    """An object that can be decomposed into simpler operations.
+
+    Returning `NotImplemented` means "not decomposable". Otherwise an operation,
+    list of operations, or generally anything meeting the `OP_TREE` contract can
+    be returned.
+
+    For example, a Toffoli could be decomposed into Hadamards, CNOTs, and Ts.
+    These operations are simpler because they act on fewer qubits. In general, a
+    decomposition should move closer towards the basic 1-qubit and 2-qubit gates
+    included by default in cirq. It is not necessary to get all the way there,
+    just closer (callers will iteratively decompose if needed).
+
+    DECOMPOSITIONS MUST NEVER BE CYCLIC. If B has A in its decomposition, A
+    should not have B in its decomposition. Decomposition is often performed
+    iteratively, until a fixed point or some desired criteria is met. Cyclic
+    decompositions cause that kind of code to loop forever.
+    """
 
     def _decompose_(self) -> Union['cirq.OP_TREE', NotImplementedType]:
         return NotImplemented
 
 
 class SupportsDecomposeWithQubits(Protocol):
-    """A gate that may be describable by a unitary matrix."""
+    """An object that can be decomposed into operations on given qubits.
+
+    Returning `NotImplemented` means "not decomposable". Otherwise an operation,
+    list of operations, or generally anything meeting the `OP_TREE` contract can
+    be returned.
+
+    For example, a SWAP gate can be turned into three CNOTs. But in order to
+    describe those CNOTs one must be able to talk about "the target qubit" and
+    "the control qubit". This can only be done once the qubits-to-be-swapped are
+    known.
+
+    The main user of this protocol is `GateOperation`, which decomposes itself
+    by delegating to its gate. The qubits argument is needed because gates are
+    specified independently of target qubits and so must be told the relevant
+    qubits. A `GateOperation` implements `SupportsDecompose` as long as its gate
+    implements `SupportsDecomposeWithQubits`.
+    """
 
     def _decompose_(self, qubits: Tuple['cirq.QubitId', ...]
                     ) -> Union['cirq.OP_TREE', NotImplementedType]:
@@ -57,37 +103,59 @@ def _intercept_decompose(
     return NotImplemented
 
 
+# pylint: disable=function-redefined
+@overload
 def decompose(
     val: Any,
     *,
     intercepting_decomposer: Callable[['cirq.Operation'],
                                       'cirq.OP_TREE'] = None,
-    decomposer: Callable[['cirq.Operation'],
-                         'cirq.OP_TREE'] = _default_decomposer,
+    keep: Callable[['cirq.Operation'], bool] = None
+) -> List['cirq.Operation']:
+    pass
+
+
+@overload
+def decompose(
+    val: Any,
+    *,
+    intercepting_decomposer: Callable[['cirq.Operation'],
+                                      'cirq.OP_TREE'] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise: Optional[Union[
         TError,
         Callable[['cirq.Operation'], TError]]
-    ] = _value_error_describing_bad_operation
+    ]
 ) -> List['cirq.Operation']:
-    """Recursively decomposes a value into `cirq.Operation`s.
+    pass
+
+
+def decompose(
+    val: Any,
+    *,
+    intercepting_decomposer: Callable[['cirq.Operation'],
+                                      'cirq.OP_TREE'] = None,
+    keep: Callable[['cirq.Operation'], bool] = None,
+    on_stuck_raise=_value_error_describing_bad_operation
+) -> List['cirq.Operation']:
+    """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
     Args:
         val: The value to decompose into operations.
         intercepting_decomposer: An optional method that is called before the
-            main decomposer when doing intermediate decompositions. If
-            `intercepting_decomposer` isn't specified, or returns
-            `NotImplemented`, the decomposition falls back to the main
-            `decomposer`. Otherwise the result of `intercepting_decomposer`
-            takes priority and `decomposer` isn't even called.
-        decomposer: Decomposes operations into more basic operations, or returns
-            `NotImplemented` to indicate that an operation cannot be decomposed
-            anymore. Defaults to a decomposer that calls operations'
-            `_decompose_` method.
+            default decomposer (the value's `_decompose_` method). If
+            `intercepting_decomposer` is specified and returns a result that
+            isn't `NotImplemented`, that result is used. Otherwise the
+            decomposition falls back to the default decomposer.
+
+            Note: If `val` isn't an Operation, it is assumed that it is not
+            appropriate to pass `val` into `intercepting_decomposer` (which is
+            allowed to expect only operations) and so the default decomposer is
+            used unconditionally instead.
         keep: A predicate that determines if the initial operation or
             intermediate decomposed operations should be kept or else need to be
-            decomposed further. If `keep` isn't specified, operations are simply
-            decomposed until they can't be decomposed anymore.
+            decomposed further. If `keep` isn't specified, it defaults to "value
+            can't be decomposed anymore".
         on_stuck_raise: If there is an operation that can't be decomposed and
             also can't be kept, `on_stuck_raise` is used to determine what error
             to raise. `on_stuck_raise` can either directly be an `Exception`, or
@@ -123,10 +191,10 @@ def decompose(
             "acceptable to keep.")
 
     if intercepting_decomposer is None:
-        actual_decomposer = decomposer
+        actual_decomposer = _default_decomposer
     else:
-        actual_decomposer = lambda op: _intercept_decompose(
-            op, [intercepting_decomposer, decomposer])
+        decomposers = [intercepting_decomposer, _default_decomposer]
+        actual_decomposer = lambda op: _intercept_decompose(op, decomposers)
 
     output = []
     queue = []  # type: List['cirq.Operation']
@@ -162,11 +230,27 @@ def decompose(
     return output
 
 
+@overload
+def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
+    pass
+
+
+@overload
 def decompose_once(val: Any,
-                   default: TDefault=RaiseTypeErrorIfNotProvided,
+                   default: TDefault,
                    **kwargs
                    ) -> Union[TDefault, List['cirq.Operation']]:
+    pass
+
+
+def decompose_once(val: Any,
+                   default=RaiseTypeErrorIfNotProvided,
+                   **kwargs):
     """Decomposes a value into operations, if possible.
+
+    This method decomposes the value exactly once, instead of decomposing it
+    and then continuing to decomposing the decomposed operations recursively
+    until some criteria is met (which is what `cirq.decompose` does).
 
     Args:
         val: The value to call `_decompose_` on, if possible.
@@ -203,15 +287,30 @@ def decompose_once(val: Any,
                     "but it returned NotImplemented.".format(type(val)))
 
 
-def decompose_once_with_qubits(
-    val: Any,
-    qubits: Iterable['cirq.QubitId'],
-    default: TDefault = ([],)
-) -> 'cirq.OP_TREE':
+@overload
+def decompose_once_with_qubits(val: Any,
+                               qubits: Iterable['cirq.QubitId']
+                               ) -> List['cirq.Operation']:
+    pass
+
+
+@overload
+def decompose_once_with_qubits(val: Any,
+                               qubits: Iterable['cirq.QubitId'],
+                               default: TDefault,
+                               ) -> Union[TDefault, List['cirq.Operation']]:
+    pass
+
+
+def decompose_once_with_qubits(val: Any,
+                               qubits: Iterable['cirq.QubitId'],
+                               default=RaiseTypeErrorIfNotProvided):
     """Decomposes a value into operations on the given qubits.
 
     This method is used when decomposing gates, which don't know which qubits
-    they are being applied to unless told.
+    they are being applied to unless told. It decomposes the gate exactly once,
+    instead of decomposing it and then continuing to decomposing the decomposed
+    operations recursively until some criteria is met.
 
     Args:
         val: The value to call `._decompose_(qubits=qubits)` on, if possible.
@@ -232,3 +331,4 @@ def decompose_once_with_qubits(
         `NotImplemented`) and `default` wasn't set.
     """
     return decompose_once(val, default, qubits=qubits)
+# pylint: enable=function-redefined
