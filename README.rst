@@ -84,6 +84,6 @@ its sister library for compiling quantum simulation algorithms in Cirq,
 
 Disclaimers
 ----------
-***Cirq is currently in alpha.** We are still making breaking changes, and we *will* break your code when we make new releases. We recommend that you pin a specific version of cirq in `requirements.txt` files, and periodically bump to the latest release. That way you have control over when a breaking change affects you.
-* Cirq is not an official Google product
-* Copyright 2018 The Cirq Developers
+**Cirq is currently in alpha.** We are still making breaking changes, and we *will* break your code when we make new releases. We recommend that you pin a specific version of cirq in `requirements.txt` files, and periodically bump to the latest release. That way you have control over when a breaking change affects you.
+
+Cirq is not an official Google product. Copyright 2018 The Cirq Developers
