@@ -20,8 +20,10 @@ from cirq.ops.clifford_gate import (
     PauliTransform,
 )
 from cirq.ops.common_channels import (
+    asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
-    DepolarizingChannel,
+    depolarize,
+    DepolarizingChannel
 )
 from cirq.ops.common_gates import (
     CNOT,

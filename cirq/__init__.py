@@ -96,6 +96,7 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     CCX,
     CCZ,
@@ -107,6 +108,7 @@ from cirq.ops import (
     ControlledGate,
     CSWAP,
     CZ,
+    depolarize,
     DepolarizingChannel,
     EigenGate,
     flatten_op_tree,

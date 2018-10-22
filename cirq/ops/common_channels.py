@@ -89,10 +89,13 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
                 .format(self._p_x, self._p_y, self._p_z))
 
     def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('A',),
-            exponent='({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z))
+        args: protocols.CircuitDiagramInfoArgs) -> str:
+        return 'A({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z)
+
+
+def asymmetric_depolarize(p_x, p_y, p_z):
+    """Returns a AsymmetricDepolarizingChannel with given parameters."""
+    return AsymmetricDepolarizingChannel(p_x, p_y, p_z)
 
 
 class DepolarizingChannel(raw_types.Gate):
@@ -111,6 +114,9 @@ class DepolarizingChannel(raw_types.Gate):
                     + sqrt(p / 3) X \rho X
                     + sqrt(p / 3) Y \rho Y
                     + sqrt(p / 3) Z \rho Z
+
+        This channel can be repeated an integer number of times by raising
+        the channel to a power.
 
         Args:
             p: The probability that one of the Pauli gates is applied, each of
@@ -142,5 +148,9 @@ class DepolarizingChannel(raw_types.Gate):
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('D',), exponent='({!r})'.format(self._p))
+        return 'D({!r})'.format(self._p)
+
+
+def depolarize(p):
+    """Returns a DepolarizingChannel with given probability of error."""
+    return DepolarizingChannel(p)

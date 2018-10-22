@@ -23,7 +23,7 @@ Z = np.array( [[1, 0], [0, -1]])
 
 
 def test_asymmetric_depolarizing_channel():
-    d = cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3)
+    d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
                                    (np.sqrt(0.4) * np.eye(2),
                                     np.sqrt(0.1) * X,
@@ -37,21 +37,21 @@ def test_asymmetric_depolarizing_channel_repr():
 
 
 def test_asymmetric_depolarizing_channel_str():
-    assert (str(cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3))
+    assert (str(cirq.asymmetric_depolarize(0.1, 0.2, 0.3))
             == 'AsymmetricDepolarizingChannel(p_x=0.1,p_y=0.2,p_z=0.3)')
 
 
 def test_asymmetric_depolarizing_channel_eq():
     et = cirq.testing.EqualsTester()
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.0, 0.0, 0.0))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.0, 0.0, 0.1))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.0, 0.1, 0.0))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.1, 0.0, 0.0))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.3, 0.4, 0.3))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(1.0, 0.0, 0.0))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.0, 1.0, 0.0))
-    et.add_equality_group(cirq.AsymmetricDepolarizingChannel(0.0, 0.0, 1.0))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.0, 0.0))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.0, 0.1))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.1, 0.0))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.1, 0.0, 0.0))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.1, 0.2, 0.3))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.3, 0.4, 0.3))
+    et.add_equality_group(cirq.asymmetric_depolarize(1.0, 0.0, 0.0))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.0, 1.0, 0.0))
+    et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.0, 1.0))
 
 
 @pytest.mark.parametrize('p_x,p_y,p_z', (
@@ -61,7 +61,7 @@ def test_asymmetric_depolarizing_channel_eq():
     (0.1, -0.1, 0.1)))
 def test_asymmetric_depolarizing_channel_negative_probability(p_x, p_y, p_z):
     with pytest.raises(ValueError, match='was less than 0'):
-        cirq.AsymmetricDepolarizingChannel(p_x, p_y, p_z)
+        cirq.asymmetric_depolarize(p_x, p_y, p_z)
 
 
 @pytest.mark.parametrize('p_x,p_y,p_z', (
@@ -71,17 +71,17 @@ def test_asymmetric_depolarizing_channel_negative_probability(p_x, p_y, p_z):
     (0.1, 0.9, 0.1)))
 def test_asymmetric_depolarizing_channel_bigly_probability(p_x, p_y, p_z):
     with pytest.raises(ValueError, match='was greater than 1'):
-        cirq.AsymmetricDepolarizingChannel(p_x, p_y, p_z)
+        cirq.asymmetric_depolarize(p_x, p_y, p_z)
 
 
 def test_asymmetric_depolarizing_channel_text_diagram():
-    a= cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3)
+    a= cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
     assert (cirq.circuit_diagram_info(a) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A',), exponent='(0.1,0.2,0.3)'))
+        wire_symbols=('A(0.1,0.2,0.3)',)))
 
 
 def test_depolarizing_channel():
-    d = cirq.DepolarizingChannel(0.3)
+    d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
                                    (np.sqrt(0.7) * np.eye(2),
                                     np.sqrt(0.1) * X,
@@ -94,26 +94,26 @@ def test_depolarizing_channel_repr():
 
 
 def test_depolarizing_channel_str():
-    assert str(cirq.DepolarizingChannel(0.3)) == 'DepolarizingChannel(p=0.3)'
+    assert str(cirq.depolarize(0.3)) == 'DepolarizingChannel(p=0.3)'
 
 
 def test_depolarizing_channel_eq():
     et = cirq.testing.EqualsTester()
-    et.add_equality_group(cirq.DepolarizingChannel(0.0))
-    et.add_equality_group(cirq.DepolarizingChannel(0.1))
-    et.add_equality_group(cirq.DepolarizingChannel(0.9))
-    et.add_equality_group(cirq.DepolarizingChannel(1.0))
+    et.add_equality_group(cirq.depolarize(0.0))
+    et.add_equality_group(cirq.depolarize(0.1))
+    et.add_equality_group(cirq.depolarize(0.9))
+    et.add_equality_group(cirq.depolarize(1.0))
 
 
 def test_depolarizing_channel_invalid_probability():
     with pytest.raises(ValueError, match='was less than 0'):
-        cirq.DepolarizingChannel(-0.1)
+        cirq.depolarize(-0.1)
     with pytest.raises(ValueError, match='was greater than 1'):
-        cirq.DepolarizingChannel(1.1)
+        cirq.depolarize(1.1)
 
 
 def test_depolarizing_channel_text_diagram():
-    assert (cirq.circuit_diagram_info(cirq.DepolarizingChannel(0.3))
-            == cirq.CircuitDiagramInfo(wire_symbols=('D',), exponent='(0.3)'))
+    assert (cirq.circuit_diagram_info(cirq.depolarize(0.3))
+            == cirq.CircuitDiagramInfo(wire_symbols=('D(0.3)',)))
 
 
