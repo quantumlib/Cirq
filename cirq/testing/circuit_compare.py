@@ -163,10 +163,10 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     #    their matrices differ by a diagonal unitary factor.
     subspaces = _measurement_subspaces(measured_qubits_actual, n_qubits)
     for subspace in subspaces:
-        m_actual = matrix_actual[subspace, :]
-        m_reference = matrix_reference[subspace, :]
+        block_actual = matrix_actual[subspace, :]
+        block_reference = matrix_reference[subspace, :]
         assert linalg.allclose_up_to_global_phase(
-                m_actual, m_reference, atol=atol), (
+                block_actual, block_reference, atol=atol), (
                         "Circuit's effect differs from the reference circuit.\n"
                         '\n'
                         'Diagram of actual circuit:\n'
