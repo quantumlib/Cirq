@@ -38,8 +38,7 @@ def highlight_text_differences(actual: str, expected: str) -> str:
 
 def _measurement_subspaces(
         measured_qubits: Iterable[ops.QubitId],
-        n_qubits: int,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+        n_qubits: int
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
 
@@ -72,14 +71,13 @@ def _measurement_subspaces(
     # value of the expression on either side in the formula above is the
     # computational basis state in the measurement subspace containing
     # a and b which has the lowest index.
-    qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(measured_qubits)
     measurement_mask = 0
-    for i, _ in enumerate(qs):
-        measurement_mask |= (1 << i)
+    for i, _ in enumerate(sorted(measured_qubits)):
+        measurement_mask |= 1 << i
 
     # Keyed by computational basis state with lowest index.
     measurement_subspaces = defaultdict(list)  # type: Dict[int, List[int]]
-    computational_basis = range(0, 1 << n_qubits)
+    computational_basis = range(1 << n_qubits)
 
     for basis_state in computational_basis:
         subspace_key = basis_state & measurement_mask
@@ -128,15 +126,16 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     assert reference.are_all_measurements_terminal()
     assert measured_qubits_actual == measured_qubits_reference
 
-    qubits = actual.all_qubits().union(reference.all_qubits())
-    matrix_actual = actual.to_unitary_matrix(
-            qubits_that_should_be_present=qubits)
-    matrix_reference = reference.to_unitary_matrix(
-            qubits_that_should_be_present=qubits)
+    all_qubits = actual.all_qubits().union(reference.all_qubits())
 
-    n_qubits = len(qubits)
+    matrix_actual = actual.to_unitary_matrix(
+            qubits_that_should_be_present=all_qubits)
+    matrix_reference = reference.to_unitary_matrix(
+            qubits_that_should_be_present=all_qubits)
+
+    n_qubits = len(all_qubits)
     n = matrix_actual.shape[0]
-    assert n == (1 << n_qubits)
+    assert n == 1 << n_qubits
     assert matrix_actual.shape == matrix_reference.shape == (n, n)
 
     # Consider the action of the two circuits Ca and Cr on state |x>:
@@ -145,6 +144,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     #     |yr> = Cr|x>
     #
     # Ca and Cr are equivalent according to the definition above iff
+    # for each |x>:
     #  - probability of each measurement outcome is the same for |ya>
     #    and |yr> (across measured qubits),
     #  - amplitudes of each post-measurement state are the same for |ya>
@@ -152,8 +152,8 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     #
     # These conditions are satisfied iff the matrices of the two circuits
     # are identical except perhaps for an overall phase factor for each
-    # rectangular block spanning all columns and rows corresponding to
-    # the measurement subspaces.
+    # rectangular block spanning rows corresponding to the measurement
+    # subspaces and all columns.
     #
     # Note two special cases of the rule above:
     #  - if no qubits are measured then the circuits are equivalent if
@@ -162,10 +162,10 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     #    their matrices differ by a diagonal unitary factor.
     subspaces = _measurement_subspaces(measured_qubits_actual, n_qubits)
     for subspace in subspaces:
-        m_actual = matrix_actual[subspace, :]
-        m_reference = matrix_reference[subspace, :]
+        block_actual = matrix_actual[subspace, :]
+        block_reference = matrix_reference[subspace, :]
         assert linalg.allclose_up_to_global_phase(
-                m_actual, m_reference, atol=atol), (
+                block_actual, block_reference, atol=atol), (
                         "Circuit's effect differs from the reference circuit.\n"
                         '\n'
                         'Diagram of actual circuit:\n'
