@@ -105,6 +105,41 @@ def google_v2_supremacy_circuit_grid(n_rows: int, n_cols: int,
     return google_v2_supremacy_circuit(qubits, cz_depth, seed)
 
 
+def google_v2_supremacy_circuit_bristlecone(n_rows: int,
+                                            cz_depth: int, seed: int
+                                            ) -> circuits.Circuit:
+    """
+    Generates Google Random Circuits v2 in Bristlecone.
+    See also https://arxiv.org/abs/1807.10749
+
+    Args:
+        n_rows: number of rows in a Bristlecone lattice.
+          Note that we do not include single qubit corners.
+        cz_depth: number of layers with CZ gates.
+        seed: seed for the random instance.
+
+    Returns:
+        A circuit with given size and seed.
+    """
+    def get_qubits(n_rows):
+        half_rows = n_rows // 2
+        middle_row = n_rows % 2
+        qubits = []
+        for i in range(half_rows):
+            for j in range(half_rows-i-1, half_rows+i+1):
+                qubits.append(devices.GridQubit(i, j))
+        if middle_row:
+            qubits += [devices.GridQubit(half_rows, j)
+                           for j in range(2*half_rows)]
+        for i in range(half_rows, 2*half_rows+1):
+            for j in range(i-half_rows, 3*half_rows-i):
+                qubits.append(devices.GridQubit(i+middle_row, j))
+        return qubits
+
+    qubits = get_qubits(n_rows)
+    return google_v2_supremacy_circuit(qubits, cz_depth, seed)
+
+
 T = TypeVar('T')
 
 
@@ -165,9 +200,6 @@ def _make_cz_layer(qubits: Iterable[devices.GridQubit], layer_index: int
 
     Note that, for small devices, some layers will be empty because the layer
     only contains edges not present on the device.
-
-    NOTE: This is the almost the function in supremacy.py,
-    but with a different order of CZ layers
     """
 
     # map to an internal layer index to match the cycle order of public circuits
