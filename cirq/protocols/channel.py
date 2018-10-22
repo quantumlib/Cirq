@@ -14,7 +14,7 @@
 
 """Protocol and methods for quantum channels."""
 
-from typing import Any, Iterable, Tuple, TypeVar, Union
+from typing import Any, Iterable, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -122,3 +122,41 @@ def channel(val: Any,
                         "_unitary_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _channel_  or _unitary_ "
                     "method, but it returned NotImplemented.".format(type(val)))
+
+
+def stochastic_unitary(
+    val: SupportsChannel,
+    rtol=1.e-5,
+    atol=1.e-8, ) -> Optional[Tuple[Tuple[float, np.ndarray]]]:
+    """Returns a stochastic representation of unitaries, if possible.
+
+    If a channel has Kraus operators A_0,A_1,...,A_{r-1} this checks whether
+    each A_i is proportional to a unitary matrix, U_i, and if so, returns
+    the each of these with the probability of the unitary p_i and the unitary
+    U_i, (i.e. A_i = \sqrt{p_i} U_i). Note that this does NOT check whether
+    there is some equivalent channel (under unitary equivalences of channels)
+    that supports interpretation as a stochastic unitary, only that the
+    decomposition given does.
+
+    Args:
+        val: the value that implements the SupportsChannel protocol.
+        rtol: relative tolerance for the unitary times conjugate transpose
+            itself being close to identity (see numpy.isclose).
+        atol: absoluate tolerance for the unitary times conjugate transpose
+            itself being close to identity (see numpy.isclose).
+
+    Returns:
+        A tuple of tuples of the form (p_i, U_i) where p_i is the probability
+        of the unitary U_i occurring for the channel, or None if no such
+        decomposition is possible.
+    """
+    results = []
+    for op in val._channel_():
+        det = np.linalg.det(op)
+        if det == 0:
+            return None
+        if np.isclose(op / det, np.eye(op.shape[0]), rtol=rtol, atol=atol):
+            results.append((np.abs(det) ** 2, op / np.abs(det)))
+        else:
+            return None
+    return tuple(results)
