@@ -100,7 +100,7 @@ class ControlledGate(raw_types.Gate):
         if qubit_index == 0:
             return self
         phased_gate = protocols.phase_by(
-            self.sub_gate, phase_turns, qubit_index, None)
+            self.sub_gate, phase_turns, qubit_index-1, None)
         if phased_gate is None:
             return NotImplemented
         return ControlledGate(phased_gate)
