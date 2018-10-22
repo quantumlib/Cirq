@@ -192,7 +192,8 @@ def test_phase_by():
     assert (cirq.phase_by(cirq.ControlledGate(sub_gate), 0.25, 1) ==
             cirq.ControlledGate(cirq.phase_by(sub_gate, 0.25, 1)))
     # Test that the qubit_index arg gets decremented at each subgate step.
-    assert (cirq.phase_by(cirq.ControlledGate(cirq.ControlledGate(sub_gate)), 0.25, 1) ==
+    assert (cirq.phase_by(
+                cirq.ControlledGate(cirq.ControlledGate(sub_gate)), 0.25, 1) ==
             cirq.ControlledGate(cirq.ControlledGate(sub_gate)))
 
 def test_parameterizable():
