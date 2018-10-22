@@ -27,18 +27,15 @@ def test_run_simulator_run():
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
-    extensions = mock.Mock(cirq.Extensions)
     expected_result = cirq.TrialResult(repetitions=10,
                                        measurements=expected_measurements,
                                        params=param_resolver)
     assert expected_result == simulator.run(circuit=circuit,
                                             repetitions=10,
-                                            param_resolver=param_resolver,
-                                            extensions=extensions)
+                                            param_resolver=param_resolver)
     simulator._run.assert_called_once_with(circuit=circuit,
                                            repetitions=10,
-                                           param_resolver=param_resolver,
-                                           extensions=extensions)
+                                           param_resolver=param_resolver)
 
 
 @mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
@@ -49,7 +46,6 @@ def test_run_simulator_sweeps():
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
-    extensions = mock.Mock(cirq.Extensions)
     expected_results = [cirq.TrialResult(repetitions=10,
                                          measurements=expected_measurements,
                                          params=param_resolvers[0]),
@@ -58,12 +54,10 @@ def test_run_simulator_sweeps():
                                          params=param_resolvers[1])]
     assert expected_results == simulator.run_sweep(program=circuit,
                                                 repetitions=10,
-                                                params=param_resolvers,
-                                                extensions=extensions)
+                                                params=param_resolvers)
     simulator._run.assert_called_with(circuit=circuit,
-                                           repetitions=10,
-                                           param_resolver=mock.ANY,
-                                           extensions=extensions)
+                                      repetitions=10,
+                                      param_resolver=mock.ANY)
     assert simulator._run.call_count == 2
 
 
@@ -86,12 +80,10 @@ def test_wave_simulator():
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = mock.Mock(cirq.QubitOrder)
-    extensions = mock.Mock(cirq.Extensions)
     result = simulator.simulate(circuit=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=qubit_order,
-                                initial_state=2,
-                                extensions=extensions)
+                                initial_state=2)
     np.testing.assert_equal(result.measurements['a'], [True, True])
     np.testing.assert_equal(result.measurements['b'], [True, False])
     assert set(result.measurements.keys()) == {'a', 'b'}
@@ -110,12 +102,10 @@ def test_wave_simulator_no_steps():
     circuit = cirq.testing.random_circuit(2, 20, 0.99)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = circuit.all_qubits()
-    extensions = mock.Mock(cirq.Extensions)
     result = simulator.simulate(circuit=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=list(qubit_order),
-                                initial_state=initial_state,
-                                extensions=extensions)
+                                initial_state=initial_state)
     assert len(result.measurements) == 0
     assert result.params == param_resolver
     np.testing.assert_equal(result.final_state, initial_state)
@@ -138,12 +128,10 @@ def test_wave_simulator_sweeps():
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
     qubit_order = mock.Mock(cirq.QubitOrder)
-    extensions = mock.Mock(cirq.Extensions)
     results = simulator.simulate_sweep(program=circuit,
                                        params=param_resolvers,
                                        qubit_order=qubit_order,
-                                       initial_state=2,
-                                       extensions=extensions)
+                                       initial_state=2)
     expected_results = [
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},

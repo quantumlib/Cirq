@@ -198,6 +198,7 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_unitary_to_tensor,
+    channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,

@@ -34,14 +34,15 @@ via.
 """
 import math
 import collections
-from typing import cast, Dict, Iterator, List, Optional, Set, Union
+from typing import cast, Dict, Iterator, List, Set, Union
 from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
-from cirq import circuits, extension, ops, sim, study
-from cirq.google import convert_to_xmon_gates, xmon_gates, xmon_gate_ext
+from cirq import circuits, ops, sim, study, protocols
+from cirq.google import convert_to_xmon_gates, xmon_gates
 from cirq.google.sim import xmon_stepper
+
 
 class XmonOptions:
     """XmonOptions for the XmonSimulator.
@@ -123,13 +124,11 @@ class XmonSimulator(sim.SimulatesSamples,
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         repetitions: int,
-        extensions: Optional[extension.Extensions],
     ) -> Dict[str, List[np.ndarray]]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware."""
         xmon_circuit, keys = self._to_xmon_circuit(
             circuit,
-            param_resolver,
-            extensions or xmon_gate_ext)
+            param_resolver)
         if xmon_circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(xmon_circuit, repetitions)
         else:
@@ -167,14 +166,11 @@ class XmonSimulator(sim.SimulatesSamples,
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[int, np.ndarray],
-        extensions: Optional[extension.Extensions],
         perform_measurements: bool = True,
     ) -> Iterator['XmonStepResult']:
         """See definition in SimulatesFinalWaveFunction."""
         param_resolver = param_resolver or study.ParamResolver({})
-        xmon_circuit, _ = self._to_xmon_circuit(circuit,
-                                                param_resolver,
-                                                extensions or xmon_gate_ext)
+        xmon_circuit, _ = self._to_xmon_circuit(circuit, param_resolver)
         return self._base_iterator(xmon_circuit,
                                    qubit_order,
                                    initial_state,
@@ -242,16 +238,12 @@ class XmonSimulator(sim.SimulatesSamples,
     def _to_xmon_circuit(
         self,
         circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        extensions: extension.Extensions = None) -> Tuple[
-            circuits.Circuit, Set[str]]:
-        converter = convert_to_xmon_gates.ConvertToXmonGates(extensions)
-        extensions = converter.extensions
-
+        param_resolver: study.ParamResolver
+    ) -> Tuple[circuits.Circuit, Set[str]]:
         # TODO: Use one optimization pass.
-        xmon_circuit = circuit.with_parameters_resolved_by(
-            param_resolver, extensions)
-        converter.optimize_circuit(xmon_circuit)
+        xmon_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit(
+            xmon_circuit)
         circuits.DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys

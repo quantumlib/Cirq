@@ -17,7 +17,7 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 
-from cirq import circuits, ops, extension, value, decompositions
+from cirq import circuits, ops, value, decompositions
 from cirq.google.xmon_gates import ExpWGate
 
 if TYPE_CHECKING:
@@ -45,19 +45,14 @@ class EjectFullW(circuits.OptimizationPass):
     the EjectZ optimization).
     """
 
-    def __init__(self,
-                 tolerance: float = 1e-8,
-                 ext: extension.Extensions=None) -> None:
+    def __init__(self, tolerance: float = 1e-8) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
-            ext: Extensions object used for determining if gates are phaseable
-                (i.e. if Z gates can pass through them).
         """
         self.tolerance = tolerance
-        self.ext = ext or extension.Extensions()
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         state = _OptimizerState()
