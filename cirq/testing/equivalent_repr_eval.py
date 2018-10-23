@@ -42,7 +42,7 @@ def assert_equivalent_repr(
         raise AssertionError(
             'eval(repr(value)) raised an exception.\n'
             '\n'
-            'setup_code={!r}\n'
+            'setup_code={}\n'
             'type(value): {}\n'
             'value={!r}\n'
             'error={!r}'.format(setup_code, type(value), value, ex))
@@ -69,3 +69,18 @@ def assert_equivalent_repr(
              type(value),
              type(eval_repr_value),
              '    ' + setup_code.replace('\n', '\n    '))
+
+    try:
+        a = eval('{!r}.__class__'.format(value), global_vals, local_vals)
+    except (AttributeError, SyntaxError):
+        raise AssertionError(
+            "The repr of a value of type {} wasn't 'dottable'.\n"
+            "{!r}.XXX must be equivalent to ({!r}).XXX, "
+            "but it raised an error instead.".format(
+                type(value), value, value))
+
+    b = eval('({!r}).__class__'.format(value), global_vals, local_vals)
+    assert a == b, (
+        "The repr of a value of type {} wasn't 'dottable'.\n"
+        "{!r}.XXX must be equivalent to ({!r}).XXX, "
+        "but it wasn't.".format(type(value), value, value))
