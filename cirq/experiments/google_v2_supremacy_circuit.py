@@ -16,7 +16,7 @@ import random
 from typing import Callable, Iterable, TypeVar, cast, Sequence
 
 from cirq.circuits import InsertStrategy
-from cirq import circuits, ops, devices
+from cirq import circuits, devices, google, ops
 
 
 def google_v2_supremacy_circuit(qubits: Iterable[devices.GridQubit],
@@ -122,18 +122,26 @@ def google_v2_supremacy_circuit_bristlecone(n_rows: int,
         A circuit with given size and seed.
     """
     def get_qubits(n_rows):
-        half_rows = n_rows // 2
-        middle_row = n_rows % 2
-        qubits = []
-        for i in range(half_rows):
-            for j in range(half_rows-i-1, half_rows+i+1):
-                qubits.append(devices.GridQubit(i, j))
-        if middle_row:
-            qubits += [devices.GridQubit(half_rows, j)
-                           for j in range(2*half_rows)]
-        for i in range(half_rows, 2*half_rows+1):
-            for j in range(i-half_rows, 3*half_rows-i):
-                qubits.append(devices.GridQubit(i+middle_row, j))
+        def count_neighbors(qubits, qubit):
+            """Counts the qubits that the given qubit can interact with."""
+            possibles = [
+                devices.GridQubit(qubit.row + 1, qubit.col),
+                devices.GridQubit(qubit.row - 1, qubit.col),
+                devices.GridQubit(qubit.row, qubit.col + 1),
+                devices.GridQubit(qubit.row, qubit.col - 1),
+                ]
+            return len(list(e for e in possibles if e in qubits))
+
+        assert 1 <= n_rows <= 11
+        max_row = n_rows - 1
+        dev = google.Bristlecone
+        # we need a consistent order of qubits
+        qubits = list(dev.qubits)
+        qubits.sort()
+        qubits = [q for q in qubits
+                      if  q.row <= max_row and  q.row + q.col < n_rows + 6
+                      and q.row - q.col < n_rows - 5]
+        qubits = [q for q in qubits if count_neighbors(qubits, q) > 1]
         return qubits
 
     qubits = get_qubits(n_rows)
