@@ -26,6 +26,8 @@ if TYPE_CHECKING:
     import cirq
 
 
+TValue = TypeVar('TValue')
+
 TDefault = TypeVar('TDefault')
 
 TError = TypeVar('TError', bound=Exception)
@@ -58,16 +60,16 @@ class SupportsDecompose(Protocol):
     decompositions cause that kind of code to loop forever.
     """
 
-    def _decompose_(self) -> Union['cirq.OP_TREE', NotImplementedType]:
+    def _decompose_(self) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
         return NotImplemented
 
 
 class SupportsDecomposeWithQubits(Protocol):
     """An object that can be decomposed into operations on given qubits.
 
-    Returning `NotImplemented` means "not decomposable". Otherwise an operation,
-    list of operations, or generally anything meeting the `OP_TREE` contract can
-    be returned.
+    Returning `NotImplemented` or `None` means "not decomposable". Otherwise an
+    operation, list of operations, or generally anything meeting the `OP_TREE`
+    contract can be returned.
 
     For example, a SWAP gate can be turned into three CNOTs. But in order to
     describe those CNOTs one must be able to talk about "the target qubit" and
@@ -82,23 +84,24 @@ class SupportsDecomposeWithQubits(Protocol):
     """
 
     def _decompose_(self, qubits: Tuple['cirq.QubitId', ...]
-                    ) -> Union['cirq.OP_TREE', NotImplementedType]:
+                    ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
         return NotImplemented
 
 
 def _default_decomposer(op: 'cirq.Operation'
-                        ) -> Union['cirq.OP_TREE', NotImplementedType]:
-    method = getattr(op, '_decompose_', None)
-    return NotImplemented if op is None else method()
+                        ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
+    return decompose_once(op, default=NotImplemented)
 
 
 def _intercept_decompose(
-        op: 'cirq.Operation',
-        decomposers: List[Callable[['cirq.Operation'], 'cirq.OP_TREE']]
+        val: Any,
+        decomposers: List[Callable[[Any], Union[None,
+                                                NotImplementedType,
+                                                'cirq.OP_TREE']]]
 ) -> 'cirq.OP_TREE':
     for d in decomposers:
-        r = d(op)
-        if r is not NotImplemented:
+        r = d(val)
+        if r is not NotImplemented and r is not None:
             return r
     return NotImplemented
 
@@ -131,9 +134,9 @@ def decompose(
 
 
 def decompose(
-    val: Any,
+    val: TValue,
     *,
-    intercepting_decomposer: Callable[['cirq.Operation'],
+    intercepting_decomposer: Callable[[Union['cirq.Operation', TValue]],
                                       'cirq.OP_TREE'] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise=_value_error_describing_bad_operation
@@ -145,13 +148,11 @@ def decompose(
         intercepting_decomposer: An optional method that is called before the
             default decomposer (the value's `_decompose_` method). If
             `intercepting_decomposer` is specified and returns a result that
-            isn't `NotImplemented`, that result is used. Otherwise the
+            isn't `NotImplemented` or `None`, that result is used. Otherwise the
             decomposition falls back to the default decomposer.
 
-            Note: If `val` isn't an Operation, it is assumed that it is not
-            appropriate to pass `val` into `intercepting_decomposer` (which is
-            allowed to expect only operations) and so the default decomposer is
-            used unconditionally instead.
+            Note that `val` will be passed into `intercepting_decomposer`, even
+            if `val` isn't a `cirq.Operation`.
         keep: A predicate that determines if the initial operation or
             intermediate decomposed operations should be kept or else need to be
             decomposed further. If `keep` isn't specified, it defaults to "value
@@ -184,42 +185,38 @@ def decompose(
     """
     from cirq import ops  # HACK: Avoids circular dependencies.
 
-    if on_stuck_raise is not None and keep is None:
+    if (on_stuck_raise is not _value_error_describing_bad_operation and
+            keep is None):
         raise ValueError(
             "Must specify 'keep' if specifying 'on_stuck_raise', because it's "
             "not possible to get stuck if you don't have a criteria on what's "
             "acceptable to keep.")
 
     if intercepting_decomposer is None:
-        actual_decomposer = _default_decomposer
+        decomposer = _default_decomposer
     else:
         decomposers = [intercepting_decomposer, _default_decomposer]
-        actual_decomposer = lambda op: _intercept_decompose(op, decomposers)
+        decomposer = lambda op: _intercept_decompose(op, decomposers)
 
     output = []
-    queue = []  # type: List['cirq.Operation']
-    if not isinstance(val, ops.Operation):
-        queue.extend(decompose_once(val))
-    else:
-        queue.append(val)
-
+    queue = [val]  # type: List[Any]
     while queue:
         item = queue.pop(0)
 
-        if keep is not None and keep(item):
+        if isinstance(item, ops.Operation) and keep is not None and keep(item):
             output.append(item)
             continue
 
-        decomposed = actual_decomposer(item)
-        if decomposed is not NotImplemented:
-            queue.extend(ops.flatten_op_tree(decomposed))
+        decomposed = decomposer(item)
+        if decomposed is not NotImplemented and decomposed is not None:
+            queue[:0] = ops.flatten_op_tree(decomposed)
             continue
 
         if isinstance(item, collections.Iterable):
-            queue.extend(ops.flatten_op_tree(item))
+            queue[:0] = ops.flatten_op_tree(item)
             continue
 
-        if on_stuck_raise is not None:
+        if keep is not None and on_stuck_raise is not None:
             if isinstance(on_stuck_raise, Exception):
                 raise on_stuck_raise
             else:
@@ -255,27 +252,33 @@ def decompose_once(val: Any,
     Args:
         val: The value to call `_decompose_` on, if possible.
         default: A default result to use if the value doesn't have a
-            `_decompose_` method or that method returns `NotImplemented`.
-            If not specified, undecomposable values cause a `TypeError`.
+            `_decompose_` method or that method returns `NotImplemented` or
+            `None`. If not specified, undecomposable values cause a `TypeError`.
         kwargs: Arguments to forward into the `_decompose_` method of `val`.
             For example, this is used to tell gates what qubits they are being
             applied to.
 
     Returns:
         The result of `val._decompose_(**kwargs)`, if `val` has a `_decompose_`
-        method and it didn't return `NotImplemented`. Otherwise `default` is
-        returned, if it was specified. Otherwise an error is raised.
+        method and it didn't return `NotImplemented` or `None`. Otherwise
+        `default` is returned, if it was specified. Otherwise an error is
+        raised.
 
     TypeError:
         `val` didn't have a `_decompose_` method (or that method returned
-        `NotImplemented`) and `default` wasn't set.
+        `NotImplemented` or `None`) and `default` wasn't set.
     """
-    from cirq import ops  # HACK: Avoids circular dependencies.
+    # TODO: remove compatibility shim when CompositeOperation is deleted.
+    import cirq
+    cast = cirq.try_cast(cirq.CompositeOperation, val)  # type: ignore
+    if cast is not None:
+        return list(cirq.flatten_op_tree(cast.default_decompose()))
 
     method = getattr(val, '_decompose_', None)
     decomposed = NotImplemented if method is None else method(**kwargs)
 
-    if decomposed is not NotImplemented:
+    if decomposed is not NotImplemented and decomposed is not None:
+        from cirq import ops  # HACK: Avoids circular dependencies.
         return list(ops.flatten_op_tree(decomposed))
 
     if default is not RaiseTypeErrorIfNotProvided:
@@ -284,7 +287,7 @@ def decompose_once(val: Any,
         raise TypeError("object of type '{}' "
                         "has no _decompose_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _decompose_ method, "
-                    "but it returned NotImplemented.".format(type(val)))
+                    "but it returned NotImplemented or None.".format(type(val)))
 
 
 @overload
@@ -317,18 +320,24 @@ def decompose_once_with_qubits(val: Any,
         qubits: The value to pass into the named `qubits` parameter of
             `val._decompose_`.
         default: A default result to use if the value doesn't have a
-            `_decompose_` method or that method returns `NotImplemented`.
-            If not specified, undecomposable values cause a `TypeError`.
+            `_decompose_` method or that method returns `NotImplemented` or
+            `None`. If not specified, undecomposable values cause a `TypeError`.
 
     Returns:
         The result of `val._decompose_(qubits=qubits)`, if `val` has a
-        `_decompose_` method and it didn't return `NotImplemented`. Otherwise
-        `default` is returned, if it was specified. Otherwise an error is
-        raised.
+        `_decompose_` method and it didn't return `NotImplemented` or `None`.
+        Otherwise `default` is returned, if it was specified. Otherwise an error
+        is raised.
 
     TypeError:
         `val` didn't have a `_decompose_` method (or that method returned
-        `NotImplemented`) and `default` wasn't set.
+        `NotImplemented` or `None`) and `default` wasn't set.
     """
-    return decompose_once(val, default, qubits=qubits)
+    # TODO: remove compatibility shim when CompositeOperation is deleted.
+    import cirq
+    cast = cirq.try_cast(cirq.CompositeGate, val)  # type: ignore
+    if cast is not None:
+        return list(cirq.flatten_op_tree(cast.default_decompose(tuple(qubits))))
+
+    return decompose_once(val, default, qubits=tuple(qubits))
 # pylint: enable=function-redefined
