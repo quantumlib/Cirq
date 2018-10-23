@@ -17,6 +17,9 @@ from cirq.protocols.apply_unitary_to_tensor import (
     SupportsApplyUnitaryToTensor,
     apply_unitary_to_tensor,
 )
+from cirq.protocols.channel import (
+    channel,
+)
 from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
@@ -26,6 +29,14 @@ from cirq.protocols.circuit_diagram_info import (
 from cirq.protocols.inverse import (
     inverse,
 )
+from cirq.protocols.mul import (
+    mul,
+)
+# pylint: disable=redefined-builtin
+from cirq.protocols.pow import (
+    pow,
+)
+# pylint: enable=redefined-builtin
 from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
@@ -38,4 +49,8 @@ from cirq.protocols.resolve_parameters import (
     SupportsParameterization,
     is_parameterized,
     resolve_parameters,
+)
+from cirq.protocols.phase import (
+    SupportsPhase,
+    phase_by,
 )

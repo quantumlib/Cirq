@@ -17,8 +17,8 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 
-from cirq import circuits, ops, extension, value, decompositions
-from cirq.google.xmon_gates import ExpZGate, ExpWGate
+from cirq import circuits, ops, value, decompositions
+from cirq.google.xmon_gates import ExpWGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -45,19 +45,14 @@ class EjectFullW(circuits.OptimizationPass):
     the EjectZ optimization).
     """
 
-    def __init__(self,
-                 tolerance: float = 1e-8,
-                 ext: extension.Extensions=None) -> None:
+    def __init__(self, tolerance: float = 1e-8) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
-            ext: Extensions object used for determining if gates are phaseable
-                (i.e. if Z gates can pass through them).
         """
         self.tolerance = tolerance
-        self.ext = ext or extension.Extensions()
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         state = _OptimizerState()
@@ -138,10 +133,8 @@ def _absorb_z_into_w(moment_index: int,
 def _dump_held(qubits: Iterable[ops.QubitId],
                moment_index: int,
                state: _OptimizerState):
-    # Avoid non-determinism in in the inserted operations.
-    sorted_qubits = ops.QubitOrder.DEFAULT.order_for(qubits)
-
-    for q in sorted_qubits:
+    # Note: sorting is to avoid non-determinism in the insertion order.
+    for q in sorted(qubits):
         p = state.held_w_phases.get(q)
         if p is not None:
             dump_op = ExpWGate(axis_half_turns=p).on(q)
@@ -192,7 +185,7 @@ def _potential_cross_whole_w(moment_index: int,
         state.held_w_phases[q] = None
         t = 2*(b - a)
         if not decompositions.is_negligible_turn(t / 2, tolerance):
-            leftover_phase = ExpZGate(half_turns=t).on(q)
+            leftover_phase = ops.Z(q)**t
             state.inline_intos.append((moment_index, leftover_phase))
 
 
@@ -257,7 +250,7 @@ def _single_cross_over_cz(moment_index: int,
     t = cast(float, _try_get_known_cz_half_turns(op))
     other_qubit = op.qubits[0] if qubit_with_w == op.qubits[1] else op.qubits[1]
     negated_cz = ops.CZ(*op.qubits)**-t
-    kickback = ExpZGate(half_turns=t).on(other_qubit)
+    kickback = ops.Z(other_qubit)**t
 
     state.deletions.append((moment_index, op))
     state.inline_intos.append((moment_index, negated_cz))
@@ -324,7 +317,7 @@ def _try_get_known_w(op: ops.Operation) -> Optional[ExpWGate]:
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if (not isinstance(op, ops.GateOperation) or
-            not isinstance(op.gate, (ExpZGate, ops.RotZGate))):
+            not isinstance(op.gate, ops.RotZGate)):
         return None
     h = op.gate.half_turns
     if isinstance(h, value.Symbol):

@@ -107,7 +107,6 @@ from cirq.ops import (
     CSWAP,
     CZ,
     EigenGate,
-    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
@@ -128,7 +127,6 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
@@ -140,15 +138,15 @@ from cirq.ops import (
     RotXGate,
     RotYGate,
     RotZGate,
+    Rx,
+    Ry,
+    Rz,
     S,
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,
     SwapGate,
     T,
-    TextDiagrammable,
-    TextDiagramInfo,
-    TextDiagramInfoArgs,
     ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
@@ -165,6 +163,17 @@ from cirq.schedules import (
     moment_by_moment_schedule,
 )
 
+from cirq.sim import (
+    dirac_notation,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesIntermediateWaveFunction,
+    to_valid_state_vector,
+    SimulatesFinalWaveFunction,
+    validate_normalized_state,
+)
+
 from cirq.study import (
     Linspace,
     ParamResolver,
@@ -172,6 +181,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    to_resolvers,
     TrialResult,
     UnitSweep,
 )
@@ -185,22 +195,29 @@ from cirq.value import (
     Timestamp,
 )
 
+# pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_unitary_to_tensor,
+    channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     inverse,
+    mul,
+    pow,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
     SupportsParameterization,
+    SupportsPhase,
+    SupportsTraceDistanceBound,
     is_parameterized,
     resolve_parameters,
     unitary,
-    SupportsTraceDistanceBound,
     trace_distance_bound,
+    phase_by,
 )
+# pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
 

@@ -130,9 +130,6 @@ def circuit_to_latex_using_qcircuit(
 
     Args:
         circuit: The circuit to represent in latex.
-        ext: Extensions used when attempting to cast gates into
-            QCircuitDiagrammable instances (before falling back to the
-            default wrapping methods).
         qubit_order: Determines the order of qubit wires in the diagram.
 
     Returns:

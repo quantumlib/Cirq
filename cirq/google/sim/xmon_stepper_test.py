@@ -775,44 +775,6 @@ def test_renormalize_state_after_w_gate():
         s.reset_state(s.current_state)
 
 
-def test_decode_initial_state():
-    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(
-        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),
-        np.array([1.0, 0.0, 0.0, 0.0]))
-    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(
-        np.array([0.0, 1.0, 0.0, 0.0], dtype=np.complex64), 2),
-        np.array([0.0, 1.0, 0.0, 0.0]))
-    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(0, 2),
-        np.array([1.0, 0.0, 0.0, 0.0]))
-    np.testing.assert_almost_equal(xmon_stepper.decode_initial_state(1, 2),
-                                   np.array([0.0, 1.0, 0.0, 0.0]))
-
-
-def test_invalid_decode_initial_state():
-    with pytest.raises(ValueError):
-        _ = xmon_stepper.decode_initial_state(
-            np.array([1.0, 0.0], dtype=np.complex64), 2)
-    with pytest.raises(ValueError):
-        _ = xmon_stepper.decode_initial_state(-1, 2)
-    with pytest.raises(ValueError):
-        _ = xmon_stepper.decode_initial_state(5, 2)
-    with pytest.raises(TypeError):
-        _ = xmon_stepper.decode_initial_state('not an int', 2)
-
-
-def test_check_state():
-    xmon_stepper.check_state(np.array([0.5, 0.5, 0.5, 0.5], dtype=np.complex64),
-                             2)
-    with pytest.raises(ValueError):
-        xmon_stepper.check_state(np.array([1, 1], dtype=np.complex64), 2)
-    with pytest.raises(ValueError):
-        xmon_stepper.check_state(
-            np.array([1.0, 0.2, 0.0, 0.0], dtype=np.complex64), 2)
-    with pytest.raises(ValueError):
-        xmon_stepper.check_state(
-            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), 2)
-
-
 def test_ensure_pool_on_non_stepper():
     class BadClass():
         @xmon_stepper.ensure_pool
