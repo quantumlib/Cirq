@@ -144,8 +144,7 @@ def test_decompose_general():
 
 
 def test_decompose_keep():
-    a, b, c = cirq.LineQubit.range(3)
-    no_method = NoMethod()
+    a, b = cirq.LineQubit.range(2)
 
     # Recursion can be stopped.
     assert cirq.decompose(
@@ -175,7 +174,7 @@ def test_decompose_keep():
 
 
 def test_decompose_on_stuck_raise():
-    a, b, c = cirq.LineQubit.range(3)
+    a, b = cirq.LineQubit.range(2)
     no_method = NoMethod()
 
     # If you're not happy with anything, you're going to get an error.

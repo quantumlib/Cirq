@@ -61,7 +61,7 @@ class SupportsDecompose(Protocol):
     """
 
     def _decompose_(self) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
-        return NotImplemented
+        pass
 
 
 class SupportsDecomposeWithQubits(Protocol):
@@ -85,7 +85,7 @@ class SupportsDecomposeWithQubits(Protocol):
 
     def _decompose_(self, qubits: Tuple['cirq.QubitId', ...]
                     ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
-        return NotImplemented
+        pass
 
 
 def _default_decomposer(op: 'cirq.Operation'
@@ -337,6 +337,7 @@ def decompose_once_with_qubits(val: Any,
     import cirq
     cast = cirq.try_cast(cirq.CompositeGate, val)  # type: ignore
     if cast is not None:
+        # coverage: ignore
         return list(cirq.flatten_op_tree(cast.default_decompose(tuple(qubits))))
 
     return decompose_once(val, default, qubits=tuple(qubits))
