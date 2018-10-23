@@ -17,6 +17,7 @@
 from typing import Any, Iterable, Optional, Tuple, TypeVar, Union
 
 import numpy as np
+import scipy as sp
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
@@ -127,23 +128,23 @@ def channel(val: Any,
 def stochastic_unitary(
     val: SupportsChannel,
     rtol=1.e-5,
-    atol=1.e-8, ) -> Optional[Tuple[Tuple[float, np.ndarray]]]:
-    """Returns a stochastic representation of unitaries, if possible.
+    atol=1.e-8, ) -> Optional[Tuple[Tuple[float, np.ndarray], ...]]:
+    """Gives a stochastic representation of a channel by unitaries, if possible.
 
-    If a channel has Kraus operators A_0,A_1,...,A_{r-1} this checks whether
+    If a channel has Krauss operators A_0,A_1,...,A_{r-1} this checks whether
     each A_i is proportional to a unitary matrix, U_i, and if so, returns
-    the each of these with the probability of the unitary p_i and the unitary
-    U_i, (i.e. A_i = \sqrt{p_i} U_i). Note that this does NOT check whether
+    each each unitary U_i along with the probability of the unitary p_i,
+    (i.e. A_i = \sqrt{p_i} U_i). Note that this does NOT check whether
     there is some equivalent channel (under unitary equivalences of channels)
     that supports interpretation as a stochastic unitary, only that the
-    decomposition given does.
+    decomposition into Krauss operators does have such an interpretation.
 
     Args:
         val: the value that implements the SupportsChannel protocol.
         rtol: relative tolerance for the unitary times conjugate transpose
-            itself being close to identity (see numpy.isclose).
-        atol: absoluate tolerance for the unitary times conjugate transpose
-            itself being close to identity (see numpy.isclose).
+            itself being close to identity (see numpy.allclose).
+        atol: absolute tolerance for the unitary times conjugate transpose
+            itself being close to identity (see numpy.allclose).
 
     Returns:
         A tuple of tuples of the form (p_i, U_i) where p_i is the probability
@@ -152,11 +153,13 @@ def stochastic_unitary(
     """
     results = []
     for op in val._channel_():
-        det = np.linalg.det(op)
-        if det == 0:
+        u, p = sp.linalg.polar(op)
+        if p[0, 0] == 0:
             return None
-        if np.isclose(op / det, np.eye(op.shape[0]), rtol=rtol, atol=atol):
-            results.append((np.abs(det) ** 2, op / np.abs(det)))
+        potential_eye = p / p[0, 0]
+        if np.allclose(potential_eye, np.eye(op.shape[0]), rtol=rtol,
+                       atol=atol):
+            results.append((float(p[0, 0]) ** 2, u))
         else:
             return None
     return tuple(results)

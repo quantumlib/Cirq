@@ -205,6 +205,7 @@ from cirq.protocols import (
     inverse,
     mul,
     pow,
+    stochastic_unitary,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
     SupportsUnitary,
