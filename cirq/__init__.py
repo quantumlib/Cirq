@@ -127,6 +127,7 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
+    PhasedXPowGate,
     QasmConvertibleGate,
     QasmConvertibleOperation,
     QasmOutputArgs,
