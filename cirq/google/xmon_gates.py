@@ -43,7 +43,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, (ops.CZPowGate,
                                      ops.MeasurementGate,
-                                     ops.RotZGate))):
+                                     ops.ZPowGate))):
             return True
         return XmonGate.try_get_xmon_gate(op) is not None
 
@@ -225,8 +225,7 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
                 isinstance(self.axis_half_turns, value.Symbol)):
             return NotImplemented
 
-        phase = protocols.unitary(
-            ops.RotZGate(half_turns=self.axis_half_turns))
+        phase = protocols.unitary(ops.Z**self.axis_half_turns)
         c = np.exp(1j * np.pi * self.half_turns)
         rot = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
         return np.dot(np.dot(phase, rot), np.conj(phase))
@@ -278,9 +277,9 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
         if isinstance(other, ops.XPowGate):
             return (self.axis_half_turns == 0 and
                     self.half_turns == other.exponent)
-        if isinstance(other, ops.RotYGate):
+        if isinstance(other, ops.YPowGate):
             return (self.axis_half_turns == 0.5 and
-                    self.half_turns == other.half_turns)
+                    self.half_turns == other.exponent)
         if isinstance(other, type(self)):
             return (self.half_turns == other.half_turns and
                     self.axis_half_turns == other.axis_half_turns)
@@ -293,7 +292,7 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
         if self.axis_half_turns == 0:
             return hash((ops.XPowGate, self.half_turns))
         if self.axis_half_turns == 0.5:
-            return hash((ops.RotYGate, self.half_turns))
+            return hash((ops.YPowGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))
 
     def _is_parameterized_(self) -> bool:

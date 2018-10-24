@@ -14,15 +14,15 @@ def test_google_v2_supremacy_circuit():
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.XPowGate))) == 15
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotYGate))) == 23
+        ops.YPowGate))) == 23
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotZGate))) == 32
+        ops.ZPowGate))) == 32
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.HGate))) == 40
     qubits = [GridQubit(i, j) for i in range(4)
               for j in range(5)]
-    assert isinstance(circuit.operation_at(qubits[0],2).gate, ops.RotYGate)
-    assert isinstance(circuit.operation_at(qubits[1],2).gate, ops.RotYGate)
+    assert isinstance(circuit.operation_at(qubits[0],2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[1],2).gate, ops.YPowGate)
     assert isinstance(circuit.operation_at(qubits[8],2).gate, ops.XPowGate)
     assert circuit.operation_at(qubits[0], 1).gate == ops.CZ
     assert circuit.operation_at(qubits[5], 2).gate == ops.CZ
@@ -44,9 +44,9 @@ def test_google_v2_supremacy_bristlecone():
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.XPowGate))) == 43
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotYGate))) == 69
+        ops.YPowGate))) == 69
     assert isinstance(circuit.operation_at(GridQubit(2, 5),2).gate,
-                          ops.RotYGate)
+                      ops.YPowGate)
     assert isinstance(circuit.operation_at(GridQubit(3, 2),2).gate,
                       ops.XPowGate)
     assert isinstance(circuit.operation_at(GridQubit(1, 6),3).gate,
@@ -57,8 +57,8 @@ def test_google_v2_supremacy_bristlecone():
     qubits = list(circuit.all_qubits())
     qubits.sort()
     assert len(qubits) == 48
-    assert isinstance(circuit.operation_at(qubits[5],2).gate, ops.RotYGate)
-    assert isinstance(circuit.operation_at(qubits[7],3).gate, ops.RotYGate)
+    assert isinstance(circuit.operation_at(qubits[5],2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[7],3).gate, ops.YPowGate)
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.CZPowGate))) == 79
     assert len(list(circuit.findall_operations_with_gate_type(

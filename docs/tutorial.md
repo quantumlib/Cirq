@@ -319,12 +319,12 @@ now introduce our ansatz.  Our ansatz will consist
 of one step of a circuit made up of
 1. Apply an XPowGate for the same parameter for all qubits.
 This is the method we have written above.
-2. Apply a RotZGate for the same parameter for all qubits
+2. Apply a ZPowGate for the same parameter for all qubits
 where the transverse field term h is +1.
 ```python
 def rot_z_layer(h, half_turns):
     """Yields Z rotations by half_turns conditioned on the field h."""
-    gate = cirq.RotZGate(half_turns=half_turns)
+    gate = cirq.ZPowGate(exponent=half_turns)
     for i, h_row in enumerate(h):
         for j, h_ij in enumerate(h_row):
             if h_ij == 1:

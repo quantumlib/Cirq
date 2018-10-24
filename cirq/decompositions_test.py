@@ -92,7 +92,7 @@ def test_single_qubit_matrix_to_gates_cases(intended_effect):
         gates = cirq.single_qubit_matrix_to_gates(
             intended_effect, tolerance=atol / 10)
         assert len(gates) <= 3
-        assert sum(1 for g in gates if not isinstance(g, cirq.RotZGate)) <= 1
+        assert sum(1 for g in gates if not isinstance(g, cirq.ZPowGate)) <= 1
         assert_gates_implement_unitary(gates, intended_effect, atol=atol)
 
 

@@ -71,14 +71,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.RotZGate(
-                half_turns=cirq.Symbol('boo'))(a)]),
+            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.RotZGate(
-                half_turns=cirq.Symbol('boo'))(a)]),
+            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
 

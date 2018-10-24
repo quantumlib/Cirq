@@ -155,7 +155,7 @@ number of more commonly named gates that are then implemented
 as ``XmonGates`` via an extension or composite gates.  Some
 of these are our old friends:
 
-**XPowGate**, **RotYGate**, **RotZGate**, **CZPowGate**.
+**XPowGate**, **YPowGate**, **ZPowGate**, **CZPowGate**.
 These are gates corresponding to the  Pauli rotations or
 (in the case of ``CZPowGate`` a two qubit rotation).
 
