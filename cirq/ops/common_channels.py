@@ -34,10 +34,8 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         constructor will raise a ValueError.
 
         This channel evolves a density matrix via
-            \rho -> (1 - sqrt(p_x + p_y + p_z) ) \rho
-                    + sqrt(p_x) X \rho X
-                    + sqrt(p_y) Y \rho Y
-                    + sqrt(p_z) Z \rho Z
+            \rho -> (1 -p_x + p_y + p_z) \rho
+                    + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
 
         Args:
             p_x: The probability that a Pauli X error occurs.
@@ -93,8 +91,24 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return 'A({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z)
 
 
-def asymmetric_depolarize(p_x, p_y, p_z):
-    """Returns a AsymmetricDepolarizingChannel with given parameters."""
+def asymmetric_depolarize(
+    p_x: float,
+    p_y: float,
+    p_z: float) -> AsymmetricDepolarizingChannel:
+    """Returns a AsymmetricDepolarizingChannel with given parameter.
+
+    This channel evolves a density matrix via
+        \rho -> (1 -p_x + p_y + p_z) \rho
+                + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
+
+    Args:
+        p_x: The probability that a Pauli X error occurs.
+        p_y: The probability that a Pauli Y error occurs.
+        p_z: The probability that a Pauli Z error occurs.
+
+    Raises:
+        ValueError if the args or the sum of the args are not probabilities.
+    """
     return AsymmetricDepolarizingChannel(p_x, p_y, p_z)
 
 
@@ -110,10 +124,8 @@ class DepolarizingChannel(raw_types.Gate):
         The given probability must be a valid probability (between 0 and 1).
 
         This channel evolves a density matrix via
-            \rho -> (1 - sqrt(p)) \rho
-                    + sqrt(p / 3) X \rho X
-                    + sqrt(p / 3) Y \rho Y
-                    + sqrt(p / 3) Z \rho Z
+            \rho -> (1 - p) \rho
+                    + (p / 3) X \rho X + (p / 3) Y \rho Y + (p / 3) Z \rho Z
 
         This channel can be repeated an integer number of times by raising
         the channel to a power.
@@ -147,10 +159,30 @@ class DepolarizingChannel(raw_types.Gate):
         return 'DepolarizingChannel(p={!r})'.format(self._p)
 
     def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        args: protocols.CircuitDiagramInfoArgs) -> str:
         return 'D({!r})'.format(self._p)
 
 
-def depolarize(p):
-    """Returns a DepolarizingChannel with given probability of error."""
+def depolarize(p: float) -> DepolarizingChannel:
+    """Returns a DepolarizingChannel with given probability of error.
+
+    This channel applies one of the three Pauli operators at random,
+    or does nothing. The probability of each of the Pauli operator is
+    equal and is given by p / 3 where p is the arg to this constructor.
+    The given probability must be a valid probability (between 0 and 1).
+
+    This channel evolves a density matrix via
+        \rho -> (1 - p) \rho
+                + (p / 3) X \rho X + (p / 3) Y \rho Y + (p / 3) Z \rho Z
+
+    This channel can be repeated an integer number of times by raising
+    the channel to a power.
+
+    Args:
+        p: The probability that one of the Pauli gates is applied, each of
+            the Pauli gates being applied with equal probability (p / 3).
+
+    Raises:
+        ValueError if p is not a valid probability.
+    """
     return DepolarizingChannel(p)
