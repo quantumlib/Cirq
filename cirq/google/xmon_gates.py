@@ -41,7 +41,7 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
     @staticmethod
     def is_supported_op(op: ops.Operation) -> bool:
         if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, (ops.Rot11Gate,
+                isinstance(op.gate, (ops.CZPowGate,
                                      ops.MeasurementGate,
                                      ops.RotZGate))):
             return True
@@ -275,9 +275,9 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
                 repr(self.axis_half_turns)))
 
     def __eq__(self, other):
-        if isinstance(other, ops.RotXGate):
+        if isinstance(other, ops.XPowGate):
             return (self.axis_half_turns == 0 and
-                    self.half_turns == other.half_turns)
+                    self.half_turns == other.exponent)
         if isinstance(other, ops.RotYGate):
             return (self.axis_half_turns == 0.5 and
                     self.half_turns == other.half_turns)
@@ -291,7 +291,7 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
 
     def __hash__(self):
         if self.axis_half_turns == 0:
-            return hash((ops.RotXGate, self.half_turns))
+            return hash((ops.XPowGate, self.half_turns))
         if self.axis_half_turns == 0.5:
             return hash((ops.RotYGate, self.half_turns))
         return hash((ExpWGate, self.half_turns, self.axis_half_turns))

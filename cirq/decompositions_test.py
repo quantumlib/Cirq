@@ -267,10 +267,10 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
         assert len(op.qubits) <= 2
         if len(op.qubits) == 2:
             assert isinstance(op, cirq.GateOperation)
-            assert isinstance(op.gate, cirq.Rot11Gate)
+            assert isinstance(op.gate, cirq.CZPowGate)
             if must_be_full:
-                assert op.gate.half_turns == 1
-            total_cz += abs(op.gate.half_turns)
+                assert op.gate.exponent == 1
+            total_cz += abs(op.gate.exponent)
 
     assert total_cz <= threshold
 

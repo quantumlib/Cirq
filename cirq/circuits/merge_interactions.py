@@ -65,12 +65,12 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         switch_to_new |= new_interaction_count < old_interaction_count
         switch_to_new |= any(len(old_op.qubits) == 2 and
                              not (isinstance(old_op, ops.GateOperation) and
-                                  isinstance(old_op.gate, ops.Rot11Gate))
+                                  isinstance(old_op.gate, ops.CZPowGate))
                              for old_op in old_operations)
         if not self.allow_partial_czs:
             switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
-                                 isinstance(old_op.gate, ops.Rot11Gate)
-                                 and old_op.gate.half_turns != 1
+                                 isinstance(old_op.gate, ops.CZPowGate)
+                                 and old_op.gate.exponent != 1
                                  for old_op in old_operations)
         if not switch_to_new:
             return None

@@ -39,7 +39,7 @@ def gate_to_proto_dict(gate: ops.Gate,
         if len(qubits) != 1:
             raise ValueError('Wrong number of qubits.')
         return _z_to_proto_dict(gate, qubits[0])
-    if isinstance(gate, ops.Rot11Gate):
+    if isinstance(gate, ops.CZPowGate):
         if len(qubits) != 2:
             raise ValueError('Wrong number of qubits.')
         return _cz_to_proto_dict(gate, *qubits)
@@ -56,14 +56,14 @@ def _z_to_proto_dict(gate: ops.RotZGate, q: ops.QubitId) -> Dict:
     return {'exp_z': exp_z}
 
 
-def _cz_to_proto_dict(gate: ops.Rot11Gate,
+def _cz_to_proto_dict(gate: ops.CZPowGate,
                       p: ops.QubitId,
                       q: ops.QubitId) -> Dict:
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
         'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
-            gate.half_turns)
+            gate.exponent)
     }
     return {'exp_11': exp_11}
 

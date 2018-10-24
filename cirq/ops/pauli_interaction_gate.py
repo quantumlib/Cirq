@@ -114,7 +114,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         left_gate1 = right_gate1**-1
         yield left_gate0(q0)
         yield left_gate1(q1)
-        yield common_gates.Rot11Gate(half_turns=self._exponent)(q0, q1)
+        yield common_gates.CZ(q0, q1)**self._exponent
         yield right_gate0(q0)
         yield right_gate1(q1)
 

@@ -665,7 +665,7 @@ class Circuit:
         """Find the locations of all gate operations of a given type.
 
         Args:
-            gate_type: The type of gate to find, e.g. RotXGate or
+            gate_type: The type of gate to find, e.g. XPowGate or
                 MeasurementGate.
 
         Returns:
