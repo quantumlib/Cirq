@@ -47,9 +47,6 @@ class DecomposeWithQubitsGiven:
 
 
 class DecomposeGenerated:
-    def __init__(self, val):
-        self.val = val
-
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
         yield cirq.Y(cirq.LineQubit(1))
@@ -77,6 +74,8 @@ def test_decompose_once():
     assert cirq.decompose_once(DecomposeGiven(op for _ in range(2))) == [op, op]
     assert type(cirq.decompose_once(DecomposeGiven(op for _ in range(2)))
                 ) == list
+    assert cirq.decompose_once(DecomposeGenerated()) == [
+        cirq.X(cirq.LineQubit(0)), cirq.Y(cirq.LineQubit(1))]
 
 
 def test_decompose_once_with_qubits():
