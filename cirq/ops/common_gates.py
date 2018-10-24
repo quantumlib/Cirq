@@ -25,7 +25,6 @@ from cirq.ops import (
     eigen_gate,
     raw_types,
     gate_operation,
-    phased_x_gate,
 )
 from cirq.type_workarounds import NotImplementedType
 
@@ -199,6 +198,7 @@ class RotXGate(eigen_gate.EigenGate,
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
+        from cirq.ops import phased_x_gate  # HACK: avoid circular dependency.
         return phased_x_gate.PhasedXPowGate(
             exponent=self._exponent,
             phase_exponent=phase_turns * 2)
@@ -290,6 +290,7 @@ class RotYGate(eigen_gate.EigenGate,
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
+        from cirq.ops import phased_x_gate  # HACK: avoid circular dependency.
         return phased_x_gate.PhasedXPowGate(
             exponent=self._exponent,
             phase_exponent=0.5 + phase_turns * 2)
