@@ -19,8 +19,11 @@ from typing import Union, Sequence
 import numpy as np
 
 from cirq import value, protocols
-from cirq.ops import gate_features, raw_types, common_gates, op_tree
+from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
+
+# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
+import cirq.ops.common_gates
 
 
 class PhasedXPowGate(gate_features.SingleQubitGate,
@@ -43,13 +46,13 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
         """
         p = value.canonicalize_half_turns(phase_exponent)
         if p == 0:
-            return common_gates.X**exponent
+            return cirq.ops.common_gates.X**exponent
         if p == 0.5:
-            return common_gates.Y**exponent
+            return cirq.ops.common_gates.Y**exponent
         if p == 1 and not isinstance(exponent, value.Symbol):
-            return common_gates.X**-exponent
+            return cirq.ops.common_gates.X**-exponent
         if p == -0.5 and not isinstance(exponent, value.Symbol):
-            return common_gates.Y**-exponent
+            return cirq.ops.common_gates.Y**-exponent
         return super().__new__(cls)
 
     def __init__(self,
@@ -67,8 +70,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
                           ) -> op_tree.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
-        z = common_gates.Z(q)**self._phase_exponent
-        x = common_gates.X(q)**self._exponent
+        z = cirq.ops.common_gates.Z(q)**self._phase_exponent
+        x = cirq.ops.common_gates.X(q)**self._exponent
         if protocols.is_parameterized(z):
             return NotImplemented
         return z**-1, x, z
@@ -90,14 +93,15 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
 
     def _trace_distance_bound_(self):
         """See `cirq.SupportsTraceDistanceBound`."""
-        return protocols.trace_distance_bound(common_gates.X**self._exponent)
+        return protocols.trace_distance_bound(
+            cirq.ops.common_gates.X**self._exponent)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return NotImplemented
-        z = protocols.unitary(common_gates.Z**self._phase_exponent)
-        x = protocols.unitary(common_gates.X**self._exponent)
+        z = protocols.unitary(cirq.ops.common_gates.Z**self._phase_exponent)
+        x = protocols.unitary(cirq.ops.common_gates.X**self._exponent)
         return np.dot(np.dot(z, x), np.conj(z))
 
     def _is_parameterized_(self) -> bool:
