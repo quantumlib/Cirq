@@ -101,8 +101,14 @@ def test_repr():
     assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
     assert repr(cirq.CCZ) == 'cirq.CCZ'
 
-    assert repr(cirq.CCX**0.5) == 'cirq.TOFFOLI**0.5'
-    assert repr(cirq.CCZ**0.5) == 'cirq.CCZ**0.5'
+    assert repr(cirq.CCX**0.5) == '(cirq.TOFFOLI**0.5)'
+    assert repr(cirq.CCZ**0.5) == '(cirq.CCZ**0.5)'
+
+    cirq.testing.assert_equivalent_repr(cirq.CCZ)
+    cirq.testing.assert_equivalent_repr(cirq.CSWAP)
+    cirq.testing.assert_equivalent_repr(cirq.TOFFOLI)
+    cirq.testing.assert_equivalent_repr(cirq.CCZ**0.5)
+    cirq.testing.assert_equivalent_repr(cirq.TOFFOLI**0.5)
 
 
 def test_eq():
