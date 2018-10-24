@@ -14,8 +14,9 @@
 
 import pytest
 
-import cirq
 import numpy as np
+
+import cirq
 
 
 class GoodGateDecompose(cirq.Gate, cirq.CompositeGate):

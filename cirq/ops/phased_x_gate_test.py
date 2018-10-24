@@ -92,6 +92,8 @@ def test_parameterize():
         exponent=cirq.Symbol('a'),
         phase_exponent=cirq.Symbol('b'))
     assert cirq.pow(parameterized_gate, 5, default=None) is None
+    assert parameterized_gate.default_decompose(
+        [cirq.LineQubit(0)]) is NotImplemented
     assert cirq.unitary(parameterized_gate, default=None) is None
     assert cirq.is_parameterized(parameterized_gate)
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})

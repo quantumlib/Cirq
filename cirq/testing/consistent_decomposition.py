@@ -24,7 +24,7 @@ def assert_decompose_is_consistent_with_unitary(val: Any):
     expected = protocols.unitary(val)
     qubit_count = len(expected).bit_length() - 1
     if isinstance(val, ops.Operation):
-        dec = val.default_decompose()
+        dec = val.default_decompose()  # type: ignore
         qubits = dec.qubits
     else:
         qubits = line.LineQubit.range(qubit_count)
