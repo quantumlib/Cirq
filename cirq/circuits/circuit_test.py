@@ -1359,6 +1359,7 @@ def test_circuit_unitary():
 
     with_inner_measure = cirq.Circuit.from_ops(
         cirq.H(q), cirq.measure(q), cirq.H(q))
+    assert not cirq.has_unitary(with_inner_measure)
     assert cirq.unitary(with_inner_measure, None) is None
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -1380,6 +1381,7 @@ def test_simple_circuits_to_unitary_matrix():
     # Phase parity.
     c = Circuit.from_ops(cirq.CNOT(a, b), cirq.Z(b), cirq.CNOT(a, b))
     m = c.to_unitary_matrix()
+    assert cirq.has_unitary(c) is True
     cirq.testing.assert_allclose_up_to_global_phase(
         m,
         np.array([
@@ -1418,6 +1420,8 @@ def test_composite_gate_to_unitary_matrix():
             cirq.measure(a),
             cirq.X(b),
             cirq.measure(b))
+
+    assert cirq.has_unitary(c) is True
     mat = c.to_unitary_matrix()
     mat_expected = cirq.unitary(cirq.CNOT)
 

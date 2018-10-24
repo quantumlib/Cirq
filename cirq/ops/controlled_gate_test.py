@@ -70,8 +70,11 @@ def test_eq():
 
 def test_unitary():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
+    assert not cirq.has_unitary(cxa)
     assert cirq.unitary(cxa, None) is None
 
+    assert cirq.has_unitary(CY)
+    assert cirq.has_unitary(CCH)
     np.testing.assert_allclose(
         cirq.unitary(CY),
         np.array([

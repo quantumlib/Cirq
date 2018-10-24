@@ -102,6 +102,7 @@ def test_w_parameterize():
     parameterized_gate = cg.ExpWGate(half_turns=cirq.Symbol('a'),
                                      axis_half_turns=cirq.Symbol('b'))
     assert cirq.is_parameterized(parameterized_gate)
+    assert not cirq.has_unitary(parameterized_gate)
     assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)

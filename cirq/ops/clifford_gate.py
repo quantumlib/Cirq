@@ -261,6 +261,9 @@ class SingleQubitCliffordGate(raw_types.Gate, gate_features.CompositeGate):
             (x_final_pauli, x_flip1 ^ x_flip2),
             (z_final_pauli, z_flip1 ^ z_flip2))
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         mat = np.eye(2)
         qubit = named_qubit.NamedQubit('arbitrary')

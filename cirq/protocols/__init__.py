@@ -39,6 +39,7 @@ from cirq.protocols.pow import (
 # pylint: enable=redefined-builtin
 from cirq.protocols.unitary import (
     SupportsUnitary,
+    has_unitary,
     unitary,
 )
 from cirq.protocols.trace_distance_bound import (
