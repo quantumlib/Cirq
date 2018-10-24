@@ -103,7 +103,8 @@ def test_various_unknown_gate_types():
         cirq.Z(a)**(1/5),
         cirq.CZ(a, b)**(1/5),
         cirq.google.ExpWGate(axis_half_turns=0.25)(a),
-        cirq.google.ExpWGate(half_turns=1, axis_half_turns=cirq.Symbol('r'))(a)
+        cirq.google.ExpWGate(half_turns=1, axis_half_turns=cirq.Symbol('r'))(a),
+        cirq.google.ExpWGate(half_turns=0.001, axis_half_turns=0.1)(a)
     )
     assert circuit_to_quirk_url(circuit,
                                 escape_url=False,
@@ -122,7 +123,10 @@ def test_various_unknown_gate_types():
             [{"id":"?",
               "matrix":"{{0, 0.707107+0.707107i},
                          {0.707107-0.707107i, 0}}"}],
-            ["UNKNOWN"]
+            ["UNKNOWN"],
+            [{"id":"?",
+              "matrix":"{{0.999998+0.001571i,0.000488-0.001493i},
+                         {-0.000483-0.001495i,0.999998+0.001571i}}"}]
         ]}
     """.replace('\n', '').replace(' ', '')
 
