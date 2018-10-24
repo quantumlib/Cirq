@@ -982,3 +982,82 @@ def Ry(rads: float) -> RotYGate:
 def Rz(rads: float) -> RotZGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     return RotZGate(rads=rads, global_shift_in_half_turns=-0.5)
+
+
+class XXGate(eigen_gate.EigenGate,
+                gate_features.TwoQubitGate,
+                gate_features.InterchangeableQubitsGate):
+    """XX interaction.
+
+    The gate implements the following unitary:
+    exp(-i t X⊗X) = [cos(t) 0 0 -isin(t)]
+                    [0 cos(t) -isin(t) 0]
+                    [0 -isin(t) cos(t) 0]
+                    [-isin(t) 0 0 cos(t)]
+
+    """
+
+    def __init__(self, *,  # Forces keyword args.
+                 duration: Optional[float]=None,
+                 exponent: Optional[Union[value.Symbol, float]] = None) -> None:
+        """Initializes the gate.
+
+        At most one of half_turns, rads, degs, or duration may be specified.
+        If more are specified, the result is considered ambiguous and an
+        error is thrown. If no argument is given, the default value of one
+        half-turn is used.
+
+        Args:
+            duration: The exponent as a duration of time.
+            exponent: The power that the gate operation will be raised to.
+        """
+        if len([1 for e in [duration, exponent]
+                if e is not None]) > 1:
+            raise ValueError('Redundant exponent specification. '
+                             'Use ONE of duration or exponent.')
+
+        if duration is not None:
+            power = 4 * duration / np.pi
+        else:
+            power = value.chosen_angle_to_half_turns(half_turns=exponent)
+
+        super().__init__(exponent=power)
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0.25, np.array([[0.5, 0, 0, -0.5],
+                            [0, 0.5, -0.5, 0],
+                            [0, -0.5, 0.5, 0],
+                            [-0.5, 0, 0, 0.5]])),
+            (-0.25, np.array([[0.5, 0, 0, 0.5],
+                            [0, 0.5, 0.5, 0],
+                            [0, 0.5, 0.5, 0],
+                            [0.5, 0, 0, 0.5]]))
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 8
+
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'XXGate':
+        return XXGate(exponent=exponent)
+
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('XX', 'XX'),
+            exponent=self.exponent)
+
+    def __str__(self) -> str:
+        if self.exponent == 1:
+            return 'XX'
+        return 'XX**{!r}'.format(self.exponent)
+
+    def __repr__(self) -> str:
+        if self.exponent == 1:
+            return 'cirq.XX'
+        return '(cirq.XX**{!r})'.format(self.exponent)

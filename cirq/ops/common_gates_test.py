@@ -652,6 +652,7 @@ def test_rz_matrix():
         cirq.unitary(cirq.Rz(-np.pi)),
         np.array([[1j, 0], [0, -1j]]))
 
+
 def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.RotXGate(
         half_turns=0.1, global_shift_in_half_turns=0.2))
@@ -659,3 +660,30 @@ def test_arbitrary_xyz_repr():
         half_turns=0.1, global_shift_in_half_turns=0.2))
     cirq.testing.assert_equivalent_repr(cirq.RotZGate(
         half_turns=0.1, global_shift_in_half_turns=0.2))
+
+
+def test_XXGate_init():
+    assert cirq.ops.XXGate(duration=np.pi/4) == cirq.ops.XXGate()
+    assert cirq.ops.XXGate(duration=np.pi/2) == cirq.ops.XXGate()**2
+    assert cirq.ops.XXGate(exponent=2) == cirq.ops.XXGate(duration=np.pi/2)
+    assert cirq.ops.XXGate(exponent=8) == cirq.ops.XXGate()**8
+
+def test_XXGate_str():
+    assert str(cirq.ops.XXGate()) == 'XX'
+    assert str(cirq.ops.XXGate(exponent=2)) == 'XX**2.0'
+
+def test_XXGate_matrix():
+    s = np.sqrt(0.5)
+    assert np.allclose(cirq.unitary(cirq.ops.XXGate()),
+                       np.array([[s, 0, 0, -1j*s],
+                                 [0, s, -1j*s, 0],
+                                 [0, -1j*s, s, 0],
+                                 [-1j*s, 0, 0, s]]))
+    assert np.allclose(cirq.unitary(cirq.ops.XXGate(exponent=4)),
+                       np.diag([-1, -1, -1, -1]))
+    assert np.allclose(cirq.unitary(cirq.ops.XXGate()**8),
+                       np.diag([1, 1, 1, 1]))
+
+def test_XXGate_repr():
+    assert repr(cirq.ops.XXGate()) == 'cirq.XX'
+    assert repr(cirq.ops.XXGate(exponent=0.5)) == '(cirq.XX**0.5)'
