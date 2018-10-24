@@ -68,9 +68,9 @@ def test_unitary():
     assert cirq.unitary(FullyImplemented(True), d) is m
 
     # Test _has_unitary_
-    assert  cirq.has_unitary(NoMethod()) is False
-    assert  cirq.has_unitary(ReturnsNotImplemented()) is False
-    assert  cirq.has_unitary(ReturnsMatrix()) is True
+    assert not cirq.has_unitary(NoMethod())
+    assert not cirq.has_unitary(ReturnsNotImplemented())
+    assert cirq.has_unitary(ReturnsMatrix())
     # Explicit function should override
-    assert  cirq.has_unitary(FullyImplemented(True)) is True
-    assert  cirq.has_unitary(FullyImplemented(False)) is False
+    assert cirq.has_unitary(FullyImplemented(True))
+    assert not cirq.has_unitary(FullyImplemented(False))

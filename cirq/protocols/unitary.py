@@ -120,7 +120,4 @@ def has_unitary(val: Any) -> bool:
         return result
 
     # No _has_unitary_ function, use _unitary_ instead
-    getter = getattr(val, '_unitary_', None)
-    result = NotImplemented if getter is None else getter()
-
-    return (result is not NotImplemented)
+    return unitary(val, None) is not None
