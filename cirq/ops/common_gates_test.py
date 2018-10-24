@@ -652,6 +652,7 @@ def test_rz_matrix():
         cirq.unitary(cirq.Rz(-np.pi)),
         np.array([[1j, 0], [0, -1j]]))
 
+
 def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.RotXGate(
         half_turns=0.1, global_shift_in_half_turns=0.2))
@@ -659,3 +660,18 @@ def test_arbitrary_xyz_repr():
         half_turns=0.1, global_shift_in_half_turns=0.2))
     cirq.testing.assert_equivalent_repr(cirq.RotZGate(
         half_turns=0.1, global_shift_in_half_turns=0.2))
+
+
+def test_phase_by_xy():
+    assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
+    assert cirq.phase_by(cirq.Y, 0.25, 0) == cirq.X
+
+    assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
+    assert cirq.phase_by(cirq.Y**0.5, 0.25, 0) == cirq.X**-0.5
+    assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
+    assert cirq.phase_by(cirq.Y**-0.5, 0.25, 0) == cirq.X**0.5
+
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X**0.5)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y**0.5)

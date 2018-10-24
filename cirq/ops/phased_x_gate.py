@@ -112,8 +112,9 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
-        return PhasedXPowGate(exponent=self._exponent,
-                              phase_exponent=self._exponent + phase_turns * 2)
+        return PhasedXPowGate(
+            exponent=self._exponent,
+            phase_exponent=self._phase_exponent + phase_turns * 2)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:

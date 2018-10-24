@@ -91,19 +91,15 @@ q: ───Z^-0.75───X^0.25───Z^0.75───
     """)
 
 
-def test_w_inverse():
-    assert cirq.inverse(cirq.PhasedXPowGate(exponent=cirq.Symbol('a')), None) is None
-    assert cirq.inverse(cirq.PhasedXPowGate()) == cirq.PhasedXPowGate()
-
-
-def test_w_parameterize():
-    parameterized_gate = cirq.PhasedXPowGate(exponent=cirq.Symbol('a'),
-                                     phase_exponent=cirq.Symbol('b'))
+def test_parameterize():
+    parameterized_gate = cirq.PhasedXPowGate(
+        exponent=cirq.Symbol('a'),
+        phase_exponent=cirq.Symbol('b'))
     assert cirq.is_parameterized(parameterized_gate)
-    assert cirq.unitary(parameterized_gate, None) is None
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
-    assert resolved_gate == cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)
+    assert resolved_gate == cirq.PhasedXPowGate(exponent=0.1,
+                                                phase_exponent=0.2)
 
 
 def test_trace_bound():
@@ -123,3 +119,20 @@ def test_diagram():
     cirq.testing.assert_has_diagram(c, """
 q: ───PhasedX(a)^b───PhasedX(0.25)───
 """)
+
+
+def test_phase_by():
+    g = cirq.PhasedXPowGate(phase_exponent=0.25)
+    g2 = cirq.phase_by(g, 0.25, 0)
+    assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
+
+    g = cirq.PhasedXPowGate(phase_exponent=0)
+    g2 = cirq.phase_by(g, 0.125, 0)
+    assert g2 == cirq.PhasedXPowGate(phase_exponent=0.25)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
+
+    g = cirq.PhasedXPowGate(phase_exponent=0.5)
+    g2 = cirq.phase_by(g, 0.125, 0)
+    assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
