@@ -14,8 +14,9 @@
 
 import pytest
 
-import cirq
 import numpy as np
+
+import cirq
 
 
 class GoodPhaser:
@@ -46,6 +47,17 @@ class BadPhaser:
         return GoodPhaser(self.e + phase_turns*4)
 
 
+class NotPhaser:
+    def _unitary_(self):
+        return np.array([
+            [0, 1],
+            [1, 0]
+        ])
+
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
+        return NotImplemented
+
+
 class SemiBadPhaser:
     def __init__(self, e):
         self.e = e
@@ -74,3 +86,8 @@ def test_assert_phase_by_is_consistent_with_unitary():
                        match='Phased unitary was incorrect for index #1'):
         cirq.testing.assert_phase_by_is_consistent_with_unitary(
             SemiBadPhaser([0.5, 0.25]))
+
+    with pytest.raises(AssertionError,
+                       match='not phaseable'):
+        cirq.testing.assert_phase_by_is_consistent_with_unitary(
+            NotPhaser())

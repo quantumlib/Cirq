@@ -33,7 +33,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
     """
 
     def __new__(cls,
-                phase_exponent: Union[float, value.Symbol] = 0,
+                phase_exponent: Union[float, value.Symbol],
                 exponent: Union[float, value.Symbol] = 1):
         """Substitutes a raw X or raw Y if possible.
 
@@ -46,14 +46,14 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
             return common_gates.X**exponent
         if p == 0.5:
             return common_gates.Y**exponent
-        if p == 1:
+        if p == 1 and not isinstance(exponent, value.Symbol):
             return common_gates.X**-exponent
-        if p == -0.5:
+        if p == -0.5 and not isinstance(exponent, value.Symbol):
             return common_gates.Y**-exponent
         return super().__new__(cls)
 
     def __init__(self,
-                 phase_exponent: Union[float, value.Symbol] = 0,
+                 phase_exponent: Union[float, value.Symbol],
                  exponent: Union[float, value.Symbol] = 1) -> None:
         """
         Args:
@@ -67,9 +67,11 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
                           ) -> op_tree.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
-        yield common_gates.Z(q)**-self._phase_exponent
-        yield common_gates.X(q)**self._exponent
-        yield common_gates.Z(q)**self._phase_exponent
+        z = common_gates.Z(q)**self._phase_exponent
+        x = common_gates.X(q)**self._exponent
+        if protocols.is_parameterized(z):
+            return NotImplemented
+        return z**-1, x, z
 
     @property
     def exponent(self) -> Union[float, value.Symbol]:

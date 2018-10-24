@@ -26,12 +26,15 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
     original = protocols.unitary(val)
     qubit_count = len(original).bit_length() - 1
     original.shape = (2, 2) * qubit_count
+
+    at_least_one_qubit_is_phaseable = False
     for t in [0.125, -0.25, 1]:
         p = 1j**(t*4)
         for i in range(qubit_count):
             phased = protocols.phase_by(val, t, i, default=None)
             if phased is None:
                 continue
+            at_least_one_qubit_is_phaseable = True
 
             actual = protocols.unitary(phased)
             actual.shape = (2, 2) * qubit_count
@@ -47,3 +50,7 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
                 expected,
                 atol=1e-8,
                 err_msg='Phased unitary was incorrect for index #{}'.format(i))
+
+    assert at_least_one_qubit_is_phaseable, (
+        '_phase_by_ is consistent with _unitary_, but only because the given '
+        'value was not phaseable.')

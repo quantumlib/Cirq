@@ -199,8 +199,6 @@ class RotXGate(eigen_gate.EigenGate,
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
-        if self._global_shift_in_half_turns != 0:
-            return NotImplemented
         return phased_x_gate.PhasedXPowGate(
             exponent=self._exponent,
             phase_exponent=phase_turns * 2)
@@ -292,8 +290,6 @@ class RotYGate(eigen_gate.EigenGate,
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
-        if self._global_shift_in_half_turns != 0:
-            return NotImplemented
         return phased_x_gate.PhasedXPowGate(
             exponent=self._exponent,
             phase_exponent=0.5 + phase_turns * 2)

@@ -675,3 +675,7 @@ def test_phase_by_xy():
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y)
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X**0.5)
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y**0.5)
+
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rx(1))
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Ry(1))
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rz(1))
