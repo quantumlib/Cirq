@@ -22,11 +22,11 @@ Simulator types include
 import abc
 import collections
 
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Union
 
 import numpy as np
 
-from cirq import circuits, extension, ops, schedules, study
+from cirq import circuits, ops, schedules, study
 from cirq.sim import state
 
 
@@ -41,7 +41,6 @@ class SimulatesSamples:
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver = study.ParamResolver({}),
         repetitions: int = 1,
-        extensions: extension.Extensions = None,
     ) -> study.TrialResult:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
 
@@ -49,23 +48,17 @@ class SimulatesSamples:
             circuit: The circuit to simulate.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            extensions: Extensions that will be applied during the run. See
-                documentation of class for details.
 
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(circuit,
-                              [param_resolver],
-                              repetitions,
-                              extensions)[0]
+        return self.run_sweep(circuit, [param_resolver], repetitions)[0]
 
     def run_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
         params: study.Sweepable = study.ParamResolver({}),
         repetitions: int = 1,
-        extensions: extension.Extensions = None
     ) -> List[study.TrialResult]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
 
@@ -76,8 +69,6 @@ class SimulatesSamples:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            extensions: Extensions that will be applied during the run. See
-                documentation of class for details.
 
         Returns:
             TrialResult list for this run; one for each possible parameter
@@ -91,8 +82,7 @@ class SimulatesSamples:
         for param_resolver in param_resolvers:
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
-                                     repetitions=repetitions,
-                                     extensions=extensions)
+                                     repetitions=repetitions)
             trial_results.append(study.TrialResult(params=param_resolver,
                                                    repetitions=repetitions,
                                                    measurements=measurements))
@@ -103,17 +93,14 @@ class SimulatesSamples:
         self,
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
-        repetitions: int,
-        extensions: Optional[extension.Extensions]) -> Dict[str,
-                                                            List[np.ndarray]]:
+        repetitions: int
+    ) -> Dict[str, List[np.ndarray]]:
         """Run a simulation, mimicking quantum hardware.
 
         Args:
             circuit: The circuit to simulate.
             param_resolver: Parameters to run with the program.
             repetitions: Number of times to repeat the run.
-            extensions: Extensions that will be applied during the run. See
-                documentation of class for details.
 
         Returns:
             A dictionary from measurement key to a list of lists representing
@@ -140,7 +127,6 @@ class SimulatesFinalWaveFunction:
         param_resolver: study.ParamResolver = study.ParamResolver({}),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
-        extensions: extension.Extensions = None,
     ) -> 'SimulationTrialResult':
         """Simulates the entire supplied Circuit.
 
@@ -157,15 +143,13 @@ class SimulatesFinalWaveFunction:
                 is a np.ndarray it is the full initial state. In this case it
                 must be the correct size, be normalized (an L2 norm of 1), and
                 be safely castable to an appropriate dtype for the simulator.
-            extensions: Extensions that will be applied during the simulate.
-                See documentation of class for details.
 
         Returns:
             SimulateTrialResults for the simulation. Includes the final wave
             function.
         """
         return self.simulate_sweep(circuit, [param_resolver], qubit_order,
-                                   initial_state, extensions)[0]
+                                   initial_state)[0]
 
     @abc.abstractmethod
     def simulate_sweep(
@@ -174,7 +158,6 @@ class SimulatesFinalWaveFunction:
         params: study.Sweepable = study.ParamResolver({}),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
-        extensions: extension.Extensions = None
     ) -> List['SimulationTrialResult']:
         """Simulates the entire supplied Circuit.
 
@@ -193,8 +176,6 @@ class SimulatesFinalWaveFunction:
                 In this case it must be the correct size, be normalized (an L2
                 norm of 1), and  be safely castable to an appropriate
                 dtype for the simulator.
-            extensions: Extensions that will be applied during the simulate.
-                See documentation of class for details.
 
         Returns:
             List of SimulatorTrialResults for this run, one for each
@@ -278,7 +259,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         params: study.Sweepable = study.ParamResolver({}),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
-        extensions: extension.Extensions = None
     ) -> List['SimulationTrialResult']:
         """Simulates the entire supplied Circuit.
 
@@ -297,8 +277,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 In this case it must be the correct size, be normalized (an L2
                 norm of 1), and  be safely castable to an appropriate
                 dtype for the simulator.
-            extensions: Extensions that will be applied during the simulate.
-                See documentation of class for details.
 
         Returns:
             List of SimulatorTrialResults for this run, one for each
@@ -315,8 +293,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             all_step_results = self.simulate_moment_steps(circuit,
                                                           param_resolver,
                                                           qubit_order,
-                                                          initial_state,
-                                                          extensions)
+                                                          initial_state)
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -342,8 +319,8 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
-        extensions: extension.Extensions = None) -> Iterator['StepResult']:
+        initial_state: Union[int, np.ndarray] = 0
+    ) -> Iterator['StepResult']:
         """Returns an iterator of StepResults for each moment simulated.
 
         Args:
@@ -356,8 +333,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 a np.ndarray it is the full initial state. In this case it must
                 be the correct size, be normalized (an L2 norm of 1), and
                 be safely castable to an appropriate dtype for the simulator.
-            extensions: Extensions that will be applied during the simulate.
-                See documentation of class for details.
 
         Returns:
             Iterator that steps through the simulation, simulating each
@@ -365,7 +340,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         param_resolver = param_resolver or study.ParamResolver({})
         return self._simulator_iterator(circuit, param_resolver, qubit_order,
-                                        initial_state, extensions)
+                                        initial_state)
 
 
     @abc.abstractmethod
@@ -375,7 +350,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[int, np.ndarray],
-        extensions: Optional[extension.Extensions]
     ) -> Iterator['StepResult']:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -388,14 +362,11 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             initial_state: The full initial state. This must be the correct
                 size, be normalized (an L2 norm of 1), and be safely
                 castable to a complex type handled by the simulator.
-            extensions: Extensions that will be applied during the simulate.
-                See documentation of class for details.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
         raise NotImplementedError()
-
 
 
 class StepResult:

@@ -18,6 +18,7 @@ from cirq.study import ParamResolver
 
 TDefault = TypeVar('TDefault')
 
+
 class SupportsParameterization(Protocol):
     """An object that can be parameterized by Symbols and resolved
     via a ParamResolver"""
@@ -29,7 +30,6 @@ class SupportsParameterization(Protocol):
 
     def _resolve_parameters_(self: Any, param_resolver: ParamResolver):
         """Resolve the parameters in the effect."""
-
 
 
 def is_parameterized(val: Any) -> bool:

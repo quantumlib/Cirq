@@ -186,22 +186,6 @@ def test_merge_with():
         op1.merged_with(op2)
 
 
-def test_try_cast_to():
-    class Dummy: pass
-    op = PauliStringPhasor(cirq.PauliString({}))
-    ext = cirq.Extensions()
-    assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert not op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert op.try_cast_to(Dummy, ext) is None
-
-    op = PauliStringPhasor(cirq.PauliString({}),
-                           half_turns=cirq.Symbol('a'))
-    ext = cirq.Extensions()
-    assert not op.try_cast_to(cirq.CompositeOperation, ext) is None
-    assert op.try_cast_to(cirq.ExtrapolatableEffect, ext) is None
-    assert op.try_cast_to(Dummy, ext) is None
-
-
 def test_is_parametrized():
     op = PauliStringPhasor(cirq.PauliString({}))
     assert not cirq.is_parameterized(op)
