@@ -204,6 +204,9 @@ class EigenGate(raw_types.Gate):
         max_angle = max(angles)
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_()
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._is_parameterized_():
             return NotImplemented
