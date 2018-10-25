@@ -35,6 +35,6 @@ def test_toffoli_separate():
                for op in c_left.all_operations())
     assert all(isinstance(op, cirq.GateOperation) and
                isinstance(op.gate, (cirq.SingleQubitCliffordGate,
-                                    cirq.Rot11Gate))
+                                    cirq.CZPowGate))
                for op in c_right.all_operations())
 

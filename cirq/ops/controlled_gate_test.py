@@ -201,10 +201,11 @@ def test_phase_by():
     assert (cirq.phase_by(ccg, 0.25, 2) ==
             cirq.ControlledGate(cirq.ControlledGate(phased_sub_gate)))
 
+
 def test_parameterizable():
     a = cirq.Symbol('a')
-    cz = cirq.ControlledGate(cirq.RotYGate(half_turns=1))
-    cza = cirq.ControlledGate(cirq.RotYGate(half_turns=a))
+    cz = cirq.ControlledGate(cirq.Y)
+    cza = cirq.ControlledGate(cirq.YPowGate(exponent=a))
     assert cirq.is_parameterized(cza)
     assert not cirq.is_parameterized(cz)
     assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz

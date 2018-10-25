@@ -724,7 +724,7 @@ def test_findall_operations():
 
     def is_x(op: cirq.Operation) -> bool:
         return (isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.RotXGate))
+                isinstance(op.gate, cirq.XPowGate))
 
     c = Circuit()
     assert list(c.findall_operations(is_x)) == []
@@ -767,12 +767,12 @@ def test_findall_operations_with_gate():
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.measure(a), cirq.measure(b)]),
     ])
-    assert list(c.findall_operations_with_gate_type(cirq.RotXGate)) == [
+    assert list(c.findall_operations_with_gate_type(cirq.XPowGate)) == [
         (0, cirq.X(a), cirq.X),
         (2, cirq.X(a), cirq.X),
         (2, cirq.X(b), cirq.X),
     ]
-    assert list(c.findall_operations_with_gate_type(cirq.Rot11Gate)) == [
+    assert list(c.findall_operations_with_gate_type(cirq.CZPowGate)) == [
         (3, cirq.CZ(a, b), cirq.CZ),
     ]
     assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [

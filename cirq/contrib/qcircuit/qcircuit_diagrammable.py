@@ -120,10 +120,10 @@ fallback_qcircuit_extensions.add_recursive_cast(  # type: ignore
 )
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.RotXGate,
+    ops.XPowGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
-        if gate.half_turns == 1
+        if gate.exponent == 1
         else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
@@ -138,10 +138,10 @@ fallback_qcircuit_extensions.add_cast(  # type: ignore
         else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.Rot11Gate,
+    ops.CZPowGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\control', '\\control')
-        if gate.half_turns == 1
+        if gate.exponent == 1
         else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,

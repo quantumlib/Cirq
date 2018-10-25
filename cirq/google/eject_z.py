@@ -95,9 +95,9 @@ class EjectZ(circuits.OptimizationPass):
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op, ops.GateOperation):
         return None
-    if not isinstance(op.gate, ops.RotZGate):
+    if not isinstance(op.gate, ops.ZPowGate):
         return None
-    h = op.gate.half_turns
+    h = op.gate.exponent
     if isinstance(h, value.Symbol):
         return None
     return h

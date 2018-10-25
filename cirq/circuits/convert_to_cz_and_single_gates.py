@@ -55,8 +55,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.Rot11Gate)
-                and (self.allow_partial_czs or op.gate.half_turns == 1)):
+                and isinstance(op.gate, ops.CZPowGate)
+                and (self.allow_partial_czs or op.gate.exponent == 1)):
             return op
 
         # Measurement?

@@ -298,9 +298,9 @@ def _double_cross_over_cz(op: ops.Operation,
 
 def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
     if (not isinstance(op, ops.GateOperation) or
-            not isinstance(op.gate, ops.Rot11Gate)):
+            not isinstance(op.gate, ops.CZPowGate)):
         return None
-    h = op.gate.half_turns
+    h = op.gate.exponent
     if isinstance(h, value.Symbol):
         return None
     return h
@@ -317,9 +317,9 @@ def _try_get_known_w(op: ops.Operation) -> Optional[ExpWGate]:
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if (not isinstance(op, ops.GateOperation) or
-            not isinstance(op.gate, ops.RotZGate)):
+            not isinstance(op.gate, ops.ZPowGate)):
         return None
-    h = op.gate.half_turns
+    h = op.gate.exponent
     if isinstance(h, value.Symbol):
         return None
     return h
