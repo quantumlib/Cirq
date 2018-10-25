@@ -1198,7 +1198,7 @@ a: ---X^0.12341---
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
     test_wgate = cg.ExpWGate(
-        half_turns=0.12341234, axis_half_turns=0.43214321)
+        exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
 a: ---W(0.43)^0.12---
@@ -1208,7 +1208,7 @@ a: ---W(0.43)^0.12---
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
     test_wgate = cg.ExpWGate(
-        half_turns=0.12341234, axis_half_turns=0.43214321)
+        exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
 a: ---W(0.43214321)^0.12341234---

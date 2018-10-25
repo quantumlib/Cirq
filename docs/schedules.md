@@ -92,7 +92,7 @@ defined above
 ```python
 from cirq.google.xmon_gates import ExpWGate
 circuit = cirq.Circuit()
-X = ExpWGate(half_turns=1.0)
+X = ExpWGate(exponent=1.0)
 circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
 print(circuit)
 # prints:
