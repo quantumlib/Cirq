@@ -33,7 +33,7 @@ class QasmArgs(string.Formatter):
     """
     Attributes:
         precision: The number of digits after the decimal to show for numbers in
-            the text diagram.
+            the qasm code.
         version: The QASM version to target. Objects may return different qasm
             depending on version.
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
