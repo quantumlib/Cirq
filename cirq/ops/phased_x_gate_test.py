@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 import cirq
 
 
@@ -104,6 +102,16 @@ def test_eq():
     eq.add_equality_group(cirq.PhasedXPowGate(
         exponent=cirq.Symbol('ab'),
         phase_exponent=cirq.Symbol('xy')))
+
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25,
+                                              exponent=0.125,
+                                              global_shift=-0.5),
+                          cirq.PhasedXPowGate(phase_exponent=0.25,
+                                              exponent=4.125,
+                                              global_shift=-0.5))
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25,
+                                              exponent=2.125,
+                                              global_shift=-0.5))
 
 
 def test_str_repr():
