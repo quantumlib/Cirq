@@ -20,10 +20,10 @@ def test_init():
     assert g.phase_exponent == 0.75
     assert g.exponent == 0.25
 
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=0), cirq.RotXGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1), cirq.RotXGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=0.5), cirq.RotYGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1.5), cirq.RotYGate)
+    assert isinstance(cirq.PhasedXPowGate(phase_exponent=0), cirq.XPowGate)
+    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1), cirq.XPowGate)
+    assert isinstance(cirq.PhasedXPowGate(phase_exponent=0.5), cirq.YPowGate)
+    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1.5), cirq.YPowGate)
 
 
 def test_extrapolate():
