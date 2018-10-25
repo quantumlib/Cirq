@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from cirq import ops, decompositions, extension, protocols
+from cirq import ops, decompositions, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -30,8 +30,7 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
         operation.
 
-    Second, checks if the given extensions are able to cast the operation into a
-        CompositeOperation. If so, recurses on the decomposition.
+    Second, attempts to `cirq.decompose` to the operation.
 
     Third, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
@@ -55,8 +54,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.Rot11Gate)
-                and (self.allow_partial_czs or op.gate.half_turns == 1)):
+                and isinstance(op.gate, ops.CZPowGate)
+                and (self.allow_partial_czs or op.gate.exponent == 1)):
             return op
 
         # Measurement?
@@ -75,17 +74,16 @@ class ConvertToCzAndSingleGates(PointOptimizer):
                 allow_partial_czs=False)
 
         # Provides a decomposition?
-        composite_op = extension.try_cast(  # type: ignore
-            ops.CompositeOperation, op)
-        if composite_op is not None:
-            return composite_op.default_decompose()
+        decomposed = protocols.decompose_once(op, None)
+        if decomposed is not None:
+            return decomposed
 
         # Just let it be?
         if self.ignore_failures:
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a CompositeOperation or an operation with a "
+                        "It isn't composite or an operation with a "
                         "known unitary effect on 1 or 2 qubits.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:

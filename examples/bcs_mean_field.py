@@ -219,7 +219,7 @@ def bogoliubov_trans(p, q, theta):
 
     yield cirq.X(p)
     yield cirq.S(p)
-    yield cirq.ISwapGate(exponent=expo).on(p, q)
+    yield cirq.ISWAP(p, q)**expo
     yield cirq.S(p) ** 1.5
     yield cirq.X(p)
 
@@ -245,7 +245,7 @@ def fermi_fourier_trans_2(p, q):
     """
 
     yield cirq.Z(p)**1.5
-    yield cirq.ISwapGate(exponent=0.5).on(q, p)
+    yield cirq.ISWAP(q, p)**0.5
     yield cirq.Z(p)**1.5
 
 

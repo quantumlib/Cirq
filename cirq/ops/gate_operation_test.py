@@ -134,7 +134,7 @@ def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    op1 = cirq.GateOperation(cirq.RotZGate(half_turns=cirq.Symbol('a')), [q])
+    op1 = cirq.GateOperation(cirq.Z**cirq.Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
     op2 = cirq.resolve_parameters(op1, r)
     assert not cirq.is_parameterized(op2)
@@ -145,6 +145,7 @@ def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    assert not cirq.has_unitary(cirq.measure(a))
     assert cirq.unitary(cirq.measure(a), None) is None
     np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
                                np.array([[0, 1], [1, 0]]),

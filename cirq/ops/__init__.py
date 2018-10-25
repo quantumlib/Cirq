@@ -27,25 +27,25 @@ from cirq.ops.common_channels import (
 )
 from cirq.ops.common_gates import (
     CNOT,
-    CNotGate,
+    CNotPowGate,
     CZ,
+    CZPowGate,
     H,
-    HGate,
+    HPowGate,
     ISWAP,
-    ISwapGate,
+    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
-    Rot11Gate,
-    RotXGate,
-    RotYGate,
-    RotZGate,
+    XPowGate,
+    YPowGate,
+    ZPowGate,
     Rx,
     Ry,
     Rz,
     S,
     SWAP,
-    SwapGate,
+    SwapPowGate,
     T,
     X,
     Y,
@@ -58,12 +58,7 @@ from cirq.ops.eigen_gate import (
     EigenGate,
 )
 from cirq.ops.gate_features import (
-    CompositeGate,
-    CompositeOperation,
     InterchangeableQubitsGate,
-    QasmConvertibleGate,
-    QasmConvertibleOperation,
-    QasmOutputArgs,
     SingleQubitGate,
     ThreeQubitGate,
     TwoQubitGate,
@@ -98,6 +93,9 @@ from cirq.ops.pauli_interaction_gate import (
 )
 from cirq.ops.pauli_string import (
     PauliString,
+)
+from cirq.ops.phased_x_gate import (
+    PhasedXPowGate,
 )
 from cirq.ops.raw_types import (
     Gate,

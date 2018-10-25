@@ -39,8 +39,8 @@ def simulate(
     for _ in range(num_gates):
         which = np.random.choice(['expz', 'expw', 'exp11'])
         if which == 'expw':
-            circuit.append(ExpWGate(axis_half_turns=np.random.random(),
-                                    half_turns=np.random.random()).on(
+            circuit.append(ExpWGate(phase_exponent=np.random.random(),
+                                    exponent=np.random.random()).on(
                 np.random.randint(num_qubits)),
                 strategy=cirq.InsertStrategy.EARLIEST)
         elif which == 'expz':

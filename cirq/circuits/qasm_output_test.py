@@ -193,23 +193,22 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.QasmConvertibleOperation,
-                         cirq.CompositeOperation):
+    class DummyOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def known_qasm_output(self, args):
+        def _qasm_(self, args: cirq.QasmArgs) -> str:
             return '// Dummy operation\n'
 
-        def default_decompose(self):
+        def _decompose_(self):
             # Only used by test_output_unitary_same_as_qiskit
             return ()  # coverage: ignore
 
-    class DummyCompositeOperation(cirq.Operation, cirq.CompositeOperation):
+    class DummyCompositeOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def default_decompose(self):
+        def _decompose_(self):
             return cirq.X(self.qubits[0])
 
         def __repr__(self):
@@ -238,7 +237,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
 
-        cirq.google.ExpWGate(axis_half_turns=0.125, half_turns=0.25)(q1),
+        cirq.google.ExpWGate(phase_exponent=0.125, exponent=0.25)(q1),
 
         (
             cirq.MeasurementGate('xX')(q0),
@@ -309,11 +308,11 @@ def test_output_format():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
-                             header='Generated from Cirq',
+                             header='Generated from Cirq!',
                              precision=5)
     assert (filter_unpredictable_numbers(str(output)) ==
             filter_unpredictable_numbers(
-        """// Generated from Cirq
+        """// Generated from Cirq!
 
 OPENQASM 2.0;
 include "qelib1.inc";

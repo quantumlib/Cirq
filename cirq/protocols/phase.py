@@ -30,7 +30,11 @@ class SupportsPhase(Protocol):
     def _phase_by_(self: Any, phase_turns: float, qubit_index: int):
         """Returns a phased version of the effect.
 
-        For example, an X gate phased by 90 degrees would be a Y gate.
+        Specifically, returns an object with matrix P U P^-1 (up to global
+        phase) where U is the given object's matrix and
+        P = Z(qubit_index)**(phase_turns/2). For example, an X gate phased by 90
+        degrees would be a Y gate.
+
         Args:
             phase_turns: The amount to phase the gate, in fractions of a whole
                 turn.  Divide by 2pi to get radians.

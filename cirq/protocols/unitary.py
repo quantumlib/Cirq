@@ -56,6 +56,18 @@ class SupportsUnitary(Protocol):
             is no such matrix.
         """
 
+    def _has_unitary_(self) -> bool:
+        """Whether this value has a unitary matrix representation.
+
+        This method is used by the global `cirq.has_unitary` method.  If this
+        method is not present, or returns NotImplemented, it will fallback
+        to using _unitary_ with a default value, or False if neither exist.
+
+        Returns:
+          True if the value has a unitary matrix representation, False
+          otherwise.
+        """
+
 
 def unitary(val: Any,
             default: TDefault = RaiseTypeErrorIfNotProvided
@@ -90,3 +102,22 @@ def unitary(val: Any,
                         "has no _unitary_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _unitary_ method, "
                     "but it returned NotImplemented.".format(type(val)))
+
+
+def has_unitary(val: Any) -> bool:
+    """Returns whether the value has a unitary matrix representation.
+
+    Returns:
+        If `val` has a _has_unitary_ method and its result is not
+        NotImplemented, that result is returned. Otherwise, if the value
+        has a _unitary_ method return if that has a non-default value.
+        Returns False if neither function exists.
+    """
+    getter = getattr(val, '_has_unitary_', None)
+    result = NotImplemented if getter is None else getter()
+
+    if result is not NotImplemented:
+        return result
+
+    # No _has_unitary_ function, use _unitary_ instead
+    return unitary(val, None) is not None
