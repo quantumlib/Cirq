@@ -16,8 +16,7 @@ import io
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
-__version__ = None
-from cirq._version import __version__
+__version__ = ''
 exec(open('cirq/_version.py').read())
 
 description = ('A framework for creating, editing, and invoking '
