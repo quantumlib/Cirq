@@ -46,7 +46,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                 return (CONTINUE if len(current_string.pauli_string) != 1
                                  else STOP)
             if (isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.Rot11Gate)):
+                and isinstance(op.gate, ops.CZPowGate)):
                 return STOP if stop_at_cz else CONTINUE
             if (isinstance(op, PauliStringPhasor)
                 and len(op.qubits) == 1
@@ -116,8 +116,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                                                      )(qubit)
                 all_ops[merge_i] = new_op
             elif (isinstance(other_op, ops.GateOperation)
-                  and isinstance(other_op.gate, ops.Rot11Gate)
-                  and other_op.gate.half_turns == 1
+                  and isinstance(other_op.gate, ops.CZPowGate)
+                  and other_op.gate.exponent == 1
                   and quarter_turns == 2):
                 # Pass whole Pauli gate over CZ, possibly adding a Z gate
                 if pauli != ops.Pauli.Z:
@@ -156,8 +156,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                 # Keep looking
                 continue
             elif not (isinstance(op, ops.GateOperation)
-                      and isinstance(op.gate, ops.Rot11Gate)
-                      and op.gate.half_turns == 1):
+                      and isinstance(op.gate, ops.CZPowGate)
+                      and op.gate.exponent == 1):
                 # Not a CZ gate
                 return 0
             elif cz_op == op:
@@ -181,8 +181,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             if try_merge_clifford(op, i):
                 i -= 1
         elif (isinstance(op, ops.GateOperation)
-              and isinstance(op.gate, ops.Rot11Gate)
-              and op.gate.half_turns == 1):
+              and isinstance(op.gate, ops.CZPowGate)
+              and op.gate.exponent == 1):
             num_rm = try_merge_cz(op, i)
             i -= num_rm
         i += 1

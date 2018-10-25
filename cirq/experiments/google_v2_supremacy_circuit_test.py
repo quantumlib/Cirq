@@ -10,20 +10,20 @@ def test_google_v2_supremacy_circuit():
     # in github.com/sboixo/GRCS cz_v2
     assert len(circuit) == 11
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.Rot11Gate))) == 35
+        ops.CZPowGate))) == 35
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotXGate))) == 15
+        ops.XPowGate))) == 15
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotYGate))) == 23
+        ops.YPowGate))) == 23
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotZGate))) == 32
+        ops.ZPowGate))) == 32
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.HGate))) == 40
     qubits = [GridQubit(i, j) for i in range(4)
               for j in range(5)]
-    assert isinstance(circuit.operation_at(qubits[0],2).gate, ops.RotYGate)
-    assert isinstance(circuit.operation_at(qubits[1],2).gate, ops.RotYGate)
-    assert isinstance(circuit.operation_at(qubits[8],2).gate, ops.RotXGate)
+    assert isinstance(circuit.operation_at(qubits[0],2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[1],2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[8],2).gate, ops.XPowGate)
     assert circuit.operation_at(qubits[0], 1).gate == ops.CZ
     assert circuit.operation_at(qubits[5], 2).gate == ops.CZ
     assert circuit.operation_at(qubits[8], 3).gate == ops.CZ
@@ -40,26 +40,26 @@ def test_google_v2_supremacy_bristlecone():
     assert len(circuit) == 10
     assert len(circuit.all_qubits()) == 70
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.Rot11Gate))) == 119
+        ops.CZPowGate))) == 119
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotXGate))) == 43
+        ops.XPowGate))) == 43
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotYGate))) == 69
+        ops.YPowGate))) == 69
     assert isinstance(circuit.operation_at(GridQubit(2, 5),2).gate,
-                          ops.RotYGate)
+                      ops.YPowGate)
     assert isinstance(circuit.operation_at(GridQubit(3, 2),2).gate,
-                          ops.RotXGate)
+                      ops.XPowGate)
     assert isinstance(circuit.operation_at(GridQubit(1, 6),3).gate,
-                          ops.RotXGate)
+                      ops.XPowGate)
     #test smaller subgraph
     circuit = supremacy_v2.google_v2_supremacy_circuit_bristlecone(
         n_rows=9, cz_depth=8, seed=0)
     qubits = list(circuit.all_qubits())
     qubits.sort()
     assert len(qubits) == 48
-    assert isinstance(circuit.operation_at(qubits[5],2).gate, ops.RotYGate)
-    assert isinstance(circuit.operation_at(qubits[7],3).gate, ops.RotYGate)
+    assert isinstance(circuit.operation_at(qubits[5],2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[7],3).gate, ops.YPowGate)
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.Rot11Gate))) == 79
+        ops.CZPowGate))) == 79
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.RotXGate))) == 32
+        ops.XPowGate))) == 32

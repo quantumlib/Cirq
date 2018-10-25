@@ -204,14 +204,14 @@ class XmonSimulator(sim.SimulatesSamples,
                 phase_map = {}  # type: Dict[Tuple[int, ...], float]
                 for op in moment.operations:
                     gate = cast(ops.GateOperation, op).gate
-                    if isinstance(gate, ops.RotZGate):
+                    if isinstance(gate, ops.ZPowGate):
                         index = qubit_map[op.qubits[0]]
-                        phase_map[(index,)] = cast(float, gate.half_turns)
-                    elif isinstance(gate, ops.Rot11Gate):
+                        phase_map[(index,)] = cast(float, gate.exponent)
+                    elif isinstance(gate, ops.CZPowGate):
                         index0 = qubit_map[op.qubits[0]]
                         index1 = qubit_map[op.qubits[1]]
                         phase_map[(index0, index1)] = cast(float,
-                                                           gate.half_turns)
+                                                           gate.exponent)
                     elif isinstance(gate, xmon_gates.ExpWGate):
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(

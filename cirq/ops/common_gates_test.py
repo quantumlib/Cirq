@@ -27,25 +27,26 @@ QFT2 = np.array([[1, 1, 1, 1],
 
 
 def test_cz_init():
-    assert cirq.Rot11Gate(half_turns=0.5).half_turns == 0.5
-    assert cirq.Rot11Gate(half_turns=5).half_turns == 1
+    assert cirq.CZPowGate(exponent=0.5).exponent == 0.5
+    assert cirq.CZPowGate(exponent=5).exponent == 1
+    assert (cirq.CZ**0.5).exponent == 0.5
 
 
 def test_cz_str():
-    assert str(cirq.Rot11Gate()) == 'CZ'
-    assert str(cirq.Rot11Gate(half_turns=0.5)) == 'CZ**0.5'
-    assert str(cirq.Rot11Gate(half_turns=-0.25)) == 'CZ**-0.25'
+    assert str(cirq.CZ) == 'CZ'
+    assert str(cirq.CZ**0.5) == 'CZ**0.5'
+    assert str(cirq.CZ**-0.25) == 'CZ**-0.25'
 
 
 def test_cz_repr():
-    assert repr(cirq.Rot11Gate()) == 'cirq.CZ'
-    assert repr(cirq.Rot11Gate(half_turns=0.5)) == '(cirq.CZ**0.5)'
-    assert repr(cirq.Rot11Gate(half_turns=-0.25)) == '(cirq.CZ**-0.25)'
+    assert repr(cirq.CZ) == 'cirq.CZ'
+    assert repr(cirq.CZ**0.5) == '(cirq.CZ**0.5)'
+    assert repr(cirq.CZ**-0.25) == '(cirq.CZ**-0.25)'
 
 
 def test_cz_extrapolate():
-    assert cirq.Rot11Gate(half_turns=1)**0.5 == cirq.Rot11Gate(half_turns=0.5)
-    assert cirq.CZ**-0.25 == cirq.Rot11Gate(half_turns=1.75)
+    assert cirq.CZPowGate(exponent=1)**0.5 == cirq.CZPowGate(exponent=0.5)
+    assert cirq.CZ**-0.25 == cirq.CZPowGate(exponent=1.75)
 
 
 def test_cz_matrix():
@@ -79,51 +80,49 @@ def test_cz_matrix():
 
 
 def test_z_init():
-    z = cirq.RotZGate(half_turns=5)
-    assert z.half_turns == 1
+    z = cirq.ZPowGate(exponent=5)
+    assert z.exponent == 1
 
 
 def test_rot_gates_eq():
     eq = cirq.testing.EqualsTester()
     gates = [
-        cirq.RotXGate,
-        cirq.RotYGate,
-        cirq.RotZGate,
-        cirq.CNotGate,
-        cirq.Rot11Gate
+        lambda p: cirq.CZPowGate(exponent=p),
+        lambda p: cirq.XPowGate(exponent=p),
+        lambda p: cirq.YPowGate(exponent=p),
+        lambda p: cirq.ZPowGate(exponent=p),
+        lambda p: cirq.CNotGate(half_turns=p),
     ]
     for gate in gates:
-        eq.add_equality_group(gate(half_turns=3.5),
-                              gate(half_turns=-0.5),
-                              gate(rads=-np.pi/2),
-                              gate(degs=-90))
-        eq.make_equality_group(lambda: gate(half_turns=0))
-        eq.make_equality_group(lambda: gate(half_turns=0.5))
+        eq.add_equality_group(gate(3.5),
+                              gate(-0.5))
+        eq.make_equality_group(lambda: gate(0))
+        eq.make_equality_group(lambda: gate(0.5))
 
-    eq.add_equality_group(cirq.RotXGate(), cirq.RotXGate(half_turns=1), cirq.X)
-    eq.add_equality_group(cirq.RotYGate(), cirq.RotYGate(half_turns=1), cirq.Y)
-    eq.add_equality_group(cirq.RotZGate(), cirq.RotZGate(half_turns=1), cirq.Z)
-    eq.add_equality_group(cirq.RotZGate(half_turns=1,
+    eq.add_equality_group(cirq.XPowGate(), cirq.XPowGate(exponent=1), cirq.X)
+    eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
+    eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
+    eq.add_equality_group(cirq.ZPowGate(exponent=1,
                                         global_shift_in_half_turns=-0.5),
-                          cirq.RotZGate(half_turns=5,
+                          cirq.ZPowGate(exponent=5,
                                         global_shift_in_half_turns=-0.5))
-    eq.add_equality_group(cirq.RotZGate(half_turns=3,
+    eq.add_equality_group(cirq.ZPowGate(exponent=3,
                                         global_shift_in_half_turns=-0.5))
-    eq.add_equality_group(cirq.RotZGate(half_turns=1,
+    eq.add_equality_group(cirq.ZPowGate(exponent=1,
                                         global_shift_in_half_turns=-0.1))
-    eq.add_equality_group(cirq.RotZGate(half_turns=5,
+    eq.add_equality_group(cirq.ZPowGate(exponent=5,
                                         global_shift_in_half_turns=-0.1))
     eq.add_equality_group(cirq.CNotGate(),
                           cirq.CNotGate(half_turns=1), cirq.CNOT)
-    eq.add_equality_group(cirq.Rot11Gate(),
-                          cirq.Rot11Gate(half_turns=1), cirq.CZ)
+    eq.add_equality_group(cirq.CZPowGate(),
+                          cirq.CZPowGate(exponent=1), cirq.CZ)
 
 
 def test_z_extrapolate():
-    assert cirq.RotZGate(half_turns=1)**0.5 == cirq.RotZGate(half_turns=0.5)
-    assert cirq.Z**-0.25 == cirq.RotZGate(half_turns=1.75)
-    assert cirq.phase_by(cirq.RotZGate(half_turns=0.5),
-                         0.25, 0) == cirq.RotZGate(half_turns=0.5)
+    assert cirq.ZPowGate(exponent=1)**0.5 == cirq.ZPowGate(exponent=0.5)
+    assert cirq.Z**-0.25 == cirq.ZPowGate(exponent=1.75)
+    assert cirq.phase_by(cirq.ZPowGate(exponent=0.5),
+                         0.25, 0) == cirq.ZPowGate(exponent=0.5)
 
 
 def test_z_matrix():
@@ -200,16 +199,16 @@ def test_h_decompose():
 
 
 def test_runtime_types_of_rot_gates():
-    for gate_type in [cirq.Rot11Gate,
-                      cirq.RotXGate,
-                      cirq.RotYGate,
-                      cirq.RotZGate]:
-        p = gate_type(half_turns=cirq.Symbol('a'))
+    for gate_type in [lambda p: cirq.CZPowGate(exponent=p),
+                      lambda p: cirq.XPowGate(exponent=p),
+                      lambda p: cirq.YPowGate(exponent=p),
+                      lambda p: cirq.ZPowGate(exponent=p)]:
+        p = gate_type(cirq.Symbol('a'))
         assert cirq.unitary(p, None) is None
         assert cirq.pow(p, 2, None) is None
         assert cirq.inverse(p, None) is None
 
-        c = gate_type(half_turns=0.5)
+        c = gate_type(0.5)
         assert cirq.unitary(c, None) is not None
         assert cirq.pow(c, 2) is not None
         assert cirq.inverse(c) is not None
@@ -391,6 +390,19 @@ def test_xyz_repr():
 
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
+
+    for e in [1, 0.5, 0.25, 0.1, -0.3]:
+        for g in [cirq.X, cirq.Y, cirq.Z]:
+            cirq.testing.assert_equivalent_repr(g**e)
+
+
+def test_arbitrary_xyz_repr():
+    cirq.testing.assert_equivalent_repr(cirq.XPowGate(
+        exponent=0.1, global_shift_in_half_turns=0.2))
+    cirq.testing.assert_equivalent_repr(cirq.YPowGate(
+        exponent=0.1, global_shift_in_half_turns=0.2))
+    cirq.testing.assert_equivalent_repr(cirq.ZPowGate(
+        exponent=0.1, global_shift_in_half_turns=0.2))
 
 
 def test_xyz_str():
@@ -651,15 +663,6 @@ def test_rz_matrix():
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rz(-np.pi)),
         np.array([[1j, 0], [0, -1j]]))
-
-
-def test_arbitrary_xyz_repr():
-    cirq.testing.assert_equivalent_repr(cirq.RotXGate(
-        half_turns=0.1, global_shift_in_half_turns=0.2))
-    cirq.testing.assert_equivalent_repr(cirq.RotYGate(
-        half_turns=0.1, global_shift_in_half_turns=0.2))
-    cirq.testing.assert_equivalent_repr(cirq.RotZGate(
-        half_turns=0.1, global_shift_in_half_turns=0.2))
 
 
 def test_phase_by_xy():

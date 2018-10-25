@@ -77,29 +77,29 @@ def angle_to_exponent_key(t: Union[float, Symbol]) -> Optional[str]:
     return None
 
 
-def z_to_known(gate: ops.RotZGate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
+def z_to_known(gate: ops.ZPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
     return QuirkOp('Z' + e)
 
 
-def x_to_known(gate: Union[ops.RotXGate, ExpWGate]) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
+def x_to_known(gate: ops.XPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
     return QuirkOp('X' + e)
 
 
-def y_to_known(gate: Union[ops.RotYGate, ExpWGate]) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
+def y_to_known(gate: ops.YPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
     return QuirkOp('Y' + e)
 
 
-def cz_to_known(gate: ops.Rot11Gate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
+def cz_to_known(gate: ops.CZPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
     return QuirkOp('•', 'Z' + e, can_merge=False)
@@ -108,11 +108,14 @@ def cz_to_known(gate: ops.Rot11Gate) -> Optional[QuirkOp]:
 def w_to_known(gate: ExpWGate) -> Optional[QuirkOp]:
     if isinstance(gate.axis_half_turns, Symbol):
         return None
+    e = angle_to_exponent_key(gate.half_turns)
+    if e is None:
+        return None
     p = (gate.axis_half_turns + 1) % 2 - 1
     if same_half_turns(p, 0):
-        return x_to_known(gate)
+        return QuirkOp('X' + e)
     if same_half_turns(p, 0.5):
-        return y_to_known(gate)
+        return QuirkOp('Y' + e)
     return None
 
 
@@ -146,11 +149,11 @@ quirk_gate_ext.add_recursive_cast(
     QuirkOp,
     ops.GateOperation,
     lambda ext, op: ext.try_cast(QuirkOp, op.gate))
-quirk_gate_ext.add_cast(QuirkOp, ops.RotXGate, x_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ops.RotYGate, y_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ops.RotZGate, z_to_known)
+quirk_gate_ext.add_cast(QuirkOp, ops.XPowGate, x_to_known)
+quirk_gate_ext.add_cast(QuirkOp, ops.YPowGate, y_to_known)
+quirk_gate_ext.add_cast(QuirkOp, ops.ZPowGate, z_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ExpWGate, w_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ops.Rot11Gate, cz_to_known)
+quirk_gate_ext.add_cast(QuirkOp, ops.CZPowGate, cz_to_known)
 quirk_gate_ext.add_cast(QuirkOp,
                         ops.CNotGate,
                         lambda e: QuirkOp('•', 'X',

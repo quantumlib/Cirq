@@ -32,7 +32,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.phased_x_gate
 
 
-class Rot11Gate(eigen_gate.EigenGate,
+class CZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate,
                 gate_features.QasmConvertibleGate):
@@ -42,24 +42,14 @@ class Rot11Gate(eigen_gate.EigenGate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
-        """Initializes the gate.
-
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
-        Args:
-            half_turns: Relative phasing of CZ's eigenstates, in half_turns.
-            rads: Relative phasing of CZ's eigenstates, in radians.
-            degs: Relative phasing of CZ's eigenstates, in degrees.
+                 exponent: Union[value.Symbol, float] = 1.0) -> None:
         """
-        super().__init__(exponent=value.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs))
+        Args:
+            exponent: The t in CZ**t. Determines how much the |11> state gets
+            phased by applying this operation (specifically it will be phased by
+            e^{i pi exponent}).
+        """
+        super().__init__(exponent=exponent)
 
     def _eigen_components(self):
         return [
@@ -75,7 +65,7 @@ class Rot11Gate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
 
-        c = np.exp(1j * np.pi * self.half_turns)
+        c = np.exp(1j * np.pi * self._exponent)
         one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one_one] *= c
         return target_tensor
@@ -84,14 +74,14 @@ class Rot11Gate(eigen_gate.EigenGate,
         return 2
 
     def _with_exponent(self,
-                       exponent: Union[value.Symbol, float]) -> 'Rot11Gate':
-        return Rot11Gate(half_turns=exponent)
+                       exponent: Union[value.Symbol, float]) -> 'CZPowGate':
+        return CZPowGate(exponent=exponent)
 
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
     @property
-    def half_turns(self) -> Union[value.Symbol, float]:
+    def exponent(self) -> Union[value.Symbol, float]:
         return self._exponent
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -103,56 +93,55 @@ class Rot11Gate(eigen_gate.EigenGate,
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
-        if self.half_turns != 1:
+        if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
     def __str__(self) -> str:
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return 'CZ'
-        return 'CZ**{!r}'.format(self.half_turns)
+        return 'CZ**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return 'cirq.CZ'
-        return '(cirq.CZ**{!r})'.format(self.half_turns)
+        return '(cirq.CZ**{!r})'.format(self._exponent)
 
 
-class RotXGate(eigen_gate.EigenGate,
+class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate,
                gate_features.QasmConvertibleGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None,
+                 exponent: Union[value.Symbol, float] = 1.0,
                  global_shift_in_half_turns: float = 0.0) -> None:
-        """Initializes the gate.
-
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
+        """
         Args:
-            half_turns: The relative phasing of X's eigenstates, in half_turns.
-            rads: The relative phasing of X's eigenstates, in radians.
-            degs: The relative phasing of X's eigenstates, in degrees.
+            exponent: The t in X**t. Determines how much the -1 eigenstate of
+                the Pauli X operator gets phased by this operation (specifically
+                it will be phased by e^{i pi exponent}).
+            global_shift_in_half_turns: Offsets the eigenvalues of the gate.
+                The default shift of 0 gives the X gate's matrix eigenvalues of
+                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
+                -i and +i. The shift is always specified assuming an exponent of
+                one (i.e. a 180 degree rotation).
         """
         super().__init__(
-            exponent=value.chosen_angle_to_half_turns(
-                half_turns=half_turns,
-                rads=rads,
-                degs=degs),
+            exponent=exponent,
             global_shift_in_half_turns=global_shift_in_half_turns)
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
                                   axes: Sequence[int],
                                   ) -> Union[np.ndarray, NotImplementedType]:
-        if self.half_turns != 1:
+        if self._exponent != 1:
             return NotImplemented
         zero = linalg.slice_for_qubits_equal_to(axes, 0)
         one = linalg.slice_for_qubits_equal_to(axes, 1)
@@ -173,16 +162,6 @@ class RotXGate(eigen_gate.EigenGate,
             return 4
         return None
 
-    def _with_exponent(self,
-                       exponent: Union[value.Symbol, float]) -> 'RotXGate':
-        return RotXGate(
-            half_turns=exponent,
-            global_shift_in_half_turns=self._global_shift_in_half_turns)
-
-    @property
-    def half_turns(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
@@ -193,11 +172,11 @@ class RotXGate(eigen_gate.EigenGate,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return args.format('x {0};\n', qubits[0])
         else:
             return args.format('rx({0:half_turns}) {1};\n',
-                               self.half_turns, qubits[0])
+                               self._exponent, qubits[0])
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
@@ -206,50 +185,55 @@ class RotXGate(eigen_gate.EigenGate,
             phase_exponent=phase_turns * 2)
 
     def __str__(self) -> str:
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return 'X'
-        return 'X**{!r}'.format(self.half_turns)
+        return 'X**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
         if self._global_shift_in_half_turns == -0.5:
-            return 'cirq.Rx(np.pi*{!r})'.format(self.half_turns)
+            return 'cirq.Rx(np.pi*{!r})'.format(self._exponent)
         if self._global_shift_in_half_turns == 0:
-            if self.half_turns == 1:
+            if self._exponent == 1:
                 return 'cirq.X'
-            return '(cirq.X**{!r})'.format(self.half_turns)
+            return '(cirq.X**{!r})'.format(self._exponent)
         return (
-            'cirq.RotXGate(half_turns={!r}, '
+            'cirq.XPowGate(exponent={!r}, '
             'global_shift_in_half_turns={!r})'
-        ).format(self.half_turns, self._global_shift_in_half_turns)
+        ).format(self._exponent, self._global_shift_in_half_turns)
 
 
-class RotYGate(eigen_gate.EigenGate,
+class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate,
                gate_features.QasmConvertibleGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None,
+                 exponent: Union[value.Symbol, float] = 1.0,
                  global_shift_in_half_turns: float = 0.0) -> None:
-        """Initializes the gate.
-
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
+        """
         Args:
-            half_turns: The relative phasing of Y's eigenstates, in half_turns.
-            rads: The relative phasing of Y's eigenstates, in radians.
-            degs: The relative phasing of Y's eigenstates, in degrees.
+            exponent: The t in X**t. Determines how much the -1 eigenstate of
+                the Pauli Y operator gets phased by this operation (specifically
+                it will be phased by e^{i pi exponent}).
+            global_shift_in_half_turns: Offsets the eigenvalues of the gate.
+                The default shift of 0 gives the Y gate's matrix eigenvalues of
+                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
+                -i and +i. The shift is always specified assuming an exponent of
+                one (i.e. a 180 degree rotation).
         """
         super().__init__(
-            exponent=value.chosen_angle_to_half_turns(
-                half_turns=half_turns,
-                rads=rads,
-                degs=degs),
+            exponent=exponent,
             global_shift_in_half_turns=global_shift_in_half_turns)
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
+
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'YPowGate':
+        return YPowGate(
+            exponent=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     def _eigen_components(self):
         return [
@@ -264,16 +248,6 @@ class RotYGate(eigen_gate.EigenGate,
             return 4
         return None
 
-    def _with_exponent(self,
-                       exponent: Union[value.Symbol, float]) -> 'RotYGate':
-        return RotYGate(
-            half_turns=exponent,
-            global_shift_in_half_turns=self._global_shift_in_half_turns)
-
-    @property
-    def half_turns(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
@@ -284,11 +258,11 @@ class RotYGate(eigen_gate.EigenGate,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return args.format('y {0};\n', qubits[0])
         else:
             return args.format('ry({0:half_turns}) {1};\n',
-                               self.half_turns, qubits[0])
+                               self._exponent, qubits[0])
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
@@ -297,55 +271,54 @@ class RotYGate(eigen_gate.EigenGate,
             phase_exponent=0.5 + phase_turns * 2)
 
     def __str__(self) -> str:
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return 'Y'
-        return 'Y**{!r}'.format(self.half_turns)
+        return 'Y**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
         if self._global_shift_in_half_turns == -0.5:
-            return 'cirq.Ry(np.pi*{!r})'.format(self.half_turns)
+            return 'cirq.Ry(np.pi*{!r})'.format(self._exponent)
         if self._global_shift_in_half_turns == 0:
-            if self.half_turns == 1:
+            if self._exponent == 1:
                 return 'cirq.Y'
-            return '(cirq.Y**{!r})'.format(self.half_turns)
+            return '(cirq.Y**{!r})'.format(self._exponent)
         return (
-            'cirq.RotYGate(half_turns={!r}, '
+            'cirq.YPowGate(exponent={!r}, '
             'global_shift_in_half_turns={!r})'
-        ).format(self.half_turns, self._global_shift_in_half_turns)
+        ).format(self._exponent, self._global_shift_in_half_turns)
 
 
-class RotZGate(eigen_gate.EigenGate,
+class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate,
                gate_features.QasmConvertibleGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None,
+                 exponent: Union[value.Symbol, float] = 1.0,
                  global_shift_in_half_turns: float = 0.0) -> None:
-        """Initializes the gate.
-
-        At most one relative phasing angle argument may be specified. If more
-        are specified, the result is considered ambiguous and an error is
-        thrown. If no angle argument is given, the default value of one half
-        turn is used.
-
+        """
         Args:
-            half_turns: The relative phasing of Z's eigenstates, in half_turns.
-            rads: The relative phasing of Z's eigenstates, in radians.
-            degs: The relative phasing of Z's eigenstates, in degrees.
+            exponent: The t in Z**t. Determines how much the -1 eigenstate of
+                the Pauli Z operator gets phased by this operation (specifically
+                it will be phased by e^{i pi exponent}).
             global_shift_in_half_turns: Offsets the eigenvalues of the gate.
                 The default shift of 0 gives the Z gate's matrix eigenvalues of
                 +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
                 -i and +i. The shift is always specified assuming an exponent of
                 one (i.e. a 180 degree rotation).
         """
-        super().__init__(exponent=value.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs),
-            global_shift_in_half_turns=global_shift_in_half_turns)
+        super().__init__(exponent=exponent,
+                         global_shift_in_half_turns=global_shift_in_half_turns)
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
+
+    def _with_exponent(self,
+                       exponent: Union[value.Symbol, float]) -> 'ZPowGate':
+        return ZPowGate(
+            exponent=exponent,
+            global_shift_in_half_turns=self._global_shift_in_half_turns)
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -356,7 +329,7 @@ class RotZGate(eigen_gate.EigenGate,
             return NotImplemented
 
         one = linalg.slice_for_qubits_equal_to(axes, 1)
-        c = np.exp(1j * np.pi * self.half_turns)
+        c = np.exp(1j * np.pi * self._exponent)
         target_tensor[one] *= c
         return target_tensor
 
@@ -373,27 +346,17 @@ class RotZGate(eigen_gate.EigenGate,
             return 4
         return None
 
-    def _with_exponent(self,
-                       exponent: Union[value.Symbol, float]) -> 'RotZGate':
-        return RotZGate(
-            half_turns=exponent,
-            global_shift_in_half_turns=self._global_shift_in_half_turns)
-
-    @property
-    def half_turns(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        if self.half_turns in [-0.25, 0.25]:
+        if self._exponent in [-0.25, 0.25]:
             return protocols.CircuitDiagramInfo(
                 wire_symbols=('T',),
                 exponent=cast(float, self._exponent) * 4)
 
-        if self.half_turns in [-0.5, 0.5]:
+        if self._exponent in [-0.5, 0.5]:
             return protocols.CircuitDiagramInfo(
                 wire_symbols=('S',),
                 exponent=cast(float, self._exponent) * 2)
@@ -406,44 +369,44 @@ class RotZGate(eigen_gate.EigenGate,
                           qubits: Tuple[raw_types.QubitId, ...],
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
         args.validate_version('2.0')
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return args.format('z {0};\n', qubits[0])
         else:
             return args.format('rz({0:half_turns}) {1};\n',
-                               self.half_turns, qubits[0])
+                               self._exponent, qubits[0])
 
     def __str__(self) -> str:
-        if self.half_turns == 0.25:
+        if self._exponent == 0.25:
             return 'T'
-        if self.half_turns == -0.25:
+        if self._exponent == -0.25:
             return 'T**-1'
-        if self.half_turns == 0.5:
+        if self._exponent == 0.5:
             return 'S'
-        if self.half_turns == -0.5:
+        if self._exponent == -0.5:
             return 'S**-1'
-        if self.half_turns == 1:
+        if self._exponent == 1:
             return 'Z'
-        return 'Z**{}'.format(self.half_turns)
+        return 'Z**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
         if self._global_shift_in_half_turns == -0.5:
-            return 'cirq.Rz(np.pi*{!r})'.format(self.half_turns)
+            return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift_in_half_turns == 0:
-            if self.half_turns == 0.25:
+            if self._exponent == 0.25:
                 return 'cirq.T'
-            if self.half_turns == -0.25:
+            if self._exponent == -0.25:
                 return '(cirq.T**-1)'
-            if self.half_turns == 0.5:
+            if self._exponent == 0.5:
                 return 'cirq.S'
-            if self.half_turns == -0.5:
+            if self._exponent == -0.5:
                 return '(cirq.S**-1)'
-            if self.half_turns == 1:
+            if self._exponent == 1:
                 return 'cirq.Z'
-            return '(cirq.Z**{!r})'.format(self.half_turns)
+            return '(cirq.Z**{!r})'.format(self._exponent)
         return (
-            'cirq.RotZGate(half_turns={!r}, '
+            'cirq.ZPowGate(exponent={!r}, '
             'global_shift_in_half_turns={!r})'
-        ).format(self.half_turns, self._global_shift_in_half_turns)
+        ).format(self._exponent, self._global_shift_in_half_turns)
 
 
 class MeasurementGate(raw_types.Gate, gate_features.QasmConvertibleGate):
@@ -585,10 +548,10 @@ def measure_each(*qubits: raw_types.QubitId,
     return [MeasurementGate(key_func(q)).on(q) for q in qubits]
 
 
-X = RotXGate()  # Pauli X gate.
-Y = RotYGate()  # Pauli Y gate.
-Z = RotZGate()  # Pauli Z gate.
-CZ = Rot11Gate()  # Negates the amplitude of the |11> state.
+X = XPowGate()  # Pauli X gate.
+Y = YPowGate()  # Pauli Y gate.
+Z = ZPowGate()  # Pauli Z gate.
+CZ = CZPowGate()  # Negates the amplitude of the |11> state.
 
 S = Z**0.5
 T = Z**0.25
@@ -731,7 +694,7 @@ class CNotGate(eigen_gate.EigenGate,
     def default_decompose(self, qubits):
         c, t = qubits
         yield Y(t)**-0.5
-        yield Rot11Gate(half_turns=self.half_turns).on(c, t)
+        yield CZPowGate(exponent=self.half_turns).on(c, t)
         yield Y(t)**0.5
 
     def _eigen_components(self):
@@ -989,16 +952,16 @@ class ISwapGate(eigen_gate.EigenGate,
 ISWAP = ISwapGate()
 
 
-def Rx(rads: float) -> RotXGate:
+def Rx(rads: float) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
-    return RotXGate(rads=rads, global_shift_in_half_turns=-0.5)
+    return XPowGate(exponent=rads / np.pi, global_shift_in_half_turns=-0.5)
 
 
-def Ry(rads: float) -> RotYGate:
+def Ry(rads: float) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    return RotYGate(rads=rads, global_shift_in_half_turns=-0.5)
+    return YPowGate(exponent=rads / np.pi, global_shift_in_half_turns=-0.5)
 
 
-def Rz(rads: float) -> RotZGate:
+def Rz(rads: float) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    return RotZGate(rads=rads, global_shift_in_half_turns=-0.5)
+    return ZPowGate(exponent=rads / np.pi, global_shift_in_half_turns=-0.5)
