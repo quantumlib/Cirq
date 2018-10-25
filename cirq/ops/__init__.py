@@ -93,6 +93,9 @@ from cirq.ops.pauli_interaction_gate import (
 from cirq.ops.pauli_string import (
     PauliString,
 )
+from cirq.ops.phased_x_gate import (
+    PhasedXPowGate,
+)
 from cirq.ops.raw_types import (
     Gate,
     Operation,

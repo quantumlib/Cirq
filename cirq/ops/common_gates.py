@@ -20,8 +20,16 @@ from typing import (
 import numpy as np
 
 from cirq import value, linalg, protocols
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.ops import (
+    gate_features,
+    eigen_gate,
+    raw_types,
+    gate_operation,
+)
 from cirq.type_workarounds import NotImplementedType
+
+# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
+import cirq.ops.phased_x_gate
 
 
 class Rot11Gate(eigen_gate.EigenGate,
@@ -191,6 +199,12 @@ class RotXGate(eigen_gate.EigenGate,
             return args.format('rx({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
 
+    def _phase_by_(self, phase_turns, qubit_index):
+        """See `cirq.SupportsPhase`."""
+        return cirq.ops.phased_x_gate.PhasedXPowGate(
+            exponent=self._exponent,
+            phase_exponent=phase_turns * 2)
+
     def __str__(self) -> str:
         if self.half_turns == 1:
             return 'X'
@@ -275,6 +289,12 @@ class RotYGate(eigen_gate.EigenGate,
         else:
             return args.format('ry({0:half_turns}) {1};\n',
                                self.half_turns, qubits[0])
+
+    def _phase_by_(self, phase_turns, qubit_index):
+        """See `cirq.SupportsPhase`."""
+        return cirq.ops.phased_x_gate.PhasedXPowGate(
+            exponent=self._exponent,
+            phase_exponent=0.5 + phase_turns * 2)
 
     def __str__(self) -> str:
         if self.half_turns == 1:
