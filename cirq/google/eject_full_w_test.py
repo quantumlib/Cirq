@@ -63,34 +63,34 @@ def test_absorbs_z():
     # Full Z.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.125).on(q)],
+            [cg.ExpWGate(phase_exponent=0.125).on(q)],
             [cirq.Z(q)],
         ),
         expected=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.625).on(q)],
+            [cg.ExpWGate(phase_exponent=0.625).on(q)],
             [],
         ))
 
     # Partial Z.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.125).on(q)],
+            [cg.ExpWGate(phase_exponent=0.125).on(q)],
             [cirq.S(q)],
         ),
         expected=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.375).on(q)],
+            [cg.ExpWGate(phase_exponent=0.375).on(q)],
             [],
         ))
 
     # Multiple Zs.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.125).on(q)],
+            [cg.ExpWGate(phase_exponent=0.125).on(q)],
             [cirq.S(q)],
             [cirq.T(q)**-1],
         ),
         expected=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
             [],
             [],
         ))
@@ -103,23 +103,23 @@ def test_crosses_czs():
     # Full CZ.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(a)],
+            [cg.ExpWGate(phase_exponent=0.25).on(a)],
             [cirq.CZ(a, b)],
         ),
         expected=quick_circuit(
             [cirq.Z(b)],
             [cirq.CZ(a, b)],
-            [cg.ExpWGate(axis_half_turns=0.25).on(a)],
+            [cg.ExpWGate(phase_exponent=0.25).on(a)],
         ))
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.125).on(a)],
+            [cg.ExpWGate(phase_exponent=0.125).on(a)],
             [cirq.CZ(b, a)],
         ),
         expected=quick_circuit(
             [cirq.Z(b)],
             [cirq.CZ(a, b)],
-            [cg.ExpWGate(axis_half_turns=0.125).on(a)],
+            [cg.ExpWGate(phase_exponent=0.125).on(a)],
         ))
 
     # Partial CZ.
@@ -137,16 +137,16 @@ def test_crosses_czs():
     # Double cross.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.125).on(a)],
-            [cg.ExpWGate(axis_half_turns=0.375).on(b)],
+            [cg.ExpWGate(phase_exponent=0.125).on(a)],
+            [cg.ExpWGate(phase_exponent=0.375).on(b)],
             [cirq.CZ(a, b)**0.25],
         ),
         expected=quick_circuit(
             [],
             [],
             [cirq.CZ(a, b)**0.25],
-            [cg.ExpWGate(axis_half_turns=0.5).on(b),
-             cg.ExpWGate(axis_half_turns=0.25).on(a)],
+            [cg.ExpWGate(phase_exponent=0.5).on(b),
+             cg.ExpWGate(phase_exponent=0.25).on(a)],
         ))
 
 
@@ -157,7 +157,7 @@ def test_toggles_measurements():
     # Single.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(a)],
+            [cg.ExpWGate(phase_exponent=0.25).on(a)],
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
@@ -166,7 +166,7 @@ def test_toggles_measurements():
         ))
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(b)],
+            [cg.ExpWGate(phase_exponent=0.25).on(b)],
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
@@ -177,8 +177,8 @@ def test_toggles_measurements():
     # Multiple.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(a)],
-            [cg.ExpWGate(axis_half_turns=0.25).on(b)],
+            [cg.ExpWGate(phase_exponent=0.25).on(a)],
+            [cg.ExpWGate(phase_exponent=0.25).on(b)],
             [cirq.measure(a, b)],
         ),
         expected=quick_circuit(
@@ -190,7 +190,7 @@ def test_toggles_measurements():
     # Xmon.
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(a)],
+            [cg.ExpWGate(phase_exponent=0.25).on(a)],
             [cirq.measure(a, b, key='t')],
         ),
         expected=quick_circuit(
@@ -204,8 +204,8 @@ def test_cancels_other_full_w():
 
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
         ),
         expected=quick_circuit(
             [],
@@ -214,8 +214,8 @@ def test_cancels_other_full_w():
 
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
-            [cg.ExpWGate(axis_half_turns=0.125).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.125).on(q)],
         ),
         expected=quick_circuit(
             [],
@@ -225,7 +225,7 @@ def test_cancels_other_full_w():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate().on(q)],
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
         ),
         expected=quick_circuit(
             [],
@@ -234,7 +234,7 @@ def test_cancels_other_full_w():
 
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
             [cg.ExpWGate().on(q)],
         ),
         expected=quick_circuit(
@@ -249,44 +249,44 @@ def test_phases_partial_ws():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate().on(q)],
-            [cg.ExpWGate(axis_half_turns=0.25, half_turns=0.5).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25, exponent=0.5).on(q)],
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(axis_half_turns=-0.25, half_turns=0.5).on(q)],
+            [cg.ExpWGate(phase_exponent=-0.25, exponent=0.5).on(q)],
             [cg.ExpWGate().on(q)],
         ))
 
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
-            [cg.ExpWGate(half_turns=0.5).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
+            [cg.ExpWGate(exponent=0.5).on(q)],
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(q)],
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.5, exponent=0.5).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
         ))
 
     assert_optimizes(
         before=quick_circuit(
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
-            [cg.ExpWGate(axis_half_turns=0.5, half_turns=0.75).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
+            [cg.ExpWGate(phase_exponent=0.5, exponent=0.75).on(q)],
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(half_turns=0.75).on(q)],
-            [cg.ExpWGate(axis_half_turns=0.25).on(q)],
+            [cg.ExpWGate(exponent=0.75).on(q)],
+            [cg.ExpWGate(phase_exponent=0.25).on(q)],
         ))
 
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate().on(q)],
-            [cg.ExpWGate(half_turns=-0.25, axis_half_turns=0.5).on(q)]
+            [cg.ExpWGate(exponent=-0.25, phase_exponent=0.5).on(q)]
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpWGate(half_turns=-0.25, axis_half_turns=-0.5).on(q)],
+            [cg.ExpWGate(exponent=-0.25, phase_exponent=-0.5).on(q)],
             [cg.ExpWGate().on(q)],
         ))
 
