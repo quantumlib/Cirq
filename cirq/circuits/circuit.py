@@ -1547,13 +1547,16 @@ def _apply_unitary_circuit(circuit: Circuit,
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
 
+    def on_stuck(bad_op):
+        return TypeError(
+            'Operation without a known matrix or decomposition: {!r}'.format(
+                bad_op))
+
     unitary_ops = protocols.decompose(
         circuit.all_operations(),
         keep=protocols.has_unitary,
         intercepting_decomposer=_decompose_measurement_inversions,
-        on_stuck_raise=lambda bad_op: TypeError(
-            'Operation without a known matrix or decomposition: {!r}'.format(
-                bad_op)))
+        on_stuck_raise=on_stuck)
 
     for op in unitary_ops:
         indices = [qubit_map[q] for q in op.qubits]
