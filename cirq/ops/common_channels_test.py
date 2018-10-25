@@ -38,7 +38,7 @@ def test_asymmetric_depolarizing_channel_repr():
 
 def test_asymmetric_depolarizing_channel_str():
     assert (str(cirq.asymmetric_depolarize(0.1, 0.2, 0.3))
-            == 'AsymmetricDepolarizingChannel(p_x=0.1,p_y=0.2,p_z=0.3)')
+            == 'asymmetric_depolarize(p_x=0.1,p_y=0.2,p_z=0.3)')
 
 
 def test_asymmetric_depolarizing_channel_eq():
@@ -95,7 +95,7 @@ def test_depolarizing_channel_repr():
 
 
 def test_depolarizing_channel_str():
-    assert str(cirq.depolarize(0.3)) == 'DepolarizingChannel(p=0.3)'
+    assert str(cirq.depolarize(0.3)) == 'depolarize(p=0.3)'
 
 
 def test_depolarizing_channel_eq():
