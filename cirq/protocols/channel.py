@@ -153,13 +153,16 @@ def stochastic_unitary(
     """
     results = []
     for op in val._channel_():
+        # If polar decomposition has Hermitian part that is proportional to
+        # identity, it does not matter whether we use the left or right polar
+        # decomposition.
         u, p = sp.linalg.polar(op)
         if p[0, 0] == 0:
             return None
         potential_eye = p / p[0, 0]
         if np.allclose(potential_eye, np.eye(op.shape[0]), rtol=rtol,
                        atol=atol):
-            results.append((float(p[0, 0]) ** 2, u))
+            results.append((np.abs(p[0, 0]) ** 2, u))
         else:
             return None
     return tuple(results)

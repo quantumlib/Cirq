@@ -143,7 +143,6 @@ def test_stochastic_unitary_not_decomposable(channel):
     assert call_stochastic_unitary(channel) is None
 
 
-
 def test_stochastic_unitary_accuracy():
     channel = (np.sqrt(0.5) * Z, np.diag([np.sqrt(0.5), np.sqrt(0.5) * 1e-2]))
     class ReturnsChannel:
