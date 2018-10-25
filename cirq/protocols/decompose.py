@@ -112,7 +112,9 @@ def decompose(
     val: Any,
     *,
     intercepting_decomposer: Callable[['cirq.Operation'],
-                                      'cirq.OP_TREE'] = None,
+                                      Union[None,
+                                            NotImplementedType,
+                                            'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None
 ) -> List['cirq.Operation']:
     pass
@@ -123,7 +125,9 @@ def decompose(
     val: Any,
     *,
     intercepting_decomposer: Callable[['cirq.Operation'],
-                                      'cirq.OP_TREE'] = None,
+                                      Union[None,
+                                            NotImplementedType,
+                                            'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise: Optional[Union[
         TError,
@@ -136,8 +140,10 @@ def decompose(
 def decompose(
     val: TValue,
     *,
-    intercepting_decomposer: Callable[[Union['cirq.Operation', TValue]],
-                                      'cirq.OP_TREE'] = None,
+    intercepting_decomposer: Callable[['cirq.Operation'],
+                                      Union[None,
+                                            NotImplementedType,
+                                            'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise=_value_error_describing_bad_operation
 ) -> List['cirq.Operation']:
