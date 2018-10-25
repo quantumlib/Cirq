@@ -76,7 +76,7 @@ def single_qubit_matrix_to_native_gates(
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
-        ExpWGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
+        ExpWGate(exponent=2 * xy_turn, phase_exponent=2 * xy_phase_turn),
         ops.Z**(2 * total_z_turn)
     ]
     result = [
@@ -87,7 +87,7 @@ def single_qubit_matrix_to_native_gates(
     # Special case: XY half-turns can absorb Z rotations.
     if len(result) == 2 and abs(xy_turn) >= 0.5 - tolerance:
         return [
-            ExpWGate(axis_half_turns=2*xy_phase_turn + total_z_turn)
+            ExpWGate(phase_exponent=2 * xy_phase_turn + total_z_turn)
         ]
 
     return result

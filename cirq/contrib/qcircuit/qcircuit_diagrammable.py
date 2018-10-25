@@ -134,7 +134,7 @@ fallback_qcircuit_extensions.add_cast(  # type: ignore
     google.ExpWGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
-        if gate.half_turns == 1 and gate.axis_half_turns == 0
+        if gate.exponent == 1 and gate.phase_exponent == 0
         else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
@@ -145,5 +145,5 @@ fallback_qcircuit_extensions.add_cast(  # type: ignore
         else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.CNotGate,
+    ops.CNotPowGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\control', '\\targ'))

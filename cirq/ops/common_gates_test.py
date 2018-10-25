@@ -92,11 +92,11 @@ def test_z_init():
 def test_rot_gates_eq():
     eq = cirq.testing.EqualsTester()
     gates = [
-        lambda p: cirq.CZPowGate(exponent=p),
-        lambda p: cirq.XPowGate(exponent=p),
-        lambda p: cirq.YPowGate(exponent=p),
-        lambda p: cirq.ZPowGate(exponent=p),
-        lambda p: cirq.CNotGate(half_turns=p),
+        lambda p: cirq.CZ**p,
+        lambda p: cirq.X**p,
+        lambda p: cirq.Y**p,
+        lambda p: cirq.Z**p,
+        lambda p: cirq.CNOT**p,
     ]
     for gate in gates:
         eq.add_equality_group(gate(3.5),
@@ -117,8 +117,9 @@ def test_rot_gates_eq():
                                         global_negate_rate=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
                                         global_negate_rate=-0.1))
-    eq.add_equality_group(cirq.CNotGate(),
-                          cirq.CNotGate(half_turns=1), cirq.CNOT)
+    eq.add_equality_group(cirq.CNotPowGate(),
+                          cirq.CNotPowGate(exponent=1),
+                          cirq.CNOT)
     eq.add_equality_group(cirq.CZPowGate(),
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
@@ -191,16 +192,25 @@ def test_h_matrix():
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
+def test_h_init():
+    h = cirq.HPowGate(exponent=0.5)
+    assert h.exponent == 0.5
+
+
 def test_h_decompose():
-    a = cirq.NamedQubit('a')
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.5)
 
-    original = cirq.HGate(half_turns=0.5)
-    decomposed = cirq.Circuit.from_ops(original.default_decompose([a]))
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(original),
-        decomposed.to_unitary_matrix(),
-        atol=1e-8)
+def test_h_repr():
+    cirq.testing.assert_equivalent_repr(cirq.H)
+    cirq.testing.assert_equivalent_repr(cirq.H**0.5)
+    cirq.testing.assert_equivalent_repr(cirq.H**0.1)
+
+
+def test_h_str():
+    assert str(cirq.H) == 'H'
+    assert str(cirq.H**0.5) == 'H^0.5'
 
 
 def test_runtime_types_of_rot_gates():
@@ -346,7 +356,19 @@ def test_cnot_unknown_keyword_argument():
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.CNotGate(half_turns=cirq.Symbol('x')).default_decompose([a, b])
+    assert cirq.CNotPowGate(exponent=cirq.Symbol('x')).default_decompose([a, b])
+
+
+def test_cnot_decompose():
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
+
+
+def test_cnot_repr():
+    cirq.testing.assert_equivalent_repr(cirq.CNOT)
+    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.5)
+    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.1)
 
 
 def test_swap_power():
@@ -544,7 +566,7 @@ def test_iswap_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    original = cirq.ISwapGate(exponent=0.5)
+    original = cirq.ISwapPowGate(exponent=0.5)
     decomposed = cirq.Circuit.from_ops(original.default_decompose([a, b]))
 
     cirq.testing.assert_allclose_up_to_global_phase(

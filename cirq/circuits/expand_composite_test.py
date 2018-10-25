@@ -161,7 +161,7 @@ def test_decompose_returns_deep_op_tree():
     assert_equal_mod_empty(expected, circuit)
 
 
-class OtherCNot(cirq.CNotGate):
+class OtherCNot(cirq.CNotPowGate):
 
     def default_decompose(self, qubits):
         c, t = qubits
@@ -184,7 +184,8 @@ def test_nonrecursive_expansion():
     assert circuit == unexpanded_circuit
 
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
-                            isinstance(op.gate, (cirq.CNotGate, cirq.HGate)))
+                            isinstance(op.gate, (cirq.CNotPowGate,
+                                                 cirq.HPowGate)))
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     circuit = unexpanded_circuit.__copy__()
     expander.optimize_circuit(circuit)

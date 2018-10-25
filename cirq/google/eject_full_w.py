@@ -66,7 +66,7 @@ class EjectFullW(circuits.OptimizationPass):
                 w = _try_get_known_w(op)
                 if w is not None:
                     if decompositions.is_negligible_turn(
-                            cast(float, w.half_turns) - 1,
+                            cast(float, w.exponent) - 1,
                             self.tolerance):
                         _potential_cross_whole_w(moment_index,
                                                  op,
@@ -137,7 +137,7 @@ def _dump_held(qubits: Iterable[ops.QubitId],
     for q in sorted(qubits):
         p = state.held_w_phases.get(q)
         if p is not None:
-            dump_op = ExpWGate(axis_half_turns=p).on(q)
+            dump_op = ExpWGate(phase_exponent=p).on(q)
             state.insertions.append((moment_index, dump_op))
         state.held_w_phases[q] = None
 
@@ -175,7 +175,7 @@ def _potential_cross_whole_w(moment_index: int,
     w = cast(ExpWGate, _try_get_known_w(op))
     q = op.qubits[0]
     a = state.held_w_phases.get(q)
-    b = cast(float, w.axis_half_turns)
+    b = cast(float, w.phase_exponent)
 
     if a is None:
         # Collect the gate.
@@ -206,10 +206,10 @@ def _potential_cross_partial_w(moment_index: int,
     if a is None:
         return
     w = cast(ExpWGate, _try_get_known_w(op))
-    b = cast(float, w.axis_half_turns)
-    t = cast(float, w.half_turns)
-    new_op = ExpWGate(half_turns=t,
-                      axis_half_turns=2*a-b).on(op.qubits[0])
+    b = cast(float, w.phase_exponent)
+    t = cast(float, w.exponent)
+    new_op = ExpWGate(exponent=t,
+                      phase_exponent=2 * a - b).on(op.qubits[0])
     state.deletions.append((moment_index, op))
     state.inline_intos.append((moment_index, new_op))
 
@@ -309,8 +309,8 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
 def _try_get_known_w(op: ops.Operation) -> Optional[ExpWGate]:
     if (not isinstance(op, ops.GateOperation) or
             not isinstance(op.gate, ExpWGate) or
-            isinstance(op.gate.half_turns, value.Symbol) or
-            isinstance(op.gate.axis_half_turns, value.Symbol)):
+            isinstance(op.gate.exponent, value.Symbol) or
+            isinstance(op.gate.phase_exponent, value.Symbol)):
         return None
     return op.gate
 
