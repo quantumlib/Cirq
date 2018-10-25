@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
+from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast, Union
 
 import numpy as np
 
@@ -81,7 +81,9 @@ def _y_to_proto_dict(gate: ops.YPowGate, q: ops.QubitId) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.QubitId) -> Dict:
+def _phased_x_to_proto_dict(gate: Union[ops.PhasedXPowGate,
+                                        xmon_gates.ExpWGate],
+                            q: ops.QubitId) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':

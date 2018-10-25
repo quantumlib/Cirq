@@ -18,7 +18,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.google import xmon_gates
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.decompositions import two_qubit_matrix_to_operations
 from cirq.google.xmon_gates import XmonGate
