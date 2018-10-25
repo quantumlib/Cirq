@@ -26,8 +26,7 @@ from cirq.ops import gate_features, common_gates, raw_types, op_tree, \
 class _CCZPowGate(eigen_gate.EigenGate,
                   gate_features.ThreeQubitGate,
                   gate_features.CompositeGate,
-                  gate_features.InterchangeableQubitsGate,
-                  gate_features.QasmConvertibleGate):
+                  gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z that can be raised to a power.
 
     The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
@@ -102,9 +101,9 @@ class _CCZPowGate(eigen_gate.EigenGate,
         return protocols.CircuitDiagramInfo(('@', '@', '@'),
                                              exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -129,8 +128,7 @@ class _CCZPowGate(eigen_gate.EigenGate,
 class _CCXPowGate(eigen_gate.EigenGate,
                   gate_features.ThreeQubitGate,
                   gate_features.CompositeGate,
-                  gate_features.InterchangeableQubitsGate,
-                  gate_features.QasmConvertibleGate):
+                  gate_features.InterchangeableQubitsGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
     The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
@@ -186,9 +184,9 @@ class _CCXPowGate(eigen_gate.EigenGate,
         return protocols.CircuitDiagramInfo(('@', '@', 'X'),
                                              exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -209,8 +207,7 @@ class _CCXPowGate(eigen_gate.EigenGate,
 
 class _CSwapGate(gate_features.ThreeQubitGate,
                  gate_features.CompositeGate,
-                 gate_features.InterchangeableQubitsGate,
-                 gate_features.QasmConvertibleGate):
+                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -329,9 +326,9 @@ class _CSwapGate(gate_features.ThreeQubitGate,
             return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
