@@ -118,7 +118,7 @@ class _CCZPowerGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._exponent == 1:
             return 'cirq.CCZ'
-        return 'cirq.CCZ**{!r}'.format(self._exponent)
+        return '(cirq.CCZ**{!r})'.format(self._exponent)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -199,7 +199,7 @@ class _CCXPowerGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._exponent == 1:
             return 'cirq.TOFFOLI'
-        return 'cirq.TOFFOLI**{!r}'.format(self._exponent)
+        return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
 
     def __str__(self) -> str:
         if self._exponent == 1:

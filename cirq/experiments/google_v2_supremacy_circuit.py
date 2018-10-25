@@ -16,7 +16,7 @@ import random
 from typing import Callable, Iterable, TypeVar, cast, Sequence
 
 from cirq.circuits import InsertStrategy
-from cirq import circuits, ops, devices
+from cirq import circuits, devices, google, ops
 
 
 def google_v2_supremacy_circuit(qubits: Iterable[devices.GridQubit],
@@ -105,6 +105,49 @@ def google_v2_supremacy_circuit_grid(n_rows: int, n_cols: int,
     return google_v2_supremacy_circuit(qubits, cz_depth, seed)
 
 
+def google_v2_supremacy_circuit_bristlecone(n_rows: int,
+                                            cz_depth: int, seed: int
+                                            ) -> circuits.Circuit:
+    """
+    Generates Google Random Circuits v2 in Bristlecone.
+    See also https://arxiv.org/abs/1807.10749
+
+    Args:
+        n_rows: number of rows in a Bristlecone lattice.
+          Note that we do not include single qubit corners.
+        cz_depth: number of layers with CZ gates.
+        seed: seed for the random instance.
+
+    Returns:
+        A circuit with given size and seed.
+    """
+    def get_qubits(n_rows):
+        def count_neighbors(qubits, qubit):
+            """Counts the qubits that the given qubit can interact with."""
+            possibles = [
+                devices.GridQubit(qubit.row + 1, qubit.col),
+                devices.GridQubit(qubit.row - 1, qubit.col),
+                devices.GridQubit(qubit.row, qubit.col + 1),
+                devices.GridQubit(qubit.row, qubit.col - 1),
+                ]
+            return len(list(e for e in possibles if e in qubits))
+
+        assert 1 <= n_rows <= 11
+        max_row = n_rows - 1
+        dev = google.Bristlecone
+        # we need a consistent order of qubits
+        qubits = list(dev.qubits)
+        qubits.sort()
+        qubits = [q for q in qubits
+                      if  q.row <= max_row and  q.row + q.col < n_rows + 6
+                      and q.row - q.col < n_rows - 5]
+        qubits = [q for q in qubits if count_neighbors(qubits, q) > 1]
+        return qubits
+
+    qubits = get_qubits(n_rows)
+    return google_v2_supremacy_circuit(qubits, cz_depth, seed)
+
+
 T = TypeVar('T')
 
 
@@ -165,9 +208,6 @@ def _make_cz_layer(qubits: Iterable[devices.GridQubit], layer_index: int
 
     Note that, for small devices, some layers will be empty because the layer
     only contains edges not present on the device.
-
-    NOTE: This is the almost the function in supremacy.py,
-    but with a different order of CZ layers
     """
 
     # map to an internal layer index to match the cycle order of public circuits
