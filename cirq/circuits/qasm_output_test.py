@@ -308,11 +308,11 @@ def test_output_format():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
-                             header='Generated from Cirq',
+                             header='Generated from Cirq!',
                              precision=5)
     assert (filter_unpredictable_numbers(str(output)) ==
             filter_unpredictable_numbers(
-        """// Generated from Cirq
+        """// Generated from Cirq!
 
 OPENQASM 2.0;
 include "qelib1.inc";

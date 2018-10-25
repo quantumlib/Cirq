@@ -2143,7 +2143,7 @@ def test_to_qasm():
         cirq.X(q0),
     )
     assert (circuit.to_qasm() ==
-"""// Generated from Cirq
+"""// Generated from Cirq v{}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -2154,7 +2154,7 @@ qreg q[1];
 
 
 x q[0];
-""")
+""".format(cirq.__version__))
 
 
 def test_save_qasm():
@@ -2167,7 +2167,7 @@ def test_save_qasm():
         with open(file_path, 'r') as f:
             file_content = f.read()
     assert (file_content ==
-"""// Generated from Cirq
+"""// Generated from Cirq v{}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -2178,7 +2178,7 @@ qreg q[1];
 
 
 x q[0];
-""")
+""".format(cirq.__version__))
 
 
 def test_findall_operations_between():

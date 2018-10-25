@@ -34,6 +34,7 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
+import cirq._version
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -1342,8 +1343,33 @@ class Circuit:
                 param_resolver))
         return resolved_circuit
 
+    def _to_qasm_output(
+            self,
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            ) -> QasmOutput:
+        """Returns a QASM object equivalent to the circuit.
+
+        Args:
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM. Defaults to a cirq version specifier.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+        """
+        if header is None:
+            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QasmOutput(operations=self.all_operations(),
+                          qubits=qubits,
+                          header=header,
+                          precision=precision,
+                          version='2.0')
+
     def to_qasm(self,
-                header: str = 'Generated from Cirq',
+                header: Optional[str] = None,
                 precision: int = 10,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
                 ) -> str:
@@ -1351,23 +1377,16 @@ class Circuit:
 
         Args:
             header: A multi-line string that is placed in a comment at the top
-                of the QASM.
+                of the QASM. Defaults to a cirq version specifier.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        output = QasmOutput(operations=self.all_operations(),
-                            qubits=qubits,
-                            header=header,
-                            precision=precision,
-                            version='2.0')
-        return str(output)
+        return str(self._to_qasm_output(header, precision, qubit_order))
 
     def save_qasm(self,
                   file_path: Union[str, bytes, int],
-                  header: str = 'Generated from Cirq',
+                  header: Optional[str] = None,
                   precision: int = 10,
                   qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
                   ) -> None:
@@ -1376,21 +1395,12 @@ class Circuit:
         Args:
             file_path: The location of the file where the qasm will be written.
             header: A multi-line string that is placed in a comment at the top
-                of the QASM.
+                of the QASM. Defaults to a cirq version specifier.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
-            ext: For extending operations/gates to implement
-                QasmConvertibleOperation/QasmConvertibleGate.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        output = QasmOutput(operations=self.all_operations(),
-                            qubits=qubits,
-                            header=header,
-                            precision=precision,
-                            version='2.0')
-        output.save(file_path)
+        self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
 
 def _resolve_operations(
