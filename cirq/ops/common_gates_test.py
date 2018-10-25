@@ -108,15 +108,15 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
     eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_negate_rate=-0.5),
+                                        global_shift=-0.5),
                           cirq.ZPowGate(exponent=5,
-                                        global_negate_rate=-0.5))
+                                        global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=3,
-                                        global_negate_rate=-0.5))
+                                        global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_negate_rate=-0.1))
+                                        global_shift=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
-                                        global_negate_rate=-0.1))
+                                        global_shift=-0.1))
     eq.add_equality_group(cirq.CNotPowGate(),
                           cirq.CNotPowGate(exponent=1),
                           cirq.CNOT)
@@ -425,11 +425,11 @@ def test_xyz_repr():
 
 def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.XPowGate(
-        exponent=0.1, global_negate_rate=0.2))
+        exponent=0.1, global_shift=0.2))
     cirq.testing.assert_equivalent_repr(cirq.YPowGate(
-        exponent=0.1, global_negate_rate=0.2))
+        exponent=0.1, global_shift=0.2))
     cirq.testing.assert_equivalent_repr(cirq.ZPowGate(
-        exponent=0.1, global_negate_rate=0.2))
+        exponent=0.1, global_shift=0.2))
 
 
 def test_xyz_str():

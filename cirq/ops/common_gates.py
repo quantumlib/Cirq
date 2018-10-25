@@ -109,13 +109,13 @@ class XPowGate(eigen_gate.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0,
-                 global_negate_rate: float = 0.0) -> None:
+                 global_shift: float = 0.0) -> None:
         """
         Args:
             exponent: The t in X**t. Determines how much the -1 eigenstate of
                 the Pauli X operator gets phased by this operation (specifically
                 it will be phased by e^{i pi exponent}).
-            global_negate_rate: Offsets the eigenvalues of the gate.
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
                 The default shift of 0 gives the X gate's matrix eigenvalues of
                 +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
                 -i and +i. The shift is always specified assuming an exponent of
@@ -123,7 +123,7 @@ class XPowGate(eigen_gate.EigenGate,
         """
         super().__init__(
             exponent=exponent,
-            global_negate_rate=global_negate_rate)
+            global_shift=global_shift)
 
     @property
     def exponent(self) -> Union[value.Symbol, float]:
@@ -176,16 +176,16 @@ class XPowGate(eigen_gate.EigenGate,
         return 'X**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_negate_rate == -0.5:
+        if self._global_shift == -0.5:
             return 'cirq.Rx(np.pi*{!r})'.format(self._exponent)
-        if self._global_negate_rate == 0:
+        if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
             return '(cirq.X**{!r})'.format(self._exponent)
         return (
             'cirq.XPowGate(exponent={!r}, '
-            'global_negate_rate={!r})'
-        ).format(self._exponent, self._global_negate_rate)
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class YPowGate(eigen_gate.EigenGate,
@@ -195,13 +195,13 @@ class YPowGate(eigen_gate.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0,
-                 global_negate_rate: float = 0.0) -> None:
+                 global_shift: float = 0.0) -> None:
         """
         Args:
             exponent: The t in X**t. Determines how much the -1 eigenstate of
                 the Pauli Y operator gets phased by this operation (specifically
                 it will be phased by e^{i pi exponent}).
-            global_negate_rate: Offsets the eigenvalues of the gate.
+            global_shift: Offsets the eigenvalues of the gate.
                 The default shift of 0 gives the Y gate's matrix eigenvalues of
                 +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
                 -i and +i. The shift is always specified assuming an exponent of
@@ -209,7 +209,7 @@ class YPowGate(eigen_gate.EigenGate,
         """
         super().__init__(
             exponent=exponent,
-            global_negate_rate=global_negate_rate)
+            global_shift=global_shift)
 
     @property
     def exponent(self) -> Union[value.Symbol, float]:
@@ -249,16 +249,16 @@ class YPowGate(eigen_gate.EigenGate,
         return 'Y**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_negate_rate == -0.5:
+        if self._global_shift == -0.5:
             return 'cirq.Ry(np.pi*{!r})'.format(self._exponent)
-        if self._global_negate_rate == 0:
+        if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
             return '(cirq.Y**{!r})'.format(self._exponent)
         return (
             'cirq.YPowGate(exponent={!r}, '
-            'global_negate_rate={!r})'
-        ).format(self._exponent, self._global_negate_rate)
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class ZPowGate(eigen_gate.EigenGate,
@@ -268,20 +268,20 @@ class ZPowGate(eigen_gate.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0,
-                 global_negate_rate: float = 0.0) -> None:
+                 global_shift: float = 0.0) -> None:
         """
         Args:
             exponent: The t in Z**t. Determines how much the -1 eigenstate of
                 the Pauli Z operator gets phased by this operation (specifically
                 it will be phased by e^{i pi exponent}).
-            global_negate_rate: Offsets the eigenvalues of the gate.
+            global_shift: Offsets the eigenvalues of the gate.
                 The default shift of 0 gives the Z gate's matrix eigenvalues of
                 +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
                 -i and +i. The shift is always specified assuming an exponent of
                 one (i.e. a 180 degree rotation).
         """
         super().__init__(exponent=exponent,
-                         global_negate_rate=global_negate_rate)
+                         global_shift=global_shift)
 
     @property
     def exponent(self) -> Union[value.Symbol, float]:
@@ -349,9 +349,9 @@ class ZPowGate(eigen_gate.EigenGate,
         return 'Z**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_negate_rate == -0.5:
+        if self._global_shift == -0.5:
             return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
-        if self._global_negate_rate == 0:
+        if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'cirq.T'
             if self._exponent == -0.25:
@@ -365,8 +365,8 @@ class ZPowGate(eigen_gate.EigenGate,
             return '(cirq.Z**{!r})'.format(self._exponent)
         return (
             'cirq.ZPowGate(exponent={!r}, '
-            'global_negate_rate={!r})'
-        ).format(self._exponent, self._global_negate_rate)
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class MeasurementGate(raw_types.Gate, gate_features.QasmConvertibleGate):
@@ -870,14 +870,14 @@ ISWAP = ISwapPowGate()
 
 def Rx(rads: float) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
-    return XPowGate(exponent=rads / np.pi, global_negate_rate=-0.5)
+    return XPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
 def Ry(rads: float) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    return YPowGate(exponent=rads / np.pi, global_negate_rate=-0.5)
+    return YPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
 def Rz(rads: float) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    return ZPowGate(exponent=rads / np.pi, global_negate_rate=-0.5)
+    return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)

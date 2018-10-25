@@ -59,13 +59,13 @@ class EigenGate(raw_types.Gate):
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0,
-                 global_negate_rate: float = 0.0) -> None:
+                 global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of an eigenspace of the gate is computed by:
         1. Starting with an angle returned by the _eigen_components method.
             θ
-        2. Shifting the angle by the global_negate_rate.
+        2. Shifting the angle by the global_shift.
             θ + s
         3. Scaling the angle by the exponent.
             (θ + s) * e
@@ -75,19 +75,18 @@ class EigenGate(raw_types.Gate):
         Args:
             exponent: How much to scale the eigencomponents' angles by when
                 computing the gate's matrix.
-            global_negate_rate: Determines how the global phase of the gate
-                varies as the exponent varies. Specifically, the global phase
-                factor will be exp(i * pi * global_negate_rate * exponent).
-                In practice, this boils down to the eigencomponents' angles
-                being shifted by `global_negate_rate` before being multiplied by
-                `exponent`.
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+                In effect, this controls a global phase factor on the gate's
+                unitary matrix. The factor is:
 
-                For example, `cirq.X**t` uses a `global_negate_rate` of 0 but
-                `cirq.Rx(t)` uses a `global_negate_rate` of -0.5, which is why
+                    exp(i * pi * global_shift * exponent)
+
+                For example, `cirq.X**t` uses a `global_shift` of 0 but
+                `cirq.Rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
         """
         self._exponent = exponent
-        self._global_negate_rate = global_negate_rate
+        self._global_shift = global_shift
         self._canonical_exponent_cached = None
 
     # virtual method
@@ -103,7 +102,7 @@ class EigenGate(raw_types.Gate):
             return type(self)(exponent=exponent)
         return type(self)(
             exponent=exponent,
-            global_negate_rate=self._global_negate_rate)
+            global_shift=self._global_shift)
         # pylint: enable=unexpected-keyword-arg
 
     @abc.abstractmethod
@@ -170,7 +169,7 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        exponents = [e + self._global_negate_rate
+        exponents = [e + self._global_shift
                      for e, _ in self._eigen_components()]
         real_periods = [abs(2/e) for e in exponents if e != 0]
         if not real_periods:
@@ -202,7 +201,7 @@ class EigenGate(raw_types.Gate):
     def _identity_tuple(self):
         return (type(self),
                 self._canonical_exponent,
-                self._global_negate_rate)
+                self._global_shift)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -233,7 +232,7 @@ class EigenGate(raw_types.Gate):
         e = cast(float, self._exponent)
         return np.sum([
             component * 1j**(
-                    2 * e * (half_turns + self._global_negate_rate))
+                    2 * e * (half_turns + self._global_shift))
             for half_turns, component in self._eigen_components()
         ], axis=0)
 

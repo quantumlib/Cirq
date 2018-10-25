@@ -83,13 +83,13 @@ def test_eq():
     eq.add_equality_group(cirq.Symbol('b'))
 
     eq.add_equality_group(ZGateDef(exponent=0.5,
-                                   global_negate_rate=0.0))
+                                   global_shift=0.0))
     eq.add_equality_group(ZGateDef(exponent=-0.5,
-                                   global_negate_rate=0.0))
+                                   global_shift=0.0))
     eq.add_equality_group(ZGateDef(exponent=0.5,
-                                   global_negate_rate=0.5))
+                                   global_shift=0.5))
     eq.add_equality_group(ZGateDef(exponent=1.0,
-                                   global_negate_rate=0.5))
+                                   global_shift=0.5))
 
 
 def test_period():
@@ -131,9 +131,9 @@ def test_pow():
         _ = CExpZinGate(cirq.Symbol('a'))**1.5
     assert ZGateDef(exponent=0.25)**2 == ZGateDef(exponent=0.5)
     assert ZGateDef(exponent=0.25,
-                    global_negate_rate=0.5)**2 == ZGateDef(
+                    global_shift=0.5)**2 == ZGateDef(
         exponent=0.5,
-        global_negate_rate=0.5)
+        global_shift=0.5)
 
 
 def test_inverse():
@@ -215,17 +215,17 @@ def test_matrix():
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(ZGateDef(exponent=1, global_negate_rate=0.5)),
+        cirq.unitary(ZGateDef(exponent=1, global_shift=0.5)),
         np.diag([1j, -1j]),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(ZGateDef(exponent=0.5, global_negate_rate=0.5)),
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift=0.5)),
         np.diag([1+1j, -1+1j])/np.sqrt(2),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(ZGateDef(exponent=0.5, global_negate_rate=-0.5)),
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift=-0.5)),
         np.diag([1-1j, 1+1j])/np.sqrt(2),
         atol=1e-8)
 
