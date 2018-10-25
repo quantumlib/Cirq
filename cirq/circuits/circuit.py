@@ -1108,7 +1108,15 @@ class Circuit:
         return (op for moment in self for op in moment.operations)
 
     def _has_unitary_(self) -> bool:
-        return self.are_all_measurements_terminal()
+        if not self.are_all_measurements_terminal():
+            return False
+
+        unitary_ops = protocols.decompose(
+            self.all_operations(),
+            keep=protocols.has_unitary,
+            intercepting_decomposer=_decompose_measurement_inversions,
+            on_stuck_raise=None)
+        return all(protocols.has_unitary(e) for e in unitary_ops)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """Converts the circuit into a unitary matrix, if possible.
@@ -1538,8 +1546,17 @@ def _apply_unitary_circuit(circuit: Circuit,
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
-    for op, qs in _extract_unitaries(circuit.all_operations()):
-        indices = [qubit_map[q] for q in qs]
+
+    unitary_ops = protocols.decompose(
+        circuit.all_operations(),
+        keep=protocols.has_unitary,
+        intercepting_decomposer=_decompose_measurement_inversions,
+        on_stuck_raise=lambda bad_op: TypeError(
+            'Operation without a known matrix or decomposition: {!r}'.format(
+                bad_op)))
+
+    for op in unitary_ops:
+        indices = [qubit_map[q] for q in op.qubits]
         result = protocols.apply_unitary_to_tensor(
             val=op,
             target_tensor=state,
@@ -1551,41 +1568,14 @@ def _apply_unitary_circuit(circuit: Circuit,
     return state
 
 
-def _extract_unitaries(operations: Iterable[ops.Operation],
-                       ) -> Iterable[Tuple[Any,
-                                           Tuple[ops.QubitId, ...]]]:
-    """Yields a sequence of unitary matrices equivalent to the circuit's effect.
-    """
-    for op in operations:
-        # Check if the operation has a known matrix.
-        matrix = protocols.unitary(op, None)
-        if matrix is not None:
-            yield op, op.qubits
-            continue
+def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
+    if ops.MeasurementGate.is_measurement(op):
+        gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
+        return [ops.X(q)
+                for q, b in zip(op.qubits, gate.invert_mask)
+                if b]
 
-        # If not, check if it has a decomposition.
-        op_list = protocols.decompose_once(op, None)
-        if op_list is not None:
-            # Recurse decomposition to get known matrix gates.
-            for op2 in _extract_unitaries(op_list):
-                yield op2
-            continue
-
-        if ops.MeasurementGate.is_measurement(op):
-            gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-            # Account for bit flips embedded into the measurement operation.
-            for i, b in enumerate(gate.invert_mask):
-                if b:
-                    yield ops.X, (op.qubits[i],)
-
-            # This is a private method called in contexts where we know
-            # measurement is supposed to be skipped.
-            continue
-
-        # Otherwise, fail
-        raise TypeError(
-            'Operation without a known matrix or decomposition: {!r}'.format(
-                op))
+    return NotImplemented
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
