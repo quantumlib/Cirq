@@ -22,7 +22,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import ops, linalg, extension, protocols
+from cirq import ops, linalg, protocols
 
 
 class QasmUGate(ops.SingleQubitGate):
