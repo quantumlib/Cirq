@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study, protocols
+from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment

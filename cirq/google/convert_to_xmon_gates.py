@@ -71,18 +71,18 @@ class ConvertToXmonGates(PointOptimizer):
         return NotImplemented
 
     def convert(self, op: ops.Operation) -> List[ops.Operation]:
+        def on_stuck_raise(bad):
+            return TypeError(
+                "Don't know how to work with {!r}. "
+                "It isn't a GateOperation with an XmonGate, "
+                "a 1 or 2 qubit gate with a known unitary, "
+                "or composite.".format(bad))
+
         return protocols.decompose(
             op,
             keep=XmonGate.is_supported_op,
             intercepting_decomposer=self._convert_one,
-            on_stuck_raise=(
-                None
-                if self.ignore_failures
-                else lambda op: TypeError(
-                    "Don't know how to work with {!r}. "
-                    "It isn't a GateOperation with an XmonGate, "
-                    "a 1 or 2 qubit gate with a known unitary, "
-                    "or composite.".format(op))))
+            on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 
     def optimization_at(self, circuit, index, op):
         converted = self.convert(op)

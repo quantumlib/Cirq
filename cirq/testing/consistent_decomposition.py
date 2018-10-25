@@ -27,7 +27,7 @@ def assert_decompose_is_consistent_with_unitary(val: Any):
         qubits = val.qubits
         dec = protocols.decompose_once(val)
     else:
-        qubits = line.LineQubit.range(qubit_count)
+        qubits = tuple(line.LineQubit.range(qubit_count))
         dec = protocols.decompose_once_with_qubits(val, qubits)
     actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
         qubit_order=qubits)

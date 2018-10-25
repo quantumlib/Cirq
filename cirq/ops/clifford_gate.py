@@ -18,7 +18,7 @@ from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import raw_types, gate_features, common_gates, op_tree, \
+from cirq.ops import raw_types, common_gates, op_tree, \
     named_qubit
 from cirq.ops.pauli import Pauli
 

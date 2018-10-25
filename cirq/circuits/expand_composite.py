@@ -16,7 +16,7 @@
 
 from typing import Callable
 
-from cirq import extension, ops, protocols
+from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,

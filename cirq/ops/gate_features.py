@@ -17,7 +17,7 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Any, Dict, Optional, Sequence, Tuple, Iterable
+from typing import Any, Dict, Optional, Tuple, Iterable
 
 import abc
 import string

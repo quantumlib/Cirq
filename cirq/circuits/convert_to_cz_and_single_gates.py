@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from cirq import ops, decompositions, extension, protocols
+from cirq import ops, decompositions, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
