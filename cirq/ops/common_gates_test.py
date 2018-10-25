@@ -87,11 +87,11 @@ def test_z_init():
 def test_rot_gates_eq():
     eq = cirq.testing.EqualsTester()
     gates = [
-        lambda p: cirq.CZPowGate(exponent=p),
-        lambda p: cirq.XPowGate(exponent=p),
-        lambda p: cirq.YPowGate(exponent=p),
-        lambda p: cirq.ZPowGate(exponent=p),
-        lambda p: cirq.CNotGate(half_turns=p),
+        lambda p: cirq.CZ**p,
+        lambda p: cirq.X**p,
+        lambda p: cirq.Y**p,
+        lambda p: cirq.Z**p,
+        lambda p: cirq.CNOT**p,
     ]
     for gate in gates:
         eq.add_equality_group(gate(3.5),
@@ -112,8 +112,8 @@ def test_rot_gates_eq():
                                         global_shift_in_half_turns=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
                                         global_shift_in_half_turns=-0.1))
-    eq.add_equality_group(cirq.CNotGate(),
-                          cirq.CNotGate(half_turns=1), cirq.CNOT)
+    eq.add_equality_group(cirq.CNotPowGate(),
+                          cirq.CNotPowGate(exponent=1), cirq.CNOT)
     eq.add_equality_group(cirq.CZPowGate(),
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
@@ -186,10 +186,26 @@ def test_h_matrix():
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
+def test_h_init():
+    h = cirq.HPowGate(exponent=0.5)
+    assert h.exponent == 0.5
+
+
 def test_h_decompose():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.5)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.1)
+
+
+def test_h_repr():
+    cirq.testing.assert_equivalent_repr(cirq.H)
+    cirq.testing.assert_equivalent_repr(cirq.H**0.5)
+    cirq.testing.assert_equivalent_repr(cirq.H**0.1)
+
+
+def test_h_str():
+    assert str(cirq.H) == 'H'
+    assert str(cirq.H**0.5) == 'H^0.5'
 
 
 def test_runtime_types_of_rot_gates():
@@ -327,10 +343,19 @@ def test_cnot_unknown_keyword_argument():
         _ = cirq.CNOT(target=a, controlled=b)
 
 
-def test_cnot_decomposes_despite_symbol():
+def test_cnot_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x'))
+    assert cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x')) is not None
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
+
+
+def test_cnot_repr():
+    cirq.testing.assert_equivalent_repr(cirq.CNOT)
+    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.5)
+    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.1)
 
 
 def test_swap_power():
