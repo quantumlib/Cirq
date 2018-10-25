@@ -128,12 +128,12 @@ def channel(val: Any,
 def stochastic_unitary(
     val: SupportsChannel,
     rtol=1.e-5,
-    atol=1.e-8, ) -> Optional[Tuple[Tuple[float, np.ndarray], ...]]:
+    atol=1.e-8) -> Optional[Tuple[Tuple[float, np.ndarray], ...]]:
     """Gives a stochastic representation of a channel by unitaries, if possible.
 
     If a channel has Krauss operators A_0,A_1,...,A_{r-1} this checks whether
     each A_i is proportional to a unitary matrix, U_i, and if so, returns
-    each each unitary U_i along with the probability of the unitary p_i,
+    each unitary U_i along with the probability of the unitary p_i,
     (i.e. A_i = \sqrt{p_i} U_i). Note that this does NOT check whether
     there is some equivalent channel (under unitary equivalences of channels)
     that supports interpretation as a stochastic unitary, only that the
