@@ -105,7 +105,7 @@ class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
         if isinstance(self.half_turns, value.Symbol):
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
-            yield ops.RotZGate(half_turns=self.half_turns)(any_qubit)
+            yield ops.Z(any_qubit)**self.half_turns
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
         else:
@@ -122,8 +122,7 @@ class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
                                                exponent_absorbs_sign=True)
 
     def _trace_distance_bound_(self) -> float:
-        return protocols.trace_distance_bound(
-            ops.RotZGate(half_turns=self.half_turns))
+        return protocols.trace_distance_bound(ops.Z**self.half_turns)
 
     def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)

@@ -139,6 +139,9 @@ class GateOperation(raw_types.Operation,
             axes,
             default=NotImplemented)
 
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self._gate)
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
 

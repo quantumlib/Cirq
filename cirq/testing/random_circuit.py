@@ -27,7 +27,7 @@ DEFAULT_GATE_DOMAIN = {
     ops.CZ: 2,
     ops.H: 1,
     ops.ISWAP: 2,
-    ops.Rot11Gate(): 2,
+    ops.CZPowGate(): 2,
     ops.S: 1,
     ops.SWAP: 2,
     ops.T: 1,

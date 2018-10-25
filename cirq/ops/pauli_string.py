@@ -184,7 +184,7 @@ class PauliString:
                 return PauliString._pass_single_clifford_gate_over(
                     pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
-            if isinstance(gate, common_gates.Rot11Gate):
+            if isinstance(gate, common_gates.CZPowGate):
                 gate = PauliInteractionGate.CZ
             if isinstance(gate, PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(

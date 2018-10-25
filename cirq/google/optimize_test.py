@@ -96,9 +96,9 @@ def test_dont_allow_partial_czs():
 
     cz_gates = [op.gate for op in after.all_operations()
                 if isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.Rot11Gate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+                isinstance(op.gate, cirq.CZPowGate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent != 1)
     assert num_full_cz == 2
     assert num_part_cz == 0
 
@@ -111,8 +111,8 @@ def test_allow_partial_czs():
 
     cz_gates = [op.gate for op in after.all_operations()
                 if isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.Rot11Gate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+                isinstance(op.gate, cirq.CZPowGate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent != 1)
     assert num_full_cz == 0
     assert num_part_cz == 1

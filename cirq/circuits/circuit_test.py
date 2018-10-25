@@ -724,7 +724,7 @@ def test_findall_operations():
 
     def is_x(op: cirq.Operation) -> bool:
         return (isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.RotXGate))
+                isinstance(op.gate, cirq.XPowGate))
 
     c = Circuit()
     assert list(c.findall_operations(is_x)) == []
@@ -767,12 +767,12 @@ def test_findall_operations_with_gate():
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.measure(a), cirq.measure(b)]),
     ])
-    assert list(c.findall_operations_with_gate_type(cirq.RotXGate)) == [
+    assert list(c.findall_operations_with_gate_type(cirq.XPowGate)) == [
         (0, cirq.X(a), cirq.X),
         (2, cirq.X(a), cirq.X),
         (2, cirq.X(b), cirq.X),
     ]
-    assert list(c.findall_operations_with_gate_type(cirq.Rot11Gate)) == [
+    assert list(c.findall_operations_with_gate_type(cirq.CZPowGate)) == [
         (3, cirq.CZ(a, b), cirq.CZ),
     ]
     assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
@@ -1198,7 +1198,7 @@ a: ---X^0.12341---
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
     test_wgate = cg.ExpWGate(
-        half_turns=0.12341234, axis_half_turns=0.43214321)
+        exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
 a: ---W(0.43)^0.12---
@@ -1208,7 +1208,7 @@ a: ---W(0.43)^0.12---
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
     test_wgate = cg.ExpWGate(
-        half_turns=0.12341234, axis_half_turns=0.43214321)
+        exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
 a: ---W(0.43214321)^0.12341234---
@@ -1359,6 +1359,7 @@ def test_circuit_unitary():
 
     with_inner_measure = cirq.Circuit.from_ops(
         cirq.H(q), cirq.measure(q), cirq.H(q))
+    assert not cirq.has_unitary(with_inner_measure)
     assert cirq.unitary(with_inner_measure, None) is None
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -1380,6 +1381,7 @@ def test_simple_circuits_to_unitary_matrix():
     # Phase parity.
     c = Circuit.from_ops(cirq.CNOT(a, b), cirq.Z(b), cirq.CNOT(a, b))
     m = c.to_unitary_matrix()
+    assert cirq.has_unitary(c) is True
     cirq.testing.assert_allclose_up_to_global_phase(
         m,
         np.array([
@@ -1418,6 +1420,8 @@ def test_composite_gate_to_unitary_matrix():
             cirq.measure(a),
             cirq.X(b),
             cirq.measure(b))
+
+    assert cirq.has_unitary(c) is True
     mat = c.to_unitary_matrix()
     mat_expected = cirq.unitary(cirq.CNOT)
 
