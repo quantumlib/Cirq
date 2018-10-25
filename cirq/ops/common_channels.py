@@ -81,12 +81,12 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
     def __repr__(self) -> str:
         return (
-            'cirq.AsymmetricDepolarizingChannel(p_x={!r},p_y={!r},p_z={!r})'
+            'cirq.asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'
                 .format(self._p_x, self._p_y, self._p_z)
         )
 
     def __str__(self) -> str:
-        return ('AsymmetricDepolarizingChannel(p_x={!r},p_y={!r},p_z={!r})'
+        return ('asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'
                 .format(self._p_x, self._p_y, self._p_z))
 
     def _circuit_diagram_info_(self,
@@ -155,10 +155,10 @@ class DepolarizingChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return 'cirq.DepolarizingChannel(p={!r})'.format(self._p)
+        return 'cirq.depolarize(p={!r})'.format(self._p)
 
     def __str__(self) -> str:
-        return 'DepolarizingChannel(p={!r})'.format(self._p)
+        return 'depolarize(p={!r})'.format(self._p)
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> str:
