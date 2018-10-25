@@ -29,12 +29,6 @@ TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
-def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
-    return ValueError(
-        "Operation doesn't satisfy the given `keep` "
-        "but can't be decomposed: {!r}".format(op))
-
-
 class QasmArgs(string.Formatter):
     """
     Attributes:

@@ -2142,6 +2142,7 @@ def test_to_qasm():
     circuit = cirq.Circuit.from_ops(
         cirq.X(q0),
     )
+    assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (circuit.to_qasm() ==
 """// Generated from Cirq
 
