@@ -19,8 +19,8 @@ import numpy as np
 import cirq
 
 
-class GoodGateDecompose(cirq.Gate, cirq.CompositeGate):
-    def default_decompose(self, qubits):
+class GoodGateDecompose(cirq.Gate):
+    def _decompose_(self, qubits):
         return cirq.X(qubits[0])
 
     def _unitary_(self):
@@ -30,8 +30,8 @@ class GoodGateDecompose(cirq.Gate, cirq.CompositeGate):
         ])
 
 
-class BadGateDecompose(cirq.Gate, cirq.CompositeGate):
-    def default_decompose(self, qubits):
+class BadGateDecompose(cirq.Gate):
+    def _decompose_(self, qubits):
         return cirq.Y(qubits[0])
 
     def _unitary_(self):

@@ -76,8 +76,8 @@ def test_already_converted():
 
 
 def test_convert_composite():
-    class CompositeDummy(cirq.Gate, cirq.CompositeGate):
-        def default_decompose(self, qubits):
+    class CompositeDummy(cirq.Gate):
+        def _decompose_(self, qubits):
             q0, q1 = qubits
             yield cirq.X(q0)
             yield cirq.Y(q1) ** 0.5

@@ -553,9 +553,7 @@ S = Z**0.5
 T = Z**0.25
 
 
-class HPowGate(eigen_gate.EigenGate,
-               gate_features.CompositeGate,
-               gate_features.SingleQubitGate):
+class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """Rotation around the X+Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -604,7 +602,7 @@ class HPowGate(eigen_gate.EigenGate,
         target_tensor *= np.sqrt(2)
         return target_tensor
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         q = qubits[0]
 
         if self._exponent == 1:
@@ -645,9 +643,7 @@ class HPowGate(eigen_gate.EigenGate,
 H = HPowGate()  # Hadamard gate.
 
 
-class CNotPowGate(eigen_gate.EigenGate,
-                  gate_features.CompositeGate,
-                  gate_features.TwoQubitGate):
+class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     """The controlled-not gate, possibly raised to a power.
 
     When applying CNOT (controlled-not) to QuBits, you can either use
@@ -665,7 +661,7 @@ class CNotPowGate(eigen_gate.EigenGate,
         """
         super().__init__(exponent=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         c, t = qubits
         yield Y(t)**-0.5
         yield CZ(c, t)**self._exponent
@@ -746,15 +742,14 @@ CNOT = CNotPowGate()  # Controlled Not Gate.
 
 class SwapPowGate(eigen_gate.EigenGate,
                   gate_features.TwoQubitGate,
-                  gate_features.CompositeGate,
                   gate_features.InterchangeableQubitsGate):
-    """Swaps two qubits."""
+    """The SWAP gate, possibly raised to a power. Exchanges qubits."""
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0) -> None:
         super().__init__(exponent=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         """See base class."""
         a, b = qubits
         yield CNOT(a, b)
@@ -828,7 +823,6 @@ SWAP = SwapPowGate()  # Exchanges two qubits' states.
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
-                   gate_features.CompositeGate,
                    gate_features.InterchangeableQubitsGate,
                    gate_features.TwoQubitGate):
     """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.
@@ -863,7 +857,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b = qubits
 
         yield CNOT(a, b)

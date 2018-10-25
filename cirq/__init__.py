@@ -105,8 +105,6 @@ from cirq.ops import (
     SingleQubitCliffordGate,
     CNOT,
     CNotPowGate,
-    CompositeGate,
-    CompositeOperation,
     ControlledGate,
     CSWAP,
     CZ,

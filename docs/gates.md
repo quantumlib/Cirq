@@ -84,24 +84,23 @@ gate/operation.
 The method may also return `NotImplemented`, in which case `cirq.unitary`
 behaves as if the method is not implemented.
 
-#### CompositeGate and CompositeOperation
+#### `cirq.decompose` and `def _decompose_`
 
-A ``CompositeGate`` is a gate which consists of multiple gates
-that can be applied to a given set of qubits.  This is a manner
-in which one can decompose one gate into multiple gates.  In
-particular ``CompositeGates`` implement the method 
-``default_decompose`` which acts on a sequence of qubits, and
-returns a list of the operations acting on these qubits for
-the constituents gates.  
+A `cirq.Operation` indicates that it can be broken down into smaller simpler
+operations by implementing a `def _decompose_(self):` method.
+Code that doesn't understand a particular operation can call
+`cirq.decompose_once` or `cirq.decompose` on that operation in order to get
+a set of simpler operations that it does understand.
 
-One thing about ``CompositeGates`` is that sometimes you want
-to modify the decomposition.  Algorithms that allow this can
-take an ``Extension`` which allows for overriding the 
-``CompositeGate``.  An example of this is for in 
-``Simulators`` where an optional extension can be supplied
-that can be used to override the CompositeGate.
+One useful thing about `cirq.decompose` is that it will decompose *recursively*,
+until only operations meeting a `keep` predicate remain.
+You can also give an `intercepting_decomposer` to `cirq.decompose`, which will
+take priority over operations' own decompositions.
 
-A ``CompositeOperation`` is just like a ``CompositeGate``, except it already knows the qubits it should be applied to.
+For `cirq.Gate`s, the decompose method is slightly different; it takes qubits:
+`def _decompose_(self, qubits)`.
+Callers who know the qubits that the gate is being applied to will use
+`cirq.decompose_once_with_qubits` to trigger this method.
 
 #### `_circuit_diagram_info_(self, args)` and `cirq.circuit_diagram_info(val, [args], [default])`
 

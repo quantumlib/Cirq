@@ -112,7 +112,9 @@ def decompose(
     val: Any,
     *,
     intercepting_decomposer: Callable[['cirq.Operation'],
-                                      'cirq.OP_TREE'] = None,
+                                      Union[None,
+                                            NotImplementedType,
+                                            'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None
 ) -> List['cirq.Operation']:
     pass
@@ -123,7 +125,9 @@ def decompose(
     val: Any,
     *,
     intercepting_decomposer: Callable[['cirq.Operation'],
-                                      'cirq.OP_TREE'] = None,
+                                      Union[None,
+                                            NotImplementedType,
+                                            'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise: Optional[Union[
         TError,
@@ -136,8 +140,10 @@ def decompose(
 def decompose(
     val: TValue,
     *,
-    intercepting_decomposer: Callable[[Union['cirq.Operation', TValue]],
-                                      'cirq.OP_TREE'] = None,
+    intercepting_decomposer: Callable[['cirq.Operation'],
+                                      Union[None,
+                                            NotImplementedType,
+                                            'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise=_value_error_describing_bad_operation
 ) -> List['cirq.Operation']:
@@ -268,12 +274,6 @@ def decompose_once(val: Any,
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    # TODO: remove compatibility shim when CompositeOperation is deleted.
-    import cirq
-    cast = cirq.try_cast(cirq.CompositeOperation, val)  # type: ignore
-    if cast is not None:
-        return list(cirq.flatten_op_tree(cast.default_decompose()))
-
     method = getattr(val, '_decompose_', None)
     decomposed = NotImplemented if method is None else method(**kwargs)
 
@@ -333,12 +333,5 @@ def decompose_once_with_qubits(val: Any,
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    # TODO: remove compatibility shim when CompositeOperation is deleted.
-    import cirq
-    cast = cirq.try_cast(cirq.CompositeGate, val)  # type: ignore
-    if cast is not None:
-        # coverage: ignore
-        return list(cirq.flatten_op_tree(cast.default_decompose(tuple(qubits))))
-
     return decompose_once(val, default, qubits=tuple(qubits))
 # pylint: enable=function-redefined

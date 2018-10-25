@@ -29,15 +29,7 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-LIFTED_POTENTIAL_TYPES = {
-    gate_features.CompositeOperation: gate_features.CompositeGate,
-}
-
-
-class GateOperation(raw_types.Operation,
-                    extension.PotentialImplementation[Union[
-                        gate_features.CompositeOperation,
-                    ]]):
+class GateOperation(raw_types.Operation):
     """An application of a gate to a collection of qubits.
 
     Attributes:
@@ -113,17 +105,10 @@ class GateOperation(raw_types.Operation,
     def __ne__(self, other):
         return not self == other
 
-    def try_cast_to(self, desired_type, extensions):
-        desired_gate_type = LIFTED_POTENTIAL_TYPES.get(desired_type)
-        if desired_gate_type is not None:
-            cast_gate = extensions.try_cast(desired_gate_type, self.gate)
-            if cast_gate is not None:
-                return self.with_gate(cast_gate)
-        return None
-
-    def default_decompose(self):
-        cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
-        return cast_gate.default_decompose(self.qubits)
+    def _decompose_(self):
+        return protocols.decompose_once_with_qubits(self.gate,
+                                                    self.qubits,
+                                                    NotImplemented)
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
