@@ -55,3 +55,8 @@ from cirq.protocols.phase import (
     SupportsPhase,
     phase_by,
 )
+from cirq.protocols.decompose import (
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
+)
