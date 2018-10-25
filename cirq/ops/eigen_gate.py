@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import fractions
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
 import abc
 import functools
-import math
 
 import numpy as np
 
@@ -177,7 +176,7 @@ class EigenGate(raw_types.Gate):
             return None
 
         def lcm(a, b):
-            return a * b // math.gcd(a, b)
+            return a * b // fractions.gcd(a, b)
         return functools.reduce(lcm, int_periods)
 
     def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
