@@ -236,12 +236,12 @@ def test_known_old_failure():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         actual=cirq.Circuit.from_ops(
-            cg.ExpWGate(half_turns=0.61351656,
-                        axis_half_turns=0.8034575038876517).on(b),
+            cg.ExpWGate(exponent=0.61351656,
+                        phase_exponent=0.8034575038876517).on(b),
             cirq.measure(a, b)),
         reference=cirq.Circuit.from_ops(
-            cg.ExpWGate(half_turns=0.61351656,
-                        axis_half_turns=0.8034575038876517).on(b),
+            cg.ExpWGate(exponent=0.61351656,
+                        phase_exponent=0.8034575038876517).on(b),
             cirq.Z(a)**0.5,
             cirq.Z(b)**0.1,
             cirq.measure(a, b)),

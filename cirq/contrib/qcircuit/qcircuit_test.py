@@ -56,7 +56,7 @@ def test_fallback_diagram():
 def test_text_to_qcircuit_diagrammable():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
-    g = cirq.SwapGate(half_turns=0.5)
+    g = cirq.SwapPowGate(exponent=0.5)
     f = _TextToQCircuitDiagrammable(g)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     actual_info = f.qcircuit_diagram_info(

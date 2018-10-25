@@ -186,7 +186,7 @@ def test_phase_by():
     assert (cirq.phase_by(
                 cirq.ControlledGate(UnphasableGate), 0.25, 1, default=None) ==
             None)
-    sub_gate = cirq.google.ExpWGate(axis_half_turns = 0.5)
+    sub_gate = cirq.google.ExpWGate(phase_exponent= 0.5)
     phased_sub_gate = cirq.phase_by(sub_gate, 0.25, 0)
     assert phased_sub_gate != sub_gate
     cg = cirq.ControlledGate(sub_gate)

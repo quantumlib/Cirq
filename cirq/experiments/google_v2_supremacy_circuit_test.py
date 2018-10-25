@@ -18,7 +18,7 @@ def test_google_v2_supremacy_circuit():
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.ZPowGate))) == 32
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.HGate))) == 40
+        ops.HPowGate))) == 40
     qubits = [GridQubit(i, j) for i in range(4)
               for j in range(5)]
     assert isinstance(circuit.operation_at(qubits[0],2).gate, ops.YPowGate)

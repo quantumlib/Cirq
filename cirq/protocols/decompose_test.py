@@ -148,7 +148,7 @@ def test_decompose_keep():
     # Recursion can be stopped.
     assert cirq.decompose(
         cirq.SWAP(a, b),
-        keep=lambda e: isinstance(e.gate, cirq.CNotGate)
+        keep=lambda e: isinstance(e.gate, cirq.CNotPowGate)
     ) == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]
 
     # Recursion continues down to CZ + single-qubit gates.
@@ -217,6 +217,6 @@ def test_decompose_intercept():
     # Falls back to normal decomposition when NotImplemented.
     actual = cirq.decompose(
         cirq.SWAP(a, b),
-        keep=lambda op: isinstance(op.gate, cirq.CNotGate),
+        keep=lambda op: isinstance(op.gate, cirq.CNotPowGate),
         intercepting_decomposer=lambda _: NotImplemented)
     assert actual == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]

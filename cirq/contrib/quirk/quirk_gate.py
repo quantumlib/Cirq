@@ -106,12 +106,12 @@ def cz_to_known(gate: ops.CZPowGate) -> Optional[QuirkOp]:
 
 
 def w_to_known(gate: ExpWGate) -> Optional[QuirkOp]:
-    if isinstance(gate.axis_half_turns, Symbol):
+    if isinstance(gate.phase_exponent, Symbol):
         return None
-    e = angle_to_exponent_key(gate.half_turns)
+    e = angle_to_exponent_key(gate.exponent)
     if e is None:
         return None
-    p = (gate.axis_half_turns + 1) % 2 - 1
+    p = (gate.phase_exponent + 1) % 2 - 1
     if same_half_turns(p, 0):
         return QuirkOp('X' + e)
     if same_half_turns(p, 0.5):
@@ -155,14 +155,14 @@ quirk_gate_ext.add_cast(QuirkOp, ops.ZPowGate, z_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ExpWGate, w_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ops.CZPowGate, cz_to_known)
 quirk_gate_ext.add_cast(QuirkOp,
-                        ops.CNotGate,
+                        ops.CNotPowGate,
                         lambda e: QuirkOp('•', 'X',
                                           can_merge=False))
 quirk_gate_ext.add_cast(QuirkOp,
-                        ops.SwapGate,
+                        ops.SwapPowGate,
                         lambda e: QuirkOp('Swap', 'Swap'))
 quirk_gate_ext.add_cast(QuirkOp,
-                        ops.HGate,
+                        ops.HPowGate,
                         lambda e: QuirkOp('H'))
 quirk_gate_ext.add_cast(QuirkOp,
                         ops.MeasurementGate,

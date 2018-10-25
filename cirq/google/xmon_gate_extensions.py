@@ -22,11 +22,11 @@ xmon_gate_ext = Extensions()
 xmon_gate_ext.add_cast(  # type: ignore
     desired_type=xmon_gates.XmonGate,
     actual_type=ops.XPowGate,
-    conversion=lambda e: xmon_gates.ExpWGate(half_turns=e.exponent,
-                                             axis_half_turns=0))
+    conversion=lambda e: xmon_gates.ExpWGate(exponent=e.exponent,
+                                             phase_exponent=0))
 
 xmon_gate_ext.add_cast(  # type: ignore
     desired_type=xmon_gates.XmonGate,
     actual_type=ops.YPowGate,
-    conversion=lambda e: xmon_gates.ExpWGate(half_turns=e.exponent,
-                                             axis_half_turns=0.5))
+    conversion=lambda e: xmon_gates.ExpWGate(exponent=e.exponent,
+                                             phase_exponent=0.5))
