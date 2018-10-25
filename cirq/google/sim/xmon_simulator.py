@@ -216,8 +216,8 @@ class XmonSimulator(sim.SimulatesSamples,
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(
                             index=index,
-                            half_turns=gate.half_turns,
-                            axis_half_turns=gate.axis_half_turns)
+                            half_turns=gate.exponent,
+                            axis_half_turns=gate.phase_exponent)
                     elif isinstance(gate, ops.MeasurementGate):
                         if perform_measurements:
                             invert_mask = (
