@@ -145,6 +145,7 @@ def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    assert not cirq.has_unitary(cirq.measure(a))
     assert cirq.unitary(cirq.measure(a), None) is None
     np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
                                np.array([[0, 1], [1, 0]]),

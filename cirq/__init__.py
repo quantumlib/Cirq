@@ -213,6 +213,7 @@ from cirq.protocols import (
     SupportsTraceDistanceBound,
     is_parameterized,
     resolve_parameters,
+    has_unitary,
     unitary,
     trace_distance_bound,
     phase_by,
