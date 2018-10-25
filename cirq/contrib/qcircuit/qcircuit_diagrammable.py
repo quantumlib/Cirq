@@ -145,5 +145,5 @@ fallback_qcircuit_extensions.add_cast(  # type: ignore
         else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.CNotGate,
+    ops.CNotPowGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\control', '\\targ'))
