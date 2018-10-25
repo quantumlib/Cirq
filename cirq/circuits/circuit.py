@@ -1106,6 +1106,9 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
+    def _has_unitary_(self) -> bool:
+        return self.are_all_measurements_terminal()
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1115,7 +1118,7 @@ class Circuit:
         matrix is the product of the unitary matrix of all operations in the
         circuit (after expanding them to apply to the whole system).
         """
-        if not self.are_all_measurements_terminal():
+        if not self._has_unitary_():
             return NotImplemented
         return self.to_unitary_matrix(ignore_terminal_measurements=True)
 
