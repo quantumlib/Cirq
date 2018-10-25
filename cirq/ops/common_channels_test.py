@@ -43,7 +43,8 @@ def test_asymmetric_depolarizing_channel_str():
 
 def test_asymmetric_depolarizing_channel_eq():
     et = cirq.testing.EqualsTester()
-    et.make_equality_group(lambda: cirq.asymmetric_depolarize(0.0, 0.0, 0.0))
+    c = cirq.asymmetric_depolarize(0.0, 0.0, 0.0)
+    et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.0, 0.1))
     et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.1, 0.0))
     et.add_equality_group(cirq.asymmetric_depolarize(0.1, 0.0, 0.0))
@@ -99,7 +100,8 @@ def test_depolarizing_channel_str():
 
 def test_depolarizing_channel_eq():
     et = cirq.testing.EqualsTester()
-    et.make_equality_group(lambda: cirq.depolarize(0.0))
+    c = cirq.depolarize(0.0)
+    et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.depolarize(0.1))
     et.add_equality_group(cirq.depolarize(0.9))
     et.add_equality_group(cirq.depolarize(1.0))
