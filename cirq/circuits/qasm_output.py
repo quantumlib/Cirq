@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that combines adjacent single-qubit rotations."""
+"""Utility classes for representing QASM."""
 
 from typing import Set  # pylint: disable=unused-import
 from typing import (
