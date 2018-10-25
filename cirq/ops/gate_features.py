@@ -74,12 +74,11 @@ class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 format(self, qubits))
 
 
-
 class QasmOutputArgs(string.Formatter):
     """
     Attributes:
-        precision: The number of digits after the decimal to show for numbers in
-            the text diagram.
+        precision: The number of digits after the decimal to use for numbers in
+            the qasm output.
         version: The QASM version to output.  QasmConvertibleGate/Operation may
             return different text depending on version.
         qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
