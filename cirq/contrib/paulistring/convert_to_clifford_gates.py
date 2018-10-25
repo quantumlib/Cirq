@@ -33,8 +33,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         SingleQubitCliffordGate. It fails if the operation is not in the
     Clifford group.
 
-    Second, checks if the given extensions are able to cast the operation into a
-        CompositeOperation. If so, recurses on the decomposition.
+    Second, attempts to `cirq.decompose` to the operation.
     """
 
     def __init__(self,
@@ -97,17 +96,16 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                                  'Clifford group: {!r}'.format(op))
 
         # Provides a decomposition?
-        composite_op = extension.try_cast(  # type: ignore
-            ops.CompositeOperation, op)
-        if composite_op is not None:
-            return composite_op.default_decompose()
+        decomposed = protocols.decompose_once(op, None)
+        if decomposed is not None:
+            return decomposed
 
         # Just let it be?
         if self.ignore_failures:
             return op
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a CompositeOperation or a 1-qubit operation "
+                        "It isn't composite or a 1-qubit operation "
                         "with a known unitary effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:

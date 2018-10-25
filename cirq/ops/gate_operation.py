@@ -30,14 +30,12 @@ if TYPE_CHECKING:
 
 
 LIFTED_POTENTIAL_TYPES = {
-    gate_features.CompositeOperation: gate_features.CompositeGate,
     gate_features.QasmConvertibleOperation: gate_features.QasmConvertibleGate
 }
 
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
-                        gate_features.CompositeOperation,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -123,9 +121,10 @@ class GateOperation(raw_types.Operation,
                 return self.with_gate(cast_gate)
         return None
 
-    def default_decompose(self):
-        cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
-        return cast_gate.default_decompose(self.qubits)
+    def _decompose_(self):
+        return protocols.decompose_once_with_qubits(self.gate,
+                                                    self.qubits,
+                                                    NotImplemented)
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,

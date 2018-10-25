@@ -25,7 +25,6 @@ from cirq.ops import gate_features, common_gates, raw_types, op_tree, \
 
 class _CCZPowerGate(eigen_gate.EigenGate,
                     gate_features.ThreeQubitGate,
-                    gate_features.CompositeGate,
                     gate_features.InterchangeableQubitsGate,
                     gate_features.QasmConvertibleGate):
     """A doubly-controlled-Z that can be raised to a power.
@@ -53,7 +52,7 @@ class _CCZPowerGate(eigen_gate.EigenGate,
                        ) -> '_CCZPowerGate':
         return _CCZPowerGate(exponent=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
 
         0: ───p───@──────────────@───────@──────────@──────────
@@ -128,7 +127,6 @@ class _CCZPowerGate(eigen_gate.EigenGate,
 
 class _CCXPowerGate(eigen_gate.EigenGate,
                     gate_features.ThreeQubitGate,
-                    gate_features.CompositeGate,
                     gate_features.InterchangeableQubitsGate,
                     gate_features.QasmConvertibleGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
@@ -175,7 +173,7 @@ class _CCXPowerGate(eigen_gate.EigenGate,
             axes,
             default=NotImplemented)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
         yield CCZ(c1, c2, t)**self._exponent
@@ -208,7 +206,6 @@ class _CCXPowerGate(eigen_gate.EigenGate,
 
 
 class _CSwapGate(gate_features.ThreeQubitGate,
-                 gate_features.CompositeGate,
                  gate_features.InterchangeableQubitsGate,
                  gate_features.QasmConvertibleGate):
     """A controlled swap gate. The Fredkin gate."""
@@ -216,7 +213,7 @@ class _CSwapGate(gate_features.ThreeQubitGate,
     def qubit_index_to_equivalence_group_key(self, index):
         return 0 if index == 0 else 1
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         c, t1, t2 = qubits
 
         # Hacky magic: special case based on adjacency.

@@ -33,27 +33,6 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
-class CompositeOperation(metaclass=abc.ABCMeta):
-    """An operation with a known decomposition into simpler operations."""
-
-    @abc.abstractmethod
-    def default_decompose(self) -> op_tree.OP_TREE:
-        """Yields simpler operations for performing the receiving operation."""
-
-
-class CompositeGate(metaclass=abc.ABCMeta):
-    """A gate with a known decomposition into simpler gates."""
-
-    @abc.abstractmethod
-    def default_decompose(
-            self, qubits: Sequence[raw_types.QubitId]) -> op_tree.OP_TREE:
-        """Yields operations for performing this gate on the given qubits.
-
-        Args:
-            qubits: The qubits the gate should be applied to.
-        """
-
-
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 

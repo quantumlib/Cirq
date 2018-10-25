@@ -48,8 +48,6 @@ from cirq.ops.eigen_gate import (
     EigenGate,
 )
 from cirq.ops.gate_features import (
-    CompositeGate,
-    CompositeOperation,
     InterchangeableQubitsGate,
     QasmConvertibleGate,
     QasmConvertibleOperation,

@@ -157,14 +157,8 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 ])
 def test_decomposition_matches_matrix(gate):
     for x, y, z in itertools.permutations(cirq.LineQubit.range(3)):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(
-                gate(x, y, z)
-            ).to_unitary_matrix(),
-            cirq.Circuit.from_ops(
-                gate.default_decompose((x, y, z))
-            ).to_unitary_matrix(),
-            atol=1e-8)
+        cirq.testing.assert_decompose_is_consistent_with_unitary(
+            gate(x, y, z))
 
 
 @pytest.mark.parametrize('gate', [
@@ -172,14 +166,8 @@ def test_decomposition_matches_matrix(gate):
 ])
 def test_decomposition_matches_matrix_partial_power(gate):
     for x, y, z in itertools.permutations(cirq.LineQubit.range(3)):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(
-                gate(x, y, z)**0.5
-            ).to_unitary_matrix(),
-            cirq.Circuit.from_ops(
-                (gate**0.5).default_decompose((x, y, z))
-            ).to_unitary_matrix(),
-            atol=1e-8)
+        cirq.testing.assert_decompose_is_consistent_with_unitary(
+            gate(x, y, z)**0.5)
 
 
 @pytest.mark.parametrize('gate', [

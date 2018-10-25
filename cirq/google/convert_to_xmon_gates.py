@@ -34,8 +34,7 @@ class ConvertToXmonGates(PointOptimizer):
         is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
         operation.
 
-    Third, checks if the given extensions are able to cast the operation into a
-        CompositeOperation. If so, recurses on the decomposition.
+    Third, attempts to `cirq.decompose` to the operation.
 
     Fourth, if ignore_failures is set, gives up and returns the gate unchanged.
         Otherwise raises a TypeError.
@@ -83,7 +82,7 @@ class ConvertToXmonGates(PointOptimizer):
                     "Don't know how to work with {!r}. "
                     "It isn't a GateOperation with an XmonGate, "
                     "a 1 or 2 qubit gate with a known unitary, "
-                    "or a CompositeOperation.".format(op))))
+                    "or composite.".format(op))))
 
     def optimization_at(self, circuit, index, op):
         converted = self.convert(op)

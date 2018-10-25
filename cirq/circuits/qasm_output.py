@@ -61,7 +61,7 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
                                                    self.phi)
 
 
-class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
+class QasmTwoQubitGate(ops.TwoQubitGate):
     def __init__(self,
                  before0: ops.SingleQubitGate,
                  before1: ops.SingleQubitGate,
@@ -101,7 +101,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
                                 x, y, z,
                                 after0, after1)
 
-    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         q0, q1 = qubits
         a = self.x * -2 / np.pi + 0.5
         b = self.y * -2 / np.pi + 0.5
@@ -261,13 +261,13 @@ class QasmOutput:
                 comment = 'Gate: {!s}'.format(op.gate)
             else:
                 comment = 'Operation: {!s}'.format(op)
-            comp_op = extension.try_cast(  # type: ignore
-                ops.CompositeOperation, op)
-            if comp_op is not None:
+
+            decomp = protocols.decompose_once(op, None)
+            if decomp is not None:
                 if top:
                     output_line_gap(1)
                     output('// {}\n'.format(comment))
-                self._write_operations(comp_op.default_decompose(),
+                self._write_operations(decomp,
                                        output,
                                        output_line_gap,
                                        top=False)

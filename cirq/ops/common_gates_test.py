@@ -187,15 +187,9 @@ def test_h_matrix():
 
 
 def test_h_decompose():
-    a = cirq.NamedQubit('a')
-
-    original = cirq.HGate(half_turns=0.5)
-    decomposed = cirq.Circuit.from_ops(original.default_decompose([a]))
-
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(original),
-        decomposed.to_unitary_matrix(),
-        atol=1e-8)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.1)
 
 
 def test_runtime_types_of_rot_gates():
@@ -280,14 +274,9 @@ def test_cnot_power():
             [0, 0, 0.5-0.5j, 0.5+0.5j],
         ]))
 
-    # Matrix must be consistent with decomposition.
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    g = cirq.CNOT**0.25
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(g),
-        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
-        atol=1e-8)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.CNOT,
@@ -341,7 +330,7 @@ def test_cnot_unknown_keyword_argument():
 def test_cnot_decomposes_despite_symbol():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.CNotGate(half_turns=cirq.Symbol('x')).default_decompose([a, b])
+    cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x'))
 
 
 def test_swap_power():
@@ -354,14 +343,9 @@ def test_swap_power():
             [0, 0, 0, 1]
         ]))
 
-    # Matrix must be consistent with decomposition.
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    g = cirq.SWAP**0.25
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(g),
-        cirq.Circuit.from_ops(g.default_decompose([a, b])).to_unitary_matrix(),
-        atol=1e-8)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.1)
 
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.SWAP,
@@ -539,14 +523,12 @@ def test_iswap_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    original = cirq.ISwapGate(exponent=0.5)
-    decomposed = cirq.Circuit.from_ops(original.default_decompose([a, b]))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP**0.5)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP**0.1)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(original),
-        decomposed.to_unitary_matrix(),
-        atol=1e-8)
-
+    decomposed = cirq.Circuit.from_ops(
+        cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
     cirq.testing.assert_has_diagram(decomposed, """
 a: ───@───H───X───T───X───T^-1───H───@───
       │       │       │              │

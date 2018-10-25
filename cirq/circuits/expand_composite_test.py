@@ -114,8 +114,8 @@ def test_recursive_composite():
 
 
 def test_decompose_returns_not_flat_op_tree():
-    class DummyGate(cirq.Gate, cirq.CompositeGate):
-        def default_decompose(self, qubits):
+    class DummyGate(cirq.Gate):
+        def _decompose_(self, qubits):
             q0, = qubits
             # Yield a tuple of gates instead of yielding a gate
             yield cirq.X(q0),
@@ -130,8 +130,8 @@ def test_decompose_returns_not_flat_op_tree():
 
 
 def test_decompose_returns_deep_op_tree():
-    class DummyGate(cirq.Gate, cirq.CompositeGate):
-        def default_decompose(self, qubits):
+    class DummyGate(cirq.Gate):
+        def _decompose_(self, qubits):
             q0, q1 = qubits
             # Yield a tuple
             yield ((cirq.X(q0), cirq.Y(q0)), cirq.Z(q0))
@@ -163,7 +163,7 @@ def test_decompose_returns_deep_op_tree():
 
 class OtherCNot(cirq.CNotGate):
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         c, t = qubits
         yield cirq.Z(c)
         yield cirq.Y(t)**-0.5

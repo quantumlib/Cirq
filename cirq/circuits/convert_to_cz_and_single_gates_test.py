@@ -20,19 +20,19 @@ import cirq
 
 
 def test_avoids_infinite_cycle_when_matrix_available():
-    class OtherX(cirq.Gate, cirq.CompositeGate):
+    class OtherX(cirq.Gate):
         def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])  # coverage: ignore
 
-        def default_decompose(self, qubits):
-            raise NotImplementedError()
+        def _decompose_(self, qubits):
+            return NotImplemented
 
-    class OtherOtherX(cirq.Gate, cirq.CompositeGate):
+    class OtherOtherX(cirq.Gate):
         def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])  # coverage: ignore
 
-        def default_decompose(self, qubits):
-            raise NotImplementedError()
+        def _decompose_(self, qubits):
+            return NotImplemented
 
     q0 = cirq.LineQubit(0)
     c = cirq.Circuit.from_ops(OtherX()(q0), OtherOtherX()(q0))
@@ -63,13 +63,13 @@ def test_kak_decomposes_unknown_two_qubit_gate():
 
 
 def test_composite_gates_without_matrix():
-    class CompositeDummy(cirq.SingleQubitGate, cirq.CompositeGate):
-        def default_decompose(self, qubits):
+    class CompositeDummy(cirq.SingleQubitGate):
+        def _decompose_(self, qubits):
             yield cirq.X(qubits[0])
             yield cirq.Y(qubits[0]) ** 0.5
 
-    class CompositeDummy2(cirq.TwoQubitGate, cirq.CompositeGate):
-        def default_decompose(self, qubits):
+    class CompositeDummy2(cirq.TwoQubitGate):
+        def _decompose_(self, qubits):
             yield cirq.CZ(qubits[0], qubits[1])
             yield CompositeDummy()(qubits[1])
 
