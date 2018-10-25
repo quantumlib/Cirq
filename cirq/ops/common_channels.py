@@ -28,19 +28,22 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     def __init__(self, p_x: float, p_y: float, p_z: float) -> None:
         """The asymmmetric depolarizing channel.
 
-        This channel applies one of the three Pauli operators at random,
-        or does nothing.  The supplied probabilities must be valid probabilities
-        and the sum p_x + p_y + p_z must be a valid probability or else this
-        constructor will raise a ValueError.
+        This channel applies one of four disjoint possibilities: nothing (the
+        identity channel) or one of the three pauli gates. The disjoint
+        probabilities of the three gates are p_x, p_y, and p_z and the
+        identity is done with probability 1 - p_x - p_y - p_z. The supplied
+        probabilities must be valid probabilities and the sum p_x + p_y + p_z
+        must be a valid probability or else this constructor will raise a
+        ValueError.
 
         This channel evolves a density matrix via
             \rho -> (1 -p_x + p_y + p_z) \rho
                     + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
 
         Args:
-            p_x: The probability that a Pauli X error occurs.
-            p_y: The probability that a Pauli Y error occurs.
-            p_z: The probability that a Pauli Z error occurs.
+            p_x: The probability that a Pauli X and no other gate occurs.
+            p_y: The probability that a Pauli Y and no other gate occurs.
+            p_z: The probability that a Pauli Z and no other gate occurs.
 
         Raises:
             ValueError if the args or the sum of the args are not probabilities.
@@ -66,7 +69,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
     def _eq_tuple(self):
         return (AsymmetricDepolarizingChannel,
-                self._p_i, self._p_x, self._p_y, self._p_z)
+                self._p_x, self._p_y, self._p_z)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -78,7 +81,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
     def __repr__(self) -> str:
         return (
-            '(cirq.AsymmetricDepolarizingChannel(p_x={!r},p_y={!r},p_z={!r}))'
+            'cirq.AsymmetricDepolarizingChannel(p_x={!r},p_y={!r},p_z={!r})'
                 .format(self._p_x, self._p_y, self._p_z)
         )
 
@@ -102,9 +105,9 @@ def asymmetric_depolarize(
                 + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
 
     Args:
-        p_x: The probability that a Pauli X error occurs.
-        p_y: The probability that a Pauli Y error occurs.
-        p_z: The probability that a Pauli Z error occurs.
+        p_x: The probability that a Pauli X and no other gate occurs.
+        p_y: The probability that a Pauli Y and no other gate occurs.
+        p_z: The probability that a Pauli Z and no other gate occurs.
 
     Raises:
         ValueError if the args or the sum of the args are not probabilities.
@@ -118,21 +121,20 @@ class DepolarizingChannel(raw_types.Gate):
     def __init__(self, p) -> None:
         """The symmetric depolarizing channel.
 
-        This channel applies one of the three Pauli operators at random,
-        or does nothing. The probability of each of the Pauli operator is
-        equal and is given by p / 3 where p is the arg to this constructor.
-        The given probability must be a valid probability (between 0 and 1).
+        This channel applies one of four disjoint possibilities: nothing (the
+        identity channel) or one of the three pauli gates. The disjoint
+        probabilities of the three gates are all the same, p / 3, and the
+        identity is done with probability 1 - p. The supplied probability
+        must be a valid probability or else this constructor will raise a
+        ValueError.
 
         This channel evolves a density matrix via
             \rho -> (1 - p) \rho
                     + (p / 3) X \rho X + (p / 3) Y \rho Y + (p / 3) Z \rho Z
 
-        This channel can be repeated an integer number of times by raising
-        the channel to a power.
-
         Args:
-            p: The probability that one of the Pauli gates is applied, each of
-                the Pauli gates being applied with equal probability (p / 3).
+            p: The probability that one of the Pauli gates is applied. Each of
+                the Pauli gates is applied independently with probability p / 3.
 
         Raises:
             ValueError if p is not a valid probability.
@@ -153,7 +155,7 @@ class DepolarizingChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return '(cirq.DepolarizingChannel(p={!r}))'.format(self._p)
+        return 'cirq.DepolarizingChannel(p={!r})'.format(self._p)
 
     def __str__(self) -> str:
         return 'DepolarizingChannel(p={!r})'.format(self._p)
@@ -166,21 +168,20 @@ class DepolarizingChannel(raw_types.Gate):
 def depolarize(p: float) -> DepolarizingChannel:
     """Returns a DepolarizingChannel with given probability of error.
 
-    This channel applies one of the three Pauli operators at random,
-    or does nothing. The probability of each of the Pauli operator is
-    equal and is given by p / 3 where p is the arg to this constructor.
-    The given probability must be a valid probability (between 0 and 1).
+    This channel applies one of four disjoint possibilities: nothing (the
+    identity channel) or one of the three pauli gates. The disjoint
+    probabilities of the three gates are all the same, p / 3, and the
+    identity is done with probability 1 - p. The supplied probability
+    must be a valid probability or else this constructor will raise a
+    ValueError.
 
     This channel evolves a density matrix via
         \rho -> (1 - p) \rho
                 + (p / 3) X \rho X + (p / 3) Y \rho Y + (p / 3) Z \rho Z
 
-    This channel can be repeated an integer number of times by raising
-    the channel to a power.
-
     Args:
-        p: The probability that one of the Pauli gates is applied, each of
-            the Pauli gates being applied with equal probability (p / 3).
+        p: The probability that one of the Pauli gates is applied. Each of
+            the Pauli gates is applied independently with probability p / 3.
 
     Raises:
         ValueError if p is not a valid probability.
