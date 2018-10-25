@@ -21,18 +21,20 @@ import cirq
 
 def test_avoids_infinite_cycle_when_matrix_available():
     class OtherX(cirq.Gate):
+        # coverage: ignore
         def _unitary_(self) -> np.ndarray:
-            return np.array([[0, 1], [1, 0]])  # coverage: ignore
+            return np.array([[0, 1], [1, 0]])
 
         def _decompose_(self, qubits):
-            return NotImplemented
+            return OtherOtherX(*qubits)
 
     class OtherOtherX(cirq.Gate):
+        # coverage: ignore
         def _unitary_(self) -> np.ndarray:
-            return np.array([[0, 1], [1, 0]])  # coverage: ignore
+            return np.array([[0, 1], [1, 0]])
 
         def _decompose_(self, qubits):
-            return NotImplemented
+            return OtherX(*qubits)
 
     q0 = cirq.LineQubit(0)
     c = cirq.Circuit.from_ops(OtherX()(q0), OtherOtherX()(q0))
