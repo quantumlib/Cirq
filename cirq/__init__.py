@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq._version import (
+    __version__,
+)
+
 # Flattened sub-modules.
 
 from cirq.circuits import (
@@ -233,6 +237,3 @@ from cirq import (
     google,
     testing,
 )
-
-# Import version last since it is a relative import.
-from ._version import __version__
