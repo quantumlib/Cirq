@@ -12,18 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 import cirq
 
 
-def test_init():
-    g = cirq.PhasedXPowGate(0.75, 0.25)
+def test_new_init():
+    g = cirq.PhasedXPowGate(phase_exponent=0.75,
+                            exponent=0.25,
+                            global_shift=0.1)
     assert g.phase_exponent == 0.75
     assert g.exponent == 0.25
+    assert g._global_shift == 0.1
 
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=0), cirq.XPowGate)
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=1), cirq.XPowGate)
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=0.5), cirq.YPowGate)
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=1.5), cirq.YPowGate)
+
+    x = cirq.PhasedXPowGate(phase_exponent=0,
+                            exponent=0.1,
+                            global_shift=0.2)
+    assert isinstance(x, cirq.XPowGate)
+    assert x.exponent == 0.1
+    assert x._global_shift_in_half_turns == 0.2
+
+    y = cirq.PhasedXPowGate(phase_exponent=0.5,
+                            exponent=0.1,
+                            global_shift=0.2)
+    assert isinstance(y, cirq.YPowGate)
+    assert y.exponent == 0.1
+    assert y._global_shift_in_half_turns == 0.2
 
 
 def test_extrapolate():
@@ -43,18 +62,34 @@ def test_extrapolate():
 def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0),
-                          cirq.PhasedXPowGate(0, 1),
+                          cirq.PhasedXPowGate(phase_exponent=0,
+                                              exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=0),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=2),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=-2),
                           cirq.X)
-    eq.add_equality_group(cirq.PhasedXPowGate(0.5, 1),
-                          cirq.PhasedXPowGate(2.5, 3),
+    eq.add_equality_group(cirq.PhasedXPowGate(exponent=1,
+                                              phase_exponent=2,
+                                              global_shift=0.1))
+
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
+                                              exponent=1),
+                          cirq.PhasedXPowGate(phase_exponent=2.5,
+                                              exponent=3),
                           cirq.Y,
-                          cirq.PhasedXPowGate(-0.5, 1))
-    eq.add_equality_group(cirq.PhasedXPowGate(0.5, 0.25),
+                          cirq.PhasedXPowGate(phase_exponent=-0.5,
+                                              exponent=1))
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
+                                              exponent=0.25),
                           cirq.Y**0.25)
+
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25,
+                                              exponent=0.25,
+                                              global_shift=0.1))
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=2.25,
+                                              exponent=0.25,
+                                              global_shift=0.2))
 
     eq.make_equality_group(
         lambda: cirq.PhasedXPowGate(exponent=cirq.Symbol('a'),
@@ -76,8 +111,20 @@ def test_str_repr():
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25,
                                    exponent=0.5)) == 'PhasedX(0.25)^0.5'
     cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(phase_exponent=0))
-    cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(0.1, 0.3))
-    assert repr(cirq.PhasedXPowGate(0.25, 4)) == 'cirq.PhasedXPowGate(0.25, 4)'
+    cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(
+        phase_exponent=0.1,
+        exponent=0.3,
+        global_shift=0.7))
+    cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(
+        phase_exponent=0.1,
+        exponent=0.3))
+    assert repr(cirq.PhasedXPowGate(phase_exponent=0.25,
+                                    exponent=4,
+                                    global_shift=0.125) ==
+                'cirq.PhasedXPowGate(phase_exponent=0.25, '
+                'exponent=4, global_shift=0.125)')
+    assert repr(cirq.PhasedXPowGate(phase_exponent=0.25)
+                ) == 'cirq.PhasedXPowGate(phase_exponent=0.25)'
 
 
 def test_decomposition():
