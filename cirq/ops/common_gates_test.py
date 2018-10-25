@@ -202,6 +202,11 @@ def test_h_repr():
     cirq.testing.assert_equivalent_repr(cirq.H**0.1)
 
 
+def test_h_str():
+    assert str(cirq.H) == 'H'
+    assert str(cirq.H**0.5) == 'H^0.5'
+
+
 def test_runtime_types_of_rot_gates():
     for gate_type in [lambda p: cirq.CZPowGate(exponent=p),
                       lambda p: cirq.XPowGate(exponent=p),
