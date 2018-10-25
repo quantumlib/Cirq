@@ -89,7 +89,7 @@ behaves as if the method is not implemented.
 A `cirq.Operation` indicates that it can be broken down into smaller simpler
 operations by implementing a `def _decompose_(self):` method.
 Code that doesn't understand a particular operation can call
-`cirq.decompose_once` or `cirq.decompose` on that operation in order to get
+`cirq.decompose` on that operation in order to get
 a set of simpler operations that it does understand.
 
 One useful thing about `cirq.decompose` is that it will decompose *recursively*,
