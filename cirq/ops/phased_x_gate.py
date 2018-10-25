@@ -26,8 +26,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.common_gates
 
 
-class PhasedXPowGate(gate_features.SingleQubitGate,
-                     gate_features.CompositeGate):
+class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───.
 
     Attributes:
@@ -66,7 +65,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate,
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
         self._exponent = exponent
 
-    def default_decompose(self, qubits: Sequence[raw_types.QubitId]
+    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]

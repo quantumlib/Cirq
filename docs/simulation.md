@@ -188,18 +188,12 @@ for the binary expansion of the passed integer.
 
 ### Gate sets
 
-The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying an ``XmonGate``,
-a ``CompositeOperation`` that decomposes (recursively) to ``XmonGates``,
-or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
-By default the xmon simulator uses an ``Extension`` defined in ``xgate_gate_extensions`` to try to resolve gates that are not ``XmonGates`` to ``XmonGates``.
+The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying a supported gate (such as `cirq.CZ`),
+a composite operation that implements `_decompose_`, or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
 
-So if you are using a custom gate, there are multiple options
-for getting it to work with the simulator:
-* Define it directly as an ``XmonGate``.
-* Provide a ``CompositeGate`` made up of ``XmonGates``.
-* Supply an ``Extension`` to the simulator which converts
-the gate to an ``XmonGate`` or to a ``CompositeGate`` which 
-itself can be decomposed in ``XmonGates``. 
+So if you are implementing a custom gate, there are two options for getting it to work with the simulator:
+* Implement a `_decompose_` method that returns supported gates (or gates that decompose into supported gates).
+* If the operation applies to two or fewer qubits, implement a `_unitary_` method that returns the operation's matrix.
 
 ### Parameterized Values and Studies
 

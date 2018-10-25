@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq._version import (
+    __version__,
+)
+
 # Flattened sub-modules.
 
 from cirq.circuits import (
@@ -96,17 +100,19 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    asymmetric_depolarize,
+    AsymmetricDepolarizingChannel,
     CCX,
     CCZ,
     SingleQubitCliffordGate,
     CNOT,
     CNotPowGate,
-    CompositeGate,
-    CompositeOperation,
     ControlledGate,
     CSWAP,
     CZ,
     CZPowGate,
+    depolarize,
+    DepolarizingChannel,
     EigenGate,
     flatten_op_tree,
     FREDKIN,
@@ -129,9 +135,6 @@ from cirq.ops import (
     PauliString,
     PauliTransform,
     PhasedXPowGate,
-    QasmConvertibleGate,
-    QasmConvertibleOperation,
-    QasmOutputArgs,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
@@ -209,12 +212,17 @@ from cirq.protocols import (
     inverse,
     mul,
     pow,
+    qasm,
+    QasmArgs,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
-    SupportsUnitary,
     SupportsParameterization,
     SupportsPhase,
+    SupportsQasm,
+    SupportsQasmWithArgs,
+    SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
+    SupportsUnitary,
     is_parameterized,
     resolve_parameters,
     has_unitary,
@@ -231,6 +239,3 @@ from cirq import (
     google,
     testing,
 )
-
-# Import version last since it is a relative import.
-from ._version import __version__
