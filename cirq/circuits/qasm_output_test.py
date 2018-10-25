@@ -193,22 +193,22 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.CompositeOperation):
+    class DummyOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
         def _qasm_(self, args: cirq.QasmArgs) -> str:
             return '// Dummy operation\n'
 
-        def default_decompose(self):
+        def _decompose_(self):
             # Only used by test_output_unitary_same_as_qiskit
             return ()  # coverage: ignore
 
-    class DummyCompositeOperation(cirq.Operation, cirq.CompositeOperation):
+    class DummyCompositeOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def default_decompose(self):
+        def _decompose_(self):
             return cirq.X(self.qubits[0])
 
         def __repr__(self):

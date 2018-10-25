@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study, protocols
+from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
@@ -1564,12 +1564,9 @@ def _extract_unitaries(operations: Iterable[ops.Operation],
             continue
 
         # If not, check if it has a decomposition.
-        composite_op = extension.try_cast(  # type: ignore
-            ops.CompositeOperation,  op)
-        if composite_op is not None:
+        op_list = protocols.decompose_once(op, None)
+        if op_list is not None:
             # Recurse decomposition to get known matrix gates.
-            op_tree = composite_op.default_decompose()
-            op_list = ops.flatten_op_tree(op_tree)
             for op2 in _extract_unitaries(op_list):
                 yield op2
             continue

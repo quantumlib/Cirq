@@ -17,28 +17,6 @@ import pytest
 import cirq
 
 
-def test_composite_gate_is_abstract_cant_instantiate():
-    with pytest.raises(TypeError):
-        _ = cirq.CompositeGate()
-
-
-def test_composite_gate_is_abstract_must_implement():
-    # noinspection PyAbstractClass
-    class Missing(cirq.CompositeGate):
-        pass
-
-    with pytest.raises(TypeError):
-        _ = Missing()
-
-
-def test_composite_gate_is_abstract_can_implement():
-    class Included(cirq.CompositeGate):
-        def default_decompose(self, qubits):
-            pass
-
-    assert isinstance(Included(), cirq.CompositeGate)
-
-
 def test_single_qubit_gate_validate_args():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):

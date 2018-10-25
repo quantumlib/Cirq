@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimizer that expands CompositeOperation instances."""
+"""An optimizer that expands composite operations via `cirq.decompose`."""
 
 from typing import Callable
 
-from cirq import extension, ops
+from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
@@ -24,12 +24,11 @@ from cirq.circuits.optimization_pass import (
 
 
 class ExpandComposite(PointOptimizer):
-    """An optimization pass that expands CompositeOperation instances.
+    """An optimizer that expands composite operations via `cirq.decompose`.
 
-    For each operation in the circuit, this pass examines if the operation is a
-    CompositeOperation, or is composite according to a supplied Extension,
-    and if it is, clears the operation and replaces it with its decomposition
-    using a fixed insertion strategy.
+    For each operation in the circuit, this pass examines if the operation can
+    be decomposed. If it can be, the operation is cleared out and and replaced
+    with its decomposition using a fixed insertion strategy.
     """
 
     def __init__(self,
@@ -59,9 +58,8 @@ class ExpandComposite(PointOptimizer):
         skip = self.no_decomp(op)
         if skip and (skip is not NotImplemented):
             return op
-        composite_op = extension.try_cast(  # type: ignore
-            ops.CompositeOperation, op)
-        if composite_op is None:
+
+        decomposed = protocols.decompose_once(op, None)
+        if decomposed is None:
             return op
-        op_iter = ops.flatten_op_tree(composite_op.default_decompose())
-        return (self._decompose(op) for op in op_iter)
+        return (self._decompose(op) for op in decomposed)

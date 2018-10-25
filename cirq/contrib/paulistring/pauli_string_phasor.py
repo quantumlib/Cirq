@@ -22,7 +22,7 @@ from cirq.contrib.paulistring.pauli_string_raw_types import (
 from cirq.ops.pauli_string import PauliString
 
 
-class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
+class PauliStringPhasor(PauliStringGateOperation):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
@@ -93,7 +93,7 @@ class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
                       + cast(float, op.half_turns) * neg_sign)
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def default_decompose(self) -> ops.OP_TREE:
+    def _decompose_(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
         qubits = self.qubits
