@@ -40,7 +40,8 @@ from cirq.ops.common_gates import (
     X,
     Y,
     Z,
-    XXGate,
+    XXPowGate,
+    XX,
 )
 from cirq.ops.controlled_gate import (
     ControlledGate,

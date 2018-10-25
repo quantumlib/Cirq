@@ -155,6 +155,8 @@ from cirq.ops import (
     X,
     Y,
     Z,
+    XXPowGate,
+    XX,
 )
 
 from cirq.schedules import (
@@ -216,6 +218,11 @@ from cirq.protocols import (
     unitary,
     trace_distance_bound,
     phase_by,
+)
+
+from cirq.ion import (
+    MSGate,
+    MS,
 )
 # pylint: enable=redefined-builtin
 

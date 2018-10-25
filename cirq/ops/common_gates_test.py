@@ -661,29 +661,57 @@ def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.RotZGate(
         half_turns=0.1, global_shift_in_half_turns=0.2))
 
+def test_XXPowGate_init():
+    assert cirq.XXPowGate(exponent=1).exponent == 1
 
-def test_XXGate_init():
-    assert cirq.ops.XXGate(duration=np.pi/4) == cirq.ops.XXGate()
-    assert cirq.ops.XXGate(duration=np.pi/2) == cirq.ops.XXGate()**2
-    assert cirq.ops.XXGate(exponent=2) == cirq.ops.XXGate(duration=np.pi/2)
-    assert cirq.ops.XXGate(exponent=8) == cirq.ops.XXGate()**8
 
-def test_XXGate_str():
-    assert str(cirq.ops.XXGate()) == 'XX'
-    assert str(cirq.ops.XXGate(exponent=2)) == 'XX**2.0'
+def test_XXPowGate_arguments():
+    eq_tester = cirq.testing.EqualsTester()
+    eq_tester.add_equality_group(cirq.XXPowGate(exponent=2),
+                                 cirq.XXPowGate() ** 2)
+    eq_tester.add_equality_group(cirq.XXPowGate(exponent=3),
+                                 cirq.XXPowGate())
 
-def test_XXGate_matrix():
-    s = np.sqrt(0.5)
-    assert np.allclose(cirq.unitary(cirq.ops.XXGate()),
-                       np.array([[s, 0, 0, -1j*s],
-                                 [0, s, -1j*s, 0],
-                                 [0, -1j*s, s, 0],
-                                 [-1j*s, 0, 0, s]]))
-    assert np.allclose(cirq.unitary(cirq.ops.XXGate(exponent=4)),
-                       np.diag([-1, -1, -1, -1]))
-    assert np.allclose(cirq.unitary(cirq.ops.XXGate()**8),
+def test_XXPowGate_str():
+    assert str(cirq.XXPowGate()) == 'XX'
+    assert str(cirq.XXPowGate(exponent=1)) == 'XX'
+
+def test_XXPowGate_matrix():
+    assert np.allclose(cirq.unitary(cirq.XXPowGate()**2),
                        np.diag([1, 1, 1, 1]))
 
-def test_XXGate_repr():
-    assert repr(cirq.ops.XXGate()) == 'cirq.XX'
-    assert repr(cirq.ops.XXGate(exponent=0.5)) == '(cirq.XX**0.5)'
+
+def test_XXPowGate_repr():
+    assert repr(cirq.XXPowGate()) == 'cirq.XX'
+    assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
+    cirq.testing.assert_equivalent_repr(cirq.XXPowGate())
+    cirq.testing.assert_equivalent_repr(cirq.XXPowGate() ** 0.1)
+    cirq.testing.assert_equivalent_repr(cirq.XX)
+    cirq.testing.assert_equivalent_repr(cirq.XX ** 0.1)
+
+
+def test_XXPowGate_diagrams():
+    print(cirq.unitary(cirq.Z**-0.5))
+    print('\n')
+    print(cirq.unitary(cirq.protocols.inverse(cirq.Z**-0.5)))
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    circuit = cirq.Circuit.from_ops(
+        cirq.SWAP(a, b),
+        cirq.X(a),
+        cirq.Y(a),
+        cirq.XX(a, b))
+
+
+    cirq.testing.assert_has_diagram(circuit, """
+a: ───×───X───Y───XX───
+      │           │
+b: ───×───────────XX───
+""")
+
+    cirq.testing.assert_has_diagram(circuit, """
+a: ---swap---X---Y---XX---
+      |              |
+b: ---swap-----------XX---
+""", use_unicode_characters=False)
+
