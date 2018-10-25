@@ -131,6 +131,10 @@ def test_extrapolate():
 
 
 def test_matrix():
+
+    for n in [1, 2, 3, 4, 0.0001, 3.9999]:
+        assert cirq.has_unitary(CExpZinGate(n))
+
     np.testing.assert_allclose(
         cirq.unitary(CExpZinGate(1)),
         np.diag([1, 1, 1j, -1j]),
@@ -161,6 +165,7 @@ def test_matrix():
         cirq.unitary(CExpZinGate(1.99999)),
         atol=1e-4)
 
+    assert not cirq.has_unitary(CExpZinGate(cirq.Symbol('a')))
     assert cirq.unitary(CExpZinGate(cirq.Symbol('a')), None) is None
 
     np.testing.assert_allclose(

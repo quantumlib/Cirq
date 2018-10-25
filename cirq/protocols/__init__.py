@@ -39,6 +39,7 @@ from cirq.protocols.pow import (
 # pylint: enable=redefined-builtin
 from cirq.protocols.unitary import (
     SupportsUnitary,
+    has_unitary,
     unitary,
 )
 from cirq.protocols.trace_distance_bound import (
@@ -53,4 +54,9 @@ from cirq.protocols.resolve_parameters import (
 from cirq.protocols.phase import (
     SupportsPhase,
     phase_by,
+)
+from cirq.protocols.decompose import (
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
 )

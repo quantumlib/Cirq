@@ -315,6 +315,9 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.X(b)**0.5
         yield common_gates.X(c)**-0.5
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]),
