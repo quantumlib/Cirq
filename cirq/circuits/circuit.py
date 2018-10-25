@@ -1342,6 +1342,9 @@ class Circuit:
                 param_resolver))
         return resolved_circuit
 
+    def _qasm_(self) -> str:
+        return self.to_qasm()
+
     def to_qasm(self,
                 header: str = 'Generated from Cirq',
                 precision: int = 10,
@@ -1380,8 +1383,6 @@ class Circuit:
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
-            ext: For extending operations/gates to implement
-                QasmConvertibleOperation/QasmConvertibleGate.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())

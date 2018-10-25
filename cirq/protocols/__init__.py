@@ -26,6 +26,11 @@ from cirq.protocols.circuit_diagram_info import (
     circuit_diagram_info,
     SupportsCircuitDiagramInfo,
 )
+from cirq.protocols.decompose import (
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
+)
 from cirq.protocols.inverse import (
     inverse,
 )
@@ -37,10 +42,12 @@ from cirq.protocols.pow import (
     pow,
 )
 # pylint: enable=redefined-builtin
-from cirq.protocols.unitary import (
-    SupportsUnitary,
-    has_unitary,
-    unitary,
+from cirq.protocols.qasm import (
+    qasm,
+    QasmArgs,
+    SupportsQasm,
+    SupportsQasmWithArgs,
+    SupportsQasmWithArgsAndQubits,
 )
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
@@ -55,8 +62,8 @@ from cirq.protocols.phase import (
     SupportsPhase,
     phase_by,
 )
-from cirq.protocols.decompose import (
-    decompose,
-    decompose_once,
-    decompose_once_with_qubits,
+from cirq.protocols.unitary import (
+    SupportsUnitary,
+    has_unitary,
+    unitary,
 )
