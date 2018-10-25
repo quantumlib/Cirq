@@ -184,7 +184,8 @@ def test_nonrecursive_expansion():
     assert circuit == unexpanded_circuit
 
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
-                            isinstance(op.gate, (cirq.CNotPowGate, cirq.HPowGate)))
+                            isinstance(op.gate, (cirq.CNotPowGate,
+                                                 cirq.HPowGate)))
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     circuit = unexpanded_circuit.__copy__()
     expander.optimize_circuit(circuit)
