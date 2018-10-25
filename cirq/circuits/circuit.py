@@ -1343,6 +1343,9 @@ class Circuit:
                 param_resolver))
         return resolved_circuit
 
+    def _qasm_(self) -> str:
+        return self.to_qasm()
+
     def _to_qasm_output(
             self,
             header: Optional[str] = None,

@@ -193,11 +193,11 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.QasmConvertibleOperation):
+    class DummyOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def known_qasm_output(self, args):
+        def _qasm_(self, args: cirq.QasmArgs) -> str:
             return '// Dummy operation\n'
 
         def _decompose_(self):

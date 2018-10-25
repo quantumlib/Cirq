@@ -109,7 +109,7 @@ def test_on_each():
 
 
 def test_qasm_output_args_validate():
-    args = cirq.QasmOutputArgs(version='2.0')
+    args = cirq.QasmArgs(version='2.0')
     args.validate_version('2.0')
 
     with pytest.raises(ValueError):
@@ -121,7 +121,7 @@ def test_qasm_output_args_format():
     b = cirq.NamedQubit('b')
     m_a = cirq.MeasurementGate('meas_a')(a)
     m_b = cirq.MeasurementGate('meas_b')(b)
-    args = cirq.QasmOutputArgs(
+    args = cirq.QasmArgs(
                     precision=4,
                     version='2.0',
                     qubit_id_map={a: 'aaa[0]', b: 'bbb[0]'},
