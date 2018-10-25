@@ -44,9 +44,6 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
             (-0.5, np.diag([0, 0, 0, 1])),
         ]
 
-    def _canonical_exponent_period(self):
-        return 4
-
 
 class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
     @property
@@ -63,9 +60,9 @@ class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
 def test_init():
     assert CExpZinGate(1).exponent == 1
     assert CExpZinGate(0.5).exponent == 0.5
-    assert CExpZinGate(4.5).exponent == 0.5
+    assert CExpZinGate(4.5).exponent == 4.5
     assert CExpZinGate(1.5).exponent == 1.5
-    assert CExpZinGate(3.5).exponent == -0.5
+    assert CExpZinGate(3.5).exponent == 3.5
     assert CExpZinGate(cirq.Symbol('a')).exponent == cirq.Symbol('a')
 
     assert ZGateDef(exponent=0.5).exponent == 0.5
@@ -75,21 +72,55 @@ def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: CExpZinGate(quarter_turns=0.1))
     eq.add_equality_group(CExpZinGate(0), CExpZinGate(4), CExpZinGate(-4))
+
+    # Equates by canonicalized period.
     eq.add_equality_group(CExpZinGate(1.5), CExpZinGate(41.5))
     eq.add_equality_group(CExpZinGate(3.5), CExpZinGate(-0.5))
+
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
     eq.make_equality_group(lambda: cirq.Symbol('a'))
     eq.add_equality_group(cirq.Symbol('b'))
 
     eq.add_equality_group(ZGateDef(exponent=0.5,
-                                   global_shift_in_half_turns=0.0))
+                                   global_negate_rate=0.0))
     eq.add_equality_group(ZGateDef(exponent=-0.5,
-                                   global_shift_in_half_turns=0.0))
+                                   global_negate_rate=0.0))
     eq.add_equality_group(ZGateDef(exponent=0.5,
-                                   global_shift_in_half_turns=0.5))
+                                   global_negate_rate=0.5))
     eq.add_equality_group(ZGateDef(exponent=1.0,
-                                   global_shift_in_half_turns=0.5))
+                                   global_negate_rate=0.5))
+
+
+def test_period():
+    class Components(cirq.EigenGate):
+        def __init__(self, a, b, c, d):
+            super().__init__()
+            self.a = a
+            self.b = b
+            self.c = c
+            self.d = d
+
+        def _eigen_components(self):
+            return [
+                (self.a, np.diag([1, 0, 0, 0])),
+                (self.b, np.diag([0, 1, 0, 0])),
+                (self.c, np.diag([0, 0, 1, 0])),
+                (self.d, np.diag([0, 0, 0, 1])),
+            ]
+
+    assert Components(0, 0, 0, 0)._period() == 0
+    assert Components(1, 0, 0, 0)._period() == 2
+    assert Components(0.5, 0, 0, 0)._period() == 4
+    assert Components(1 / 3, 0, 0, 0)._period() == 6
+    assert Components(1 / 3, 1 / 2, 0, 0)._period() == 12
+    assert Components(1 / 3, 1 / 2, 1 / 5, 0)._period() == 60
+    assert Components(1 / 6, 1 / 2, 1 / 5, 0)._period() == 60
+    assert Components(np.e, 0, 0, 0)._period() is None
+    assert Components(-0.5, 0, 0, 0)._period() == 4
+    assert Components(-0.5, 0.5, 0, 0)._period() == 4
+    assert Components(-0.5, 0.5, 0.5, 0.5)._period() == 4
+    assert Components(1, 1, -1, 1)._period() == 2
 
 
 def test_pow():
@@ -100,9 +131,9 @@ def test_pow():
         _ = CExpZinGate(cirq.Symbol('a'))**1.5
     assert ZGateDef(exponent=0.25)**2 == ZGateDef(exponent=0.5)
     assert ZGateDef(exponent=0.25,
-                    global_shift_in_half_turns=0.5)**2 == ZGateDef(
+                    global_negate_rate=0.5)**2 == ZGateDef(
         exponent=0.5,
-        global_shift_in_half_turns=0.5)
+        global_negate_rate=0.5)
 
 
 def test_inverse():
@@ -184,17 +215,17 @@ def test_matrix():
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(ZGateDef(exponent=1, global_shift_in_half_turns=0.5)),
+        cirq.unitary(ZGateDef(exponent=1, global_negate_rate=0.5)),
         np.diag([1j, -1j]),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(ZGateDef(exponent=0.5, global_shift_in_half_turns=0.5)),
+        cirq.unitary(ZGateDef(exponent=0.5, global_negate_rate=0.5)),
         np.diag([1+1j, -1+1j])/np.sqrt(2),
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(ZGateDef(exponent=0.5, global_shift_in_half_turns=-0.5)),
+        cirq.unitary(ZGateDef(exponent=0.5, global_negate_rate=-0.5)),
         np.diag([1-1j, 1+1j])/np.sqrt(2),
         atol=1e-8)
 

@@ -42,23 +42,19 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                  pauli0: Pauli, invert0: bool,
                  pauli1: Pauli, invert1: bool,
                  *,
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
-        """At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
-        Args:
-            half_turns: Relative phasing of the interaction's eigenstates, in
-                half_turns.
-            rads: Relative phasing of the interaction's eigenstates, in radians.
-            degs: Relative phasing of the interaction's eigenstates, in degrees.
+                 exponent: Union[value.Symbol, float] = 1.0) -> None:
         """
-        super().__init__(exponent=value.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs))
+        Args:
+            pauli0: The interaction axis for the first qubit.
+            invert0: Whether to condition on the +1 or -1 eigenvector of the
+                first qubit's interaction axis.
+            pauli1: The interaction axis for the second qubit.
+            invert1: Whether to condition on the +1 or -1 eigenvector of the
+                second qubit's interaction axis.
+            exponent: Determines the amount of phasing to apply to the vector
+                equal to the tensor product of the two conditions.
+        """
+        super().__init__(exponent=exponent)
         self.pauli0 = pauli0
         self.invert0 = invert0
         self.pauli1 = pauli1
@@ -68,7 +64,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         return (PauliInteractionGate,
                 self.pauli0, self.invert0,
                 self.pauli1, self.invert1,
-                self._exponent)
+                self._canonical_exponent)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -84,17 +80,13 @@ class PauliInteractionGate(eigen_gate.EigenGate,
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         if self.pauli0 == self.pauli1 and self.invert0 == self.invert1:
             return 0
-        else:
-            return index
-
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
+        return index
 
     def _with_exponent(self, exponent: Union[value.Symbol, float]
                        ) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
-                                    half_turns=exponent)
+                                    exponent=exponent)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         comp1 = np.kron(pauli_eigen_map[self.pauli0][not self.invert0],
@@ -131,8 +123,12 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             exponent=self._exponent)
 
     def __repr__(self):
-        return 'cirq.PauliInteractionGate(cirq.{}, {!s}, cirq.{}, {!s})'.format(
+        base = 'cirq.PauliInteractionGate({!r}, {!s}, {!r}, {!s})'.format(
             self.pauli0, self.invert0, self.pauli1, self.invert1)
+        if self._exponent == 1:
+            return base
+
+        return '({}**{!r})'.format(base, self._exponent)
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(Pauli.Z, False, Pauli.Z, False)

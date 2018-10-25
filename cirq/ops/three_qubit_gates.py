@@ -46,9 +46,6 @@ class _CCZPowerGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
-
     def _with_exponent(self, exponent: Union[value.Symbol, float]
                        ) -> '_CCZPowerGate':
         return _CCZPowerGate(exponent=exponent)
@@ -154,9 +151,6 @@ class _CCXPowerGate(eigen_gate.EigenGate,
     def _with_exponent(self, exponent: Union[value.Symbol, float]
                        ) -> '_CCXPowerGate':
         return _CCXPowerGate(exponent=exponent)
-
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
 
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2

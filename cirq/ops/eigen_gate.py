@@ -58,13 +58,13 @@ class EigenGate(raw_types.Gate):
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0,
-                 global_shift_in_half_turns: float = 0.0) -> None:
+                 global_negate_rate: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of an eigenspace of the gate is computed by:
         1. Starting with an angle returned by the _eigen_components method.
             θ
-        2. Shifting the angle by the global_shift_in_half_turns.
+        2. Shifting the angle by the global_negate_rate.
             θ + s
         3. Scaling the angle by the exponent.
             (θ + s) * e
@@ -74,25 +74,20 @@ class EigenGate(raw_types.Gate):
         Args:
             exponent: How much to scale the eigencomponents' angles by when
                 computing the gate's matrix.
-            global_shift_in_half_turns: How much to shift the eigencomponents'
-                angles by (before multiplying by the exponent).
+            global_negate_rate: Determines how the global phase of the gate
+                varies as the exponent varies. Specifically, the global phase
+                factor will be exp(i * pi * global_negate_rate * exponent).
+                In practice, this boils down to the eigencomponents' angles
+                being shifted by `global_negate_rate` before being multiplied by
+                `exponent`.
+
+                For example, `cirq.X**t` uses a `global_negate_rate` of 0 but
+                `cirq.Rx(t)` uses a `global_negate_rate` of -0.5, which is why
+                `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
         """
-
         self._exponent = exponent
-        self._global_shift_in_half_turns = global_shift_in_half_turns
-
-        # Canonicalize the exponent.
-        period = self._canonical_exponent_period()
-        if period is not None and not isinstance(exponent, value.Symbol):
-            # Shift into [-p/2, +p/2).
-            exponent += period / 2
-            exponent %= period
-            exponent -= period / 2
-            # Prefer (-p/2, +p/2] over [-p/2, +p/2).
-            if exponent <= -period / 2:
-                exponent += period
-
-        self._exponent = exponent
+        self._global_negate_rate = global_negate_rate
+        self._canonical_exponent_cached = None
 
     # virtual method
     def _with_exponent(self: TSelf,
@@ -104,7 +99,7 @@ class EigenGate(raw_types.Gate):
         """
         return type(self)(
             exponent=exponent,
-            global_shift_in_half_turns=self._global_shift_in_half_turns)
+            global_negate_rate=self._global_negate_rate)
 
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
@@ -161,9 +156,8 @@ class EigenGate(raw_types.Gate):
         """
         pass
 
-    # virtual method
-    def _canonical_exponent_period(self) -> Optional[float]:
-        """Determines how the exponent parameter is canonicalized.
+    def _period(self) -> Optional[float]:
+        """Determines how the exponent parameter is canonicalized when equating.
 
         Returns:
             None if the exponent should not be canonicalized. Otherwise a float
@@ -171,7 +165,15 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        return None
+        exponents = [e + self._global_negate_rate
+                     for e, _ in self._eigen_components()]
+        real_periods = [abs(2/e) for e in exponents if e != 0]
+        if not real_periods:
+            return 0
+        int_periods = [int(np.round(e)) for e in real_periods]
+        if any(i != r for i, r in zip(real_periods, int_periods)):
+            return None
+        return np.lcm.reduce(int_periods)
 
     def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
@@ -179,10 +181,20 @@ class EigenGate(raw_types.Gate):
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)
 
+    @property
+    def _canonical_exponent(self):
+        if self._canonical_exponent_cached is None:
+            period = self._period()
+            if not period or isinstance(self._exponent, value.Symbol):
+                self._canonical_exponent_cached = self._exponent
+            else:
+                self._canonical_exponent_cached = self._exponent % period
+        return self._canonical_exponent_cached
+
     def _identity_tuple(self):
         return (type(self),
-                self._exponent,
-                self._global_shift_in_half_turns)
+                self._canonical_exponent,
+                self._global_negate_rate)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -213,7 +225,7 @@ class EigenGate(raw_types.Gate):
         e = cast(float, self._exponent)
         return np.sum([
             component * 1j**(
-                    2 * e * (half_turns + self._global_shift_in_half_turns))
+                    2 * e * (half_turns + self._global_negate_rate))
             for half_turns, component in self._eigen_components()
         ], axis=0)
 
