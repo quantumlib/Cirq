@@ -155,14 +155,14 @@ quirk_gate_ext.add_cast(QuirkOp, ops.ZPowGate, z_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ExpWGate, w_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ops.CZPowGate, cz_to_known)
 quirk_gate_ext.add_cast(QuirkOp,
-                        ops.CNotGate,
+                        ops.CNotPowGate,
                         lambda e: QuirkOp('•', 'X',
                                           can_merge=False))
 quirk_gate_ext.add_cast(QuirkOp,
-                        ops.SwapGate,
+                        ops.SwapPowGate,
                         lambda e: QuirkOp('Swap', 'Swap'))
 quirk_gate_ext.add_cast(QuirkOp,
-                        ops.HGate,
+                        ops.HPowGate,
                         lambda e: QuirkOp('H'))
 quirk_gate_ext.add_cast(QuirkOp,
                         ops.MeasurementGate,

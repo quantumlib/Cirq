@@ -102,6 +102,8 @@ class EigenGate(raw_types.Gate):
         Child classes should override this method if they have an __init__
         method with a differing signature.
         """
+        if self._global_shift_in_half_turns == 0:
+            return type(self)(exponent=exponent)
         return type(self)(
             exponent=exponent,
             global_shift_in_half_turns=self._global_shift_in_half_turns)
