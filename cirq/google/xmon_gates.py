@@ -43,6 +43,9 @@ class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, (ops.CZPowGate,
                                      ops.MeasurementGate,
+                                     ops.PhasedXPowGate,
+                                     ops.XPowGate,
+                                     ops.YPowGate,
                                      ops.ZPowGate))):
             return True
         return XmonGate.try_get_xmon_gate(op) is not None
