@@ -37,8 +37,9 @@ def convert_and_separate_circuit(circuit: circuits.Circuit,
 
         circuit_left contains only PauliStringPhasor operations.
 
-        circuit_right is a Clifford circuit which contains only CliffordGate and
-        PauliInteractionGate gates.  It also contains MeasurementGates if the
+        circuit_right is a Clifford circuit which contains only
+        SingleQubitCliffordGate and PauliInteractionGate gates.
+        It also contains MeasurementGates if the
         given circuit contains measurements.
     """
     circuit = converted_gate_set(circuit,
@@ -52,12 +53,13 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
     convert_and_separate_circuit().
 
     Args:
-        circuit: A Circuit with the gate set {CliffordGate,
+        circuit: A Circuit with the gate set {SingleQubitCliffordGate,
             PauliInteractionGate, PauliStringPhasor}.
 
     Returns:
-        A Circuit with CliffordGate and PauliInteractionGate gates.  It also
-        contains MeasurementGates if the given circuit contains measurements.
+        A Circuit with SingleQubitCliffordGate and PauliInteractionGate gates.
+        It also contains MeasurementGates if the given
+        circuit contains measurements.
     """
     return circuits.Circuit(
                 circuits.Moment(op for op in moment.operations
@@ -70,7 +72,7 @@ def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
     convert_and_separate_circuit().
 
     Args:
-        circuit: A Circuit with the gate set {CliffordGate,
+        circuit: A Circuit with the gate set {SingleQubitCliffordGate,
             PauliInteractionGate, PauliStringPhasor}.
 
     Returns:

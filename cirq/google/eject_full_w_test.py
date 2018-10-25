@@ -31,16 +31,22 @@ def assert_optimizes(before: cirq.Circuit,
             circuit, expected, 1e-8)
 
     # And match the expected circuit.
-    if circuit != expected:
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("EXPECTED")
-        print(expected)
-        print("AFTER")
-        print(circuit)
-        print(repr(circuit))
-    assert circuit == expected
+    assert circuit == expected, (
+        "Circuit wasn't optimized as expected.\n"
+        "INPUT:\n"
+        "{}\n"
+        "\n"
+        "EXPECTED OUTPUT:\n"
+        "{}\n"
+        "\n"
+        "ACTUAL OUTPUT:\n"
+        "{}\n"
+        "\n"
+        "EXPECTED OUTPUT (detailed):\n"
+        "{!r}\n"
+        "\n"
+        "ACTUAL OUTPUT (detailed):\n"
+        "{!r}").format(before, expected, circuit, expected, circuit)
 
     # And it should be idempotent.
     opt.optimize_circuit(circuit)
@@ -101,8 +107,8 @@ def test_crosses_czs():
             [cirq.CZ(a, b)],
         ),
         expected=quick_circuit(
-            [cg.ExpZGate().on(b)],
-            [cg.Exp11Gate().on(a, b)],
+            [cirq.Z(b)],
+            [cirq.CZ(a, b)],
             [cg.ExpWGate(axis_half_turns=0.25).on(a)],
         ))
     assert_optimizes(
@@ -111,8 +117,8 @@ def test_crosses_czs():
             [cirq.CZ(b, a)],
         ),
         expected=quick_circuit(
-            [cg.ExpZGate().on(b)],
-            [cg.Exp11Gate().on(a, b)],
+            [cirq.Z(b)],
+            [cirq.CZ(a, b)],
             [cg.ExpWGate(axis_half_turns=0.125).on(a)],
         ))
 
@@ -123,8 +129,8 @@ def test_crosses_czs():
             [cirq.CZ(a, b)**0.25],
         ),
         expected=quick_circuit(
-            [cg.ExpZGate(half_turns=0.25).on(b)],
-            [cg.Exp11Gate(half_turns=-0.25).on(a, b)],
+            [cirq.Z(b)**0.25],
+            [cirq.CZ(a, b)**-0.25],
             [cg.ExpWGate().on(a)],
         ))
 
@@ -139,8 +145,8 @@ def test_crosses_czs():
             [],
             [],
             [cirq.CZ(a, b)**0.25],
-            [cg.ExpWGate(axis_half_turns=0.25).on(a),
-             cg.ExpWGate(axis_half_turns=0.5).on(b)],
+            [cg.ExpWGate(axis_half_turns=0.5).on(b),
+             cg.ExpWGate(axis_half_turns=0.25).on(a)],
         ))
 
 
@@ -185,11 +191,11 @@ def test_toggles_measurements():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate(axis_half_turns=0.25).on(a)],
-            [cg.XmonMeasurementGate(key='t').on(a, b)],
+            [cirq.measure(a, b, key='t')],
         ),
         expected=quick_circuit(
             [],
-            [cg.XmonMeasurementGate(key='t', invert_mask=(True,)).on(a, b)],
+            [cirq.measure(a, b, invert_mask=(True,), key='t')],
         ))
 
 
@@ -213,7 +219,7 @@ def test_cancels_other_full_w():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpZGate(half_turns=-0.25).on(q)],
+            [cirq.Z(q)**-0.25],
         ))
 
     assert_optimizes(
@@ -223,7 +229,7 @@ def test_cancels_other_full_w():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpZGate(half_turns=0.5).on(q)],
+            [cirq.Z(q)**0.5],
         ))
 
     assert_optimizes(
@@ -233,7 +239,7 @@ def test_cancels_other_full_w():
         ),
         expected=quick_circuit(
             [],
-            [cg.ExpZGate(half_turns=-0.5).on(q)],
+            [cirq.Z(q)**-0.5],
         ))
 
 
@@ -304,12 +310,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate().on(a)],
-            [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
+            [cirq.Z(a)**cirq.Symbol('z')],
             [cg.ExpWGate().on(a)],
         ),
         expected=quick_circuit(
             [cg.ExpWGate().on(a)],
-            [cg.ExpZGate(half_turns=cirq.Symbol('z')).on(a)],
+            [cirq.Z(a)**cirq.Symbol('z')],
             [cg.ExpWGate().on(a)],
         ),
         compare_unitaries=False)
@@ -317,12 +323,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cg.ExpWGate().on(a)],
-            [cg.Exp11Gate(half_turns=cirq.Symbol('z')).on(a, b)],
+            [cirq.CZ(a, b)**cirq.Symbol('z')],
             [cg.ExpWGate().on(a)],
         ),
         expected=quick_circuit(
             [cg.ExpWGate().on(a)],
-            [cg.Exp11Gate(half_turns=cirq.Symbol('z')).on(a, b)],
+            [cirq.CZ(a, b)**cirq.Symbol('z')],
             [cg.ExpWGate().on(a)],
         ),
         compare_unitaries=False)

@@ -36,9 +36,10 @@ class Xmon10Device(cirq.Device):
       return cirq.Duration(nanos=10)
 
   def validate_operation(self, operation):
-      if (not isinstance(operation, cirq.GateOperation) or
-              not isinstance(operation.gate, XmonGate)):
-          raise ValueError('{!r} is not an XmonGate'.format(operation))
+      if not isinstance(operation, cirq.GateOperation):
+          raise ValueError('{!r} is not a supported operation'.format(operation))
+      if not isinstance(operation.gate, (cirq.CZPowGate, XmonGate)):
+          raise ValueError('{!r} is not a supported gate'.format(operation.gate))
       if len(operation.qubits) == 2:
           p, q = operation.qubits
           if not p.is_adjacent(q):
@@ -60,17 +61,15 @@ class Xmon10Device(cirq.Device):
 This device, for example, knows that two qubit gates between
 next-nearest-neighbors is not valid:
 ```python
-from cirq.google.xmon_gates import Exp11Gate
 device = Xmon10Device()
 circuit = cirq.Circuit()
-CZ = Exp11Gate(half_turns=1.0)
-circuit.append([CZ(device.qubits[0], device.qubits[2])])
+circuit.append([cirq.CZ(device.qubits[0], device.qubits[2])])
 try: 
   device.validate_circuit(circuit)
 except ValueError as e:
   print(e)
 # prints something like
-# ValueError: Non-local interaction: Operation(Exp11Gate(half_turns=1.0), (GridQubit(0, 0), GridQubit(2, 0)))
+# ValueError: Non-local interaction: Operation(cirq.CZ, (GridQubit(0, 0), GridQubit(2, 0)))
 ```
 
 ### Schedules
@@ -93,14 +92,13 @@ defined above
 ```python
 from cirq.google.xmon_gates import ExpWGate
 circuit = cirq.Circuit()
-CZ = Exp11Gate(half_turns=1.0)
 X = ExpWGate(half_turns=1.0)
-circuit.append([CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
+circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
 print(circuit)
 # prints:
-# (0, 0): ───Z───X───
+# (0, 0): ───@───X───
 #            │
-# (1, 0): ───Z───────
+# (1, 0): ───@───────
 ```
 This can be converted over into a schedule using the moment by
 moment schedule

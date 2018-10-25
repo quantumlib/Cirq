@@ -20,9 +20,8 @@ import timeit
 
 import numpy as np
 
-from cirq import Circuit, InsertStrategy
-from cirq.google import ExpWGate, ExpZGate, Exp11Gate, XmonOptions, \
-    XmonSimulator
+import cirq
+from cirq.google import ExpWGate, XmonOptions, XmonSimulator
 
 
 _XMON = 'xmon'
@@ -36,22 +35,22 @@ def simulate(
     num_prefix_qubits: int = 0,
     use_processes: bool = False) -> None:
     """"Runs the simulator."""
-    circuit = Circuit()
+    circuit = cirq.Circuit()
     for _ in range(num_gates):
         which = np.random.choice(['expz', 'expw', 'exp11'])
         if which == 'expw':
             circuit.append(ExpWGate(axis_half_turns=np.random.random(),
                                     half_turns=np.random.random()).on(
                 np.random.randint(num_qubits)),
-                strategy=InsertStrategy.EARLIEST)
+                strategy=cirq.InsertStrategy.EARLIEST)
         elif which == 'expz':
-            circuit.append(ExpZGate(half_turns=np.random.random()).on(
-                np.random.randint(num_qubits)),
-                strategy=InsertStrategy.EARLIEST)
+            circuit.append(
+                cirq.Z(np.random.randint(num_qubits))**np.random.random(),
+                strategy=cirq.InsertStrategy.EARLIEST)
         elif which == 'exp11':
             q1, q2 = np.random.choice(num_qubits, 2, replace=False)
-            circuit.append(Exp11Gate(half_turns=np.random.random()).on(q1, q2),
-                           strategy=InsertStrategy.EARLIEST)
+            circuit.append(cirq.CZ(q1, q2)**np.random.random(),
+                           strategy=cirq.InsertStrategy.EARLIEST)
 
     if sim_type == _XMON:
         XmonSimulator(XmonOptions(num_shards=2 ** num_prefix_qubits,

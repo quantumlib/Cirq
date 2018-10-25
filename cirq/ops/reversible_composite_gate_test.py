@@ -17,11 +17,12 @@ import pytest
 import cirq
 
 
-class _FlipGate(cirq.Gate, cirq.ReversibleEffect):
+class _FlipGate(cirq.Gate):
     def __init__(self, val):
         self.val = val
 
-    def inverse(self):
+    def __pow__(self, exponent):
+        assert exponent == -1
         return _FlipGate(~self.val)
 
     def __eq__(self, other):
@@ -80,10 +81,14 @@ def test_child_class():
             yield _FlipGate(2)(*qubits), _FlipGate(3)(*qubits)
 
     gate = Impl()
-    reversed_gate = gate.inverse()
-    assert gate is reversed_gate.inverse()
+    reversed_gate = gate**-1
+    assert gate is reversed_gate**-1
+    with pytest.raises(TypeError):
+        _ = gate**0.5
+    with pytest.raises(TypeError):
+        _ = reversed_gate**0.5
 
-    q = cirq.QubitId()
+    q = cirq.NamedQubit('q')
     assert (
         cirq.freeze_op_tree(gate.default_decompose([q])) ==
         (_FlipGate(1)(q), (_FlipGate(2)(q), _FlipGate(3)(q))))

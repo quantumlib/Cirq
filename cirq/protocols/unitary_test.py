@@ -26,10 +26,20 @@ def test_unitary():
         pass
 
     class ReturnsNotImplemented:
-        def _unitary_(self) -> type(NotImplemented):
+        def _has_unitary_(self):
+            return NotImplemented
+        def _unitary_(self):
             return NotImplemented
 
     class ReturnsMatrix:
+        def _unitary_(self) -> np.ndarray:
+            return m
+
+    class FullyImplemented:
+        def __init__(self, unitary_value):
+            self.unitary_value = unitary_value
+        def _has_unitary_(self) -> bool:
+            return self.unitary_value
         def _unitary_(self) -> np.ndarray:
             return m
 
@@ -55,3 +65,12 @@ def test_unitary():
     assert cirq.unitary(NoMethod(), d) is d
     assert cirq.unitary(ReturnsNotImplemented(), d) is d
     assert cirq.unitary(ReturnsMatrix(), d) is m
+    assert cirq.unitary(FullyImplemented(True), d) is m
+
+    # Test _has_unitary_
+    assert not cirq.has_unitary(NoMethod())
+    assert not cirq.has_unitary(ReturnsNotImplemented())
+    assert cirq.has_unitary(ReturnsMatrix())
+    # Explicit function should override
+    assert cirq.has_unitary(FullyImplemented(True))
+    assert not cirq.has_unitary(FullyImplemented(False))

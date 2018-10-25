@@ -38,18 +38,16 @@ class ConvertToCzAndSingleGates(PointOptimizer):
     """
 
     def __init__(self,
-                 extensions: extension.Extensions = None,
                  ignore_failures: bool = False,
                  allow_partial_czs: bool = False) -> None:
         """
         Args:
-            extensions: The extensions instance to use when trying to
-                cast gates to known types.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
+            allow_partial_czs: If set, the decomposition is permitted to use
+                gates of the form `cirq.CZ**t`, instead of only `cirq.CZ`.
         """
         super().__init__()
-        self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs
 
@@ -57,8 +55,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.Rot11Gate)
-                and (self.allow_partial_czs or op.gate.half_turns == 1)):
+                and isinstance(op.gate, ops.CZPowGate)
+                and (self.allow_partial_czs or op.gate.exponent == 1)):
             return op
 
         # Measurement?
@@ -77,7 +75,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
                 allow_partial_czs=False)
 
         # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
+        composite_op = extension.try_cast(  # type: ignore
+            ops.CompositeOperation, op)
         if composite_op is not None:
             return composite_op.default_decompose()
 

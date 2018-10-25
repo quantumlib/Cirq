@@ -27,6 +27,7 @@ def test_init():
 
 
 def test_matrix():
+    assert cirq.has_unitary(cirq.CCX)
     np.testing.assert_allclose(cirq.unitary(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
@@ -38,6 +39,7 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 1, 0],
     ]), atol=1e-8)
 
+    assert cirq.has_unitary(cirq.CCX**0.5)
     np.testing.assert_allclose(cirq.unitary(cirq.CCX**0.5), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
@@ -49,14 +51,17 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 0.5 - 0.5j, 0.5 + 0.5j],
     ]), atol=1e-8)
 
+    assert cirq.has_unitary(cirq.CCZ)
     np.testing.assert_allclose(cirq.unitary(cirq.CCZ),
                                np.diag([1, 1, 1, 1, 1, 1, 1, -1]),
                                atol=1e-8)
 
+    assert cirq.has_unitary(cirq.CCZ**0.5)
     np.testing.assert_allclose(cirq.unitary(cirq.CCZ**0.5),
                                np.diag([1, 1, 1, 1, 1, 1, 1, 1j]),
                                atol=1e-8)
 
+    assert cirq.has_unitary(cirq.CSWAP)
     np.testing.assert_allclose(cirq.unitary(cirq.CSWAP), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
@@ -67,6 +72,15 @@ def test_matrix():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CCZ,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CCX,
+        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.CSWAP)
 
 
 def test_str():
@@ -87,8 +101,14 @@ def test_repr():
     assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
     assert repr(cirq.CCZ) == 'cirq.CCZ'
 
-    assert repr(cirq.CCX**0.5) == 'cirq.TOFFOLI**0.5'
-    assert repr(cirq.CCZ**0.5) == 'cirq.CCZ**0.5'
+    assert repr(cirq.CCX**0.5) == '(cirq.TOFFOLI**0.5)'
+    assert repr(cirq.CCZ**0.5) == '(cirq.CCZ**0.5)'
+
+    cirq.testing.assert_equivalent_repr(cirq.CCZ)
+    cirq.testing.assert_equivalent_repr(cirq.CSWAP)
+    cirq.testing.assert_equivalent_repr(cirq.TOFFOLI)
+    cirq.testing.assert_equivalent_repr(cirq.CCZ**0.5)
+    cirq.testing.assert_equivalent_repr(cirq.TOFFOLI**0.5)
 
 
 def test_eq():

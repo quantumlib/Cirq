@@ -42,20 +42,23 @@ from cirq.google.optimize import (
     optimized_for_xmon,
 )
 from cirq.google.xmon_gates import (
-    Exp11Gate,
     ExpWGate,
-    ExpZGate,
     XmonGate,
-    XmonMeasurementGate,
 )
 from cirq.google.sim import (
     XmonOptions,
     XmonSimulator,
     XmonStepResult,
-    XmonSimulateTrialResult,
 )
 from cirq.google.engine import (
     engine_from_environment,
     Engine,
     JobConfig,
+)
+from cirq.google.programs import (
+    gate_to_proto_dict,
+    schedule_from_proto_dicts,
+    schedule_to_proto_dicts,
+    pack_results,
+    unpack_results,
 )

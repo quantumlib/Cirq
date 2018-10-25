@@ -255,7 +255,7 @@ to the Circuit:
 ```python
 def rot_x_layer(length, half_turns):
     """Yields X rotations by half_turns on a square grid of given length."""
-    rot = cirq.RotXGate(half_turns=half_turns)
+    rot = cirq.XPowGate(exponent=half_turns)
     for i in range(length):
         for j in range(length):
             yield rot(cirq.GridQubit(i, j))
@@ -317,26 +317,26 @@ run because they are using `random.choice`.
 Given this definition of the problem instance we can
 now introduce our ansatz.  Our ansatz will consist
 of one step of a circuit made up of
-1. Apply a RotXGate for the same parameter for all qubits.
+1. Apply an XPowGate for the same parameter for all qubits.
 This is the method we have written above.
-2. Apply a RotZGate for the same parameter for all qubits
+2. Apply a ZPowGate for the same parameter for all qubits
 where the transverse field term h is +1.
 ```python
 def rot_z_layer(h, half_turns):
     """Yields Z rotations by half_turns conditioned on the field h."""
-    gate = cirq.RotZGate(half_turns=half_turns)
+    gate = cirq.ZPowGate(exponent=half_turns)
     for i, h_row in enumerate(h):
         for j, h_ij in enumerate(h_row):
             if h_ij == 1:
                 yield gate(cirq.GridQubit(i, j))
 ```
-3. Apply a Rot11Gate for the same parameter between all
+3. Apply a CZPowGate for the same parameter between all
 qubits where the coupling field term J is +1. If the field
-is -1 apply Rot11Gate conjugated by X gates on all qubits.
+is -1 apply CZPowGate conjugated by X gates on all qubits.
 ```python
 def rot_11_layer(jr, jc, half_turns):
     """Yields rotations about |11> conditioned on the jr and jc fields."""
-    gate = cirq.Rot11Gate(half_turns=half_turns)    
+    gate = cirq.CZPowGate(exponent=half_turns)    
     for i, jr_row in enumerate(jr):
         for j, jr_ij in enumerate(jr_row):
             if jr_ij == -1:
@@ -433,7 +433,7 @@ simulator = cirq.google.XmonSimulator()
 circuit = cirq.Circuit()    
 circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
 circuit.append(cirq.measure(*qubits, key='x'))
-results = simulator.run(circuit, repetitions=100, qubit_order=qubits)
+results = simulator.run(circuit, repetitions=100)
 print(results.histogram(key='x'))
 # prints something like
 # Counter({0: 85, 128: 5, 32: 3, 1: 2, 4: 1, 2: 1, 8: 1, 18: 1, 20: 1})
@@ -479,7 +479,7 @@ One can then calculate the expectation value over all repetitions
 ```python
 def obj_func(result):
     energy_hist = result.histogram(key='x', fold_func=energy_func(3, h, jr, jc))
-    return np.sum(k * v for k,v in energy_hist.items()) / result.repetitions
+    return np.sum([k * v for k,v in energy_hist.items()]) / result.repetitions
 print('Value of the objective function {}'.format(obj_func(results)))
 # prints something like
 # Value of the objective function 6.2
@@ -535,7 +535,7 @@ Parameters are specified at runtime using a `ParamResolver` which is
 which is just a dictionary from `Symbol` keys to runtime values. For example,
 ```python
 resolver = cirq.ParamResolver({'alpha': 0.1, 'beta': 0.3, 'gamma': 0.7})
-resolved_circuit = circuit.with_parameters_resolved_by(resolver)
+resolved_circuit = cirq.resolve_parameters(circuit, resolver)
 ```
 resolves the parameters to actual values in the above circuit.
 

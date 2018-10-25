@@ -14,26 +14,26 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Sequence
 
 import numpy as np
 
-from cirq import linalg, value
-from cirq.ops import gate_features, common_gates, raw_types, op_tree, eigen_gate
+from cirq import linalg, value, protocols
+from cirq.ops import gate_features, common_gates, raw_types, op_tree, \
+    eigen_gate, controlled_gate
 
 
-class _CCZPowerGate(eigen_gate.EigenGate,
-                    gate_features.ThreeQubitGate,
-                    gate_features.TextDiagrammable,
-                    gate_features.CompositeGate,
-                    gate_features.InterchangeableQubitsGate,
-                    gate_features.QasmConvertibleGate):
+class _CCZPowGate(eigen_gate.EigenGate,
+                  gate_features.ThreeQubitGate,
+                  gate_features.CompositeGate,
+                  gate_features.InterchangeableQubitsGate,
+                  gate_features.QasmConvertibleGate):
     """A doubly-controlled-Z that can be raised to a power.
 
     The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
     """
 
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0):
+    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
         super().__init__(exponent=exponent)
 
     @property
@@ -50,8 +50,8 @@ class _CCZPowerGate(eigen_gate.EigenGate,
         return 2
 
     def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCZPowerGate':
-        return _CCZPowerGate(exponent=exponent)
+                       ) -> '_CCZPowGate':
+        return _CCZPowGate(exponent=exponent)
 
     def default_decompose(self, qubits):
         """An adjacency-respecting decomposition.
@@ -86,9 +86,20 @@ class _CCZPowerGate(eigen_gate.EigenGate,
         yield p(c)**-1
         yield sweep_abc
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(('@', '@', '@'),
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> np.ndarray:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        ooo = linalg.slice_for_qubits_equal_to(axes, 0b111)
+        target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
+        return target_tensor
+
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(('@', '@', '@'),
                                              exponent=self._exponent)
 
     def known_qasm_output(self,
@@ -107,7 +118,7 @@ class _CCZPowerGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._exponent == 1:
             return 'cirq.CCZ'
-        return 'cirq.CCZ**{!r}'.format(self._exponent)
+        return '(cirq.CCZ**{!r})'.format(self._exponent)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -115,18 +126,17 @@ class _CCZPowerGate(eigen_gate.EigenGate,
         return 'CCZ**{}'.format(self._exponent)
 
 
-class _CCXPowerGate(eigen_gate.EigenGate,
-                    gate_features.ThreeQubitGate,
-                    gate_features.TextDiagrammable,
-                    gate_features.CompositeGate,
-                    gate_features.InterchangeableQubitsGate,
-                    gate_features.QasmConvertibleGate):
+class _CCXPowGate(eigen_gate.EigenGate,
+                  gate_features.ThreeQubitGate,
+                  gate_features.CompositeGate,
+                  gate_features.InterchangeableQubitsGate,
+                  gate_features.QasmConvertibleGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
     The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
     """
 
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0):
+    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
         super().__init__(exponent=exponent)
 
     @property
@@ -142,8 +152,8 @@ class _CCXPowerGate(eigen_gate.EigenGate,
         ]
 
     def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCXPowerGate':
-        return _CCXPowerGate(exponent=exponent)
+                       ) -> '_CCXPowGate':
+        return _CCXPowGate(exponent=exponent)
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -151,15 +161,29 @@ class _CCXPowerGate(eigen_gate.EigenGate,
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> np.ndarray:
+        return protocols.apply_unitary_to_tensor(
+            controlled_gate.ControlledGate(
+                controlled_gate.ControlledGate(
+                    common_gates.X**self.exponent)),
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
     def default_decompose(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
         yield CCZ(c1, c2, t)**self._exponent
         yield common_gates.H(t)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        return gate_features.TextDiagramInfo(('@', '@', 'X'),
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(('@', '@', 'X'),
                                              exponent=self._exponent)
 
     def known_qasm_output(self,
@@ -175,7 +199,7 @@ class _CCXPowerGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._exponent == 1:
             return 'cirq.TOFFOLI'
-        return 'cirq.TOFFOLI**{!r}'.format(self._exponent)
+        return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -184,7 +208,6 @@ class _CCXPowerGate(eigen_gate.EigenGate,
 
 
 class _CSwapGate(gate_features.ThreeQubitGate,
-                 gate_features.TextDiagrammable,
                  gate_features.CompositeGate,
                  gate_features.InterchangeableQubitsGate,
                  gate_features.QasmConvertibleGate):
@@ -246,6 +269,18 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.S(c)**-1
         yield common_gates.X(a)**-0.5
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> np.ndarray:
+        return protocols.apply_unitary_to_tensor(
+            controlled_gate.ControlledGate(common_gates.SWAP),
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
     def _decompose_outside_control(self,
                                    control: raw_types.QubitId,
                                    near_target: raw_types.QubitId,
@@ -280,16 +315,19 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.X(b)**0.5
         yield common_gates.X(c)**-0.5
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]),
                                  np.array([[0, 1], [1, 0]]),
                                  np.diag([1]))
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         if not args.use_unicode_characters:
-            return gate_features.TextDiagramInfo(('@', 'swap', 'swap'))
-        return gate_features.TextDiagramInfo(('@', '×', '×'))
+            return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
+        return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
     def known_qasm_output(self,
                           qubits: Tuple[raw_types.QubitId, ...],
@@ -306,8 +344,8 @@ class _CSwapGate(gate_features.ThreeQubitGate,
 
 
 # Explicit names.
-CCZ = _CCZPowerGate()
-CCX = _CCXPowerGate()
+CCZ = _CCZPowGate()
+CCX = _CCXPowGate()
 CSWAP = _CSwapGate()
 
 # Common names.

@@ -15,44 +15,29 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING, cast
-)
+    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
+    Any)
 
 import numpy as np
 
-from cirq import extension, protocols, value
+from cirq import extension, protocols
 from cirq.ops import raw_types, gate_features
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq import study
     from typing import Dict, List
 
 
-LIFTED_POTENTIAL_TYPES = {t: t for t in [
-    gate_features.BoundedEffect,
-    gate_features.ExtrapolatableEffect,
-    gate_features.ParameterizableEffect,
-    gate_features.PhaseableEffect,
-    gate_features.ReversibleEffect,
-    gate_features.TextDiagrammable,
-]}
-
-LIFTED_POTENTIAL_TYPES[
-    gate_features.CompositeOperation] = gate_features.CompositeGate
-LIFTED_POTENTIAL_TYPES[
-    gate_features.QasmConvertibleOperation] = gate_features.QasmConvertibleGate
+LIFTED_POTENTIAL_TYPES = {
+    gate_features.CompositeOperation: gate_features.CompositeGate,
+    gate_features.QasmConvertibleOperation: gate_features.QasmConvertibleGate
+}
 
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
-                        gate_features.BoundedEffect,
                         gate_features.CompositeOperation,
-                        gate_features.ExtrapolatableEffect,
-                        gate_features.ParameterizableEffect,
-                        gate_features.PhaseableEffect,
-                        gate_features.ReversibleEffect,
-                        gate_features.TextDiagrammable,
                         gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
@@ -142,37 +127,50 @@ class GateOperation(raw_types.Operation,
         cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
         return cast_gate.default_decompose(self.qubits)
 
-    def _unitary_(self) -> Union[np.ndarray, type(NotImplemented)]:
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        return protocols.apply_unitary_to_tensor(
+            self.gate,
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self._gate)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        cast_gate = extension.cast(gate_features.TextDiagrammable, self.gate)
-        return cast_gate.text_diagram_info(args)
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._gate)
 
-    def trace_distance_bound(self) -> float:
-        cast_gate = extension.cast(gate_features.BoundedEffect, self.gate)
-        return cast_gate.trace_distance_bound()
+    def _resolve_parameters_(self, resolver):
+        resolved_gate = protocols.resolve_parameters(self._gate, resolver)
+        return GateOperation(resolved_gate, self._qubits)
 
-    def inverse(self) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ReversibleEffect, self.gate)
-        return self.with_gate(cast(raw_types.Gate, cast_gate.inverse()))
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        return protocols.circuit_diagram_info(self.gate,
+                                              args,
+                                              NotImplemented)
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ExtrapolatableEffect,
-                                   self.gate)
-        return self.with_gate(cast(raw_types.Gate,
-                                   cast_gate.extrapolate_effect(factor)))
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(self.gate)
 
-    def phase_by(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.PhaseableEffect,
-                                   self.gate)
-        return self.with_gate(cast(raw_types.Gate,
-                                   cast_gate.phase_by(phase_turns,
-                                                      qubit_index)))
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'GateOperation':
+        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
+                                         default=None)
+        if phased_gate is None:
+            return NotImplemented
+        return GateOperation(phased_gate, self._qubits)
 
-    def __pow__(self, power: float) -> 'GateOperation':
+    def __pow__(self, exponent: Any) -> 'GateOperation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
@@ -181,28 +179,21 @@ class GateOperation(raw_types.Operation,
             (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
 
         Args:
-            power: The amount to scale the gate's effect by.
+            exponent: The amount to scale the gate's effect by.
 
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
-        return self.extrapolate_effect(power)
-
-    def is_parameterized(self) -> bool:
-        cast_gate = extension.cast(gate_features.ParameterizableEffect,
-                                   self.gate)
-        return cast_gate.is_parameterized()
-
-    def with_parameters_resolved_by(self,
-                                    param_resolver: 'study.ParamResolver',
-                                    ) -> 'GateOperation':
-        cast_gate = extension.cast(gate_features.ParameterizableEffect,
-                                   self.gate)
-        new_gate = cast_gate.with_parameters_resolved_by(param_resolver)
-        return self.with_gate(cast(raw_types.Gate, new_gate))
+        new_gate = protocols.pow(self.gate,
+                                 exponent,
+                                 NotImplemented)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        return self.with_gate(new_gate)
 
     def known_qasm_output(self,
                           args: gate_features.QasmOutputArgs) -> Optional[str]:
-        cast_gate = extension.cast(gate_features.QasmConvertibleGate,
-                                   self.gate)
+        cast_gate = extension.cast(  # type: ignore
+            gate_features.QasmConvertibleGate,
+            self.gate)
         return cast_gate.known_qasm_output(self.qubits, args)

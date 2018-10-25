@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 
-import cirq
-from cirq import Extensions, ops
-from cirq import abc
+import abc
+
+from cirq import Extensions, ops, protocols, google
 from cirq.ops import gate_features
 
 
 class QCircuitDiagrammable(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> ops.TextDiagramInfo:
+    def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
         pass
 
 
@@ -46,12 +46,13 @@ class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammable):
     def __init__(self, *symbols: str) -> None:
         self.symbols = symbols
 
-    def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> ops.TextDiagramInfo:
-        return ops.TextDiagramInfo(self.symbols)
+    def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(self.symbols)
 
-def _get_multigate_parameters(gate: ops.TextDiagrammable,
-                              args: ops.TextDiagramInfoArgs
+
+def _get_multigate_parameters(gate: Any,
+                              args: protocols.CircuitDiagramInfoArgs
                               ) -> Optional[Tuple[int, int]]:
     if not isinstance(gate, gate_features.InterchangeableQubitsGate):
         return None
@@ -65,13 +66,14 @@ def _get_multigate_parameters(gate: ops.TextDiagrammable,
         return None
     return min_index, n_qubits
 
+
 class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
-    def __init__(self, sub: ops.TextDiagrammable) -> None:
+    def __init__(self, sub: protocols.SupportsCircuitDiagramInfo) -> None:
         self.sub = sub
 
-    def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> ops.TextDiagramInfo:
-        info = self.sub.text_diagram_info(args)
+    def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
+        info = protocols.circuit_diagram_info(self.sub, args)
         multigate_parameters = _get_multigate_parameters(self.sub, args)
         if multigate_parameters is not None:
             min_index, n_qubits = multigate_parameters
@@ -84,69 +86,64 @@ class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
             assert args.known_qubits is not None
             symbols = tuple(box if (args.qubit_map[q] == min_index) else
                             ghost for q in args.known_qubits)
-            return ops.TextDiagramInfo(symbols, exponent=info.exponent,
-                    connected=False)
+            return protocols.CircuitDiagramInfo(symbols,
+                                                exponent=info.exponent,
+                                                connected=False)
         s = [_escape_text_for_latex(e) for e in info.wire_symbols]
         if info.exponent != 1:
             s[0] += '^{' + str(info.exponent) + '}'
-        return ops.TextDiagramInfo(tuple('\\gate{' + e + '}' for e in s))
+        return protocols.CircuitDiagramInfo(tuple('\\gate{' + e + '}'
+                                                  for e in s))
 
 
 class _FallbackQCircuitGate(QCircuitDiagrammable):
     def __init__(self, sub: ops.Gate) -> None:
         self.sub = sub
 
-    def qcircuit_diagram_info(self, args: ops.TextDiagramInfoArgs
-                              ) -> ops.TextDiagramInfo:
+    def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
         name = str(self.sub)
         qubit_count = ((len(args.known_qubits) if
                        (args.known_qubits is not None) else 1)
                        if args.known_qubit_count is None
                        else args.known_qubit_count)
-        symbols = tuple(_escape_text_for_latex('{}:{}'.format(name, i))
-                        for i in range(qubit_count))
-        return ops.TextDiagramInfo(symbols)
+        symbols = [name] + ['#{}'.format(i + 1) for i in range(1, qubit_count)]
+        escaped_symbols = tuple(_escape_text_for_latex(s)  for s in symbols)
+        return protocols.CircuitDiagramInfo(escaped_symbols)
 
 
 fallback_qcircuit_extensions = Extensions()
-fallback_qcircuit_extensions.add_cast(
-    QCircuitDiagrammable,
-    ops.TextDiagrammable,
-    _TextToQCircuitDiagrammable)
-fallback_qcircuit_extensions.add_recursive_cast(
+fallback_qcircuit_extensions.add_recursive_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.GateOperation,
-    lambda ext, op: ext.try_cast(QCircuitDiagrammable, op.gate))
-fallback_qcircuit_extensions.add_cast(
+    lambda ext, op: ext.try_cast(QCircuitDiagrammable, op.gate)  # type: ignore
+)
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.RotXGate,
+    ops.XPowGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
-        if gate.half_turns == 1
+        if gate.exponent == 1
         else None)
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.MeasurementGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\meter'))
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    cirq.google.ExpWGate,
+    google.ExpWGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\targ')
         if gate.half_turns == 1 and gate.axis_half_turns == 0
         else None)
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.Rot11Gate,
+    ops.CZPowGate,
     lambda gate:
         _HardcodedQCircuitSymbolsGate('\\control', '\\control')
-        if gate.half_turns == 1
+        if gate.exponent == 1
         else None)
-fallback_qcircuit_extensions.add_cast(
+fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
-    ops.CNotGate,
+    ops.CNotPowGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\control', '\\targ'))
-fallback_qcircuit_extensions.add_cast(
-    QCircuitDiagrammable,
-    ops.Gate,
-    _FallbackQCircuitGate)

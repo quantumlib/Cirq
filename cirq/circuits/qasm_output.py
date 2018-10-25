@@ -136,14 +136,10 @@ class QasmOutput:
                  qubits: Tuple[ops.QubitId, ...],
                  header: str = '',
                  precision: int = 10,
-                 version: str = '2.0',
-                 ext: extension.Extensions = None) -> None:
+                 version: str = '2.0') -> None:
         self.operations = tuple(ops.flatten_op_tree(operations))
         self.qubits = qubits
         self.header = header
-        if ext is None:
-            ext = extension.Extensions()
-        self.ext = ext
         self.measurements = tuple(cast(ops.GateOperation, op)
                                   for op in self.operations
                                   if ops.MeasurementGate.is_measurement(op))
@@ -253,7 +249,8 @@ class QasmOutput:
                           output_line_gap: Callable[[int], None],
                           top=True) -> None:
         for op in ops.flatten_op_tree(op_tree):
-            qasm_op = self.ext.try_cast(ops.QasmConvertibleOperation, op)
+            qasm_op = extension.try_cast(  # type: ignore
+                ops.QasmConvertibleOperation, op)
             if qasm_op is not None:
                 out = qasm_op.known_qasm_output(self.args)
                 if out is not None:
@@ -264,7 +261,8 @@ class QasmOutput:
                 comment = 'Gate: {!s}'.format(op.gate)
             else:
                 comment = 'Operation: {!s}'.format(op)
-            comp_op = self.ext.try_cast(ops.CompositeOperation, op)
+            comp_op = extension.try_cast(  # type: ignore
+                ops.CompositeOperation, op)
             if comp_op is not None:
                 if top:
                     output_line_gap(1)
