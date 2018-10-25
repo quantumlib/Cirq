@@ -15,8 +15,9 @@
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
 
 import abc
-
 import functools
+import math
+
 import numpy as np
 
 from cirq import value, protocols
@@ -174,7 +175,10 @@ class EigenGate(raw_types.Gate):
         int_periods = [int(np.round(e)) for e in real_periods]
         if any(i != r for i, r in zip(real_periods, int_periods)):
             return None
-        return functools.reduce(np.lcm, int_periods)
+
+        def lcm(a, b):
+            return a * b // math.gcd(a, b)
+        return functools.reduce(lcm, int_periods)
 
     def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
