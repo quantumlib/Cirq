@@ -31,14 +31,12 @@ if TYPE_CHECKING:
 
 LIFTED_POTENTIAL_TYPES = {
     gate_features.CompositeOperation: gate_features.CompositeGate,
-    gate_features.QasmConvertibleOperation: gate_features.QasmConvertibleGate
 }
 
 
 class GateOperation(raw_types.Operation,
                     extension.PotentialImplementation[Union[
                         gate_features.CompositeOperation,
-                        gate_features.QasmConvertibleOperation,
                     ]]):
     """An application of a gate to a collection of qubits.
 
@@ -191,9 +189,8 @@ class GateOperation(raw_types.Operation,
             return NotImplemented
         return self.with_gate(new_gate)
 
-    def known_qasm_output(self,
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
-        cast_gate = extension.cast(  # type: ignore
-            gate_features.QasmConvertibleGate,
-            self.gate)
-        return cast_gate.known_qasm_output(self.qubits, args)
+    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
+        return protocols.qasm(self.gate,
+                              args=args,
+                              qubits=self.qubits,
+                              default=None)
