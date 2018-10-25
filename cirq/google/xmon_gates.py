@@ -220,9 +220,12 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
         return ExpWGate(half_turns=new_exponent,
                         axis_half_turns=self.axis_half_turns)
 
+    def _has_unitary_(self) -> bool:
+        return not (isinstance(self.half_turns, value.Symbol) or
+                isinstance(self.axis_half_turns, value.Symbol))
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        if (isinstance(self.half_turns, value.Symbol) or
-                isinstance(self.axis_half_turns, value.Symbol)):
+        if not self._has_unitary_():
             return NotImplemented
 
         phase = protocols.unitary(

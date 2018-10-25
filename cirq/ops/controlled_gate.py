@@ -82,6 +82,9 @@ class ControlledGate(raw_types.Gate):
         target_tensor[active] = result
         return target_tensor
 
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self.sub_gate)
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
