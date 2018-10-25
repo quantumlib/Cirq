@@ -234,15 +234,17 @@ def test_with_device():
 
     # Qubit type must be correct.
     c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Unsupported qubit type'):
         _ = c.with_device(cg.Foxtail)
 
     # Operations must be compatible from the start
     c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 0)))
-    with pytest.raises(ValueError):
+    _ = c.with_device(cg.Foxtail)
+    c = cirq.Circuit.from_ops(cirq.H(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError, match='Unsupported gate type'):
         _ = c.with_device(cg.Foxtail)
 
-    # Some qubits existing on multiple devices.
+    # Some qubits exist on multiple devices.
     c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     with pytest.raises(ValueError):
         _ = c.with_device(cg.Bristlecone)

@@ -388,7 +388,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -402,7 +402,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -416,7 +416,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
 
 def test_unsupported_op():
