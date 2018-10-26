@@ -86,7 +86,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     for y in range(h):
         for x in range(max(0, w - 1)):
             key = (x, y)
-            diagram_text = diagram.entries.get(key)  # type: _DiagramText
+            diagram_text = diagram.entries.get(key)
             v = '&' + (diagram_text.text if diagram_text else  '') + ' '
             diagram2.write(2*x + 1, y, v)
             post1 = '\\qw' if key in qw else ''

@@ -56,15 +56,11 @@ class TextDiagramDrawer:
             transposted_text: Optional text to write instead, if the text
                 diagram is transposed.
         """
-        if transposed_text is None:
-            transposed_text = text
-        if (x, y) in self.entries:
-            entry = self.entries[(x, y)]
-            self.entries[(x, y)] = _DiagramText(
-                entry.text + text,
-                entry.transposed_text + transposed_text)
-        else:
-            self.entries[(x, y)] = _DiagramText(text, transposed_text)
+        entry = self.entries.get((x, y), _DiagramText('', ''))
+        self.entries[(x, y)] = _DiagramText(
+            entry.text + text,
+            entry.transposed_text + (transposed_text if transposed_text
+                                                     else text))
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
@@ -156,7 +152,8 @@ class TextDiagramDrawer:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
-    def _transform_coordinates(self, func: Callable[[int, int], Tuple[int, int]]) -> None:
+    def _transform_coordinates(
+        self, func: Callable[[int, int], Tuple[int, int]]) -> None:
         """Helper method to transformer either row or column coordinates."""
         def func_x(x: int) -> int:
             return func(x, 0)[0]
