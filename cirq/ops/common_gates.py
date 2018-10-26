@@ -34,8 +34,7 @@ import cirq.ops.phased_x_gate
 
 class CZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
-                gate_features.InterchangeableQubitsGate,
-                gate_features.QasmConvertibleGate):
+                gate_features.InterchangeableQubitsGate):
     """Phases the |11⟩ state of two adjacent qubits by a fixed amount.
 
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
@@ -90,9 +89,9 @@ class CZPowGate(eigen_gate.EigenGate,
             wire_symbols=('@', '@'),
             exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -110,8 +109,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
 
 class XPowGate(eigen_gate.EigenGate,
-               gate_features.SingleQubitGate,
-               gate_features.QasmConvertibleGate):
+               gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -168,9 +166,9 @@ class XPowGate(eigen_gate.EigenGate,
             wire_symbols=('X',),
             exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('x {0};\n', qubits[0])
@@ -203,8 +201,7 @@ class XPowGate(eigen_gate.EigenGate,
 
 
 class YPowGate(eigen_gate.EigenGate,
-               gate_features.SingleQubitGate,
-               gate_features.QasmConvertibleGate):
+               gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -254,9 +251,9 @@ class YPowGate(eigen_gate.EigenGate,
             wire_symbols=('Y',),
             exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('y {0};\n', qubits[0])
@@ -289,8 +286,7 @@ class YPowGate(eigen_gate.EigenGate,
 
 
 class ZPowGate(eigen_gate.EigenGate,
-               gate_features.SingleQubitGate,
-               gate_features.QasmConvertibleGate):
+               gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -365,9 +361,9 @@ class ZPowGate(eigen_gate.EigenGate,
             wire_symbols=('Z',),
             exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('z {0};\n', qubits[0])
@@ -409,7 +405,7 @@ class ZPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift_in_half_turns)
 
 
-class MeasurementGate(raw_types.Gate, gate_features.QasmConvertibleGate):
+class MeasurementGate(raw_types.Gate):
     """Indicates that qubits should be measured plus a key to identify results.
 
     Attributes:
@@ -469,9 +465,9 @@ class MeasurementGate(raw_types.Gate, gate_features.QasmConvertibleGate):
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         args.validate_version('2.0')
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
@@ -557,10 +553,7 @@ S = Z**0.5
 T = Z**0.25
 
 
-class HPowGate(eigen_gate.EigenGate,
-               gate_features.CompositeGate,
-               gate_features.SingleQubitGate,
-               gate_features.QasmConvertibleGate):
+class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """Rotation around the X+Z axis of the Bloch sphere."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -609,7 +602,7 @@ class HPowGate(eigen_gate.EigenGate,
         target_tensor *= np.sqrt(2)
         return target_tensor
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         q = qubits[0]
 
         if self._exponent == 1:
@@ -624,9 +617,9 @@ class HPowGate(eigen_gate.EigenGate,
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('H',))
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('h {0};\n', qubits[0])
@@ -650,10 +643,7 @@ class HPowGate(eigen_gate.EigenGate,
 H = HPowGate()  # Hadamard gate.
 
 
-class CNotPowGate(eigen_gate.EigenGate,
-                  gate_features.CompositeGate,
-                  gate_features.TwoQubitGate,
-                  gate_features.QasmConvertibleGate):
+class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     """The controlled-not gate, possibly raised to a power.
 
     When applying CNOT (controlled-not) to QuBits, you can either use
@@ -671,7 +661,7 @@ class CNotPowGate(eigen_gate.EigenGate,
         """
         super().__init__(exponent=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         c, t = qubits
         yield Y(t)**-0.5
         yield CZ(c, t)**self._exponent
@@ -717,9 +707,9 @@ class CNotPowGate(eigen_gate.EigenGate,
         target_tensor[zo] = available_buffer[oo]
         return target_tensor
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -752,16 +742,14 @@ CNOT = CNotPowGate()  # Controlled Not Gate.
 
 class SwapPowGate(eigen_gate.EigenGate,
                   gate_features.TwoQubitGate,
-                  gate_features.CompositeGate,
-                  gate_features.InterchangeableQubitsGate,
-                  gate_features.QasmConvertibleGate):
-    """Swaps two qubits."""
+                  gate_features.InterchangeableQubitsGate):
+    """The SWAP gate, possibly raised to a power. Exchanges qubits."""
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0) -> None:
         super().__init__(exponent=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         """See base class."""
         a, b = qubits
         yield CNOT(a, b)
@@ -812,9 +800,9 @@ class SwapPowGate(eigen_gate.EigenGate,
             wire_symbols=('×', '×'),
             exponent=self._exponent)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[raw_types.QubitId, ...],
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -835,7 +823,6 @@ SWAP = SwapPowGate()  # Exchanges two qubits' states.
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
-                   gate_features.CompositeGate,
                    gate_features.InterchangeableQubitsGate,
                    gate_features.TwoQubitGate):
     """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.
@@ -870,7 +857,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b = qubits
 
         yield CNOT(a, b)

@@ -27,7 +27,7 @@ def test_plot_state_histogram():
     pl.switch_backend('PDF')
     simulator = cg.XmonSimulator()
 
-    rot_w_gate = cg.ExpWGate(half_turns=1.)
+    rot_w_gate = cg.ExpWGate(exponent=1.)
 
     q0 = GridQubit(0, 0)
     q1 = GridQubit(1, 0)

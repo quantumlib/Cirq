@@ -28,6 +28,10 @@ def assert_optimizes(before: cirq.Circuit,
                              cirq.DropEmptyMoments())):
     opt = cg.EjectZ()
 
+    if cirq.has_unitary(before):
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            before, expected, atol=1e-8)
+
     circuit = before.copy()
     for pre in pre_opts:
         pre.optimize_circuit(circuit)
@@ -36,19 +40,11 @@ def assert_optimizes(before: cirq.Circuit,
         post.optimize_circuit(circuit)
         post.optimize_circuit(expected)
 
-    if circuit != expected:
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("AFTER")
-        print(circuit)
-        print("EXPECTED")
-        print(expected)
-    assert circuit == expected
+    cirq.testing.assert_same_circuits(circuit, expected)
 
     # And it should be idempotent.
     opt.optimize_circuit(circuit)
-    assert circuit == expected
+    cirq.testing.assert_same_circuits(circuit, expected)
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
@@ -194,7 +190,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             cirq.Moment([u(q)]),
             cirq.Moment(),
             cirq.Moment([cirq.Y(q)]),
-            cirq.Moment([cg.ExpWGate(axis_half_turns=0.25).on(q)]),
+            cirq.Moment([cg.ExpWGate(phase_exponent=0.25).on(q)]),
             cirq.Moment([cirq.Z(q)**0.75]),
             cirq.Moment([u(q)]),
         ]))
