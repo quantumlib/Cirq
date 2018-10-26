@@ -190,6 +190,7 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
 
     def to_proto_dict(self, *qubits):
         if len(qubits) != 1:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
 
         q = qubits[0]

@@ -33,26 +33,31 @@ def gate_to_proto_dict(gate: ops.Gate,
 
     if isinstance(gate, ops.XPowGate):
         if len(qubits) != 1:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _x_to_proto_dict(gate, qubits[0])
 
     if isinstance(gate, ops.YPowGate):
         if len(qubits) != 1:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _y_to_proto_dict(gate, qubits[0])
 
     if isinstance(gate, (xmon_gates.ExpWGate, ops.PhasedXPowGate)):
         if len(qubits) != 1:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _phased_x_to_proto_dict(gate, qubits[0])
 
     if isinstance(gate, ops.ZPowGate):
         if len(qubits) != 1:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _z_to_proto_dict(gate, qubits[0])
 
     if isinstance(gate, ops.CZPowGate):
         if len(qubits) != 2:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _cz_to_proto_dict(gate, *qubits)
 
