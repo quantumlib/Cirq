@@ -23,7 +23,20 @@ from cirq.ops.common_channels import (
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     depolarize,
-    DepolarizingChannel
+    DepolarizingChannel,
+    generalized_amplitude_damping,
+    GeneralizedAmplitudeDampingChannel,
+    amplitude_damping,
+    AmplitudeDampingChannel,
+    phase_damping,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
+    bit_flip,
+    BitFlipChannel,
+    rotation_error,
+    RotationErrorChannel
+
 )
 from cirq.ops.common_gates import (
     CNOT,
