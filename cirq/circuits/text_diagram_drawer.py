@@ -40,7 +40,7 @@ class TextDiagramDrawer:
     """
 
     def __init__(self):
-        self.entries = dict()  # type: Dict[Tuple[int, int], Tuple[str, str]]
+        self.entries = dict()  # type: Dict[Tuple[int, int], _DiagramText]
         self.vertical_lines = []  # type: List[_VerticalLine]
         self.horizontal_lines = []  # type: List[_HorizontalLine]
         self.horizontal_padding = {}  # type: Dict[int, int]

@@ -1508,7 +1508,7 @@ def _draw_moment_in_diagram(moment: Moment,
 
     # Group together columns belonging to the same Moment.
     if moment.operations and x > x0:
-        moment_groups.append([x0, x])
+        moment_groups.append((x0, x))
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
