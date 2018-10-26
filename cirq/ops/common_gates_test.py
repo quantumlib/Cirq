@@ -691,9 +691,6 @@ def test_XXPowGate_repr():
 
 
 def test_XXPowGate_diagrams():
-    print(cirq.unitary(cirq.Z**-0.5))
-    print('\n')
-    print(cirq.unitary(cirq.protocols.inverse(cirq.Z**-0.5)))
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(
