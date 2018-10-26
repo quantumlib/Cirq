@@ -168,7 +168,7 @@ def controlled_op_to_operations(
         return []
 
     u_gates = single_qubit_matrix_to_gates(u, tolerance)
-    if u_gates and isinstance(u_gates[-1], ops.RotZGate):
+    if u_gates and isinstance(u_gates[-1], ops.ZPowGate):
         # Don't keep border operations that commute with CZ.
         del u_gates[-1]
 

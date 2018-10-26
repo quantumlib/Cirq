@@ -76,7 +76,7 @@ def test_inverse():
 def test_child_class():
 
     class Impl(cirq.ReversibleCompositeGate):
-        def default_decompose(self, qubits):
+        def _decompose_(self, qubits):
             yield _FlipGate(1)(*qubits)
             yield _FlipGate(2)(*qubits), _FlipGate(3)(*qubits)
 
@@ -89,12 +89,10 @@ def test_child_class():
         _ = reversed_gate**0.5
 
     q = cirq.NamedQubit('q')
-    assert (
-        cirq.freeze_op_tree(gate.default_decompose([q])) ==
-        (_FlipGate(1)(q), (_FlipGate(2)(q), _FlipGate(3)(q))))
-    assert (
-        cirq.freeze_op_tree(reversed_gate.default_decompose([q])) ==
-        ((_FlipGate(~3)(q), _FlipGate(~2)(q)), _FlipGate(~1)(q)))
+    assert (cirq.decompose_once_with_qubits(gate, [q]) ==
+            [_FlipGate(1)(q), _FlipGate(2)(q), _FlipGate(3)(q)])
+    assert (cirq.decompose_once_with_qubits(reversed_gate, [q]) ==
+            [_FlipGate(~3)(q), _FlipGate(~2)(q), _FlipGate(~1)(q)])
 
 
 def test_enforces_abstract():
@@ -109,7 +107,7 @@ def test_enforces_abstract():
         _ = Missing()
 
     class Included(cirq.ReversibleCompositeGate):
-        def default_decompose(self, qubits):
+        def _decompose_(self, qubits):
             pass
 
     assert isinstance(Included(), cirq.ReversibleCompositeGate)

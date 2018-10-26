@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq._version import (
+    __version__,
+)
+
 # Flattened sub-modules.
 
 from cirq.circuits import (
@@ -96,16 +100,19 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    asymmetric_depolarize,
+    AsymmetricDepolarizingChannel,
     CCX,
     CCZ,
     SingleQubitCliffordGate,
     CNOT,
-    CNotGate,
-    CompositeGate,
-    CompositeOperation,
+    CNotPowGate,
     ControlledGate,
     CSWAP,
     CZ,
+    CZPowGate,
+    depolarize,
+    DepolarizingChannel,
     EigenGate,
     flatten_op_tree,
     FREDKIN,
@@ -113,10 +120,10 @@ from cirq.ops import (
     Gate,
     GateOperation,
     H,
-    HGate,
+    HPowGate,
     InterchangeableQubitsGate,
     ISWAP,
-    ISwapGate,
+    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -127,17 +134,14 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    QasmConvertibleGate,
-    QasmConvertibleOperation,
-    QasmOutputArgs,
+    PhasedXPowGate,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    Rot11Gate,
-    RotXGate,
-    RotYGate,
-    RotZGate,
+    XPowGate,
+    YPowGate,
+    ZPowGate,
     Rx,
     Ry,
     Rz,
@@ -145,7 +149,7 @@ from cirq.ops import (
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,
-    SwapGate,
+    SwapPowGate,
     T,
     ThreeQubitGate,
     TOFFOLI,
@@ -202,17 +206,26 @@ from cirq.protocols import (
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
     inverse,
     mul,
     pow,
+    qasm,
+    QasmArgs,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
-    SupportsUnitary,
     SupportsParameterization,
     SupportsPhase,
+    SupportsQasm,
+    SupportsQasmWithArgs,
+    SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
+    SupportsUnitary,
     is_parameterized,
     resolve_parameters,
+    has_unitary,
     unitary,
     trace_distance_bound,
     phase_by,
@@ -226,6 +239,3 @@ from cirq import (
     google,
     testing,
 )
-
-# Import version last since it is a relative import.
-from ._version import __version__

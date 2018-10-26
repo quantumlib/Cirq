@@ -87,23 +87,15 @@ def test_exponent():
             [0, 0, 0.5-0.5j, 0.5+0.5j],
         ]))
 
-    # Matrix must be consistent with decomposition.
-    q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
-    g = cnot**0.25
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(g),
-        cirq.Circuit.from_ops(g.default_decompose([q0, q1])
-                              ).to_unitary_matrix(),
-        rtol=1e-7, atol=1e-7)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cnot)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cnot**0.25)
 
 
 def test_decomposes_despite_symbol():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     gate = cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.X, False,
                                      half_turns=cirq.Symbol('x'))
-    op_tree = gate.default_decompose([q0, q1])
-    ops = tuple(cirq.flatten_op_tree(op_tree))
-    assert ops
+    assert cirq.decompose_once_with_qubits(gate, [q0, q1])
 
 
 def test_text_diagrams():

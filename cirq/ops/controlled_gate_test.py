@@ -70,8 +70,11 @@ def test_eq():
 
 def test_unitary():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
+    assert not cirq.has_unitary(cxa)
     assert cirq.unitary(cxa, None) is None
 
+    assert cirq.has_unitary(CY)
+    assert cirq.has_unitary(CCH)
     np.testing.assert_allclose(
         cirq.unitary(CY),
         np.array([
@@ -183,7 +186,7 @@ def test_phase_by():
     assert (cirq.phase_by(
                 cirq.ControlledGate(UnphasableGate), 0.25, 1, default=None) ==
             None)
-    sub_gate = cirq.google.ExpWGate(axis_half_turns = 0.5)
+    sub_gate = cirq.google.ExpWGate(phase_exponent= 0.5)
     phased_sub_gate = cirq.phase_by(sub_gate, 0.25, 0)
     assert phased_sub_gate != sub_gate
     cg = cirq.ControlledGate(sub_gate)
@@ -198,10 +201,11 @@ def test_phase_by():
     assert (cirq.phase_by(ccg, 0.25, 2) ==
             cirq.ControlledGate(cirq.ControlledGate(phased_sub_gate)))
 
+
 def test_parameterizable():
     a = cirq.Symbol('a')
-    cz = cirq.ControlledGate(cirq.RotYGate(half_turns=1))
-    cza = cirq.ControlledGate(cirq.RotYGate(half_turns=a))
+    cz = cirq.ControlledGate(cirq.Y)
+    cza = cirq.ControlledGate(cirq.YPowGate(exponent=a))
     assert cirq.is_parameterized(cza)
     assert not cirq.is_parameterized(cz)
     assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
