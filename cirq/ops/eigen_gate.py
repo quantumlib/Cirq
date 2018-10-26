@@ -16,7 +16,6 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
     Iterable
 
 import abc
-import functools
 
 import numpy as np
 
