@@ -57,6 +57,23 @@ class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
         ]
 
 
+def test_approximate_common_period():
+    from cirq.ops.eigen_gate import _approximate_common_period as f
+
+    assert f([]) is None
+    assert f([0]) is None
+    assert f([1, 0]) is None
+
+    assert f([1]) == 1
+    assert f([-1]) == 1
+    assert f([2.5]) == 2.5
+    assert f([1.5, 2]) == 6
+    assert f([2, 3]) == 6
+    assert abs(f([1 / 3, 2 / 3]) - 2 / 3) < 1e-8
+    assert abs(f([2 / 5, 3 / 5]) - 6 / 5) < 1e-8
+    assert f([0.5, -0.5]) == 0.5
+
+
 def test_init():
     assert CExpZinGate(1).exponent == 1
     assert CExpZinGate(0.5).exponent == 0.5
@@ -109,7 +126,7 @@ def test_period():
                 (self.d, np.diag([0, 0, 0, 1])),
             ]
 
-    assert Components(0, 0, 0, 0)._period() == 0
+    assert Components(0, 0, 0, 0)._period() is None
     assert Components(1, 0, 0, 0)._period() == 2
     assert Components(0.5, 0, 0, 0)._period() == 4
     assert Components(1 / 3, 0, 0, 0)._period() == 6

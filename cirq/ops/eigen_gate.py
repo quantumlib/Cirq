@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
-from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
+from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
+    Iterable
 
 import abc
 import functools
@@ -98,7 +99,7 @@ class EigenGate(raw_types.Gate):
         method with a differing signature.
         """
         # pylint: disable=unexpected-keyword-arg
-        if self._global_shift_in_half_turns == 0:
+        if self._global_shift == 0:
             return type(self)(exponent=exponent)
         return type(self)(
             exponent=exponent,
@@ -172,15 +173,7 @@ class EigenGate(raw_types.Gate):
         exponents = [e + self._global_shift
                      for e, _ in self._eigen_components()]
         real_periods = [abs(2/e) for e in exponents if e != 0]
-        if not real_periods:
-            return 0
-        int_periods = [int(np.round(e)) for e in real_periods]
-        if any(i != r for i, r in zip(real_periods, int_periods)):
-            return None
-
-        def lcm(a, b):
-            return a * b // fractions.gcd(a, b)
-        return functools.reduce(lcm, int_periods)
+        return _approximate_common_period(real_periods)
 
     def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
@@ -242,3 +235,45 @@ class EigenGate(raw_types.Gate):
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
+
+
+def _lcm(vals: Iterable[int]) -> int:
+    t = 1
+    for r in vals:
+        t = t * r // fractions.gcd(t, r)
+    return t
+
+
+def _approximate_common_period(periods: List[float],
+                               initial_denom: int = 60,
+                               reject_atol: float = 1e-8) -> Optional[float]:
+    if not periods:
+        return None
+    if any(e == 0 for e in periods):
+        return None
+    approx_rational_periods = [
+        fractions.Fraction(int(np.round(p * initial_denom)), initial_denom)
+        for p in periods
+    ]
+    common = float(_common_rational_period(approx_rational_periods))
+
+    for p in periods:
+        if p != 0 and abs(p * np.round(common / p) - common) > reject_atol:
+            return None
+
+    return common
+
+
+def _common_rational_period(rational_periods: List[fractions.Fraction]
+                            ) -> fractions.Fraction:
+    """Finds the least common integer multiple of some fractions.
+
+    The solution is the smallest positive integer c such that there
+    exists integers n_k satisfying p_k * n_k = c for all k.
+    """
+    assert rational_periods, "no well-defined solution for an empty list"
+    common_denom = _lcm(p.denominator for p in rational_periods)
+    int_periods = [p.numerator * common_denom // p.denominator
+                   for p in rational_periods]
+    int_common_period = _lcm(int_periods)
+    return fractions.Fraction(int_common_period, common_denom)
