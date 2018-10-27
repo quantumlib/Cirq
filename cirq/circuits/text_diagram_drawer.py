@@ -174,13 +174,13 @@ class TextDiagramDrawer:
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
         def transform_columns(column: int, row: int) -> Tuple[int, int]:
-            return (column + (amount if column >= x else 0), row)
+            return column + (amount if column >= x else 0), row
         self._transform_coordinates(transform_columns)
 
     def insert_empty_rows(self, y: int, amount: int = 1) -> None:
         """Insert a number of rows after the given row."""
         def transform_rows(column: int, row: int) -> Tuple[int, int]:
-            return (column, row + (amount if row >= y else 0))
+            return column, row + (amount if row >= y else 0)
         self._transform_coordinates(transform_rows)
 
     def render(self,
