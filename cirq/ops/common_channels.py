@@ -200,21 +200,25 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
         """
         This channel models the effect of dissipation to the environment
         at possibly non zero tempurature. Where gamma is the damping rate
-        and p is the probability of 
+        and p is the probability of
 
         This channel evovles a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
                   + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
 
         With
-            M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
-            M_1 = \sqrt{p} \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix}
-            M_2 = \sqrt{1-p} \begin{bmatrix} \sqrt{1-\gamma} & 0 \\ 0 & 1 \end{bmatrix}
-            M_3 = \sqrt{1-p} \begin{bmatrix} 0 & 0 \\ \sqrt{gamma} & 0 \end{bmatrix}
+            M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\
+                            0 & \sqrt{1 - \gamma} \end{bmatrix}
+            M_1 = \sqrt{p} \begin{bmatrix} 0 & \sqrt{\gamma} \\
+                            0 & 0 \end{bmatrix}
+            M_2 = \sqrt{1-p} \begin{bmatrix} \sqrt{1-\gamma} & 0 \\
+                            0 & 1 \end{bmatrix}
+            M_3 = \sqrt{1-p} \begin{bmatrix} 0 & 0 \\
+                            \sqrt{gamma} & 0 \end{bmatrix}
 
         Args:
             gamma: The damping rate
-            p: the probability of 
+            p: the probability of
 
         Raises:
             ValueError is gamma or p is not a valid probability.
@@ -231,13 +235,17 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.sqrt(self._p) * np.array([[1., 0.],[0., np.sqrt(1. - self._gamma)]]),
-            np.sqrt(self._p) * np.array([[0., np.sqrt(self._gamma)], [0., 0.]]),
-            np.sqrt(1.-self._p) * np.array([[np.sqrt(1.-self._gamma), 0.], [0., 1.]]),
-            np.sqrt(1.-self._p) * np.array([[0., 0.], [np.sqrt(self._gamma), 0.]])
+            np.sqrt(self._p) * np.array([[1., 0.],
+                                         [0., np.sqrt(1. - self._gamma)]]),
+            np.sqrt(self._p) * np.array([[0., np.sqrt(self._gamma)],
+                                         [0., 0.]]),
+            np.sqrt(1.-self._p) * np.array([[np.sqrt(1.-self._gamma), 0.],
+                                         [0., 1.]]),
+            np.sqrt(1.-self._p) * np.array([[0., 0.],
+                                         [np.sqrt(self._gamma), 0.]])
         )
 
-    
+
     def _eq_tuple(self):
         return (GeneralizedAmplitudeDampingChannel,
                 self._p, self._gamma)
@@ -280,7 +288,7 @@ def generalized_amplitude_damping(p: float, gamma: float) -> \
 
         Args:
             gamma: The damping rate
-            p: the probability of 
+            p: the probability of
 
         Raises:
             ValueError gamma or p is not a valid probability.
@@ -330,8 +338,8 @@ class AmplitudeDampingChannel(raw_types.Gate):
     def _channel_(self) -> Iterable[np.ndarray]:
         # just return first two kraus ops, we don't care about
         # the last two.
-        return self._delegate._channel_()[:2]
-    
+        return list(self._delegate._channel_())[:2]
+
     def _eq_tuple(self):
         return (AmplitudeDampingChannel,
                 self._gamma)
@@ -362,8 +370,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
 
 def amplitude_damping(gamma: float) -> AmplitudeDampingChannel:
     """
-    Returns an AmplitudeDampingChannel with the given probability of
-    photon emission
+    Returns an AmplitudeDampingChannel with the given damping rate
 
 
     This channel evovles a density matrix via
@@ -374,14 +381,13 @@ def amplitude_damping(gamma: float) -> AmplitudeDampingChannel:
             M_1 = \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix}
 
         Args:
-            gamma: The probability that one loses a photon
+            gamma: the damping rate
 
         Raises:
             ValueError is gamma is not a valid probability.
 
     """
     return AmplitudeDampingChannel(gamma)
-
 
 
 
@@ -392,8 +398,8 @@ class PhaseDampingChannel(raw_types.Gate):
     def __init__(self, gamma) -> None:
 
         """
-        This channel models the loss of quantum information without
-        the loss of energy
+        This channel models phase damping which is the loss of quantum
+        information without the loss of energy
 
         This channel evovles a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
@@ -403,7 +409,7 @@ class PhaseDampingChannel(raw_types.Gate):
             M_1 = \begin{bmatrix} 0 & 0 \\ 0 & \sqrt{\gamma} \end{bmatrix}
 
         Args:
-            gamma: The dephasing rate
+            gamma: The damping rate
 
         Raises:
             ValueError is gamma is not a valid probability.
@@ -423,7 +429,7 @@ class PhaseDampingChannel(raw_types.Gate):
             np.array([[1.,0.],[0., np.sqrt(1. - self._gamma)]]),
             np.array([[0.,0.],[0., np.sqrt(self._gamma)]])
         )
-    
+
     def _eq_tuple(self):
         return (PhaseDampingChannel,
                 self._gamma)
@@ -465,7 +471,7 @@ def phase_damping(gamma: float) -> PhaseDampingChannel:
             M_1 = \begin{bmatrix} 0 & 0 \\ 0 & \sqrt{\gamma} \end{bmatrix}
 
         Args:
-            gamma: The dephasing rate
+            gamma: The damping rate
 
         Raises:
             ValueError is gamma is not a valid probability.
@@ -510,10 +516,10 @@ class PhaseFlipChannel(raw_types.Gate):
         self._delegate = AsymmetricDepolarizingChannel(0., 0., 1. - p)
 
     def _channel_(self) -> Iterable[np.ndarray]:
-        kraus_ops = self._delegate._channel_()
+        kraus_ops = list(self._delegate._channel_())
         # just return identity and z term
         return (kraus_ops[0], kraus_ops[3])
-    
+
     def _eq_tuple(self):
         return (PhaseFlipChannel,
                 self._p)
@@ -543,7 +549,7 @@ class PhaseFlipChannel(raw_types.Gate):
 
 
 def phase_flip(p: float) -> PhaseFlipChannel:
-    """ 
+    """
     Constructs a channel that flips a qubit's phase with probability p
 
     This channel evovles a density matrix via
@@ -598,8 +604,8 @@ class BitFlipChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         # Return just the I and X pieces.
-        return self._delegate._channel_()[:2]
-    
+        return list(self._delegate._channel_())[:2]
+
     def _eq_tuple(self):
         return (BitFlipChannel,
                 self._p)
@@ -657,23 +663,20 @@ class RotationErrorChannel(raw_types.Gate):
     def __init__(self, eps_x, eps_y, eps_z) -> None:
 
         """
-        This channel introduces rotation error by epsilon for 
+        This channel introduces rotation error by epsilon for
         rotations in X, Y and Z that are constant in time.
 
         This channel evovles a density matrix via
-            \rho -> 
-            \exp{-i \epsilon_x \frac{X}{2}} \rho \exp{i \epsilon_x \frac{X}{2}}
-            + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
-            + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
+            \rho ->
+           \exp{-i \epsilon_x \frac{X}{2}} \rho \exp{i \epsilon_x \frac{X}{2}}
+          + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
+          + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
 
 
         Args:
             eps_x: angle to over rotate in x
             eps_y: angle to over rotate in y
             eps_z: angle to over rotate in z
-
-        Raises:
-            ValueError if p is not a valid probability.
 
         """
 
@@ -684,11 +687,15 @@ class RotationErrorChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.exp(0.5 * (0.0 - 1.0j) * self._eps_x * np.array([[0., 1.], [1., 0.]])),
-            np.exp(0.5 * (0.0 - 1.0j) * self._eps_y * np.array([[0., (0. - 1.0j)], [(0.0 + 1.0j), 0.]])),
-            np.exp(0.5 * (0.0 - 1.0j) * self._eps_z * np.array([[1., 0.], [0., -1.]]))
+            np.exp(0.5 * (0.0 - 1.0j) * self._eps_x * \
+                np.array([[0., 1.], [1., 0.]])),
+            np.exp(0.5 * (0.0 - 1.0j) * self._eps_y * \
+                np.array([[0., (0. - 1.0j)], [(0.0 + 1.0j), 0.]])),
+            np.exp(0.5 * (0.0 - 1.0j) * self._eps_z * \
+                np.array([[1., 0.], [0., -1.]]))
         )
-    
+
+
     def _eq_tuple(self):
         return (RotationErrorChannel,
                 self._eps_x, self._eps_y, self._eps_z)
@@ -714,7 +721,9 @@ class RotationErrorChannel(raw_types.Gate):
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> str:
-        return 'RE({!r},{!r},{!r})'.format(self._eps_x, self._eps_y, self._eps_z)
+        return ('RE({!r},{!r},{!r})'
+                .format(self._eps_x, self._eps_y, self._eps_z)
+        )
 
 
 def rotation_error(eps_x: float, eps_y: float, eps_z: float) -> \
@@ -726,10 +735,10 @@ def rotation_error(eps_x: float, eps_y: float, eps_z: float) -> \
     a qubit in X, Y, Z by given error angles.
 
     This channel evovles a density matrix via
-            \rho -> 
-            \exp{-i \epsilon_x \frac{X}{2}} \rho \exp{i \epsilon_x \frac{X}{2}}
-            + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
-            + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
+        \rho ->
+        \exp{-i \epsilon_x \frac{X}{2}} \rho \exp{i \epsilon_x \frac{X}{2}}
+        + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
+        + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
 
 
         Args:
@@ -737,8 +746,6 @@ def rotation_error(eps_x: float, eps_y: float, eps_z: float) -> \
             eps_y: angle to over rotate in y
             eps_z: angle to over rotate in z
 
-        Raises:
-            ValueError if p is not a valid probability.
     """
 
     return RotationErrorChannel(eps_x, eps_y, eps_z)
