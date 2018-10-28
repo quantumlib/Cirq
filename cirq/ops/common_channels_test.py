@@ -364,6 +364,3 @@ def test_rotation_error_channel_eq():
 def test_rotation_error_channel_text_diagram():
     assert (cirq.circuit_diagram_info(cirq.rotation_error(0.3,0.4,0.5))
             == cirq.CircuitDiagramInfo(wire_symbols=('RE(0.3,0.4,0.5)',)))
-
-
-

@@ -48,12 +48,14 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         Raises:
             ValueError if the args or the sum of the args are not probabilities.
         """
+
         def validate_probability(p, p_str):
             if p < 0:
                 raise ValueError('{} was less than 0.'.format(p_str))
             elif p > 1:
                 raise ValueError('{} was greater than 1.'.format(p_str))
             return p
+
         self._p_x = validate_probability(p_x, 'p_x')
         self._p_y = validate_probability(p_y, 'p_y')
         self._p_z = validate_probability(p_z, 'p_z')
@@ -68,8 +70,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         )
 
     def _eq_tuple(self):
-        return (AsymmetricDepolarizingChannel,
-                self._p_x, self._p_y, self._p_z)
+        return (AsymmetricDepolarizingChannel, self._p_x, self._p_y, self._p_z)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -80,24 +81,24 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'
-                .format(self._p_x, self._p_y, self._p_z)
+        return 'cirq.asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'.format(
+            self._p_x, self._p_y, self._p_z
         )
 
     def __str__(self) -> str:
-        return ('asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'
-                .format(self._p_x, self._p_y, self._p_z))
+        return 'asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'.format(
+            self._p_x, self._p_y, self._p_z
+        )
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'A({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z)
 
 
 def asymmetric_depolarize(
-    p_x: float,
-    p_y: float,
-    p_z: float) -> AsymmetricDepolarizingChannel:
+    p_x: float, p_y: float, p_z: float
+) -> AsymmetricDepolarizingChannel:
     """Returns a AsymmetricDepolarizingChannel with given parameter.
 
     This channel evolves a density matrix via
@@ -141,7 +142,7 @@ class DepolarizingChannel(raw_types.Gate):
         """
 
         self._p = p
-        self._delegate = AsymmetricDepolarizingChannel(p / 3, p / 3, p /3)
+        self._delegate = AsymmetricDepolarizingChannel(p / 3, p / 3, p / 3)
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return self._delegate._channel_()
@@ -160,8 +161,9 @@ class DepolarizingChannel(raw_types.Gate):
     def __str__(self) -> str:
         return 'depolarize(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'D({!r})'.format(self._p)
 
 
@@ -189,11 +191,8 @@ def depolarize(p: float) -> DepolarizingChannel:
     return DepolarizingChannel(p)
 
 
-
-
 class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
     """ The generalized amplitude damping channel."""
-
 
     def __init__(self, p, gamma) -> None:
 
@@ -222,33 +221,32 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
 
         Raises:
             ValueError is gamma or p is not a valid probability.
-
         """
+
         def validate_probability(p, p_str):
             if p < 0:
                 raise ValueError('{} was less than 0.'.format(p_str))
             elif p > 1:
                 raise ValueError('{} was greater than 1.'.format(p_str))
             return p
+
         self._gamma = validate_probability(gamma, 'gamma')
         self._p = validate_probability(p, 'p')
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.sqrt(self._p) * np.array([[1., 0.],
-                                         [0., np.sqrt(1. - self._gamma)]]),
-            np.sqrt(self._p) * np.array([[0., np.sqrt(self._gamma)],
-                                         [0., 0.]]),
-            np.sqrt(1.-self._p) * np.array([[np.sqrt(1.-self._gamma), 0.],
-                                         [0., 1.]]),
-            np.sqrt(1.-self._p) * np.array([[0., 0.],
-                                         [np.sqrt(self._gamma), 0.]])
+            np.sqrt(self._p)
+            * np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
+            np.sqrt(self._p)
+            * np.array([[0.0, np.sqrt(self._gamma)], [0.0, 0.0]]),
+            np.sqrt(1.0 - self._p)
+            * np.array([[np.sqrt(1.0 - self._gamma), 0.0], [0.0, 1.0]]),
+            np.sqrt(1.0 - self._p)
+            * np.array([[0.0, 0.0], [np.sqrt(self._gamma), 0.0]])
         )
 
-
     def _eq_tuple(self):
-        return (GeneralizedAmplitudeDampingChannel,
-                self._p, self._gamma)
+        return (GeneralizedAmplitudeDampingChannel, self._p, self._gamma)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -259,51 +257,46 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.generalized_amplitude_damping(p={!r},gamma={!r})'
-                .format(self._p, self._gamma)
+        return 'cirq.generalized_amplitude_damping(p={!r},gamma={!r})'.format(
+            self._p, self._gamma
         )
 
     def __str__(self) -> str:
-        return ('generalized_amplitude_damping(p={!r},gamma={!r})'
-                .format(self._p, self._gamma))
+        return 'generalized_amplitude_damping(p={!r},gamma={!r})'.format(
+            self._p, self._gamma
+        )
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'GAD({!r},{!r})'.format(self._p, self._gamma)
 
 
-
-def generalized_amplitude_damping(p: float, gamma: float) -> \
-                                        GeneralizedAmplitudeDampingChannel:
+def generalized_amplitude_damping(
+    p: float, gamma: float
+) -> GeneralizedAmplitudeDampingChannel:
     """
     Returns a GeneralizedAmplitudeDampingChannel with the given damping rate
 
     This channel evovles a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
 
-        With
-            M_0 = \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
-            M_1 = \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix}
+    With
+        M_0 = \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
+        M_1 = \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix}
 
-        Args:
-            gamma: The damping rate
-            p: the probability of
+    Args:
+        gamma: The damping rate
+        p: the probability of
 
-        Raises:
-            ValueError gamma or p is not a valid probability.
-
+    Raises:
+        ValueError gamma or p is not a valid probability.
     """
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
-
-
-
-
 class AmplitudeDampingChannel(raw_types.Gate):
     """ The amplitude damping channel."""
-
 
     def __init__(self, gamma) -> None:
 
@@ -323,8 +316,8 @@ class AmplitudeDampingChannel(raw_types.Gate):
 
         Raises:
             ValueError is gamma is not a valid probability.
-
         """
+
         def validate_probability(p, p_str):
             if p < 0:
                 raise ValueError('{} was less than 0.'.format(p_str))
@@ -333,7 +326,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
             return p
 
         self._gamma = validate_probability(gamma, 'gamma')
-        self._delegate = GeneralizedAmplitudeDampingChannel(1., self._gamma)
+        self._delegate = GeneralizedAmplitudeDampingChannel(1.0, self._gamma)
 
     def _channel_(self) -> Iterable[np.ndarray]:
         # just return first two kraus ops, we don't care about
@@ -341,8 +334,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
         return list(self._delegate._channel_())[:2]
 
     def _eq_tuple(self):
-        return (AmplitudeDampingChannel,
-                self._gamma)
+        return (AmplitudeDampingChannel, self._gamma)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -353,47 +345,39 @@ class AmplitudeDampingChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.amplitude_damping(gamma={!r})'
-                .format(self._gamma)
-        )
+        return 'cirq.amplitude_damping(gamma={!r})'.format(self._gamma)
 
     def __str__(self) -> str:
-        return ('amplitude_damping(gamma={!r})'
-                .format(self._gamma))
+        return 'amplitude_damping(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'AD({!r})'.format(self._gamma)
-
 
 
 def amplitude_damping(gamma: float) -> AmplitudeDampingChannel:
     """
     Returns an AmplitudeDampingChannel with the given damping rate
 
-
     This channel evovles a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
 
-        With
-            M_0 = \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
-            M_1 = \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix}
+    With
+        M_0 = \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
+        M_1 = \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix}
 
-        Args:
-            gamma: the damping rate
+    Args:
+        gamma: the damping rate
 
-        Raises:
-            ValueError is gamma is not a valid probability.
-
+    Raises:
+        ValueError is gamma is not a valid probability.
     """
     return AmplitudeDampingChannel(gamma)
 
 
-
 class PhaseDampingChannel(raw_types.Gate):
     """Phase Damping of a qubit"""
-
 
     def __init__(self, gamma) -> None:
 
@@ -413,8 +397,8 @@ class PhaseDampingChannel(raw_types.Gate):
 
         Raises:
             ValueError is gamma is not a valid probability.
-
         """
+
         def validate_probability(p, p_str):
             if p < 0:
                 raise ValueError('{} was less than 0.'.format(p_str))
@@ -426,13 +410,12 @@ class PhaseDampingChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.array([[1.,0.],[0., np.sqrt(1. - self._gamma)]]),
-            np.array([[0.,0.],[0., np.sqrt(self._gamma)]])
+            np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
+            np.array([[0.0, 0.0], [0.0, np.sqrt(self._gamma)]])
         )
 
     def _eq_tuple(self):
-        return (PhaseDampingChannel,
-                self._gamma)
+        return (PhaseDampingChannel, self._gamma)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -443,48 +426,39 @@ class PhaseDampingChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.phase_damping(gamma={!r})'
-                .format(self._gamma)
-        )
+        return 'cirq.phase_damping(gamma={!r})'.format(self._gamma)
 
     def __str__(self) -> str:
-        return ('phase_damping(gamma={!r})'
-                .format(self._gamma))
+        return 'phase_damping(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'PD({!r})'.format(self._gamma)
-
 
 
 def phase_damping(gamma: float) -> PhaseDampingChannel:
     """
     Creates a phase damping channel with damping rate gamma
 
-
     This channel evovles a density matrix via
            \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
 
-        With
-            M_0 = \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
-            M_1 = \begin{bmatrix} 0 & 0 \\ 0 & \sqrt{\gamma} \end{bmatrix}
+    With
+        M_0 = \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix}
+        M_1 = \begin{bmatrix} 0 & 0 \\ 0 & \sqrt{\gamma} \end{bmatrix}
 
-        Args:
-            gamma: The damping rate
+    Args:
+        gamma: The damping rate
 
-        Raises:
-            ValueError is gamma is not a valid probability.
-
-
+    Raises:
+        ValueError is gamma is not a valid probability.
     """
     return PhaseDampingChannel(gamma)
 
 
-
 class PhaseFlipChannel(raw_types.Gate):
     """Channel to flip a qubit's Phase"""
-
 
     def __init__(self, p) -> None:
 
@@ -503,8 +477,8 @@ class PhaseFlipChannel(raw_types.Gate):
 
         Raises:
             ValueError if p is not a valid probability.
-
         """
+
         def validate_probability(p, p_str):
             if p < 0:
                 raise ValueError('{} was less than 0.'.format(p_str))
@@ -513,7 +487,7 @@ class PhaseFlipChannel(raw_types.Gate):
             return p
 
         self._p = validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(0., 0., 1. - p)
+        self._delegate = AsymmetricDepolarizingChannel(0.0, 0.0, 1.0 - p)
 
     def _channel_(self) -> Iterable[np.ndarray]:
         kraus_ops = list(self._delegate._channel_())
@@ -521,8 +495,7 @@ class PhaseFlipChannel(raw_types.Gate):
         return (kraus_ops[0], kraus_ops[3])
 
     def _eq_tuple(self):
-        return (PhaseFlipChannel,
-                self._p)
+        return (PhaseFlipChannel, self._p)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -533,19 +506,15 @@ class PhaseFlipChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.phase_flip(p={!r})'
-                .format(self._p)
-        )
+        return 'cirq.phase_flip(p={!r})'.format(self._p)
 
     def __str__(self) -> str:
-        return ('phase_flip(p={!r})'
-                .format(self._p))
+        return 'phase_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'PF({!r})'.format(self._p)
-
 
 
 def phase_flip(p: float) -> PhaseFlipChannel:
@@ -555,23 +524,21 @@ def phase_flip(p: float) -> PhaseFlipChannel:
     This channel evovles a density matrix via
            \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
 
-        With
-            M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & 1 \end{bmatrix}
-            M_1 = \sqrt{1-p} \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}
+    With
+        M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & 1 \end{bmatrix}
+        M_1 = \sqrt{1-p} \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}
 
-        Args:
-            p: the probability of a phase flip
+    Args:
+        p: the probability of a phase flip
 
-        Raises:
-            ValueError if p is not a valid probability.
+    Raises:
+        ValueError if p is not a valid probability.
     """
     return PhaseFlipChannel(p)
 
 
-
 class BitFlipChannel(raw_types.Gate):
     """Channel to flip a qubit"""
-
 
     def __init__(self, p) -> None:
 
@@ -590,8 +557,8 @@ class BitFlipChannel(raw_types.Gate):
 
         Raises:
             ValueError if p is not a valid probability.
-
         """
+
         def validate_probability(p, p_str):
             if p < 0:
                 raise ValueError('{} was less than 0.'.format(p_str))
@@ -600,15 +567,14 @@ class BitFlipChannel(raw_types.Gate):
             return p
 
         self._p = validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(1. - p, 0., 0.)
+        self._delegate = AsymmetricDepolarizingChannel(1.0 - p, 0.0, 0.0)
 
     def _channel_(self) -> Iterable[np.ndarray]:
         # Return just the I and X pieces.
         return list(self._delegate._channel_())[:2]
 
     def _eq_tuple(self):
-        return (BitFlipChannel,
-                self._p)
+        return (BitFlipChannel, self._p)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -619,17 +585,14 @@ class BitFlipChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.bit_flip(p={!r})'
-                .format(self._p)
-        )
+        return 'cirq.bit_flip(p={!r})'.format(self._p)
 
     def __str__(self) -> str:
-        return ('bit_flip(p={!r})'
-                .format(self._p))
+        return 'bit_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
         return 'BF({!r})'.format(self._p)
 
 
@@ -640,25 +603,21 @@ def bit_flip(p: float) -> BitFlipChannel:
     This channel evovles a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
 
-        With
-            M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & 1 \end{bmatrix}
-            M_1 = \sqrt{1-p} \begin{bmatrix} 0 & 1 \\ 1 & -0 \end{bmatrix}
+    With
+        M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & 1 \end{bmatrix}
+        M_1 = \sqrt{1-p} \begin{bmatrix} 0 & 1 \\ 1 & -0 \end{bmatrix}
 
-        Args:
-            p: the probability of a bit flip
+    Args:
+        p: the probability of a bit flip
 
-        Raises:
-            ValueError if p is not a valid probability.
-
+    Raises:
+        ValueError if p is not a valid probability.
     """
     return BitFlipChannel(p)
 
 
-
-
 class RotationErrorChannel(raw_types.Gate):
     """Channel to introduce rotation error in X, Y, Z"""
-
 
     def __init__(self, eps_x, eps_y, eps_z) -> None:
 
@@ -672,12 +631,10 @@ class RotationErrorChannel(raw_types.Gate):
           + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
           + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
 
-
         Args:
             eps_x: angle to over rotate in x
             eps_y: angle to over rotate in y
             eps_z: angle to over rotate in z
-
         """
 
         # Angles could be anything, so no validation nescessary ?
@@ -687,18 +644,28 @@ class RotationErrorChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.exp(0.5 * (0.0 - 1.0j) * self._eps_x * \
-                np.array([[0., 1.], [1., 0.]])),
-            np.exp(0.5 * (0.0 - 1.0j) * self._eps_y * \
-                np.array([[0., (0. - 1.0j)], [(0.0 + 1.0j), 0.]])),
-            np.exp(0.5 * (0.0 - 1.0j) * self._eps_z * \
-                np.array([[1., 0.], [0., -1.]]))
+            np.exp(
+                0.5
+                * (0.0 - 1.0j)
+                * self._eps_x
+                * np.array([[0.0, 1.0], [1.0, 0.0]])
+            ),
+            np.exp(
+                0.5
+                * (0.0 - 1.0j)
+                * self._eps_y
+                * np.array([[0.0, (0.0 - 1.0j)], [(0.0 + 1.0j), 0.0]])
+            ),
+            np.exp(
+                0.5
+                * (0.0 - 1.0j)
+                * self._eps_z
+                * np.array([[1.0, 0.0], [0.0, -1.0]])
+            )
         )
 
-
     def _eq_tuple(self):
-        return (RotationErrorChannel,
-                self._eps_x, self._eps_y, self._eps_z)
+        return (RotationErrorChannel, self._eps_x, self._eps_y, self._eps_z)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -709,26 +676,26 @@ class RotationErrorChannel(raw_types.Gate):
         return not self == other
 
     def __repr__(self) -> str:
-        return (
-            'cirq.rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'
-                .format(self._eps_x, self._eps_y, self._eps_z)
+        return 'cirq.rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'.format(
+            self._eps_x, self._eps_y, self._eps_z
         )
 
     def __str__(self) -> str:
-        return ('rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'
-                .format(self._eps_x, self._eps_y, self._eps_z)
+        return 'rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'.format(
+            self._eps_x, self._eps_y, self._eps_z
         )
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> str:
-        return ('RE({!r},{!r},{!r})'
-                .format(self._eps_x, self._eps_y, self._eps_z)
+    def _circuit_diagram_info_(
+        self, args: protocols.CircuitDiagramInfoArgs
+    ) -> str:
+        return 'RE({!r},{!r},{!r})'.format(
+            self._eps_x, self._eps_y, self._eps_z
         )
 
 
-def rotation_error(eps_x: float, eps_y: float, eps_z: float) -> \
-    RotationErrorChannel:
-
+def rotation_error(
+    eps_x: float, eps_y: float, eps_z: float
+) -> RotationErrorChannel:
 
     """
     Constructs a rotation error channel that can over/under rotate
@@ -740,13 +707,10 @@ def rotation_error(eps_x: float, eps_y: float, eps_z: float) -> \
         + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
         + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
 
-
-        Args:
-            eps_x: angle to over rotate in x
-            eps_y: angle to over rotate in y
-            eps_z: angle to over rotate in z
-
+    Args:
+        eps_x: angle to over rotate in x
+        eps_y: angle to over rotate in y
+        eps_z: angle to over rotate in z
     """
 
     return RotationErrorChannel(eps_x, eps_y, eps_z)
-
