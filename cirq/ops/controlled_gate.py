@@ -29,12 +29,6 @@ class ControlledGate(raw_types.Gate):
 
         Args:
             sub_gate: The gate to add a control qubit to.
-            default_extensions: The extensions method that should be used when
-                determining if the controlled gate supports certain gate
-                features. For example, if this extensions instance is able to
-                cast sub_gate to a ExtrapolatableEffect then the controlled gate
-                can also be cast to a ExtrapolatableEffect. When this value is
-                None, an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
 
@@ -88,6 +82,9 @@ class ControlledGate(raw_types.Gate):
         target_tensor[active] = result
         return target_tensor
 
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self.sub_gate)
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
@@ -101,6 +98,15 @@ class ControlledGate(raw_types.Gate):
         if new_sub_gate is NotImplemented:
             return NotImplemented
         return ControlledGate(new_sub_gate)
+
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
+        if qubit_index == 0:
+            return self
+        phased_gate = protocols.phase_by(
+            self.sub_gate, phase_turns, qubit_index-1, None)
+        if phased_gate is None:
+            return NotImplemented
+        return ControlledGate(phased_gate)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)

@@ -38,7 +38,7 @@ class Xmon10Device(cirq.Device):
   def validate_operation(self, operation):
       if not isinstance(operation, cirq.GateOperation):
           raise ValueError('{!r} is not a supported operation'.format(operation))
-      if not isinstance(operation.gate, (cirq.Rot11Gate, XmonGate)):
+      if not isinstance(operation.gate, (cirq.CZPowGate, XmonGate)):
           raise ValueError('{!r} is not a supported gate'.format(operation.gate))
       if len(operation.qubits) == 2:
           p, q = operation.qubits
@@ -92,7 +92,7 @@ defined above
 ```python
 from cirq.google.xmon_gates import ExpWGate
 circuit = cirq.Circuit()
-X = ExpWGate(half_turns=1.0)
+X = ExpWGate(exponent=1.0)
 circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
 print(circuit)
 # prints:

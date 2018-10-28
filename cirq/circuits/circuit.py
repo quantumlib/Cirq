@@ -27,13 +27,14 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, extension, study, protocols
+from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
+import cirq._version
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -665,7 +666,7 @@ class Circuit:
         """Find the locations of all gate operations of a given type.
 
         Args:
-            gate_type: The type of gate to find, e.g. RotXGate or
+            gate_type: The type of gate to find, e.g. XPowGate or
                 MeasurementGate.
 
         Returns:
@@ -1106,6 +1107,17 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
+    def _has_unitary_(self) -> bool:
+        if not self.are_all_measurements_terminal():
+            return False
+
+        unitary_ops = protocols.decompose(
+            self.all_operations(),
+            keep=protocols.has_unitary,
+            intercepting_decomposer=_decompose_measurement_inversions,
+            on_stuck_raise=None)
+        return all(protocols.has_unitary(e) for e in unitary_ops)
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1115,7 +1127,7 @@ class Circuit:
         matrix is the product of the unitary matrix of all operations in the
         circuit (after expanding them to apply to the whole system).
         """
-        if not self.are_all_measurements_terminal():
+        if not self._has_unitary_():
             return NotImplemented
         return self.to_unitary_matrix(ignore_terminal_measurements=True)
 
@@ -1310,16 +1322,24 @@ class Circuit:
         for q, i in qubit_map.items():
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
+        moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
             _draw_moment_in_diagram(moment,
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
-                                    precision)
+                                    precision,
+                                    moment_groups)
 
         w = diagram.width()
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
+
+        if moment_groups:
+            _draw_moment_groups_in_diagram(moment_groups,
+                                           use_unicode_characters,
+                                           diagram,
+                                           transpose)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1339,8 +1359,36 @@ class Circuit:
                 param_resolver))
         return resolved_circuit
 
+    def _qasm_(self) -> str:
+        return self.to_qasm()
+
+    def _to_qasm_output(
+            self,
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            ) -> QasmOutput:
+        """Returns a QASM object equivalent to the circuit.
+
+        Args:
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM. Defaults to a cirq version specifier.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+        """
+        if header is None:
+            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QasmOutput(operations=self.all_operations(),
+                          qubits=qubits,
+                          header=header,
+                          precision=precision,
+                          version='2.0')
+
     def to_qasm(self,
-                header: str = 'Generated from Cirq',
+                header: Optional[str] = None,
                 precision: int = 10,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
                 ) -> str:
@@ -1348,23 +1396,16 @@ class Circuit:
 
         Args:
             header: A multi-line string that is placed in a comment at the top
-                of the QASM.
+                of the QASM. Defaults to a cirq version specifier.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        output = QasmOutput(operations=self.all_operations(),
-                            qubits=qubits,
-                            header=header,
-                            precision=precision,
-                            version='2.0')
-        return str(output)
+        return str(self._to_qasm_output(header, precision, qubit_order))
 
     def save_qasm(self,
                   file_path: Union[str, bytes, int],
-                  header: str = 'Generated from Cirq',
+                  header: Optional[str] = None,
                   precision: int = 10,
                   qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
                   ) -> None:
@@ -1373,21 +1414,12 @@ class Circuit:
         Args:
             file_path: The location of the file where the qasm will be written.
             header: A multi-line string that is placed in a comment at the top
-                of the QASM.
+                of the QASM. Defaults to a cirq version specifier.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
-            ext: For extending operations/gates to implement
-                QasmConvertibleOperation/QasmConvertibleGate.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        output = QasmOutput(operations=self.all_operations(),
-                            qubits=qubits,
-                            header=header,
-                            precision=precision,
-                            version='2.0')
-        output.save(file_path)
+        self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
 
 def _resolve_operations(
@@ -1459,7 +1491,8 @@ def _draw_moment_in_diagram(moment: Moment,
                             use_unicode_characters: bool,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
-                            precision: Optional[int]):
+                            precision: Optional[int],
+                            moment_groups: List[Tuple[int, int]]):
     x0 = out_diagram.width()
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
@@ -1470,6 +1503,7 @@ def _draw_moment_in_diagram(moment: Moment,
         x = x0
         while any(out_diagram.content_present(x, y)
                   for y in range(y1, y2 + 1)):
+            out_diagram.force_horizontal_padding_after(x, 0)
             x += 1
 
         args = protocols.CircuitDiagramInfoArgs(
@@ -1492,6 +1526,49 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _formatted_exponent(info, args)
         if exponent is not None:
             out_diagram.write(x, y2, '^' + exponent)
+
+    # Group together columns belonging to the same Moment.
+    if moment.operations and x > x0:
+        moment_groups.append((x0, x))
+
+
+def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
+                                   use_unicode_characters: bool,
+                                   out_diagram: TextDiagramDrawer,
+                                   transpose: bool):
+    out_diagram.insert_empty_rows(0)
+    h = out_diagram.height()
+
+    top_left = '┌' if use_unicode_characters else '/'
+    top_right = '┐' if use_unicode_characters else '\\'
+    bottom_left = '└' if use_unicode_characters else '\\'
+    bottom_right = '┘' if use_unicode_characters else '/'
+
+    # Insert columns starting from the back since the insertion
+    # affects subsequent indices.
+    for x1, x2 in reversed(moment_groups):
+        out_diagram.insert_empty_columns(x2 + 1)
+        out_diagram.force_horizontal_padding_after(x2, 0)
+
+        out_diagram.write(x2 + 1, 0, top_right, bottom_left)
+        out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
+        out_diagram.force_horizontal_padding_after(x2 + 1,
+            2 if not transpose else 0)
+
+        for y in [0, h]:
+            out_diagram.horizontal_line(y, x1, x2 + 1)
+
+        out_diagram.insert_empty_columns(x1)
+        out_diagram.force_horizontal_padding_after(x1, 0)
+        out_diagram.write(x1, 0, top_left, top_left)
+        out_diagram.write(x1, h, bottom_left, top_right)
+
+        out_diagram.force_horizontal_padding_after(x1 - 1,
+           2 if not transpose else 0)
+
+    if not transpose:
+        out_diagram.force_vertical_padding_after(0, 0)
+        out_diagram.force_vertical_padding_after(h - 1, 0)
 
 
 def _apply_unitary_circuit(circuit: Circuit,
@@ -1522,8 +1599,20 @@ def _apply_unitary_circuit(circuit: Circuit,
     """
     qubit_map = {q: i for i, q in enumerate(qubits)}
     buffer = np.zeros(state.shape, dtype=dtype)
-    for op, qs in _extract_unitaries(circuit.all_operations()):
-        indices = [qubit_map[q] for q in qs]
+
+    def on_stuck(bad_op):
+        return TypeError(
+            'Operation without a known matrix or decomposition: {!r}'.format(
+                bad_op))
+
+    unitary_ops = protocols.decompose(
+        circuit.all_operations(),
+        keep=protocols.has_unitary,
+        intercepting_decomposer=_decompose_measurement_inversions,
+        on_stuck_raise=on_stuck)
+
+    for op in unitary_ops:
+        indices = [qubit_map[q] for q in op.qubits]
         result = protocols.apply_unitary_to_tensor(
             val=op,
             target_tensor=state,
@@ -1535,44 +1624,14 @@ def _apply_unitary_circuit(circuit: Circuit,
     return state
 
 
-def _extract_unitaries(operations: Iterable[ops.Operation],
-                       ) -> Iterable[Tuple[Any,
-                                           Tuple[ops.QubitId, ...]]]:
-    """Yields a sequence of unitary matrices equivalent to the circuit's effect.
-    """
-    for op in operations:
-        # Check if the operation has a known matrix.
-        matrix = protocols.unitary(op, None)
-        if matrix is not None:
-            yield op, op.qubits
-            continue
+def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
+    if ops.MeasurementGate.is_measurement(op):
+        gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
+        return [ops.X(q)
+                for q, b in zip(op.qubits, gate.invert_mask)
+                if b]
 
-        # If not, check if it has a decomposition.
-        composite_op = extension.try_cast(  # type: ignore
-            ops.CompositeOperation,  op)
-        if composite_op is not None:
-            # Recurse decomposition to get known matrix gates.
-            op_tree = composite_op.default_decompose()
-            op_list = ops.flatten_op_tree(op_tree)
-            for op2 in _extract_unitaries(op_list):
-                yield op2
-            continue
-
-        if ops.MeasurementGate.is_measurement(op):
-            gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-            # Account for bit flips embedded into the measurement operation.
-            for i, b in enumerate(gate.invert_mask):
-                if b:
-                    yield ops.X, (op.qubits[i],)
-
-            # This is a private method called in contexts where we know
-            # measurement is supposed to be skipped.
-            continue
-
-        # Otherwise, fail
-        raise TypeError(
-            'Operation without a known matrix or decomposition: {!r}'.format(
-                op))
+    return NotImplemented
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:

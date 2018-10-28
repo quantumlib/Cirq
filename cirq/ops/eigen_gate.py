@@ -102,9 +102,13 @@ class EigenGate(raw_types.Gate):
         Child classes should override this method if they have an __init__
         method with a differing signature.
         """
+        # pylint: disable=unexpected-keyword-arg
+        if self._global_shift_in_half_turns == 0:
+            return type(self)(exponent=exponent)
         return type(self)(
             exponent=exponent,
             global_shift_in_half_turns=self._global_shift_in_half_turns)
+        # pylint: enable=unexpected-keyword-arg
 
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
@@ -203,6 +207,9 @@ class EigenGate(raw_types.Gate):
         min_angle = min(angles)
         max_angle = max(angles)
         return abs((max_angle - min_angle) * self._exponent * 3.5)
+
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_()
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._is_parameterized_():
