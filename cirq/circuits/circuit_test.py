@@ -1680,8 +1680,7 @@ def test_resolve_parameters():
     resolved_circuit = cirq.resolve_parameters(
         circuit,
         cirq.ParamResolver({}))
-    assert circuit == resolved_circuit
-    assert repr(circuit) == repr(resolved_circuit)
+    cirq.testing.assert_same_circuits(circuit, resolved_circuit)
     # actually resolve something
     circuit = cirq.Circuit([
         cirq.Moment(), cirq.Moment([cirq.X(q)**cirq.Symbol('x')])])
@@ -1690,8 +1689,7 @@ def test_resolve_parameters():
         cirq.ParamResolver({'x': 0.2}))
     expected_circuit = cirq.Circuit([
         cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
-    assert resolved_circuit == expected_circuit
-    assert repr(resolved_circuit) == repr(expected_circuit)
+    cirq.testing.assert_same_cirquits(expected_circuit, resolved_circuit)
 
 
 def test_items():
