@@ -244,21 +244,22 @@ class QasmOutput:
         # Operations
         self._write_operations(self.operations, output, output_line_gap)
 
+    def _no_decomp(self, op : ops.Operation) -> bool:
+        return protocols.qasm(op, args=self.args, default=None) is not None
+
     def _write_operations(self,
                           op_tree: ops.OP_TREE,
                           output: Callable[[str], None],
                           output_line_gap: Callable[[int], None],
-                          top=True) -> None:
+                          comment_matrix_fallbacks=True) -> None:
         for op_original in ops.flatten_op_tree(op_tree):
-            keep = lambda _op: (protocols.qasm(_op, args=self.args,
-                                               default=None)
-                                is not None)
-            for op in protocols.decompose(op_original, keep=keep, on_stuck_raise=None):
+            for op in protocols.decompose(op_original, keep=self._no_decomp,
+                                          on_stuck_raise=None):
                 out = protocols.qasm(op, args=self.args, default=None)
                 if out is not None:
                     output(out)
                     continue
-
+                comment_matrix_fallbacks = (op == op_original)
                 if isinstance(op, ops.GateOperation):
                     comment = 'Gate: {!s}'.format(op.gate)
                 else:
@@ -267,24 +268,24 @@ class QasmOutput:
                 mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
                 if mat is not None and len(op.qubits) == 1:
                     u_op = QasmUGate.from_matrix(mat).on(*op.qubits)
-                    if top:
+                    if comment_matrix_fallbacks:
                         output_line_gap(1)
                         output('// {}\n'.format(comment))
-                    output(cast(str, protocols.qasm(u_op, args=self.args)))
-                    if top:
+                    output(protocols.qasm(u_op, args=self.args))
+                    if comment_matrix_fallbacks:
                         output_line_gap(1)
                     continue
 
                 if mat is not None and len(op.qubits) == 2:
                     u_op = QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
-                    if top:
+                    if comment_matrix_fallbacks:
                         output_line_gap(1)
                         output('// {}\n'.format(comment))
                     self._write_operations((u_op,),
                                            output,
                                            output_line_gap,
-                                           top=False)
-                    if top:
+                                           comment_matrix_fallbacks=False)
+                    if comment_matrix_fallbacks:
                         output_line_gap(1)
                     continue
 
