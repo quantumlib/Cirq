@@ -375,6 +375,58 @@ def test_w_to_proto_dict():
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
+    gate = cirq.X**0.25
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'raw': 0.0
+            },
+            'half_turns': {
+                'raw': 0.25
+            }
+        }
+    }
+    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+
+    gate = cirq.Y**0.25
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'raw': 0.5
+            },
+            'half_turns': {
+                'raw': 0.25
+            }
+        }
+    }
+    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+
+    gate = cg.ExpWGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'parameter_key': 'j'
+            },
+            'half_turns': {
+                'raw': 0.5
+            }
+        }
+    }
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
+
 
 def test_w_invalid_dict():
     proto_dict = {
@@ -388,7 +440,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -402,7 +454,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -416,7 +468,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.XmonGate.from_proto_dict(proto_dict)
 
 
 def test_unsupported_op():
