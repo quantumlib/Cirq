@@ -1352,11 +1352,14 @@ class Circuit:
 
     def _resolve_parameters_(self,
                              param_resolver: study.ParamResolver) -> 'Circuit':
-        resolved_circuit = Circuit()
+        resolved_moments = []
         for moment in self:
-            resolved_circuit.append(_resolve_operations(
+            resolved_operations = _resolve_operations(
                 moment.operations,
-                param_resolver))
+                param_resolver)
+            new_moment = Moment(resolved_operations)
+            resolved_moments.append(new_moment)
+        resolved_circuit = Circuit(resolved_moments)
         return resolved_circuit
 
     def _qasm_(self) -> str:

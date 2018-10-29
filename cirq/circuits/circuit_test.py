@@ -1660,7 +1660,7 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(circuit)
 
 
-def test_with_parameters_resolved_by():
+def test_resolve_parameters():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
         cirq.CZ(a, b)**cirq.Symbol('u'),
@@ -1675,6 +1675,23 @@ def test_with_parameters_resolved_by():
       │
 1: ───@^0.1───Y^0.2───
 """)
+    q = cirq.NamedQubit('q')
+    # no-op parameter resolution
+    circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)])])
+    resolved_circuit = cirq.resolve_parameters(
+        circuit,
+        cirq.ParamResolver({}))
+    cirq.testing.assert_same_circuits(circuit, resolved_circuit)
+    # actually resolve something
+    circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)**cirq.Symbol('x')])])
+    resolved_circuit = cirq.resolve_parameters(
+        circuit,
+        cirq.ParamResolver({'x': 0.2}))
+    expected_circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
+    cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
 def test_items():
