@@ -43,7 +43,9 @@ def test_leaves_singleton():
 
     m.optimization_at(c, 0, c.operation_at(q, 0))
 
-    assert c == cirq.Circuit([cirq.Moment([cirq.X(q)])])
+    cirq.testing.assert_same_circuits(
+        c,
+        cirq.Circuit([cirq.Moment([cirq.X(q)])]))
 
 
 def test_combines_sequence():
@@ -102,4 +104,6 @@ def test_ignores_2qubit_target():
 
     m.optimization_at(c, 0, c.operation_at(q, 0))
 
-    assert c == cirq.Circuit([cirq.Moment([cirq.CZ(q, q2)])])
+    cirq.testing.assert_same_circuits(
+        c,
+        cirq.Circuit([cirq.Moment([cirq.CZ(q, q2)])]))
