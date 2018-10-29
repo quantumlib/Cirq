@@ -303,12 +303,11 @@ def test_output_unitary_same_as_qiskit():
         cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
 
 
-def test_fails_on_big_unitaries():
-    class UnrecognizedMatrix3(cirq.Gate):
-        def _unitary_(self):
-            return np.diag([1, -1, -1, -1, 1, 1j, -1j, 1])
+def test_fails_on_big_unknowns():
+    class UnrecognizedGate(cirq.Gate):
+        pass
     c = cirq.Circuit.from_ops(
-        UnrecognizedMatrix3().on(*cirq.LineQubit.range(3)))
+        UnrecognizedGate().on(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError, match='Cannot output operation as QASM'):
         _ = c.to_qasm()
 
