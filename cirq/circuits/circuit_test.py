@@ -2474,8 +2474,8 @@ def test_submoments():
   │ │ │ │     │     │
 """, transpose=True)
 
-    cirq.testing.assert_has_diagram(circuit, """
-         /--\\  /---------------\\
+    cirq.testing.assert_has_diagram(circuit, r"""
+         /--\  /---------------\
 0: ---H---@-----@---------------------
           |     |
 1: -------|@----|----@----------------
@@ -2487,22 +2487,22 @@ def test_submoments():
 4: ------------------X^0.5|-------H---
                           |
 5: -----------------------X^0.5-------
-         \\--/  \\---------------/
+         \--/  \---------------/
 """, use_unicode_characters=False)
 
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit, r"""
   0 1 2 3     4     5
   | | | |     |     |
   H | | H     |     |
-/ | | | |     |     |     \\
+/ | | | |     |     |     \
 | @-----@     |     |     |
 | | @-@ |     |     |     |
-\\ | | | |     |     |     /
-/ | | | |     |     |     \\
+\ | | | |     |     |     /
+/ | | | |     |     |     \
 | @-----X^0.5 |     |     |
 | | @---------X^0.5 |     |
 | | | @-------------X^0.5 |
-\\ | | | |     |     |     /
+\ | | | |     |     |     /
   | | H |     H     |
   | | | |     |     |
 """, use_unicode_characters=False, transpose=True)
