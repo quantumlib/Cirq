@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for state.py"""
 
+import itertools
 import pytest
 
 import numpy as np
@@ -62,7 +63,7 @@ def test_dirac_notation_precision():
 
 
 
-def test_decode_initial_state():
+def test_to_valid_state_vector():
     np.testing.assert_almost_equal(cirq.to_valid_state_vector(
         np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),
         np.array([1.0, 0.0, 0.0, 0.0]))
@@ -75,7 +76,7 @@ def test_decode_initial_state():
                                    np.array([0.0, 1.0, 0.0, 0.0]))
 
 
-def test_invalid_decode_initial_state():
+def test_invalid_to_valid_state_vector():
     with pytest.raises(ValueError):
         _ = cirq.to_valid_state_vector(
             np.array([1.0, 0.0], dtype=np.complex64), 2)
@@ -99,3 +100,23 @@ def test_check_state():
     with pytest.raises(ValueError):
         cirq.validate_normalized_state(
             np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), 2)
+
+
+def test_sample_state_little_endian():
+    results = []
+    for x in range(8):
+        state = cirq.to_valid_state_vector(x, 3)
+        sample = cirq.sample_state(state, [2, 1, 0])
+        results.append(sample)
+    expected = [[list(x)] for x in
+                list(itertools.product([False, True], repeat=3))]
+    assert results == expected
+
+
+def test_sample_state_partial_indices():
+    for index in range(3):
+        for x in range(8):
+            state = cirq.to_valid_state_vector(x, 3)
+            print(index, x)
+            assert cirq.sample_state(state, [index]) == [
+                [bool(1 & (x >> index))]]

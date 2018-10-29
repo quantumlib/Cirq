@@ -24,6 +24,7 @@ from cirq.sim.simulator import (
 
 from cirq.sim.state import (
     dirac_notation,
+    sample_state,
     to_valid_state_vector,
-    validate_normalized_state
+    validate_normalized_state,
 )

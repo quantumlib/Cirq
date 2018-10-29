@@ -15,9 +15,11 @@
 
 import itertools
 
-from typing import Sequence, Union
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
+
+from cirq import linalg
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
@@ -121,3 +123,62 @@ def validate_normalized_state(state: np.ndarray, num_qubits: int,
     norm = np.sum(np.abs(state) ** 2)
     if not np.isclose(norm, 1):
         raise ValueError('State is not normalized instead had norm %s' % norm)
+
+
+def measure_state(
+    state: np.ndarray,
+    indices: List[int]) -> Tuple[List[bool], np.ndarray]:
+    measurement_bits = sample_state(state, indices, 1)[0]
+    return (measure_state())
+
+
+def sample_state(
+    state: np.ndarray,
+    indices: List[int],
+    repetitions: int=1) -> List[List[bool]]:
+    """Samples repeatedly from measurements in the computational basis.
+
+    Note that this does not modify the passed in state.
+
+    Args:
+        indices: Which qubits are measured.
+
+    Returns:
+        Measurement results with True corresponding to the |1> state.
+        The outer list is for repetitions, and the inner corresponds to
+        measurements ordered by the input indices.
+
+    Raises:
+        ValueError if repetitions is less than one.
+        IndexError if the indices are out of range for the number of qubits
+            corresponding to the state.
+    """
+    if repetitions < 1:
+        raise ValueError(
+            'Number of repetitions cannot be negative. Was {}'.format(
+                repetitions))
+    num_qubits = len(state).bit_length() - 1
+    if not all(index >= 0 for index in indices):
+        raise IndexError('Negative index in indices: {}'.format(indices))
+    if not all(index < num_qubits for index in indices):
+        raise IndexError('Out of range indices, must be less than number of '
+                         'qubits but was {}'.format(indices))
+    if len(indices) == 0:
+        return [[]]
+
+    # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
+    prob_tensor = np.abs(np.reshape(state, [2] * num_qubits)) ** 2
+
+    # Calculate the probabilities for measuring the particular results.
+    probs = [np.sum(prob_tensor[linalg.slice_for_qubits_equal_to(indices, b)])
+             for b in range(2 ** len(indices))]
+    print(state, probs)
+
+    # We now have the probability vector, correctly ordered, so sample over
+    # it. Note that we us ints here, since numpy's choice does not allow for
+    # choosing from a list of tuples or list of lists.
+    result = np.random.choice(2 ** len(indices), size=repetitions, p=probs)
+    print(result)
+    # Convert to bools and note also one final reverse of list to get
+    # ordering correct.
+    return np.transpose([(1 & (result >> i)).astype(np.bool) for i in range(len(indices))][::-1]).tolist()
