@@ -44,7 +44,8 @@ class ExpandComposite(PointOptimizer):
         self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):
-        decomposition = self._decompose(op)
+        decomposition = protocols.decompose(op, keep=self.no_decomp,
+                                            on_stuck_raise=None)
         if decomposition is op:
             return None
 
@@ -52,14 +53,3 @@ class ExpandComposite(PointOptimizer):
             clear_span=1,
             clear_qubits=op.qubits,
             new_operations=decomposition)
-
-    def _decompose(self, op: ops.Operation) -> ops.OP_TREE:
-        """Recursively decompose composite gates into an OP_TREE of gates."""
-        skip = self.no_decomp(op)
-        if skip and (skip is not NotImplemented):
-            return op
-
-        decomposed = protocols.decompose_once(op, None)
-        if decomposed is None:
-            return op
-        return (self._decompose(op) for op in decomposed)
