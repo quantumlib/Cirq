@@ -212,7 +212,20 @@ class XmonSimulator(sim.SimulatesSamples,
                         index1 = qubit_map[op.qubits[1]]
                         phase_map[(index0, index1)] = cast(float,
                                                            gate.exponent)
-                    elif isinstance(gate, xmon_gates.ExpWGate):
+                    elif isinstance(gate, ops.XPowGate):
+                        index = qubit_map[op.qubits[0]]
+                        stepper.simulate_w(
+                            index=index,
+                            half_turns=gate.exponent,
+                            axis_half_turns=0)
+                    elif isinstance(gate, ops.YPowGate):
+                        index = qubit_map[op.qubits[0]]
+                        stepper.simulate_w(
+                            index=index,
+                            half_turns=gate.exponent,
+                            axis_half_turns=0.5)
+                    elif isinstance(gate, (ops.PhasedXPowGate,
+                                           xmon_gates.ExpWGate)):
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(
                             index=index,
