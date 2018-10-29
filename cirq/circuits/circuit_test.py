@@ -1689,7 +1689,7 @@ def test_resolve_parameters():
         cirq.ParamResolver({'x': 0.2}))
     expected_circuit = cirq.Circuit([
         cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
-    cirq.testing.assert_same_cirquits(expected_circuit, resolved_circuit)
+    cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
 def test_items():
