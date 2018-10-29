@@ -410,6 +410,12 @@ def test_xyz_repr():
         for g in [cirq.X, cirq.Y, cirq.Z]:
             cirq.testing.assert_equivalent_repr(g**e)
 
+    # There should be no floating point error during initialization, and repr
+    # should be using the "shortest decimal value closer to X than any other
+    # floating point value" strategy, as opposed to the "exactly value in
+    # decimal" strategy.
+    assert repr(cirq.CZ**0.2) == '(cirq.CZ**0.2)'
+
 
 def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.XPowGate(
