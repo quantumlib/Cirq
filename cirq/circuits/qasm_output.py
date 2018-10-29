@@ -249,52 +249,43 @@ class QasmOutput:
                           output: Callable[[str], None],
                           output_line_gap: Callable[[int], None],
                           top=True) -> None:
-        for op in ops.flatten_op_tree(op_tree):
-            out = protocols.qasm(op, args=self.args, default=None)
-            if out is not None:
-                output(out)
-                continue
+        for op_original in ops.flatten_op_tree(op_tree):
+            keep = lambda _op: (protocols.qasm(_op, args=self.args,
+                                               default=None)
+                                is not None)
+            for op in protocols.decompose(op_original, keep=keep, on_stuck_raise=None):
+                out = protocols.qasm(op, args=self.args, default=None)
+                if out is not None:
+                    output(out)
+                    continue
 
-            if isinstance(op, ops.GateOperation):
-                comment = 'Gate: {!s}'.format(op.gate)
-            else:
-                comment = 'Operation: {!s}'.format(op)
+                if isinstance(op, ops.GateOperation):
+                    comment = 'Gate: {!s}'.format(op.gate)
+                else:
+                    comment = 'Operation: {!s}'.format(op)
 
-            decomp = protocols.decompose_once(op, None)
-            if decomp is not None:
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations(decomp,
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
+                mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
+                if mat is not None and len(op.qubits) == 1:
+                    u_op = QasmUGate.from_matrix(mat).on(*op.qubits)
+                    if top:
+                        output_line_gap(1)
+                        output('// {}\n'.format(comment))
+                    output(cast(str, protocols.qasm(u_op, args=self.args)))
+                    if top:
+                        output_line_gap(1)
+                    continue
 
-            mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
-            if mat is not None and len(op.qubits) == 1:
-                u_op = QasmUGate.from_matrix(mat).on(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                output(cast(str, protocols.qasm(u_op, args=self.args)))
-                if top:
-                    output_line_gap(1)
-                continue
+                if mat is not None and len(op.qubits) == 2:
+                    u_op = QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
+                    if top:
+                        output_line_gap(1)
+                        output('// {}\n'.format(comment))
+                    self._write_operations((u_op,),
+                                           output,
+                                           output_line_gap,
+                                           top=False)
+                    if top:
+                        output_line_gap(1)
+                    continue
 
-            if mat is not None and len(op.qubits) == 2:
-                u_op = QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations((u_op,),
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
-
-            raise ValueError('Cannot output operation as QASM: {!r}'.format(op))
+                raise ValueError('Cannot output operation as QASM: {!r}'.format(op))
