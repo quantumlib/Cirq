@@ -55,12 +55,6 @@ def test_cz_str():
     assert str(cirq.CZ**-0.25) == 'CZ**-0.25'
 
 
-def test_cz_repr():
-    assert repr(cirq.CZ) == 'cirq.CZ'
-    assert repr(cirq.CZ**0.5) == '(cirq.CZ**0.5)'
-    assert repr(cirq.CZ**-0.25) == '(cirq.CZ**-0.25)'
-
-
 def test_cz_extrapolate():
     assert cirq.CZPowGate(exponent=1)**0.5 == cirq.CZPowGate(exponent=0.5)
     assert cirq.CZ**-0.25 == cirq.CZPowGate(exponent=1.75)
@@ -214,12 +208,6 @@ def test_h_decompose():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.1)
 
 
-def test_h_repr():
-    cirq.testing.assert_equivalent_repr(cirq.H)
-    cirq.testing.assert_equivalent_repr(cirq.H**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.H**0.1)
-
-
 def test_h_str():
     assert str(cirq.H) == 'H'
     assert str(cirq.H**0.5) == 'H^0.5'
@@ -369,12 +357,6 @@ def test_cnot_decompose():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
 
 
-def test_cnot_repr():
-    cirq.testing.assert_equivalent_repr(cirq.CNOT)
-    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.1)
-
-
 def test_swap_power():
     np.testing.assert_almost_equal(
         cirq.unitary(cirq.SWAP**0.5),
@@ -392,43 +374,6 @@ def test_swap_power():
     cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val=cirq.SWAP,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
-
-
-def test_xyz_repr():
-    assert repr(cirq.X) == 'cirq.X'
-    assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
-
-    assert repr(cirq.Z) == 'cirq.Z'
-    assert repr(cirq.Z**0.5) == 'cirq.S'
-    assert repr(cirq.Z**0.25) == 'cirq.T'
-    assert repr(cirq.Z**0.125) == '(cirq.Z**0.125)'
-
-    assert repr(cirq.S) == 'cirq.S'
-    assert repr(cirq.S**-1) == '(cirq.S**-1)'
-    assert repr(cirq.T) == 'cirq.T'
-    assert repr(cirq.T**-1) == '(cirq.T**-1)'
-
-    assert repr(cirq.Y) == 'cirq.Y'
-    assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
-
-    assert repr(cirq.CNOT) == 'cirq.CNOT'
-    assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
-
-    assert repr(cirq.SWAP) == 'cirq.SWAP'
-    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
-
-    for e in [1, 0.5, 0.25, 0.1, -0.3]:
-        for g in [cirq.X, cirq.Y, cirq.Z]:
-            cirq.testing.assert_equivalent_repr(g**e)
-
-
-def test_arbitrary_xyz_repr():
-    cirq.testing.assert_equivalent_repr(cirq.XPowGate(
-        exponent=0.1, global_shift_in_half_turns=0.2))
-    cirq.testing.assert_equivalent_repr(cirq.YPowGate(
-        exponent=0.1, global_shift_in_half_turns=0.2))
-    cirq.testing.assert_equivalent_repr(cirq.ZPowGate(
-        exponent=0.1, global_shift_in_half_turns=0.2))
 
 
 def test_xyz_str():
@@ -542,11 +487,6 @@ def test_iswap_str():
     assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 
-def test_iswap_repr():
-    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
-    assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
-
-
 def test_iswap_matrix():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
@@ -599,13 +539,6 @@ def test_is_measurement():
 def test_h_pow():
     assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
     assert cirq.inverse(cirq.H) == cirq.H
-
-
-def test_rx_ry_rz_repr():
-    assert repr(cirq.Rx(np.pi / 2)) == 'cirq.Rx(np.pi*0.5)'
-    cirq.testing.assert_equivalent_repr(cirq.Rx(np.pi / 8))
-    cirq.testing.assert_equivalent_repr(cirq.Ry(np.pi / 8))
-    cirq.testing.assert_equivalent_repr(cirq.Rz(np.pi / 8))
 
 
 def test_rx_matrix():
