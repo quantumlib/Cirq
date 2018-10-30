@@ -32,7 +32,7 @@ def test_init():
     assert (cirq.CCX**0.25).exponent == 0.25
 
 
-def test_matrix():
+def test_unitary():
     assert cirq.has_unitary(cirq.CCX)
     np.testing.assert_allclose(cirq.unitary(cirq.CCX), np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
@@ -98,23 +98,6 @@ def test_str():
 
     assert str(cirq.CCX**0.5) == 'TOFFOLI**0.5'
     assert str(cirq.CCZ**0.5) == 'CCZ**0.5'
-
-
-def test_repr():
-    assert repr(cirq.CCX) == 'cirq.TOFFOLI'
-    assert repr(cirq.TOFFOLI) == 'cirq.TOFFOLI'
-    assert repr(cirq.CSWAP) == 'cirq.FREDKIN'
-    assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
-    assert repr(cirq.CCZ) == 'cirq.CCZ'
-
-    assert repr(cirq.CCX**0.5) == '(cirq.TOFFOLI**0.5)'
-    assert repr(cirq.CCZ**0.5) == '(cirq.CCZ**0.5)'
-
-    cirq.testing.assert_equivalent_repr(cirq.CCZ)
-    cirq.testing.assert_equivalent_repr(cirq.CSWAP)
-    cirq.testing.assert_equivalent_repr(cirq.TOFFOLI)
-    cirq.testing.assert_equivalent_repr(cirq.CCZ**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.TOFFOLI**0.5)
 
 
 def test_eq():
