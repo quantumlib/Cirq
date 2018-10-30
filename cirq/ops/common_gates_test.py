@@ -42,6 +42,9 @@ def test_common_gates_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.Ry(np.pi))
     cirq.testing.assert_implements_consistent_protocols(cirq.Rz(np.pi))
 
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.XPowGate(global_shift_in_half_turns=0.1))
+
 
 def test_cz_init():
     assert cirq.CZPowGate(exponent=0.5).exponent == 0.5
