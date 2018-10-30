@@ -182,12 +182,6 @@ def test_h_init():
     assert h.exponent == 0.5
 
 
-def test_h_decompose():
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.1)
-
-
 def test_h_str():
     assert str(cirq.H) == 'H'
     assert str(cirq.H**0.5) == 'H^0.5'
@@ -275,10 +269,6 @@ def test_cnot_power():
             [0, 0, 0.5-0.5j, 0.5+0.5j],
         ]))
 
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
-
 
 def test_cnot_keyword_arguments():
     a = cirq.NamedQubit('a')
@@ -328,9 +318,6 @@ def test_cnot_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     assert cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x')) is not None
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
 
 
 def test_swap_power():
@@ -342,10 +329,6 @@ def test_swap_power():
             [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
             [0, 0, 0, 1]
         ]))
-
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.1)
 
 
 def test_xyz_str():
@@ -472,10 +455,6 @@ def test_iswap_matrix():
 def test_iswap_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP**0.1)
 
     decomposed = cirq.Circuit.from_ops(
         cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
