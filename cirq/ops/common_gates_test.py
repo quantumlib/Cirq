@@ -55,12 +55,7 @@ def test_cz_str():
     assert str(cirq.CZ**-0.25) == 'CZ**-0.25'
 
 
-def test_cz_extrapolate():
-    assert cirq.CZPowGate(exponent=1)**0.5 == cirq.CZPowGate(exponent=0.5)
-    assert cirq.CZ**-0.25 == cirq.CZPowGate(exponent=1.75)
-
-
-def test_cz_matrix():
+def test_cz_unitary():
     assert np.allclose(cirq.unitary(cirq.CZ),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
@@ -125,14 +120,7 @@ def test_rot_gates_eq():
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
 
-def test_z_extrapolate():
-    assert cirq.ZPowGate(exponent=1)**0.5 == cirq.ZPowGate(exponent=0.5)
-    assert cirq.Z**-0.25 == cirq.ZPowGate(exponent=1.75)
-    assert cirq.phase_by(cirq.ZPowGate(exponent=0.5),
-                         0.25, 0) == cirq.ZPowGate(exponent=0.5)
-
-
-def test_z_matrix():
+def test_z_unitary():
     assert np.allclose(cirq.unitary(cirq.Z),
                        np.array([[1, 0], [0, -1]]))
     assert np.allclose(cirq.unitary(cirq.Z**0.5),
@@ -143,7 +131,7 @@ def test_z_matrix():
                        np.array([[1, 0], [0, -1j]]))
 
 
-def test_y_matrix():
+def test_y_unitary():
     assert np.allclose(cirq.unitary(cirq.Y),
                        np.array([[0, -1j], [1j, 0]]))
 
@@ -157,7 +145,7 @@ def test_y_matrix():
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
 
-def test_x_matrix():
+def test_x_unitary():
     assert np.allclose(cirq.unitary(cirq.X),
                        np.array([[0, 1], [1, 0]]))
 
@@ -171,7 +159,7 @@ def test_x_matrix():
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
 
-def test_h_matrix():
+def test_h_unitary():
     sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
@@ -259,7 +247,7 @@ b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
 """, use_unicode_characters=False)
 
 
-def test_cnot_power():
+def test_cnot_unitary():
     np.testing.assert_almost_equal(
         cirq.unitary(cirq.CNOT**0.5),
         np.array([
@@ -320,7 +308,7 @@ def test_cnot_decompose():
     assert cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x')) is not None
 
 
-def test_swap_power():
+def test_swap_unitary():
     np.testing.assert_almost_equal(
         cirq.unitary(cirq.SWAP**0.5),
         np.array([
@@ -442,7 +430,7 @@ def test_iswap_str():
     assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 
-def test_iswap_matrix():
+def test_iswap_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
         np.array([[1, 0, 0, 0],
@@ -452,7 +440,7 @@ def test_iswap_matrix():
         atol=1e-8)
 
 
-def test_iswap_decompose():
+def test_iswap_decompose_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -483,12 +471,7 @@ def test_is_measurement():
     assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())
 
 
-def test_h_pow():
-    assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
-    assert cirq.inverse(cirq.H) == cirq.H
-
-
-def test_rx_matrix():
+def test_rx_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rx(np.pi / 2)),
@@ -515,7 +498,7 @@ def test_rx_matrix():
         np.array([[0, 1j], [1j, 0]]))
 
 
-def test_ry_matrix():
+def test_ry_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         cirq.unitary(cirq.Ry(np.pi / 2)),
@@ -542,7 +525,7 @@ def test_ry_matrix():
         np.array([[0, 1], [-1, 0]]))
 
 
-def test_rz_matrix():
+def test_rz_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rz(np.pi / 2)),
@@ -567,22 +550,3 @@ def test_rz_matrix():
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rz(-np.pi)),
         np.array([[1j, 0], [0, -1j]]))
-
-
-def test_phase_by_xy():
-    assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
-    assert cirq.phase_by(cirq.Y, 0.25, 0) == cirq.X
-
-    assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
-    assert cirq.phase_by(cirq.Y**0.5, 0.25, 0) == cirq.X**-0.5
-    assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
-    assert cirq.phase_by(cirq.Y**-0.5, 0.25, 0) == cirq.X**0.5
-
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X**0.5)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y**0.5)
-
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rx(1))
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Ry(1))
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rz(1))
