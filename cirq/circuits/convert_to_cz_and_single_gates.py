@@ -50,40 +50,39 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs
 
-    def _keep(self, op: ops.Operation) -> bool:
-        return (# Check if this is a CZ
-                # Only keep partial CZ gates if allow_partial_czs
-                (isinstance(op, ops.GateOperation)
-                 and isinstance(op.gate, ops.CZPowGate)
-                 and (self.allow_partial_czs or op.gate.exponent == 1))
-                # Measurement?
-                or ops.MeasurementGate.is_measurement(op)
-                # SingleQubit known matrix
-                or (protocols.unitary(op, None) is not None
-                    and len(op.qubits) == 1))
-
-    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Known matrix?
-        mat = protocols.unitary(op, None)
-        if mat is not None and len(op.qubits) == 2:
-            return decompositions.two_qubit_matrix_to_operations(
-                op.qubits[0],
-                op.qubits[1],
-                mat,
-                allow_partial_czs=False)
-        return NotImplemented
-
-    def _on_stuck_raise(self, op: ops.Operation):
-        raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't composite or an operation with a "
-                        "known unitary effect on 1 or 2 qubits.".format(op))
-
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        return protocols.decompose(op,
-                                   intercepting_decomposer=self._convert_one,
-                                   keep=self._keep,
+        def keep(op: ops.Operation) -> bool:
+            return (# Check if this is a CZ
+                    # Only keep partial CZ gates if allow_partial_czs
+                    (isinstance(op, ops.GateOperation)
+                     and isinstance(op.gate, ops.CZPowGate)
+                     and (self.allow_partial_czs or op.gate.exponent == 1))
+                    # Measurement?
+                    or ops.MeasurementGate.is_measurement(op)
+                    # SingleQubit known matrix
+                    or (protocols.unitary(op, None) is not None
+                        and len(op.qubits) == 1))
+
+        def convert_one(op: ops.Operation) -> ops.OP_TREE:
+            # Known matrix?
+            mat = protocols.unitary(op, None)
+            if mat is not None and len(op.qubits) == 2:
+                return decompositions.two_qubit_matrix_to_operations(
+                    op.qubits[0],
+                    op.qubits[1],
+                    mat,
+                    allow_partial_czs=False)
+            return NotImplemented
+
+        def on_stuck_raise(op: ops.Operation):
+            raise TypeError("Don't know how to work with {!r}. "
+                            "It isn't composite or an operation with a "
+                            "known unitary effect on 1 or 2 qubits.".format(op))
+
+        return protocols.decompose(op, intercepting_decomposer=convert_one,
+                                   keep=keep,
                                    on_stuck_raise=(None if self.ignore_failures
-                                                   else self._on_stuck_raise))
+                                                   else on_stuck_raise))
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:

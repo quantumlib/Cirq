@@ -77,37 +77,36 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                 return None
         return clifford_gate(qubit)
 
-    def _keep(self, op: ops.Operation) -> bool:
-        # Don't change if it's already a SingleQubitCliffordGate
-        return (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, ops.SingleQubitCliffordGate))
-
-    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Single qubit gate with known matrix?
-        if len(op.qubits) == 1:
-            mat = protocols.unitary(op, None)
-            if mat is not None:
-                cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
-                if cliff_op is not None:
-                    return cliff_op
-
-        return NotImplemented
-
-    def _on_stuck_raise(self, op: ops.Operation):
-        if len(op.qubits) == 1 and protocols.unitary(op, None) is not None:
-            raise ValueError('Single qubit operation is not in the '
-                              'Clifford group: {!r}'.format(op))
-
-        raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't composite or a 1-qubit operation "
-                        "with a known unitary effect.".format(op))
-
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        return protocols.decompose(op,
-                                   intercepting_decomposer=self._convert_one,
-                                   keep=self._keep,
+        def keep(op: ops.Operation) -> bool:
+            # Don't change if it's already a SingleQubitCliffordGate
+            return (isinstance(op, ops.GateOperation) and
+                    isinstance(op.gate, ops.SingleQubitCliffordGate))
+
+        def convert_one(op: ops.Operation) -> ops.OP_TREE:
+            # Single qubit gate with known matrix?
+            if len(op.qubits) == 1:
+                mat = protocols.unitary(op, None)
+                if mat is not None:
+                    cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
+                    if cliff_op is not None:
+                        return cliff_op
+
+            return NotImplemented
+
+        def on_stuck_raise(op: ops.Operation):
+            if len(op.qubits) == 1 and protocols.unitary(op, None) is not None:
+                raise ValueError('Single qubit operation is not in the '
+                                  'Clifford group: {!r}'.format(op))
+
+            raise TypeError("Don't know how to work with {!r}. "
+                            "It isn't composite or a 1-qubit operation "
+                            "with a known unitary effect.".format(op))
+
+        return protocols.decompose(op, intercepting_decomposer=convert_one,
+                                   keep=keep,
                                    on_stuck_raise=(None if self.ignore_failures
-                                                   else self._on_stuck_raise))
+                                                   else on_stuck_raise))
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
