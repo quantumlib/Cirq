@@ -12,7 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
+
+
+@pytest.mark.parametrize('phase_exponent', (
+    -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1
+    )
+)
+def test_phased_x_consistent_protocols(phase_exponent):
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.PhasedXPowGate(phase_exponent=phase_exponent,
+                                exponent=1.0,
+                                global_shift=0.1)
+    )
 
 
 def test_new_init():
