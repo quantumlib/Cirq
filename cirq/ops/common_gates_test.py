@@ -26,6 +26,20 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, -1j, -1, 1j]]) * 0.5
 
 
+def test_common_gates_consistent_protocols():
+    cirq.testing.assert_implements_consistent_protocols(cirq.CNOT)
+    cirq.testing.assert_implements_consistent_protocols(cirq.CZ)
+    cirq.testing.assert_implements_consistent_protocols(cirq.H)
+    cirq.testing.assert_implements_consistent_protocols(cirq.ISWAP)
+    cirq.testing.assert_implements_consistent_protocols(cirq.SWAP)
+    cirq.testing.assert_implements_consistent_protocols(cirq.X)
+    cirq.testing.assert_implements_consistent_protocols(cirq.Y)
+    cirq.testing.assert_implements_consistent_protocols(cirq.Z)
+    cirq.testing.assert_implements_consistent_protocols(cirq.Rx(np.pi/8))
+    cirq.testing.assert_implements_consistent_protocols(cirq.Ry(np.pi/8))
+    cirq.testing.assert_implements_consistent_protocols(cirq.Rz(np.pi/8))
+
+
 def test_cz_init():
     assert cirq.CZPowGate(exponent=0.5).exponent == 0.5
     assert cirq.CZPowGate(exponent=5).exponent == 1
