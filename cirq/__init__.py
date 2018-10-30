@@ -169,6 +169,7 @@ from cirq.schedules import (
 
 from cirq.sim import (
     dirac_notation,
+    measure_state,
     sample_state,
     SimulatesSamples,
     SimulationTrialResult,
