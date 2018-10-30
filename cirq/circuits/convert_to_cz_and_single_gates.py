@@ -73,8 +73,8 @@ class ConvertToCzAndSingleGates(PointOptimizer):
                 allow_partial_czs=False)
         return NotImplemented
 
-    def _on_stuck_raise(self, op: ops.Operation) -> Exception:
-        return TypeError("Don't know how to work with {!r}. "
+    def _on_stuck_raise(self, op: ops.Operation):
+        raise TypeError("Don't know how to work with {!r}. "
                         "It isn't composite or an operation with a "
                         "known unitary effect on 1 or 2 qubits.".format(op))
 

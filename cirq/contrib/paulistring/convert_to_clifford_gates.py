@@ -93,12 +93,12 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
         return NotImplemented
 
-    def _on_stuck_raise(self, op: ops.Operation) -> Exception:
+    def _on_stuck_raise(self, op: ops.Operation):
         if len(op.qubits) == 1 and protocols.unitary(op, None) is not None:
-            return ValueError('Single qubit operation is not in the '
+            raise ValueError('Single qubit operation is not in the '
                               'Clifford group: {!r}'.format(op))
 
-        return TypeError("Don't know how to work with {!r}. "
+        raise TypeError("Don't know how to work with {!r}. "
                         "It isn't composite or a 1-qubit operation "
                         "with a known unitary effect.".format(op))
 
