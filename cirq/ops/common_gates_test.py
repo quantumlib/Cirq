@@ -85,10 +85,6 @@ def test_cz_matrix():
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1j]]))
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.CZ,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
-
 
 def test_z_init():
     z = cirq.ZPowGate(exponent=5)
@@ -146,10 +142,6 @@ def test_z_matrix():
     assert np.allclose(cirq.unitary(cirq.Z**-0.5),
                        np.array([[1, 0], [0, -1j]]))
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.Z,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
-
 
 def test_y_matrix():
     assert np.allclose(cirq.unitary(cirq.Y),
@@ -163,10 +155,6 @@ def test_y_matrix():
 
     assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
-
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.Y,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_x_matrix():
@@ -182,19 +170,11 @@ def test_x_matrix():
     assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.X,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
-
 
 def test_h_matrix():
     sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
-
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.H,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_h_init():
@@ -299,10 +279,6 @@ def test_cnot_power():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.CNOT,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
-
 
 def test_cnot_keyword_arguments():
     a = cirq.NamedQubit('a')
@@ -370,10 +346,6 @@ def test_swap_power():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.5)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.1)
-
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.SWAP,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_xyz_str():
@@ -495,10 +467,6 @@ def test_iswap_matrix():
                   [0, 1j, 0, 0],
                   [0, 0, 0, 1]]),
         atol=1e-8)
-
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val=cirq.ISWAP,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
 
 def test_iswap_decompose():
