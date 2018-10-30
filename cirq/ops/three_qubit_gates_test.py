@@ -144,24 +144,6 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 @pytest.mark.parametrize('gate', [
     cirq.CCX, cirq.CSWAP, cirq.CCZ,
 ])
-def test_decomposition_matches_matrix(gate):
-    for x, y, z in itertools.permutations(cirq.LineQubit.range(3)):
-        cirq.testing.assert_decompose_is_consistent_with_unitary(
-            gate(x, y, z))
-
-
-@pytest.mark.parametrize('gate', [
-    cirq.CCX, cirq.CCZ,
-])
-def test_decomposition_matches_matrix_partial_power(gate):
-    for x, y, z in itertools.permutations(cirq.LineQubit.range(3)):
-        cirq.testing.assert_decompose_is_consistent_with_unitary(
-            gate(x, y, z)**0.5)
-
-
-@pytest.mark.parametrize('gate', [
-    cirq.CCX, cirq.CSWAP, cirq.CCZ,
-])
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(1, 0)
