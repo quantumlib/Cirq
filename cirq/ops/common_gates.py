@@ -145,6 +145,11 @@ class XPowGate(eigen_gate.EigenGate,
         one = linalg.slice_for_qubits_equal_to(axes, 1)
         available_buffer[zero] = target_tensor[one]
         available_buffer[one] = target_tensor[zero]
+
+        # Global phase
+        available_buffer *= (-1)**(
+                self._exponent*self._global_shift_in_half_turns)
+
         return available_buffer
 
     def _eigen_components(self):
@@ -188,7 +193,8 @@ class XPowGate(eigen_gate.EigenGate,
         return 'X**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift_in_half_turns == -0.5:
+        if (self._global_shift_in_half_turns == -0.5
+                and not self._is_parameterized_()):
             return 'cirq.Rx(np.pi*{!r})'.format(self._exponent)
         if self._global_shift_in_half_turns == 0:
             if self._exponent == 1:
@@ -273,7 +279,8 @@ class YPowGate(eigen_gate.EigenGate,
         return 'Y**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift_in_half_turns == -0.5:
+        if (self._global_shift_in_half_turns == -0.5
+                and not self._is_parameterized_()):
             return 'cirq.Ry(np.pi*{!r})'.format(self._exponent)
         if self._global_shift_in_half_turns == 0:
             if self._exponent == 1:
@@ -327,6 +334,11 @@ class ZPowGate(eigen_gate.EigenGate,
         one = linalg.slice_for_qubits_equal_to(axes, 1)
         c = np.exp(1j * np.pi * self._exponent)
         target_tensor[one] *= c
+
+        # Global phase
+        target_tensor *= (-1)**(
+                self._exponent*self._global_shift_in_half_turns)
+
         return target_tensor
 
     def _eigen_components(self):
@@ -385,7 +397,8 @@ class ZPowGate(eigen_gate.EigenGate,
         return 'Z**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift_in_half_turns == -0.5:
+        if (self._global_shift_in_half_turns == -0.5
+                and not self._is_parameterized_()):
             return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift_in_half_turns == 0:
             if self._exponent == 0.25:

@@ -35,9 +35,12 @@ def test_common_gates_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.X)
     cirq.testing.assert_implements_consistent_protocols(cirq.Y)
     cirq.testing.assert_implements_consistent_protocols(cirq.Z)
-    cirq.testing.assert_implements_consistent_protocols(cirq.Rx(np.pi/8))
-    cirq.testing.assert_implements_consistent_protocols(cirq.Ry(np.pi/8))
-    cirq.testing.assert_implements_consistent_protocols(cirq.Rz(np.pi/8))
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.MeasurementGate(''))
+
+    cirq.testing.assert_implements_consistent_protocols(cirq.Rx(np.pi))
+    cirq.testing.assert_implements_consistent_protocols(cirq.Ry(np.pi))
+    cirq.testing.assert_implements_consistent_protocols(cirq.Rz(np.pi))
 
 
 def test_cz_init():
