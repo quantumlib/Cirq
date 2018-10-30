@@ -14,6 +14,8 @@
 
 from typing import Any
 
+import itertools
+
 from cirq import protocols, ops, line, circuits
 from cirq.testing import lin_alg_utils
 
@@ -26,12 +28,17 @@ def assert_decompose_is_consistent_with_unitary(val: Any):
     if isinstance(val, ops.Operation):
         qubits = val.qubits
         dec = protocols.decompose_once(val)
+        actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
+            qubit_order=qubits)
+        lin_alg_utils.assert_allclose_up_to_global_phase(actual,
+                                                         expected,
+                                                         atol=1e-8)
     else:
         qubits = tuple(line.LineQubit.range(qubit_count))
-        dec = protocols.decompose_once_with_qubits(val, qubits)
-    actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
-        qubit_order=qubits)
-
-    lin_alg_utils.assert_allclose_up_to_global_phase(actual,
-                                                     expected,
-                                                     atol=1e-8)
+        for qubit_order in itertools.permutations(qubits):
+            dec = protocols.decompose_once_with_qubits(val, qubit_order)
+            actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
+                qubit_order=qubit_order)
+            lin_alg_utils.assert_allclose_up_to_global_phase(actual,
+                                                             expected,
+                                                             atol=1e-8)
