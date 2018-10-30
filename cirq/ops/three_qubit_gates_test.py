@@ -19,6 +19,12 @@ import pytest
 import cirq
 
 
+def test_three_qubit_gates_consistent_protocols():
+    cirq.testing.assert_implements_consistent_protocols(cirq.CCX)
+    cirq.testing.assert_implements_consistent_protocols(cirq.CCZ)
+    cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
+
+
 def test_init():
     assert (cirq.CCZ**0.5).exponent == 0.5
     assert (cirq.CCZ**0.25).exponent == 0.25
