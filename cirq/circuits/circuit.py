@@ -141,6 +141,10 @@ class Circuit:
     def __iter__(self):
         return iter(self._moments)
 
+    def _decompose_(self) -> ops.OP_TREE:
+        """See `cirq.SupportsDecompose`."""
+        return self.all_operations()
+
     # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: slice) -> 'Circuit':
