@@ -137,7 +137,7 @@ class EigenGate(raw_types.Gate):
 
         # Canonicalize the rounded exponent into (-period/2, period/2].
         if args.precision is not None:
-            e = np.round(e, args.precision)
+            e = np.around(e, args.precision)
         if not (-diagram_period/2 < e <= diagram_period/2):
             e = diagram_period / 2 - e
             e %= diagram_period / 2

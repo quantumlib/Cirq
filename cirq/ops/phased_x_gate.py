@@ -153,8 +153,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(
                 self.phase_exponent)
         return protocols.CircuitDiagramInfo(
-            symbols=(s,),
-            exponent=self._diagram_exponent(args))
+            wire_symbols=(s,),
+            exponent=value.canonicalize_half_turns(self._exponent))
 
     def __str__(self):
         info = protocols.circuit_diagram_info(self)
