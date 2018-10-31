@@ -15,8 +15,6 @@
 import re
 import pytest
 
-import numpy as np
-
 import cirq
 from cirq.circuits.qasm_output import QasmUGate, QasmTwoQubitGate
 
