@@ -28,7 +28,7 @@ QFT2 = np.array([[1, 1, 1, 1],
 
 def test_cz_init():
     assert cirq.CZPowGate(exponent=0.5).exponent == 0.5
-    assert cirq.CZPowGate(exponent=5).exponent == 1
+    assert cirq.CZPowGate(exponent=5).exponent == 5
     assert (cirq.CZ**0.5).exponent == 0.5
 
 
@@ -81,7 +81,12 @@ def test_cz_matrix():
 
 def test_z_init():
     z = cirq.ZPowGate(exponent=5)
-    assert z.exponent == 1
+    assert z.exponent == 5
+
+    # Canonicalizes exponent for equality, but keeps the inner details.
+    assert cirq.Z**0.5 != cirq.Z**-0.5
+    assert (cirq.Z**-1)**0.5 == cirq.Z**-0.5
+    assert cirq.Z**-1 == cirq.Z
 
 
 def test_rot_gates_eq():
@@ -103,17 +108,18 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
     eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_shift_in_half_turns=-0.5),
+                                        global_shift=-0.5),
                           cirq.ZPowGate(exponent=5,
-                                        global_shift_in_half_turns=-0.5))
+                                        global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=3,
-                                        global_shift_in_half_turns=-0.5))
+                                        global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_shift_in_half_turns=-0.1))
+                                        global_shift=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
-                                        global_shift_in_half_turns=-0.1))
+                                        global_shift=-0.1))
     eq.add_equality_group(cirq.CNotPowGate(),
-                          cirq.CNotPowGate(exponent=1), cirq.CNOT)
+                          cirq.CNotPowGate(exponent=1),
+                          cirq.CNOT)
     eq.add_equality_group(cirq.CZPowGate(),
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
@@ -404,14 +410,20 @@ def test_xyz_repr():
         for g in [cirq.X, cirq.Y, cirq.Z]:
             cirq.testing.assert_equivalent_repr(g**e)
 
+    # There should be no floating point error during initialization, and repr
+    # should be using the "shortest decimal value closer to X than any other
+    # floating point value" strategy, as opposed to the "exactly value in
+    # decimal" strategy.
+    assert repr(cirq.CZ**0.2) == '(cirq.CZ**0.2)'
+
 
 def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.XPowGate(
-        exponent=0.1, global_shift_in_half_turns=0.2))
+        exponent=0.1, global_shift=0.2))
     cirq.testing.assert_equivalent_repr(cirq.YPowGate(
-        exponent=0.1, global_shift_in_half_turns=0.2))
+        exponent=0.1, global_shift=0.2))
     cirq.testing.assert_equivalent_repr(cirq.ZPowGate(
-        exponent=0.1, global_shift_in_half_turns=0.2))
+        exponent=0.1, global_shift=0.2))
 
 
 def test_xyz_str():
