@@ -100,7 +100,7 @@ from cirq.line import (
 )
 
 from cirq.ops import (
-    amplitude_damping,
+    amplitude_damp,
     AmplitudeDampingChannel,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
@@ -123,7 +123,7 @@ from cirq.ops import (
     freeze_op_tree,
     Gate,
     GateOperation,
-    generalized_amplitude_damping,
+    generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     H,
     HPowGate,
@@ -140,7 +140,7 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    phase_damping,
+    phase_damp,
     PhaseDampingChannel,
     phase_flip,
     PhaseFlipChannel,
