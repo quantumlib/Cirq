@@ -46,4 +46,4 @@ matrix:
     install:
       - pip install -r dev_tools/python2.7-requirements.txt
       - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
-    script: check/pytest2
+    script: check/pytest2-travis
