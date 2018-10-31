@@ -146,14 +146,15 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                                ) -> protocols.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        half_turns = self.exponent
         if (isinstance(self.phase_exponent, value.Symbol) or
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(
                 self.phase_exponent)
-        return protocols.CircuitDiagramInfo((s,), half_turns)
+        return protocols.CircuitDiagramInfo(
+            symbols=(s,),
+            exponent=self._diagram_exponent(args))
 
     def __str__(self):
         info = protocols.circuit_diagram_info(self)

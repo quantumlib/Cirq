@@ -119,7 +119,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
         return protocols.CircuitDiagramInfo(
             wire_symbols=(l0, l1),
-            exponent=self._exponent)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         base = 'cirq.PauliInteractionGate({!r}, {!s}, {!r}, {!s})'.format(
