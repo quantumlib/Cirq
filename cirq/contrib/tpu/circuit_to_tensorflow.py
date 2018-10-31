@@ -14,9 +14,10 @@
 
 from typing import Tuple, Dict, Any, List, Union, Callable, TypeVar, NamedTuple
 
+from collections import namedtuple
+
 import numpy as np
 import tensorflow as tf
-from collections import namedtuple
 
 from cirq import ops, circuits, linalg, protocols, decompositions
 
@@ -134,7 +135,7 @@ class _QubitGrouping:
             sizes[-2:] = reversed(sizes[-2:])
 
         # Make the actual groups.
-        self.groups = []
+        self.groups = []  # type: List[List[ops.QubitId]]
         i = 0
         for s in sizes:
             self.groups.append(self.qubits[i:i+s])
@@ -190,7 +191,8 @@ class _QubitGrouping:
             m = protocols.unitary(op, None)
             if m is not None:
                 return decompositions.two_qubit_matrix_to_operations(
-                    *op.qubits,
+                    op.qubits[0],
+                    op.qubits[1],
                     mat=m,
                     allow_partial_czs=False
                 )
@@ -337,7 +339,7 @@ class _TensorCircuit:
                 intercepting_decomposer=self.grouping.intercept_decompose_func,
                 keep=self.grouping.decompose_keep_func))
         self.layers = _circuit_as_layers(self.circuit, self.grouping)
-        self.feed_dict = {}
+        self.feed_dict = {}  # type: Dict[tf.Tensor, Any]
 
         # Capture initial state.
         self._initial_state_func = self._pick_initial_state_func(initial_state)

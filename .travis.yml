@@ -37,8 +37,17 @@ matrix:
     python: "3.6"
     install:
       - pip install -r requirements.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest
+
+  - os: linux
+    env: NAME=pytest (without contrib)
+    python: "3.7"
+    install:
+      - pip install -r requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --ignore=cirq/contrib
 
   - os: linux
     env: NAME=pytest2
