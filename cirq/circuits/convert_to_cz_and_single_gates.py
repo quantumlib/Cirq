@@ -50,39 +50,46 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs
 
-    def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        def keep(op: ops.Operation) -> bool:
-            return (# Check if this is a CZ
-                    # Only keep partial CZ gates if allow_partial_czs
-                    (isinstance(op, ops.GateOperation)
-                     and isinstance(op.gate, ops.CZPowGate)
-                     and (self.allow_partial_czs or op.gate.exponent == 1))
-                    # Measurement?
-                    or ops.MeasurementGate.is_measurement(op)
-                    # SingleQubit known matrix
-                    or (protocols.unitary(op, None) is not None
-                        and len(op.qubits) == 1))
+    def _keep(self, op: ops.Operation) -> bool:
+        # Check if this is a CZ
+        # Only keep partial CZ gates if allow_partial_czs
+        if (isinstance(op, ops.GateOperation)
+            and isinstance(op.gate, ops.CZPowGate)
+            and (self.allow_partial_czs or op.gate.exponent == 1)):
+            return True
 
-        def convert_one(op: ops.Operation) -> ops.OP_TREE:
-            # Known matrix?
+        # Measurement?
+        if ops.MeasurementGate.is_measurement(op):
+            return True
+
+        # SingleQubit known matrix
+        if len(op.qubits) == 1 and protocols.has_unitary(op):
+            return True
+        return False
+
+    def _decompose_two_qubit_unitaries(self, op: ops.Operation) -> ops.OP_TREE:
+        # Known matrix?
+        if len(op.qubits) == 2:
             mat = protocols.unitary(op, None)
-            if mat is not None and len(op.qubits) == 2:
+            if mat is not None:
                 return decompositions.two_qubit_matrix_to_operations(
                     op.qubits[0],
                     op.qubits[1],
                     mat,
-                    allow_partial_czs=False)
-            return NotImplemented
+                    allow_partial_czs=self.allow_partial_czs)
+        return NotImplemented
 
-        def on_stuck_raise(op: ops.Operation):
-            raise TypeError("Don't know how to work with {!r}. "
-                            "It isn't composite or an operation with a "
-                            "known unitary effect on 1 or 2 qubits.".format(op))
+    def _on_stuck_raise(self, op: ops.Operation):
+        raise TypeError("Don't know how to work with {!r}. "
+                        "It isn't composite or an operation with a "
+                        "known unitary effect on 1 or 2 qubits.".format(op))
 
-        return protocols.decompose(op, intercepting_decomposer=convert_one,
-                                   keep=keep,
+    def convert(self, op: ops.Operation) -> ops.OP_TREE:
+        return protocols.decompose(op,intercepting_decomposer=(
+                                          self._decompose_two_qubit_unitaries),
+                                   keep=self._keep,
                                    on_stuck_raise=(None if self.ignore_failures
-                                                   else on_stuck_raise))
+                                                   else self._on_stuck_raise))
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
