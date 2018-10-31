@@ -2525,3 +2525,10 @@ def test_submoments():
   | | H |     H     |
   | | | |     |     |
 """, use_unicode_characters=False, transpose=True)
+
+
+def test_decompose():
+    a, b = cirq.LineQubit.range(2)
+    assert cirq.decompose(
+        cirq.Circuit.from_ops(cirq.X(a), cirq.Y(b), cirq.CZ(a, b))
+    ) == [cirq.X(a), cirq.Y(b), cirq.CZ(a, b)]
