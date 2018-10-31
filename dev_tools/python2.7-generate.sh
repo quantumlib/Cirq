@@ -21,8 +21,9 @@
 # output directory defaults to "python2.7-output" in the current working
 # directory.
 
-# This script also requires that the protocol buffer compiler "protoc".
-# Instructions for installing the protocol buffer compiler can be found at
+# If compiled protobuffer files are desired, the protocol buffer compilter,
+# protoc must be installed. Instructions for installing the protocol buffer
+# compiler can be found at
 # https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
 
 # Takes three optional arguments:
