@@ -21,9 +21,9 @@
 # output directory defaults to "python2.7-output" in the current working
 # directory.
 
-# This script also requires that the protocol buffer compiler "protoc" command
-# is installed. This can be done using apt-get:
-#     sudo apt-get install protobuf-compiler
+# This script also requires that the protocol buffer compiler "protoc".
+# Instructions for installing the protocol buffer compiler can be found at
+# https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
 
 # Takes three optional arguments:
 #     1. Output directory. Defaults to 'python2.7-output'. Fails if the
@@ -78,10 +78,15 @@ find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 # Move examples without conversion (they must be cross-compatible).
 cp -r "${in_dir}/examples" "${out_dir}/examples"
 
-# Build protobufs.
-proto_dir="${out_dir}/${project_name}/api/google/v1"
-find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
-protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
+# Build protobufs if protoc is installed, otherwise show warning.
+if command -v "protoc" > /dev/null; then
+  proto_dir="${out_dir}/${project_name}/api/google/v1"
+  find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
+  protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
+else
+  echo -e "\e[33mProtocol buffers were not compiled because protoc is not installed.\e[0m"
+  echo -e "\e[33mSee https://github.com/protocolbuffers/protobuf/blob/master/src/README.md for protoc installation instructions.\e[0m"
+fi
 
 # Include requirements files.
 cp "${in_dir}/dev_tools/python2.7-requirements.txt" "${out_dir}/requirements.txt"
