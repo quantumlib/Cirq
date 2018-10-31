@@ -71,7 +71,10 @@ class XmonDevice(Device):
             if isinstance(operation.gate, ops.MeasurementGate):
                 return self._measurement_duration
             g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
-            if isinstance(g, xmon_gates.ExpWGate):
+            if isinstance(g, (xmon_gates.ExpWGate,
+                              ops.XPowGate,
+                              ops.YPowGate,
+                              ops.PhasedXPowGate)):
                 return self._exp_w_duration
             if isinstance(operation.gate, ops.ZPowGate):
                 # Z gates are performed in the control software.
@@ -85,6 +88,9 @@ class XmonDevice(Device):
             ValueError: Unsupported gate.
         """
         if not isinstance(gate, (ops.CZPowGate,
+                                 ops.XPowGate,
+                                 ops.YPowGate,
+                                 ops.PhasedXPowGate,
                                  xmon_gates.ExpWGate,
                                  ops.MeasurementGate,
                                  ops.ZPowGate)):
@@ -121,11 +127,12 @@ class XmonDevice(Device):
             self,
             exp11_op: ops.GateOperation,
             other_op: ops.GateOperation) -> bool:
-        if isinstance(other_op.gate, ops.ZPowGate):
-            return False
-        if isinstance(other_op.gate, xmon_gates.ExpWGate):
-            return False
-        if isinstance(other_op.gate, ops.MeasurementGate):
+        if isinstance(other_op.gate, (ops.XPowGate,
+                                      ops.YPowGate,
+                                      xmon_gates.ExpWGate,
+                                      ops.PhasedXPowGate,
+                                      ops.MeasurementGate,
+                                      ops.ZPowGate)):
             return False
 
         return any(cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
