@@ -46,4 +46,7 @@ matrix:
     install:
       - pip install -r dev_tools/python2.7-requirements.txt
       - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
+    script: curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
+    script: unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
+    scritp: PATH=$(pwd)/protoc3.5/bin:${PATH}
     script: check/pytest2-travis
