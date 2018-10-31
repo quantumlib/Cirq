@@ -246,12 +246,14 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
-        p1 = np.sqrt(1.0 - self._p)
+        p1 = np.sqrt(1. - self._p)
+        sqrt_g = np.sqrt(self._gamma)
+        sqrt_g1 = np.sqrt(1. - self._gamma)
         return (
-            p0 * np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
-            p0 * np.array([[0.0, np.sqrt(self._gamma)], [0.0, 0.0]]),
-            p1 * np.array([[np.sqrt(1.0 - self._gamma), 0.0], [0.0, 1.0]]),
-            p1 * np.array([[0.0, 0.0], [np.sqrt(self._gamma), 0.0]]),
+            p0 * np.array([[1., 0.], [0., sqrt_g1]]),
+            p0 * np.array([[0., sqrt_g], [0., 0.]]),
+            p1 * np.array([[sqrt_g1, 0.], [0., 1.]]),
+            p1 * np.array([[0., 0.], [sqrt_g, 0.]]),
         )
 
     def _eq_tuple(self):
@@ -450,8 +452,8 @@ class PhaseDampingChannel(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
-            np.array([[0.0, 0.0], [0.0, np.sqrt(self._gamma)]]),
+            np.array([[1., 0.], [0., np.sqrt(1. - self._gamma)]]),
+            np.array([[0., 0.], [0., np.sqrt(self._gamma)]]),
         )
 
     def _eq_tuple(self):
@@ -542,7 +544,7 @@ class PhaseFlipChannel(raw_types.Gate):
             return p
 
         self._p = validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(0.0, 0.0, 1.0 - p)
+        self._delegate = AsymmetricDepolarizingChannel(0., 0., 1. - p)
 
     def _channel_(self) -> Iterable[np.ndarray]:
         kraus_ops = list(self._delegate._channel_())
@@ -638,7 +640,7 @@ class BitFlipChannel(raw_types.Gate):
             return p
 
         self._p = validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(1.0 - p, 0.0, 0.0)
+        self._delegate = AsymmetricDepolarizingChannel(1. - p, 0., 0.)
 
     def _channel_(self) -> Iterable[np.ndarray]:
         # Return just the I and X pieces.
@@ -723,21 +725,21 @@ class RotationErrorChannel(raw_types.Gate):
         return (
             np.exp(
                 0.5
-                * (0.0 - 1.0j)
+                * (0. - 1.0j)
                 * self._eps_x
-                * np.array([[0.0, 1.0], [1.0, 0.0]])
+                * np.array([[0., 1.], [1., 0.]])
             ),
             np.exp(
                 0.5
-                * (0.0 - 1.0j)
+                * (0. - 1.0j)
                 * self._eps_y
-                * np.array([[0.0, (0.0 - 1.0j)], [(0.0 + 1.0j), 0.0]])
+                * np.array([[0., (0. - 1.0j)], [(0. + 1.0j), 0.]])
             ),
             np.exp(
                 0.5
-                * (0.0 - 1.0j)
+                * (0. - 1.0j)
                 * self._eps_z
-                * np.array([[1.0, 0.0], [0.0, -1.0]])
+                * np.array([[1., 0.], [0., -1.]])
             ),
         )
 
