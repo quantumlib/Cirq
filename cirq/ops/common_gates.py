@@ -520,7 +520,15 @@ def measure(*qubits: raw_types.QubitId,
 
     Returns:
         An operation targeting the given qubits with a measurement.
+
+    Raises:
+        ValueError if the qubits are not instances of QubitId.
     """
+    if any(not isinstance(qubit, raw_types.QubitId) for qubit in qubits):
+        raise ValueError(
+                'measure() was called on objects not of type QubitId. '
+                'Perhaps you meant to call measure_state_vector on numpy array?'
+        )
     if key is None:
         key = _default_measurement_key(qubits)
     return MeasurementGate(key, invert_mask).on(*qubits)

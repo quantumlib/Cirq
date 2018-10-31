@@ -381,8 +381,8 @@ class Stepper(object):
         """
         # Stepper uses little endian while sample_state uses big endian.
         reversed_indices = [self._num_qubits - 1 - index for index in indices]
-        return sim.sample_state(self._current_state(), reversed_indices,
-                                repetitions)
+        return sim.sample_state_vector(self._current_state(), reversed_indices,
+                                       repetitions)
 
 
 def _state_shard(args: Dict[str, Any]) -> np.ndarray:

@@ -169,8 +169,8 @@ from cirq.schedules import (
 
 from cirq.sim import (
     dirac_notation,
-    measure_state,
-    sample_state,
+    measure_state_vector,
+    sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
     StepResult,

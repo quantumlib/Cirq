@@ -125,7 +125,7 @@ def validate_normalized_state(state: np.ndarray, num_qubits: int,
         raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
-def sample_state(
+def sample_state_vector(
     state: np.ndarray,
     indices: List[int],
     repetitions: int=1) -> List[List[bool]]:
@@ -169,13 +169,13 @@ def sample_state(
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
     # choosing from a list of tuples or list of lists.
-    result = np.random.choice(2 ** len(indices), size=repetitions, p=probs)
+    result = np.random.choice(len(probs), size=repetitions, p=probs)
     # Convert to bools and rearrange to match repetition being the outer list.
     return np.transpose([(1 & (result >> i)).astype(np.bool) for i in
                          range(len(indices))]).tolist()
 
 
-def measure_state(
+def measure_state_vector(
         state: np.ndarray,
         indices: List[int]) -> Tuple[List[bool], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
@@ -186,13 +186,13 @@ def measure_state(
             (2 ** integer) or (2, 2, ..., 2).
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
-            a bitstring, has the largest values that the 0th index.
+            a bitstring, has the largest values in the 0th index.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
         numpy array is the post measurement state. This state has the same
-        shape as the input state.
+        shape and dtype as the input state.
 
     Raises:
         ValueError if the size of state is not a power of 2.
@@ -207,12 +207,11 @@ def measure_state(
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(state, indices, num_qubits)
-    result = np.random.choice(2 ** len(indices), p=probs)
+    result = np.random.choice(len(probs), p=probs)
     measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
 
     # Calculate the slice for the measurement result.
-    b = sum(2**i*b for i, b in enumerate(measurement_bits))
-    result_slice = linalg.slice_for_qubits_equal_to(indices, b)
+    result_slice = linalg.slice_for_qubits_equal_to(indices, result)
 
     # Create a mask which is False for only the slice.
     mask = np.ones([2] * num_qubits, dtype=bool)
@@ -223,13 +222,13 @@ def measure_state(
     tensor[mask] = 0
 
     # Restore original shape (if necessary) and renormalize.
-    return_state = np.reshape(tensor, state.shape) / np.sqrt(probs[b])
+    return_state = np.reshape(tensor, state.shape) / np.sqrt(probs[result])
 
-    return (measurement_bits, return_state)
+    return measurement_bits, return_state
 
 
 def _probs(state: np.ndarray, indices: List[int],
-        num_qubits: int):
+           num_qubits: int):
     """Returns the probabilities for a measurement on the given indices."""
     # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
     prob_tensor = np.abs(np.reshape(state, [2] * num_qubits)) ** 2
@@ -246,7 +245,7 @@ def _validate_num_qubits(state: np.ndarray) -> int:
     """Validates that state's size is a power of 2, returning number of qubits.
     """
     size = state.size
-    if (size & (size - 1)):
+    if size != 0 and size & (size - 1):
         raise ValueError(
             'State is not of size a power of two instead was {}'.format(size))
     return size.bit_length() - 1
