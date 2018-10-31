@@ -163,9 +163,6 @@ class _QubitGrouping:
     def flat_shape(self) -> Tuple[int]:
         return self.system_size(),
 
-    def grouped_shape(self) -> Tuple[int, ...]:
-        return tuple(1 << len(g) for g in self.groups)
-
     def all_in_same_group(self, *qubits: ops.QubitId) -> bool:
         return len({self.loc(q)[0] for q in qubits}) <= 1
 

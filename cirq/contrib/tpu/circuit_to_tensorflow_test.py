@@ -64,6 +64,37 @@ def test_circuit_to_compute_func_and_feed_dict_big():
     _assert_evaluates_correctly(c)
 
 
+def test_circuit_to_compute_func_and_feed_dict_vector_custom_start_state():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.CZ(a, b))
+
+    r = circuit_to_tensorflow_compute_func_and_feed_dict(c, initial_state=0)
+    with tf.Session() as session:
+        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+    np.testing.assert_allclose(v, np.array([1, 0, 0, 0]), atol=1e-6)
+
+    r = circuit_to_tensorflow_compute_func_and_feed_dict(c, initial_state=1)
+    with tf.Session() as session:
+        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+    np.testing.assert_allclose(v, np.array([0, 1, 0, 0]), atol=1e-6)
+
+    r = circuit_to_tensorflow_compute_func_and_feed_dict(c, initial_state=3)
+    with tf.Session() as session:
+        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+    np.testing.assert_allclose(v, np.array([0, 0, 0, -1]), atol=1e-6)
+
+    r = circuit_to_tensorflow_compute_func_and_feed_dict(
+        c, initial_state=np.array([0.5, 0.5, 0.5, 0.5]))
+    with tf.Session() as session:
+        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+    np.testing.assert_allclose(v, np.array([0.5, 0.5, 0.5, -0.5]), atol=1e-6)
+
+    with pytest.raises(ValueError):
+        _ = circuit_to_tensorflow_compute_func_and_feed_dict(
+            c,
+            initial_state='zero please')
+
+
 def test_circuit_to_compute_func_and_feed_dict_allows_terminal_measurements():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q), cirq.H(q))
