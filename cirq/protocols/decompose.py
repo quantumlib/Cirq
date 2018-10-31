@@ -93,19 +93,6 @@ def _default_decomposer(op: 'cirq.Operation'
     return decompose_once(op, default=NotImplemented)
 
 
-def _intercept_decompose(
-        val: Any,
-        decomposers: List[Callable[[Any], Union[None,
-                                                NotImplementedType,
-                                                'cirq.OP_TREE']]]
-) -> 'cirq.OP_TREE':
-    for d in decomposers:
-        r = d(val)
-        if r is not NotImplemented and r is not None:
-            return r
-    return NotImplemented
-
-
 # pylint: disable=function-redefined
 @overload
 def decompose(
@@ -115,6 +102,10 @@ def decompose(
                                       Union[None,
                                             NotImplementedType,
                                             'cirq.OP_TREE']] = None,
+    fallback_decomposer: Callable[['cirq.Operation'],
+                                  Union[None,
+                                        NotImplementedType,
+                                        'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None
 ) -> List['cirq.Operation']:
     pass
@@ -128,6 +119,10 @@ def decompose(
                                       Union[None,
                                             NotImplementedType,
                                             'cirq.OP_TREE']] = None,
+    fallback_decomposer: Callable[['cirq.Operation'],
+                                  Union[None,
+                                        NotImplementedType,
+                                        'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise: Optional[Union[
         TError,
@@ -144,6 +139,10 @@ def decompose(
                                       Union[None,
                                             NotImplementedType,
                                             'cirq.OP_TREE']] = None,
+    fallback_decomposer: Callable[['cirq.Operation'],
+                                  Union[None,
+                                        NotImplementedType,
+                                        'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
     on_stuck_raise=_value_error_describing_bad_operation
 ) -> List['cirq.Operation']:
@@ -159,6 +158,9 @@ def decompose(
 
             Note that `val` will be passed into `intercepting_decomposer`, even
             if `val` isn't a `cirq.Operation`.
+        fallback_decomposer: An optional decomposition that used after the
+            `intercepting_decomposer` and the default decomposer (the value's
+            `_decompose_` method) both fail.
         keep: A predicate that determines if the initial operation or
             intermediate decomposed operations should be kept or else need to be
             decomposed further. If `keep` isn't specified, it defaults to "value
@@ -198,11 +200,18 @@ def decompose(
             "not possible to get stuck if you don't have a criteria on what's "
             "acceptable to keep.")
 
-    if intercepting_decomposer is None:
-        decomposer = _default_decomposer
-    else:
-        decomposers = [intercepting_decomposer, _default_decomposer]
-        decomposer = lambda op: _intercept_decompose(op, decomposers)
+    decomposers = [d
+                   for d in [intercepting_decomposer,
+                             _default_decomposer,
+                             fallback_decomposer]
+                   if d]
+
+    def decomposer(op):
+        for d in decomposers:
+            r = d(op)
+            if r is not NotImplemented and r is not None:
+                return r
+        return NotImplemented
 
     output = []
     queue = [val]  # type: List[Any]
