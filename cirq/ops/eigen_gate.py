@@ -123,13 +123,13 @@ class EigenGate(raw_types.Gate):
         Returns:
             A rounded canonicalized exponent.
         """
-        e = self._exponent
-        if not isinstance(e, (int, float)):
-            return e
+        if not isinstance(self._exponent, (int, float)):
+            return self._exponent
+        e = float(self._exponent)
 
         # Compute global-phase-independent period of the gate.
         shifts = list(self._eigen_shifts())
-        relative_shifts = [e - shifts[0] for e in shifts[1:]]
+        relative_shifts = {e - shifts[0] for e in shifts[1:]}
         relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
         diagram_period = _approximate_common_period(relative_periods)
         if diagram_period is None:
@@ -138,10 +138,11 @@ class EigenGate(raw_types.Gate):
         # Canonicalize the rounded exponent into (-period/2, period/2].
         if args.precision is not None:
             e = np.around(e, args.precision)
-        if not (-diagram_period/2 < e <= diagram_period/2):
-            e = diagram_period / 2 - e
-            e %= diagram_period / 2
-            e = diagram_period / 2 - e
+        h = diagram_period / 2
+        if not (-h < e <= h):
+            e = h - e
+            e %= diagram_period
+            e = h - e
 
         return e
 
@@ -225,7 +226,7 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        exponents = [e + self._global_shift for e in self._eigen_shifts()]
+        exponents = {e + self._global_shift for e in self._eigen_shifts()}
         real_periods = [abs(2/e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
@@ -330,6 +331,8 @@ def _approximate_common_period(periods: List[float],
         return None
     if any(e == 0 for e in periods):
         return None
+    if len(periods) == 1:
+        return abs(periods[0])
     approx_rational_periods = [
         fractions.Fraction(int(np.round(p * approx_denom)), approx_denom)
         for p in periods

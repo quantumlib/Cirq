@@ -87,6 +87,9 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                                     self.pauli1, self.invert1,
                                     exponent=exponent)
 
+    def _eigen_shifts(self) -> List[float]:
+        return [0.0, 1.0]
+
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         comp1 = np.kron(pauli_eigen_map[self.pauli0][not self.invert0],
                         pauli_eigen_map[self.pauli1][not self.invert1])
