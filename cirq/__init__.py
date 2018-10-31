@@ -60,6 +60,12 @@ from cirq.extension import (
     try_cast,
 )
 
+from cirq.experiments import (
+    generate_supremacy_circuit_google_v2,
+    generate_supremacy_circuit_google_v2_bristlecone,
+    generate_supremacy_circuit_google_v2_grid,
+)
+
 from cirq.linalg import (
     allclose_up_to_global_phase,
     apply_matrix_to_slices,
