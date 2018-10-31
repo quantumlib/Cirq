@@ -177,8 +177,11 @@ def sample_state_vector(
 
 def measure_state_vector(
         state: np.ndarray,
-        indices: List[int]) -> Tuple[List[bool], np.ndarray]:
+        indices: List[int],
+        out: np.ndarray = None) -> Tuple[List[bool], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
+
+    This does not modify `state` unless the optional `out` is `state`.
 
     Args:
         state: The state to be measured. This state is assumed to be normalized.
@@ -187,6 +190,12 @@ def measure_state_vector(
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values in the 0th index.
+        out: An optional place to store the result. If out is the same as
+            the `state` parameter, then state will be modified inline. If out
+            is not None, then the result is put into out.  If out is None
+            a new value will be allocated. In all of these case out will be the
+            same as the returned ndarray of the method. The shape and dtype of
+            out will always match that of state.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
@@ -205,6 +214,9 @@ def measure_state_vector(
     if len(indices) == 0:
         return ([], np.copy(state))
 
+    # Cache initial state.
+    initial_shape = state.shape
+
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(state, indices, num_qubits)
     result = np.random.choice(len(probs), p=probs)
@@ -217,14 +229,21 @@ def measure_state_vector(
     mask = np.ones([2] * num_qubits, dtype=bool)
     mask[result_slice] = False
 
+    if out is None:
+        out = np.copy(state)
+    elif out is not state:
+        np.copyto(out, state)
+    # Final else: if out is state then state will be modified in place.
+
     # Potentially reshape to tensor, and then set masked values to 0.
-    tensor = np.reshape(np.copy(state), [2] * num_qubits)
-    tensor[mask] = 0
+    out.shape = [2] * num_qubits
+    out[mask] = 0
 
     # Restore original shape (if necessary) and renormalize.
-    return_state = np.reshape(tensor, state.shape) / np.sqrt(probs[result])
+    out.shape = initial_shape
+    out /= np.sqrt(probs[result])
 
-    return measurement_bits, return_state
+    return measurement_bits, out
 
 
 def _probs(state: np.ndarray, indices: List[int],
@@ -247,14 +266,14 @@ def _validate_num_qubits(state: np.ndarray) -> int:
     size = state.size
     if size != 0 and size & (size - 1):
         raise ValueError(
-            'State is not of size a power of two instead was {}'.format(size))
+            'state.size ({}) is not a power of two.'.format(size))
     return size.bit_length() - 1
 
 
 def _validate_indices(num_qubits: int, indices: List[int]) -> None:
     """Validates that the indices have values within range of num_qubits."""
-    if not all(index >= 0 for index in indices):
+    if any(index < 0 for index in indices):
         raise IndexError('Negative index in indices: {}'.format(indices))
-    if not all(index < num_qubits for index in indices):
+    if any(index >= num_qubits for index in indices):
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))

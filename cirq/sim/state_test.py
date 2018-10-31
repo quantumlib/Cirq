@@ -148,6 +148,11 @@ def test_sample_state():
         assert cirq.sample_state_vector(state, [0]) == [[False]]
 
 
+def test_sample_empty_state():
+    state = np.array([])
+    assert cirq.sample_state_vector(state, []) == [[]]
+
+
 def test_sample_state_repetitions():
     for perm in itertools.permutations([0, 1, 2]):
         for x in range(8):
@@ -217,7 +222,7 @@ def test_measure_state_partial_indices():
             assert bits == [bool(1 & (x >> (2 - index)))]
 
 
-def test_measure_state_partial_indices_oder():
+def test_measure_state_partial_indices_order():
     for x in range(8):
         initial_state = cirq.to_valid_state_vector(x, 3)
         bits, state = cirq.measure_state_vector(initial_state, [2, 1])
@@ -244,6 +249,7 @@ def test_measure_state_collapse():
         expected = np.zeros(8, dtype=np.complex64)
         expected[2 if bits[1] else 0] = 1.0
         np.testing.assert_almost_equal(state, expected)
+        assert state is not initial_state
 
     # Partial sample is correct.
     for _ in range(10):
@@ -254,6 +260,26 @@ def test_measure_state_collapse():
         bits, state = cirq.measure_state_vector(initial_state, [0])
         np.testing.assert_almost_equal(state, initial_state)
         assert bits == [False]
+
+
+def test_measure_state_out_is_state():
+    initial_state = np.zeros(8, dtype=np.complex64)
+    initial_state[0] = 1 / np.sqrt(2)
+    initial_state[2] = 1 / np.sqrt(2)
+    bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0], out=initial_state)
+    expected = np.zeros(8, dtype=np.complex64)
+    expected[2 if bits[1] else 0] = 1.0
+    np.testing.assert_array_almost_equal(initial_state, expected)
+    assert state is initial_state
+
+def test_measure_state_out_is_not_state():
+    initial_state = np.zeros(8, dtype=np.complex64)
+    initial_state[0] = 1 / np.sqrt(2)
+    initial_state[2] = 1 / np.sqrt(2)
+    out = np.zeros_like(initial_state)
+    bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0], out=out)
+    assert out is not initial_state
+    assert out is state
 
 
 def test_measure_state_not_power_of_two():
@@ -273,6 +299,13 @@ def test_measure_state_index_out_of_range():
 
 def test_measure_state_no_indices():
     initial_state = cirq.to_valid_state_vector(0, 3)
+    bits, state = cirq.measure_state_vector(initial_state, [])
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+
+
+def test_measure_state_empty_state():
+    initial_state = np.array([])
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)
