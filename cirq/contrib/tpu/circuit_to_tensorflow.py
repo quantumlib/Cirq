@@ -181,7 +181,12 @@ class _QubitGrouping:
 
         return False
 
-    def intercept_decompose_func(self, op: ops.Operation) -> ops.OP_TREE:
+    def intercept_decompose_func(self,
+                                 op: Union[ops.Operation, circuits.Circuit]
+                                 ) -> ops.OP_TREE:
+        if not isinstance(op, ops.Operation):
+            return NotImplemented
+
         # Drop measurements.
         if ops.MeasurementGate.is_measurement(op):
             return []
