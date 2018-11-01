@@ -254,7 +254,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
     )
 
 
-def test_output_parsable_by_qiskit():
+def test_output_parseable_by_qiskit():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
@@ -299,6 +299,15 @@ def test_output_unitary_same_as_qiskit():
 
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+
+
+def test_fails_on_big_unknowns():
+    class UnrecognizedGate(cirq.Gate):
+        pass
+    c = cirq.Circuit.from_ops(
+        UnrecognizedGate().on(*cirq.LineQubit.range(3)))
+    with pytest.raises(ValueError, match='Cannot output operation as QASM'):
+        _ = c.to_qasm()
 
 
 def test_output_format():
