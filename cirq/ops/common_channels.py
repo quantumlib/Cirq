@@ -192,8 +192,7 @@ def depolarize(p: float) -> DepolarizingChannel:
 
 
 class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
-    """The generalized amplitude damping channel.
-
+    """
     This channel models the effect of energy dissipation to the
     surrounding environment at some particular rate, with some
     given probability at a non zero temperature.
@@ -314,10 +313,9 @@ def generalized_amplitude_damp(
 
 
 class AmplitudeDampingChannel(raw_types.Gate):
-    """The amplitude damping channel.
-
+    """
     This channel models the effect of energy dissipation to the
-    surrounding environment at some given rate at zero temperature
+    surrounding environment at some given rate at zero temperature.
     """
 
     def __init__(self, gamma) -> None:
@@ -410,10 +408,9 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 
 class PhaseDampingChannel(raw_types.Gate):
-    """Phase Damping of a qubit.
-
+    """
     This channel models phase damping which is the loss of quantum
-    information without the loss of energy
+    information without the loss of energy.
     """
 
     def __init__(self, gamma) -> None:
@@ -481,7 +478,7 @@ class PhaseDampingChannel(raw_types.Gate):
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
     """
-    Creates a phase damping channel with damping rate gamma
+    Creates a PhaseDampingChannel with damping rate gamma
 
     This channel evolves a density matrix via
            \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
@@ -506,9 +503,8 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
 
 class PhaseFlipChannel(raw_types.Gate):
-    """Channel to flip a qubit's Phase.
-
-    Flips the sign of the phase of a qubit with a given probability
+    """
+    Flips the sign of the phase of a qubit with a given probability.
     """
 
     def __init__(self, p) -> None:
@@ -576,7 +572,7 @@ class PhaseFlipChannel(raw_types.Gate):
 
 def phase_flip(p: float) -> PhaseFlipChannel:
     """
-    Constructs a channel that flips a qubit's phase with probability p
+    Returns a PhaseFlipChannel that flips a qubit's phase with probability p
 
     This channel evolves a density matrix via
            \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
@@ -601,8 +597,7 @@ def phase_flip(p: float) -> PhaseFlipChannel:
 
 
 class BitFlipChannel(raw_types.Gate):
-    """Channel to flip a qubit.
-
+    """
     Flips a qubit from 1 to 0 state or vice versa according to some
     probability.
     """
@@ -671,7 +666,8 @@ class BitFlipChannel(raw_types.Gate):
 
 def bit_flip(p: float) -> BitFlipChannel:
     """
-    Construct a bit flip channel with probability of a flip given by p
+    Construct a BitFlipChannel that flips a qubit state
+    with probability of a flip given by p
 
     This channel evolves a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
@@ -777,7 +773,7 @@ def rotation_error(
 ) -> RotationErrorChannel:
 
     """
-    Constructs a rotation error channel that can over/under rotate
+    Constructs a RotationErrorChannel that can over/under rotate
     a qubit in X, Y, Z by given error angles.
 
     This channel evolves a density matrix via
