@@ -18,7 +18,10 @@ import pytest
 import cirq
 import cirq.google as cg
 from cirq.google.line.placement import greedy
-from cirq.google.line.placement.sequence import GridQubitLineTuple, NotFoundError
+from cirq.google.line.placement.sequence import (
+    GridQubitLineTuple,
+    NotFoundError,
+)
 from cirq.testing.mock import mock
 
 
