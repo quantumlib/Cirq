@@ -147,8 +147,8 @@ class XPowGate(eigen_gate.EigenGate,
         available_buffer[one] = target_tensor[zero]
 
         # Global phase
-        available_buffer *= (-1)**(
-                self._exponent*self._global_shift_in_half_turns)
+        available_buffer *= (1j)**(
+                2*self._exponent*self._global_shift_in_half_turns)
 
         return available_buffer
 
@@ -336,8 +336,8 @@ class ZPowGate(eigen_gate.EigenGate,
         target_tensor[one] *= c
 
         # Global phase
-        target_tensor *= (-1)**(
-                self._exponent*self._global_shift_in_half_turns)
+        target_tensor *= (1j)**(
+                2*self._exponent*self._global_shift_in_half_turns)
 
         return target_tensor
 
