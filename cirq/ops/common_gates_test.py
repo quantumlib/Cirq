@@ -481,7 +481,7 @@ def test_measure():
     b = cirq.NamedQubit('b')
 
     # Empty application.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='empty set of qubits'):
         _ = cirq.measure()
 
     assert cirq.measure(a) == cirq.MeasurementGate(key='a').on(a)
@@ -490,6 +490,9 @@ def test_measure():
     assert cirq.measure(a, key='b') == cirq.MeasurementGate(key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
         key='a', invert_mask=(True,)).on(a)
+
+    with pytest.raises(ValueError, match='ndarray'):
+        _ = cirq.measure(np.ndarray([1, 0]))
 
 
 def test_measurement_qubit_count_vs_mask_length():
