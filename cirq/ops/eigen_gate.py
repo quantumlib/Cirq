@@ -125,7 +125,7 @@ class EigenGate(raw_types.Gate):
         """
         if not isinstance(self._exponent, (int, float)):
             return self._exponent
-        e = float(self._exponent)
+        result = float(self._exponent)
 
         # Compute global-phase-independent period of the gate.
         shifts = list(self._eigen_shifts())
@@ -133,18 +133,18 @@ class EigenGate(raw_types.Gate):
         relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
         diagram_period = _approximate_common_period(relative_periods)
         if diagram_period is None:
-            return e
+            return result
 
         # Canonicalize the rounded exponent into (-period/2, period/2].
         if args.precision is not None:
-            e = np.around(e, args.precision)
+            result = np.around(result, args.precision)
         h = diagram_period / 2
-        if not (-h < e <= h):
-            e = h - e
-            e %= diagram_period
-            e = h - e
+        if not (-h < result <= h):
+            result = h - result
+            result %= diagram_period
+            result = h - result
 
-        return e
+        return result
 
     # virtual method
     def _eigen_shifts(self) -> List[float]:
