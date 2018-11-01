@@ -524,10 +524,10 @@ def measure(*qubits: raw_types.QubitId,
     Raises:
         ValueError if the qubits are not instances of QubitId.
     """
-    if any(not isinstance(qubit, raw_types.QubitId) for qubit in qubits):
+    if any(isinstance(qubit, np.ndarray) for qubit in qubits):
         raise ValueError(
-                'measure() was called on objects not of type QubitId. '
-                'Perhaps you meant to call measure_state_vector on numpy array?'
+                'measure() was called a numpy ndarray. Perhaps you meant '
+                'to call measure_state_vector on numpy array?'
         )
     if key is None:
         key = _default_measurement_key(qubits)

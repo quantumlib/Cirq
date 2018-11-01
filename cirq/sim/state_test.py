@@ -153,6 +153,11 @@ def test_sample_empty_state():
     assert cirq.sample_state_vector(state, []) == [[]]
 
 
+def test_sample_no_repetitions():
+    state = cirq.to_valid_state_vector(0, 3)
+    assert cirq.sample_state_vector(state, [1], repetitions=0) == [[]]
+
+
 def test_sample_state_repetitions():
     for perm in itertools.permutations([0, 1, 2]):
         for x in range(8):
@@ -187,6 +192,11 @@ def test_sample_state_index_out_of_range():
 def test_sample_no_indices():
     state = cirq.to_valid_state_vector(0, 3)
     assert [[]] == cirq.sample_state_vector(state, [])
+
+
+def test_sample_no_indices_repetitions():
+    state = cirq.to_valid_state_vector(0, 3)
+    assert [[], []] == cirq.sample_state_vector(state, [], repetitions=2)
 
 
 def test_measure_state_computational_basis():

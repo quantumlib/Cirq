@@ -134,9 +134,10 @@ def sample_state_vector(
     Note that this does not modify the passed in state.
 
     Args:
-        state: The state to be measured. This state is assumed to be normalized.
-            The state must be of size 2 ** integer.  The state can be of shape
-            (2 ** integer) or (2, 2, ..., 2).
+        state: The multi-qubit wavefunction to be sampled. This is an array of
+            2 to the power of the number of qubit complex numbers, and so
+            state must be of size 2 ** integer.  The state can be a vector of
+            size 2 ** integer or a tensor of shape (2, 2, ..., 2).
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values that the 0th index.
@@ -153,15 +154,16 @@ def sample_state_vector(
         IndexError if the indices are out of range for the number of qubits
             corresponding to the state.
     """
-    if repetitions < 1:
-        raise ValueError(
-            'Number of repetitions cannot be negative. Was {}'.format(
-                repetitions))
+    if repetitions < 0:
+        raise ValueError('Number of repetitions cannot be negative. Was {}'
+                         .format(repetitions))
     num_qubits = _validate_num_qubits(state)
     _validate_indices(num_qubits, indices)
 
-    if len(indices) == 0:
+    if repetitions == 0:
         return [[]]
+    if len(indices) == 0:
+        return [[] for _ in range(repetitions)]
 
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, num_qubits)
@@ -190,9 +192,9 @@ def measure_state_vector(
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values in the 0th index.
-        out: An optional place to store the result. If out is the same as
-            the `state` parameter, then state will be modified inline. If out
-            is not None, then the result is put into out.  If out is None
+        out: An optional place to store the result. If `out` is the same as
+            the `state` parameter, then state will be modified inline. If `out`
+            is not None, then the result is put into `out`.  If `out` is None
             a new value will be allocated. In all of these case out will be the
             same as the returned ndarray of the method. The shape and dtype of
             out will always match that of state.
@@ -214,7 +216,7 @@ def measure_state_vector(
     if len(indices) == 0:
         return ([], np.copy(state))
 
-    # Cache initial state.
+    # Cache initial shape.
     initial_shape = state.shape
 
     # Calculate the measurement probabilities and then make the measurement.
@@ -250,11 +252,13 @@ def _probs(state: np.ndarray, indices: List[int],
            num_qubits: int):
     """Returns the probabilities for a measurement on the given indices."""
     # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
-    prob_tensor = np.abs(np.reshape(state, [2] * num_qubits)) ** 2
+    tensor = np.reshape(state, [2] * num_qubits)
 
     # Calculate the probabilities for measuring the particular results.
-    probs = [np.sum(prob_tensor[linalg.slice_for_qubits_equal_to(indices, b)])
-             for b in range(2 ** len(indices))]
+
+    probs = [
+        np.linalg.norm(tensor[linalg.slice_for_qubits_equal_to(indices, b)])
+        for b in range(2 ** len(indices))]
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= sum(probs) # type: ignore
     return probs
@@ -265,8 +269,7 @@ def _validate_num_qubits(state: np.ndarray) -> int:
     """
     size = state.size
     if size != 0 and size & (size - 1):
-        raise ValueError(
-            'state.size ({}) is not a power of two.'.format(size))
+        raise ValueError('state.size ({}) is not a power of two.'.format(size))
     return size.bit_length() - 1
 
 
