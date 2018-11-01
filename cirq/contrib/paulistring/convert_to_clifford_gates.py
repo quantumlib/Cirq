@@ -77,12 +77,12 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                 return None
         return clifford_gate(qubit)
 
-    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
+    def _keep(self, op: ops.Operation) -> bool:
         # Don't change if it's already a SingleQubitCliffordGate
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, ops.SingleQubitCliffordGate)):
-            return op
+        return (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, ops.SingleQubitCliffordGate))
 
+    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Single qubit gate with known matrix?
         if len(op.qubits) == 1:
             mat = protocols.unitary(op, None)
@@ -90,29 +90,24 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                 cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
                 if cliff_op is not None:
                     return cliff_op
-                if self.ignore_failures:
-                    return op
-                raise ValueError('Single qubit operation is not in the '
-                                 'Clifford group: {!r}'.format(op))
 
-        # Provides a decomposition?
-        decomposed = protocols.decompose_once(op, None)
-        if decomposed is not None:
-            return decomposed
+        return NotImplemented
 
-        # Just let it be?
-        if self.ignore_failures:
-            return op
+    def _on_stuck_raise(self, op: ops.Operation):
+        if len(op.qubits) == 1 and protocols.has_unitary(op):
+            raise ValueError('Single qubit operation is not in the '
+                              'Clifford group: {!r}'.format(op))
 
         raise TypeError("Don't know how to work with {!r}. "
                         "It isn't composite or a 1-qubit operation "
                         "with a known unitary effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        converted = self._convert_one(op)
-        if converted is op:
-            return converted
-        return [self.convert(e) for e in ops.flatten_op_tree(converted)]
+        return protocols.decompose(op,
+                                   intercepting_decomposer=self._convert_one,
+                                   keep=self._keep,
+                                   on_stuck_raise=(None if self.ignore_failures
+                                                   else self._on_stuck_raise))
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
