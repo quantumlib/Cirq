@@ -18,13 +18,13 @@ import abc
 import collections
 
 from cirq.devices import GridQubit
-from cirq.line.placement import place_strategy
-from cirq.line.placement.chip import chip_as_adjacency_list
-from cirq.line.placement.sequence import GridQubitLineTuple
+from cirq.google.line.placement import place_strategy
+from cirq.google.line.placement.chip import chip_as_adjacency_list
+from cirq.google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq.line.placement.sequence import LineSequence
+    from cirq.google.line.placement.sequence import LineSequence
     import cirq.google
 
 
