@@ -15,7 +15,7 @@
 import pytest
 
 import cirq
-from cirq.line.placement.sequence import (
+from cirq.google.line.placement.sequence import (
     GridQubitLineTuple,
     NotFoundError
 )
