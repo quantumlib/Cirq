@@ -146,6 +146,19 @@ def test_allow_partial_czs():
 
     assert circuit == c_orig
 
+    circuit2 = cirq.Circuit.from_ops(
+        cirq.TwoQubitMatrixGate((np.array([[1, 0, 0, 0],
+                                           [0, 1, 0, 0],
+                                           [0, 0, 1, 0],
+                                           [0, 0, 0, 1j]]))).on(q0, q1)
+    )
+    cirq.ConvertToCzAndSingleGates(allow_partial_czs=True
+                                   ).optimize_circuit(circuit2)
+    two_qubit_ops = list(circuit2.findall_operations(
+                                      lambda e: len(e.qubits) == 2))
+    assert len(two_qubit_ops) == 1
+    gate = two_qubit_ops[0][1].gate
+    assert isinstance(gate, cirq.ops.CZPowGate) and gate.exponent == 0.5
 
 def test_dont_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
