@@ -17,14 +17,14 @@ from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
 import numpy as np
 
 from cirq.devices import GridQubit
-from cirq.line.placement import place_strategy, optimization
-from cirq.line.placement.chip import (
+from cirq.google.line.placement import place_strategy, optimization
+from cirq.google.line.placement.chip import (
     above,
     right_of,
     chip_as_adjacency_list,
     EDGE,
 )
-from cirq.line.placement.sequence import (
+from cirq.google.line.placement.sequence import (
     GridQubitLineTuple,
     LineSequence
 )

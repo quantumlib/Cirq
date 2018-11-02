@@ -704,3 +704,40 @@ def test_phase_by_xy():
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rx(1))
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Ry(1))
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rz(1))
+
+
+def test_rxyz_circuit_diagram():
+    q = cirq.NamedQubit('q')
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Rx(np.pi).on(q),
+            cirq.Rx(-np.pi).on(q),
+            cirq.Rx(-np.pi + 0.00001).on(q),
+            cirq.Rx(-np.pi - 0.00001).on(q),
+            cirq.Rx(3*np.pi).on(q),
+            cirq.Rx(9*np.pi/2).on(q),
+            cirq.Rx(9*np.pi/2 + 0.00001).on(q),
+        ), """
+q: ───X───X───X───X───X───X^0.5───X^0.5───
+    """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Ry(np.pi).on(q),
+            cirq.Ry(-np.pi).on(q),
+            cirq.Ry(3 * np.pi).on(q),
+            cirq.Ry(9*np.pi/2).on(q),
+        ), """
+q: ───Y───Y───Y───Y^0.5───
+    """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Rz(np.pi).on(q),
+            cirq.Rz(-np.pi).on(q),
+            cirq.Rz(3 * np.pi).on(q),
+            cirq.Rz(9*np.pi/2).on(q),
+            cirq.Rz(9*np.pi/2 + 0.00001).on(q),
+        ), """
+q: ───Z───Z───Z───S───S───
+    """)
