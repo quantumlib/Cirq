@@ -255,10 +255,11 @@ def _probs(state: np.ndarray, indices: List[int],
     tensor = np.reshape(state, [2] * num_qubits)
 
     # Calculate the probabilities for measuring the particular results.
-
     probs = [
-        np.linalg.norm(tensor[linalg.slice_for_qubits_equal_to(indices, b)])
+        np.linalg.norm(
+                tensor[linalg.slice_for_qubits_equal_to(indices, b)]) ** 2
         for b in range(2 ** len(indices))]
+    
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= sum(probs) # type: ignore
     return probs
