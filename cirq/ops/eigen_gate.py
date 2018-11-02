@@ -113,7 +113,9 @@ class EigenGate(raw_types.Gate):
         exponent period, and since we omit global phase detail in diagrams this
         is the appropriate canonicalization to use.
 
-        Note that the exponent is canonicalized after rounding, so that e.g.
+        Note that the exponent is canonicalized into the range
+            (-period/2, period/2]
+        and that this canonicalization happens after rounding, so that e.g.
         X^-0.999999 shows as X instead of X^-1 when using a digit precision of
         3.
 
