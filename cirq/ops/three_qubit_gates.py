@@ -94,8 +94,9 @@ class _CCZPowGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('@', '@', '@'),
-                                             exponent=self._exponent)
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', '@'),
+            exponent=self._diagram_exponent(args))
 
     def _qasm_(self,
                args: protocols.QasmArgs,
@@ -173,8 +174,9 @@ class _CCXPowGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('@', '@', 'X'),
-                                             exponent=self._exponent)
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', 'X'),
+            exponent=self._diagram_exponent(args))
 
     def _qasm_(self,
                args: protocols.QasmArgs,
