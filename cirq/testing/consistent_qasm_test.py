@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import warnings
 
 import pytest
 
@@ -40,6 +41,14 @@ class Fixed(cirq.Operation):
 
 
 def test_assert_qasm_is_consistent_with_unitary():
+    try:
+        import qiskit as _
+    except ImportError:
+        # coverage: ignore
+        warnings.warn("Skipped test_assert_qasm_is_consistent_with_unitary "
+                      "because qiskit isn't installed to verify against.")
+        return
+
     # Checks matrix.
     cirq.testing.assert_qasm_is_consistent_with_unitary(
         Fixed(np.array([[1, 0], [0, 1]]), 'z {0}; z {0};'))
