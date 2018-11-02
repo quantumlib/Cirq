@@ -14,7 +14,7 @@
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
 import fractions
-from typing import Union, Sequence, Tuple, Optional
+from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
 
@@ -90,27 +90,21 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
         args.validate_version('2.0')
 
-        e = value.canonicalize_half_turns(self._exponent)
+        e = cast(float, value.canonicalize_half_turns(self._exponent))
+        p = cast(float, self.phase_exponent)
         epsilon = 10**-args.precision
 
         if abs(e + 0.5) <= epsilon:
             return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
-                               self.phase_exponent + 0.5,
-                               -self.phase_exponent - 0.5,
-                               qubits[0])
+                               p + 0.5, -p - 0.5, qubits[0])
 
         if abs(e - 0.5) <= epsilon:
             return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
-                               self.phase_exponent - 0.5,
-                               -self.phase_exponent + 0.5,
-                               qubits[0])
+                               p - 0.5, -p + 0.5, qubits[0])
 
         return args.format(
             'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
-            -self.exponent,
-            self.phase_exponent + 0.5,
-            -self.phase_exponent - 0.5,
-            qubits[0])
+            -e, p + 0.5, -p - 0.5, qubits[0])
 
     def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
