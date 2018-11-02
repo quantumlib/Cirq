@@ -30,7 +30,11 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
                       "qiskit isn't installed to verify against.")
         return
 
-    unitary = protocols.unitary(val)
+    unitary = protocols.unitary(val, None)
+    if unitary is None:
+        # Vacuous consistency.
+        return
+
     qubit_count = len(unitary).bit_length() - 1
     if isinstance(val, ops.Operation):
         qubits = val.qubits

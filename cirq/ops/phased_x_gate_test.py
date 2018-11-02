@@ -47,8 +47,8 @@ def test_new_init():
 
 @pytest.mark.parametrize('phase_exponent,exponent', [
     (p, e)
-    for p in [0, 0.25, 0.5, -0.5, 0.75, 0.333]
-    for e in [0, 0.25, 0.5, -0.5, -0.75, 0.333]
+    for p in [0, 0.25, 0.5, -0.5, 0.75, 0.333, cirq.Symbol('p')]
+    for e in [0, 0.25, 0.5, -0.5, -0.75, 0.333, cirq.Symbol('e')]
 ])
 def test_qasm(phase_exponent: float, exponent: float):
     cirq.testing.assert_qasm_is_consistent_with_unitary(
