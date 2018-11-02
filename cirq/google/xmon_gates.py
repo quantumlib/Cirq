@@ -102,7 +102,9 @@ def _parameterized_value_from_proto_dict(message: Dict
         return message['raw']
     if 'parameter_key' in message:
         return value.Symbol(message['parameter_key'])
-    raise ValueError('No value specified for parameterized float.')
+    raise ValueError('No value specified for parameterized float. '
+                     'Expected "raw" or "parameter_key" to be set. '
+                     'message: {!r}'.format(message))
 
 
 def _parameterized_value_to_proto_dict(param: Union[value.Symbol, float]
