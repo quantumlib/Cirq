@@ -56,7 +56,8 @@ class QasmArgs(string.Formatter):
         """Method of string.Formatter that specifies the output of format()."""
         from cirq import ops  # HACK: avoids cyclic dependency.
         if isinstance(value, (float, int)):
-            value = round(value, self.precision)
+            if isinstance(value, float):
+                value = round(value, self.precision)
             if spec == 'half_turns':
                 value = 'pi*{}'.format(value) if value != 0 else '0'
                 spec = ''
