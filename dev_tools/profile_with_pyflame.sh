@@ -55,7 +55,6 @@ else
     exit 1
 fi
 
-
 if [ -z "$1" ]; then
     echo -e "\e[31mSpecify a python file to invoke.\nUSAGE\n    dev_tools/profile_with_pyflame.sh FILE_TO_PROFILE.py [custom-flags-for-pyflame] > OUTPUT_FILE.cpuprofile\e[0m" >&2
     exit 1

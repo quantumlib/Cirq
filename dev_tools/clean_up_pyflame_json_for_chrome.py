@@ -14,7 +14,7 @@
 
 """Prettifies output from pyflame, so that it looks clearer in Chrome."""
 
-from typing import Dict, Any, Sequence, List
+from typing import Dict, Any, Sequence, List, Optional
 
 import json
 import sys
@@ -36,13 +36,13 @@ def main():
     json.dump(root, sys.stdout)
 
 
-def id_of_node_with_name(root: Dict[str, Any], name: str) -> int:
+def id_of_node_with_name(root: Dict[str, Any], name: str) -> Optional[int]:
     nodes = root['nodes']
     for node in nodes:
         func_name = node['callFrame']['functionName']
         if func_name == name:
             return node['id']
-    raise ValueError('no such node')
+    return None
 
 
 def determine_merge_rewrites(root: Dict[str, Any]) -> Dict[int, int]:
@@ -50,7 +50,9 @@ def determine_merge_rewrites(root: Dict[str, Any]) -> Dict[int, int]:
 
     root_id = id_of_node_with_name(root, '(root)')
     idle_id = id_of_node_with_name(root, '(idle)')
-    id_rewrites = {idle_id: root_id}
+    id_rewrites = {}
+    if root_id is not None and idle_id is not None:
+        id_rewrites[idle_id] = root_id
 
     # Determine the parent of each node. (Note: assumes single parents.)
     nodes = root['nodes']
@@ -73,10 +75,10 @@ def determine_merge_rewrites(root: Dict[str, Any]) -> Dict[int, int]:
             else:
                 ancestries[child_id] = ancestries[p] + '|' + leaf
         return ancestries[child_id]
-    ancestries = {}
+    ancestries = {}  # type: Dict[int, str]
 
     # Nodes with identical ancestries should be merged.
-    name_to_id = {}
+    name_to_id = {}  # type: Dict[str, int]
     for node in nodes:
         node_id = node['id']
         key = ancestry_key(node)
@@ -131,6 +133,8 @@ def clean_out_idles(root: Dict[str, Any]) -> None:
     but as far as I can tell it simply doesn't.
     """
     idle_id = id_of_node_with_name(root, '(idle)')
+    if idle_id is None:
+        return
     samples = root['samples']
     prev_sample = 0
     for i, sample in enumerate(samples):
