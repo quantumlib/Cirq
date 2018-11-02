@@ -115,7 +115,9 @@ class EigenGate(raw_types.Gate):
         insensitive to global phase. Only relative phases affect the "true"
         exponent period, and since we omit global phase detail in diagrams this
         is the appropriate canonicalization to use. To use the absolute period
-        instead of the relative period, set 'ignore_global_phase' to False.
+        instead of the relative period (e.g. for when printing Rx(rads) style
+        symbols, where rads=pi and rads=-pi are equivalent but should produce
+        different text) set 'ignore_global_phase' to False.
 
         Note that the exponent is canonicalized into the range
             (-period/2, period/2]
