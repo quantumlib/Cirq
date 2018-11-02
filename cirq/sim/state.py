@@ -197,7 +197,8 @@ def measure_state_vector(
             is not None, then the result is put into `out`.  If `out` is None
             a new value will be allocated. In all of these case out will be the
             same as the returned ndarray of the method. The shape and dtype of
-            out will always match that of state.
+            `out` will match that of state if `out` is None, otherwise it will
+            match the shape and dtype of `out`.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
