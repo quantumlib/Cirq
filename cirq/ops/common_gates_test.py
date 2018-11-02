@@ -703,8 +703,51 @@ def test_phase_by_xy():
     cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rz(1))
 
 
+def test_ixyz_circuit_diagram():
+    q = cirq.NamedQubit('q')
+    ix = cirq.XPowGate(exponent=1, global_shift=0.5)
+    iy = cirq.YPowGate(exponent=1, global_shift=0.5)
+    iz = cirq.ZPowGate(exponent=1, global_shift=0.5)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            ix(q),
+            ix(q)**-1,
+            ix(q)**-0.99999,
+            ix(q)**-1.00001,
+            ix(q)**3,
+            ix(q)**4.5,
+            ix(q)**4.500001,
+        ), """
+q: ───X───X───X───X───X───X^0.5───X^0.5───
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            iy(q),
+            iy(q)**-1,
+            iy(q)**3,
+            iy(q)**4.5,
+            iy(q)**4.500001,
+        ), """
+q: ───Y───Y───Y───Y^0.5───Y^0.5───
+    """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            iz(q),
+            iz(q)**-1,
+            iz(q)**3,
+            iz(q)**4.5,
+            iz(q)**4.500001,
+        ), """
+q: ───Z───Z───Z───S───S───
+    """)
+
+
 def test_rxyz_circuit_diagram():
     q = cirq.NamedQubit('q')
+
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(
             cirq.Rx(np.pi).on(q),
@@ -712,11 +755,22 @@ def test_rxyz_circuit_diagram():
             cirq.Rx(-np.pi + 0.00001).on(q),
             cirq.Rx(-np.pi - 0.00001).on(q),
             cirq.Rx(3*np.pi).on(q),
-            cirq.Rx(9*np.pi/2).on(q),
+            cirq.Rx(7*np.pi/2).on(q),
             cirq.Rx(9*np.pi/2 + 0.00001).on(q),
         ), """
-q: ───X───X───X───X───X───X^0.5───X^0.5───
+q: ───Rx(π)───Rx(-π)───Rx(-π)───Rx(-π)───Rx(-π)───Rx(-0.5π)───Rx(0.5π)───
     """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Rx(np.pi).on(q),
+            cirq.Rx(np.pi/2).on(q),
+            cirq.Rx(-np.pi + 0.00001).on(q),
+            cirq.Rx(-np.pi - 0.00001).on(q),
+        ), """
+q: ---Rx(pi)---Rx(0.5pi)---Rx(-pi)---Rx(-pi)---
+        """,
+        use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(
@@ -725,7 +779,7 @@ q: ───X───X───X───X───X───X^0.5───X^0.
             cirq.Ry(3 * np.pi).on(q),
             cirq.Ry(9*np.pi/2).on(q),
         ), """
-q: ───Y───Y───Y───Y^0.5───
+q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
     """)
 
     cirq.testing.assert_has_diagram(
@@ -736,5 +790,5 @@ q: ───Y───Y───Y───Y^0.5───
             cirq.Rz(9*np.pi/2).on(q),
             cirq.Rz(9*np.pi/2 + 0.00001).on(q),
         ), """
-q: ───Z───Z───Z───S───S───
+q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(0.5π)───
     """)
