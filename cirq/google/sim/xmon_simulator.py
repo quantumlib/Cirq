@@ -16,9 +16,10 @@
 
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
-the circuit are either an XmonGate or are CompositionOperations or have a
-known unitary which can be decomposed into XmonGates. Measurement gates
-must all have unique string keys.
+the circuit are either native to the xmon architecture (i.e. cause
+`cirq.google.is_native_xmon_op` to return true) or else can be decomposed into
+such operations (by being composite or having a known unitary). Measurement
+gates must all have unique string keys.
 
 A simple example:
     circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])
