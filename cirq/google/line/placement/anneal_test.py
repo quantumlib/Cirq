@@ -19,13 +19,13 @@ import pytest
 
 from cirq.devices import GridQubit
 from cirq.google import XmonDevice
-from cirq.line.placement.anneal import (
+from cirq.google.line.placement.anneal import (
     _STATE,
     AnnealSequenceSearch,
     AnnealSequenceSearchStrategy,
     index_2d,
 )
-from cirq.line.placement.chip import chip_as_adjacency_list
+from cirq.google.line.placement.chip import chip_as_adjacency_list
 from cirq.testing.mock import mock
 from cirq.value import Duration
 
@@ -35,7 +35,7 @@ def _create_device(qubits: Iterable[GridQubit]):
                       qubits)
 
 
-@mock.patch('cirq.line.placement.optimization.anneal_minimize')
+@mock.patch('cirq.google.line.placement.optimization.anneal_minimize')
 def test_search_calls_anneal_minimize(anneal_minimize):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
@@ -50,7 +50,7 @@ def test_search_calls_anneal_minimize(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
-@mock.patch('cirq.line.placement.optimization.anneal_minimize')
+@mock.patch('cirq.google.line.placement.optimization.anneal_minimize')
 def test_search_calls_anneal_minimize_reversed(anneal_minimize):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
@@ -65,7 +65,7 @@ def test_search_calls_anneal_minimize_reversed(anneal_minimize):
                                             mock.ANY, trace_func=mock.ANY)
 
 
-@mock.patch('cirq.line.placement.optimization.anneal_minimize')
+@mock.patch('cirq.google.line.placement.optimization.anneal_minimize')
 def test_search_converts_trace_func(anneal_minimize):
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
