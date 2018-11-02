@@ -166,21 +166,6 @@ class ExpWGate(ops.SingleQubitGate):
             self.phase_exponent = value.canonicalize_half_turns(
                 self.phase_exponent + 1)
 
-    def to_proto_dict(self, *qubits):
-        if len(qubits) != 1:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
-
-        q = qubits[0]
-        exp_w = {
-            'target': q.to_proto_dict(),
-            'axis_half_turns': _parameterized_value_to_proto_dict(
-                self.phase_exponent),
-            'half_turns': _parameterized_value_to_proto_dict(
-                self.exponent)
-        }
-        return {'exp_w': exp_w}
-
     def __pow__(self, exponent: Any) -> 'ExpWGate':
         new_exponent = protocols.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:

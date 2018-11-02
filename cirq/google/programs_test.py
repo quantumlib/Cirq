@@ -498,8 +498,9 @@ def test_invalid_to_proto_dict_qubit_number():
         cg.gate_to_proto_dict(cirq.Z**0.5, (cirq.GridQubit(2, 3),
                                             cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.ExpWGate(exponent=0.5, phase_exponent=0).to_proto_dict(
-            cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
+        cg.gate_to_proto_dict(
+            cg.ExpWGate(exponent=0.5, phase_exponent=0),
+            (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
 
 
 def test_parameterized_value_from_proto():
