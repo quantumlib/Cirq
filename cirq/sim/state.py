@@ -259,7 +259,7 @@ def _probs(state: np.ndarray, indices: List[int],
         np.linalg.norm(
                 tensor[linalg.slice_for_qubits_equal_to(indices, b)]) ** 2
         for b in range(2 ** len(indices))]
-    
+
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= sum(probs) # type: ignore
     return probs
