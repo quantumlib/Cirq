@@ -190,7 +190,7 @@ class QasmOutput:
     def __str__(self) -> str:
         """Return QASM output as a string."""
         output = []
-        self._write_qasm(lambda s:output.append(s))
+        self._write_qasm(lambda s: output.append(s))
         return ''.join(output)
 
     def _write_qasm(self, output_func: Callable[[str], None]) -> None:
