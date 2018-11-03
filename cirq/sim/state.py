@@ -250,7 +250,7 @@ def measure_state_vector(
 
 
 def _probs(state: np.ndarray, indices: List[int],
-           num_qubits: int):
+           num_qubits: int) -> List[float]:
     """Returns the probabilities for a measurement on the given indices."""
     # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
     tensor = np.reshape(state, [2] * num_qubits)
