@@ -15,7 +15,7 @@
 """Quantum gates that are commonly used in the literature."""
 from typing import (
     Union, Tuple, Optional, List, Callable, cast, Iterable, Sequence,
-)
+    Any)
 
 import numpy as np
 
@@ -101,6 +101,17 @@ class CZPowGate(eigen_gate.EigenGate,
         return '(cirq.CZ**{!r})'.format(self._exponent)
 
 
+def _rads_func_symbol(func_name: str,
+                      args: protocols.CircuitDiagramInfoArgs,
+                      half_turns: Any) -> str:
+    unit = 'π' if args.use_unicode_characters else 'pi'
+    if half_turns == 1:
+        return '{}({})'.format(func_name, unit)
+    if half_turns == -1:
+        return '{}(-{})'.format(func_name, unit)
+    return '{}({}{})'.format(func_name, half_turns, unit)
+
+
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
@@ -147,7 +158,13 @@ class XPowGate(eigen_gate.EigenGate,
         ]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+        if self._global_shift == -0.5:
+            return _rads_func_symbol(
+                'Rx',
+                args,
+                self._diagram_exponent(args, ignore_global_phase=False))
+
         return protocols.CircuitDiagramInfo(
             wire_symbols=('X',),
             exponent=self._diagram_exponent(args))
@@ -219,7 +236,13 @@ class YPowGate(eigen_gate.EigenGate,
         ]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+        if self._global_shift == -0.5:
+            return _rads_func_symbol(
+                'Ry',
+                args,
+                self._diagram_exponent(args, ignore_global_phase=False))
+
         return protocols.CircuitDiagramInfo(
             wire_symbols=('Y',),
             exponent=self._diagram_exponent(args))
@@ -306,7 +329,13 @@ class ZPowGate(eigen_gate.EigenGate,
         return self
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+        if self._global_shift == -0.5:
+            return _rads_func_symbol(
+                'Rz',
+                args,
+                self._diagram_exponent(args, ignore_global_phase=False))
+
         e = self._diagram_exponent(args)
         if e in [-0.25, 0.25]:
             return protocols.CircuitDiagramInfo(
