@@ -259,6 +259,12 @@ def test_phase_flip_channel():
                                    np.sqrt(1.-0.3) * Z))
 
 
+def test_phase_flip_overload():
+    d = cirq.phase_flip()
+    d2 = cirq.phase_flip(0.3)
+    assert str(d) == 'Z'
+    assert str(d2) == 'phase_flip(p=0.3)'
+
 def test_phase_flip_channel_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.PhaseFlipChannel(0.3))
@@ -297,6 +303,13 @@ def test_bit_flip_channel():
     np.testing.assert_almost_equal(cirq.channel(d),
                                   (np.sqrt(0.3) * np.eye(2),
                                    np.sqrt(1.0 - 0.3) * X))
+
+
+def test_bit_flip_overload():
+    d = cirq.bit_flip()
+    d2 = cirq.bit_flip(0.3)
+    assert str(d) == 'X'
+    assert str(d2) == 'bit_flip(p=0.3)'
 
 
 def test_bit_flip_channel_repr():

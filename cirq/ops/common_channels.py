@@ -14,13 +14,13 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable
+from typing import Iterable, Union, Optional
 
 import numpy as np
 
 from cirq import protocols
 from cirq.ops import raw_types
-
+from cirq.ops.common_gates import ZPowGate, XPowGate
 
 class AsymmetricDepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes asymmetrically along different directions."""
@@ -46,7 +46,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             p_z: The probability that a Pauli Z and no other gate occurs.
 
         Raises:
-            ValueError if the args or the sum of the args are not probabilities.
+            ValueError: if the args or the sum of args are not probabilities.
         """
 
         def validate_probability(p, p_str):
@@ -76,6 +76,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
 
     def __ne__(self, other):
         return not self == other
@@ -111,7 +114,7 @@ def asymmetric_depolarize(
         p_z: The probability that a Pauli Z and no other gate occurs.
 
     Raises:
-        ValueError if the args or the sum of the args are not probabilities.
+        ValueError: if the args or the sum of the args are not probabilities.
     """
     return AsymmetricDepolarizingChannel(p_x, p_y, p_z)
 
@@ -138,7 +141,7 @@ class DepolarizingChannel(raw_types.Gate):
                 the Pauli gates is applied independently with probability p / 3.
 
         Raises:
-            ValueError if p is not a valid probability.
+            ValueError: if p is not a valid probability.
         """
 
         self._p = p
@@ -147,10 +150,16 @@ class DepolarizingChannel(raw_types.Gate):
     def _channel_(self) -> Iterable[np.ndarray]:
         return self._delegate._channel_()
 
+    def _eq_tuple(self):
+        return (DepolarizingChannel, self._p)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._p == other._p
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
 
     def __ne__(self, other):
         return not self == other
@@ -186,20 +195,22 @@ def depolarize(p: float) -> DepolarizingChannel:
             the Pauli gates is applied independently with probability p / 3.
 
     Raises:
-        ValueError if p is not a valid probability.
+        ValueError: if p is not a valid probability.
     """
     return DepolarizingChannel(p)
 
 
 class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
-    """
+    """Dampen qubit amplitudes through non ideal dissipation.
+
     This channel models the effect of energy dissipation to the
     surrounding environment at some particular rate, with some
     given probability at a non zero temperature.
     """
 
     def __init__(self, p, gamma) -> None:
-        """
+        """The generalized amplitude damping channel.
+
         Construct a channel to model the energy dissipation to the
         environment at rate gamma, occuring with probability p
 
@@ -230,7 +241,7 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
             p: the probability of damping occuring
 
         Raises:
-            ValueError is gamma or p is not a valid probability.
+            ValueError: if gamma or p is not a valid probability.
         """
 
         def validate_probability(p, p_str):
@@ -262,6 +273,9 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
 
     def __ne__(self, other):
         return not self == other
@@ -307,21 +321,23 @@ def generalized_amplitude_damp(
         p: the probability of damping occuring
 
     Raises:
-        ValueError gamma or p is not a valid probability.
+        ValueError: gamma or p is not a valid probability.
     """
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
 class AmplitudeDampingChannel(raw_types.Gate):
-    """
+    """Dampen qubit amplitudes through dissipation.
+
     This channel models the effect of energy dissipation to the
     surrounding environment at some given rate at zero temperature.
     """
 
     def __init__(self, gamma) -> None:
-        """
+        """The amplitude damping channel.
+
         Construct a channel that dissipates energy at some given
-        rate gamma
+        rate gamma at zero temperature
 
         This channel evolves a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
@@ -340,7 +356,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
             gamma: The damping rate
 
         Raises:
-            ValueError is gamma is not a valid probability.
+            ValueError: is gamma is not a valid probability.
         """
 
         def validate_probability(p, p_str):
@@ -365,6 +381,9 @@ class AmplitudeDampingChannel(raw_types.Gate):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
 
     def __ne__(self, other):
         return not self == other
@@ -402,19 +421,21 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
         gamma: the damping rate
 
     Raises:
-        ValueError is gamma is not a valid probability.
+        ValueError: if gamma is not a valid probability.
     """
     return AmplitudeDampingChannel(gamma)
 
 
 class PhaseDampingChannel(raw_types.Gate):
-    """
+    """Dampen qubit phase.
+
     This channel models phase damping which is the loss of quantum
     information without the loss of energy.
     """
 
     def __init__(self, gamma) -> None:
-        """
+        """The phase damping channel.
+
         Construct a channel that enacts phase damping at the rate
         given by gamma
 
@@ -435,7 +456,7 @@ class PhaseDampingChannel(raw_types.Gate):
             gamma: The damping rate
 
         Raises:
-            ValueError is gamma is not a valid probability.
+            ValueError: if gamma is not a valid probability.
         """
 
         def validate_probability(p, p_str):
@@ -460,6 +481,9 @@ class PhaseDampingChannel(raw_types.Gate):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
 
     def __ne__(self, other):
         return not self == other
@@ -497,19 +521,17 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
         gamma: The damping rate
 
     Raises:
-        ValueError is gamma is not a valid probability.
+        ValueError: is gamma is not a valid probability.
     """
     return PhaseDampingChannel(gamma)
 
 
 class PhaseFlipChannel(raw_types.Gate):
-    """
-    Flips the sign of the phase of a qubit with a given probability.
-    """
+    """Probabilistically flip the sign of the phase of a qubit"""
 
     def __init__(self, p) -> None:
+        """The phase flip channel.
 
-        """
         Construct a channel to flip the phase with probability p
 
         This channel evolves a density matrix via
@@ -529,7 +551,7 @@ class PhaseFlipChannel(raw_types.Gate):
             p: the probability of a phase flip
 
         Raises:
-            ValueError if p is not a valid probability.
+            ValueError: if p is not a valid probability.
         """
 
         def validate_probability(p, p_str):
@@ -555,6 +577,9 @@ class PhaseFlipChannel(raw_types.Gate):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
 
+    def __hash__(self):
+        return hash(self._eq_tuple())
+
     def __ne__(self, other):
         return not self == other
 
@@ -570,7 +595,14 @@ class PhaseFlipChannel(raw_types.Gate):
         return 'PF({!r})'.format(self._p)
 
 
-def phase_flip(p: float) -> PhaseFlipChannel:
+def _phase_flip_Z() -> ZPowGate:
+    """
+    Returns a cirq.Z which corresponds to a guaranteed phase flip
+    """
+    return ZPowGate()
+
+
+def _phase_flip(p: float) -> PhaseFlipChannel:
     """
     Returns a PhaseFlipChannel that flips a qubit's phase with probability p
 
@@ -591,20 +623,47 @@ def phase_flip(p: float) -> PhaseFlipChannel:
         p: the probability of a phase flip
 
     Raises:
-        ValueError if p is not a valid probability.
+        ValueError: if p is not a valid probability.
     """
     return PhaseFlipChannel(p)
 
 
+def phase_flip(p: Optional[float] = None) -> Union[ZPowGate, PhaseFlipChannel]:
+    """
+    Returns a PhaseFlipChannel that flips a qubit's phase with probability p
+    if p is None, return a guaranteed phase flip in the form of a Z operation
+
+    This channel evolves a density matrix via
+           \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+
+    With
+        M_0 = \sqrt{p} \begin{bmatrix}
+                            1 & 0  \\
+                            0 & 1
+                       \end{bmatrix}
+        M_1 = \sqrt{1-p} \begin{bmatrix}
+                            1 & 0 \\
+                            0 & -1
+                         \end{bmatrix}
+
+    Args:
+        p: the probability of a phase flip
+
+    Raises:
+        ValueError: if p is not a valid probability.
+    """
+    if p is None:
+        return _phase_flip_Z()
+
+    return _phase_flip(p)
+
+
 class BitFlipChannel(raw_types.Gate):
-    """
-    Flips a qubit from 1 to 0 state or vice versa according to some
-    probability.
-    """
+    """Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
     def __init__(self, p) -> None:
+        """The bit flip channel.
 
-        """
         Construct a channel that flips a qubit with probability p
 
         This channel evolves a density matrix via
@@ -624,7 +683,7 @@ class BitFlipChannel(raw_types.Gate):
             p: the probability of a bit flip
 
         Raises:
-            ValueError if p is not a valid probability.
+            ValueError: if p is not a valid probability.
         """
 
         def validate_probability(p, p_str):
@@ -649,6 +708,9 @@ class BitFlipChannel(raw_types.Gate):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
 
+    def __hash__(self):
+        return hash(self._eq_tuple())
+
     def __ne__(self, other):
         return not self == other
 
@@ -664,10 +726,17 @@ class BitFlipChannel(raw_types.Gate):
         return 'BF({!r})'.format(self._p)
 
 
-def bit_flip(p: float) -> BitFlipChannel:
+def _bit_flip_X() -> XPowGate:
+    """
+    Returns a cirq.X with guarantees a bit flip
+    """
+    return XPowGate()
+
+
+def _bit_flip(p: float) -> BitFlipChannel:
     """
     Construct a BitFlipChannel that flips a qubit state
-    with probability of a flip given by p
+    with probability of a flip given by p.
 
     This channel evolves a density matrix via
             \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
@@ -686,17 +755,48 @@ def bit_flip(p: float) -> BitFlipChannel:
         p: the probability of a bit flip
 
     Raises:
-        ValueError if p is not a valid probability.
+        ValueError: if p is not a valid probability.
     """
     return BitFlipChannel(p)
+
+
+def bit_flip(p: Optional[float] = None) -> Union[XPowGate, BitFlipChannel]:
+    """
+    Construct a BitFlipChannel that flips a qubit state
+    with probability of a flip given by p. If p is None, return
+    a guaranteed flip in the form of an X operation.
+
+    This channel evolves a density matrix via
+            \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+
+    With
+        M_0 = \sqrt{p} \begin{bmatrix}
+                            1 & 0 \\
+                            0 & 1
+                       \end{bmatrix}
+        M_1 = \sqrt{1-p} \begin{bmatrix}
+                            0 & 1 \\
+                            1 & -0
+                         \end{bmatrix}
+
+    Args:
+        p: the probability of a bit flip
+
+    Raises:
+        ValueError: if p is not a valid probability.
+    """
+    if p is None:
+        return _bit_flip_X()
+
+    return _bit_flip(p)
 
 
 class RotationErrorChannel(raw_types.Gate):
     """Channel to introduce rotation error in X, Y, Z"""
 
     def __init__(self, eps_x, eps_y, eps_z) -> None:
+        """The rotation error channel.
 
-        """
         This channel introduces rotation error by epsilon for
         rotations in X, Y and Z that are constant in time.
 
@@ -746,6 +846,9 @@ class RotationErrorChannel(raw_types.Gate):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._eq_tuple() == other._eq_tuple()
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
 
     def __ne__(self, other):
         return not self == other
