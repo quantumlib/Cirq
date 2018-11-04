@@ -44,6 +44,10 @@ def test_common_gates_consistent_protocols():
 
     cirq.testing.assert_implements_consistent_protocols(
             cirq.XPowGate(global_shift_in_half_turns=0.1))
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.YPowGate(global_shift_in_half_turns=0.1))
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.ZPowGate(global_shift_in_half_turns=0.1))
 
 
 def test_cz_init():
