@@ -263,7 +263,8 @@ def _infer_qubit_count(val: Any) -> int:
 def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         val: Any,
         exponents: Sequence[Any] = (1,),
-        qubit_count: Optional[int] = None) -> None:
+        qubit_count: Optional[int] = None,
+        atol: float=1e-8) -> None:
 
     n = qubit_count if qubit_count is not None else _infer_qubit_count(val)
 
@@ -288,4 +289,5 @@ def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
         if actual is not None:
             np.testing.assert_allclose(
                 actual.reshape(2 << n, 2 << n),
-                expected)
+                expected,
+                atol=atol)
