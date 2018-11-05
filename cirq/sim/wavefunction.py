@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Helpers for handling states."""
+"""Helpers for handling quantum wavefunctions."""
 
 import itertools
 
@@ -250,7 +250,7 @@ def measure_state_vector(
 
 
 def _probs(state: np.ndarray, indices: List[int],
-           num_qubits: int):
+           num_qubits: int) -> List[float]:
     """Returns the probabilities for a measurement on the given indices."""
     # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
     tensor = np.reshape(state, [2] * num_qubits)
