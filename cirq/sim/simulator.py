@@ -27,7 +27,7 @@ from typing import Dict, Iterator, List, Union
 import numpy as np
 
 from cirq import circuits, ops, schedules, study
-from cirq.sim import state
+from cirq.sim import wavefunction
 
 
 class SimulatesSamples:
@@ -225,7 +225,7 @@ class SimulationTrialResult:
             ['{}={}'.format(key, val) for key, val in results])
 
     def dirac_notation(self, decimals=2):
-        return state.dirac_notation(self.final_state, decimals)
+        return wavefunction.dirac_notation(self.final_state, decimals)
 
     def _eq_tuple(self):
         measurements = {k: v.tolist() for k, v in
@@ -304,8 +304,8 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 # Empty circuit, so final state should be initial state.
                 print(circuit)
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = state.to_valid_state_vector(initial_state,
-                                                          num_qubits)
+                final_state = wavefunction.to_valid_state_vector(initial_state,
+                                                                 num_qubits)
             trial_results.append(SimulationTrialResult(
                 params=param_resolver,
                 measurements=measurements,
@@ -458,4 +458,4 @@ class StepResult:
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return state.dirac_notation(self.state, decimals)
+        return wavefunction.dirac_notation(self.state, decimals)
