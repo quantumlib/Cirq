@@ -44,9 +44,6 @@ class _CCZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
-
     def _with_exponent(self, exponent: Union[value.Symbol, float]
                        ) -> '_CCZPowGate':
         return _CCZPowGate(exponent=exponent)
@@ -97,8 +94,9 @@ class _CCZPowGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('@', '@', '@'),
-                                             exponent=self._exponent)
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', '@'),
+            exponent=self._diagram_exponent(args))
 
     def _qasm_(self,
                args: protocols.QasmArgs,
@@ -151,9 +149,6 @@ class _CCXPowGate(eigen_gate.EigenGate,
                        ) -> '_CCXPowGate':
         return _CCXPowGate(exponent=exponent)
 
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
-
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
@@ -179,8 +174,9 @@ class _CCXPowGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('@', '@', 'X'),
-                                             exponent=self._exponent)
+        return protocols.CircuitDiagramInfo(
+            ('@', '@', 'X'),
+            exponent=self._diagram_exponent(args))
 
     def _qasm_(self,
                args: protocols.QasmArgs,

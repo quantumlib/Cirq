@@ -141,6 +141,10 @@ class Circuit:
     def __iter__(self):
         return iter(self._moments)
 
+    def _decompose_(self) -> ops.OP_TREE:
+        """See `cirq.SupportsDecompose`."""
+        return self.all_operations()
+
     # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: slice) -> 'Circuit':
@@ -1322,16 +1326,24 @@ class Circuit:
         for q, i in qubit_map.items():
             diagram.write(0, i, str(q) + qubit_name_suffix)
 
+        moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
             _draw_moment_in_diagram(moment,
                                     use_unicode_characters,
                                     qubit_map,
                                     diagram,
-                                    precision)
+                                    precision,
+                                    moment_groups)
 
         w = diagram.width()
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
+
+        if moment_groups:
+            _draw_moment_groups_in_diagram(moment_groups,
+                                           use_unicode_characters,
+                                           diagram,
+                                           transpose)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1344,11 +1356,14 @@ class Circuit:
 
     def _resolve_parameters_(self,
                              param_resolver: study.ParamResolver) -> 'Circuit':
-        resolved_circuit = Circuit()
+        resolved_moments = []
         for moment in self:
-            resolved_circuit.append(_resolve_operations(
+            resolved_operations = _resolve_operations(
                 moment.operations,
-                param_resolver))
+                param_resolver)
+            new_moment = Moment(resolved_operations)
+            resolved_moments.append(new_moment)
+        resolved_circuit = Circuit(resolved_moments)
         return resolved_circuit
 
     def _qasm_(self) -> str:
@@ -1483,7 +1498,8 @@ def _draw_moment_in_diagram(moment: Moment,
                             use_unicode_characters: bool,
                             qubit_map: Dict[ops.QubitId, int],
                             out_diagram: TextDiagramDrawer,
-                            precision: Optional[int]):
+                            precision: Optional[int],
+                            moment_groups: List[Tuple[int, int]]):
     x0 = out_diagram.width()
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
@@ -1494,6 +1510,7 @@ def _draw_moment_in_diagram(moment: Moment,
         x = x0
         while any(out_diagram.content_present(x, y)
                   for y in range(y1, y2 + 1)):
+            out_diagram.force_horizontal_padding_after(x, 0)
             x += 1
 
         args = protocols.CircuitDiagramInfoArgs(
@@ -1516,6 +1533,49 @@ def _draw_moment_in_diagram(moment: Moment,
         exponent = _formatted_exponent(info, args)
         if exponent is not None:
             out_diagram.write(x, y2, '^' + exponent)
+
+    # Group together columns belonging to the same Moment.
+    if moment.operations and x > x0:
+        moment_groups.append((x0, x))
+
+
+def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
+                                   use_unicode_characters: bool,
+                                   out_diagram: TextDiagramDrawer,
+                                   transpose: bool):
+    out_diagram.insert_empty_rows(0)
+    h = out_diagram.height()
+
+    top_left = '┌' if use_unicode_characters else '/'
+    top_right = '┐' if use_unicode_characters else '\\'
+    bottom_left = '└' if use_unicode_characters else '\\'
+    bottom_right = '┘' if use_unicode_characters else '/'
+
+    # Insert columns starting from the back since the insertion
+    # affects subsequent indices.
+    for x1, x2 in reversed(moment_groups):
+        out_diagram.insert_empty_columns(x2 + 1)
+        out_diagram.force_horizontal_padding_after(x2, 0)
+
+        out_diagram.write(x2 + 1, 0, top_right, bottom_left)
+        out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
+        out_diagram.force_horizontal_padding_after(x2 + 1,
+            2 if not transpose else 0)
+
+        for y in [0, h]:
+            out_diagram.horizontal_line(y, x1, x2 + 1)
+
+        out_diagram.insert_empty_columns(x1)
+        out_diagram.force_horizontal_padding_after(x1, 0)
+        out_diagram.write(x1, 0, top_left, top_left)
+        out_diagram.write(x1, h, bottom_left, top_right)
+
+        out_diagram.force_horizontal_padding_after(x1 - 1,
+           2 if not transpose else 0)
+
+    if not transpose:
+        out_diagram.force_vertical_padding_after(0, 0)
+        out_diagram.force_vertical_padding_after(h - 1, 0)
 
 
 def _apply_unitary_circuit(circuit: Circuit,

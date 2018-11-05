@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Base simulation classes and generic simulators."""
-
-from cirq.sim.simulator import (
-    SimulatesSamples,
-    SimulationTrialResult,
-    StepResult,
-    SimulatesIntermediateWaveFunction,
-    SimulatesFinalWaveFunction,
+from cirq.google.line.placement.anneal import (
+    AnnealSequenceSearchStrategy,
 )
-
-from cirq.sim.state import (
-    dirac_notation,
-    measure_state_vector,
-    sample_state_vector,
-    to_valid_state_vector,
-    validate_normalized_state,
+from cirq.google.line.placement.greedy import (
+    GreedySequenceSearchStrategy,
+)
+from cirq.google.line.placement.place_strategy import (
+    LinePlacementStrategy,
+)
+from cirq.google.line.placement.sequence import (
+    GridQubitLineTuple,
+)
+from cirq.google.line.placement.line import (
+    line_on_device,
+)
+from cirq.google.line.placement.optimization import (
+    anneal_minimize,
 )
