@@ -22,7 +22,7 @@ from cirq.sim.simulator import (
     SimulatesFinalWaveFunction,
 )
 
-from cirq.sim.state import (
+from cirq.sim.wavefunction import (
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
