@@ -22,7 +22,7 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
-    def __pow__(self, exponent) -> type(NotImplemented):
+    def __pow__(self, exponent):
         return NotImplemented
 
 
@@ -36,9 +36,9 @@ class SelfInverse:
         return self
 
 
-class ImplementsReversible(cirq.ReversibleEffect):
-    def inverse(self):
-        return 6
+class ImplementsReversible:
+    def __pow__(self, exponent):
+        return 6 if exponent == -1 else NotImplemented
 
 
 class IsIterable:
@@ -55,7 +55,7 @@ class IsIterable:
     [NoMethod(), 5],
 ))
 def test_objects_with_no_inverse(val):
-    with pytest.raises(TypeError, match="isn't invertable"):
+    with pytest.raises(TypeError, match="isn't invertible"):
         _ = cirq.inverse(val)
     assert cirq.inverse(val, None) is None
     assert cirq.inverse(val, NotImplemented) is NotImplemented

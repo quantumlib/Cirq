@@ -82,6 +82,10 @@ See the previous section for instructions.
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
+    If you change protocol buffers you will need to regenerate the proto files, so you should
+    install the protocol buffer compiler.  Instructions for this can be found
+    [here](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md).
+
 2. Prepare a virtual environment including the dev tools (such as mypy).
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
@@ -160,44 +164,58 @@ This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `increment
 
 ### Producing the Python 2.7 code
 
-Run [python2.7-generate.sh](/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
+Run [dev_tools/python2.7-generate.sh](/dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
 
 ```bash
-bash python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
+bash dev_tools/python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
 ```
 
 If you don't specify any arguments then the input directory will be the current
 working directory, the output directory will be `python2.7-output` within the
 current directory, and `3to2` will be invoked in the current environment.
 
-The script does nothing if the output directory already exists. 
+The script fails with no effects if the output directory already exists.
 
 
 ### Producing a pypi package
 
-1. Set the version numbers in [cirq/_version.py](/cirq/_version.py).
+1. Set the version number in [cirq/_version.py](/cirq/_version.py).
 
-    The python 3 version should end with `.35` whereas the python 2 version should end with `.27`.
-    For example: `0.0.4.35` is the python 3 variant of version `0.0.4`.
-    `pip` will choose between the two based on whichever version of python the user is using.
-    Development versions end with `.dev35` and `.dev27` instead of `.35` and `.27`, e.g. use `0.0.4.dev27` for the python 2 variant of the development version of `0.0.4`.
+    Development versions end with `.dev` or `.dev#`.
+    For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
+    For a release, create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull request turning `#.#.#` into `(#+1).#.#.dev`.
 
-    Create a pull request turning `0.0.X.*dev` into `0.0.X.*`, and a follow up pull request turning `0.0.X.*` into `0.0.X+1.*dev`.
+2. Do a dry run with test pypi.
 
-2. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
+    If you're making a release, you should have access to a test pypi account
+    capable of uploading packages. Put its credentials into the environment
+    variables `TEST_TWINE_USERNAME` and `TEST_TWINE_PASSWORD` then run
 
     ```bash
-    bash dev_tools/produce-package.sh
+    dev_tools/publish-to-test-pypi.sh
+    ```
+
+    to create packages for the current version and upload them to test pypi. You
+    should then create fresh python 3 and python 2 virtual environments and try
+    to
+
+    ```bash
+    pip install --index-url https://test.pypi.org/simple/ cirq==VERSION_YOU_UPLOADED
+    python -c "import cirq; print(cirq.google.Foxtail)"
+    python -c "import cirq; print(cirq.__version__)"
+    ```
+
+    Note: you will likely need to first install cirq's requirements from non-test pypi (because they may not exist in test pypi).
+
+    Check that the printed version is correct!
+
+3. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
+
+    ```bash
+    dev_tools/produce-package.sh dist
     ```
 
     The output files will be placed in `dist/`.
-
-3. Do a quick test run of the packages.
-
-    Create fresh python 3 and python 2 virtual environments, and try to `pip install` the produced artifacts.
-    Check that `import cirq` actually finishes after installing.
-
-    The output files will be placed in `dist/`, from which they can be uploaded to pypi with a tool such as `twine`.
 
 4. Create a github release.
 
@@ -212,4 +230,13 @@ The script does nothing if the output directory already exists.
 
     ```bash
     twine upload -u "${PYPI_USERNAME}" -p "${PYPI_PASSWORD}" dist/*
+    ```
+
+    You should then create fresh python 2 and python 3 virtual environments and
+    check that this works:
+
+    ```bash
+    pip install cirq
+    python -c "import cirq; print(cirq.google.Foxtail)"
+    python -c "import cirq; print(cirq.__version__)"
     ```

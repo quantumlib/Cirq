@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict
+import collections
+from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict, \
+    overload, Iterable
 
 from typing_extensions import Protocol
 
@@ -62,7 +64,7 @@ class CircuitDiagramInfo:
         return hash(self._eq_tuple())
 
     def __repr__(self):
-        return ('cirq.DiagramInfo(' +
+        return ('cirq.CircuitDiagramInfo(' +
                 'wire_symbols={!r}, '.format(self.wire_symbols) +
                 'exponent={!r}, '.format(self.exponent) +
                 'connected={!r})'.format(self.connected)
@@ -91,16 +93,52 @@ class CircuitDiagramInfoArgs:
     UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
 
     def __init__(self,
-                 known_qubits: Optional[Tuple['cirq.QubitId', ...]],
+                 known_qubits: Optional[Iterable['cirq.QubitId']],
                  known_qubit_count: Optional[int],
                  use_unicode_characters: bool,
                  precision: Optional[int],
                  qubit_map: Optional[Dict['cirq.QubitId', int]]) -> None:
-        self.known_qubits = known_qubits
+        self.known_qubits = (None if known_qubits is None
+                             else tuple(known_qubits))
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
         self.qubit_map = qubit_map
+
+    def _eq_tuple(self):
+        return (CircuitDiagramInfoArgs,
+                self.known_qubits,
+                self.known_qubit_count,
+                self.use_unicode_characters,
+                self.precision,
+                None
+                if self.qubit_map is None else
+                tuple(sorted(self.qubit_map.items(), key=lambda e: e[0])))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
+
+    def __repr__(self):
+        return (
+            'cirq.CircuitDiagramInfoArgs('
+            'known_qubits={!r}, '
+            'known_qubit_count={!r}, '
+            'use_unicode_characters={!r}, '
+            'precision={!r}, '
+            'qubit_map={!r})'.format(
+                self.known_qubits,
+                self.known_qubit_count,
+                self.use_unicode_characters,
+                self.precision,
+                self.qubit_map))
 
 
 CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
@@ -116,7 +154,7 @@ class SupportsCircuitDiagramInfo(Protocol):
 
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs
                                ) -> Union[str,
-                                          Tuple[str, ...],
+                                          Iterable[str],
                                           CircuitDiagramInfo]:
         """Describes how to draw an operation in a circuit diagram.
 
@@ -138,10 +176,33 @@ TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 
 
+# pylint: disable=function-redefined
+@overload
 def circuit_diagram_info(val: Any,
                          args: Optional[CircuitDiagramInfoArgs] = None,
-                         default: TDefault = RaiseTypeErrorIfNotProvided,
+                         ) -> CircuitDiagramInfo:
+    pass
+
+
+@overload
+def circuit_diagram_info(val: Any,
+                         args: Optional[CircuitDiagramInfoArgs],
+                         default: TDefault
                          ) -> Union[CircuitDiagramInfo, TDefault]:
+    pass
+
+
+@overload
+def circuit_diagram_info(val: Any,
+                         *,
+                         default: TDefault
+                         ) -> Union[CircuitDiagramInfo, TDefault]:
+    pass
+
+
+def circuit_diagram_info(val: Any,
+                         args: Optional[CircuitDiagramInfoArgs] = None,
+                         default=RaiseTypeErrorIfNotProvided):
     """Requests information on drawing an operation in a circuit diagram.
 
     Calls _circuit_diagram_info_ on `val`. If `val` doesn't have
@@ -174,18 +235,11 @@ def circuit_diagram_info(val: Any,
     getter = getattr(val, '_circuit_diagram_info_', None)
     result = NotImplemented if getter is None else getter(args)
 
-    # TODO: remove compatibility shim when deleting TextDiagrammable.
-    from cirq import ops, extension
-    if result is NotImplemented and extension.can_cast(ops.TextDiagrammable,
-                                                       val):
-        return extension.cast(ops.TextDiagrammable,
-                              val).text_diagram_info(args)  # type: ignore
-
     # Success?
     if isinstance(result, str):
         return CircuitDiagramInfo(wire_symbols=(result,))
-    if isinstance(result, tuple):
-        return CircuitDiagramInfo(wire_symbols=result)
+    if isinstance(result, collections.Iterable):
+        return CircuitDiagramInfo(wire_symbols=tuple(result))
     if result is not NotImplemented:
         return result
 
@@ -198,3 +252,4 @@ def circuit_diagram_info(val: Any,
             "has no _circuit_diagram_info_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
                     "method, but it returned NotImplemented.".format(type(val)))
+# pylint: enable=function-redefined

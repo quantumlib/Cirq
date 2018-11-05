@@ -13,26 +13,16 @@
 # limitations under the License.
 
 from typing import (
-    Dict, Hashable, Iterable, Optional, Tuple, Type, TypeVar, Union, cast
+    Dict, Hashable, Iterable, Optional, Tuple, Union, cast
 )
 
-from cirq import ops, value, study, extension, protocols
-
-from cirq.ops.pauli_string import PauliString
+from cirq import ops, value, study, protocols
 from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation)
+from cirq.ops.pauli_string import PauliString
 
 
-T_DESIRED = TypeVar('T_DESIRED')
-
-
-class PauliStringPhasor(PauliStringGateOperation,
-                        ops.CompositeOperation,
-                        ops.BoundedEffect,
-                        ops.TextDiagrammable,
-                        extension.PotentialImplementation[Union[
-                            ops.ExtrapolatableEffect,
-                            ops.ReversibleEffect]]):
+class PauliStringPhasor(PauliStringGateOperation):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
@@ -85,17 +75,12 @@ class PauliStringPhasor(PauliStringGateOperation,
                          ) -> 'PauliStringPhasor':
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def extrapolate_effect(self, factor: Union[float, value.Symbol]
-                           ) -> 'PauliStringPhasor':
-        return self._with_half_turns(self.half_turns * factor)  # type: ignore
-
-    def __pow__(self, power: Union[float, value.Symbol]) -> 'PauliStringPhasor':
-        if power != 1 and self._is_parameterized_():
+    def __pow__(self,
+                exponent: Union[float, value.Symbol]) -> 'PauliStringPhasor':
+        new_exponent = protocols.mul(self.half_turns, exponent, NotImplemented)
+        if new_exponent is NotImplemented:
             return NotImplemented
-        return self.extrapolate_effect(power)
-
-    def inverse(self) -> 'PauliStringPhasor':
-        return self.extrapolate_effect(-1)
+        return self._with_half_turns(new_exponent)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         return self.pauli_string.equal_up_to_sign(op.pauli_string)
@@ -108,7 +93,7 @@ class PauliStringPhasor(PauliStringGateOperation,
                       + cast(float, op.half_turns) * neg_sign)
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def default_decompose(self) -> ops.OP_TREE:
+    def _decompose_(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
         qubits = self.qubits
@@ -120,7 +105,7 @@ class PauliStringPhasor(PauliStringGateOperation,
         if isinstance(self.half_turns, value.Symbol):
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
-            yield ops.RotZGate(half_turns=self.half_turns)(any_qubit)
+            yield ops.Z(any_qubit)**self.half_turns
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
         else:
@@ -130,24 +115,14 @@ class PauliStringPhasor(PauliStringGateOperation,
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def text_diagram_info(self, args: ops.TextDiagramInfoArgs
-                          ) -> ops.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         return self._pauli_string_diagram_info(args,
                                                exponent=self.half_turns,
                                                exponent_absorbs_sign=True)
 
-    def trace_distance_bound(self) -> float:
-        return ops.RotZGate(half_turns=self.half_turns).trace_distance_bound()
-
-    def try_cast_to(self,
-                    desired_type: Type[T_DESIRED],
-                    ext: extension.Extensions
-                    ) -> Optional[T_DESIRED]:
-        if (desired_type in [ops.ExtrapolatableEffect,
-                             ops.ReversibleEffect] and
-                not self._is_parameterized_()):
-            return cast(T_DESIRED, self)
-        return super().try_cast_to(desired_type, ext)
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(ops.Z**self.half_turns)
 
     def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)

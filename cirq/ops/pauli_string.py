@@ -13,15 +13,16 @@
 # limitations under the License.
 
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Optional, Tuple, ValuesView)
+                    Tuple, TypeVar, Union, ValuesView, overload)
 
 from cirq.ops import (
-    raw_types, gate_operation, common_gates, qubit_order, op_tree
+    raw_types, gate_operation, common_gates, op_tree
 )
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
+TDefault = TypeVar('TDefault')
 
 class PauliString:
     def __init__(self,
@@ -57,9 +58,19 @@ class PauliString:
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
-    def get(self, key: raw_types.QubitId, default: Optional[Pauli] = None
-            ) -> Optional[Pauli]:
+    # pylint: disable=function-redefined
+    @overload
+    def get(self, key: raw_types.QubitId) -> Pauli:
+        pass
+
+    @overload
+    def get(self, key: raw_types.QubitId, default: TDefault
+            ) -> Union[Pauli, TDefault]:
+        pass
+
+    def get(self, key: raw_types.QubitId, default=None):
         return self._qubit_pauli_map.get(key, default)
+    # pylint: enable=function-redefined
 
     def __contains__(self, key: raw_types.QubitId) -> bool:
         return key in self._qubit_pauli_map
@@ -84,12 +95,11 @@ class PauliString:
 
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
-                             for qubit in
-                                qubit_order.QubitOrder.DEFAULT.order_for(self)))
+                             for qubit in sorted(self.qubits())))
         return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
-        ordered_qubits = qubit_order.QubitOrder.DEFAULT.order_for(self.qubits())
+        ordered_qubits = sorted(self.qubits())
         return '{{{}, {}}}'.format('+-'[self.negated],
                                    ', '.join(('{!s}:{!s}'.format(q, self[q])
                                              for q in ordered_qubits)))
@@ -174,7 +184,7 @@ class PauliString:
                 return PauliString._pass_single_clifford_gate_over(
                     pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
-            if isinstance(gate, common_gates.Rot11Gate):
+            if isinstance(gate, common_gates.CZPowGate):
                 gate = PauliInteractionGate.CZ
             if isinstance(gate, PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(

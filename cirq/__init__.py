@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq._version import (
+    __version__,
+)
+
 # Flattened sub-modules.
 
 from cirq.circuits import (
@@ -56,6 +60,12 @@ from cirq.extension import (
     try_cast,
 )
 
+from cirq.experiments import (
+    generate_supremacy_circuit_google_v2,
+    generate_supremacy_circuit_google_v2_bristlecone,
+    generate_supremacy_circuit_google_v2_grid,
+)
+
 from cirq.linalg import (
     allclose_up_to_global_phase,
     apply_matrix_to_slices,
@@ -88,37 +98,34 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    LinePlacementStrategy,
     LineQubit,
-    line_on_device,
 )
 
 from cirq.ops import (
-    BoundedEffect,
+    asymmetric_depolarize,
+    AsymmetricDepolarizingChannel,
     CCX,
     CCZ,
     SingleQubitCliffordGate,
     CNOT,
-    CNotGate,
-    CompositeGate,
-    CompositeOperation,
+    CNotPowGate,
     ControlledGate,
     CSWAP,
     CZ,
+    CZPowGate,
+    depolarize,
+    DepolarizingChannel,
     EigenGate,
-    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
     Gate,
     GateOperation,
     H,
-    HGate,
+    HPowGate,
     InterchangeableQubitsGate,
     ISWAP,
-    ISwapGate,
+    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -129,28 +136,23 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
-    QasmConvertibleGate,
-    QasmConvertibleOperation,
-    QasmOutputArgs,
+    PhasedXPowGate,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
-    Rot11Gate,
-    RotXGate,
-    RotYGate,
-    RotZGate,
+    XPowGate,
+    YPowGate,
+    ZPowGate,
+    Rx,
+    Ry,
+    Rz,
     S,
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,
-    SwapGate,
+    SwapPowGate,
     T,
-    TextDiagrammable,
-    TextDiagramInfo,
-    TextDiagramInfoArgs,
     ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
@@ -167,6 +169,19 @@ from cirq.schedules import (
     moment_by_moment_schedule,
 )
 
+from cirq.sim import (
+    dirac_notation,
+    measure_state_vector,
+    sample_state_vector,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesFinalWaveFunction,
+    SimulatesIntermediateWaveFunction,
+    to_valid_state_vector,
+    validate_normalized_state,
+)
+
 from cirq.study import (
     Linspace,
     ParamResolver,
@@ -174,6 +189,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    to_resolvers,
     TrialResult,
     UnitSweep,
 )
@@ -187,20 +203,38 @@ from cirq.value import (
     Timestamp,
 )
 
+# pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_unitary_to_tensor,
+    channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
     inverse,
+    mul,
+    pow,
+    qasm,
+    QasmArgs,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
-    SupportsUnitary,
     SupportsParameterization,
+    SupportsPhase,
+    SupportsQasm,
+    SupportsQasmWithArgs,
+    SupportsQasmWithArgsAndQubits,
+    SupportsTraceDistanceBound,
+    SupportsUnitary,
     is_parameterized,
     resolve_parameters,
+    has_unitary,
     unitary,
+    trace_distance_bound,
+    phase_by,
 )
+# pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
 
@@ -209,6 +243,3 @@ from cirq import (
     google,
     testing,
 )
-
-# Import version last since it is a relative import.
-from ._version import __version__

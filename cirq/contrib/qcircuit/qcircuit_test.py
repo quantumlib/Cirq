@@ -21,11 +21,16 @@ from cirq.contrib.qcircuit.qcircuit_diagrammable import (
 
 
 def test_qcircuit_qubit():
-    p = cirq.NamedQubit('x')
-    q = _QCircuitQubit(p)
-    assert repr(q) == '_QCircuitQubit({!r})'.format(p)
-
-    assert q != 0
+    x = cirq.NamedQubit('x')
+    qx = _QCircuitQubit(x)
+    qx2 = _QCircuitQubit(x)
+    qy = _QCircuitQubit(cirq.NamedQubit('y'))
+    assert repr(qx) == '_QCircuitQubit({!r})'.format(x)
+    assert x != qx
+    assert qx != 0
+    assert qx == qx2
+    assert qx != qy
+    assert sorted([x, qy, qx]) == [x, qx, qy]
 
 
 def test_fallback_diagram():
@@ -51,7 +56,7 @@ def test_fallback_diagram():
 def test_text_to_qcircuit_diagrammable():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
-    g = cirq.SwapGate(half_turns=0.5)
+    g = cirq.SwapPowGate(exponent=0.5)
     f = _TextToQCircuitDiagrammable(g)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     actual_info = f.qcircuit_diagram_info(

@@ -26,6 +26,9 @@ class _QCircuitQubit(ops.QubitId):
     def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
 
+    def _comparison_key(self):
+        return self.sub
+
     def __repr__(self):
         return '_QCircuitQubit({!r})'.format(self.sub)
 
@@ -83,7 +86,8 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     for y in range(h):
         for x in range(max(0, w - 1)):
             key = (x, y)
-            v = '&' + (diagram.entries.get(key) or '') + ' '
+            diagram_text = diagram.entries.get(key)
+            v = '&' + (diagram_text.text if diagram_text else  '') + ' '
             diagram2.write(2*x + 1, y, v)
             post1 = '\\qw' if key in qw else ''
             post2 = '\\qwx' if key in qwx else ''
@@ -98,7 +102,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 def _wrap_operation(op: ops.Operation) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    diagrammable = fallback_qcircuit_extensions.try_cast(
+    diagrammable = fallback_qcircuit_extensions.try_cast(  # type: ignore
         QCircuitDiagrammable, op)
     if diagrammable is None:
         info = protocols.circuit_diagram_info(op, default=None)
@@ -127,9 +131,6 @@ def circuit_to_latex_using_qcircuit(
 
     Args:
         circuit: The circuit to represent in latex.
-        ext: Extensions used when attempting to cast gates into
-            QCircuitDiagrammable instances (before falling back to the
-            default wrapping methods).
         qubit_order: Determines the order of qubit wires in the diagram.
 
     Returns:

@@ -16,7 +16,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, decompositions, extension, linalg, protocols
+from cirq import ops, decompositions, linalg, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -41,8 +41,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
     def __init__(self,
                  ignore_failures: bool = False,
                  keep_clifford: bool = False,
-                 tolerance: float = 0,
-                 extensions: extension.Extensions = None) -> None:
+                 tolerance: float = 0) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -52,11 +51,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             tolerance: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
-            extensions: The extensions instance to use when trying to
-                cast gates to known types.
         """
         super().__init__()
-        self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.keep_clifford = keep_clifford
         self.tolerance = tolerance

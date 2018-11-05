@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from random import choice, sample, random
-from typing import Union, Sequence, TYPE_CHECKING, Dict
+from typing import Union, Sequence, TYPE_CHECKING, Dict, Optional
 
 from cirq import ops
 from cirq.circuits import Circuit, Moment
@@ -27,19 +27,20 @@ DEFAULT_GATE_DOMAIN = {
     ops.CZ: 2,
     ops.H: 1,
     ops.ISWAP: 2,
-    ops.Rot11Gate(): 2,
+    ops.CZPowGate(): 2,
     ops.S: 1,
     ops.SWAP: 2,
     ops.T: 1,
     ops.X: 1,
     ops.Y: 1,
     ops.Z: 1
-    }
+}  # type: Dict[ops.Gate, int]
+
 
 def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
                    n_moments: int,
                    op_density: float,
-                   gate_domain: Dict[ops.Gate, int]= None
+                   gate_domain: Optional[Dict[ops.Gate, int]] = None
                    ) -> Circuit:
     """Generates a random circuit.
 

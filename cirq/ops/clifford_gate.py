@@ -18,29 +18,33 @@ from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import raw_types, gate_features, common_gates, op_tree
+from cirq.ops import raw_types, common_gates, op_tree, \
+    named_qubit
 from cirq.ops.pauli import Pauli
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 
 
-class SingleQubitCliffordGate(raw_types.Gate,
-                   gate_features.CompositeGate,
-                   gate_features.ReversibleEffect,
-                   gate_features.TextDiagrammable):
+def _pretend_initialized() -> 'SingleQubitCliffordGate':
+    # HACK: This is a workaround to fool mypy and pylint into correctly handling
+    # class fields that can't be initialized until after the class is defined.
+    pass
+
+
+class SingleQubitCliffordGate(raw_types.Gate):
     """Any single qubit Clifford rotation."""
-    I = None  # type: SingleQubitCliffordGate
-    H = None  # type: SingleQubitCliffordGate
-    X = None  # type: SingleQubitCliffordGate
-    Y = None  # type: SingleQubitCliffordGate
-    Z = None  # type: SingleQubitCliffordGate
-    X_sqrt  = None  # type: SingleQubitCliffordGate
-    X_nsqrt = None  # type: SingleQubitCliffordGate
-    Y_sqrt  = None  # type: SingleQubitCliffordGate
-    Y_nsqrt = None  # type: SingleQubitCliffordGate
-    Z_sqrt  = None  # type: SingleQubitCliffordGate
-    Z_nsqrt = None  # type: SingleQubitCliffordGate
+    I = _pretend_initialized()
+    H = _pretend_initialized()
+    X = _pretend_initialized()
+    Y = _pretend_initialized()
+    Z = _pretend_initialized()
+    X_sqrt = _pretend_initialized()
+    Y_sqrt = _pretend_initialized()
+    Z_sqrt = _pretend_initialized()
+    X_nsqrt = _pretend_initialized()
+    Y_nsqrt = _pretend_initialized()
+    Z_nsqrt = _pretend_initialized()
 
     def __init__(self, *,
                  _rotation_map: Dict[Pauli, PauliTransform],
@@ -209,12 +213,9 @@ class SingleQubitCliffordGate(raw_types.Gate,
     def __hash__(self):
         return hash(self._eq_tuple())
 
-    def __pow__(self, power):
-        if power != -1:
+    def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+        if exponent != -1:
             return NotImplemented
-        return self.inverse()
-
-    def inverse(self) -> 'SingleQubitCliffordGate':
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)
 
@@ -260,14 +261,17 @@ class SingleQubitCliffordGate(raw_types.Gate,
             (x_final_pauli, x_flip1 ^ x_flip2),
             (z_final_pauli, z_flip1 ^ z_flip2))
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         mat = np.eye(2)
-        qubit = raw_types.QubitId()
-        for op in op_tree.flatten_op_tree(self.default_decompose((qubit,))):
+        qubit = named_qubit.NamedQubit('arbitrary')
+        for op in protocols.decompose_once_with_qubits(self, (qubit,)):
             mat = protocols.unitary(op).dot(mat)
         return mat
 
-    def default_decompose(self, qubits: Sequence[raw_types.QubitId]
+    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
         qubit, = qubits
         if self == SingleQubitCliffordGate.H:
@@ -344,8 +348,8 @@ class SingleQubitCliffordGate(raw_types.Gate,
                 '+-'[self.transform(Pauli.Y).flip], self.transform(Pauli.Y).to,
                 '+-'[self.transform(Pauli.Z).flip], self.transform(Pauli.Z).to)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         well_known_map = {
             SingleQubitCliffordGate.I: 'I',
             SingleQubitCliffordGate.H: 'H',
@@ -367,7 +371,7 @@ class SingleQubitCliffordGate(raw_types.Gate,
                 str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2)
                 for r, qt in rotations)
             symbol = '({})'.format(symbol)
-        return gate_features.TextDiagramInfo(
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(symbol,),
             exponent={
                 SingleQubitCliffordGate.X_sqrt: 0.5,

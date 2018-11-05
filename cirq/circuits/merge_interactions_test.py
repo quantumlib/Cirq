@@ -71,14 +71,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.RotZGate(
-                half_turns=cirq.Symbol('boo'))(a)]),
+            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.RotZGate(
-                half_turns=cirq.Symbol('boo'))(a)]),
+            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
 
@@ -153,38 +151,38 @@ def test_optimizes_single_iswap():
 
 @pytest.mark.parametrize('circuit', (
     cirq.Circuit.from_ops(
-        cirq.Rot11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
+        cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),
     ),
     cirq.Circuit.from_ops(
-        cirq.Rot11Gate(half_turns=0.2)(*cirq.LineQubit.range(2)),
-        cirq.Rot11Gate(half_turns=0.3)(*cirq.LineQubit.range(2)),
+        cirq.CZPowGate(exponent=0.2)(*cirq.LineQubit.range(2)),
+        cirq.CZPowGate(exponent=0.3)(*cirq.LineQubit.range(2)),
     )))
 def test_decompose_partial_czs(circuit):
     optimizer = cirq.MergeInteractions(allow_partial_czs=False)
     optimizer.optimize_circuit(circuit)
 
     cz_gates = [op.gate for op in circuit.all_operations()
-                        if isinstance(op, cirq.GateOperation) and
-                           isinstance(op.gate, cirq.Rot11Gate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+                if isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.CZPowGate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent != 1)
     assert num_full_cz == 2
     assert num_part_cz == 0
 
 
 def test_not_decompose_partial_czs():
     circuit = cirq.Circuit.from_ops(
-        cirq.Rot11Gate(half_turns=0.1)(*cirq.LineQubit.range(2)),
+        cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),
     )
 
     optimizer = cirq.MergeInteractions(allow_partial_czs=True)
     optimizer.optimize_circuit(circuit)
 
     cz_gates = [op.gate for op in circuit.all_operations()
-                        if isinstance(op, cirq.GateOperation) and
-                           isinstance(op.gate, cirq.Rot11Gate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+                if isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.CZPowGate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent != 1)
     assert num_full_cz == 0
     assert num_part_cz == 1
 

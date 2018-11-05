@@ -22,7 +22,6 @@ from cirq import ops, decompositions
 from cirq import protocols
 from cirq.circuits import optimization_pass
 from cirq.circuits.circuit import Circuit
-from cirq.extension import Extensions
 
 
 class MergeInteractions(optimization_pass.PointOptimizer):
@@ -32,14 +31,12 @@ class MergeInteractions(optimization_pass.PointOptimizer):
     def __init__(self,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 extensions: Extensions = None,
                  post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
                                 ] = lambda op_list: op_list
                  ) -> None:
         super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
-        self.extensions = extensions or Extensions()
 
     def optimization_at(self,
                         circuit: Circuit,
@@ -52,6 +49,24 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         old_operations, indices, matrix = (
             self._scan_two_qubit_ops_into_matrix(circuit, index, op.qubits))
 
+        old_interaction_count = len([old_op for old_op in old_operations
+                                     if len(old_op.qubits) == 2])
+
+        switch_to_new = False
+        switch_to_new |= any(len(old_op.qubits) == 2 and
+                             not (isinstance(old_op, ops.GateOperation) and
+                                  isinstance(old_op.gate, ops.CZPowGate))
+                             for old_op in old_operations)
+        if not self.allow_partial_czs:
+            switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
+                                 isinstance(old_op.gate, ops.CZPowGate)
+                                 and old_op.gate.exponent != 1
+                                 for old_op in old_operations)
+
+        # This point cannot be optimized using this method
+        if not switch_to_new and old_interaction_count <= 1:
+            return None
+
         # Find a max-3-cz construction.
         new_operations = decompositions.two_qubit_matrix_to_operations(
             op.qubits[0],
@@ -59,22 +74,11 @@ class MergeInteractions(optimization_pass.PointOptimizer):
             matrix,
             self.allow_partial_czs,
             self.tolerance)
-
-        old_interaction_count = len([old_op for old_op in old_operations
-                                     if len(old_op.qubits) == 2])
         new_interaction_count = len([new_op for new_op in new_operations
                                      if len(new_op.qubits) == 2])
-        switch_to_new = False
+
         switch_to_new |= new_interaction_count < old_interaction_count
-        switch_to_new |= any(len(old_op.qubits) == 2 and
-                             not (isinstance(old_op, ops.GateOperation) and
-                                  isinstance(old_op.gate, ops.Rot11Gate))
-                             for old_op in old_operations)
-        if not self.allow_partial_czs:
-            switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
-                                 isinstance(old_op.gate, ops.Rot11Gate)
-                                 and old_op.gate.half_turns != 1
-                                 for old_op in old_operations)
+
         if not switch_to_new:
             return None
 

@@ -13,12 +13,16 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import Sequence, Union, Tuple
+from typing import Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq.linalg.tolerance import Tolerance
 from cirq.linalg.transformations import match_global_phase
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List
 
 
 def is_diagonal(
@@ -194,7 +198,7 @@ def allclose_up_to_global_phase(
 
 def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
                               little_endian_qureg_value: int,
-                              ) -> Tuple[Union[slice, int, type(...)], ...]:
+                              ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -204,11 +208,12 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         r = np.array(range(16)).reshape((2,) * 4)
 
         # We want to index into the subset where qubit #1 and qubit #3 are ON.
-        s = cirq.binary_indexed_tensor_slice(0b11, [1, 3])
+        s = cirq.binary_indexed_tensor_slice([1, 3], 0b11)
         print(s)
         # (slice(None, None, None), 1, slice(None, None, None), 1, Ellipsis)
 
         # Get that subset. It corresponds to numbers of the form 0b*1*1.
+        # where here '*' indicates any possible value.
         print(r[s])
         # [[ 5  7]
         #  [13 15]]
@@ -228,7 +233,7 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         of a tensor.
     """
     n = max(target_qubit_axes) if target_qubit_axes else -1
-    result = [slice(None)] * (n + 2)
+    result = [slice(None)] * (n + 2)  # type: List[Union[slice, int, ellipsis]]
     for k, axis in enumerate(target_qubit_axes):
         result[axis] = (little_endian_qureg_value >> k) & 1
     result[-1] = Ellipsis

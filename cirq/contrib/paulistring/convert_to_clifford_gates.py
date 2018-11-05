@@ -16,7 +16,7 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import ops, linalg, decompositions, extension, protocols
+from cirq import ops, linalg, decompositions, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -33,14 +33,12 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         SingleQubitCliffordGate. It fails if the operation is not in the
     Clifford group.
 
-    Second, checks if the given extensions are able to cast the operation into a
-        CompositeOperation. If so, recurses on the decomposition.
+    Second, attempts to `cirq.decompose` to the operation.
     """
 
     def __init__(self,
                  ignore_failures: bool = False,
-                 tolerance: float = 0,
-                 extensions: extension.Extensions = None) -> None:
+                 tolerance: float = 0) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -48,11 +46,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
             tolerance: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
-            extensions: The extensions instance to use when trying to
-                cast gates to known types.
         """
         super().__init__()
-        self.extensions = extensions or extension.Extensions()
         self.ignore_failures = ignore_failures
         self.tolerance = tolerance
         self._tol = linalg.Tolerance(atol=tolerance)
@@ -65,7 +60,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         elif quarter_turns == 2:
             return ops.SingleQubitCliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True).inverse()
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
         else:
             return ops.SingleQubitCliffordGate.I
 
@@ -82,12 +77,12 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                 return None
         return clifford_gate(qubit)
 
-    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
+    def _keep(self, op: ops.Operation) -> bool:
         # Don't change if it's already a SingleQubitCliffordGate
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, ops.SingleQubitCliffordGate)):
-            return op
+        return (isinstance(op, ops.GateOperation) and
+                isinstance(op.gate, ops.SingleQubitCliffordGate))
 
+    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Single qubit gate with known matrix?
         if len(op.qubits) == 1:
             mat = protocols.unitary(op, None)
@@ -95,29 +90,24 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                 cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
                 if cliff_op is not None:
                     return cliff_op
-                if self.ignore_failures:
-                    return op
-                raise ValueError('Single qubit operation is not in the '
-                                 'Clifford group: {!r}'.format(op))
 
-        # Provides a decomposition?
-        composite_op = self.extensions.try_cast(ops.CompositeOperation, op)
-        if composite_op is not None:
-            return composite_op.default_decompose()
+        return NotImplemented
 
-        # Just let it be?
-        if self.ignore_failures:
-            return op
+    def _on_stuck_raise(self, op: ops.Operation):
+        if len(op.qubits) == 1 and protocols.has_unitary(op):
+            raise ValueError('Single qubit operation is not in the '
+                              'Clifford group: {!r}'.format(op))
 
         raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a CompositeOperation or a 1-qubit operation "
+                        "It isn't composite or a 1-qubit operation "
                         "with a known unitary effect.".format(op))
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        converted = self._convert_one(op)
-        if converted is op:
-            return converted
-        return [self.convert(e) for e in ops.flatten_op_tree(converted)]
+        return protocols.decompose(op,
+                                   intercepting_decomposer=self._convert_one,
+                                   keep=self._keep,
+                                   on_stuck_raise=(None if self.ignore_failures
+                                                   else self._on_stuck_raise))
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:

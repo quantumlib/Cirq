@@ -57,9 +57,7 @@ Gate Features and Effects
     ExtrapolatableEffect
     ReversibleEffect
     InterchangeableQubitsGate
-    PhaseableEffect
     TextDiagrammable
-    BoundedEffect
     SingleQubitGate
     TwoQubitGate
     QasmConvertibleGate

@@ -27,14 +27,14 @@ def test_plot_state_histogram():
     pl.switch_backend('PDF')
     simulator = cg.XmonSimulator()
 
-    rot_w_gate = cg.ExpWGate(half_turns=1.)
+    rot_w_gate = cg.ExpWGate(exponent=1.)
 
     q0 = GridQubit(0, 0)
     q1 = GridQubit(1, 0)
     circuit = cirq.Circuit()
     circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
-    circuit.append([cg.XmonMeasurementGate(key='q0')(q0),
-                    cg.XmonMeasurementGate(key='q1')(q1)])
+    circuit.append([cirq.MeasurementGate(key='q0')(q0),
+                    cirq.MeasurementGate(key='q1')(q1)])
     results = simulator.run_sweep(program=circuit,
                                   repetitions=5)
 

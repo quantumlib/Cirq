@@ -28,6 +28,10 @@ def assert_optimizes(before: cirq.Circuit,
                              cirq.DropEmptyMoments())):
     opt = cg.EjectZ()
 
+    if cirq.has_unitary(before):
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            before, expected, atol=1e-8)
+
     circuit = before.copy()
     for pre in pre_opts:
         pre.optimize_circuit(circuit)
@@ -36,19 +40,11 @@ def assert_optimizes(before: cirq.Circuit,
         post.optimize_circuit(circuit)
         post.optimize_circuit(expected)
 
-    if circuit != expected:
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("AFTER")
-        print(circuit)
-        print("EXPECTED")
-        print(expected)
-    assert circuit == expected
+    cirq.testing.assert_same_circuits(circuit, expected)
 
     # And it should be idempotent.
     opt.optimize_circuit(circuit)
-    assert circuit == expected
+    cirq.testing.assert_same_circuits(circuit, expected)
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
@@ -194,7 +190,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             cirq.Moment([u(q)]),
             cirq.Moment(),
             cirq.Moment([cirq.Y(q)]),
-            cirq.Moment([cg.ExpWGate(axis_half_turns=0.25).on(q)]),
+            cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.75).on(q)]),
             cirq.Moment([cirq.Z(q)**0.75]),
             cirq.Moment([u(q)]),
         ]))
@@ -204,15 +200,13 @@ def test_symbols_block():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
-            cirq.Moment([cg.ExpZGate(
-                half_turns=cirq.Symbol('a'))(q)]),
-            cirq.Moment([cg.ExpZGate(half_turns=0.25)(q)]),
+            cirq.Moment([cirq.Z(q)]),
+            cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
+            cirq.Moment([cirq.Z(q)**0.25]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(
-                half_turns=cirq.Symbol('a'))(q)]),
-            cirq.Moment([cg.ExpZGate(half_turns=1.25)(q)]),
+            cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
+            cirq.Moment([cirq.Z(q)**1.25]),
         ]))
 
 
@@ -235,16 +229,7 @@ def test_removes_zs():
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.XmonMeasurementGate('k').on(a)))
-
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.google.ExpZGate().on(a),
-        cirq.measure(a)))
-
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.google.ExpZGate().on(a),
-        cirq.measure(a)))
+        cirq.measure(a, key='k')))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
@@ -261,7 +246,7 @@ def test_removes_zs():
         cirq.Z(a),
         cirq.Z(b),
         cirq.CZ(a, b),
-        cirq.google.Exp11Gate().on(a, b),
+        cirq.CZ(a, b),
         cirq.measure(a, b)))
 
 
@@ -280,10 +265,10 @@ def test_unknown_operation_blocks():
 
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cg.ExpZGate(half_turns=1)(q)]),
+            cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u]),
         ]))

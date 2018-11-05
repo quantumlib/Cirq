@@ -13,8 +13,9 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq import abc
-from cirq.line.placement.sequence import GridQubitLineTuple
+import abc
+
+from cirq.google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
