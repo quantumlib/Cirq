@@ -60,6 +60,12 @@ from cirq.extension import (
     try_cast,
 )
 
+from cirq.experiments import (
+    generate_supremacy_circuit_google_v2,
+    generate_supremacy_circuit_google_v2_bristlecone,
+    generate_supremacy_circuit_google_v2_grid,
+)
+
 from cirq.linalg import (
     allclose_up_to_global_phase,
     apply_matrix_to_slices,
@@ -92,11 +98,7 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    LinePlacementStrategy,
     LineQubit,
-    line_on_device,
 )
 
 from cirq.ops import (
@@ -171,12 +173,14 @@ from cirq.schedules import (
 
 from cirq.sim import (
     dirac_notation,
+    measure_state_vector,
+    sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
     StepResult,
+    SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
     to_valid_state_vector,
-    SimulatesFinalWaveFunction,
     validate_normalized_state,
 )
 

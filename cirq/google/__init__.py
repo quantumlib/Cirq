@@ -62,3 +62,10 @@ from cirq.google.programs import (
     pack_results,
     unpack_results,
 )
+
+from cirq.google.line import (
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    LinePlacementStrategy,
+    line_on_device,
+)

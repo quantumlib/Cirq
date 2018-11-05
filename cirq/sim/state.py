@@ -15,9 +15,11 @@
 
 import itertools
 
-from typing import Sequence, Union
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
+
+from cirq import linalg
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
@@ -108,7 +110,7 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
 
 
 def validate_normalized_state(state: np.ndarray, num_qubits: int,
-    dtype: np.dtype = np.complex64):
+    dtype: np.dtype = np.complex64) -> None:
     """Validates that the given state is a valid wave function."""
     if state.size != 1 << num_qubits:
         raise ValueError(
@@ -121,3 +123,162 @@ def validate_normalized_state(state: np.ndarray, num_qubits: int,
     norm = np.sum(np.abs(state) ** 2)
     if not np.isclose(norm, 1):
         raise ValueError('State is not normalized instead had norm %s' % norm)
+
+
+def sample_state_vector(
+    state: np.ndarray,
+    indices: List[int],
+    repetitions: int=1) -> List[List[bool]]:
+    """Samples repeatedly from measurements in the computational basis.
+
+    Note that this does not modify the passed in state.
+
+    Args:
+        state: The multi-qubit wavefunction to be sampled. This is an array of
+            2 to the power of the number of qubit complex numbers, and so
+            state must be of size 2 ** integer.  The state can be a vector of
+            size 2 ** integer or a tensor of shape (2, 2, ..., 2).
+        indices: Which qubits are measured. The state is assumed to be supplied
+            in big endian order. That is the xth index of v, when expressed as
+            a bitstring, has the largest values that the 0th index.
+        repetitions: The number of times to sample the state.
+
+    Returns:
+        Measurement results with True corresponding to the |1> state.
+        The outer list is for repetitions, and the inner corresponds to
+        measurements ordered by the input indices.
+
+    Raises:
+        ValueError if repetitions is less than one or size of state is not a
+            power of 2.
+        IndexError if the indices are out of range for the number of qubits
+            corresponding to the state.
+    """
+    if repetitions < 0:
+        raise ValueError('Number of repetitions cannot be negative. Was {}'
+                         .format(repetitions))
+    num_qubits = _validate_num_qubits(state)
+    _validate_indices(num_qubits, indices)
+
+    if repetitions == 0:
+        return [[]]
+    if len(indices) == 0:
+        return [[] for _ in range(repetitions)]
+
+    # Calculate the measurement probabilities.
+    probs = _probs(state, indices, num_qubits)
+
+    # We now have the probability vector, correctly ordered, so sample over
+    # it. Note that we us ints here, since numpy's choice does not allow for
+    # choosing from a list of tuples or list of lists.
+    result = np.random.choice(len(probs), size=repetitions, p=probs)
+    # Convert to bools and rearrange to match repetition being the outer list.
+    return np.transpose([(1 & (result >> i)).astype(np.bool) for i in
+                         range(len(indices))]).tolist()
+
+
+def measure_state_vector(
+        state: np.ndarray,
+        indices: List[int],
+        out: np.ndarray = None) -> Tuple[List[bool], np.ndarray]:
+    """Performs a measurement of the state in the computational basis.
+
+    This does not modify `state` unless the optional `out` is `state`.
+
+    Args:
+        state: The state to be measured. This state is assumed to be normalized.
+            The state must be of size 2 ** integer.  The state can be of shape
+            (2 ** integer) or (2, 2, ..., 2).
+        indices: Which qubits are measured. The state is assumed to be supplied
+            in big endian order. That is the xth index of v, when expressed as
+            a bitstring, has the largest values in the 0th index.
+        out: An optional place to store the result. If `out` is the same as
+            the `state` parameter, then state will be modified inline. If `out`
+            is not None, then the result is put into `out`.  If `out` is None
+            a new value will be allocated. In all of these case out will be the
+            same as the returned ndarray of the method. The shape and dtype of
+            `out` will match that of state if `out` is None, otherwise it will
+            match the shape and dtype of `out`.
+
+    Returns:
+        A tuple of a list and an numpy array. The list is an array of booleans
+        corresponding to the measurement values (ordered by the indices). The
+        numpy array is the post measurement state. This state has the same
+        shape and dtype as the input state.
+
+    Raises:
+        ValueError if the size of state is not a power of 2.
+        IndexError if the indices are out of range for the number of qubits
+            corresponding to the state.
+    """
+    num_qubits = _validate_num_qubits(state)
+    _validate_indices(num_qubits, indices)
+
+    if len(indices) == 0:
+        return ([], np.copy(state))
+
+    # Cache initial shape.
+    initial_shape = state.shape
+
+    # Calculate the measurement probabilities and then make the measurement.
+    probs = _probs(state, indices, num_qubits)
+    result = np.random.choice(len(probs), p=probs)
+    measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
+
+    # Calculate the slice for the measurement result.
+    result_slice = linalg.slice_for_qubits_equal_to(indices, result)
+
+    # Create a mask which is False for only the slice.
+    mask = np.ones([2] * num_qubits, dtype=bool)
+    mask[result_slice] = False
+
+    if out is None:
+        out = np.copy(state)
+    elif out is not state:
+        np.copyto(out, state)
+    # Final else: if out is state then state will be modified in place.
+
+    # Potentially reshape to tensor, and then set masked values to 0.
+    out.shape = [2] * num_qubits
+    out[mask] = 0
+
+    # Restore original shape (if necessary) and renormalize.
+    out.shape = initial_shape
+    out /= np.sqrt(probs[result])
+
+    return measurement_bits, out
+
+
+def _probs(state: np.ndarray, indices: List[int],
+           num_qubits: int) -> List[float]:
+    """Returns the probabilities for a measurement on the given indices."""
+    # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
+    tensor = np.reshape(state, [2] * num_qubits)
+
+    # Calculate the probabilities for measuring the particular results.
+    probs = [
+        np.linalg.norm(
+                tensor[linalg.slice_for_qubits_equal_to(indices, b)]) ** 2
+        for b in range(2 ** len(indices))]
+
+    # To deal with rounding issues, ensure that the probabilities sum to 1.
+    probs /= sum(probs) # type: ignore
+    return probs
+
+
+def _validate_num_qubits(state: np.ndarray) -> int:
+    """Validates that state's size is a power of 2, returning number of qubits.
+    """
+    size = state.size
+    if size != 0 and size & (size - 1):
+        raise ValueError('state.size ({}) is not a power of two.'.format(size))
+    return size.bit_length() - 1
+
+
+def _validate_indices(num_qubits: int, indices: List[int]) -> None:
+    """Validates that the indices have values within range of num_qubits."""
+    if any(index < 0 for index in indices):
+        raise IndexError('Negative index in indices: {}'.format(indices))
+    if any(index >= num_qubits for index in indices):
+        raise IndexError('Out of range indices, must be less than number of '
+                         'qubits but was {}'.format(indices))

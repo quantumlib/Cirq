@@ -20,7 +20,6 @@ from cirq.circuits.optimization_pass import (
 )
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.decompositions import two_qubit_matrix_to_operations
-from cirq.google.xmon_gate_extensions import xmon_gate_ext
 from cirq.google.xmon_gates import XmonGate
 
 
@@ -50,12 +49,6 @@ class ConvertToXmonGates(PointOptimizer):
         self.ignore_failures = ignore_failures
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Maybe we know how to wrap it?
-        if isinstance(op, ops.GateOperation):
-            xmon = xmon_gate_ext.try_cast(XmonGate, op.gate)  # type: ignore
-            if xmon is not None:
-                return xmon.on(*op.qubits)
-
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:

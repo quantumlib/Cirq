@@ -116,7 +116,7 @@ def test_run(scheduler):
     assert result.measurements['a'].dtype == bool
     assert result.measurements['b'].dtype == bool
     np.testing.assert_equal(result.measurements,
-                            {'a': [[True]], 'b': [[False]]})
+                            {'a': [[False]], 'b': [[True]]})
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -386,8 +386,8 @@ def test_consistent_seeded_run_sharded(scheduler):
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(
-        result.measurements['meas'],
-        [[False, True, True, True, False, False, True, False, False, False]])
+            result.measurements['meas'],
+            [[False, False, True, True, True, True, False, True, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -399,7 +399,7 @@ def test_consistent_seeded_run_no_sharding(scheduler):
     result = run(simulator, circuit, scheduler, )
     np.testing.assert_equal(
         result.measurements['meas'],
-        [[False, True, True, True, False, False, True, False, False, False]])
+        [[False, False, True, True, True, True, False, True, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -413,8 +413,8 @@ def test_run_no_sharing_few_qubits(scheduler):
     simulator = cg.XmonSimulator(
         cg.XmonOptions(min_qubits_before_shard=0))
     result = run(simulator, circuit, scheduler)
-    np.testing.assert_equal(result.measurements['a'], [[True]])
-    np.testing.assert_equal(result.measurements['b'], [[False]])
+    np.testing.assert_equal(result.measurements['a'], [[False]])
+    np.testing.assert_equal(result.measurements['b'], [[True]])
 
 
 def test_simulate_moment_steps_no_results():

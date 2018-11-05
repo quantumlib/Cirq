@@ -82,6 +82,10 @@ See the previous section for instructions.
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
+    If you change protocol buffers you will need to regenerate the proto files, so you should
+    install the protocol buffer compiler.  Instructions for this can be found
+    [here](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md).
+
 2. Prepare a virtual environment including the dev tools (such as mypy).
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.

@@ -13,9 +13,9 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq.line.placement import greedy
-from cirq.line.placement.place_strategy import LinePlacementStrategy
-from cirq.line.placement.sequence import GridQubitLineTuple
+from cirq.google.line.placement import greedy
+from cirq.google.line.placement.place_strategy import LinePlacementStrategy
+from cirq.google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
