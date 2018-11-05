@@ -661,6 +661,7 @@ def test_arbitrary_xyz_repr():
     cirq.testing.assert_equivalent_repr(cirq.RotZGate(
         half_turns=0.1, global_shift_in_half_turns=0.2))
 
+
 def test_XXPowGate_init():
     assert cirq.XXPowGate(exponent=1).exponent == 1
 
@@ -711,4 +712,3 @@ a: ---swap---X---Y---XX---
       |              |
 b: ---swap-----------XX---
 """, use_unicode_characters=False)
-

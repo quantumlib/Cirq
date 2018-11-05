@@ -139,7 +139,6 @@ def ControlledYRoot_decompose(q0: ops.QubitId,
                               q1: ops.QubitId,
                               exponent: Optional[Union[value.Symbol, float]] = None):
     """
-
     Decompose the gate
     ---.-----
        |
@@ -159,7 +158,6 @@ def ControlledZRoot_decompose(q0: ops.QubitId,
                               q1: ops.QubitId,
                               exponent: Optional[Union[value.Symbol, float]] = None):
     """
-
     Decompose the gate
     ---.-----
        |

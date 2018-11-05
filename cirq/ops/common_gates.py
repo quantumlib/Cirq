@@ -997,7 +997,8 @@ class XXPowGate(eigen_gate.EigenGate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Optional[Union[value.Symbol, float]] = None) -> None:
+                 exponent: Union[value.Symbol, float] = 1.0,
+                 global_shift: float = 0.0) -> None:
         """
         Initializes the gate.
 
@@ -1009,7 +1010,9 @@ class XXPowGate(eigen_gate.EigenGate,
             exponent: The power that the gate operation will be raised to.
         """
 
-        super().__init__(exponent=value.chosen_angle_to_half_turns(half_turns=exponent))
+        super().__init__(
+            exponent=exponent,
+            global_shift=global_shift)
 
     @property
     def exponent(self) -> Union[value.Symbol, float]:
@@ -1030,12 +1033,14 @@ class XXPowGate(eigen_gate.EigenGate,
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
 
-    def _with_exponent(self,
-                       exponent: Union[value.Symbol, float]) -> 'XXPowGate':
-        return XXPowGate(exponent=exponent)
-
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
+        if self._global_shift == -0.5:
+            return _rads_func_symbol(
+                'MS',
+                args,
+                self._diagram_exponent(args, ignore_global_phase=False))
+
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'),
             exponent=self.exponent)
@@ -1043,12 +1048,16 @@ class XXPowGate(eigen_gate.EigenGate,
     def __str__(self) -> str:
         if self.exponent == 1:
             return 'XX'
-        return 'XX**{!r}'.format(self.exponent)
+        return 'XX**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self.exponent == 1:
+        if self._global_shift == -0.5:
+            return 'cirq.MS(np.pi*{!r})'.format(self._exponent)
+        if self._exponent == 1:
             return 'cirq.XX'
-        return '(cirq.XX**{!r})'.format(self.exponent)
+        return ('cirq.XXPowGate(exponent={!r},'
+                'global_shift={!r}'
+                ).format(self._exponent, self._global_shift)
 
 
 # Pauli XX
