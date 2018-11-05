@@ -975,11 +975,13 @@ class XXPowGate(eigen_gate.EigenGate,
     def __str__(self) -> str:
         if self.exponent == 1:
             return 'XX'
+        if self._global_shift == -0.5:
+            return 'MS(np.pi/2*{!r})'.format(self._exponent)
         return 'XX**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            return 'cirq.MS(np.pi*{!r})'.format(self._exponent)
+            return 'cirq.MS(np.pi/2*{!r})'.format(self._exponent)
         if self._exponent == 1:
             return 'cirq.XX'
         return ('cirq.XXPowGate(exponent={!r},'

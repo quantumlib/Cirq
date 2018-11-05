@@ -801,29 +801,42 @@ q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(
 
 def test_XXPowGate_init():
     assert cirq.XXPowGate(exponent=1).exponent == 1
+    X05 = cirq.XXPowGate(exponent=0.5)
+    assert X05.exponent == 0.5
+    assert cirq.XX**0.5 != cirq.XX**1.5
+    assert (cirq.XX**-1)**0.5 == cirq.XX**-0.5
 
-
-def test_XXPowGate_arguments():
-    eq_tester = cirq.testing.EqualsTester()
-    eq_tester.add_equality_group(cirq.XXPowGate(exponent=2),
-                                 cirq.XXPowGate() ** 2)
-    eq_tester.add_equality_group(cirq.XXPowGate(exponent=3),
-                                 cirq.XXPowGate())
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.XXPowGate(), cirq.XXPowGate(exponent=1), cirq.XX)
+    eq.add_equality_group(cirq.XXPowGate(exponent=1, global_shift=-1),
+                          cirq.XXPowGate(exponent=3, global_shift=-1))
 
 
 def test_XXPowGate_str():
     assert str(cirq.XXPowGate()) == 'XX'
     assert str(cirq.XXPowGate(exponent=1)) == 'XX'
+    assert str(cirq.XXPowGate(exponent=2)) == 'XX**2'
 
 
 def test_XXPowGate_matrix():
+    assert np.allclose(cirq.unitary(cirq.XXPowGate()),
+                       np.array([[0, 0, 0, 1],
+                                 [0, 0, 1, 0],
+                                 [0, 1, 0, 0],
+                                 [1, 0, 0, 0]]))
     assert np.allclose(cirq.unitary(cirq.XXPowGate()**2),
                        np.diag([1, 1, 1, 1]))
+    assert np.allclose(cirq.unitary(cirq.XXPowGate(exponent=0.5, global_shift=-0.5)),
+                       np.array([[np.cos(np.pi/4), 0, 0, -1j*np.sin(np.pi/4)],
+                                 [0, np.cos(np.pi/4), -1j * np.sin(np.pi / 4), 0],
+                                 [0, -1j * np.sin(np.pi / 4), np.cos(np.pi/4), 0],
+                                 [-1j * np.sin(np.pi / 4), 0, 0, np.cos(np.pi/4)]]))
 
 
 def test_XXPowGate_repr():
     assert repr(cirq.XXPowGate()) == 'cirq.XX'
     assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
+    assert repr(cirq.XXPowGate(exponent=2, global_shift=-0.5) == 'cirq.MS(np.pi/2*2)')
     cirq.testing.assert_equivalent_repr(cirq.XXPowGate())
     cirq.testing.assert_equivalent_repr(cirq.XXPowGate() ** 0.1)
     cirq.testing.assert_equivalent_repr(cirq.XX)

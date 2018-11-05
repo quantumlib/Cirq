@@ -18,41 +18,31 @@ import pytest
 import cirq
 
 
-def test_MSGate_init():
-    assert cirq.MSGate(exponent=2).exponent == 2
-
-
 def test_MSGate_arguments():
     eq_tester = cirq.testing.EqualsTester()
-    eq_tester.add_equality_group(cirq.MSGate(exponent=2),
-                                 cirq.MSGate() ** 2)
-    eq_tester.add_equality_group(cirq.MSGate(exponent=4),
-                                 cirq.MSGate(rads=np.pi))
+    eq_tester.add_equality_group(cirq.MSGate(np.pi/2),
+                                 cirq.MSGate())
 
 
 def test_MSGate_str():
-    assert str(cirq.MSGate()) == 'MS'
-    assert str(cirq.MSGate(exponent=3)) == 'MS**3.0'
+    assert str(cirq.MSGate(np.pi/2)) == 'MS(np.pi/2*{!r})'
 
 
 def test_MSGate_matrix():
     s = np.sqrt(0.5)
-    assert np.allclose(cirq.unitary(cirq.MSGate()),
+    assert np.allclose(cirq.unitary(cirq.MSGate(np.pi/4)),
                        np.array([[s, 0, 0, -1j*s],
                                  [0, s, -1j*s, 0],
                                  [0, -1j*s, s, 0],
                                  [-1j*s, 0, 0, s]]))
-    assert np.allclose(cirq.unitary(cirq.MSGate(exponent=4)),
+    assert np.allclose(cirq.unitary(cirq.MSGate(np.pi)),
                        np.diag([-1, -1, -1, -1]))
 
 
 def test_MSGate_repr():
-    assert repr(cirq.MSGate()) == 'cirq.MS'
-    assert repr(cirq.MSGate(exponent=0.5)) == '(cirq.MS**0.5)'
-    cirq.testing.assert_equivalent_repr(cirq.MSGate())
-    cirq.testing.assert_equivalent_repr(cirq.MSGate() ** 0.1)
-    cirq.testing.assert_equivalent_repr(cirq.MS)
-    cirq.testing.assert_equivalent_repr(cirq.MS ** 0.1)
+    assert repr(cirq.MSGate(np.pi/4)) == '(cirq.MS(np.pi/2*0.5))'
+    cirq.testing.assert_equivalent_repr(cirq.MSGate(np.pi/4))
+    cirq.testing.assert_equivalent_repr(cirq.MSGate(np.pi/4) ** 0.1)
 
 
 def test_MSGate_diagrams():
@@ -62,13 +52,12 @@ def test_MSGate_diagrams():
         cirq.SWAP(a, b),
         cirq.X(a),
         cirq.Y(a),
-        cirq.MS(a, b))
-
+        cirq.MSGate(np.pi/4).on(a, b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───MS───
+a: ───×───X───Y───MS(0.25π)───
       │           │
-b: ───×───────────MS───
+b: ───×───────────MS(0.25π)───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """

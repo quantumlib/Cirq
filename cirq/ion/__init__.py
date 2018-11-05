@@ -16,6 +16,5 @@
 """
 
 from cirq.ion.ion_gates import (
-    MS,
     MSGate,
 )
