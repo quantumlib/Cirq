@@ -22,6 +22,7 @@ from cirq.contrib.paulistring.pauli_string_raw_types import (
 from cirq.ops.pauli_string import PauliString
 
 
+@value.value_equality
 class PauliStringPhasor(PauliStringGateOperation):
     """An operation that phases a Pauli string."""
     def __init__(self,
@@ -53,19 +54,8 @@ class PauliStringPhasor(PauliStringGateOperation):
         super().__init__(pauli_string)
         self.half_turns = half_turns
 
-    def _eq_tuple(self) -> Tuple[Hashable, ...]:
-        return (PauliStringPhasor, self.pauli_string, self.half_turns)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
+    def _value_equality_values_(self):
+        return self.pauli_string, self.half_turns
 
     def map_qubits(self, qubit_map: Dict[ops.QubitId, ops.QubitId]):
         ps = self.pauli_string.map_qubits(qubit_map)

@@ -26,7 +26,7 @@ from typing import Dict, Iterator, List, Union
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study
+from cirq import circuits, ops, schedules, study, value
 from cirq.sim import wavefunction
 
 
@@ -184,6 +184,7 @@ class SimulatesFinalWaveFunction:
         raise NotImplementedError()
 
 
+@value.value_equality(unhashable=True)
 class SimulationTrialResult:
     """Results of a simulation by a SimulatesFinalWaveFunction.
 
@@ -227,19 +228,11 @@ class SimulationTrialResult:
     def dirac_notation(self, decimals=2):
         return wavefunction.dirac_notation(self.final_state, decimals)
 
-    def _eq_tuple(self):
+    def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (SimulationTrialResult, self.params, measurements,
                 self.final_state.tolist())
-
-    def __eq__(self, other):
-        if not isinstance(other, SimulationTrialResult):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
 
 
 class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):

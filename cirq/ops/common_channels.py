@@ -18,10 +18,11 @@ from typing import Iterable
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import raw_types
 
 
+@value.value_equality
 class AsymmetricDepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes asymmetrically along different directions."""
 
@@ -67,17 +68,8 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             np.sqrt(self._p_z) * np.array([[1, 0], [0, -1]])
         )
 
-    def _eq_tuple(self):
-        return (AsymmetricDepolarizingChannel,
-                self._p_x, self._p_y, self._p_z)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._p_x, self._p_y, self._p_z
 
     def __repr__(self) -> str:
         return (

@@ -15,6 +15,7 @@
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload)
 
+from cirq import value
 from cirq.ops import (
     raw_types, gate_operation, common_gates, op_tree
 )
@@ -24,6 +25,8 @@ from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
 TDefault = TypeVar('TDefault')
 
+
+@value.value_equality
 class PauliString:
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
@@ -36,21 +39,9 @@ class PauliString:
         """Creates a PauliString with a single qubit."""
         return PauliString({qubit: pauli})
 
-    def _eq_tuple(self) -> Tuple[Any, ...]:
-        return (PauliString,
-                self._qubit_pauli_map,
+    def _value_equality_values_(self):
+        return (frozenset(self._qubit_pauli_map.items()),
                 self.negated)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((PauliString, self.negated, frozenset(self.items())))
 
     def equal_up_to_sign(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map

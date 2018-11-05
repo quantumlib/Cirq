@@ -201,6 +201,7 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+    value_equality,
 )
 
 # pylint: disable=redefined-builtin
