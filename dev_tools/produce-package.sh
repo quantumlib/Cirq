@@ -14,32 +14,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+################################################################################
+# Produces wheels that can be uploaded to the pypi package repository.
+#
+# Usage:
+#     dev_tools/produce-package.sh output_dir
+################################################################################
+
 set -e
 
+if [ -z "${1}" ]; then
+  echo -e "\e[31mNo output directory given.\e[0m"
+  exit 1
+fi
+out_dir=$(realpath "${1}")
+
 # Get the working directory to the repo root.
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${own_directory}
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 repo_dir=$(git rev-parse --show-toplevel)
 cd ${repo_dir}
 
-# Fail if package files already exist.
-mkdir dist
-
 echo "Producing python 3 package files..."
-python3 setup.py -q sdist bdist_wheel
+python3 setup.py -q bdist_wheel -d "${out_dir}"
 
 echo "Generating python 2.7 source..."
-cur_dir=$(pwd)
-tmp_py2_dir="$(pwd)/python2.7-package-tmp"
-bash dev_tools/python2.7-generate.sh "${tmp_py2_dir}" "${cur_dir}"
+tmp_py2_dir=$(mktemp -d "/tmp/produce-package-py2.XXXXXXXXXXXXXXXX")
+trap "{ rm -rf ${tmp_py2_dir}; }" EXIT
+rmdir "${tmp_py2_dir}"
+bash dev_tools/python2.7-generate.sh "${tmp_py2_dir}" "${repo_dir}"
 
 echo "Producing python 2.7 package files..."
 export PYTHONPATH=${tmp_py2_dir}
 cd "${tmp_py2_dir}"
-python2 setup.py -q sdist bdist_wheel
-cp dist/* "${cur_dir}/dist/"
-cd "${cur_dir}"
-rm -rf "${tmp_py2_dir}"
+python2 setup.py -q bdist_wheel -d "${out_dir}"
 
-ls dist/
-echo "Done. Output is in 'dist/'."
+ls "${out_dir}"

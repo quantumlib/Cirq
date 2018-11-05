@@ -67,6 +67,9 @@ class SingleQubitMatrixGate(raw_types.Gate):
         phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
         return SingleQubitMatrixGate(phased_matrix)
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return self._matrix
 

@@ -22,7 +22,7 @@ from cirq.contrib.paulistring.pauli_string_raw_types import (
 from cirq.ops.pauli_string import PauliString
 
 
-class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
+class PauliStringPhasor(PauliStringGateOperation):
     """An operation that phases a Pauli string."""
     def __init__(self,
                  pauli_string: PauliString,
@@ -93,7 +93,7 @@ class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
                       + cast(float, op.half_turns) * neg_sign)
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
-    def default_decompose(self) -> ops.OP_TREE:
+    def _decompose_(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
         qubits = self.qubits
@@ -105,7 +105,7 @@ class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
         if isinstance(self.half_turns, value.Symbol):
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
-            yield ops.RotZGate(half_turns=self.half_turns)(any_qubit)
+            yield ops.Z(any_qubit)**self.half_turns
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
         else:
@@ -122,8 +122,7 @@ class PauliStringPhasor(PauliStringGateOperation, ops.CompositeOperation):
                                                exponent_absorbs_sign=True)
 
     def _trace_distance_bound_(self) -> float:
-        return protocols.trace_distance_bound(
-            ops.RotZGate(half_turns=self.half_turns))
+        return protocols.trace_distance_bound(ops.Z**self.half_turns)
 
     def _is_parameterized_(self) -> bool:
         return isinstance(self.half_turns, value.Symbol)

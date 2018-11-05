@@ -18,7 +18,7 @@ from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import raw_types, gate_features, common_gates, op_tree, \
+from cirq.ops import raw_types, common_gates, op_tree, \
     named_qubit
 from cirq.ops.pauli import Pauli
 
@@ -32,7 +32,7 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
     pass
 
 
-class SingleQubitCliffordGate(raw_types.Gate, gate_features.CompositeGate):
+class SingleQubitCliffordGate(raw_types.Gate):
     """Any single qubit Clifford rotation."""
     I = _pretend_initialized()
     H = _pretend_initialized()
@@ -261,14 +261,17 @@ class SingleQubitCliffordGate(raw_types.Gate, gate_features.CompositeGate):
             (x_final_pauli, x_flip1 ^ x_flip2),
             (z_final_pauli, z_flip1 ^ z_flip2))
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         mat = np.eye(2)
         qubit = named_qubit.NamedQubit('arbitrary')
-        for op in op_tree.flatten_op_tree(self.default_decompose((qubit,))):
+        for op in protocols.decompose_once_with_qubits(self, (qubit,)):
             mat = protocols.unitary(op).dot(mat)
         return mat
 
-    def default_decompose(self, qubits: Sequence[raw_types.QubitId]
+    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
         qubit, = qubits
         if self == SingleQubitCliffordGate.H:

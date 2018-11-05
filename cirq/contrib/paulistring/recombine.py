@@ -47,7 +47,7 @@ def _possible_string_placements(
             if not (isinstance(out_op, ops.GateOperation) and
                     isinstance(out_op.gate, (ops.SingleQubitCliffordGate,
                                              ops.PauliInteractionGate,
-                                             ops.Rot11Gate))):
+                                             ops.CZPowGate))):
                 # This is as far through as this Pauli string can move
                 break
             string_op = string_op.pass_operations_over([out_op],

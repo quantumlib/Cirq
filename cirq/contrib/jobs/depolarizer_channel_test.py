@@ -70,8 +70,8 @@ def test_depolarizer_different_gate():
         cirq.Circuit([
             cirq.Moment([cirq.CNOT(q1, q2)]),
             cirq.Moment([cirq.Z(q1)**p0, cirq.Z(q2)**p1]),
-            cirq.Moment([xmon_gates.ExpWGate(half_turns=p2).on(q1),
-                             xmon_gates.ExpWGate(half_turns=p3).on(q2)])
+            cirq.Moment([xmon_gates.ExpWGate(exponent=p2).on(q1),
+                         xmon_gates.ExpWGate(exponent=p3).on(q2)])
         ]),
         cnot.sweep * error_sweep)
 
