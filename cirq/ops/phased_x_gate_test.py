@@ -57,6 +57,12 @@ def test_qasm(phase_exponent: float, exponent: float):
                             global_shift=-0.5))
 
 
+def test_no_symbolic_qasm_but_fails_gracefully():
+    q = cirq.NamedQubit('q')
+    v = cirq.PhasedXPowGate(phase_exponent=cirq.Symbol('p')).on(q)
+    assert cirq.qasm(v, args=cirq.QasmArgs(), default=None) is None
+
+
 def test_extrapolate():
     g = cirq.PhasedXPowGate(phase_exponent=0.25)
     assert g**0.25 == (g**0.5)**0.5
