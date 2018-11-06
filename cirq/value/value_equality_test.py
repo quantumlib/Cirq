@@ -143,5 +143,5 @@ def test_value_equality_distinct_child_types():
 def test_value_equality_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_'):
         @cirq.value_equality
-        class C:
+        class _:
             pass
