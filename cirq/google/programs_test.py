@@ -18,6 +18,9 @@ import pytest
 
 import cirq
 import cirq.google as cg
+from cirq.google.xmon_gates import (
+    _parameterized_value_from_proto_dict
+)
 from cirq.schedules import moment_by_moment_schedule
 
 
@@ -25,7 +28,7 @@ def assert_proto_dict_convert(gate: cirq.Gate,
                               proto_dict: Dict,
                               *qubits: cirq.QubitId):
     assert cg.gate_to_proto_dict(gate, qubits) == proto_dict
-    assert cg.XmonGate.from_proto_dict(proto_dict) == gate(*qubits)
+    assert cg.xmon_op_from_proto_dict(proto_dict) == gate(*qubits)
 
 
 def test_protobuf_round_trip():
@@ -306,7 +309,7 @@ def test_cz_invalid_dict():
         }
     }
     with pytest.raises(ValueError, match='missing required fields'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_11': {
@@ -320,7 +323,7 @@ def test_cz_invalid_dict():
         }
     }
     with pytest.raises(ValueError, match='missing required fields'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_11': {
@@ -335,7 +338,7 @@ def test_cz_invalid_dict():
         }
     }
     with pytest.raises(ValueError, match='missing required fields'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_w_to_proto_dict():
@@ -440,7 +443,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -454,7 +457,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -468,7 +471,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_unsupported_op():
@@ -481,7 +484,7 @@ def test_unsupported_op():
         }
     }
     with pytest.raises(ValueError, match='invalid operation'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
     with pytest.raises(ValueError, match='know how to serialize'):
         cg.gate_to_proto_dict(cirq.CCZ, (cirq.GridQubit(0, 0),
                                          cirq.GridQubit(0, 1),
@@ -495,12 +498,13 @@ def test_invalid_to_proto_dict_qubit_number():
         cg.gate_to_proto_dict(cirq.Z**0.5, (cirq.GridQubit(2, 3),
                                             cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.ExpWGate(exponent=0.5, phase_exponent=0).to_proto_dict(
-            cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
+        cg.gate_to_proto_dict(
+            cg.ExpWGate(exponent=0.5, phase_exponent=0),
+            (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
 
 
 def test_parameterized_value_from_proto():
-    from_proto = cg.XmonGate.parameterized_value_from_proto_dict
+    from_proto = _parameterized_value_from_proto_dict
 
     m1 = {'raw': 5}
     assert from_proto(m1) == 5
@@ -524,7 +528,7 @@ def test_single_qubit_measurement_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'measurement': {
@@ -537,7 +541,7 @@ def test_single_qubit_measurement_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_invalid_measurement_gate():
@@ -560,7 +564,7 @@ def test_z_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_z': {
@@ -570,4 +574,4 @@ def test_z_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)

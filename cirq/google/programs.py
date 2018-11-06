@@ -68,8 +68,8 @@ def _x_to_proto_dict(gate: ops.XPowGate, q: ops.QubitId) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
-            xmon_gates.XmonGate.parameterized_value_to_proto_dict(0),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+            xmon_gates._parameterized_value_to_proto_dict(0),
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent)
     }
     return {'exp_w': exp_w}
@@ -79,8 +79,8 @@ def _y_to_proto_dict(gate: ops.YPowGate, q: ops.QubitId) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
-            xmon_gates.XmonGate.parameterized_value_to_proto_dict(0.5),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+            xmon_gates._parameterized_value_to_proto_dict(0.5),
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent)
     }
     return {'exp_w': exp_w}
@@ -92,9 +92,9 @@ def _phased_x_to_proto_dict(gate: Union[ops.PhasedXPowGate,
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
-            xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+            xmon_gates._parameterized_value_to_proto_dict(
                 gate.phase_exponent),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent)
     }
     return {'exp_w': exp_w}
@@ -103,7 +103,7 @@ def _phased_x_to_proto_dict(gate: Union[ops.PhasedXPowGate,
 def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.QubitId) -> Dict:
     exp_z = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent),
     }
     return {'exp_z': exp_z}
@@ -115,7 +115,7 @@ def _cz_to_proto_dict(gate: ops.CZPowGate,
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent)
     }
     return {'exp_11': exp_11}
@@ -175,7 +175,7 @@ def schedule_from_proto_dicts(
             delay_picos = op['incremental_delay_picoseconds']
         time_picos = last_time_picos + delay_picos
         last_time_picos = time_picos
-        xmon_op = xmon_gates.XmonGate.from_proto_dict(op)
+        xmon_op = xmon_gates.xmon_op_from_proto_dict(op)
         scheduled_ops.append(ScheduledOperation.op_at_on(
             operation=xmon_op,
             time=Timestamp(picos=time_picos),
