@@ -114,11 +114,10 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
     Raises:
         ArithmeticError: Failed to find perpendicular eigenvectors.
     """
-
     vals, cols = np.linalg.eig(matrix)
     vecs = [cols[:, i] for i in range(len(cols))]
 
-    # Converts list of row arrays to columns.
+    # Convert list of row arrays to list of column arrays.
     for i in range(len(vecs)):
         vecs[i] = np.reshape(vecs[i], (len(vecs[i]), vecs[i].ndim))
 
