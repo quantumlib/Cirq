@@ -16,109 +16,132 @@ import pytest
 import cirq
 
 
+@cirq.value_equality
+class BasicC:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+@cirq.value_equality
+class BasicD:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+class BasicCa(BasicC):
+    pass
+
+
+class BasicCb(BasicC):
+    pass
+
+
 def test_value_equality_basic():
-    @cirq.value_equality
-    class C:
-        def __init__(self, x):
-            self.x = x
-
-        def _value_equality_values_(self):
-            return self.x
-
-    @cirq.value_equality
-    class D:
-        def __init__(self, x):
-            self.x = x
-
-        def _value_equality_values_(self):
-            return self.x
-
-    class Ca(C):
-        pass
-
-    class Cb(C):
-        pass
 
     # Lookup works across equivalent types.
-    v = {C(1): 4, Ca(2): 5}
-    assert v[Ca(1)] == v[C(1)] == 4
-    assert v[Ca(2)] == 5
+    v = {BasicC(1): 4, BasicCa(2): 5}
+    assert v[BasicCa(1)] == v[BasicC(1)] == 4
+    assert v[BasicCa(2)] == 5
 
     # Equality works as expected.
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(C(1), C(1), Ca(1), Cb(1))
-    eq.add_equality_group(D(1))
-    eq.add_equality_group(C(2))
-    eq.add_equality_group(Ca(3))
+    eq.add_equality_group(BasicC(1), BasicC(1), BasicCa(1), BasicCb(1))
+    eq.add_equality_group(BasicD(1))
+    eq.add_equality_group(BasicC(2))
+    eq.add_equality_group(BasicCa(3))
+
+
+@cirq.value_equality(unhashable=True)
+class UnhashableC:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+@cirq.value_equality(unhashable=True)
+class UnhashableD:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+class UnhashableCa(UnhashableC):
+    pass
+
+
+class UnhashableCb(UnhashableC):
+    pass
 
 
 def test_value_equality_unhashable():
-    @cirq.value_equality(unhashable=True)
-    class C:
-        def __init__(self, x):
-            self.x = x
-
-        def _value_equality_values_(self):
-            return self.x
-
-    @cirq.value_equality(unhashable=True)
-    class D:
-        def __init__(self, x):
-            self.x = x
-
-        def _value_equality_values_(self):
-            return self.x
-
-    class Ca(C):
-        pass
-
-    class Cb(C):
-        pass
-
     # Not possible to use as a dictionary key.
     with pytest.raises(TypeError, match='unhashable'):
-        _ = {C(1): 4}
+        _ = {UnhashableC(1): 4}
 
     # Equality works as expected.
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(C(1), C(1), Ca(1), Cb(1))
-    eq.add_equality_group(C(2))
-    eq.add_equality_group(D(1))
+    eq.add_equality_group(UnhashableC(1),
+                          UnhashableC(1),
+                          UnhashableCa(1),
+                          UnhashableCb(1))
+    eq.add_equality_group(UnhashableC(2))
+    eq.add_equality_group(UnhashableD(1))
+
+
+@cirq.value_equality(distinct_child_types=True)
+class DistinctC:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+@cirq.value_equality(distinct_child_types=True)
+class DistinctD:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+class DistinctCa(DistinctC):
+    pass
+
+
+class DistinctCb(DistinctC):
+    pass
 
 
 def test_value_equality_distinct_child_types():
-    @cirq.value_equality(distinct_child_types=True)
-    class C:
-        def __init__(self, x):
-            self.x = x
-
-        def _value_equality_values_(self):
-            return self.x
-
-    @cirq.value_equality(distinct_child_types=True)
-    class D:
-        def __init__(self, x):
-            self.x = x
-
-        def _value_equality_values_(self):
-            return self.x
-
-    class Ca(C):
-        pass
-
-    class Cb(C):
-        pass
-
     # Lookup is distinct across child types.
-    v = {C(1): 4, Ca(1): 5, Cb(1): 6}
-    assert v[C(1)] == 4
-    assert v[Ca(1)] == 5
-    assert v[Cb(1)] == 6
+    v = {DistinctC(1): 4, DistinctCa(1): 5, DistinctCb(1): 6}
+    assert v[DistinctC(1)] == 4
+    assert v[DistinctCa(1)] == 5
+    assert v[DistinctCb(1)] == 6
 
     # Equality works as expected.
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(C(1), C(1))
-    eq.add_equality_group(Ca(1), Ca(1))
-    eq.add_equality_group(Cb(1), Cb(1))
-    eq.add_equality_group(C(2))
-    eq.add_equality_group(D(1))
+    eq.add_equality_group(DistinctC(1), DistinctC(1))
+    eq.add_equality_group(DistinctCa(1), DistinctCa(1))
+    eq.add_equality_group(DistinctCb(1), DistinctCb(1))
+    eq.add_equality_group(DistinctC(2))
+    eq.add_equality_group(DistinctD(1))
+
+
+def test_value_equality_forgot_method():
+    with pytest.raises(TypeError, match='_value_equality_values_'):
+        @cirq.value_equality
+        class C:
+            pass

@@ -65,8 +65,8 @@ def value_equality(*args,
     cls = args[0]
     getter = getattr(cls, '_value_equality_values_', None)
     if getter is None:
-        raise ValueError('The @cirq.value_equality decorator requires a '
-                         '_value_equality_values_ method to be defined.')
+        raise TypeError('The @cirq.value_equality decorator requires a '
+                        '_value_equality_values_ method to be defined.')
 
     if distinct_child_types:
         setattr(cls, '_value_equality_values_cls_', lambda self: type(self))
