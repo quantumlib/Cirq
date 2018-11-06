@@ -11,9 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Union, Callable, overload, Any
+
+from typing_extensions import Protocol
 
 
-def _value_equality_eq(self, other):
+class _SupportsValueEquality(Protocol):
+    """An object decorated with the value equality decorator."""
+
+    def _value_equality_values_(self) -> Any:
+        pass
+
+    def _value_equality_values_cls_(self) -> Any:
+        pass
+
+
+def _value_equality_eq(self: _SupportsValueEquality,
+                       other: _SupportsValueEquality) -> bool:
     cls_self = self._value_equality_values_cls_()
     if not isinstance(other, cls_self):
         return NotImplemented
@@ -23,27 +37,54 @@ def _value_equality_eq(self, other):
     return self._value_equality_values_() == other._value_equality_values_()
 
 
-def _value_equality_ne(self, other):
+def _value_equality_ne(self: _SupportsValueEquality,
+                       other: _SupportsValueEquality) -> bool:
     return not self == other
 
 
-def _value_equality_hash(self):
+def _value_equality_hash(self: _SupportsValueEquality) -> int:
     return hash((self._value_equality_values_cls_(),
                  self._value_equality_values_()))
 
 
-def value_equality(*args,
+# pylint: disable=function-redefined
+@overload
+def value_equality(cls: type,
+                   *,
                    unhashable: bool = False,
-                   distinct_child_types: bool = False):
-    """Implements __eq__, __ne__, and __hash__ via _value_equality_values_.
+                   distinct_child_types: bool = False
+                   ) -> type:
+    pass
 
-    Note that a type is appended to the equality values. By default this is the
-    class type of the decorated class (so child types will be considered equal),
-    but it can be changed to the type of the receiving value (so child type are
-    all distinct). This logic is encoded by adding an appropriate
-    `_value_equality_values_cls_` method to the class.
+
+@overload
+def value_equality(*,
+                   unhashable: bool = False,
+                   distinct_child_types: bool = False
+                   ) -> Callable[[type], type]:
+    pass
+
+
+def value_equality(cls: type = None,
+                   *,
+                   unhashable: bool = False,
+                   distinct_child_types: bool = False
+                   ) -> Union[Callable[[type], type], type]:
+    """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
+
+    _value_equality_values_ is a method that the decorated class must implement.
+
+    Note that the type of the decorated value is included as part of the value
+    equality values. This is so that completely separate classes with identical
+    equality values (e.g. a Point2D and a Vector2D) don't compare as equal.
+    Further note that this means that child types of the decorated type will be
+    considered equal to each other, though this behavior can be changed via
+    the 'distinct_child_types` argument. The type logic is implemented behind
+    the scenes by a `_value_equality_values_cls_` method added to the class.
 
     Args:
+        cls: The type to decorate. Automatically passed in by python when using
+            the @cirq.value_equality decorator notation on a class.
         unhashable: When set, the __hash__ method will be set to None instead of
             to a hash of the equality class and equality values. Useful for
             mutable types such as dictionaries.
@@ -54,15 +95,14 @@ def value_equality(*args,
             define equality for many conceptually distinct concrete classes.
     """
 
-    # If `unhashable` was specified, the cls argument has not been passed yet.
-    if len(args) == 0:
-        return lambda cls: value_equality(
-            cls,
+    # If keyword arguments were specified, python invokes the decorator method
+    # without a `cls` argument, then passes `cls` into the result.
+    if cls is None:
+        return lambda deferred_cls: value_equality(
+            deferred_cls,
             unhashable=unhashable,
             distinct_child_types=distinct_child_types)
-    assert len(args) == 1
 
-    cls = args[0]
     getter = getattr(cls, '_value_equality_values_', None)
     if getter is None:
         raise TypeError('The @cirq.value_equality decorator requires a '
@@ -77,3 +117,4 @@ def value_equality(*args,
     setattr(cls, '__ne__', _value_equality_ne)
 
     return cls
+# pylint: enable=function-redefined
