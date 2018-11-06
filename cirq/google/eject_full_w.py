@@ -308,9 +308,7 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
 
 def _try_get_known_phased_pauli(op: ops.Operation
                                 ) -> Optional[Tuple[float, float]]:
-    if protocols.is_parameterized(op):
-        return None
-    if not isinstance(op, ops.GateOperation):
+    if protocols.is_parameterized(op) or not isinstance(op, ops.GateOperation):
         return None
     gate = op.gate
 

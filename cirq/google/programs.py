@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast, Union
+from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 
 import numpy as np
 
