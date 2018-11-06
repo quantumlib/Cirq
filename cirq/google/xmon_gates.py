@@ -14,9 +14,8 @@
 
 """Gates that can be directly described to the API, without decomposition."""
 
-from typing import Dict, Optional, Union, Tuple, Any, cast
+from typing import Dict, Union, Tuple, Any, cast
 
-import abc
 import json
 
 import numpy as np
@@ -27,117 +26,98 @@ from cirq.devices.grid_qubit import GridQubit
 from cirq.type_workarounds import NotImplementedType
 
 
-class XmonGate(ops.Gate, metaclass=abc.ABCMeta):
-    """A gate with a known mechanism for encoding into google API protos."""
-
-    @abc.abstractmethod
-    def to_proto_dict(self, *qubits) -> Dict:
-        """Returns a dictionary representing the proto.
-
-        For definitions of the protos see api/google/v1/operations.proto
-        """
-        raise NotImplementedError()
-
-    @staticmethod
-    def is_supported_op(op: ops.Operation) -> bool:
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, (ops.CZPowGate,
-                                     ops.MeasurementGate,
-                                     ops.PhasedXPowGate,
-                                     ops.XPowGate,
-                                     ops.YPowGate,
-                                     ops.ZPowGate))):
-            return True
-        return XmonGate.try_get_xmon_gate(op) is not None
-
-    @staticmethod
-    def try_get_xmon_gate(op: ops.Operation) -> Optional['XmonGate']:
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, XmonGate)):
-            return op.gate
-        return None
-
-    @staticmethod
-    def from_proto_dict(proto_dict: Dict) -> ops.Operation:
-        """Convert the proto dictionary to the corresponding operation.
-
-        See protos in api/google/v1 for specification of the protos.
-
-        Args:
-            proto_dict: Dictionary representing the proto. Keys are always
-                strings, but values may be types correspond to a raw proto type
-                or another dictionary (for messages).
-
-        Returns:
-            The operation.
-
-        Raises:
-            ValueError if the dictionary does not contain required values
-            corresponding to the proto.
-        """
-
-        def raise_missing_fields(gate_name: str):
-            raise ValueError(
-                '{} missing required fields: {}'.format(gate_name, proto_dict))
-        param = XmonGate.parameterized_value_from_proto_dict
-        qubit = GridQubit.from_proto_dict
-        if 'exp_w' in proto_dict:
-            exp_w = proto_dict['exp_w']
-            if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w
-                    or 'target' not in exp_w):
-                raise_missing_fields('ExpW')
-            return ExpWGate(
-                exponent=param(exp_w['half_turns']),
-                phase_exponent=param(exp_w['axis_half_turns']),
-            ).on(qubit(exp_w['target']))
-        elif 'exp_z' in proto_dict:
-            exp_z = proto_dict['exp_z']
-            if 'half_turns' not in exp_z or 'target' not in exp_z:
-                raise_missing_fields('ExpZ')
-            return ops.Z(qubit(exp_z['target']))**param(exp_z['half_turns'])
-        elif 'exp_11' in proto_dict:
-            exp_11 = proto_dict['exp_11']
-            if ('half_turns' not in exp_11 or 'target1' not in exp_11
-                    or 'target2' not in exp_11):
-                raise_missing_fields('Exp11')
-            return ops.CZ(qubit(exp_11['target1']),
-                          qubit(exp_11['target2']))**param(exp_11['half_turns'])
-        elif 'measurement' in proto_dict:
-            meas = proto_dict['measurement']
-            invert_mask = cast(Tuple[Any, ...], ())
-            if 'invert_mask' in meas:
-                invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
-            if 'key' not in meas or 'targets' not in meas:
-                raise_missing_fields('Measurement')
-            return ops.MeasurementGate(
-                key=meas['key'],
-                invert_mask=invert_mask
-            ).on(*[qubit(q) for q in meas['targets']])
-        else:
-            raise ValueError('invalid operation: {}'.format(proto_dict))
-
-    @staticmethod
-    def parameterized_value_from_proto_dict(message: Dict) -> Union[
-        value.Symbol, float]:
-        if 'raw' in message:
-            return message['raw']
-        if 'parameter_key' in message:
-            return value.Symbol(message['parameter_key'])
-        raise ValueError('No value specified for parameterized float.')
+def is_native_xmon_op(op: ops.Operation) -> bool:
+    return (isinstance(op, ops.GateOperation) and
+            isinstance(op.gate, (ops.CZPowGate,
+                                 ops.MeasurementGate,
+                                 ops.PhasedXPowGate,
+                                 ops.XPowGate,
+                                 ops.YPowGate,
+                                 ops.ZPowGate,
+                                 ExpWGate)))
 
 
-    @staticmethod
-    def parameterized_value_to_proto_dict(
-        param: Union[value.Symbol, float]) -> Dict:
-        out = {}  # type: Dict
-        if isinstance(param, value.Symbol):
-            out['parameter_key'] = param.name
-        else:
-            out['raw'] = float(param)
-        return out
+def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
+    """Convert the proto dictionary to the corresponding operation.
+
+    See protos in api/google/v1 for specification of the protos.
+
+    Args:
+        proto_dict: Dictionary representing the proto. Keys are always
+            strings, but values may be types correspond to a raw proto type
+            or another dictionary (for messages).
+
+    Returns:
+        The operation.
+
+    Raises:
+        ValueError if the dictionary does not contain required values
+        corresponding to the proto.
+    """
+
+    def raise_missing_fields(gate_name: str):
+        raise ValueError(
+            '{} missing required fields: {}'.format(gate_name, proto_dict))
+    param = _parameterized_value_from_proto_dict
+    qubit = GridQubit.from_proto_dict
+    if 'exp_w' in proto_dict:
+        exp_w = proto_dict['exp_w']
+        if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w
+                or 'target' not in exp_w):
+            raise_missing_fields('ExpW')
+        return ExpWGate(
+            exponent=param(exp_w['half_turns']),
+            phase_exponent=param(exp_w['axis_half_turns']),
+        ).on(qubit(exp_w['target']))
+    elif 'exp_z' in proto_dict:
+        exp_z = proto_dict['exp_z']
+        if 'half_turns' not in exp_z or 'target' not in exp_z:
+            raise_missing_fields('ExpZ')
+        return ops.Z(qubit(exp_z['target']))**param(exp_z['half_turns'])
+    elif 'exp_11' in proto_dict:
+        exp_11 = proto_dict['exp_11']
+        if ('half_turns' not in exp_11 or 'target1' not in exp_11
+                or 'target2' not in exp_11):
+            raise_missing_fields('Exp11')
+        return ops.CZ(qubit(exp_11['target1']),
+                      qubit(exp_11['target2']))**param(exp_11['half_turns'])
+    elif 'measurement' in proto_dict:
+        meas = proto_dict['measurement']
+        invert_mask = cast(Tuple[Any, ...], ())
+        if 'invert_mask' in meas:
+            invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
+        if 'key' not in meas or 'targets' not in meas:
+            raise_missing_fields('Measurement')
+        return ops.MeasurementGate(
+            key=meas['key'],
+            invert_mask=invert_mask
+        ).on(*[qubit(q) for q in meas['targets']])
+    else:
+        raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
-class ExpWGate(XmonGate, ops.SingleQubitGate):
+def _parameterized_value_from_proto_dict(message: Dict
+                                         ) -> Union[value.Symbol, float]:
+    if 'raw' in message:
+        return message['raw']
+    if 'parameter_key' in message:
+        return value.Symbol(message['parameter_key'])
+    raise ValueError('No value specified for parameterized float. '
+                     'Expected "raw" or "parameter_key" to be set. '
+                     'message: {!r}'.format(message))
+
+
+def _parameterized_value_to_proto_dict(param: Union[value.Symbol, float]
+                                       ) -> Dict:
+    out = {}  # type: Dict
+    if isinstance(param, value.Symbol):
+        out['parameter_key'] = param.name
+    else:
+        out['raw'] = float(param)
+    return out
+
+
+class ExpWGate(ops.SingleQubitGate):
     """A rotation around an axis in the XY plane of the Bloch sphere.
 
     This gate is a "phased X rotation". Specifically:
@@ -187,21 +167,6 @@ class ExpWGate(XmonGate, ops.SingleQubitGate):
             self.exponent = value.canonicalize_half_turns(-self.exponent)
             self.phase_exponent = value.canonicalize_half_turns(
                 self.phase_exponent + 1)
-
-    def to_proto_dict(self, *qubits):
-        if len(qubits) != 1:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
-
-        q = qubits[0]
-        exp_w = {
-            'target': q.to_proto_dict(),
-            'axis_half_turns': self.parameterized_value_to_proto_dict(
-                self.phase_exponent),
-            'half_turns': self.parameterized_value_to_proto_dict(
-                self.exponent)
-        }
-        return {'exp_w': exp_w}
 
     def __pow__(self, exponent: Any) -> 'ExpWGate':
         new_exponent = protocols.mul(self.exponent, exponent, NotImplemented)

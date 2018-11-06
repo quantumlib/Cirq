@@ -35,15 +35,13 @@ from cirq.google.merge_rotations import (
 from cirq.google.xmon_device import (
     XmonDevice,
 )
-from cirq.google.xmon_gate_extensions import (
-    xmon_gate_ext,
-)
 from cirq.google.optimize import (
     optimized_for_xmon,
 )
 from cirq.google.xmon_gates import (
     ExpWGate,
-    XmonGate,
+    is_native_xmon_op,
+    xmon_op_from_proto_dict,
 )
 from cirq.google.sim import (
     XmonOptions,
