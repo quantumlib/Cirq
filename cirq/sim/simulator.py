@@ -27,7 +27,7 @@ from typing import Dict, Iterator, List, Union
 import numpy as np
 
 from cirq import circuits, ops, schedules, study
-from cirq.sim import wavefunction
+from cirq.sim import wave_function
 
 
 class SimulatesSamples:
@@ -197,7 +197,28 @@ class SimulationTrialResult:
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
         final_state: The final state (wave function) of the system after the
-            trial finishes.
+            trial finishes. The state is returned in the computational basis
+            with these basis states defined by the qubit ordering of the
+            simulation. In particular the qubit ordering can be used to produce
+            a list of qubits, and these qubits can the be associated with their
+            index in the list.  This mapping of qubit to index is then
+            translated into binary vectors where the last qubit is the
+            1s bit of the index, the second-to-last is the 2s bit of the index,
+            and so forth (i.e. big endian ordering). Example:
+                 qubit ordering: [QubitA, QubitB, QubitC]
+                 Then the returned vector will have indices mapped to qubit basis
+                 states like the following table
+                   |   | QubitA | QubitB | QubitC |
+                   +---+--------+--------+--------+
+                   | 0 |   0    |   0    |   0    |
+                   | 1 |   0    |   0    |   1    |
+                   | 2 |   0    |   1    |   0    |
+                   | 3 |   0    |   1    |   1    |
+                   | 4 |   1    |   0    |   0    |
+                   | 5 |   1    |   0    |   1    |
+                   | 6 |   1    |   1    |   0    |
+                   | 7 |   1    |   1    |   1    |
+                   +---+--------+--------+--------+
     """
 
     def __init__(self,
@@ -225,7 +246,7 @@ class SimulationTrialResult:
             ['{}={}'.format(key, val) for key, val in results])
 
     def dirac_notation(self, decimals=2):
-        return wavefunction.dirac_notation(self.final_state, decimals)
+        return wave_function.dirac_notation(self.final_state, decimals)
 
     def _eq_tuple(self):
         measurements = {k: v.tolist() for k, v in
@@ -304,8 +325,8 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 # Empty circuit, so final state should be initial state.
                 print(circuit)
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = wavefunction.to_valid_state_vector(initial_state,
-                                                                 num_qubits)
+                final_state = wave_function.to_valid_state_vector(initial_state,
+                                                                  num_qubits)
             trial_results.append(SimulationTrialResult(
                 params=param_resolver,
                 measurements=measurements,
@@ -458,4 +479,4 @@ class StepResult:
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return wavefunction.dirac_notation(self.state, decimals)
+        return wave_function.dirac_notation(self.state, decimals)

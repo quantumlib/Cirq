@@ -175,6 +175,8 @@ from cirq.sim import (
     sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
+    Simulator,
+    SimulatorStep,
     StepResult,
     SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,

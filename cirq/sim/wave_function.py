@@ -15,11 +15,12 @@
 
 import itertools
 
-from typing import List, Sequence, Tuple, Union
+from typing import Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq import linalg
+from cirq import circuits, linalg, ops
+from cirq.sim import simulator
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
@@ -282,3 +283,40 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
     if any(index >= num_qubits for index in indices):
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
+
+
+def sample_terminal_measurements(
+        circuit: circuits.Circuit,
+        step_result: 'StepResult',
+        repetitions: int) -> Dict[str, List]:
+    """Sample from measurements in the given circuit.
+
+    This should only be called if the circuit has only terminal measurements.
+
+    Args:
+        circuit: The circuit to sample from.
+        step_result: The XmonStepResult from which to sample. This should be
+            the step at the end of the circuit. Can be None if no steps were
+            taken.
+        repetitions: The number of time to sample.
+
+    Returns:
+        A dictionary from the measurement keys to the measurement results.
+        These results are lists of lists, with the outer list corresponding to
+        the repetition, and the inner list corresponding to the qubits as
+        ordered in the measurement gate.
+    """
+    if step_result is None:
+        return {}
+    bounds = {}
+    all_qubits = []  # type: List[ops.QubitId]
+    current_index = 0
+    for _, op, gate in circuit.findall_operations_with_gate_type(
+            ops.MeasurementGate):
+        key = gate.key
+        bounds[key] = (current_index, current_index + len(op.qubits))
+        all_qubits.extend(op.qubits)
+        current_index += len(op.qubits)
+    sample = step_result.sample(all_qubits, repetitions)
+    return {k: np.array([x[s:e] for x in sample]) for k, (s, e) in
+            bounds.items()}
