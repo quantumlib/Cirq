@@ -108,9 +108,10 @@ def _wrap_operation(op: ops.Operation) -> ops.Operation:
         if info is not None:
             diagrammable = _TextToQCircuitDiagrammable(
                 cast(protocols.SupportsCircuitDiagramInfo, op))
+        elif isinstance(op, ops.GateOperation):
+            diagrammable = _FallbackQCircuitGate(op.gate)
         else:
-            diagrammable = _FallbackQCircuitGate(
-                cast(ops.GateOperation, op).gate)
+            diagrammable = _FallbackQCircuitGate(op)
     return _QCircuitOperation(op, diagrammable).with_qubits(*new_qubits)
 
 

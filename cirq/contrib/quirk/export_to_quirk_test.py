@@ -94,6 +94,10 @@ def test_various_unknown_gate_types():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(
+        cirq.SWAP(a, b)**0.5,
+        cirq.H(a)**0.5,
+        cirq.SingleQubitCliffordGate.X_sqrt.merged_with(
+            cirq.SingleQubitCliffordGate.Z_sqrt).on(a),
         cirq.X(a)**(1/5),
         cirq.Y(a)**(1/5),
         cirq.Z(a)**(1/5),
@@ -102,10 +106,16 @@ def test_various_unknown_gate_types():
         cirq.PhasedXPowGate(exponent=1, phase_exponent=cirq.Symbol('r'))(a),
         cirq.PhasedXPowGate(exponent=0.001, phase_exponent=0.1)(a)
     )
-    assert circuit_to_quirk_url(circuit,
-                                escape_url=False,
-                                prefer_unknown_gate_to_failure=True) == """
+    actual = circuit_to_quirk_url(
+        circuit,
+        escape_url=False,
+        prefer_unknown_gate_to_failure=True)
+    assert actual == """
         http://algassert.com/quirk#circuit={"cols":[
+            ["UNKNOWN", "UNKNOWN"],
+            [{"id":"?","matrix":"{{0.853553+0.146447i,0.353553-0.353553i},
+                                  {0.353553-0.353553i,0.146447+0.853553i}}"}],
+            [{"id":"?","matrix":"{{0.5+0.5i,0.5+0.5i},{0.5-0.5i,-0.5+0.5i}}"}],
             [{"id":"?",
               "matrix":"{{0.904508+0.293893i, 0.095492-0.293893i},
                          {0.095492-0.293893i, 0.904508+0.293893i}}"}],
@@ -124,7 +134,7 @@ def test_various_unknown_gate_types():
               "matrix":"{{0.999998+0.001571i,0.000488-0.001493i},
                          {-0.000483-0.001495i,0.999998+0.001571i}}"}]
         ]}
-    """.replace('\n', '').replace(' ', '')
+    """.replace('\n', '').replace(' ', ''), actual.replace('],[', '],\n[')
 
 
 def test_unrecognized_single_qubit_gate_with_matrix():
