@@ -212,7 +212,7 @@ def test_kak_decomposition(target):
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 
-def test_kak_decomposition_type():
+def test_kak_decomposition_eq():
     eq = cirq.testing.EqualsTester()
 
     eq.make_equality_group(lambda: cirq.KakDecomposition(
@@ -246,3 +246,33 @@ def test_kak_decomposition_type():
         interaction_coefficients=(0.5, 0.2, 0.1),
         single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
     ))
+
+
+def test_kak_repr():
+    cirq.testing.assert_equivalent_repr(cirq.KakDecomposition(
+        global_phase=1j,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.3, 0.2, 0.1),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    ))
+
+    assert repr(cirq.KakDecomposition(
+        global_phase=1,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.5, 0.25, 0),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    )) == """
+cirq.KakDecomposition(
+    interaction_coefficients=(0.5, 0.25, 0),
+    single_qubit_operations_before=(
+        np.array([[0j, (1+0j)], [(1+0j), 0j]]),
+        np.array([[0j, -1j], [1j, 0j]]),
+    ),
+    single_qubit_operations_after=(
+        np.array([[1.0, 0.0], [0.0, 1.0]]),
+        np.array([[(1+0j), 0j], [0j, (-1+0j)]]),
+    ),
+    global_phase=1)
+""".strip()
