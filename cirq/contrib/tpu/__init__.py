@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Functionality for simulating circuits with TPUs.
+"""Functionality for simulating circuits with google cloud TPUs.
 
-To simulate a circuit on a TPU you:
+To simulate a circuit on a cloud tensor processing unit you:
 
 a) Need the ability to run TPU computations on google cloud.
 
@@ -31,11 +31,11 @@ a) Need the ability to run TPU computations on google cloud.
             tpu=[os.environ['TPU_NAME']]).get_master()
 
         with tf.Session(tpu_grpc_url) as sess:
-          sess.run(tpu.initialize_system())
-          sess.run(tf.global_variables_initializer())
-          output = sess.run(tpu_computation)
-          print(output)
-          sess.run(tpu.shutdown_system())
+            sess.run(tpu.initialize_system())
+            sess.run(tf.global_variables_initializer())
+            output = sess.run(tpu_computation)
+            print(output)
+            sess.run(tpu.shutdown_system())
 
         print('Done!')
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Dict, Any, List, Union, Callable, TypeVar, NamedTuple
+from typing import Any, Callable, Dict, List, NamedTuple, Tuple, TypeVar, Union
 
 from collections import namedtuple
 
@@ -21,6 +21,12 @@ import tensorflow as tf
 
 from cirq import ops, circuits, linalg, protocols, decompositions
 
+
+# We logically divide the qubits into groups of this size, and operate on each
+# group as a multi-qubit register. This significantly improves compilation
+# times, and avoids padding overhead when the tensors are laid out into memory.
+# This is an internal detail not exposed to callers (e.g. we reshape before
+# returning).
 _GROUP_SIZE = 7
 
 
@@ -48,7 +54,7 @@ def circuit_to_tensorflow_compute_func_and_feed_dict(
     gigantic raw state vector.
 
     The tensor returned by `result.compute_func` is intended to run efficiently
-    on cloud TPUs. It will have dtype complex64 and a length of 2**n where n
+    on cloud TPUs. It will have dtype complex64 and a shape of (2**n,) where n
     is the number of qubits.
 
     Examples:
