@@ -16,7 +16,7 @@ from typing import cast
 from cirq import circuits, ops, protocols
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
-    fallback_qcircuit_extensions,
+    known_qcircuit_operation_symbols,
     _TextToQCircuitDiagrammable,
     _FallbackQCircuitGate,
 )
@@ -102,8 +102,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 def _wrap_operation(op: ops.Operation) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    diagrammable = fallback_qcircuit_extensions.try_cast(  # type: ignore
-        QCircuitDiagrammable, op)
+    diagrammable = known_qcircuit_operation_symbols(op)
     if diagrammable is None:
         info = protocols.circuit_diagram_info(op, default=None)
         if info is not None:

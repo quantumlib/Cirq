@@ -16,8 +16,7 @@ from typing import Optional, Tuple, Any
 
 import abc
 
-from cirq import Extensions, ops, protocols
-from cirq.ops import gate_features
+from cirq import ops, protocols
 
 
 class QCircuitDiagrammable(metaclass=abc.ABCMeta):
@@ -54,7 +53,7 @@ class _HardcodedQCircuitSymbolsGate(QCircuitDiagrammable):
 def _get_multigate_parameters(gate: Any,
                               args: protocols.CircuitDiagramInfoArgs
                               ) -> Optional[Tuple[int, int]]:
-    if not isinstance(gate, gate_features.InterchangeableQubitsGate):
+    if not isinstance(gate, ops.InterchangeableQubitsGate):
         return None
     if args.qubit_map is None or args.known_qubits is None:
         return None
@@ -112,31 +111,21 @@ class _FallbackQCircuitGate(QCircuitDiagrammable):
         return protocols.CircuitDiagramInfo(escaped_symbols)
 
 
-fallback_qcircuit_extensions = Extensions()
-fallback_qcircuit_extensions.add_recursive_cast(  # type: ignore
-    QCircuitDiagrammable,
-    ops.GateOperation,
-    lambda ext, op: ext.try_cast(QCircuitDiagrammable, op.gate)  # type: ignore
-)
-fallback_qcircuit_extensions.add_cast(  # type: ignore
-    QCircuitDiagrammable,
-    ops.XPowGate,
-    lambda gate:
-        _HardcodedQCircuitSymbolsGate('\\targ')
-        if gate.exponent == 1
-        else None)
-fallback_qcircuit_extensions.add_cast(  # type: ignore
-    QCircuitDiagrammable,
-    ops.MeasurementGate,
-    lambda gate: _HardcodedQCircuitSymbolsGate('\\meter'))
-fallback_qcircuit_extensions.add_cast(  # type: ignore
-    QCircuitDiagrammable,
-    ops.CZPowGate,
-    lambda gate:
-        _HardcodedQCircuitSymbolsGate('\\control', '\\control')
-        if gate.exponent == 1
-        else None)
-fallback_qcircuit_extensions.add_cast(  # type: ignore
-    QCircuitDiagrammable,
-    ops.CNotPowGate,
-    lambda gate: _HardcodedQCircuitSymbolsGate('\\control', '\\targ'))
+def known_qcircuit_operation_symbols(op: ops.Operation
+                                     ) -> Optional[QCircuitDiagrammable]:
+    if isinstance(op, ops.GateOperation):
+        return _known_gate_symbols(op.gate)
+    return None
+
+
+def _known_gate_symbols(
+        gate: ops.Gate) -> Optional[QCircuitDiagrammable]:
+    if gate == ops.X:
+        return _HardcodedQCircuitSymbolsGate(r'\targ')
+    if gate == ops.CZ:
+        return _HardcodedQCircuitSymbolsGate(r'\control', r'\control')
+    if gate == ops.CNOT:
+        return _HardcodedQCircuitSymbolsGate(r'\control', r'\targ')
+    if ops.MeasurementGate.is_measurement(gate):
+        return _HardcodedQCircuitSymbolsGate(r'\meter')
+    return None
