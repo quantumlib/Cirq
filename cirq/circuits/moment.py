@@ -16,7 +16,7 @@
 
 from typing import Any, Iterable, TypeVar, Callable, Sequence
 
-from cirq import ops
+from cirq import ops, protocols
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
@@ -115,6 +115,14 @@ class Moment(object):
 
     def __str__(self):
         return ' and '.join(str(op) for op in self.operations)
+
+    def __pow__(self, exponent: float):
+        """See `cirq.pow`. Powers each operation, if possible."""
+        if exponent == 0:
+            return Moment()
+        else:
+            return Moment(protocols.pow(operation, exponent) for operation in
+                          self.operations)
 
     def transform_qubits(self: TSelf_Moment,
                          func: Callable[[ops.QubitId], ops.QubitId]

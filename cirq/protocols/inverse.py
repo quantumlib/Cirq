@@ -66,6 +66,16 @@ def inverse(val: 'cirq.OP_TREE',
     pass
 
 
+@overload
+def inverse(val: 'cirq.Moment') -> 'cirq.Moment':
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Circuit') -> 'cirq.Circuit':
+    pass
+
+
 def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns the inverse `val**-1` of the given value, if defined.
 

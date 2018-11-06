@@ -238,6 +238,37 @@ class Circuit:
             return NotImplemented
         return self * repetitions
 
+    def __pow__(self, exponent: float):
+        """See `cirq.pow`.
+
+        For integer exponents, this corresponds to repetitions of the moments
+        of the circuit. When the exponent is negative, these circuits have
+        their moment order reversed and the inverse of each operation in the
+        moment is applied. This means circuit**-1 corresponds to the inverse
+        circuit.
+
+        For non-integer exponents, the integer closest to zero is calculated
+        and this is used as the integer exponent above. The remainder is
+        then applied as a power for each operation, again if the remainder is
+        negative the order is reversed.
+
+        Args:
+            exponent: The exponent to power by.
+
+        Returns:
+            A new circuit of the corresponding power.
+        """
+        d = 1 if exponent > 0 else -1
+        n, r = divmod(exponent, d)
+        result = Circuit()
+        if int(n) != 0:
+            result += int(n) * Circuit(
+                    [protocols.pow(moment, d) for moment in self[::d]])
+        if r != 0:
+            result += Circuit(
+                    [protocols.pow(moment, r) for moment in self[::d]])
+        return result
+
     def __repr__(self):
         if not self._moments and self._device == devices.UnconstrainedDevice:
             return 'cirq.Circuit()'

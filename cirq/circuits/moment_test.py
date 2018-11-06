@@ -184,3 +184,22 @@ def test_qubits():
     assert Moment([cirq.X(a), cirq.X(b)]).qubits == {a , b}
     assert Moment([cirq.X(a)]).qubits == {a}
     assert Moment([cirq.CZ(a, b)]).qubits == {a, b}
+
+
+def test_pow():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    moment = Moment([(cirq.X**0.5)(a), cirq.CZ(b, c)])
+    assert moment ** 2 == Moment([(cirq.X**1)(a), (cirq.CZ**2)(b, c)])
+    assert moment ** 0.5 == Moment([(cirq.X**0.25)(a), (cirq.CZ**0.5)(b, c)])
+    assert moment ** -0.5 == Moment([(cirq.X**-0.25)(a), (cirq.CZ**-0.5)(b, c)])
+    assert moment ** 0 == Moment()
+
+
+def test_inverse():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    moment = Moment([(cirq.X**0.5)(a), cirq.CZ(b, c)])
+    assert cirq.inverse(moment) == Moment([(cirq.X**-0.5)(a), cirq.CZ(b, c)])
