@@ -105,13 +105,19 @@ class EigenGate(raw_types.Gate):
             global_shift=self._global_shift)
         # pylint: enable=unexpected-keyword-arg
 
-    def _diagram_exponent(self, args: protocols.CircuitDiagramInfoArgs):
+    def _diagram_exponent(self,
+                          args: protocols.CircuitDiagramInfoArgs,
+                          *,
+                          ignore_global_phase: bool = True):
         """The exponent to use in circuit diagrams.
 
         Basically, this just canonicalizes the exponent in a way that is
         insensitive to global phase. Only relative phases affect the "true"
         exponent period, and since we omit global phase detail in diagrams this
-        is the appropriate canonicalization to use.
+        is the appropriate canonicalization to use. To use the absolute period
+        instead of the relative period (e.g. for when printing Rx(rads) style
+        symbols, where rads=pi and rads=-pi are equivalent but should produce
+        different text) set 'ignore_global_phase' to False.
 
         Note that the exponent is canonicalized into the range
             (-period/2, period/2]
@@ -121,6 +127,9 @@ class EigenGate(raw_types.Gate):
 
         Args:
             args: The diagram args being used to produce the diagram.
+            ignore_global_phase: Determines whether the global phase of the
+                operation is considered when computing the period of the
+                exponent.
 
         Returns:
             A rounded canonicalized exponent.
@@ -129,11 +138,15 @@ class EigenGate(raw_types.Gate):
             return self._exponent
         result = float(self._exponent)
 
-        # Compute global-phase-independent period of the gate.
-        shifts = list(self._eigen_shifts())
-        relative_shifts = {e - shifts[0] for e in shifts[1:]}
-        relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
-        diagram_period = _approximate_common_period(relative_periods)
+        if ignore_global_phase:
+            # Compute global-phase-independent period of the gate.
+            shifts = list(self._eigen_shifts())
+            relative_shifts = {e - shifts[0] for e in shifts[1:]}
+            relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
+            diagram_period = _approximate_common_period(relative_periods)
+        else:
+            # Use normal period of the gate.
+            diagram_period = self._period()
         if diagram_period is None:
             return result
 
