@@ -15,7 +15,7 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import Set  # pylint: disable=unused-import
+from typing import Set, NamedTuple  # pylint: disable=unused-import
 from typing import Callable, List, Tuple, TypeVar
 
 import math
@@ -264,12 +264,101 @@ def so4_to_magic_su2s(
     return a, b
 
 
-def kak_canonicalize_vector(
-        x: float, y: float, z: float
-) -> Tuple[complex,
-           Tuple[np.ndarray, np.ndarray],
-           Tuple[float, float, float],
-           Tuple[np.ndarray, np.ndarray]]:
+class KakDecomposition:
+    """A convenient description of an arbitrary two-qubit operation.
+
+    Any two qubit operation U = can be decomposed into the form
+
+        U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
+
+    This class stores g, (b0, b1), (x, y, z), and (a0, a1).
+
+    Attributes:
+        global_phase: g from the above equation.
+        single_qubit_operations_before: b0, b1 from the above equation.
+        interaction_coefficients: x, y, z from the above equation.
+        single_qubit_operations_after: a0, a1 from the above equation.
+    """
+
+    def __init__(self,
+                 *,
+                 global_phase: complex,
+                 single_qubit_operations_before: Tuple[np.ndarray, np.ndarray],
+                 interaction_coefficients: Tuple[float, float, float],
+                 single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
+        """Initializes a decomposition for a two-qubit operation U.
+
+        U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
+
+        Args:
+            global_phase: g from the above equation.
+            single_qubit_operations_before: b0, b1 from the above equation.
+            interaction_coefficients: x, y, z from the above equation.
+            single_qubit_operations_after: a0, a1 from the above equation.
+        """
+        self.global_phase = global_phase
+        self.single_qubit_operations_before = single_qubit_operations_before
+        self.interaction_coefficients = interaction_coefficients
+        self.single_qubit_operations_after = single_qubit_operations_after
+
+    def _eq_tuple(self):
+        def flatten(x):
+            return tuple(tuple(e.flat) for e in x)
+        return (type(KakDecomposition),
+                self.global_phase,
+                tuple(self.interaction_coefficients),
+                flatten(self.single_qubit_operations_before),
+                flatten(self.single_qubit_operations_after))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._eq_tuple() == other._eq_tuple()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self._eq_tuple())
+
+    def __repr__(self):
+        return (
+            'cirq.KakDecomposition('
+            'global_phase={!r}, '
+            'single_qubit_operations={!r}, '
+            'interaction_coefficients={!r}, '
+            'single_qubit_operations_after={!r})').format(
+                self.global_phase,
+                self.single_qubit_operations_before,
+                self.interaction_coefficients,
+                self.single_qubit_operations_after)
+
+    def _unitary_(self):
+        """Returns the decomposition's two-qubit unitary matrix.
+
+        U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
+        """
+        before = np.kron(*self.single_qubit_operations_before)
+        after = np.kron(*self.single_qubit_operations_after)
+
+        def interaction_matrix(m: np.ndarray, c: float) -> np.ndarray:
+            return map_eigenvalues(np.kron(m, m),
+                                   lambda v: np.exp(1j * v * c))
+
+        x, y, z = self.interaction_coefficients
+        x_mat = np.array([[0, 1], [1, 0]])
+        y_mat = np.array([[0, -1j], [1j, 0]])
+        z_mat = np.array([[1, 0], [0, -1]])
+
+        return self.global_phase * combinators.dot(
+            after,
+            interaction_matrix(z_mat, z),
+            interaction_matrix(y_mat, y),
+            interaction_matrix(x_mat, x),
+            before)
+
+
+def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
 
     Args:
@@ -278,14 +367,8 @@ def kak_canonicalize_vector(
         z: The strength of the ZZ interaction.
 
     Returns:
-        A nested tuple (g, (a1, a0), (x2, y2, z2), (b1, b0)) containing:
-
-            0. A global phase factor.
-            1. Post-non-local-operation matrices for the second/first qubit.
-            2. The canonicalized XX/YY/ZZ weights.
-            3. Pre-non-local-operation matrices for the second/first qubit.
-
-        Guarantees that the canonicalized x2, y2, z2 satisfy:
+        The canonicalized decomposition, with vector coefficients (x2, y2, z2)
+        satisfying:
 
             0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
             z2 ≠ -π/4
@@ -374,21 +457,17 @@ def kak_canonicalize_vector(
         negate(1, 2)
     canonical_shift(2)
 
-    return (
-        phase[0],
-        (left[1], left[0]),
-        (v[0], v[1], v[2]),
-        (right[1], right[0]),
-    )
+    return KakDecomposition(
+        global_phase=phase[0],
+        single_qubit_operations_after=(left[1], left[0]),
+        interaction_coefficients=(v[0], v[1], v[2]),
+        single_qubit_operations_before=(right[1], right[0]))
 
 
 def kak_decomposition(
         mat: np.ndarray,
         tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[complex,
-           Tuple[np.ndarray, np.ndarray],
-           Tuple[float, float, float],
-           Tuple[np.ndarray, np.ndarray]]:
+) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
@@ -396,21 +475,11 @@ def kak_decomposition(
         tolerance: Per-matrix-entry tolerance on equality.
 
     Returns:
-        A nested tuple (g, (a1, a0), (x, y, z), (b1, b0)) containing:
-
-            0. A global phase factor.
-            1. The pre-operation matrices to apply to the second/firs qubit.
-            2. The XX/YY/ZZ weights of the non-local operation.
-            3. The post-operation matrices to apply to the second/firs qubit.
-
-        Guarantees that the x2, y2, z2 are canonicalized to satisfy:
+        A `cirq.KakDecomposition` canonicalized such that the interaction
+        coefficients x, y, z satisfy:
 
             0 ≤ abs(z) ≤ y ≤ x ≤ π/4
             z ≠ -π/4
-
-        Guarantees that the input matrix should approximately equal:
-
-            g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
 
     Raises:
         ValueError: Bad matrix.
@@ -442,10 +511,14 @@ def kak_decomposition(
     g = np.exp(1j * w)
 
     # Canonicalize.
-    g2, (c1, c0), (x2, y2, z2), (d1, d0) = kak_canonicalize_vector(x, y, z)
-    return (
-        g * g2,
-        (a1.dot(c1), a0.dot(c0)),
-        (x2, y2, z2),
-        (d1.dot(b1), d0.dot(b0))
-    )
+    inner_cannon = kak_canonicalize_vector(x, y, z)
+
+    b1 = np.dot(inner_cannon.single_qubit_operations_before[0], b1)
+    b0 = np.dot(inner_cannon.single_qubit_operations_before[1], b0)
+    a1 = np.dot(a1, inner_cannon.single_qubit_operations_after[0])
+    a0 = np.dot(a0, inner_cannon.single_qubit_operations_after[1])
+    return KakDecomposition(
+        interaction_coefficients=inner_cannon.interaction_coefficients,
+        global_phase=g * inner_cannon.global_phase,
+        single_qubit_operations_before=(b1, b0),
+        single_qubit_operations_after=(a1, a0))
