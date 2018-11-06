@@ -41,7 +41,7 @@ from typing import Tuple  # pylint: disable=unused-import
 import numpy as np
 
 from cirq import circuits, ops, sim, study, protocols
-from cirq.google import convert_to_xmon_gates, xmon_gates
+from cirq.google import convert_to_xmon_gates
 from cirq.google.sim import xmon_stepper
 
 
@@ -225,8 +225,7 @@ class XmonSimulator(sim.SimulatesSamples,
                             index=index,
                             half_turns=gate.exponent,
                             axis_half_turns=0.5)
-                    elif isinstance(gate, (ops.PhasedXPowGate,
-                                           xmon_gates.ExpWGate)):
+                    elif isinstance(gate, ops.PhasedXPowGate):
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(
                             index=index,

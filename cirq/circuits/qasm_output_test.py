@@ -237,7 +237,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
 
-        cirq.google.ExpWGate(phase_exponent=0.125, exponent=0.25)(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.125, exponent=0.25)(q1),
 
         (
             cirq.MeasurementGate('xX')(q0),
@@ -451,8 +451,10 @@ rz(pi*-0.5) q[2];
 h q[2];
 cx q[2],q[0];
 
-// Gate: W(0.125)^0.25
-u3(pi*0.25,pi*1.625,pi*0.375) q[1];
+// Gate: PhasedX(0.125)^0.25
+rz(pi*-0.125) q[1];
+rx(pi*0.25) q[1];
+rz(pi*0.125) q[1];
 
 measure q[0] -> m_xX[0];
 measure q[2] -> m_x_a[0];

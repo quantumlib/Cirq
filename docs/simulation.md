@@ -15,13 +15,12 @@ Here is a simple circuit
 import cirq
 from cirq import Circuit
 from cirq.devices import GridQubit
-from cirq.google import ExpWGate
 
 q0 = GridQubit(0, 0)
 q1 = GridQubit(1, 0)
 
 def basic_circuit(meas=True):
-    sqrt_x = ExpWGate(exponent=0.5, phase_exponent=0.0)
+    sqrt_x = cirq.X**0.5
     yield sqrt_x(q0), sqrt_x(q1)
     yield cirq.CZ(q0, q1)
     yield sqrt_x(q0), sqrt_x(q1)
@@ -205,9 +204,8 @@ providing a ``ParamResolver``.  A ``ParamResolver`` provides
 a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-from cirq import Symbol, ParamResolver
-val = Symbol('x')
-rot_w_gate = ExpWGate(exponent=val)
+from cirq import ParamResolver
+rot_w_gate = cirq.X**cirq.Symbol('x')
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
