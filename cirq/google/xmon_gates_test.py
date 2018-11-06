@@ -20,15 +20,15 @@ def test_is_supported():
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(0, 1)
     c = cirq.GridQubit(1, 0)
-    assert cg.XmonGate.is_supported_op(cirq.CZ(a, b))
-    assert cg.XmonGate.is_supported_op(cirq.X(a)**0.5)
-    assert cg.XmonGate.is_supported_op(cirq.Y(a)**0.5)
-    assert cg.XmonGate.is_supported_op(cirq.Z(a)**0.5)
-    assert cg.XmonGate.is_supported_op(
+    assert cg.is_native_xmon_op(cirq.CZ(a, b))
+    assert cg.is_native_xmon_op(cirq.X(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Y(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Z(a)**0.5)
+    assert cg.is_native_xmon_op(
         cirq.PhasedXPowGate(phase_exponent=0.2).on(a)**0.5)
-    assert cg.XmonGate.is_supported_op(cirq.Z(a)**1)
-    assert not cg.XmonGate.is_supported_op(cirq.CCZ(a, b, c))
-    assert not cg.XmonGate.is_supported_op(cirq.SWAP(a, b))
+    assert cg.is_native_xmon_op(cirq.Z(a)**1)
+    assert not cg.is_native_xmon_op(cirq.CCZ(a, b, c))
+    assert not cg.is_native_xmon_op(cirq.SWAP(a, b))
 
 
 def test_w_eq():
