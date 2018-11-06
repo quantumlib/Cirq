@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import abc
 
-from cirq.line.placement.sequence import GridQubitLineTuple
+from cirq.google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

@@ -114,8 +114,12 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
     Raises:
         ArithmeticError: Failed to find perpendicular eigenvectors.
     """
-    vals, cols = np.linalg.eig(np.mat(matrix))
+    vals, cols = np.linalg.eig(matrix)
     vecs = [cols[:, i] for i in range(len(cols))]
+
+    # Convert list of row arrays to list of column arrays.
+    for i in range(len(vecs)):
+        vecs[i] = np.reshape(vecs[i], (len(vecs[i]), vecs[i].ndim))
 
     # Group by similar eigenvalue.
     n = len(vecs)
@@ -125,7 +129,7 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
 
     # Remove overlap between eigenvectors with the same eigenvalue.
     for g in groups:
-        q, _ = np.linalg.qr(np.concatenate([vecs[i] for i in g], axis=1))
+        q, _ = np.linalg.qr(np.hstack([vecs[i] for i in g]))
         for i in range(len(g)):
             vecs[g[i]] = q[:, i]
 
@@ -248,9 +252,9 @@ def so4_to_magic_su2s(
         raise ValueError('mat must be 4x4 special orthogonal.')
 
     magic = np.array([[1, 0, 0, 1j],
-                    [0, 1j, 1, 0],
-                    [0, 1j, -1, 0],
-                    [1, 0, 0, -1j]]) * np.sqrt(0.5)
+                      [0, 1j, 1, 0],
+                      [0, 1j, -1, 0],
+                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
     ab = combinators.dot(magic, mat, np.conj(magic.T))
     _, a, b = kron_factor_4x4_to_2x2s(ab, tolerance)
 
@@ -421,13 +425,13 @@ def kak_decomposition(
         https://arxiv.org/abs/quant-ph/0507171
     """
     magic = np.array([[1, 0, 0, 1j],
-                    [0, 1j, 1, 0],
-                    [0, 1j, -1, 0],
-                    [1, 0, 0, -1j]]) * np.sqrt(0.5)
+                      [0, 1j, 1, 0],
+                      [0, 1j, -1, 0],
+                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
     gamma = np.array([[1, 1, 1, 1],
-                    [1, 1, -1, -1],
-                    [-1, 1, -1, 1],
-                    [1, -1, -1, 1]]) * 0.25
+                      [1, 1, -1, -1],
+                      [-1, 1, -1, 1],
+                      [1, -1, -1, 1]]) * 0.25
 
     # Diagonalize in magic basis.
     left, d, right = (

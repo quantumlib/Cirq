@@ -98,11 +98,7 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    LinePlacementStrategy,
     LineQubit,
-    line_on_device,
 )
 
 from cirq.ops import (
@@ -175,12 +171,14 @@ from cirq.schedules import (
 
 from cirq.sim import (
     dirac_notation,
+    measure_state_vector,
+    sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
     StepResult,
+    SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
     to_valid_state_vector,
-    SimulatesFinalWaveFunction,
     validate_normalized_state,
 )
 
