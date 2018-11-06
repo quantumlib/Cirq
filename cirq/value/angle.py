@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Optional
+from typing import Union, Optional, overload
 
 import numpy as np
 
@@ -84,6 +84,17 @@ def chosen_angle_to_canonical_half_turns(
                 default=default))
 
 
+# pylint: disable=function-redefined
+@overload
+def canonicalize_half_turns(half_turns: float) -> float:
+    pass
+
+
+@overload
+def canonicalize_half_turns(half_turns: symbol.Symbol) -> symbol.Symbol:
+    pass
+
+
 def canonicalize_half_turns(
         half_turns: Union[symbol.Symbol, float]
 ) -> Union[symbol.Symbol, float]:
@@ -94,5 +105,6 @@ def canonicalize_half_turns(
     if half_turns > 1:
         half_turns -= 2
     return half_turns
+# pylint: enable=function-redefined
 
 

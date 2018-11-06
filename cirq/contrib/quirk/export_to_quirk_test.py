@@ -54,8 +54,6 @@ def test_various_known_gate_types():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(
-        cirq.google.ExpWGate(phase_exponent=0).on(a),
-        cirq.google.ExpWGate(phase_exponent=0.5).on(a),
         cirq.X(a),
         cirq.X(a)**0.25,
         cirq.X(a)**-0.5,
@@ -74,8 +72,6 @@ def test_various_known_gate_types():
     )
     assert circuit_to_quirk_url(circuit, escape_url=False) == """
         http://algassert.com/quirk#circuit={"cols":[
-            ["X"],
-            ["Y"],
             ["X"],
             ["X^¼"],
             ["X^-½"],
@@ -102,9 +98,9 @@ def test_various_unknown_gate_types():
         cirq.Y(a)**(1/5),
         cirq.Z(a)**(1/5),
         cirq.CZ(a, b)**(1/5),
-        cirq.google.ExpWGate(phase_exponent=0.25)(a),
-        cirq.google.ExpWGate(exponent=1, phase_exponent=cirq.Symbol('r'))(a),
-        cirq.google.ExpWGate(exponent=0.001, phase_exponent=0.1)(a)
+        cirq.PhasedXPowGate(phase_exponent=0.25)(a),
+        cirq.PhasedXPowGate(exponent=1, phase_exponent=cirq.Symbol('r'))(a),
+        cirq.PhasedXPowGate(exponent=0.001, phase_exponent=0.1)(a)
     )
     assert circuit_to_quirk_url(circuit,
                                 escape_url=False,

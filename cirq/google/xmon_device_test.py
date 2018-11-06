@@ -49,7 +49,7 @@ def test_init():
     assert d.duration_of(cirq.Z(q00)) == 0 * ns
     assert d.duration_of(cirq.measure(q00)) == ns
     assert d.duration_of(cirq.measure(q00, q01)) == ns
-    assert d.duration_of(cg.ExpWGate().on(q00)) == 2 * ns
+    assert d.duration_of(cirq.X(q00)) == 2 * ns
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * ns
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.Gate().on(q00))
@@ -151,7 +151,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
     q2 = cirq.GridQubit(2, 0)
     s = cirq.Schedule(d, [
         cirq.ScheduledOperation.op_at_on(
-            cg.ExpWGate().on(q0), cirq.Timestamp(), d),
+            cirq.X(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
             cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
@@ -193,7 +193,7 @@ def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
     p2 = cirq.GridQubit(2, 2)
     s = cirq.Schedule(d, [
         cirq.ScheduledOperation.op_at_on(
-            cg.ExpWGate().on(q0), cirq.Timestamp(), d),
+            cirq.X(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
             cirq.CZ(p1, p2), cirq.Timestamp(), d),
     ])
