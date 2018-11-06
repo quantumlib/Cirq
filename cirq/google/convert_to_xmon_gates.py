@@ -20,14 +20,13 @@ from cirq.circuits.optimization_pass import (
 )
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.decompositions import two_qubit_matrix_to_operations
-from cirq.google.xmon_gates import XmonGate
+from cirq.google import xmon_gates
 
 
 class ConvertToXmonGates(PointOptimizer):
     """Attempts to convert strange gates into XmonGates.
 
-    First, checks if the given extensions are able to cast the gate into an
-        XmonGate instance.
+    First, checks if the given operation is already a native xmon operation.
 
     Second, checks if the operation has a known unitary. If so, and the gate
         is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
@@ -67,13 +66,13 @@ class ConvertToXmonGates(PointOptimizer):
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "
-                "It isn't a GateOperation with an XmonGate, "
+                "It isn't a native xmon operation, "
                 "a 1 or 2 qubit gate with a known unitary, "
                 "or composite.".format(bad))
 
         return protocols.decompose(
             op,
-            keep=XmonGate.is_supported_op,
+            keep=xmon_gates.is_native_xmon_op,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 
