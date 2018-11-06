@@ -43,7 +43,7 @@ def gate_to_proto_dict(gate: ops.Gate,
             raise ValueError('Wrong number of qubits.')
         return _y_to_proto_dict(gate, qubits[0])
 
-    if isinstance(gate, (xmon_gates.ExpWGate, ops.PhasedXPowGate)):
+    if isinstance(gate, ops.PhasedXPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
@@ -86,8 +86,7 @@ def _y_to_proto_dict(gate: ops.YPowGate, q: ops.QubitId) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: Union[ops.PhasedXPowGate,
-                                        xmon_gates.ExpWGate],
+def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate,
                             q: ops.QubitId) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),

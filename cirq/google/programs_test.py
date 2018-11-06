@@ -35,7 +35,7 @@ def test_protobuf_round_trip():
     device = cg.Foxtail
     circuit = cirq.Circuit.from_ops(
         [
-            cg.ExpWGate(exponent=0.5).on(q)
+            cirq.X(q)**0.5
             for q in device.qubits
         ],
         [
@@ -342,7 +342,7 @@ def test_cz_invalid_dict():
 
 
 def test_w_to_proto_dict():
-    gate = cg.ExpWGate(exponent=cirq.Symbol('k'), phase_exponent=1)
+    gate = cirq.PhasedXPowGate(exponent=cirq.Symbol('k'), phase_exponent=1)
     proto_dict = {
         'exp_w': {
             'target': {
@@ -360,7 +360,7 @@ def test_w_to_proto_dict():
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
-    gate = cg.ExpWGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -412,7 +412,7 @@ def test_w_to_proto_dict():
     }
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
-    gate = cg.ExpWGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -499,7 +499,7 @@ def test_invalid_to_proto_dict_qubit_number():
                                             cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
         cg.gate_to_proto_dict(
-            cg.ExpWGate(exponent=0.5, phase_exponent=0),
+            cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
 
 
