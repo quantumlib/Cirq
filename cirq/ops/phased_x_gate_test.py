@@ -47,14 +47,14 @@ def test_new_init():
                             global_shift=0.2)
     assert isinstance(x, cirq.XPowGate)
     assert x.exponent == 0.1
-    assert x._global_shift_in_half_turns == 0.2
+    assert x._global_shift == 0.2
 
     y = cirq.PhasedXPowGate(phase_exponent=0.5,
                             exponent=0.1,
                             global_shift=0.2)
     assert isinstance(y, cirq.YPowGate)
     assert y.exponent == 0.1
-    assert y._global_shift_in_half_turns == 0.2
+    assert y._global_shift == 0.2
 
 
 def test_extrapolate():

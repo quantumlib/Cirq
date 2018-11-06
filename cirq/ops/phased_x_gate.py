@@ -51,19 +51,19 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         if p == 0:
             return cirq.ops.common_gates.XPowGate(
                 exponent=exponent,
-                global_shift_in_half_turns=global_shift)
+                global_shift=global_shift)
         if p == 0.5:
             return cirq.ops.common_gates.YPowGate(
                 exponent=exponent,
-                global_shift_in_half_turns=global_shift)
+                global_shift=global_shift)
         if p == 1 and not isinstance(exponent, value.Symbol):
             return cirq.ops.common_gates.XPowGate(
                 exponent=-exponent,
-                global_shift_in_half_turns=global_shift)
+                global_shift=global_shift)
         if p == -0.5 and not isinstance(exponent, value.Symbol):
             return cirq.ops.common_gates.YPowGate(
                 exponent=-exponent,
-                global_shift_in_half_turns=global_shift)
+                global_shift=global_shift)
         return super().__new__(cls)
 
     def __init__(self,
@@ -146,14 +146,15 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                                ) -> protocols.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        half_turns = self.exponent
         if (isinstance(self.phase_exponent, value.Symbol) or
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(
                 self.phase_exponent)
-        return protocols.CircuitDiagramInfo((s,), half_turns)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(s,),
+            exponent=value.canonicalize_half_turns(self._exponent))
 
     def __str__(self):
         info = protocols.circuit_diagram_info(self)

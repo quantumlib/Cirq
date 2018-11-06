@@ -43,16 +43,16 @@ def test_common_gates_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.Rz(np.pi))
 
     cirq.testing.assert_implements_consistent_protocols(
-            cirq.XPowGate(global_shift_in_half_turns=0.1))
+            cirq.XPowGate(global_shift=0.1))
     cirq.testing.assert_implements_consistent_protocols(
-            cirq.YPowGate(global_shift_in_half_turns=0.1))
+            cirq.YPowGate(global_shift=0.1))
     cirq.testing.assert_implements_consistent_protocols(
-            cirq.ZPowGate(global_shift_in_half_turns=0.1))
+            cirq.ZPowGate(global_shift=0.1))
 
 
 def test_cz_init():
     assert cirq.CZPowGate(exponent=0.5).exponent == 0.5
-    assert cirq.CZPowGate(exponent=5).exponent == 1
+    assert cirq.CZPowGate(exponent=5).exponent == 5
     assert (cirq.CZ**0.5).exponent == 0.5
 
 
@@ -90,7 +90,12 @@ def test_cz_unitary():
 
 def test_z_init():
     z = cirq.ZPowGate(exponent=5)
-    assert z.exponent == 1
+    assert z.exponent == 5
+
+    # Canonicalizes exponent for equality, but keeps the inner details.
+    assert cirq.Z**0.5 != cirq.Z**-0.5
+    assert (cirq.Z**-1)**0.5 == cirq.Z**-0.5
+    assert cirq.Z**-1 == cirq.Z
 
 
 def test_rot_gates_eq():
@@ -112,17 +117,18 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
     eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_shift_in_half_turns=-0.5),
+                                        global_shift=-0.5),
                           cirq.ZPowGate(exponent=5,
-                                        global_shift_in_half_turns=-0.5))
+                                        global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=3,
-                                        global_shift_in_half_turns=-0.5))
+                                        global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_shift_in_half_turns=-0.1))
+                                        global_shift=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
-                                        global_shift_in_half_turns=-0.1))
+                                        global_shift=-0.1))
     eq.add_equality_group(cirq.CNotPowGate(),
-                          cirq.CNotPowGate(exponent=1), cirq.CNOT)
+                          cirq.CNotPowGate(exponent=1),
+                          cirq.CNOT)
     eq.add_equality_group(cirq.CZPowGate(),
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
@@ -393,7 +399,7 @@ def test_measure():
     b = cirq.NamedQubit('b')
 
     # Empty application.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='empty set of qubits'):
         _ = cirq.measure()
 
     assert cirq.measure(a) == cirq.MeasurementGate(key='a').on(a)
@@ -403,6 +409,11 @@ def test_measure():
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
         key='a', invert_mask=(True,)).on(a)
 
+    with pytest.raises(ValueError, match='ndarray'):
+        _ = cirq.measure(np.ndarray([1, 0]))
+
+    with pytest.raises(ValueError, match='QubitId'):
+        _ = cirq.measure("bork")
 
 def test_measurement_qubit_count_vs_mask_length():
     a = cirq.NamedQubit('a')
@@ -557,3 +568,113 @@ def test_rz_unitary():
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rz(-np.pi)),
         np.array([[1j, 0], [0, -1j]]))
+
+
+def test_phase_by_xy():
+    assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
+    assert cirq.phase_by(cirq.Y, 0.25, 0) == cirq.X
+
+    assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
+    assert cirq.phase_by(cirq.Y**0.5, 0.25, 0) == cirq.X**-0.5
+    assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
+    assert cirq.phase_by(cirq.Y**-0.5, 0.25, 0) == cirq.X**0.5
+
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X**0.5)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y**0.5)
+
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rx(1))
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Ry(1))
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rz(1))
+
+
+def test_ixyz_circuit_diagram():
+    q = cirq.NamedQubit('q')
+    ix = cirq.XPowGate(exponent=1, global_shift=0.5)
+    iy = cirq.YPowGate(exponent=1, global_shift=0.5)
+    iz = cirq.ZPowGate(exponent=1, global_shift=0.5)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            ix(q),
+            ix(q)**-1,
+            ix(q)**-0.99999,
+            ix(q)**-1.00001,
+            ix(q)**3,
+            ix(q)**4.5,
+            ix(q)**4.500001,
+        ), """
+q: ───X───X───X───X───X───X^0.5───X^0.5───
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            iy(q),
+            iy(q)**-1,
+            iy(q)**3,
+            iy(q)**4.5,
+            iy(q)**4.500001,
+        ), """
+q: ───Y───Y───Y───Y^0.5───Y^0.5───
+    """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            iz(q),
+            iz(q)**-1,
+            iz(q)**3,
+            iz(q)**4.5,
+            iz(q)**4.500001,
+        ), """
+q: ───Z───Z───Z───S───S───
+    """)
+
+
+def test_rxyz_circuit_diagram():
+    q = cirq.NamedQubit('q')
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Rx(np.pi).on(q),
+            cirq.Rx(-np.pi).on(q),
+            cirq.Rx(-np.pi + 0.00001).on(q),
+            cirq.Rx(-np.pi - 0.00001).on(q),
+            cirq.Rx(3*np.pi).on(q),
+            cirq.Rx(7*np.pi/2).on(q),
+            cirq.Rx(9*np.pi/2 + 0.00001).on(q),
+        ), """
+q: ───Rx(π)───Rx(-π)───Rx(-π)───Rx(-π)───Rx(-π)───Rx(-0.5π)───Rx(0.5π)───
+    """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Rx(np.pi).on(q),
+            cirq.Rx(np.pi/2).on(q),
+            cirq.Rx(-np.pi + 0.00001).on(q),
+            cirq.Rx(-np.pi - 0.00001).on(q),
+        ), """
+q: ---Rx(pi)---Rx(0.5pi)---Rx(-pi)---Rx(-pi)---
+        """,
+        use_unicode_characters=False)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Ry(np.pi).on(q),
+            cirq.Ry(-np.pi).on(q),
+            cirq.Ry(3 * np.pi).on(q),
+            cirq.Ry(9*np.pi/2).on(q),
+        ), """
+q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
+    """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit.from_ops(
+            cirq.Rz(np.pi).on(q),
+            cirq.Rz(-np.pi).on(q),
+            cirq.Rz(3 * np.pi).on(q),
+            cirq.Rz(9*np.pi/2).on(q),
+            cirq.Rz(9*np.pi/2 + 0.00001).on(q),
+        ), """
+q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(0.5π)───
+    """)

@@ -25,7 +25,7 @@ def test_anneal_method_calls_anneal_search():
     device = cg.XmonDevice(cirq.Duration(), cirq.Duration(),
                            cirq.Duration(), qubits=[q00, q01, q03])
     length = 2
-    method = cirq.AnnealSequenceSearchStrategy()
+    method = cg.AnnealSequenceSearchStrategy()
 
     with mock.patch.object(method, 'place_line') as place_line:
         sequences = [[q00, q01]]
@@ -42,7 +42,7 @@ def test_greedy_method_calls_greedy_search():
     device = cg.XmonDevice(cirq.Duration(), cirq.Duration(),
                            cirq.Duration(), qubits=[q00, q01, q03])
     length = 2
-    method = cirq.GreedySequenceSearchStrategy()
+    method = cg.GreedySequenceSearchStrategy()
 
     with mock.patch.object(method, 'place_line') as place_line:
         sequences = [[q00, q01]]

@@ -247,54 +247,43 @@ class QasmOutput:
     def _write_operations(self,
                           op_tree: ops.OP_TREE,
                           output: Callable[[str], None],
-                          output_line_gap: Callable[[int], None],
-                          top=True) -> None:
-        for op in ops.flatten_op_tree(op_tree):
-            out = protocols.qasm(op, args=self.args, default=None)
-            if out is not None:
-                output(out)
-                continue
+                          output_line_gap: Callable[[int], None]) -> None:
+        def keep(op: ops.Operation) -> bool:
+            return protocols.qasm(op, args=self.args, default=None) is not None
 
-            if isinstance(op, ops.GateOperation):
-                comment = 'Gate: {!s}'.format(op.gate)
-            else:
-                comment = 'Operation: {!s}'.format(op)
+        def fallback(op):
+            if len(op.qubits) not in [1, 2]:
+                return NotImplemented
 
-            decomp = protocols.decompose_once(op, None)
-            if decomp is not None:
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations(decomp,
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
+            mat = protocols.unitary(op, None)
+            if mat is None:
+                return NotImplemented
 
-            mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
-            if mat is not None and len(op.qubits) == 1:
-                u_op = QasmUGate.from_matrix(mat).on(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                output(cast(str, protocols.qasm(u_op, args=self.args)))
-                if top:
-                    output_line_gap(1)
-                continue
+            if len(op.qubits) == 1:
+                return QasmUGate.from_matrix(mat).on(*op.qubits)
+            return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
-            if mat is not None and len(op.qubits) == 2:
-                u_op = QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations((u_op,),
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
+        def on_stuck(bad_op):
+            return ValueError(
+                'Cannot output operation as QASM: {!r}'.format(bad_op))
 
-            raise ValueError('Cannot output operation as QASM: {!r}'.format(op))
+        for main_op in ops.flatten_op_tree(op_tree):
+            decomposed = protocols.decompose(
+                main_op,
+                keep=keep,
+                fallback_decomposer=fallback,
+                on_stuck_raise=on_stuck)
+
+            should_annotate = decomposed != [main_op]
+            if should_annotate:
+                output_line_gap(1)
+                if isinstance(main_op, ops.GateOperation):
+                    output('// Gate: {!s}\n'.format(main_op.gate))
+                else:
+                    output('// Operation: {!s}\n'.format(main_op))
+
+            for decomposed_op in decomposed:
+                output(protocols.qasm(decomposed_op, args=self.args))
+
+            if should_annotate:
+                output_line_gap(1)

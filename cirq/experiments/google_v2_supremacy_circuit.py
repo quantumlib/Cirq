@@ -19,9 +19,9 @@ from cirq.circuits import InsertStrategy
 from cirq import circuits, devices, google, ops
 
 
-def google_v2_supremacy_circuit(qubits: Iterable[devices.GridQubit],
-                                cz_depth: int,
-                                seed: int) -> circuits.Circuit:
+def generate_supremacy_circuit_google_v2(qubits: Iterable[devices.GridQubit],
+                                         cz_depth: int,
+                                         seed: int) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
@@ -80,9 +80,9 @@ def google_v2_supremacy_circuit(qubits: Iterable[devices.GridQubit],
     return circuit
 
 
-def google_v2_supremacy_circuit_grid(n_rows: int, n_cols: int,
-                                     cz_depth: int, seed: int
-                                     ) -> circuits.Circuit:
+def generate_supremacy_circuit_google_v2_grid(n_rows: int, n_cols: int,
+                                              cz_depth: int, seed: int
+                                              ) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
@@ -102,12 +102,12 @@ def google_v2_supremacy_circuit_grid(n_rows: int, n_cols: int,
     """
     qubits = [devices.GridQubit(i, j) for i in range(n_rows)
               for j in range(n_cols)]
-    return google_v2_supremacy_circuit(qubits, cz_depth, seed)
+    return generate_supremacy_circuit_google_v2(qubits, cz_depth, seed)
 
 
-def google_v2_supremacy_circuit_bristlecone(n_rows: int,
-                                            cz_depth: int, seed: int
-                                            ) -> circuits.Circuit:
+def generate_supremacy_circuit_google_v2_bristlecone(n_rows: int,
+                                                     cz_depth: int, seed: int
+                                                     ) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 in Bristlecone.
     See also https://arxiv.org/abs/1807.10749
@@ -145,7 +145,7 @@ def google_v2_supremacy_circuit_bristlecone(n_rows: int,
         return qubits
 
     qubits = get_qubits(n_rows)
-    return google_v2_supremacy_circuit(qubits, cz_depth, seed)
+    return generate_supremacy_circuit_google_v2(qubits, cz_depth, seed)
 
 
 T = TypeVar('T')
@@ -211,8 +211,8 @@ def _make_cz_layer(qubits: Iterable[devices.GridQubit], layer_index: int
     """
 
     # map to an internal layer index to match the cycle order of public circuits
-    LAYER_INDEX_MAP = [0,3,2,1,4,7,6,5]
-    internal_layer_index = LAYER_INDEX_MAP[layer_index % 8]
+    layer_index_map = [0, 3, 2, 1, 4, 7, 6, 5]
+    internal_layer_index = layer_index_map[layer_index % 8]
 
     dir_row = internal_layer_index % 2
     dir_col = 1 - dir_row
