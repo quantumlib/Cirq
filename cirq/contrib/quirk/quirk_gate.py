@@ -18,7 +18,6 @@ import numpy as np
 
 from cirq import ops, Symbol
 from cirq.extension import Extensions
-from cirq.google.xmon_gates import ExpWGate
 
 
 class QuirkOp:
@@ -105,20 +104,6 @@ def cz_to_known(gate: ops.CZPowGate) -> Optional[QuirkOp]:
     return QuirkOp('•', 'Z' + e, can_merge=False)
 
 
-def w_to_known(gate: ExpWGate) -> Optional[QuirkOp]:
-    if isinstance(gate.phase_exponent, Symbol):
-        return None
-    e = angle_to_exponent_key(gate.exponent)
-    if e is None:
-        return None
-    p = (gate.phase_exponent + 1) % 2 - 1
-    if same_half_turns(p, 0):
-        return QuirkOp('X' + e)
-    if same_half_turns(p, 0.5):
-        return QuirkOp('Y' + e)
-    return None
-
-
 def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
     if matrix is None or matrix.shape[0] != 2:
         return None
@@ -152,7 +137,6 @@ quirk_gate_ext.add_recursive_cast(
 quirk_gate_ext.add_cast(QuirkOp, ops.XPowGate, x_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ops.YPowGate, y_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ops.ZPowGate, z_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ExpWGate, w_to_known)
 quirk_gate_ext.add_cast(QuirkOp, ops.CZPowGate, cz_to_known)
 quirk_gate_ext.add_cast(QuirkOp,
                         ops.CNotPowGate,
