@@ -282,6 +282,10 @@ class KakDecomposition:
         single_qubit_operations_before: b0, b1 from the above equation.
         interaction_coefficients: x, y, z from the above equation.
         single_qubit_operations_after: a0, a1 from the above equation.
+
+    References:
+        'An Introduction to Cartan's KAK Decomposition for QC Programmers'
+        https://arxiv.org/abs/quant-ph/0507171
     """
 
     def __init__(self,
