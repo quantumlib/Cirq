@@ -96,7 +96,7 @@ class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
 
 
 class _FallbackQCircuitGate(QCircuitDiagrammable):
-    def __init__(self, sub: ops.Gate) -> None:
+    def __init__(self, sub: Any) -> None:
         self.sub = sub
 
     def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs

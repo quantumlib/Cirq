@@ -90,10 +90,23 @@ def test_various_known_gate_types():
     """.replace('\n', '').replace(' ', '')
 
 
+class MysteryOperation(cirq.Operation):
+    def __init__(self, *qubits):
+        self._qubits = qubits
+
+    @property
+    def qubits(self):
+        return self._qubits
+
+    def with_qubits(self, *new_qubits):
+        return MysteryOperation(*new_qubits)
+
+
 def test_various_unknown_gate_types():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(
+        MysteryOperation(b),
         cirq.SWAP(a, b)**0.5,
         cirq.H(a)**0.5,
         cirq.SingleQubitCliffordGate.X_sqrt.merged_with(
@@ -112,6 +125,7 @@ def test_various_unknown_gate_types():
         prefer_unknown_gate_to_failure=True)
     assert actual == """
         http://algassert.com/quirk#circuit={"cols":[
+            [1,"UNKNOWN"],
             ["UNKNOWN", "UNKNOWN"],
             [{"id":"?","matrix":"{{0.853553+0.146447i,0.353553-0.353553i},
                                   {0.353553-0.353553i,0.146447+0.853553i}}"}],
