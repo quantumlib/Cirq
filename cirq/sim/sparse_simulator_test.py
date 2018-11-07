@@ -18,6 +18,12 @@ import numpy as np
 
 import cirq
 
+
+def test_invalid_dtype():
+    with pytest.raises(ValueError, match='complex'):
+        cirq.Simulator(dtype=np.int32)
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_no_measurements(dtype):
     q0, q1 = cirq.LineQubit.range(2)
