@@ -25,7 +25,7 @@ def test_MSGate_arguments():
 
 def test_MSGate_str():
     assert str(cirq.MSGate(np.pi/2)) == 'MS(np.pi/2)'
-    assert str(cirq.MSGate(np.pi)) == 'MS(np.pi/2*2)'
+    assert str(cirq.MSGate(np.pi)) == 'MS(np.pi/2*2.0)'
 
 
 def test_MSGate_matrix():

@@ -989,8 +989,8 @@ class XXPowGate(eigen_gate.EigenGate,
             return '(cirq.MSGate(np.pi/2*{!r}))'.format(self._exponent)
         if self._exponent == 1:
             return 'cirq.XX'
-        return ('cirq.XXPowGate(exponent={!r},'
-                'global_shift={!r}'
+        return ('cirq.XXPowGate(exponent={!r}, '
+                'global_shift={!r})'
                 ).format(self._exponent, self._global_shift)
 
 
