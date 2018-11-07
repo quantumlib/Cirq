@@ -63,6 +63,7 @@ def test_approximate_common_period():
     assert f([]) is None
     assert f([0]) is None
     assert f([1, 0]) is None
+    assert f([np.e, np.pi]) is None
 
     assert f([1]) == 1
     assert f([-1]) == 1
@@ -72,6 +73,7 @@ def test_approximate_common_period():
     assert abs(f([1 / 3, 2 / 3]) - 2 / 3) < 1e-8
     assert abs(f([2 / 5, 3 / 5]) - 6 / 5) < 1e-8
     assert f([0.5, -0.5]) == 0.5
+    np.testing.assert_allclose(f([np.e]), np.e, atol=1e-8)
 
 
 def test_init():
@@ -133,7 +135,10 @@ def test_period():
     assert Components(1 / 3, 1 / 2, 0, 0)._period() == 12
     assert Components(1 / 3, 1 / 2, 1 / 5, 0)._period() == 60
     assert Components(1 / 6, 1 / 2, 1 / 5, 0)._period() == 60
-    assert Components(np.e, 0, 0, 0)._period() is None
+    assert Components(np.e, np.pi, 0, 0)._period() is None
+    np.testing.assert_allclose(
+        Components(np.e, np.e, 0, 0)._period(),
+        2/np.e)
     assert Components(-0.5, 0, 0, 0)._period() == 4
     assert Components(-0.5, 0.5, 0, 0)._period() == 4
     assert Components(-0.5, 0.5, 0.5, 0.5)._period() == 4
@@ -266,3 +271,40 @@ def test_resolve_parameters():
 
     assert cirq.resolve_parameters(CExpZinGate(0.25),
         cirq.ParamResolver({})) == CExpZinGate(0.25)
+
+
+def test_diagram_period():
+
+    class ShiftyGate(cirq.EigenGate):
+        def _eigen_components(self):
+            raise NotImplementedError()
+
+        def __init__(self, e, *shifts):
+            super().__init__(exponent=e, global_shift=np.random.random())
+            self.shifts = shifts
+
+        def _eigen_shifts(self):
+            return list(self.shifts)
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+
+    assert ShiftyGate(0.5, 0, 1)._diagram_exponent(args) == 0.5
+    assert ShiftyGate(1.5, 0, 1)._diagram_exponent(args) == -0.5
+    assert ShiftyGate(2.5, 0, 1)._diagram_exponent(args) == 0.5
+
+    assert ShiftyGate(0.5, 0.5, -0.5)._diagram_exponent(args) == 0.5
+    assert ShiftyGate(1.5, 0.5, -0.5)._diagram_exponent(args) == -0.5
+    assert ShiftyGate(2.5, 0.5, -0.5)._diagram_exponent(args) == 0.5
+
+    # Irrational period.
+    np.testing.assert_allclose(
+        ShiftyGate(np.e, 0, 1/np.e)._diagram_exponent(args),
+        np.e,
+        atol=1e-2)  # diagram precision is 1e-3 and can perturb result.
+    np.testing.assert_allclose(
+        ShiftyGate(np.e*2.5, 0, 1/np.e)._diagram_exponent(args),
+        np.e/2,
+        atol=1e-2)  # diagram precision is 1e-3 and can perturb result.
+
+    # Unknown period.
+    assert ShiftyGate(505.2, 0, np.pi, np.e)._diagram_exponent(args) == 505.2

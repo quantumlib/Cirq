@@ -105,6 +105,78 @@ class EigenGate(raw_types.Gate):
             global_shift=self._global_shift)
         # pylint: enable=unexpected-keyword-arg
 
+    def _diagram_exponent(self,
+                          args: protocols.CircuitDiagramInfoArgs,
+                          *,
+                          ignore_global_phase: bool = True):
+        """The exponent to use in circuit diagrams.
+
+        Basically, this just canonicalizes the exponent in a way that is
+        insensitive to global phase. Only relative phases affect the "true"
+        exponent period, and since we omit global phase detail in diagrams this
+        is the appropriate canonicalization to use. To use the absolute period
+        instead of the relative period (e.g. for when printing Rx(rads) style
+        symbols, where rads=pi and rads=-pi are equivalent but should produce
+        different text) set 'ignore_global_phase' to False.
+
+        Note that the exponent is canonicalized into the range
+            (-period/2, period/2]
+        and that this canonicalization happens after rounding, so that e.g.
+        X^-0.999999 shows as X instead of X^-1 when using a digit precision of
+        3.
+
+        Args:
+            args: The diagram args being used to produce the diagram.
+            ignore_global_phase: Determines whether the global phase of the
+                operation is considered when computing the period of the
+                exponent.
+
+        Returns:
+            A rounded canonicalized exponent.
+        """
+        if not isinstance(self._exponent, (int, float)):
+            return self._exponent
+        result = float(self._exponent)
+
+        if ignore_global_phase:
+            # Compute global-phase-independent period of the gate.
+            shifts = list(self._eigen_shifts())
+            relative_shifts = {e - shifts[0] for e in shifts[1:]}
+            relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
+            diagram_period = _approximate_common_period(relative_periods)
+        else:
+            # Use normal period of the gate.
+            diagram_period = self._period()
+        if diagram_period is None:
+            return result
+
+        # Canonicalize the rounded exponent into (-period/2, period/2].
+        if args.precision is not None:
+            result = np.around(result, args.precision)
+        h = diagram_period / 2
+        if not (-h < result <= h):
+            result = h - result
+            result %= diagram_period
+            result = h - result
+
+        return result
+
+    # virtual method
+    def _eigen_shifts(self) -> List[float]:
+        """Describes the eigenvalues of the gate's matrix.
+
+        By default, this just extracts the shifts by calling
+        self._eigen_components(). However, because that method generates
+        matrices it may be extremely expensive.
+
+        Returns:
+            A list of floats. Each float in the list corresponds to one of the
+            eigenvalues of the gate's matrix, before accounting for any global
+            shift. Each float is the θ in λ = exp(i π θ) (where λ is the
+            eigenvalue).
+        """
+        return [e[0] for e in self._eigen_components()]
+
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
                                               Tuple[float, np.ndarray]]]:
@@ -169,8 +241,7 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        exponents = [e + self._global_shift
-                     for e, _ in self._eigen_components()]
+        exponents = {e + self._global_shift for e in self._eigen_shifts()}
         real_periods = [abs(2/e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
@@ -275,6 +346,8 @@ def _approximate_common_period(periods: List[float],
         return None
     if any(e == 0 for e in periods):
         return None
+    if len(periods) == 1:
+        return abs(periods[0])
     approx_rational_periods = [
         fractions.Fraction(int(np.round(p * approx_denom)), approx_denom)
         for p in periods

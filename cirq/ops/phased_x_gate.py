@@ -14,7 +14,7 @@
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
 import fractions
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
 
@@ -82,6 +82,30 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+        if cirq.is_parameterized(self):
+            return None
+
+        args.validate_version('2.0')
+
+        e = cast(float, value.canonicalize_half_turns(self._exponent))
+        p = cast(float, self.phase_exponent)
+        epsilon = 10**-args.precision
+
+        if abs(e + 0.5) <= epsilon:
+            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
+                               p + 0.5, -p - 0.5, qubits[0])
+
+        if abs(e - 0.5) <= epsilon:
+            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
+                               p - 0.5, -p + 0.5, qubits[0])
+
+        return args.format(
+            'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
+            -e, p + 0.5, -p - 0.5, qubits[0])
+
     def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
         assert len(qubits) == 1
@@ -146,14 +170,15 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                                ) -> protocols.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        half_turns = self.exponent
         if (isinstance(self.phase_exponent, value.Symbol) or
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(
                 self.phase_exponent)
-        return protocols.CircuitDiagramInfo((s,), half_turns)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(s,),
+            exponent=value.canonicalize_half_turns(self._exponent))
 
     def __str__(self):
         info = protocols.circuit_diagram_info(self)

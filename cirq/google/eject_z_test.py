@@ -233,13 +233,13 @@ def test_removes_zs():
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.ExpWGate().on(a),
+        cirq.X(a),
         cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.ExpWGate().on(a),
-        cirq.google.ExpWGate().on(a),
+        cirq.X(a),
+        cirq.X(a),
         cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(

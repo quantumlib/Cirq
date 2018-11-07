@@ -256,34 +256,34 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
     Returns:
         A list of operations implementing the matrix.
     """
-    _, (a0, a1), (x, y, z), (b0, b1) = linalg.kak_decomposition(
-        mat,
-        linalg.Tolerance(atol=tolerance))
+    kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
     # TODO: Clean up angles before returning
-    return _kak_decomposition_to_operations(q0, q1,
-                                            a0, a1, x, y, z, b0, b1,
-                                            allow_partial_czs, tolerance)
+    return _kak_decomposition_to_operations(q0,
+                                            q1,
+                                            kak,
+                                            allow_partial_czs,
+                                            tolerance)
 
 
 def _kak_decomposition_to_operations(q0: ops.QubitId,
                                      q1: ops.QubitId,
-                                     a0: np.ndarray,
-                                     a1: np.ndarray,
-                                     x: float,
-                                     y: float,
-                                     z: float,
-                                     b0: np.ndarray,
-                                     b1: np.ndarray,
+                                     kak: linalg.KakDecomposition,
                                      allow_partial_czs: bool,
                                      tolerance: float = 1e-8
                                      ) -> List[ops.Operation]:
     """Assumes that the decomposition is canonical."""
+    b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
+    a0, a1 = kak.single_qubit_operations_after
     post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
 
     return list(ops.flatten_op_tree([
         pre,
-        _non_local_part(q0, q1, x, y, z, allow_partial_czs, tolerance),
+        _non_local_part(q0,
+                        q1,
+                        kak.interaction_coefficients,
+                        allow_partial_czs,
+                        tolerance),
         post,
     ]))
 
@@ -332,12 +332,12 @@ def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float=1e-8):
 
 def _non_local_part(q0: ops.QubitId,
                     q1: ops.QubitId,
-                    x: float,
-                    y: float,
-                    z: float,
+                    interaction_coefficients: Tuple[float, float, float],
                     allow_partial_czs: bool,
                     tolerance: float = 1e-8):
     """Yields non-local operation of KAK decomposition."""
+
+    x, y, z = interaction_coefficients
 
     if (allow_partial_czs or
         all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):

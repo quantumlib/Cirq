@@ -225,15 +225,15 @@ def test_concatenate_with_device():
 
 
 def test_with_device():
-    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
     c2 = c.with_device(cg.Foxtail,
                                 lambda e: cirq.GridQubit(e.x, 0))
     assert c2 == cirq.Circuit.from_ops(
-        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+        cirq.X(cirq.GridQubit(0, 0)),
         device=cg.Foxtail)
 
     # Qubit type must be correct.
-    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         _ = c.with_device(cg.Foxtail)
 
@@ -261,7 +261,7 @@ def test_set_device():
     assert c.device is cirq.UnconstrainedDevice
 
     c[:] = []
-    c.append(cg.ExpWGate().on(cirq.GridQubit(0, 0)))
+    c.append(cirq.X(cirq.GridQubit(0, 0)))
     c.device = cg.Foxtail
     assert c.device == cg.Foxtail
 
@@ -1199,21 +1199,21 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = cg.ExpWGate(
+    test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---W(0.43)^0.12---
+a: ---PhasedX(0.43)^0.12---
 """, use_unicode_characters=False, precision=2)
 
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = cg.ExpWGate(
+    test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---W(0.43214321)^0.12341234---
+a: ---PhasedX(0.43214321)^0.12341234---
 """, use_unicode_characters=False, precision=None)
 
 

@@ -16,7 +16,7 @@ from typing import Optional, Tuple, Any
 
 import abc
 
-from cirq import Extensions, ops, protocols, google
+from cirq import Extensions, ops, protocols
 from cirq.ops import gate_features
 
 
@@ -129,13 +129,6 @@ fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.MeasurementGate,
     lambda gate: _HardcodedQCircuitSymbolsGate('\\meter'))
-fallback_qcircuit_extensions.add_cast(  # type: ignore
-    QCircuitDiagrammable,
-    google.ExpWGate,
-    lambda gate:
-        _HardcodedQCircuitSymbolsGate('\\targ')
-        if gate.exponent == 1 and gate.phase_exponent == 0
-        else None)
 fallback_qcircuit_extensions.add_cast(  # type: ignore
     QCircuitDiagrammable,
     ops.CZPowGate,
