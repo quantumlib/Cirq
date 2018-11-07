@@ -48,7 +48,7 @@ def single_qubit_matrix_to_pauli_rotations(
 
     tol = linalg.Tolerance(atol=tolerance)
     def is_clifford_rotation(half_turns):
-        return tol.all_near_zero_mod(half_turns, 0.5)
+        return tol.near_zero_mod(half_turns, 0.5)
 
     def to_quarter_turns(half_turns):
         return round(2 * half_turns) % 4
