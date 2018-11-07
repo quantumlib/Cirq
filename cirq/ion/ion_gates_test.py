@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numpy as np
-
+import pytest
 import cirq
 
 
@@ -30,12 +30,12 @@ def test_MS_str():
 
 def test_MS_matrix():
     s = np.sqrt(0.5)
-    assert np.testing.assert_allclose(cirq.unitary(cirq.MS(np.pi/4)),
+    np.testing.assert_allclose(cirq.unitary(cirq.MS(np.pi/4)),
                        np.array([[s, 0, 0, -1j*s],
                                  [0, s, -1j*s, 0],
                                  [0, -1j*s, s, 0],
                                  [-1j*s, 0, 0, s]]))
-    assert np.testing.assert_allclose(cirq.unitary(cirq.MS(np.pi)),
+    np.testing.assert_allclose(cirq.unitary(cirq.MS(np.pi)),
                        np.diag([-1, -1, -1, -1]))
 
 

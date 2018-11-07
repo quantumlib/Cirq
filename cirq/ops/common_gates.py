@@ -971,7 +971,8 @@ class XXPowGate(eigen_gate.EigenGate,
                 'MS',
                 args,
                 self._diagram_exponent(args, ignore_global_phase=False)/2)
-            return symbol, symbol
+            return protocols.CircuitDiagramInfo(
+                                wire_symbols=(symbol, symbol))
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'),
