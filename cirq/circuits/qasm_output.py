@@ -90,9 +90,12 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
 
     @staticmethod
     def from_matrix(mat: np.array, tolerance=1e-8) -> 'QasmTwoQubitGate':
-        _, (a1, a0), (x, y, z), (b1, b0) = linalg.kak_decomposition(
-            mat,
-            linalg.Tolerance(atol=tolerance))
+        kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
+
+        a1, a0 = kak.single_qubit_operations_after
+        b1, b0 = kak.single_qubit_operations_before
+        x, y, z = kak.interaction_coefficients
+
         before0 = QasmUGate.from_matrix(b0)
         before1 = QasmUGate.from_matrix(b1)
         after0 = QasmUGate.from_matrix(a0)
@@ -190,7 +193,7 @@ class QasmOutput:
     def __str__(self) -> str:
         """Return QASM output as a string."""
         output = []
-        self._write_qasm(lambda s:output.append(s))
+        self._write_qasm(lambda s: output.append(s))
         return ''.join(output)
 
     def _write_qasm(self, output_func: Callable[[str], None]) -> None:

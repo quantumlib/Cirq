@@ -39,7 +39,6 @@ from cirq.google.optimize import (
     optimized_for_xmon,
 )
 from cirq.google.xmon_gates import (
-    ExpWGate,
     is_native_xmon_op,
     xmon_op_from_proto_dict,
 )

@@ -237,7 +237,9 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
 
-        cirq.google.ExpWGate(phase_exponent=0.125, exponent=0.25)(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.111, exponent=0.25).on(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
 
         (
             cirq.MeasurementGate('xX')(q0),
@@ -292,10 +294,10 @@ def test_output_unitary_same_as_qiskit():
     circuit = cirq.Circuit.from_ops(operations)
     cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits[::-1])
 
-    p = qiskit.QuantumProgram()
-    p.load_qasm_text(text)
-    result = p.execute(backend='local_unitary_simulator')
-    qiskit_unitary = result.get_unitary()
+    result = qiskit.execute(
+        qiskit.load_qasm_string(text),
+        backend=qiskit.Aer.get_backend('unitary_simulator'))
+    qiskit_unitary = result.result().get_unitary()
 
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
@@ -451,9 +453,9 @@ rz(pi*-0.5) q[2];
 h q[2];
 cx q[2],q[0];
 
-// Gate: W(0.125)^0.25
-u3(pi*0.25,pi*1.625,pi*0.375) q[1];
-
+u3(pi*-0.25, pi*0.611, pi*-0.611) q[1];
+u2(pi*-0.167, pi*0.167) q[1];
+u2(pi*1.277, pi*-1.277) q[1];
 measure q[0] -> m_xX[0];
 measure q[2] -> m_x_a[0];
 measure q[1] -> m0[0];

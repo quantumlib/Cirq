@@ -52,14 +52,6 @@ from cirq.devices import (
     UnconstrainedDevice,
 )
 
-from cirq.extension import (
-    can_cast,
-    cast,
-    Extensions,
-    PotentialImplementation,
-    try_cast,
-)
-
 from cirq.experiments import (
     generate_supremacy_circuit_google_v2,
     generate_supremacy_circuit_google_v2_bristlecone,
@@ -87,6 +79,7 @@ from cirq.linalg import (
     is_unitary,
     kak_canonicalize_vector,
     kak_decomposition,
+    KakDecomposition,
     kron,
     kron_factor_4x4_to_2x2s,
     kron_with_controls,

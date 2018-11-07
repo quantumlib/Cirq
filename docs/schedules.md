@@ -40,8 +40,7 @@ class Xmon10Device(cirq.Device):
       if not isinstance(operation.gate, (cirq.CZPowGate,
                                          cirq.XPowGate,
                                          cirq.PhasedXPowGate,
-                                         cirq.YPowGate,
-                                         cirq.google.ExpWGate)):
+                                         cirq.YPowGate)):
           raise ValueError('{!r} is not a supported gate'.format(operation.gate))
       if len(operation.qubits) == 2:
           p, q = operation.qubits
@@ -93,10 +92,8 @@ method raises an exception.)
 Here, for example, is a simple ``Circuit`` on the ``Xmon10Device`` 
 defined above
 ```python
-from cirq.google.xmon_gates import ExpWGate
 circuit = cirq.Circuit()
-X = ExpWGate(exponent=1.0)
-circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
+circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), cirq.X(device.qubits[0])])
 print(circuit)
 # prints:
 # (0, 0): ───@───X───
