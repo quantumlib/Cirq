@@ -837,7 +837,8 @@ def test_XXPowGate_matrix():
 
 def test_XXPowGate_repr():
     assert repr(cirq.XXPowGate()) == 'cirq.XX'
-    assert repr(cirq.XXPowGate(exponent=0.5)) == 'cirq.XXPowGate(exponent=0.5, global_shift=0.0)'
+    assert repr(cirq.XXPowGate(exponent=0.5)) \
+           == 'cirq.XXPowGate(exponent=0.5, global_shift=0.0)'
 
 
 def test_XXPowGate_diagrams():
