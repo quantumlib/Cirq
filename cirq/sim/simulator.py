@@ -319,7 +319,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=bool)
-            print(measurements)
             if step_result:
                 final_state = step_result.state()
             else:
