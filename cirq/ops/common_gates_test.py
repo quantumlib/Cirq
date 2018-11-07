@@ -838,11 +838,6 @@ def test_XXPowGate_matrix():
 def test_XXPowGate_repr():
     assert repr(cirq.XXPowGate()) == 'cirq.XX'
     assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
-    assert repr(cirq.XXPowGate(global_shift=-0.5) == 'cirq.MS(np.pi/2)')
-    cirq.testing.assert_equivalent_repr(cirq.XXPowGate())
-    cirq.testing.assert_equivalent_repr(cirq.XXPowGate() ** 0.1)
-    cirq.testing.assert_equivalent_repr(cirq.XX)
-    cirq.testing.assert_equivalent_repr(cirq.XX ** 0.1)
 
 
 def test_XXPowGate_diagrams():

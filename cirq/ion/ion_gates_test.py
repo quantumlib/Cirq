@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 
 import cirq
 
@@ -25,7 +24,8 @@ def test_MSGate_arguments():
 
 
 def test_MSGate_str():
-    assert str(cirq.MSGate(np.pi/2)) == 'MS(np.pi/2*{!r})'
+    assert str(cirq.MSGate(np.pi/2)) == 'MS(np.pi/2)'
+    assert str(cirq.MSGate(np.pi)) == 'MS(np.pi/2*2)'
 
 
 def test_MSGate_matrix():
@@ -40,28 +40,5 @@ def test_MSGate_matrix():
 
 
 def test_MSGate_repr():
-    assert repr(cirq.MSGate(np.pi/4)) == '(cirq.MS(np.pi/2*0.5))'
+    assert repr(cirq.MSGate(np.pi/4)) == '(cirq.MSGate(np.pi/2*0.5))'
     cirq.testing.assert_equivalent_repr(cirq.MSGate(np.pi/4))
-    cirq.testing.assert_equivalent_repr(cirq.MSGate(np.pi/4) ** 0.1)
-
-
-def test_MSGate_diagrams():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
-        cirq.SWAP(a, b),
-        cirq.X(a),
-        cirq.Y(a),
-        cirq.MSGate(np.pi/4).on(a, b))
-
-    cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───MS(0.25π)───
-      │           │
-b: ───×───────────MS(0.25π)───
-""")
-
-    cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---MS---
-      |              |
-b: ---swap-----------MS---
-""", use_unicode_characters=False)
