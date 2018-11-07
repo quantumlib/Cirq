@@ -20,23 +20,22 @@ from cirq.ops.clifford_gate import (
     PauliTransform,
 )
 from cirq.ops.common_channels import (
+    amplitude_damp,
+    AmplitudeDampingChannel,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
     depolarize,
     DepolarizingChannel,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
-    amplitude_damp,
-    AmplitudeDampingChannel,
     phase_damp,
     PhaseDampingChannel,
     phase_flip,
     PhaseFlipChannel,
-    bit_flip,
-    BitFlipChannel,
     rotation_error,
     RotationErrorChannel
-
 )
 from cirq.ops.common_gates import (
     CNOT,
