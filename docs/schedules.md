@@ -25,7 +25,6 @@ Here for example is a ``Device`` made up of 10 qubits on a line:
 ```python
 import cirq
 from cirq.devices import GridQubit
-from cirq.google import XmonGate
 class Xmon10Device(cirq.Device):
 
   def __init__(self):
@@ -38,7 +37,10 @@ class Xmon10Device(cirq.Device):
   def validate_operation(self, operation):
       if not isinstance(operation, cirq.GateOperation):
           raise ValueError('{!r} is not a supported operation'.format(operation))
-      if not isinstance(operation.gate, (cirq.CZPowGate, XmonGate)):
+      if not isinstance(operation.gate, (cirq.CZPowGate,
+                                         cirq.XPowGate,
+                                         cirq.PhasedXPowGate,
+                                         cirq.YPowGate)):
           raise ValueError('{!r} is not a supported gate'.format(operation.gate))
       if len(operation.qubits) == 2:
           p, q = operation.qubits
@@ -90,10 +92,8 @@ method raises an exception.)
 Here, for example, is a simple ``Circuit`` on the ``Xmon10Device`` 
 defined above
 ```python
-from cirq.google.xmon_gates import ExpWGate
 circuit = cirq.Circuit()
-X = ExpWGate(exponent=1.0)
-circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), X(device.qubits[0])])
+circuit.append([cirq.CZ(device.qubits[0], device.qubits[1]), cirq.X(device.qubits[0])])
 print(circuit)
 # prints:
 # (0, 0): ───@───X───
