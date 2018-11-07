@@ -127,7 +127,7 @@ class XmonSimulator(simulator.SimulatesSamples,
         param_resolver: study.ParamResolver,
         repetitions: int,
     ) -> Dict[str, List[np.ndarray]]:
-        """See definition in `sim.SimulatesSamples`."""
+        """See definition in `cirq.SimulatesSamples`."""
         xmon_circuit, keys = self._to_xmon_circuit(
             circuit,
             param_resolver)
@@ -158,8 +158,12 @@ class XmonSimulator(simulator.SimulatesSamples,
         step_result = None
         for step_result in all_step_results:
             pass
-        return wave_function.sample_terminal_measurements(circuit, step_result,
-                                                repetitions)
+        if step_result is None:
+            return {}
+        measurement_ops = [op for _, op, _ in
+                           circuit.findall_operations_with_gate_type(
+                                   ops.MeasurementGate)]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions)
 
     def _simulator_iterator(
         self,
@@ -169,7 +173,7 @@ class XmonSimulator(simulator.SimulatesSamples,
         initial_state: Union[int, np.ndarray],
         perform_measurements: bool = True,
     ) -> Iterator['XmonStepResult']:
-        """See definition in `sim.SimulatesIntermediateWaveFunction`."""
+        """See definition in `cirq.SimulatesIntermediateWaveFunction`."""
         param_resolver = param_resolver or study.ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(circuit, param_resolver)
         return self._base_iterator(xmon_circuit,

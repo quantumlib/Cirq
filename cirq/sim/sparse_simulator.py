@@ -124,10 +124,12 @@ class Simulator(simulator.SimulatesSamples,
                 initial_state=0,
                 perform_measurements=False):
             pass
-        return wave_function.sample_terminal_measurements(
-                circuit=circuit,
-                last_step_result=step_result,
-                repetitions=repetitions)
+        if step_result is None:
+            return {}
+        measurement_ops = [op for _, op, _ in
+                           circuit.findall_operations_with_gate_type(
+                                   ops.MeasurementGate)]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions)
 
     def _run_sweep_repeat(
         self,

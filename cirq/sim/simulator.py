@@ -83,9 +83,10 @@ class SimulatesSamples:
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
+            as_array = dict((k, np.array(v)) for k, v in measurements.items())
             trial_results.append(study.TrialResult(params=param_resolver,
                                                    repetitions=repetitions,
-                                                   measurements=measurements))
+                                                   measurements=as_array))
         return trial_results
 
     @abc.abstractmethod
@@ -437,7 +438,7 @@ class StepResult:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def set_state(self, state: Union[int, np.ndarray]):
+    def set_state(self, state: Union[int, np.ndarray]) -> None:
         """Updates the state of the simulator to the given new state.
 
         Args:
@@ -454,17 +455,70 @@ class StepResult:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def sample(self, qubits: List[ops.QubitId], repetitions: int = 1):
+    def sample(self, qubits: List[ops.QubitId],
+            repetitions: int = 1) -> List[List[bool]]:
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.
 
+        Args:
+            qubits: The qubits to be sampled in an order that influence the
+                returned measurement results.
+            repetitions: The number of samples to take.
+
         Returns:
             Measurement results with True corresponding to the |1> state.
             The outer list is for repetitions, and the inner corresponds to
-            measurements ordered by the supplied qubits.
+            measurements ordered by the supplied qubits. These lists
+            are wrapped as an numpy ndarray.
         """
         raise NotImplementedError()
+
+    def sample_measurement_ops(self, measurement_ops: List[ops.GateOperation],
+            repetitions: int = 1) -> Dict[str, List[List[bool]]]:
+        """Samples from the wave function at this point in the computation.
+
+        Note that this does not collapse the wave function.
+
+        In contrast to `sample` which samples qubits, this takes a set of
+        `cirq.GateOperation`s whose gates are `cirq.MeasurementGate`s and
+        returns a mapping from the key in the measurement gate to the
+        resulting bit strings. Different measurement operations must not act on
+        the same qubits.
+
+        Args:
+            measurement_ops: `GateOperation`s whose gates are
+                `MeasurementGate`s are to be sampled form.
+            repetitions: The number of samples to take.
+
+        Returns: A dictionary from the measurement gate keys to the measurement
+            results. These results are lists of lists, with the outer list
+            corresponding to repetitions and the inner list corresponding
+            to the qubits acted upon by the measurement operation with the
+            given key.
+
+        Raises:
+            ValueError: If the operation's gates are not `MeasurementGate`s or
+                a qubit is acted upon multiple times by different
+                measurement_ops.
+        """
+        bounds = {}
+        all_qubits = []  # type: List[ops.QubitId]
+        current_index = 0
+        for op in measurement_ops:
+            gate = op.gate
+            if not isinstance(gate, ops.MeasurementGate):
+                raise ValueError('{} was not a MeasurementGate'.format(gate))
+            if gate.key in bounds:
+                raise ValueError(
+                    'Duplicate MeasurementGate with key {}'.format(gate.key))
+            bounds[gate.key] = (current_index, current_index + len(op.qubits))
+            all_qubits.extend(op.qubits)
+            current_index += len(op.qubits)
+        indexed_sample = self.sample(all_qubits, repetitions)
+        return {k: [x[s:e] for x in indexed_sample] for k, (s, e) in
+                bounds.items()}
+
 
     def dirac_notation(self, decimals=2):
         """Returns the wavefunction as a string in Dirac notation.

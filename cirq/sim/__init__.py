@@ -29,7 +29,6 @@ from cirq.sim.wave_function import (
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
-    sample_terminal_measurements,
     to_valid_state_vector,
     validate_normalized_state,
 )
