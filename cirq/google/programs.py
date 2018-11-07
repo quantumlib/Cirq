@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast, Union
+from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast, Union, \
+    Any
 
 import numpy as np
 
@@ -290,7 +291,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         raise ValueError(
             '{} missing required fields: {}'.format(gate_name, proto_dict))
     param = _parameterized_value_from_proto_dict
-    qubit = GridQubit.from_proto_dict
+    qubit = devices.GridQubit.from_proto_dict
     if 'exp_w' in proto_dict:
         exp_w = proto_dict['exp_w']
         if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w
