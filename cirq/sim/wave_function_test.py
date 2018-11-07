@@ -19,6 +19,7 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq import sim
 
 
 def assert_dirac_notation(vec, expected, decimals=2):
@@ -284,6 +285,7 @@ def test_measure_state_out_is_state():
     np.testing.assert_array_almost_equal(initial_state, expected)
     assert state is initial_state
 
+
 def test_measure_state_out_is_not_state():
     initial_state = np.zeros(8, dtype=np.complex64)
     initial_state[0] = 1 / np.sqrt(2)
@@ -321,3 +323,49 @@ def test_measure_state_empty_state():
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)
+
+
+class FakeStepResult(cirq.StepResult):
+
+    def __init__(self, ones_qubits):
+        self._ones_qubits = set(ones_qubits)
+
+    def state(self):
+        pass
+
+    def __setstate__(self, state):
+        pass
+
+    def sample(self, qubits, repetitions):
+        return [[qubit in self._ones_qubits for qubit in qubits]] * repetitions
+
+
+def test_sample_terminal_measurement():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q1, q2),
+                                    cirq.measure(q0, q1),
+                                    cirq.measure(q2))
+    step_result = FakeStepResult([q1])
+
+    measurements = sim.sample_terminal_measurements(circuit, step_result,
+                                                    repetitions=1)
+    np.testing.assert_equal(measurements,
+                            {'0,1': [[False, True]], '2': [[False]]})
+
+def test_sample_terminal_measurement_repetitions():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q1, q2),
+                                    cirq.measure(q0, q1),
+                                    cirq.measure(q2))
+    step_result = FakeStepResult([q1])
+
+    measurements = sim.sample_terminal_measurements(circuit, step_result,
+                                                    repetitions=3)
+    np.testing.assert_equal(measurements,
+                            {'0,1': [[False, True]] * 3, '2': [[False]] * 3})
+
+
+def test_sample_terminal_measurement_no_step():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(cirq.measure(q0, q1), cirq.measure(q2))
+    assert len(sim.sample_terminal_measurements(circuit, None, 1)) == 0

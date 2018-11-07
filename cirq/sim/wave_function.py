@@ -290,7 +290,7 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
 
 def sample_terminal_measurements(
         circuit: circuits.Circuit,
-        step_result: 'simulator.StepResult',
+        last_step_result: 'simulator.StepResult',
         repetitions: int) -> Dict[str, List]:
     """Sample from measurements in the given circuit.
 
@@ -298,8 +298,8 @@ def sample_terminal_measurements(
 
     Args:
         circuit: The circuit to sample from.
-        step_result: The XmonStepResult from which to sample. This should be
-            the step at the end of the circuit. Can be None if no steps were
+        last_step_result: The XmonStepResult from which to sample. This should
+            be the step at the end of the circuit. Can be None if no steps were
             taken.
         repetitions: The number of time to sample.
 
@@ -309,7 +309,7 @@ def sample_terminal_measurements(
         the repetition, and the inner list corresponding to the qubits as
         ordered in the measurement gate.
     """
-    if step_result is None:
+    if last_step_result is None:
         return {}
     bounds = {}
     all_qubits = []  # type: List[ops.QubitId]
@@ -320,6 +320,6 @@ def sample_terminal_measurements(
         bounds[key] = (current_index, current_index + len(op.qubits))
         all_qubits.extend(op.qubits)
         current_index += len(op.qubits)
-    sample = step_result.sample(all_qubits, repetitions)
+    sample = last_step_result.sample(all_qubits, repetitions)
     return {k: np.array([x[s:e] for x in sample]) for k, (s, e) in
             bounds.items()}
