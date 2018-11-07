@@ -18,7 +18,7 @@ import pytest
 
 import cirq
 import cirq.google as cg
-from cirq.google.xmon_gates import (
+from cirq.google.programs import (
     _parameterized_value_from_proto_dict
 )
 from cirq.schedules import moment_by_moment_schedule
@@ -575,3 +575,18 @@ def test_z_invalid_dict():
     }
     with pytest.raises(ValueError):
         cg.xmon_op_from_proto_dict(proto_dict)
+
+
+def test_is_supported():
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(1, 0)
+    assert cg.is_native_xmon_op(cirq.CZ(a, b))
+    assert cg.is_native_xmon_op(cirq.X(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Y(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Z(a)**0.5)
+    assert cg.is_native_xmon_op(
+        cirq.PhasedXPowGate(phase_exponent=0.2).on(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Z(a)**1)
+    assert not cg.is_native_xmon_op(cirq.CCZ(a, b, c))
+    assert not cg.is_native_xmon_op(cirq.SWAP(a, b))
