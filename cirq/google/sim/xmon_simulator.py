@@ -40,7 +40,7 @@ from typing import Tuple  # pylint: disable=unused-import
 import numpy as np
 
 from cirq import circuits, ops, study, protocols
-from cirq.sim import simulator
+from cirq.sim import simulator, wave_function
 from cirq.google import convert_to_xmon_gates, xmon_gates
 from cirq.google.sim import xmon_stepper
 
@@ -157,7 +157,7 @@ class XmonSimulator(simulator.SimulatesSamples,
         step_result = None
         for step_result in all_step_results:
             pass
-        return simulator.sample_terminal_measurements(circuit, step_result,
+        return wave_function.sample_terminal_measurements(circuit, step_result,
                                                 repetitions)
 
     def _simulator_iterator(

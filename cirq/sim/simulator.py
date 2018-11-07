@@ -206,8 +206,8 @@ class SimulationTrialResult:
             1s bit of the index, the second-to-last is the 2s bit of the index,
             and so forth (i.e. big endian ordering). Example:
                  qubit ordering: [QubitA, QubitB, QubitC]
-                 Then the returned vector will have indices mapped to qubit basis
-                 states like the following table
+            Then the returned vector will have indices mapped to qubit basis
+            states like the following table
                    |   | QubitA | QubitB | QubitC |
                    +---+--------+--------+--------+
                    | 0 |   0    |   0    |   0    |
@@ -319,11 +319,11 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=bool)
+            print(measurements)
             if step_result:
                 final_state = step_result.state()
             else:
                 # Empty circuit, so final state should be initial state.
-                print(circuit)
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
                 final_state = wave_function.to_valid_state_vector(initial_state,
                                                                   num_qubits)

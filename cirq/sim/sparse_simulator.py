@@ -19,7 +19,7 @@ from typing import cast, Dict, Iterator, List, Union
 
 import numpy as np
 
-from cirq import circuits, study, schedules, ops, protocols
+from cirq import circuits, study, ops, protocols
 from cirq.sim import simulator, wave_function
 
 
@@ -118,10 +118,11 @@ class Simulator(simulator.SimulatesSamples,
         circuit: circuits.Circuit,
         repetitions: int) -> Dict[str, List[np.ndarray]]:
         step_result = None
-        for step_result in self._base_iterator(circuit=circuit,
-                                               qubit_order=ops.QubitOrder.DEFAULT,
-                                               initial_state=0,
-                                               perform_measurements=False):
+        for step_result in self._base_iterator(
+                circuit=circuit,
+                qubit_order=ops.QubitOrder.DEFAULT,
+                initial_state=0,
+                perform_measurements=False):
             pass
         return wave_function.sample_terminal_measurements(
             circuit=circuit, step_result=step_result, repetitions=repetitions)
@@ -130,8 +131,7 @@ class Simulator(simulator.SimulatesSamples,
         self,
         circuit: circuits.Circuit,
         repetitions: int) -> Dict[str, List[np.ndarray]]:
-        measurements = {k: [] for k in
-                        keys}  # type: Dict[str, List[np.ndarray]]
+        measurements = {}  # type: Dict[str, List[np.ndarray]]
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
                     circuit,
@@ -139,9 +139,10 @@ class Simulator(simulator.SimulatesSamples,
                     initial_state=0)
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
+                    if not k in measurements:
+                        measurements[k] = []
                     measurements[k].append(np.array(v, dtype=bool))
         return {k: np.array(v) for k, v in measurements.items()}
-        
 
     def _simulator_iterator(
             self,
@@ -163,13 +164,11 @@ class Simulator(simulator.SimulatesSamples,
             qubit_order: ops.QubitOrderOrList,
             initial_state: Union[int, np.ndarray],
             perform_measurements: bool=True,
-    ) -> Iterator['StepResult']:
-
-
+    ) -> Iterator[simulator.StepResult]:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
                 circuit.all_qubits())
         num_qubits = len(qubits)
-        qubit_map = {q: i for i, q in enumerate(reversed(qubits))}
+        qubit_map = {q: i for i, q in enumerate(qubits)}
         state = wave_function.to_valid_state_vector(initial_state,
                                                     num_qubits,
                                                     self._dtype)
@@ -190,7 +189,7 @@ class Simulator(simulator.SimulatesSamples,
                                                                      state)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        measurements[cast(str, gate.key)].extend(corrected)
+                        measurements[cast(str, gate.key)].append(*corrected)
                 else:
                     new_state = protocols.apply_unitary_to_tensor(op,
                                                                   state,
@@ -216,15 +215,15 @@ class SimulatorStep(simulator.StepResult):
 
         Attributes:
             qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering is
-                used to define the state (see the state() method).
+                of this qubit for a canonical ordering. This canonical ordering
+                is used to define the state (see the state() method).
             measurements: A dictionary from measurement gate key to measurement
                 results, ordered by the qubits that the measurement operates on.
         """
         self.measurements = measurements
         self.qubit_map = qubit_map
         self._dtype = dtype
-        self._state = state
+        self._state = np.reshape(state, 2 ** len(qubit_map))
 
     def state(self) -> np.ndarray:
         return self._state

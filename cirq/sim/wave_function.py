@@ -15,12 +15,15 @@
 
 import itertools
 
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import Dict, List, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, linalg, ops
-from cirq.sim import simulator
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.sim import simulator
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
@@ -106,7 +109,7 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
             state[state_rep] = 1.0
     else:
         raise TypeError('initial_state was not of type int or ndarray')
-    validate_normalized_state(state, num_qubits)
+    validate_normalized_state(state, num_qubits, dtype)
     return state
 
 
@@ -287,7 +290,7 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
 
 def sample_terminal_measurements(
         circuit: circuits.Circuit,
-        step_result: 'StepResult',
+        step_result: 'simulator.StepResult',
         repetitions: int) -> Dict[str, List]:
     """Sample from measurements in the given circuit.
 

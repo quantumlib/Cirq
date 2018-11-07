@@ -278,7 +278,7 @@ def test_invalid_initial_state_empty_circuit_qubits_not_specified(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_state(scheduler):
+def test_simulate_state(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler)
     np.testing.assert_almost_equal(result.final_state,
@@ -286,7 +286,7 @@ def test_run_state(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_initial_state_int(scheduler):
+def test_simulate_initial_state_int(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler,
                       initial_state=2)
