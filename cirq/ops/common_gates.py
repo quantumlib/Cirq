@@ -965,7 +965,7 @@ class XXPowGate(eigen_gate.EigenGate,
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
-                ('MS', 'MS'),
+                'MS',
                 args,
                 self._diagram_exponent(args, ignore_global_phase=False))
 
