@@ -79,6 +79,7 @@ from cirq.linalg import (
     is_unitary,
     kak_canonicalize_vector,
     kak_decomposition,
+    KakDecomposition,
     kron,
     kron_factor_4x4_to_2x2s,
     kron_with_controls,
