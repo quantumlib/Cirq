@@ -936,7 +936,8 @@ class XXPowGate(eigen_gate.EigenGate,
         exponent = 1 is used.
 
         Args:
-            exponent: The t in XX**t. Phases the eigenstate of the Pauli XX operator by e^{i pi exponent}.
+            exponent: The t in XX**t. Phases the eigenstate of the Pauli XX
+                      operator by e^{i pi exponent}.
             global_shift: Offsets the eigenvalues of the gate at exponent=1.
         """
 
@@ -964,7 +965,7 @@ class XXPowGate(eigen_gate.EigenGate,
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
-                'MS',
+                ('MS', 'MS'),
                 args,
                 self._diagram_exponent(args, ignore_global_phase=False))
 
@@ -973,15 +974,17 @@ class XXPowGate(eigen_gate.EigenGate,
             exponent=self.exponent)
 
     def __str__(self) -> str:
-        if self.exponent == 1:
-            return 'XX'
         if self._global_shift == -0.5:
             return 'MS(np.pi/2*{!r})'.format(self._exponent)
+        if self.exponent == 1:
+            return 'XX'
         return 'XX**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            return 'cirq.MS(np.pi/2*{!r})'.format(self._exponent)
+            if self._exponent == 1:
+                return 'cirq.MS(np.pi/2)'
+            return '(cirq.MS(np.pi/2*{!r}))'.format(self._exponent)
         if self._exponent == 1:
             return 'cirq.XX'
         return ('cirq.XXPowGate(exponent={!r},'

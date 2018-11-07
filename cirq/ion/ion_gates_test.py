@@ -21,7 +21,7 @@ import cirq
 def test_MSGate_arguments():
     eq_tester = cirq.testing.EqualsTester()
     eq_tester.add_equality_group(cirq.MSGate(np.pi/2),
-                                 cirq.MSGate())
+                                 cirq.XXPowGate(global_shift=-0.5))
 
 
 def test_MSGate_str():

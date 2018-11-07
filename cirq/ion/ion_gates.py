@@ -13,21 +13,18 @@
 # limitations under the License.
 
 """Operations native to iontrap systems."""
-from typing import (
-    Union, Tuple, Optional, List, Callable, cast, Iterable, Sequence,
-)
 
 import numpy as np
 
-from cirq import value, linalg, protocols, ops
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
-from cirq.type_workarounds import NotImplementedType
+from cirq import ops
 
 
 def MSGate(rads: float) -> ops.XXPowGate:
     """
-    Implements the Mølmer–Sørensen gate, native two-qubit operation in ion traps.
-    Effectively equivalents to rotation around the XX axis in the two-qubit bloch sphere.
+    Implements the Mølmer–Sørensen gate,
+    native two-qubit operation in ion traps.
+    Effectively equivalents to rotation around the XX axis
+    in the two-qubit bloch sphere.
 
     The gate implements the following unitary:
     exp(-i t XX) = [cos(t) 0 0 -isin(t)]
