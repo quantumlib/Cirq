@@ -147,21 +147,11 @@ in the computational basis.
 
 ``XmonGates`` are hardware specific.  In addition Cirq has a
 number of more commonly named gates that are then implemented
-as ``XmonGates`` via an extension or composite gates.  Some
+as ``XmonGates`` via decomposition or known unitaries. Some
 of these are our old friends:
 
-**XPowGate**, **YPowGate**, **ZPowGate**, **CZPowGate**.
-These are gates corresponding to the  Pauli rotations or
-(in the case of ``CZPowGate`` a two qubit rotation).
-
-Our old friends the Paulis: **X**, **Y**, and **Z**. 
-Some other two qubit fiends, **CZ** the controlled-Z gate,
 **CNOT** the controlled-X gate, and **SWAP** the swap gate.
 As well as some other Clifford friends, **H** and **S**,
 and our error correcting friend **T**.
 
 TODO: describe these in more detail.  
-
-### Extensions
-
-TODO
