@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast, Union, \
-    Any
+from typing import (
+    Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, Union
+)
 
 import numpy as np
 
 from cirq import ops, devices, value
-from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
 if TYPE_CHECKING:
     from typing import Optional  # pylint: disable=unused-import
+    from cirq.google import xmon_device
 
 
 def gate_to_proto_dict(gate: ops.Gate,
@@ -162,7 +163,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
 
 
 def schedule_from_proto_dicts(
-        device: XmonDevice,
+        device: 'xmon_device.XmonDevice',
         ops: Iterable[Dict],
 ) -> Schedule:
     """Convert proto dictionaries into a Schedule for the given device."""
