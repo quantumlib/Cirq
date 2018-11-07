@@ -225,24 +225,26 @@ def test_concatenate_with_device():
 
 
 def test_with_device():
-    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
     c2 = c.with_device(cg.Foxtail,
                                 lambda e: cirq.GridQubit(e.x, 0))
     assert c2 == cirq.Circuit.from_ops(
-        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+        cirq.X(cirq.GridQubit(0, 0)),
         device=cg.Foxtail)
 
     # Qubit type must be correct.
-    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
-    with pytest.raises(ValueError):
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
+    with pytest.raises(ValueError, match='Unsupported qubit type'):
         _ = c.with_device(cg.Foxtail)
 
     # Operations must be compatible from the start
     c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 0)))
-    with pytest.raises(ValueError):
+    _ = c.with_device(cg.Foxtail)
+    c = cirq.Circuit.from_ops(cirq.H(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError, match='Unsupported gate type'):
         _ = c.with_device(cg.Foxtail)
 
-    # Some qubits existing on multiple devices.
+    # Some qubits exist on multiple devices.
     c = cirq.Circuit.from_ops(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     with pytest.raises(ValueError):
         _ = c.with_device(cg.Bristlecone)
@@ -259,7 +261,7 @@ def test_set_device():
     assert c.device is cirq.UnconstrainedDevice
 
     c[:] = []
-    c.append(cg.ExpWGate().on(cirq.GridQubit(0, 0)))
+    c.append(cirq.X(cirq.GridQubit(0, 0)))
     c.device = cg.Foxtail
     assert c.device == cg.Foxtail
 
@@ -1197,21 +1199,21 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = cg.ExpWGate(
+    test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---W(0.43)^0.12---
+a: ---PhasedX(0.43)^0.12---
 """, use_unicode_characters=False, precision=2)
 
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = cg.ExpWGate(
+    test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---W(0.43214321)^0.12341234---
+a: ---PhasedX(0.43214321)^0.12341234---
 """, use_unicode_characters=False, precision=None)
 
 
@@ -1658,7 +1660,7 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(circuit)
 
 
-def test_with_parameters_resolved_by():
+def test_resolve_parameters():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
         cirq.CZ(a, b)**cirq.Symbol('u'),
@@ -1673,6 +1675,23 @@ def test_with_parameters_resolved_by():
       │
 1: ───@^0.1───Y^0.2───
 """)
+    q = cirq.NamedQubit('q')
+    # no-op parameter resolution
+    circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)])])
+    resolved_circuit = cirq.resolve_parameters(
+        circuit,
+        cirq.ParamResolver({}))
+    cirq.testing.assert_same_circuits(circuit, resolved_circuit)
+    # actually resolve something
+    circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)**cirq.Symbol('x')])])
+    resolved_circuit = cirq.resolve_parameters(
+        circuit,
+        cirq.ParamResolver({'x': 0.2}))
+    expected_circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
+    cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
 def test_items():
@@ -2425,3 +2444,91 @@ def test_reachable_frontier_from():
             c: 3,
             d: 5
         }
+
+
+def test_submoments():
+    a, b, c, d, e, f = cirq.LineQubit.range(6)
+    circuit = cirq.Circuit.from_ops(
+        cirq.H.on(a),
+        cirq.H.on(d),
+        cirq.CZ.on(a, d),
+        cirq.CZ.on(b, c),
+        (cirq.CNOT**0.5).on(a, d),
+        (cirq.CNOT**0.5).on(b, e),
+        (cirq.CNOT**0.5).on(c, f),
+        cirq.H.on(c),
+        cirq.H.on(e),
+    )
+
+    cirq.testing.assert_has_diagram(circuit, """
+         ┌──┐  ┌───────────────┐
+0: ───H───@─────@─────────────────────
+          │     │
+1: ───────┼@────┼────@────────────────
+          ││    │    │
+2: ───────┼@────┼────┼────@───────H───
+          │     │    │    │
+3: ───H───@─────X^0.5┼────┼───────────
+                     │    │
+4: ──────────────────X^0.5┼───────H───
+                          │
+5: ───────────────────────X^0.5───────
+         └──┘  └───────────────┘
+""")
+
+    cirq.testing.assert_has_diagram(circuit, """
+  0 1 2 3     4     5
+  │ │ │ │     │     │
+  H │ │ H     │     │
+┌ │ │ │ │     │     │     ┐
+│ @─┼─┼─@     │     │     │
+│ │ @─@ │     │     │     │
+└ │ │ │ │     │     │     ┘
+┌ │ │ │ │     │     │     ┐
+│ @─┼─┼─X^0.5 │     │     │
+│ │ @─┼─┼─────X^0.5 │     │
+│ │ │ @─┼─────┼─────X^0.5 │
+└ │ │ │ │     │     │     ┘
+  │ │ H │     H     │
+  │ │ │ │     │     │
+""", transpose=True)
+
+    cirq.testing.assert_has_diagram(circuit, r"""
+         /--\  /---------------\
+0: ---H---@-----@---------------------
+          |     |
+1: -------|@----|----@----------------
+          ||    |    |
+2: -------|@----|----|----@-------H---
+          |     |    |    |
+3: ---H---@-----X^0.5|----|-----------
+                     |    |
+4: ------------------X^0.5|-------H---
+                          |
+5: -----------------------X^0.5-------
+         \--/  \---------------/
+""", use_unicode_characters=False)
+
+    cirq.testing.assert_has_diagram(circuit, r"""
+  0 1 2 3     4     5
+  | | | |     |     |
+  H | | H     |     |
+/ | | | |     |     |     \
+| @-----@     |     |     |
+| | @-@ |     |     |     |
+\ | | | |     |     |     /
+/ | | | |     |     |     \
+| @-----X^0.5 |     |     |
+| | @---------X^0.5 |     |
+| | | @-------------X^0.5 |
+\ | | | |     |     |     /
+  | | H |     H     |
+  | | | |     |     |
+""", use_unicode_characters=False, transpose=True)
+
+
+def test_decompose():
+    a, b = cirq.LineQubit.range(2)
+    assert cirq.decompose(
+        cirq.Circuit.from_ops(cirq.X(a), cirq.Y(b), cirq.CZ(a, b))
+    ) == [cirq.X(a), cirq.Y(b), cirq.CZ(a, b)]

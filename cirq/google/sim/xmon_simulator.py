@@ -16,9 +16,10 @@
 
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
-the circuit are either an XmonGate or are CompositionOperations or have a
-known unitary which can be decomposed into XmonGates. Measurement gates
-must all have unique string keys.
+the circuit are either native to the xmon architecture (i.e. cause
+`cirq.google.is_native_xmon_op` to return true) or else can be decomposed into
+such operations (by being composite or having a known unitary). Measurement
+gates must all have unique string keys.
 
 A simple example:
     circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])
@@ -40,7 +41,7 @@ from typing import Tuple  # pylint: disable=unused-import
 import numpy as np
 
 from cirq import circuits, ops, sim, study, protocols
-from cirq.google import convert_to_xmon_gates, xmon_gates
+from cirq.google import convert_to_xmon_gates
 from cirq.google.sim import xmon_stepper
 
 
@@ -212,7 +213,19 @@ class XmonSimulator(sim.SimulatesSamples,
                         index1 = qubit_map[op.qubits[1]]
                         phase_map[(index0, index1)] = cast(float,
                                                            gate.exponent)
-                    elif isinstance(gate, xmon_gates.ExpWGate):
+                    elif isinstance(gate, ops.XPowGate):
+                        index = qubit_map[op.qubits[0]]
+                        stepper.simulate_w(
+                            index=index,
+                            half_turns=gate.exponent,
+                            axis_half_turns=0)
+                    elif isinstance(gate, ops.YPowGate):
+                        index = qubit_map[op.qubits[0]]
+                        stepper.simulate_w(
+                            index=index,
+                            half_turns=gate.exponent,
+                            axis_half_turns=0.5)
+                    elif isinstance(gate, ops.PhasedXPowGate):
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(
                             index=index,

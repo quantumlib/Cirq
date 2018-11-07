@@ -223,12 +223,12 @@ def assert_has_diagram(
 
     Args:
         actual: The circuit that was actually computed by some process.
-        desired: The desired text diagram as a string. Whitespace at the
-            beginning and end are ignored.
+        desired: The desired text diagram as a string. Newlines at the
+            beginning and whitespace at the end are ignored.
         **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
-    actual_diagram = actual.to_text_diagram(**kwargs).strip()
-    desired_diagram = desired.strip()
+    actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
+    desired_diagram = desired.lstrip("\n").rstrip()
     assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"
         '\n'

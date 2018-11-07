@@ -17,7 +17,7 @@ from typing import Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, cast
 import numpy as np
 
 from cirq import ops, devices
-from cirq.google import xmon_gates, xmon_gate_ext
+from cirq.google import xmon_gates
 from cirq.google.xmon_device import XmonDevice
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
@@ -28,29 +28,81 @@ if TYPE_CHECKING:
 
 def gate_to_proto_dict(gate: ops.Gate,
                        qubits: Tuple[ops.QubitId, ...]) -> Dict:
-    xmon_gate = xmon_gate_ext.try_cast(  # type: ignore
-        xmon_gates.XmonGate, gate)
-    if xmon_gate is not None:
-        return xmon_gate.to_proto_dict(*qubits)
-
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
+
+    if isinstance(gate, ops.XPowGate):
+        if len(qubits) != 1:
+            # coverage: ignore
+            raise ValueError('Wrong number of qubits.')
+        return _x_to_proto_dict(gate, qubits[0])
+
+    if isinstance(gate, ops.YPowGate):
+        if len(qubits) != 1:
+            # coverage: ignore
+            raise ValueError('Wrong number of qubits.')
+        return _y_to_proto_dict(gate, qubits[0])
+
+    if isinstance(gate, ops.PhasedXPowGate):
+        if len(qubits) != 1:
+            # coverage: ignore
+            raise ValueError('Wrong number of qubits.')
+        return _phased_x_to_proto_dict(gate, qubits[0])
+
     if isinstance(gate, ops.ZPowGate):
         if len(qubits) != 1:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _z_to_proto_dict(gate, qubits[0])
+
     if isinstance(gate, ops.CZPowGate):
         if len(qubits) != 2:
+            # coverage: ignore
             raise ValueError('Wrong number of qubits.')
         return _cz_to_proto_dict(gate, *qubits)
 
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
 
 
+def _x_to_proto_dict(gate: ops.XPowGate, q: ops.QubitId) -> Dict:
+    exp_w = {
+        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'axis_half_turns':
+            xmon_gates._parameterized_value_to_proto_dict(0),
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
+            gate.exponent)
+    }
+    return {'exp_w': exp_w}
+
+
+def _y_to_proto_dict(gate: ops.YPowGate, q: ops.QubitId) -> Dict:
+    exp_w = {
+        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'axis_half_turns':
+            xmon_gates._parameterized_value_to_proto_dict(0.5),
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
+            gate.exponent)
+    }
+    return {'exp_w': exp_w}
+
+
+def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate,
+                            q: ops.QubitId) -> Dict:
+    exp_w = {
+        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'axis_half_turns':
+            xmon_gates._parameterized_value_to_proto_dict(
+                gate.phase_exponent),
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
+            gate.exponent)
+    }
+    return {'exp_w': exp_w}
+
+
 def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.QubitId) -> Dict:
     exp_z = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent),
     }
     return {'exp_z': exp_z}
@@ -62,7 +114,7 @@ def _cz_to_proto_dict(gate: ops.CZPowGate,
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
-        'half_turns': xmon_gates.XmonGate.parameterized_value_to_proto_dict(
+        'half_turns': xmon_gates._parameterized_value_to_proto_dict(
             gate.exponent)
     }
     return {'exp_11': exp_11}
@@ -122,7 +174,7 @@ def schedule_from_proto_dicts(
             delay_picos = op['incremental_delay_picoseconds']
         time_picos = last_time_picos + delay_picos
         last_time_picos = time_picos
-        xmon_op = xmon_gates.XmonGate.from_proto_dict(op)
+        xmon_op = xmon_gates.xmon_op_from_proto_dict(op)
         scheduled_ops.append(ScheduledOperation.op_at_on(
             operation=xmon_op,
             time=Timestamp(picos=time_picos),

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-
-from typing import Union, Sequence
+import fractions
+from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
 
@@ -35,35 +35,76 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     """
 
     def __new__(cls,
+                *,
                 phase_exponent: Union[float, value.Symbol],
-                exponent: Union[float, value.Symbol] = 1):
+                exponent: Union[float, value.Symbol] = 1.0,
+                global_shift: float = 0.0):
         """Substitutes a raw X or raw Y if possible.
 
         Args:
             phase_exponent: The exponent on the Z gates conjugating the X gate.
             exponent: The exponent on the X gate conjugated by Zs.
+            global_shift: How much to shift the operation's eigenvalues at
+                exponent=1.
         """
         p = value.canonicalize_half_turns(phase_exponent)
         if p == 0:
-            return cirq.ops.common_gates.X**exponent
+            return cirq.ops.common_gates.XPowGate(
+                exponent=exponent,
+                global_shift=global_shift)
         if p == 0.5:
-            return cirq.ops.common_gates.Y**exponent
+            return cirq.ops.common_gates.YPowGate(
+                exponent=exponent,
+                global_shift=global_shift)
         if p == 1 and not isinstance(exponent, value.Symbol):
-            return cirq.ops.common_gates.X**-exponent
+            return cirq.ops.common_gates.XPowGate(
+                exponent=-exponent,
+                global_shift=global_shift)
         if p == -0.5 and not isinstance(exponent, value.Symbol):
-            return cirq.ops.common_gates.Y**-exponent
+            return cirq.ops.common_gates.YPowGate(
+                exponent=-exponent,
+                global_shift=global_shift)
         return super().__new__(cls)
 
     def __init__(self,
+                 *,
                  phase_exponent: Union[float, value.Symbol],
-                 exponent: Union[float, value.Symbol] = 1) -> None:
+                 exponent: Union[float, value.Symbol] = 1.0,
+                 global_shift: float = 0.0) -> None:
         """
         Args:
             phase_exponent: The exponent on the Z gates conjugating the X gate.
             exponent: The exponent on the X gate conjugated by Zs.
+            global_shift: How much to shift the operation's eigenvalues at
+                exponent=1.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
         self._exponent = exponent
+        self._global_shift = global_shift
+
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+        if cirq.is_parameterized(self):
+            return None
+
+        args.validate_version('2.0')
+
+        e = cast(float, value.canonicalize_half_turns(self._exponent))
+        p = cast(float, self.phase_exponent)
+        epsilon = 10**-args.precision
+
+        if abs(e + 0.5) <= epsilon:
+            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
+                               p + 0.5, -p - 0.5, qubits[0])
+
+        if abs(e - 0.5) <= epsilon:
+            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
+                               p - 0.5, -p + 0.5, qubits[0])
+
+        return args.format(
+            'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
+            -e, p + 0.5, -p - 0.5, qubits[0])
 
     def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
@@ -88,7 +129,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         if new_exponent is NotImplemented:
             return NotImplemented
         return PhasedXPowGate(phase_exponent=self._phase_exponent,
-                              exponent=new_exponent)
+                              exponent=new_exponent,
+                              global_shift=self._global_shift)
 
     def _trace_distance_bound_(self):
         """See `cirq.SupportsTraceDistanceBound`."""
@@ -101,7 +143,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return NotImplemented
         z = protocols.unitary(cirq.ops.common_gates.Z**self._phase_exponent)
         x = protocols.unitary(cirq.ops.common_gates.X**self._exponent)
-        return np.dot(np.dot(z, x), np.conj(z))
+        p = np.exp(1j * np.pi * self._global_shift * self._exponent)
+        return np.dot(np.dot(z, x), np.conj(z)) * p
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""
@@ -112,21 +155,30 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """See `cirq.SupportsParameterization`."""
         return PhasedXPowGate(
             phase_exponent=param_resolver.value_of(self._phase_exponent),
-            exponent=param_resolver.value_of(self._exponent))
+            exponent=param_resolver.value_of(self._exponent),
+            global_shift=self._global_shift)
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
         return PhasedXPowGate(
             exponent=self._exponent,
-            phase_exponent=self._phase_exponent + phase_turns * 2)
+            phase_exponent=self._phase_exponent + phase_turns * 2,
+            global_shift=self._global_shift)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
+
+        if (isinstance(self.phase_exponent, value.Symbol) or
+                args.precision is None):
+            s = 'PhasedX({})'.format(self.phase_exponent)
+        else:
+            s = 'PhasedX({{:.{}}})'.format(args.precision).format(
+                self.phase_exponent)
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('PhasedX({})'.format(self._phase_exponent),),
-            exponent=self._exponent)
+            wire_symbols=(s,),
+            exponent=value.canonicalize_half_turns(self._exponent))
 
     def __str__(self):
         info = protocols.circuit_diagram_info(self)
@@ -135,13 +187,36 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
 
     def __repr__(self):
-        return 'cirq.PhasedXPowGate({!r}, {!r})'.format(self._phase_exponent,
-                                                        self._exponent)
+        args = ['phase_exponent={!r}'.format(self.phase_exponent)]
+        if self.exponent != 1:
+            args.append('exponent={!r}'.format(self.exponent))
+        if self._global_shift != 0:
+            args.append('global_shift={!r}'.format(self._global_shift))
+        return 'cirq.PhasedXPowGate({})'.format(', '.join(args))
+
+    def _period(self):
+        exponents = [self._global_shift, 1 + self._global_shift]
+        real_periods = [abs(2/e) for e in exponents if e != 0]
+        int_periods = [int(np.round(e)) for e in real_periods]
+        if any(i != r for i, r in zip(real_periods, int_periods)):
+            return None
+        if len(int_periods) == 1:
+            return int_periods[0]
+        return int_periods[0] * int_periods[1] / fractions.gcd(*int_periods)
+
+    @property
+    def _canonical_exponent(self):
+        period = self._period()
+        if not period or isinstance(self._exponent, value.Symbol):
+            return self._exponent
+        else:
+            return self._exponent % period
 
     def _identity_tuple(self):
         return (PhasedXPowGate,
-                value.canonicalize_half_turns(self._exponent),
-                self._phase_exponent)
+                self.phase_exponent,
+                self._canonical_exponent,
+                self._global_shift)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

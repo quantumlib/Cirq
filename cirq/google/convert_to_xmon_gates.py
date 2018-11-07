@@ -20,15 +20,13 @@ from cirq.circuits.optimization_pass import (
 )
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.decompositions import two_qubit_matrix_to_operations
-from cirq.google.xmon_gate_extensions import xmon_gate_ext
-from cirq.google.xmon_gates import XmonGate
+from cirq.google import xmon_gates
 
 
 class ConvertToXmonGates(PointOptimizer):
     """Attempts to convert strange gates into XmonGates.
 
-    First, checks if the given extensions are able to cast the gate into an
-        XmonGate instance.
+    First, checks if the given operation is already a native xmon operation.
 
     Second, checks if the operation has a known unitary. If so, and the gate
         is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
@@ -50,12 +48,6 @@ class ConvertToXmonGates(PointOptimizer):
         self.ignore_failures = ignore_failures
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Maybe we know how to wrap it?
-        if isinstance(op, ops.GateOperation):
-            xmon = xmon_gate_ext.try_cast(XmonGate, op.gate)  # type: ignore
-            if xmon is not None:
-                return xmon.on(*op.qubits)
-
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
@@ -74,13 +66,13 @@ class ConvertToXmonGates(PointOptimizer):
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "
-                "It isn't a GateOperation with an XmonGate, "
+                "It isn't a native xmon operation, "
                 "a 1 or 2 qubit gate with a known unitary, "
                 "or composite.".format(bad))
 
         return protocols.decompose(
             op,
-            keep=XmonGate.is_supported_op,
+            keep=xmon_gates.is_native_xmon_op,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 

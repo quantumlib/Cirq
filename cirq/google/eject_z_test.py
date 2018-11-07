@@ -190,7 +190,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             cirq.Moment([u(q)]),
             cirq.Moment(),
             cirq.Moment([cirq.Y(q)]),
-            cirq.Moment([cg.ExpWGate(phase_exponent=0.25).on(q)]),
+            cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.75).on(q)]),
             cirq.Moment([cirq.Z(q)**0.75]),
             cirq.Moment([u(q)]),
         ]))
@@ -233,13 +233,13 @@ def test_removes_zs():
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.ExpWGate().on(a),
+        cirq.X(a),
         cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.ExpWGate().on(a),
-        cirq.google.ExpWGate().on(a),
+        cirq.X(a),
+        cirq.X(a),
         cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(

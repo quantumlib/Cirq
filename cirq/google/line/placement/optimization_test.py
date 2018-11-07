@@ -15,7 +15,7 @@
 import math
 import pytest
 
-from cirq.line.placement import optimization
+from cirq.google.line.placement import optimization
 from cirq.testing.mock import mock
 
 
