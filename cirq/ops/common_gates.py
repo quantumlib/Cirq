@@ -961,6 +961,9 @@ class XXPowGate(eigen_gate.EigenGate,
                             [0.5, 0, 0, 0.5]]))
         ]
 
+    def _eigen_shifts(self):
+        return [0, 1]
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
