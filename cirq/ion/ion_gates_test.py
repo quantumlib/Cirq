@@ -42,3 +42,18 @@ def test_MSGate_matrix():
 def test_MSGate_repr():
     assert repr(cirq.MSGate(np.pi/4)) == '(cirq.MSGate(np.pi/2*0.5))'
     cirq.testing.assert_equivalent_repr(cirq.MSGate(np.pi/4))
+
+
+def test_MSGate_diagrams():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    circuit = cirq.Circuit.from_ops(
+        cirq.SWAP(a, b),
+        cirq.X(a),
+        cirq.Y(a),
+        cirq.MSGate(np.pi).on(a, b))
+    cirq.testing.assert_has_diagram(circuit, """
+a: ───×───X───Y───MS(2.0π)───
+      │           │
+b: ───×───────────MS(2.0π)───
+""")

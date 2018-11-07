@@ -967,10 +967,16 @@ class XXPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
-            return _rads_func_symbol(
+            return protocols.CircuitDiagramInfo(
+                wire_symbols=(_rads_func_symbol(
                 'MS',
                 args,
-                self._diagram_exponent(args, ignore_global_phase=False))
+                self._diagram_exponent(args, ignore_global_phase=False)),
+                              _rads_func_symbol(
+                                  'MS',
+                                  args,
+                                  self._diagram_exponent(args, ignore_global_phase=False))
+                ))
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'),
