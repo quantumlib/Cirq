@@ -1075,8 +1075,8 @@ def test_circuit_diagram_on_gate_without_info():
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'
 
+    # Fallback to repr.
     f = FGate()
-    # Fallback to repr without extension.
     cirq.testing.assert_has_diagram(Circuit([
         Moment([f.on(q)]),
     ]), """
