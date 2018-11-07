@@ -18,9 +18,9 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
+from cirq.google import programs
 from cirq.google.decompositions import single_qubit_matrix_to_native_gates
 from cirq.decompositions import two_qubit_matrix_to_operations
-from cirq.google import xmon_gates
 
 
 class ConvertToXmonGates(PointOptimizer):
@@ -72,7 +72,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         return protocols.decompose(
             op,
-            keep=xmon_gates.is_native_xmon_op,
+            keep=programs.is_native_xmon_op,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 
