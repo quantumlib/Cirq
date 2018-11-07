@@ -346,3 +346,31 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
         if i == 2:
             expected = np.array([np.sqrt(0.5), np.sqrt(0.5) * (-1) ** result])
             np.testing.assert_almost_equal(step.state(), expected)
+
+
+def test_invalid_run_no_unitary():
+    class NoUnitary(cirq.Gate):
+        pass
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+    circuit = cirq.Circuit.from_ops(NoUnitary()(q0))
+    with pytest.raises(ValueError, match='unitary'):
+        simulator.run(circuit)
+
+
+def test_allocates_new_state():
+    class NoUnitary(cirq.Gate):
+
+        def _apply_unitary_to_tensor_(
+                self, target_tensor, available_buffer, axes):
+            available_buffer = np.copy(target_tensor)
+            return available_buffer
+
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+    circuit = cirq.Circuit.from_ops(NoUnitary()(q0))
+
+    initial_state = np.array([np.sqrt(0.5), np.sqrt(0.5)], dtype=np.complex64)
+    result = simulator.simulate(circuit, initial_state=initial_state)
+    np.testing.assert_array_almost_equal(result.final_state, initial_state)
+    assert not initial_state is result.final_state
