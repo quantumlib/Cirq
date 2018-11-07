@@ -22,9 +22,6 @@ from cirq.google.decompositions import (
 from cirq.google.eject_full_w import (
     EjectFullW,
 )
-from cirq.google.eject_z import (
-    EjectZ,
-)
 from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
