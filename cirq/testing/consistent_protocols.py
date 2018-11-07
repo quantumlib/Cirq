@@ -14,7 +14,7 @@
 
 from typing import Any, Optional, Sequence
 
-from cirq import protocols, value
+from cirq import ops, protocols, value
 from cirq.testing.circuit_compare import (
         assert_apply_unitary_to_tensor_is_consistent_with_unitary)
 from cirq.testing.consistent_decomposition import (
@@ -48,6 +48,10 @@ def assert_implements_consistent_protocols(
             _assert_meets_standards_helper(val**exponent, qubit_count)
 
 
+def assert_eigen_shifts_is_consistent_with_eigen_components(val: ops.EigenGate):
+    assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
+
+
 def _assert_meets_standards_helper(val: Any, qubit_count: Optional[int]):
     if protocols.has_unitary(val):
         assert_apply_unitary_to_tensor_is_consistent_with_unitary(
@@ -56,5 +60,8 @@ def _assert_meets_standards_helper(val: Any, qubit_count: Optional[int]):
             assert_decompose_is_consistent_with_unitary(val)
         if getattr(val, '_phase_by_', None) is not None:
             assert_phase_by_is_consistent_with_unitary(val)
+
+    if isinstance(val, ops.EigenGate):
+        assert_eigen_shifts_is_consistent_with_eigen_components(val)
 
     assert_equivalent_repr(val)

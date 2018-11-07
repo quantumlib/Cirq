@@ -256,6 +256,9 @@ def _infer_qubit_count(val: Any) -> int:
         return 3
     if isinstance(val, ops.ControlledGate):
         return 1 + _infer_qubit_count(val.sub_gate)
+    if protocols.has_unitary(val):
+        return (protocols.unitary(val).shape[0]-1).bit_length()
+
     raise NotImplementedError(
         'Failed to infer qubit count of <{!r}>. Specify it.'.format(val))
 
