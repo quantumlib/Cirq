@@ -126,7 +126,7 @@ class Schedule:
         """
         if isinstance(item, slice):
             if item.step:
-                raise ValueError('SimulatorStep not supported.')
+                raise ValueError('Step not supported.')
             start = cast(Timestamp, item.start)
             stop = cast(Timestamp, item.stop)
             return self.query(time=start, duration=stop - start)
