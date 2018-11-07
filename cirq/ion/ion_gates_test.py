@@ -40,6 +40,7 @@ def test_MSGate_matrix():
 
 
 def test_MSGate_repr():
+    assert repr(cirq.MSGate(np.pi/2)) == 'cirq.MSGate(np.pi/2)'
     assert repr(cirq.MSGate(np.pi/4)) == '(cirq.MSGate(np.pi/2*0.5))'
     cirq.testing.assert_equivalent_repr(cirq.MSGate(np.pi/4))
 

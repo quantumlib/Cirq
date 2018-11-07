@@ -972,10 +972,10 @@ class XXPowGate(eigen_gate.EigenGate,
                 'MS',
                 args,
                 self._diagram_exponent(args, ignore_global_phase=False)),
-                              _rads_func_symbol(
-                                  'MS',
-                                  args,
-                                  self._diagram_exponent(args, ignore_global_phase=False))
+                    _rads_func_symbol(
+                    'MS',
+                    args,
+                    self._diagram_exponent(args, ignore_global_phase=False))
                 ))
 
         return protocols.CircuitDiagramInfo(
