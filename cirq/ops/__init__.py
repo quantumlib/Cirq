@@ -38,6 +38,7 @@ from cirq.ops.common_gates import (
     measure_each,
     MeasurementGate,
     XPowGate,
+    XXPowGate,
     YPowGate,
     ZPowGate,
     Rx,
@@ -49,7 +50,6 @@ from cirq.ops.common_gates import (
     T,
     X,
     XX,
-    XXPowGate,
     Y,
     Z,
 )
