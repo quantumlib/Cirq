@@ -20,7 +20,6 @@ from cirq.optimizers.eject_z import _try_get_known_z_half_turns
 
 def assert_optimizes(before: cirq.Circuit,
                      expected: cirq.Circuit,
-                     pre_opts: Iterable[cirq.OptimizationPass] = (),
                      post_opts: Iterable[cirq.OptimizationPass] = (
                              cirq.DropEmptyMoments(),
                      )):
@@ -31,8 +30,6 @@ def assert_optimizes(before: cirq.Circuit,
             before, expected, atol=1e-8)
 
     circuit = before.copy()
-    for pre in pre_opts:
-        pre.optimize_circuit(circuit)
     opt.optimize_circuit(circuit)
     for post in post_opts:
         post.optimize_circuit(circuit)
