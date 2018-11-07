@@ -19,7 +19,6 @@ import pytest
 import numpy as np
 
 import cirq
-from cirq import sim
 
 
 def assert_dirac_notation(vec, expected, decimals=2):

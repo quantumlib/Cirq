@@ -13,11 +13,10 @@
 # limitations under the License.
 """Tests for simulator.py"""
 
-import pytest
-
 from typing import List, Dict
 
 import numpy as np
+import pytest
 
 import cirq
 from cirq.testing.mock import mock

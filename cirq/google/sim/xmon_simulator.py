@@ -41,7 +41,7 @@ from typing import Tuple  # pylint: disable=unused-import
 import numpy as np
 
 from cirq import circuits, ops, study, protocols
-from cirq.sim import simulator, wave_function
+from cirq.sim import simulator
 from cirq.google import convert_to_xmon_gates
 from cirq.google.sim import xmon_stepper
 

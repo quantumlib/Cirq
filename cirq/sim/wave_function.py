@@ -15,11 +15,11 @@
 
 import itertools
 
-from typing import Dict, List, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import List, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, linalg, ops
+from cirq import linalg
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

@@ -22,7 +22,7 @@ Simulator types include
 import abc
 import collections
 
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Tuple, Union
 
 import numpy as np
 
@@ -502,7 +502,7 @@ class StepResult:
                 a qubit is acted upon multiple times by different
                 measurement_ops.
         """
-        bounds = {}
+        bounds = {}  # type: Dict[str, Tuple]
         all_qubits = []  # type: List[ops.QubitId]
         current_index = 0
         for op in measurement_ops:
