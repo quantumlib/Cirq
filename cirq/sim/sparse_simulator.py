@@ -125,7 +125,9 @@ class Simulator(simulator.SimulatesSamples,
                 perform_measurements=False):
             pass
         return wave_function.sample_terminal_measurements(
-            circuit=circuit, last_step_result=step_result, repetitions=repetitions)
+                circuit=circuit,
+                last_step_result=step_result,
+                repetitions=repetitions)
 
     def _run_sweep_repeat(
         self,
