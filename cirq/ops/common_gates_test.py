@@ -837,26 +837,27 @@ def test_XXPowGate_matrix():
 
 def test_XXPowGate_repr():
     assert repr(cirq.XXPowGate()) == 'cirq.XX'
-    assert repr(cirq.XXPowGate(exponent=0.5)) \
-           == 'cirq.XXPowGate(exponent=0.5, global_shift=0.0)'
+    assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
+    assert repr(cirq.XXPowGate(exponent=0.5, global_shift=0.5)) \
+           == 'cirq.XXPowGate(exponent=0.5, global_shift=0.5)'
 
 
 def test_XXPowGate_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops(
-        cirq.SWAP(a, b),
+        cirq.XX(a, b),
         cirq.X(a),
         cirq.Y(a),
-        cirq.XX(a, b))
+        cirq.XX(a, b)**2)
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───XX───
-      │           │
-b: ───×───────────XX───
+a: ───XX───X───Y───XX───────
+      │            │
+b: ───XX───────────XX^2.0───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---XX---
-      |              |
-b: ---swap-----------XX---
+a: ---XX---X---Y---XX-------
+      |            |
+b: ---XX-----------XX^2.0---
 """, use_unicode_characters=False)

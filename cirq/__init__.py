@@ -238,7 +238,7 @@ from cirq.protocols import (
 )
 
 from cirq.ion import (
-    MSGate,
+    MS,
 )
 # pylint: enable=redefined-builtin
 

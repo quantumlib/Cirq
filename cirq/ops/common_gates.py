@@ -936,7 +936,7 @@ class XXPowGate(eigen_gate.EigenGate,
         exponent = 1 is used.
 
         Args:
-            exponent: The t in XX**t. Phases the eigenstate of the Pauli XX
+            exponent: The t in XX**t. Phases the -1 eigenstate of the Pauli XX
                       operator by e^{i pi exponent}.
             global_shift: Offsets the eigenvalues of the gate at exponent=1.
         """
@@ -967,16 +967,11 @@ class XXPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
-            return protocols.CircuitDiagramInfo(
-                wire_symbols=(_rads_func_symbol(
+            symbol = _rads_func_symbol(
                 'MS',
                 args,
-                self._diagram_exponent(args, ignore_global_phase=False)),
-                    _rads_func_symbol(
-                    'MS',
-                    args,
-                    self._diagram_exponent(args, ignore_global_phase=False))
-                ))
+                self._diagram_exponent(args, ignore_global_phase=False)/2)
+            return symbol, symbol
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'),
@@ -994,10 +989,12 @@ class XXPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if self._exponent == 1:
-                return 'cirq.MSGate(np.pi/2)'
-            return '(cirq.MSGate(np.pi/2*{!r}))'.format(self._exponent)
-        if self._exponent == 1:
-            return 'cirq.XX'
+                return 'cirq.MS(np.pi/2)'
+            return 'cirq.MS(np.pi/2*{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.XX'
+            return '(cirq.XX**{!r})'.format(self._exponent)
         return ('cirq.XXPowGate(exponent={!r}, '
                 'global_shift={!r})'
                 ).format(self._exponent, self._global_shift)

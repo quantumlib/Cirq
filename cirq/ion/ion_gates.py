@@ -19,7 +19,7 @@ import numpy as np
 from cirq import ops
 
 
-def MSGate(rads: float) -> ops.XXPowGate:
+def MS(rads: float) -> ops.XXPowGate:
     """
     Implements the Mølmer–Sørensen gate,
     native two-qubit operation in ion traps.
@@ -31,6 +31,11 @@ def MSGate(rads: float) -> ops.XXPowGate:
                    [0 cos(t) -isin(t) 0]
                    [0 -isin(t) cos(t) 0]
                    [-isin(t) 0 0 cos(t)]
-    rads = t, the rotation angle in radians
+    Args:
+        rads: The rotation angle in radians.
+
+    Returns:
+        Mølmer–Sørensen gate rotating by the desired amount.
+
     """
     return ops.XXPowGate(exponent=rads*2/np.pi, global_shift=-0.5)
