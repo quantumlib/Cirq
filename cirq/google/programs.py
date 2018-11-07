@@ -23,7 +23,8 @@ from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
 if TYPE_CHECKING:
-    from typing import Optional  # pylint: disable=unused-import
+    # pylint: disable=unused-import
+    from typing import Optional
     from cirq.google import xmon_device
 
 
