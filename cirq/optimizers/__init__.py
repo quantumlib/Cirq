@@ -17,3 +17,7 @@
 from cirq.optimizers.eject_z import (
     EjectZ,
 )
+
+from cirq.optimizers.eject_phased_paulis import (
+    EjectPhasedPaulis,
+)
