@@ -104,6 +104,7 @@ class GoodGate(cirq.SingleQubitGate):
         return self._identity_tuple() == other._identity_tuple()
 
     def __ne__(self, other):
+        # coverage: ignore
         return not self == other
 
     def __hash__(self):
@@ -119,6 +120,7 @@ class BadGateApplyUnitaryToTensor(GoodGate):
                                   axes: Sequence[int],
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if self.exponent != 1 or self._is_parameterized_():
+            # coverage: ignore
             return NotImplemented
 
         zero = cirq.slice_for_qubits_equal_to(axes, 0)
@@ -141,6 +143,7 @@ class BadGateDecompose(GoodGate):
         z = cirq.ops.common_gates.Z(q)**self.phase_exponent
         x = cirq.ops.common_gates.X(q)**(2*self.exponent)
         if cirq.is_parameterized(z):
+            # coverage: ignore
             return NotImplemented
         return z**-1, x, z
 
