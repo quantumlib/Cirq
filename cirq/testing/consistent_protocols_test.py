@@ -63,6 +63,7 @@ class GoodGate(cirq.SingleQubitGate):
         z = cirq.ops.common_gates.Z(q)**self.phase_exponent
         x = cirq.ops.common_gates.X(q)**self.exponent
         if cirq.is_parameterized(z):
+            # coverage: ignore
             return NotImplemented
         return z**-1, x, z
 
@@ -75,6 +76,7 @@ class GoodGate(cirq.SingleQubitGate):
     def __pow__(self, exponent: Union[float, cirq.Symbol]) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
+            # coverage: ignore
             return NotImplemented
         return GoodGate(phase_exponent=self.phase_exponent,
                         exponent=new_exponent)
@@ -90,11 +92,6 @@ class GoodGate(cirq.SingleQubitGate):
         return (isinstance(self.exponent, cirq.Symbol) or
                 isinstance(self.phase_exponent, cirq.Symbol))
 
-    def _resolve_parameters_(self, param_resolver) -> 'GoodGate':
-        return GoodGate(
-            phase_exponent=param_resolver.value_of(self.phase_exponent),
-            exponent=param_resolver.value_of(self.exponent))
-
     def _identity_tuple(self):
         return (GoodGate,
                 self.phase_exponent,
@@ -102,6 +99,7 @@ class GoodGate(cirq.SingleQubitGate):
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
+            # coverage: ignore
             return NotImplemented
         return self._identity_tuple() == other._identity_tuple()
 
@@ -109,6 +107,7 @@ class GoodGate(cirq.SingleQubitGate):
         return not self == other
 
     def __hash__(self):
+        # coverage: ignore
         return hash(self._identity_tuple())
 
 
@@ -160,6 +159,7 @@ class BadGateRepr(GoodGate):
     def __repr__(self):
         args = ['phase_exponent={!r}'.format(2*self.phase_exponent)]
         if self.exponent != 1:
+            # coverage: ignore
             args.append('exponent={!r}'.format(self.exponent))
         return 'cirq.testing.consistent_protocols_test.BadGateRepr({})'.format(
                 ', '.join(args))
