@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
+
 from typing import Union, Callable, overload, Any
 
 from typing_extensions import Protocol
