@@ -161,17 +161,6 @@ def test_decompose_returns_deep_op_tree():
     assert_equal_mod_empty(expected, circuit)
 
 
-class OtherCNot(cirq.CNotPowGate):
-
-    def _decompose_(self, qubits):
-        c, t = qubits
-        yield cirq.Z(c)
-        yield cirq.Y(t)**-0.5
-        yield cirq.CZ(c, t)
-        yield cirq.Y(t)**0.5
-        yield cirq.Z(c)
-
-
 def test_nonrecursive_expansion():
     qubits = [cirq.NamedQubit(s) for s in 'xy']
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and

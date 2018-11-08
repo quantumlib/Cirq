@@ -44,9 +44,10 @@ class ExpandComposite(PointOptimizer):
         self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):
-        decomposition = protocols.decompose(op, keep=self.no_decomp,
+        decomposition = protocols.decompose(op,
+                                            keep=self.no_decomp,
                                             on_stuck_raise=None)
-        if decomposition is op:
+        if decomposition == [op]:
             return None
 
         return PointOptimizationSummary(
