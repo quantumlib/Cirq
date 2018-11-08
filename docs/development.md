@@ -88,7 +88,7 @@ See the previous section for instructions.
 
 2. Prepare a virtual environment including the dev tools (such as mypy).
 
-    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environment.
+    One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments.
     If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
 
     ```bash
@@ -209,10 +209,10 @@ The script fails with no effects if the output directory already exists.
 
     Check that the printed version is correct!
 
-3. Run [dev_tools/prepare-package.sh](/dev_tools/produce-package.sh) to produce pypi artifacts.
+3. Run [dev_tools/packaging/prepare-package.sh](/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
 
     ```bash
-    dev_tools/produce-package.sh dist
+    dev_tools/packaging/produce-package.sh dist
     ```
 
     The output files will be placed in `dist/`.
