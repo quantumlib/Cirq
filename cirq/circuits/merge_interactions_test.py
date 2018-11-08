@@ -27,7 +27,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     followup_optimizations = [
         cg.MergeRotations(),
         cirq.EjectPhasedPaulis(),
-        cg.EjectZ(),
+        cirq.EjectZ(),
         cirq.DropNegligible(),
         cirq.DropEmptyMoments()
     ]

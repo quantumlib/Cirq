@@ -158,6 +158,7 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     EjectPhasedPaulis,
+    EjectZ,
 )
 
 from cirq.schedules import (
