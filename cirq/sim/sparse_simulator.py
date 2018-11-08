@@ -27,6 +27,13 @@ class Simulator(simulator.SimulatesSamples,
                 simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
 
+    This simulator can be applied on circuits that are made up of gates for
+    which `cirq.apply_unitary_to_tensor` can be called on the gate. This
+    means that these gates should implement the interface
+    `SupportsApplyUnitaryToTensor` or `SupportsUnitary`. The former can be
+    used to optimized simulations that do not perform large allocations
+    and hence can achieve higher performance.
+
     This simulator supports three types of simulation.
 
     Run simulations which mimic running on actual quantum hardware. These
@@ -195,20 +202,13 @@ class Simulator(simulator.SimulatesSamples,
                                      zip(bits, invert_mask)]
                         measurements[cast(str, gate.key)].append(*corrected)
                 else:
-                    new_state = protocols.apply_unitary_to_tensor(op,
-                                                                  state,
-                                                                  buffer,
-                                                                  indices,
-                                                                  None)
-                    if new_state is None:
-                        raise ValueError('Cannot apply unitary')
-                    elif new_state is buffer:
-                        # Work was done into buffer, copy it back over.
-                        np.copyto(state, new_state)
-                    elif not new_state is state:
-                        # Returned a new object, update state.
-                        state = new_state
-                    # Fall through is case where update was done inline.
+                    result = protocols.apply_unitary_to_tensor(op,
+                                                               state,
+                                                               buffer,
+                                                               indices)
+                    if result is buffer:
+                        buffer = state
+                    state = result
             yield SimulatorStep(state, measurements, qubit_map, self._dtype)
 
 
@@ -238,7 +238,8 @@ class SimulatorStep(simulator.StepResult):
                                                            self._dtype)
         np.copyto(self._state, update_state)
 
-    def sample(self, qubits: List[ops.QubitId], repetitions: int = 1):
+    def sample(self, qubits: List[ops.QubitId],
+               repetitions: int = 1) -> List[List[bool]]:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state, indices,
                                                  repetitions)

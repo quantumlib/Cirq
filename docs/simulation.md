@@ -9,7 +9,7 @@ This later simulator can shard its simulation  across
 different processes/threads and so take advantage of
 multiple cores/CPUs.  Depending on your local computer
 architecture one or the other of these may be faster, but
-we recommend start with ``cirq.Simulator``.
+we recommend starting with ``cirq.Simulator``.
 
 Here is a simple circuit
 ```python
@@ -178,10 +178,10 @@ for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
 ```
 
 The object returned by the ``moment_steps`` iterator is a 
-``tepResult``. This object has the state along with any
+``StepResult``. This object has the state along with any
 measurements that occurred **during** that step (so does
 not include measurement results from previous ``Moments``).
-In addition, the``StepResult`` contains ``set_state()``
+In addition, the ``StepResult`` contains ``set_state()``
 which  can be used to set the ``state``. One can pass a valid 
 full state to this method by passing a numpy array. Or 
 alternatively one can pass an integer and then the state

@@ -354,7 +354,7 @@ def test_invalid_run_no_unitary():
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
     circuit = cirq.Circuit.from_ops(NoUnitary()(q0))
-    with pytest.raises(ValueError, match='unitary'):
+    with pytest.raises(TypeError, match='unitary'):
         simulator.run(circuit)
 
 
