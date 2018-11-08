@@ -12,21 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Circuit transformation utilities."""
+
 from cirq.optimizers.drop_empty_moments import (
     DropEmptyMoments,
 )
+
 from cirq.optimizers.drop_negligible import (
     DropNegligible,
 )
-from cirq.optimizers.merge_interactions import (
-    MergeInteractions,
-)
-from cirq.optimizers.merge_single_qubit_gates import (
-    MergeSingleQubitGates,
-)
+
 from cirq.optimizers.convert_to_cz_and_single_gates import (
     ConvertToCzAndSingleGates,
 )
+
+from cirq.optimizers.eject_z import (
+    EjectZ,
+)
+
 from cirq.optimizers.expand_composite import (
     ExpandComposite,
+)
+
+from cirq.optimizers.merge_interactions import (
+    MergeInteractions,
+)
+
+from cirq.optimizers.merge_single_qubit_gates import (
+    MergeSingleQubitGates,
 )

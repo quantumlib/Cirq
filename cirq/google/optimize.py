@@ -20,7 +20,6 @@ from cirq.google import (
     convert_to_xmon_gates,
     merge_rotations,
     eject_full_w,
-    eject_z,
     xmon_device)
 
 _TOLERANCE = 1e-5
@@ -33,7 +32,7 @@ _OPTIMIZERS = [
     convert_to_xmon_gates.ConvertToXmonGates(),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
-    eject_z.EjectZ(tolerance=_TOLERANCE),
+    optimizers.EjectZ(tolerance=_TOLERANCE),
     optimizers.DropNegligible(tolerance=_TOLERANCE),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
 ]
@@ -46,7 +45,7 @@ _OPTIMIZERS_PART_CZ = [
     convert_to_xmon_gates.ConvertToXmonGates(),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
     eject_full_w.EjectFullW(tolerance=_TOLERANCE),
-    eject_z.EjectZ(tolerance=_TOLERANCE),
+                          optimizers.EjectZ(tolerance=_TOLERANCE),
     optimizers.DropNegligible(tolerance=_TOLERANCE),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
 ]
