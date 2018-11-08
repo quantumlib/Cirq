@@ -57,6 +57,9 @@ class CZPowGate(eigen_gate.EigenGate,
         c = 1j**(2 * self._exponent)
         one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one_one] *= c
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _phase_by_(self, phase_turns, qubit_index):
@@ -515,7 +518,8 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         target_tensor[one] -= target_tensor[zero]
         target_tensor[one] *= -0.5
         target_tensor[zero] -= target_tensor[one]
-        target_tensor *= np.sqrt(2)
+        p = 1j**(2 * self._exponent * self._global_shift)
+        target_tensor *= np.sqrt(2) * p
         return target_tensor
 
     def _decompose_(self, qubits):
@@ -605,6 +609,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         available_buffer[oo] = target_tensor[oo]
         target_tensor[oo] = target_tensor[zo]
         target_tensor[zo] = available_buffer[oo]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _qasm_(self,
@@ -677,6 +684,9 @@ class SwapPowGate(eigen_gate.EigenGate,
         available_buffer[zo] = target_tensor[zo]
         target_tensor[zo] = target_tensor[oz]
         target_tensor[oz] = available_buffer[zo]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -766,6 +776,9 @@ class ISwapPowGate(eigen_gate.EigenGate,
         target_tensor[oz] = available_buffer[zo]
         target_tensor[zo] *= 1j
         target_tensor[oz] *= 1j
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs

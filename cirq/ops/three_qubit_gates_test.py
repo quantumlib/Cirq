@@ -73,10 +73,8 @@ def test_matrix():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.CCX)
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.CCZ)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CCXPowGate)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CCZPowGate)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.CSWAP)
 
 

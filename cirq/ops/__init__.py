@@ -107,8 +107,11 @@ from cirq.ops.reversible_composite_gate import (
 )
 from cirq.ops.three_qubit_gates import (
     CCX,
+    CCXPowGate,
     CCZ,
+    CCZPowGate,
     CSWAP,
+    CSwapGate,
     FREDKIN,
     TOFFOLI,
 )

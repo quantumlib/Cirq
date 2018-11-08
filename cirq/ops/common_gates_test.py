@@ -74,8 +74,7 @@ def test_cz_matrix():
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1j]]))
 
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.CZ)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CZPowGate)
 
 
 def test_z_init():
@@ -180,8 +179,7 @@ def test_h_matrix():
     m = np.dot(sqrt, sqrt)
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
 
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.H)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.HPowGate)
 
 
 def test_h_init():
@@ -292,8 +290,8 @@ def test_cnot_power():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
 
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.CNOT)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(
+        cirq.CNotPowGate)
 
 
 def test_cnot_keyword_arguments():
@@ -369,8 +367,8 @@ def test_swap_power():
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.5)
     cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.1)
 
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.SWAP)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(
+        cirq.SwapPowGate)
 
 
 def test_xyz_repr():
@@ -546,8 +544,8 @@ def test_iswap_matrix():
                   [0, 0, 0, 1]]),
         atol=1e-8)
 
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cirq.ISWAP)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(
+        cirq.ISwapPowGate)
 
 
 def test_iswap_decompose():
