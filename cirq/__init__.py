@@ -21,13 +21,7 @@ from cirq._version import (
 from cirq.circuits import (
     Circuit,
     CircuitDag,
-    ConvertToCzAndSingleGates,
-    DropEmptyMoments,
-    DropNegligible,
-    ExpandComposite,
     InsertStrategy,
-    MergeInteractions,
-    MergeSingleQubitGates,
     Moment,
     OptimizationPass,
     PointOptimizationSummary,
@@ -154,6 +148,15 @@ from cirq.ops import (
     X,
     Y,
     Z,
+)
+
+from cirq.optimizers import (
+    ConvertToCzAndSingleGates,
+    DropEmptyMoments,
+    DropNegligible,
+    ExpandComposite,
+    MergeInteractions,
+    MergeSingleQubitGates,
 )
 
 from cirq.schedules import (

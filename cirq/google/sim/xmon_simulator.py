@@ -40,7 +40,7 @@ from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
-from cirq import circuits, ops, sim, study, protocols
+from cirq import circuits, ops, sim, study, protocols, optimizers
 from cirq.google import convert_to_xmon_gates
 from cirq.google.sim import xmon_stepper
 
@@ -257,7 +257,7 @@ class XmonSimulator(sim.SimulatesSamples,
         xmon_circuit = protocols.resolve_parameters(circuit, param_resolver)
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit(
             xmon_circuit)
-        circuits.DropEmptyMoments().optimize_circuit(xmon_circuit)
+        optimizers.DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys
 

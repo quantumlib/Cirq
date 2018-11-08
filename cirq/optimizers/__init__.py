@@ -12,29 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to building and optimizing sequenced circuits."""
-
-from cirq.circuits.text_diagram_drawer import (
-    TextDiagramDrawer,
+from cirq.optimizers.drop_empty_moments import (
+    DropEmptyMoments,
 )
-from cirq.circuits.qasm_output import (
-    QasmOutput,
+from cirq.optimizers.drop_negligible import (
+    DropNegligible,
 )
-from cirq.circuits.circuit import (
-    Circuit,
+from cirq.optimizers.merge_interactions import (
+    MergeInteractions,
 )
-from cirq.circuits.circuit_dag import (
-    CircuitDag,
-    Unique,
+from cirq.optimizers.merge_single_qubit_gates import (
+    MergeSingleQubitGates,
 )
-from cirq.circuits.insert_strategy import (
-    InsertStrategy,
+from cirq.optimizers.convert_to_cz_and_single_gates import (
+    ConvertToCzAndSingleGates,
 )
-from cirq.circuits.moment import (
-    Moment,
-)
-from cirq.circuits.optimization_pass import (
-    OptimizationPass,
-    PointOptimizer,
-    PointOptimizationSummary,
+from cirq.optimizers.expand_composite import (
+    ExpandComposite,
 )
