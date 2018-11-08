@@ -15,11 +15,10 @@
 """A combination of several optimizations targeting XmonDevice."""
 from typing import Optional, Callable, cast
 
-from cirq import circuits, ops, devices
+from cirq import circuits, devices, ops, optimizers
 from cirq.google import (
     convert_to_xmon_gates,
     merge_rotations,
-    eject_full_w,
     eject_z,
     xmon_device)
 
@@ -32,7 +31,7 @@ _OPTIMIZERS = [
                                allow_partial_czs=False),
     convert_to_xmon_gates.ConvertToXmonGates(),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
-    eject_full_w.EjectFullW(tolerance=_TOLERANCE),
+    optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
     circuits.DropNegligible(tolerance=_TOLERANCE),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
@@ -45,7 +44,7 @@ _OPTIMIZERS_PART_CZ = [
                                allow_partial_czs=True),
     convert_to_xmon_gates.ConvertToXmonGates(),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
-    eject_full_w.EjectFullW(tolerance=_TOLERANCE),
+    optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE),
     eject_z.EjectZ(tolerance=_TOLERANCE),
     circuits.DropNegligible(tolerance=_TOLERANCE),
     merge_rotations.MergeRotations(tolerance=_TOLERANCE),
