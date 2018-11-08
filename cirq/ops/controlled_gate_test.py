@@ -152,10 +152,9 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
     GateUsingWorkspaceForApplyUnitary(),
     GateAllocatingNewSpaceForResult(),
 ])
-def test_apply_unitary_to_tensor(gate: cirq.Gate):
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        cirq.ControlledGate(gate),
-        exponents=[1, 0.5, cirq.Symbol('s')])
+def test_consistent_protocols(gate: cirq.Gate):
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.ControlledGate(gate))
 
 
 def test_pow_inverse():
