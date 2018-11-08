@@ -243,7 +243,6 @@ class ZPowGate(eigen_gate.EigenGate,
 
         one = linalg.slice_for_qubits_equal_to(axes, 1)
         c = 1j**(self._exponent * 2)
-        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
