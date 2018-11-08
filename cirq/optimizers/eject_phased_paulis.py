@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that pushes some W gates later and later in the circuit.
+"""Pushes 180 degree rotations around axes in the XY plane later in the circuit.
 """
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
@@ -35,13 +35,13 @@ class _OptimizerState:
         self.insertions = []  # type: List[Tuple[int, ops.Operation]]
 
 
-class EjectFullW(circuits.OptimizationPass):
-    """Pushes ExpW gates with half_turns=1 towards the end of the circuit.
+class EjectPhasedPaulis(circuits.OptimizationPass):
+    """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
-    As the gates get pushed, they may absorb Z gates, cancel against other ExpW
-    gates with half_turns=1, get merged into measurements (as output bit flips),
-    and cause phase kickback operations across CZs (which can then be removed by
-    the EjectZ optimization).
+    As the gates get pushed, they may absorb Z gates, cancel against other
+    X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
+    output bit flips), and cause phase kickback operations across CZs (which can
+    then be removed by the EjectZ optimization).
     """
 
     def __init__(self, tolerance: float = 1e-8) -> None:
@@ -115,6 +115,8 @@ def _absorb_z_into_w(moment_index: int,
                      state: _OptimizerState) -> None:
     """Absorbs a Z^t gate into a W(a) flip.
 
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
+
     Uses the following identity:
         ───W(a)───Z^t───
         ≡ ───W(a)───────────Z^t/2──────────Z^t/2─── (split Z)
@@ -162,6 +164,8 @@ def _potential_cross_whole_w(moment_index: int,
                              state: _OptimizerState) -> None:
     """Grabs or cancels a held W gate against an existing W gate.
 
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
+
     Uses the following identity:
         ───W(a)───W(b)───
         ≡ ───Z^-a───X───Z^a───Z^-b───X───Z^b───
@@ -194,6 +198,8 @@ def _potential_cross_partial_w(moment_index: int,
                                state: _OptimizerState) -> None:
     """Cross the held W over a partial W gate.
 
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
+
     Uses the following identity:
         ───W(a)───W(b)^t───
         ≡ ───Z^-a───X───Z^a───W(b)^t────── (expand W(a))
@@ -219,6 +225,8 @@ def _single_cross_over_cz(moment_index: int,
                           qubit_with_w: ops.QubitId,
                           state: _OptimizerState) -> None:
     """Crosses exactly one W flip over a partial CZ.
+
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
 
     Uses the following identity:
 
@@ -260,6 +268,8 @@ def _single_cross_over_cz(moment_index: int,
 def _double_cross_over_cz(op: ops.Operation,
                           state: _OptimizerState) -> None:
     """Crosses two W flips over a partial CZ.
+
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
 
     Uses the following identity:
 

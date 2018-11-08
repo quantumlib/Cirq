@@ -154,6 +154,7 @@ from cirq.optimizers import (
     ConvertToCzAndSingleGates,
     DropEmptyMoments,
     DropNegligible,
+    EjectPhasedPaulis,
     EjectZ,
     ExpandComposite,
     MergeInteractions,

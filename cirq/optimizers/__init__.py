@@ -26,6 +26,10 @@ from cirq.optimizers.convert_to_cz_and_single_gates import (
     ConvertToCzAndSingleGates,
 )
 
+from cirq.optimizers.eject_phased_paulis import (
+    EjectPhasedPaulis,
+)
+
 from cirq.optimizers.eject_z import (
     EjectZ,
 )
