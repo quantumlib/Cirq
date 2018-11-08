@@ -156,6 +156,10 @@ from cirq.ops import (
     Z,
 )
 
+from cirq.optimizers import (
+    EjectZ,
+)
+
 from cirq.schedules import (
     Schedule,
     ScheduledOperation,
