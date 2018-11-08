@@ -31,22 +31,11 @@ class _CCZPowGate(eigen_gate.EigenGate,
     The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
     """
 
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
-        super().__init__(exponent=exponent)
-
-    @property
-    def exponent(self):
-        return self._exponent
-
     def _eigen_components(self):
         return [
             (0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
-
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCZPowGate':
-        return _CCZPowGate(exponent=exponent)
 
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
@@ -130,13 +119,6 @@ class _CCXPowGate(eigen_gate.EigenGate,
     The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
     """
 
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
-        super().__init__(exponent=exponent)
-
-    @property
-    def exponent(self):
-        return self._exponent
-
     def _eigen_components(self):
         return [
             (0, linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]),
@@ -144,10 +126,6 @@ class _CCXPowGate(eigen_gate.EigenGate,
             (1, linalg.block_diag(np.diag([0, 0, 0, 0, 0, 0]),
                                   np.array([[0.5, -0.5], [-0.5, 0.5]]))),
         ]
-
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCXPowGate':
-        return _CCXPowGate(exponent=exponent)
 
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
