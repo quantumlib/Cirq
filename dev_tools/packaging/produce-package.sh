@@ -15,33 +15,37 @@
 # limitations under the License.
 
 ################################################################################
-# Produces and uploads wheels to the pypi package repository.
+# Produces wheels that can be uploaded to the pypi package repository.
 #
 # Usage:
-#     export TEST_TWINE_USERNAME=...
-#     export TEST_TWINE_PASSWORD=...
-#     dev_tools/public-to-test-pypi.sh output_dir
+#     dev_tools/packaging/produce-package.sh output_dir
 ################################################################################
 
 set -e
 
-if [ -z "${TEST_TWINE_USERNAME}" ]; then
-  echo -e "\e[31mTEST_TWINE_USERNAME environment variable must be set.\e[0m"
+if [ -z "${1}" ]; then
+  echo -e "\e[31mNo output directory given.\e[0m"
   exit 1
 fi
-if [ -z "${TEST_TWINE_PASSWORD}" ]; then
-  echo -e "\e[31mTEST_TWINE_PASSWORD environment variable must be set.\e[0m"
-  exit 1
-fi
+out_dir=$(realpath "${1}")
 
 # Get the working directory to the repo root.
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-cd "$(git rev-parse --show-toplevel)"
+repo_dir=$(git rev-parse --show-toplevel)
+cd ${repo_dir}
 
-# Temporary workspace.
-tmp_dir=$(mktemp -d "/tmp/publish-to-test-pypi.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_dir}; }" EXIT
-trap "exit" INT
+echo "Producing python 3 package files..."
+python3 setup.py -q bdist_wheel -d "${out_dir}"
 
-dev_tools/produce-package.sh "${tmp_dir}"
-twine upload --username=${TEST_TWINE_USERNAME} --password=${TEST_TWINE_PASSWORD} --repository-url=https://test.pypi.org/legacy/ "${tmp_dir}/*"
+echo "Generating python 2.7 source..."
+tmp_py2_dir=$(mktemp -d "/tmp/produce-package-py2.XXXXXXXXXXXXXXXX")
+trap "{ rm -rf ${tmp_py2_dir}; }" EXIT
+rmdir "${tmp_py2_dir}"
+bash dev_tools/python2.7-generate.sh "${tmp_py2_dir}" "${repo_dir}"
+
+echo "Producing python 2.7 package files..."
+export PYTHONPATH=${tmp_py2_dir}
+cd "${tmp_py2_dir}"
+python2 setup.py -q bdist_wheel -d "${out_dir}"
+
+ls "${out_dir}"

@@ -19,12 +19,6 @@ from cirq.google.decompositions import (
     controlled_op_to_native_gates,
     single_qubit_matrix_to_native_gates,
 )
-from cirq.google.eject_full_w import (
-    EjectFullW,
-)
-from cirq.google.eject_z import (
-    EjectZ,
-)
 from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
