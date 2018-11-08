@@ -12,16 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Ways to wrap values so that they match desired interfaces."""
+"""Circuit transformation utilities."""
 
-from cirq.extension.cast import (
-    can_cast,
-    cast,
-    try_cast,
-)
-from cirq.extension.extensions import (
-    Extensions,
-)
-from cirq.extension.potential_implementation import (
-    PotentialImplementation
+from cirq.optimizers.eject_z import (
+    EjectZ,
 )

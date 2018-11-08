@@ -16,8 +16,7 @@ from typing import Iterable, cast, Optional, List, TYPE_CHECKING
 
 from cirq import ops, circuits
 from cirq.devices import Device
-from cirq.google import xmon_gates, convert_to_xmon_gates
-from cirq.google.xmon_gate_extensions import xmon_gate_ext
+from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 from cirq.value import Duration
 
@@ -70,11 +69,9 @@ class XmonDevice(Device):
                 return self._exp_z_duration
             if isinstance(operation.gate, ops.MeasurementGate):
                 return self._measurement_duration
-            g = xmon_gate_ext.try_cast(xmon_gates.XmonGate, operation.gate)
-            if isinstance(g, (xmon_gates.ExpWGate,
-                              ops.XPowGate,
-                              ops.YPowGate,
-                              ops.PhasedXPowGate)):
+            if isinstance(operation.gate, (ops.XPowGate,
+                                           ops.YPowGate,
+                                           ops.PhasedXPowGate)):
                 return self._exp_w_duration
             if isinstance(operation.gate, ops.ZPowGate):
                 # Z gates are performed in the control software.
@@ -91,7 +88,6 @@ class XmonDevice(Device):
                                  ops.XPowGate,
                                  ops.YPowGate,
                                  ops.PhasedXPowGate,
-                                 xmon_gates.ExpWGate,
                                  ops.MeasurementGate,
                                  ops.ZPowGate)):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
@@ -129,7 +125,6 @@ class XmonDevice(Device):
             other_op: ops.GateOperation) -> bool:
         if isinstance(other_op.gate, (ops.XPowGate,
                                       ops.YPowGate,
-                                      xmon_gates.ExpWGate,
                                       ops.PhasedXPowGate,
                                       ops.MeasurementGate,
                                       ops.ZPowGate)):

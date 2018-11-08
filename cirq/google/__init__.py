@@ -22,9 +22,6 @@ from cirq.google.decompositions import (
 from cirq.google.eject_full_w import (
     EjectFullW,
 )
-from cirq.google.eject_z import (
-    EjectZ,
-)
 from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
@@ -35,15 +32,8 @@ from cirq.google.merge_rotations import (
 from cirq.google.xmon_device import (
     XmonDevice,
 )
-from cirq.google.xmon_gate_extensions import (
-    xmon_gate_ext,
-)
 from cirq.google.optimize import (
     optimized_for_xmon,
-)
-from cirq.google.xmon_gates import (
-    ExpWGate,
-    XmonGate,
 )
 from cirq.google.sim import (
     XmonOptions,
@@ -57,10 +47,12 @@ from cirq.google.engine import (
 )
 from cirq.google.programs import (
     gate_to_proto_dict,
+    is_native_xmon_op,
     schedule_from_proto_dicts,
     schedule_to_proto_dicts,
     pack_results,
     unpack_results,
+    xmon_op_from_proto_dict,
 )
 
 from cirq.google.line import (
