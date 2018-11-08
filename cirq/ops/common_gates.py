@@ -64,7 +64,7 @@ class CZPowGate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
 
-        c = np.exp(1j * np.pi * self._exponent)
+        c = 1j**(2 * self._exponent)
         one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one_one] *= c
         return target_tensor
@@ -149,6 +149,9 @@ class XPowGate(eigen_gate.EigenGate,
         one = linalg.slice_for_qubits_equal_to(axes, 1)
         available_buffer[zero] = target_tensor[one]
         available_buffer[one] = target_tensor[zero]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            available_buffer *= p
         return available_buffer
 
     def _eigen_components(self):
@@ -315,8 +318,12 @@ class ZPowGate(eigen_gate.EigenGate,
             return NotImplemented
 
         one = linalg.slice_for_qubits_equal_to(axes, 1)
-        c = np.exp(1j * np.pi * self._exponent)
+        c = 1j**(self._exponent * 2)
+        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one] *= c
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _eigen_components(self):
