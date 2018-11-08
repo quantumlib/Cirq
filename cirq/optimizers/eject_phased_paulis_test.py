@@ -14,13 +14,12 @@
 from typing import Iterable
 
 import cirq
-import cirq.google as cg
 
 
 def assert_optimizes(before: cirq.Circuit,
                      expected: cirq.Circuit,
                      compare_unitaries: bool = True):
-    opt = cg.EjectFullW()
+    opt = cirq.EjectPhasedPaulis()
 
     circuit = before.copy()
     opt.optimize_circuit(circuit)

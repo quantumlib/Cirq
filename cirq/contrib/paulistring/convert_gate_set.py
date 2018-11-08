@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
+from cirq import circuits, optimizers
 
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors)
@@ -27,11 +27,11 @@ def converted_gate_set(circuit: circuits.Circuit,
     CZ/PauliInteractionGate, PauliStringPhasor}.
     """
     conv_circuit = circuits.Circuit(circuit)
-    circuits.ConvertToCzAndSingleGates().optimize_circuit(conv_circuit)
-    circuits.MergeSingleQubitGates().optimize_circuit(conv_circuit)
+    optimizers.ConvertToCzAndSingleGates().optimize_circuit(conv_circuit)
+    optimizers.MergeSingleQubitGates().optimize_circuit(conv_circuit)
     ConvertToPauliStringPhasors(ignore_failures=True,
                                 keep_clifford=not no_clifford_gates,
                                 tolerance=tolerance,
                                 ).optimize_circuit(conv_circuit)
-    circuits.DropEmptyMoments().optimize_circuit(conv_circuit)
+    optimizers.DropEmptyMoments().optimize_circuit(conv_circuit)
     return conv_circuit
