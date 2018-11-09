@@ -143,6 +143,9 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 
 @pytest.mark.parametrize('gate', [
     cirq.X,
+    cirq.X**0.5,
+    cirq.Rx(np.pi),
+    cirq.Rx(np.pi / 2),
     cirq.Z,
     cirq.H,
     cirq.CNOT,
@@ -152,9 +155,9 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
     GateUsingWorkspaceForApplyUnitary(),
     GateAllocatingNewSpaceForResult(),
 ])
-def test_consistent_protocols(gate: cirq.Gate):
-    cirq.testing.assert_implements_consistent_protocols(
-            cirq.ControlledGate(gate))
+def test_apply_unitary_to_tensor(gate: cirq.Gate):
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        cirq.ControlledGate(gate))
 
 
 def test_pow_inverse():

@@ -332,6 +332,40 @@ def test_swap_unitary():
         ]))
 
 
+def test_xyz_repr():
+    assert repr(cirq.X) == 'cirq.X'
+    assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
+
+    assert repr(cirq.Z) == 'cirq.Z'
+    assert repr(cirq.Z**0.5) == 'cirq.S'
+    assert repr(cirq.Z**0.25) == 'cirq.T'
+    assert repr(cirq.Z**0.125) == '(cirq.Z**0.125)'
+
+    assert repr(cirq.S) == 'cirq.S'
+    assert repr(cirq.S**-1) == '(cirq.S**-1)'
+    assert repr(cirq.T) == 'cirq.T'
+    assert repr(cirq.T**-1) == '(cirq.T**-1)'
+
+    assert repr(cirq.Y) == 'cirq.Y'
+    assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
+
+    assert repr(cirq.CNOT) == 'cirq.CNOT'
+    assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
+
+    assert repr(cirq.SWAP) == 'cirq.SWAP'
+    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
+
+    for e in [1, 0.5, 0.25, 0.1, -0.3]:
+        for g in [cirq.X, cirq.Y, cirq.Z]:
+            cirq.testing.assert_equivalent_repr(g**e)
+
+    # There should be no floating point error during initialization, and repr
+    # should be using the "shortest decimal value closer to X than any other
+    # floating point value" strategy, as opposed to the "exactly value in
+    # decimal" strategy.
+    assert repr(cirq.CZ**0.2) == '(cirq.CZ**0.2)'
+
+
 def test_xyz_str():
     assert str(cirq.X) == 'X'
     assert str(cirq.X**0.5) == 'X**0.5'

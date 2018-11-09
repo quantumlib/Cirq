@@ -79,14 +79,9 @@ def test_unitary():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        cirq.CCZ,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        cirq.CCX,
-        exponents=[1, 0.5, -0.25, cirq.Symbol('s')])
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        cirq.CSWAP)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CCXPowGate)
+    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CCZPowGate)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.CSWAP)
 
 
 def test_str():
