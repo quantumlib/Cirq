@@ -62,19 +62,24 @@ class EigenGate(raw_types.Gate):
                  global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
-        The eigenvalue of an eigenspace of the gate is computed by:
-        1. Starting with an angle returned by the _eigen_components method.
-            θ
-        2. Shifting the angle by the global_shift.
-            θ + s
-        3. Scaling the angle by the exponent.
-            (θ + s) * e
+        The eigenvalue of each eigenspace of a gate is computed by:
+
+        1. Starting with an angle in half turns as returned by the gate's
+            _eigen_components method.
+                θ
+        2. Shifting the angle by `global_shift`.
+                θ + s
+        3. Scaling the angle by `exponent`.
+                (θ + s) * e
         4. Converting from half turns to a complex number on the unit circle.
-            exp(i * pi * (θ + s) * e)
+                exp(i * pi * (θ + s) * e)
 
         Args:
-            exponent: How much to scale the eigencomponents' angles by when
-                computing the gate's matrix.
+            exponent: The t in gate**t. Determines how much the eigenvalues of
+                the gate are scaled by. For example, eigenvectors phased by -1
+                when `gate**1` is applied will gain a relative phase of
+                e^{i pi exponent} when `gate**exponent` is applied (relative to
+                eigenvectors unaffected by `gate**1`).
             global_shift: Offsets the eigenvalues of the gate at exponent=1.
                 In effect, this controls a global phase factor on the gate's
                 unitary matrix. The factor is:
@@ -88,6 +93,10 @@ class EigenGate(raw_types.Gate):
         self._exponent = exponent
         self._global_shift = global_shift
         self._canonical_exponent_cached = None
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
 
     # virtual method
     def _with_exponent(self: TSelf,
