@@ -36,9 +36,9 @@ def test_convert():
         c_orig.to_unitary_matrix(),
         atol=1e-7)
     cirq.testing.assert_has_diagram(circuit, """
-0: ───[X]────────[Z]^0.125─────────
+0: ───[X]───────[Z]^1/8──────────
 
-1: ───[Y]^0.25───[Y]^-0.5────[Z]───
+1: ───[Y]^1/4───[Y]^-1/2───[Z]───
 """)
 
 
@@ -58,9 +58,9 @@ def test_convert_keep_clifford():
         c_orig.to_unitary_matrix(),
         atol=1e-7)
     cirq.testing.assert_has_diagram(circuit, """
-0: ───X──────────[Z]^0.125───
+0: ───X─────────[Z]^1/8───
 
-1: ───[Y]^0.25───H───────────
+1: ───[Y]^1/4───H─────────
 """)
 
 

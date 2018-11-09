@@ -155,9 +155,9 @@ def test_decompose_keep():
     cirq.testing.assert_has_diagram(cirq.Circuit.from_ops(
         cirq.decompose(cirq.SWAP(a, b))),
         """
-0: ────────────@───Y^-0.5───@───Y^0.5────@───────────
+0: ────────────@───Y^-1/2───@───Y^1/2────@───────────
                │            │            │
-1: ───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───
+1: ───Y^-1/2───@───Y^1/2────@───Y^-1/2───@───Y^1/2───
 """)
 
     # If you're happy with everything, no decomposition happens.
