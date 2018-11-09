@@ -178,7 +178,8 @@ class GoodEigenGate(cirq.EigenGate):
 
     def __repr__(self):
         return ('cirq.testing.consistent_protocols_test.GoodEigenGate'
-                '(exponent={!r})'.format(self._exponent))
+                '(exponent={!r}, global_shift={!r})'.format(
+                    self._exponent, self._global_shift))
 
 
 class BadEigenGate(GoodEigenGate):
@@ -194,10 +195,6 @@ def test_assert_implements_consistent_protocols():
 
     cirq.testing.assert_implements_consistent_protocols(
             GoodGate(phase_exponent=0.25)
-    )
-
-    cirq.testing.assert_implements_consistent_protocols(
-            GoodEigenGate()
     )
 
     with pytest.raises(AssertionError):
@@ -220,7 +217,11 @@ def test_assert_implements_consistent_protocols():
                 BadGateRepr(phase_exponent=0.25)
         )
 
+
+def test_assert_eigengate_implements_consistent_protocols():
+    cirq.testing.assert_eigengate_implements_consistent_protocols(
+            GoodEigenGate)
+
     with pytest.raises(AssertionError):
-        cirq.testing.assert_implements_consistent_protocols(
-                BadEigenGate()
-        )
+        cirq.testing.assert_eigengate_implements_consistent_protocols(
+                BadEigenGate)

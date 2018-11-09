@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, Type, Union
 
 from cirq import ops, protocols, value
 from cirq.testing.circuit_compare import (
@@ -30,15 +30,9 @@ def assert_implements_consistent_protocols(
         val: Any,
         *,
         qubit_count: Optional[int] = None,
-        exponents: Sequence[Any] = (0,
-                                    1,
-                                    -0.5,
-                                    0.5,
-                                    -0.25,
-                                    0.25,
-                                    0.1,
-                                    -1,
-                                    value.Symbol('s'))):
+        exponents: Sequence[Any] =
+            (0, 1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s'))
+        ) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
 
     _assert_meets_standards_helper(val, qubit_count)
@@ -49,11 +43,29 @@ def assert_implements_consistent_protocols(
             _assert_meets_standards_helper(val**exponent, qubit_count)
 
 
-def assert_eigen_shifts_is_consistent_with_eigen_components(val: ops.EigenGate):
+def assert_eigengate_implements_consistent_protocols(
+        eigen_gate_type: Type[ops.EigenGate],
+        *,
+        exponents: Sequence[Union[value.Symbol, float]] =
+            (0, 1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s')),
+        global_shifts: Sequence[float] = (0, 0.5, -0.5, 0.1),
+        qubit_count: Optional[int] = None) -> None:
+    """Checks that an EigenGate subclass is internally consistent and has a
+    good __repr__."""
+    for exponent in exponents:
+        for shift in global_shifts:
+            _assert_meets_standards_helper(
+                    eigen_gate_type(exponent=exponent, global_shift=shift),
+                    qubit_count=qubit_count)
+
+
+def assert_eigen_shifts_is_consistent_with_eigen_components(
+        val: ops.EigenGate) -> None:
     assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
 
 
-def _assert_meets_standards_helper(val: Any, qubit_count: Optional[int]):
+def _assert_meets_standards_helper(val: Any,
+                                   qubit_count: Optional[int]) -> None:
     if protocols.has_unitary(val):
         assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
         assert_qasm_is_consistent_with_unitary(val)
@@ -63,5 +75,4 @@ def _assert_meets_standards_helper(val: Any, qubit_count: Optional[int]):
             assert_phase_by_is_consistent_with_unitary(val)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
-
     assert_equivalent_repr(val)

@@ -104,9 +104,14 @@ class CCZPowGate(eigen_gate.EigenGate,
         return ''.join(lines)
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CCZ'
-        return '(cirq.CCZ**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CCZ'
+            return '(cirq.CCZ**{!r})'.format(self._exponent)
+        return (
+            'cirq.CCZPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -175,9 +180,14 @@ class CCXPowGate(eigen_gate.EigenGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.TOFFOLI'
-        return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.TOFFOLI'
+            return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+        return (
+            'cirq.CCXPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:

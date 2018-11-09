@@ -19,9 +19,17 @@ import pytest
 import cirq
 
 
-def test_three_qubit_gates_consistent_protocols():
-    cirq.testing.assert_implements_consistent_protocols(cirq.CCX)
-    cirq.testing.assert_implements_consistent_protocols(cirq.CCZ)
+@pytest.mark.parametrize('eigen_gate_type', [
+    cirq.CCXPowGate,
+    cirq.CCZPowGate,
+    ]
+)
+def test_eigen_gates_consistent_protocols(eigen_gate_type):
+    cirq.testing.assert_eigengate_implements_consistent_protocols(
+            eigen_gate_type)
+
+
+def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
 
 
@@ -78,10 +86,6 @@ def test_unitary():
         [0, 0, 0, 0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
-
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CCXPowGate)
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CCZPowGate)
-    cirq.testing.assert_has_consistent_apply_unitary(cirq.CSWAP)
 
 
 def test_str():

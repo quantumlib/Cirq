@@ -26,28 +26,25 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, -1j, -1, 1j]]) * 0.5
 
 
-def test_common_gates_consistent_protocols():
-    cirq.testing.assert_implements_consistent_protocols(cirq.CNOT)
-    cirq.testing.assert_implements_consistent_protocols(cirq.CZ)
-    cirq.testing.assert_implements_consistent_protocols(cirq.H)
-    cirq.testing.assert_implements_consistent_protocols(cirq.ISWAP)
-    cirq.testing.assert_implements_consistent_protocols(cirq.SWAP)
-    cirq.testing.assert_implements_consistent_protocols(cirq.X)
-    cirq.testing.assert_implements_consistent_protocols(cirq.Y)
-    cirq.testing.assert_implements_consistent_protocols(cirq.Z)
+@pytest.mark.parametrize('eigen_gate_type', [
+    cirq.CNotPowGate,
+    cirq.CZPowGate,
+    cirq.HPowGate,
+    cirq.ISwapPowGate,
+    cirq.SwapPowGate,
+    cirq.XPowGate,
+    cirq.YPowGate,
+    cirq.ZPowGate,
+    ]
+)
+def test_eigen_gates_consistent_protocols(eigen_gate_type):
+    cirq.testing.assert_eigengate_implements_consistent_protocols(
+            eigen_gate_type)
+
+
+def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
             cirq.MeasurementGate(''))
-
-    cirq.testing.assert_implements_consistent_protocols(cirq.Rx(np.pi))
-    cirq.testing.assert_implements_consistent_protocols(cirq.Ry(np.pi))
-    cirq.testing.assert_implements_consistent_protocols(cirq.Rz(np.pi))
-
-    cirq.testing.assert_implements_consistent_protocols(
-            cirq.XPowGate(global_shift=0.1))
-    cirq.testing.assert_implements_consistent_protocols(
-            cirq.YPowGate(global_shift=0.1))
-    cirq.testing.assert_implements_consistent_protocols(
-            cirq.ZPowGate(global_shift=0.1))
 
 
 def test_cz_init():
@@ -332,7 +329,7 @@ def test_swap_unitary():
         ]))
 
 
-def test_xyz_repr():
+def test_repr():
     assert repr(cirq.X) == 'cirq.X'
     assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
 
@@ -355,6 +352,9 @@ def test_xyz_repr():
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
+    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
+    assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
+
     for e in [1, 0.5, 0.25, 0.1, -0.3]:
         for g in [cirq.X, cirq.Y, cirq.Z]:
             cirq.testing.assert_equivalent_repr(g**e)
@@ -366,7 +366,7 @@ def test_xyz_repr():
     assert repr(cirq.CZ**0.2) == '(cirq.CZ**0.2)'
 
 
-def test_xyz_str():
+def test_str():
     assert str(cirq.X) == 'X'
     assert str(cirq.X**0.5) == 'X**0.5'
 
@@ -379,6 +379,12 @@ def test_xyz_str():
 
     assert str(cirq.CNOT) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
+
+    assert str(cirq.SWAP) == 'SWAP'
+    assert str(cirq.SWAP**0.5) == 'SWAP**0.5'
+
+    assert str(cirq.ISWAP) == 'ISWAP'
+    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 
 def test_measurement_gate_diagram():
