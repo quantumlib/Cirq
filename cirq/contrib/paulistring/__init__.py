@@ -22,7 +22,7 @@ from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors,
 )
 from cirq.contrib.paulistring.convert_to_clifford_gates import (
-    ConvertToCliffordGates,
+    ConvertToSingleQubitCliffordGates,
 )
 from cirq.contrib.paulistring.convert_gate_set import (
     converted_gate_set,

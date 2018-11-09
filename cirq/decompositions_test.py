@@ -92,7 +92,7 @@ def test_single_qubit_matrix_to_gates_cases(intended_effect):
         gates = cirq.single_qubit_matrix_to_gates(
             intended_effect, tolerance=atol / 10)
         assert len(gates) <= 3
-        assert sum(1 for g in gates if not isinstance(g, cirq.RotZGate)) <= 1
+        assert sum(1 for g in gates if not isinstance(g, cirq.ZPowGate)) <= 1
         assert_gates_implement_unitary(gates, intended_effect, atol=atol)
 
 
@@ -195,8 +195,8 @@ def test_controlled_op_to_operations_concrete_case():
                                                 atol=1e-8)
 
 def test_controlled_op_to_operations_omits_negligible_global_phase():
-    qc = cirq.QubitId()
-    qt = cirq.QubitId()
+    qc = cirq.NamedQubit('c')
+    qt = cirq.NamedQubit('qt')
     operations = cirq.controlled_op_to_operations(
         control=qc,
         target=qt,
@@ -218,8 +218,8 @@ def test_controlled_op_to_operations_omits_negligible_global_phase():
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_controlled_op_to_operations_equivalent_on_known_and_random(mat):
-    qc = cirq.QubitId()
-    qt = cirq.QubitId()
+    qc = cirq.NamedQubit('c')
+    qt = cirq.NamedQubit('qt')
     operations = cirq.controlled_op_to_operations(
         control=qc, target=qt, operation=mat)
     actual_effect = _operations_to_matrix(operations, (qc, qt))
@@ -267,10 +267,10 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
         assert len(op.qubits) <= 2
         if len(op.qubits) == 2:
             assert isinstance(op, cirq.GateOperation)
-            assert isinstance(op.gate, cirq.Rot11Gate)
+            assert isinstance(op.gate, cirq.CZPowGate)
             if must_be_full:
-                assert op.gate.half_turns == 1
-            total_cz += abs(op.gate.half_turns)
+                assert op.gate.exponent == 1
+            total_cz += abs(op.gate.exponent)
 
     assert total_cz <= threshold
 
@@ -340,8 +340,8 @@ def test_two_to_ops_equivalent_and_bounded_for_known_and_random(
         max_partial_cz_depth,
         max_full_cz_depth,
         effect):
-    q0 = cirq.QubitId()
-    q1 = cirq.QubitId()
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
 
     operations_with_partial = cirq.two_qubit_matrix_to_operations(
         q0, q1, effect, True)
@@ -356,8 +356,8 @@ def test_two_to_ops_equivalent_and_bounded_for_known_and_random(
 
 
 def test_trivial_parity_interaction_corner_case():
-    q0 = cirq.QubitId()
-    q1 = cirq.QubitId()
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
     nearPi4 = np.pi/4 * 0.99
     tolerance = 1e-2
     circuit = cirq.Circuit.from_ops(

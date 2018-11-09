@@ -12,31 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Import sub-modules.
-
-from cirq import (
-    circuits,
-    devices,
-    google,
-    linalg,
-    ops,
-    schedules,
-    study,
-    testing,
+from cirq._version import (
+    __version__,
 )
 
-# Also flatten some of the sub-modules.
+# Flattened sub-modules.
 
 from cirq.circuits import (
     Circuit,
     CircuitDag,
-    ConvertToCzAndSingleGates,
-    DropEmptyMoments,
-    DropNegligible,
-    ExpandComposite,
     InsertStrategy,
-    MergeInteractions,
-    MergeSingleQubitGates,
     Moment,
     OptimizationPass,
     PointOptimizationSummary,
@@ -61,18 +46,18 @@ from cirq.devices import (
     UnconstrainedDevice,
 )
 
-from cirq.extension import (
-    can_cast,
-    cast,
-    Extensions,
-    PotentialImplementation,
-    try_cast,
+from cirq.experiments import (
+    generate_supremacy_circuit_google_v2,
+    generate_supremacy_circuit_google_v2_bristlecone,
+    generate_supremacy_circuit_google_v2_grid,
 )
 
 from cirq.linalg import (
     allclose_up_to_global_phase,
+    apply_matrix_to_slices,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
+    slice_for_qubits_equal_to,
     block_diag,
     match_global_phase,
     commutes,
@@ -88,6 +73,7 @@ from cirq.linalg import (
     is_unitary,
     kak_canonicalize_vector,
     kak_decomposition,
+    KakDecomposition,
     kron,
     kron_factor_4x4_to_2x2s,
     kron_with_controls,
@@ -99,71 +85,77 @@ from cirq.linalg import (
 )
 
 from cirq.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    LinePlacementStrategy,
     LineQubit,
-    line_on_device,
 )
 
 from cirq.ops import (
-    BoundedEffect,
+    amplitude_damp,
+    AmplitudeDampingChannel,
+    asymmetric_depolarize,
+    AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
     CCX,
+    CCXPowGate,
     CCZ,
-    CliffordGate,
+    CCZPowGate,
+    SingleQubitCliffordGate,
     CNOT,
-    CNotGate,
-    CompositeGate,
-    CompositeOperation,
+    CNotPowGate,
     ControlledGate,
     CSWAP,
+    CSwapGate,
     CZ,
+    CZPowGate,
+    depolarize,
+    DepolarizingChannel,
     EigenGate,
-    ExtrapolatableEffect,
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
     Gate,
     GateOperation,
+    generalized_amplitude_damp,
+    GeneralizedAmplitudeDampingChannel,
     H,
-    HGate,
+    HPowGate,
     InterchangeableQubitsGate,
-    inverse,
     ISWAP,
-    ISwapGate,
+    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
     NamedQubit,
     OP_TREE,
     Operation,
-    ParameterizableEffect,
     Pauli,
     PauliInteractionGate,
     PauliString,
     PauliTransform,
-    PhaseableEffect,
-    QasmConvertibleGate,
-    QasmConvertibleOperation,
-    QasmOutputArgs,
+    phase_damp,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
+    PhasedXPowGate,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    ReversibleEffect,
-    Rot11Gate,
-    RotXGate,
-    RotYGate,
-    RotZGate,
+    rotation_error,
+    RotationErrorChannel,
+    XPowGate,
+    YPowGate,
+    ZPowGate,
+    Rx,
+    Ry,
+    Rz,
     S,
     SingleQubitGate,
     SingleQubitMatrixGate,
     SWAP,
-    SwapGate,
+    SwapPowGate,
     T,
-    TextDiagrammable,
-    TextDiagramInfo,
-    TextDiagramInfoArgs,
+    ThreeQubitGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -173,10 +165,34 @@ from cirq.ops import (
     Z,
 )
 
+from cirq.optimizers import (
+    ConvertToCzAndSingleGates,
+    DropEmptyMoments,
+    DropNegligible,
+    EjectPhasedPaulis,
+    EjectZ,
+    ExpandComposite,
+    MergeInteractions,
+    MergeSingleQubitGates,
+)
+
 from cirq.schedules import (
     Schedule,
     ScheduledOperation,
     moment_by_moment_schedule,
+)
+
+from cirq.sim import (
+    dirac_notation,
+    measure_state_vector,
+    sample_state_vector,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
+    SimulatesFinalWaveFunction,
+    SimulatesIntermediateWaveFunction,
+    to_valid_state_vector,
+    validate_normalized_state,
 )
 
 from cirq.study import (
@@ -186,6 +202,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    to_resolvers,
     TrialResult,
     UnitSweep,
 )
@@ -199,10 +216,43 @@ from cirq.value import (
     Timestamp,
 )
 
+# pylint: disable=redefined-builtin
 from cirq.protocols import (
+    apply_unitary_to_tensor,
+    channel,
+    CircuitDiagramInfo,
+    CircuitDiagramInfoArgs,
+    circuit_diagram_info,
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
+    inverse,
+    mul,
+    pow,
+    qasm,
+    QasmArgs,
+    SupportsApplyUnitaryToTensor,
+    SupportsCircuitDiagramInfo,
+    SupportsParameterization,
+    SupportsPhase,
+    SupportsQasm,
+    SupportsQasmWithArgs,
+    SupportsQasmWithArgsAndQubits,
+    SupportsTraceDistanceBound,
     SupportsUnitary,
+    is_parameterized,
+    resolve_parameters,
+    has_unitary,
     unitary,
+    trace_distance_bound,
+    phase_by,
 )
+# pylint: enable=redefined-builtin
 
-# Import version last since it is a relative import.
-from ._version import __version__
+# Unflattened sub-modules.
+
+from cirq import (
+    contrib,
+    google,
+    testing,
+)

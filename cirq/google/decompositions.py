@@ -16,13 +16,12 @@
 
 import cmath
 import math
-from typing import List, Tuple, cast
+from typing import List, Tuple
 
 import numpy as np
 
-from cirq import ops, linalg
+from cirq import ops, linalg, protocols
 from cirq.decompositions import single_qubit_op_to_framed_phase_form
-from cirq.google.xmon_gates import ExpWGate
 
 
 def _signed_mod_1(x: float) -> float:
@@ -76,18 +75,19 @@ def single_qubit_matrix_to_native_gates(
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
-        ExpWGate(half_turns=2*xy_turn, axis_half_turns=2*xy_phase_turn),
-        ops.RotZGate(half_turns=2 * total_z_turn)
+        ops.PhasedXPowGate(exponent=2 * xy_turn,
+                           phase_exponent=2 * xy_phase_turn),
+        ops.Z**(2 * total_z_turn)
     ]
     result = [
         g for g in result
-        if cast(ops.BoundedEffect, g).trace_distance_bound() > tolerance
+        if protocols.trace_distance_bound(g) > tolerance
     ]
 
     # Special case: XY half-turns can absorb Z rotations.
     if len(result) == 2 and abs(xy_turn) >= 0.5 - tolerance:
         return [
-            ExpWGate(axis_half_turns=2*xy_phase_turn + total_z_turn)
+            ops.PhasedXPowGate(phase_exponent=2 * xy_phase_turn + total_z_turn)
         ]
 
     return result
@@ -115,12 +115,12 @@ def controlled_op_to_native_gates(
         return []
 
     u_gates = single_qubit_matrix_to_native_gates(u, tolerance)
-    if u_gates and isinstance(u_gates[-1], ops.RotZGate):
+    if u_gates and isinstance(u_gates[-1], ops.ZPowGate):
         # Don't keep border operations that commute with CZ.
         del u_gates[-1]
 
     ops_before = [gate(target) for gate in u_gates]
-    ops_after = ops.inverse(ops_before)
+    ops_after = protocols.inverse(ops_before)
     effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
     kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
 

@@ -55,8 +55,7 @@ def test_validate_permutation_errors():
         validate_permutation({0: 3, 3: 0}, 2)
 
     gate = SwapPermutationGate()
-    args = cirq.TextDiagramInfoArgs.UNINFORMED_DEFAULT
-    assert gate.text_diagram_info(args) == NotImplemented
+    assert cirq.circuit_diagram_info(gate, default=None) is None
 
 
 def test_diagram():
@@ -94,7 +93,8 @@ def test_linear_permutation_gate():
         gate = LinearPermutationGate(permutation)
         assert gate.permutation(n_elements) == permutation
         mapping = dict(zip(qubits, elements))
-        for swap in cirq.flatten_op_tree(gate.default_decompose(qubits)):
+        for swap in cirq.flatten_op_tree(cirq.decompose_once_with_qubits(
+                gate, qubits)):
             assert isinstance(swap, cirq.GateOperation)
             swap.gate.update_mapping(mapping, swap.qubits)
         for i in range(n_elements):

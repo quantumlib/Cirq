@@ -15,24 +15,49 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.clifford_gate import (
+    SingleQubitCliffordGate,
+    PauliTransform,
+)
+from cirq.ops.common_channels import (
+    amplitude_damp,
+    AmplitudeDampingChannel,
+    asymmetric_depolarize,
+    AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
+    depolarize,
+    DepolarizingChannel,
+    generalized_amplitude_damp,
+    GeneralizedAmplitudeDampingChannel,
+    phase_damp,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
+    rotation_error,
+    RotationErrorChannel
+)
 from cirq.ops.common_gates import (
     CNOT,
-    CNotGate,
+    CNotPowGate,
     CZ,
+    CZPowGate,
     H,
-    HGate,
+    HPowGate,
     ISWAP,
-    ISwapGate,
+    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
-    Rot11Gate,
-    RotXGate,
-    RotYGate,
-    RotZGate,
+    XPowGate,
+    YPowGate,
+    ZPowGate,
+    Rx,
+    Ry,
+    Rz,
     S,
     SWAP,
-    SwapGate,
+    SwapPowGate,
     T,
     X,
     Y,
@@ -45,21 +70,8 @@ from cirq.ops.eigen_gate import (
     EigenGate,
 )
 from cirq.ops.gate_features import (
-    BoundedEffect,
-    CompositeGate,
-    CompositeOperation,
-    ExtrapolatableEffect,
     InterchangeableQubitsGate,
-    ParameterizableEffect,
-    PhaseableEffect,
-    QasmConvertibleGate,
-    QasmConvertibleOperation,
-    QasmOutputArgs,
-    ReversibleEffect,
     SingleQubitGate,
-    TextDiagrammable,
-    TextDiagramInfo,
-    TextDiagramInfoArgs,
     ThreeQubitGate,
     TwoQubitGate,
 )
@@ -76,6 +88,9 @@ from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
+from cirq.ops.named_qubit import (
+    NamedQubit,
+)
 from cirq.ops.op_tree import (
     OP_TREE,
     flatten_op_tree,
@@ -85,30 +100,30 @@ from cirq.ops.op_tree import (
 from cirq.ops.pauli import (
     Pauli,
 )
-from cirq.ops.clifford_gate import (
-    CliffordGate,
-    PauliTransform,
-)
 from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,
 )
 from cirq.ops.pauli_string import (
     PauliString,
 )
+from cirq.ops.phased_x_gate import (
+    PhasedXPowGate,
+)
 from cirq.ops.raw_types import (
     Gate,
-    NamedQubit,
     Operation,
     QubitId,
 )
 from cirq.ops.reversible_composite_gate import (
-    inverse,
     ReversibleCompositeGate,
 )
 from cirq.ops.three_qubit_gates import (
     CCX,
+    CCXPowGate,
     CCZ,
+    CCZPowGate,
     CSWAP,
+    CSwapGate,
     FREDKIN,
     TOFFOLI,
 )

@@ -14,12 +14,11 @@
 
 import cirq
 from cirq.contrib.jobs import DepolarizerChannel, Job
-from cirq.google import xmon_gates
 
 
 def test_depolarizer_no_errors():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -29,8 +28,8 @@ def test_depolarizer_no_errors():
 
 
 def test_depolarizer_all_errors():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -43,8 +42,7 @@ def test_depolarizer_all_errors():
     cnot_then_z = Job(
         cirq.Circuit([
             cirq.Moment([cirq.CNOT(q1, q2)]),
-            cirq.Moment([xmon_gates.ExpZGate(half_turns=p0).on(q1),
-                             xmon_gates.ExpZGate(half_turns=p1).on(q2)])
+            cirq.Moment([cirq.Z(q1)**p0, cirq.Z(q2)**p1])
         ]),
         cnot.sweep * error_sweep)
 
@@ -52,14 +50,13 @@ def test_depolarizer_all_errors():
 
 
 def test_depolarizer_different_gate():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
     allerrors = DepolarizerChannel(probability=1.0, depolarizing_gates=
-                                   [xmon_gates.ExpZGate(),
-                                    xmon_gates.ExpWGate()])
+                                   [cirq.Z, cirq.X])
     p0 = cirq.Symbol(DepolarizerChannel._parameter_name + '0')
     p1 = cirq.Symbol(DepolarizerChannel._parameter_name + '1')
     p2 = cirq.Symbol(DepolarizerChannel._parameter_name + '2')
@@ -71,10 +68,8 @@ def test_depolarizer_different_gate():
     cnot_then_z = Job(
         cirq.Circuit([
             cirq.Moment([cirq.CNOT(q1, q2)]),
-            cirq.Moment([xmon_gates.ExpZGate(half_turns=p0).on(q1),
-                             xmon_gates.ExpZGate(half_turns=p1).on(q2)]),
-            cirq.Moment([xmon_gates.ExpWGate(half_turns=p2).on(q1),
-                             xmon_gates.ExpWGate(half_turns=p3).on(q2)])
+            cirq.Moment([cirq.Z(q1)**p0, cirq.Z(q2)**p1]),
+            cirq.Moment([cirq.X(q1)**p2, cirq.X(q2)**p3])
         ]),
         cnot.sweep * error_sweep)
 
@@ -82,8 +77,8 @@ def test_depolarizer_different_gate():
 
 
 def test_depolarizer_multiple_realizations():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot = Job(cirq.Circuit([
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
@@ -97,18 +92,17 @@ def test_depolarizer_multiple_realizations():
     cnot_then_z3 = Job(
         cirq.Circuit([
             cirq.Moment([cirq.CNOT(q1, q2)]),
-            cirq.Moment([xmon_gates.ExpZGate(half_turns=p0).on(q1),
-                             xmon_gates.ExpZGate(half_turns=p1).on(q2)])
+            cirq.Moment([cirq.Z(q1)**p0, cirq.Z(q2)**p1])
         ]),
         cnot.sweep * error_sweep)
     assert all_errors3.transform_job(cnot) == cnot_then_z3
 
 
 def test_depolarizer_parameterized_gates():
-    q1 = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
     cnot_param = cirq.Symbol('cnot_turns')
-    cnot_gate = xmon_gates.Exp11Gate(half_turns=cnot_param).on(q1, q2)
+    cnot_gate = cirq.CZ(q1, q2)**cnot_param
 
     job_sweep = cirq.Points('cnot_turns', [0.5])
 
@@ -121,8 +115,7 @@ def test_depolarizer_parameterized_gates():
     cnot_then_z = Job(
         cirq.Circuit([
             cirq.Moment([cnot_gate]),
-            cirq.Moment([xmon_gates.ExpZGate(half_turns=p0).on(q1),
-                             xmon_gates.ExpZGate(half_turns=p1).on(q2)])
+            cirq.Moment([cirq.Z(q1)**p0, cirq.Z(q2)**p1])
         ]),
         job_sweep * error_sweep)
     assert all_errors.transform_job(cnot) == cnot_then_z

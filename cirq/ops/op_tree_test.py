@@ -85,7 +85,7 @@ def test_transform_bad_tree():
         _ = list(cirq.transform_op_tree(5))
     with pytest.raises(TypeError):
         _ = list(cirq.flatten_op_tree(cirq.transform_op_tree([
-            cirq.GateOperation(cirq.Gate(), [cirq.QubitId()]), (4,)
+            cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)
         ])))
 
 

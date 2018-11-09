@@ -49,11 +49,11 @@ import numpy as np
 import cirq
 
 
-class QftInverse(cirq.Gate, cirq.CompositeGate):
+class QftInverse(cirq.Gate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         """A quantum circuit (QFT_inv) with the following structure.
 
         ---H--@-------@--------@----------------------------------------------

@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Union, Tuple
 import numpy as np
 
 from cirq.google.sim import mem_manager
+from cirq import sim
 
 
 I_PI_OVER_2 = 0.5j * np.pi
@@ -180,7 +181,7 @@ class Stepper(object):
     def _init_state(self, initial_state: Union[int, np.ndarray]):
         """Initializes a the shard wavefunction and sets the initial state."""
         state = np.reshape(
-            decode_initial_state(initial_state, self._num_qubits),
+            sim.to_valid_state_vector(initial_state, self._num_qubits),
             (self._num_shards, self._shard_size))
         state_handle = mem_manager.SharedMemManager.create_array(
             state.view(dtype=np.float32))
@@ -262,7 +263,7 @@ class Stepper(object):
             self._pool.map(_reset_state,
                            self._shard_num_args({'reset_state': reset_state}))
         elif isinstance(reset_state, np.ndarray):
-            check_state(reset_state, self._num_qubits)
+            sim.validate_normalized_state(reset_state, self._num_qubits)
             args = []
             for kwargs in self._shard_num_args():
                 shard_num = kwargs['shard_num']
@@ -378,85 +379,10 @@ class Stepper(object):
         Raises:
             ValueError if repetitions is less than one.
         """
-        if repetitions < 1:
-            raise ValueError(
-                'Number of repetitions cannot be negative. Was {}'.format(
-
-                    repetitions))
-        if len(indices) == 0:
-            return [[]]
-
-        # Calculate probabilities and reshape to tensor of qubits.
-        tensor = np.reshape(np.abs(self.current_state) ** 2,
-                            self._num_qubits * [2])
-
-        # Tensor axis order is reverse of index order, so we transpose here.
-        tensor = np.transpose(tensor)
-
-        # Indices that should be summed over.
-        sum_indices = tuple(
-            x for x in range(self._num_qubits) if x not in indices)
-
-        # Sum over those indices, and reshape into a a tensor of len(indices)
-        # qubits.
-        probs = np.reshape(np.sum(tensor, axis=sum_indices), [2] * len(indices))
-
-        # Calculate how the indices not summed over should be reordered.
-        index_map = {v: k for k,v in enumerate(sorted(indices))}
-        perm = [index_map[x] for x in indices]
-        # Apply this permutation to the probabilities and flatten.,
-        probs = np.reshape(np.transpose(probs, perm), -1)
-
-        # We now have the probability vector, correctly ordered, so sample over
-        # it. Note that we us ints here, since numpy's choice does not allow for
-        # choosing from a list of tuples or list of lists.
-        result = np.random.choice(2 ** len(indices), size=repetitions, p=probs)
-        # Convert to bools and note also one final reverse of list to get
-        # ordering correct.
-        return np.transpose(
-            [(1 & (result >> i)).astype(np.bool) for i in range(len(indices))][
-            ::-1]).tolist()
-
-
-def decode_initial_state(initial_state: Union[int, np.ndarray],
-                         num_qubits: int) -> np.ndarray:
-    """Verifies the initial_state is valid and converts it to ndarray form."""
-    if isinstance(initial_state, np.ndarray):
-        if len(initial_state) != 2 ** num_qubits:
-            raise ValueError(
-                'initial state was of size {} '
-                'but expected state for {} qubits'.format(
-                    len(initial_state), num_qubits))
-        state = initial_state
-    elif isinstance(initial_state, int):
-        if initial_state < 0:
-            raise ValueError('initial_state must be positive')
-        elif initial_state >= 2 ** num_qubits:
-            raise ValueError(
-                'initial state was {} but expected state for {} qubits'.format(
-                    initial_state, num_qubits))
-        else:
-            state = np.zeros(2 ** num_qubits, dtype=np.complex64)
-            state[initial_state] = 1.0
-    else:
-        raise TypeError('initial_state was not of type int or ndarray')
-    check_state(state, num_qubits)
-    return state
-
-
-def check_state(state: np.ndarray, num_qubits: int):
-    """Validates that the given state is a valid wave function."""
-    if state.size != 1 << num_qubits:
-        raise ValueError(
-            'State has incorrect size. Expected {} but was {}.'.format(
-                1 << num_qubits, state.size))
-    if state.dtype != np.complex64:
-        raise ValueError(
-            'State has invalid dtype. Expected {} but was {}'.format(
-                np.complex64, state.dtype))
-    norm = np.sum(np.abs(state) ** 2)
-    if not np.isclose(norm, 1):
-        raise ValueError('State is not normalized instead had norm %s' % norm)
+        # Stepper uses little endian while sample_state uses big endian.
+        reversed_indices = [self._num_qubits - 1 - index for index in indices]
+        return sim.sample_state_vector(self._current_state(), reversed_indices,
+                                       repetitions)
 
 
 def _state_shard(args: Dict[str, Any]) -> np.ndarray:

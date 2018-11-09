@@ -193,23 +193,22 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.QasmConvertibleOperation,
-                         cirq.CompositeOperation):
+    class DummyOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def known_qasm_output(self, args):
+        def _qasm_(self, args: cirq.QasmArgs) -> str:
             return '// Dummy operation\n'
 
-        def default_decompose(self):
+        def _decompose_(self):
             # Only used by test_output_unitary_same_as_qiskit
             return ()  # coverage: ignore
 
-    class DummyCompositeOperation(cirq.Operation, cirq.CompositeOperation):
+    class DummyCompositeOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def default_decompose(self):
+        def _decompose_(self):
             return cirq.X(self.qubits[0])
 
         def __repr__(self):
@@ -238,12 +237,9 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
 
-        cirq.google.ExpZGate()(q3),
-        cirq.google.ExpZGate(half_turns=0.75)(q3),
-        cirq.google.ExpWGate(axis_half_turns=0.125, half_turns=0.25)(q1),
-        cirq.google.Exp11Gate()(q0, q1),
-        # Requires 2-qubit decomposition
-        cirq.google.Exp11Gate(half_turns=1.25)(q0, q1),
+        cirq.PhasedXPowGate(phase_exponent=0.111, exponent=0.25).on(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
 
         (
             cirq.MeasurementGate('xX')(q0),
@@ -260,7 +256,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
     )
 
 
-def test_output_parsable_by_qiskit():
+def test_output_parseable_by_qiskit():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
@@ -298,13 +294,22 @@ def test_output_unitary_same_as_qiskit():
     circuit = cirq.Circuit.from_ops(operations)
     cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits[::-1])
 
-    p = qiskit.QuantumProgram()
-    p.load_qasm_text(text)
-    result = p.execute(backend='local_unitary_simulator')
-    qiskit_unitary = result.get_unitary()
+    result = qiskit.execute(
+        qiskit.load_qasm_string(text),
+        backend=qiskit.Aer.get_backend('unitary_simulator'))
+    qiskit_unitary = result.result().get_unitary()
 
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+
+
+def test_fails_on_big_unknowns():
+    class UnrecognizedGate(cirq.Gate):
+        pass
+    c = cirq.Circuit.from_ops(
+        UnrecognizedGate().on(*cirq.LineQubit.range(3)))
+    with pytest.raises(ValueError, match='Cannot output operation as QASM'):
+        _ = c.to_qasm()
 
 
 def test_output_format():
@@ -314,11 +319,11 @@ def test_output_format():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
-                             header='Generated from Cirq',
+                             header='Generated from Cirq!',
                              precision=5)
     assert (filter_unpredictable_numbers(str(output)) ==
             filter_unpredictable_numbers(
-        """// Generated from Cirq
+        """// Generated from Cirq!
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -448,28 +453,9 @@ rz(pi*-0.5) q[2];
 h q[2];
 cx q[2],q[0];
 
-z q[3];
-rz(pi*0.75) q[3];
-
-// Gate: W(0.125)^0.25
-u3(pi*0.25,pi*1.625,pi*0.375) q[1];
-
-cz q[0],q[1];
-
-// Gate: Exp11Gate(half_turns=-0.75)
-u3(pi*0.5,0,pi*1.54081) q[0];
-u3(pi*0.5,pi*1.0,pi*0.04081) q[1];
-rx(pi*0.5) q[0];
-cx q[0],q[1];
-rx(pi*0.125) q[0];
-ry(pi*0.5) q[1];
-cx q[1],q[0];
-rx(pi*-0.5) q[1];
-rz(pi*0.5) q[1];
-cx q[0],q[1];
-u3(pi*0.5,pi*1.08419,pi*1.0) q[0];
-u3(pi*0.5,pi*0.58419,0) q[1];
-
+u3(pi*-0.25, pi*0.611, pi*-0.611) q[1];
+u2(pi*-0.167, pi*0.167) q[1];
+u2(pi*1.277, pi*-1.277) q[1];
 measure q[0] -> m_xX[0];
 measure q[2] -> m_x_a[0];
 measure q[1] -> m0[0];

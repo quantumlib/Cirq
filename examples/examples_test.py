@@ -6,39 +6,7 @@ import examples.place_on_bristlecone
 import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
-import examples.supremacy
 import examples.phase_estimator
-
-
-def test_generate_supremacy_circuit():
-    device = cirq.google.Foxtail
-
-    circuit = examples.supremacy.generate_supremacy_circuit(device, cz_depth=6)
-    # Circuit should have 6 layers of 2 plus a final layer of 1 plus measures.
-    assert len(circuit) == 14
-
-    # For this chip, by cz-depth 6 there should be one CZ on each edge.
-    op_counts = {}
-    for m in circuit:
-        for op in m.operations:
-            op_counts[op] = op_counts.get(op, 0) + 1
-    for q1 in device.qubits:
-        for q2 in device.neighbors_of(q1):
-            assert op_counts[cirq.google.Exp11Gate().on(q1, q2)] == 1
-
-
-def test_generate_supremacy_circuit_seeding():
-    device = cirq.google.Foxtail
-
-    circuit1 = examples.supremacy.generate_supremacy_circuit(
-        device, cz_depth=6, seed=42)
-    circuit2 = examples.supremacy.generate_supremacy_circuit(
-        device, cz_depth=6, seed=42)
-    circuit3 = examples.supremacy.generate_supremacy_circuit(
-        device, cz_depth=6, seed=43)
-
-    assert circuit1 == circuit2
-    assert circuit1 != circuit3
 
 
 def test_example_runs_bernstein_vazirani():

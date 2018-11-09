@@ -16,7 +16,7 @@ import pytest
 
 import cirq
 from cirq.contrib.paulistring import (
-    ConvertToCliffordGates,
+    ConvertToSingleQubitCliffordGates,
 )
 
 
@@ -30,9 +30,9 @@ def test_convert():
         cirq.H(q0),
     )
     c_orig = cirq.Circuit(circuit)
-    ConvertToCliffordGates().optimize_circuit(circuit)
+    ConvertToSingleQubitCliffordGates().optimize_circuit(circuit)
 
-    assert all(isinstance(op.gate, cirq.CliffordGate)
+    assert all(isinstance(op.gate, cirq.SingleQubitCliffordGate)
                for op in circuit.all_operations())
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -54,29 +54,30 @@ def test_non_clifford_known_matrix():
     )
     c_orig = cirq.Circuit(circuit)
 
-    ConvertToCliffordGates(ignore_failures=True).optimize_circuit(circuit)
+    ConvertToSingleQubitCliffordGates(ignore_failures=True) \
+        .optimize_circuit(circuit)
     assert circuit == c_orig
 
     circuit2 = cirq.Circuit(c_orig)
     with pytest.raises(ValueError):
-        ConvertToCliffordGates().optimize_circuit(circuit2)
+        ConvertToSingleQubitCliffordGates().optimize_circuit(circuit2)
 
 
 
 def test_already_converted():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit.from_ops(
-        cirq.CliffordGate.H(q0),
+        cirq.SingleQubitCliffordGate.H(q0),
     )
     c_orig = cirq.Circuit(circuit)
-    ConvertToCliffordGates().optimize_circuit(circuit)
+    ConvertToSingleQubitCliffordGates().optimize_circuit(circuit)
 
     assert circuit == c_orig
 
 
 def test_convert_composite():
-    class CompositeDummy(cirq.Gate, cirq.CompositeGate):
-        def default_decompose(self, qubits):
+    class CompositeDummy(cirq.Gate):
+        def _decompose_(self, qubits):
             q0, q1 = qubits
             yield cirq.X(q0)
             yield cirq.Y(q1) ** 0.5
@@ -87,9 +88,9 @@ def test_convert_composite():
         CompositeDummy()(q0, q1)
     )
     c_orig = cirq.Circuit(circuit)
-    ConvertToCliffordGates().optimize_circuit(circuit)
+    ConvertToSingleQubitCliffordGates().optimize_circuit(circuit)
 
-    assert all(isinstance(op.gate, cirq.CliffordGate)
+    assert all(isinstance(op.gate, cirq.SingleQubitCliffordGate)
                for op in circuit.all_operations())
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -113,7 +114,8 @@ def test_ignore_unsupported_gate():
         UnsupportedDummy()(q0, q1),
     )
     c_orig = cirq.Circuit(circuit)
-    ConvertToCliffordGates(ignore_failures=True).optimize_circuit(circuit)
+    ConvertToSingleQubitCliffordGates(ignore_failures=True) \
+        .optimize_circuit(circuit)
 
     assert circuit == c_orig
 
@@ -127,17 +129,17 @@ def test_fail_unsupported_gate():
         UnsupportedDummy()(q0, q1),
     )
     with pytest.raises(TypeError):
-        ConvertToCliffordGates().optimize_circuit(circuit)
+        ConvertToSingleQubitCliffordGates().optimize_circuit(circuit)
 
 
 def test_rotation_to_clifford_gate():
-    conv = ConvertToCliffordGates()
+    conv = ConvertToSingleQubitCliffordGates()
 
     assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 0.0)
-            == cirq.CliffordGate.I)
+            == cirq.SingleQubitCliffordGate.I)
     assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 0.5)
-            == cirq.CliffordGate.X_sqrt)
+            == cirq.SingleQubitCliffordGate.X_sqrt)
     assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 1.0)
-            == cirq.CliffordGate.X)
+            == cirq.SingleQubitCliffordGate.X)
     assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, -0.5)
-            == cirq.CliffordGate.X_nsqrt)
+            == cirq.SingleQubitCliffordGate.X_nsqrt)

@@ -15,19 +15,17 @@ Here is a simple circuit
 import cirq
 from cirq import Circuit
 from cirq.devices import GridQubit
-from cirq.google import ExpWGate, Exp11Gate, XmonMeasurementGate
 
 q0 = GridQubit(0, 0)
 q1 = GridQubit(1, 0)
 
 def basic_circuit(meas=True):
-    sqrt_x = ExpWGate(half_turns=0.5, axis_half_turns=0.0)
-    cz = Exp11Gate()
+    sqrt_x = cirq.X**0.5
     yield sqrt_x(q0), sqrt_x(q1)
-    yield cz(q0, q1)
+    yield cirq.CZ(q0, q1)
     yield sqrt_x(q0), sqrt_x(q1)
     if meas:
-        yield XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)
+        yield cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')
    
 circuit = Circuit()
 circuit.append(basic_circuit())
@@ -189,18 +187,12 @@ for the binary expansion of the passed integer.
 
 ### Gate sets
 
-The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying an ``XmonGate``,
-a ``CompositeOperation`` that decomposes (recursively) to ``XmonGates``,
-or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
-By default the xmon simulator uses an ``Extension`` defined in ``xgate_gate_extensions`` to try to resolve gates that are not ``XmonGates`` to ``XmonGates``.
+The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying a supported gate (such as `cirq.CZ`),
+a composite operation that implements `_decompose_`, or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
 
-So if you are using a custom gate, there are multiple options
-for getting it to work with the simulator:
-* Define it directly as an ``XmonGate``.
-* Provide a ``CompositeGate`` made up of ``XmonGates``.
-* Supply an ``Extension`` to the simulator which converts
-the gate to an ``XmonGate`` or to a ``CompositeGate`` which 
-itself can be decomposed in ``XmonGates``. 
+So if you are implementing a custom gate, there are two options for getting it to work with the simulator:
+* Implement a `_decompose_` method that returns supported gates (or gates that decompose into supported gates).
+* If the operation applies to two or fewer qubits, implement a `_unitary_` method that returns the operation's matrix.
 
 ### Parameterized Values and Studies
 
@@ -212,21 +204,20 @@ providing a ``ParamResolver``.  A ``ParamResolver`` provides
 a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-from cirq import Symbol, ParamResolver
-val = Symbol('x')
-rot_w_gate = ExpWGate(half_turns=val)
+from cirq import ParamResolver
+rot_w_gate = cirq.X**cirq.Symbol('x')
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
     resolver = ParamResolver({'x': y / 4.0})
     result = simulator.simulate(circuit, resolver)
-    print(np.around(result.final_state, 2))
-# prints
-# [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-# [ 0.85+0.j    0.  -0.35j  0.  -0.35j -0.15+0.j  ]
-# [ 0.5+0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
-# [ 0.15+0.j    0.  -0.35j  0.  -0.35j -0.85+0.j  ]
-# [ 0.+0.j  0.-0.j  0.-0.j -1.+0.j]
+    print(np.round(result.final_state, 2))
+# prints something like
+# [1.  +0.j  0.+0.j   0.+0.j    0.  +0.j]
+# [0.85+0.j  0.-0.35j 0.-0.35j -0.15+0.j]
+# [0.5 +0.j  0.-0.5j  0.-0.5j  -0.5 +0.j]
+# [0.15+0.j  0.-0.35j 0.-0.35j -0.85+0.j]
+# [0.  +0.j  0.-0.j   0.-0.j   -1.  +0.j]
 ```
 Here we see that the ``Symbol`` is used in two gates, and then the resolver
 provide this value at run time.
@@ -242,7 +233,7 @@ in the ``TrialContext`` object).  Example:
 resolvers = [ParamResolver({'x': y / 2.0}) for y in range(3)]
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
-circuit.append([XmonMeasurementGate(key='q0')(q0), XmonMeasurementGate(key='q1')(q1)])
+circuit.append([cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')])
 results = simulator.run_sweep(program=circuit,
                               params=resolvers,
                               repetitions=2)

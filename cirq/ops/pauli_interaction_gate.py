@@ -16,15 +16,15 @@ from typing import Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq import value
+from cirq import value, protocols
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, op_tree
 from cirq.ops.pauli import Pauli
-from cirq.ops.clifford_gate import CliffordGate
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 
 pauli_eigen_map = {
-    Pauli.X: (np.array([[0.5,  0.5 ], [0.5,   0.5]]),
-              np.array([[0.5, -0.5 ], [-0.5,  0.5]])),
+    Pauli.X: (np.array([[0.5,  0.5], [0.5,   0.5]]),
+              np.array([[0.5, -0.5], [-0.5,  0.5]])),
     Pauli.Y: (np.array([[0.5, -0.5j], [0.5j,  0.5]]),
               np.array([[0.5,  0.5j], [-0.5j, 0.5]])),
     Pauli.Z: (np.diag([1, 0]),
@@ -33,9 +33,7 @@ pauli_eigen_map = {
 
 
 class PauliInteractionGate(eigen_gate.EigenGate,
-                           gate_features.CompositeGate,
-                           gate_features.InterchangeableQubitsGate,
-                           gate_features.TextDiagrammable):
+                           gate_features.InterchangeableQubitsGate):
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
 
@@ -43,23 +41,19 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                  pauli0: Pauli, invert0: bool,
                  pauli1: Pauli, invert1: bool,
                  *,
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
-        """At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
-        Args:
-            half_turns: Relative phasing of the interaction's eigenstates, in
-                half_turns.
-            rads: Relative phasing of the interaction's eigenstates, in radians.
-            degs: Relative phasing of the interaction's eigenstates, in degrees.
+                 exponent: Union[value.Symbol, float] = 1.0) -> None:
         """
-        super().__init__(exponent=value.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs))
+        Args:
+            pauli0: The interaction axis for the first qubit.
+            invert0: Whether to condition on the +1 or -1 eigenvector of the
+                first qubit's interaction axis.
+            pauli1: The interaction axis for the second qubit.
+            invert1: Whether to condition on the +1 or -1 eigenvector of the
+                second qubit's interaction axis.
+            exponent: Determines the amount of phasing to apply to the vector
+                equal to the tensor product of the two conditions.
+        """
+        super().__init__(exponent=exponent)
         self.pauli0 = pauli0
         self.invert0 = invert0
         self.pauli1 = pauli1
@@ -69,7 +63,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         return (PauliInteractionGate,
                 self.pauli0, self.invert0,
                 self.pauli1, self.invert1,
-                self._exponent)
+                self._canonical_exponent)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -85,17 +79,16 @@ class PauliInteractionGate(eigen_gate.EigenGate,
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         if self.pauli0 == self.pauli1 and self.invert0 == self.invert1:
             return 0
-        else:
-            return index
-
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
+        return index
 
     def _with_exponent(self, exponent: Union[value.Symbol, float]
                        ) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
-                                    half_turns=exponent)
+                                    exponent=exponent)
+
+    def _eigen_shifts(self) -> List[float]:
+        return [0.0, 1.0]
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         comp1 = np.kron(pauli_eigen_map[self.pauli0][not self.invert0],
@@ -103,37 +96,43 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def default_decompose(self, qubits: Sequence[raw_types.QubitId]
+    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
         q0, q1 = qubits
-        right_gate0 = CliffordGate.from_single_map(
-                                    z_to=(self.pauli0, self.invert0))
-        right_gate1 = CliffordGate.from_single_map(
-                                    z_to=(self.pauli1, self.invert1))
-        left_gate0 = right_gate0.inverse()
-        left_gate1 = right_gate1.inverse()
+        right_gate0 = SingleQubitCliffordGate.from_single_map(
+            z_to=(self.pauli0, self.invert0))
+        right_gate1 = SingleQubitCliffordGate.from_single_map(
+            z_to=(self.pauli1, self.invert1))
+
+        left_gate0 = right_gate0**-1
+        left_gate1 = right_gate1**-1
         yield left_gate0(q0)
         yield left_gate1(q1)
-        yield common_gates.Rot11Gate(half_turns=self._exponent)(q0, q1)
+        yield common_gates.CZ(q0, q1)**self._exponent
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         labels = {Pauli.X: 'X', Pauli.Y: 'Y', Pauli.Z: '@'}
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
         l0, l1 = ('(-{})'.format(l) if inv else l
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
-        return gate_features.TextDiagramInfo(
+        return protocols.CircuitDiagramInfo(
             wire_symbols=(l0, l1),
-            exponent=self._exponent)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
-        return 'cirq.PauliInteractionGate({}{!s}, {}{!s})'.format(
-               '+-'[self.invert0], self.pauli0, '+-'[self.invert1], self.pauli1)
+        base = 'cirq.PauliInteractionGate({!r}, {!s}, {!r}, {!s})'.format(
+            self.pauli0, self.invert0, self.pauli1, self.invert1)
+        if self._exponent == 1:
+            return base
+
+        return '({}**{!r})'.format(base, self._exponent)
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(Pauli.Z, False, Pauli.Z, False)
-PauliInteractionGate.CNOT = PauliInteractionGate(Pauli.Z, False, Pauli.X, False)
+PauliInteractionGate.CNOT = PauliInteractionGate(
+    Pauli.Z, False, Pauli.X, False)

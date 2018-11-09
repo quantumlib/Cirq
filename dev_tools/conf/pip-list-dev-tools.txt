@@ -1,5 +1,14 @@
+# For transpilation to python 2.
 3to2==1.*
-mypy==0.610.*
-pylint==1.9.*
+
+# For testing and analyzing code.
+mypy==0.641.*
+pylint==2.1.*
 pytest==3.6.*
 pytest-cov==2.5.*
+
+# For uploading packages to pypi.
+twine
+
+# For verifying behavior of qasm output.
+qiskit==0.6.*
