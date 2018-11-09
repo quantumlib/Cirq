@@ -14,10 +14,34 @@
 
 """Circuit transformation utilities."""
 
-from cirq.optimizers.eject_z import (
-    EjectZ,
+from cirq.optimizers.drop_empty_moments import (
+    DropEmptyMoments,
+)
+
+from cirq.optimizers.drop_negligible import (
+    DropNegligible,
+)
+
+from cirq.optimizers.convert_to_cz_and_single_gates import (
+    ConvertToCzAndSingleGates,
 )
 
 from cirq.optimizers.eject_phased_paulis import (
     EjectPhasedPaulis,
+)
+
+from cirq.optimizers.eject_z import (
+    EjectZ,
+)
+
+from cirq.optimizers.expand_composite import (
+    ExpandComposite,
+)
+
+from cirq.optimizers.merge_interactions import (
+    MergeInteractions,
+)
+
+from cirq.optimizers.merge_single_qubit_gates import (
+    MergeSingleQubitGates,
 )

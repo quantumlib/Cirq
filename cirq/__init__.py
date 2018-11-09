@@ -21,13 +21,7 @@ from cirq._version import (
 from cirq.circuits import (
     Circuit,
     CircuitDag,
-    ConvertToCzAndSingleGates,
-    DropEmptyMoments,
-    DropNegligible,
-    ExpandComposite,
     InsertStrategy,
-    MergeInteractions,
-    MergeSingleQubitGates,
     Moment,
     OptimizationPass,
     PointOptimizationSummary,
@@ -95,8 +89,12 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    amplitude_damp,
+    AmplitudeDampingChannel,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
     CCX,
     CCXPowGate,
     CCZ,
@@ -117,6 +115,8 @@ from cirq.ops import (
     freeze_op_tree,
     Gate,
     GateOperation,
+    generalized_amplitude_damp,
+    GeneralizedAmplitudeDampingChannel,
     H,
     HPowGate,
     InterchangeableQubitsGate,
@@ -132,11 +132,17 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
+    phase_damp,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
     PhasedXPowGate,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
+    rotation_error,
+    RotationErrorChannel,
     XPowGate,
     YPowGate,
     ZPowGate,
@@ -160,8 +166,14 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    ConvertToCzAndSingleGates,
+    DropEmptyMoments,
+    DropNegligible,
     EjectPhasedPaulis,
     EjectZ,
+    ExpandComposite,
+    MergeInteractions,
+    MergeSingleQubitGates,
 )
 
 from cirq.schedules import (
