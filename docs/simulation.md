@@ -32,9 +32,9 @@ circuit.append(basic_circuit())
   
 print(circuit)
 # prints
-# (0, 0): ───X^0.5───@───X^0.5───M('q0')───
+# (0, 0): ───X^1/2───@───X^1/2───M('q0')───
 #                    │
-# (1, 0): ───X^0.5───@───X^0.5───M('q1')───
+# (1, 0): ───X^1/2───@───X^1/2───M('q1')───
 ```
 
 We can simulate this by creating a ``cirq.google.Simulator`` and 
