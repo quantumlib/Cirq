@@ -78,8 +78,9 @@ def test_pytest_changed_files_file_selection():
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'HEAD~1'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  arg='HEAD~1',
@@ -88,8 +89,9 @@ def test_pytest_changed_files_file_selection():
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
-    assert result.err.split() == ("Comparing against revision 'HEAD~1'.\n"
-                                  "Found 1 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 1 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  arg='HEAD~1',
@@ -98,8 +100,9 @@ def test_pytest_changed_files_file_selection():
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
-    assert result.err.split() == ("Comparing against revision 'HEAD~1'.\n"
-                                  "Found 1 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 1 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  arg='HEAD',
@@ -109,8 +112,9 @@ def test_pytest_changed_files_file_selection():
                        'echo x > file_test.py\n')
     assert result.exit_code == 0
     assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
-    assert result.err.split() == ("Comparing against revision 'HEAD'.\n"
-                                  "Found 1 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD'.\n"
+        "Found 1 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  arg='HEAD',
@@ -120,8 +124,9 @@ def test_pytest_changed_files_file_selection():
                        'echo x > file.py\n')
     assert result.exit_code == 0
     assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
-    assert result.err.split() == ("Comparing against revision 'HEAD'.\n"
-                                  "Found 1 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD'.\n"
+        "Found 1 differing files with associated tests.\n").split()
 
 
 @only_in_python3_on_posix
@@ -130,8 +135,9 @@ def test_pytest_changed_files_branch_selection():
     result = run(script_file='check/pytest-changed-files', arg='HEAD')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'HEAD'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files', arg='HEAD~9999')
     assert result.exit_code == 1
@@ -141,29 +147,33 @@ def test_pytest_changed_files_branch_selection():
     result = run(script_file='check/pytest-changed-files')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'master'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'master'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  setup='git branch origin/master')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'origin/master'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'origin/master'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  setup='git branch upstream/master')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'upstream/master'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'upstream/master'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  setup='git branch upstream/master; git branch origin/master')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'upstream/master'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'upstream/master'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  arg='file',
@@ -191,8 +201,9 @@ def test_pytest_changed_files_branch_selection():
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'HEAD'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+       "Comparing against revision 'HEAD'.\n"
+       "Found 0 differing files with associated tests.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  setup='touch master\n'
@@ -200,8 +211,9 @@ def test_pytest_changed_files_branch_selection():
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'master'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'master'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
     # Works on remotes.
     result = run(script_file='check/pytest-changed-files',
@@ -214,20 +226,21 @@ def test_pytest_changed_files_branch_selection():
                        'git fetch origin master --quiet 2> /dev/null\n')
     assert result.exit_code == 0
     assert result.out == ''
-    assert result.err.split() == ("Comparing against revision 'origin/master'.\n"
-                                  "Found 0 differing files with associated tests.\n").split()
+    assert result.err.split() == (
+        "Comparing against revision 'origin/master'.\n"
+        "Found 0 differing files with associated tests.\n").split()
 
 
 @only_in_python3_on_posix
 def test_pytest_and_incremental_coverage_branch_selection():
-
     result = run(script_file='check/pytest-and-incremental-coverage',
                  arg='HEAD')
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py HEAD\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'HEAD'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'HEAD'.\n").split()
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  arg='HEAD~9999')
@@ -240,7 +253,8 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py master\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'master'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'master'.\n").split()
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git branch origin/master')
@@ -248,7 +262,8 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py origin/master\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'origin/master'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'origin/master'.\n").split()
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git branch upstream/master')
@@ -256,7 +271,8 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py upstream/master\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'upstream/master'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'upstream/master'.\n").split()
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git branch upstream/master; git branch origin/master')
@@ -264,7 +280,8 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py upstream/master\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'upstream/master'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'upstream/master'.\n").split()
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git checkout -b other --quiet\n'
@@ -283,7 +300,8 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py HEAD\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'HEAD'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'HEAD'.\n").split()
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='touch master\n'
@@ -293,4 +311,5 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py master\n')
-    assert result.err.split('\n', 1)[0].split() == "Comparing against revision 'master'.\n".split()
+    assert result.err.split('\n', 1)[0].split() == (
+        "Comparing against revision 'master'.\n").split()
