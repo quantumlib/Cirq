@@ -1,1 +1,0 @@
-bad-thread-instantiation:5::threading.Thread needs the target function

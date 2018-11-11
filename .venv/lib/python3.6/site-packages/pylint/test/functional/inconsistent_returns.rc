@@ -1,2 +1,0 @@
-[REFACTORING]
-never-returning-functions=sys.exit,sys.getdefaultencoding
