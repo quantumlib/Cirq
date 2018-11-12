@@ -19,7 +19,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import (
     gate_features,
     eigen_gate,
