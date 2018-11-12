@@ -14,13 +14,9 @@
 
 from typing import Iterable, cast, Optional, List, TYPE_CHECKING
 
-from cirq import ops, circuits
-from cirq.devices import Device
+from cirq import ops, circuits, value, devices
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
-from cirq.value import Duration
-
-from cirq.circuits import TextDiagramDrawer
 
 
 if TYPE_CHECKING:
@@ -28,14 +24,15 @@ if TYPE_CHECKING:
     from typing import Set
 
 
-class XmonDevice(Device):
+@value.value_equality
+class XmonDevice(devices.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.
     """
 
     def __init__(self,
-                 measurement_duration: Duration,
-                 exp_w_duration: Duration,
-                 exp_11_duration: Duration,
+                 measurement_duration: value.Duration,
+                 exp_w_duration: value.Duration,
+                 exp_11_duration: value.Duration,
                  qubits: Iterable[GridQubit]) -> None:
         """Initializes the description of an xmon device.
 
@@ -75,7 +72,7 @@ class XmonDevice(Device):
                 return self._exp_w_duration
             if isinstance(operation.gate, ops.ZPowGate):
                 # Z gates are performed in the control software.
-                return Duration()
+                return value.Duration()
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
     def validate_gate(self, gate: ops.Gate):
@@ -208,7 +205,7 @@ class XmonDevice(Device):
                                        sorted(self.qubits))
 
     def __str__(self):
-        diagram = TextDiagramDrawer()
+        diagram = circuits.TextDiagramDrawer()
 
         for q in self.qubits:
             diagram.write(q.col, q.row, str(q))
@@ -220,20 +217,11 @@ class XmonDevice(Device):
             vertical_spacing=2,
             use_unicode_characters=True)
 
-    def __eq__(self, other):
-        if not isinstance(other, (XmonDevice, type(self))):
-            return NotImplemented
-        return (self._measurement_duration == other._measurement_duration and
-                self._exp_w_duration == other._exp_w_duration and
-                self._exp_z_duration == other._exp_z_duration and
-                self.qubits == other.qubits)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((XmonDevice, self._measurement_duration,
-                     self._exp_w_duration, self._exp_z_duration, self.qubits))
+    def _value_equality_values_(self):
+        return (self._measurement_duration,
+                self._exp_w_duration,
+                self._exp_z_duration,
+                self.qubits)
 
 
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):

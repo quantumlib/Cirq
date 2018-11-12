@@ -26,7 +26,7 @@ from typing import Dict, Iterator, List, Tuple, Union
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study
+from cirq import circuits, ops, schedules, study, value
 from cirq.sim import wave_function
 
 
@@ -185,6 +185,7 @@ class SimulatesFinalWaveFunction:
         raise NotImplementedError()
 
 
+@value.value_equality(unhashable=True)
 class SimulationTrialResult:
     """Results of a simulation by a SimulatesFinalWaveFunction.
 
@@ -223,9 +224,9 @@ class SimulationTrialResult:
     """
 
     def __init__(self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_state: np.ndarray) -> None:
+                 params: study.ParamResolver,
+                 measurements: Dict[str, np.ndarray],
+                 final_state: np.ndarray) -> None:
         self.params = params
         self.measurements = measurements
         self.final_state = final_state
@@ -249,19 +250,11 @@ class SimulationTrialResult:
     def dirac_notation(self, decimals=2):
         return wave_function.dirac_notation(self.final_state, decimals)
 
-    def _eq_tuple(self):
+    def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (SimulationTrialResult, self.params, measurements,
                 self.final_state.tolist())
-
-    def __eq__(self, other):
-        if not isinstance(other, SimulationTrialResult):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
 
 
 class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
@@ -333,7 +326,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 final_state=final_state))
 
         return trial_results
-
 
     def simulate_moment_steps(
         self,
