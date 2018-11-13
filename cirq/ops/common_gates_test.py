@@ -784,3 +784,67 @@ q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
         ), """
 q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(0.5π)───
     """)
+
+
+def test_XXPowGate_init():
+    assert cirq.XXPowGate(exponent=1).exponent == 1
+    X05 = cirq.XXPowGate(exponent=0.5)
+    assert X05.exponent == 0.5
+    assert cirq.XX**0.5 != cirq.XX**1.5
+    assert (cirq.XX**-1)**0.5 == cirq.XX**-0.5
+
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.XXPowGate(), cirq.XXPowGate(exponent=1), cirq.XX)
+    eq.add_equality_group(cirq.XXPowGate(exponent=1, global_shift=-1),
+                          cirq.XXPowGate(exponent=3, global_shift=-1))
+
+
+def test_XXPowGate_str():
+    assert str(cirq.XXPowGate()) == 'XX'
+    assert str(cirq.XXPowGate(exponent=1)) == 'XX'
+    assert str(cirq.XXPowGate(exponent=2)) == 'XX**2'
+
+
+def test_XXPowGate_matrix():
+    assert np.allclose(cirq.unitary(cirq.XXPowGate()),
+                       np.array([[0, 0, 0, 1],
+                                 [0, 0, 1, 0],
+                                 [0, 1, 0, 0],
+                                 [1, 0, 0, 0]]))
+    assert np.allclose(cirq.unitary(cirq.XXPowGate()**2),
+                       np.diag([1, 1, 1, 1]))
+    assert np.allclose(cirq.unitary(cirq.XXPowGate(
+                                            exponent=0.5,
+                                            global_shift=-0.5)),
+            np.array([[np.cos(np.pi/4), 0, 0, -1j*np.sin(np.pi/4)],
+                      [0, np.cos(np.pi/4), -1j * np.sin(np.pi / 4), 0],
+                      [0, -1j * np.sin(np.pi / 4), np.cos(np.pi/4), 0],
+                      [-1j * np.sin(np.pi / 4), 0, 0, np.cos(np.pi/4)]]))
+
+
+def test_XXPowGate_repr():
+    assert repr(cirq.XXPowGate()) == 'cirq.XX'
+    assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
+    assert repr(cirq.XXPowGate(exponent=0.5, global_shift=0.5)) \
+           == 'cirq.XXPowGate(exponent=0.5, global_shift=0.5)'
+
+
+def test_XXPowGate_diagrams():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    circuit = cirq.Circuit.from_ops(
+        cirq.XX(a, b),
+        cirq.X(a),
+        cirq.Y(a),
+        cirq.XX(a, b)**2)
+    cirq.testing.assert_has_diagram(circuit, """
+a: ───XX───X───Y───XX───────
+      │            │
+b: ───XX───────────XX^2.0───
+""")
+
+    cirq.testing.assert_has_diagram(circuit, """
+a: ---XX---X---Y---XX-------
+      |            |
+b: ---XX-----------XX^2.0---
+""", use_unicode_characters=False)

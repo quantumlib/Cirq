@@ -163,6 +163,8 @@ from cirq.ops import (
     X,
     Y,
     Z,
+    XXPowGate,
+    XX,
 )
 
 from cirq.optimizers import (
@@ -249,6 +251,10 @@ from cirq.protocols import (
     unitary,
     trace_distance_bound,
     phase_by,
+)
+
+from cirq.ion import (
+    MS,
 )
 # pylint: enable=redefined-builtin
 
