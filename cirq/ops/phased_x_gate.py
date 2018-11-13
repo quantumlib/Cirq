@@ -26,6 +26,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.common_gates
 
 
+@value.value_equality
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───.
 
@@ -212,19 +213,5 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         else:
             return self._exponent % period
 
-    def _identity_tuple(self):
-        return (PhasedXPowGate,
-                self.phase_exponent,
-                self._canonical_exponent,
-                self._global_shift)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._identity_tuple() == other._identity_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._identity_tuple())
+    def _value_equality_values_(self):
+        return self.phase_exponent, self._canonical_exponent, self._global_shift

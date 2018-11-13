@@ -22,9 +22,8 @@ import math
 import cmath
 import numpy as np
 
-from cirq.linalg import combinators
-from cirq.linalg import diagonalize
-from cirq.linalg import predicates
+from cirq import value
+from cirq.linalg import combinators, diagonalize, predicates
 from cirq.linalg.tolerance import Tolerance
 
 T = TypeVar('T')
@@ -268,6 +267,7 @@ def so4_to_magic_su2s(
     return a, b
 
 
+@value.value_equality
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
 
@@ -309,7 +309,7 @@ class KakDecomposition:
         self.interaction_coefficients = interaction_coefficients
         self.single_qubit_operations_after = single_qubit_operations_after
 
-    def _eq_tuple(self):
+    def _value_equality_values_(self):
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
         return (type(KakDecomposition),
@@ -317,17 +317,6 @@ class KakDecomposition:
                 tuple(self.interaction_coefficients),
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
 
     def __repr__(self):
         return (

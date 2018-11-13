@@ -45,6 +45,7 @@ EigenComponent = NamedTuple(
 )
 
 
+@value.value_equality(distinct_child_types=True)
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
@@ -270,21 +271,8 @@ class EigenGate(raw_types.Gate):
                 self._canonical_exponent_cached = self._exponent % period
         return self._canonical_exponent_cached
 
-    def _identity_tuple(self):
-        return (type(self),
-                self._canonical_exponent,
-                self._global_shift)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._identity_tuple() == other._identity_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._identity_tuple())
+    def _value_equality_values_(self):
+        return self._canonical_exponent, self._global_shift
 
     def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):

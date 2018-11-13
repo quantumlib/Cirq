@@ -11,6 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from cirq.value.angle import (
+    canonicalize_half_turns,
+    chosen_angle_to_canonical_half_turns,
+    chosen_angle_to_half_turns,
+)
 from cirq.value.duration import (
     Duration,
 )
@@ -20,8 +26,6 @@ from cirq.value.symbol import (
 from cirq.value.timestamp import (
     Timestamp,
 )
-from cirq.value.angle import (
-    canonicalize_half_turns,
-    chosen_angle_to_canonical_half_turns,
-    chosen_angle_to_half_turns,
+from cirq.value.value_equality import (
+    value_equality,
 )
