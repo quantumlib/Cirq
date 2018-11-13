@@ -19,7 +19,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import value, linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import (
     gate_features,
     eigen_gate,
@@ -40,16 +40,6 @@ class CZPowGate(eigen_gate.EigenGate,
     A ParameterizedCZGate guaranteed to not be using the parameter key field.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
-        """
-        Args:
-            exponent: The t in CZ**t. Determines how much the |11> state gets
-            phased by applying this operation (specifically it will be phased by
-            e^{i pi exponent}).
-        """
-        super().__init__(exponent=exponent)
-
     def _eigen_components(self):
         return [
             (0, np.diag([1, 1, 1, 0])),
@@ -64,17 +54,16 @@ class CZPowGate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
 
-        c = np.exp(1j * np.pi * self._exponent)
+        c = 1j**(2 * self._exponent)
         one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
         target_tensor[one_one] *= c
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _phase_by_(self, phase_turns, qubit_index):
         return self
-
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -116,28 +105,6 @@ class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the X axis of the Bloch sphere."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
-        """
-        Args:
-            exponent: The t in X**t. Determines how much the -1 eigenstate of
-                the Pauli X operator gets phased by this operation (specifically
-                it will be phased by e^{i pi exponent}).
-            global_shift: Offsets the eigenvalues of the gate at exponent=1.
-                The default shift of 0 gives the X gate's matrix eigenvalues of
-                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
-                -i and +i. The shift is always specified assuming an exponent of
-                one (i.e. a 180 degree rotation).
-        """
-        super().__init__(
-            exponent=exponent,
-            global_shift=global_shift)
-
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
@@ -149,6 +116,9 @@ class XPowGate(eigen_gate.EigenGate,
         one = linalg.slice_for_qubits_equal_to(axes, 1)
         available_buffer[zero] = target_tensor[one]
         available_buffer[one] = target_tensor[zero]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            available_buffer *= p
         return available_buffer
 
     def _eigen_components(self):
@@ -207,28 +177,6 @@ class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Y axis of the Bloch sphere."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
-        """
-        Args:
-            exponent: The t in X**t. Determines how much the -1 eigenstate of
-                the Pauli Y operator gets phased by this operation (specifically
-                it will be phased by e^{i pi exponent}).
-            global_shift: Offsets the eigenvalues of the gate.
-                The default shift of 0 gives the Y gate's matrix eigenvalues of
-                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
-                -i and +i. The shift is always specified assuming an exponent of
-                one (i.e. a 180 degree rotation).
-        """
-        super().__init__(
-            exponent=exponent,
-            global_shift=global_shift)
-
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _eigen_components(self):
         return [
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
@@ -285,27 +233,6 @@ class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """Fixed rotation around the Z axis of the Bloch sphere."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
-        """
-        Args:
-            exponent: The t in Z**t. Determines how much the -1 eigenstate of
-                the Pauli Z operator gets phased by this operation (specifically
-                it will be phased by e^{i pi exponent}).
-            global_shift: Offsets the eigenvalues of the gate.
-                The default shift of 0 gives the Z gate's matrix eigenvalues of
-                +1 and -1, whereas a shift of -0.5 changes those eigenvalues to
-                -i and +i. The shift is always specified assuming an exponent of
-                one (i.e. a 180 degree rotation).
-        """
-        super().__init__(exponent=exponent,
-                         global_shift=global_shift)
-
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
@@ -315,8 +242,11 @@ class ZPowGate(eigen_gate.EigenGate,
             return NotImplemented
 
         one = linalg.slice_for_qubits_equal_to(axes, 1)
-        c = np.exp(1j * np.pi * self._exponent)
+        c = 1j**(self._exponent * 2)
         target_tensor[one] *= c
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _eigen_components(self):
@@ -395,6 +325,7 @@ class ZPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class MeasurementGate(raw_types.Gate):
     """Indicates that qubits should be measured plus a key to identify results.
 
@@ -476,16 +407,8 @@ class MeasurementGate(raw_types.Gate):
         return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
                                                      repr(self.invert_mask))
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.key == other.key and self.invert_mask == other.invert_mask
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((MeasurementGate, self.key, self.invert_mask))
+    def _value_equality_values_(self):
+        return self.key, self.invert_mask
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
@@ -559,14 +482,6 @@ T = Z**0.25
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """Rotation around the X+Z axis of the Bloch sphere."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
-        """
-        Args:
-            exponent: The 't' in 'H**t'. Determines the amount of rotation.
-        """
-        super().__init__(exponent=exponent)
-
     def _eigen_components(self):
         s = np.sqrt(2)
 
@@ -582,10 +497,6 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
                                   available_buffer: np.ndarray,
@@ -599,7 +510,8 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         target_tensor[one] -= target_tensor[zero]
         target_tensor[one] *= -0.5
         target_tensor[zero] -= target_tensor[one]
-        target_tensor *= np.sqrt(2)
+        p = 1j**(2 * self._exponent * self._global_shift)
+        target_tensor *= np.sqrt(2) * p
         return target_tensor
 
     def _decompose_(self, qubits):
@@ -652,15 +564,6 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     (Mixing the two is not permitted.)
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
-        """
-        Args:
-            exponent: The 't' in 'CNOT**t'. Determines how much the |1-⟩ state
-                gets phased.
-        """
-        super().__init__(exponent=exponent)
-
     def _decompose_(self, qubits):
         c, t = qubits
         yield Y(t)**-0.5
@@ -678,10 +581,6 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                           [0, 0, 0.5, -0.5],
                           [0, 0, -0.5, 0.5]])),
         ]
-
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -702,6 +601,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         available_buffer[oo] = target_tensor[oo]
         target_tensor[oo] = target_tensor[zo]
         target_tensor[zo] = available_buffer[oo]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _qasm_(self,
@@ -742,10 +644,6 @@ class SwapPowGate(eigen_gate.EigenGate,
                   gate_features.InterchangeableQubitsGate):
     """The SWAP gate, possibly raised to a power. Exchanges qubits."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
-        super().__init__(exponent=exponent)
-
     def _decompose_(self, qubits):
         """See base class."""
         a, b = qubits
@@ -778,11 +676,10 @@ class SwapPowGate(eigen_gate.EigenGate,
         available_buffer[zo] = target_tensor[zo]
         target_tensor[zo] = target_tensor[oz]
         target_tensor[oz] = available_buffer[zo]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
-
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -831,10 +728,6 @@ class ISwapPowGate(eigen_gate.EigenGate,
                    [0 0            0            1]
     """
 
-    @property
-    def exponent(self) -> Union[value.Symbol, float]:
-        return self._exponent
-
     def _eigen_components(self):
         return [
             (0, np.diag([1, 0, 0, 1])),
@@ -875,6 +768,9 @@ class ISwapPowGate(eigen_gate.EigenGate,
         target_tensor[oz] = available_buffer[zo]
         target_tensor[zo] *= 1j
         target_tensor[oz] *= 1j
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            target_tensor *= p
         return target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -911,3 +807,95 @@ def Ry(rads: float) -> YPowGate:
 def Rz(rads: float) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
+
+
+class XXPowGate(eigen_gate.EigenGate,
+             gate_features.TwoQubitGate,
+             gate_features.InterchangeableQubitsGate):
+    """
+    The gate implements the following unitary:
+    X⊗X = [0 0 0 1]
+          [0 0 1 0]
+          [0 1 0 0]
+          [1 0 0 0]
+
+    """
+
+    def __init__(self, *,  # Forces keyword args.
+                 exponent: Union[value.Symbol, float] = 1.0,
+                 global_shift: float = 0.0) -> None:
+        """
+        Initializes the gate.
+
+        The exponent may be specified.
+        If no argument is given, the default value of
+        exponent = 1 is used.
+
+        Args:
+            exponent: The t in XX**t. Phases the -1 eigenstate of the Pauli XX
+                      operator by e^{i pi exponent}.
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+        """
+
+        super().__init__(
+            exponent=exponent,
+            global_shift=global_shift)
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (1., np.array([[0.5, 0, 0, -0.5],
+                            [0, 0.5, -0.5, 0],
+                            [0, -0.5, 0.5, 0],
+                            [-0.5, 0, 0, 0.5]])),
+            (0., np.array([[0.5, 0, 0, 0.5],
+                            [0, 0.5, 0.5, 0],
+                            [0, 0.5, 0.5, 0],
+                            [0.5, 0, 0, 0.5]]))
+        ]
+
+    def _eigen_shifts(self):
+        return [0, 1]
+
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+        if self._global_shift == -0.5:
+            symbol = _rads_func_symbol(
+                'MS',
+                args,
+                self._diagram_exponent(args, ignore_global_phase=False)/2)
+            return protocols.CircuitDiagramInfo(
+                                wire_symbols=(symbol, symbol))
+
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('XX', 'XX'),
+            exponent=self.exponent)
+
+    def __str__(self) -> str:
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'MS(np.pi/2)'
+            return 'MS(np.pi/2*{!r})'.format(self._exponent)
+        if self.exponent == 1:
+            return 'XX'
+        return 'XX**{!r}'.format(self._exponent)
+
+    def __repr__(self) -> str:
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'cirq.MS(np.pi/2)'
+            return 'cirq.MS(np.pi/2*{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.XX'
+            return '(cirq.XX**{!r})'.format(self._exponent)
+        return ('cirq.XXPowGate(exponent={!r}, '
+                'global_shift={!r})'
+                ).format(self._exponent, self._global_shift)
+
+
+# Pauli XX
+XX = XXPowGate()

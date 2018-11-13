@@ -16,11 +16,12 @@ from typing import Union, Sequence, Any
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
+@value.value_equality
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
@@ -37,16 +38,8 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('No control qubit specified.')
         self.sub_gate.validate_args(qubits[1:])
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.sub_gate == other.sub_gate
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ControlledGate, self.sub_gate))
+    def _value_equality_values_(self):
+        return self.sub_gate
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,

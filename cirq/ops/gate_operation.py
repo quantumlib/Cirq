@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
+@value.value_equality
 class GateOperation(raw_types.Operation):
     """An application of a gate to a collection of qubits.
 
@@ -88,20 +89,8 @@ class GateOperation(raw_types.Operation):
             groups[k].append(q)
         return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
 
-    def _eq_tuple(self):
-        grouped_qubits = self._group_interchangeable_qubits()
-        return raw_types.Operation, self.gate, grouped_qubits
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self.gate, self._group_interchangeable_qubits()
 
     def _decompose_(self):
         return protocols.decompose_once_with_qubits(self.gate,

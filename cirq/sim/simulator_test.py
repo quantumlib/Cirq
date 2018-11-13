@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for simulator.py"""
+
 from typing import List, Dict
 
 import numpy as np
+import pytest
 
 import cirq
 from cirq.testing.mock import mock
@@ -191,18 +193,75 @@ def test_simulator_trial_pretty_state():
     assert result.dirac_notation() == '|01⟩'
 
 
-class BasicStepResult(cirq.StepResult):
-
-    def __init__(self, qubit_map: Dict,
-        measurements: Dict[str, List[bool]]) -> None:
-        super().__init__(qubit_map, measurements)
-
-    @property
-    def state(self) -> np.ndarray:
-        return np.array([0, 1, 0, 0])
-
-
 def test_step_result_pretty_state():
+    class BasicStepResult(cirq.StepResult):
+
+        def __init__(self, qubit_map: Dict,
+                measurements: Dict[str, List[bool]]) -> None:
+            super().__init__(qubit_map, measurements)
+
+        @property
+        def state(self) -> np.ndarray:
+            return np.array([0, 1, 0, 0])
+
     step_result = BasicStepResult({}, {})
     assert step_result.dirac_notation() == '|01⟩'
 
+
+class FakeStepResult(cirq.StepResult):
+
+    def __init__(self, ones_qubits):
+        self._ones_qubits = set(ones_qubits)
+
+    def state(self):
+        pass
+
+    def __setstate__(self, state):
+        pass
+
+    def sample(self, qubits, repetitions):
+        return [[qubit in self._ones_qubits for qubit in qubits]] * repetitions
+
+
+def test_step_sample_measurement_ops():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    measurement_ops = [cirq.measure(q0, q1), cirq.measure(q2)]
+    step_result = FakeStepResult([q1])
+
+    measurements = step_result.sample_measurement_ops(measurement_ops)
+    np.testing.assert_equal(measurements,
+                            {'0,1': [[False, True]], '2': [[False]]})
+
+
+def test_step_sample_measurement_ops_repetitions():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    measurement_ops = [cirq.measure(q0, q1), cirq.measure(q2)]
+    step_result = FakeStepResult([q1])
+
+    measurements = step_result.sample_measurement_ops(measurement_ops,
+                                                      repetitions=3)
+    np.testing.assert_equal(measurements,
+                            {'0,1': [[False, True]] * 3, '2': [[False]] * 3})
+
+
+
+def test_step_sample_measurement_ops_no_measurements():
+    step_result = FakeStepResult([])
+
+    measurements = step_result.sample_measurement_ops([])
+    assert measurements == {}
+
+
+def test_step_sample_measurement_ops_not_measurement():
+    q0 = cirq.LineQubit(0)
+    step_result = FakeStepResult([q0])
+    with pytest.raises(ValueError, match='MeasurementGate'):
+        step_result.sample_measurement_ops([cirq.X(q0)])
+
+
+def test_step_sample_measurement_ops_repeated_qubit():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    step_result = FakeStepResult([q0])
+    with pytest.raises(ValueError, match='MeasurementGate'):
+        step_result.sample_measurement_ops(
+                [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)])

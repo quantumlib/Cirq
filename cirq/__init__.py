@@ -89,15 +89,22 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    amplitude_damp,
+    AmplitudeDampingChannel,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
     CCX,
+    CCXPowGate,
     CCZ,
+    CCZPowGate,
     SingleQubitCliffordGate,
     CNOT,
     CNotPowGate,
     ControlledGate,
     CSWAP,
+    CSwapGate,
     CZ,
     CZPowGate,
     depolarize,
@@ -108,6 +115,8 @@ from cirq.ops import (
     freeze_op_tree,
     Gate,
     GateOperation,
+    generalized_amplitude_damp,
+    GeneralizedAmplitudeDampingChannel,
     H,
     HPowGate,
     InterchangeableQubitsGate,
@@ -123,11 +132,17 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
+    phase_damp,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
     PhasedXPowGate,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
+    rotation_error,
+    RotationErrorChannel,
     XPowGate,
     YPowGate,
     ZPowGate,
@@ -148,6 +163,8 @@ from cirq.ops import (
     X,
     Y,
     Z,
+    XXPowGate,
+    XX,
 )
 
 from cirq.optimizers import (
@@ -173,6 +190,8 @@ from cirq.sim import (
     sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
+    Simulator,
+    SimulatorStep,
     StepResult,
     SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
@@ -199,6 +218,7 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+    value_equality,
 )
 
 # pylint: disable=redefined-builtin
@@ -231,6 +251,10 @@ from cirq.protocols import (
     unitary,
     trace_distance_bound,
     phase_by,
+)
+
+from cirq.ion import (
+    MS,
 )
 # pylint: enable=redefined-builtin
 

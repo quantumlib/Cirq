@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for wavefunction.py"""
+"""Tests for wave_function.py"""
 
 import itertools
 import pytest
@@ -283,6 +283,7 @@ def test_measure_state_out_is_state():
     expected[2 if bits[1] else 0] = 1.0
     np.testing.assert_array_almost_equal(initial_state, expected)
     assert state is initial_state
+
 
 def test_measure_state_out_is_not_state():
     initial_state = np.zeros(8, dtype=np.complex64)
