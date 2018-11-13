@@ -88,10 +88,10 @@ def test_xx_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.XX**2),
                                np.eye(4),
                                atol=1e-8)
-    c = np.cos(np.pi/4)
-    s = -1j*np.sin(np.pi/4)
+    c = np.cos(np.pi/6)
+    s = -1j*np.sin(np.pi/6)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.XXPowGate(exponent=0.5,
+        cirq.unitary(cirq.XXPowGate(exponent=1/3,
                                     global_shift=-0.5)),
         np.array([[c, 0, 0, s],
                   [0, c, s, 0],
@@ -185,10 +185,10 @@ def test_yy_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.YY**2),
                                np.eye(4),
                                atol=1e-8)
-    c = np.cos(np.pi/4)
-    s = 1j*np.sin(np.pi/4)
+    c = np.cos(np.pi/6)
+    s = 1j*np.sin(np.pi/6)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.YYPowGate(exponent=0.5,
+        cirq.unitary(cirq.YYPowGate(exponent=1/3,
                                     global_shift=-0.5)),
         np.array([[c, 0, 0, s],
                   [0, c, -s, 0],
@@ -282,10 +282,10 @@ def test_zz_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.ZZ**2),
                                np.eye(4),
                                atol=1e-8)
-    b = 1j**0.5
+    b = 1j**0.25
     a = np.conj(b)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.ZZPowGate(exponent=0.5,
+        cirq.unitary(cirq.ZZPowGate(exponent=0.25,
                                     global_shift=-0.5)),
         np.array([[a, 0, 0, 0],
                   [0, b, 0, 0],
