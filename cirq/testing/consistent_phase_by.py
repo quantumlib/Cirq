@@ -34,7 +34,6 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
             if phased is None:
                 # If not phaseable, then phase_by is vacuously consistent.
                 continue
-            at_least_one_qubit_is_phaseable = True
 
             actual = protocols.unitary(phased)
             actual.shape = (2, 2) * qubit_count
