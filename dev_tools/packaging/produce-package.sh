@@ -18,12 +18,14 @@
 # Produces wheels that can be uploaded to the pypi package repository.
 #
 # First argument must be the output directory. Second argument is an optional
-# version specifier. If not set, the version from `cirq/_version.py` is used.
-# If set, it overwrites `cirq/_version.py`.
+# version specifier. If not set, the version from `_version.py` is used. If set,
+# it overwrites `_version.py`.
 #
 # Usage:
 #     dev_tools/packaging/produce-package.sh output_dir [version]
 ################################################################################
+
+PROJECT_NAME=cirq
 
 set -e
 
@@ -51,7 +53,7 @@ git init --quiet
 git fetch ${repo_dir} HEAD --quiet --depth=1
 git checkout FETCH_HEAD -b work --quiet
 if [ ! -z "${SPECIFIED_VERSION}" ]; then
-    echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/cirq/_version.py"
+    echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
 fi
 
 # Python 3 wheel.

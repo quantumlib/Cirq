@@ -18,6 +18,8 @@
 # Produces and uploads dev-version wheels to a pypi package repository. Uploads
 # to the test pypi repository unless the --prod switch is added.
 #
+# The pypi credentials given to twine are specified via environment variables.
+#
 # Usage:
 #     export TEST_TWINE_USERNAME=...
 #     export TEST_TWINE_PASSWORD=...
@@ -44,6 +46,7 @@
 #     pip install --index-url https://test.pypi.org/simple/ cirq==VERSION_YOU_UPLOADED
 ################################################################################
 
+PROJECT_NAME=cirq
 set -e
 trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
 
@@ -58,9 +61,9 @@ if [[ "${EXPECTED_VERSION}" != *dev* ]]; then
   echo -e "\e[31mExpected version must include 'dev'.\e[0m"
   exit 1
 fi
-ACTUAL_VERSION_LINE=$(cat cirq/_version.py | tail -n 1)
+ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
 if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; then
-  echo -e "\e[31mExpected version (${EXPECTED_VERSION}) didn't match the one in cirq/_version.py (${ACTUAL_VERSION_LINE}).\e[0m"
+  echo -e "\e[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\e[0m"
   exit 1
 fi
 

@@ -31,10 +31,11 @@ set -e
 trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
 
 
-CIRQ_VERSION=$1
+PROJECT_NAME=cirq
+PROJECT_VERSION=$1
 PROD_SWITCH=$2
 
-if [ -z "${CIRQ_VERSION}" ]; then
+if [ -z "${PROJECT_VERSION}" ]; then
     echo -e "\e[31mFirst argument must be the package version to test.\e[0m"
     exit 1
 fi
@@ -78,8 +79,8 @@ for PYTHON_VERSION in python2 python3; do
         echo "Pre-installing dependencies since they don't all exist in TEST pypi"
         "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}"
     fi
-    echo Installing cirq=="${CIRQ_VERSION} from ${PYPI_REPO_NAME} pypi"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "cirq==${CIRQ_VERSION}"
+    echo Installing "${PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PROJECT_NAME}==${PROJECT_VERSION}"
 
     # Check that code runs without dev deps.
     echo Checking that code executes
@@ -95,7 +96,7 @@ for PYTHON_VERSION in python2 python3; do
     fi
     PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
     echo Running tests
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings "${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/cirq"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings "${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
 done
 
 echo
