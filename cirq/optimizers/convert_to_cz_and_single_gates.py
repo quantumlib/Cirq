@@ -84,17 +84,16 @@ class ConvertToCzAndSingleGates(PointOptimizer):
                         "It isn't composite or an operation with a "
                         "known unitary effect on 1 or 2 qubits.".format(op))
 
-    def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        return protocols.decompose(op,intercepting_decomposer=(
-                                          self._decompose_two_qubit_unitaries),
-                                   keep=self._keep,
-                                   on_stuck_raise=(None if self.ignore_failures
-                                                   else self._on_stuck_raise))
-
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
-        converted = self.convert(op)
-        if converted is op:
+        converted = protocols.decompose(
+            op,
+            intercepting_decomposer=self._decompose_two_qubit_unitaries,
+            keep=self._keep,
+            on_stuck_raise=(None
+                            if self.ignore_failures
+                            else self._on_stuck_raise))
+        if converted == [op]:
             return None
 
         return PointOptimizationSummary(

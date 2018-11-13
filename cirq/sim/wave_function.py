@@ -11,15 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Helpers for handling states."""
+"""Helpers for handling quantum wavefunctions."""
 
 import itertools
 
-from typing import List, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.sim import simulator
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
@@ -105,7 +109,7 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
             state[state_rep] = 1.0
     else:
         raise TypeError('initial_state was not of type int or ndarray')
-    validate_normalized_state(state, num_qubits)
+    validate_normalized_state(state, num_qubits, dtype)
     return state
 
 
