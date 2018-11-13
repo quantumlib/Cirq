@@ -807,3 +807,95 @@ def Ry(rads: float) -> YPowGate:
 def Rz(rads: float) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
+
+
+class XXPowGate(eigen_gate.EigenGate,
+             gate_features.TwoQubitGate,
+             gate_features.InterchangeableQubitsGate):
+    """
+    The gate implements the following unitary:
+    X⊗X = [0 0 0 1]
+          [0 0 1 0]
+          [0 1 0 0]
+          [1 0 0 0]
+
+    """
+
+    def __init__(self, *,  # Forces keyword args.
+                 exponent: Union[value.Symbol, float] = 1.0,
+                 global_shift: float = 0.0) -> None:
+        """
+        Initializes the gate.
+
+        The exponent may be specified.
+        If no argument is given, the default value of
+        exponent = 1 is used.
+
+        Args:
+            exponent: The t in XX**t. Phases the -1 eigenstate of the Pauli XX
+                      operator by e^{i pi exponent}.
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+        """
+
+        super().__init__(
+            exponent=exponent,
+            global_shift=global_shift)
+
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (1., np.array([[0.5, 0, 0, -0.5],
+                            [0, 0.5, -0.5, 0],
+                            [0, -0.5, 0.5, 0],
+                            [-0.5, 0, 0, 0.5]])),
+            (0., np.array([[0.5, 0, 0, 0.5],
+                            [0, 0.5, 0.5, 0],
+                            [0, 0.5, 0.5, 0],
+                            [0.5, 0, 0, 0.5]]))
+        ]
+
+    def _eigen_shifts(self):
+        return [0, 1]
+
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+        if self._global_shift == -0.5:
+            symbol = _rads_func_symbol(
+                'MS',
+                args,
+                self._diagram_exponent(args, ignore_global_phase=False)/2)
+            return protocols.CircuitDiagramInfo(
+                                wire_symbols=(symbol, symbol))
+
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('XX', 'XX'),
+            exponent=self.exponent)
+
+    def __str__(self) -> str:
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'MS(np.pi/2)'
+            return 'MS(np.pi/2*{!r})'.format(self._exponent)
+        if self.exponent == 1:
+            return 'XX'
+        return 'XX**{!r}'.format(self._exponent)
+
+    def __repr__(self) -> str:
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'cirq.MS(np.pi/2)'
+            return 'cirq.MS(np.pi/2*{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.XX'
+            return '(cirq.XX**{!r})'.format(self._exponent)
+        return ('cirq.XXPowGate(exponent={!r}, '
+                'global_shift={!r})'
+                ).format(self._exponent, self._global_shift)
+
+
+# Pauli XX
+XX = XXPowGate()
