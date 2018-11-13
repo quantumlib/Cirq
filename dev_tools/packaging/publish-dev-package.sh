@@ -104,17 +104,11 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Temporary workspace.
-tmp_src_dir=$(mktemp -d "/tmp/publish-dev-package_source.XXXXXXXXXXXXXXXX")
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_src_dir}; }" EXIT
 trap "{ rm -rf ${tmp_package_dir}; }" EXIT
 
-# Make a temporary copy of the source with an updated version.
-cp -r . "${tmp_src_dir}/src"
-echo '__version__ = "'"${UPLOAD_VERSION}"'"' > "${tmp_src_dir}/src/cirq/_version.py"
-
 # Produce packages.
-"${tmp_src_dir}/src/dev_tools/packaging/produce-package.sh" "${tmp_package_dir}"
+dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
 twine upload --username="${USERNAME}" --password="${PASSWORD}" ${PYPI_REPOSITORY_FLAG} "${tmp_package_dir}/*"
 
 echo -e "\e[32mUploaded package with version ${UPLOAD_VERSION} to ${PYPI_REPO_NAME} pypi repository\e[0m"
