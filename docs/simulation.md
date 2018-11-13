@@ -1,27 +1,27 @@
 ## Simulation
 
-Cirq comes with a built in Python simulator for testing out
-small circuits.  This simulator can shard its simulation 
-across different processes/threads and so take advantage of
-multiple cores/CPUs.  
-
-Currently the simulator is tailored to the gate set from
-Google's Xmon architecture, but the simulator can be used
-to run general gate sets, assuming that you provide an
-implementation in terms of this basic gate set.
+Cirq comes with built in Python simulators for testing out
+small circuits.  One of these simulators works for generic
+gates that implement their unitary matrix, ``cirq.Simulator``.
+The other simulator is customized for the native gate set
+of Google's Xmon hardware ``cirq.google.XmonSimulator``.
+This later simulator can shard its simulation  across
+different processes/threads and so take advantage of
+multiple cores/CPUs.  Depending on your local computer
+architecture one or the other of these may be faster, but
+we recommend starting with ``cirq.Simulator``.
 
 Here is a simple circuit
 ```python
 import cirq
 from cirq import Circuit
 from cirq.devices import GridQubit
-from cirq.google import ExpWGate
 
 q0 = GridQubit(0, 0)
 q1 = GridQubit(1, 0)
 
 def basic_circuit(meas=True):
-    sqrt_x = ExpWGate(exponent=0.5, phase_exponent=0.0)
+    sqrt_x = cirq.X**0.5
     yield sqrt_x(q0), sqrt_x(q1)
     yield cirq.CZ(q0, q1)
     yield sqrt_x(q0), sqrt_x(q1)
@@ -38,11 +38,11 @@ print(circuit)
 # (1, 0): ───X^0.5───@───X^0.5───M('q1')───
 ```
 
-We can simulate this by creating a ``cirq.google.Simulator`` and 
+We can simulate this by creating a ``cirq.Simulator`` and
 passing the circuit into its ``run`` method:
 ```python
-from cirq.google import XmonSimulator
-simulator = XmonSimulator()
+from cirq import Simulator
+simulator = Simulator()
 result = simulator.run(circuit)
 
 print(result)
@@ -81,11 +81,13 @@ result = simulator.simulate(circuit, qubit_order=[q0, q1])
 
 print(np.around(result.final_state, 3))
 # prints
-# [-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]
+# [0.5+0.j 0. +0.5j 0. +0.5j 0.5+0.j]
 ```
 
 Note that the simulator uses numpy's ``float32`` precision
-(which is ``complex64`` for complex numbers).
+(which is ``complex64`` for complex numbers) by default,
+but that the simulator can take in a a dtype of np.complex128
+if higher precision is needed.
 
 ### Qubit and Amplitude Ordering
 
@@ -176,24 +178,41 @@ for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
 ```
 
 The object returned by the ``moment_steps`` iterator is a 
-``XmonStepResult``. This object has the state along with any 
+``StepResult``. This object has the state along with any
 measurements that occurred **during** that step (so does
 not include measurement results from previous ``Moments``).
-In addition, the``XmonStepResult`` contains ``set_state()``
+In addition, the ``StepResult`` contains ``set_state()``
 which  can be used to set the ``state``. One can pass a valid 
 full state to this method by passing a numpy array. Or 
 alternatively one can pass an integer and then the state
 will be set lie entirely in the computation basis state
 for the binary expansion of the passed integer.
 
+### XmonSimulator
+
+In addition to ``cirq.Simulator`` there is also a simulator
+which is specialized to the Google native gate set. In
+particular this simulator is specialized to use the
+``CZPowGate``, ``MeasurementGate``, ``PhasedXPowGate``,
+``XPowGate``, ``YPowGate``, and the ``ZPowGate``. This
+simulator can be configured to use processes or threads,
+and depending on your local computing architecture may
+sometimes be faster or slower that ``cirq.Simulator``.
+
 ### Gate sets
 
-The xmon simulator is designed to work with operations that are either a ``GateOperation`` applying a supported gate (such as `cirq.CZ`),
-a composite operation that implements `_decompose_`, or a 1-qubit or 2-qubit operation that returns a unitary matrix from its `_unitary_` method.
+The ``XmonSimulator`` is designed to work with operations that
+are either a ``GateOperation`` applying a supported gate
+(such as `cirq.CZ`), a composite operation that implements
+`_decompose_`, or a 1-qubit or 2-qubit operation that
+returns a unitary matrix from its `_unitary_` method.
 
-So if you are implementing a custom gate, there are two options for getting it to work with the simulator:
-* Implement a `_decompose_` method that returns supported gates (or gates that decompose into supported gates).
-* If the operation applies to two or fewer qubits, implement a `_unitary_` method that returns the operation's matrix.
+So if you are implementing a custom gate, there are two options
+for getting it to work with the simulator:
+* Implement a `_decompose_` method that returns supported gates
+(or gates that decompose into supported gates).
+* If the operation applies to two or fewer qubits, implement a
+`_unitary_` method that returns the operation's matrix.
 
 ### Parameterized Values and Studies
 
@@ -205,9 +224,8 @@ providing a ``ParamResolver``.  A ``ParamResolver`` provides
 a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-from cirq import Symbol, ParamResolver
-val = Symbol('x')
-rot_w_gate = ExpWGate(exponent=val)
+from cirq import ParamResolver
+rot_w_gate = cirq.X**cirq.Symbol('x')
 circuit = Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
@@ -252,14 +270,14 @@ for result in results:
 where we see that different repetitions for the case that the
 qubit has been rotated into a superposition over computational
 basis states yield different measurement results per run.
-Also note that we now see the use of the ``TrialContext`` returned as the first
-tuple from ``run``: it contains the ``param_dict`` describing what values were
-actually used in resolving the ``Symbol``s.
+Also note that we now see the use of the ``TrialContext`` returned
+as the first tuple from ``run``: it contains the ``param_dict``
+describing what values were actually used in resolving the ``Symbol``s.
 
 TODO(dabacon): Describe the iterable of parameterized resolvers
 supported by Google's API. 
   
-### Simulation Configurations and Options
+### XmonSimulator Configurations and Options
 
 The xmon simulator also contain some extra configuration
 on the simulate commands. One of these is ``initial_state``.  

@@ -15,8 +15,8 @@
 """Converts cirq circuits into latex using qcircuit."""
 
 from cirq.contrib.qcircuit.qcircuit_diagram import (
-    circuit_to_latex_using_qcircuit)
+    circuit_to_latex_using_qcircuit
+)
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
-    fallback_qcircuit_extensions,
 )

@@ -18,7 +18,6 @@ import pytest
 import numpy as np
 
 import cirq
-import cirq.google as cg
 
 
 def test_sensitive_to_phase():
@@ -236,12 +235,12 @@ def test_known_old_failure():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         actual=cirq.Circuit.from_ops(
-            cg.ExpWGate(exponent=0.61351656,
-                        phase_exponent=0.8034575038876517).on(b),
+            cirq.PhasedXPowGate(exponent=0.61351656,
+                                phase_exponent=0.8034575038876517).on(b),
             cirq.measure(a, b)),
         reference=cirq.Circuit.from_ops(
-            cg.ExpWGate(exponent=0.61351656,
-                        phase_exponent=0.8034575038876517).on(b),
+            cirq.PhasedXPowGate(exponent=0.61351656,
+                                phase_exponent=0.8034575038876517).on(b),
             cirq.Z(a)**0.5,
             cirq.Z(b)**0.1,
             cirq.measure(a, b)),
@@ -328,9 +327,8 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             return np.eye(2)
 
     with pytest.raises(AssertionError):
-        cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-            IdentityReturningUnalteredWorkspace(),
-            qubit_count=1)
+        cirq.testing.assert_has_consistent_apply_unitary(
+            IdentityReturningUnalteredWorkspace())
 
     class DifferentEffect:
         def _apply_unitary_to_tensor_(self,
@@ -345,11 +343,10 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             return np.eye(2, dtype=np.complex128)
 
     with pytest.raises(AssertionError):
-        cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-            DifferentEffect(),
-            qubit_count=1)
+        cirq.testing.assert_has_consistent_apply_unitary(
+            DifferentEffect())
 
-    class SameEffect:
+    class IgnoreAxisEffect:
         def _apply_unitary_to_tensor_(self,
                                       target_tensor: np.ndarray,
                                       available_buffer: np.ndarray,
@@ -361,9 +358,26 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        SameEffect(),
-        qubit_count=1)
+    with pytest.raises(AssertionError, match='Not equal'):
+        cirq.testing.assert_has_consistent_apply_unitary(
+            IgnoreAxisEffect())
+
+    class SameEffect:
+        def _apply_unitary_to_tensor_(self,
+                                      target_tensor: np.ndarray,
+                                      available_buffer: np.ndarray,
+                                      axes: Sequence[int]) -> np.ndarray:
+            o = cirq.slice_for_qubits_equal_to(axes, 0)
+            i = cirq.slice_for_qubits_equal_to(axes, 1)
+            available_buffer[o] = target_tensor[i]
+            available_buffer[i] = target_tensor[o]
+            return available_buffer
+
+        def _unitary_(self):
+            return np.array([[0, 1], [1, 0]])
+
+    cirq.testing.assert_has_consistent_apply_unitary(
+        SameEffect())
 
     class BadExponent:
         def __init__(self, power):
@@ -376,18 +390,18 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
                                       target_tensor: np.ndarray,
                                       available_buffer: np.ndarray,
                                       axes: Sequence[int]) -> np.ndarray:
-            target_tensor[1] *= self.power * 2
+            i = cirq.slice_for_qubits_equal_to(axes, 1)
+            target_tensor[i] *= self.power * 2
             return target_tensor
 
         def _unitary_(self):
             return np.array([[1, 0], [0, 2]])
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        BadExponent(1),
-        qubit_count=1)
+    cirq.testing.assert_has_consistent_apply_unitary(
+        BadExponent(1))
 
     with pytest.raises(AssertionError):
-        cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
             BadExponent(1),
             exponents=[1, 2],
             qubit_count=1)
@@ -400,7 +414,7 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             return target_tensor
 
     with pytest.raises(AssertionError):
-        cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.testing.assert_has_consistent_apply_unitary(
             EffectWithoutUnitary(),
             qubit_count=1)
 
@@ -411,23 +425,23 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
                                       axes: Sequence[int]) -> np.ndarray:
             return NotImplemented
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary(
         NoEffect(),
         qubit_count=1)
 
     class UnknownCountEffect:
         pass
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary(
         UnknownCountEffect(),
         qubit_count=1)
 
     with pytest.raises(NotImplementedError):
-        cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        cirq.testing.assert_has_consistent_apply_unitary(
             UnknownCountEffect())
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary(
         cirq.X)
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary(
         cirq.X.on(cirq.NamedQubit('q')))

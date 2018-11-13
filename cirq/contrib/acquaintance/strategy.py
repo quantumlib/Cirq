@@ -16,7 +16,7 @@ import collections
 
 from typing import Sequence, TYPE_CHECKING, Union
 
-from cirq import circuits, ops
+from cirq import circuits, ops, optimizers
 
 from cirq.contrib.acquaintance.gates import (
      SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
@@ -113,7 +113,7 @@ def replace_acquaintance_with_swap_network(
     return reflected
 
 
-class ExposeAcquaintanceGates(circuits.ExpandComposite):
+class ExposeAcquaintanceGates(optimizers.ExpandComposite):
     """Decomposes any permutation gates that provide acquaintance opportunities
     in order to make them explicit."""
     def __init__(self):

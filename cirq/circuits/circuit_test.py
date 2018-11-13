@@ -225,15 +225,15 @@ def test_concatenate_with_device():
 
 
 def test_with_device():
-    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
     c2 = c.with_device(cg.Foxtail,
                                 lambda e: cirq.GridQubit(e.x, 0))
     assert c2 == cirq.Circuit.from_ops(
-        cg.ExpWGate().on(cirq.GridQubit(0, 0)),
+        cirq.X(cirq.GridQubit(0, 0)),
         device=cg.Foxtail)
 
     # Qubit type must be correct.
-    c = cirq.Circuit.from_ops(cg.ExpWGate().on(cirq.LineQubit(0)))
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         _ = c.with_device(cg.Foxtail)
 
@@ -261,7 +261,7 @@ def test_set_device():
     assert c.device is cirq.UnconstrainedDevice
 
     c[:] = []
-    c.append(cg.ExpWGate().on(cirq.GridQubit(0, 0)))
+    c.append(cirq.X(cirq.GridQubit(0, 0)))
     c.device = cg.Foxtail
     assert c.device == cg.Foxtail
 
@@ -353,45 +353,98 @@ def test_append_strategies():
     ])
 
 
-def test_insert():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
+def test_insert_op_tree_new():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
     c = Circuit()
 
-    c.insert(0, ())
-    assert c == Circuit()
+    op_tree_list = [(-10, 0, cirq.CZ(a, b), a),
+                    (-20, 0, cirq.X(a), a),
+                    (20, 2, cirq.X(b), b),
+                    (2, 2, cirq.H(b), b),
+                    (-3, 1, cirq.H(a), a)]
 
-    with pytest.raises(IndexError):
-        c.insert(-1, ())
-    with pytest.raises(IndexError):
-        c.insert(1, ())
+    for given_index, actual_index, operation, qubit in op_tree_list:
+        c.insert(given_index, operation, InsertStrategy.NEW)
+        assert c.operation_at(qubit, actual_index) == operation
 
-    c.insert(0, [cirq.X(a), cirq.CZ(a, b), cirq.X(b)])
+    c.insert(1, (), InsertStrategy.NEW)
     assert c == Circuit([
         Moment([cirq.X(a)]),
+        Moment([cirq.H(a)]),
         Moment([cirq.CZ(a, b)]),
-        Moment([cirq.X(b)]),
-    ])
-
-    with pytest.raises(IndexError):
-        c.insert(550, ())
-
-    c.insert(1, cirq.H(b), strategy=cirq.InsertStrategy.NEW)
-    assert c == Circuit([
-        Moment([cirq.X(a)]),
         Moment([cirq.H(b)]),
-        Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(b)]),
     ])
 
-    c.insert(0, cirq.H(b), strategy=cirq.InsertStrategy.EARLIEST)
-    assert c == Circuit([
-        Moment([cirq.X(a), cirq.H(b)]),
-        Moment([cirq.H(b)]),
-        Moment([cirq.CZ(a, b)]),
-        Moment([cirq.X(b)]),
-    ])
+
+def test_insert_op_tree_newinline():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+    c = Circuit()
+
+    op_tree_list = [(-5, 0, [cirq.H(a), cirq.X(b)], [a, b]),
+                    (-15, 0, [cirq.CZ(a, b)], [a]),
+                    (15, 2, [cirq.H(b), cirq.X(a)], [b, a])]
+
+    for given_index, actual_index, op_list, qubits in op_tree_list:
+        c.insert(given_index, op_list, InsertStrategy.NEW_THEN_INLINE)
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], actual_index) == op_list[i]
+
+    c2 = Circuit()
+    c2.insert(0, [cirq.CZ(a, b), cirq.H(a), cirq.X(b), cirq.H(b), cirq.X(a)],
+              InsertStrategy.NEW_THEN_INLINE)
+    assert c == c2
+
+
+def test_insert_op_tree_inline():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+    c = Circuit([Moment([cirq.H(a)])])
+
+    op_tree_list = [(1, 1, [cirq.H(a), cirq.X(b)], [a, b]),
+                    (0, 0, [cirq.X(b)], [b]),
+                    (4, 3, [cirq.H(b)], [b]),
+                    (5, 3, [cirq.H(a)], [a]),
+                    (-2, 0, [cirq.X(b)], [b]),
+                    (-5, 0, [cirq.CZ(a, b)], [a])]
+
+    for given_index, actual_index, op_list, qubits in op_tree_list:
+        c.insert(given_index, op_list, InsertStrategy.INLINE)
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], actual_index) == op_list[i]
+
+
+def test_insert_op_tree_earliest():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+    c = Circuit([Moment([cirq.H(a)])])
+
+    op_tree_list = [(5, [1, 0], [cirq.X(a), cirq.X(b)], [a, b]),
+                    (1, [1], [cirq.H(b)], [b]),
+                    (-4, [0], [cirq.X(b)], [b])]
+
+    for given_index, actual_index, op_list, qubits in op_tree_list:
+        c.insert(given_index, op_list, InsertStrategy.EARLIEST)
+        for i in range(len(op_list)):
+            assert c.operation_at(qubits[i], actual_index[i]) == op_list[i]
+
+
+def test_insert_moment():
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+    c = Circuit()
+
+    moment_list = [(-10, 0, [cirq.CZ(a, b)], a, InsertStrategy.NEW_THEN_INLINE),
+                   (-20, 0, [cirq.X(a)], a, InsertStrategy.NEW),
+                   (20, 2, [cirq.X(b)], b, InsertStrategy.INLINE),
+                   (2, 2, [cirq.H(b)], b, InsertStrategy.EARLIEST),
+                   (-3, 1, [cirq.H(a)], a, InsertStrategy.EARLIEST)]
+
+    for given_index, actual_index, operation, qubit, strat in moment_list:
+        c.insert(given_index, Moment(operation), strat)
+        assert c.operation_at(qubit, actual_index) == operation[0]
 
 
 def test_insert_inline_near_start():
@@ -1075,8 +1128,8 @@ def test_circuit_diagram_on_gate_without_info():
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'
 
+    # Fallback to repr.
     f = FGate()
-    # Fallback to repr without extension.
     cirq.testing.assert_has_diagram(Circuit([
         Moment([f.on(q)]),
     ]), """
@@ -1199,21 +1252,21 @@ a: ---X^0.12341---
 
 def test_diagram_wgate():
     qa = cirq.NamedQubit('a')
-    test_wgate = cg.ExpWGate(
+    test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---W(0.43)^0.12---
+a: ---PhasedX(0.43)^0.12---
 """, use_unicode_characters=False, precision=2)
 
 
 def test_diagram_wgate_none_precision():
     qa = cirq.NamedQubit('a')
-    test_wgate = cg.ExpWGate(
+    test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---W(0.43214321)^0.12341234---
+a: ---PhasedX(0.43214321)^0.12341234---
 """, use_unicode_characters=False, precision=None)
 
 

@@ -13,15 +13,16 @@
 # limitations under the License.
 from typing import cast
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops, protocols, value
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
-    fallback_qcircuit_extensions,
+    known_qcircuit_operation_symbols,
     _TextToQCircuitDiagrammable,
     _FallbackQCircuitGate,
 )
 
 
+@value.value_equality
 class _QCircuitQubit(ops.QubitId):
     def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
@@ -36,16 +37,8 @@ class _QCircuitQubit(ops.QubitId):
         # TODO: If qubit name ends with digits, turn them into subscripts.
         return '\\lstick{\\text{' + str(self.sub) + '}}&'
 
-    def __eq__(self, other):
-        if not isinstance(other, _QCircuitQubit):
-            return NotImplemented
-        return self.sub == other.sub
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((_QCircuitQubit, self.sub))
+    def _value_equality_values_(self):
+        return self.sub
 
 
 class _QCircuitOperation(ops.Operation):
@@ -102,16 +95,16 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 def _wrap_operation(op: ops.Operation) -> ops.Operation:
     new_qubits = [_QCircuitQubit(e) for e in op.qubits]
-    diagrammable = fallback_qcircuit_extensions.try_cast(  # type: ignore
-        QCircuitDiagrammable, op)
+    diagrammable = known_qcircuit_operation_symbols(op)
     if diagrammable is None:
         info = protocols.circuit_diagram_info(op, default=None)
         if info is not None:
             diagrammable = _TextToQCircuitDiagrammable(
                 cast(protocols.SupportsCircuitDiagramInfo, op))
+        elif isinstance(op, ops.GateOperation):
+            diagrammable = _FallbackQCircuitGate(op.gate)
         else:
-            diagrammable = _FallbackQCircuitGate(
-                cast(ops.GateOperation, op).gate)
+            diagrammable = _FallbackQCircuitGate(op)
     return _QCircuitOperation(op, diagrammable).with_qubits(*new_qubits)
 
 
