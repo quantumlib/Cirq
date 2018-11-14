@@ -18,31 +18,29 @@ from typing import Callable, List, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
-from cirq import ops, decompositions
-from cirq import protocols
-from cirq.circuits import optimization_pass
-from cirq.circuits.circuit import Circuit
+from cirq import circuits, ops, protocols
+from cirq.optimizers import decompositions
 
 
-class MergeInteractions(optimization_pass.PointOptimizer):
+class MergeInteractions(circuits.PointOptimizer):
     """Combines series of adjacent one and two-qubit gates operating on a pair
     of qubits."""
 
     def __init__(self,
                  tolerance: float = 1e-8,
                  allow_partial_czs: bool = True,
-                 post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
-                                ] = lambda op_list: op_list
-                 ) -> None:
+                 post_clean_up: Callable[
+                     [Sequence[ops.Operation]], ops.OP_TREE
+                 ] = lambda op_list: op_list) -> None:
         super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
 
     def optimization_at(self,
-                        circuit: Circuit,
+                        circuit: circuits.Circuit,
                         index: int,
                         op: ops.Operation
-    ) -> Optional[optimization_pass.PointOptimizationSummary]:
+    ) -> Optional[circuits.PointOptimizationSummary]:
         if len(op.qubits) != 2:
             return None
 
@@ -82,7 +80,7 @@ class MergeInteractions(optimization_pass.PointOptimizer):
         if not switch_to_new:
             return None
 
-        return optimization_pass.PointOptimizationSummary(
+        return circuits.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
             new_operations=new_operations)
@@ -126,7 +124,7 @@ class MergeInteractions(optimization_pass.PointOptimizer):
 
     def _scan_two_qubit_ops_into_matrix(
             self,
-            circuit: Circuit,
+            circuit: circuits.Circuit,
             index: Optional[int],
             qubits: Tuple[ops.QubitId, ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:

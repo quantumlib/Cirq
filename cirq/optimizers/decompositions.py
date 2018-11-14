@@ -16,8 +16,6 @@
 
 from typing import List, Tuple, Optional, cast
 
-import math
-import cmath
 import numpy as np
 
 from cirq import ops, linalg, protocols
@@ -47,6 +45,7 @@ def single_qubit_matrix_to_pauli_rotations(
     """
 
     tol = linalg.Tolerance(atol=tolerance)
+
     def is_clifford_rotation(half_turns):
         return tol.near_zero_mod(half_turns, 0.5)
 
@@ -118,6 +117,7 @@ def single_qubit_matrix_to_gates(
     return [cast(ops.SingleQubitGate, pauli_to_gate[pauli] ** ht)
             for pauli, ht in rotations]
 
+
 def single_qubit_op_to_framed_phase_form(
         mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
     """Decomposes a 2x2 unitary M into U^-1 * diag(1, r) * U * diag(g, g).
@@ -144,44 +144,6 @@ def single_qubit_op_to_framed_phase_form(
     r = vals[1] / vals[0]
     g = vals[0]
     return u, r, g
-
-
-def controlled_op_to_operations(
-        control: ops.QubitId,
-        target: ops.QubitId,
-        operation: np.ndarray,
-        tolerance: float = 0.0) -> List[ops.Operation]:
-    """Decomposes a controlled single-qubit operation into Z/XY/CZ gates.
-
-    Args:
-        control: The control qubit.
-        target: The qubit to apply an operation to, when the control is on.
-        operation: The single-qubit operation being controlled.
-        tolerance: A limit on the amount of error introduced by the
-            construction.
-
-    Returns:
-        A list of Operations that apply the controlled operation.
-    """
-    u, z_phase, global_phase = single_qubit_op_to_framed_phase_form(operation)
-    if abs(z_phase - 1) <= tolerance:
-        return []
-
-    u_gates = single_qubit_matrix_to_gates(u, tolerance)
-    if u_gates and isinstance(u_gates[-1], ops.ZPowGate):
-        # Don't keep border operations that commute with CZ.
-        del u_gates[-1]
-
-    ops_before = [gate(target) for gate in u_gates]
-    ops_after = protocols.inverse(ops_before)
-    effect = ops.CZ(control, target) ** (cmath.phase(z_phase) / math.pi)
-    kickback = ops.Z(control) ** (cmath.phase(global_phase) / math.pi)
-
-    return list(ops.flatten_op_tree((
-        ops_before,
-        effect,
-        kickback if abs(global_phase - 1) > tolerance else [],
-        ops_after)))
 
 
 def _xx_interaction_via_full_czs(q0: ops.QubitId,
@@ -258,11 +220,20 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
     """
     kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
     # TODO: Clean up angles before returning
-    return _kak_decomposition_to_operations(q0,
-                                            q1,
-                                            kak,
-                                            allow_partial_czs,
-                                            tolerance)
+    operations = _kak_decomposition_to_operations(
+        q0, q1, kak, allow_partial_czs, tolerance)
+    return _cleanup_operations(operations)
+
+
+def _cleanup_operations(operations: List[ops.Operation]):
+    from cirq import circuits, optimizers
+    circuit = circuits.Circuit.from_ops(operations)
+    optimizers.merge_single_qubit_gates_into_phased_x_z(circuit)
+    optimizers.EjectZ().optimize_circuit(circuit)
+    circuit = circuits.Circuit.from_ops(
+        circuit.all_operations(),
+        strategy=circuits.InsertStrategy.EARLIEST)
+    return list(circuit.all_operations())
 
 
 def _kak_decomposition_to_operations(q0: ops.QubitId,
@@ -354,3 +325,71 @@ def _non_local_part(q0: ops.QubitId,
         return _xx_yy_interaction_via_full_czs(q0, q1, x, y)
 
     return _xx_interaction_via_full_czs(q0, q1, x)
+
+
+def _deconstruct_single_qubit_matrix_into_gate_turns(
+        mat: np.ndarray) -> Tuple[float, float, float]:
+    """Breaks down a 2x2 unitary into gate parameters.
+
+    Args:
+        mat: The 2x2 unitary matrix to break down.
+
+    Returns:
+       A tuple containing the amount to rotate around an XY axis, the phase of
+       that axis, and the amount to phase around Z. All results will be in
+       fractions of a whole turn, with values canonicalized into the range
+       [-0.5, 0.5).
+    """
+    pre_phase, rotation, post_phase = (
+        linalg.deconstruct_single_qubit_matrix_into_angles(mat))
+
+    # Figure out parameters of the actual gates we will do.
+    tau = 2 * np.pi
+    xy_turn = rotation / tau
+    xy_phase_turn = 0.25 - pre_phase / tau
+    total_z_turn = (post_phase + pre_phase) / tau
+
+    # Normalize turns into the range [-0.5, 0.5).
+    return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn),
+            _signed_mod_1(total_z_turn))
+
+
+def single_qubit_matrix_to_phased_x_z(
+        mat: np.ndarray,
+        atol: float = 0
+) -> List[ops.SingleQubitGate]:
+    """Implements a single-qubit operation with a PhasedX and Z gate.
+
+    If one of the gates isn't needed, it will be omitted.
+
+    Args:
+        mat: The 2x2 unitary matrix of the operation to implement.
+        atol: A limit on the amount of error introduced by the
+            construction.
+
+    Returns:
+        A list of gates that, when applied in order, perform the desired
+            operation.
+    """
+
+    xy_turn, xy_phase_turn, total_z_turn = (
+        _deconstruct_single_qubit_matrix_into_gate_turns(mat))
+
+    # Build the intended operation out of non-negligible XY and Z rotations.
+    result = [
+        ops.PhasedXPowGate(exponent=2 * xy_turn,
+                           phase_exponent=2 * xy_phase_turn),
+        ops.Z**(2 * total_z_turn)
+    ]
+    result = [
+        g for g in result
+        if protocols.trace_distance_bound(g) > atol
+    ]
+
+    # Special case: XY half-turns can absorb Z rotations.
+    if len(result) == 2 and abs(xy_turn) >= 0.5 - atol:
+        return [
+            ops.PhasedXPowGate(phase_exponent=2 * xy_phase_turn + total_z_turn)
+        ]
+
+    return result

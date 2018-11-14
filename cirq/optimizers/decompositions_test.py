@@ -21,6 +21,10 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.optimizers.decompositions import (
+    _parity_interaction, _is_trivial_angle
+)
+
 
 def _operations_to_matrix(operations, qubits):
     return cirq.Circuit.from_ops(operations).to_unitary_matrix(
@@ -178,55 +182,6 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
     assert np.allclose(mat, np.conj(u.T).dot(z).dot(u))
 
 
-def test_controlled_op_to_operations_concrete_case():
-    c = cirq.NamedQubit('c')
-    t = cirq.NamedQubit('t')
-    expected = [cirq.Y(t)**-0.5, cirq.CZ(c, t)**1.5,
-                cirq.Z(c)**0.25, cirq.Y(t)**0.5]
-    operations = cirq.controlled_op_to_operations(
-        control=c,
-        target=t,
-        operation=np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5),
-        tolerance=0.0001)
-    # Test closeness as opposed to equality to avoid precision errors
-    for actual_op, expected_op in zip(operations, expected):
-        assert cirq.allclose_up_to_global_phase(cirq.unitary(actual_op),
-                                                cirq.unitary(expected_op),
-                                                atol=1e-8)
-
-def test_controlled_op_to_operations_omits_negligible_global_phase():
-    qc = cirq.NamedQubit('c')
-    qt = cirq.NamedQubit('qt')
-    operations = cirq.controlled_op_to_operations(
-        control=qc,
-        target=qt,
-        operation=cirq.unitary(cirq.H),
-        tolerance=0.0001)
-
-    assert operations == [cirq.Y(qt)**-0.25, cirq.CZ(qc, qt), cirq.Y(qt)**0.25]
-
-
-@pytest.mark.parametrize('mat', [
-    np.eye(2),
-    cirq.unitary(cirq.H),
-    cirq.unitary(cirq.X),
-    cirq.unitary(cirq.X**0.5),
-    cirq.unitary(cirq.Y),
-    cirq.unitary(cirq.Z),
-    cirq.unitary(cirq.Z**0.5),
-] + [
-    cirq.testing.random_unitary(2) for _ in range(10)
-])
-def test_controlled_op_to_operations_equivalent_on_known_and_random(mat):
-    qc = cirq.NamedQubit('c')
-    qt = cirq.NamedQubit('qt')
-    operations = cirq.controlled_op_to_operations(
-        control=qc, target=qt, operation=mat)
-    actual_effect = _operations_to_matrix(operations, (qc, qt))
-    intended_effect = cirq.kron_with_controls(cirq.CONTROL_TAG, mat)
-    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect)
-
-
 def _random_single_partial_cz_effect():
     return cirq.dot(
         cirq.kron(cirq.testing.random_unitary(2),
@@ -361,7 +316,7 @@ def test_trivial_parity_interaction_corner_case():
     nearPi4 = np.pi/4 * 0.99
     tolerance = 1e-2
     circuit = cirq.Circuit.from_ops(
-        cirq.decompositions._parity_interaction(q0, q1, -nearPi4, tolerance))
+        _parity_interaction(q0, q1, -nearPi4, tolerance))
     assert len(circuit) == 2
 
 
@@ -386,5 +341,168 @@ def test_trivial_parity_interaction_corner_case():
 ])(1e-8*2/3, 1e-8*4/3))
 def test_is_trivial_angle(rad, expected):
     tolerance = 1e-8
-    out = cirq.decompositions._is_trivial_angle(rad, tolerance)
+    out = _is_trivial_angle(rad, tolerance)
     assert out == expected, 'rad = {}'.format(rad)
+
+
+def test_kak_decomposition_depth_full_cz():
+    a, b = cirq.LineQubit.range(2)
+
+    # Random.
+    u = cirq.testing.random_unitary(4)
+    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    c = cirq.Circuit.from_ops(operations_with_full)
+    # 3 CZ, 3+1 PhasedX, 1 Z
+    assert len(c) <= 8
+
+    # Double-axis interaction.
+    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
+                                           cirq.CNOT(b, a)))
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    # 2 CZ, 2+1 PhasedX, 1 Z
+    assert len(c) <= 6
+
+    # Partial single-axis interaction.
+    u = cirq.unitary(cirq.CNOT**0.1)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    # 2 CZ, 2+1 PhasedX, 1 Z
+    assert len(c) <= 6
+
+    # Full single-axis interaction.
+    u = cirq.unitary(cirq.ControlledGate(cirq.Y))
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    # 1 CZ, 1+1 PhasedX, 1 Z
+    assert len(c) <= 4
+
+
+def test_kak_decomposition_depth_partial_cz():
+    a, b = cirq.LineQubit.range(2)
+
+    # Random.
+    u = cirq.testing.random_unitary(4)
+    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    c = cirq.Circuit.from_ops(operations_with_full)
+    print(c)
+    assert False
+    # 3 CP, 3+1 PhasedX, 1 Z
+    assert len(c) <= 8
+
+    # Double-axis interaction.
+    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
+                                           cirq.CNOT(b, a)))
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    # 2 CP, 2+1 PhasedX, 1 Z
+    assert len(c) <= 6
+
+    # Partial single-axis interaction.
+    u = cirq.unitary(cirq.CNOT**0.1)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    # 1 CP, 1+1 PhasedX, 1 Z
+    assert len(c) <= 4
+
+    # Full single-axis interaction.
+    u = cirq.unitary(cirq.ControlledGate(cirq.Y))
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    # 1 CP, 1+1 PhasedX, 1 Z
+    assert len(c) <= 4
+
+
+def test_single_qubit_matrix_to_native_gates_known():
+    actual = cirq.single_qubit_matrix_to_phased_x_z(
+        np.array([[0, 1], [1, 0]]), atol=0.01)
+    assert actual == [cirq.X]
+
+    actual = cirq.single_qubit_matrix_to_phased_x_z(
+        np.array([[0, -1j], [1j, 0]]), atol=0.01)
+    assert actual == [cirq.Y]
+
+    actual = cirq.single_qubit_matrix_to_phased_x_z(
+        np.array([[1, 0], [0, -1]]), atol=0.01)
+    assert actual == [cirq.Z]
+
+    actual = cirq.single_qubit_matrix_to_phased_x_z(
+        np.array([[1, 0], [0, 1j]]), atol=0.01)
+    assert actual == [cirq.Z**0.5]
+
+    actual = cirq.single_qubit_matrix_to_phased_x_z(
+        np.array([[1, 0], [0, -1j]]), atol=0.01)
+    assert actual == [cirq.Z**-0.5]
+
+    actual = cirq.single_qubit_matrix_to_phased_x_z(
+        np.array([[1, 1], [1, -1]]) * np.sqrt(0.5), atol=0.001)
+    assert actual == [cirq.Y**-0.5, cirq.Z]
+
+
+@pytest.mark.parametrize('intended_effect', [
+    np.array([[0, 1j], [1, 0]]),
+] + [
+    cirq.testing.random_unitary(2) for _ in range(10)
+])
+def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
+    gates = cirq.single_qubit_matrix_to_phased_x_z(
+        intended_effect, atol=0.0001)
+    assert len(gates) <= 2
+    assert_gates_implement_unitary(gates, intended_effect, atol=1e-8)
+
+
+@pytest.mark.parametrize('pre_turns,post_turns',
+                         [(random.random(), random.random())
+                          for _ in range(10)])
+def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
+        pre_turns, post_turns):
+    intended_effect = cirq.dot(
+        cirq.unitary(cirq.Z**(2 * pre_turns)),
+        cirq.unitary(cirq.X),
+        cirq.unitary(cirq.Z**(2 * post_turns)))
+
+    gates = cirq.single_qubit_matrix_to_phased_x_z(
+        intended_effect, atol=0.0001)
+
+    assert len(gates) == 1
+    assert_gates_implement_unitary(gates, intended_effect, atol=1e-8)
+
+
+def test_single_qubit_matrix_to_native_gates_tolerance_z():
+    z = np.diag([1, np.exp(1j * 0.01)])
+
+    optimized_away = cirq.single_qubit_matrix_to_phased_x_z(
+        z, atol=0.1)
+    assert len(optimized_away) == 0
+
+    kept = cirq.single_qubit_matrix_to_phased_x_z(z, atol=0.0001)
+    assert len(kept) == 1
+
+
+def test_single_qubit_matrix_to_native_gates_tolerance_xy():
+    c, s = np.cos(0.01), np.sin(0.01)
+    xy = np.array([[c, -s], [s, c]])
+
+    optimized_away = cirq.single_qubit_matrix_to_phased_x_z(
+        xy, atol=0.1)
+    assert len(optimized_away) == 0
+
+    kept = cirq.single_qubit_matrix_to_phased_x_z(xy, atol=0.0001)
+    assert len(kept) == 1
+
+
+def test_single_qubit_matrix_to_native_gates_tolerance_half_turn_phasing():
+    a = np.pi / 2 + 0.01
+    c, s = np.cos(a), np.sin(a)
+    nearly_x = np.array([[c, -s], [s, c]])
+    z1 = np.diag([1, np.exp(1j * 1.2)])
+    z2 = np.diag([1, np.exp(1j * 1.6)])
+    phased_nearly_x = z1.dot(nearly_x).dot(z2)
+
+    optimized_away = cirq.single_qubit_matrix_to_phased_x_z(
+        phased_nearly_x, atol=0.1)
+    assert len(optimized_away) == 1
+
+    kept = cirq.single_qubit_matrix_to_phased_x_z(
+        phased_nearly_x, atol=0.0001)
+    assert len(kept) == 2

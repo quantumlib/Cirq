@@ -14,15 +14,11 @@
 
 from typing import Optional
 
-from cirq import ops, decompositions, protocols
-from cirq.circuits.circuit import Circuit
-from cirq.circuits.optimization_pass import (
-    PointOptimizationSummary,
-    PointOptimizer,
-)
+from cirq import circuits, ops, protocols
+from cirq.optimizers import decompositions
 
 
-class ConvertToCzAndSingleGates(PointOptimizer):
+class ConvertToCzAndSingleGates(circuits.PointOptimizer):
     """Attempts to convert strange multi-qubit gates into CZ and single qubit
     gates.
 
@@ -84,8 +80,11 @@ class ConvertToCzAndSingleGates(PointOptimizer):
                         "It isn't composite or an operation with a "
                         "known unitary effect on 1 or 2 qubits.".format(op))
 
-    def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
-                        ) -> Optional[PointOptimizationSummary]:
+    def optimization_at(self,
+                        circuit: circuits.Circuit,
+                        index: int,
+                        op: ops.Operation
+                        ) -> Optional[circuits.PointOptimizationSummary]:
         converted = protocols.decompose(
             op,
             intercepting_decomposer=self._decompose_two_qubit_unitaries,
@@ -96,7 +95,7 @@ class ConvertToCzAndSingleGates(PointOptimizer):
         if converted == [op]:
             return None
 
-        return PointOptimizationSummary(
+        return circuits.PointOptimizationSummary(
             clear_span=1,
             new_operations=converted,
             clear_qubits=op.qubits)
