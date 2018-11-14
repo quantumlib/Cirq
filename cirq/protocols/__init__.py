@@ -30,6 +30,8 @@ from cirq.protocols.decompose import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    SupportsDecompose,
+    SupportsDecomposeWithQubits,
 )
 from cirq.protocols.inverse import (
     inverse,

@@ -143,9 +143,6 @@ from cirq.ops import (
     ReversibleCompositeGate,
     rotation_error,
     RotationErrorChannel,
-    XPowGate,
-    YPowGate,
-    ZPowGate,
     Rx,
     Ry,
     Rz,
@@ -161,8 +158,17 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     X,
+    XPowGate,
+    XX,
+    XXPowGate,
     Y,
+    YPowGate,
+    YY,
+    YYPowGate,
     Z,
+    ZPowGate,
+    ZZ,
+    ZZPowGate,
 )
 
 from cirq.optimizers import (
@@ -188,6 +194,8 @@ from cirq.sim import (
     sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
+    Simulator,
+    SimulatorStep,
     StepResult,
     SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
@@ -214,6 +222,7 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+    value_equality,
 )
 
 # pylint: disable=redefined-builtin
@@ -233,6 +242,8 @@ from cirq.protocols import (
     QasmArgs,
     SupportsApplyUnitaryToTensor,
     SupportsCircuitDiagramInfo,
+    SupportsDecompose,
+    SupportsDecomposeWithQubits,
     SupportsParameterization,
     SupportsPhase,
     SupportsQasm,
@@ -246,6 +257,10 @@ from cirq.protocols import (
     unitary,
     trace_distance_bound,
     phase_by,
+)
+
+from cirq.ion import (
+    MS,
 )
 # pylint: enable=redefined-builtin
 

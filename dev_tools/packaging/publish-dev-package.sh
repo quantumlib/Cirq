@@ -18,6 +18,8 @@
 # Produces and uploads dev-version wheels to a pypi package repository. Uploads
 # to the test pypi repository unless the --prod switch is added.
 #
+# The pypi credentials given to twine are specified via environment variables.
+#
 # Usage:
 #     export TEST_TWINE_USERNAME=...
 #     export TEST_TWINE_PASSWORD=...
@@ -44,6 +46,7 @@
 #     pip install --index-url https://test.pypi.org/simple/ cirq==VERSION_YOU_UPLOADED
 ################################################################################
 
+PROJECT_NAME=cirq
 set -e
 trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
 
@@ -58,9 +61,9 @@ if [[ "${EXPECTED_VERSION}" != *dev* ]]; then
   echo -e "\e[31mExpected version must include 'dev'.\e[0m"
   exit 1
 fi
-ACTUAL_VERSION_LINE=$(cat cirq/_version.py | tail -n 1)
+ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
 if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; then
-  echo -e "\e[31mExpected version (${EXPECTED_VERSION}) didn't match the one in cirq/_version.py (${ACTUAL_VERSION_LINE}).\e[0m"
+  echo -e "\e[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\e[0m"
   exit 1
 fi
 
@@ -104,17 +107,11 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Temporary workspace.
-tmp_src_dir=$(mktemp -d "/tmp/publish-dev-package_source.XXXXXXXXXXXXXXXX")
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_src_dir}; }" EXIT
 trap "{ rm -rf ${tmp_package_dir}; }" EXIT
 
-# Make a temporary copy of the source with an updated version.
-cp -r . "${tmp_src_dir}/src"
-echo '__version__ = "'"${UPLOAD_VERSION}"'"' > "${tmp_src_dir}/src/cirq/_version.py"
-
 # Produce packages.
-"${tmp_src_dir}/src/dev_tools/packaging/produce-package.sh" "${tmp_package_dir}"
+dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
 twine upload --username="${USERNAME}" --password="${PASSWORD}" ${PYPI_REPOSITORY_FLAG} "${tmp_package_dir}/*"
 
 echo -e "\e[32mUploaded package with version ${UPLOAD_VERSION} to ${PYPI_REPO_NAME} pypi repository\e[0m"
