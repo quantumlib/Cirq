@@ -50,7 +50,6 @@ from cirq.ops.common_gates import (
     measure_each,
     MeasurementGate,
     XPowGate,
-    XXPowGate,
     YPowGate,
     ZPowGate,
     Rx,
@@ -61,7 +60,6 @@ from cirq.ops.common_gates import (
     SwapPowGate,
     T,
     X,
-    XX,
     Y,
     Z,
 )
@@ -98,6 +96,14 @@ from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
     transform_op_tree,
+)
+from cirq.ops.parity_gates import (
+    XX,
+    XXPowGate,
+    YY,
+    YYPowGate,
+    ZZ,
+    ZZPowGate,
 )
 from cirq.ops.pauli import (
     Pauli,
