@@ -87,7 +87,6 @@ def test_assert_phase_by_is_consistent_with_unitary():
         cirq.testing.assert_phase_by_is_consistent_with_unitary(
             SemiBadPhaser([0.5, 0.25]))
 
-    with pytest.raises(AssertionError,
-                       match='not phaseable'):
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(
-            NotPhaser())
+    # Vacuous success.
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(
+        NotPhaser())

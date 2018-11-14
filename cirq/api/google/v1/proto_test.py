@@ -12,20 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.value.angle import (
-    canonicalize_half_turns,
-    chosen_angle_to_canonical_half_turns,
-    chosen_angle_to_half_turns,
-)
-from cirq.value.duration import (
-    Duration,
-)
-from cirq.value.symbol import (
-    Symbol,
-)
-from cirq.value.timestamp import (
-    Timestamp,
-)
-from cirq.value.value_equality import (
-    value_equality,
-)
+"""Check protobuf modules initialize successfully."""
+
+# pylint: disable=unused-import
+from cirq.api.google.v1 import operations_pb2
+from cirq.api.google.v1 import params_pb2
+from cirq.api.google.v1 import program_pb2
+# pylint: enable=unused-import

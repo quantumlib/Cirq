@@ -25,10 +25,14 @@ def assert_decompose_is_consistent_with_unitary(val: Any):
     qubit_count = len(expected).bit_length() - 1
     if isinstance(val, ops.Operation):
         qubits = val.qubits
-        dec = protocols.decompose_once(val)
+        dec = protocols.decompose_once(val, default=None)
     else:
         qubits = tuple(line.LineQubit.range(qubit_count))
-        dec = protocols.decompose_once_with_qubits(val, qubits)
+        dec = protocols.decompose_once_with_qubits(val, qubits, default=None)
+    if dec is None:
+        # If there's no decomposition, it's vacuously consistent.
+        return
+
     actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
         qubit_order=qubits)
 

@@ -97,6 +97,14 @@ from cirq.ops.op_tree import (
     freeze_op_tree,
     transform_op_tree,
 )
+from cirq.ops.parity_gates import (
+    XX,
+    XXPowGate,
+    YY,
+    YYPowGate,
+    ZZ,
+    ZZPowGate,
+)
 from cirq.ops.pauli import (
     Pauli,
 )
