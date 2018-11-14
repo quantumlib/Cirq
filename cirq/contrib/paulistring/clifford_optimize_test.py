@@ -50,9 +50,9 @@ def test_optimize():
     assert c_opt == c_expected
 
     cirq.testing.assert_has_diagram(c_opt, """
-0: ───@───[Z]^1/4───@───
-      │             │
-1: ───@───[X]^1/4───@───
+0: ───@───[Z]^0.25───@───
+      │              │
+1: ───@───[X]^0.25───@───
 """)
 
 
@@ -79,7 +79,7 @@ def test_remove_czs():
     assert c_opt == c_expected
 
     cirq.testing.assert_has_diagram(c_opt, """
-0: ───Z^1/2───
+0: ───Z^0.5───
 """)
 
 

@@ -711,7 +711,7 @@ def test_ixyz_circuit_diagram():
             ix(q)**4.5,
             ix(q)**4.500001,
         ), """
-q: ───X───X───X───X───X───X^1/2───X^1/2───
+q: ───X───X───X───X───X───X^0.5───X^0.5───
         """)
 
     cirq.testing.assert_has_diagram(
@@ -722,7 +722,7 @@ q: ───X───X───X───X───X───X^1/2───X^1/
             iy(q)**4.5,
             iy(q)**4.500001,
         ), """
-q: ───Y───Y───Y───Y^1/2───Y^1/2───
+q: ───Y───Y───Y───Y^0.5───Y^0.5───
     """)
 
     cirq.testing.assert_has_diagram(

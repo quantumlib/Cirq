@@ -1485,15 +1485,11 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     if isinstance(info.exponent, float):
         if args.precision is not None:
             # funky behavior of fraction, cast to str in constructor helps.
-            approx_frac = Fraction(
-                str(info.exponent)
-            ).limit_denominator(2**(args.precision + 1))
-
-            # Check if we can return a fraction that is close to info.exponent
-            if abs(approx_frac.numerator/approx_frac.denominator
-                - info.exponent) < 10 ** -args.precision:
-                return '{}/{}'.format(approx_frac.numerator,
-                                      approx_frac.denominator)
+            approx_frac = Fraction(info.exponent).limit_denominator(16)
+            if approx_frac.denominator not in [2, 4, 5, 10]:
+                if abs(float(approx_frac)
+                    - info.exponent) < 10**-args.precision:
+                    return '({})'.format(approx_frac)
 
             return '{{:.{}}}'.format(args.precision).format(info.exponent)
         return repr(info.exponent)
