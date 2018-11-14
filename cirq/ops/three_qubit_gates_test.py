@@ -208,3 +208,4 @@ def test_diagram():
                       |   |       |
 3: -------------------@---@^0.5---swap----------
 """, use_unicode_characters=False)
+    
