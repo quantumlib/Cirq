@@ -53,5 +53,8 @@ from cirq.optimizers.decompositions import (
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
     single_qubit_op_to_framed_phase_form,
+)
+
+from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,
 )

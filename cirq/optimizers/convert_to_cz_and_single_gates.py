@@ -15,7 +15,7 @@
 from typing import Optional
 
 from cirq import circuits, ops, protocols
-from cirq.optimizers import decompositions
+from cirq.optimizers import two_qubit_decompositions
 
 
 class ConvertToCzAndSingleGates(circuits.PointOptimizer):
@@ -68,7 +68,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         if len(op.qubits) == 2:
             mat = protocols.unitary(op, None)
             if mat is not None:
-                return decompositions.two_qubit_matrix_to_operations(
+                return two_qubit_decompositions.two_qubit_matrix_to_operations(
                     op.qubits[0],
                     op.qubits[1],
                     mat,

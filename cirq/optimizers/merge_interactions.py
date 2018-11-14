@@ -19,7 +19,7 @@ from typing import Callable, List, Optional, Sequence, Tuple, cast
 import numpy as np
 
 from cirq import circuits, ops, protocols
-from cirq.optimizers import decompositions
+from cirq.optimizers import two_qubit_decompositions
 
 
 class MergeInteractions(circuits.PointOptimizer):
@@ -66,12 +66,13 @@ class MergeInteractions(circuits.PointOptimizer):
             return None
 
         # Find a max-3-cz construction.
-        new_operations = decompositions.two_qubit_matrix_to_operations(
-            op.qubits[0],
-            op.qubits[1],
-            matrix,
-            self.allow_partial_czs,
-            self.tolerance)
+        new_operations = (
+            two_qubit_decompositions.two_qubit_matrix_to_operations(
+                op.qubits[0],
+                op.qubits[1],
+                matrix,
+                self.allow_partial_czs,
+                self.tolerance))
         new_interaction_count = len([new_op for new_op in new_operations
                                      if len(new_op.qubits) == 2])
 

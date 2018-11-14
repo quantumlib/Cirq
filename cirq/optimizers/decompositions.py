@@ -14,7 +14,7 @@
 
 """Utility methods related to optimizing quantum circuits."""
 
-from typing import List, Tuple, Optional, cast
+from typing import List, Tuple, cast
 
 import numpy as np
 
@@ -197,134 +197,6 @@ def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
     yield ops.H(q1)
     yield ops.CZ(q0, q1)
     yield ops.H(q1)
-
-
-def two_qubit_matrix_to_operations(q0: ops.QubitId,
-                                   q1: ops.QubitId,
-                                   mat: np.ndarray,
-                                   allow_partial_czs: bool,
-                                   tolerance: float = 1e-8
-                                   ) -> List[ops.Operation]:
-    """Decomposes a two-qubit operation into Z/XY/CZ gates.
-
-    Args:
-        q0: The first qubit being operated on.
-        q1: The other qubit being operated on.
-        mat: Defines the operation to apply to the pair of qubits.
-        allow_partial_czs: Enables the use of Partial-CZ gates.
-        tolerance: A limit on the amount of error introduced by the
-            construction.
-
-    Returns:
-        A list of operations implementing the matrix.
-    """
-    kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
-    # TODO: Clean up angles before returning
-    operations = _kak_decomposition_to_operations(
-        q0, q1, kak, allow_partial_czs, tolerance)
-    return _cleanup_operations(operations)
-
-
-def _cleanup_operations(operations: List[ops.Operation]):
-    from cirq import circuits, optimizers
-    circuit = circuits.Circuit.from_ops(operations)
-    optimizers.merge_single_qubit_gates_into_phased_x_z(circuit)
-    optimizers.EjectZ().optimize_circuit(circuit)
-    circuit = circuits.Circuit.from_ops(
-        circuit.all_operations(),
-        strategy=circuits.InsertStrategy.EARLIEST)
-    return list(circuit.all_operations())
-
-
-def _kak_decomposition_to_operations(q0: ops.QubitId,
-                                     q1: ops.QubitId,
-                                     kak: linalg.KakDecomposition,
-                                     allow_partial_czs: bool,
-                                     tolerance: float = 1e-8
-                                     ) -> List[ops.Operation]:
-    """Assumes that the decomposition is canonical."""
-    b0, b1 = kak.single_qubit_operations_before
-    pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
-    a0, a1 = kak.single_qubit_operations_after
-    post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
-
-    return list(ops.flatten_op_tree([
-        pre,
-        _non_local_part(q0,
-                        q1,
-                        kak.interaction_coefficients,
-                        allow_partial_czs,
-                        tolerance),
-        post,
-    ]))
-
-
-def _is_trivial_angle(rad: float, tolerance: float) -> bool:
-    """Tests if a circuit for an operator exp(i*rad*XX) (or YY, or ZZ) can
-    be performed with a whole CZ.
-
-    Args:
-        rad: The angle in radians, assumed to be in the range [-pi/4, pi/4]
-    """
-    return abs(rad) < tolerance or abs(abs(rad) - np.pi / 4) < tolerance
-
-
-def _parity_interaction(q0: ops.QubitId,
-                        q1: ops.QubitId,
-                        rads: float,
-                        tolerance: float,
-                        gate: Optional[ops.Gate] = None):
-    """Yields a ZZ interaction framed by the given operation."""
-    if abs(rads) < tolerance:
-        return
-
-    h = rads * -2 / np.pi
-    if gate is not None:
-        g = cast(ops.Gate, gate)
-        yield g.on(q0), g.on(q1)
-
-    # If rads is ±pi/4 radians within tolerance, single full-CZ suffices.
-    if _is_trivial_angle(rads, tolerance):
-        yield ops.CZ.on(q0, q1)
-    else:
-        yield ops.CZ(q0, q1) ** (-2 * h)
-
-    yield ops.Z(q0)**h
-    yield ops.Z(q1)**h
-    if gate is not None:
-        g = protocols.inverse(gate)
-        yield g.on(q0), g.on(q1)
-
-
-def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float=1e-8):
-    for gate in single_qubit_matrix_to_gates(u, tolerance):
-        yield gate(q)
-
-
-def _non_local_part(q0: ops.QubitId,
-                    q1: ops.QubitId,
-                    interaction_coefficients: Tuple[float, float, float],
-                    allow_partial_czs: bool,
-                    tolerance: float = 1e-8):
-    """Yields non-local operation of KAK decomposition."""
-
-    x, y, z = interaction_coefficients
-
-    if (allow_partial_czs or
-        all(_is_trivial_angle(e, tolerance) for e in [x, y, z])):
-        return [
-            _parity_interaction(q0, q1, x, tolerance, ops.Y**-0.5),
-            _parity_interaction(q0, q1, y, tolerance, ops.X**0.5),
-            _parity_interaction(q0, q1, z, tolerance)
-        ]
-
-    if abs(z) >= tolerance:
-        return _xx_yy_zz_interaction_via_full_czs(q0, q1, x, y, z)
-
-    if y >= tolerance:
-        return _xx_yy_interaction_via_full_czs(q0, q1, x, y)
-
-    return _xx_interaction_via_full_czs(q0, q1, x)
 
 
 def _deconstruct_single_qubit_matrix_into_gate_turns(
