@@ -129,6 +129,20 @@ def test_run_correlations(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measure_multiple_qubits(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
+                                            (cirq.X**b1)(q1),
+                                            cirq.measure(q0, q1))
+            result = simulator.run(circuit, repetitions=3)
+            np.testing.assert_equal(result.measurements,
+                                    {'0,1': [[b0, b1]] * 3})
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_sweeps_param_resolvers(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
@@ -253,6 +267,20 @@ def test_simulate_param_resolver(dtype):
                                     np.reshape(expected_state, 4))
             assert result.params == resolver
             assert len(result.measurements) == 0
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_measure_multiple_qubits(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
+                                            (cirq.X**b1)(q1),
+                                            cirq.measure(q0, q1))
+            result = simulator.simulate(circuit)
+            np.testing.assert_equal(result.measurements,
+                                    {'0,1': [b0, b1]})
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
