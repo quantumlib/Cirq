@@ -110,8 +110,8 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         b = self.y * -2 / np.pi + 0.5
         c = self.z * -2 / np.pi + 0.5
 
-        yield self.before0(q0)
-        yield self.before1(q1)
+        yield self.before1(q0)
+        yield self.before0(q1)
 
         yield ops.X(q0)**0.5
         yield ops.CNOT(q0, q1)
@@ -122,8 +122,8 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield ops.Z(q1)**c
         yield ops.CNOT(q0, q1)
 
-        yield self.after0(q0)
-        yield self.after1(q1)
+        yield self.after1(q0)
+        yield self.after0(q1)
 
     def __repr__(self) -> str:
         return 'cirq.QasmTwoQubitGate({}, {}, {}, {}, {}, {}, {})'.format(
@@ -281,9 +281,11 @@ class QasmOutput:
             if should_annotate:
                 output_line_gap(1)
                 if isinstance(main_op, ops.GateOperation):
-                    output('// Gate: {!s}\n'.format(main_op.gate))
+                    x = str(main_op.gate).replace('\n', '\n //')
+                    output('// Gate: {!s}\n'.format(x))
                 else:
-                    output('// Operation: {!s}\n'.format(main_op))
+                    x = str(main_op).replace('\n', '\n //')
+                    output('// Operation: {!s}\n'.format(x))
 
             for decomposed_op in decomposed:
                 output(protocols.qasm(decomposed_op, args=self.args))
