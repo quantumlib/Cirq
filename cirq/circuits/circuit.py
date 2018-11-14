@@ -20,6 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
+from fractions import Fraction
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -1484,6 +1485,13 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     # If it's a float, show the desired precision.
     if isinstance(info.exponent, float):
         if args.precision is not None:
+            # funky behavior of fraction, cast to str in constructor helps.
+            approx_frac = Fraction(info.exponent).limit_denominator(16)
+            if approx_frac.denominator not in [2, 4, 5, 10]:
+                if abs(float(approx_frac)
+                    - info.exponent) < 10**-args.precision:
+                    return '({})'.format(approx_frac)
+
             return '{{:.{}}}'.format(args.precision).format(info.exponent)
         return repr(info.exponent)
 

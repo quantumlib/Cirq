@@ -1256,7 +1256,7 @@ def test_diagram_wgate():
         exponent=0.12341234, phase_exponent=0.43214321)
     c = Circuit([Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43)^0.12---
+a: ---PhasedX(0.43)^(1/8)---
 """, use_unicode_characters=False, precision=2)
 
 
@@ -1556,7 +1556,7 @@ def test_transposed_diagram_exponent_order():
 │ │      │
 @─┼──────@^0.5
 │ │      │
-│ @──────@^0.125
+│ @──────@^(1/8)
 │ │      │
 """, transpose=True)
 
