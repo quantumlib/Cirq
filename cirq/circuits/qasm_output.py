@@ -22,7 +22,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import ops, linalg, protocols
+from cirq import ops, linalg, protocols, value
 
 
 class QasmUGate(ops.SingleQubitGate):
@@ -61,57 +61,49 @@ class QasmUGate(ops.SingleQubitGate):
                                                    self.phi)
 
 
+@value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):
-    def __init__(self,
-                 before0: ops.SingleQubitGate,
-                 before1: ops.SingleQubitGate,
-                 x: float, y: float, z: float,
-                 after0: ops.SingleQubitGate,
-                 after1: ops.SingleQubitGate) -> None:
+    def __init__(self, kak: linalg.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
         All angles are in half turns.  Assumes a canonicalized KAK
         decomposition.
 
         Args:
-            before0: Gate applied to qubit 0 before the interaction.
-            before1: Gate applied to qubit 1 before the interaction.
-            x: XX interaction.
-            y: YY interaction.
-            z: ZZ interaction.
-            after0: Gate applied to qubit 0 after the interaction.
-            after1: Gate applied to qubit 1 after the interaction.
+            kak: KAK decomposition of the two-qubit gate.
         """
-        self.before0 = before0
-        self.before1 = before1
-        self.x, self.y, self.z = x, y, z
-        self.after0 = after0
-        self.after1 = after1
+        self.kak = kak
+
+    def _value_equality_values_(self):
+        return self.kak
 
     @staticmethod
-    def from_matrix(mat: np.array, tolerance=1e-8) -> 'QasmTwoQubitGate':
-        kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
+    def from_matrix(mat: np.array, atol=1e-8) -> 'QasmTwoQubitGate':
+        """Creates a QasmTwoQubitGate from the given matrix.
 
-        a1, a0 = kak.single_qubit_operations_after
-        b1, b0 = kak.single_qubit_operations_before
-        x, y, z = kak.interaction_coefficients
+        Args:
+            mat: The unitary matrix of the two qubit gate.
+            atol: Absolute error tolerance when decomposing.
 
-        before0 = QasmUGate.from_matrix(b0)
-        before1 = QasmUGate.from_matrix(b1)
-        after0 = QasmUGate.from_matrix(a0)
-        after1 = QasmUGate.from_matrix(a1)
-        return QasmTwoQubitGate(before0, before1,
-                                x, y, z,
-                                after0, after1)
+        Returns:
+            A QasmTwoQubitGate implementing the matrix.
+        """
+        kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=atol))
+        return QasmTwoQubitGate(kak)
+
+    def _unitary_(self):
+        return protocols.unitary(self.kak)
 
     def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         q0, q1 = qubits
-        a = self.x * -2 / np.pi + 0.5
-        b = self.y * -2 / np.pi + 0.5
-        c = self.z * -2 / np.pi + 0.5
+        x, y, z = self.kak.interaction_coefficients
+        a = x * -2 / np.pi + 0.5
+        b = y * -2 / np.pi + 0.5
+        c = z * -2 / np.pi + 0.5
 
-        yield self.before1(q0)
-        yield self.before0(q1)
+        b0, b1 = self.kak.single_qubit_operations_before
+        yield QasmUGate.from_matrix(b0).on(q0)
+        yield QasmUGate.from_matrix(b1).on(q1)
 
         yield ops.X(q0)**0.5
         yield ops.CNOT(q0, q1)
@@ -122,13 +114,13 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield ops.Z(q1)**c
         yield ops.CNOT(q0, q1)
 
-        yield self.after1(q0)
-        yield self.after0(q1)
+        a0, a1 = self.kak.single_qubit_operations_after
+        yield QasmUGate.from_matrix(a0).on(q0)
+        yield QasmUGate.from_matrix(a1).on(q1)
 
     def __repr__(self) -> str:
-        return 'cirq.QasmTwoQubitGate({}, {}, {}, {}, {}, {}, {})'.format(
-                self.before0, self.before1, self.x, self.y, self.z,
-                self.after0, self.after1)
+        return 'cirq.circuits.qasm_output.QasmTwoQubitGate({!r})'.format(
+            self.kak)
 
 
 class QasmOutput:
