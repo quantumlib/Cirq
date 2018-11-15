@@ -200,7 +200,7 @@ class Simulator(simulator.SimulatesSamples,
                                                                      state)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        measurements[cast(str, gate.key)].append(*corrected)
+                        measurements[cast(str, gate.key)].extend(corrected)
                 else:
                     result = protocols.apply_unitary_to_tensor(op,
                                                                state,
