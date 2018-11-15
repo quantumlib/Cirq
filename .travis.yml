@@ -29,16 +29,17 @@ matrix:
     python: "3.5.2"
     install:
       - pip install -r requirements.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master
 
   - os: linux
-    env: NAME=pytest
+    env: NAME=pytest (without contrib)
     python: "3.6"
     install:
       - pip install -r requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest
+    script: check/pytest --ignore=cirq/contrib
 
   - os: linux
     env: NAME=pytest2
@@ -46,6 +47,7 @@ matrix:
     install:
       - pip install -r dev_tools/python2.7-requirements.txt
       - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
       - curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
       - unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
       - PATH=$(pwd)/protoc3.5/bin:${PATH}
