@@ -15,7 +15,7 @@
 """Utility methods for combining matrices."""
 
 import functools
-from typing import Union
+from typing import Union, Type
 
 import numpy as np
 
@@ -96,7 +96,8 @@ def dot(*values: Union[float, complex, np.ndarray]
     return np.linalg.multi_dot(values)
 
 
-def _merge_dtypes(dtype1: np.dtype, dtype2: np.dtype) -> np.dtype:
+def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]
+                  ) -> Type[np.number]:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 
