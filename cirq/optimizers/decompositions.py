@@ -146,59 +146,6 @@ def single_qubit_op_to_framed_phase_form(
     return u, r, g
 
 
-def _xx_interaction_via_full_czs(q0: ops.QubitId,
-                                 q1: ops.QubitId,
-                                 x: float):
-    a = x * -2 / np.pi
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.X(q0)**a
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-
-
-def _xx_yy_interaction_via_full_czs(q0: ops.QubitId,
-                                    q1: ops.QubitId,
-                                    x: float,
-                                    y: float):
-    a = x * -2 / np.pi
-    b = y * -2 / np.pi
-    yield ops.X(q0)**0.5
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-    yield ops.X(q0)**a
-    yield ops.Y(q1)**b
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-    yield ops.X(q0)**-0.5
-
-
-def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
-                                       q1: ops.QubitId,
-                                       x: float,
-                                       y: float,
-                                       z: float):
-    a = x * -2 / np.pi + 0.5
-    b = y * -2 / np.pi + 0.5
-    c = z * -2 / np.pi + 0.5
-    yield ops.X(q0)**0.5
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-    yield ops.X(q0)**a
-    yield ops.Y(q1)**b
-    yield ops.H.on(q0)
-    yield ops.CZ(q1, q0)
-    yield ops.H(q0)
-    yield ops.X(q1)**-0.5
-    yield ops.Z(q1)**c
-    yield ops.H(q1)
-    yield ops.CZ(q0, q1)
-    yield ops.H(q1)
-
-
 def _deconstruct_single_qubit_matrix_into_gate_turns(
         mat: np.ndarray) -> Tuple[float, float, float]:
     """Breaks down a 2x2 unitary into gate parameters.

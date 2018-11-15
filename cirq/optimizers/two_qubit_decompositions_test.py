@@ -14,7 +14,6 @@
 
 import cmath
 import random
-from typing import Sequence
 
 import numpy as np
 import pytest
@@ -55,15 +54,6 @@ def _operations_to_matrix(operations, qubits):
     return cirq.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=cirq.QubitOrder.explicit(qubits),
         qubits_that_should_be_present=qubits)
-
-
-def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
-                                   intended_effect: np.ndarray,
-                                   atol: float):
-    actual_effect = cirq.dot(*[cirq.unitary(g) for g in reversed(gates)])
-    cirq.testing.assert_allclose_up_to_global_phase(actual_effect,
-                                                    intended_effect,
-                                                    atol=atol)
 
 
 def _random_single_partial_cz_effect():

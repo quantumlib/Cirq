@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -54,6 +55,13 @@ def test_leaves_singleton():
     cirq.testing.assert_same_circuits(
         c,
         cirq.Circuit([cirq.Moment([cirq.X(q)])]))
+
+
+def test_not_both():
+    with pytest.raises(ValueError):
+        _ = cirq.MergeSingleQubitGates(
+            synthesizer=lambda *args: None,
+            rewriter=lambda *args: None)
 
 
 def test_combines_sequence():
