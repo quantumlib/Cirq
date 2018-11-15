@@ -15,6 +15,8 @@
 import re
 import pytest
 
+import numpy as np
+
 import cirq
 from cirq.circuits.qasm_output import QasmUGate, QasmTwoQubitGate
 
@@ -29,17 +31,8 @@ def test_u_gate_repr():
 
 
 def test_qasm_two_qubit_gate_repr():
-    gate = QasmTwoQubitGate(QasmUGate(0.1, 0.2, 0.3),
-                            QasmUGate(0.4, 0.5, 0.6),
-                            0.7, 0.8, 0.9,
-                            QasmUGate(1.0, 1.1, 1.2),
-                            QasmUGate(1.3, 1.4, 1.5))
-    assert repr(gate) == ('cirq.QasmTwoQubitGate('
-                          'cirq.QasmUGate(0.1, 0.2, 0.3), '
-                          'cirq.QasmUGate(0.4, 0.5, 0.6), '
-                          '0.7, 0.8, 0.9, '
-                          'cirq.QasmUGate(1.0, 1.1, 1.2), '
-                          'cirq.QasmUGate(1.3, 1.4, 1.5))')
+    cirq.testing.assert_equivalent_repr(QasmTwoQubitGate.from_matrix(
+        cirq.testing.random_unitary(4)))
 
 
 def test_empty_circuit():
@@ -471,3 +464,9 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
+
+
+def test_qasm_two_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(4)
+    g = QasmTwoQubitGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u)

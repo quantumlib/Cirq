@@ -27,18 +27,17 @@ def assert_decompose_is_consistent_with_unitary(val: Any):
     qubit_count = len(expected).bit_length() - 1
     if isinstance(val, ops.Operation):
         qubits = val.qubits
-        dec = protocols.decompose_once(val)
-        actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
-            qubit_order=qubits)
-        lin_alg_utils.assert_allclose_up_to_global_phase(actual,
-                                                         expected,
-                                                         atol=1e-8)
+        dec = protocols.decompose_once(val, default=None)
     else:
         qubits = tuple(line.LineQubit.range(qubit_count))
-        for qubit_order in itertools.permutations(qubits):
-            dec = protocols.decompose_once_with_qubits(val, qubit_order)
-            actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
-                qubit_order=qubit_order)
-            lin_alg_utils.assert_allclose_up_to_global_phase(actual,
-                                                             expected,
-                                                             atol=1e-8)
+        dec = protocols.decompose_once_with_qubits(val, qubits, default=None)
+    if dec is None:
+        # If there's no decomposition, it's vacuously consistent.
+        return
+
+    actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
+        qubit_order=qubits)
+
+    lin_alg_utils.assert_allclose_up_to_global_phase(actual,
+                                                     expected,
+                                                     atol=1e-8)

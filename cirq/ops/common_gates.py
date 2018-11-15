@@ -19,7 +19,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import (
     gate_features,
     eigen_gate,
@@ -330,6 +330,7 @@ class ZPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class MeasurementGate(raw_types.Gate):
     """Indicates that qubits should be measured plus a key to identify results.
 
@@ -411,16 +412,8 @@ class MeasurementGate(raw_types.Gate):
         return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
                                                      repr(self.invert_mask))
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.key == other.key and self.invert_mask == other.invert_mask
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((MeasurementGate, self.key, self.invert_mask))
+    def _value_equality_values_(self):
+        return self.key, self.invert_mask
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:

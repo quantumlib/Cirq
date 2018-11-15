@@ -19,6 +19,7 @@ from typing import Iterable, Callable, Tuple, TypeVar, Dict, Any
 import collections
 import numpy as np
 
+from cirq import value
 from cirq.study import resolver
 
 T = TypeVar('T')
@@ -74,6 +75,7 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
     return '\n'.join(keyed_bitstrings)
 
 
+@value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
 
@@ -224,13 +226,5 @@ class TrialResult:
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
 
-    def _eq_tuple(self):
-        return (TrialResult, self.measurements, self.repetitions, self.params)
-
-    def __eq__(self, other):
-        if not isinstance(other, TrialResult):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self.measurements, self.repetitions, self.params

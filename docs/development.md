@@ -111,6 +111,12 @@ See the previous section for instructions.
     ```bash
     PYTHONPATH="$(pwd)":"${PYTHONPATH}"
     ```
+    
+    or add it to the python path, but only in the virtualenv.
+    
+    ```bash
+    add2virtualenv ./
+    ```
 
 
 ### Running continuous integration checks locally
