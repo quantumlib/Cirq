@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops, protocols, value
 from cirq.optimizers import two_qubit_decompositions
 
 
@@ -50,8 +50,9 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
         if (isinstance(op, ops.GateOperation)
-            and isinstance(op.gate, ops.CZPowGate)
-            and (self.allow_partial_czs or op.gate.exponent % 2 == 1)):
+                and isinstance(op.gate, ops.CZPowGate)
+                and (self.allow_partial_czs or value.canonicalize_half_turns(
+                    op.gate.exponent) == 1)):
             return True
 
         # Measurement?
