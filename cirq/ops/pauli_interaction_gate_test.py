@@ -33,7 +33,7 @@ def _all_interaction_gates(exponents=(1,)):
 
 
 @pytest.mark.parametrize('gate',
-                         _all_interaction_gates(exponents=(0.1, -0.25, 0.5, 1)))
+                         _all_interaction_gates())
 def test_pauli_interaction_gates_consistent_protocols(gate):
     cirq.testing.assert_implements_consistent_protocols(gate)
 
