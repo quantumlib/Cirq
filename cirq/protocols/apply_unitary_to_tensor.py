@@ -53,9 +53,9 @@ class SupportsApplyUnitaryToTensor(Protocol):
         write specialized simulation methods that run without performing large
         allocations, significantly increasing simulation performance.
 
-        The target may represent a wavefunction, a unitary matrix, or some other
-        tensor. Implementations will work in all of these cases as long as they
-        correctly focus on only operating on the given axes.
+        The target may represent a wave function, a unitary matrix, or some
+        other tensor. Implementations will work in all of these cases as long as
+        they correctly focus on only operating on the given axes.
 
         Args:
             target_tensor: The input tensor that needs to be left-multiplied by

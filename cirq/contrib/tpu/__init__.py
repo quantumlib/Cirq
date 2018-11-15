@@ -45,20 +45,20 @@ methods in this module.
 
 
     circuit = ...
-    compute_func, feed_dict =
-        cirq.contrib.tpu.circuit_to_tensorflow_compute_func_and_feed_dict(
+    compute, feed_dict =
+        cirq.contrib.tpu.circuit_to_tensorflow_runnable(
             circuit)
 
 c) Extend the computation to produce the result you want, instead of the entire
 gigantic state vector. For example, maybe you only want an expectation value or
 a subset of the state vector.
 
-    def extended_compute_func():
-        base = compute_func()
+    def extended_compute():
+        base = compute()
         return base[:128]  # first 128 values of state vector
 
 
-    tpu_computation = tpu.rewrite(extended_compute_func, feed_dict=feed_dict)
+    tpu_computation = tpu.rewrite(extended_compute, feed_dict=feed_dict)
     ...
 
 d) If you run into serious trouble getting this setup to work, open an issue
@@ -73,5 +73,5 @@ and we'll do our best to help and to improve this documentation.
 """
 
 from cirq.contrib.tpu.circuit_to_tensorflow import (
-    circuit_to_tensorflow_compute_func_and_feed_dict,
+    circuit_to_tensorflow_runnable,
 )

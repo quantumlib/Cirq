@@ -20,10 +20,22 @@ from cirq.ops.clifford_gate import (
     PauliTransform,
 )
 from cirq.ops.common_channels import (
+    amplitude_damp,
+    AmplitudeDampingChannel,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
     depolarize,
-    DepolarizingChannel
+    DepolarizingChannel,
+    generalized_amplitude_damp,
+    GeneralizedAmplitudeDampingChannel,
+    phase_damp,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
+    rotation_error,
+    RotationErrorChannel
 )
 from cirq.ops.common_gates import (
     CNOT,
@@ -85,6 +97,14 @@ from cirq.ops.op_tree import (
     freeze_op_tree,
     transform_op_tree,
 )
+from cirq.ops.parity_gates import (
+    XX,
+    XXPowGate,
+    YY,
+    YYPowGate,
+    ZZ,
+    ZZPowGate,
+)
 from cirq.ops.pauli import (
     Pauli,
 )
@@ -107,8 +127,11 @@ from cirq.ops.reversible_composite_gate import (
 )
 from cirq.ops.three_qubit_gates import (
     CCX,
+    CCXPowGate,
     CCZ,
+    CCZPowGate,
     CSWAP,
+    CSwapGate,
     FREDKIN,
     TOFFOLI,
 )

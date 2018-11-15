@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import cast
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, ops, protocols, value
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
     known_qcircuit_operation_symbols,
@@ -22,6 +22,7 @@ from cirq.contrib.qcircuit.qcircuit_diagrammable import (
 )
 
 
+@value.value_equality
 class _QCircuitQubit(ops.QubitId):
     def __init__(self, sub: ops.QubitId) -> None:
         self.sub = sub
@@ -36,16 +37,8 @@ class _QCircuitQubit(ops.QubitId):
         # TODO: If qubit name ends with digits, turn them into subscripts.
         return '\\lstick{\\text{' + str(self.sub) + '}}&'
 
-    def __eq__(self, other):
-        if not isinstance(other, _QCircuitQubit):
-            return NotImplemented
-        return self.sub == other.sub
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((_QCircuitQubit, self.sub))
+    def _value_equality_values_(self):
+        return self.sub
 
 
 class _QCircuitOperation(ops.Operation):

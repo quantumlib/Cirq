@@ -33,27 +33,27 @@ _GROUP_SIZE = 7
 ComputeFuncAndFeedDict = NamedTuple(
     'ComputeFuncAndFeedDict',
     [
-        ('compute_func', Callable[[], tf.Tensor]),
+        ('compute', Callable[[], tf.Tensor]),
         ('feed_dict', Dict[tf.Tensor, Any])
     ])
 
 
-def circuit_to_tensorflow_compute_func_and_feed_dict(
+def circuit_to_tensorflow_runnable(
         circuit: circuits.Circuit,
         initial_state: Union[int, np.ndarray] = 0,
         ) -> ComputeFuncAndFeedDict:
-    """Returns a compute_func and feed_dict for a `cirq.Circuit`'s output.
+    """Returns a compute function and feed_dict for a `cirq.Circuit`'s output.
 
-    `result.compute_func()` will return a `tensorflow.Tensor` with
+    `result.compute()` will return a `tensorflow.Tensor` with
     `tensorflow.placeholder` objects to be filled in by `result.feed_dict`, at
     which point it will evaluate to the output state vector of the circuit.
 
     You can apply further operations to the tensor returned by
-    `result.compute_func`. This allows, for example, for the final result to be
+    `result.compute`. This allows, for example, for the final result to be
     a small amount of computed data (e.g. an expectation value) instead of the
     gigantic raw state vector.
 
-    The tensor returned by `result.compute_func` is intended to run efficiently
+    The tensor returned by `result.compute` is intended to run efficiently
     on cloud TPUs. It will have dtype complex64 and a shape of (2**n,) where n
     is the number of qubits.
 
@@ -62,9 +62,9 @@ def circuit_to_tensorflow_compute_func_and_feed_dict(
         this method's output into `tensorflow.Session.run` as follows:
 
             import tensorflow as tf
-            r = circuit_to_tensorflow_compute_func_and_feed_dict(...)
+            r = circuit_to_tensorflow_runnable(...)
             with tf.Session() as session:
-                output = session.run(r.compute_func(), feed_dict=r.feed_dict)
+                output = session.run(r.compute(), feed_dict=r.feed_dict)
             print(output)
 
         Note that you can use the returned tensor in further computations. For
@@ -72,8 +72,8 @@ def circuit_to_tensorflow_compute_func_and_feed_dict(
         computational basis states you can use `tf.norm(tensor[:128], 2)`:
 
             import tensorflow as tf
-            r = circuit_to_tensorflow_compute_func_and_feed_dict(...)
-            expectation = lambda: tf.norm(r.compute_func()[:128], 2)
+            r = circuit_to_tensorflow_runnable(...)
+            expectation = lambda: tf.norm(r.compute()[:128], 2)
             with tf.Session() as session:
                 output = session.run(expectation, feed_dict=r.feed_dict)
             print(output)
@@ -88,8 +88,8 @@ def circuit_to_tensorflow_compute_func_and_feed_dict(
 
             import tensorflow as tf
             TPU_TARGET = ???????
-            r = circuit_to_tensorflow_compute_func_and_feed_dict(...)
-            rewritten_for_tpu = tf.contrib.tpu.rewrite(r.compute_func)
+            r = circuit_to_tensorflow_runnable(...YOUR_CIRCUIT...)
+            rewritten_for_tpu = tf.contrib.tpu.rewrite(r.compute)
 
             with tf.Session(target=TPU_TARGET) as session:
                 session.run(tf.contrib.tpu.initialize_system())
@@ -105,16 +105,17 @@ def circuit_to_tensorflow_compute_func_and_feed_dict(
             a numpy array, it should directly encode a normalized wavefunction.
 
     Returns:
-        A tuple whose first element is a function that returns a Tensor
-        representing the output state vector that results from applying the
-        given circuit to the given, and whose second element is a feed_dict
-        containing important parameters describing that tensor.
+        A ComputeFuncAndFeedDict, which is a named tuple whose first element is
+        a function that returns a Tensor representing the output state vector
+        that results from applying the given circuit to the given, and whose
+        second element is a feed_dict containing important parameters describing
+        that tensor.
     """
     if not circuit.are_all_measurements_terminal():
         raise ValueError('not circuit.are_all_measurements_terminal()')
 
     t = _TensorCircuit(circuit, initial_state)
-    return ComputeFuncAndFeedDict(t.compute_func, t.feed_dict)
+    return ComputeFuncAndFeedDict(t.compute, t.feed_dict)
 
 
 _TransformsThenCzs = namedtuple(
@@ -387,7 +388,7 @@ class _TensorCircuit:
                 for e in self.layers
             ])
 
-    def compute_func(self):
+    def compute(self):
         v = self._initial_state_func()
 
         # Apply all layers.

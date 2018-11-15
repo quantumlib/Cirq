@@ -20,6 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
+from fractions import Fraction
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -755,7 +756,10 @@ class Circuit:
             index: int,
             moment_or_operation_tree: Union[Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
-        """Inserts operations into the middle of the circuit.
+        """ Inserts a moment or operations into the circuit.
+            Moments are inserted at the specified index.
+            Operations are inserted into the moment specified by the index and
+            'InsertStrategy'.
 
         Args:
             index: The index to insert all of the operations at.
@@ -767,7 +771,6 @@ class Circuit:
             operations that were inserted by this method.
 
         Raises:
-            IndexError: Bad insertion index.
             ValueError: Bad insertion strategy.
         """
         if isinstance(moment_or_operation_tree, Moment):
@@ -775,16 +778,15 @@ class Circuit:
             self._moments.insert(index, moment_or_operation_tree)
             return index + 1
 
-        if not 0 <= index <= len(self._moments):
-            raise IndexError('Insert index out of range: {}'.format(index))
-
         operations = list(ops.flatten_op_tree(ops.transform_op_tree(
             moment_or_operation_tree,
             self._device.decompose_operation)))
         for op in operations:
             self._device.validate_operation(op)
 
-        k = index
+        # limit index to 0..len(self._moments), also deal with indices smaller 0
+        k = max(min(index if index >= 0 else len(self._moments) + index,
+                    len(self._moments)), 0)
         for op in operations:
             p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
             while p >= len(self._moments):
@@ -1140,7 +1142,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -1193,7 +1195,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
         A circuit's "unitary effect" is the unitary matrix produced by
@@ -1483,6 +1485,13 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     # If it's a float, show the desired precision.
     if isinstance(info.exponent, float):
         if args.precision is not None:
+            # funky behavior of fraction, cast to str in constructor helps.
+            approx_frac = Fraction(info.exponent).limit_denominator(16)
+            if approx_frac.denominator not in [2, 4, 5, 10]:
+                if abs(float(approx_frac)
+                    - info.exponent) < 10**-args.precision:
+                    return '({})'.format(approx_frac)
+
             return '{{:.{}}}'.format(args.precision).format(info.exponent)
         return repr(info.exponent)
 
@@ -1581,7 +1590,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           dtype: np.dtype) -> np.ndarray:
+                           dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.

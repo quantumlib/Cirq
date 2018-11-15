@@ -15,11 +15,15 @@
 
 import itertools
 
-from typing import List, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple, Union, TYPE_CHECKING, Type
 
 import numpy as np
 
 from cirq import linalg
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.sim import simulator
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
@@ -63,7 +67,8 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
 
 
 def to_valid_state_vector(state_rep: Union[int, np.ndarray],
-    num_qubits: int, dtype: np.dtype = np.complex64) -> np.ndarray:
+                          num_qubits: int,
+                          dtype: Type[np.number] = np.complex64) -> np.ndarray:
     """Verifies the initial_state is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
@@ -105,12 +110,13 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
             state[state_rep] = 1.0
     else:
         raise TypeError('initial_state was not of type int or ndarray')
-    validate_normalized_state(state, num_qubits)
+    validate_normalized_state(state, num_qubits, dtype)
     return state
 
 
-def validate_normalized_state(state: np.ndarray, num_qubits: int,
-    dtype: np.dtype = np.complex64) -> None:
+def validate_normalized_state(state: np.ndarray,
+                              num_qubits: int,
+                              dtype: Type[np.number] = np.complex64) -> None:
     """Validates that the given state is a valid wave function."""
     if state.size != 1 << num_qubits:
         raise ValueError(

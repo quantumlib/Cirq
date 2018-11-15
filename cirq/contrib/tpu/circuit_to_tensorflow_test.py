@@ -18,17 +18,17 @@ import pytest
 import tensorflow as tf
 
 from cirq.contrib.tpu import (
-    circuit_to_tensorflow_compute_func_and_feed_dict
+    circuit_to_tensorflow_runnable
 )
 import cirq
 
 
 def _assert_evaluates_correctly(circuit: cirq.Circuit,
                                 up_to_global_phase: bool = False):
-    r = circuit_to_tensorflow_compute_func_and_feed_dict(circuit)
+    r = circuit_to_tensorflow_runnable(circuit)
     v1 = circuit.apply_unitary_effect_to_state(dtype=np.complex64)
     with tf.Session() as session:
-        v2 = session.run(r.compute_func(), feed_dict=r.feed_dict)
+        v2 = session.run(r.compute(), feed_dict=r.feed_dict)
     assert v1.shape == v2.shape
     if up_to_global_phase:
         cirq.testing.assert_allclose_up_to_global_phase(v1, v2, atol=1e-6)
@@ -37,7 +37,7 @@ def _assert_evaluates_correctly(circuit: cirq.Circuit,
 
 
 @pytest.mark.parametrize('n', range(10))
-def test_circuit_to_compute_func_and_feed_dict_small(n: int):
+def test_circuit_to_compute_and_feed_dict_small(n: int):
     qs = cirq.LineQubit.range(n)
     c = cirq.Circuit.from_ops(
         [cirq.X(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
@@ -49,7 +49,7 @@ def test_circuit_to_compute_func_and_feed_dict_small(n: int):
     _assert_evaluates_correctly(c)
 
 
-def test_circuit_to_compute_func_and_feed_dict_big():
+def test_circuit_to_compute_and_feed_dict_big():
     n = 16
     qs = cirq.LineQubit.range(n)
     c = cirq.Circuit.from_ops(
@@ -64,48 +64,53 @@ def test_circuit_to_compute_func_and_feed_dict_big():
     _assert_evaluates_correctly(c)
 
 
-def test_circuit_to_compute_func_and_feed_dict_vector_custom_start_state():
+def test_circuit_to_compute_and_feed_dict_vector_custom_start_state():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(cirq.CZ(a, b))
 
-    r = circuit_to_tensorflow_compute_func_and_feed_dict(c, initial_state=0)
+    tf.reset_default_graph()
+    r = circuit_to_tensorflow_runnable(c, initial_state=0)
     with tf.Session() as session:
-        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+        v = session.run(r.compute(), feed_dict=r.feed_dict)
     np.testing.assert_allclose(v, np.array([1, 0, 0, 0]), atol=1e-6)
 
-    r = circuit_to_tensorflow_compute_func_and_feed_dict(c, initial_state=1)
+    tf.reset_default_graph()
+    r = circuit_to_tensorflow_runnable(c, initial_state=1)
     with tf.Session() as session:
-        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+        v = session.run(r.compute(), feed_dict=r.feed_dict)
     np.testing.assert_allclose(v, np.array([0, 1, 0, 0]), atol=1e-6)
 
-    r = circuit_to_tensorflow_compute_func_and_feed_dict(c, initial_state=3)
+    tf.reset_default_graph()
+    r = circuit_to_tensorflow_runnable(c, initial_state=3)
     with tf.Session() as session:
-        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+        v = session.run(r.compute(), feed_dict=r.feed_dict)
     np.testing.assert_allclose(v, np.array([0, 0, 0, -1]), atol=1e-6)
 
-    r = circuit_to_tensorflow_compute_func_and_feed_dict(
+    tf.reset_default_graph()
+    r = circuit_to_tensorflow_runnable(
         c, initial_state=np.array([0.5, 0.5, 0.5, 0.5]))
     with tf.Session() as session:
-        v = session.run(r.compute_func(), feed_dict=r.feed_dict)
+        v = session.run(r.compute(), feed_dict=r.feed_dict)
     np.testing.assert_allclose(v, np.array([0.5, 0.5, 0.5, -0.5]), atol=1e-6)
 
+    tf.reset_default_graph()
     with pytest.raises(ValueError):
-        _ = circuit_to_tensorflow_compute_func_and_feed_dict(
+        _ = circuit_to_tensorflow_runnable(
             c,
             initial_state='zero please')
 
 
-def test_circuit_to_compute_func_and_feed_dict_allows_terminal_measurements():
+def test_circuit_to_compute_and_feed_dict_allows_terminal_measurements():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q), cirq.H(q))
     with pytest.raises(ValueError):
-        _ = circuit_to_tensorflow_compute_func_and_feed_dict(c)
+        _ = circuit_to_tensorflow_runnable(c)
 
     c = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
     _assert_evaluates_correctly(c)
 
 
-def test_circuit_to_compute_func_and_feed_dict_works_on_unknown_ops():
+def test_circuit_to_compute_and_feed_dict_works_on_unknown_ops():
     qs = cirq.LineQubit.range(10)
 
     class PhasedSwapGate(cirq.TwoQubitGate):
