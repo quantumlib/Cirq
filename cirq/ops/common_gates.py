@@ -517,6 +517,11 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _decompose_(self, qubits):
         q = qubits[0]
 
+        if self._exponent == 1:
+            yield cirq.Y(q)**0.5
+            yield cirq.XPowGate(global_shift=-0.25).on(q)
+            return
+
         yield Y(q)**0.25
         yield X(q)**self._exponent
         yield Y(q)**-0.25
