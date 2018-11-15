@@ -23,7 +23,10 @@ from cirq.testing import lin_alg_utils
 def assert_decompose_is_consistent_with_unitary(val: Any):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
 
-    expected = protocols.unitary(val)
+    expected = protocols.unitary(val, None)
+    if expected is None:
+        # If there's no unitary, it's vacuously consistent.
+        return
     qubit_count = len(expected).bit_length() - 1
     if isinstance(val, ops.Operation):
         qubits = val.qubits

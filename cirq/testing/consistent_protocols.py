@@ -66,13 +66,10 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
 
 def _assert_meets_standards_helper(val: Any,
                                    qubit_count: Optional[int]) -> None:
-    if protocols.has_unitary(val):
-        assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
-        assert_qasm_is_consistent_with_unitary(val)
-        if getattr(val, '_decompose_', None) is not None:
-            assert_decompose_is_consistent_with_unitary(val)
-        if getattr(val, '_phase_by_', None) is not None:
-            assert_phase_by_is_consistent_with_unitary(val)
+    assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
+    assert_qasm_is_consistent_with_unitary(val)
+    assert_decompose_is_consistent_with_unitary(val)
+    assert_phase_by_is_consistent_with_unitary(val)
+    assert_equivalent_repr(val)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
-    assert_equivalent_repr(val)

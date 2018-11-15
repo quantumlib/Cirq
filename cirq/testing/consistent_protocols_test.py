@@ -168,7 +168,7 @@ class BadGateRepr(GoodGate):
                 ', '.join(args))
 
 
-class GoodEigenGate(cirq.EigenGate):
+class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
 
     def _eigen_components(self):
         return [

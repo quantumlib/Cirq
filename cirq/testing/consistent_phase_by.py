@@ -23,7 +23,10 @@ from cirq.testing import lin_alg_utils
 def assert_phase_by_is_consistent_with_unitary(val: Any):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
 
-    original = protocols.unitary(val)
+    original = protocols.unitary(val, None)
+    if original is None:
+        # If there's no unitary, it's vacuously consistent.
+        return
     qubit_count = len(original).bit_length() - 1
     original.shape = (2, 2) * qubit_count
 
