@@ -42,15 +42,6 @@ def test_single_qubit_eq():
     eq.make_equality_group(lambda: cirq.SingleQubitMatrixGate(x2))
 
 
-def test_single_qubit_phase_by():
-    x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
-    y = cirq.SingleQubitMatrixGate(np.array([[0, -1j], [1j, 0]]))
-    z = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, -1]]))
-    assert cirq.phase_by(x, 0.25, 0).approx_eq(y)
-    assert cirq.phase_by(y, -0.25, 0).approx_eq(x)
-    assert cirq.phase_by(z, 0.25, 0).approx_eq(z)
-
-
 def test_single_qubit_trace_distance_bound():
     x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = cirq.SingleQubitMatrixGate(
@@ -104,25 +95,6 @@ def test_two_qubit_eq():
     eq.make_equality_group(lambda: cirq.TwoQubitMatrixGate(np.eye(4)))
     eq.make_equality_group(lambda: cirq.TwoQubitMatrixGate(QFT2))
     eq.make_equality_group(lambda: cirq.TwoQubitMatrixGate(HH))
-
-
-def test_two_qubit_phase_by():
-    x = np.array([[0, 1], [1, 0]])
-    y = np.array([[0, -1j], [1j, 0]])
-    z = np.array([[1, 0], [0, -1]])
-
-    xx = cirq.TwoQubitMatrixGate(np.kron(x, x))
-    yx = cirq.TwoQubitMatrixGate(np.kron(x, y))
-    xy = cirq.TwoQubitMatrixGate(np.kron(y, x))
-    yy = cirq.TwoQubitMatrixGate(np.kron(y, y))
-    assert cirq.phase_by(xx, 0.25, 0).approx_eq(yx)
-    assert cirq.phase_by(xx, 0.25, 1).approx_eq(xy)
-    assert cirq.phase_by(xy, 0.25, 0).approx_eq(yy)
-    assert cirq.phase_by(xy, -0.25, 1).approx_eq(xx)
-
-    zz = cirq.TwoQubitMatrixGate(np.kron(z, z))
-    assert cirq.phase_by(zz, 0.25, 0).approx_eq(zz)
-    assert cirq.phase_by(zz, 0.25, 1).approx_eq(zz)
 
 
 def test_two_qubit_approx_eq():
@@ -238,3 +210,21 @@ def test_repr():
 def test_str_executes():
     assert '1' in str(cirq.SingleQubitMatrixGate(np.eye(2)))
     assert '0' in str(cirq.TwoQubitMatrixGate(np.eye(4)))
+
+
+def test_one_qubit_consistent():
+    u = cirq.testing.random_unitary(2)
+    g = cirq.SingleQubitMatrixGate(u)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(g)
+    cirq.testing.assert_qasm_is_consistent_with_unitary(g)
+    cirq.testing.assert_has_consistent_apply_unitary(g)
+
+
+def test_two_qubit_consistent():
+    u = cirq.testing.random_unitary(4)
+    g = cirq.TwoQubitMatrixGate(u)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(g)
+    cirq.testing.assert_qasm_is_consistent_with_unitary(g)
+    cirq.testing.assert_has_consistent_apply_unitary(g)
