@@ -1142,7 +1142,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -1195,7 +1195,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
         A circuit's "unitary effect" is the unitary matrix produced by
@@ -1590,7 +1590,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           dtype: np.dtype) -> np.ndarray:
+                           dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.
