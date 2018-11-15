@@ -29,9 +29,9 @@ from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 def assert_implements_consistent_protocols(
         val: Any,
         *,
-        qubit_count: Optional[int] = None,
         exponents: Sequence[Any] =
-            (0, 1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s'))
+            (0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        qubit_count: Optional[int] = None
         ) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
 
@@ -47,7 +47,7 @@ def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
         exponents: Sequence[Union[value.Symbol, float]] =
-            (0, 1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s')),
+            (0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
         global_shifts: Sequence[float] = (0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a

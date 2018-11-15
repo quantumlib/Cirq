@@ -44,7 +44,7 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
-            cirq.MeasurementGate(''))
+            cirq.MeasurementGate(''), qubit_count=1)
 
 
 def test_cz_init():

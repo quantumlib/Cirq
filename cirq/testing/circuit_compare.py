@@ -296,7 +296,7 @@ def assert_has_consistent_apply_unitary(
 def assert_eigen_gate_has_consistent_apply_unitary(
         eigen_gate_type: Type[EigenGate],
         *,
-        exponents=(0, 1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s')),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
         global_shifts=(0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None) -> None:
     """Tests whether an EigenGate type's _apply_unitary_to_tensor_ is correct.
@@ -327,7 +327,7 @@ def assert_eigen_gate_has_consistent_apply_unitary(
 def assert_has_consistent_apply_unitary_for_various_exponents(
         val: Any,
         *,
-        exponents=(0, 1, -0.5, 0.5, 0.25, -0.25, 0.1, value.Symbol('s')),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
         qubit_count: Optional[int] = None) -> None:
     """Tests whether a value's _apply_unitary_to_tensor_ is correct.
 
