@@ -22,6 +22,7 @@ import pytest
 
 import cirq
 
+
 def _operations_to_matrix(operations, qubits):
     return cirq.Circuit.from_ops(operations).to_unitary_matrix(
         qubit_order=cirq.QubitOrder.explicit(qubits),
