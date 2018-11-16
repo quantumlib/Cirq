@@ -389,6 +389,9 @@ def test_invalid_run_no_unitary():
 def test_allocates_new_state():
     class NoUnitary(cirq.Gate):
 
+        def _has_unitary_(self):
+            return True
+
         def _apply_unitary_to_tensor_(
                 self, target_tensor, available_buffer, axes):
             available_buffer = np.copy(target_tensor)
