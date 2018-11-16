@@ -241,6 +241,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     SupportsApplyUnitaryToTensor,
+    SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
