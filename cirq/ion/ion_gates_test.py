@@ -24,8 +24,8 @@ def test_MS_arguments():
 
 
 def test_MS_str():
-    assert str(cirq.MS(np.pi/2)) == 'MS(np.pi/2)'
-    assert str(cirq.MS(np.pi)) == 'MS(np.pi/2*2.0)'
+    assert str(cirq.MS(np.pi/2)) == 'MS(π/2)'
+    assert str(cirq.MS(np.pi)) == 'MS(2.0π/2)'
 
 
 def test_MS_matrix():
@@ -43,7 +43,7 @@ def test_MS_matrix():
 
 def test_MS_repr():
     assert repr(cirq.MS(np.pi/2)) == 'cirq.MS(np.pi/2)'
-    assert repr(cirq.MS(np.pi/4)) == 'cirq.MS(np.pi/2*0.5)'
+    assert repr(cirq.MS(np.pi/4)) == 'cirq.MS(0.5*np.pi/2)'
     cirq.testing.assert_equivalent_repr(cirq.MS(np.pi/4))
 
 

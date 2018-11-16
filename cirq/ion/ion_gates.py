@@ -20,22 +20,21 @@ from cirq import ops
 
 
 def MS(rads: float) -> ops.XXPowGate:
-    """
-    Implements the Mølmer–Sørensen gate,
-    native two-qubit operation in ion traps.
-    Effectively equivalents to rotation around the XX axis
-    in the two-qubit bloch sphere.
+    """The Mølmer–Sørensen gate, a native two-qubit operation in ion traps.
+
+    A rotation around the XX axis in the two-qubit bloch sphere.
 
     The gate implements the following unitary:
-    exp(-i t XX) = [cos(t) 0 0 -isin(t)]
-                   [0 cos(t) -isin(t) 0]
-                   [0 -isin(t) cos(t) 0]
-                   [-isin(t) 0 0 cos(t)]
+
+        exp(-i t XX) = [ cos(t)   0        0       -isin(t)]
+                       [ 0        cos(t)  -isin(t)  0      ]
+                       [ 0       -isin(t)  cos(t)   0      ]
+                       [-isin(t)  0        0        cos(t) ]
+
     Args:
         rads: The rotation angle in radians.
 
     Returns:
         Mølmer–Sørensen gate rotating by the desired amount.
-
     """
     return ops.XXPowGate(exponent=rads*2/np.pi, global_shift=-0.5)

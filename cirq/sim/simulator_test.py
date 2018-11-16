@@ -244,7 +244,6 @@ def test_step_sample_measurement_ops_repetitions():
                             {'0,1': [[False, True]] * 3, '2': [[False]] * 3})
 
 
-
 def test_step_sample_measurement_ops_no_measurements():
     step_result = FakeStepResult([])
 
@@ -265,3 +264,29 @@ def test_step_sample_measurement_ops_repeated_qubit():
     with pytest.raises(ValueError, match='MeasurementGate'):
         step_result.sample_measurement_ops(
                 [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)])
+
+
+class MultiHTestGate(cirq.Gate):
+    def _decompose_(self, qubits):
+        return cirq.H.on_each(qubits)
+
+
+def test_simulates_composite():
+    c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
+    expected = np.array([0.5] * 4)
+    np.testing.assert_allclose(c.apply_unitary_effect_to_state(),
+                               expected)
+    np.testing.assert_allclose(cirq.Simulator().simulate(c).final_state,
+                               expected)
+
+
+def test_simulate_measurement_inversions():
+    q = cirq.NamedQubit('q')
+
+    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
+                                                   invert_mask=(True,)).on(q))
+    assert cirq.Simulator().simulate(c).measurements == {'q': np.array([True])}
+
+    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
+                                                   invert_mask=(False,)).on(q))
+    assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}

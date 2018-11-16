@@ -71,7 +71,7 @@ class SingleQubitMatrixGate(raw_types.Gate):
         return True
 
     def _unitary_(self) -> np.ndarray:
-        return self._matrix
+        return np.array(self._matrix)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -139,7 +139,7 @@ class TwoQubitMatrixGate(raw_types.Gate):
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         i = np.eye(2)
         z = _phase_matrix(phase_turns)
-        z2 = np.kron(z, i) if qubit_index else np.kron(i, z)
+        z2 = np.kron(i, z) if qubit_index else np.kron(z, i)
         phased_matrix = z2.dot(self._matrix).dot(np.conj(z2.T))
         return TwoQubitMatrixGate(phased_matrix)
 
@@ -151,7 +151,7 @@ class TwoQubitMatrixGate(raw_types.Gate):
         return cmp(self._matrix, other._matrix)
 
     def _unitary_(self) -> np.ndarray:
-        return self._matrix
+        return np.array(self._matrix)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:

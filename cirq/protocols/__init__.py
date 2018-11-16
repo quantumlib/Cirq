@@ -19,6 +19,7 @@ from cirq.protocols.apply_unitary_to_tensor import (
 )
 from cirq.protocols.channel import (
     channel,
+    SupportsChannel,
 )
 from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfo,
@@ -30,6 +31,8 @@ from cirq.protocols.decompose import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    SupportsDecompose,
+    SupportsDecomposeWithQubits,
 )
 from cirq.protocols.inverse import (
     inverse,

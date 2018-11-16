@@ -20,6 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
+from fractions import Fraction
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -1141,7 +1142,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -1194,7 +1195,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
         A circuit's "unitary effect" is the unitary matrix produced by
@@ -1484,6 +1485,13 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     # If it's a float, show the desired precision.
     if isinstance(info.exponent, float):
         if args.precision is not None:
+            # funky behavior of fraction, cast to str in constructor helps.
+            approx_frac = Fraction(info.exponent).limit_denominator(16)
+            if approx_frac.denominator not in [2, 4, 5, 10]:
+                if abs(float(approx_frac)
+                    - info.exponent) < 10**-args.precision:
+                    return '({})'.format(approx_frac)
+
             return '{{:.{}}}'.format(args.precision).format(info.exponent)
         return repr(info.exponent)
 
@@ -1582,7 +1590,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           dtype: np.dtype) -> np.ndarray:
+                           dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.
