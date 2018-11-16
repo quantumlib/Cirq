@@ -26,6 +26,76 @@ if TYPE_CHECKING:
     from cirq.sim import simulator
 
 
+def bloch_vector(state: Sequence, index: int) -> np.ndarray:
+    """Returns the bloch vector of a qubit.
+
+    Calculates the bloch vector of the qubit at index
+    in the wavefunction given by state.
+
+    Args:
+        state: A sequence representing a wave function in which
+            the ordering mapping to qubits follows the standard Kronecker
+            convention of numpy.kron.
+        index: index of qubit who's bloch vector we want to find.
+
+    Returns:
+        A length 3 numpy array representing the qubit's bloch vector.
+    """
+    rho = density_matrix(state, [index])
+    v = np.zeros(3, dtype=np.complex64)
+    v[0] = rho[1][0] + rho[0][1]
+    v[1] = 1.0j * (rho[0][1] - rho[1][0])
+    v[2] = rho[0][0] - rho[1][1]
+
+    return v
+
+
+def density_matrix(state: Sequence, indices: List[int] = None) -> np.ndarray:
+    """Returns the density matrix of the wavefunction.
+
+    Calculate the density matrix for the system on the given qubit
+    indices, with the qubits not in indices that are present in state
+    traced out. If indices is None the full density matrix for state
+    is returned.
+    For example:
+        state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+        indices = None
+        gives us \rho = \begin{bmatrix}
+                            0.5 & 0.5
+                            0.5 & 0.5
+                        \end{bmatrix}
+
+    Args:
+        state: A sequence representing a wave function in which
+            the ordering mapping to qubits follows the standard Kronecker
+            convention of numpy.kron.
+        indices: list containing indices for qubits that you would like
+            to include in the density matrix (i.e.) qubits that WON'T
+            be traced out.
+
+    Returns:
+        A numpy array representing the density matrix.
+    """
+    n_qubits = _validate_num_qubits(state)
+    if indices is None:
+        return np.outer(np.conj(state), state)
+
+    all_indices = [i for i in range(n_qubits)]
+    _validate_indices(n_qubits, indices)
+
+    to_trace_out = set(all_indices).difference(indices)
+    to_trace_out = sorted(list(to_trace_out))
+    rho = np.outer(np.conj(state), state)
+
+    num_traced = 0
+    for index in to_trace_out:
+        rho = _single_partial_trace(rho,
+            n_qubits - num_traced, index - num_traced)
+        num_traced += 1
+
+    return rho
+
+
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
     """Returns the wavefunction as a string in Dirac notation.
 
@@ -268,6 +338,23 @@ def _probs(state: np.ndarray, indices: List[int],
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= sum(probs) # type: ignore
     return probs
+
+
+def _single_partial_trace(density_matrix: np.ndarray,
+    n_qubits: int,  index: int) -> np.ndarray:
+    """Helper function to trace out one index from a density matrix."""
+    n_left = index
+    n_right = n_qubits - index - 1
+    new_dim = 2 ** (n_qubits - 1)
+    zero = np.array([[1., 0.]], dtype=np.complex64)
+    one = np.array([[0., 1.]], dtype=np.complex64)
+    reduced_rho = np.zeros((new_dim, new_dim), dtype=np.complex64)
+    for a in [zero, one]:
+        L = np.kron(np.kron(np.eye(2 ** n_left), a), np.eye(2 ** n_right))
+        R = np.kron(np.kron(np.eye(2 ** n_left), a.T), np.eye(2 ** n_right))
+        reduced_rho += np.dot(np.dot(L, density_matrix), R)
+
+    return reduced_rho
 
 
 def _validate_num_qubits(state: np.ndarray) -> int:

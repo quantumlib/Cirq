@@ -189,6 +189,8 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
+    bloch_vector,
+    density_matrix,
     dirac_notation,
     measure_state_vector,
     sample_state_vector,

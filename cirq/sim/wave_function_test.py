@@ -25,6 +25,97 @@ def assert_dirac_notation(vec, expected, decimals=2):
     assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
 
 
+def test_bloch_vector_simple():
+    sqrt = np.sqrt(0.5)
+    test_state = np.array([sqrt, sqrt])
+
+    bloch = cirq.bloch_vector(test_state, 0)
+    desired_simple = np.array([1,0,0])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_invalid():
+    with pytest.raises(ValueError):
+        _ = cirq.bloch_vector(np.array([0.5, 0.5, 0.5]), 0)
+        _ = cirq.bloch_vector('junk', 0)
+    with pytest.raises(IndexError):
+        _ = cirq.bloch_vector(np.array([0.5, 0.5,0.5,0.5]), -1)
+        _ = cirq.bloch_vector(np.array([0.5, 0.5,0.5,0.5]), 2)
+
+
+def test_bloch_vector_multi_pure():
+    test_state = np.array([0.5,0.5,0.5,0.5])
+
+    bloch_0 = cirq.bloch_vector(test_state, 0)
+    bloch_1 = cirq.bloch_vector(test_state, 1)
+    desired_simple = np.array([1,0,0])
+
+    np.testing.assert_array_almost_equal(bloch_1, desired_simple)
+    np.testing.assert_array_almost_equal(bloch_0, desired_simple)
+
+
+def test_bloch_vector_multi_mixed():
+    sqrt = np.sqrt(0.5)
+    test_state = np.array([sqrt, 0., 0., sqrt])
+
+    bloch_0 = cirq.bloch_vector(test_state, 0)
+    bloch_1 = cirq.bloch_vector(test_state, 1)
+    zero = np.zeros(3)
+
+    np.testing.assert_array_almost_equal(bloch_0, zero)
+    np.testing.assert_array_almost_equal(bloch_1, zero)
+
+    test_state2 = np.array([0.90612745, -0.07465783j,
+        -0.37533028j, 0.18023996])
+    bloch_mixed_0 = cirq.bloch_vector(test_state2, 0)
+    bloch_mixed_1 = cirq.bloch_vector(test_state2, 1)
+
+    true_mixed_0 = np.array([0., 0.6532815, 0.6532815])
+    true_mixed_1 = np.array([0., 0., 0.9238795])
+
+    np.testing.assert_array_almost_equal(true_mixed_0, bloch_mixed_0)
+    np.testing.assert_array_almost_equal(true_mixed_1, bloch_mixed_1)
+
+
+def test_density_matrix():
+    test_state = np.array([0.-0.35355339j, 0.+0.35355339j, 0.-0.35355339j,
+        0.+0.35355339j, 0.+0.35355339j, 0.-0.35355339j, 0.+0.35355339j,
+        0.-0.35355339j])
+
+    full_rho = cirq.density_matrix(test_state)
+    np.testing.assert_array_almost_equal(full_rho,
+        np.outer(np.conj(test_state), test_state))
+
+    rho_one = cirq.density_matrix(test_state, [1])
+    true_one = np.array([[0.5+0.j, 0.5+0.j], [0.5+0.j, 0.5+0.j]])
+    np.testing.assert_array_almost_equal(rho_one, true_one)
+
+    rho_two_zero = cirq.density_matrix(test_state, [0,2])
+    true_two_zero = np.array([[ 0.25+0.j, -0.25+0.j, -0.25+0.j,  0.25+0.j],
+                             [-0.25+0.j, 0.25+0.j,  0.25+0.j, -0.25+0.j],
+                             [-0.25+0.j, 0.25+0.j,  0.25+0.j, -0.25+0.j],
+                             [ 0.25+0.j, -0.25+0.j, -0.25+0.j,  0.25+0.j]])
+    np.testing.assert_array_almost_equal(rho_two_zero, true_two_zero)
+
+    # two and zero will have same single qubit density matrix.
+    rho_two = cirq.density_matrix(test_state, [2])
+    true_two = np.array([[0.5+0.j, -0.5+0.j], [-0.5+0.j, 0.5+0.j]])
+    np.testing.assert_array_almost_equal(rho_two, true_two)
+    rho_zero = cirq.density_matrix(test_state, [0])
+    np.testing.assert_array_almost_equal(rho_zero, true_two)
+
+
+def test_density_matrix_invalid():
+    bad_state = np.array([0.5,0.5,0.5])
+    good_state = np.array([0.5,0.5,0.5,0.5])
+    with pytest.raises(ValueError):
+        _ = cirq.density_matrix(bad_state)
+        _ = cirq.density_matrix(bad_state, [0, 1])
+    with pytest.raises(IndexError):
+        _ = cirq.density_matrix(good_state, [-1, 0, 1])
+        _ = cirq.density_matrix(good_state, [-1])
+
+
 def test_dirac_notation():
     sqrt = np.sqrt(0.5)
     exp_pi_2 = 0.5 + 0.5j
