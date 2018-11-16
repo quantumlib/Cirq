@@ -121,11 +121,11 @@ def prepare_temporary_test_environment(
                                 'dev_tools',
                                 'conf',
                                 'pip-list-dev-tools.txt')
-    contrib_rev_path = os.path.join(base_path,
+    contrib_req_path = os.path.join(base_path,
                                     'cirq',
                                     'contrib',
                                     'contrib-requirements.txt')
-    rev_paths = [req_path, dev_req_path, contrib_rev_path]
+    rev_paths = [req_path, dev_req_path, contrib_req_path]
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_paths=rev_paths,
@@ -176,10 +176,14 @@ def derive_temporary_python2_environment(
     env_path = os.path.join(destination_directory, env_name)
     # (These files are output by dev_tools/python2.7-generate.sh.)
     req_path = os.path.join(destination_directory, 'requirements.txt')
-    req_path_2 = os.path.join(destination_directory, 'pip-list-test-tools.txt')
+    dev_req_path = os.path.join(destination_directory, 'pip-list-test-tools.txt')
+    contrib_req_path = os.path.join(destination_directory,
+                                    'contrib',
+                                    'contrib-requirements.txt')
+    req_paths = [req_path, dev_req_path, contrib_req_path]
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
-                       requirements_paths=[req_path, req_path_2],
+                       requirements_paths=req_paths,
                        verbose=verbose)
 
     return PreparedEnv(github_repo=python3_environment.repository,
