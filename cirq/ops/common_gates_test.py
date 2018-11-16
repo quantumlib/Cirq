@@ -355,10 +355,6 @@ def test_repr():
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
     assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
 
-    for e in [1, 0.5, 0.25, 0.1, -0.3]:
-        for g in [cirq.X, cirq.Y, cirq.Z]:
-            cirq.testing.assert_equivalent_repr(g**e)
-
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other
     # floating point value" strategy, as opposed to the "exactly value in
