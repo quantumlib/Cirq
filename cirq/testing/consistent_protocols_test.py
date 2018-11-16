@@ -103,14 +103,6 @@ class GoodGate(cirq.SingleQubitGate):
             return NotImplemented
         return self._identity_tuple() == other._identity_tuple()
 
-    def __ne__(self, other):
-        # coverage: ignore
-        return not self == other
-
-    def __hash__(self):
-        # coverage: ignore
-        return hash(self._identity_tuple())
-
 
 class BadGateApplyUnitaryToTensor(GoodGate):
 
