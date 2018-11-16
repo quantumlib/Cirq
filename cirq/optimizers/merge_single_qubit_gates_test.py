@@ -152,9 +152,6 @@ def test_ignore_unsupported_gate():
 
 
 def test_rewrite():
-    class UnsupportedDummy(cirq.Gate):
-        pass
-
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit.from_ops(
@@ -164,7 +161,6 @@ def test_rewrite():
         cirq.CZ(q0, q1),
         cirq.Y(q1),
     )
-    c_orig = cirq.Circuit(circuit)
     cirq.MergeSingleQubitGates(
         rewriter=lambda ops: cirq.H(ops[0].qubits[0])
     ).optimize_circuit(circuit)
