@@ -99,6 +99,17 @@ def test_str():
     assert str(cirq.CCZ**0.5) == 'CCZ**0.5'
 
 
+def test_repr():
+    assert repr(cirq.CCX) == 'cirq.TOFFOLI'
+    assert repr(cirq.TOFFOLI) == 'cirq.TOFFOLI'
+    assert repr(cirq.CSWAP) == 'cirq.FREDKIN'
+    assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
+    assert repr(cirq.CCZ) == 'cirq.CCZ'
+
+    assert repr(cirq.CCX**0.5) == '(cirq.TOFFOLI**0.5)'
+    assert repr(cirq.CCZ**0.5) == '(cirq.CCZ**0.5)'
+
+
 def test_eq():
     a, b, c, d = cirq.LineQubit.range(4)
     eq = cirq.testing.EqualsTester()
