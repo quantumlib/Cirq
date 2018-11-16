@@ -40,5 +40,5 @@ def assert_decompose_is_consistent_with_unitary(val: Any):
         qubit_order=qubits)
 
     lin_alg_utils.assert_allclose_up_to_global_phase(actual,
-                                                     expected,	
+                                                     expected,
                                                      atol=1e-8)
