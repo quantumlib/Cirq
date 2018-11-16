@@ -531,15 +531,16 @@ class StepResult:
             and non-zero floats of the specified accuracy."""
         return wave_function.dirac_notation(self.state, decimals)
 
-    def density_matrix(self, indices: List[int] = None) -> np.ndarray:
-        """Returns the sparse density matrix of the wavefunction.
+    def density_matrix(self, indices=None):
+        """Returns the density matrix of the wavefunction.
 
         Calculate the density matrix for the system on the given qubit
-        indices, with the qubits not in indices that are present in state
-        traced out. If indices is None the full density matrix for state
+        indices, with the qubits not in indices that are present in self.state
+        traced out. If indices is None the full density matrix for self.state
         is returned.
         For example:
-            state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+            self.state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                dtype=np.complex64)
             indices = None
             gives us \rho = \begin{bmatrix}
                                 0.5 & 0.5
@@ -547,28 +548,22 @@ class StepResult:
                             \end{bmatrix}
 
         Args:
-            state: A sequence representing a wave function in which
-                the ordering mapping to qubits follows the standard Kronecker
-                convention of numpy.kron.
             indices: list containing indices for qubits that you would like
-                to include in the density matrix (i.e. qubits that WON'T
-                be traced out)
+                to include in the density matrix (i.e.) qubits that WON'T
+                be traced out.
 
         Returns:
             A numpy array representing the density matrix.
         """
         return wave_function.density_matrix(self.state, indices)
 
-    def bloch_vector(self, index: int) -> np.ndarray:
+    def bloch_vector(self, index):
         """Returns the bloch vector of a qubit.
 
         Calculates the bloch vector of the qubit at index
-        in the wavefunction given by state.
+        in the wavefunction given by self.state.
 
         Args:
-            state: A sequence representing a wave function in which
-                the ordering mapping to qubits follows the standard Kronecker
-                convention of numpy.kron.
             index: index of qubit who's bloch vector we want to find.
 
         Returns:

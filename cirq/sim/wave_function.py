@@ -83,8 +83,7 @@ def density_matrix(state: Sequence, indices: List[int] = None) -> np.ndarray:
     all_indices = [i for i in range(n_qubits)]
     _validate_indices(n_qubits, indices)
 
-    to_trace_out = set(all_indices).difference(indices)
-    to_trace_out = sorted(list(to_trace_out))
+    to_trace_out = sorted(list(set(all_indices).difference(indices)))
     rho = np.outer(np.conj(state), state)
 
     num_traced = 0
