@@ -53,7 +53,7 @@ class XXPowGate(eigen_gate.EigenGate,
         ]
 
     def _eigen_shifts(self):
-        return 0, 1
+        return [0, 1]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
@@ -80,7 +80,7 @@ class XXPowGate(eigen_gate.EigenGate,
         return 'XX**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             if self._exponent == 1:
                 return 'cirq.MS(np.pi/2)'
             return 'cirq.MS({!r}*np.pi/2)'.format(self._exponent)
@@ -111,7 +111,7 @@ class YYPowGate(eigen_gate.EigenGate,
         ]
 
     def _eigen_shifts(self):
-        return 0, 1
+        return [0, 1]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -156,7 +156,7 @@ class ZZPowGate(eigen_gate.EigenGate,
         ]
 
     def _eigen_shifts(self):
-        return 0, 1
+        return [0, 1]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
