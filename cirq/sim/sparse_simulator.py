@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A simulator that uses numpy's einsum or sparse matrix operations."""
 
 import collections
@@ -27,12 +28,14 @@ class Simulator(simulator.SimulatesSamples,
                 simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
 
-    This simulator can be applied on circuits that are made up of gates for
-    which `cirq.apply_unitary_to_tensor` can be called on the gate. This
-    means that these gates should implement the interface
-    `SupportsApplyUnitaryToTensor` or `SupportsUnitary`. The former can be
-    used to optimized simulations that do not perform large allocations
-    and hence can achieve higher performance.
+    This simulator can be applied on circuits that are made up of operations
+    that have a `_unitary_` method, or `_has_unitary_` and
+    `_apply_unitary_to_tensor_` methods, or else a `_decompose_` method that
+    returns operations satisfying these same conditions. That is to say,
+    the operations should follow the `cirq.SupportsApplyUnitaryToTensor`
+    protocol, the `cirq.SupportsUnitary` protocol, or the
+    `cirq.CompositeOperation` protocol. (It is also permitted for the circuit
+    to contain measurements.)
 
     This simulator supports three types of simulation.
 
@@ -92,7 +95,6 @@ class Simulator(simulator.SimulatesSamples,
 
     See `Simulator` for the definitions of the supported methods.
     """
-
 
     def __init__(self, dtype=np.complex64):
         """A sparse matrix simulator.
