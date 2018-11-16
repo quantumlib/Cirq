@@ -187,6 +187,11 @@ class BadEigenGate(GoodEigenGate):
     def _eigen_shifts(self):
         return [0, 0]
 
+    def __repr__(self):
+        return ('cirq.testing.consistent_protocols_test.BadEigenGate'
+                '(exponent={!r}, global_shift={!r})'.format(
+                    self._exponent, self._global_shift))
+
 
 def test_assert_implements_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
