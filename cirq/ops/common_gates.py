@@ -515,7 +515,8 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         q = qubits[0]
 
         if self._exponent == 1:
-            yield Y(q)**0.5, X(q)
+            yield cirq.Y(q)**0.5
+            yield cirq.XPowGate(global_shift=-0.25).on(q)
             return
 
         yield Y(q)**0.25
@@ -639,8 +640,8 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     computational basis as the matrix
         [[1, 0, 0, 0],
          [0, 1, 0, 0],
-         [0, 0, g·c, -j·g·s],
-         [0, 0, j·g·s, g·c]]
+         [0, 0, g·c, -i·g·s],
+         [0, 0, -i·g·s, g·c]]
     where
         c = cos(π·t/2)
         s = sin(π·t/2)
@@ -730,8 +731,8 @@ class SwapPowGate(eigen_gate.EigenGate,
     SwapPowGate()**t = SwapPowGate(exponent=t) and acts on two qubits in the
     computational basis as the matrix
         [[1, 0, 0, 0],
-         [0, g·c, -j·g·s, 0],
-         [0, -j·g·s, g·c, 0],
+         [0, g·c, -i·g·s, 0],
+         [0, -i·g·s, g·c, 0],
          [0, 0, 0, 1]]
     where
         c = cos(π·t/2)
@@ -817,8 +818,8 @@ class ISwapPowGate(eigen_gate.EigenGate,
         ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y) / 4)
     which is given by the matrix
         [[1, 0, 0, 0],
-         [0, c, j·s, 0],
-         [0, j·s, c, 0],
+         [0, c, i·s, 0],
+         [0, i·s, c, 0],
          [0, 0, 0, 1]]
     where
         c = cos(π·t/2)
