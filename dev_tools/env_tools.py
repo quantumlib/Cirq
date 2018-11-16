@@ -178,6 +178,7 @@ def derive_temporary_python2_environment(
     req_path = os.path.join(destination_directory, 'requirements.txt')
     dev_req_path = os.path.join(destination_directory, 'pip-list-test-tools.txt')
     contrib_req_path = os.path.join(destination_directory,
+                                    'cirq',
                                     'contrib',
                                     'contrib-requirements.txt')
     req_paths = [req_path, dev_req_path, contrib_req_path]
