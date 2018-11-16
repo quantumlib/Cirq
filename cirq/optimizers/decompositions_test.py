@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cmath
 import math
 import random
 from typing import Sequence
@@ -21,13 +20,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import value
-
-
-def _operations_to_matrix(operations, qubits):
-    return cirq.Circuit.from_ops(operations).to_unitary_matrix(
-        qubit_order=cirq.QubitOrder.explicit(qubits),
-        qubits_that_should_be_present=qubits)
 
 
 def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
@@ -178,62 +170,6 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(mat)
     z = np.diag([g, g * t])
     assert np.allclose(mat, np.conj(u.T).dot(z).dot(u))
-
-
-def _random_single_partial_cz_effect():
-    return cirq.dot(
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)))
-
-
-def _random_double_partial_cz_effect():
-    return cirq.dot(
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        np.diag([1, 1, 1, cmath.exp(2j * random.random() * np.pi)]),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)))
-
-
-def _random_double_full_cz_effect():
-    return cirq.dot(
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        cirq.unitary(cirq.CZ),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        cirq.unitary(cirq.CZ),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)))
-
-
-def assert_cz_depth_below(operations, threshold, must_be_full):
-    total_cz = 0
-
-    for op in operations:
-        assert len(op.qubits) <= 2
-        if len(op.qubits) == 2:
-            assert isinstance(op, cirq.GateOperation)
-            assert isinstance(op.gate, cirq.CZPowGate)
-            e = value.canonicalize_half_turns(op.gate.exponent)
-            if must_be_full:
-                assert e == 1
-            total_cz += abs(e)
-
-    assert total_cz <= threshold
-
-
-def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
-                                 atol=0.01):
-    actual_effect = _operations_to_matrix(operations, (q0, q1))
-    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect,
-                                              atol=atol)
 
 
 def test_single_qubit_matrix_to_native_gates_known():
