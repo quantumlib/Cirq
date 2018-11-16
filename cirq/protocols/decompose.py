@@ -44,20 +44,28 @@ def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
 class SupportsDecompose(Protocol):
     """An object that can be decomposed into simpler operations.
 
-    Returning `NotImplemented` means "not decomposable". Otherwise an operation,
-    list of operations, or generally anything meeting the `OP_TREE` contract can
-    be returned.
+    All decompositions methods should ultimately terminate on basic 1-qubit and
+    2-qubit gates included by default in cirq. For example, it is permitted for
+    a Toffoli gate to be decomposed into a pair of Hadamard gates surrounding a
+    CCZ... as long as the CCZ operation has a decompose method that returns
+    basic 1-qubit or 2-qubit operations (or decomposes into operations that do,
+    or decomposes into operations that decompose into operations that do, etc).
 
-    For example, a Toffoli could be decomposed into Hadamards, CNOTs, and Ts.
-    These operations are simpler because they act on fewer qubits. In general, a
-    decomposition should move closer towards the basic 1-qubit and 2-qubit gates
-    included by default in cirq. It is not necessary to get all the way there,
-    just closer (callers will iteratively decompose if needed).
+    Callers are responsible for iteratively decomposing until they are given
+    operations that they understand. The `cirq.decompose` method is a simple way
+    to do this, because it has logic to recursively decompose until a given
+    `keep` predicate is satisfied.
 
-    DECOMPOSITIONS MUST NEVER BE CYCLIC. If B has A in its decomposition, A
-    should not have B in its decomposition. Decomposition is often performed
-    iteratively, until a fixed point or some desired criteria is met. Cyclic
-    decompositions cause that kind of code to loop forever.
+    Code implementing _decompose_ MUST NOT create cycles, where gate A
+    decomposes into gate B which decomposes into gate A. This will result in
+    infinite loops when calling `cirq.decompose`.
+
+    It is permitted (though not recommended) for the chain of decompositions
+    resulting from an operation to hit a dead end before reaching the basic set.
+    When this happens, `cirq.decompose` will raise exceptions. When a
+    `_decompose_` method returns `NotImplemented`, that  means "not
+    decomposable". Otherwise an operation, list of operations, or generally
+    anything meeting the `OP_TREE` contract can be returned.
     """
 
     def _decompose_(self) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
