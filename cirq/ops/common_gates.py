@@ -469,7 +469,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     HPowGate()**t = HPowGate(exponent=t) is given by the matrix
         [[g·(c-i·s/sqrt(2)), -i·g·s/sqrt(2)],
-        [-i·g·s/sqrt(2)], -g·(c-i·s/sqrt(2))]]
+        [-i·g·s/sqrt(2)], g·(c+i·s/sqrt(2))]]
     where
         c = cos(π·t/2)
         s = sin(π·t/2)
@@ -483,14 +483,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         s = np.sqrt(2)
 
         component0 = np.array([
-            [2 + s, s],
-            [s, 2 - s]
-        ]) / 4
+            [3 + 2 * s, 1 + s],
+            [1 + s, 1]
+        ]) / (4 + 2 * s)
 
         component1 = np.array([
-            [2 - s, -s],
-            [-s, 2 + s]
-        ]) / 4
+            [3 - 2 * s, 1 - s],
+            [1 - s, 1]
+        ]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
 
