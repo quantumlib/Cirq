@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """
-Utility methods related to optimizing quantum circuits using native iontrap operations.
+Utility methods related to optimizing quantum circuits
+using native iontrap operations.
 
 Gate compilation methods implemented here are following the paper below:
     'Basic circuit compilation techniques for an ion-trap quantum machine'
@@ -24,7 +25,7 @@ from typing import List, Optional, cast, Tuple
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, ion, decompositions
+from cirq import ops, linalg, protocols, decompositions, ion
 
 
 def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
