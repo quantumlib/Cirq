@@ -37,9 +37,9 @@ def test_bloch_vector_simple():
 def test_bloch_vector_invalid():
     with pytest.raises(ValueError):
         _ = cirq.bloch_vector(np.array([0.5, 0.5, 0.5]), 0)
-        _ = cirq.bloch_vector('junk', 0)
     with pytest.raises(IndexError):
         _ = cirq.bloch_vector(np.array([0.5, 0.5,0.5,0.5]), -1)
+    with pytest.raises(IndexError):
         _ = cirq.bloch_vector(np.array([0.5, 0.5,0.5,0.5]), 2)
 
 
@@ -110,9 +110,11 @@ def test_density_matrix_invalid():
     good_state = np.array([0.5,0.5,0.5,0.5])
     with pytest.raises(ValueError):
         _ = cirq.density_matrix(bad_state)
+    with pytest.raises(ValueError):
         _ = cirq.density_matrix(bad_state, [0, 1])
     with pytest.raises(IndexError):
         _ = cirq.density_matrix(good_state, [-1, 0, 1])
+    with pytest.raises(IndexError):
         _ = cirq.density_matrix(good_state, [-1])
 
 
