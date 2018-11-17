@@ -82,18 +82,18 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         return wire_symbols
 
 
-class SwapPermutationGate(PermutationGate, ops.CompositeGate):
+class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
-    def default_decompose(
+    def _decompose_(
             self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         yield self.swap_gate(*qubits)
 
 
-class LinearPermutationGate(PermutationGate, ops.CompositeGate):
+class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
         sorting network."""
 
@@ -114,7 +114,7 @@ class LinearPermutationGate(PermutationGate, ops.CompositeGate):
     def permutation(self, qubit_count: int) -> Dict[int, int]:
         return self._permutation
 
-    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         swap_gate = SwapPermutationGate(self.swap_gate)
         n_qubits = len(qubits)
         mapping = {i: self._permutation.get(i, i) for i in range(n_qubits)}

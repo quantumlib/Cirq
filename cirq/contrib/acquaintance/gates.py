@@ -197,7 +197,7 @@ def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
                     mapping=mapping)
 
 
-class SwapNetworkGate(ops.CompositeGate, PermutationGate):
+class SwapNetworkGate(PermutationGate):
     """A single gate representing a generalized swap network.
 
     Args:
@@ -224,8 +224,7 @@ class SwapNetworkGate(ops.CompositeGate, PermutationGate):
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
 
-
-    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
         mapping = dict(qubit_to_position)
         parts = []

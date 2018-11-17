@@ -70,8 +70,11 @@ def test_eq():
 
 def test_unitary():
     cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
+    assert not cirq.has_unitary(cxa)
     assert cirq.unitary(cxa, None) is None
 
+    assert cirq.has_unitary(CY)
+    assert cirq.has_unitary(CCH)
     np.testing.assert_allclose(
         cirq.unitary(CY),
         np.array([
@@ -140,6 +143,9 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 
 @pytest.mark.parametrize('gate', [
     cirq.X,
+    cirq.X**0.5,
+    cirq.Rx(np.pi),
+    cirq.Rx(np.pi / 2),
     cirq.Z,
     cirq.H,
     cirq.CNOT,
@@ -149,10 +155,25 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
     GateUsingWorkspaceForApplyUnitary(),
     GateAllocatingNewSpaceForResult(),
 ])
-def test_apply_unitary_to_tensor(gate: cirq.Gate):
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        cirq.ControlledGate(gate),
-        exponents=[1, 0.5, cirq.Symbol('s')])
+def test_controlled_gate_is_consistent(gate: cirq.Gate):
+    cgate = cirq.ControlledGate(gate)
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        cgate)
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(cgate)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(cgate)
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.X,
+    cirq.X**0.5,
+    cirq.Rx(np.pi),
+    cirq.Rx(np.pi / 2),
+    cirq.Z,
+    cirq.H,
+])
+def test_controlled_gate_qasm_is_consistent(gate: cirq.Gate):
+    cgate = cirq.ControlledGate(gate)
+    cirq.testing.assert_qasm_is_consistent_with_unitary(cgate)
 
 
 def test_pow_inverse():
@@ -177,10 +198,14 @@ def test_reversible():
             cirq.ControlledGate(cirq.S**-1))
 
 
+class UnphaseableGate(cirq.SingleQubitGate):
+    pass
+
+
 def test_parameterizable():
     a = cirq.Symbol('a')
-    cz = cirq.ControlledGate(cirq.RotYGate(half_turns=1))
-    cza = cirq.ControlledGate(cirq.RotYGate(half_turns=a))
+    cz = cirq.ControlledGate(cirq.Y)
+    cza = cirq.ControlledGate(cirq.YPowGate(exponent=a))
     assert cirq.is_parameterized(cza)
     assert not cirq.is_parameterized(cz)
     assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz

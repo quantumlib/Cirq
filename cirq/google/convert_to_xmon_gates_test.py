@@ -17,16 +17,16 @@ import numpy as np
 import cirq
 
 
-class OtherX(cirq.Gate, cirq.CompositeGate):
+class OtherX(cirq.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         return OtherOtherX().on(*qubits)
 
 
-class OtherOtherX(cirq.Gate, cirq.CompositeGate):
-    def default_decompose(self, qubits):
+class OtherOtherX(cirq.Gate):
+    def _decompose_(self, qubits):
         return OtherX().on(*qubits)
 
 

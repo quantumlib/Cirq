@@ -95,9 +95,9 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
     intended_effect = cirq.dot(
-        cirq.unitary(cirq.RotZGate(half_turns=2 * pre_turns)),
+        cirq.unitary(cirq.Z**(2 * pre_turns)),
         cirq.unitary(cirq.X),
-        cirq.unitary(cirq.RotZGate(half_turns=2 * post_turns)))
+        cirq.unitary(cirq.Z**(2 * post_turns)))
 
     gates = decompositions.single_qubit_matrix_to_native_gates(
         intended_effect, tolerance=0.0001)

@@ -16,11 +16,12 @@ from typing import Union, Sequence, Any
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
+@value.value_equality
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
@@ -29,12 +30,6 @@ class ControlledGate(raw_types.Gate):
 
         Args:
             sub_gate: The gate to add a control qubit to.
-            default_extensions: The extensions method that should be used when
-                determining if the controlled gate supports certain gate
-                features. For example, if this extensions instance is able to
-                cast sub_gate to a ExtrapolatableEffect then the controlled gate
-                can also be cast to a ExtrapolatableEffect. When this value is
-                None, an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
 
@@ -43,16 +38,8 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('No control qubit specified.')
         self.sub_gate.validate_args(qubits[1:])
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.sub_gate == other.sub_gate
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ControlledGate, self.sub_gate))
+    def _value_equality_values_(self):
+        return self.sub_gate
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -87,6 +74,9 @@ class ControlledGate(raw_types.Gate):
         # rest of target_tensor.
         target_tensor[active] = result
         return target_tensor
+
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self.sub_gate)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         sub_matrix = protocols.unitary(self.sub_gate, None)

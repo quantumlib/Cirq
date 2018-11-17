@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple
+import fractions
+from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
+    Iterable
 
 import abc
 
@@ -44,6 +45,7 @@ EigenComponent = NamedTuple(
 )
 
 
+@value.value_equality(distinct_child_types=True)
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
@@ -58,41 +60,44 @@ class EigenGate(raw_types.Gate):
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Union[value.Symbol, float] = 1.0,
-                 global_shift_in_half_turns: float = 0.0) -> None:
+                 global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
-        The eigenvalue of an eigenspace of the gate is computed by:
-        1. Starting with an angle returned by the _eigen_components method.
-            θ
-        2. Shifting the angle by the global_shift_in_half_turns.
-            θ + s
-        3. Scaling the angle by the exponent.
-            (θ + s) * e
+        The eigenvalue of each eigenspace of a gate is computed by:
+
+        1. Starting with an angle in half turns as returned by the gate's
+            _eigen_components method.
+                θ
+        2. Shifting the angle by `global_shift`.
+                θ + s
+        3. Scaling the angle by `exponent`.
+                (θ + s) * e
         4. Converting from half turns to a complex number on the unit circle.
-            exp(i * pi * (θ + s) * e)
+                exp(i * pi * (θ + s) * e)
 
         Args:
-            exponent: How much to scale the eigencomponents' angles by when
-                computing the gate's matrix.
-            global_shift_in_half_turns: How much to shift the eigencomponents'
-                angles by (before multiplying by the exponent).
+            exponent: The t in gate**t. Determines how much the eigenvalues of
+                the gate are scaled by. For example, eigenvectors phased by -1
+                when `gate**1` is applied will gain a relative phase of
+                e^{i pi exponent} when `gate**exponent` is applied (relative to
+                eigenvectors unaffected by `gate**1`).
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+                In effect, this controls a global phase factor on the gate's
+                unitary matrix. The factor is:
+
+                    exp(i * pi * global_shift * exponent)
+
+                For example, `cirq.X**t` uses a `global_shift` of 0 but
+                `cirq.Rx(t)` uses a `global_shift` of -0.5, which is why
+                `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
         """
-
         self._exponent = exponent
-        self._global_shift_in_half_turns = global_shift_in_half_turns
+        self._global_shift = global_shift
+        self._canonical_exponent_cached = None
 
-        # Canonicalize the exponent.
-        period = self._canonical_exponent_period()
-        if period is not None and not isinstance(exponent, value.Symbol):
-            # Shift into [-p/2, +p/2).
-            exponent += period / 2
-            exponent %= period
-            exponent -= period / 2
-            # Prefer (-p/2, +p/2] over [-p/2, +p/2).
-            if exponent <= -period / 2:
-                exponent += period
-
-        self._exponent = exponent
+    @property
+    def exponent(self) -> Union[value.Symbol, float]:
+        return self._exponent
 
     # virtual method
     def _with_exponent(self: TSelf,
@@ -102,9 +107,85 @@ class EigenGate(raw_types.Gate):
         Child classes should override this method if they have an __init__
         method with a differing signature.
         """
+        # pylint: disable=unexpected-keyword-arg
+        if self._global_shift == 0:
+            return type(self)(exponent=exponent)
         return type(self)(
             exponent=exponent,
-            global_shift_in_half_turns=self._global_shift_in_half_turns)
+            global_shift=self._global_shift)
+        # pylint: enable=unexpected-keyword-arg
+
+    def _diagram_exponent(self,
+                          args: protocols.CircuitDiagramInfoArgs,
+                          *,
+                          ignore_global_phase: bool = True):
+        """The exponent to use in circuit diagrams.
+
+        Basically, this just canonicalizes the exponent in a way that is
+        insensitive to global phase. Only relative phases affect the "true"
+        exponent period, and since we omit global phase detail in diagrams this
+        is the appropriate canonicalization to use. To use the absolute period
+        instead of the relative period (e.g. for when printing Rx(rads) style
+        symbols, where rads=pi and rads=-pi are equivalent but should produce
+        different text) set 'ignore_global_phase' to False.
+
+        Note that the exponent is canonicalized into the range
+            (-period/2, period/2]
+        and that this canonicalization happens after rounding, so that e.g.
+        X^-0.999999 shows as X instead of X^-1 when using a digit precision of
+        3.
+
+        Args:
+            args: The diagram args being used to produce the diagram.
+            ignore_global_phase: Determines whether the global phase of the
+                operation is considered when computing the period of the
+                exponent.
+
+        Returns:
+            A rounded canonicalized exponent.
+        """
+        if not isinstance(self._exponent, (int, float)):
+            return self._exponent
+        result = float(self._exponent)
+
+        if ignore_global_phase:
+            # Compute global-phase-independent period of the gate.
+            shifts = list(self._eigen_shifts())
+            relative_shifts = {e - shifts[0] for e in shifts[1:]}
+            relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
+            diagram_period = _approximate_common_period(relative_periods)
+        else:
+            # Use normal period of the gate.
+            diagram_period = self._period()
+        if diagram_period is None:
+            return result
+
+        # Canonicalize the rounded exponent into (-period/2, period/2].
+        if args.precision is not None:
+            result = np.around(result, args.precision)
+        h = diagram_period / 2
+        if not (-h < result <= h):
+            result = h - result
+            result %= diagram_period
+            result = h - result
+
+        return result
+
+    # virtual method
+    def _eigen_shifts(self) -> List[float]:
+        """Describes the eigenvalues of the gate's matrix.
+
+        By default, this just extracts the shifts by calling
+        self._eigen_components(). However, because that method generates
+        matrices it may be extremely expensive.
+
+        Returns:
+            A list of floats. Each float in the list corresponds to one of the
+            eigenvalues of the gate's matrix, before accounting for any global
+            shift. Each float is the θ in λ = exp(i π θ) (where λ is the
+            eigenvalue).
+        """
+        return [e[0] for e in self._eigen_components()]
 
     @abc.abstractmethod
     def _eigen_components(self) -> List[Union[EigenComponent,
@@ -161,9 +242,8 @@ class EigenGate(raw_types.Gate):
         """
         pass
 
-    # virtual method
-    def _canonical_exponent_period(self) -> Optional[float]:
-        """Determines how the exponent parameter is canonicalized.
+    def _period(self) -> Optional[float]:
+        """Determines how the exponent parameter is canonicalized when equating.
 
         Returns:
             None if the exponent should not be canonicalized. Otherwise a float
@@ -171,7 +251,9 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        return None
+        exponents = {e + self._global_shift for e in self._eigen_shifts()}
+        real_periods = [abs(2/e) for e in exponents if e != 0]
+        return _approximate_common_period(real_periods)
 
     def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
@@ -179,21 +261,18 @@ class EigenGate(raw_types.Gate):
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)
 
-    def _identity_tuple(self):
-        return (type(self),
-                self._exponent,
-                self._global_shift_in_half_turns)
+    @property
+    def _canonical_exponent(self):
+        if self._canonical_exponent_cached is None:
+            period = self._period()
+            if not period or isinstance(self._exponent, value.Symbol):
+                self._canonical_exponent_cached = self._exponent
+            else:
+                self._canonical_exponent_cached = self._exponent % period
+        return self._canonical_exponent_cached
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._identity_tuple() == other._identity_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._identity_tuple())
+    def _value_equality_values_(self):
+        return self._canonical_exponent, self._global_shift
 
     def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):
@@ -204,13 +283,16 @@ class EigenGate(raw_types.Gate):
         max_angle = max(angles)
         return abs((max_angle - min_angle) * self._exponent * 3.5)
 
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_()
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
         return np.sum([
             component * 1j**(
-                    2 * e * (half_turns + self._global_shift_in_half_turns))
+                    2 * e * (half_turns + self._global_shift))
             for half_turns, component in self._eigen_components()
         ], axis=0)
 
@@ -220,3 +302,72 @@ class EigenGate(raw_types.Gate):
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
+
+
+def _lcm(vals: Iterable[int]) -> int:
+    t = 1
+    for r in vals:
+        t = t * r // fractions.gcd(t, r)
+    return t
+
+
+def _approximate_common_period(periods: List[float],
+                               approx_denom: int = 60,
+                               reject_atol: float = 1e-8) -> Optional[float]:
+    """Finds a value that is nearly an integer multiple of multiple periods.
+
+    The returned value should be the smallest non-negative number with this
+    property. If `approx_denom` is too small the computation can fail to satisfy
+    the `reject_atol` criteria and return `None`. This is actually desirable
+    behavior, since otherwise the code would e.g. return a nonsense value when
+    asked to compute the common period of `np.e` and `np.pi`.
+
+    Args:
+        periods: The result must be an approximate integer multiple of each of
+            these.
+        approx_denom: Determines how the floating point values are rounded into
+            rational values (so that integer methods such as lcm can be used).
+            Each floating point value f_k will be rounded to a rational number
+            of the form n_k / approx_denom. If you want to recognize rational
+            periods of the form i/d then d should divide `approx_denom`.
+        reject_atol: If the computed approximate common period is at least this
+            far from an integer multiple of any of the given periods, then it
+            is discarded and `None` is returned instead.
+
+    Returns:
+        The approximate common period, or else `None` if the given
+        `approx_denom` wasn't sufficient to approximate the common period to
+        within the given `reject_atol`.
+    """
+    if not periods:
+        return None
+    if any(e == 0 for e in periods):
+        return None
+    if len(periods) == 1:
+        return abs(periods[0])
+    approx_rational_periods = [
+        fractions.Fraction(int(np.round(p * approx_denom)), approx_denom)
+        for p in periods
+    ]
+    common = float(_common_rational_period(approx_rational_periods))
+
+    for p in periods:
+        if p != 0 and abs(p * np.round(common / p) - common) > reject_atol:
+            return None
+
+    return common
+
+
+def _common_rational_period(rational_periods: List[fractions.Fraction]
+                            ) -> fractions.Fraction:
+    """Finds the least common integer multiple of some fractions.
+
+    The solution is the smallest positive integer c such that there
+    exists integers n_k satisfying p_k * n_k = c for all k.
+    """
+    assert rational_periods, "no well-defined solution for an empty list"
+    common_denom = _lcm(p.denominator for p in rational_periods)
+    int_periods = [p.numerator * common_denom // p.denominator
+                   for p in rational_periods]
+    int_common_period = _lcm(int_periods)
+    return fractions.Fraction(int_common_period, common_denom)

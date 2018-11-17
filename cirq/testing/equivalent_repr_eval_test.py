@@ -19,7 +19,7 @@ import cirq
 
 
 def test_external():
-    for t in [1, 2, 3, 'a', 0.5, 2**0.5, 1.1, 1j]:
+    for t in ['a', 1j]:
         cirq.testing.assert_equivalent_repr(t)
         cirq.testing.assert_equivalent_repr(t, setup_code='')
 
@@ -39,6 +39,8 @@ def test_custom_class_repr():
         setup_code = """class CustomRepr:
             def __init__(self, eq_val):
                 self.eq_val = eq_val
+            def __pow__(self, exponent):
+                return self
         """
 
         def __init__(self, eq_val, repr_str: str):
@@ -81,6 +83,13 @@ def test_custom_class_repr():
     with pytest.raises(AssertionError, match='SyntaxError'):
         cirq.testing.assert_equivalent_repr(
             CustomRepr('a', "return 1"))
+
+    # Not dottable.
+    with pytest.raises(AssertionError, match=r'dottable'):
+        cirq.testing.assert_equivalent_repr(
+            CustomRepr(5, "CustomRepr(5)**1"),
+            setup_code=CustomRepr.setup_code)
+
 
 
 def test_imports_cirq_by_default():

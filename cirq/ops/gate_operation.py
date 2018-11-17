@@ -20,7 +20,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import extension, protocols
+from cirq import protocols, value
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
@@ -29,17 +29,8 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-LIFTED_POTENTIAL_TYPES = {
-    gate_features.CompositeOperation: gate_features.CompositeGate,
-    gate_features.QasmConvertibleOperation: gate_features.QasmConvertibleGate
-}
-
-
-class GateOperation(raw_types.Operation,
-                    extension.PotentialImplementation[Union[
-                        gate_features.CompositeOperation,
-                        gate_features.QasmConvertibleOperation,
-                    ]]):
+@value.value_equality
+class GateOperation(raw_types.Operation):
     """An application of a gate to a collection of qubits.
 
     Attributes:
@@ -87,45 +78,24 @@ class GateOperation(raw_types.Operation,
                   Tuple[int, FrozenSet[raw_types.QubitId]]],
             ...]:
 
-        cast_gate = extension.try_cast(gate_features.InterchangeableQubitsGate,
-                                       self.gate)
-        if cast_gate is None:
+        if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
         groups = {}  # type: Dict[int, List[raw_types.QubitId]]
         for i, q in enumerate(self.qubits):
-            k = cast_gate.qubit_index_to_equivalence_group_key(i)
+            k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:
                 groups[k] = []
             groups[k].append(q)
         return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
 
-    def _eq_tuple(self):
-        grouped_qubits = self._group_interchangeable_qubits()
-        return raw_types.Operation, self.gate, grouped_qubits
+    def _value_equality_values_(self):
+        return self.gate, self._group_interchangeable_qubits()
 
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def try_cast_to(self, desired_type, extensions):
-        desired_gate_type = LIFTED_POTENTIAL_TYPES.get(desired_type)
-        if desired_gate_type is not None:
-            cast_gate = extensions.try_cast(desired_gate_type, self.gate)
-            if cast_gate is not None:
-                return self.with_gate(cast_gate)
-        return None
-
-    def default_decompose(self):
-        cast_gate = extension.cast(gate_features.CompositeGate, self.gate)
-        return cast_gate.default_decompose(self.qubits)
+    def _decompose_(self):
+        return protocols.decompose_once_with_qubits(self.gate,
+                                                    self.qubits,
+                                                    NotImplemented)
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -138,6 +108,9 @@ class GateOperation(raw_types.Operation,
             available_buffer,
             axes,
             default=NotImplemented)
+
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self._gate)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
@@ -188,9 +161,8 @@ class GateOperation(raw_types.Operation,
             return NotImplemented
         return self.with_gate(new_gate)
 
-    def known_qasm_output(self,
-                          args: gate_features.QasmOutputArgs) -> Optional[str]:
-        cast_gate = extension.cast(  # type: ignore
-            gate_features.QasmConvertibleGate,
-            self.gate)
-        return cast_gate.known_qasm_output(self.qubits, args)
+    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
+        return protocols.qasm(self.gate,
+                              args=args,
+                              qubits=self.qubits,
+                              default=None)

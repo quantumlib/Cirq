@@ -84,24 +84,23 @@ gate/operation.
 The method may also return `NotImplemented`, in which case `cirq.unitary`
 behaves as if the method is not implemented.
 
-#### CompositeGate and CompositeOperation
+#### `cirq.decompose` and `def _decompose_`
 
-A ``CompositeGate`` is a gate which consists of multiple gates
-that can be applied to a given set of qubits.  This is a manner
-in which one can decompose one gate into multiple gates.  In
-particular ``CompositeGates`` implement the method 
-``default_decompose`` which acts on a sequence of qubits, and
-returns a list of the operations acting on these qubits for
-the constituents gates.  
+A `cirq.Operation` indicates that it can be broken down into smaller simpler
+operations by implementing a `def _decompose_(self):` method.
+Code that doesn't understand a particular operation can call
+`cirq.decompose_once` or `cirq.decompose` on that operation in order to get
+a set of simpler operations that it does understand.
 
-One thing about ``CompositeGates`` is that sometimes you want
-to modify the decomposition.  Algorithms that allow this can
-take an ``Extension`` which allows for overriding the 
-``CompositeGate``.  An example of this is for in 
-``Simulators`` where an optional extension can be supplied
-that can be used to override the CompositeGate.
+One useful thing about `cirq.decompose` is that it will decompose *recursively*,
+until only operations meeting a `keep` predicate remain.
+You can also give an `intercepting_decomposer` to `cirq.decompose`, which will
+take priority over operations' own decompositions.
 
-A ``CompositeOperation`` is just like a ``CompositeGate``, except it already knows the qubits it should be applied to.
+For `cirq.Gate`s, the decompose method is slightly different; it takes qubits:
+`def _decompose_(self, qubits)`.
+Callers who know the qubits that the gate is being applied to will use
+`cirq.decompose_once_with_qubits` to trigger this method.
 
 #### `_circuit_diagram_info_(self, args)` and `cirq.circuit_diagram_info(val, [args], [default])`
 
@@ -125,14 +124,10 @@ coordinate.
 
 The ``XmonGates`` are
 
-**ExpWGate** This gate is a rotation about a combination of
-a Pauli `X` and Pauli `Y` gates.  The ``ExpWGate`` takes
-two parameters, ``half_turns`` and ``axis_half_turns``.  The
-later describes the angle of the operator that is being
-rotated about in the ``XY`` plane.  In particular if we define
-``W(theta) = cos(pi theta) X + sin (pi theta) Y`` then
-``axis_half_turns`` is ``theta``.  And the full gate is
-``exp(-i pi half_turns W(axis_half_turns) / 2)``.
+**cirq.PhasedXPowGate**
+This gate is a rotation about an axis in the XY plane of the Bloch sphere.
+The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
+The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the `phase_exponent` and `t` is the `exponent`.
 
 **cirq.Z / cirq.Rz** Rotations about the Pauli ``Z`` axis.
 The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.Rz(θ)` is `exp(-i Z θ/2)`.
@@ -152,21 +147,11 @@ in the computational basis.
 
 ``XmonGates`` are hardware specific.  In addition Cirq has a
 number of more commonly named gates that are then implemented
-as ``XmonGates`` via an extension or composite gates.  Some
+as ``XmonGates`` via decomposition or known unitaries. Some
 of these are our old friends:
 
-**RotXGate**, **RotYGate**, **RotZGate**, **Rot11Gate**. 
-These are gates corresponding to the  Pauli rotations or
-(in the case of ``Rot11Gate`` a two qubit rotation).
-
-Our old friends the Paulis: **X**, **Y**, and **Z**. 
-Some other two qubit fiends, **CZ** the controlled-Z gate,
 **CNOT** the controlled-X gate, and **SWAP** the swap gate.
 As well as some other Clifford friends, **H** and **S**,
 and our error correcting friend **T**.
 
 TODO: describe these in more detail.  
-
-### Extensions
-
-TODO
