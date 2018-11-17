@@ -117,7 +117,7 @@ def density_matrix_from_state_vector(state: Sequence,
         ''.join(upper_str[indices]) + ''.join(mixed_str[indices])
     new_shape = 2 ** len(indices)
 
-    rho = np.einsum(einstring, state,np.conj(state), optimize='greedy')
+    rho = np.einsum(einstring, state,np.conj(state))
 
     return rho.reshape((new_shape, new_shape))
 
