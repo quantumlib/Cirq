@@ -98,8 +98,10 @@ def density_matrix_from_state_vector(state: Sequence,
     """
     n_qubits = _validate_num_qubits(state)
 
-    if n_qubits > 25:
-        raise ValueError("wavefunction too big to get density matrix.")
+    if n_qubits > 26:
+        # coverage: ignore
+        raise ValueError("cannot subscript more than 26 qubit wavefunctions\
+            with np.einsum.")
 
     if indices is None:
         return np.outer(state, np.conj(state))
