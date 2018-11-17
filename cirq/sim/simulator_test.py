@@ -223,7 +223,6 @@ def test_step_result_pretty_state():
                 measurements: Dict[str, List[bool]]) -> None:
             super().__init__(qubit_map, measurements)
 
-        @property
         def state(self) -> np.ndarray:
             return np.array([0, 1, 0, 0])
 
@@ -238,7 +237,6 @@ def test_step_result_density_matrix():
                 measurements: Dict[str, List[bool]]) -> None:
             super().__init__(qubit_map, measurements)
 
-        @property
         def state(self) -> np.ndarray:
             return np.array([0, 1, 0, 0])
 
@@ -258,7 +256,6 @@ def test_step_result_bloch_vector():
                 measurements: Dict[str, List[bool]]) -> None:
             super().__init__(qubit_map, measurements)
 
-        @property
         def state(self) -> np.ndarray:
             return np.array([0, 1, 0, 0])
 

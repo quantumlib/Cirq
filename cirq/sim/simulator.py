@@ -247,14 +247,71 @@ class SimulationTrialResult:
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
 
-    def dirac_notation(self, decimals=2):
+    def dirac_notation(self, decimals: int = 2) -> str:
+        """Returns the wavefunction as a string in Dirac notation.
+
+        Args:
+            decimals: How many decimals to include in the pretty print.
+
+        Returns:
+            A pretty string consisting of a sum of computational basis kets
+            and non-zero floats of the specified accuracy."""
         return wave_function.dirac_notation(self.final_state, decimals)
 
-    def density_matrix(self, indices=None):
-        return wave_function.density_matrix(self.final_state, indices)
+    def density_matrix(self, indices: List[int] = None) -> np.ndarray:
+        """Returns the density matrix of the wavefunction.
 
-    def bloch_vector(self, index):
-        return wave_function.bloch_vector(self.final_state, index)
+        Calculate the density matrix for the system on the given qubit
+        indices, with the qubits not in indices that are present in
+        self.final_state traced out. If indices is None the full density
+        matrix for self.final_state is returned, given self.final_state
+        follows the standard Kronecker convention of numpy.kron.
+
+        For example:
+            self.final_state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                dtype=np.complex64)
+            indices = None
+            gives us \rho = \begin{bmatrix}
+                                0.5 & 0.5
+                                0.5 & 0.5
+                            \end{bmatrix}
+
+        Args:
+            indices: list containing indices for qubits that you would like
+                to include in the density matrix (i.e.) qubits that WON'T
+                be traced out.
+
+        Returns:
+            A numpy array representing the density matrix.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if the indices are out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.density_matrix_from_state_vector(
+            self.final_state, indices)
+
+    def bloch_vector(self, index: int) -> np.ndarray:
+        """Returns the bloch vector of a qubit.
+
+        Calculates the bloch vector of the qubit at index
+        in the wavefunction given by self.state. Given that self.state
+        follows the standard Kronecker convention of numpy.kron.
+
+        Args:
+            index: index of qubit who's bloch vector we want to find.
+
+        Returns:
+            A length 3 numpy array representing the qubit's bloch vector.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if index is out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.bloch_vector_from_state_vector(
+            self.final_state, index)
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
@@ -517,27 +574,26 @@ class StepResult:
         return {k: [x[s:e] for x in indexed_sample] for k, (s, e) in
                 bounds.items()}
 
-    def dirac_notation(self, decimals=2):
+    def dirac_notation(self, decimals: int = 2) -> str:
         """Returns the wavefunction as a string in Dirac notation.
 
         Args:
-            state: A sequence representing a wave function in which the ordering
-                mapping to qubits follows the standard Kronecker convention of
-                numpy.kron.
             decimals: How many decimals to include in the pretty print.
 
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return wave_function.dirac_notation(self.state, decimals)
+        return wave_function.dirac_notation(self.state(), decimals)
 
-    def density_matrix(self, indices=None):
+    def density_matrix(self, indices: List[int] = None) -> np.ndarray:
         """Returns the density matrix of the wavefunction.
 
         Calculate the density matrix for the system on the given qubit
         indices, with the qubits not in indices that are present in self.state
         traced out. If indices is None the full density matrix for self.state
-        is returned.
+        is returned, given self.state follows standard Kronecker convention
+        of numpy.kron.
+
         For example:
             self.state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
                 dtype=np.complex64)
@@ -554,19 +610,32 @@ class StepResult:
 
         Returns:
             A numpy array representing the density matrix.
-        """
-        return wave_function.density_matrix(self.state, indices)
 
-    def bloch_vector(self, index):
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if the indices are out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.density_matrix_from_state_vector(
+            self.state(), indices)
+
+    def bloch_vector(self, index: int) -> np.ndarray:
         """Returns the bloch vector of a qubit.
 
         Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state.
+        in the wavefunction given by self.state. Given that self.state
+        follows the standard Kronecker convention of numpy.kron.
 
         Args:
             index: index of qubit who's bloch vector we want to find.
 
         Returns:
             A length 3 numpy array representing the qubit's bloch vector.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if index is out of range for the number of qubits
+                corresponding to the state.
         """
-        return wave_function.bloch_vector(self.state, index)
+        return wave_function.bloch_vector_from_state_vector(
+            self.state(), index)
