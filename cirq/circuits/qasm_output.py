@@ -22,6 +22,7 @@ from typing import (
 import re
 import numpy as np
 
+import cirq
 from cirq import ops, linalg, protocols, value
 
 
@@ -52,13 +53,19 @@ class QasmUGate(ops.SingleQubitGate):
                args: protocols.QasmArgs) -> str:
         args.validate_version('2.0')
         return args.format(
-                'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
-                self.theta, self.phi, self.lmda, qubits[0])
+            'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
+            self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
         return 'cirq.QasmUGate({}, {}, {})'.format(self.lmda,
                                                    self.theta,
                                                    self.phi)
+
+    def _unitary_(self) -> np.ndarray:
+        rz_phi_matrix = cirq.unitary(cirq.Rz(self.phi))
+        ry_theta_matrix = cirq.unitary(cirq.Ry(self.theta))
+        rz_lmda_matrix = cirq.unitary(cirq.Rz(self.lmda))
+        return rz_phi_matrix.dot(ry_theta_matrix.dot(rz_lmda_matrix))
 
 
 @value.value_equality
@@ -149,7 +156,8 @@ class QasmOutput:
             meas_key_id_map=meas_key_id_map)
 
     def _generate_measurement_ids(self
-            ) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
+                                  ) -> Tuple[Dict[str, str],
+                                             Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map = {}  # type: Dict[str, str]
         meas_comments = {}  # type: Dict[str, Optional[str]]
@@ -193,8 +201,10 @@ class QasmOutput:
 
         # Generate nice line spacing
         line_gap = [0]
+
         def output_line_gap(n):
             line_gap[0] = max(line_gap[0], n)
+
         def output(text):
             if line_gap[0] > 0:
                 output_func('\n' * line_gap[0])
@@ -233,7 +243,7 @@ class QasmOutput:
                 output('creg {}[{}];\n'.format(meas_id, len(meas.qubits)))
             else:
                 output('creg {}[{}];  // Measurement: {}\n'.format(
-                            meas_id, len(meas.qubits), comment))
+                    meas_id, len(meas.qubits), comment))
         output_line_gap(2)
 
         # Operations
