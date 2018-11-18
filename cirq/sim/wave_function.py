@@ -17,8 +17,6 @@ import itertools
 
 from typing import List, Sequence, Tuple, Union, TYPE_CHECKING
 
-import string
-
 import numpy as np
 
 from cirq import linalg
@@ -98,11 +96,6 @@ def density_matrix_from_state_vector(state: Sequence,
     """
     n_qubits = _validate_num_qubits(state)
 
-    if n_qubits > 26:
-        # coverage: ignore
-        raise ValueError("cannot subscript more than 26 qubit wavefunctions\
-            with np.einsum.")
-
     if indices is None:
         return np.outer(state, np.conj(state))
 
@@ -110,14 +103,12 @@ def density_matrix_from_state_vector(state: Sequence,
 
     state = np.asarray(state).reshape((2,)*n_qubits)
 
-    upper_str = np.array([i for i in string.ascii_uppercase[:n_qubits]])
-    mixed_str = np.array([i for i in string.ascii_uppercase[:n_qubits]])
-    mixed_str[indices] = np.char.lower(mixed_str[indices])
-    einstring = ''.join(upper_str) + ',' + ''.join(mixed_str) + '->' + \
-        ''.join(upper_str[indices]) + ''.join(mixed_str[indices])
-    new_shape = 2 ** len(indices)
+    sum_inds = np.array([i for i in range(n_qubits)], dtype=int)
+    sum_inds[indices] = (sum_inds + n_qubits)[indices]
 
-    rho = np.einsum(einstring, state,np.conj(state))
+    rho = np.einsum(state, [i for i in range(n_qubits)], np.conj(state),
+        sum_inds.tolist(), indices + sum_inds[indices].tolist())
+    new_shape = 2**len(indices)
 
     return rho.reshape((new_shape, new_shape))
 
