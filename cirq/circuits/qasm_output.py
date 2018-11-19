@@ -62,9 +62,9 @@ class QasmUGate(ops.SingleQubitGate):
                                                    self.phi)
 
     def _unitary_(self) -> np.ndarray:
-        rz_phi_matrix = cirq.unitary(cirq.Rz(self.phi))
-        ry_theta_matrix = cirq.unitary(cirq.Ry(self.theta))
-        rz_lmda_matrix = cirq.unitary(cirq.Rz(self.lmda))
+        rz_phi_matrix = cirq.unitary(cirq.Rz(self.phi * np.pi))
+        ry_theta_matrix = cirq.unitary(cirq.Ry(self.theta * np.pi))
+        rz_lmda_matrix = cirq.unitary(cirq.Rz(self.lmda * np.pi))
         return rz_phi_matrix.dot(ry_theta_matrix.dot(rz_lmda_matrix))
 
 
