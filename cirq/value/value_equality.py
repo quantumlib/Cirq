@@ -16,10 +16,14 @@
 
 from typing import Union, Callable, overload, Any
 
-from typing_extensions import Protocol
+from cirq.value.class_equality import (
+    _SupportsClassEquality,
+    class_equality,
+    class_equals,
+)
 
 
-class _SupportsValueEquality(Protocol):
+class _SupportsValueEquality(_SupportsClassEquality):
     """An object decorated with the value equality decorator."""
 
     def _value_equality_values_(self) -> Any:
@@ -36,31 +40,14 @@ class _SupportsValueEquality(Protocol):
         """
         pass
 
-    def _value_equality_values_cls_(self) -> Any:
-        """Automatically implemented by the `cirq.value_equality` decorator.
-
-        This method encodes the logic used to determine whether or not objects
-        that have the same equivalence values but different types are considered
-        to be equal. By default, this returns the decorated type. But there is
-        an option (`distinct_child_types`) to make it return `type(self)`
-        instead.
-
-        Returns:
-            Type used when determining if the receiving object is equal to
-            another object.
-        """
-        pass
-
 
 def _value_equality_eq(self: _SupportsValueEquality,
                        other: _SupportsValueEquality) -> bool:
-    cls_self = self._value_equality_values_cls_()
-    if not isinstance(other, cls_self):
-        return NotImplemented
-    cls_other = other._value_equality_values_cls_()
-    if cls_self != cls_other:
-        return False
-    return self._value_equality_values_() == other._value_equality_values_()
+    result = class_equals(self, other)
+    if result is NotImplemented:
+        return result
+    return result and \
+           self._value_equality_values_() == other._value_equality_values_()
 
 
 def _value_equality_ne(self: _SupportsValueEquality,
@@ -69,7 +56,7 @@ def _value_equality_ne(self: _SupportsValueEquality,
 
 
 def _value_equality_hash(self: _SupportsValueEquality) -> int:
-    return hash((self._value_equality_values_cls_(),
+    return hash((self._class_equality_values_(),
                  self._value_equality_values_()))
 
 
@@ -99,6 +86,9 @@ def value_equality(cls: type = None,
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
 
     _value_equality_values_ is a method that the decorated class must implement.
+
+    As a side-effect, decorates class with `@class_equality` decorator which
+    supports `class_equals`.
 
     Note that the type of the decorated value is included as part of the value
     equality values. This is so that completely separate classes with identical
@@ -134,10 +124,8 @@ def value_equality(cls: type = None,
         raise TypeError('The @cirq.value_equality decorator requires a '
                         '_value_equality_values_ method to be defined.')
 
-    if distinct_child_types:
-        setattr(cls, '_value_equality_values_cls_', lambda self: type(self))
-    else:
-        setattr(cls, '_value_equality_values_cls_', lambda self: cls)
+    class_equality(cls, distinct_child_types=distinct_child_types)
+
     setattr(cls, '__hash__', None if unhashable else _value_equality_hash)
     setattr(cls, '__eq__', _value_equality_eq)
     setattr(cls, '__ne__', _value_equality_ne)

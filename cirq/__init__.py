@@ -219,6 +219,8 @@ from cirq.value import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
+    class_equality,
+    class_equals,
     Duration,
     Symbol,
     Timestamp,

@@ -17,6 +17,10 @@ from cirq.value.angle import (
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
 )
+from cirq.value.class_equality import (
+    class_equality,
+    class_equals,
+)
 from cirq.value.duration import (
     Duration,
 )
