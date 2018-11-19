@@ -34,7 +34,7 @@ EigenComponent = NamedTuple(
         # factor is used, instead of just a raw unit complex number, because it
         # disambiguates several cases. For example, when λ=-1 you can set θ to
         # -1 instead of +1 resulting in square root operations returning -i
-        # instead of +1.
+        # instead of +i.
         ('eigenvalue_exponent_factor', float),
 
         # The projection matrix onto the eigenspace of the eigenvalue. Must
