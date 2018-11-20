@@ -47,13 +47,11 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))
 
-
     qasm = """
 OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[{}];
 """.format(len(qubits))
-
 
     args = protocols.QasmArgs(qubit_id_map={q: 'q[{}]'.format(i) for i, q in enumerate(qubits)})
     qasm += protocols.qasm(op, args=args)
