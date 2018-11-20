@@ -418,7 +418,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         return self._simulator_iterator(circuit, param_resolver, qubit_order,
                                         initial_state)
 
-
     @abc.abstractmethod
     def _simulator_iterator(
         self,
