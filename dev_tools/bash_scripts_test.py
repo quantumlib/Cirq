@@ -239,8 +239,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py HEAD\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'HEAD'.\n").split()
+    assert result.err == "Comparing against revision 'HEAD'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  arg='HEAD~9999')
@@ -253,8 +252,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py master\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'master'.\n").split()
+    assert result.err == "Comparing against revision 'master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git branch origin/master')
@@ -262,8 +260,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py origin/master\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'origin/master'.\n").split()
+    assert result.err == "Comparing against revision 'origin/master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git branch upstream/master')
@@ -271,8 +268,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py upstream/master\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'upstream/master'.\n").split()
+    assert result.err == "Comparing against revision 'upstream/master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git branch upstream/master; git branch origin/master')
@@ -280,8 +276,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py upstream/master\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'upstream/master'.\n").split()
+    assert result.err == "Comparing against revision 'upstream/master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='git checkout -b other --quiet\n'
@@ -300,8 +295,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py HEAD\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'HEAD'.\n").split()
+    assert result.err == "Comparing against revision 'HEAD'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  setup='touch master\n'
@@ -311,5 +305,4 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.out == (
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py master\n')
-    assert result.err.split('\n', 1)[0].split() == (
-        "Comparing against revision 'master'.\n").split()
+    assert result.err == "Comparing against revision 'master'.\n"
