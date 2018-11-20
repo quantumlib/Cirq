@@ -16,7 +16,7 @@ from typing import Any, List
 
 import numpy as np
 
-from cirq import protocols, ops, line, circuits, linalg
+from cirq import protocols, ops, line, linalg
 from cirq.testing import lin_alg_utils
 
 
@@ -47,14 +47,18 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))
 
-    qasm = """
+    args = protocols.QasmArgs(
+        qubit_id_map={q: 'q[{}]'.format(i) for i, q in enumerate(qubits)})
+    qasm = protocols.qasm(op, args=args, default=None)
+    if qasm is None:
+        return
+    else:
+        header = """
 OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[{}];
 """.format(len(qubits))
-
-    args = protocols.QasmArgs(qubit_id_map={q: 'q[{}]'.format(i) for i, q in enumerate(qubits)})
-    qasm += protocols.qasm(op, args=args)
+        qasm = header + qasm
 
     qasm_unitary = None
     try:
