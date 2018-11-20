@@ -65,12 +65,11 @@ for PYTHON_VERSION in python2 python3; do
     # Prepare.
     if [ "${PYTHON_VERSION}" = "python2" ]; then
         RUNTIME_DEPS_FILE="${REPO_ROOT}/dev_tools/python2.7-requirements.txt"
-        DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/conf/pip-list-python2.7-test-tools.txt"
     else
         RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
-        DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/conf/pip-list-dev-tools.txt"
     fi
     CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq/contrib/contrib-requirements.txt"
+
     echo -e "\n\e[32m${PYTHON_VERSION}\e[0m"
     echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
     virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
@@ -78,7 +77,7 @@ for PYTHON_VERSION in python2 python3; do
     # Install package.
     if [ "${PYPI_REPO_NAME}" == "TEST" ]; then
         echo "Pre-installing dependencies since they don't all exist in TEST pypi"
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}" -r "${DEV_DEPS_FILE}" -r "${CONTRIB_DEPS_FILE}"
+        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}"
     fi
     echo Installing "${PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
     "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PROJECT_NAME}==${PROJECT_VERSION}"
@@ -96,8 +95,15 @@ for PYTHON_VERSION in python2 python3; do
         "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest
     fi
     PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
-    echo Running tests
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings "${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
+    echo Running cirq tests
+    cirq_dir="${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings --ignore="${cirq_dir}/contrib" "${cirq_dir}"
+
+    echo "Installing contrib dependencies"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${CONTRIB_DEPS_FILE}"
+
+    echo "Running contrib tests"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings "${cirq_dir}/contrib"
 done
 
 echo
