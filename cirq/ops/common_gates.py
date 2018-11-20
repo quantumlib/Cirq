@@ -21,7 +21,7 @@ This module creates Gate instances for the following gates:
     CZ: Controlled phase gate.
     CNOT: Controlled not gate.
     SWAP: the swap gate.
-    ISWAP a swap gate with a phase on the swapped subspace.
+    ISWAP: a swap gate with a phase on the swapped subspace.
 
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
@@ -58,9 +58,10 @@ class XPowGate(eigen_gate.EigenGate,
         g = exp(i·π·t/2).
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} from the traditionally defined as rotation matrices
+    e^{i·π·t/2} vs the traditionally defined rotation matrices
     about the Pauli X axis. See `cirq.Rx` for rotations without the global
-    phase.
+    phase. The global phase factor can be adjusted by using the `global_shift`
+    parameter when initializing.
 
     `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
     """
@@ -146,9 +147,10 @@ class YPowGate(eigen_gate.EigenGate,
         g = exp(i·π·t/2).
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} from the traditionally defined as rotation matrices
+    e^{i·π·t/2} vs the traditionally defined rotation matrices
     about the Pauli Y axis. See `cirq.Ry` for rotations without the global
-    phase.
+    phase. The global phase factor can be adjusted by using the `global_shift`
+    parameter when initializing.
 
     `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
     """
@@ -216,9 +218,10 @@ class ZPowGate(eigen_gate.EigenGate,
         g = exp(i·π·t).
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} from the traditionally defined as rotation matrices
+    e^{i·π·t/2} vs the traditionally defined rotation matrices
     about the Pauli Z axis. See `cirq.Rz` for rotations without the global
-    phase.
+    phase. The global phase factor can be adjusted by using the `global_shift`
+    parameter when initializing.
 
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
     """
@@ -574,9 +577,9 @@ class CZPowGate(eigen_gate.EigenGate,
         ]
 
     def _apply_unitary_to_tensor_(self,
-            target_tensor: np.ndarray,
-            available_buffer: np.ndarray,
-            axes: Sequence[int],
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
     ) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -891,8 +894,6 @@ class ISwapPowGate(eigen_gate.EigenGate,
         return '(cirq.ISWAP**{!r})'.format(self._exponent)
 
 
-
-
 def Rx(rads: float) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
     return XPowGate(exponent=rads / np.pi, global_shift=-0.5)
@@ -926,25 +927,26 @@ Y = YPowGate()
 Z = ZPowGate()
 
 
-# The Hadmard gate.
+# The Hadamard gate.
 #   [[s, s],
-#    [-s, s]]
+#    [s, -s]]
 # where s = sqrt(0.5).
 H = HPowGate()
 
 
-# The Clifford S gate
+# The Clifford S gate.
 #   [[1, 0],
 #    [0, i]]
-S = Z**0.5  # Clifford S gate, [[1, 0], [0, e]] where e = exp(i pi 0.5)
+S = Z**0.5
 
 
-# The T gate
+# The T gate.
 #   [[1, 0]
 #    [0, exp(i pi / 4)]]
-T = Z**0.25 # Clifford T gate, [[1, 0], [0, e]] where e = exp(i pi 0.25)
+T = Z**0.25
 
-# The controlled phase gate.
+
+# The controlled Z gate.
 #   [[1, 0, 0, 0],
 #    [0, 1, 0, 0],
 #    [0, 0, 1, 0],
@@ -952,7 +954,7 @@ T = Z**0.25 # Clifford T gate, [[1, 0], [0, e]] where e = exp(i pi 0.25)
 CZ = CZPowGate()
 
 
-# The controlled not gate.
+# The controlled NOT gate.
 #   [[1, 0, 0, 0],
 #    [0, 1, 0, 0],
 #    [0, 0, 0, 1],
@@ -974,5 +976,3 @@ SWAP = SwapPowGate()
 #    [0, i, 0, 0],
 #    [0, 0, 0, 1]]
 ISWAP = ISwapPowGate()
-
-
