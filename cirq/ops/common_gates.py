@@ -32,7 +32,7 @@ measurements are provided
     measure_each
 """
 from typing import (
-    Any, Callable, cast, Iterable, List, Optional, Sequence, Tuple, Union,
+    Any, Callable, cast, Iterable, List, Optional, Tuple, Union,
 )
 
 import numpy as np
