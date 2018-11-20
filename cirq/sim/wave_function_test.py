@@ -35,7 +35,8 @@ def test_bloch_vector_simple_H_zero():
 
 
 def test_bloch_vector_simple_XH_zero():
-    XH_state = np.array([0.70710678, 0.70710678])
+    sqrt = np.sqrt(0.5)
+    XH_state = np.array([sqrt, sqrt])
     bloch = cirq.bloch_vector_from_state_vector(XH_state, 0)
 
     desired_simple = np.array([1,0,0])
@@ -43,7 +44,8 @@ def test_bloch_vector_simple_XH_zero():
 
 
 def test_bloch_vector_simple_YH_zero():
-    YH_state = np.array([0.-0.70710678j, 0.+0.70710678j])
+    sqrt = np.sqrt(0.5)
+    YH_state = np.array([-1.0j * sqrt, 1.0j * sqrt])
     bloch = cirq.bloch_vector_from_state_vector(YH_state, 0)
 
     desired_simple = np.array([-1,0,0])
@@ -51,7 +53,8 @@ def test_bloch_vector_simple_YH_zero():
 
 
 def test_bloch_vector_simple_ZH_zero():
-    ZH_state = np.array([0.70710678, -0.70710678])
+    sqrt = np.sqrt(0.5)
+    ZH_state = np.array([sqrt, -sqrt])
     bloch = cirq.bloch_vector_from_state_vector(ZH_state, 0)
 
     desired_simple = np.array([-1,0,0])
@@ -60,7 +63,7 @@ def test_bloch_vector_simple_ZH_zero():
 
 def test_bloch_vector_simple_TH_zero():
     sqrt = np.sqrt(0.5)
-    TH_state = np.array([0.70710678+0.j , 0.5       +0.5j])
+    TH_state = np.array([sqrt, 0.5+0.5j])
     bloch = cirq.bloch_vector_from_state_vector(TH_state, 0)
 
     desired_simple = np.array([sqrt,sqrt,0])

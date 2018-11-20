@@ -15,7 +15,7 @@
 
 import itertools
 
-from typing import Iterable, List, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING
 
 import numpy as np
 
