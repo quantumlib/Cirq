@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A simulator that uses numpy's einsum or sparse matrix operations."""
 
 import collections
@@ -27,12 +28,14 @@ class Simulator(simulator.SimulatesSamples,
                 simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
 
-    This simulator can be applied on circuits that are made up of gates for
-    which `cirq.apply_unitary_to_tensor` can be called on the gate. This
-    means that these gates should implement the interface
-    `SupportsApplyUnitaryToTensor` or `SupportsUnitary`. The former can be
-    used to optimized simulations that do not perform large allocations
-    and hence can achieve higher performance.
+    This simulator can be applied on circuits that are made up of operations
+    that have a `_unitary_` method, or `_has_unitary_` and
+    `_apply_unitary_to_tensor_` methods, or else a `_decompose_` method that
+    returns operations satisfying these same conditions. That is to say,
+    the operations should follow the `cirq.SupportsApplyUnitaryToTensor`
+    protocol, the `cirq.SupportsUnitary` protocol, or the
+    `cirq.CompositeOperation` protocol. (It is also permitted for the circuit
+    to contain measurements.)
 
     This simulator supports three types of simulation.
 
@@ -92,7 +95,6 @@ class Simulator(simulator.SimulatesSamples,
 
     See `Simulator` for the definitions of the supported methods.
     """
-
 
     def __init__(self, dtype=np.complex64):
         """A sparse matrix simulator.
@@ -183,15 +185,34 @@ class Simulator(simulator.SimulatesSamples,
         state = wave_function.to_valid_state_vector(initial_state,
                                                     num_qubits,
                                                     self._dtype)
+
+        def on_stuck(bad_op: ops.Operation):
+            return TypeError(
+                "Can't simulate unknown operations that don't specify a "
+                "_unitary_ method, a _decompose_ method, or "
+                "(_has_unitary_ + _apply_unitary_to_tensor_) methods"
+                ": {!r}".format(bad_op))
+
+        def keep(potential_op: ops.Operation) -> bool:
+            return (protocols.has_unitary(potential_op) or
+                    ops.MeasurementGate.is_measurement(potential_op))
+
         state = np.reshape(state, (2,) * num_qubits)
         buffer = np.empty((2,) * num_qubits, dtype=self._dtype)
         for moment in circuit:
             measurements = collections.defaultdict(
                     list)  # type: Dict[str, List[bool]]
-            for op in moment.operations:
-                gate = gate = cast(ops.GateOperation, op).gate
+
+            unitary_ops_and_measurements = protocols.decompose(
+                moment.operations,
+                keep=keep,
+                on_stuck_raise=on_stuck)
+
+            for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if isinstance(gate, ops.MeasurementGate):
+                if ops.MeasurementGate.is_measurement(op):
+                    gate = cast(ops.MeasurementGate,
+                                cast(ops.GateOperation, op).gate)
                     if perform_measurements:
                         invert_mask = gate.invert_mask or num_qubits * (False,)
                         # Measure updates inline.
@@ -200,7 +221,7 @@ class Simulator(simulator.SimulatesSamples,
                                                                      state)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        measurements[cast(str, gate.key)].append(*corrected)
+                        measurements[cast(str, gate.key)].extend(corrected)
                 else:
                     result = protocols.apply_unitary_to_tensor(op,
                                                                state,
