@@ -227,7 +227,8 @@ from cirq.value import (
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
-    apply_unitary_to_tensor,
+    apply_unitary,
+    ApplyUnitaryArgs,
     channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
@@ -240,7 +241,7 @@ from cirq.protocols import (
     pow,
     qasm,
     QasmArgs,
-    SupportsApplyUnitaryToTensor,
+    SupportsApplyUnitary,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,

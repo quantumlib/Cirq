@@ -1629,11 +1629,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
     for op in unitary_ops:
         indices = [qubit_map[q] for q in op.qubits]
-        result = protocols.apply_unitary_to_tensor(
-            val=op,
-            target_tensor=state,
-            available_buffer=buffer,
-            axes=indices)
+        result = protocols.apply_unitary(
+            unitary_value=op,
+            args=protocols.ApplyUnitaryArgs(state, buffer, indices))
         if result is buffer:
             buffer = state
         state = result

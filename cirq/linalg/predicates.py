@@ -208,7 +208,7 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         r = np.array(range(16)).reshape((2,) * 4)
 
         # We want to index into the subset where qubit #1 and qubit #3 are ON.
-        s = cirq.binary_indexed_tensor_slice([1, 3], 0b11)
+        s = cirq.slice_for_qubits_equal_to([1, 3], 0b11)
         print(s)
         # (slice(None, None, None), 1, slice(None, None, None), 1, Ellipsis)
 
