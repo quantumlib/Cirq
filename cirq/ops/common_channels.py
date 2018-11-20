@@ -18,9 +18,11 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import common_gates, raw_types
 
+
+@value.value_equality
 class AsymmetricDepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes asymmetrically along different directions."""
 
@@ -68,19 +70,8 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             np.sqrt(self._p_z) * np.array([[1, 0], [0, -1]]),
         )
 
-    def _eq_tuple(self):
-        return (AsymmetricDepolarizingChannel, self._p_x, self._p_y, self._p_z)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._p_x, self._p_y, self._p_z
 
     def __repr__(self) -> str:
         return 'cirq.asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'.format(
@@ -118,6 +109,7 @@ def asymmetric_depolarize(
     return AsymmetricDepolarizingChannel(p_x, p_y, p_z)
 
 
+@value.value_equality
 class DepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes a qubit."""
 
@@ -149,19 +141,8 @@ class DepolarizingChannel(raw_types.Gate):
     def _channel_(self) -> Iterable[np.ndarray]:
         return self._delegate._channel_()
 
-    def _eq_tuple(self):
-        return (DepolarizingChannel, self._p)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._p == other._p
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._p
 
     def __repr__(self) -> str:
         return 'cirq.depolarize(p={!r})'.format(self._p)
@@ -199,6 +180,7 @@ def depolarize(p: float) -> DepolarizingChannel:
     return DepolarizingChannel(p)
 
 
+@value.value_equality
 class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
     """Dampen qubit amplitudes through non ideal dissipation.
 
@@ -270,19 +252,8 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
             p1 * np.array([[0., 0.], [sqrt_g, 0.]]),
         )
 
-    def _eq_tuple(self):
-        return (GeneralizedAmplitudeDampingChannel, self._p, self._gamma)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._p, self._gamma
 
     def __repr__(self) -> str:
         return 'cirq.generalized_amplitude_damp(p={!r},gamma={!r})'.format(
@@ -339,6 +310,7 @@ def generalized_amplitude_damp(
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
+@value.value_equality
 class AmplitudeDampingChannel(raw_types.Gate):
     """Dampen qubit amplitudes through dissipation.
 
@@ -387,19 +359,8 @@ class AmplitudeDampingChannel(raw_types.Gate):
         # the last two.
         return list(self._delegate._channel_())[:2]
 
-    def _eq_tuple(self):
-        return (AmplitudeDampingChannel, self._gamma)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._gamma
 
     def __repr__(self) -> str:
         return 'cirq.amplitude_damp(gamma={!r})'.format(self._gamma)
@@ -439,6 +400,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
     return AmplitudeDampingChannel(gamma)
 
 
+@value.value_equality
 class PhaseDampingChannel(raw_types.Gate):
     """Dampen qubit phase.
 
@@ -486,19 +448,8 @@ class PhaseDampingChannel(raw_types.Gate):
             np.array([[0., 0.], [0., np.sqrt(self._gamma)]]),
         )
 
-    def _eq_tuple(self):
-        return (PhaseDampingChannel, self._gamma)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._gamma
 
     def __repr__(self) -> str:
         return 'cirq.phase_damp(gamma={!r})'.format(self._gamma)
@@ -538,6 +489,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
     return PhaseDampingChannel(gamma)
 
 
+@value.value_equality
 class PhaseFlipChannel(raw_types.Gate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
@@ -581,19 +533,8 @@ class PhaseFlipChannel(raw_types.Gate):
         # just return identity and z term
         return (kraus_ops[0], kraus_ops[3])
 
-    def _eq_tuple(self):
-        return (PhaseFlipChannel, self._p)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._p
 
     def __repr__(self) -> str:
         return 'cirq.phase_flip(p={!r})'.format(self._p)
@@ -672,6 +613,7 @@ def phase_flip(
     return _phase_flip(p)
 
 
+@value.value_equality
 class BitFlipChannel(raw_types.Gate):
     """Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
@@ -714,19 +656,8 @@ class BitFlipChannel(raw_types.Gate):
         # Return just the I and X pieces.
         return list(self._delegate._channel_())[:2]
 
-    def _eq_tuple(self):
-        return (BitFlipChannel, self._p)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._p
 
     def __repr__(self) -> str:
         return 'cirq.bit_flip(p={!r})'.format(self._p)
@@ -807,6 +738,7 @@ def bit_flip(
     return _bit_flip(p)
 
 
+@value.value_equality
 class RotationErrorChannel(raw_types.Gate):
     """Channel to introduce rotation error in X, Y, Z."""
 
@@ -855,19 +787,8 @@ class RotationErrorChannel(raw_types.Gate):
             ),
         )
 
-    def _eq_tuple(self):
-        return (RotationErrorChannel, self._eps_x, self._eps_y, self._eps_z)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
-
-    def __ne__(self, other):
-        return not self == other
+    def _value_equality_values_(self):
+        return self._eps_x, self._eps_y, self._eps_z
 
     def __repr__(self) -> str:
         return 'cirq.rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'.format(
