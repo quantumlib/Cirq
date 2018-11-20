@@ -22,7 +22,7 @@ Simulator types include
 import abc
 import collections
 
-from typing import Dict, Iterator, List, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Tuple, Union
 
 import numpy as np
 
@@ -258,7 +258,7 @@ class SimulationTrialResult:
             and non-zero floats of the specified accuracy."""
         return wave_function.dirac_notation(self.final_state, decimals)
 
-    def density_matrix(self, indices: List[int] = None) -> np.ndarray:
+    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
         """Returns the density matrix of the wavefunction.
 
         Calculate the density matrix for the system on the given qubit
@@ -585,7 +585,7 @@ class StepResult:
             and non-zero floats of the specified accuracy."""
         return wave_function.dirac_notation(self.state(), decimals)
 
-    def density_matrix(self, indices: List[int] = None) -> np.ndarray:
+    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
         """Returns the density matrix of the wavefunction.
 
         Calculate the density matrix for the system on the given qubit

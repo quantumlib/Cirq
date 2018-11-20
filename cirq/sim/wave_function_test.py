@@ -25,13 +25,97 @@ def assert_dirac_notation(vec, expected, decimals=2):
     assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
 
 
-def test_bloch_vector_simple():
+def test_bloch_vector_simple_H_zero():
     sqrt = np.sqrt(0.5)
-    test_state = np.array([sqrt, sqrt])
+    H_state = np.array([sqrt, sqrt])
 
-    bloch = cirq.bloch_vector_from_state_vector(test_state, 0)
+    bloch = cirq.bloch_vector_from_state_vector(H_state, 0)
     desired_simple = np.array([1,0,0])
     np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_simple_XH_zero():
+    XH_state = np.array([0.70710678, 0.70710678])
+    bloch = cirq.bloch_vector_from_state_vector(XH_state, 0)
+
+    desired_simple = np.array([1,0,0])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_simple_YH_zero():
+    YH_state = np.array([0.-0.70710678j, 0.+0.70710678j])
+    bloch = cirq.bloch_vector_from_state_vector(YH_state, 0)
+
+    desired_simple = np.array([-1,0,0])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_simple_ZH_zero():
+    ZH_state = np.array([0.70710678, -0.70710678])
+    bloch = cirq.bloch_vector_from_state_vector(ZH_state, 0)
+
+    desired_simple = np.array([-1,0,0])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_simple_TH_zero():
+    sqrt = np.sqrt(0.5)
+    TH_state = np.array([0.70710678+0.j , 0.5       +0.5j])
+    bloch = cirq.bloch_vector_from_state_vector(TH_state, 0)
+
+    desired_simple = np.array([sqrt,sqrt,0])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_equal_sqrt3():
+    sqrt3 = 1/np.sqrt(3)
+    test_state = np.array([0.888074, 0.325058 + 0.325058j])
+    bloch = cirq.bloch_vector_from_state_vector(test_state, 0)
+
+    desired_simple = np.array([sqrt3,sqrt3,sqrt3])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_multi_pure():
+    HH_state = np.array([0.5,0.5,0.5,0.5])
+
+    bloch_0 = cirq.bloch_vector_from_state_vector(HH_state, 0)
+    bloch_1 = cirq.bloch_vector_from_state_vector(HH_state, 1)
+    desired_simple = np.array([1,0,0])
+
+    np.testing.assert_array_almost_equal(bloch_1, desired_simple)
+    np.testing.assert_array_almost_equal(bloch_0, desired_simple)
+
+
+def test_bloch_vector_multi_mixed():
+    sqrt = np.sqrt(0.5)
+    HCNOT_state = np.array([sqrt, 0., 0., sqrt])
+
+    bloch_0 = cirq.bloch_vector_from_state_vector(HCNOT_state, 0)
+    bloch_1 = cirq.bloch_vector_from_state_vector(HCNOT_state, 1)
+    zero = np.zeros(3)
+
+    np.testing.assert_array_almost_equal(bloch_0, zero)
+    np.testing.assert_array_almost_equal(bloch_1, zero)
+
+    RCNOT_state = np.array([0.90612745, -0.07465783j,
+        -0.37533028j, 0.18023996])
+    bloch_mixed_0 = cirq.bloch_vector_from_state_vector(RCNOT_state, 0)
+    bloch_mixed_1 = cirq.bloch_vector_from_state_vector(RCNOT_state, 1)
+
+    true_mixed_0 = np.array([0., -0.6532815, 0.6532815])
+    true_mixed_1 = np.array([0., 0., 0.9238795])
+
+    np.testing.assert_array_almost_equal(true_mixed_0, bloch_mixed_0)
+    np.testing.assert_array_almost_equal(true_mixed_1, bloch_mixed_1)
+
+
+def test_bloch_vector_multi_big():
+    big_H_state = np.array([0.1767767] * 32)
+    desired_simple = np.array([1,0,0])
+    for qubit in range(0, 5):
+        bloch_i = cirq.bloch_vector_from_state_vector(big_H_state, qubit)
+        np.testing.assert_array_almost_equal(bloch_i, desired_simple)
 
 
 def test_bloch_vector_invalid():
@@ -44,40 +128,6 @@ def test_bloch_vector_invalid():
     with pytest.raises(IndexError):
         _ = cirq.bloch_vector_from_state_vector(
             np.array([0.5, 0.5,0.5,0.5]), 2)
-
-
-def test_bloch_vector_multi_pure():
-    test_state = np.array([0.5,0.5,0.5,0.5])
-
-    bloch_0 = cirq.bloch_vector_from_state_vector(test_state, 0)
-    bloch_1 = cirq.bloch_vector_from_state_vector(test_state, 1)
-    desired_simple = np.array([1,0,0])
-
-    np.testing.assert_array_almost_equal(bloch_1, desired_simple)
-    np.testing.assert_array_almost_equal(bloch_0, desired_simple)
-
-
-def test_bloch_vector_multi_mixed():
-    sqrt = np.sqrt(0.5)
-    test_state = np.array([sqrt, 0., 0., sqrt])
-
-    bloch_0 = cirq.bloch_vector_from_state_vector(test_state, 0)
-    bloch_1 = cirq.bloch_vector_from_state_vector(test_state, 1)
-    zero = np.zeros(3)
-
-    np.testing.assert_array_almost_equal(bloch_0, zero)
-    np.testing.assert_array_almost_equal(bloch_1, zero)
-
-    test_state2 = np.array([0.90612745, -0.07465783j,
-        -0.37533028j, 0.18023996])
-    bloch_mixed_0 = cirq.bloch_vector_from_state_vector(test_state2, 0)
-    bloch_mixed_1 = cirq.bloch_vector_from_state_vector(test_state2, 1)
-
-    true_mixed_0 = np.array([0., -0.6532815, 0.6532815])
-    true_mixed_1 = np.array([0., 0., 0.9238795])
-
-    np.testing.assert_array_almost_equal(true_mixed_0, bloch_mixed_0)
-    np.testing.assert_array_almost_equal(true_mixed_1, bloch_mixed_1)
 
 
 def test_density_matrix():

@@ -15,7 +15,7 @@
 
 import itertools
 
-from typing import List, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Iterable, List, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -58,8 +58,10 @@ def bloch_vector_from_state_vector(state: Sequence, index: int) -> np.ndarray:
     return v
 
 
-def density_matrix_from_state_vector(state: Sequence,
-    indices: List[int] = None) -> np.ndarray:
+def density_matrix_from_state_vector(
+    state: Sequence,
+    indices: Iterable[int] = None
+) -> np.ndarray:
     """Returns the density matrix of the wavefunction.
 
     Calculate the density matrix for the system on the given qubit
@@ -99,14 +101,15 @@ def density_matrix_from_state_vector(state: Sequence,
     if indices is None:
         return np.outer(state, np.conj(state))
 
+    indices = list(indices)
     _validate_indices(n_qubits, indices)
 
     state = np.asarray(state).reshape((2,)*n_qubits)
 
-    sum_inds = np.array([i for i in range(n_qubits)], dtype=int)
-    sum_inds[indices] = (sum_inds + n_qubits)[indices]
+    sum_inds = np.array(range(n_qubits))
+    sum_inds[indices] += n_qubits
 
-    rho = np.einsum(state, [i for i in range(n_qubits)], np.conj(state),
+    rho = np.einsum(state, list(range(n_qubits)), np.conj(state),
         sum_inds.tolist(), indices + sum_inds[indices].tolist())
     new_shape = 2**len(indices)
 
