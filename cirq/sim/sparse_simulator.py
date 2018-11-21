@@ -30,7 +30,7 @@ class Simulator(simulator.SimulatesSamples,
 
     This simulator can be applied on circuits that are made up of operations
     that have a `_unitary_` method, or `_has_unitary_` and
-    `_apply_unitary_to_tensor_` methods, or else a `_decompose_` method that
+    `_apply_unitary_` methods, or else a `_decompose_` method that
     returns operations satisfying these same conditions. That is to say,
     the operations should follow the `cirq.SupportsApplyUnitaryToTensor`
     protocol, the `cirq.SupportsUnitary` protocol, or the
@@ -190,7 +190,7 @@ class Simulator(simulator.SimulatesSamples,
             return TypeError(
                 "Can't simulate unknown operations that don't specify a "
                 "_unitary_ method, a _decompose_ method, or "
-                "(_has_unitary_ + _apply_unitary_to_tensor_) methods"
+                "(_has_unitary_ + _apply_unitary_) methods"
                 ": {!r}".format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
@@ -223,10 +223,12 @@ class Simulator(simulator.SimulatesSamples,
                                      zip(bits, invert_mask)]
                         measurements[cast(str, gate.key)].extend(corrected)
                 else:
-                    result = protocols.apply_unitary_to_tensor(op,
-                                                               state,
-                                                               buffer,
-                                                               indices)
+                    result = protocols.apply_unitary(
+                        op,
+                        args=protocols.ApplyUnitaryArgs(
+                            state,
+                            buffer,
+                            indices))
                     if result is buffer:
                         buffer = state
                     state = result
@@ -245,8 +247,7 @@ class SimulatorStep(simulator.StepResult):
             measurements: A dictionary from measurement gate key to measurement
                 results, ordered by the qubits that the measurement operates on.
         """
-        self.measurements = measurements
-        self.qubit_map = qubit_map
+        super().__init__(qubit_map, measurements)
         self._dtype = dtype
         self._state = np.reshape(state, 2 ** len(qubit_map))
 

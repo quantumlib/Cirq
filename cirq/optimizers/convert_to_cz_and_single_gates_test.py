@@ -160,6 +160,7 @@ def test_allow_partial_czs():
     gate = two_qubit_ops[0][1].gate
     assert isinstance(gate, cirq.ops.CZPowGate) and gate.exponent == 0.5
 
+
 def test_dont_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
@@ -174,7 +175,7 @@ def test_dont_allow_partial_czs():
     assert sum(1 for op in circuit.all_operations()
                  if isinstance(op, cirq.GateOperation) and
                     isinstance(op.gate, cirq.CZPowGate)) == 2
-    assert all(op.gate.exponent == 1
+    assert all(op.gate.exponent % 2 == 1
                for op in circuit.all_operations()
                if isinstance(op, cirq.GateOperation) and
                   isinstance(op.gate, cirq.CZPowGate))

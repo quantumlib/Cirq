@@ -193,6 +193,29 @@ def test_simulator_trial_pretty_state():
     assert result.dirac_notation() == '|01⟩'
 
 
+def test_simulator_trial_density_matrix():
+    result = cirq.SimulationTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]))
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+        result.density_matrix())
+
+
+def test_simulator_trial_bloch_vector():
+    result = cirq.SimulationTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]))
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+        result.bloch_vector(1))
+
+
 def test_step_result_pretty_state():
     class BasicStepResult(cirq.StepResult):
 
@@ -200,12 +223,46 @@ def test_step_result_pretty_state():
                 measurements: Dict[str, List[bool]]) -> None:
             super().__init__(qubit_map, measurements)
 
-        @property
         def state(self) -> np.ndarray:
             return np.array([0, 1, 0, 0])
 
     step_result = BasicStepResult({}, {})
     assert step_result.dirac_notation() == '|01⟩'
+
+
+def test_step_result_density_matrix():
+    class BasicStepResult(cirq.StepResult):
+
+        def __init__(self, qubit_map: Dict,
+                measurements: Dict[str, List[bool]]) -> None:
+            super().__init__(qubit_map, measurements)
+
+        def state(self) -> np.ndarray:
+            return np.array([0, 1, 0, 0])
+
+    step_result = BasicStepResult({}, {})
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+        step_result.density_matrix())
+
+
+def test_step_result_bloch_vector():
+    class BasicStepResult(cirq.StepResult):
+
+        def __init__(self, qubit_map: Dict,
+                measurements: Dict[str, List[bool]]) -> None:
+            super().__init__(qubit_map, measurements)
+
+        def state(self) -> np.ndarray:
+            return np.array([0, 1, 0, 0])
+
+    step_result = BasicStepResult({}, {})
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+        step_result.bloch_vector(1))
 
 
 class FakeStepResult(cirq.StepResult):

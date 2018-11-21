@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence
 
 import pytest
 
@@ -315,13 +314,10 @@ Highlighted differences:
     assert expected_error in ex_info.value.args[0]
 
 
-def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
+def test_assert_has_consistent_apply_unitary():
     class IdentityReturningUnalteredWorkspace:
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
-            return available_buffer
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            return args.available_buffer
 
         def _unitary_(self):
             return np.eye(2)
@@ -331,13 +327,10 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             IdentityReturningUnalteredWorkspace())
 
     class DifferentEffect:
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
-            available_buffer[0] = target_tensor[1]
-            available_buffer[1] = target_tensor[0]
-            return available_buffer
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            args.available_buffer[0] = args.target_tensor[1]
+            args.available_buffer[1] = args.target_tensor[0]
+            return args.available_buffer
 
         def _unitary_(self):
             return np.eye(2, dtype=np.complex128)
@@ -347,13 +340,10 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             DifferentEffect())
 
     class IgnoreAxisEffect:
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
-            available_buffer[0] = target_tensor[1]
-            available_buffer[1] = target_tensor[0]
-            return available_buffer
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            args.available_buffer[0] = args.target_tensor[1]
+            args.available_buffer[1] = args.target_tensor[0]
+            return args.available_buffer
 
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
@@ -363,15 +353,12 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             IgnoreAxisEffect())
 
     class SameEffect:
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
-            o = cirq.slice_for_qubits_equal_to(axes, 0)
-            i = cirq.slice_for_qubits_equal_to(axes, 1)
-            available_buffer[o] = target_tensor[i]
-            available_buffer[i] = target_tensor[o]
-            return available_buffer
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            o = args.subspace_index(0)
+            i = args.subspace_index(1)
+            args.available_buffer[o] = args.target_tensor[i]
+            args.available_buffer[i] = args.target_tensor[o]
+            return args.available_buffer
 
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
@@ -386,13 +373,10 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
         def __pow__(self, power):
             return BadExponent(self.power * power)
 
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
-            i = cirq.slice_for_qubits_equal_to(axes, 1)
-            target_tensor[i] *= self.power * 2
-            return target_tensor
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            i = args.subspace_index(1)
+            args.target_tensor[i] *= self.power * 2
+            return args.target_tensor
 
         def _unitary_(self):
             return np.array([[1, 0], [0, 2]])
@@ -407,11 +391,8 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             qubit_count=1)
 
     class EffectWithoutUnitary:
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
-            return target_tensor
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            return args.target_tensor
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_has_consistent_apply_unitary(
@@ -419,10 +400,7 @@ def test_assert_apply_unitary_to_tensor_is_consistent_with_unitary():
             qubit_count=1)
 
     class NoEffect:
-        def _apply_unitary_to_tensor_(self,
-                                      target_tensor: np.ndarray,
-                                      available_buffer: np.ndarray,
-                                      axes: Sequence[int]) -> np.ndarray:
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             return NotImplemented
 
     cirq.testing.assert_has_consistent_apply_unitary(
