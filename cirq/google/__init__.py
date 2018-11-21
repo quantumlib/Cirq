@@ -15,16 +15,9 @@
 from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,
 )
-from cirq.google.decompositions import (
-    controlled_op_to_native_gates,
-    single_qubit_matrix_to_native_gates,
-)
 from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
-)
-from cirq.google.merge_rotations import (
-    MergeRotations,
 )
 from cirq.google.xmon_device import (
     XmonDevice,
