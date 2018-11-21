@@ -97,16 +97,11 @@ class GateOperation(raw_types.Operation):
                                                     self.qubits,
                                                     NotImplemented)
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, None, NotImplementedType]:
+        return protocols.apply_unitary(
             self.gate,
-            target_tensor,
-            available_buffer,
-            axes,
+            args,
             default=NotImplemented)
 
     def _has_unitary_(self) -> bool:

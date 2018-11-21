@@ -17,7 +17,8 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
 
-from cirq import circuits, ops, value, decompositions, protocols
+from cirq import circuits, ops, value, protocols
+from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
