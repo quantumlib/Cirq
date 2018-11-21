@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import List
 
 import re
 import pytest
+
+import numpy as np
 
 import cirq
 from cirq.circuits.qasm_output import QasmUGate, QasmTwoQubitGate
@@ -29,17 +32,8 @@ def test_u_gate_repr():
 
 
 def test_qasm_two_qubit_gate_repr():
-    gate = QasmTwoQubitGate(QasmUGate(0.1, 0.2, 0.3),
-                            QasmUGate(0.4, 0.5, 0.6),
-                            0.7, 0.8, 0.9,
-                            QasmUGate(1.0, 1.1, 1.2),
-                            QasmUGate(1.3, 1.4, 1.5))
-    assert repr(gate) == ('cirq.QasmTwoQubitGate('
-                          'cirq.QasmUGate(0.1, 0.2, 0.3), '
-                          'cirq.QasmUGate(0.4, 0.5, 0.6), '
-                          '0.7, 0.8, 0.9, '
-                          'cirq.QasmUGate(1.0, 1.1, 1.2), '
-                          'cirq.QasmUGate(1.3, 1.4, 1.5))')
+    cirq.testing.assert_equivalent_repr(QasmTwoQubitGate.from_matrix(
+        cirq.testing.random_unitary(4)))
 
 
 def test_empty_circuit():
@@ -292,12 +286,15 @@ def test_output_unitary_same_as_qiskit():
         return
 
     circuit = cirq.Circuit.from_ops(operations)
-    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits[::-1])
+    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits)
 
     result = qiskit.execute(
         qiskit.load_qasm_string(text),
         backend=qiskit.Aer.get_backend('unitary_simulator'))
     qiskit_unitary = result.result().get_unitary()
+    qiskit_unitary = _reorder_indices_of_matrix(
+            qiskit_unitary,
+            list(reversed(range(len(qubits)))))
 
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
@@ -471,3 +468,24 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
+
+
+def test_qasm_two_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(4)
+    g = QasmTwoQubitGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u)
+
+
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+    num_qubits = matrix.shape[0].bit_length() - 1
+    matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
+    all_indices = range(2*num_qubits)
+    new_input_indices = new_order
+    new_output_indices = [i + num_qubits for i in new_input_indices]
+    matrix = np.moveaxis(
+            matrix,
+            all_indices,
+            new_input_indices + new_output_indices
+    )
+    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
+    return matrix
