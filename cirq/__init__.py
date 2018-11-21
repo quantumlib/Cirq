@@ -31,15 +31,6 @@ from cirq.circuits import (
     Unique,
 )
 
-from cirq.decompositions import (
-    controlled_op_to_operations,
-    is_negligible_turn,
-    single_qubit_matrix_to_gates,
-    single_qubit_matrix_to_pauli_rotations,
-    single_qubit_op_to_framed_phase_form,
-    two_qubit_matrix_to_operations,
-)
-
 from cirq.devices import (
     Device,
     GridQubit,
@@ -178,8 +169,15 @@ from cirq.optimizers import (
     EjectPhasedPaulis,
     EjectZ,
     ExpandComposite,
+    is_negligible_turn,
+    merge_single_qubit_gates_into_phased_x_z,
     MergeInteractions,
     MergeSingleQubitGates,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_matrix_to_phased_x_z,
+    single_qubit_op_to_framed_phase_form,
+    two_qubit_matrix_to_operations,
 )
 
 from cirq.schedules import (
