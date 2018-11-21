@@ -609,9 +609,14 @@ class CZPowGate(eigen_gate.EigenGate,
         return 'CZ**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CZ'
-        return '(cirq.CZ**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CZ'
+            return '(cirq.CZ**{!r})'.format(self._exponent)
+        return (
+            'cirq.CZPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 def _rads_func_symbol(func_name: str,
