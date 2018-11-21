@@ -31,25 +31,27 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class GateOperation(raw_types.Operation):
-    """An application of a gate to a collection of qubits.
-
-    Attributes:
-        gate: The applied gate.
-        qubits: A sequence of the qubits on which the gate is applied.
-    """
+    """An application of a gate to a sequence of qubits."""
 
     def __init__(self,
                  gate: raw_types.Gate,
                  qubits: Sequence[raw_types.QubitId]) -> None:
+        """
+        Args:
+            gate: The gate to apply.
+            qubits: The qubits to operate on.
+        """
         self._gate = gate
         self._qubits = tuple(qubits)
 
     @property
     def gate(self) -> raw_types.Gate:
+        """The gate applied by the operation."""
         return self._gate
 
     @property
     def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+        """The qubits targeted by the operation."""
         return self._qubits
 
     def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'GateOperation':
