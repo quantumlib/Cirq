@@ -15,21 +15,16 @@
 # limitations under the License.
 
 set -e
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-repo_root="$( cd "$own_directory/.." && pwd )"
 
-if [ -d "$repo_root/docs/_build" ] ; then
-  echo "'$repo_root/docs/_build' directory still exists." >&2
-  echo "Remove the _build directory before continuing." >&2
-  exit 1
-fi
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
 
-if [ -d "$repo_root/docs/generated" ] ; then
-  echo "'$repo_root/docs/generated' directory still exists." >&2
-  echo "Remove the generated directory before continuing." >&2
-  exit 1
-fi
+# Clear out previously generated docs.
+rm docs/generated/ docs/_build/ -rf
 
-cd "$repo_root/docs"
-pip install -r requirements.txt
+pip install -r docs/requirements.txt
+
+# Regenerate docs.
+cd docs
 make html

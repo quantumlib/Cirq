@@ -32,7 +32,7 @@ class Simulator(simulator.SimulatesSamples,
     that have a `_unitary_` method, or `_has_unitary_` and
     `_apply_unitary_` methods, or else a `_decompose_` method that
     returns operations satisfying these same conditions. That is to say,
-    the operations should follow the `cirq.SupportsApplyUnitaryToTensor`
+    the operations should follow the `cirq.SupportsApplyUnitary`
     protocol, the `cirq.SupportsUnitary` protocol, or the
     `cirq.CompositeOperation` protocol. (It is also permitted for the circuit
     to contain measurements.)
