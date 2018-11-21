@@ -47,7 +47,6 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
         A list of operations implementing the matrix.
     """
     kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
-    # TODO: Clean up angles before returning
     operations = _kak_decomposition_to_operations(
         q0, q1, kak, allow_partial_czs, tolerance)
     return _cleanup_operations(operations)

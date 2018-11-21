@@ -52,7 +52,8 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         self._rewriter = rewriter
         self._synthesizer = synthesizer
 
-    def _rewrite(self, operations):
+    def _rewrite(self, operations: List[ops.Operation]
+                 ) -> Optional[ops.OP_TREE]:
         if not operations:
             return None
         q = operations[0].qubits[0]
