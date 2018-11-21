@@ -19,7 +19,7 @@ from collections import namedtuple
 import numpy as np
 import tensorflow as tf
 
-from cirq import ops, circuits, linalg, protocols, decompositions
+from cirq import ops, circuits, linalg, protocols, optimizers
 
 
 # We logically divide the qubits into groups of this size, and operate on each
@@ -199,7 +199,7 @@ class _QubitGrouping:
         if len(op.qubits) == 2:
             m = protocols.unitary(op, None)
             if m is not None:
-                return decompositions.two_qubit_matrix_to_operations(
+                return optimizers.two_qubit_matrix_to_operations(
                     op.qubits[0],
                     op.qubits[1],
                     mat=m,

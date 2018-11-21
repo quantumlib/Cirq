@@ -11,18 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Callable, Optional
 
 import numpy as np
+import pytest
 
 import cirq
 
 
-def assert_optimizes(before: cirq.Circuit,
-                     expected: cirq.Circuit,
-                     optimizer: cirq.OptimizationPass=None):
+def assert_optimizes(
+        before: cirq.Circuit,
+        expected: cirq.Circuit,
+        optimizer: Optional[Callable[[cirq.Circuit], None]] = None):
     if optimizer is None:
-        optimizer = cirq.MergeSingleQubitGates()
-    optimizer.optimize_circuit(before)
+        optimizer = cirq.MergeSingleQubitGates().optimize_circuit
+    optimizer(before)
 
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
@@ -54,6 +57,13 @@ def test_leaves_singleton():
     cirq.testing.assert_same_circuits(
         c,
         cirq.Circuit([cirq.Moment([cirq.X(q)])]))
+
+
+def test_not_both():
+    with pytest.raises(ValueError):
+        _ = cirq.MergeSingleQubitGates(
+            synthesizer=lambda *args: None,
+            rewriter=lambda *args: None)
 
 
 def test_combines_sequence():
@@ -141,3 +151,45 @@ def test_ignore_unsupported_gate():
     cirq.MergeSingleQubitGates().optimize_circuit(circuit)
 
     assert circuit == c_orig
+
+
+def test_rewrite():
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.Y(q0),
+        cirq.CZ(q0, q1),
+        cirq.Y(q1),
+    )
+    cirq.MergeSingleQubitGates(
+        rewriter=lambda ops: cirq.H(ops[0].qubits[0])
+    ).optimize_circuit(circuit)
+    cirq.DropEmptyMoments().optimize_circuit(circuit)
+
+    cirq.testing.assert_same_circuits(circuit, cirq.Circuit.from_ops(
+        cirq.H(q0),
+        cirq.H(q1),
+        cirq.CZ(q0, q1),
+        cirq.H(q1),
+    ))
+
+
+def test_merge_single_qubit_gates_into_phased_x_z():
+    a, b = cirq.LineQubit.range(2)
+    assert_optimizes(
+        before=cirq.Circuit.from_ops(
+            cirq.X(a),
+            cirq.Y(b)**0.5,
+            cirq.CZ(a, b),
+            cirq.H(a),
+            cirq.Z(a),
+        ),
+        expected=cirq.Circuit.from_ops(
+            cirq.X(a),
+            cirq.Y(b)**0.5,
+            cirq.CZ(a, b),
+            cirq.Y(a)**-0.5,
+        ),
+        optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)
