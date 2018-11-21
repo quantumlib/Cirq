@@ -28,12 +28,7 @@ import cirq.ops.common_gates
 
 @value.value_equality
 class PhasedXPowGate(gate_features.SingleQubitGate):
-    """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───.
-
-    Attributes:
-        phase_exponent: The exponent on the Z gates conjugating the X gate.
-        exponent: The exponent on the X gate conjugated by Zs.
-    """
+    """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
 
     def __new__(cls,
                 *,
@@ -119,10 +114,12 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     @property
     def exponent(self) -> Union[float, value.Symbol]:
+        """The exponent on the central X gate conjugated by the Z gates."""
         return self._exponent
 
     @property
     def phase_exponent(self) -> Union[float, value.Symbol]:
+        """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
     def __pow__(self, exponent: Union[float, value.Symbol]) -> 'PhasedXPowGate':
