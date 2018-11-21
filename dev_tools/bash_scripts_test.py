@@ -88,7 +88,7 @@ def test_pytest_changed_files_file_selection():
                        'git add -A\n'
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
-    assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
+    assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
         "Found 1 differing files with associated tests.\n").split()
@@ -99,7 +99,7 @@ def test_pytest_changed_files_file_selection():
                        'git add -A\n'
                        'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
-    assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
+    assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
         "Found 1 differing files with associated tests.\n").split()
@@ -111,7 +111,7 @@ def test_pytest_changed_files_file_selection():
                        'git commit -m test --quiet --no-gpg-sign\n'
                        'echo x > file_test.py\n')
     assert result.exit_code == 0
-    assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
+    assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
         "Found 1 differing files with associated tests.\n").split()
@@ -123,7 +123,7 @@ def test_pytest_changed_files_file_selection():
                        'git commit -m test --quiet --no-gpg-sign\n'
                        'echo x > file.py\n')
     assert result.exit_code == 0
-    assert result.out.split() == 'INTERCEPTED pytest file_test.py\n'.split()
+    assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
         "Found 1 differing files with associated tests.\n").split()
