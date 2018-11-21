@@ -164,7 +164,7 @@ def apply_unitary(unitary_value: Any,
                   ) -> Union[np.ndarray, TDefault]:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
-    If `unitary_value` defines an _apply_unitary_ method, that method will be
+    If `unitary_value` defines an `_apply_unitary_` method, that method will be
     used to apply `unitary_value`'s unitary effect to the target tensor.
     Otherwise, if `unitary_value` defines a `_unitary_` method, its unitary
     matrix will be retrieved and applied using a generic method. Otherwise the
@@ -203,9 +203,9 @@ def apply_unitary(unitary_value: Any,
     """
 
     # Check if the specialized method is present.
-    getter = getattr(unitary_value, '_apply_unitary_', None)
-    if getter is not None:
-        result = getter(args)
+    func = getattr(unitary_value, '_apply_unitary_', None)
+    if func is not None:
+        result = func(args)
         if result is not NotImplemented and result is not None:
             return result
 

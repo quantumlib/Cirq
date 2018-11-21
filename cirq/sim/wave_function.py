@@ -15,7 +15,7 @@
 
 import itertools
 
-from typing import List, Sequence, Tuple, Union, TYPE_CHECKING, Type
+from typing import Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,6 +24,96 @@ from cirq import linalg
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from cirq.sim import simulator
+
+
+def bloch_vector_from_state_vector(state: Sequence, index: int) -> np.ndarray:
+    """Returns the bloch vector of a qubit.
+
+    Calculates the bloch vector of the qubit at index
+    in the wavefunction given by state, assuming state follows
+    the standard Kronecker convention of numpy.kron.
+
+    Args:
+        state: A sequence representing a wave function in which
+            the ordering mapping to qubits follows the standard Kronecker
+            convention of numpy.kron.
+        index: index of qubit who's bloch vector we want to find.
+            follows the standard Kronecker convention of numpy.kron.
+
+    Returns:
+        A length 3 numpy array representing the qubit's bloch vector.
+
+    Raises:
+        ValueError: if the size of state is not a power of 2.
+        ValueError: if the size of the state represents more than 25 qubits.
+        IndexError: if index is out of range for the number of qubits
+            corresponding to the state.
+    """
+    rho = density_matrix_from_state_vector(state, [index])
+    v = np.zeros(3, dtype=np.float32)
+    v[0] = 2*np.real(rho[0][1])
+    v[1] = 2*np.imag(rho[1][0])
+    v[2] = np.real(rho[0][0] - rho[1][1])
+
+    return v
+
+
+def density_matrix_from_state_vector(
+    state: Sequence,
+    indices: Iterable[int] = None
+) -> np.ndarray:
+    """Returns the density matrix of the wavefunction.
+
+    Calculate the density matrix for the system on the given qubit
+    indices, with the qubits not in indices that are present in state
+    traced out. If indices is None the full density matrix for state
+    is returned. We assume state follows the standard Kronecker
+    convention of numpy.kron.
+
+    For example:
+        state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+        indices = None
+        gives us \rho = \begin{bmatrix}
+                            0.5 & 0.5
+                            0.5 & 0.5
+                        \end{bmatrix}
+
+    Args:
+        state: A sequence representing a wave function in which
+            the ordering mapping to qubits follows the standard Kronecker
+            convention of numpy.kron.
+        indices: list containing indices for qubits that you would like
+            to include in the density matrix (i.e.) qubits that WON'T
+            be traced out. follows the standard Kronecker convention of
+            numpy.kron.
+
+    Returns:
+        A numpy array representing the density matrix.
+
+    Raises:
+        ValueError: if the size of state is not a power of 2.
+        ValueError: if the size of the state represents more than 25 qubits.
+        IndexError: if the indices are out of range for the number of qubits
+            corresponding to the state.
+    """
+    n_qubits = _validate_num_qubits(state)
+
+    if indices is None:
+        return np.outer(state, np.conj(state))
+
+    indices = list(indices)
+    _validate_indices(n_qubits, indices)
+
+    state = np.asarray(state).reshape((2,)*n_qubits)
+
+    sum_inds = np.array(range(n_qubits))
+    sum_inds[indices] += n_qubits
+
+    rho = np.einsum(state, list(range(n_qubits)), np.conj(state),
+        sum_inds.tolist(), indices + sum_inds[indices].tolist())
+    new_shape = 2**len(indices)
+
+    return rho.reshape((new_shape, new_shape))
 
 
 def dirac_notation(state: Sequence, decimals: int=2) -> str:
