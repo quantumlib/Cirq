@@ -32,30 +32,27 @@ class GoodGate(cirq.SingleQubitGate):
         self.exponent = exponent
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        if self._is_parameterized_():
+        if cirq.is_parameterized(self):
             return NotImplemented
         z = cirq.unitary(cirq.ops.common_gates.Z**self.phase_exponent)
         x = cirq.unitary(cirq.ops.common_gates.X**self.exponent)
         return np.dot(np.dot(z, x), np.conj(z))
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        if self.exponent != 1 or self._is_parameterized_():
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        if self.exponent != 1 or cirq.is_parameterized(self):
             return NotImplemented
 
-        zero = cirq.slice_for_qubits_equal_to(axes, 0)
-        one = cirq.slice_for_qubits_equal_to(axes, 1)
+        zero = cirq.slice_for_qubits_equal_to(args.axes, 0)
+        one = cirq.slice_for_qubits_equal_to(args.axes, 1)
         c = np.exp(1j * np.pi * self.phase_exponent)
 
-        target_tensor[one] *= c.conj()
-        available_buffer[zero] = target_tensor[one]
-        available_buffer[one] = target_tensor[zero]
-        available_buffer[one] *= c
+        args.target_tensor[one] *= c.conj()
+        args.available_buffer[zero] = args.target_tensor[one]
+        args.available_buffer[one] = args.target_tensor[zero]
+        args.available_buffer[one] *= c
 
-        return available_buffer
+        return args.available_buffer
 
     def _decompose_(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         assert len(qubits) == 1
@@ -106,25 +103,22 @@ class GoodGate(cirq.SingleQubitGate):
 
 class BadGateApplyUnitaryToTensor(GoodGate):
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        if self.exponent != 1 or self._is_parameterized_():
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        if self.exponent != 1 or cirq.is_parameterized(self):
             # coverage: ignore
             return NotImplemented
 
-        zero = cirq.slice_for_qubits_equal_to(axes, 0)
-        one = cirq.slice_for_qubits_equal_to(axes, 1)
+        zero = cirq.slice_for_qubits_equal_to(args.axes, 0)
+        one = cirq.slice_for_qubits_equal_to(args.axes, 1)
         c = np.exp(1j * np.pi * self.phase_exponent)
 
-        target_tensor[one] *= c
-        available_buffer[zero] = target_tensor[one]
-        available_buffer[one] = target_tensor[zero]
-        available_buffer[one] *= c
+        args.target_tensor[one] *= c
+        args.available_buffer[zero] = args.target_tensor[one]
+        args.available_buffer[one] = args.target_tensor[zero]
+        args.available_buffer[one] *= c
 
-        return available_buffer
+        return args.available_buffer
 
 
 class BadGateDecompose(GoodGate):
