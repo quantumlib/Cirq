@@ -44,20 +44,29 @@ Operations implement `_decompose_(self)` whereas gates implement `_decompose_(se
 
 The main requirements on the output of `_decompose_` methods are:
 
-1. DO NOT CREATE CYCLES. The `cirq.decompose` method will iterative decompose until it find values satisfying a `keep` predicate. Cycles cause it to enter an infinite loop.
-2. Head towards operations defined by cirq, because these operations have good decomposition methods that terminate in single-qubit and two-qubit gates that can be understood by essentially all code.
-3. All that matters is functional equivalence. Don't worry about staying within or reaching a particular gate set; it's too hard to predict what the caller will want. Gate-set-aware decomposition is useful, but *this is not the protocol that does that*. 
+1. DO NOT CREATE CYCLES. The `cirq.decompose` method will iterative decompose until it finds values satisfying a `keep` predicate. Cycles cause it to enter an infinite loop.
+2. Head towards operations defined by Cirq, because these operations have good decomposition methods that terminate in single-qubit and two qubit gates.
+These gates can be understood by the simulator, optimizers, and other code.
+3. All that matters is functional equivalence.
+Don't worry about staying within or reaching a particular gate set; it's too hard to predict what the caller will want. Gate-set-aware decomposition is useful, but *this is not the protocol that does that*.
+Gate-set-aware decomposition may be added in the future, but doesn't exist within Cirq at the moment.
 
 For example, `cirq.CCZ` decomposes into a series of `cirq.CNOT` and `cirq.T` operations.
 This allows code that doesn't understand three-qubit operation to work with `cirq.CCZ`; by decomposing it into operations they do understand.
 As another example, `cirq.TOFFOLI` decomposes into a `cirq.H` followed by a `cirq.CCZ` followed by a `cirq.H`.
 Although the output contains a three qubit operation (the CCZ), that operation can be decomposed into two qubit and one qubit operations.
-So code that doesn't understand three qubit operations can deal with Toffolis by decomposing it, and then decomposing the CCZ from the decomposition.
+So code that doesn't understand three qubit operations can deal with Toffolis by decomposing them, and then decomposing the CCZs that result from the initial decomposition.
 
-In general, code is expected to recursively decompose unknown operations until the code either hits operations it understands or hits a dead end where no more decomposition is possible.
+In general, decomposition-aware code consuming operations is expected to recursively decompose unknown operations until the code either hits operations it understands or hits a dead end where no more decomposition is possible.
 The `cirq.decompose` method implements logic for performing exactly this kind of recursive decomposition.
 Callers specify a `keep` predicate, and optionally specify intercepting and fallback decomposers, and then `cirq.decompose` will repeatedly decompose whatever operations it was given until the operations satisfy the given `keep`.
 If `cirq.decompose` hits a dead end, it raises an error.
+
+Cirq doesn't make any guarantees about the "target gate set" decomposition is heading towards.
+`cirq.decompose` is not a method
+Decompositions within Cirq happen to converge towards X, Y, Z, CZ, PhasedX, specified-matrix gates, and others.
+But this set will vary from release to release, and so it is important for consumers of decompositions to look for generic properties of gates,
+such as "two qubit gate with a unitary matrix", instead of specific gate types such as CZ gates.
 
 #### `cirq.inverse` and `__pow__`
 
