@@ -22,7 +22,7 @@ Simulator types include
 import abc
 import collections
 
-from typing import Dict, Iterable, Iterator, List, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Tuple, Union, Optional
 
 import numpy as np
 
@@ -455,10 +455,9 @@ class StepResult:
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(
-        self,
-        qubit_map: Dict,
-        measurements: Dict[str, List[bool]]) -> None:
+    def __init__(self,
+                 qubit_map: Optional[Dict],
+                 measurements: Optional[Dict[str, List[bool]]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or collections.defaultdict(list)
 

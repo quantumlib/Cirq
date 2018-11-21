@@ -32,7 +32,8 @@ measurements are provided
     measure_each
 """
 from typing import (
-    Any, Callable, cast, Iterable, List, Optional, Sequence, Tuple, Union)
+    Any, Callable, cast, Iterable, List, Optional, Tuple, Union,
+)
 
 import numpy as np
 
@@ -66,21 +67,18 @@ class XPowGate(eigen_gate.EigenGate,
     `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
     """
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return NotImplemented
-        zero = linalg.slice_for_qubits_equal_to(axes, 0)
-        one = linalg.slice_for_qubits_equal_to(axes, 1)
-        available_buffer[zero] = target_tensor[one]
-        available_buffer[one] = target_tensor[zero]
+            return None
+        zero = args.subspace_index(0)
+        one = args.subspace_index(1)
+        args.available_buffer[zero] = args.target_tensor[one]
+        args.available_buffer[one] = args.target_tensor[zero]
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            available_buffer *= p
-        return available_buffer
+            args.available_buffer *= p
+        return args.available_buffer
 
     def _eigen_components(self):
         return [
@@ -226,21 +224,18 @@ class ZPowGate(eigen_gate.EigenGate,
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
     """
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
-            return NotImplemented
+            return None
 
-        one = linalg.slice_for_qubits_equal_to(axes, 1)
+        one = args.subspace_index(1)
         c = 1j**(self._exponent * 2)
-        target_tensor[one] *= c
+        args.target_tensor[one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return target_tensor
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _eigen_components(self):
         return [
@@ -497,22 +492,19 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return NotImplemented
+            return None
 
-        zero = linalg.slice_for_qubits_equal_to(axes, 0)
-        one = linalg.slice_for_qubits_equal_to(axes, 1)
-        target_tensor[one] -= target_tensor[zero]
-        target_tensor[one] *= -0.5
-        target_tensor[zero] -= target_tensor[one]
+        zero = args.subspace_index(0)
+        one = args.subspace_index(1)
+        args.target_tensor[one] -= args.target_tensor[zero]
+        args.target_tensor[one] *= -0.5
+        args.target_tensor[zero] -= args.target_tensor[one]
         p = 1j**(2 * self._exponent * self._global_shift)
-        target_tensor *= np.sqrt(2) * p
-        return target_tensor
+        args.target_tensor *= np.sqrt(2) * p
+        return args.target_tensor
 
     def _decompose_(self, qubits):
         q = qubits[0]
@@ -576,21 +568,18 @@ class CZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 1])),
         ]
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-    ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
         c = 1j**(2 * self._exponent)
-        one_one = linalg.slice_for_qubits_equal_to(axes, 0b11)
-        target_tensor[one_one] *= c
+        one_one = linalg.slice_for_qubits_equal_to(args.axes, 0b11)
+        args.target_tensor[one_one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return target_tensor
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _phase_by_(self, phase_turns, qubit_index):
         return self
@@ -678,23 +667,20 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             wire_symbols=('@', 'X'),
             exponent=self._diagram_exponent(args))
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return NotImplemented
+            return None
 
-        oo = linalg.slice_for_qubits_equal_to(axes, 0b11)
-        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
-        available_buffer[oo] = target_tensor[oo]
-        target_tensor[oo] = target_tensor[zo]
-        target_tensor[zo] = available_buffer[oo]
+        oo = args.subspace_index(0b11)
+        zo = args.subspace_index(0b01)
+        args.available_buffer[oo] = args.target_tensor[oo]
+        args.target_tensor[oo] = args.target_tensor[zo]
+        args.target_tensor[zo] = args.available_buffer[oo]
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return target_tensor
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _qasm_(self,
                args: protocols.QasmArgs,
@@ -764,23 +750,20 @@ class SwapPowGate(eigen_gate.EigenGate,
                           [0,  0,    0,   0]])),
         ]
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return NotImplemented
+            return None
 
-        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
-        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
-        available_buffer[zo] = target_tensor[zo]
-        target_tensor[zo] = target_tensor[oz]
-        target_tensor[oz] = available_buffer[zo]
+        zo = args.subspace_index(0b01)
+        oz = args.subspace_index(0b10)
+        args.available_buffer[zo] = args.target_tensor[zo]
+        args.target_tensor[zo] = args.target_tensor[oz]
+        args.target_tensor[oz] = args.available_buffer[zo]
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return target_tensor
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -857,25 +840,22 @@ class ISwapPowGate(eigen_gate.EigenGate,
         yield H(a)
         yield CNOT(a, b)
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return NotImplemented
+            return None
 
-        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
-        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
-        available_buffer[zo] = target_tensor[zo]
-        target_tensor[zo] = target_tensor[oz]
-        target_tensor[oz] = available_buffer[zo]
-        target_tensor[zo] *= 1j
-        target_tensor[oz] *= 1j
+        zo = args.subspace_index(0b01)
+        oz = args.subspace_index(0b10)
+        args.available_buffer[zo] = args.target_tensor[zo]
+        args.target_tensor[zo] = args.target_tensor[oz]
+        args.target_tensor[oz] = args.available_buffer[zo]
+        args.target_tensor[zo] *= 1j
+        args.target_tensor[oz] *= 1j
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return target_tensor
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
