@@ -25,7 +25,7 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
 
     original = protocols.unitary(val)
     qubit_count = len(original).bit_length() - 1
-    original.shape = (2, 2) * qubit_count
+    original = original.reshape((2, 2) * qubit_count)
 
     for t in [0.125, -0.25, 1]:
         p = 1j**(t*4)
@@ -35,8 +35,7 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
                 # If not phaseable, then phase_by is vacuously consistent.
                 continue
 
-            actual = protocols.unitary(phased)
-            actual.shape = (2, 2) * qubit_count
+            actual = protocols.unitary(phased).reshape((2, 2) * qubit_count)
 
             expected = np.array(original)
             s = linalg.slice_for_qubits_equal_to([i], 1)
