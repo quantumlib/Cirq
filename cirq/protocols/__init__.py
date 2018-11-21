@@ -13,12 +13,14 @@
 # limitations under the License.
 
 
-from cirq.protocols.apply_unitary_to_tensor import (
-    SupportsApplyUnitaryToTensor,
-    apply_unitary_to_tensor,
+from cirq.protocols.apply_unitary import (
+    apply_unitary,
+    ApplyUnitaryArgs,
+    SupportsApplyUnitary,
 )
 from cirq.protocols.channel import (
     channel,
+    SupportsChannel,
 )
 from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfo,
