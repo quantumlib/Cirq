@@ -29,8 +29,9 @@ def _phase_matrix(turns: float) -> np.ndarray:
 class SingleQubitMatrixGate(raw_types.Gate):
     """A 1-qubit gate defined by its matrix.
 
-    More general than specialized classes like ZGate, but more expensive and
-    more float-error sensitive to work with (due to using eigendecompositions).
+    More general than specialized classes like `ZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
@@ -107,8 +108,9 @@ class SingleQubitMatrixGate(raw_types.Gate):
 class TwoQubitMatrixGate(raw_types.Gate):
     """A 2-qubit gate defined only by its matrix.
 
-    More general than specialized classes like CZGate, but more expensive and
-    more float-error sensitive to work with (due to using eigendecompositions).
+    More general than specialized classes like `CZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
     """
 
     def __init__(self, matrix: np.ndarray) -> None:

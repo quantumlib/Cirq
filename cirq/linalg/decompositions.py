@@ -271,7 +271,7 @@ def so4_to_magic_su2s(
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
 
-    Any two qubit operation U = can be decomposed into the form
+    Any two qubit operation U can be decomposed into the form
 
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
 
