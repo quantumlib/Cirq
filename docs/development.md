@@ -176,7 +176,7 @@ The script fails with no effects if the output directory already exists.
 Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a markdown flavor and support for latex.
 Here is an example docstring:
 
-```python
+```
 def some_method(a: int, b: str) -> float:
     r"""One line summary of method.
 
