@@ -123,7 +123,7 @@ class XPowGate(eigen_gate.EigenGate,
         return 'X**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             return 'cirq.Rx(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
@@ -199,7 +199,7 @@ class YPowGate(eigen_gate.EigenGate,
         return 'Y**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             return 'cirq.Ry(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
@@ -302,7 +302,7 @@ class ZPowGate(eigen_gate.EigenGate,
         return 'Z**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 0.25:
@@ -549,9 +549,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return 'H^{}'.format(self._exponent)
 
     def __repr__(self):
-        if self._exponent == 1:
-            return 'cirq.H'
-        return '(cirq.H**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.H'
+            return '(cirq.H**{!r})'.format(self._exponent)
+        return (
+            'cirq.HPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class CZPowGate(eigen_gate.EigenGate,
@@ -616,9 +621,14 @@ class CZPowGate(eigen_gate.EigenGate,
         return 'CZ**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CZ'
-        return '(cirq.CZ**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CZ'
+            return '(cirq.CZ**{!r})'.format(self._exponent)
+        return (
+            'cirq.CZPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 def _rads_func_symbol(func_name: str,
@@ -709,10 +719,15 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return 'CNOT'
         return 'CNOT**{!r}'.format(self._exponent)
 
-    def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CNOT'
-        return '(cirq.CNOT**{!r})'.format(self._exponent)
+    def __repr__(self):
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CNOT'
+            return '(cirq.CNOT**{!r})'.format(self._exponent)
+        return (
+            'cirq.CNotPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def on(self, *args: raw_types.QubitId,
            **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
@@ -805,10 +820,15 @@ class SwapPowGate(eigen_gate.EigenGate,
             return 'SWAP'
         return 'SWAP**{!r}'.format(self._exponent)
 
-    def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.SWAP'
-        return '(cirq.SWAP**{!r})'.format(self._exponent)
+    def __repr__(self):
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.SWAP'
+            return '(cirq.SWAP**{!r})'.format(self._exponent)
+        return (
+            'cirq.SwapPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
@@ -891,9 +911,14 @@ class ISwapPowGate(eigen_gate.EigenGate,
         return 'ISWAP**{!r}'.format(self._exponent)
 
     def __repr__(self):
-        if self._exponent == 1:
-            return 'cirq.ISWAP'
-        return '(cirq.ISWAP**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.ISWAP'
+            return '(cirq.ISWAP**{!r})'.format(self._exponent)
+        return (
+            'cirq.ISwapPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 def Rx(rads: float) -> XPowGate:
