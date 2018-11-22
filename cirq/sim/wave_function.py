@@ -221,10 +221,9 @@ def validate_normalized_state(state: np.ndarray,
         raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
-def sample_state_vector(
-    state: np.ndarray,
-    indices: List[int],
-    repetitions: int=1) -> List[List[bool]]:
+def sample_state_vector(state: np.ndarray,
+                        indices: List[int],
+                        repetitions: int=1) -> List[List[bool]]:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the passed in state.
@@ -232,23 +231,23 @@ def sample_state_vector(
     Args:
         state: The multi-qubit wavefunction to be sampled. This is an array of
             2 to the power of the number of qubit complex numbers, and so
-            state must be of size 2 ** integer.  The state can be a vector of
-            size 2 ** integer or a tensor of shape (2, 2, ..., 2).
+            state must be of size ``2**integer``.  The state can be a vector of
+            size ``2**integer`` or a tensor of shape ``(2, 2, ..., 2)``.
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values that the 0th index.
         repetitions: The number of times to sample the state.
 
     Returns:
-        Measurement results with True corresponding to the |1> state.
+        Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the input indices.
 
     Raises:
-        ValueError if repetitions is less than one or size of state is not a
-            power of 2.
-        IndexError if the indices are out of range for the number of qubits
-            corresponding to the state.
+        ValueError: ``repetitions`` is less than one or size of ``state`` is not
+            a power of 2.
+        IndexError: An index from ``indices`` is out of range, given the number
+            of qubits corresponding to the state.
     """
     if repetitions < 0:
         raise ValueError('Number of repetitions cannot be negative. Was {}'

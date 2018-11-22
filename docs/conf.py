@@ -1,26 +1,8 @@
 # -*- coding: utf-8 -*-
-
-# Copyright 2018 The Cirq Developers
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 # coverage: ignore
 
 # Configuration file for the Sphinx documentation builder.
-#
-# This file does only contain a selection of the most common options. For a
-# full list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# See http://www.sphinx-doc.org/en/master/config for help
 
 # -- Path setup --------------------------------------------------------------
 
@@ -28,9 +10,83 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+from typing import List, Any
+
+import pypandoc
+import os
+import sys
+
+cirq_root_path = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, cirq_root_path)
+
+
+def setup(app):
+    app.add_config_value('pandoc_use_parser', 'markdown', True)
+    app.connect('autodoc-process-docstring', pandoc_process)
+
+
+def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
+    if all('$$' not in line for line in lines):
+        return lines
+
+    data = '\n'.join(lines)
+    sections = data.split('$$')
+    if len(sections) % 2 != 1:
+        raise ValueError('Mismatched number of "$$" latex tokens.')
+
+    result = []
+    for i, s in enumerate(sections):
+        if i % 2:
+            # Avoid getting split across divs.
+            s = ' '.join(s.split('\n'))
+            # Avoid intermediate layers turning our newlines into slashes.
+            s = s.replace('\\\\', '\\newline')
+            # Keep the $$ so MathJax can find it.
+            result.append('$${}$$'.format(s))
+        else:
+            # Work around bad table detection in pandoc by concatenating
+            # lines from the same paragraph.
+            s = '\n\n'.join(e.replace('\n', ' ') for e in s.split('\n\n'))
+
+            # Convert markdown to rst.
+            out = pypandoc.convert(s, to='rst', format='markdown_github')
+
+            # Not sure why pandoc is escaping these...
+            out = out.replace(r'\|', '|')
+
+            result.extend(out.split('\n'))
+
+    return result
+
+
+def pandoc_process(app,
+                   what: str,
+                   name: str,
+                   obj: Any,
+                   options,
+                   lines: List[str]
+                   ) -> None:
+    if not getattr(obj, '__module__', 'cirq').startswith('cirq'):
+        # Don't convert objects from other modules.
+        return
+
+    # Don't convert output from Napoleon extension, which is already rst.
+    i = 0
+    while i < len(lines) and not lines[i].startswith(':'):
+        i += 1
+    if not i:
+        return
+
+    converted_lines = convert_markdown_mathjax_for_rst(lines[:i])
+    kept_lines = lines[i:]
+
+    data = pypandoc.convert(
+        '\n'.join(converted_lines),
+        to='rst',
+        format='markdown_github',
+    )
+
+    lines[:] = data.split('\n') + kept_lines
 
 
 # -- Project information -----------------------------------------------------
@@ -39,16 +95,17 @@ project = 'Cirq'
 copyright = '2018, The Cirq Developers'  # pylint: disable=redefined-builtin
 author = 'The Cirq Developers'
 
-# The short X.Y version
-version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+__version__ = ''
+exec(open(os.path.join(cirq_root_path, 'cirq', '_version.py')).read())
+release = __version__
 
+# The short X.Y version
+version = release  # '.'.join(release.split('.')[:2])
 
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#
 # needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -76,7 +133,6 @@ source_parsers = {
 # You can specify multiple suffix as a list of string:
 #
 source_suffix = ['.rst', '.md']
-# source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -97,23 +153,16 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'sphinx'
 
 
-# -- XmonOptions for HTML output ---------------------------------------------
+# -- Options for HTML output ---------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
 html_theme = 'sphinx_rtd_theme'
-
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
+html_favicon = 'favicon.ico'
 # html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -126,13 +175,13 @@ html_static_path = ['_static']
 # html_sidebars = {}
 
 
-# -- XmonOptions for HTMLHelp output -----------------------------------------
+# -- Options for HTMLHelp output -----------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Cirqdoc'
 
 
-# -- XmonOptions for LaTeX output --------------------------------------------
+# -- Options for LaTeX output --------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -157,7 +206,7 @@ latex_documents = [
 ]
 
 
-# -- XmonOptions for manual page output --------------------------------------
+# -- Options for manual page output --------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
@@ -167,14 +216,14 @@ man_pages = [
 ]
 
 
-# -- XmonOptions for Texinfo output ------------------------------------------
+# -- Options for Texinfo output ------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'Cirq', 'Cirq Documentation',
-     author, 'Cirq', 'One line description of project.',
+     author, 'Cirq', 'A python library for NISQ circuits.',
      'Miscellaneous'),
 ]
 

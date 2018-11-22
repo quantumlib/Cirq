@@ -1205,17 +1205,18 @@ class Circuit:
         operations are present.
 
         For convenience, terminal measurements are automatically ignored
-        instead of causing a failure. Set the 'ignore_terminal_measurements'
+        instead of causing a failure. Set the `ignore_terminal_measurements`
         argument to False to disable this behavior.
 
         This method is equivalent to left-multiplying the input state by
-        circuit.to_unitary_matrix(...), but computed in a more efficient way.
+        `cirq.unitary(circuit)` but it's computed in a more efficient
+        way.
 
         Args:
             initial_state: The input state for the circuit. This can be an int
                 or a vector. When this is an int, it refers to a computational
-                basis state (e.g. 5 means initialize to |5> = |...000101>). If
-                this is a state vector, it directly specifies the initial
+                basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
+                If this is a state vector, it directly specifies the initial
                 state's amplitudes. The vector must be a flat numpy array with a
                 type that can be converted to np.complex128.
             qubit_order: Determines how qubits are ordered when passing matrices
