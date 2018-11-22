@@ -29,8 +29,8 @@ from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 def assert_implements_consistent_protocols(
         val: Any,
         *,
-        exponents: Sequence[Any] =
-            (0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        exponents: Sequence[Any] = (
+            0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
         qubit_count: Optional[int] = None,
         setup_code: str = 'import cirq\nimport numpy as np'
         ) -> None:
@@ -48,8 +48,8 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
-        exponents: Sequence[Union[value.Symbol, float]] =
-            (0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        exponents: Sequence[Union[value.Symbol, float]] = (
+            0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
         global_shifts: Sequence[float] = (0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None,
         setup_code: str = 'import cirq\nimport numpy as np'
