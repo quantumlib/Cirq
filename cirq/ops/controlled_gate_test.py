@@ -113,6 +113,13 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
     def __pow__(self, exponent):
         return self
 
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_gate_test.'
+                'GateUsingWorkspaceForApplyUnitary()')
+
 
 class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
@@ -134,6 +141,13 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
     def __pow__(self, factor):
         return self
 
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_gate_test.'
+                'GateAllocatingNewSpaceForResult()')
+
 
 @pytest.mark.parametrize('gate', [
     cirq.X,
@@ -151,23 +165,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 ])
 def test_controlled_gate_is_consistent(gate: cirq.Gate):
     cgate = cirq.ControlledGate(gate)
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cgate)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cgate)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cgate)
-
-
-@pytest.mark.parametrize('gate', [
-    cirq.X,
-    cirq.X**0.5,
-    cirq.Rx(np.pi),
-    cirq.Rx(np.pi / 2),
-    cirq.Z,
-    cirq.H,
-])
-def test_controlled_gate_qasm_is_consistent(gate: cirq.Gate):
-    cgate = cirq.ControlledGate(gate)
-    cirq.testing.assert_qasm_is_consistent_with_unitary(cgate)
+    cirq.testing.assert_implements_consistent_protocols(cgate)
 
 
 def test_pow_inverse():
