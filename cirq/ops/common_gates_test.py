@@ -35,8 +35,7 @@ QFT2 = np.array([[1, 1, 1, 1],
     cirq.XPowGate,
     cirq.YPowGate,
     cirq.ZPowGate,
-    ]
-)
+])
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
             eigen_gate_type)
@@ -57,6 +56,12 @@ def test_cz_str():
     assert str(cirq.CZ) == 'CZ'
     assert str(cirq.CZ**0.5) == 'CZ**0.5'
     assert str(cirq.CZ**-0.25) == 'CZ**-0.25'
+
+
+def test_cz_repr():
+    assert repr(cirq.CZ) == 'cirq.CZ'
+    assert repr(cirq.CZ**0.5) == '(cirq.CZ**0.5)'
+    assert repr(cirq.CZ**-0.25) == '(cirq.CZ**-0.25)'
 
 
 def test_cz_unitary():
