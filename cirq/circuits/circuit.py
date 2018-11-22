@@ -557,9 +557,9 @@ class Circuit:
                     active.add(q)
 
             continue_past = (
-                    cur_op is not None and
-                    active.issuperset(cur_op.qubits) and
-                    not is_blocker(cur_op)
+                cur_op is not None and
+                active.issuperset(cur_op.qubits) and
+                not is_blocker(cur_op)
             )
             if continue_past:
                 for q in cur_op.qubits:
@@ -604,7 +604,8 @@ class Circuit:
             operation itself. The list is sorted so that the moment index
             increases monotonically.
         """
-        result = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
+        result = BucketPriorityQueue[ops.Operation](
+            drop_duplicate_entries=True)
 
         involved_qubits = set(start_frontier.keys()) | set(end_frontier.keys())
         # Note: only sorted to ensure a deterministic result ordering.
@@ -1377,7 +1378,7 @@ class Circuit:
             header: Optional[str] = None,
             precision: int = 10,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            ) -> QasmOutput:
+    ) -> QasmOutput:
         """Returns a QASM object equivalent to the circuit.
 
         Args:
@@ -1388,7 +1389,8 @@ class Circuit:
                 register.
         """
         if header is None:
-            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+            header = 'Generated from Cirq v{}'.format(
+                cirq._version.__version__)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
         return QasmOutput(operations=self.all_operations(),
@@ -1475,6 +1477,9 @@ def _get_operation_circuit_diagram_info_with_fallback(
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
+    if info.exponent == 0:
+        return '0'
+
     # 1 is not shown.
     if info.exponent == 1:
         return None
@@ -1490,7 +1495,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
             approx_frac = Fraction(info.exponent).limit_denominator(16)
             if approx_frac.denominator not in [2, 4, 5, 10]:
                 if abs(float(approx_frac)
-                    - info.exponent) < 10**-args.precision:
+                       - info.exponent) < 10**-args.precision:
                     return '({})'.format(approx_frac)
 
             return '{{:.{}}}'.format(args.precision).format(info.exponent)
@@ -1570,7 +1575,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
         out_diagram.write(x2 + 1, 0, top_right, bottom_left)
         out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
         out_diagram.force_horizontal_padding_after(x2 + 1,
-            2 if not transpose else 0)
+                                                   2 if not transpose else 0)
 
         for y in [0, h]:
             out_diagram.horizontal_line(y, x1, x2 + 1)
@@ -1581,7 +1586,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
         out_diagram.write(x1, h, bottom_left, top_right)
 
         out_diagram.force_horizontal_padding_after(x1 - 1,
-           2 if not transpose else 0)
+                                                   2 if not transpose else 0)
 
     if not transpose:
         out_diagram.force_vertical_padding_after(0, 0)
