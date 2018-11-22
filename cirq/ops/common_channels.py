@@ -188,44 +188,52 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
     as well as the environment depositing energy into the system.
     """
 
-    def __init__(self, p, gamma) -> None:
+    def __init__(self, p: float, gamma: float) -> None:
         r"""The generalized amplitude damping channel.
 
         Construct a channel to model energy dissipation into the environment
         as well as the environment depositing energy into the system. The
         probabilities with which the energy exchange occur are given by gamma,
         and the probability of the environment being not excited is given by
-        p.
+        `p`.
 
         The stationary state of this channel is the diagonal density matrix
-        with probability p of being |0> and probability 1-p of being |1>.
+        with probability `p` of being |0⟩ and probability `1-p` of being |1⟩.
 
         This channel evolves a density matrix via
 
-            \rho -> M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-                  + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
+            $$
+            \rho \rightarrow M_0 \rho M_0^\dagger
+                           + M_1 \rho M_1^\dagger
+                           + M_2 \rho M_2^\dagger
+                           + M_3 \rho M_3^\dagger
+            $$
 
         With
 
-            M_0 = \sqrt{p} \begin{bmatrix}
+            $$
+            \begin{align}
+            M_0 &= \sqrt{p} \begin{bmatrix}
                                 1 & 0  \\
                                 0 & \sqrt{1 - \gamma}
-                           \end{bmatrix}
-
-            M_1 = \sqrt{p} \begin{bmatrix}
+                            \end{bmatrix}
+            \\
+            M_1 &= \sqrt{p} \begin{bmatrix}
                                 0 & \sqrt{\gamma} \\
                                 0 & 0
                            \end{bmatrix}
-
-            M_2 = \sqrt{1-p} \begin{bmatrix}
+            \\
+            M_2 &= \sqrt{1-p} \begin{bmatrix}
                                 \sqrt{1-\gamma} & 0 \\
                                  0 & 1
                               \end{bmatrix}
-
-            M_3 = \sqrt{1-p} \begin{bmatrix}
+            \\
+            M_3 &= \sqrt{1-p} \begin{bmatrix}
                                  0 & 0 \\
-                                 \sqrt{gamma} & 0
+                                 \sqrt{\gamma} & 0
                              \end{bmatrix}
+            \end{align}
+            $$
 
         Args:
             gamma: the probability of the interaction being dissipative.

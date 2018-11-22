@@ -10,6 +10,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+from typing import List, Any
+
 import pypandoc
 import os
 import sys
@@ -23,7 +25,47 @@ def setup(app):
     app.connect('autodoc-process-docstring', pandoc_process)
 
 
-def pandoc_process(app, what, name, obj, options, lines):
+def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
+    if all('$$' not in line for line in lines):
+        return lines
+
+    data = '\n'.join(lines)
+    sections = data.split('$$')
+    if len(sections) % 2 != 1:
+        raise ValueError('Mismatched number of "$$" latex tokens.')
+
+    result = []
+    for i, s in enumerate(sections):
+        if i % 2:
+            # Avoid getting split across divs.
+            s = ' '.join(s.split('\n'))
+            # Avoid intermediate layers turning our newlines into slashes.
+            s = s.replace('\\\\', '\\newline')
+            # Keep the $$ so MathJax can find it.
+            result.append('$${}$$'.format(s))
+        else:
+            # Work around bad table detection in pandoc by concatenating
+            # lines from the same paragraph.
+            s = '\n\n'.join(e.replace('\n', ' ') for e in s.split('\n\n'))
+
+            # Convert markdown to rst.
+            out = pypandoc.convert(s, to='rst', format='markdown_github')
+
+            # Not sure why pandoc is escaping these...
+            out = out.replace(r'\|', '|')
+
+            result.extend(out.split('\n'))
+
+    return result
+
+
+def pandoc_process(app,
+                   what: str,
+                   name: str,
+                   obj: Any,
+                   options,
+                   lines: List[str]
+                   ) -> None:
     if not getattr(obj, '__module__', 'cirq').startswith('cirq'):
         # Don't convert objects from other modules.
         return
@@ -35,7 +77,7 @@ def pandoc_process(app, what, name, obj, options, lines):
     if not i:
         return
 
-    converted_lines = lines[:i]
+    converted_lines = convert_markdown_mathjax_for_rst(lines[:i])
     kept_lines = lines[i:]
 
     data = pypandoc.convert(
@@ -114,6 +156,7 @@ pygments_style = 'sphinx'
 # -- Options for HTML output ---------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
+html_favicon = 'favicon.ico'
 # html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
