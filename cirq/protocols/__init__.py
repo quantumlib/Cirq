@@ -18,6 +18,10 @@ from cirq.protocols.apply_unitary import (
     ApplyUnitaryArgs,
     SupportsApplyUnitary,
 )
+from cirq.protocols.approx_equality import (
+    approx_eq,
+    SupportsApproxEquality,
+)
 from cirq.protocols.channel import (
     channel,
     SupportsChannel,

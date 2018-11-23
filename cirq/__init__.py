@@ -229,6 +229,7 @@ from cirq.value import (
 from cirq.protocols import (
     apply_unitary,
     ApplyUnitaryArgs,
+    approx_eq,
     channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
@@ -242,6 +243,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     SupportsApplyUnitary,
+    SupportsApproxEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
