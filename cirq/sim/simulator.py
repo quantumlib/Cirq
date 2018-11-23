@@ -466,8 +466,8 @@ class StepResult:
         """Return the state (wave function) at this point in the computation.
 
         The state is returned in the computational basis with these basis
-        states defined by the qubit_map. In particular the value in the
-        qubit_map is the index of the qubit, and these are translated into
+        states defined by the `qubit_map`. In particular the value in the
+        `qubit_map` is the index of the qubit, and these are translated into
         binary vectors where the last qubit is the 1s bit of the index, the
         second-to-last is the 2s bit of the index, and so forth (i.e. big
         endian ordering).
@@ -508,8 +508,9 @@ class StepResult:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def sample(self, qubits: List[ops.QubitId],
-            repetitions: int = 1) -> List[List[bool]]:
+    def sample(self,
+               qubits: List[ops.QubitId],
+               repetitions: int = 1) -> List[List[bool]]:
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -520,28 +521,30 @@ class StepResult:
             repetitions: The number of samples to take.
 
         Returns:
-            Measurement results with True corresponding to the |1> state.
+            Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
             are wrapped as an numpy ndarray.
         """
         raise NotImplementedError()
 
-    def sample_measurement_ops(self, measurement_ops: List[ops.GateOperation],
+    def sample_measurement_ops(
+            self,
+            measurement_ops: List[ops.GateOperation],
             repetitions: int = 1) -> Dict[str, List[List[bool]]]:
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.
 
-        In contrast to `sample` which samples qubits, this takes a set of
-        `cirq.GateOperation`s whose gates are `cirq.MeasurementGate`s and
-        returns a mapping from the key in the measurement gate to the
-        resulting bit strings. Different measurement operations must not act on
-        the same qubits.
+        In contrast to `sample` which samples qubits, this takes a list of
+        `cirq.GateOperation` instances whose gates are `cirq.MeasurementGate`
+        instances and then returns a mapping from the key in the measurement
+        gate to the resulting bit strings. Different measurement operations must
+        not act on the same qubits.
 
         Args:
-            measurement_ops: `GateOperation`s whose gates are
-                `MeasurementGate`s are to be sampled form.
+            measurement_ops: `GateOperation` instances whose gates are
+                `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
 
         Returns: A dictionary from the measurement gate keys to the measurement
@@ -551,9 +554,9 @@ class StepResult:
             given key.
 
         Raises:
-            ValueError: If the operation's gates are not `MeasurementGate`s or
-                a qubit is acted upon multiple times by different
-                measurement_ops.
+            ValueError: If the operation's gates are not `MeasurementGate`
+                instances or a qubit is acted upon multiple times by different
+                operations from `measurement_ops`.
         """
         bounds = {}  # type: Dict[str, Tuple]
         all_qubits = []  # type: List[ops.QubitId]

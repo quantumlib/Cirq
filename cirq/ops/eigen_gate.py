@@ -63,16 +63,23 @@ class EigenGate(raw_types.Gate):
                  global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
-        The eigenvalue of each eigenspace of a gate is computed by:
+        The eigenvalue of each eigenspace of a gate is computed by
 
         1. Starting with an angle in half turns as returned by the gate's
-            _eigen_components method.
+        ``_eigen_components`` method:
+
                 θ
-        2. Shifting the angle by `global_shift`.
+
+        2. Shifting the angle by `global_shift`:
+
                 θ + s
-        3. Scaling the angle by `exponent`.
+
+        3. Scaling the angle by `exponent`:
+
                 (θ + s) * e
-        4. Converting from half turns to a complex number on the unit circle.
+
+        4. Converting from half turns to a complex number on the unit circle:
+
                 exp(i * pi * (θ + s) * e)
 
         Args:

@@ -50,10 +50,13 @@ class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the X axis of the Bloch sphere.
 
-    XPowGate()**t = XPowGate(exponent=t) is given by the matrix
+    The unitary matrix of ``XPowGate(exponent=t)`` is:
+
         [[g·c, -i·g·s],
          [-i·g·s, g·c]]
-    where
+
+    where:
+
         c = cos(π·t/2)
         s = sin(π·t/2)
         g = exp(i·π·t/2).
@@ -120,7 +123,7 @@ class XPowGate(eigen_gate.EigenGate,
         return 'X**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             return 'cirq.Rx(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
@@ -136,10 +139,13 @@ class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
 
-    YPowGate()**t = YPowGate(exponent=t) is given by the matrix
+    The unitary matrix of ``YPowGate(exponent=t)`` is:
+
         [[g·c, g·s],
          [-g·s, g·c]]
-    where
+
+    where:
+
         c = cos(π·t/2)
         s = sin(π·t/2)
         g = exp(i·π·t/2).
@@ -193,7 +199,7 @@ class YPowGate(eigen_gate.EigenGate,
         return 'Y**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             return 'cirq.Ry(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
@@ -209,10 +215,13 @@ class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
 
-    ZPowGate()**t = ZPowGate(exponent=t) is given by the matrix
+    The unitary matrix of ``ZPowGate(exponent=t)`` is:
+
         [[1, 0],
          [0, g]]
-    where
+
+    where:
+
         g = exp(i·π·t).
 
     Note in particular that this gate has a global phase factor of
@@ -293,7 +302,7 @@ class ZPowGate(eigen_gate.EigenGate,
         return 'Z**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 0.25:
@@ -540,9 +549,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return 'H^{}'.format(self._exponent)
 
     def __repr__(self):
-        if self._exponent == 1:
-            return 'cirq.H'
-        return '(cirq.H**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.H'
+            return '(cirq.H**{!r})'.format(self._exponent)
+        return (
+            'cirq.HPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class CZPowGate(eigen_gate.EigenGate,
@@ -550,16 +564,19 @@ class CZPowGate(eigen_gate.EigenGate,
                 gate_features.InterchangeableQubitsGate):
     """A gate that applies a phase to the |11⟩ state of two qubits.
 
-    CZPowGate()**t = CZPowGate(exponent=t) and acts on two qubits in the
-    computational basis as the matrix
+    The unitary matrix of `CZPowGate(exponent=t)` is:
+
         [[1, 0, 0, 0],
          [0, 1, 0, 0],
          [0, 0, 1, 0],
          [0, 0, 0, g]]
-    where g = exp(i·π·t/2).
 
-    `cirq.CZ`, the controlled phase gate, is an instance of this gate at
-    exponent=1.
+    where:
+
+        g = exp(i·π·t/2).
+
+    `cirq.Z``, the controlled Z gate, is an instance of this gate at
+    `exponent=1`.
     """
 
     def _eigen_components(self):
@@ -604,9 +621,14 @@ class CZPowGate(eigen_gate.EigenGate,
         return 'CZ**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CZ'
-        return '(cirq.CZ**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CZ'
+            return '(cirq.CZ**{!r})'.format(self._exponent)
+        return (
+            'cirq.CZPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 def _rads_func_symbol(func_name: str,
@@ -628,19 +650,21 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     or named arguments CNOT(control=q1, target=q2).
     (Mixing the two is not permitted.)
 
-    CNotPowGate()**t = CNotPowGate(exponent=t) and acts on two qubits in the
-    computational basis as the matrix
+    The unitary matrix of `CNotPowGate(exponent=t)` is:
+
         [[1, 0, 0, 0],
          [0, 1, 0, 0],
          [0, 0, g·c, -i·g·s],
          [0, 0, -i·g·s, g·c]]
-    where
+
+    where:
+
         c = cos(π·t/2)
         s = sin(π·t/2)
         g = exp(i·π·t/2).
 
-    `cirq.CNOT`, the controlled not gate, is an instance of this gate at
-    exponent=1.
+    `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
+    `exponent=1`.
     """
 
     def _decompose_(self, qubits):
@@ -695,10 +719,15 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return 'CNOT'
         return 'CNOT**{!r}'.format(self._exponent)
 
-    def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CNOT'
-        return '(cirq.CNOT**{!r})'.format(self._exponent)
+    def __repr__(self):
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CNOT'
+            return '(cirq.CNOT**{!r})'.format(self._exponent)
+        return (
+            'cirq.CNotPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def on(self, *args: raw_types.QubitId,
            **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
@@ -718,12 +747,15 @@ class SwapPowGate(eigen_gate.EigenGate,
     """The SWAP gate, possibly raised to a power. Exchanges qubits.
 
     SwapPowGate()**t = SwapPowGate(exponent=t) and acts on two qubits in the
-    computational basis as the matrix
+    computational basis as the matrix:
+
         [[1, 0, 0, 0],
          [0, g·c, -i·g·s, 0],
          [0, -i·g·s, g·c, 0],
          [0, 0, 0, 1]]
-    where
+
+    where:
+
         c = cos(π·t/2)
         s = sin(π·t/2)
         g = exp(i·π·t/2).
@@ -788,10 +820,15 @@ class SwapPowGate(eigen_gate.EigenGate,
             return 'SWAP'
         return 'SWAP**{!r}'.format(self._exponent)
 
-    def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.SWAP'
-        return '(cirq.SWAP**{!r})'.format(self._exponent)
+    def __repr__(self):
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.SWAP'
+            return '(cirq.SWAP**{!r})'.format(self._exponent)
+        return (
+            'cirq.SwapPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
@@ -801,13 +838,18 @@ class ISwapPowGate(eigen_gate.EigenGate,
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
+
         ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y) / 4)
-    which is given by the matrix
+
+    which is given by the matrix:
+
         [[1, 0, 0, 0],
          [0, c, i·s, 0],
          [0, i·s, c, 0],
          [0, 0, 0, 1]]
-    where
+
+    where:
+
         c = cos(π·t/2)
         s = sin(π·t/2)
 
@@ -869,9 +911,14 @@ class ISwapPowGate(eigen_gate.EigenGate,
         return 'ISWAP**{!r}'.format(self._exponent)
 
     def __repr__(self):
-        if self._exponent == 1:
-            return 'cirq.ISWAP'
-        return '(cirq.ISWAP**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.ISWAP'
+            return '(cirq.ISWAP**{!r})'.format(self._exponent)
+        return (
+            'cirq.ISwapPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
 
 def Rx(rads: float) -> XPowGate:
@@ -889,70 +936,101 @@ def Rz(rads: float) -> ZPowGate:
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
-# The Pauli X gate.
-#   [[0, 1],
-#    [1, 0]]
 X = XPowGate()
+"""The Pauli X gate.
+
+Matrix:
+
+    [[0, 1],
+     [1, 0]]
+"""
 
 
-# The Pauli Y gate.
-#   [[0, -i],
-#    [i, 0]]
+#: The Pauli Y gate.
+#:
+#: Matrix:
+#:
+#:     [[0, -i],
+#:      [i, 0]]
 Y = YPowGate()
 
 
 # The Pauli Z gate.
-#   [[1, 0],
-#    [0, -1]]
+#
+# Matrix:
+#
+#     [[1, 0],
+#      [0, -1]]
 Z = ZPowGate()
 
 
 # The Hadamard gate.
-#   [[s, s],
-#    [s, -s]]
-# where s = sqrt(0.5).
+#
+# Matrix:
+#
+#     [[s, s],
+#      [s, -s]]
+#     where s = sqrt(0.5).
 H = HPowGate()
 
 
 # The Clifford S gate.
-#   [[1, 0],
-#    [0, i]]
+#
+# Matrix:
+#
+#     [[1, 0],
+#      [0, i]]
 S = Z**0.5
 
 
 # The T gate.
-#   [[1, 0]
-#    [0, exp(i pi / 4)]]
+#
+# Matrix:
+#
+#     [[1, 0]
+#      [0, exp(i pi / 4)]]
 T = Z**0.25
 
 
 # The controlled Z gate.
-#   [[1, 0, 0, 0],
-#    [0, 1, 0, 0],
-#    [0, 0, 1, 0],
-#    [0, 0, 0, -1]]
+#
+# Matrix:
+#
+#     [[1, 0, 0, 0],
+#      [0, 1, 0, 0],
+#      [0, 0, 1, 0],
+#      [0, 0, 0, -1]]
 CZ = CZPowGate()
 
 
 # The controlled NOT gate.
-#   [[1, 0, 0, 0],
-#    [0, 1, 0, 0],
-#    [0, 0, 0, 1],
-#    [0, 0, 1, 0]]
+#
+# Matrix:
+#
+#     [[1, 0, 0, 0],
+#      [0, 1, 0, 0],
+#      [0, 0, 0, 1],
+#      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
 
 
 # The swap gate.
-#   [[1, 0, 0, 0],
-#    [0, 0, 1, 0],
-#    [0, 1, 0, 0],
-#    [0, 0, 0, 1]]
+#
+# Matrix:
+#
+#     [[1, 0, 0, 0],
+#      [0, 0, 1, 0],
+#      [0, 1, 0, 0],
+#      [0, 0, 0, 1]]
 SWAP = SwapPowGate()
 
 
 # The iswap gate.
-#   [[1, 0, 0, 0],
-#    [0, 0, i, 0],
-#    [0, i, 0, 0],
-#    [0, 0, 0, 1]]
+#
+# Matrix:
+#
+#     [[1, 0, 0, 0],
+#      [0, 0, i, 0],
+#      [0, i, 0, 0],
+#      [0, 0, 0, 1]]
 ISWAP = ISwapPowGate()

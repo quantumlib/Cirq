@@ -98,7 +98,8 @@ class SingleQubitMatrixGate(raw_types.Gate):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.SingleQubitMatrixGate({})'.format(repr(self._matrix))
+        return 'cirq.SingleQubitMatrixGate({})'.format(
+                _numpy_array_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -171,7 +172,8 @@ class TwoQubitMatrixGate(raw_types.Gate):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.TwoQubitMatrixGate({})'.format(repr(self._matrix))
+        return 'cirq.TwoQubitMatrixGate({})'.format(
+                _numpy_array_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -195,3 +197,7 @@ def _matrix_to_diagram_symbol(matrix: np.ndarray,
         lines.append('└' + ' ' * w + '┘')
         result = '\n'.join(lines)
     return result
+
+
+def _numpy_array_repr(arr: np.ndarray) -> str:
+    return 'np.array({!r})'.format(arr.tolist())

@@ -15,8 +15,20 @@
 """Tests for `parity_gates.py`."""
 
 import numpy as np
+import pytest
 
 import cirq
+
+
+@pytest.mark.parametrize('eigen_gate_type', [
+    cirq.XXPowGate,
+    cirq.YYPowGate,
+    cirq.ZZPowGate,
+    ]
+)
+def test_eigen_gates_consistent_protocols(eigen_gate_type):
+    cirq.testing.assert_eigengate_implements_consistent_protocols(
+            eigen_gate_type)
 
 
 def test_xx_init():
@@ -60,22 +72,10 @@ def test_xx_repr():
     assert repr(cirq.XXPowGate()) == 'cirq.XX'
     assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
 
-    cirq.testing.assert_equivalent_repr(cirq.XX)
-    cirq.testing.assert_equivalent_repr(cirq.XX**0.1)
-    cirq.testing.assert_equivalent_repr(cirq.XX**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.XX**2)
-    cirq.testing.assert_equivalent_repr(cirq.XXPowGate(exponent=0.2,
-                                                       global_shift=0.3))
-
     ms = cirq.XXPowGate(global_shift=-0.5)
     assert (repr(ms) == 'cirq.MS(np.pi/2)')
     assert (repr(ms**2) == 'cirq.MS(2.0*np.pi/2)')
     assert (repr(ms**-0.5) == 'cirq.MS(-0.5*np.pi/2)')
-
-    cirq.testing.assert_equivalent_repr(ms)
-    cirq.testing.assert_equivalent_repr(ms**0.1)
-    cirq.testing.assert_equivalent_repr(ms**0.5)
-    cirq.testing.assert_equivalent_repr(ms**2)
 
 
 def test_xx_matrix():
@@ -98,19 +98,6 @@ def test_xx_matrix():
                   [0, s, c, 0],
                   [s, 0, 0, c]]),
         atol=1e-8)
-
-
-def test_xx_consistent():
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.XXPowGate)
-
-    cases = [cirq.XX,
-             cirq.XX**0.1,
-             cirq.XXPowGate(global_shift=0.1, exponent=0.2),
-             cirq.XXPowGate(global_shift=-0.5, exponent=0.4)]
-    for case in cases:
-        cirq.testing.assert_qasm_is_consistent_with_unitary(case)
-        cirq.testing.assert_decompose_is_consistent_with_unitary(case)
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(case)
 
 
 def test_xx_diagrams():
@@ -167,13 +154,6 @@ def test_yy_repr():
     assert repr(cirq.YYPowGate()) == 'cirq.YY'
     assert repr(cirq.YYPowGate(exponent=0.5)) == '(cirq.YY**0.5)'
 
-    cirq.testing.assert_equivalent_repr(cirq.YY)
-    cirq.testing.assert_equivalent_repr(cirq.YY**0.1)
-    cirq.testing.assert_equivalent_repr(cirq.YY**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.YY**2)
-    cirq.testing.assert_equivalent_repr(cirq.YYPowGate(exponent=0.2,
-                                                       global_shift=0.3))
-
 
 def test_yy_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.YY),
@@ -195,19 +175,6 @@ def test_yy_matrix():
                   [0, -s, c, 0],
                   [s, 0, 0, c]]),
         atol=1e-8)
-
-
-def test_yy_consistent():
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.YYPowGate)
-
-    cases = [cirq.YY,
-             cirq.YY**0.1,
-             cirq.YYPowGate(global_shift=0.1, exponent=0.2),
-             cirq.YYPowGate(global_shift=-0.5, exponent=0.4)]
-    for case in cases:
-        cirq.testing.assert_qasm_is_consistent_with_unitary(case)
-        cirq.testing.assert_decompose_is_consistent_with_unitary(case)
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(case)
 
 
 def test_yy_diagrams():
@@ -264,13 +231,6 @@ def test_zz_repr():
     assert repr(cirq.ZZPowGate()) == 'cirq.ZZ'
     assert repr(cirq.ZZPowGate(exponent=0.5)) == '(cirq.ZZ**0.5)'
 
-    cirq.testing.assert_equivalent_repr(cirq.ZZ)
-    cirq.testing.assert_equivalent_repr(cirq.ZZ**0.1)
-    cirq.testing.assert_equivalent_repr(cirq.ZZ**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.ZZ**2)
-    cirq.testing.assert_equivalent_repr(cirq.ZZPowGate(exponent=0.2,
-                                                       global_shift=0.3))
-
 
 def test_zz_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.ZZ),
@@ -292,19 +252,6 @@ def test_zz_matrix():
                   [0, 0, b, 0],
                   [0, 0, 0, a]]),
         atol=1e-8)
-
-
-def test_zz_consistent():
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.ZZPowGate)
-
-    cases = [cirq.ZZ,
-             cirq.ZZ**0.1,
-             cirq.ZZPowGate(global_shift=0.1, exponent=0.2),
-             cirq.ZZPowGate(global_shift=-0.5, exponent=0.4)]
-    for case in cases:
-        cirq.testing.assert_qasm_is_consistent_with_unitary(case)
-        cirq.testing.assert_decompose_is_consistent_with_unitary(case)
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(case)
 
 
 def test_zz_diagrams():
