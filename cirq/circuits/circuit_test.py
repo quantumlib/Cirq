@@ -144,6 +144,11 @@ def test_repr():
     ]),
 ], device=cirq.google.Foxtail)"""
 
+def test_empty_moment():
+    op = cirq.X(cirq.NamedQubit('a'))
+    op_moment = cirq.Moment([op])
+    circuit = cirq.Circuit([op_moment, op_moment, cirq.Moment(), op_moment])
+    assert str(circuit) == 'a: ───X───X───────X───'
 
 def test_slice():
     a = cirq.NamedQubit('a')
