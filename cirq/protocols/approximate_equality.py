@@ -93,18 +93,15 @@ def approx_eq(
         if result is not NotImplemented:
             return result
 
-    val_t = type(val)
-    other_t = type(other)
-
     # Compare primitive types directly.
-    if val_t in [int, float]:
-        if other_t not in [int, float]:
+    if isinstance(val, (int, float)):
+        if not isinstance(other, (int, float)):
             return False
         return _isclose(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
 
     # For complex types, treat real and imaginary parts independently.
-    if val_t == complex:
-        if val_t != other_t:
+    if isinstance(val, complex):
+        if not isinstance(other, complex):
             return False
         return _isclose(
             val.real,
@@ -200,7 +197,7 @@ def _approx_eq_iterables(
 #   abs(a-b) <= max(abs_tol, rel_tol * max(abs(a), abs(b)))
 # and Python < 3.5 is based on formula
 #   abs(a-b) <= abs_tol + rel_tol * max(abs(a), abs(b))),
-# provided abs_tol >= 0 and rel_tol >= 0.
+# provided that abs_tol >= 0 and rel_tol >= 0.
 if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
     import math
 
