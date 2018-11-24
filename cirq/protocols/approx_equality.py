@@ -69,21 +69,23 @@ def approx_eq(
             documentation for details.
 
     Returns:
-        True if objects are approximately equal, False otherwise. Returns
-        NotImplemented when approximate equality is not implemented for given
-        types.
+        True if objects are approximately equal, False otherwise.
     """
 
     # Check if val defines approximate equality via _approx_eq_. This takes
     # precedence over all other overloads.
     approx_eq_getter = getattr(val, '_approx_eq_', None)
     if approx_eq_getter is not None:
-        return approx_eq_getter(other, rel_tol, abs_tol)
+        result = approx_eq_getter(other, rel_tol, abs_tol)
+        if result is not NotImplemented:
+            return result
 
     # The same for other to make approx_eq symmetric.
     other_approx_eq_getter = getattr(other, '_approx_eq_', None)
     if other_approx_eq_getter is not None:
-        return other_approx_eq_getter(val, rel_tol, abs_tol)
+        result = other_approx_eq_getter(val, rel_tol, abs_tol)
+        if result is not NotImplemented:
+            return result
 
     val_t = type(val)
     other_t = type(other)
@@ -91,13 +93,13 @@ def approx_eq(
     # Compare primitive types directly.
     if val_t in [int, float]:
         if other_t not in [int, float]:
-            return NotImplemented
+            return False
         return _isclose(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
 
     # For complex types, treat real and imaginary parts independently.
     if val_t == complex:
         if val_t != other_t:
-            return NotImplemented
+            return False
         return _isclose(
             val.real,
             other.real,
@@ -111,7 +113,12 @@ def approx_eq(
         )
 
     # Try to compare source and target recursively, assuming they're iterable.
-    return _approx_eq_iterables(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
+    result = _approx_eq_iterables(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
+
+    # Fallback to __eq__() when anything else fails.
+    if result is NotImplemented:
+        return val == other
+    return result
 
 
 def _approx_eq_iterables(

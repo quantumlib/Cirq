@@ -16,27 +16,25 @@ import cirq
 
 
 def test_approx_eq_primitives():
-    assert cirq.approx_eq(1.0, 1.0 + 1e-10) is True
-    assert cirq.approx_eq(1.0, 1.0 + 1e-09) is False
-    assert cirq.approx_eq(1, 1.0 + 1e-10) is True
-    assert cirq.approx_eq(0.0, 1e-10) is False
-    assert cirq.approx_eq(0.0, 1e-10, abs_tol=1e-09) is True
-    assert cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), rel_tol=0.2) \
-        is True
-    assert cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), rel_tol=0.1) \
-        is False
+    assert cirq.approx_eq(1.0, 1.0 + 1e-10)
+    assert not cirq.approx_eq(1.0, 1.0 + 1e-09)
+    assert cirq.approx_eq(1, 1.0 + 1e-10)
+    assert not cirq.approx_eq(0.0, 1e-10)
+    assert cirq.approx_eq(0.0, 1e-10, abs_tol=1e-09)
+    assert cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), rel_tol=0.2)
+    assert not cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), rel_tol=0.1)
 
 
 def test_approx_eq_tuple():
-    assert cirq.approx_eq((1, 1), (1, 1)) is True
-    assert cirq.approx_eq((1, 1), (1, 1, 1)) is False
-    assert cirq.approx_eq((1, 1), (1,)) is False
-    assert cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), rel_tol=0.3) is True
-    assert cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), rel_tol=0.2) is False
+    assert cirq.approx_eq((1, 1), (1, 1))
+    assert not cirq.approx_eq((1, 1), (1, 1, 1))
+    assert not cirq.approx_eq((1, 1), (1,))
+    assert cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), rel_tol=0.3)
+    assert not cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), rel_tol=0.2)
 
 
 def test_approx_eq_iterables():
-    assert cirq.approx_eq((1, 1), [1, 1]) is True
+    assert cirq.approx_eq((1, 1), [1, 1])
 
 
 class A:
@@ -46,7 +44,7 @@ class A:
 
     def _approx_eq_(self, other, rel_tol, abs_tol):
         if not isinstance(self, type(other)):
-            return False
+            return NotImplemented
         return cirq.approx_eq(
             self.val,
             other.val,
@@ -62,23 +60,35 @@ class B:
 
     def _approx_eq_(self, other, rel_tol, abs_tol):
         if not isinstance(self.val, type(other)):
-            return False
+            return NotImplemented
         return cirq.approx_eq(self.val, other, rel_tol=rel_tol, abs_tol=abs_tol)
 
 
 def test_approx_eq_supported():
-    assert cirq.approx_eq(A(0.0), A(0.1), abs_tol=0.1) is True
-    assert cirq.approx_eq(A(0.0), A(0.1)) is False
-    assert cirq.approx_eq(B(0.0), 0.1, abs_tol=0.1) is True
-    assert cirq.approx_eq(0.1, B(0.0), abs_tol=0.1) is True
+    assert cirq.approx_eq(A(0.0), A(0.1), abs_tol=0.1)
+    assert not cirq.approx_eq(A(0.0), A(0.1))
+    assert cirq.approx_eq(B(0.0), 0.1, abs_tol=0.1)
+    assert cirq.approx_eq(0.1, B(0.0), abs_tol=0.1)
 
 
 class C:
-    pass
+
+    def __init__(self, val):
+        self.val = val
+
+    def __eq__(self, other):
+        if not isinstance(self, type(other)):
+            return NotImplemented
+        return self.val == other.val
 
 
-def test_approx_eq_not_supported():
-    assert cirq.approx_eq(C(), C()) is NotImplemented
-    assert cirq.approx_eq([C()], [C()]) is NotImplemented
-    assert cirq.approx_eq(C(), A(0)) is False
-    assert cirq.approx_eq(A(0), C()) is False
+def test_approx_eq_uses__eq__():
+    assert cirq.approx_eq(C(0), C(0))
+    assert not cirq.approx_eq(C(1), C(2))
+    assert cirq.approx_eq([C(0)], [C(0)])
+    assert not cirq.approx_eq([C(1)], [C(2)])
+
+
+def test_approx_eq_types_mismatch():
+    assert not cirq.approx_eq(C(0), A(0))
+    assert not cirq.approx_eq(A(0), C(0))
