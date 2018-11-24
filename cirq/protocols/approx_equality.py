@@ -175,6 +175,12 @@ def _approx_eq_iterables(
 # For Python >= 3.5 delegates to math.isclose(), which is symmetric. For older
 # version delegates to np.isclose() in such a way that this method is symmetric
 # in a and b.
+#
+# The Python >= 3.5 is more restrictive since it's based on formula
+#   abs(a-b) <= max(abs_tol, rel_tol * max(abs(a), abs(b)))
+# and Python < 3.5 is based on formula
+#   abs(a-b) <= abs_tol + rel_tol * max(abs(a), abs(b))),
+# provided abs_tol >= 0 and rel_tol >= 0.
 if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
     import math
 
