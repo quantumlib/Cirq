@@ -90,5 +90,9 @@ def test_approx_eq_uses__eq__():
 
 
 def test_approx_eq_types_mismatch():
+    assert not cirq.approx_eq(0, A(0))
+    assert not cirq.approx_eq(A(0), 0)
     assert not cirq.approx_eq(C(0), A(0))
     assert not cirq.approx_eq(A(0), C(0))
+    assert not cirq.approx_eq(complex(0, 0), 0)
+    assert not cirq.approx_eq(0, complex(0, 0))
