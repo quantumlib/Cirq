@@ -24,9 +24,9 @@ def test_approx_eq_primitives():
     assert cirq.approx_eq(0.0, 1e-10) is False
     assert cirq.approx_eq(0.0, 1e-10, abs_tol=1e-09) is True
     assert cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), rel_tol=0.2) \
-           is True
+        is True
     assert cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), rel_tol=0.1) \
-           is False
+        is False
 
 
 def test_approx_eq_tuple():

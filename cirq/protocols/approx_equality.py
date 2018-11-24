@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
+import sys
 
 from typing import Any
-
 from typing_extensions import Protocol
 
 
@@ -84,23 +83,22 @@ def approx_eq(
     val_t = type(val)
     other_t = type(other)
 
-    # Fallback to math.isclose() for primitive types, which is symmetric
-    # contrary to numpy.isclose().
+    # Compare primitive types directly.
     if val_t in [int, float]:
         if other_t not in [int, float]:
             return NotImplemented
-        return math.isclose(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
+        return _isclose(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
 
     # For complex types, treat real and imaginary parts independently.
     if val_t == complex:
         if val_t != other_t:
             return NotImplemented
-        return math.isclose(
+        return _isclose(
             val.real,
             other.real,
             rel_tol=rel_tol,
             abs_tol=abs_tol
-        ) and math.isclose(
+        ) and _isclose(
             val.imag,
             other.imag,
             rel_tol=rel_tol,
@@ -123,8 +121,8 @@ def _approx_eq_iterables(
     be called on each consecutive element of `val` and `other`.
 
     Args:
-        val: Source for approximate comparison
-        other: Target for approximate comparison
+        val: Source for approximate comparison.
+        other: Target for approximate comparison.
         rel_tol: The relative tolerance. See math.isclose() documentation for
             details.
         abs_tol: The minimum absolute tolerance. See math.isclose()
@@ -170,3 +168,27 @@ def _approx_eq_iterables(
                 return result
 
     return NotImplemented
+
+
+# Definition of _isclose().
+#
+# For Python >= 3.5 delegates to math.isclose(), which is symmetric. For older
+# version delegates to np.isclose() in such a way that this method is symmetric
+# in a and b.
+if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
+    import math
+
+    def _isclose(a: Any, b: Any, rel_tol: float, abs_tol: float) -> bool:
+        """Approximate comparison for primitive numerical values."""
+        return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+else:
+    import numpy as np
+
+    def _isclose(a: Any, b: Any, rel_tol: float, abs_tol: float) -> bool:
+        """Approximate comparison for primitive numerical values."""
+        if a > b:
+            result = np.isclose([b], [a], rtol=rel_tol, atol=abs_tol)
+        else:
+            result = np.isclose([a], [b], rtol=rel_tol, atol=abs_tol)
+        # Make sure to return compatible bool type.
+        return True if result[0] else False
