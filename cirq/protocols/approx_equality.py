@@ -21,7 +21,13 @@ from typing_extensions import Protocol
 class SupportsApproxEquality(Protocol):
     """Object which can be approximately compared."""
 
-    def _approx_eq_(self, other: Any, rel_tol: float, abs_tol: float) -> bool:
+    def _approx_eq_(
+            self,
+            other: Any,
+            *,
+            rel_tol: float,
+            abs_tol: float
+        ) -> bool:
         """Approximate comparator.
 
         Types implementing this protocol define their own logic for approximate
@@ -124,6 +130,7 @@ def approx_eq(
 def _approx_eq_iterables(
         val: Any,
         other: Any,
+        *,
         rel_tol: float,
         abs_tol: float) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
@@ -196,13 +203,13 @@ def _approx_eq_iterables(
 if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
     import math
 
-    def _isclose(a: Any, b: Any, rel_tol: float, abs_tol: float) -> bool:
+    def _isclose(a: Any, b: Any, *, rel_tol: float, abs_tol: float) -> bool:
         """Approximate comparison for primitive numerical values."""
         return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
 else:
     import numpy as np
 
-    def _isclose(a: Any, b: Any, rel_tol: float, abs_tol: float) -> bool:
+    def _isclose(a: Any, b: Any, *, rel_tol: float, abs_tol: float) -> bool:
         """Approximate comparison for primitive numerical values."""
         if a > b:
             result = np.isclose([b], [a], rtol=rel_tol, atol=abs_tol)
