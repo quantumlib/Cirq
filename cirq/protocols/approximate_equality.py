@@ -19,7 +19,7 @@ from typing_extensions import Protocol
 
 
 class SupportsApproximateEquality(Protocol):
-    """Object which can be approximately compared."""
+    """Object which can be compared approximately."""
 
     def _approx_eq_(
             self,
@@ -61,10 +61,10 @@ def approx_eq(
        delegated to math.isclose().
      - For complex primitive type the real and imaginary parts are treated
        independently and compared using math.isclose().
-     - For `val` and `other` both iterable, consecutive elements are compared
-       recursively. Types of `val` and `other` does not necessarily needs to
-       match each other. They just need to be iterable and have the same
-       structure.
+     - For `val` and `other` both iterable of the same length, consecutive
+       elements are compared recursively. Types of `val` and `other` does not
+       necessarily needs to match each other. They just need to be iterable and
+       have the same structure.
 
     Args:
         val: Source object for approximate comparison.
@@ -136,8 +136,9 @@ def _approx_eq_iterables(
     """Iterates over arguments and calls approx_eq recursively.
 
     Types of `val` and `other` does not necessarily needs to match each other.
-    They just need to be iterable and have the same structure, approx_eq() will
-    be called on each consecutive element of `val` and `other`.
+    They just need to be iterable of the same length and have the same
+    structure, approx_eq() will be called on each consecutive element of `val`
+    and `other`.
 
     Args:
         val: Source for approximate comparison.
