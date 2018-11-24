@@ -74,11 +74,16 @@ def approx_eq(
         types.
     """
 
-    # Check if object defines approximate equality via _approx_eq_. This takes
+    # Check if val defines approximate equality via _approx_eq_. This takes
     # precedence over all other overloads.
     approx_eq_getter = getattr(val, '_approx_eq_', None)
     if approx_eq_getter is not None:
         return approx_eq_getter(other, rel_tol, abs_tol)
+
+    # The same for other to make approx_eq symmetric.
+    other_approx_eq_getter = getattr(other, '_approx_eq_', None)
+    if other_approx_eq_getter is not None:
+        return other_approx_eq_getter(val, rel_tol, abs_tol)
 
     val_t = type(val)
     other_t = type(other)

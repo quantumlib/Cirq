@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 import cirq
 
 
@@ -44,12 +42,12 @@ def test_approx_eq_iterables():
 class A:
 
     def __init__(self, val):
-        self.val =  val
+        self.val = val
 
     def _approx_eq_(self, other, rel_tol, abs_tol):
         if not isinstance(self, type(other)):
-            return NotImplemented
-        return math.isclose(
+            return False
+        return cirq.approx_eq(
             self.val,
             other.val,
             rel_tol=rel_tol,
@@ -57,17 +55,30 @@ class A:
         )
 
 
+class B:
+
+    def __init__(self, val):
+        self.val = val
+
+    def _approx_eq_(self, other, rel_tol, abs_tol):
+        if not isinstance(self.val, type(other)):
+            return False
+        return cirq.approx_eq(self.val, other, rel_tol=rel_tol, abs_tol=abs_tol)
+
+
 def test_approx_eq_supported():
     assert cirq.approx_eq(A(0.0), A(0.1), abs_tol=0.1) is True
     assert cirq.approx_eq(A(0.0), A(0.1)) is False
+    assert cirq.approx_eq(B(0.0), 0.1, abs_tol=0.1) is True
+    assert cirq.approx_eq(0.1, B(0.0), abs_tol=0.1) is True
 
 
-class B:
+class C:
     pass
 
 
 def test_approx_eq_not_supported():
-    assert cirq.approx_eq(B(), B()) is NotImplemented
-    assert cirq.approx_eq([B()], [B()]) is NotImplemented
-    assert cirq.approx_eq(B(), A(0)) is NotImplemented
-    assert cirq.approx_eq(A(0), B()) is NotImplemented
+    assert cirq.approx_eq(C(), C()) is NotImplemented
+    assert cirq.approx_eq([C()], [C()]) is NotImplemented
+    assert cirq.approx_eq(C(), A(0)) is False
+    assert cirq.approx_eq(A(0), C()) is False
