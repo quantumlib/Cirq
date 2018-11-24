@@ -18,7 +18,7 @@ from cirq.protocols.apply_unitary import (
     ApplyUnitaryArgs,
     SupportsApplyUnitary,
 )
-from cirq.protocols.approx_equality import (
+from cirq.protocols.approximate_equality import (
     approx_eq,
     SupportsApproximateEquality,
 )
