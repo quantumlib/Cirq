@@ -20,7 +20,7 @@ from cirq.protocols.apply_unitary import (
 )
 from cirq.protocols.approx_equality import (
     approx_eq,
-    SupportsApproxEquality,
+    SupportsApproximateEquality,
 )
 from cirq.protocols.channel import (
     channel,

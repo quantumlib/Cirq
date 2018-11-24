@@ -243,7 +243,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     SupportsApplyUnitary,
-    SupportsApproxEquality,
+    SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,

@@ -18,7 +18,7 @@ from typing import Any
 from typing_extensions import Protocol
 
 
-class SupportsApproxEquality(Protocol):
+class SupportsApproximateEquality(Protocol):
     """Object which can be approximately compared."""
 
     def _approx_eq_(
