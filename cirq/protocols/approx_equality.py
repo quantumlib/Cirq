@@ -28,11 +28,11 @@ class SupportsApproxEquality(Protocol):
         comparison with other types.
 
         Args:
-        other: Target object for approximate comparison.
-        rel_tol: The relative tolerance. See math.isclose() documentation for
-            details.
-        abs_tol: The minimum absolute tolerance. See math.isclose()
-            documentation for details.
+            other: Target object for approximate comparison.
+            rel_tol: The relative tolerance. See math.isclose() documentation
+                for details.
+            abs_tol: The minimum absolute tolerance. See math.isclose()
+                documentation for details.
 
         Returns:
             True if objects are approximately equal, False otherwise. Returns
