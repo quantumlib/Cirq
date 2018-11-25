@@ -207,6 +207,7 @@ if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
 else:
     import numpy as np
 
+    # coverage: ignore
     def _isclose(a: Any, b: Any, *, rel_tol: float, abs_tol: float) -> bool:
         """Approximate comparison for primitive numerical values."""
         if a > b:
