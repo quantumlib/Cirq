@@ -44,4 +44,17 @@ from cirq.optimizers.merge_interactions import (
 
 from cirq.optimizers.merge_single_qubit_gates import (
     MergeSingleQubitGates,
+    merge_single_qubit_gates_into_phased_x_z,
+)
+
+from cirq.optimizers.decompositions import (
+    is_negligible_turn,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_matrix_to_phased_x_z,
+    single_qubit_op_to_framed_phase_form,
+)
+
+from cirq.optimizers.two_qubit_decompositions import (
+    two_qubit_matrix_to_operations,
 )

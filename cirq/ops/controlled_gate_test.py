@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Sequence, Tuple, cast
+from typing import Union, Tuple, cast
 
 import numpy as np
 import pytest
@@ -101,14 +101,11 @@ def test_unitary():
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        available_buffer[...] = target_tensor
-        target_tensor[...] = 0
-        return available_buffer
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        args.available_buffer[...] = args.target_tensor
+        args.target_tensor[...] = 0
+        return args.available_buffer
 
     def _unitary_(self):
         return np.eye(2)
@@ -116,22 +113,26 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
     def __pow__(self, exponent):
         return self
 
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_gate_test.'
+                'GateUsingWorkspaceForApplyUnitary()')
+
 
 class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        assert len(axes) == 1
-        a = axes[0]
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        assert len(args.axes) == 1
+        a = args.axes[0]
         seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
                     (slice(None),))
         zero = seed*a + (0, Ellipsis)
         one = seed*a + (1, Ellipsis)
-        result = np.zeros(target_tensor.shape, target_tensor.dtype)
-        result[zero] = target_tensor[zero]*2 + target_tensor[one]*3
-        result[one] = target_tensor[zero]*5 + target_tensor[one]*7
+        result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
+        result[zero] = args.target_tensor[zero]*2 + args.target_tensor[one]*3
+        result[one] = args.target_tensor[zero]*5 + args.target_tensor[one]*7
         return result
 
     def _unitary_(self):
@@ -139,6 +140,13 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 
     def __pow__(self, factor):
         return self
+
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_gate_test.'
+                'GateAllocatingNewSpaceForResult()')
 
 
 @pytest.mark.parametrize('gate', [
@@ -157,23 +165,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 ])
 def test_controlled_gate_is_consistent(gate: cirq.Gate):
     cgate = cirq.ControlledGate(gate)
-    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        cgate)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cgate)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cgate)
-
-
-@pytest.mark.parametrize('gate', [
-    cirq.X,
-    cirq.X**0.5,
-    cirq.Rx(np.pi),
-    cirq.Rx(np.pi / 2),
-    cirq.Z,
-    cirq.H,
-])
-def test_controlled_gate_qasm_is_consistent(gate: cirq.Gate):
-    cgate = cirq.ControlledGate(gate)
-    cirq.testing.assert_qasm_is_consistent_with_unitary(cgate)
+    cirq.testing.assert_implements_consistent_protocols(cgate)
 
 
 def test_pow_inverse():

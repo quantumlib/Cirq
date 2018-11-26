@@ -34,7 +34,8 @@ pauli_eigen_map = {
 
 @value.value_equality
 class PauliInteractionGate(eigen_gate.EigenGate,
-                           gate_features.InterchangeableQubitsGate):
+                           gate_features.InterchangeableQubitsGate,
+                           gate_features.TwoQubitGate):
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
 

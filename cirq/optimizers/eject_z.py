@@ -19,7 +19,7 @@ from typing import Optional, cast, TYPE_CHECKING, Iterable
 from collections import defaultdict
 
 from cirq import circuits, ops, value, protocols
-from cirq.decompositions import is_negligible_turn
+from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -51,7 +51,7 @@ class EjectZ(circuits.OptimizationPass):
             """Zeroes qubit_phase entries by emitting Z gates."""
             for q in qubits:
                 p = qubit_phase[q]
-                if not is_negligible_turn(p, self.tolerance):
+                if not decompositions.is_negligible_turn(p, self.tolerance):
                     dump_op = ops.Z(q)**(p * 2)
                     insertions.append((index, dump_op))
                 qubit_phase[q] = 0
@@ -76,13 +76,14 @@ class EjectZ(circuits.OptimizationPass):
 
                 # If there's no tracked phase, we can move on.
                 phases = [qubit_phase[q] for q in op.qubits]
-                if all(is_negligible_turn(p, self.tolerance) for p in phases):
+                if all(decompositions.is_negligible_turn(p, self.tolerance)
+                       for p in phases):
                     continue
 
                 # Try to move the tracked phasing over the operation.
                 phased_op = op
                 for i, p in enumerate(phases):
-                    if not is_negligible_turn(p, self.tolerance):
+                    if not decompositions.is_negligible_turn(p, self.tolerance):
                         phased_op = protocols.phase_by(phased_op, -p, i,
                                                        default=None)
                 if phased_op is not None:
