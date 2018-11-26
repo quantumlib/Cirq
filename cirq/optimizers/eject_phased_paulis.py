@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that pushes some W gates later and later in the circuit.
+"""Pushes 180 degree rotations around axes in the XY plane later in the circuit.
 """
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable
+from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
 
-from cirq import circuits, ops, value, decompositions
-from cirq.google.xmon_gates import ExpWGate
+from cirq import circuits, ops, value, decompositions, protocols
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Dict, List, Tuple
+    from typing import Dict, List
 
 
 class _OptimizerState:
@@ -36,13 +35,13 @@ class _OptimizerState:
         self.insertions = []  # type: List[Tuple[int, ops.Operation]]
 
 
-class EjectFullW(circuits.OptimizationPass):
-    """Pushes ExpW gates with half_turns=1 towards the end of the circuit.
+class EjectPhasedPaulis(circuits.OptimizationPass):
+    """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
-    As the gates get pushed, they may absorb Z gates, cancel against other ExpW
-    gates with half_turns=1, get merged into measurements (as output bit flips),
-    and cause phase kickback operations across CZs (which can then be removed by
-    the EjectZ optimization).
+    As the gates get pushed, they may absorb Z gates, cancel against other
+    X, Y, or PhasedX gates with exponent=1, get merged into measurements (as
+    output bit flips), and cause phase kickback operations across CZs (which can
+    then be removed by the EjectZ optimization).
     """
 
     def __init__(self, tolerance: float = 1e-8) -> None:
@@ -63,10 +62,10 @@ class EjectFullW(circuits.OptimizationPass):
                             if state.held_w_phases.get(q) is not None]
 
                 # Collect, phase, and merge Ws.
-                w = _try_get_known_w(op)
+                w = _try_get_known_phased_pauli(op)
                 if w is not None:
                     if decompositions.is_negligible_turn(
-                            cast(float, w.exponent) - 1,
+                            w[0] - 1,
                             self.tolerance):
                         _potential_cross_whole_w(moment_index,
                                                  op,
@@ -116,6 +115,8 @@ def _absorb_z_into_w(moment_index: int,
                      state: _OptimizerState) -> None:
     """Absorbs a Z^t gate into a W(a) flip.
 
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
+
     Uses the following identity:
         ───W(a)───Z^t───
         ≡ ───W(a)───────────Z^t/2──────────Z^t/2─── (split Z)
@@ -137,7 +138,7 @@ def _dump_held(qubits: Iterable[ops.QubitId],
     for q in sorted(qubits):
         p = state.held_w_phases.get(q)
         if p is not None:
-            dump_op = ExpWGate(phase_exponent=p).on(q)
+            dump_op = ops.PhasedXPowGate(phase_exponent=p).on(q)
             state.insertions.append((moment_index, dump_op))
         state.held_w_phases[q] = None
 
@@ -163,6 +164,8 @@ def _potential_cross_whole_w(moment_index: int,
                              state: _OptimizerState) -> None:
     """Grabs or cancels a held W gate against an existing W gate.
 
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
+
     Uses the following identity:
         ───W(a)───W(b)───
         ≡ ───Z^-a───X───Z^a───Z^-b───X───Z^b───
@@ -172,10 +175,11 @@ def _potential_cross_whole_w(moment_index: int,
     """
     state.deletions.append((moment_index, op))
 
-    w = cast(ExpWGate, _try_get_known_w(op))
+    _, phase_exponent = cast(Tuple[float, float],
+                             _try_get_known_phased_pauli(op))
     q = op.qubits[0]
     a = state.held_w_phases.get(q)
-    b = cast(float, w.phase_exponent)
+    b = phase_exponent
 
     if a is None:
         # Collect the gate.
@@ -194,6 +198,8 @@ def _potential_cross_partial_w(moment_index: int,
                                state: _OptimizerState) -> None:
     """Cross the held W over a partial W gate.
 
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
+
     Uses the following identity:
         ───W(a)───W(b)^t───
         ≡ ───Z^-a───X───Z^a───W(b)^t────── (expand W(a))
@@ -205,11 +211,11 @@ def _potential_cross_partial_w(moment_index: int,
     a = state.held_w_phases.get(op.qubits[0])
     if a is None:
         return
-    w = cast(ExpWGate, _try_get_known_w(op))
-    b = cast(float, w.phase_exponent)
-    t = cast(float, w.exponent)
-    new_op = ExpWGate(exponent=t,
-                      phase_exponent=2 * a - b).on(op.qubits[0])
+    exponent, phase_exponent = cast(Tuple[float, float],
+                                    _try_get_known_phased_pauli(op))
+    new_op = ops.PhasedXPowGate(
+        exponent=exponent,
+        phase_exponent=2 * a - phase_exponent).on(op.qubits[0])
     state.deletions.append((moment_index, op))
     state.inline_intos.append((moment_index, new_op))
 
@@ -219,6 +225,8 @@ def _single_cross_over_cz(moment_index: int,
                           qubit_with_w: ops.QubitId,
                           state: _OptimizerState) -> None:
     """Crosses exactly one W flip over a partial CZ.
+
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
 
     Uses the following identity:
 
@@ -260,6 +268,8 @@ def _single_cross_over_cz(moment_index: int,
 def _double_cross_over_cz(op: ops.Operation,
                           state: _OptimizerState) -> None:
     """Crosses two W flips over a partial CZ.
+
+    [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
 
     Uses the following identity:
 
@@ -306,13 +316,26 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
     return h
 
 
-def _try_get_known_w(op: ops.Operation) -> Optional[ExpWGate]:
-    if (not isinstance(op, ops.GateOperation) or
-            not isinstance(op.gate, ExpWGate) or
-            isinstance(op.gate.exponent, value.Symbol) or
-            isinstance(op.gate.phase_exponent, value.Symbol)):
+def _try_get_known_phased_pauli(op: ops.Operation
+                                ) -> Optional[Tuple[float, float]]:
+    if protocols.is_parameterized(op) or not isinstance(op, ops.GateOperation):
         return None
-    return op.gate
+    gate = op.gate
+
+    if isinstance(gate, ops.PhasedXPowGate):
+        e = gate.exponent
+        p = gate.phase_exponent
+    elif isinstance(gate, ops.YPowGate):
+        e = gate.exponent
+        p = 0.5
+    elif isinstance(gate, ops.XPowGate):
+        e = gate.exponent
+        p = 0.0
+    else:
+        return None
+    return cast(Tuple[float, float],
+                (value.canonicalize_half_turns(e),
+                 value.canonicalize_half_turns(p)))
 
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:

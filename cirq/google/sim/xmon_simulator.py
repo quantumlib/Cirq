@@ -16,9 +16,10 @@
 
 The simulator can be used to run all of a Circuit or to step through the
 simulation Moment by Moment. The simulator requires that all gates used in
-the circuit are either an XmonGate or are CompositionOperations or have a
-known unitary which can be decomposed into XmonGates. Measurement gates
-must all have unique string keys.
+the circuit are either native to the xmon architecture (i.e. cause
+`cirq.google.is_native_xmon_op` to return true) or else can be decomposed into
+such operations (by being composite or having a known unitary). Measurement
+gates must all have unique string keys.
 
 A simple example:
     circuit = Circuit([Moment([X(q1), X(q2)]), Moment([CZ(q1, q2)])])
@@ -39,8 +40,9 @@ from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
-from cirq import circuits, ops, sim, study, protocols
-from cirq.google import convert_to_xmon_gates, xmon_gates
+from cirq import circuits, ops, study, protocols, optimizers
+from cirq.sim import simulator
+from cirq.google import convert_to_xmon_gates
 from cirq.google.sim import xmon_stepper
 
 
@@ -91,8 +93,8 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulator(sim.SimulatesSamples,
-                    sim.SimulatesIntermediateWaveFunction):
+class XmonSimulator(simulator.SimulatesSamples,
+                    simulator.SimulatesIntermediateWaveFunction):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
@@ -125,7 +127,7 @@ class XmonSimulator(sim.SimulatesSamples,
         param_resolver: study.ParamResolver,
         repetitions: int,
     ) -> Dict[str, List[np.ndarray]]:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware."""
+        """See definition in `cirq.SimulatesSamples`."""
         xmon_circuit, keys = self._to_xmon_circuit(
             circuit,
             param_resolver)
@@ -156,9 +158,12 @@ class XmonSimulator(sim.SimulatesSamples,
         step_result = None
         for step_result in all_step_results:
             pass
-        return _sample_measurements(circuit,
-                                    step_result,
-                                    repetitions)
+        if step_result is None:
+            return {}
+        measurement_ops = [op for _, op, _ in
+                           circuit.findall_operations_with_gate_type(
+                                   ops.MeasurementGate)]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions)
 
     def _simulator_iterator(
         self,
@@ -168,7 +173,7 @@ class XmonSimulator(sim.SimulatesSamples,
         initial_state: Union[int, np.ndarray],
         perform_measurements: bool = True,
     ) -> Iterator['XmonStepResult']:
-        """See definition in SimulatesFinalWaveFunction."""
+        """See definition in `cirq.SimulatesIntermediateWaveFunction`."""
         param_resolver = param_resolver or study.ParamResolver({})
         xmon_circuit, _ = self._to_xmon_circuit(circuit, param_resolver)
         return self._base_iterator(xmon_circuit,
@@ -224,8 +229,7 @@ class XmonSimulator(sim.SimulatesSamples,
                             index=index,
                             half_turns=gate.exponent,
                             axis_half_turns=0.5)
-                    elif isinstance(gate, (ops.PhasedXPowGate,
-                                           xmon_gates.ExpWGate)):
+                    elif isinstance(gate, ops.PhasedXPowGate):
                         index = qubit_map[op.qubits[0]]
                         stepper.simulate_w(
                             index=index,
@@ -257,45 +261,9 @@ class XmonSimulator(sim.SimulatesSamples,
         xmon_circuit = protocols.resolve_parameters(circuit, param_resolver)
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit(
             xmon_circuit)
-        circuits.DropEmptyMoments().optimize_circuit(xmon_circuit)
+        optimizers.DropEmptyMoments().optimize_circuit(xmon_circuit)
         keys = find_measurement_keys(xmon_circuit)
         return xmon_circuit, keys
-
-
-def _sample_measurements(circuit: circuits.Circuit,
-                         step_result: 'XmonStepResult',
-                         repetitions: int) -> Dict[str, List]:
-    """Sample from measurements in the given circuit.
-
-    This should only be called if the circuit has only terminal measurements.
-
-    Args:
-        circuit: The circuit to sample from.
-        step_result: The XmonStepResult from which to sample. This should be
-            the step at the end of the circuit. Can be None if no steps were
-            taken.
-        repetitions: The number of time to sample.
-
-    Returns:
-        A dictionary from the measurement keys to the measurement results.
-        These results are lists of lists, with the outer list corresponding to
-        the repetition, and the inner list corresponding to the qubits as
-        ordered in the measurement gate.
-    """
-    if step_result is None:
-        return {}
-    bounds = {}
-    all_qubits = []  # type: List[ops.QubitId]
-    current_index = 0
-    for _, op, gate in circuit.findall_operations_with_gate_type(
-            ops.MeasurementGate):
-        key = gate.key
-        bounds[key] = (current_index, current_index + len(op.qubits))
-        all_qubits.extend(op.qubits)
-        current_index += len(op.qubits)
-    sample = step_result.sample(all_qubits, repetitions)
-    return {k: np.array([x[s:e] for x in sample]) for k, (s, e) in
-            bounds.items()}
 
 
 def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
@@ -309,7 +277,7 @@ def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
     return keys
 
 
-class XmonStepResult(sim.StepResult):
+class XmonStepResult(simulator.StepResult):
     """Results of a step of the simulator.
 
     Attributes:

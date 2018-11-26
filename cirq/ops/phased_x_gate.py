@@ -14,7 +14,7 @@
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
 import fractions
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
 
@@ -26,6 +26,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.common_gates
 
 
+@value.value_equality
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───.
 
@@ -81,6 +82,30 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
         self._exponent = exponent
         self._global_shift = global_shift
+
+    def _qasm_(self,
+               args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+        if cirq.is_parameterized(self):
+            return None
+
+        args.validate_version('2.0')
+
+        e = cast(float, value.canonicalize_half_turns(self._exponent))
+        p = cast(float, self.phase_exponent)
+        epsilon = 10**-args.precision
+
+        if abs(e + 0.5) <= epsilon:
+            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
+                               p + 0.5, -p - 0.5, qubits[0])
+
+        if abs(e - 0.5) <= epsilon:
+            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
+                               p - 0.5, -p + 0.5, qubits[0])
+
+        return args.format(
+            'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
+            -e, p + 0.5, -p - 0.5, qubits[0])
 
     def _decompose_(self, qubits: Sequence[raw_types.QubitId]
                           ) -> op_tree.OP_TREE:
@@ -188,19 +213,5 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         else:
             return self._exponent % period
 
-    def _identity_tuple(self):
-        return (PhasedXPowGate,
-                self.phase_exponent,
-                self._canonical_exponent,
-                self._global_shift)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._identity_tuple() == other._identity_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._identity_tuple())
+    def _value_equality_values_(self):
+        return self.phase_exponent, self._canonical_exponent, self._global_shift

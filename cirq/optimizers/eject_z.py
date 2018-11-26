@@ -14,7 +14,7 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Optional, cast, TYPE_CHECKING
+from typing import Optional, cast, TYPE_CHECKING, Iterable
 
 from collections import defaultdict
 
@@ -43,50 +43,56 @@ class EjectZ(circuits.OptimizationPass):
         self.tolerance = tolerance
 
     def optimize_circuit(self, circuit: circuits.Circuit):
-        turns_state = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
+        # Tracks qubit phases (in half turns; multiply by pi to get radians).
+        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
 
-        def dump_phases(qubits, index):
+        def dump_tracked_phase(qubits: Iterable[ops.QubitId],
+                               index: int) -> None:
+            """Zeroes qubit_phase entries by emitting Z gates."""
             for q in qubits:
-                p = turns_state[q]
+                p = qubit_phase[q]
                 if not is_negligible_turn(p, self.tolerance):
                     dump_op = ops.Z(q)**(p * 2)
                     insertions.append((index, dump_op))
-                turns_state[q] = 0
+                qubit_phase[q] = 0
 
         deletions = []  # type: List[Tuple[int, ops.Operation]]
         inline_intos = []  # type: List[Tuple[int, ops.Operation]]
         insertions = []  # type: List[Tuple[int, ops.Operation]]
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
+                # Move Z gates into tracked qubit phases.
                 h = _try_get_known_z_half_turns(op)
                 if h is not None:
                     q = op.qubits[0]
-                    turns_state[q] += h / 2
+                    qubit_phase[q] += h / 2
                     deletions.append((moment_index, op))
                     continue
 
+                # Z gate before measurement is a no-op. Drop tracked phase.
                 if ops.MeasurementGate.is_measurement(op):
                     for q in op.qubits:
-                        turns_state[q] = 0
+                        qubit_phase[q] = 0
 
-                phases = [turns_state[q] for q in op.qubits]
+                # If there's no tracked phase, we can move on.
+                phases = [qubit_phase[q] for q in op.qubits]
                 if all(is_negligible_turn(p, self.tolerance) for p in phases):
                     continue
 
+                # Try to move the tracked phasing over the operation.
                 phased_op = op
                 for i, p in enumerate(phases):
-                    if p and phased_op is not None:
+                    if not is_negligible_turn(p, self.tolerance):
                         phased_op = protocols.phase_by(phased_op, -p, i,
                                                        default=None)
-
                 if phased_op is not None:
                     deletions.append((moment_index, op))
                     inline_intos.append((moment_index,
                                      cast(ops.Operation, phased_op)))
                 else:
-                    dump_phases(op.qubits, moment_index)
+                    dump_tracked_phase(op.qubits, moment_index)
 
-        dump_phases(turns_state.keys(), len(circuit))
+        dump_tracked_phase(qubit_phase.keys(), len(circuit))
         circuit.batch_remove(deletions)
         circuit.batch_insert_into(inline_intos)
         circuit.batch_insert(insertions)

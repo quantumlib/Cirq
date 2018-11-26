@@ -124,14 +124,10 @@ coordinate.
 
 The ``XmonGates`` are
 
-**ExpWGate** This gate is a rotation about a combination of
-a Pauli `X` and Pauli `Y` gates.  The ``ExpWGate`` takes
-two parameters, ``half_turns`` and ``axis_half_turns``.  The
-later describes the angle of the operator that is being
-rotated about in the ``XY`` plane.  In particular if we define
-``W(theta) = cos(pi theta) X + sin (pi theta) Y`` then
-``axis_half_turns`` is ``theta``.  And the full gate is
-``exp(-i pi half_turns W(axis_half_turns) / 2)``.
+**cirq.PhasedXPowGate**
+This gate is a rotation about an axis in the XY plane of the Bloch sphere.
+The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
+The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the `phase_exponent` and `t` is the `exponent`.
 
 **cirq.Z / cirq.Rz** Rotations about the Pauli ``Z`` axis.
 The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.Rz(θ)` is `exp(-i Z θ/2)`.
@@ -151,21 +147,11 @@ in the computational basis.
 
 ``XmonGates`` are hardware specific.  In addition Cirq has a
 number of more commonly named gates that are then implemented
-as ``XmonGates`` via an extension or composite gates.  Some
+as ``XmonGates`` via decomposition or known unitaries. Some
 of these are our old friends:
 
-**XPowGate**, **YPowGate**, **ZPowGate**, **CZPowGate**.
-These are gates corresponding to the  Pauli rotations or
-(in the case of ``CZPowGate`` a two qubit rotation).
-
-Our old friends the Paulis: **X**, **Y**, and **Z**. 
-Some other two qubit fiends, **CZ** the controlled-Z gate,
 **CNOT** the controlled-X gate, and **SWAP** the swap gate.
 As well as some other Clifford friends, **H** and **S**,
 and our error correcting friend **T**.
 
 TODO: describe these in more detail.  
-
-### Extensions
-
-TODO

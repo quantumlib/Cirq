@@ -17,11 +17,14 @@ from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict, \
 
 from typing_extensions import Protocol
 
+from cirq import value
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
 
 
+@value.value_equality
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
@@ -48,20 +51,8 @@ class CircuitDiagramInfo:
         self.exponent = exponent
         self.connected = connected
 
-    def _eq_tuple(self):
-        return (CircuitDiagramInfo, self.wire_symbols,
-                self.exponent, self.connected)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
+    def _value_equality_values_(self):
+        return self.wire_symbols, self.exponent, self.connected
 
     def __repr__(self):
         return ('cirq.CircuitDiagramInfo(' +
@@ -71,6 +62,7 @@ class CircuitDiagramInfo:
                 )
 
 
+@value.value_equality
 class CircuitDiagramInfoArgs:
     """A request for information on drawing an operation in a circuit diagram.
 
@@ -105,26 +97,14 @@ class CircuitDiagramInfoArgs:
         self.precision = precision
         self.qubit_map = qubit_map
 
-    def _eq_tuple(self):
-        return (CircuitDiagramInfoArgs,
-                self.known_qubits,
+    def _value_equality_values_(self):
+        return (self.known_qubits,
                 self.known_qubit_count,
                 self.use_unicode_characters,
                 self.precision,
                 None
                 if self.qubit_map is None else
                 tuple(sorted(self.qubit_map.items(), key=lambda e: e[0])))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
 
     def __repr__(self):
         return (

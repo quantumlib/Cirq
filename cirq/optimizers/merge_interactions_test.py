@@ -26,8 +26,8 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
         cg.MergeRotations(),
-        cg.EjectFullW(),
-        cg.EjectZ(),
+        cirq.EjectPhasedPaulis(),
+        cirq.EjectZ(),
         cirq.DropNegligible(),
         cirq.DropEmptyMoments()
     ]

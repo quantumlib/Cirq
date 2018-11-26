@@ -15,26 +15,21 @@
 from typing import Iterable
 
 import cirq
-import cirq.google as cg
-from cirq.google.eject_z import _try_get_known_z_half_turns
+from cirq.optimizers.eject_z import _try_get_known_z_half_turns
 
 
 def assert_optimizes(before: cirq.Circuit,
                      expected: cirq.Circuit,
-                     pre_opts: Iterable[cirq.OptimizationPass] = (
-                             cg.ConvertToXmonGates(ignore_failures=True),),
                      post_opts: Iterable[cirq.OptimizationPass] = (
-                             cg.ConvertToXmonGates(ignore_failures=True),
-                             cirq.DropEmptyMoments())):
-    opt = cg.EjectZ()
+                             cirq.DropEmptyMoments(),
+                     )):
+    opt = cirq.EjectZ()
 
     if cirq.has_unitary(before):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             before, expected, atol=1e-8)
 
     circuit = before.copy()
-    for pre in pre_opts:
-        pre.optimize_circuit(circuit)
     opt.optimize_circuit(circuit)
     for post in post_opts:
         post.optimize_circuit(circuit)
@@ -48,7 +43,7 @@ def assert_optimizes(before: cirq.Circuit,
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
-    opt = cg.EjectZ()
+    opt = cirq.EjectZ()
     optimized = circuit.copy()
     opt.optimize_circuit(optimized)
     has_z = any(_try_get_known_z_half_turns(op) is not None
@@ -105,9 +100,7 @@ def test_early_z():
             cirq.Moment([cirq.Z(q)**0.5]),
             cirq.Moment(),
             cirq.Moment(),
-        ]),
-        pre_opts=[cg.ConvertToXmonGates(ignore_failures=True)],
-        post_opts=[cg.ConvertToXmonGates(ignore_failures=True)])
+        ]))
 
 
 def test_multi_z_merges():
@@ -233,13 +226,13 @@ def test_removes_zs():
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.ExpWGate().on(a),
+        cirq.X(a),
         cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(
         cirq.Z(a),
-        cirq.google.ExpWGate().on(a),
-        cirq.google.ExpWGate().on(a),
+        cirq.X(a),
+        cirq.X(a),
         cirq.measure(a)))
 
     assert_removes_all_z_gates(cirq.Circuit.from_ops(

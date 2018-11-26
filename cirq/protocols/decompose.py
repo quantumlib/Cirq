@@ -309,7 +309,10 @@ def decompose_once_with_qubits(val: Any,
 @overload
 def decompose_once_with_qubits(val: Any,
                                qubits: Iterable['cirq.QubitId'],
-                               default: TDefault,
+                               # NOTE: should be TDefault instead of Any, but
+                               # mypy has false positive errors when setting
+                               # default to None.
+                               default: Any,
                                ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
