@@ -200,7 +200,8 @@ def test_kak_decomposition_depth_full_cz():
 
     # Random.
     u = cirq.testing.random_unitary(4)
-    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, False,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_full)
     # 3 CZ, 3+1 PhasedX, 1 Z
     assert len(c) <= 8
@@ -208,21 +209,32 @@ def test_kak_decomposition_depth_full_cz():
     # Double-axis interaction.
     u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
                                            cirq.CNOT(b, a)))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
+    # Test unoptimized/un-cleaned length of Double-axis interaction.
+    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
+                                           cirq.CNOT(b, a)))
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
+                                                               1e-8, False)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    assert len(c) > 6 # Length should be 13 with extra Pauli gates
+
     # Partial single-axis interaction.
     u = cirq.unitary(cirq.CNOT**0.1)
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Full single-axis interaction.
     u = cirq.unitary(cirq.ControlledGate(cirq.Y))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_part)
     # 1 CZ, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
@@ -233,7 +245,8 @@ def test_kak_decomposition_depth_partial_cz():
 
     # Random.
     u = cirq.testing.random_unitary(4)
-    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, True,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_full)
     # 3 CP, 3+1 PhasedX, 1 Z
     assert len(c) <= 8
@@ -241,21 +254,24 @@ def test_kak_decomposition_depth_partial_cz():
     # Double-axis interaction.
     u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
                                            cirq.CNOT(b, a)))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_part)
     # 2 CP, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Partial single-axis interaction.
     u = cirq.unitary(cirq.CNOT**0.1)
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
 
     # Full single-axis interaction.
     u = cirq.unitary(cirq.ControlledGate(cirq.Y))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True,
+                                                               1e-8, True)
     c = cirq.Circuit.from_ops(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
