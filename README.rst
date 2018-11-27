@@ -13,6 +13,10 @@ circuits and running them against quantum computers and simulators.
 .. image:: https://badge.fury.io/py/cirq.svg
     :target: https://badge.fury.io/py/cirq
 
+.. image:: https://readthedocs.org/projects/cirq/badge/?version=master
+    :target: https://cirq.readthedocs.io/en/master/?badge=master
+    :alt: Documentation Status
+
 Installation
 ------------
 
