@@ -14,16 +14,16 @@
 
 """ Exponentiation tool for Pauli Operators"""
 
-from typing import Dict, Union, Any
+from typing import Dict, Union, Any, Optional
 
 import numpy as np
 from cirq.circuits import Circuit
-from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT, Pauli, PauliString
+from cirq.ops import Rx, Ry, Rz, CNOT, Pauli, PauliString
 
 
 def exponentiated_sum_of_paulis(time: float,
                                 pauli_sum: Dict[PauliString, float],
-                                trotter_steps: Union[int, NoneType] = None):
+                                trotter_steps: Optional[int] = None):
     """
     Computes the exponential of an operator (pauli_sum) O: U = exp(i*time*O)
     If operator does not commute trotterization must be implemented
@@ -61,16 +61,16 @@ def exponentiated_sum_of_paulis(time: float,
 
     # define rotations:
     basis_rotation = {
-        Pauli.X: RotYGate(rads=.5 * np.pi),
-        Pauli.Y: RotXGate(rads=-.5 * np.pi),
+        Pauli.X: Ry(rads=.5 * np.pi),
+        Pauli.Y: Rx(rads=-.5 * np.pi),
         Pauli.Z: None,
         (): None
     }
 
     # rotations back to original basis
     undo_rotation = {
-        Pauli.X: RotYGate(rads=-.5 * np.pi),
-        Pauli.Y: RotXGate(rads=.5 * np.pi)
+        Pauli.X: Ry(rads=-.5 * np.pi),
+        Pauli.Y: Rx(rads=.5 * np.pi)
     }
 
     # setup trotter steps
@@ -113,16 +113,11 @@ def exponentiated_sum_of_paulis(time: float,
                 prev_qubit = qubit
                 highest_target_qubit = qubit
 
-            moment.append(basis_change)
-            moment.append(cnot_gates)
-            moment.append(RotZGate(rads=2.0 * coef
-                                   * time / trotter_steps).on(
-                highest_target_qubit))
-            moment.append(list(reversed(cnot_gates)))
-            moment.append(reverse_basis)
-
-            circuit.append(moment)
+            yield basis_change
+            yield cnot_gates
+            yield Rz(rads=2.0 * coef * time / trotter_steps).on(
+                highest_target_qubit)
+            yield list(reversed(cnot_gates))
+            yield reverse_basis
 
     # TODO: Implement higher order trotter steps
-
-    return circuit

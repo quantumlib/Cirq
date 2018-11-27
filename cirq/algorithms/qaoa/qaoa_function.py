@@ -41,15 +41,15 @@ def qaoa_solver(n_qubits,
         Dict with solution and gamma and beta values for optimal solution
     """
 
-    qaoa = qaoa.QAOA(n_qubits=n_qubits,
-                objective_function=objective_function,
-                mixing_operator=mixing)
+    algo = qaoa.QAOA(n_qubits=n_qubits,
+                     objective_function=objective_function,
+                     mixing_operator=mixing)
 
     optimzation_dict = {'swarm': 'swarm',
                         'nelder-mead': 'nelder-mead',
                         'bayesian': 'bayesian'}
 
-    return qaoa.optimization(p=p, initial_params=None,
+    return algo.optimization(p=p, initial_params=None,
                              optimizer=optimzation_dict[optimization_method],
                              expectation_method=expectation_method)
 
@@ -77,15 +77,14 @@ def qaoa_regular_graph(n_qubits: int,
         dict with solution and gamma and beta values for optimal solution
     """
 
-    qaoa = qaoa.QAOA(n_qubits=n_qubits,
-                objective_function=None)
+    algo = qaoa.qaoa_regular_tree_max_cut(n_vertices=n_qubits,
+                                     degree=n_connections)
 
-    qaoa.regular_tree_max_cut_graph(n_connections)
     optimzation_dict = {'swarm':'swarm',
                         'nelder-mead':'nelder-mead',
                         'bayesian':'bayesian'}
 
-    return qaoa.optimization(p=p,
+    return algo.optimization(p=p,
                              initial_params=None,
                              optimizer=optimzation_dict[optimization_method],
                              expectation_method=expectation_method)

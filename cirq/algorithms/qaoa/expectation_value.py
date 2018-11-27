@@ -17,9 +17,9 @@
 from typing import Dict, Union
 
 import numpy as np
-from cirq.google import XmonSimulator, XmonMeasurementGate
+from cirq.google import XmonSimulator
 from cirq.circuits import Circuit
-from cirq.ops import RotXGate, RotYGate, MeasurementGate, Pauli, PauliString
+from cirq.ops import Rx, Ry, MeasurementGate, Pauli, PauliString, measure_each
 from cirq.devices import GridQubit
 from cirq.line import LineQubit
 from cirq.ops import NamedQubit
@@ -36,7 +36,7 @@ def measurement_gates(circuit: Circuit,
 
     return: circuit with measurements added
     """
-    meas = [XmonMeasurementGate(key=index).on(
+    meas = [MeasurementGate(key=index).on(
         qubit) for qubit, index in q_dict.items()]
 
     circuit.append(meas)
@@ -110,18 +110,18 @@ def expectation_from_sampling(circuit: Circuit,
             for qubit, pauli in term.items():
 
                 if pauli == Pauli.X:
-                    circuit.append(RotYGate(rads=-0.5 * np.pi).on(
+                    circuit.append(Ry(rads=-0.5 * np.pi).on(
                         qubit))
 
                 elif pauli == Pauli.Y:
-                    circuit.append(RotXGate(rads=0.5 * np.pi).on(
+                    circuit.append(Rx(rads=0.5 * np.pi).on(
                         qubit))
 
                 # After rotation we can re-add measurement gates
                 q_dict[qubit] = qubits.index(qubit)
 
             # Add Measurement gates:
-            circuit = measurement_gates(circuit, q_dict)
+            circuit.append(measure_each(*qubits))
 
             # run circuit:
             results = sim.run(circuit, repetitions=n_samples)
@@ -169,7 +169,7 @@ def expectation_from_sampling(circuit: Circuit,
 
         # add measurement gate to appropriate qubits
 
-        circuit = measurement_gates(circuit, q_dict)
+        circuit.append(measure_each(*qubits))
 
         # run circuit and store results
         results = sim.run(circuit, repetitions=n_samples)

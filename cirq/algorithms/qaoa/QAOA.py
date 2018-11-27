@@ -17,9 +17,9 @@ import pyswarm
 
 from typing import Union
 from scipy.optimize import minimize
-from cirq.google import XmonSimulator, XmonMeasurementGate
+from cirq.google import XmonSimulator
 from cirq.circuits import Circuit
-from cirq.ops import RotXGate, RotYGate, MeasurementGate, H, Pauli, PauliString
+from cirq.ops import Rx, Ry, MeasurementGate, H, Pauli, PauliString
 from cirq.line import LineQubit
 from exponentiate import exponentiated_sum_of_paulis
 from expectation_value import expectation_value, expectation_from_sampling
@@ -71,7 +71,7 @@ class QAOA:
         self.mixing_operator = {PauliString(qubit_pauli_map={q: Pauli.X}):
                                 1 for q in self.qubits}
 
-    def setup_circuit(self, params: Union[List, np.array]):
+    def setup_circuit(self, params: Union[list, np.array]):
 
         """
         Constructs circuit to generate state |beta,gamma> =  u_B u_C .... |s>
@@ -99,7 +99,7 @@ class QAOA:
                                               trotter_steps=1)
 
             # appends to circuit
-            self.circuit += u_C
+            self.circuit.append(u_C)
 
             # calculates exponentiation of mixing operator B
             # with beta coefficient
@@ -108,7 +108,7 @@ class QAOA:
                                               trotter_steps=1)
 
             # appends to circuit
-            self.circuit += u_B
+            self.circuit.append(u_B)
 
     def run_circuit(self, params, p,
                     expectation_method='wavefunction',
@@ -219,7 +219,7 @@ class QAOA:
         elif isinstance(sampling, int):
 
             # append measurements to circuit:
-            meas = [XmonMeasurementGate(key=index).on(
+            meas = [MeasurementGate(key=index).on(
                 self.qubits[index]) for index in range(len(self.qubits))]
 
             self.circuit.append(meas)
@@ -230,7 +230,7 @@ class QAOA:
             # measurement keys
             keys = [gate.key for _, _, gate in
                     circuit.findall_operations_with_gate_type(
-                        XmonMeasurementGate)]
+                        MeasurementGate)]
 
             # histogram of measurements
             counter = sim_result.multi_measurement_histogram(keys=keys)
