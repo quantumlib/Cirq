@@ -200,13 +200,6 @@ a[            ]+  b  c
     """.strip(), c.to_text_diagram(transpose=True))
 
 
-def test_repr():
-    assert repr(cirq.SingleQubitMatrixGate(np.eye(2))) == \
-        'cirq.SingleQubitMatrixGate({})'.format(repr(np.eye(2)))
-    assert repr(cirq.TwoQubitMatrixGate(np.eye(4))) == \
-        'cirq.TwoQubitMatrixGate({})'.format(repr(np.eye(4)))
-
-
 def test_str_executes():
     assert '1' in str(cirq.SingleQubitMatrixGate(np.eye(2)))
     assert '0' in str(cirq.TwoQubitMatrixGate(np.eye(4)))
@@ -215,16 +208,10 @@ def test_str_executes():
 def test_one_qubit_consistent():
     u = cirq.testing.random_unitary(2)
     g = cirq.SingleQubitMatrixGate(u)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(g)
-    cirq.testing.assert_qasm_is_consistent_with_unitary(g)
-    cirq.testing.assert_has_consistent_apply_unitary(g)
+    cirq.testing.assert_implements_consistent_protocols(g)
 
 
 def test_two_qubit_consistent():
     u = cirq.testing.random_unitary(4)
     g = cirq.TwoQubitMatrixGate(u)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(g)
-    cirq.testing.assert_qasm_is_consistent_with_unitary(g)
-    cirq.testing.assert_has_consistent_apply_unitary(g)
+    cirq.testing.assert_implements_consistent_protocols(g)
