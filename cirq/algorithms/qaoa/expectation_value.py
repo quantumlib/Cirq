@@ -14,7 +14,6 @@
 
 """Expectation value tool for pauli operators given a circuit"""
 
-# imports
 from typing import Dict, Union
 
 import numpy as np
@@ -83,20 +82,20 @@ def expectation_from_sampling(circuit: Circuit,
 
     # remove measurements from circuit such that appropriate rotations
     # can be applied, measurements are added later
-    circuit = no_meas(circuit)
+    circuit = remove_measurements(circuit)
 
     # For general operators, the expectation value by sampling
     # over n_samples circuit runs is computed here
     if not quadratic_z:
 
-        circuit = no_meas(circuit)
+        circuit = remove_measurements(circuit)
 
         expectation = 0
         identity_coeficient = 0.
 
         for term, coef in operator.items():
 
-            circuit = no_meas(circuit)
+            circuit = remove_measurements(circuit)
 
             # check if identity:
             if term == ():
@@ -111,11 +110,11 @@ def expectation_from_sampling(circuit: Circuit,
             for qubit, pauli in term.items():
 
                 if pauli == Pauli.X:
-                    circuit.append(RotYGate(half_turns=-1 / 2).on(
+                    circuit.append(RotYGate(rads=-0.5 * np.pi).on(
                         qubit))
 
                 elif pauli == Pauli.Y:
-                    circuit.append(RotXGate(half_turns=+1 / 2).on(
+                    circuit.append(RotXGate(rads=0.5 * np.pi).on(
                         qubit))
 
                 # After rotation we can re-add measurement gates
@@ -220,13 +219,11 @@ def expectation_from_sampling(circuit: Circuit,
                 x2 = int(results_dict[q2][rep_term][0])
 
                 expectation += x1 * coef * x2
+                # TODO: use multi_measurement_histogram
 
             expectation_samples.append(expectation)
 
         expectation_mean = np.mean(expectation_samples) + identity_coeficient
-
-        # if print_runs:
-        #    print('current cost is = ', expectation_mean)
 
         return expectation_mean
 
@@ -268,9 +265,6 @@ def expectation_value(circuit: Circuit,
 
     # number of qubits
     n_qubits = len(qubits)
-
-    # setup the bit strings for each final state:
-    # bits = [bin(i)[2:].zfill(n_qubits) for i in range(2**n_qubits)]
 
     # runs circuit:
     results = sim.simulate(circuit)
@@ -328,23 +322,25 @@ def expectation_value(circuit: Circuit,
         expectation += inner_product * coef
 
     norm = np.absolute(final_state)
+
+    # setup the bit strings for each final state:
     bits = [bin(i)[2:].zfill(n_qubits) for i in range(2**n_qubits)]  
     probabilities = norm*norm
-    #max_bit = bits[norm.index(max(norm))]
+
     max_bit = bits[np.where(norm==max(norm))[0][0]]
     prob = probabilities[np.where(norm==max(norm))[0][0]]
     print(f'final state with max norm = {max_bit} with probability {prob}')
-    # print(probabilities)
 
     expectation += identity_coeficient
     print(f'cost = {expectation}')
+
     return expectation.real
 
 
 # Helper function to remove measurement gates
 # ensures there are no measurement gates since rotation gates
 # must still be added:
-def no_meas(circuit: Circuit):
+def remove_measurements(circuit: Circuit):
     cir2 = Circuit()
     for moment in circuit:
         new_moment = []

@@ -15,13 +15,13 @@
 import numpy as np
 import pyswarm
 
+from typing import Union
 from scipy.optimize import minimize
 from cirq.google import XmonSimulator, XmonMeasurementGate
 from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, MeasurementGate, H, Pauli, PauliString
-from cirq.devices import GridQubit
 from cirq.line import LineQubit
-from exponentiate import exponentiate_qubit_operator
+from exponentiate import exponentiated_sum_of_paulis
 from expectation_value import expectation_value, expectation_from_sampling
 from bayes_opt import BayesianOptimization
 
@@ -56,98 +56,28 @@ class QAOA:
 
         # set mixing, or use standard if 'X'
         if mixing_operator == 'X':
-            self.set_mixing_operator()
+            self.set_default_mixing_operator()
         else:
             self.mixing_operator = mixing_operator
 
-
-    def set_objective_function(self, objective_function):
+    def set_default_mixing_operator(self):
         """
-        sets new objective_function
-
-        Args:
-            objective_function: the objective function QAOA wants to maximize.
+        sets default mixing hermitian operator (B in QAOA paper) that will be
+        used to construct the unitary u_B(\beta) = Exp(-i*beta*B)
+        Default is Pauli X on every qubit
         """
-        self.objective_function = objective_function
-
-    def set_mixing_operator(self, mixing_operator=None):
-        """
-        sets new mixing hermitian operator (B in QAOA paper) that will be
-        used to construct the unitary U_B(\beta) = Exp(-i*beta*B)
-
-        Args:
-            mixing_operator: Dict[PauliString: Coefficient]
-                operator B in QAOA paper, used to create unitary by
-                exponentiation default set to 'X' which sets it to pauli X on
-                every qubit.
-        """
-
-        # initialize operator dict
-        self.mixing_operator = {}
 
         # sets it to X on every qubit
-        if mixing_operator == None:
-            # X on every qubit
-            for q in self.qubits:
-                self.mixing_operator[PauliString(
-                    qubit_pauli_map={q: Pauli.X})] = 1
+        self.mixing_operator = {PauliString(qubit_pauli_map={q: Pauli.X}):
+                                1 for q in self.qubits}
 
-        # sets it to argument given in function
-        else:
-            self.mixing_operator = mixing_operator
+    def setup_circuit(self, params: Union[List, np.array]):
 
-    def regular_tree_max_cut_graph(self, n_connections):
         """
-        sets up the cost function for a regular tree graph (no loops) where
-        each vertex has n_connections edges connected to it.
+        Constructs circuit to generate state |beta,gamma> =  u_B u_C .... |s>
 
         Args:
-            n_connections: integer determining the number of connections
-                for each vertex in the regular tree graph.
-        """
-        z = Pauli.Z
-
-        # Ignores constant term since it just adds a phase
-        self.objective_function = dict()
-
-        # connect 0 to 1:
-        self.objective_function[PauliString(qubit_pauli_map={self.qubits[0]: z,
-                                            self.qubits[1]: z})] = -1/2
-
-        # self.objective_function[()] = 1 / 2
-        self.objective_function[()] = (len(self.qubits) - 1) / 2
-
-        # connections
-        # odd: (n_connections-1)*i + (4-n_connections + 2*j)
-        # even: (n_connections-1)*i + 2 + 2*j
-        for i in range(len(self.qubits)):
-            for j in range(n_connections-1):
-
-                if i % 2 == 1:
-                    odd_connection = (n_connections-1)*i + (4 -
-                                                            n_connections + 2*j)
-                    if odd_connection < len(self.qubits):
-                        self.objective_function[PauliString(
-                            qubit_pauli_map={self.qubits[i]: z,
-                                            self.qubits[odd_connection]:
-                                                z})] = -1/2
-
-                # even qubits
-                elif i % 2 == 0:
-                    even_connection = (n_connections-1)*i + 2 + 2*j
-                    if even_connection < len(self.qubits):
-                        self.objective_function[PauliString(
-                            qubit_pauli_map={self.qubits[i]: z,
-                                             self.qubits[even_connection]:
-                                                 z})] = -1/2
-
-    def setup_circuit(self, p, params):
-
-        """
-        Constructs circuit to generate state |beta,gamma> U_B U_C .... |s>
-
-        Args:
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -158,28 +88,27 @@ class QAOA:
         # initial uniform superposition
         self.circuit.append(H.on_each(self.qubits))
 
+        p = int(len(params) / 2)
+
         # loop over p iterations
-        for p_val in range(p):
-            gamma = params[p_val]
-            beta = params[p+p_val]
+        for gamma, beta in zip(params[:p], params[p:]):
 
             # calculates exponentiation of cost with appropriate gamma
-            U_C = exponentiate_qubit_operator(time=gamma,
-                                              operator=self.objective_function,
+            u_C = exponentiated_sum_of_paulis(time=gamma,
+                                              pauli_sum=self.objective_function,
                                               trotter_steps=1)
 
             # appends to circuit
-            self.circuit += U_C
+            self.circuit += u_C
 
             # calculates exponentiation of mixing operator B
             # with beta coefficient
-            U_B = exponentiate_qubit_operator(time=beta,
-                                              operator=self.mixing_operator,
+            u_B = exponentiated_sum_of_paulis(time=beta,
+                                              pauli_sum=self.mixing_operator,
                                               trotter_steps=1)
 
             # appends to circuit
-            self.circuit += U_B
-            # print(self.circuit)
+            self.circuit += u_B
 
     def run_circuit(self, params, p,
                     expectation_method='wavefunction',
@@ -190,7 +119,7 @@ class QAOA:
         Args:
             params: list with values of gammas and betas, gammas are the
                 entries params[0:p] and betas are params[p:2p].
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -210,7 +139,7 @@ class QAOA:
         self.circuit = Circuit()
 
         # new circuit to prepare QAOA state with appropriate params
-        self.setup_circuit(p, params)
+        self.setup_circuit(params)
 
         # calculates expectation value in state according to method
         if expectation_method == 'wavefunction':
@@ -233,7 +162,7 @@ class QAOA:
 
         return cost
 
-    def return_configuration_from_circuit(self, params, p,
+    def return_configuration_from_circuit(self, params,
                                           sampling=0):
         """
         Sets up circuit and returns expectation value
@@ -241,7 +170,7 @@ class QAOA:
         Args:
             params: list with values of gammas and betas, gammas are the
                 entries params[0:p] and betas are params[p:2p].
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -259,7 +188,7 @@ class QAOA:
         self.circuit = Circuit()
 
         # new circuit to prepare QAOA state with appropriate params
-        self.setup_circuit(p, params)
+        self.setup_circuit(params)
 
         # setup simulator
         sim = XmonSimulator()
@@ -275,7 +204,8 @@ class QAOA:
             max_prob_index = np.argmax(final_state_prob)
 
             # list with bits
-            bits = [bin(i)[2:].zfill(n_qubits) for i in range(2 ** n_qubits)]
+            bits = [bin(i)[2:].zfill(len(self.qubits))
+                    for i in range(2 ** n_qubits)]
 
             # return probability of measurement and the bitstring that
             # corresponds to it
@@ -323,7 +253,7 @@ class QAOA:
         Main function that optimizes the parameters for QAOA
 
         Args:
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -333,7 +263,7 @@ class QAOA:
                 obtain the parameters gamma and beta that maximize the objective
                 function. Currently supports:
                     swarm - swarming algorithm
-                    NM - Nelder-Mead
+                    nelder-mead - Nelder-Mead
                     bayesian - Bayesian optimization
             expectation_method: determines whether expectation value
                 is obtained by an inner product with the final state or
@@ -354,7 +284,7 @@ class QAOA:
 
             return self.swarming_optimization(p, expectation_method)
 
-        elif optimizer == 'NM':
+        elif optimizer == 'nelder-mead':
 
             return self.nelder_mead_optimization(p, initial_params,
                                                  expectation_method)
@@ -364,7 +294,7 @@ class QAOA:
             return self.bayesian_optimization(p, expectation_method)
 
         else:
-            raise TypeError('Optimizer not supported')
+            raise TypeError('Optimizer {} not supported.'.format(optimizer))
 
     def swarming_optimization(self, p,
                               expectation_method='wavefunction'):
@@ -372,7 +302,7 @@ class QAOA:
         Main function that optimizes the parameters for QAOA
 
         Args:
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -421,7 +351,7 @@ class QAOA:
         Main function that optimizes the parameters for QAOA
 
         Args:
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -473,7 +403,7 @@ class QAOA:
         Main function that optimizes the parameters for QAOA
 
         Args:
-            p: number of repetitions of the unitaries U_C and U_B used in
+            p: number of repetitions of the unitaries u_C and u_B used in
                 the state preparation in QAOA. Since each time a unitary is
                 applied we introduce a new parameter, there are 2*p total
                 parameters we want to optimize.
@@ -503,7 +433,7 @@ class QAOA:
             p = pval
             params = [kwargs['gamma_{}'.format(m)] for m in range(p)]
             expectation_method = expectation
-            # print(params)
+
             for i in range(p):
                 params.append(kwargs['beta_{}'.format(i)])
 
@@ -532,3 +462,65 @@ class QAOA:
         solution['betas'] = boptimizer.X[:, p:]
 
         return solution
+
+
+def qaoa_regular_tree_max_cut(n_vertices, degree):
+    """
+    sets up and returns a QAOA object with cost function for a
+    regular tree graph (no loops) where
+    each vertex has 'degree' edges connected to it.
+
+    Args:
+        n_vertices: number of vertices in graph
+        degree: integer determining the number of connections
+            for each vertex in the regular tree graph.
+    Returns:
+        QAOA object with objective function set to the regular graph
+    """
+    z = Pauli.Z
+
+    # qubit array, 1 for each vertex
+    qubits = [LineQubit(i) for i in range(n_vertices)]
+
+    # Ignores constant term since it just adds a phase
+    # initialize objective function
+    objective_function = dict()
+
+    # connect 0 to 1:
+    objective_function[PauliString(qubit_pauli_map={qubits[0]: z,
+                                                    qubits[1]: z})] = -1 / 2
+
+    objective_function[()] = (len(qubits) - 1) / 2
+
+    # loop through connections and add the appropriate Paulis to objective
+    # function. The 'i' outer loop represents the vertex and 'j' is the
+    # inner loop which loops over the appropriate number of edges on each vertex
+    # for even and odd the connection is slightly different, which  works out to
+    # be:
+    # odd: (degree-1)*i + (4-degree + 2*j)
+    # even: (degree-1)*i + 2 + 2*j
+    for i, qubit in enumerate(qubits):
+        for j in range(degree - 1):
+
+            if i % 2 == 1:
+                odd_connection = (degree - 1) * i + (4 -
+                                                     degree + 2 * j)
+                if odd_connection < len(qubits):
+                    objective_function[PauliString(
+                        qubit_pauli_map={qubit: z,
+                                         qubits[odd_connection]:
+                                             z})] = -1 / 2
+
+            # even qubits
+            else:
+                even_connection = (degree - 1) * i + 2 + 2 * j
+                if even_connection < len(qubits):
+                    objective_function[PauliString(
+                        qubit_pauli_map={qubit: z,
+                                         qubits[even_connection]:
+                                             z})] = -1 / 2
+
+    # construct and return QAOA object:
+    return QAOA(n_qubits=n_vertices,
+                objective_function=objective_function,
+                mixing_operator='X')

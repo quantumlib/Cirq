@@ -14,7 +14,6 @@
 
 """ Exponentiation tool for Pauli Operators"""
 
-# Imports
 from typing import Dict, Union, Any
 
 import numpy as np
@@ -22,63 +21,62 @@ from cirq.circuits import Circuit
 from cirq.ops import RotXGate, RotYGate, RotZGate, CNOT, Pauli, PauliString
 
 
-def exponentiate_qubit_operator(time: Union[int, float],
-                                operator: Dict[PauliString, float],
-                                trotter_steps: int = 0):
+def exponentiated_sum_of_paulis(time: float,
+                                pauli_sum: Dict[PauliString, float],
+                                trotter_steps: Union[int, NoneType] = None):
     """
-    Computes the exponential of an operator O: U = exp(i*time*O)
-    If operator does not commute trotterization must be implemented manually
+    Computes the exponential of an operator (pauli_sum) O: U = exp(i*time*O)
+    If operator does not commute trotterization must be implemented
+    directly by the user - if trotter_steps is not specified, it is set to
+    100 times the absolute value of the maximum coefficient in pauli_sum.
+    If trotterization is not desired, the user must set value to 1.
     Currently trotterization is first order
 
     Args:
         time: integer or float representing the coefficient in the exponent
-
-        operator: Operator input as a dictionary where keys are
+        pauli_sum: Operator input as a dictionary where keys are
                     cirq.ops.PauliString type and values are coefficients
                   example:
                   paulistring = cirq.PauliString(qubit_pauli_map=
                     {qubits[0]:cirq.Pauli.X, qubits[1]: (cirq.Pauli.Z)})
                   paulistring2 = cirq.PauliString(qubit_pauli_map=
                     {qubits[0]:cirq.Pauli.Z, qubits[2]: (cirq.Pauli.Y)})
-                  operator = {paulistring: 1.234, paulistring2: -5.678}
-
+                  pauli_sum = {paulistring: 1.234, paulistring2: -5.678}
         trotter_steps: integer for the number of trotterization steps
                        to decompose the exponential, e.g.
                        exp(i*t*(A+B)) = Product_n exp(i*t*A/n) exp(i*t*B/n)
                        if trotter_steps is set to 0, it will be set to
-                       100*(maximum qubit operator coefficient)
-
+                       100*(maximum qubit pauli_sum coefficient)
     Returns:
         cirq.circuit() with gates representing the unitary
-        obtained by exponentiating operator argument
+        obtained by exponentiating pauli_sum argument
     """
 
     # Check if input is in correct format
-    if isinstance(operator, dict):
-        terms_dict = operator.items()
-    else:
-        raise ValueError('Operator should be a'
+    if not isinstance(pauli_sum, dict):
+        raise ValueError('pauli_sum should be a'
                          'Dict representing with PauliString as key'
                          'and coefficient of term as dict.values')
+    terms = pauli_sum.items()
 
     # define rotations:
     basis_rotation = {
-        Pauli.X: RotYGate(half_turns=.5),
-        Pauli.Y: RotXGate(half_turns=-.5),
+        Pauli.X: RotYGate(rads=.5 * np.pi),
+        Pauli.Y: RotXGate(rads=-.5 * np.pi),
         Pauli.Z: None,
         (): None
     }
 
     # rotations back to original basis
     undo_rotation = {
-        Pauli.X: RotYGate(half_turns=-.5),
-        Pauli.Y: RotXGate(half_turns=.5)
+        Pauli.X: RotYGate(rads=-.5 * np.pi),
+        Pauli.Y: RotXGate(rads=.5 * np.pi)
     }
 
     # setup trotter steps
-    if trotter_steps == 0:
+    if trotter_steps is None:
         trotter_steps = int(100 * np.max(np.absolute(list(
-            operator.values()))))
+            pauli_sum.values()))))
 
     # create circuit
     circuit = Circuit()
@@ -87,8 +85,8 @@ def exponentiate_qubit_operator(time: Union[int, float],
     for _ in range(trotter_steps):
 
         # Define Exponentiatiation:
-        # loop through operators
-        for term, coef in terms_dict:
+        # loop through pauli_sum
+        for term, coef in terms:
             moment = []
             basis_change = []
             reverse_basis = []
@@ -117,7 +115,7 @@ def exponentiate_qubit_operator(time: Union[int, float],
 
             moment.append(basis_change)
             moment.append(cnot_gates)
-            moment.append(RotZGate(half_turns=2.0 * (coef / np.pi)
+            moment.append(RotZGate(rads=2.0 * coef
                                    * time / trotter_steps).on(
                 highest_target_qubit))
             moment.append(list(reversed(cnot_gates)))

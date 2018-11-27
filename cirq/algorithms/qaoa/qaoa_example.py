@@ -2,7 +2,7 @@
 
 from qaoa_function import qaoa_solver
 from cirq.ops import PauliString, Pauli
-from cirq.devices import GridQubit
+from cirq.line import LineQubit
 
 
 if __name__ == '__main__':
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     # set the objective function to be optimized.
     # keys should be operator, values should be the coefficient
     # for the identity operator insert () as key
-    qubits = [GridQubit(0, i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
     objective_function = {PauliString(
         qubit_pauli_map={qubits[0]:Pauli.Z,
             qubits[1]:Pauli.Z}): -1/2,
