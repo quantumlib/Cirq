@@ -432,3 +432,14 @@ def test_pass_unsupported_operations_over():
     pauli_string = cirq.PauliString({q0: cirq.Pauli.X})
     with pytest.raises(TypeError):
         pauli_string.pass_operations_over([cirq.X(q0)])
+
+
+def test_with_qubits():
+    a, b, c = cirq.NamedQubit('a'), cirq.NamedQubit('b'), cirq.NamedQubit('c')
+    q, r, s = cirq.LineQubit.range(3)
+    qubit_pauli_map = {a: cirq.Pauli.X, b: cirq.Pauli.Y, c: cirq.Pauli.X}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+    new_pauli_string = pauli_string.with_qubits(q, r, s)
+
+    assert set(new_pauli_string.qubits()) == {q, r, s}
+    assert new_pauli_string.negated is True

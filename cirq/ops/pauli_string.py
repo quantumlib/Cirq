@@ -27,7 +27,7 @@ TDefault = TypeVar('TDefault')
 
 
 @value.value_equality
-class PauliString:
+class PauliString(raw_types.Operation):
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
                  negated: bool = False) -> None:
@@ -71,6 +71,9 @@ class PauliString:
 
     def qubits(self) -> KeysView[raw_types.QubitId]:
         return self.keys()
+
+    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'PauliString':
+        return PauliString(dict(zip(new_qubits, self.values())), self.negated)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()
