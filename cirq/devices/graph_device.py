@@ -136,7 +136,8 @@ class UndirectedGraphDevice(devices.Device):
                 qubits and whose edges determine allowable operations and their
                 durations.
             crosstalk_graph: An undirected hypergraph whose vertices are edges
-                of device_graph and whose edges give constraints thereon.
+                of device_graph and whose edges give simultaneity constraints
+                thereon.
         """
 
         if not is_undirected_device_graph(device_graph):
