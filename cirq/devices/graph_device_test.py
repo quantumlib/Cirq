@@ -105,6 +105,7 @@ def test_graph_device():
 
     graph_device = UndirectedGraphDevice(device_graph,
                                          crosstalk_graph=crosstalk_graph)
+    assert sorted(graph_device.edges) == sorted(device_graph.edges)
     qubits = tuple(HashQubit(v) for v in range(n_qubits))
     assert graph_device.qubits == qubits
     assert graph_device.device_graph == device_graph
