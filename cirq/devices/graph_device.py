@@ -49,7 +49,6 @@ class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
     def duration_of(self, operation: ops.Operation) -> value.Duration:
         pass
 
-
     @abc.abstractmethod
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
@@ -62,13 +61,12 @@ class FixedDurationUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     def __init__(self, duration: value.Duration):
         self._duration = duration
 
-
     def duration_of(self, operation: ops.Operation) -> value.Duration:
         return self._duration
 
-
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
+
 
 class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     """A device edge that allows everything."""
@@ -78,6 +76,7 @@ class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
 
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
+
 
 UnconstrainedUndirectedGraphDeviceEdge = (
         _UnconstrainedUndirectedGraphDeviceEdge())
@@ -152,29 +151,32 @@ class UndirectedGraphDevice(devices.Device):
         self.device_graph = device_graph
         self.crosstalk_graph = crosstalk_graph
 
+    @property
+    def vertices(self):
+        return sorted(self.device_graph.vertices)
 
     @property
     def qubits(self):
-        return tuple(HashQubit(v) for v in sorted(self.device_graph.vertices))
+        return tuple(HashQubit(v) for v in self.vertices)
 
+    @property
+    def edges(self):
+        return sorted(self.device_graph.edges)
 
     def get_vertices(self, operation: ops.Operation) -> FrozenSet[Hashable]:
         return frozenset(cast(HashQubit, qubit).value
                          for qubit in operation.qubits)
 
-
-    def get_device_edge(self, operation: ops.Operation
+    def get_device_edge_from_op(self, operation: ops.Operation
                         ) -> UndirectedGraphDeviceEdge:
         return self.device_graph.labelled_edges[self.get_vertices(operation)]
 
-
     def duration_of(self, operation: ops.Operation) -> value.Duration:
-        return self.get_device_edge(operation).duration_of(operation)
-
+        return self.get_device_edge_from_op(operation).duration_of(operation)
 
     def validate_operation(self, operation: ops.Operation) -> None:
         try:
-            device_edge = self.get_device_edge(operation)
+            device_edge = self.get_device_edge_from_op(operation)
         except Exception as error:
             vertices = self.get_vertices(operation)
             if vertices not in self.device_graph.edges:
@@ -182,9 +184,6 @@ class UndirectedGraphDevice(devices.Device):
                     vertices))
             raise error
         device_edge.validate_operation(operation)
-
-
-
 
     def validate_crosstalk(self,
                            operation: ops.Operation,
@@ -201,14 +200,12 @@ class UndirectedGraphDevice(devices.Device):
                     other_operations, len(crosstalk_edge) - 1):
                 validator(operation, *crosstalk_operations)
 
-
     def validate_moment(self, moment: circuits.Moment):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):
             other_ops = ops[:i] + ops[i + 1:]
             self.validate_crosstalk(op, other_ops)
-
 
     def validate_scheduled_operation(
             self,
@@ -223,7 +220,6 @@ class UndirectedGraphDevice(devices.Device):
                 schedule.operations_happening_at_same_time_as(
                     scheduled_operation))
         self.validate_crosstalk(operation, other_operations)
-
 
     def validate_schedule(self, schedule: schedules.Schedule) -> None:
         for scheduled_operation in schedule.scheduled_operations:

@@ -40,31 +40,25 @@ class UndirectedHypergraph:
         if labelled_edges is not None:
             self.add_edges(labelled_edges)
 
-
     @property
     def vertices(self) -> Tuple[Hashable, ...]:
         return tuple(self._adjacency_lists.keys())
-
 
     @property
     def edges(self) -> Tuple[FrozenSet[Hashable], ...]:
         return tuple(self._labelled_edges.keys())
 
-
     @property
     def labelled_edges(self) -> Dict[FrozenSet, Any]:
         return dict(self._labelled_edges)
-
 
     def add_vertex(self, vertex: Hashable) -> None:
         if vertex not in self._adjacency_lists:
             self._adjacency_lists[vertex] = set()
 
-
     def add_vertices(self, vertices: Iterable[Hashable]) -> None:
         for vertex in vertices:
             self.add_vertex(vertex)
-
 
     def remove_vertex(self, vertex: Hashable) -> None:
         for edge in self._adjacency_lists[vertex]:
@@ -73,11 +67,9 @@ class UndirectedHypergraph:
                 self._adjacency_lists[neighbor].difference_update((edge,))
         del self._adjacency_lists[vertex]
 
-
     def remove_vertices(self, vertices):
         for vertex in vertices:
             self.remove_vertex(vertex)
-
 
     def add_edge(self,
                  vertices: Iterable[Hashable],
@@ -88,7 +80,6 @@ class UndirectedHypergraph:
         for vertex in vertices:
             self._adjacency_lists[vertex].update((vertices,))
         self._labelled_edges[vertices] = label
-
 
     def add_edges(self, edges: Dict[Iterable[Hashable], Any]):
         for vertices, label in edges.items():
