@@ -23,9 +23,10 @@ from cirq.contrib.acquaintance.gates import ACQUAINT
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
 
+@enum.unique
 class BipartiteGraphType(enum.Enum):
-    MATCHING = enum.auto()
-    COMPLETE = enum.auto()
+    MATCHING = 1
+    COMPLETE = 2
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.bipartite.BipartiteGraphType.' +
