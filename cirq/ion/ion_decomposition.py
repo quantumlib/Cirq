@@ -25,7 +25,7 @@ from typing import List, Optional, cast, Tuple
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, decompositions
+from cirq import ops, linalg, protocols, optimizers, circuits
 from cirq.ion import MS
 
 
@@ -48,10 +48,20 @@ def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
     """
     kak = linalg.kak_decomposition(mat,
                                    linalg.Tolerance(atol=tolerance))
-    return _kak_decomposition_to_operations(q0,
-                                            q1,
-                                            kak,
-                                            tolerance)
+    operations = _kak_decomposition_to_operations(q0,
+        q1, kak, tolerance)
+    return _cleanup_operations(operations)
+
+
+def _cleanup_operations(operations: List[ops.Operation]):
+    circuit = circuits.Circuit.from_ops(operations)
+    optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
+    optimizers.eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
+    optimizers.eject_z.EjectZ().optimize_circuit(circuit)
+    circuit = circuits.Circuit.from_ops(
+        circuit.all_operations(),
+        strategy=circuits.InsertStrategy.EARLIEST)
+    return list(circuit.all_operations())
 
 
 def _kak_decomposition_to_operations(q0: ops.QubitId,
@@ -76,7 +86,7 @@ def _kak_decomposition_to_operations(q0: ops.QubitId,
 
 
 def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float = 1e-8):
-    for gate in decompositions.single_qubit_matrix_to_gates(u, tolerance):
+    for gate in optimizers.single_qubit_matrix_to_gates(u, tolerance):
         yield gate(q)
 
 
