@@ -14,13 +14,19 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Optional, Tuple, Sequence
+from typing import Optional, Tuple
 
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq.ops import gate_features, common_gates, raw_types, op_tree, \
-    eigen_gate, controlled_gate
+from cirq.ops import (
+    common_gates,
+    controlled_gate,
+    eigen_gate,
+    gate_features,
+    op_tree,
+    raw_types,
+)
 
 
 class CCZPowGate(eigen_gate.EigenGate,
@@ -70,19 +76,15 @@ class CCZPowGate(eigen_gate.EigenGate,
         yield p(c)**-1
         yield sweep_abc
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
-        ooo = linalg.slice_for_qubits_equal_to(axes, 0b111)
-        target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
+        ooo = args.subspace_index(0b111)
+        args.target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return target_tensor
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -104,9 +106,14 @@ class CCZPowGate(eigen_gate.EigenGate,
         return ''.join(lines)
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CCZ'
-        return '(cirq.CCZ**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CCZ'
+            return '(cirq.CCZ**{!r})'.format(self._exponent)
+        return (
+            'cirq.CCZPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -133,23 +140,20 @@ class CCXPowGate(eigen_gate.EigenGate,
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
-            target_tensor *= p
-        return protocols.apply_unitary_to_tensor(
+            args.target_tensor *= p
+        return protocols.apply_unitary(
             controlled_gate.ControlledGate(
                 controlled_gate.ControlledGate(
                     common_gates.X**self.exponent)),
-            target_tensor,
-            available_buffer,
-            axes,
+            protocols.ApplyUnitaryArgs(
+                args.target_tensor,
+                args.available_buffer,
+                args.axes),
             default=NotImplemented)
 
     def _decompose_(self, qubits):
@@ -175,9 +179,14 @@ class CCXPowGate(eigen_gate.EigenGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.TOFFOLI'
-        return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.TOFFOLI'
+            return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+        return (
+            'cirq.CCXPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -245,16 +254,13 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.S(c)**-1
         yield common_gates.X(a)**-0.5
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
-        return protocols.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        return protocols.apply_unitary(
             controlled_gate.ControlledGate(common_gates.SWAP),
-            target_tensor,
-            available_buffer,
-            axes,
+            protocols.ApplyUnitaryArgs(
+                args.target_tensor,
+                args.available_buffer,
+                args.axes),
             default=NotImplemented)
 
     def _decompose_outside_control(self,

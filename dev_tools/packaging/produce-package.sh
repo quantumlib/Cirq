@@ -28,6 +28,7 @@
 PROJECT_NAME=cirq
 
 set -e
+trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
 
 if [ -z "${1}" ]; then
   echo -e "\e[31mNo output directory given.\e[0m"

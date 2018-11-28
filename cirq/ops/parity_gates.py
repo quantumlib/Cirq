@@ -14,14 +14,13 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Union, Sequence
+from typing import Union, Optional
 
 import numpy as np
 
-from cirq import protocols, linalg
+from cirq import protocols
 from cirq.ops import gate_features, eigen_gate
 from cirq.ops.common_gates import _rads_func_symbol
-from cirq.type_workarounds import NotImplementedType
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -53,7 +52,7 @@ class XXPowGate(eigen_gate.EigenGate,
         ]
 
     def _eigen_shifts(self):
-        return 0, 1
+        return [0, 1]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
@@ -80,7 +79,7 @@ class XXPowGate(eigen_gate.EigenGate,
         return 'XX**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5:
+        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             if self._exponent == 1:
                 return 'cirq.MS(np.pi/2)'
             return 'cirq.MS({!r}*np.pi/2)'.format(self._exponent)
@@ -111,7 +110,7 @@ class YYPowGate(eigen_gate.EigenGate,
         ]
 
     def _eigen_shifts(self):
-        return 0, 1
+        return [0, 1]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -156,7 +155,7 @@ class ZZPowGate(eigen_gate.EigenGate,
         ]
 
     def _eigen_shifts(self):
-        return 0, 1
+        return [0, 1]
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -164,25 +163,22 @@ class ZZPowGate(eigen_gate.EigenGate,
             wire_symbols=('ZZ', 'ZZ'),
             exponent=self._diagram_exponent(args))
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
-            return NotImplemented
+            return None
 
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         if global_phase != 1:
-            target_tensor *= global_phase
+            args.target_tensor *= global_phase
 
         relative_phase = 1j**(2 * self.exponent)
-        zo = linalg.slice_for_qubits_equal_to(axes, 0b01)
-        oz = linalg.slice_for_qubits_equal_to(axes, 0b10)
-        target_tensor[oz] *= relative_phase
-        target_tensor[zo] *= relative_phase
+        zo = args.subspace_index(0b01)
+        oz = args.subspace_index(0b10)
+        args.target_tensor[oz] *= relative_phase
+        args.target_tensor[zo] *= relative_phase
 
-        return target_tensor
+        return args.target_tensor
 
     def __str__(self):
         if self._exponent == 1:
