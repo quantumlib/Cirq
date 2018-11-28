@@ -55,7 +55,8 @@ def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
 
 def _cleanup_operations(operations: List[ops.Operation]):
     circuit = circuits.Circuit.from_ops(operations)
-    optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
+    optimizers.merge_single_qubit_gates.\
+        merge_single_qubit_gates_into_phased_x_z(circuit)
     optimizers.eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
     optimizers.eject_z.EjectZ().optimize_circuit(circuit)
     circuit = circuits.Circuit.from_ops(
