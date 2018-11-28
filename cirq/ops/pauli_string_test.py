@@ -124,9 +124,9 @@ def test_contains(qubit_pauli_map):
 def test_keys(qubit_pauli_map):
     pauli_string = cirq.PauliString(qubit_pauli_map)
     assert (len(qubit_pauli_map.keys()) == len(pauli_string.keys())
-            == len(pauli_string.qubits()))
+            == len(pauli_string.qubits))
     assert (set(qubit_pauli_map.keys()) == set(pauli_string.keys())
-            == set(pauli_string.qubits()))
+            == set(pauli_string.qubits))
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -441,5 +441,5 @@ def test_with_qubits():
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
     new_pauli_string = pauli_string.with_qubits(q, r, s)
 
-    assert set(new_pauli_string.qubits()) == {q, r, s}
+    assert set(new_pauli_string.qubits) == {q, r, s}
     assert new_pauli_string.negated is True
