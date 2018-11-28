@@ -19,7 +19,7 @@ from typing import cast, FrozenSet, Hashable, Iterable, Optional
 
 from cirq import circuits, devices, ops, value, schedules
 
-from cirq.devices.hypergraph import UndirectedHypergraph
+from cirq.devices import hypergraph
 
 
 class HashQubit(ops.QubitId):
@@ -82,16 +82,16 @@ UnconstrainedUndirectedGraphDeviceEdge = (
         _UnconstrainedUndirectedGraphDeviceEdge())
 
 
-def is_undirected_device_graph(graph: UndirectedHypergraph) -> bool:
-    if not isinstance(graph, UndirectedHypergraph):
+def is_undirected_device_graph(graph: hypergraph.UndirectedHypergraph) -> bool:
+    if not isinstance(graph, hypergraph.UndirectedHypergraph):
         return False
     for _, label in graph.labelled_edges.items():
         if not (label is None or isinstance(label, UndirectedGraphDeviceEdge)):
             return False
     return True
 
-def is_crosstalk_graph(graph: UndirectedHypergraph) -> bool:
-    if not isinstance(graph, UndirectedHypergraph):
+def is_crosstalk_graph(graph: hypergraph.UndirectedHypergraph) -> bool:
+    if not isinstance(graph, hypergraph.UndirectedHypergraph):
         return False
     for vertex in graph.vertices:
         if not isinstance(vertex, frozenset):
@@ -127,8 +127,10 @@ class UndirectedGraphDevice(devices.Device):
     """
 
     def __init__(self,
-                 device_graph: UndirectedHypergraph,
-                 crosstalk_graph: Optional[UndirectedHypergraph]=None) -> None:
+                 device_graph: hypergraph.UndirectedHypergraph,
+                 crosstalk_graph:
+                     Optional[hypergraph.UndirectedHypergraph]=None
+                 ) -> None:
         """
 
         Args:
@@ -144,7 +146,7 @@ class UndirectedGraphDevice(devices.Device):
             raise TypeError('not is_undirected_device_graph(' +
                              str(device_graph) + ')')
         if crosstalk_graph is None:
-            crosstalk_graph = UndirectedHypergraph()
+            crosstalk_graph = hypergraph.UndirectedHypergraph()
         if not is_crosstalk_graph(crosstalk_graph):
             raise TypeError('not is_crosstalk_graph(' +
                              str(crosstalk_graph) + ')')
