@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence, Tuple, TypeVar
+from typing import Dict, Sequence, Tuple, TypeVar, Union
 
 import abc
 
 from cirq import protocols, ops
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.QubitId)
+LogicalIndexSequence = Union[Sequence[int], Sequence[ops.QubitId]]
 LogicalGates = Dict[Tuple[LogicalIndex, ...], ops.Gate]
 LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.QubitId)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]

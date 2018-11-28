@@ -13,18 +13,21 @@
 # limitations under the License.
 
 from itertools import combinations
+from string import ascii_lowercase
 from typing import Sequence, Dict, Tuple
 
 import numpy as np
 import pytest
 
 import cirq
-from cirq.contrib.acquaintance.strategy import (
+from cirq.contrib.acquaintance.strategies.complete import (
     complete_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
         LinearPermutationGate)
 from cirq.contrib.acquaintance.executor import (
-        StrategyExecutor, GreedyExecutionStrategy)
+        AcquaintanceOperation,
+        GreedyExecutionStrategy,
+        StrategyExecutor)
 
 
 class ExampleGate(cirq.Gate):
@@ -82,7 +85,6 @@ def test_executor_explicit():
       │   │   │                   │   │   │                   │   │   │                   │   │   │
 7: ───7───6───╱1╲─────────────────6───4───╱1╲─────────────────4───2───╱1╲─────────────────2───0───╱1╲─────────────────
     """.strip()
-    print(actual_text_diagram)
     assert actual_text_diagram == expected_text_diagram
 
 
@@ -165,9 +167,7 @@ def test_executor_random(n_qubits: int,
     expected_unitary = logical_circuit.to_unitary_matrix()
 
     initial_mapping = {q: q for q in qubits}
-    execution_strategy = GreedyExecutionStrategy(gates, initial_mapping)
-    executor = StrategyExecutor(execution_strategy)
-    final_mapping = executor(circuit)
+    final_mapping = GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(LinearPermutationGate(permutation)(*qubits))
     actual_unitary = circuit.to_unitary_matrix()
@@ -176,3 +176,15 @@ def test_executor_random(n_qubits: int,
             actual=actual_unitary,
             desired=expected_unitary,
             verbose=True)
+
+def test_acquaintance_operation():
+    n = 5
+    physical_qubits = tuple(cirq.LineQubit.range(n))
+    logical_qubits = tuple(cirq.NamedQubit(s) for s in ascii_lowercase[:n])
+    int_indices = tuple(range(n))
+    with pytest.raises(ValueError):
+        AcquaintanceOperation(physical_qubits[:3], int_indices[:4])
+    for logical_indices in (logical_qubits, int_indices):
+        op = AcquaintanceOperation(physical_qubits, logical_indices)
+        assert op.logical_indices == logical_indices
+        assert op.qubits == physical_qubits

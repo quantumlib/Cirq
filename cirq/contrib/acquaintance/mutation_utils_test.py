@@ -21,9 +21,10 @@ from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
 from cirq.contrib.acquaintance.permutation import (
         LinearPermutationGate, SwapPermutationGate)
-from cirq.contrib.acquaintance.strategy import (
+from cirq.contrib.acquaintance.mutation_utils import (
     rectify_acquaintance_strategy,
-    replace_acquaintance_with_swap_network,
+    replace_acquaintance_with_swap_network)
+from cirq.contrib.acquaintance.strategies import (
     complete_acquaintance_strategy)
 from cirq.contrib.acquaintance.gates import (
     ACQUAINT)

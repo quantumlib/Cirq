@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from itertools import product
+from itertools import combinations, product
+from random import randint
 from string import ascii_lowercase as alphabet
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, TYPE_CHECKING
 
 from numpy.random import poisson
 import pytest
@@ -23,14 +24,21 @@ import cirq
 from cirq.contrib.acquaintance.gates import (
         ACQUAINT, SwapNetworkGate)
 from cirq.contrib.acquaintance.devices import (
-        get_acquaintance_size)
+        get_acquaintance_size, UnconstrainedAcquaintanceDevice)
+from cirq.contrib.acquaintance.inspection_utils import (
+        get_logical_acquaintance_opportunities)
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         update_mapping, LinearPermutationGate)
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Optional
+
 
 def test_acquaintance_gate_repr():
     assert repr(ACQUAINT) == 'Acq'
+
 
 def test_acquaintance_gate_text_diagram_info():
     qubits = [cirq.NamedQubit(s) for s in 'xyz']
@@ -124,10 +132,35 @@ f: ───╱1╲─────────╱1╲─────────
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
+@pytest.mark.parametrize('part_lens',
+    [tuple(randint(1, 3) for _ in range(randint(2, 10))) for _ in range(3)])
+def test_acquaint_part_pairs(part_lens):
+    n_qubits = sum(part_lens)
+    qubits = tuple(cirq.NamedQubit(s) for s in alphabet)[:n_qubits]
+    swap_network_op = SwapNetworkGate(
+        part_lens, acquaintance_size=None)(*qubits)
+    swap_network = cirq.Circuit.from_ops(
+            swap_network_op, device=UnconstrainedAcquaintanceDevice)
+    initial_mapping = {q: i for i, q in enumerate(qubits)}
+
+    actual_opps = get_logical_acquaintance_opportunities(
+            swap_network, initial_mapping)
+    parts = []
+    q = 0
+    for part_len in part_lens:
+        parts.append(tuple(range(q, q + part_len)))
+        q += part_len
+    expected_opps = set(frozenset(s + t) for s, t in combinations(parts, 2))
+    assert expected_opps == actual_opps
+
+acquaintance_sizes = (None,) # type: Tuple[Optional[int], ...]
+acquaintance_sizes += tuple(range(5))
 @pytest.mark.parametrize('part_lens, acquaintance_size',
     list(((part_len,) * n_parts, acquaintance_size) for
          part_len, acquaintance_size, n_parts in
-         product(range(1, 5), range(5), range(2, 5)))
+         product(range(1, 5),
+                 acquaintance_sizes,
+                 range(2, 5)))
     )
 def test_swap_network_gate_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
