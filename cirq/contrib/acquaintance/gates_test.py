@@ -138,7 +138,7 @@ def test_acquaint_part_pairs(part_lens):
     parts = []
     n_qubits = 0
     for part_len in part_lens:
-        parts.append(tuple(range(q, q + part_len)))
+        parts.append(tuple(range(n_qubits, n_qubits + part_len)))
         n_qubits += part_len
     qubits = tuple(cirq.NamedQubit(s) for s in alphabet)[:n_qubits]
     swap_network_op = SwapNetworkGate(
