@@ -14,18 +14,41 @@
 
 """Classes to represent displays."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Hashable, Tuple
 
 import abc
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import pauli_string, raw_types
+from cirq.ops import pauli_string, raw_types, op_tree
+
+
+class SamplesDisplay(raw_types.Operation):
+    """A display whose value is computed from measurement results."""
+
+    @property
+    @abc.abstractmethod
+    def key(self) -> Hashable:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def repetitions(self) -> int:
+        pass
+
+    @abc.abstractmethod
+    def measurement_basis_change(self) -> op_tree.OP_TREE:
+        pass
 
 
 class WaveFunctionDisplay(raw_types.Operation):
     """A display whose value is computed from the full wavefunction."""
+
+    @property
+    @abc.abstractmethod
+    def key(self) -> Hashable:
+        pass
 
     @abc.abstractmethod
     def value(self,
@@ -35,10 +58,15 @@ class WaveFunctionDisplay(raw_types.Operation):
         pass
 
 
-class PauliStringExpectation(WaveFunctionDisplay):
+class ApproximatePauliStringExpectation(SamplesDisplay):
 
-    def __init__(self, pauli_string: pauli_string.PauliString):
+    def __init__(self,
+                 pauli_string: pauli_string.PauliString,
+                 repetitions: int,
+                 key: Hashable=None):
         self._pauli_string = pauli_string
+        self._repetitions = repetitions
+        self._key = key
 
     @property
     def qubits(self) -> Tuple[raw_types.QubitId, ...]:
@@ -49,6 +77,40 @@ class PauliStringExpectation(WaveFunctionDisplay):
                     ) -> 'PauliStringExpectation':
         return PauliStringExpectation(
                 self._pauli_string.with_qubits(*new_qubits))
+
+    @property
+    def key(self) -> Hashable:
+        return self._key
+
+    @property
+    def repetitions(self) -> int:
+        return self._repetitions
+
+    def measurement_basis_change(self) -> op_tree.OP_TREE:
+        return self._pauli_string.to_z_basis_ops()
+
+
+class PauliStringExpectation(WaveFunctionDisplay):
+
+    def __init__(self,
+                 pauli_string: pauli_string.PauliString,
+                 key: Hashable=None):
+        self._pauli_string = pauli_string
+        self._key = key
+
+    @property
+    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+        return self._pauli_string.qubits
+
+    def with_qubits(self,
+                    *new_qubits: raw_types.QubitId
+                    ) -> 'PauliStringExpectation':
+        return PauliStringExpectation(
+                self._pauli_string.with_qubits(*new_qubits))
+
+    @property
+    def key(self) -> Hashable:
+        return self._key
 
     def value(self,
               state: np.ndarray,
