@@ -4,8 +4,27 @@ API Reference
 =============
 
 
+Devices and Qubits
+''''''''''''''''''
+
+Classes for identifying the qubits and hardware you want to operate on.
+
+.. autosummary::
+    :toctree: generated/
+
+    Device
+    GridQubit
+    LineQubit
+    NamedQubit
+    QubitId
+    UnconstrainedDevice
+
+
 Single Qubit Gates
 ''''''''''''''''''
+
+Unitary operations you can apply to a single qubit.
+Also measurement.
 
 .. autosummary::
     :toctree: generated/
@@ -35,6 +54,8 @@ Single Qubit Gates
 Two Qubit Gates
 ''''''''''''''''
 
+Unitary operations you can apply to pairs of qubits.
+
 .. autosummary::
     :toctree: generated/
 
@@ -58,6 +79,9 @@ Two Qubit Gates
 Three Qubit Gates
 ''''''''''''''''''
 
+Unitary operations you can apply to triplets of qubits, with helpful
+adjacency-respecting decompositions.
+
 .. autosummary::
    :toctree: generated/
 
@@ -73,6 +97,8 @@ Three Qubit Gates
 
 Other Gate and Operation Classes
 ''''''''''''''''''''''''''''''''
+
+Generic classes for creating new kinds of gates and operations.
 
 .. autosummary::
     :toctree: generated
@@ -92,6 +118,8 @@ Other Gate and Operation Classes
 Circuits and Schedules
 ''''''''''''''''''''''
 
+Utilities for representing and manipulating quantum computations.
+
 .. autosummary::
     :toctree: generated/
 
@@ -107,22 +135,6 @@ Circuits and Schedules
     Schedule
     ScheduledOperation
     transform_op_tree
-
-
-Devices and Qubits
-''''''''''''''''''
-
-General classes for qubits and related concepts.
-
-.. autosummary::
-    :toctree: generated/
-
-    Device
-    GridQubit
-    LineQubit
-    NamedQubit
-    QubitId
-    UnconstrainedDevice
 
 
 Trials and Simulations
@@ -161,6 +173,9 @@ Classes for parameterized circuits.
 Magic Method Protocols
 ''''''''''''''''''''''
 
+Utility methods for accessing generic functionality exposed by some gates,
+operations, and other types.
+
 .. autosummary::
     :toctree: generated/
 
@@ -182,6 +197,8 @@ Magic Method Protocols
 
 Magic Method Protocol Types
 '''''''''''''''''''''''''''
+
+Classes defining and used by the magic method protocols.
 
 .. autosummary::
     :toctree: generated/
@@ -206,7 +223,7 @@ Magic Method Protocol Types
 Optimization
 ''''''''''''
 
-Classes and methods for optimizing circuits.
+Classes and methods for rewriting circuits.
 
 .. autosummary::
     :toctree: generated/
@@ -283,6 +300,9 @@ operations and decompositions.
 Experiments
 '''''''''''
 
+Utilities for running experiments on hardware, or producing things required to
+run experiments.
+
 .. autosummary::
     :toctree: generated/
 
@@ -297,6 +317,9 @@ Google
 ''''''
 
 Functionality specific to quantum hardware and services from Google.
+
+.. autosummary::
+    :toctree: generated/
 
     google.AnnealSequenceSearchStrategy
     google.GreedySequenceSearchStrategy
@@ -328,33 +351,38 @@ Testing
 Functionality for writing unit tests involving objects from Cirq, and also some
 general testing utilities.
 
-    assert_allclose_up_to_global_phase
-    assert_circuits_with_terminal_measurements_are_equivalent
-    assert_decompose_is_consistent_with_unitary
-    assert_eigen_gate_has_consistent_apply_unitary
-    assert_equivalent_repr
-    assert_has_consistent_apply_unitary
-    assert_has_consistent_apply_unitary_for_various_exponents
-    assert_has_diagram
-    assert_phase_by_is_consistent_with_unitary
-    assert_qasm_is_consistent_with_unitary
-    assert_same_circuits
-    EqualsTester
-    highlight_text_differences
-    nonoptimal_toffoli_circuit
-    only_test_in_python3
-    OrderTester
-    random_circuit
-    random_orthogonal
-    random_special_orthogonal
-    random_special_unitary
-    random_unitary
-    TempDirectoryPath
-    TempFilePath
+.. autosummary::
+    :toctree: generated/
+
+    testing.assert_allclose_up_to_global_phase
+    testing.assert_circuits_with_terminal_measurements_are_equivalent
+    testing.assert_decompose_is_consistent_with_unitary
+    testing.assert_eigen_gate_has_consistent_apply_unitary
+    testing.assert_equivalent_repr
+    testing.assert_has_consistent_apply_unitary
+    testing.assert_has_consistent_apply_unitary_for_various_exponents
+    testing.assert_has_diagram
+    testing.assert_phase_by_is_consistent_with_unitary
+    testing.assert_qasm_is_consistent_with_unitary
+    testing.assert_same_circuits
+    testing.EqualsTester
+    testing.highlight_text_differences
+    testing.nonoptimal_toffoli_circuit
+    testing.only_test_in_python3
+    testing.OrderTester
+    testing.random_circuit
+    testing.random_orthogonal
+    testing.random_special_orthogonal
+    testing.random_special_unitary
+    testing.random_unitary
+    testing.TempDirectoryPath
+    testing.TempFilePath
 
 
 Work in Progress - Noisy Channels
 '''''''''''''''''''''''''''''''''
+
+Imperfect operations.
 
 .. autosummary::
     :toctree: generated/
@@ -382,6 +410,9 @@ Work in Progress - Noisy Channels
 Work in Progress - Stabilizers
 ''''''''''''''''''''''''''''''
 
+Tools for working with the well-behaved operations from the Clifford+Measurement
+set.
+
 .. autosummary::
     :toctree: generated/
 
@@ -392,3 +423,20 @@ Work in Progress - Stabilizers
     PauliString
     PauliTransform
     Unique
+
+Contrib
+'''''''
+
+Contributed code that requires extra dependencies to be installed, code that may
+be unstable, and code that may or may not be a fit for the main library. A
+waiting area.
+
+.. autosummary::
+    :toctree: generated/
+
+    contrib.acquaintance
+    contrib.jobs
+    contrib.paulistring
+    contrib.qcircuit
+    contrib.quirk
+    contrib.tpu
