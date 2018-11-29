@@ -32,7 +32,7 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
                                    mat: np.ndarray,
                                    allow_partial_czs: bool,
                                    tolerance: float = 1e-8,
-                                   clean_operations: bool = False,
+                                   clean_operations: bool = True,
                                    ) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into Z/XY/CZ gates.
 
