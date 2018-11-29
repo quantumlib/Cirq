@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 
 import cirq
+
 from cirq.contrib.acquaintance.strategies.complete import (
     complete_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (

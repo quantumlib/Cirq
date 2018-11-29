@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import cirq
+
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 
 def test_circular_shift_gate_init():

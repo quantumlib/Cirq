@@ -12,5 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Acquaintance strategies."""
+
 from cirq.contrib.acquaintance.strategies.complete import (
     complete_acquaintance_strategy)
