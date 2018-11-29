@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, overload, TYPE_CHECKING
+from typing import Optional, Union, overload, TYPE_CHECKING
 
 import numpy as np
 
@@ -52,6 +52,15 @@ class Pauli:
             return protocols.unitary(ops.Y)
         else:
             return protocols.unitary(ops.Z)
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
+        if self._name == 'X':
+            return protocols.apply_unitary(ops.X, args)
+        elif self._name == 'Y':
+            return protocols.apply_unitary(ops.Y, args)
+        else:
+            return protocols.apply_unitary(ops.Z, args)
 
     def _value_equality_values_(self):
         return self._index

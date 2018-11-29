@@ -158,3 +158,9 @@ def test_unitary():
     np.testing.assert_equal(cirq.unitary(cirq.Pauli.X), cirq.unitary(cirq.X))
     np.testing.assert_equal(cirq.unitary(cirq.Pauli.Y), cirq.unitary(cirq.Y))
     np.testing.assert_equal(cirq.unitary(cirq.Pauli.Z), cirq.unitary(cirq.Z))
+
+
+def test_apply_unitary():
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.X)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.Y)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.Z)
