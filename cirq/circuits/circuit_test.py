@@ -165,8 +165,7 @@ def test_empty_moments():
     cirq.testing.assert_has_diagram(circuit, """
 a: ───@───@───────@───
       │   │       │
-b: ───X───X───────X───
-""", use_unicode_characters=True)
+b: ───X───X───────X───""", use_unicode_characters=True)
 
      # 2-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit, """
