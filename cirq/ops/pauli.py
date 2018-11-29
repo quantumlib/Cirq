@@ -16,7 +16,8 @@ from typing import Optional, Union, overload, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, protocols, value
+from cirq import protocols, value
+from cirq.ops import common_gates
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -47,20 +48,20 @@ class Pauli:
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._name == 'X':
-            return protocols.unitary(ops.X)
+            return protocols.unitary(common_gates.X)
         elif self._name == 'Y':
-            return protocols.unitary(ops.Y)
+            return protocols.unitary(common_gates.Y)
         else:
-            return protocols.unitary(ops.Z)
+            return protocols.unitary(common_gates.Z)
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._name == 'X':
-            return protocols.apply_unitary(ops.X, args)
+            return protocols.apply_unitary(common_gates.X, args)
         elif self._name == 'Y':
-            return protocols.apply_unitary(ops.Y, args)
+            return protocols.apply_unitary(common_gates.Y, args)
         else:
-            return protocols.apply_unitary(ops.Z, args)
+            return protocols.apply_unitary(common_gates.Z, args)
 
     def _value_equality_values_(self):
         return self._index
