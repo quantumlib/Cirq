@@ -62,7 +62,7 @@ def density_matrix_from_state_vector(
     state: Sequence,
     indices: Iterable[int] = None
 ) -> np.ndarray:
-    """Returns the density matrix of the wavefunction.
+    r"""Returns the density matrix of the wavefunction.
 
     Calculate the density matrix for the system on the given qubit
     indices, with the qubits not in indices that are present in state
@@ -71,12 +71,18 @@ def density_matrix_from_state_vector(
     convention of numpy.kron.
 
     For example:
+
         state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
         indices = None
-        gives us \rho = \begin{bmatrix}
-                            0.5 & 0.5
-                            0.5 & 0.5
-                        \end{bmatrix}
+
+    gives us
+
+        $$
+        \rho = \begin{bmatrix}
+                0.5 & 0.5
+                0.5 & 0.5
+            \end{bmatrix}
+        $$
 
     Args:
         state: A sequence representing a wave function in which
@@ -120,8 +126,9 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
     """Returns the wavefunction as a string in Dirac notation.
 
     For example:
+
         state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-        print(pretty_state(state)) -> 0.71|0⟩ + 0.71|1⟩
+        print(dirac_notation(state)) -> 0.71|0⟩ + 0.71|1⟩
 
     Args:
         state: A sequence representing a wave function in which the ordering
