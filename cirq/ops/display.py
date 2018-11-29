@@ -79,9 +79,12 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
     def with_qubits(self,
                     *new_qubits: raw_types.QubitId
-                    ) -> 'PauliStringExpectation':
-        return PauliStringExpectation(
-                self._pauli_string.with_qubits(*new_qubits))
+                    ) -> 'ApproxPauliStringExpectation':
+        return ApproxPauliStringExpectation(
+                self._pauli_string.with_qubits(*new_qubits),
+                self._repetitions,
+                self._key
+        )
 
     @property
     def key(self) -> Hashable:
@@ -115,7 +118,9 @@ class PauliStringExpectation(WaveFunctionDisplay):
                     *new_qubits: raw_types.QubitId
                     ) -> 'PauliStringExpectation':
         return PauliStringExpectation(
-                self._pauli_string.with_qubits(*new_qubits))
+                self._pauli_string.with_qubits(*new_qubits),
+                self._key
+        )
 
     @property
     def key(self) -> Hashable:
