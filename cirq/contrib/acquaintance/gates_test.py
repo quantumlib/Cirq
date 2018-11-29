@@ -135,7 +135,11 @@ f: ───╱1╲─────────╱1╲─────────
 @pytest.mark.parametrize('part_lens',
     [tuple(randint(1, 3) for _ in range(randint(2, 10))) for _ in range(3)])
 def test_acquaint_part_pairs(part_lens):
-    n_qubits = sum(part_lens)
+    parts = []
+    n_qubits = 0
+    for part_len in part_lens:
+        parts.append(tuple(range(q, q + part_len)))
+        n_qubits += part_len
     qubits = tuple(cirq.NamedQubit(s) for s in alphabet)[:n_qubits]
     swap_network_op = SwapNetworkGate(
         part_lens, acquaintance_size=None)(*qubits)
@@ -145,11 +149,6 @@ def test_acquaint_part_pairs(part_lens):
 
     actual_opps = get_logical_acquaintance_opportunities(
             swap_network, initial_mapping)
-    parts = []
-    q = 0
-    for part_len in part_lens:
-        parts.append(tuple(range(q, q + part_len)))
-        q += part_len
     expected_opps = set(frozenset(s + t) for s, t in combinations(parts, 2))
     assert expected_opps == actual_opps
 
