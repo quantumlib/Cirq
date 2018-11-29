@@ -1519,7 +1519,7 @@ def _draw_moment_in_diagram(moment: Moment,
     x0 = out_diagram.width()
 
     if not moment.operations:
-        out_diagram.write(x0, 0, '─')
+        out_diagram.write(x0, 0, '')
 
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]

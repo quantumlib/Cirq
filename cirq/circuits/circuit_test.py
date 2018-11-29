@@ -144,11 +144,35 @@ def test_repr():
     ]),
 ], device=cirq.google.Foxtail)"""
 
-def test_empty_moment():
+def test_empty_moments():
+    # 1-qubit test
     op = cirq.X(cirq.NamedQubit('a'))
     op_moment = cirq.Moment([op])
     circuit = cirq.Circuit([op_moment, op_moment, cirq.Moment(), op_moment])
-    assert str(circuit) == 'a: ───X───X───────X───'
+
+    cirq.testing.assert_has_diagram(circuit,
+                                    "a: ───X───X───────X───",
+                                    use_unicode_characters=True)
+    # 1-qubit ascii-only test
+    cirq.testing.assert_has_diagram(circuit,
+                                    "a: ---X---X-------X---",
+                                    use_unicode_characters=False)
+    # 2-qubit test
+    op = cirq.CNOT(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
+    op_moment = cirq.Moment([op])
+    circuit = cirq.Circuit([op_moment, op_moment, cirq.Moment(), op_moment])
+
+    cirq.testing.assert_has_diagram(circuit, """
+a: ───@───@───────@───
+      │   │       │
+b: ───X───X───────X───
+""", use_unicode_characters=True)
+
+     # 2-qubit ascii-only test
+    cirq.testing.assert_has_diagram(circuit, """
+a: ---@---@-------@---
+      |   |       |
+b: ---X---X-------X---""", use_unicode_characters=False)
 
 def test_slice():
     a = cirq.NamedQubit('a')
