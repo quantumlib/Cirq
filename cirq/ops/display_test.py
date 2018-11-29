@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 import cirq
 
 
-def test_pauli_string_expectation():
+def test_pauli_string_expectation_value():
     qubits = cirq.LineQubit.range(4)
     qubit_index_map = {q: i for i, q in enumerate(qubits)}
 
@@ -64,3 +65,50 @@ def test_pauli_string_expectation():
     np.testing.assert_allclose(z1x2.value(state, qubit_index_map), -1)
     np.testing.assert_allclose(x0z1.value(state, qubit_index_map), 0)
     np.testing.assert_allclose(x3.value(state, qubit_index_map), -1)
+
+
+@pytest.mark.parametrize('paulis', [
+    (cirq.Pauli.Z, cirq.Pauli.Z),
+    (cirq.Pauli.Z, cirq.Pauli.X),
+    (cirq.Pauli.X, cirq.Pauli.X),
+    (cirq.Pauli.X, cirq.Pauli.Y),
+])
+def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
+    qubits = cirq.LineQubit.range(2)
+    display = cirq.ApproxPauliStringExpectation(
+        cirq.PauliString({qubits[0]: paulis[0],
+                          qubits[1]: paulis[1]}),
+        repetitions=1
+    )
+    matrix = np.kron(cirq.unitary(paulis[0]), cirq.unitary(paulis[1]))
+
+    circuit = cirq.Circuit.from_ops(display.measurement_basis_change())
+    unitary = circuit.to_unitary_matrix(qubit_order=qubits)
+
+    ZZ = np.diag([1, -1, -1, 1])
+    np.testing.assert_allclose(
+        np.dot(unitary, np.dot(matrix, unitary.T.conj())),
+        ZZ
+    )
+
+
+@pytest.mark.parametrize('measurements, value', [
+    (np.array([[0, 0, 0],
+               [0, 0, 0]]),
+     1),
+    (np.array([[0, 0, 0],
+               [0, 0, 1]]),
+     0),
+    (np.array([[0, 1, 0],
+               [1, 0, 0]]),
+     -1),
+    (np.array([[0, 1, 0],
+               [1, 1, 1]]),
+     -1),
+])
+def test_approx_pauli_string_expectation_value(measurements, value):
+    display = cirq.ApproxPauliStringExpectation(
+        cirq.PauliString({}),
+        repetitions=1
+    )
+    assert display.value(measurements) == value

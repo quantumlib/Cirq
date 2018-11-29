@@ -41,6 +41,11 @@ class SamplesDisplay(raw_types.Operation):
     def measurement_basis_change(self) -> op_tree.OP_TREE:
         pass
 
+    @abc.abstractmethod
+    def value(self,
+              measurements: np.ndarray) -> Any:
+        pass
+
 
 class WaveFunctionDisplay(raw_types.Operation):
     """A display whose value is computed from the full wavefunction."""
@@ -58,7 +63,7 @@ class WaveFunctionDisplay(raw_types.Operation):
         pass
 
 
-class ApproximatePauliStringExpectation(SamplesDisplay):
+class ApproxPauliStringExpectation(SamplesDisplay):
 
     def __init__(self,
                  pauli_string: pauli_string.PauliString,
@@ -88,6 +93,10 @@ class ApproximatePauliStringExpectation(SamplesDisplay):
 
     def measurement_basis_change(self) -> op_tree.OP_TREE:
         return self._pauli_string.to_z_basis_ops()
+
+    def value(self,
+              measurements: np.ndarray) -> float:
+        return np.mean([(-1)**sum(bitstring) for bitstring in measurements])
 
 
 class PauliStringExpectation(WaveFunctionDisplay):
