@@ -27,11 +27,11 @@ class QubitId(metaclass=abc.ABCMeta):
     """Identifies a qubit. Child classes implement specific types of qubits.
 
     The main criteria that a "qubit id" must satisfy is *comparability*. Child
-    classes meet this criteria by implementing the _comparison_key method. For
-    example, cirq.LineQubit's _comparison_key method returns `self.x`. This
+    classes meet this criteria by implementing the `_comparison_key` method. For
+    example, `cirq.LineQubit`'s `_comparison_key` method returns `self.x`. This
     ensures that line qubits with the same `x` are equal, and that line qubits
-    will be sorted ascending by `x`. QubitId implements all equality,
-    comparison, and hashing methods via`_comparison_key`.
+    will be sorted ascending by `x`. `QubitId` implements all equality,
+    comparison, and hashing methods via `_comparison_key`.
     """
 
     @abc.abstractmethod
