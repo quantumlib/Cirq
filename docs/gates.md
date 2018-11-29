@@ -130,7 +130,8 @@ The matrix of `cirq.CZ**t` is ``exp(i pi |11><11| t)``.
 **cirq.MeasurementGate** This is a single qubit measurement
 in the computational basis. 
 
-### Common Gates
+
+### Other Common Gates
 
 Cirq comes with a number of common named gates:
 
@@ -138,10 +139,10 @@ Cirq comes with a number of common named gates:
 
 **SWAP** the swap gate
 
-**H** the Hadmard gate
+**H** the Hadamard gate
 
 **S** the square root of Z gate
 
-and our error correcting friend **T**
+and our error correcting friend the **T** gate
 
 TODO: describe these in more detail.  
