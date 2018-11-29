@@ -38,6 +38,7 @@ from cirq.google.engine import (
 from cirq.google.programs import (
     gate_to_proto_dict,
     is_native_xmon_op,
+    is_native_xmon_gate,
     schedule_from_proto_dicts,
     schedule_to_proto_dicts,
     pack_results,
