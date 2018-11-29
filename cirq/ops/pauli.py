@@ -14,7 +14,10 @@
 
 from typing import Union, overload, TYPE_CHECKING
 
-from cirq import value
+import numpy as np
+
+from cirq import ops, protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -41,6 +44,14 @@ class Pauli:
 
     def difference(self, second: 'Pauli') -> int:
         return (self._index - second._index + 1) % 3 - 1
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        if self._name == 'X':
+            return protocols.unitary(ops.X)
+        elif self._name == 'Y':
+            return protocols.unitary(ops.Y)
+        else:
+            return protocols.unitary(ops.Z)
 
     def _value_equality_values_(self):
         return self._index
