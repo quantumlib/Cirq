@@ -248,7 +248,8 @@ def assert_has_diagram(
 def assert_has_consistent_apply_unitary(
         val: Any,
         *,
-        qubit_count: Optional[int] = None) -> None:
+        qubit_count: Optional[int] = None,
+        atol: float=1e-8) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
@@ -289,14 +290,15 @@ def assert_has_consistent_apply_unitary(
     if actual is not None:
         np.testing.assert_allclose(
             actual.reshape(2 << n, 2 << n),
-            expected)
+            expected,
+            atol=atol)
 
 
 def assert_eigen_gate_has_consistent_apply_unitary(
         eigen_gate_type: Type[EigenGate],
         *,
-        exponents=(1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s')),
-        global_shifts=(0, 0.5, -0.5),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        global_shifts=(0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None) -> None:
     """Tests whether an EigenGate type's _apply_unitary_ is correct.
 
@@ -326,7 +328,7 @@ def assert_eigen_gate_has_consistent_apply_unitary(
 def assert_has_consistent_apply_unitary_for_various_exponents(
         val: Any,
         *,
-        exponents=(1, -0.5, 0.5, 0.25, -0.25, 0.1, value.Symbol('s')),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
         qubit_count: Optional[int] = None) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
@@ -364,6 +366,7 @@ def _infer_qubit_count(val: Any) -> int:
         return 3
     if isinstance(val, ops.ControlledGate):
         return 1 + _infer_qubit_count(val.sub_gate)
+
     raise NotImplementedError(
         'Failed to infer qubit count of <{!r}>. Specify it.'.format(
             val))
