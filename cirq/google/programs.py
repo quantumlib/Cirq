@@ -262,13 +262,33 @@ def unpack_results(
 
 
 def is_native_xmon_op(op: ops.Operation) -> bool:
+    """Check if the gate corresponding to an operation is a native xmon gate.
+
+    Args:
+        op: Input operation.
+
+    Returns:
+        True if the operation is native to the xmon, false otherwise.
+    """
     return (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, (ops.CZPowGate,
-                                 ops.MeasurementGate,
-                                 ops.PhasedXPowGate,
-                                 ops.XPowGate,
-                                 ops.YPowGate,
-                                 ops.ZPowGate)))
+            is_native_xmon_gate(op.gate))
+
+
+def is_native_xmon_gate(gate: ops.Gate) -> bool:
+    """Check if a gate is a native xmon gate.
+
+    Args:
+        gate: Input gate.
+
+    Returns:
+        True if the gate is native to the xmon, false otherwise.
+    """
+    return isinstance(gate, (ops.CZPowGate,
+                             ops.MeasurementGate,
+                             ops.PhasedXPowGate,
+                             ops.XPowGate,
+                             ops.YPowGate,
+                             ops.ZPowGate))
 
 
 def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
