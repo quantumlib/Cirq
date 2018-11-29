@@ -18,16 +18,15 @@ from string import ascii_lowercase as alphabet
 import pytest
 
 import cirq
-from cirq.contrib.acquaintance.permutation import (
-        PermutationGate, SwapPermutationGate, LinearPermutationGate,
-        update_mapping)
+import cirq.contrib.acquaintance as cca
+
 
 def test_swap_permutation_gate():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
                             op.gate == cirq.SWAP)
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    circuit = cirq.Circuit.from_ops(SwapPermutationGate()(a, b))
+    circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate()(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 
@@ -35,12 +34,12 @@ def test_swap_permutation_gate():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
                             op.gate == cirq.CZ)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    circuit = cirq.Circuit.from_ops(SwapPermutationGate(cirq.CZ)(a, b))
+    circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate(cirq.CZ)(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.CZ(a, b),)
 
 def test_validate_permutation_errors():
-    validate_permutation = PermutationGate.validate_permutation
+    validate_permutation = cca.PermutationGate.validate_permutation
     validate_permutation({})
 
     with pytest.raises(IndexError,
@@ -54,12 +53,12 @@ def test_validate_permutation_errors():
     with pytest.raises(IndexError, message='key is out of bounds.'):
         validate_permutation({0: 3, 3: 0}, 2)
 
-    gate = SwapPermutationGate()
+    gate = cca.SwapPermutationGate()
     assert cirq.circuit_diagram_info(gate, default=None) is None
 
 
 def test_diagram():
-    gate = SwapPermutationGate()
+    gate = cca.SwapPermutationGate()
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     circuit = cirq.Circuit.from_ops([gate(a, b)])
     actual_text_diagram = circuit.to_text_diagram()
@@ -71,11 +70,11 @@ b: ───1↦0───
     assert actual_text_diagram == expected_text_diagram
 
 def test_update_mapping():
-    gate = SwapPermutationGate()
+    gate = cca.SwapPermutationGate()
     a, b, c = (cirq.NamedQubit(s) for s in 'abc')
     mapping = {s: i for i, s in enumerate((a, b, c))}
     ops = [gate(a, b), gate(b, c)]
-    update_mapping(mapping, ops)
+    cca.update_mapping(mapping, ops)
     assert mapping == {a: 1, b: 2, c: 0}
 
 
@@ -89,8 +88,8 @@ def test_linear_permutation_gate():
         permuted_elements = sample(elements_to_permute, n_permuted)
         permutation = {e: p for e, p in
                        zip(elements_to_permute, permuted_elements)}
-        PermutationGate.validate_permutation(permutation, n_elements)
-        gate = LinearPermutationGate(permutation)
+        cca.PermutationGate.validate_permutation(permutation, n_elements)
+        gate = cca.LinearPermutationGate(permutation)
         assert gate.permutation(n_elements) == permutation
         mapping = dict(zip(qubits, elements))
         for swap in cirq.flatten_op_tree(cirq.decompose_once_with_qubits(

@@ -18,24 +18,17 @@ import pytest
 
 import cirq
 
-from cirq.contrib.acquaintance.bipartite import (
-        BipartiteSwapNetworkGate, BipartiteGraphType)
-from cirq.contrib.acquaintance.devices import (
-        get_acquaintance_size)
-from cirq.contrib.acquaintance.gates import (
-        AcquaintanceOpportunityGate)
-from cirq.contrib.acquaintance.permutation import (
-        SwapPermutationGate, update_mapping)
+import cirq.contrib.acquaintance as cca
 
 
 circuit_diagrams = {
-    ('undecomposed', BipartiteGraphType.COMPLETE, 1):
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 1):
 """
 0: ───K_{1, 1}:(0, 0)↦(0, 0)───
       │
 1: ───K_{1, 1}:(1, 0)↦(1, 0)───
 """,
-    ('undecomposed', BipartiteGraphType.COMPLETE, 2):
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 2):
 """
 0: ───K_{2, 2}:(0, 0)↦(0, 0)───
       │
@@ -45,7 +38,7 @@ circuit_diagrams = {
       │
 3: ───K_{2, 2}:(1, 1)↦(1, 1)───
 """,
-    ('undecomposed', BipartiteGraphType.COMPLETE, 3):
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 3):
 """
 0: ───K_{3, 3}:(0, 0)↦(0, 0)───
       │
@@ -59,7 +52,7 @@ circuit_diagrams = {
       │
 5: ───K_{3, 3}:(1, 2)↦(1, 2)───
 """,
-    ('undecomposed', BipartiteGraphType.COMPLETE, 4):
+    ('undecomposed', cca.BipartiteGraphType.COMPLETE, 4):
 """
 0: ───K_{4, 4}:(0, 0)↦(0, 0)───
       │
@@ -77,13 +70,13 @@ circuit_diagrams = {
       │
 7: ───K_{4, 4}:(1, 3)↦(1, 3)───
 """,
-    ('undecomposed', BipartiteGraphType.MATCHING, 1):
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 1):
 """
 0: ───Matching:(0, 0)↦(0, 0)───
       │
 1: ───Matching:(1, 0)↦(1, 0)───
 """,
-    ('undecomposed', BipartiteGraphType.MATCHING, 2):
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 2):
 """
 0: ───Matching:(0, 0)↦(0, 1)───
       │
@@ -93,7 +86,7 @@ circuit_diagrams = {
       │
 3: ───Matching:(1, 1)↦(1, 0)───
 """,
-    ('undecomposed', BipartiteGraphType.MATCHING, 3):
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 3):
 """
 0: ───Matching:(0, 0)↦(0, 2)───
       │
@@ -107,7 +100,7 @@ circuit_diagrams = {
       │
 5: ───Matching:(1, 2)↦(1, 0)───
 """,
-    ('undecomposed', BipartiteGraphType.MATCHING, 4):
+    ('undecomposed', cca.BipartiteGraphType.MATCHING, 4):
 """
 0: ───Matching:(0, 0)↦(0, 3)───
       │
@@ -125,13 +118,13 @@ circuit_diagrams = {
       │
 7: ───Matching:(1, 3)↦(1, 0)───
 """,
-    ('decomposed', BipartiteGraphType.COMPLETE, 1):
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 1):
 """
 0: ───█───
       │
 1: ───█───
 """,
-    ('decomposed', BipartiteGraphType.COMPLETE, 2):
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 2):
 """
 0: ─────────────█───0↦1───────█───0↦1─────────────
                 │   │         │   │
@@ -141,7 +134,7 @@ circuit_diagrams = {
                 │   │         │   │
 3: ─────────────█───1↦0───────█───1↦0─────────────
 """,
-    ('decomposed', BipartiteGraphType.COMPLETE, 3):
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 3):
 # pylint: disable=line-too-long
 """
 0: ───────────────────────█───0↦1───────────────────────────█───0↦1───────────────────────
@@ -157,7 +150,7 @@ circuit_diagrams = {
 5: ───────────────────────█───1↦0───────────────────────────█───1↦0───────────────────────
 
 """,
-    ('decomposed', BipartiteGraphType.COMPLETE, 4):
+    ('decomposed', cca.BipartiteGraphType.COMPLETE, 4):
 """
 0: ─────────────────────────────────█───0↦1───────────────────────────────────────────────█───0↦1─────────────────────────────────
                                     │   │                                                 │   │
@@ -177,13 +170,13 @@ circuit_diagrams = {
 
 """,
 # pylint: enable=line-too-long
-    ('decomposed', BipartiteGraphType.MATCHING, 1):
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 1):
 """
 0: ───█───
       │
 1: ───█───
 """,
-    ('decomposed', BipartiteGraphType.MATCHING, 2):
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 2):
 """
 0: ───────0↦1───────
           │
@@ -193,7 +186,7 @@ circuit_diagrams = {
           │
 3: ───────1↦0───────
 """,
-    ('decomposed', BipartiteGraphType.MATCHING, 3):
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 3):
 """
 0: ─────────────0↦1─────────────
                 │
@@ -207,7 +200,7 @@ circuit_diagrams = {
                 │
 5: ─────────────1↦0─────────────
 """,
-    ('decomposed', BipartiteGraphType.MATCHING, 4):
+    ('decomposed', cca.BipartiteGraphType.MATCHING, 4):
 """
 0: ───────────────────0↦1───────────────────
                       │
@@ -229,16 +222,16 @@ circuit_diagrams = {
 
 
 @pytest.mark.parametrize('subgraph,part_size',
-                         itertools.product(BipartiteGraphType, range(1, 5)))
+                         itertools.product(cca.BipartiteGraphType, range(1, 5)))
 def test_circuit_diagrams(part_size, subgraph):
     qubits = cirq.LineQubit.range(2 * part_size)
-    gate = BipartiteSwapNetworkGate(subgraph, part_size)
+    gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)
     circuit = cirq.Circuit.from_ops(gate(*qubits))
     diagram = circuit_diagrams['undecomposed', subgraph, part_size]
     cirq.testing.assert_has_diagram(circuit, diagram)
 
     no_decomp = (lambda op: isinstance(op.gate,
-        (AcquaintanceOpportunityGate, SwapPermutationGate)))
+        (cca.AcquaintanceOpportunityGate, cca.SwapPermutationGate)))
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     expander(circuit)
     print(circuit)
@@ -247,7 +240,7 @@ def test_circuit_diagrams(part_size, subgraph):
 
 
 def test_bad_args():
-    gate = BipartiteSwapNetworkGate(BipartiteGraphType.COMPLETE, 2)
+    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 2)
     qubits = cirq.LineQubit.range(4)
     gate.subgraph = 'not a subgraph'
     args = cirq.CircuitDiagramInfoArgs(
@@ -283,23 +276,23 @@ def test_bad_args():
 
 def test_bipartite_swap_network_acquaintance_size():
     qubits = cirq.LineQubit.range(4)
-    gate = BipartiteSwapNetworkGate(BipartiteGraphType.COMPLETE, 2)
-    assert get_acquaintance_size(gate(*qubits)) == 2
+    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 2)
+    assert cca.get_acquaintance_size(gate(*qubits)) == 2
 
 
 @pytest.mark.parametrize('subgraph,part_size',
-        itertools.product(BipartiteGraphType, range(1, 3)))
+        itertools.product(cca.BipartiteGraphType, range(1, 3)))
 def test_repr(subgraph, part_size):
-    gate = BipartiteSwapNetworkGate(subgraph, part_size)
+    gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)
     cirq.testing.assert_equivalent_repr(gate)
 
 
 @pytest.mark.parametrize('subgraph,part_size',
-                         itertools.product(BipartiteGraphType, range(1, 6)))
+                         itertools.product(cca.BipartiteGraphType, range(1, 6)))
 def test_decomposition_permutation_consistency(part_size, subgraph):
-    gate = BipartiteSwapNetworkGate(subgraph, part_size)
+    gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)
     qubits = cirq.LineQubit.range(2 * part_size)
     mapping = {q: i for i, q in enumerate(qubits)}
-    update_mapping(mapping, gate._decompose_(qubits))
+    cca.update_mapping(mapping, gate._decompose_(qubits))
     permutation = gate.permutation(2 * part_size)
     assert {qubits[i]: j for i, j in permutation.items()} == mapping

@@ -37,7 +37,11 @@ class CircularShiftGate(PermutationGate):
         self.shift = shift
 
     def __repr__(self):
-        return 'CircularShiftGate'
+        return ('cirq.contrib.acquaintance.CircularShiftGate(' +
+                str(self.shift) +
+                ('' if self.swap_gate == SWAP else
+                    (', swap_gate=' + repr(self.swap_gate))) +
+                ')')
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

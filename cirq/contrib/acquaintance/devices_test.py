@@ -16,33 +16,29 @@ import pytest
 
 import cirq
 
-from cirq.contrib.acquaintance.gates import (
-        AcquaintanceOpportunityGate, SwapNetworkGate)
-from cirq.contrib.acquaintance.devices import (
-        UnconstrainedAcquaintanceDevice,
-        get_acquaintance_size)
+import cirq.contrib.acquaintance as cca
 
 
 def test_acquaintance_device():
     with pytest.raises(ValueError):
         op = cirq.X(cirq.NamedQubit('q'))
-        UnconstrainedAcquaintanceDevice.validate_operation(op)
+        cca.UnconstrainedAcquaintanceDevice.validate_operation(op)
 
     qubits = cirq.LineQubit.range(4)
-    ACQUAINT = AcquaintanceOpportunityGate()
-    swap_network = SwapNetworkGate((1, 2, 1))
-    UnconstrainedAcquaintanceDevice.validate_operation(
+    ACQUAINT = cca.AcquaintanceOpportunityGate()
+    swap_network = cca.SwapNetworkGate((1, 2, 1))
+    cca.UnconstrainedAcquaintanceDevice.validate_operation(
         ACQUAINT(*qubits[:2]))
-    UnconstrainedAcquaintanceDevice.validate_operation(
+    cca.UnconstrainedAcquaintanceDevice.validate_operation(
         swap_network(*qubits))
 
 
 def test_get_acquaintance_size():
     with pytest.raises(TypeError):
-        get_acquaintance_size(cirq.Circuit())
+        cca.get_acquaintance_size(cirq.Circuit())
 
     with pytest.raises(TypeError):
-        get_acquaintance_size(3)
+        cca.get_acquaintance_size(3)
 
-    circuit = cirq.Circuit(device=UnconstrainedAcquaintanceDevice)
-    get_acquaintance_size(circuit)
+    circuit = cirq.Circuit(device=cca.UnconstrainedAcquaintanceDevice)
+    cca.get_acquaintance_size(circuit)
