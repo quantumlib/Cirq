@@ -509,7 +509,7 @@ class StepResult:
     @abc.abstractmethod
     def sample(self,
                qubits: List[ops.QubitId],
-               repetitions: int = 1) -> List[List[bool]]:
+               repetitions: int = 1) -> np.ndarray:
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.
