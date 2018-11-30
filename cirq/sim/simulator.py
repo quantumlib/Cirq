@@ -19,10 +19,11 @@ Simulator types include
     SimulatesFinalWaveFunction: allows access to the wave function.
 """
 
+from typing import (
+    Any, Dict, Hashable, Iterable, Iterator, List, Tuple, Union, Optional)
+
 import abc
 import collections
-
-from typing import Dict, Iterable, Iterator, List, Tuple, Union, Optional
 
 import numpy as np
 
@@ -320,6 +321,22 @@ class SimulationTrialResult:
                 self.final_state.tolist())
 
 
+@value.value_equality(unhashable=True)
+class ComputeDisplaysResult:
+    """Results of computing the values of displays in a circuit.
+
+    Attributes:
+        params: A ParamResolver of settings used for this result.
+        display_values: A dictionary from display key to display value.
+    """
+
+    def __init__(self,
+                 params: study.ParamResolver,
+                 display_values: Dict[Hashable, Any]) -> None:
+        self.params = params
+        self.display_values = display_values
+
+
 class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     """A SimulatesFinalWaveFunction that simulates a circuit by moments.
 
@@ -443,9 +460,64 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         raise NotImplementedError()
 
+    def compute_displays_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            params: study.Sweepable = study.ParamResolver({}),
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Union[int, np.ndarray] = 0,
+    ) -> List[ComputeDisplaysResult]:
+        """Computes displays in the supplied Circuit.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state.
+                Otherwise if this is a np.ndarray it is the full initial state.
+                In this case it must be the correct size, be normalized (an L2
+                norm of 1), and  be safely castable to an appropriate
+                dtype for the simulator.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
+        circuit = (program if isinstance(program, circuits.Circuit)
+                   else program.to_circuit())
+        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+
+        compute_displays_results = []  # type: List[ComputeDisplaysResult]
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        for param_resolver in param_resolvers:
+            step_result = None
+            all_step_results = self.simulate_moment_steps(circuit,
+                                                          param_resolver,
+                                                          qubit_order,
+                                                          initial_state)
+            display_values = {}
+            for step_result in all_step_results:
+                for k, v in step_result.measurements.items():
+                    measurements[k] = np.array(v, dtype=bool)
+            if step_result:
+                final_state = step_result.state()
+            else:
+                # Empty circuit, so final state should be initial state.
+                num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
+                final_state = wave_function.to_valid_state_vector(initial_state,
+                                                                  num_qubits)
+            trial_results.append(SimulationTrialResult(
+                params=param_resolver,
+                measurements=measurements,
+                final_state=final_state))
+
+        return trial_results
+
 
 class StepResult:
-    """Results of a step of a SimulatesFinalWaveFunction.
+    """Results of a step of a SimulatesIntermediateWaveFunction.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
