@@ -21,3 +21,17 @@ from cirq.devices.grid_qubit import (
 from cirq.devices.unconstrained_device import (
     UnconstrainedDevice,
 )
+from cirq.devices.graph_device import (
+    FixedDurationUndirectedGraphDeviceEdge,
+    HashQubit,
+    UndirectedGraphDevice,
+    UndirectedGraphDeviceEdge,
+    UnconstrainedUndirectedGraphDeviceEdge,
+)
+from cirq.devices.hypergraph import (
+    UndirectedHypergraph,
+)
+from cirq.devices.uniform_graph_device import (
+    uniform_undirected_graph_device,
+    uniform_undirected_linear_device
+)

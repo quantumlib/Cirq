@@ -15,11 +15,16 @@
 import abc
 import itertools
 
-from typing import cast, FrozenSet, Hashable, Iterable, Optional
+from typing import (
+        cast, FrozenSet, Hashable, Iterable, Optional, TYPE_CHECKING)
 
-from cirq import circuits, devices, ops, value, schedules
+from cirq import ops, value
+from cirq.devices.device import Device
+from cirq.devices.hypergraph import UndirectedHypergraph
 
-from cirq.devices import hypergraph
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 
 class HashQubit(ops.QubitId):
@@ -37,7 +42,7 @@ class HashQubit(ops.QubitId):
         return str(self.value)
 
     def __repr__(self):
-        return 'cirq.devices.graph_device.HashQubit({})'.format(
+        return 'cirq.devices.HashQubit({})'.format(
                 repr(self.value))
 
 
@@ -67,6 +72,9 @@ class FixedDurationUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
 
+    def __eq__(self, other):
+        return self._duration == other._duration
+
 
 class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     """A device edge that allows everything."""
@@ -77,21 +85,24 @@ class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
 
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
+
 
 UnconstrainedUndirectedGraphDeviceEdge = (
         _UnconstrainedUndirectedGraphDeviceEdge())
 
 
-def is_undirected_device_graph(graph: hypergraph.UndirectedHypergraph) -> bool:
-    if not isinstance(graph, hypergraph.UndirectedHypergraph):
+def is_undirected_device_graph(graph: UndirectedHypergraph) -> bool:
+    if not isinstance(graph, UndirectedHypergraph):
         return False
     for _, label in graph.labelled_edges.items():
         if not (label is None or isinstance(label, UndirectedGraphDeviceEdge)):
             return False
     return True
 
-def is_crosstalk_graph(graph: hypergraph.UndirectedHypergraph) -> bool:
-    if not isinstance(graph, hypergraph.UndirectedHypergraph):
+def is_crosstalk_graph(graph: UndirectedHypergraph) -> bool:
+    if not isinstance(graph, UndirectedHypergraph):
         return False
     for vertex in graph.vertices:
         if not isinstance(vertex, frozenset):
@@ -108,7 +119,7 @@ def raise_crosstalk_error(*ops: ops.Operation):
     raise ValueError('crosstalk on {}'.format(ops))
 
 
-class UndirectedGraphDevice(devices.Device):
+class UndirectedGraphDevice(Device):
     """A device whose properties are represented by an edge-labelled graph.
 
     Each (undirected) edge of the device graph is labelled by an
@@ -127,9 +138,9 @@ class UndirectedGraphDevice(devices.Device):
     """
 
     def __init__(self,
-                 device_graph: hypergraph.UndirectedHypergraph,
+                 device_graph: Optional[UndirectedHypergraph]=None,
                  crosstalk_graph:
-                     Optional[hypergraph.UndirectedHypergraph]=None
+                     Optional[UndirectedHypergraph]=None
                  ) -> None:
         """
 
@@ -142,11 +153,13 @@ class UndirectedGraphDevice(devices.Device):
                 thereon.
         """
 
+        if device_graph is None:
+            device_graph = UndirectedHypergraph()
         if not is_undirected_device_graph(device_graph):
             raise TypeError('not is_undirected_device_graph(' +
                              str(device_graph) + ')')
         if crosstalk_graph is None:
-            crosstalk_graph = hypergraph.UndirectedHypergraph()
+            crosstalk_graph = UndirectedHypergraph()
         if not is_crosstalk_graph(crosstalk_graph):
             raise TypeError('not is_crosstalk_graph(' +
                              str(crosstalk_graph) + ')')
@@ -164,7 +177,11 @@ class UndirectedGraphDevice(devices.Device):
 
     @property
     def edges(self):
-        return sorted(self.device_graph.edges)
+        return tuple(sorted(self.device_graph.edges))
+
+    @property
+    def labelled_edges(self):
+        return self.device_graph.labelled_edges
 
     def get_vertices(self, operation: ops.Operation) -> FrozenSet[Hashable]:
         return frozenset(cast(HashQubit, qubit).value
@@ -203,7 +220,7 @@ class UndirectedGraphDevice(devices.Device):
                     other_operations, len(crosstalk_edge) - 1):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: circuits.Moment):
+    def validate_moment(self, moment: 'cirq.Moment'):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):
@@ -212,8 +229,8 @@ class UndirectedGraphDevice(devices.Device):
 
     def validate_scheduled_operation(
             self,
-            schedule: schedules.Schedule,
-            scheduled_operation: schedules.ScheduledOperation
+            schedule: 'cirq.Schedule',
+            scheduled_operation: 'cirq.ScheduledOperation'
             ) -> None:
         operation = scheduled_operation.operation
         self.validate_operation(operation)
@@ -224,6 +241,24 @@ class UndirectedGraphDevice(devices.Device):
                     scheduled_operation))
         self.validate_crosstalk(operation, other_operations)
 
-    def validate_schedule(self, schedule: schedules.Schedule) -> None:
+    def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
         for scheduled_operation in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, scheduled_operation)
+
+    def __eq__(self, other):
+        return ((self.device_graph == other.device_graph) and
+                (self.crosstalk_graph == other.crosstalk_graph))
+
+    def __iadd__(self, other):
+        self.device_graph += other.device_graph
+        self.crosstalk_graph += other.crosstalk_graph
+        return self
+
+    def __copy__(self):
+        return self.__class__(device_graph=self.device_graph.__copy__(),
+                              crosstalk_graph=self.crosstalk_graph.__copy__())
+
+    def __add__(self, other):
+        device_sum = self.__copy__()
+        device_sum += other
+        return device_sum

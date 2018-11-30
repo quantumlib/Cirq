@@ -25,9 +25,10 @@ def test_update_edge_label():
     graph.add_edge(edge, 'b')
     assert graph.labelled_edges[edge] == 'b'
 
+
 def test_hypergraph():
     vertices = range(4)
-    graph = UndirectedHypergraph(vertices)
+    graph = UndirectedHypergraph(vertices=vertices)
     assert graph.vertices == tuple(vertices)
 
     edges = [(0, 1), (2, 3)]
@@ -41,6 +42,7 @@ def test_hypergraph():
     assert graph.vertices == (2,)
     assert graph.edges == ()
 
+
 @pytest.mark.parametrize('vertices,edges',
     [(tuple(x for x in range(10) if random.randint(0, 1)),
      {tuple(random.sample(range(10), random.randint(1, 3))): None
@@ -48,7 +50,8 @@ def test_hypergraph():
      for _ in range(10)])
 def test_eq(vertices, edges):
     vertices = set(vertices).union(*edges)
-    graph_initialized = UndirectedHypergraph(vertices, edges)
+    graph_initialized = UndirectedHypergraph(
+            vertices=vertices, labelled_edges=edges)
     graph_added_parallel = UndirectedHypergraph()
     graph_added_parallel.add_vertices(vertices)
     graph_added_parallel.add_edges(edges)
@@ -59,3 +62,36 @@ def test_eq(vertices, edges):
         graph_added_sequential.add_edge(edge, label)
     assert (graph_initialized == graph_added_parallel ==
             graph_added_sequential)
+
+
+def test_random_hypergraph():
+    n_vertices = 4
+    graph = UndirectedHypergraph.random(n_vertices, {1: 1.})
+    assert sorted(graph.vertices) == sorted(range(n_vertices))
+    assert set(graph.labelled_edges.values()) == set((None,))
+    assert tuple(len(edge) for edge in graph.edges) == (1,) * n_vertices
+
+def test_copy():
+    graph_original = UndirectedHypergraph(labelled_edges={(0, 1): None})
+    graph_copy = graph_original.__copy__()
+    assert graph_copy == graph_original
+    graph_original.add_edge((1, 2))
+    assert graph_copy != graph_original
+
+def test_iadd():
+    graph = UndirectedHypergraph(labelled_edges={(0, 1): None})
+    addend = UndirectedHypergraph(labelled_edges={(1, 2): None})
+    graph += addend
+    assert sorted(graph.edges) == [frozenset((0, 1)), frozenset((1, 2))]
+    assert sorted(graph.vertices) == [0, 1, 2]
+
+def test_add():
+    first_addend = UndirectedHypergraph(labelled_edges={('a', 'b'): None})
+    second_addend = UndirectedHypergraph(labelled_edges={('c', 'b'): None})
+    graph_sum = first_addend + second_addend
+    assert sorted(first_addend.vertices) == list('ab')
+    assert sorted(second_addend.vertices) == list('bc')
+    assert sorted(graph_sum.vertices) == list('abc')
+    assert sorted(first_addend.edges) == [frozenset('ab')]
+    assert sorted(second_addend.edges) == [frozenset('bc')]
+    assert sorted(graph_sum.edges) == [frozenset('ab'), frozenset('bc')]

@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import itertools
+import random
 from typing import (
-        Any, Dict, FrozenSet, Hashable, Iterable, Optional, Set, Tuple)
+        Any, Dict, FrozenSet, Hashable, Iterable, Mapping,
+        Optional, Set, Tuple, Union)
 
 
 AdjacencyList = Set[FrozenSet[Hashable]]
 
 class UndirectedHypergraph:
-    def __init__(self,
+    def __init__(self, *,
                  vertices: Optional[Iterable[Hashable]]=None,
                  labelled_edges: Optional[Dict[Iterable[Hashable], Any]]=None,
                  ) -> None:
@@ -88,3 +90,47 @@ class UndirectedHypergraph:
     def __eq__(self, other):
         return (self.vertices == other.vertices and
                 self.labelled_edges == other.labelled_edges)
+
+    def __iadd__(self, other):
+        self.add_vertices(other.vertices)
+        self.add_edges(other.labelled_edges)
+        return self
+
+    def __copy__(self):
+        return UndirectedHypergraph(vertices=self.vertices,
+                                    labelled_edges=self.labelled_edges)
+
+    def __add__(self, other):
+        sum_hypergraph = self.__copy__ ()
+        sum_hypergraph += other
+        return sum_hypergraph
+
+    @classmethod
+    def random(cls,
+               vertices: Union[int, Iterable],
+               edge_probs: Mapping[int, float]
+               ) -> 'UndirectedHypergraph':
+        """A random hypergraph.
+
+        Every possible edge is included with probability edge_prob[len(edge)].
+        All edges are labelled with None.
+
+        Args:
+            vertices: The vertex set. If an integer i, the vertex set is
+                {0, ..., i - 1}.
+            edge_probs: The probabilities of edges of given sizes. Non-positive
+                values mean the edge is never included and values at least 1
+                mean that it is always included.
+        """
+
+        if isinstance(vertices, int):
+            vertices = range(vertices)
+
+        edges = []
+        for edge_size, edge_prob in edge_probs.items():
+            for potential_edge in itertools.combinations(vertices, edge_size):
+                if random.random() < edge_prob:
+                    edges.append(potential_edge)
+        labelled_edges = {edge: None for edge in edges
+                } # type: Dict[Iterable[Hashable], Any]
+        return cls(vertices=vertices, labelled_edges=labelled_edges)

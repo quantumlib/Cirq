@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq.devices as cd
 
 
@@ -23,13 +25,21 @@ def test_empty_uniform_undirected_linear_device():
     assert device.edges == tuple()
 
 
+def test_negative_arity_arg_uniform_undirected_linear_device():
+    with pytest.raises(ValueError):
+        cd.uniform_undirected_linear_device(5, {-1: None})
+    with pytest.raises(ValueError):
+        cd.uniform_undirected_linear_device(5, {0: None})
+
+
 @pytest.mark.parametrize('arity', range(1, 5))
 def test_regular_uniform_undirected_linear_device(arity):
     n_qubits = 10
     edge_labels = {arity: None}
     device = cd.uniform_undirected_linear_device(n_qubits, edge_labels)
-    assert device.qubits == tuple(range(n_qubits))
-    assert len(device.edges) == n_qubits - arity
+
+    assert device.qubits == tuple(cd.HashQubit(v) for v in range(n_qubits))
+    assert len(device.edges) == n_qubits - arity + 1
     for edge, label in device.labelled_edges.items():
-        assert label == UnconstrainedUndirectedGraphDeviceEdge
+        assert label == None
         assert len(edge) == arity
