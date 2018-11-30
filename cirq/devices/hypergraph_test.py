@@ -71,6 +71,7 @@ def test_random_hypergraph():
     assert set(graph.labelled_edges.values()) == set((None,))
     assert tuple(len(edge) for edge in graph.edges) == (1,) * n_vertices
 
+
 def test_copy():
     graph_original = UndirectedHypergraph(labelled_edges={(0, 1): None})
     graph_copy = graph_original.__copy__()
@@ -78,12 +79,14 @@ def test_copy():
     graph_original.add_edge((1, 2))
     assert graph_copy != graph_original
 
+
 def test_iadd():
     graph = UndirectedHypergraph(labelled_edges={(0, 1): None})
     addend = UndirectedHypergraph(labelled_edges={(1, 2): None})
     graph += addend
-    assert sorted(graph.edges) == [frozenset((0, 1)), frozenset((1, 2))]
+    assert sorted(graph.edges) == sorted(frozenset(e) for e in ((0, 1), (1, 2)))
     assert sorted(graph.vertices) == [0, 1, 2]
+
 
 def test_add():
     first_addend = UndirectedHypergraph(labelled_edges={('a', 'b'): None})
@@ -94,4 +97,4 @@ def test_add():
     assert sorted(graph_sum.vertices) == list('abc')
     assert sorted(first_addend.edges) == [frozenset('ab')]
     assert sorted(second_addend.edges) == [frozenset('bc')]
-    assert sorted(graph_sum.edges) == [frozenset('ab'), frozenset('bc')]
+    assert sorted(graph_sum.edges) == sorted(frozenset(e) for e in ('ab', 'bc'))
