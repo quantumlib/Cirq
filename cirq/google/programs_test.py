@@ -590,3 +590,14 @@ def test_is_supported():
     assert cg.is_native_xmon_op(cirq.Z(a)**1)
     assert not cg.is_native_xmon_op(cirq.CCZ(a, b, c))
     assert not cg.is_native_xmon_op(cirq.SWAP(a, b))
+
+
+def test_is_native_xmon_gate():
+    assert cg.is_native_xmon_gate(cirq.CZ)
+    assert cg.is_native_xmon_gate(cirq.X**0.5)
+    assert cg.is_native_xmon_gate(cirq.Y**0.5)
+    assert cg.is_native_xmon_gate(cirq.Z**0.5)
+    assert cg.is_native_xmon_gate(cirq.PhasedXPowGate(phase_exponent=0.2)**0.5)
+    assert cg.is_native_xmon_gate(cirq.Z**1)
+    assert not cg.is_native_xmon_gate(cirq.CCZ)
+    assert not cg.is_native_xmon_gate(cirq.SWAP)
