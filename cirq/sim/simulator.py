@@ -83,10 +83,9 @@ class SimulatesSamples:
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
-            as_array = dict((k, np.array(v)) for k, v in measurements.items())
             trial_results.append(study.TrialResult(params=param_resolver,
                                                    repetitions=repetitions,
-                                                   measurements=as_array))
+                                                   measurements=measurements))
         return trial_results
 
     @abc.abstractmethod
@@ -95,7 +94,7 @@ class SimulatesSamples:
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         repetitions: int
-    ) -> Dict[str, List[np.ndarray]]:
+    ) -> Dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
         Args:
@@ -104,11 +103,11 @@ class SimulatesSamples:
             repetitions: Number of times to repeat the run.
 
         Returns:
-            A dictionary from measurement key to a list of lists representing
-            the results. Measurement results are a list of lists (a numpy
-            ndarray), the first list corresponding to the repetition, and the
-            second is the actual boolean measurement results (ordered by
-            the qubits acted upon by the measurement gate.)
+            A dictionary from measurement gate key to measurement
+            results. Measurement results are stored in a 2-dimensional
+            numpy array, the first dimension corresponding to the repetition
+            and the second to the actual boolean measurement results (ordered
+            by the qubits being measured.)
         """
         raise NotImplementedError()
 
@@ -531,7 +530,7 @@ class StepResult:
     def sample_measurement_ops(
             self,
             measurement_ops: List[ops.GateOperation],
-            repetitions: int = 1) -> Dict[str, List[List[bool]]]:
+            repetitions: int = 1) -> Dict[str, np.ndarray]:
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -547,11 +546,11 @@ class StepResult:
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
 
-        Returns: A dictionary from the measurement gate keys to the measurement
-            results. These results are lists of lists, with the outer list
-            corresponding to repetitions and the inner list corresponding
-            to the qubits acted upon by the measurement operation with the
-            given key.
+        Returns: A dictionary from measurement gate key to measurement
+            results. Measurement results are stored in a 2-dimensional
+            numpy array, the first dimension corresponding to the repetition
+            and the second to the actual boolean measurement results (ordered
+            by the qubits being measured.)
 
         Raises:
             ValueError: If the operation's gates are not `MeasurementGate`
@@ -572,7 +571,7 @@ class StepResult:
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
-        return {k: [x[s:e] for x in indexed_sample] for k, (s, e) in
+        return {k: np.array([x[s:e] for x in indexed_sample]) for k, (s, e) in
                 bounds.items()}
 
     def dirac_notation(self, decimals: int = 2) -> str:
