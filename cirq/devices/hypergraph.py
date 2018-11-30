@@ -24,7 +24,7 @@ AdjacencyList = Set[FrozenSet[Hashable]]
 class UndirectedHypergraph:
     def __init__(self, *,
                  vertices: Optional[Iterable[Hashable]]=None,
-                 labelled_edges: Optional[Dict[Iterable[Hashable], Any]]=None,
+                 labelled_edges: Optional[Dict[Iterable[Hashable], Any]]=None
                  ) -> None:
         """A labelled, undirected hypergraph.
 
