@@ -48,6 +48,7 @@ class SupportsApproximateEquality(Protocol):
 def approx_eq(
         val: Any,
         other: Any,
+        *,
         atol: float = 0.0) -> bool:
     """Approximately compares two objects.
 
