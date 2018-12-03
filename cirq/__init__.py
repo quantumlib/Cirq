@@ -139,6 +139,7 @@ from cirq.ops import (
     Rz,
     rotation_error,
     S,
+    SamplesDisplay,
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitMatrixGate,

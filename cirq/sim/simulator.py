@@ -321,7 +321,6 @@ class SimulationTrialResult:
                 self.final_state.tolist())
 
 
-@value.value_equality(unhashable=True)
 class ComputeDisplaysResult:
     """Results of computing the values of displays in a circuit.
 
@@ -332,9 +331,15 @@ class ComputeDisplaysResult:
 
     def __init__(self,
                  params: study.ParamResolver,
-                 display_values: Dict[Hashable, Any]) -> None:
+                 display_values: Dict) -> None:
         self.params = params
         self.display_values = display_values
+
+    def __repr__(self):
+        return ('ComputeDisplaysResult('
+                'params={!r}, ',
+                'display_values={!r})').format(self.params,
+                                               self.display_values)
 
 
 class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
@@ -488,32 +493,73 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
         param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qubits = qubit_order.order_for(circuit.all_qubits())
 
         compute_displays_results = []  # type: List[ComputeDisplaysResult]
-        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
-            step_result = None
+            display_values = {}
+
+            # Compute the displays in the first Moment
+            moment = circuit[0]
+            displays = [op for op in moment
+                        if isinstance(op, (ops.SamplesDisplay,
+                                           ops.WaveFunctionDisplay))]
+            qubit_map = {q: i for i, q in enumerate(qubits)}
+            for display in displays:
+                display_values[display.key] = _compute_display_value(
+                    display,
+                    wave_function.to_valid_state_vector(initial_state),
+                    qubit_order,
+                    qubit_map)
+
+            # Compute the displays in the rest of the Moments
             all_step_results = self.simulate_moment_steps(circuit,
                                                           param_resolver,
                                                           qubit_order,
                                                           initial_state)
-            display_values = {}
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    measurements[k] = np.array(v, dtype=bool)
-            if step_result:
-                final_state = step_result.state()
-            else:
-                # Empty circuit, so final state should be initial state.
-                num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = wave_function.to_valid_state_vector(initial_state,
-                                                                  num_qubits)
-            trial_results.append(SimulationTrialResult(
-                params=param_resolver,
-                measurements=measurements,
-                final_state=final_state))
+            for step_result, moment in zip(all_step_results, circuit[1:]):
+                displays = [op for op in moment
+                            if isinstance(op, (ops.SamplesDisplay,
+                                               ops.WaveFunctionDisplay))]
+                for display in displays:
+                    display_values[display.key] = _compute_display_value(
+                                display,
+                                step_result.state,
+                                qubit_order,
+                                step_result.qubit_map)
 
-        return trial_results
+            compute_displays_results.append(ComputeDisplaysResult(
+                params=param_resolver,
+                display_values=compute_displays_results))
+
+        return compute_displays_results
+
+
+def _compute_display_value(display: Union[ops.SamplesDisplay,
+                                          ops.WaveFunctionDisplay],
+                           state: np.ndarray,
+                           qubit_order: ops.QubitOrder,
+                           qubit_map: Dict[ops.QubitId, int]):
+    if isinstance(display, ops.SamplesDisplay):
+       return _compute_samples_display_value(
+           display, state, qubit_order, qubit_map)
+    else:
+        return display.value(state, qubit_map)
+
+
+def _compute_samples_display_value(display: ops.SamplesDisplay,
+                                   state: np.ndarray,
+                                   qubit_order: ops.QubitOrder,
+                                   qubit_map: Dict[ops.QubitId, int]):
+    basis_change_circuit = circuits.Circuit.from_ops(
+        display.measurement_basis_change())
+    modified_state = basis_change_circuit.apply_unitary_effect_to_state(
+        state, qubit_order=qubit_order)
+    indices = [qubit_map[qubit] for qubit in display.qubits]
+    samples = wave_function.sample_state_vector(
+        modified_state, indices, display.repetitions)
+    return display.value(samples)
 
 
 class StepResult:
@@ -528,7 +574,7 @@ class StepResult:
     """
 
     def __init__(self,
-                 qubit_map: Optional[Dict],
+                 qubit_map: Optional[Dict[ops.QubitId, int]],
                  measurements: Optional[Dict[str, List[bool]]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or collections.defaultdict(list)

@@ -58,7 +58,7 @@ class WaveFunctionDisplay(raw_types.Operation):
     @abc.abstractmethod
     def value(self,
               state: np.ndarray,
-              qubit_index_map: Dict[raw_types.QubitId, int]
+              qubit_map: Dict[raw_types.QubitId, int]
               ) -> Any:
         pass
 
