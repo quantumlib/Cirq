@@ -20,7 +20,7 @@ import abc
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import pauli_string, raw_types, op_tree
 
 
@@ -63,12 +63,13 @@ class WaveFunctionDisplay(raw_types.Operation):
         pass
 
 
+@value.value_equality
 class ApproxPauliStringExpectation(SamplesDisplay):
 
     def __init__(self,
                  pauli_string: pauli_string.PauliString,
                  repetitions: int,
-                 key: Hashable=None):
+                 key: Hashable=''):
         self._pauli_string = pauli_string
         self._repetitions = repetitions
         self._key = key
@@ -101,12 +102,16 @@ class ApproxPauliStringExpectation(SamplesDisplay):
               measurements: np.ndarray) -> float:
         return np.mean([(-1)**sum(bitstring) for bitstring in measurements])
 
+    def _value_equality_values_(self):
+        return self._pauli_string, self._repetitions, self._key
 
+
+@value.value_equality
 class PauliStringExpectation(WaveFunctionDisplay):
 
     def __init__(self,
                  pauli_string: pauli_string.PauliString,
-                 key: Hashable=None):
+                 key: Hashable=''):
         self._pauli_string = pauli_string
         self._key = key
 
@@ -142,3 +147,6 @@ class PauliStringExpectation(WaveFunctionDisplay):
             ket = protocols.apply_unitary(pauli, args)
         ket = np.reshape(ket, state.shape)
         return np.dot(state.conj(), ket)
+
+    def _value_equality_values_(self):
+        return self._pauli_string, self._key

@@ -82,7 +82,7 @@ def test_wave_simulator():
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = mock.Mock(cirq.QubitOrder)
-    result = simulator.simulate(circuit=circuit,
+    result = simulator.simulate(program=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=qubit_order,
                                 initial_state=2)
@@ -104,7 +104,7 @@ def test_wave_simulator_no_steps():
     circuit = cirq.testing.random_circuit(2, 20, 0.99)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = circuit.all_qubits()
-    result = simulator.simulate(circuit=circuit,
+    result = simulator.simulate(program=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=list(qubit_order),
                                 initial_state=initial_state)
@@ -145,6 +145,16 @@ def test_wave_simulator_sweeps():
             final_state=final_state)
     ]
     assert results == expected_results
+
+
+def test_compute_displays_result_repr():
+    v = cirq.ComputeDisplaysResult(
+        params=cirq.ParamResolver({'a': 2}),
+        display_values={'k': 1.0})
+
+    assert repr(v) == ("cirq.ComputeDisplaysResult("
+                       "params=cirq.ParamResolver({'a': 2}), "
+                       "display_values={'k': 1.0})")
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.

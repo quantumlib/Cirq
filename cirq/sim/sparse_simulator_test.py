@@ -379,6 +379,10 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
 def test_compute_displays(dtype):
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(
+        cirq.PauliStringExpectation(
+            cirq.PauliString({qubits[3]: cirq.Pauli.Z}),
+            key='z3'
+        ),
         cirq.X(qubits[1]),
         cirq.PauliStringExpectation(
             cirq.PauliString({qubits[0]: cirq.Pauli.Z,
@@ -417,6 +421,7 @@ def test_compute_displays(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     result = simulator.compute_displays(circuit)
 
+    np.testing.assert_allclose(result.display_values['z3'], 1, atol=1e-7)
     np.testing.assert_allclose(result.display_values['z0z1'], -1, atol=1e-7)
     np.testing.assert_allclose(result.display_values['z0x1'], 0, atol=1e-7)
     np.testing.assert_allclose(result.display_values['z1x2'], -1, atol=1e-7)

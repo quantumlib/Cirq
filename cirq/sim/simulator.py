@@ -20,7 +20,7 @@ Simulator types include
 """
 
 from typing import (
-    Any, Dict, Hashable, Iterable, Iterator, List, Tuple, Union, Optional)
+    Dict, Iterable, Iterator, List, Tuple, Union, Optional)
 
 import abc
 import collections
@@ -336,8 +336,8 @@ class ComputeDisplaysResult:
         self.display_values = display_values
 
     def __repr__(self):
-        return ('ComputeDisplaysResult('
-                'params={!r}, ',
+        return ('cirq.ComputeDisplaysResult('
+                'params={!r}, '
                 'display_values={!r})').format(self.params,
                                                self.display_values)
 
@@ -538,7 +538,8 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             for display in displays:
                 display_values[display.key] = _compute_display_value(
                     display,
-                    wave_function.to_valid_state_vector(initial_state),
+                    wave_function.to_valid_state_vector(
+                        initial_state, num_qubits=len(qubits)),
                     qubit_order,
                     qubit_map)
 
@@ -571,8 +572,8 @@ def _compute_display_value(display: Union[ops.SamplesDisplay,
                            qubit_order: ops.QubitOrder,
                            qubit_map: Dict[ops.QubitId, int]):
     if isinstance(display, ops.SamplesDisplay):
-       return _compute_samples_display_value(
-           display, state, qubit_order, qubit_map)
+        return _compute_samples_display_value(
+            display, state, qubit_order, qubit_map)
     else:
         return display.value(state, qubit_map)
 

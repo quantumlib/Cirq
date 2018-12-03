@@ -112,3 +112,17 @@ def test_approx_pauli_string_expectation_value(measurements, value):
         repetitions=1
     )
     assert display.value(measurements) == value
+
+
+def test_with_qubits():
+    a, b, c = cirq.NamedQubit('a'), cirq.NamedQubit('b'), cirq.NamedQubit('c')
+    q, r, s = cirq.LineQubit.range(3)
+    qubit_pauli_map = {a: cirq.Pauli.X, b: cirq.Pauli.Y, c: cirq.Pauli.X}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+
+    assert (cirq.PauliStringExpectation(pauli_string).with_qubits(q, r, s)
+            == cirq.PauliStringExpectation(pauli_string.with_qubits(q, r, s)))
+    assert (cirq.ApproxPauliStringExpectation(
+                pauli_string, repetitions=1).with_qubits(q, r, s)
+            == cirq.ApproxPauliStringExpectation(
+                pauli_string.with_qubits(q, r, s), repetitions=1))
