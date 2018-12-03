@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from typing import Any
-from typing_extensions import Protocol
 
 import numpy as np
+
+from typing_extensions import Protocol
 
 
 class SupportsApproximateEquality(Protocol):
