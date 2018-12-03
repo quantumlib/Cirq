@@ -359,7 +359,6 @@ def test_simulate_moment_steps_sample(dtype):
                 assert sample == [True, True] or sample == [False, False]
 
 
-
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps_intermediate_measurement(dtype):
     q0 = cirq.LineQubit(0)
@@ -374,6 +373,57 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
         if i == 2:
             expected = np.array([np.sqrt(0.5), np.sqrt(0.5) * (-1) ** result])
             np.testing.assert_almost_equal(step.state(), expected)
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_compute_displays(dtype):
+    qubits = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qubits[1]),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
+        cirq.PauliStringExpectation(
+            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
+                              qubits[1]: cirq.Pauli.Z}),
+            key='z0z1'
+        ),
+        cirq.PauliStringExpectation(
+            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
+                              qubits[1]: cirq.Pauli.X}),
+            key='z0x1'
+        ),
+        cirq.PauliStringExpectation(
+            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
+                              qubits[2]: cirq.Pauli.X}),
+            key='z1x2'
+        ),
+        cirq.PauliStringExpectation(
+            cirq.PauliString({qubits[0]: cirq.Pauli.X,
+                              qubits[1]: cirq.Pauli.Z}),
+            key='x0z1'
+        ),
+        cirq.PauliStringExpectation(
+            cirq.PauliString({qubits[3]: cirq.Pauli.X}),
+            key='x3'
+        ),
+        cirq.ApproxPauliStringExpectation(
+            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
+                              qubits[1]: cirq.Pauli.Z}),
+            repetitions=1,
+            key='approx_z0z1'
+        ),
+    )
+    simulator = cirq.Simulator(dtype=dtype)
+    result = simulator.compute_displays(circuit)
+
+    np.testing.assert_allclose(result.display_values['z0z1'], -1, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['z0x1'], 0, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['z1x2'], -1, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['x0z1'], 0, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['x3'], -1, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['approx_z0z1'], -1,
+                               atol=1e-7)
 
 
 def test_invalid_run_no_unitary():

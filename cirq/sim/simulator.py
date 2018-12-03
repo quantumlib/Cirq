@@ -125,7 +125,7 @@ class SimulatesFinalWaveFunction:
 
     def simulate(
         self,
-        circuit: circuits.Circuit,
+        program: Union[circuits.Circuit, schedules.Schedule],
         param_resolver: study.ParamResolver = study.ParamResolver({}),
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
@@ -136,7 +136,7 @@ class SimulatesFinalWaveFunction:
         wave function.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits used
                 to define the order of amplitudes in the wave function.
@@ -150,7 +150,7 @@ class SimulatesFinalWaveFunction:
             SimulateTrialResults for the simulation. Includes the final wave
             function.
         """
-        return self.simulate_sweep(circuit, [param_resolver], qubit_order,
+        return self.simulate_sweep(program, [param_resolver], qubit_order,
                                    initial_state)[0]
 
     @abc.abstractmethod
@@ -465,6 +465,32 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         raise NotImplementedError()
 
+    def compute_displays(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            param_resolver: study.ParamResolver = study.ParamResolver({}),
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Union[int, np.ndarray] = 0,
+    ) -> ComputeDisplaysResult:
+        """Computes displays in the supplied Circuit.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used
+                to define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state. Otherwise  if this
+                is a np.ndarray it is the full initial state. In this case it
+                must be the correct size, be normalized (an L2 norm of 1), and
+                be safely castable to an appropriate dtype for the simulator.
+
+        Returns:
+            ComputeDisplaysResult for the simulation.
+        """
+        return self.compute_displays_sweep(
+            program, [param_resolver], qubit_order, initial_state)[0]
+
     def compute_displays_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
@@ -473,6 +499,9 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             initial_state: Union[int, np.ndarray] = 0,
     ) -> List[ComputeDisplaysResult]:
         """Computes displays in the supplied Circuit.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
 
         Args:
             program: The circuit or schedule to simulate.
@@ -525,13 +554,13 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 for display in displays:
                     display_values[display.key] = _compute_display_value(
                                 display,
-                                step_result.state,
+                                step_result.state(),
                                 qubit_order,
                                 step_result.qubit_map)
 
             compute_displays_results.append(ComputeDisplaysResult(
                 params=param_resolver,
-                display_values=compute_displays_results))
+                display_values=display_values))
 
         return compute_displays_results
 
@@ -555,7 +584,9 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     basis_change_circuit = circuits.Circuit.from_ops(
         display.measurement_basis_change())
     modified_state = basis_change_circuit.apply_unitary_effect_to_state(
-        state, qubit_order=qubit_order)
+        state,
+        qubit_order=qubit_order,
+        qubits_that_should_be_present=qubit_map.keys())
     indices = [qubit_map[qubit] for qubit in display.qubits]
     samples = wave_function.sample_state_vector(
         modified_state, indices, display.repetitions)
