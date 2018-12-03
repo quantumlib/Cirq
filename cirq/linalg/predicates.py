@@ -204,11 +204,13 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
 
     Example:
+
+        ```python
         # A '4 qubit' tensor with values from 0 to 15.
         r = np.array(range(16)).reshape((2,) * 4)
 
         # We want to index into the subset where qubit #1 and qubit #3 are ON.
-        s = cirq.binary_indexed_tensor_slice([1, 3], 0b11)
+        s = cirq.slice_for_qubits_equal_to([1, 3], 0b11)
         print(s)
         # (slice(None, None, None), 1, slice(None, None, None), 1, Ellipsis)
 
@@ -217,6 +219,7 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         print(r[s])
         # [[ 5  7]
         #  [13 15]]
+        ```
 
     Args:
         target_qubit_axes: The qubits that are specified by the index bits. All

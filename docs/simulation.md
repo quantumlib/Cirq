@@ -14,11 +14,9 @@ we recommend starting with ``cirq.Simulator``.
 Here is a simple circuit
 ```python
 import cirq
-from cirq import Circuit
-from cirq.devices import GridQubit
 
-q0 = GridQubit(0, 0)
-q1 = GridQubit(1, 0)
+q0 = cirq.GridQubit(0, 0)
+q1 = cirq.GridQubit(1, 0)
 
 def basic_circuit(meas=True):
     sqrt_x = cirq.X**0.5
@@ -28,7 +26,7 @@ def basic_circuit(meas=True):
     if meas:
         yield cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')
    
-circuit = Circuit()
+circuit = cirq.Circuit()
 circuit.append(basic_circuit())
   
 print(circuit)
@@ -75,7 +73,7 @@ if one wants to debug the circuit and get access to the full
 wave function:
 ```python
 import numpy as np
-circuit = Circuit()
+circuit = cirq.Circuit()
 circuit.append(basic_circuit(False))    
 result = simulator.simulate(circuit, qubit_order=[q0, q1])
 
@@ -166,7 +164,7 @@ support this Cirq provides a method to return an iterator
 over a ``Moment`` by ``Moment`` simulation.  This is the method
 ``simulate_moment_steps``:
 ```python
-circuit = Circuit()
+circuit = cirq.Circuit()
 circuit.append(basic_circuit())    
 for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
     print('state at step %d: %s' % (i, np.around(step.state(), 3)))
@@ -224,12 +222,11 @@ providing a ``ParamResolver``.  A ``ParamResolver`` provides
 a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-from cirq import ParamResolver
 rot_w_gate = cirq.X**cirq.Symbol('x')
-circuit = Circuit()
+circuit = cirq.Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):
-    resolver = ParamResolver({'x': y / 4.0})
+    resolver = cirq.ParamResolver({'x': y / 4.0})
     result = simulator.simulate(circuit, resolver)
     print(np.round(result.final_state, 2))
 # prints something like
@@ -250,8 +247,8 @@ may be run repeatedly.  Running a study returns one
 values and repetitions (which are reported as the ``repetition_id``
 in the ``TrialContext`` object).  Example:
 ```python
-resolvers = [ParamResolver({'x': y / 2.0}) for y in range(3)]
-circuit = Circuit()
+resolvers = [cirq.ParamResolver({'x': y / 2.0}) for y in range(3)]
+circuit = cirq.Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 circuit.append([cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')])
 results = simulator.run_sweep(program=circuit,

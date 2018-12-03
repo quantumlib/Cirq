@@ -193,6 +193,29 @@ def test_simulator_trial_pretty_state():
     assert result.dirac_notation() == '|01⟩'
 
 
+def test_simulator_trial_density_matrix():
+    result = cirq.SimulationTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]))
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+        result.density_matrix())
+
+
+def test_simulator_trial_bloch_vector():
+    result = cirq.SimulationTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]))
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+        result.bloch_vector(1))
+
+
 def test_step_result_pretty_state():
     class BasicStepResult(cirq.StepResult):
 
@@ -200,12 +223,46 @@ def test_step_result_pretty_state():
                 measurements: Dict[str, List[bool]]) -> None:
             super().__init__(qubit_map, measurements)
 
-        @property
         def state(self) -> np.ndarray:
             return np.array([0, 1, 0, 0])
 
     step_result = BasicStepResult({}, {})
     assert step_result.dirac_notation() == '|01⟩'
+
+
+def test_step_result_density_matrix():
+    class BasicStepResult(cirq.StepResult):
+
+        def __init__(self, qubit_map: Dict,
+                measurements: Dict[str, List[bool]]) -> None:
+            super().__init__(qubit_map, measurements)
+
+        def state(self) -> np.ndarray:
+            return np.array([0, 1, 0, 0])
+
+    step_result = BasicStepResult({}, {})
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+        step_result.density_matrix())
+
+
+def test_step_result_bloch_vector():
+    class BasicStepResult(cirq.StepResult):
+
+        def __init__(self, qubit_map: Dict,
+                measurements: Dict[str, List[bool]]) -> None:
+            super().__init__(qubit_map, measurements)
+
+        def state(self) -> np.ndarray:
+            return np.array([0, 1, 0, 0])
+
+    step_result = BasicStepResult({}, {})
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+        step_result.bloch_vector(1))
 
 
 class FakeStepResult(cirq.StepResult):
@@ -244,7 +301,6 @@ def test_step_sample_measurement_ops_repetitions():
                             {'0,1': [[False, True]] * 3, '2': [[False]] * 3})
 
 
-
 def test_step_sample_measurement_ops_no_measurements():
     step_result = FakeStepResult([])
 
@@ -265,3 +321,29 @@ def test_step_sample_measurement_ops_repeated_qubit():
     with pytest.raises(ValueError, match='MeasurementGate'):
         step_result.sample_measurement_ops(
                 [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)])
+
+
+class MultiHTestGate(cirq.Gate):
+    def _decompose_(self, qubits):
+        return cirq.H.on_each(qubits)
+
+
+def test_simulates_composite():
+    c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
+    expected = np.array([0.5] * 4)
+    np.testing.assert_allclose(c.apply_unitary_effect_to_state(),
+                               expected)
+    np.testing.assert_allclose(cirq.Simulator().simulate(c).final_state,
+                               expected)
+
+
+def test_simulate_measurement_inversions():
+    q = cirq.NamedQubit('q')
+
+    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
+                                                   invert_mask=(True,)).on(q))
+    assert cirq.Simulator().simulate(c).measurements == {'q': np.array([True])}
+
+    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
+                                                   invert_mask=(False,)).on(q))
+    assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}

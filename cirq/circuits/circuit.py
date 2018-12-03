@@ -20,6 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
+from fractions import Fraction
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -556,9 +557,9 @@ class Circuit:
                     active.add(q)
 
             continue_past = (
-                    cur_op is not None and
-                    active.issuperset(cur_op.qubits) and
-                    not is_blocker(cur_op)
+                cur_op is not None and
+                active.issuperset(cur_op.qubits) and
+                not is_blocker(cur_op)
             )
             if continue_past:
                 for q in cur_op.qubits:
@@ -603,7 +604,8 @@ class Circuit:
             operation itself. The list is sorted so that the moment index
             increases monotonically.
         """
-        result = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
+        result = BucketPriorityQueue[ops.Operation](
+            drop_duplicate_entries=True)
 
         involved_qubits = set(start_frontier.keys()) | set(end_frontier.keys())
         # Note: only sorted to ensure a deterministic result ordering.
@@ -1140,7 +1142,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -1193,7 +1195,7 @@ class Circuit:
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.QubitId] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: np.dtype = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
 
         A circuit's "unitary effect" is the unitary matrix produced by
@@ -1203,17 +1205,18 @@ class Circuit:
         operations are present.
 
         For convenience, terminal measurements are automatically ignored
-        instead of causing a failure. Set the 'ignore_terminal_measurements'
+        instead of causing a failure. Set the `ignore_terminal_measurements`
         argument to False to disable this behavior.
 
         This method is equivalent to left-multiplying the input state by
-        circuit.to_unitary_matrix(...), but computed in a more efficient way.
+        `cirq.unitary(circuit)` but it's computed in a more efficient
+        way.
 
         Args:
             initial_state: The input state for the circuit. This can be an int
                 or a vector. When this is an int, it refers to a computational
-                basis state (e.g. 5 means initialize to |5> = |...000101>). If
-                this is a state vector, it directly specifies the initial
+                basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
+                If this is a state vector, it directly specifies the initial
                 state's amplitudes. The vector must be a flat numpy array with a
                 type that can be converted to np.complex128.
             qubit_order: Determines how qubits are ordered when passing matrices
@@ -1374,7 +1377,7 @@ class Circuit:
             header: Optional[str] = None,
             precision: int = 10,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            ) -> QasmOutput:
+    ) -> QasmOutput:
         """Returns a QASM object equivalent to the circuit.
 
         Args:
@@ -1385,7 +1388,8 @@ class Circuit:
                 register.
         """
         if header is None:
-            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+            header = 'Generated from Cirq v{}'.format(
+                cirq._version.__version__)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
         return QasmOutput(operations=self.all_operations(),
@@ -1472,6 +1476,9 @@ def _get_operation_circuit_diagram_info_with_fallback(
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
+    if info.exponent == 0:
+        return '0'
+
     # 1 is not shown.
     if info.exponent == 1:
         return None
@@ -1483,6 +1490,13 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     # If it's a float, show the desired precision.
     if isinstance(info.exponent, float):
         if args.precision is not None:
+            # funky behavior of fraction, cast to str in constructor helps.
+            approx_frac = Fraction(info.exponent).limit_denominator(16)
+            if approx_frac.denominator not in [2, 4, 5, 10]:
+                if abs(float(approx_frac)
+                       - info.exponent) < 10**-args.precision:
+                    return '({})'.format(approx_frac)
+
             return '{{:.{}}}'.format(args.precision).format(info.exponent)
         return repr(info.exponent)
 
@@ -1560,7 +1574,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
         out_diagram.write(x2 + 1, 0, top_right, bottom_left)
         out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
         out_diagram.force_horizontal_padding_after(x2 + 1,
-            2 if not transpose else 0)
+                                                   2 if not transpose else 0)
 
         for y in [0, h]:
             out_diagram.horizontal_line(y, x1, x2 + 1)
@@ -1571,7 +1585,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
         out_diagram.write(x1, h, bottom_left, top_right)
 
         out_diagram.force_horizontal_padding_after(x1 - 1,
-           2 if not transpose else 0)
+                                                   2 if not transpose else 0)
 
     if not transpose:
         out_diagram.force_vertical_padding_after(0, 0)
@@ -1581,7 +1595,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
                            qubits: Tuple[ops.QubitId, ...],
-                           dtype: np.dtype) -> np.ndarray:
+                           dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.
@@ -1620,11 +1634,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
     for op in unitary_ops:
         indices = [qubit_map[q] for q in op.qubits]
-        result = protocols.apply_unitary_to_tensor(
-            val=op,
-            target_tensor=state,
-            available_buffer=buffer,
-            axes=indices)
+        result = protocols.apply_unitary(
+            unitary_value=op,
+            args=protocols.ApplyUnitaryArgs(state, buffer, indices))
         if result is buffer:
             buffer = state
         state = result

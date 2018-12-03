@@ -31,15 +31,6 @@ from cirq.circuits import (
     Unique,
 )
 
-from cirq.decompositions import (
-    controlled_op_to_operations,
-    is_negligible_turn,
-    single_qubit_matrix_to_gates,
-    single_qubit_matrix_to_pauli_rotations,
-    single_qubit_op_to_framed_phase_form,
-    two_qubit_matrix_to_operations,
-)
-
 from cirq.devices import (
     Device,
     GridQubit,
@@ -143,9 +134,6 @@ from cirq.ops import (
     ReversibleCompositeGate,
     rotation_error,
     RotationErrorChannel,
-    XPowGate,
-    YPowGate,
-    ZPowGate,
     Rx,
     Ry,
     Rz,
@@ -161,10 +149,17 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     X,
-    Y,
-    Z,
-    XXPowGate,
+    XPowGate,
     XX,
+    XXPowGate,
+    Y,
+    YPowGate,
+    YY,
+    YYPowGate,
+    Z,
+    ZPowGate,
+    ZZ,
+    ZZPowGate,
 )
 
 from cirq.optimizers import (
@@ -174,8 +169,15 @@ from cirq.optimizers import (
     EjectPhasedPaulis,
     EjectZ,
     ExpandComposite,
+    is_negligible_turn,
+    merge_single_qubit_gates_into_phased_x_z,
     MergeInteractions,
     MergeSingleQubitGates,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_matrix_to_phased_x_z,
+    single_qubit_op_to_framed_phase_form,
+    two_qubit_matrix_to_operations,
 )
 
 from cirq.schedules import (
@@ -185,6 +187,8 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
+    bloch_vector_from_state_vector,
+    density_matrix_from_state_vector,
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
@@ -223,7 +227,8 @@ from cirq.value import (
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
-    apply_unitary_to_tensor,
+    apply_unitary,
+    ApplyUnitaryArgs,
     channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
@@ -236,8 +241,11 @@ from cirq.protocols import (
     pow,
     qasm,
     QasmArgs,
-    SupportsApplyUnitaryToTensor,
+    SupportsApplyUnitary,
+    SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsDecompose,
+    SupportsDecomposeWithQubits,
     SupportsParameterization,
     SupportsPhase,
     SupportsQasm,
