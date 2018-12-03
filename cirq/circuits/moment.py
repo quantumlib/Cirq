@@ -107,6 +107,12 @@ class Moment(object):
     def __hash__(self):
         return hash((Moment, self.operations))
 
+    def __iter__(self):
+        return iter(self.operations)
+
+    def __len__(self):
+        return len(self.operations)
+
     def __repr__(self):
         if not self.operations:
             return 'cirq.Moment()'
