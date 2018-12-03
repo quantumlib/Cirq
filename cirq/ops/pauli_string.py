@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
+from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload)
 
 from cirq import value

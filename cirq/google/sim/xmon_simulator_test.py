@@ -110,7 +110,8 @@ def test_run(scheduler):
     circuit = basic_circuit()
     circuit.append(
         [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)], strategy=InsertStrategy.NEW_THEN_INLINE)
+         cirq.MeasurementGate(key='b')(Q2)],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
