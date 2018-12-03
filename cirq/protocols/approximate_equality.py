@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from typing import Any
 from typing_extensions import Protocol
+
+import numpy as np
 
 
 class SupportsApproximateEquality(Protocol):
