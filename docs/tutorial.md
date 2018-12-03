@@ -5,8 +5,7 @@ In this tutorial we will go from knowing nothing about Cirq to creating a
 Note that this tutorial isn't a quantum computing 101 tutorial,
 we assume familiarity of quantum computing at about the level of
 the textbook "Quantum Computation and Quantum Information" by
-Nielsen and Chuang. For a more conceptual overview see the
-[conceptual documentation](table_of_contents.md).
+Nielsen and Chuang.
 
 To begin, please follow the instructions for [installing Cirq](install.md).
 
@@ -104,7 +103,7 @@ lowest possible value of the objective function.
 ### Create a circuit on a Grid
 
 To build the above variational quantum algorithm using Cirq,
-one begins by building the appropriate [circuit](circuits.md).
+one begins by building the appropriate circuit.
 In Cirq circuits are represented either by a `Circuit` object
 or a `Schedule` object.  `Schedule`s offer more control over
 quantum gates and circuits at the timing level, which we do not
@@ -120,10 +119,8 @@ should help illustrate these concepts.
 
 ![Circuits and Moments](CircuitMomentOperation.png)
 
-See the [conceptual documentation](circuits.md) for more 
-details on these classes. Because the problem we have 
-defined has a natural structure on a grid, we will use 
-Cirq's built in `GridQubit`s as our qubits.
+Because the problem we have defined has a natural structure on a grid, we will
+use Cirq's built in `GridQubit`s as our qubits.
 We will demonstrate some of how this works in an 
 interactive Python environment, the following code can
 be run in series in a Python environment where you have
@@ -144,7 +141,7 @@ print(qubits)
 ```
 Here we see that we've created a bunch of `GridQubit`s. 
 `GridQubit`s implement the `QubitId` class, which just means
-that they are equatable and hashable. `GridQubit`s in addition
+that they are equatable and hashable. `QubitId` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
 have a row and column, indicating their position on a grid.
 
 Now that we have some qubits, let us construct a `Circuit` on these qubits.
@@ -154,10 +151,8 @@ gate to every qubit whose row index plus column index is odd.  To
 do this we write
 ```python
 circuit = cirq.Circuit()
-circuit.append([cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0],
-               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
-circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
-               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+circuit.append(cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0)
+circuit.append(cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1)
 print(circuit)
 # prints
 # (0, 0): ───H───────
@@ -201,14 +196,14 @@ for i, m in enumerate(circuit):
 ```
 Here we see that we can iterate over a `Circuit`'s `Moment`s. The reason
 that two `Moment`s were created was that the `append` method uses an
-`InsertStrategy` of `NEW`. `InsertStrategy`s describe
+`InsertStrategy` of `NEW_THEN_INLINE`. `InsertStrategy`s describe
 how new insertions into `Circuit`s place their gates. Details of these
 strategies can be found in the [circuit documentation](circuits.md).  If
 we wanted to insert the gates so that they form one `Moment`, we could 
-instead use the `EARLIEST` insertion strategy. This is the default strategy.
+instead use the `EARLIEST` insertion strategy:
 ```python
 circuit = cirq.Circuit()
-circuit.append([cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0],
+circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
                strategy=cirq.InsertStrategy.EARLIEST)
 circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
                strategy=cirq.InsertStrategy.EARLIEST)
@@ -382,23 +377,23 @@ circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3),
                strategy=cirq.InsertStrategy.EARLIEST)
 print(circuit)
 # prints something like
-# (0, 0): ───X^0.1───────────@───────X───────────────────────────────@───────X───────────────────────────────
-#                            │                                       │
-# (0, 1): ───X^0.1───Z^0.2───┼───────@───────────────────────X───────@^0.3───X───X───────@───────X───────────
-#                            │       │                                                   │
-# (0, 2): ───X^0.1───Z^0.2───┼───────┼───────@───────────────X───────────────────────────@^0.3───X───────────
-#                            │       │       │
-# (1, 0): ───X^0.1───────────@^0.3───┼───────┼───────@───────X───────────────────────────@───────X───────────
-#                                    │       │       │                                   │
-# (1, 1): ───X^0.1───Z^0.2───────────@^0.3───┼───────┼───────X───────@───────X───X───────@^0.3───X───@───────
-#                                            │       │               │                               │
-# (1, 2): ───X^0.1───Z^0.2───────────────────@^0.3───┼───────@───────┼───────────────────────────────@^0.3───
-#                                                    │       │       │
-# (2, 0): ───X^0.1───────────────────────────────────@^0.3───┼───────┼───────────@───────────────────────────
-#                                                            │       │           │
-# (2, 1): ───X^0.1───Z^0.2───────────X───────────────────────┼───────@^0.3───X───@^0.3───@───────────────────
-#                                                            │                           │
-# (2, 2): ───X^0.1───Z^0.2───────────────────────────────────@^0.3───────────────────────@^0.3───────────────
+# (0, 0): ───X^0.1─────────────@───────X───────────────────────────────@───────X───────────────────────────────
+#                              │                                       │
+# (0, 1): ───X^0.1───Z^(1/5)───┼───────@───────────────────────X───────@^0.3───X───X───────@───────X───────────
+#                              │       │                                                   │
+# (0, 2): ───X^0.1───Z^(1/5)───┼───────┼───────@───────────────X───────────────────────────@^0.3───X───────────
+#                              │       │       │
+# (1, 0): ───X^0.1─────────────@^0.3───┼───────┼───────@───────X───────────────────────────@───────X───────────
+#                                      │       │       │                                   │
+# (1, 1): ───X^0.1───Z^(1/5)───────────@^0.3───┼───────┼───────X───────@───────X───X───────@^0.3───X───@───────
+#                                              │       │               │                               │
+# (1, 2): ───X^0.1───Z^(1/5)───────────────────@^0.3───┼───────@───────┼───────────────────────────────@^0.3───
+#                                                      │       │       │
+# (2, 0): ───X^0.1─────────────────────────────────────@^0.3───┼───────┼───────────@───────────────────────────
+#                                                              │       │           │
+# (2, 1): ───X^0.1───Z^(1/5)───────────X───────────────────────┼───────@^0.3───X───@^0.3───@───────────────────
+#                                                              │                           │
+# (2, 2): ───X^0.1───Z^(1/5)───────────────────────────────────@^0.3───────────────────────@^0.3───────────────
 ```
 Here we see that we have chosen particular parameter
 values (0.1, 0.2, 0.3).
@@ -596,5 +591,3 @@ We've created a simple variational quantum algorithm using Cirq.
 Where to go next?  Perhaps you can play around with the above code
 and work on analyzing the algorithms performance.  Add new parameterized
 circuits and build an end to end program for analyzing these circuits.
-Finally a good place to learn more about features of Cirq is to read
-through the [conceptual documentation](table_of_contents.md).
