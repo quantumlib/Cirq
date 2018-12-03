@@ -42,9 +42,9 @@ def test_google_v2_supremacy_bristlecone():
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.CZPowGate))) == 119
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.XPowGate))) == 43
+        ops.XPowGate))) == 44
     assert len(list(circuit.findall_operations_with_gate_type(
-        ops.YPowGate))) == 69
+        ops.YPowGate))) == 70
     assert isinstance(circuit.operation_at(GridQubit(2, 5),2).gate,
                       ops.YPowGate)
     assert isinstance(circuit.operation_at(GridQubit(3, 2),2).gate,

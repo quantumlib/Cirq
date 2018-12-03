@@ -302,7 +302,7 @@ print(circuit)
 #            │
 # (1, 0): ───@───H───@───@───
 #                    │   │
-# (2, 0): ───────H───@───@───
+# (2, 0): ───H───────@───@───
 ```
 
 Recall that in Python functions that have a ``yield`` are *generators*.

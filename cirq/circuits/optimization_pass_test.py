@@ -99,11 +99,11 @@ def test_point_optimizer_can_write_new_gates_inline():
 
     actual_text_diagram = c.to_text_diagram().strip()
     expected_text_diagram = """
-x: ───X───X───X───────X───────────
+x: ───X───X───X───X───────────
 
-y: ───X───X───────X───X───X───X───
+y: ───X───X───────X───X───X───
 
-z: ───────────────X───X───X───────
+z: ───────────────────X───X───
     """.strip()
 
     assert actual_text_diagram == expected_text_diagram
@@ -132,11 +132,11 @@ def test_point_optimizer_post_clean_up():
 
     actual_text_diagram = c.to_text_diagram().strip()
     expected_text_diagram = """
-x: ───X^0.5───X^0.5───X^0.5───────────X^0.5───────────────────
+x: ───X^0.5───X^0.5───X^0.5───X^0.5───────────────────
 
-y: ───X^0.5───X^0.5───────────X^0.5───X^0.5───X^0.5───X^0.5───
+y: ───X^0.5───X^0.5───────────X^0.5───X^0.5───X^0.5───
 
-z: ───────────────────────────X^0.5───X^0.5───X^0.5───────────
+z: ───────────────────────────────────X^0.5───X^0.5───
     """.strip()
 
     assert actual_text_diagram == expected_text_diagram

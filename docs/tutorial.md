@@ -154,8 +154,10 @@ gate to every qubit whose row index plus column index is odd.  To
 do this we write
 ```python
 circuit = cirq.Circuit()
-circuit.append(cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0)
-circuit.append(cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1)
+circuit.append([cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0],
+               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
+               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 print(circuit)
 # prints
 # (0, 0): ───H───────
@@ -199,11 +201,11 @@ for i, m in enumerate(circuit):
 ```
 Here we see that we can iterate over a `Circuit`'s `Moment`s. The reason
 that two `Moment`s were created was that the `append` method uses an
-`InsertStrategy` of `NEW_THEN_INLINE`. `InsertStrategy`s describe
+`InsertStrategy` of `NEW`. `InsertStrategy`s describe
 how new insertions into `Circuit`s place their gates. Details of these
 strategies can be found in the [circuit documentation](circuits.md).  If
 we wanted to insert the gates so that they form one `Moment`, we could 
-instead use the `EARLIEST` insertion strategy:
+instead use the `EARLIEST` insertion strategy. This is the default strategy.
 ```python
 circuit = cirq.Circuit()
 circuit.append([cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0],

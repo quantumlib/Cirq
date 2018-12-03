@@ -137,9 +137,9 @@ def test_teleportation_diagram():
     assert diagram.strip() == r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{alice}}&   \qw&                \qw&\gate{\text{X}^{0.5}} \qw    &\control \qw    &\gate{\text{H}} \qw&\meter \qw&         \qw    &\control \qw    &\qw\\
- &\lstick{\text{carrier}}& \qw&\gate{\text{H}} \qw&\control              \qw    &\targ    \qw\qwx&                \qw&\meter \qw&\control \qw    &         \qw\qwx&\qw\\
- &\lstick{\text{bob}}&     \qw&                \qw&\targ                 \qw\qwx&         \qw    &                \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
+ &\lstick{\text{alice}}&   \qw&\gate{\text{X}^{0.5}} \qw&         \qw    &\control \qw    &\gate{\text{H}} \qw&\meter   \qw    &\control \qw    &\qw\\
+ &\lstick{\text{carrier}}& \qw&\gate{\text{H}}       \qw&\control \qw    &\targ    \qw\qwx&\meter          \qw&\control \qw    &         \qw\qwx&\qw\\
+ &\lstick{\text{bob}}&     \qw&                      \qw&\targ    \qw\qwx&         \qw    &                \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
  \\
 }""".strip()
 

@@ -25,6 +25,7 @@ import pytest
 
 import cirq
 import cirq.google as cg
+from cirq.circuits.insert_strategy import InsertStrategy
 
 Q1 = cirq.GridQubit(0, 0)
 Q2 = cirq.GridQubit(1, 0)
@@ -109,7 +110,7 @@ def test_run(scheduler):
     circuit = basic_circuit()
     circuit.append(
         [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+         cirq.MeasurementGate(key='b')(Q2)], strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
