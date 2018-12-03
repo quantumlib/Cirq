@@ -380,9 +380,6 @@ def test_compute_displays(dtype):
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(
         cirq.X(qubits[1]),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
         cirq.PauliStringExpectation(
             cirq.PauliString({qubits[0]: cirq.Pauli.Z,
                               qubits[1]: cirq.Pauli.Z}),
@@ -393,6 +390,9 @@ def test_compute_displays(dtype):
                               qubits[1]: cirq.Pauli.X}),
             key='z0x1'
         ),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
         cirq.PauliStringExpectation(
             cirq.PauliString({qubits[1]: cirq.Pauli.Z,
                               qubits[2]: cirq.Pauli.X}),
@@ -408,10 +408,10 @@ def test_compute_displays(dtype):
             key='x3'
         ),
         cirq.ApproxPauliStringExpectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[1]: cirq.Pauli.Z}),
+            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
+                              qubits[2]: cirq.Pauli.X}),
             repetitions=1,
-            key='approx_z0z1'
+            key='approx_z1x2'
         ),
     )
     simulator = cirq.Simulator(dtype=dtype)
@@ -422,7 +422,7 @@ def test_compute_displays(dtype):
     np.testing.assert_allclose(result.display_values['z1x2'], -1, atol=1e-7)
     np.testing.assert_allclose(result.display_values['x0z1'], 0, atol=1e-7)
     np.testing.assert_allclose(result.display_values['x3'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['approx_z0z1'], -1,
+    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
                                atol=1e-7)
 
 
