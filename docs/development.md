@@ -171,6 +171,56 @@ current directory, and `3to2` will be invoked in the current environment.
 The script fails with no effects if the output directory already exists.
 
 
+### Writing docstrings and generating documentation
+
+Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a markdown flavor and support for latex.
+Here is an example docstring:
+
+```
+def some_method(a: int, b: str) -> float:
+    r"""One line summary of method.
+
+    Additional information about the method, perhaps with some sort of latex
+    equation to make it clearer:
+
+        $$
+        M = \begin{bmatrix}
+                0 & 1 \\
+                1 & 0
+            \end{bmatrix}
+        $$
+
+    Notice that this docstring is an r-string, since the latex has backslashes.
+    We can also include example code:
+
+        print(cirq.google.Foxtail)
+
+    You can also do inline latex like $y = x^2$ and inline code like
+    `cirq.unitary(cirq.X)`.
+
+    And of course there's the standard sections.
+
+    Args:
+        a: The first argument.
+        b: Another argument.
+
+    Returns:
+        An important value.
+
+    Raises:
+        ValueError: The value of `a` wasn't quite right.
+    """
+```
+
+Documentation is generated automatically by readthedocs when pushing to `master`, but you can also generated a local copy by running:
+
+```bash
+dev_tools/build-docs.sh
+```
+
+The HTML output will go into the `docs/_build` directory.
+
+
 ### Producing a pypi package
 
 1. Do a dry run with test pypi.
