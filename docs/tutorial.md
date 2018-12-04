@@ -151,7 +151,53 @@ gate to every qubit whose row index plus column index is odd.  To
 do this we write
 ```python
 circuit = cirq.Circuit()
-circuit.append([cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0],
+circuit.append(cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0)
+circuit.append(cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1)
+print(circuit)
+# (0, 0): ───H───
+#
+# (0, 1): ───X───
+#
+# (0, 2): ───H───
+#
+# (1, 0): ───X───
+#
+# (1, 1): ───H───
+#
+# (1, 2): ───X───
+#
+# (2, 0): ───H───
+#
+# (2, 1): ───X───
+#
+# (2, 2): ───H───
+```
+One thing to notice here.  First `cirq.X` is a `Gate` object. There
+are many different gates supported by Cirq. A good place to look
+at gates that are defined is in [common_gates.py](/cirq/ops/common_gates.py).
+One common confusion to avoid is the difference between a gate class 
+and a gate object (which is an instantiation of a class).  The second is that gate
+objects are transformed into `Operation`s (technically `GateOperation`s)
+via either the method `on(qubit)` or, as we see for the `X` gates, via simply
+applying the gate to the qubits `(qubit)`. Here we only apply single
+qubit gates, but a similar pattern applies for multiple qubit gates with a 
+sequence of qubits as parameters.
+
+Another thing to notice about the above circuit is that the gates from both the
+append instructions appear on the same vertical line. Gates appearing on the
+same vertical line constitue a `Moment`.
+
+We can modify this by changing the `InsertStrategy` of the `append` method.
+`InsertStrategy`s describe how new insertions into `Circuit`s place their
+gates. Details of these strategies can be found in the
+[circuit documentation](circuits.md). The default `InsertStrategy` used in the
+above circuit is `EARLIEST` which resulted in the `X` gates sliding over to act
+at the earliest `Moment` they can. If we wanted to insert the gates so that
+they form individual `Moment`s, we could instead use the `NEW_THEN_INLINE`
+insertion strategy:
+```python
+circuit = cirq.Circuit()
+circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
                strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
                strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
@@ -175,20 +221,8 @@ print(circuit)
 #
 # (2, 2): ───H───────
 ```
-One thing to notice here.  First `cirq.X` is a `Gate` object. There
-are many different gates supported by Cirq. A good place to look
-at gates that are defined is in [common_gates.py](/cirq/ops/common_gates.py).
-One common confusion to avoid is the difference between a gate class 
-and a gate object (which is an instantiation of a class).  The second is that gate
-objects are transformed into `Operation`s (technically `GateOperation`s)
-via either the method `on(qubit)` or, as we see for the `X` gates, via simply
-applying the gate to the qubits `(qubit)`. Here we only apply single
-qubit gates, but a similar pattern applies for multiple qubit gates with a 
-sequence of qubits as parameters.
 
-Another thing one notices about the above circuit is that the circuit has
-staggered gates. This is because the way in which we have applied the
-gates has created two `Moment`s.
+This circuit has now has staggered gates created by two `Moment`s.
 ```python
 for i, m in enumerate(circuit):
     print('Moment {}: {}'.format(i, m))
@@ -196,40 +230,7 @@ for i, m in enumerate(circuit):
 # Moment 0: H((0, 0)) and H((0, 2)) and H((1, 1)) and H((2, 0)) and H((2, 2))
 # Moment 1: X((0, 1)) and X((1, 0)) and X((1, 2)) and X((2, 1))
 ```
-Here we see that we can iterate over a `Circuit`'s `Moment`s. The reason
-that two `Moment`s were created was that the `append` method uses an
-`InsertStrategy` of `NEW_THEN_INLINE`. `InsertStrategy`s describe
-how new insertions into `Circuit`s place their gates. Details of these
-strategies can be found in the [circuit documentation](circuits.md).  If
-we wanted to insert the gates so that they form one `Moment`, we could 
-instead use the `EARLIEST` insertion strategy:
-```python
-circuit = cirq.Circuit()
-circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
-               strategy=cirq.InsertStrategy.EARLIEST)
-circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
-               strategy=cirq.InsertStrategy.EARLIEST)
-print(circuit)
-# (0, 0): ───H───
-#
-# (0, 1): ───X───
-#
-# (0, 2): ───H───
-#
-# (1, 0): ───X───
-#
-# (1, 1): ───H───
-#
-# (1, 2): ───X───
-#
-# (2, 0): ───H───
-#
-# (2, 1): ───X───
-#
-# (2, 2): ───H───
-```
-We now see that we have only one moment, as the `X` gates have been slid
-over to act at the earliest `Moment` they can.
+Here we see that we can iterate over a `Circuit`'s `Moment`s.
 
 ### Creating the Ansatz
 
