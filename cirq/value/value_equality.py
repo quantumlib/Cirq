@@ -18,6 +18,8 @@ from typing import Union, Callable, overload, Any
 
 from typing_extensions import Protocol
 
+import cirq
+
 
 class _SupportsValueEquality(Protocol):
     """An object decorated with the value equality decorator."""
@@ -33,6 +35,22 @@ class _SupportsValueEquality(Protocol):
         Returns:
             Values used when determining if the receiving object is equal to
             another object.
+        """
+        pass
+
+    def _value_equality_approximate_values_(self) -> Any:
+        """Returns value or values used for approximate equality.
+
+        Approximate equality does element-wise comparison of iterable types; if
+        decorated class is composed of a set of primitive types (or types
+        supporting `SupportsApproximateEquality` protocol) then they can be
+        given as an iterable.
+
+        If this method is not defined by decorated class,
+        `_value_equality_values_` is going to be used instead.
+
+        Returns:
+            Any type supported by `cirq.approx_eq()`.
         """
         pass
 
@@ -73,12 +91,33 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
                  self._value_equality_values_()))
 
 
+def _value_equality_approx_eq(self: _SupportsValueEquality,
+                              other: _SupportsValueEquality,
+                              atol: float) -> bool:
+    # Preserve regular equality type-comparison logic.
+    cls_self = self._value_equality_values_cls_()
+    if not isinstance(other, cls_self):
+        return NotImplemented
+    cls_other = other._value_equality_values_cls_()
+    if cls_self != cls_other:
+        return False
+
+    # Delegate to cirq.approx_eq for approximate equality comparison.
+    return cirq.approx_eq(
+        self._value_equality_approximate_values_(),
+        other._value_equality_approximate_values_(),
+        atol=atol
+    )
+
+
+
 # pylint: disable=function-redefined
 @overload
 def value_equality(cls: type,
                    *,
                    unhashable: bool = False,
-                   distinct_child_types: bool = False
+                   distinct_child_types: bool = False,
+                   approximate: bool = False,
                    ) -> type:
     pass
 
@@ -86,7 +125,8 @@ def value_equality(cls: type,
 @overload
 def value_equality(*,
                    unhashable: bool = False,
-                   distinct_child_types: bool = False
+                   distinct_child_types: bool = False,
+                   approximate: bool = False,
                    ) -> Callable[[type], type]:
     pass
 
@@ -94,11 +134,18 @@ def value_equality(*,
 def value_equality(cls: type = None,
                    *,
                    unhashable: bool = False,
-                   distinct_child_types: bool = False
+                   distinct_child_types: bool = False,
+                   approximate: bool = False,
                    ) -> Union[Callable[[type], type], type]:
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
 
     _value_equality_values_ is a method that the decorated class must implement.
+
+    _value_equality_approximate_values_ is a method that the decorated class
+    might implement if special support for approximate equality is required.
+    This is only used when approximate argument is set. When approximate
+    argument is set and _value_equality_approximate_values_ is not defined,
+    _value_equality_values_ values are used for approximate equality.
 
     Note that the type of the decorated value is included as part of the value
     equality values. This is so that completely separate classes with identical
@@ -119,6 +166,9 @@ def value_equality(cls: type = None,
             classes will not be considered equal to each other. Useful for when
             the decorated class is an abstract class or trait that is helping to
             define equality for many conceptually distinct concrete classes.
+        approximate: When set, the decorated class will be enhanced with
+            `_approx_eq_` implementation and thus start to support the
+            `SupportsApproximateEquality` protocol.
     """
 
     # If keyword arguments were specified, python invokes the decorator method
@@ -129,8 +179,8 @@ def value_equality(cls: type = None,
             unhashable=unhashable,
             distinct_child_types=distinct_child_types)
 
-    getter = getattr(cls, '_value_equality_values_', None)
-    if getter is None:
+    values_getter = getattr(cls, '_value_equality_values_', None)
+    if values_getter is None:
         raise TypeError('The @cirq.value_equality decorator requires a '
                         '_value_equality_values_ method to be defined.')
 
@@ -141,6 +191,11 @@ def value_equality(cls: type = None,
     setattr(cls, '__hash__', None if unhashable else _value_equality_hash)
     setattr(cls, '__eq__', _value_equality_eq)
     setattr(cls, '__ne__', _value_equality_ne)
+
+    if approximate:
+        if not hasattr(cls, '_value_equality_approximate_values_'):
+            setattr(cls, '_value_equality_approximate_values_', values_getter)
+        setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls
 # pylint: enable=function-redefined
