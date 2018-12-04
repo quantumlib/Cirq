@@ -13,18 +13,27 @@
 # limitations under the License.
 
 
-from cirq.protocols.apply_unitary_to_tensor import (
-    SupportsApplyUnitaryToTensor,
-    apply_unitary_to_tensor,
+from cirq.protocols.apply_unitary import (
+    apply_unitary,
+    ApplyUnitaryArgs,
+    SupportsApplyUnitary,
 )
 from cirq.protocols.channel import (
     channel,
+    SupportsChannel,
 )
 from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     SupportsCircuitDiagramInfo,
+)
+from cirq.protocols.decompose import (
+    decompose,
+    decompose_once,
+    decompose_once_with_qubits,
+    SupportsDecompose,
+    SupportsDecomposeWithQubits,
 )
 from cirq.protocols.inverse import (
     inverse,
@@ -37,9 +46,12 @@ from cirq.protocols.pow import (
     pow,
 )
 # pylint: enable=redefined-builtin
-from cirq.protocols.unitary import (
-    SupportsUnitary,
-    unitary,
+from cirq.protocols.qasm import (
+    qasm,
+    QasmArgs,
+    SupportsQasm,
+    SupportsQasmWithArgs,
+    SupportsQasmWithArgsAndQubits,
 )
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
@@ -53,4 +65,9 @@ from cirq.protocols.resolve_parameters import (
 from cirq.protocols.phase import (
     SupportsPhase,
     phase_by,
+)
+from cirq.protocols.unitary import (
+    SupportsUnitary,
+    has_unitary,
+    unitary,
 )

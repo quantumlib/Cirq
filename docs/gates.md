@@ -43,22 +43,13 @@ When you give `cirq.inverse` a list, or any other kind of iterable thing, it wil
 Basically, the items of the list are individually inverted and returned in reverse order.
 For example, the expression `cirq.inverse([cirq.S(b), cirq.CNOT(a, b)])` will return the tuple `(cirq.CNOT(a, b), cirq.S(b)**-1)`.
 
-#### ExtrapolatableEffect
+Gates and operations can also return values beside `NotImplemented` from their `__pow__` method for exponents besides `-1`.
+This pattern is used often by Cirq.
+For example, the square root of X gate can be created by raising `cirq.X` to 0.5:
 
-Represents an effect which can be scaled continuously up or down, or negated.
-Implementing gates and operations implement the ``extrapolate_effect`` method, which takes a single float parameter ``factor``.
-This factor is the amount to scale the gate by.
-Roughly, one can think about this as applying the effect ``factor`` times.
-There is some  subtlety in this definition since, for example, there are often two ways to define the square root of a gate.
-It is up to the implementation to define which root is chosen.
-
-The primary use of ``ExtrapolatableEffect`` is to allow
-easy *powering* of gates.  That is one can define
-for these gates a power
 ```python
 import cirq
-import numpy as np
-print(np.around(cirq.unitary(cirq.X)))
+print(cirq.unitary(cirq.X))
 # prints
 # [[0.+0.j 1.+0.j]
 #  [1.+0.j 0.+0.j]]
@@ -71,37 +62,32 @@ print(cirq.unitary(sqrt_x))
 ```
 
 The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
-Note that it is often the case that ``(g**a)**b != g**(a * b)``, due to the intermediate values normalizing rotation angles into a canonical range.
+
 
 #### `cirq.unitary` and `def _unitary_` 
 
-We've seen this above.
-These are ``Gate`` or ``Operation`` instances which may be described by a
-unitary matrix.
-They implement the ``_unitary_`` method,
-which returns a numpy ``ndarray`` matrix which is the unitary gate for the
-gate/operation.
-The method may also return `NotImplemented`, in which case `cirq.unitary`
-behaves as if the method is not implemented.
+When objects can be described by a unitary matrix, they let `Cirq` know by implementing the ``_unitary_`` method.
+This method should return a numpy ``ndarray`` matrix and this array should be the unitary matrix corresponding to the object.
+The method may also return `NotImplemented`, in which case `cirq.unitary` behaves as if the method is not implemented.
 
-#### CompositeGate and CompositeOperation
 
-A ``CompositeGate`` is a gate which consists of multiple gates
-that can be applied to a given set of qubits.  This is a manner
-in which one can decompose one gate into multiple gates.  In
-particular ``CompositeGates`` implement the method 
-``default_decompose`` which acts on a sequence of qubits, and
-returns a list of the operations acting on these qubits for
-the constituents gates.  
+#### `cirq.decompose` and `def _decompose_`
 
-One thing about ``CompositeGates`` is that sometimes you want
-to modify the decomposition.  Algorithms that allow this can
-take an ``Extension`` which allows for overriding the 
-``CompositeGate``.  An example of this is for in 
-``Simulators`` where an optional extension can be supplied
-that can be used to override the CompositeGate.
+A `cirq.Operation` indicates that it can be broken down into smaller simpler
+operations by implementing a `def _decompose_(self):` method.
+Code that doesn't understand a particular operation can call
+`cirq.decompose_once` or `cirq.decompose` on that operation in order to get
+a set of simpler operations that it does understand.
 
-A ``CompositeOperation`` is just like a ``CompositeGate``, except it already knows the qubits it should be applied to.
+One useful thing about `cirq.decompose` is that it will decompose *recursively*,
+until only operations meeting a `keep` predicate remain.
+You can also give an `intercepting_decomposer` to `cirq.decompose`, which will
+take priority over operations' own decompositions.
+
+For `cirq.Gate`s, the decompose method is slightly different; it takes qubits:
+`def _decompose_(self, qubits)`.
+Callers who know the qubits that the gate is being applied to will use
+`cirq.decompose_once_with_qubits` to trigger this method.
 
 #### `_circuit_diagram_info_(self, args)` and `cirq.circuit_diagram_info(val, [args], [default])`
 
@@ -116,23 +102,19 @@ in the future).
 
 You can query the circuit diagram info of a value by passing it into `cirq.circuit_diagram_info`.
 
-### XmonGates
+### Xmon gates
 
 Google's Xmon devices support a specific gate set. Gates
 in this gate set operate on ``GridQubit``s, which are qubits
 arranged on a square grid and which have an ``x`` and ``y``
 coordinate.
 
-The ``XmonGates`` are
+The native Xmon gates are
 
-**ExpWGate** This gate is a rotation about a combination of
-a Pauli `X` and Pauli `Y` gates.  The ``ExpWGate`` takes
-two parameters, ``half_turns`` and ``axis_half_turns``.  The
-later describes the angle of the operator that is being
-rotated about in the ``XY`` plane.  In particular if we define
-``W(theta) = cos(pi theta) X + sin (pi theta) Y`` then
-``axis_half_turns`` is ``theta``.  And the full gate is
-``exp(-i pi half_turns W(axis_half_turns) / 2)``.
+**cirq.PhasedXPowGate**
+This gate is a rotation about an axis in the XY plane of the Bloch sphere.
+The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
+The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the `phase_exponent` and `t` is the `exponent`.
 
 **cirq.Z / cirq.Rz** Rotations about the Pauli ``Z`` axis.
 The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.Rz(θ)` is `exp(-i Z θ/2)`.
@@ -148,25 +130,19 @@ The matrix of `cirq.CZ**t` is ``exp(i pi |11><11| t)``.
 **cirq.MeasurementGate** This is a single qubit measurement
 in the computational basis. 
 
-### CommonGates
 
-``XmonGates`` are hardware specific.  In addition Cirq has a
-number of more commonly named gates that are then implemented
-as ``XmonGates`` via an extension or composite gates.  Some
-of these are our old friends:
+### Other Common Gates
 
-**RotXGate**, **RotYGate**, **RotZGate**, **Rot11Gate**. 
-These are gates corresponding to the  Pauli rotations or
-(in the case of ``Rot11Gate`` a two qubit rotation).
+Cirq comes with a number of common named gates:
 
-Our old friends the Paulis: **X**, **Y**, and **Z**. 
-Some other two qubit fiends, **CZ** the controlled-Z gate,
-**CNOT** the controlled-X gate, and **SWAP** the swap gate.
-As well as some other Clifford friends, **H** and **S**,
-and our error correcting friend **T**.
+**CNOT** the controlled-X gate
+
+**SWAP** the swap gate
+
+**H** the Hadamard gate
+
+**S** the square root of Z gate
+
+and our error correcting friend the **T** gate
 
 TODO: describe these in more detail.  
-
-### Extensions
-
-TODO

@@ -15,14 +15,20 @@
 import json
 import re
 
+from cirq.value.value_equality import value_equality
+
 _identifier_pattern = '[a-zA-Z_][a-zA-Z0-9_]*$'
+
 
 def _is_valid_identifier(text):
     return re.match(_identifier_pattern, text)
 
+
 def _encode(text):
     return json.JSONEncoder().encode(text)
 
+
+@value_equality
 class Symbol:
     """A constant plus the runtime value of a parameter with a given key.
 
@@ -47,16 +53,8 @@ class Symbol:
     def __repr__(self):
         return 'cirq.Symbol({!r})'.format(self.name)
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((Symbol, self.name))
+    def _value_equality_values_(self):
+        return self.name
 
     def __mul__(self, other):
         return self if other == 1 else NotImplemented

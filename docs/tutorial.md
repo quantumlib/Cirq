@@ -5,8 +5,7 @@ In this tutorial we will go from knowing nothing about Cirq to creating a
 Note that this tutorial isn't a quantum computing 101 tutorial,
 we assume familiarity of quantum computing at about the level of
 the textbook "Quantum Computation and Quantum Information" by
-Nielsen and Chuang. For a more conceptual overview see the
-[conceptual documentation](table_of_contents.md).
+Nielsen and Chuang.
 
 To begin, please follow the instructions for [installing Cirq](install.md).
 
@@ -104,7 +103,7 @@ lowest possible value of the objective function.
 ### Create a circuit on a Grid
 
 To build the above variational quantum algorithm using Cirq,
-one begins by building the appropriate [circuit](circuits.md).
+one begins by building the appropriate circuit.
 In Cirq circuits are represented either by a `Circuit` object
 or a `Schedule` object.  `Schedule`s offer more control over
 quantum gates and circuits at the timing level, which we do not
@@ -120,10 +119,8 @@ should help illustrate these concepts.
 
 ![Circuits and Moments](CircuitMomentOperation.png)
 
-See the [conceptual documentation](circuits.md) for more 
-details on these classes. Because the problem we have 
-defined has a natural structure on a grid, we will use 
-Cirq's built in `GridQubit`s as our qubits.
+Because the problem we have defined has a natural structure on a grid, we will
+use Cirq's built in `GridQubit`s as our qubits.
 We will demonstrate some of how this works in an 
 interactive Python environment, the following code can
 be run in series in a Python environment where you have
@@ -144,7 +141,7 @@ print(qubits)
 ```
 Here we see that we've created a bunch of `GridQubit`s. 
 `GridQubit`s implement the `QubitId` class, which just means
-that they are equatable and hashable. `GridQubit`s in addition
+that they are equatable and hashable. `QubitId` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
 have a row and column, indicating their position on a grid.
 
 Now that we have some qubits, let us construct a `Circuit` on these qubits.
@@ -154,7 +151,7 @@ gate to every qubit whose row index plus column index is odd.  To
 do this we write
 ```python
 circuit = cirq.Circuit()
-circuit.append(cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0)
+circuit.append(cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0)
 circuit.append(cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1)
 print(circuit)
 # prints
@@ -206,7 +203,7 @@ we wanted to insert the gates so that they form one `Moment`, we could
 instead use the `EARLIEST` insertion strategy:
 ```python
 circuit = cirq.Circuit()
-circuit.append([cirq.H.on(q) for q in qubits if (q.row + q.col) % 2 == 0],
+circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
                strategy=cirq.InsertStrategy.EARLIEST)
 circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
                strategy=cirq.InsertStrategy.EARLIEST)
@@ -255,7 +252,7 @@ to the Circuit:
 ```python
 def rot_x_layer(length, half_turns):
     """Yields X rotations by half_turns on a square grid of given length."""
-    rot = cirq.RotXGate(half_turns=half_turns)
+    rot = cirq.XPowGate(exponent=half_turns)
     for i in range(length):
         for j in range(length):
             yield rot(cirq.GridQubit(i, j))
@@ -317,26 +314,26 @@ run because they are using `random.choice`.
 Given this definition of the problem instance we can
 now introduce our ansatz.  Our ansatz will consist
 of one step of a circuit made up of
-1. Apply a RotXGate for the same parameter for all qubits.
+1. Apply an XPowGate for the same parameter for all qubits.
 This is the method we have written above.
-2. Apply a RotZGate for the same parameter for all qubits
+2. Apply a ZPowGate for the same parameter for all qubits
 where the transverse field term h is +1.
 ```python
 def rot_z_layer(h, half_turns):
     """Yields Z rotations by half_turns conditioned on the field h."""
-    gate = cirq.RotZGate(half_turns=half_turns)
+    gate = cirq.ZPowGate(exponent=half_turns)
     for i, h_row in enumerate(h):
         for j, h_ij in enumerate(h_row):
             if h_ij == 1:
                 yield gate(cirq.GridQubit(i, j))
 ```
-3. Apply a Rot11Gate for the same parameter between all
+3. Apply a CZPowGate for the same parameter between all
 qubits where the coupling field term J is +1. If the field
-is -1 apply Rot11Gate conjugated by X gates on all qubits.
+is -1 apply CZPowGate conjugated by X gates on all qubits.
 ```python
 def rot_11_layer(jr, jc, half_turns):
     """Yields rotations about |11> conditioned on the jr and jc fields."""
-    gate = cirq.Rot11Gate(half_turns=half_turns)    
+    gate = cirq.CZPowGate(exponent=half_turns)    
     for i, jr_row in enumerate(jr):
         for j, jr_ij in enumerate(jr_row):
             if jr_ij == -1:
@@ -380,23 +377,23 @@ circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3),
                strategy=cirq.InsertStrategy.EARLIEST)
 print(circuit)
 # prints something like
-# (0, 0): ───X^0.1───────────@───────X───────────────────────────────@───────X───────────────────────────────
-#                            │                                       │
-# (0, 1): ───X^0.1───Z^0.2───┼───────@───────────────────────X───────@^0.3───X───X───────@───────X───────────
-#                            │       │                                                   │
-# (0, 2): ───X^0.1───Z^0.2───┼───────┼───────@───────────────X───────────────────────────@^0.3───X───────────
-#                            │       │       │
-# (1, 0): ───X^0.1───────────@^0.3───┼───────┼───────@───────X───────────────────────────@───────X───────────
-#                                    │       │       │                                   │
-# (1, 1): ───X^0.1───Z^0.2───────────@^0.3───┼───────┼───────X───────@───────X───X───────@^0.3───X───@───────
-#                                            │       │               │                               │
-# (1, 2): ───X^0.1───Z^0.2───────────────────@^0.3───┼───────@───────┼───────────────────────────────@^0.3───
-#                                                    │       │       │
-# (2, 0): ───X^0.1───────────────────────────────────@^0.3───┼───────┼───────────@───────────────────────────
-#                                                            │       │           │
-# (2, 1): ───X^0.1───Z^0.2───────────X───────────────────────┼───────@^0.3───X───@^0.3───@───────────────────
-#                                                            │                           │
-# (2, 2): ───X^0.1───Z^0.2───────────────────────────────────@^0.3───────────────────────@^0.3───────────────
+# (0, 0): ───X^0.1─────────────@───────X───────────────────────────────@───────X───────────────────────────────
+#                              │                                       │
+# (0, 1): ───X^0.1───Z^(1/5)───┼───────@───────────────────────X───────@^0.3───X───X───────@───────X───────────
+#                              │       │                                                   │
+# (0, 2): ───X^0.1───Z^(1/5)───┼───────┼───────@───────────────X───────────────────────────@^0.3───X───────────
+#                              │       │       │
+# (1, 0): ───X^0.1─────────────@^0.3───┼───────┼───────@───────X───────────────────────────@───────X───────────
+#                                      │       │       │                                   │
+# (1, 1): ───X^0.1───Z^(1/5)───────────@^0.3───┼───────┼───────X───────@───────X───X───────@^0.3───X───@───────
+#                                              │       │               │                               │
+# (1, 2): ───X^0.1───Z^(1/5)───────────────────@^0.3───┼───────@───────┼───────────────────────────────@^0.3───
+#                                                      │       │       │
+# (2, 0): ───X^0.1─────────────────────────────────────@^0.3───┼───────┼───────────@───────────────────────────
+#                                                              │       │           │
+# (2, 1): ───X^0.1───Z^(1/5)───────────X───────────────────────┼───────@^0.3───X───@^0.3───@───────────────────
+#                                                              │                           │
+# (2, 2): ───X^0.1───Z^(1/5)───────────────────────────────────@^0.3───────────────────────@^0.3───────────────
 ```
 Here we see that we have chosen particular parameter
 values (0.1, 0.2, 0.3).
@@ -594,5 +591,3 @@ We've created a simple variational quantum algorithm using Cirq.
 Where to go next?  Perhaps you can play around with the above code
 and work on analyzing the algorithms performance.  Add new parameterized
 circuits and build an end to end program for analyzing these circuits.
-Finally a good place to learn more about features of Cirq is to read
-through the [conceptual documentation](table_of_contents.md).

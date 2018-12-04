@@ -14,9 +14,4 @@
 
 """Define version number here and read it from setup.py automatically"""
 
-import sys
-
-if sys.version_info.major == 2:
-    __version__ = "0.4.0.dev27"  # coverage: ignore
-else:
-    __version__ = "0.4.0.dev35"
+__version__ = "0.5.0.dev"

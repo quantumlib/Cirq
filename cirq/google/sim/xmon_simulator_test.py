@@ -32,7 +32,7 @@ Q3 = cirq.GridQubit(2, 0)
 
 
 def basic_circuit():
-    sqrt_x = cg.ExpWGate(half_turns=-0.5, axis_half_turns=0.0)
+    sqrt_x = cirq.PhasedXPowGate(exponent=-0.5, phase_exponent=0.0)
     circuit = cirq.Circuit()
     circuit.append(
         [sqrt_x(Q1), sqrt_x(Q2),
@@ -45,7 +45,7 @@ def basic_circuit():
 def large_circuit():
     np.random.seed(0)
     qubits = [cirq.GridQubit(i, 0) for i in range(10)]
-    sqrt_x = cg.ExpWGate(half_turns=0.5, axis_half_turns=0.0)
+    sqrt_x = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0.0)
     circuit = cirq.Circuit()
     for _ in range(11):
         circuit.append(
@@ -116,7 +116,7 @@ def test_run(scheduler):
     assert result.measurements['a'].dtype == bool
     assert result.measurements['b'].dtype == bool
     np.testing.assert_equal(result.measurements,
-                            {'a': [[True]], 'b': [[False]]})
+                            {'a': [[False]], 'b': [[True]]})
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -278,7 +278,7 @@ def test_invalid_initial_state_empty_circuit_qubits_not_specified(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_state(scheduler):
+def test_simulate_state(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler)
     np.testing.assert_almost_equal(result.final_state,
@@ -286,7 +286,7 @@ def test_run_state(scheduler):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_run_initial_state_int(scheduler):
+def test_simulate_initial_state_int(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler,
                       initial_state=2)
@@ -386,8 +386,8 @@ def test_consistent_seeded_run_sharded(scheduler):
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(
-        result.measurements['meas'],
-        [[False, True, True, True, False, False, True, False, False, False]])
+            result.measurements['meas'],
+            [[False, False, True, True, True, True, False, True, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -399,7 +399,7 @@ def test_consistent_seeded_run_no_sharding(scheduler):
     result = run(simulator, circuit, scheduler, )
     np.testing.assert_equal(
         result.measurements['meas'],
-        [[False, True, True, True, False, False, True, False, False, False]])
+        [[False, False, True, True, True, True, False, True, False, False]])
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -413,8 +413,8 @@ def test_run_no_sharing_few_qubits(scheduler):
     simulator = cg.XmonSimulator(
         cg.XmonOptions(min_qubits_before_shard=0))
     result = run(simulator, circuit, scheduler)
-    np.testing.assert_equal(result.measurements['a'], [[True]])
-    np.testing.assert_equal(result.measurements['b'], [[False]])
+    np.testing.assert_equal(result.measurements['a'], [[False]])
+    np.testing.assert_equal(result.measurements['b'], [[True]])
 
 
 def test_simulate_moment_steps_no_results():
@@ -508,9 +508,9 @@ def compute_gate(circuit, resolver, num_qubits=1):
 
 
 def test_param_resolver_exp_w_half_turns():
-    exp_w = cg.ExpWGate(
-        half_turns=cirq.Symbol('a'),
-        axis_half_turns=0.0)
+    exp_w = cirq.PhasedXPowGate(
+        exponent=cirq.Symbol('a'),
+        phase_exponent=0.0)
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': -0.5})
@@ -522,8 +522,8 @@ def test_param_resolver_exp_w_half_turns():
 
 
 def test_param_resolver_exp_w_axis_half_turns():
-    exp_w = cg.ExpWGate(
-        half_turns=1.0, axis_half_turns=cirq.Symbol('a'))
+    exp_w = cirq.PhasedXPowGate(
+        exponent=1.0, phase_exponent=cirq.Symbol('a'))
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': 0.5})
@@ -534,9 +534,9 @@ def test_param_resolver_exp_w_axis_half_turns():
 
 
 def test_param_resolver_exp_w_multiple_params():
-    exp_w = cg.ExpWGate(
-        half_turns=cirq.Symbol('a'),
-        axis_half_turns=cirq.Symbol('b'))
+    exp_w = cirq.PhasedXPowGate(
+        exponent=cirq.Symbol('a'),
+        phase_exponent=cirq.Symbol('b'))
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': -0.5, 'b': 0.5})
@@ -571,9 +571,9 @@ def test_param_resolver_exp_11_half_turns():
 
 
 def test_param_resolver_param_dict():
-    exp_w = cg.ExpWGate(
-        half_turns=cirq.Symbol('a'),
-        axis_half_turns=0.0)
+    exp_w = cirq.PhasedXPowGate(
+        exponent=cirq.Symbol('a'),
+        phase_exponent=0.0)
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': 0.5})
@@ -585,7 +585,7 @@ def test_param_resolver_param_dict():
 
 def test_run_circuit_sweep():
     circuit = cirq.Circuit.from_ops(
-        cg.ExpWGate(half_turns=cirq.Symbol('a')).on(Q1),
+        cirq.X(Q1)**cirq.Symbol('a'),
         cirq.MeasurementGate('m').on(Q1),
     )
 
@@ -600,7 +600,7 @@ def test_run_circuit_sweep():
 
 def test_run_circuit_sweeps():
     circuit = cirq.Circuit.from_ops(
-        cg.ExpWGate(half_turns=cirq.Symbol('a')).on(Q1),
+        cirq.X(Q1)**cirq.Symbol('a'),
         cirq.MeasurementGate('m').on(Q1),
     )
 
@@ -736,7 +736,7 @@ def test_measurement_keys_repeat(scheduler):
 
 
 def test_handedness_of_xmon_exp_x_gate():
-    circuit = cirq.Circuit.from_ops(cg.ExpWGate(half_turns=0.5).on(Q1))
+    circuit = cirq.Circuit.from_ops(cirq.X(Q1)**0.5)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -746,8 +746,7 @@ def test_handedness_of_xmon_exp_x_gate():
 
 
 def test_handedness_of_xmon_exp_y_gate():
-    circuit = cirq.Circuit.from_ops(cg.ExpWGate(half_turns=0.5,
-                                                axis_half_turns=0.5).on(Q1))
+    circuit = cirq.Circuit.from_ops(cirq.Y(Q1)**0.5)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -834,9 +833,9 @@ def test_handedness_of_basic_gates():
 
 def test_handedness_of_xmon_gates():
     circuit = cirq.Circuit.from_ops(
-        cg.ExpWGate(half_turns=-0.5).on(Q1),
+        cirq.X(Q1)**-0.5,
         cirq.Z(Q1)**-0.5,
-        cg.ExpWGate(axis_half_turns=0.5, half_turns=0.5).on(Q1),
+        cirq.Y(Q1)**0.5,
         cirq.MeasurementGate(key='').on(Q1),
     )
     result = cg.XmonSimulator().run(circuit)
@@ -845,8 +844,7 @@ def test_handedness_of_xmon_gates():
 
 def bit_flip_circuit(flip0, flip1):
     q1, q2 = cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)
-    g1, g2 = cg.ExpWGate(half_turns=flip0)(q1), cg.ExpWGate(half_turns=flip1)(
-        q2)
+    g1, g2 = cirq.X(q1)**flip0, cirq.X(q2)**flip1
     m1, m2 = cirq.MeasurementGate('q1')(q1), cirq.MeasurementGate('q2')(q2)
     circuit = cirq.Circuit()
     circuit.append([g1, g2, m1, m2])

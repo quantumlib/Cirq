@@ -38,17 +38,32 @@ def test_fallback_diagram():
         def __str__(self):
             return 'MagicGate'
 
-    circuit = cirq.Circuit.from_ops(MagicGate().on(
-        cirq.NamedQubit('b'),
-        cirq.NamedQubit('a'),
-        cirq.NamedQubit('c')))
+    class MagicOp(cirq.Operation):
+        def __init__(self, *qubits):
+            self._qubits = qubits
+
+        def with_qubits(self, *new_qubits):
+            return MagicOp(*new_qubits)
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def __str__(self):
+            return 'MagicOperate'
+
+    circuit = cirq.Circuit.from_ops(
+        MagicOp(cirq.NamedQubit('b')),
+        MagicGate().on(cirq.NamedQubit('b'),
+                       cirq.NamedQubit('a'),
+                       cirq.NamedQubit('c')))
     diagram = circuit_to_latex_using_qcircuit(circuit)
     assert diagram.strip() == r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{a}}& \qw&\text{\#2}       \qw    &\qw\\
- &\lstick{\text{b}}& \qw&\text{MagicGate} \qw\qwx&\qw\\
- &\lstick{\text{c}}& \qw&\text{\#3}       \qw\qwx&\qw\\
+ &\lstick{\text{a}}& \qw&                    \qw&\text{\#2}       \qw    &\qw\\
+ &\lstick{\text{b}}& \qw&\text{MagicOperate} \qw&\text{MagicGate} \qw\qwx&\qw\\
+ &\lstick{\text{c}}& \qw&                    \qw&\text{\#3}       \qw\qwx&\qw\\
  \\
 }""".strip()
 
@@ -56,7 +71,7 @@ def test_fallback_diagram():
 def test_text_to_qcircuit_diagrammable():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
-    g = cirq.SwapGate(half_turns=0.5)
+    g = cirq.SwapPowGate(exponent=0.5)
     f = _TextToQCircuitDiagrammable(g)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     actual_info = f.qcircuit_diagram_info(
@@ -125,5 +140,24 @@ def test_teleportation_diagram():
  &\lstick{\text{alice}}&   \qw&                \qw&\gate{\text{X}^{0.5}} \qw    &\control \qw    &\gate{\text{H}} \qw&\meter \qw&         \qw    &\control \qw    &\qw\\
  &\lstick{\text{carrier}}& \qw&\gate{\text{H}} \qw&\control              \qw    &\targ    \qw\qwx&                \qw&\meter \qw&\control \qw    &         \qw\qwx&\qw\\
  &\lstick{\text{bob}}&     \qw&                \qw&\targ                 \qw\qwx&         \qw    &                \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
+ \\
+}""".strip()
+
+
+def test_other_diagram():
+    a, b, c = cirq.LineQubit.range(3)
+
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.Z(c))
+
+    diagram = circuit_to_latex_using_qcircuit(circuit)
+    assert diagram.strip() == r"""
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{0}}& \qw&\targ           \qw&\qw\\
+ &\lstick{\text{1}}& \qw&\gate{\text{Y}} \qw&\qw\\
+ &\lstick{\text{2}}& \qw&\gate{\text{Z}} \qw&\qw\\
  \\
 }""".strip()

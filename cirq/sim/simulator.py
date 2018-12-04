@@ -22,12 +22,12 @@ Simulator types include
 import abc
 import collections
 
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterable, Iterator, List, Tuple, Union, Optional
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study
-from cirq.sim import state
+from cirq import circuits, ops, schedules, study, value
+from cirq.sim import wave_function
 
 
 class SimulatesSamples:
@@ -83,9 +83,10 @@ class SimulatesSamples:
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
+            as_array = dict((k, np.array(v)) for k, v in measurements.items())
             trial_results.append(study.TrialResult(params=param_resolver,
                                                    repetitions=repetitions,
-                                                   measurements=measurements))
+                                                   measurements=as_array))
         return trial_results
 
     @abc.abstractmethod
@@ -184,6 +185,7 @@ class SimulatesFinalWaveFunction:
         raise NotImplementedError()
 
 
+@value.value_equality(unhashable=True)
 class SimulationTrialResult:
     """Results of a simulation by a SimulatesFinalWaveFunction.
 
@@ -197,13 +199,34 @@ class SimulationTrialResult:
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
         final_state: The final state (wave function) of the system after the
-            trial finishes.
+            trial finishes. The state is returned in the computational basis
+            with these basis states defined by the qubit ordering of the
+            simulation. In particular the qubit ordering can be used to produce
+            a list of qubits, and these qubits can the be associated with their
+            index in the list.  This mapping of qubit to index is then
+            translated into binary vectors where the last qubit is the
+            1s bit of the index, the second-to-last is the 2s bit of the index,
+            and so forth (i.e. big endian ordering). Example:
+                 qubit ordering: [QubitA, QubitB, QubitC]
+            Then the returned vector will have indices mapped to qubit basis
+            states like the following table
+                   |   | QubitA | QubitB | QubitC |
+                   +---+--------+--------+--------+
+                   | 0 |   0    |   0    |   0    |
+                   | 1 |   0    |   0    |   1    |
+                   | 2 |   0    |   1    |   0    |
+                   | 3 |   0    |   1    |   1    |
+                   | 4 |   1    |   0    |   0    |
+                   | 5 |   1    |   0    |   1    |
+                   | 6 |   1    |   1    |   0    |
+                   | 7 |   1    |   1    |   1    |
+                   +---+--------+--------+--------+
     """
 
     def __init__(self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_state: np.ndarray) -> None:
+                 params: study.ParamResolver,
+                 measurements: Dict[str, np.ndarray],
+                 final_state: np.ndarray) -> None:
         self.params = params
         self.measurements = measurements
         self.final_state = final_state
@@ -224,22 +247,77 @@ class SimulationTrialResult:
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
 
-    def dirac_notation(self, decimals=2):
-        return state.dirac_notation(self.final_state, decimals)
+    def dirac_notation(self, decimals: int = 2) -> str:
+        """Returns the wavefunction as a string in Dirac notation.
 
-    def _eq_tuple(self):
+        Args:
+            decimals: How many decimals to include in the pretty print.
+
+        Returns:
+            A pretty string consisting of a sum of computational basis kets
+            and non-zero floats of the specified accuracy."""
+        return wave_function.dirac_notation(self.final_state, decimals)
+
+    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
+        """Returns the density matrix of the wavefunction.
+
+        Calculate the density matrix for the system on the given qubit
+        indices, with the qubits not in indices that are present in
+        self.final_state traced out. If indices is None the full density
+        matrix for self.final_state is returned, given self.final_state
+        follows the standard Kronecker convention of numpy.kron.
+
+        For example:
+            self.final_state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                dtype=np.complex64)
+            indices = None
+            gives us \rho = \begin{bmatrix}
+                                0.5 & 0.5
+                                0.5 & 0.5
+                            \end{bmatrix}
+
+        Args:
+            indices: list containing indices for qubits that you would like
+                to include in the density matrix (i.e.) qubits that WON'T
+                be traced out.
+
+        Returns:
+            A numpy array representing the density matrix.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if the indices are out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.density_matrix_from_state_vector(
+            self.final_state, indices)
+
+    def bloch_vector(self, index: int) -> np.ndarray:
+        """Returns the bloch vector of a qubit.
+
+        Calculates the bloch vector of the qubit at index
+        in the wavefunction given by self.state. Given that self.state
+        follows the standard Kronecker convention of numpy.kron.
+
+        Args:
+            index: index of qubit who's bloch vector we want to find.
+
+        Returns:
+            A length 3 numpy array representing the qubit's bloch vector.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if index is out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.bloch_vector_from_state_vector(
+            self.final_state, index)
+
+    def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (SimulationTrialResult, self.params, measurements,
                 self.final_state.tolist())
-
-    def __eq__(self, other):
-        if not isinstance(other, SimulationTrialResult):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
 
 
 class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
@@ -302,17 +380,15 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 final_state = step_result.state()
             else:
                 # Empty circuit, so final state should be initial state.
-                print(circuit)
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = state.to_valid_state_vector(initial_state,
-                                                          num_qubits)
+                final_state = wave_function.to_valid_state_vector(initial_state,
+                                                                  num_qubits)
             trial_results.append(SimulationTrialResult(
                 params=param_resolver,
                 measurements=measurements,
                 final_state=final_state))
 
         return trial_results
-
 
     def simulate_moment_steps(
         self,
@@ -341,7 +417,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         param_resolver = param_resolver or study.ParamResolver({})
         return self._simulator_iterator(circuit, param_resolver, qubit_order,
                                         initial_state)
-
 
     @abc.abstractmethod
     def _simulator_iterator(
@@ -380,10 +455,9 @@ class StepResult:
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(
-        self,
-        qubit_map: Dict,
-        measurements: Dict[str, List[bool]]) -> None:
+    def __init__(self,
+                 qubit_map: Optional[Dict],
+                 measurements: Optional[Dict[str, List[bool]]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or collections.defaultdict(list)
 
@@ -392,8 +466,8 @@ class StepResult:
         """Return the state (wave function) at this point in the computation.
 
         The state is returned in the computational basis with these basis
-        states defined by the qubit_map. In particular the value in the
-        qubit_map is the index of the qubit, and these are translated into
+        states defined by the `qubit_map`. In particular the value in the
+        `qubit_map` is the index of the qubit, and these are translated into
         binary vectors where the last qubit is the 1s bit of the index, the
         second-to-last is the 2s bit of the index, and so forth (i.e. big
         endian ordering).
@@ -417,7 +491,7 @@ class StepResult:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def set_state(self, state: Union[int, np.ndarray]):
+    def set_state(self, state: Union[int, np.ndarray]) -> None:
         """Updates the state of the simulator to the given new state.
 
         Args:
@@ -434,28 +508,135 @@ class StepResult:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def sample(self, qubits: List[ops.QubitId], repetitions: int = 1):
+    def sample(self,
+               qubits: List[ops.QubitId],
+               repetitions: int = 1) -> List[List[bool]]:
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.
 
+        Args:
+            qubits: The qubits to be sampled in an order that influence the
+                returned measurement results.
+            repetitions: The number of samples to take.
+
         Returns:
-            Measurement results with True corresponding to the |1> state.
+            Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
-            measurements ordered by the supplied qubits.
+            measurements ordered by the supplied qubits. These lists
+            are wrapped as an numpy ndarray.
         """
         raise NotImplementedError()
 
-    def dirac_notation(self, decimals=2):
+    def sample_measurement_ops(
+            self,
+            measurement_ops: List[ops.GateOperation],
+            repetitions: int = 1) -> Dict[str, List[List[bool]]]:
+        """Samples from the wave function at this point in the computation.
+
+        Note that this does not collapse the wave function.
+
+        In contrast to `sample` which samples qubits, this takes a list of
+        `cirq.GateOperation` instances whose gates are `cirq.MeasurementGate`
+        instances and then returns a mapping from the key in the measurement
+        gate to the resulting bit strings. Different measurement operations must
+        not act on the same qubits.
+
+        Args:
+            measurement_ops: `GateOperation` instances whose gates are
+                `MeasurementGate` instances to be sampled form.
+            repetitions: The number of samples to take.
+
+        Returns: A dictionary from the measurement gate keys to the measurement
+            results. These results are lists of lists, with the outer list
+            corresponding to repetitions and the inner list corresponding
+            to the qubits acted upon by the measurement operation with the
+            given key.
+
+        Raises:
+            ValueError: If the operation's gates are not `MeasurementGate`
+                instances or a qubit is acted upon multiple times by different
+                operations from `measurement_ops`.
+        """
+        bounds = {}  # type: Dict[str, Tuple]
+        all_qubits = []  # type: List[ops.QubitId]
+        current_index = 0
+        for op in measurement_ops:
+            gate = op.gate
+            if not isinstance(gate, ops.MeasurementGate):
+                raise ValueError('{} was not a MeasurementGate'.format(gate))
+            if gate.key in bounds:
+                raise ValueError(
+                    'Duplicate MeasurementGate with key {}'.format(gate.key))
+            bounds[gate.key] = (current_index, current_index + len(op.qubits))
+            all_qubits.extend(op.qubits)
+            current_index += len(op.qubits)
+        indexed_sample = self.sample(all_qubits, repetitions)
+        return {k: [x[s:e] for x in indexed_sample] for k, (s, e) in
+                bounds.items()}
+
+    def dirac_notation(self, decimals: int = 2) -> str:
         """Returns the wavefunction as a string in Dirac notation.
 
         Args:
-            state: A sequence representing a wave function in which the ordering
-                mapping to qubits follows the standard Kronecker convention of
-                numpy.kron.
             decimals: How many decimals to include in the pretty print.
 
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return state.dirac_notation(self.state, decimals)
+        return wave_function.dirac_notation(self.state(), decimals)
+
+    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
+        """Returns the density matrix of the wavefunction.
+
+        Calculate the density matrix for the system on the given qubit
+        indices, with the qubits not in indices that are present in self.state
+        traced out. If indices is None the full density matrix for self.state
+        is returned, given self.state follows standard Kronecker convention
+        of numpy.kron.
+
+        For example:
+            self.state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                dtype=np.complex64)
+            indices = None
+            gives us \rho = \begin{bmatrix}
+                                0.5 & 0.5
+                                0.5 & 0.5
+                            \end{bmatrix}
+
+        Args:
+            indices: list containing indices for qubits that you would like
+                to include in the density matrix (i.e.) qubits that WON'T
+                be traced out.
+
+        Returns:
+            A numpy array representing the density matrix.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if the indices are out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.density_matrix_from_state_vector(
+            self.state(), indices)
+
+    def bloch_vector(self, index: int) -> np.ndarray:
+        """Returns the bloch vector of a qubit.
+
+        Calculates the bloch vector of the qubit at index
+        in the wavefunction given by self.state. Given that self.state
+        follows the standard Kronecker convention of numpy.kron.
+
+        Args:
+            index: index of qubit who's bloch vector we want to find.
+
+        Returns:
+            A length 3 numpy array representing the qubit's bloch vector.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if index is out of range for the number of qubits
+                corresponding to the state.
+        """
+        return wave_function.bloch_vector_from_state_vector(
+            self.state(), index)

@@ -18,6 +18,9 @@ import pytest
 
 import cirq
 import cirq.google as cg
+from cirq.google.programs import (
+    _parameterized_value_from_proto_dict
+)
 from cirq.schedules import moment_by_moment_schedule
 
 
@@ -25,14 +28,14 @@ def assert_proto_dict_convert(gate: cirq.Gate,
                               proto_dict: Dict,
                               *qubits: cirq.QubitId):
     assert cg.gate_to_proto_dict(gate, qubits) == proto_dict
-    assert cg.XmonGate.from_proto_dict(proto_dict) == gate(*qubits)
+    assert cg.xmon_op_from_proto_dict(proto_dict) == gate(*qubits)
 
 
 def test_protobuf_round_trip():
     device = cg.Foxtail
     circuit = cirq.Circuit.from_ops(
         [
-            cg.ExpWGate(half_turns=0.5).on(q)
+            cirq.X(q)**0.5
             for q in device.qubits
         ],
         [
@@ -306,7 +309,7 @@ def test_cz_invalid_dict():
         }
     }
     with pytest.raises(ValueError, match='missing required fields'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_11': {
@@ -320,7 +323,7 @@ def test_cz_invalid_dict():
         }
     }
     with pytest.raises(ValueError, match='missing required fields'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_11': {
@@ -335,11 +338,11 @@ def test_cz_invalid_dict():
         }
     }
     with pytest.raises(ValueError, match='missing required fields'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_w_to_proto_dict():
-    gate = cg.ExpWGate(half_turns=cirq.Symbol('k'), axis_half_turns=1)
+    gate = cirq.PhasedXPowGate(exponent=cirq.Symbol('k'), phase_exponent=1)
     proto_dict = {
         'exp_w': {
             'target': {
@@ -357,7 +360,59 @@ def test_w_to_proto_dict():
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
-    gate = cg.ExpWGate(half_turns=0.5, axis_half_turns=cirq.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'parameter_key': 'j'
+            },
+            'half_turns': {
+                'raw': 0.5
+            }
+        }
+    }
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
+
+    gate = cirq.X**0.25
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'raw': 0.0
+            },
+            'half_turns': {
+                'raw': 0.25
+            }
+        }
+    }
+    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+
+    gate = cirq.Y**0.25
+    proto_dict = {
+        'exp_w': {
+            'target': {
+                'row': 2,
+                'col': 3
+            },
+            'axis_half_turns': {
+                'raw': 0.5
+            },
+            'half_turns': {
+                'raw': 0.25
+            }
+        }
+    }
+    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+
+    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -388,7 +443,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -402,7 +457,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_w': {
@@ -416,7 +471,7 @@ def test_w_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.ExpWGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_unsupported_op():
@@ -429,7 +484,7 @@ def test_unsupported_op():
         }
     }
     with pytest.raises(ValueError, match='invalid operation'):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
     with pytest.raises(ValueError, match='know how to serialize'):
         cg.gate_to_proto_dict(cirq.CCZ, (cirq.GridQubit(0, 0),
                                          cirq.GridQubit(0, 1),
@@ -443,12 +498,13 @@ def test_invalid_to_proto_dict_qubit_number():
         cg.gate_to_proto_dict(cirq.Z**0.5, (cirq.GridQubit(2, 3),
                                             cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.ExpWGate(half_turns=0.5, axis_half_turns=0).to_proto_dict(
-            cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
+        cg.gate_to_proto_dict(
+            cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
+            (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
 
 
 def test_parameterized_value_from_proto():
-    from_proto = cg.XmonGate.parameterized_value_from_proto_dict
+    from_proto = _parameterized_value_from_proto_dict
 
     m1 = {'raw': 5}
     assert from_proto(m1) == 5
@@ -472,7 +528,7 @@ def test_single_qubit_measurement_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'measurement': {
@@ -485,7 +541,7 @@ def test_single_qubit_measurement_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_invalid_measurement_gate():
@@ -508,7 +564,7 @@ def test_z_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
 
     proto_dict = {
         'exp_z': {
@@ -518,4 +574,30 @@ def test_z_invalid_dict():
         }
     }
     with pytest.raises(ValueError):
-        cg.XmonGate.from_proto_dict(proto_dict)
+        cg.xmon_op_from_proto_dict(proto_dict)
+
+
+def test_is_supported():
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(1, 0)
+    assert cg.is_native_xmon_op(cirq.CZ(a, b))
+    assert cg.is_native_xmon_op(cirq.X(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Y(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Z(a)**0.5)
+    assert cg.is_native_xmon_op(
+        cirq.PhasedXPowGate(phase_exponent=0.2).on(a)**0.5)
+    assert cg.is_native_xmon_op(cirq.Z(a)**1)
+    assert not cg.is_native_xmon_op(cirq.CCZ(a, b, c))
+    assert not cg.is_native_xmon_op(cirq.SWAP(a, b))
+
+
+def test_is_native_xmon_gate():
+    assert cg.is_native_xmon_gate(cirq.CZ)
+    assert cg.is_native_xmon_gate(cirq.X**0.5)
+    assert cg.is_native_xmon_gate(cirq.Y**0.5)
+    assert cg.is_native_xmon_gate(cirq.Z**0.5)
+    assert cg.is_native_xmon_gate(cirq.PhasedXPowGate(phase_exponent=0.2)**0.5)
+    assert cg.is_native_xmon_gate(cirq.Z**1)
+    assert not cg.is_native_xmon_gate(cirq.CCZ)
+    assert not cg.is_native_xmon_gate(cirq.SWAP)

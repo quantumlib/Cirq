@@ -14,7 +14,6 @@
 
 import cirq
 from cirq.contrib.jobs import DepolarizerChannel, Job
-from cirq.google import xmon_gates
 
 
 def test_depolarizer_no_errors():
@@ -57,7 +56,7 @@ def test_depolarizer_different_gate():
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
     allerrors = DepolarizerChannel(probability=1.0, depolarizing_gates=
-                                   [cirq.Z, xmon_gates.ExpWGate()])
+                                   [cirq.Z, cirq.X])
     p0 = cirq.Symbol(DepolarizerChannel._parameter_name + '0')
     p1 = cirq.Symbol(DepolarizerChannel._parameter_name + '1')
     p2 = cirq.Symbol(DepolarizerChannel._parameter_name + '2')
@@ -70,8 +69,7 @@ def test_depolarizer_different_gate():
         cirq.Circuit([
             cirq.Moment([cirq.CNOT(q1, q2)]),
             cirq.Moment([cirq.Z(q1)**p0, cirq.Z(q2)**p1]),
-            cirq.Moment([xmon_gates.ExpWGate(half_turns=p2).on(q1),
-                             xmon_gates.ExpWGate(half_turns=p3).on(q2)])
+            cirq.Moment([cirq.X(q1)**p2, cirq.X(q2)**p3])
         ]),
         cnot.sweep * error_sweep)
 

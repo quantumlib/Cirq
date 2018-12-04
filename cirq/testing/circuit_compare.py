@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type
 
 from collections import defaultdict
 import itertools
 import numpy as np
 
-from cirq import circuits, ops, linalg, protocols
+from cirq import circuits, ops, linalg, protocols, value, EigenGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Dict, List, Set
+    from typing import Dict, List
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -42,7 +42,7 @@ def _measurement_subspaces(
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
 
-    The function computes a partioning of the computational basis such
+    The function computes a partitioning of the computational basis such
     that the subspace spanned by each partition corresponds to a distinct
     measurement outcome. In particular, if all qubits are measured then
     2**n singleton partitions are returned. If no qubits are measured then
@@ -51,11 +51,11 @@ def _measurement_subspaces(
     Args:
         measured_qubits: Qubits subject to measurement
         n_qubits: Total number of qubits in circuit
-        qubit_order: Qubit order to determine computational basis
     Returns:
         Sequence of subspaces where each subspace is a sequence of
             computational basis states in order corresponding to qubit_order
     """
+
     # Consider projective measurement in the computational basis on a subset
     # of qubits. Each projection operator associated with the measurement is
     # uniquely determined by its range, here called a measurement subspace.
@@ -223,12 +223,12 @@ def assert_has_diagram(
 
     Args:
         actual: The circuit that was actually computed by some process.
-        desired: The desired text diagram as a string. Whitespace at the
-            beginning and end are ignored.
+        desired: The desired text diagram as a string. Newlines at the
+            beginning and whitespace at the end are ignored.
         **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
-    actual_diagram = actual.to_text_diagram(**kwargs).strip()
-    desired_diagram = desired.strip()
+    actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
+    desired_diagram = desired.lstrip("\n").rstrip()
     assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"
         '\n'
@@ -245,6 +245,116 @@ def assert_has_diagram(
     )
 
 
+def assert_has_consistent_apply_unitary(
+        val: Any,
+        *,
+        qubit_count: Optional[int] = None,
+        atol: float=1e-8) -> None:
+    """Tests whether a value's _apply_unitary_ is correct.
+
+    Contrasts the effects of the value's `_apply_unitary_` with the
+    matrix returned by the value's `_unitary_` method.
+
+    Args:
+        val: The value under test. Should have a `__pow__` method.
+        qubit_count: Usually inferred. The number of qubits the value acts on.
+            This argument isn't needed if the gate has a unitary matrix or
+            implements `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/
+            `cirq.ThreeQubitGate`.
+    """
+
+    expected = protocols.unitary(val, default=None)
+    if qubit_count is not None:
+        n = qubit_count
+    elif expected is not None:
+        n = expected.shape[0].bit_length() - 1
+    else:
+        n = _infer_qubit_count(val)
+
+    eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
+    actual = protocols.apply_unitary(
+        unitary_value=val,
+        args=protocols.ApplyUnitaryArgs(
+            target_tensor=eye,
+            available_buffer=np.ones_like(eye) * float('nan'),
+            axes=list(range(1, n + 1))),
+        default=None)
+
+    # If you don't have a unitary, you shouldn't be able to apply a unitary.
+    if expected is None:
+        assert actual is None
+    else:
+        expected = np.kron(np.eye(2), expected)
+
+    # If you applied a unitary, it should match the one you say you have.
+    if actual is not None:
+        np.testing.assert_allclose(
+            actual.reshape(2 << n, 2 << n),
+            expected,
+            atol=atol)
+
+
+def assert_eigen_gate_has_consistent_apply_unitary(
+        eigen_gate_type: Type[EigenGate],
+        *,
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        global_shifts=(0, 0.5, -0.5, 0.1),
+        qubit_count: Optional[int] = None) -> None:
+    """Tests whether an EigenGate type's _apply_unitary_ is correct.
+
+    Contrasts the effects of the gate's `_apply_unitary_` with the
+    matrix returned by the gate's `_unitary_` method, trying various values for
+    the gate exponent and global shift.
+
+    Args:
+        eigen_gate_type: The type of gate to test. The type must have an
+            __init__ method that takes an exponent and a global_shift.
+        exponents: The exponents to try. Defaults to a variety of special and
+            arbitrary angles, as well as a parameterized angle (a symbol).
+        global_shifts: The global shifts to try. Defaults to a variety of
+            special angles.
+        qubit_count: The qubit count to use for the gate. This argument isn't
+            needed if the gate has a unitary matrix or implements
+            `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/`cirq.ThreeQubitGate`; it
+            will be inferred.
+    """
+    for exponent in exponents:
+        for shift in global_shifts:
+            assert_has_consistent_apply_unitary(
+                eigen_gate_type(exponent=exponent, global_shift=shift),
+                qubit_count=qubit_count)
+
+
+def assert_has_consistent_apply_unitary_for_various_exponents(
+        val: Any,
+        *,
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        qubit_count: Optional[int] = None) -> None:
+    """Tests whether a value's _apply_unitary_ is correct.
+
+    Contrasts the effects of the value's `_apply_unitary_` with the
+    matrix returned by the value's `_unitary_` method. Attempts this after
+    attempting to raise the value to several exponents.
+
+    Args:
+        val: The value under test. Should have a `__pow__` method.
+        exponents: The exponents to try. Defaults to a variety of special and
+            arbitrary angles, as well as a parameterized angle (a symbol). If
+            the value's `__pow__` returns `NotImplemented` for any of these,
+            they are skipped.
+        qubit_count: A minimum qubit count for the test system. This argument
+            isn't needed if the gate has a unitary matrix or implements
+            `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/`cirq.ThreeQubitGate`; it
+            will be inferred.
+    """
+    for exponent in exponents:
+        gate = protocols.pow(val, exponent, default=None)
+        if gate is not None:
+            assert_has_consistent_apply_unitary(
+                gate,
+                qubit_count=qubit_count)
+
+
 def _infer_qubit_count(val: Any) -> int:
     if isinstance(val, ops.Operation):
         return len(val.qubits)
@@ -256,36 +366,7 @@ def _infer_qubit_count(val: Any) -> int:
         return 3
     if isinstance(val, ops.ControlledGate):
         return 1 + _infer_qubit_count(val.sub_gate)
+
     raise NotImplementedError(
-        'Failed to infer qubit count of <{!r}>. Specify it.'.format(val))
-
-
-def assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        val: Any,
-        exponents: Sequence[Any] = (1,),
-        qubit_count: Optional[int] = None) -> None:
-
-    n = qubit_count if qubit_count is not None else _infer_qubit_count(val)
-
-    for exponent in exponents:
-        val_exp = val if exponent == 1 else val**exponent
-        eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
-        actual = protocols.apply_unitary_to_tensor(
-            val=val_exp,
-            target_tensor=eye,
-            available_buffer=np.ones_like(eye) * float('nan'),
-            axes=list(range(n)),
-            default=None)
-        expected = protocols.unitary(val_exp, default=None)
-
-        # If you don't have a unitary, you shouldn't be able to apply a unitary.
-        if expected is None:
-            assert actual is None
-        else:
-            expected = np.kron(expected, np.eye(2))
-
-        # If you applied a unitary, it should match the one you say you have.
-        if actual is not None:
-            np.testing.assert_allclose(
-                actual.reshape(2 << n, 2 << n),
-                expected)
+        'Failed to infer qubit count of <{!r}>. Specify it.'.format(
+            val))

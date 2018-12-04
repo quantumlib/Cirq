@@ -15,6 +15,7 @@
 from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload)
 
+from cirq import value
 from cirq.ops import (
     raw_types, gate_operation, common_gates, op_tree
 )
@@ -24,6 +25,8 @@ from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
 TDefault = TypeVar('TDefault')
 
+
+@value.value_equality
 class PauliString:
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
@@ -36,21 +39,9 @@ class PauliString:
         """Creates a PauliString with a single qubit."""
         return PauliString({qubit: pauli})
 
-    def _eq_tuple(self) -> Tuple[Any, ...]:
-        return (PauliString,
-                self._qubit_pauli_map,
+    def _value_equality_values_(self):
+        return (frozenset(self._qubit_pauli_map.items()),
                 self.negated)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((PauliString, self.negated, frozenset(self.items())))
 
     def equal_up_to_sign(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
@@ -143,23 +134,31 @@ class PauliString:
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],
                              after_to_before: bool = False) -> 'PauliString':
-        """Return a new PauliString such that the circuits
-            --op_last--...--op_first--self-- and
-            --output--op_last--...--op_first--
-        are equivalent up to global phase.
+        """Determines how the Pauli string changes when conjugated by Cliffords.
+
+        The output and input pauli strings are related by a circuit equivalence.
+        In particular, this circuit:
+
+            ───ops───INPUT_PAULI_STRING───
+
+        will be equivalent to this circuit:
+
+            ───OUTPUT_PAULI_STRING───ops───
+
+        up to global phase (assuming `after_to_before` is not set).
 
         If ops together have matrix C, the Pauli string has matrix P, and the
-        output Pauli string has matrix P', then C^-1 P C == C P' C^-1 up to
+        output Pauli string has matrix P', then P' == C^-1 P C up to
         global phase.
 
+        Setting `after_to_before` inverts the relationship, so that the output
+        is the input and the input is the output. Equivalently, it inverts C.
+
         Args:
-            op: The operation to move
-            after_to_before: If true, passes op over the other direction such
-                that the circuits
-                    --self--op_first--...--op_last-- and
-                    --op_fist--...--op_last--output--
-                are equivalent up to global phase and C P C^-1 == C^-1 P' C up
-                to global phase.
+            ops: The operations to move over the string.
+            after_to_before: Determines whether the operations start after the
+                pauli string, instead of before (and so are moving in the
+                opposite direction).
         """
         pauli_map = dict(self._qubit_pauli_map)
         inv = self.negated
@@ -184,7 +183,7 @@ class PauliString:
                 return PauliString._pass_single_clifford_gate_over(
                     pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
-            if isinstance(gate, common_gates.Rot11Gate):
+            if isinstance(gate, common_gates.CZPowGate):
                 gate = PauliInteractionGate.CZ
             if isinstance(gate, PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(

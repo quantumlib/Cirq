@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Any, Union
+from typing import Any, Callable, cast, Dict, Optional, Union
 
 import numpy as np
 
-from cirq import ops, Symbol
-from cirq.extension import Extensions
-from cirq.google.xmon_gates import ExpWGate
+from cirq import ops, value
 
 
 class QuirkOp:
@@ -55,8 +53,8 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
     return abs(d) < atol
 
 
-def angle_to_exponent_key(t: Union[float, Symbol]) -> Optional[str]:
-    if isinstance(t, Symbol):
+def angle_to_exponent_key(t: Union[float, value.Symbol]) -> Optional[str]:
+    if isinstance(t, value.Symbol):
         return '^t'
 
     if same_half_turns(t, 1):
@@ -74,45 +72,6 @@ def angle_to_exponent_key(t: Union[float, Symbol]) -> Optional[str]:
     if same_half_turns(t, -0.25):
         return '^-¼'
 
-    return None
-
-
-def z_to_known(gate: ops.RotZGate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
-    if e is None:
-        return None
-    return QuirkOp('Z' + e)
-
-
-def x_to_known(gate: Union[ops.RotXGate, ExpWGate]) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
-    if e is None:
-        return None
-    return QuirkOp('X' + e)
-
-
-def y_to_known(gate: Union[ops.RotYGate, ExpWGate]) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
-    if e is None:
-        return None
-    return QuirkOp('Y' + e)
-
-
-def cz_to_known(gate: ops.Rot11Gate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.half_turns)
-    if e is None:
-        return None
-    return QuirkOp('•', 'Z' + e, can_merge=False)
-
-
-def w_to_known(gate: ExpWGate) -> Optional[QuirkOp]:
-    if isinstance(gate.axis_half_turns, Symbol):
-        return None
-    p = (gate.axis_half_turns + 1) % 2 - 1
-    if same_half_turns(p, 0):
-        return x_to_known(gate)
-    if same_half_turns(p, 0.5):
-        return y_to_known(gate)
     return None
 
 
@@ -141,26 +100,76 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
     })
 
 
-quirk_gate_ext = Extensions()
-quirk_gate_ext.add_recursive_cast(
-    QuirkOp,
-    ops.GateOperation,
-    lambda ext, op: ext.try_cast(QuirkOp, op.gate))
-quirk_gate_ext.add_cast(QuirkOp, ops.RotXGate, x_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ops.RotYGate, y_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ops.RotZGate, z_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ExpWGate, w_to_known)
-quirk_gate_ext.add_cast(QuirkOp, ops.Rot11Gate, cz_to_known)
-quirk_gate_ext.add_cast(QuirkOp,
-                        ops.CNotGate,
-                        lambda e: QuirkOp('•', 'X',
-                                          can_merge=False))
-quirk_gate_ext.add_cast(QuirkOp,
-                        ops.SwapGate,
-                        lambda e: QuirkOp('Swap', 'Swap'))
-quirk_gate_ext.add_cast(QuirkOp,
-                        ops.HGate,
-                        lambda e: QuirkOp('H'))
-quirk_gate_ext.add_cast(QuirkOp,
-                        ops.MeasurementGate,
-                        lambda e: QuirkOp('Measure'))
+def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
+    if isinstance(op, ops.GateOperation):
+        return _gate_to_quirk_op(op.gate)
+    return None
+
+
+def _gate_to_quirk_op(gate: ops.Gate) -> Optional[QuirkOp]:
+    for gate_type, func in _known_gate_conversions.items():
+        if isinstance(gate, gate_type):
+            return func(gate)
+    return None
+
+
+def x_to_known(gate: ops.XPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('X' + e)
+
+
+def y_to_known(gate: ops.YPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('Y' + e)
+
+
+def z_to_known(gate: ops.ZPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('Z' + e)
+
+
+def cz_to_known(gate: ops.CZPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('•', 'Z' + e, can_merge=False)
+
+
+def cnot_to_known(gate: ops.CNotPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('•', 'X' + e, can_merge=False)
+
+
+def h_to_known(gate: ops.HPowGate) -> Optional[QuirkOp]:
+    if gate.exponent == 1:
+        return QuirkOp('H')
+    return None
+
+
+def swap_to_known(gate: ops.SwapPowGate) -> Optional[QuirkOp]:
+    if gate.exponent == 1:
+        return QuirkOp('Swap', 'Swap')
+    return None
+
+
+_known_gate_conversions = cast(
+    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
+    {
+        ops.XPowGate: x_to_known,
+        ops.YPowGate: y_to_known,
+        ops.ZPowGate: z_to_known,
+        ops.CZPowGate: cz_to_known,
+        ops.CNotPowGate: cnot_to_known,
+        ops.SwapPowGate: swap_to_known,
+        ops.HPowGate: h_to_known,
+        ops.MeasurementGate: lambda _: QuirkOp('Measure')
+    }
+)

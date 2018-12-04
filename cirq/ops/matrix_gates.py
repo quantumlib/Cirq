@@ -29,8 +29,9 @@ def _phase_matrix(turns: float) -> np.ndarray:
 class SingleQubitMatrixGate(raw_types.Gate):
     """A 1-qubit gate defined by its matrix.
 
-    More general than specialized classes like ZGate, but more expensive and
-    more float-error sensitive to work with (due to using eigendecompositions).
+    More general than specialized classes like `ZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
@@ -67,8 +68,11 @@ class SingleQubitMatrixGate(raw_types.Gate):
         phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
         return SingleQubitMatrixGate(phased_matrix)
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
-        return self._matrix
+        return np.array(self._matrix)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -95,7 +99,8 @@ class SingleQubitMatrixGate(raw_types.Gate):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.SingleQubitMatrixGate({})'.format(repr(self._matrix))
+        return 'cirq.SingleQubitMatrixGate({})'.format(
+                _numpy_array_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -104,8 +109,9 @@ class SingleQubitMatrixGate(raw_types.Gate):
 class TwoQubitMatrixGate(raw_types.Gate):
     """A 2-qubit gate defined only by its matrix.
 
-    More general than specialized classes like CZGate, but more expensive and
-    more float-error sensitive to work with (due to using eigendecompositions).
+    More general than specialized classes like `CZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
@@ -136,7 +142,7 @@ class TwoQubitMatrixGate(raw_types.Gate):
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         i = np.eye(2)
         z = _phase_matrix(phase_turns)
-        z2 = np.kron(z, i) if qubit_index else np.kron(i, z)
+        z2 = np.kron(i, z) if qubit_index else np.kron(z, i)
         phased_matrix = z2.dot(self._matrix).dot(np.conj(z2.T))
         return TwoQubitMatrixGate(phased_matrix)
 
@@ -148,7 +154,7 @@ class TwoQubitMatrixGate(raw_types.Gate):
         return cmp(self._matrix, other._matrix)
 
     def _unitary_(self) -> np.ndarray:
-        return self._matrix
+        return np.array(self._matrix)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -168,7 +174,8 @@ class TwoQubitMatrixGate(raw_types.Gate):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.TwoQubitMatrixGate({})'.format(repr(self._matrix))
+        return 'cirq.TwoQubitMatrixGate({})'.format(
+                _numpy_array_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -192,3 +199,7 @@ def _matrix_to_diagram_symbol(matrix: np.ndarray,
         lines.append('└' + ' ' * w + '┘')
         result = '\n'.join(lines)
     return result
+
+
+def _numpy_array_repr(arr: np.ndarray) -> str:
+    return 'np.array({!r})'.format(arr.tolist())

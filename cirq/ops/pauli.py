@@ -12,13 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, overload, TYPE_CHECKING
+from typing import Optional, Union, overload, TYPE_CHECKING
+
+import numpy as np
+
+from cirq import protocols, value
+from cirq.ops import common_gates
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Tuple
 
 
+@value.value_equality
 class Pauli:
     """Represents the X, Y, or Z axis of the Bloch sphere."""
     X = None  # type: Pauli
@@ -39,13 +46,25 @@ class Pauli:
     def difference(self, second: 'Pauli') -> int:
         return (self._index - second._index + 1) % 3 - 1
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._index == other._index
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        if self._name == 'X':
+            return protocols.unitary(common_gates.X)
+        elif self._name == 'Y':
+            return protocols.unitary(common_gates.Y)
+        else:
+            return protocols.unitary(common_gates.Z)
 
-    def __ne__(self, other):
-        return not self == other
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
+        if self._name == 'X':
+            return protocols.apply_unitary(common_gates.X, args)
+        elif self._name == 'Y':
+            return protocols.apply_unitary(common_gates.Y, args)
+        else:
+            return protocols.apply_unitary(common_gates.Z, args)
+
+    def _value_equality_values_(self):
+        return self._index
 
     def __gt__(self, other):
         if not isinstance(other, type(self)):
@@ -59,9 +78,6 @@ class Pauli:
 
     def __add__(self, shift: int) -> 'Pauli':
         return Pauli.XYZ[(self._index + shift) % 3]
-
-    def __hash__(self):
-        return hash(self._index)
 
     # pylint: disable=function-redefined
     @overload

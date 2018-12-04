@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that combines adjacent single-qubit rotations."""
+"""Utility classes for representing QASM."""
 
 from typing import Set  # pylint: disable=unused-import
 from typing import (
@@ -22,10 +22,10 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import ops, linalg, extension, protocols
+from cirq import ops, linalg, protocols, value
 
 
-class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
+class QasmUGate(ops.SingleQubitGate):
     def __init__(self, lmda, theta, phi) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
@@ -47,9 +47,9 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
             linalg.deconstruct_single_qubit_matrix_into_angles(mat))
         return QasmUGate(pre_phase/np.pi, rotation/np.pi, post_phase/np.pi)
 
-    def known_qasm_output(self,
-                          qubits: Tuple[ops.QubitId, ...],
-                          args: ops.QasmOutputArgs) -> str:
+    def _qasm_(self,
+               qubits: Tuple[ops.QubitId, ...],
+               args: protocols.QasmArgs) -> str:
         args.validate_version('2.0')
         return args.format(
                 'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
@@ -61,54 +61,49 @@ class QasmUGate(ops.SingleQubitGate, ops.QasmConvertibleGate):
                                                    self.phi)
 
 
-class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
-    def __init__(self,
-                 before0: ops.SingleQubitGate,
-                 before1: ops.SingleQubitGate,
-                 x: float, y: float, z: float,
-                 after0: ops.SingleQubitGate,
-                 after1: ops.SingleQubitGate) -> None:
+@value.value_equality
+class QasmTwoQubitGate(ops.TwoQubitGate):
+    def __init__(self, kak: linalg.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
         All angles are in half turns.  Assumes a canonicalized KAK
         decomposition.
 
         Args:
-            before0: Gate applied to qubit 0 before the interaction.
-            before1: Gate applied to qubit 1 before the interaction.
-            x: XX interaction.
-            y: YY interaction.
-            z: ZZ interaction.
-            after0: Gate applied to qubit 0 after the interaction.
-            after1: Gate applied to qubit 1 after the interaction.
+            kak: KAK decomposition of the two-qubit gate.
         """
-        self.before0 = before0
-        self.before1 = before1
-        self.x, self.y, self.z = x, y, z
-        self.after0 = after0
-        self.after1 = after1
+        self.kak = kak
+
+    def _value_equality_values_(self):
+        return self.kak
 
     @staticmethod
-    def from_matrix(mat: np.array, tolerance=1e-8) -> 'QasmTwoQubitGate':
-        _, (a1, a0), (x, y, z), (b1, b0) = linalg.kak_decomposition(
-            mat,
-            linalg.Tolerance(atol=tolerance))
-        before0 = QasmUGate.from_matrix(b0)
-        before1 = QasmUGate.from_matrix(b1)
-        after0 = QasmUGate.from_matrix(a0)
-        after1 = QasmUGate.from_matrix(a1)
-        return QasmTwoQubitGate(before0, before1,
-                                x, y, z,
-                                after0, after1)
+    def from_matrix(mat: np.array, atol=1e-8) -> 'QasmTwoQubitGate':
+        """Creates a QasmTwoQubitGate from the given matrix.
 
-    def default_decompose(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+        Args:
+            mat: The unitary matrix of the two qubit gate.
+            atol: Absolute error tolerance when decomposing.
+
+        Returns:
+            A QasmTwoQubitGate implementing the matrix.
+        """
+        kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=atol))
+        return QasmTwoQubitGate(kak)
+
+    def _unitary_(self):
+        return protocols.unitary(self.kak)
+
+    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
         q0, q1 = qubits
-        a = self.x * -2 / np.pi + 0.5
-        b = self.y * -2 / np.pi + 0.5
-        c = self.z * -2 / np.pi + 0.5
+        x, y, z = self.kak.interaction_coefficients
+        a = x * -2 / np.pi + 0.5
+        b = y * -2 / np.pi + 0.5
+        c = z * -2 / np.pi + 0.5
 
-        yield self.before0(q0)
-        yield self.before1(q1)
+        b0, b1 = self.kak.single_qubit_operations_before
+        yield QasmUGate.from_matrix(b0).on(q0)
+        yield QasmUGate.from_matrix(b1).on(q1)
 
         yield ops.X(q0)**0.5
         yield ops.CNOT(q0, q1)
@@ -119,13 +114,13 @@ class QasmTwoQubitGate(ops.TwoQubitGate, ops.CompositeGate):
         yield ops.Z(q1)**c
         yield ops.CNOT(q0, q1)
 
-        yield self.after0(q0)
-        yield self.after1(q1)
+        a0, a1 = self.kak.single_qubit_operations_after
+        yield QasmUGate.from_matrix(a0).on(q0)
+        yield QasmUGate.from_matrix(a1).on(q1)
 
     def __repr__(self) -> str:
-        return 'cirq.QasmTwoQubitGate({}, {}, {}, {}, {}, {}, {})'.format(
-                self.before0, self.before1, self.x, self.y, self.z,
-                self.after0, self.after1)
+        return 'cirq.circuits.qasm_output.QasmTwoQubitGate({!r})'.format(
+            self.kak)
 
 
 class QasmOutput:
@@ -147,10 +142,11 @@ class QasmOutput:
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()
-        self.args = ops.QasmOutputArgs(precision=precision,
-                                       version=version,
-                                       qubit_id_map=qubit_id_map,
-                                       meas_key_id_map=meas_key_id_map)
+        self.args = protocols.QasmArgs(
+            precision=precision,
+            version=version,
+            qubit_id_map=qubit_id_map,
+            meas_key_id_map=meas_key_id_map)
 
     def _generate_measurement_ids(self
             ) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
@@ -189,7 +185,7 @@ class QasmOutput:
     def __str__(self) -> str:
         """Return QASM output as a string."""
         output = []
-        self._write_qasm(lambda s:output.append(s))
+        self._write_qasm(lambda s: output.append(s))
         return ''.join(output)
 
     def _write_qasm(self, output_func: Callable[[str], None]) -> None:
@@ -246,57 +242,45 @@ class QasmOutput:
     def _write_operations(self,
                           op_tree: ops.OP_TREE,
                           output: Callable[[str], None],
-                          output_line_gap: Callable[[int], None],
-                          top=True) -> None:
-        for op in ops.flatten_op_tree(op_tree):
-            qasm_op = extension.try_cast(  # type: ignore
-                ops.QasmConvertibleOperation, op)
-            if qasm_op is not None:
-                out = qasm_op.known_qasm_output(self.args)
-                if out is not None:
-                    output(out)
-                    continue
+                          output_line_gap: Callable[[int], None]) -> None:
+        def keep(op: ops.Operation) -> bool:
+            return protocols.qasm(op, args=self.args, default=None) is not None
 
-            if isinstance(op, ops.GateOperation):
-                comment = 'Gate: {!s}'.format(op.gate)
-            else:
-                comment = 'Operation: {!s}'.format(op)
-            comp_op = extension.try_cast(  # type: ignore
-                ops.CompositeOperation, op)
-            if comp_op is not None:
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations(comp_op.default_decompose(),
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
+        def fallback(op):
+            if len(op.qubits) not in [1, 2]:
+                return NotImplemented
 
-            mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
-            if mat is not None and len(op.qubits) == 1:
-                u_op = QasmUGate.from_matrix(mat).on(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                output(cast(str, u_op.known_qasm_output(self.args)))
-                if top:
-                    output_line_gap(1)
-                continue
+            mat = protocols.unitary(op, None)
+            if mat is None:
+                return NotImplemented
 
-            if mat is not None and len(op.qubits) == 2:
-                u_op = QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
-                if top:
-                    output_line_gap(1)
-                    output('// {}\n'.format(comment))
-                self._write_operations((u_op,),
-                                       output,
-                                       output_line_gap,
-                                       top=False)
-                if top:
-                    output_line_gap(1)
-                continue
+            if len(op.qubits) == 1:
+                return QasmUGate.from_matrix(mat).on(*op.qubits)
+            return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
-            raise ValueError('Cannot output operation as QASM: {!r}'.format(op))
+        def on_stuck(bad_op):
+            return ValueError(
+                'Cannot output operation as QASM: {!r}'.format(bad_op))
+
+        for main_op in ops.flatten_op_tree(op_tree):
+            decomposed = protocols.decompose(
+                main_op,
+                keep=keep,
+                fallback_decomposer=fallback,
+                on_stuck_raise=on_stuck)
+
+            should_annotate = decomposed != [main_op]
+            if should_annotate:
+                output_line_gap(1)
+                if isinstance(main_op, ops.GateOperation):
+                    x = str(main_op.gate).replace('\n', '\n //')
+                    output('// Gate: {!s}\n'.format(x))
+                else:
+                    x = str(main_op).replace('\n', '\n //')
+                    output('// Operation: {!s}\n'.format(x))
+
+            for decomposed_op in decomposed:
+                output(protocols.qasm(decomposed_op, args=self.args))
+
+            if should_annotate:
+                output_line_gap(1)

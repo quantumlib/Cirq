@@ -21,6 +21,11 @@
 # output directory defaults to "python2.7-output" in the current working
 # directory.
 
+# If compiled protobuffer files are desired, the protocol buffer compiler
+# (protoc) must be installed. Instructions for installing the protocol buffer
+# compiler can be found at
+# https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
+
 # Takes three optional arguments:
 #     1. Output directory. Defaults to 'python2.7-output'. Fails if the
 #         directory already exists.
@@ -74,6 +79,16 @@ find "${out_dir}" | grep "\.py\.bak$" | xargs rm -f
 # Move examples without conversion (they must be cross-compatible).
 cp -r "${in_dir}/examples" "${out_dir}/examples"
 
+# Build protobufs if protoc is installed, otherwise show warning.
+if command -v "protoc" > /dev/null; then
+  proto_dir="${out_dir}/${project_name}/api/google/v1"
+  find ${proto_dir} | grep '_pb2\.py' | xargs rm -f
+  protoc -I="${out_dir}" --python_out="${out_dir}" ${proto_dir}/*.proto
+else
+  echo -e "\e[33mProtocol buffers were not compiled because protoc is not installed.\e[0m"
+  echo -e "\e[33mSee https://github.com/protocolbuffers/protobuf/blob/master/src/README.md for protoc installation instructions.\e[0m"
+fi
+
 # Include requirements files.
 cp "${in_dir}/dev_tools/python2.7-requirements.txt" "${out_dir}/requirements.txt"
 cp "${in_dir}/dev_tools/conf/pip-list-python2.7-test-tools.txt" "${out_dir}/pip-list-test-tools.txt"
@@ -83,10 +98,6 @@ cp "${in_dir}/MANIFEST.in" "${out_dir}/MANIFEST.in"
 cp "${in_dir}/README.rst" "${out_dir}/README.rst"
 cp "${in_dir}/LICENSE" "${out_dir}/LICENSE"
 cp "${in_dir}/setup.py" "${out_dir}/setup.py"
-
-# Substitute versions (failing via grep triggering -e if not present.)
-grep "python_requires='>=3.5.2'" "${out_dir}/setup.py" > /dev/null
-sed -i "s/python_requires='>=3.5.2'/python_requires='==2.7.*'/" "${out_dir}/setup.py"
 
 # Mark every file as using utf8 encoding.
 files_to_update=$(find ${out_dir} | grep "\.py$" | grep -v "_pb2\.py$")

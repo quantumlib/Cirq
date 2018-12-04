@@ -15,11 +15,26 @@
 """Utilities for testing code."""
 
 from cirq.testing.circuit_compare import (
-    assert_apply_unitary_to_tensor_is_consistent_with_unitary,
     assert_circuits_with_terminal_measurements_are_equivalent,
+    assert_eigen_gate_has_consistent_apply_unitary,
+    assert_has_consistent_apply_unitary_for_various_exponents,
+    assert_has_consistent_apply_unitary,
     assert_has_diagram,
     assert_same_circuits,
     highlight_text_differences,
+)
+from cirq.testing.consistent_phase_by import (
+    assert_phase_by_is_consistent_with_unitary,
+)
+from cirq.testing.consistent_decomposition import (
+    assert_decompose_is_consistent_with_unitary,
+)
+from cirq.testing.consistent_protocols import (
+    assert_implements_consistent_protocols,
+    assert_eigengate_implements_consistent_protocols,
+)
+from cirq.testing.consistent_qasm import (
+    assert_qasm_is_consistent_with_unitary,
 )
 from cirq.testing.equals_tester import (
     EqualsTester,

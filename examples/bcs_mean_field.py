@@ -163,7 +163,7 @@ def main():
     bog_circuit = cirq.Circuit.from_ops(
         bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
         for i in range(n_site))
-    cirq.google.MergeRotations().optimize_circuit(bog_circuit)
+    bog_circuit = cirq.google.optimized_for_xmon(bog_circuit)
     print('Circuit for the Bogoliubov transformation:')
     print(bog_circuit.to_text_diagram(transpose=True), '\n')
 
@@ -173,7 +173,8 @@ def main():
     fourier_circuit_spin_up = cirq.Circuit.from_ops(
         fermi_fourier_trans_inverse_4(upper_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
-    cirq.google.MergeRotations().optimize_circuit(fourier_circuit_spin_up)
+    fourier_circuit_spin_up = cirq.google.optimized_for_xmon(
+        fourier_circuit_spin_up)
     print(fourier_circuit_spin_up.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-down states
@@ -182,7 +183,8 @@ def main():
     fourier_circuit_spin_down = cirq.Circuit.from_ops(
         fermi_fourier_trans_inverse_conjugate_4(lower_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
-    cirq.google.MergeRotations().optimize_circuit(fourier_circuit_spin_down)
+    fourier_circuit_spin_down = cirq.google.optimized_for_xmon(
+        fourier_circuit_spin_down)
     print(fourier_circuit_spin_down.to_text_diagram(transpose=True))
 
 
@@ -219,7 +221,7 @@ def bogoliubov_trans(p, q, theta):
 
     yield cirq.X(p)
     yield cirq.S(p)
-    yield cirq.ISwapGate(exponent=expo).on(p, q)
+    yield cirq.ISWAP(p, q)**expo
     yield cirq.S(p) ** 1.5
     yield cirq.X(p)
 
@@ -245,7 +247,7 @@ def fermi_fourier_trans_2(p, q):
     """
 
     yield cirq.Z(p)**1.5
-    yield cirq.ISwapGate(exponent=0.5).on(q, p)
+    yield cirq.ISWAP(q, p)**0.5
     yield cirq.Z(p)**1.5
 
 
