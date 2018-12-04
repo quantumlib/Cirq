@@ -12,9 +12,10 @@
 #
 from typing import List, Any
 
-import pypandoc
 import os
 import sys
+
+import pypandoc
 
 cirq_root_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cirq_root_path)
