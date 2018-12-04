@@ -46,11 +46,7 @@ class SupportsApproximateEquality(Protocol):
         pass
 
 
-def approx_eq(
-        val: Any,
-        other: Any,
-        *,
-        atol: float = 0.0) -> bool:
+def approx_eq(val: Any, other: Any, *, atol) -> bool:
     """Approximately compares two objects.
 
     If `val` implements SupportsApproxEquality protocol then it is invoked and
@@ -109,11 +105,7 @@ def approx_eq(
     return result
 
 
-def _approx_eq_iterables(
-        val: Any,
-        other: Any,
-        *,
-        atol: float) -> bool:
+def _approx_eq_iterables(val: Any, other: Any, *, atol: float) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
     Types of `val` and `other` does not necessarily needs to match each other.

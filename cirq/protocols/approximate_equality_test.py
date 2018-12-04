@@ -25,15 +25,15 @@ def test_approx_eq_primitives():
 
 
 def test_approx_eq_tuple():
-    assert cirq.approx_eq((1, 1), (1, 1))
-    assert not cirq.approx_eq((1, 1), (1, 1, 1))
-    assert not cirq.approx_eq((1, 1), (1,))
+    assert cirq.approx_eq((1, 1), (1, 1), atol=0.0)
+    assert not cirq.approx_eq((1, 1), (1, 1, 1), atol=0.0)
+    assert not cirq.approx_eq((1, 1), (1,), atol=0.0)
     assert cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), atol=0.4)
     assert not cirq.approx_eq((1.1, 1.2, 1.3), (1, 1, 1), atol=0.2)
 
 
 def test_approx_eq_iterables():
-    assert cirq.approx_eq((1, 1), [1, 1])
+    assert cirq.approx_eq((1, 1), [1, 1], atol=0.0)
 
 
 class A:
@@ -60,7 +60,7 @@ class B:
 
 def test_approx_eq_supported():
     assert cirq.approx_eq(A(0.0), A(0.1), atol=0.1)
-    assert not cirq.approx_eq(A(0.0), A(0.1))
+    assert not cirq.approx_eq(A(0.0), A(0.1), atol=0.0)
     assert cirq.approx_eq(B(0.0), 0.1, atol=0.1)
     assert cirq.approx_eq(0.1, B(0.0), atol=0.1)
 
@@ -77,18 +77,18 @@ class C:
 
 
 def test_approx_eq_uses__eq__():
-    assert cirq.approx_eq(C(0), C(0))
-    assert not cirq.approx_eq(C(1), C(2))
-    assert cirq.approx_eq([C(0)], [C(0)])
-    assert not cirq.approx_eq([C(1)], [C(2)])
+    assert cirq.approx_eq(C(0), C(0), atol=0.0)
+    assert not cirq.approx_eq(C(1), C(2), atol=0.0)
+    assert cirq.approx_eq([C(0)], [C(0)], atol=0.0)
+    assert not cirq.approx_eq([C(1)], [C(2)], atol=0.0)
 
 
 def test_approx_eq_types_mismatch():
-    assert not cirq.approx_eq(0, A(0))
-    assert not cirq.approx_eq(A(0), 0)
-    assert not cirq.approx_eq(B(0), A(0))
-    assert not cirq.approx_eq(A(0), B(0))
-    assert not cirq.approx_eq(C(0), A(0))
-    assert not cirq.approx_eq(A(0), C(0))
-    assert not cirq.approx_eq(complex(0, 0), 0)
-    assert not cirq.approx_eq(0, complex(0, 0))
+    assert not cirq.approx_eq(0, A(0), atol=0.0)
+    assert not cirq.approx_eq(A(0), 0, atol=0.0)
+    assert not cirq.approx_eq(B(0), A(0), atol=0.0)
+    assert not cirq.approx_eq(A(0), B(0), atol=0.0)
+    assert not cirq.approx_eq(C(0), A(0), atol=0.0)
+    assert not cirq.approx_eq(A(0), C(0), atol=0.0)
+    assert not cirq.approx_eq(complex(0, 0), 0, atol=0.0)
+    assert not cirq.approx_eq(0, complex(0, 0), atol=0.0)
