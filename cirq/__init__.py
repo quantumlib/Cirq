@@ -191,7 +191,6 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    ComputeDisplaysResult,
     SimulatesSamples,
     SimulationTrialResult,
     Simulator,
