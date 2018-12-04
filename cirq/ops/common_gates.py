@@ -111,6 +111,10 @@ class XPowGate(eigen_gate.EigenGate,
             return args.format('rx({0:half_turns}) {1};\n',
                                self._exponent, qubits[0])
 
+    @property
+    def phase_exponent(self):
+        return 0.0
+
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
@@ -186,6 +190,10 @@ class YPowGate(eigen_gate.EigenGate,
         else:
             return args.format('ry({0:half_turns}) {1};\n',
                                self._exponent, qubits[0])
+
+    @property
+    def phase_exponent(self):
+        return 0.5
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
