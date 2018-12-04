@@ -352,12 +352,13 @@ def test_simulate_moment_steps_sample(dtype):
         if i == 0:
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
-                assert sample == [True, False] or sample == [False, False]
+                assert (np.array_equal(sample, [True, False])
+                        or np.array_equal(sample, [False, False]))
         else:
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
-                assert sample == [True, True] or sample == [False, False]
-
+                assert (np.array_equal(sample, [True, True])
+                        or np.array_equal(sample, [False, False]))
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps_intermediate_measurement(dtype):

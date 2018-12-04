@@ -435,11 +435,13 @@ def test_pass_unsupported_operations_over():
 
 
 def test_with_qubits():
-    a, b, c = cirq.NamedQubit('a'), cirq.NamedQubit('b'), cirq.NamedQubit('c')
-    q, r, s = cirq.LineQubit.range(3)
-    qubit_pauli_map = {a: cirq.Pauli.X, b: cirq.Pauli.Y, c: cirq.Pauli.X}
+    old_qubits = cirq.LineQubit.range(9)
+    new_qubits = cirq.LineQubit.range(9, 18)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in old_qubits}
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
-    new_pauli_string = pauli_string.with_qubits(q, r, s)
+    new_pauli_string = pauli_string.with_qubits(*new_qubits)
 
-    assert set(new_pauli_string.qubits) == {q, r, s}
+    assert new_pauli_string.qubits == tuple(new_qubits)
+    for q in new_qubits:
+        assert new_pauli_string[q] == cirq.Pauli.XYZ[q.x % 3]
     assert new_pauli_string.negated is True

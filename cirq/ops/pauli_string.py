@@ -71,10 +71,12 @@ class PauliString(raw_types.Operation):
 
     @property
     def qubits(self) -> Tuple[raw_types.QubitId, ...]:
-        return tuple(self.keys())
+        return tuple(sorted(self.keys()))
 
     def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'PauliString':
-        return PauliString(dict(zip(new_qubits, self.values())), self.negated)
+        return PauliString(dict(zip(new_qubits,
+                                    (self[q] for q in self.qubits))),
+                           self.negated)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()

@@ -264,7 +264,7 @@ class SimulatorStep(simulator.StepResult):
         np.copyto(self._state, update_state)
 
     def sample(self, qubits: List[ops.QubitId],
-               repetitions: int = 1) -> List[List[bool]]:
+               repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state, indices,
                                                  repetitions)
