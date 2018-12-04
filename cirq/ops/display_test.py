@@ -114,15 +114,35 @@ def test_approx_pauli_string_expectation_value(measurements, value):
     assert display.value(measurements) == value
 
 
-def test_with_qubits():
-    a, b, c = cirq.NamedQubit('a'), cirq.NamedQubit('b'), cirq.NamedQubit('c')
-    q, r, s = cirq.LineQubit.range(3)
-    qubit_pauli_map = {a: cirq.Pauli.X, b: cirq.Pauli.Y, c: cirq.Pauli.X}
+def test_properties():
+    qubits = cirq.LineQubit.range(9)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in qubits}
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
 
-    assert (cirq.PauliStringExpectation(pauli_string).with_qubits(q, r, s)
-            == cirq.PauliStringExpectation(pauli_string.with_qubits(q, r, s)))
-    assert (cirq.ApproxPauliStringExpectation(
-                pauli_string, repetitions=1).with_qubits(q, r, s)
-            == cirq.ApproxPauliStringExpectation(
-                pauli_string.with_qubits(q, r, s), repetitions=1))
+    pauli_string_expectation = cirq.PauliStringExpectation(
+        pauli_string, key='a')
+    assert pauli_string_expectation.qubits == tuple(qubits)
+    assert pauli_string_expectation.key == 'a'
+
+    approx_pauli_string_expectation = cirq.ApproxPauliStringExpectation(
+        pauli_string, repetitions=5, key='a')
+    assert approx_pauli_string_expectation.qubits == tuple(qubits)
+    assert approx_pauli_string_expectation.repetitions == 5
+    assert approx_pauli_string_expectation.key == 'a'
+
+
+def test_with_qubits():
+    old_qubits = cirq.LineQubit.range(9)
+    new_qubits = cirq.LineQubit.range(9, 18)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in old_qubits}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+
+    assert (
+        cirq.PauliStringExpectation(pauli_string).with_qubits(*new_qubits)
+        == cirq.PauliStringExpectation(pauli_string.with_qubits(*new_qubits))
+    )
+    assert (
+        cirq.ApproxPauliStringExpectation(
+            pauli_string, repetitions=1).with_qubits(*new_qubits)
+        == cirq.ApproxPauliStringExpectation(
+            pauli_string.with_qubits(*new_qubits), repetitions=1))
