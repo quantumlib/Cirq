@@ -1075,15 +1075,24 @@ class Circuit:
 
     def append(
             self,
-            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
+            moments_or_operation_tree: Union[Moment,
+                                             Sequence[Moment],
+                                             ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:
-            moment_or_operation_tree: An operation or tree of operations.
+            moments_or_operation_tree: The moments or operation tree to append
+                to the circuit
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self._moments), moment_or_operation_tree, strategy)
+        if (isinstance(moments_or_operation_tree, Sequence)
+                and len(moments_or_operation_tree) > 0
+                and isinstance(moments_or_operation_tree[0], Moment)):
+            for moment in moments_or_operation_tree:
+                self.insert(len(self._moments), moment, strategy)
+        else:
+            self.insert(len(self._moments), moments_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],

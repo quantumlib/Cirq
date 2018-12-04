@@ -107,6 +107,25 @@ def test_append_multiple():
     ])
 
 
+def test_append_moments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = Circuit()
+    c.append(Moment([cirq.X(a), cirq.X(b)]), cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    c = Circuit()
+    c.append([Moment([cirq.X(a), cirq.X(b)]),
+              Moment([cirq.X(a), cirq.X(b)])], cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
