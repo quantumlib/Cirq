@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 from typing import Any
+
+import numpy as np
+
 from typing_extensions import Protocol
 
 
@@ -25,8 +26,7 @@ class SupportsApproximateEquality(Protocol):
             self,
             other: Any,
             *,
-            rel_tol: float,
-            abs_tol: float
+            atol: float
         ) -> bool:
         """Approximate comparator.
 
@@ -35,10 +35,8 @@ class SupportsApproximateEquality(Protocol):
 
         Args:
             other: Target object for approximate comparison.
-            rel_tol: The relative tolerance. See math.isclose() documentation
-                for details.
-            abs_tol: The minimum absolute tolerance. See math.isclose()
-                documentation for details.
+            atol: The minimum absolute tolerance. See np.isclose() documentation
+                  for details.
 
         Returns:
             True if objects are approximately equal, False otherwise. Returns
@@ -48,11 +46,7 @@ class SupportsApproximateEquality(Protocol):
         pass
 
 
-def approx_eq(
-        val: Any,
-        other: Any,
-        rel_tol: float = 1e-09,
-        abs_tol: float = 0.0) -> bool:
+def approx_eq(val: Any, other: Any, *, atol) -> bool:
     """Approximately compares two objects.
 
     If `val` implements SupportsApproxEquality protocol then it is invoked and
@@ -69,10 +63,8 @@ def approx_eq(
     Args:
         val: Source object for approximate comparison.
         other: Target object for approximate comparison.
-        rel_tol: The relative tolerance. See math.isclose() documentation for
-            details.
-        abs_tol: The minimum absolute tolerance. See math.isclose()
-            documentation for details.
+        atol: The minimum absolute tolerance. See np.isclose() documentation for
+              details.
 
     Returns:
         True if objects are approximately equal, False otherwise.
@@ -82,14 +74,14 @@ def approx_eq(
     # precedence over all other overloads.
     approx_eq_getter = getattr(val, '_approx_eq_', None)
     if approx_eq_getter is not None:
-        result = approx_eq_getter(other, rel_tol, abs_tol)
+        result = approx_eq_getter(other, atol)
         if result is not NotImplemented:
             return result
 
     # The same for other to make approx_eq symmetric.
     other_approx_eq_getter = getattr(other, '_approx_eq_', None)
     if other_approx_eq_getter is not None:
-        result = other_approx_eq_getter(val, rel_tol, abs_tol)
+        result = other_approx_eq_getter(val, atol)
         if result is not NotImplemented:
             return result
 
@@ -97,26 +89,15 @@ def approx_eq(
     if isinstance(val, (int, float)):
         if not isinstance(other, (int, float)):
             return False
-        return _isclose(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
+        return _isclose(val, other, atol=atol)
 
-    # For complex types, treat real and imaginary parts independently.
     if isinstance(val, complex):
         if not isinstance(other, complex):
             return False
-        return _isclose(
-            val.real,
-            other.real,
-            rel_tol=rel_tol,
-            abs_tol=abs_tol
-        ) and _isclose(
-            val.imag,
-            other.imag,
-            rel_tol=rel_tol,
-            abs_tol=abs_tol
-        )
+        return _isclose(val, other, atol=atol)
 
     # Try to compare source and target recursively, assuming they're iterable.
-    result = _approx_eq_iterables(val, other, rel_tol=rel_tol, abs_tol=abs_tol)
+    result = _approx_eq_iterables(val, other, atol=atol)
 
     # Fallback to __eq__() when anything else fails.
     if result is NotImplemented:
@@ -124,12 +105,7 @@ def approx_eq(
     return result
 
 
-def _approx_eq_iterables(
-        val: Any,
-        other: Any,
-        *,
-        rel_tol: float,
-        abs_tol: float) -> bool:
+def _approx_eq_iterables(val: Any, other: Any, *, atol: float) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
     Types of `val` and `other` does not necessarily needs to match each other.
@@ -140,10 +116,8 @@ def _approx_eq_iterables(
     Args:
         val: Source for approximate comparison.
         other: Target for approximate comparison.
-        rel_tol: The relative tolerance. See math.isclose() documentation for
-            details.
-        abs_tol: The minimum absolute tolerance. See math.isclose()
-            documentation for details.
+        atol: The minimum absolute tolerance. See np.isclose() documentation for
+              details.
 
     Returns:
         True if objects are approximately equal, False otherwise. Returns
@@ -176,43 +150,13 @@ def _approx_eq_iterables(
             except StopIteration:
                 return False
 
-            result = approx_eq(
-                val_next,
-                other_next,
-                rel_tol=rel_tol,
-                abs_tol=abs_tol)
+            result = approx_eq(val_next, other_next, atol=atol)
             if result is not True:
                 return result
 
     return NotImplemented
 
 
-# Definition of _isclose().
-#
-# For Python >= 3.5 delegates to math.isclose(), which is symmetric. For older
-# version delegates to np.isclose() in such a way that this method is symmetric
-# in a and b.
-#
-# The Python >= 3.5 is more restrictive since it's based on formula
-#   abs(a-b) <= max(abs_tol, rel_tol * max(abs(a), abs(b)))
-# and Python < 3.5 is based on formula
-#   abs(a-b) <= abs_tol + rel_tol * max(abs(a), abs(b))),
-# provided that abs_tol >= 0 and rel_tol >= 0.
-if (sys.version_info.major, sys.version_info.minor) >= (3, 5):
-    import math
-
-    def _isclose(a: Any, b: Any, *, rel_tol: float, abs_tol: float) -> bool:
-        """Approximate comparison for primitive numerical values."""
-        return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
-else:
-    import numpy as np
-
-    # coverage: ignore
-    def _isclose(a: Any, b: Any, *, rel_tol: float, abs_tol: float) -> bool:
-        """Approximate comparison for primitive numerical values."""
-        if a > b:
-            result = np.isclose([b], [a], rtol=rel_tol, atol=abs_tol)
-        else:
-            result = np.isclose([a], [b], rtol=rel_tol, atol=abs_tol)
-        # Make sure to return compatible bool type.
-        return True if result[0] else False
+def _isclose(a: Any, b: Any, *, atol: float) -> bool:
+    """Convenience wrapper around np.isclose."""
+    return True if np.isclose([a], [b], atol=atol, rtol=0.0)[0] else False
