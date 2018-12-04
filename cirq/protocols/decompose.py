@@ -144,7 +144,11 @@ def decompose(
                                         NotImplementedType,
                                         'cirq.OP_TREE']] = None,
     keep: Callable[['cirq.Operation'], bool] = None,
-    on_stuck_raise=_value_error_describing_bad_operation
+    on_stuck_raise: Union[None,
+                          Exception,
+                          Callable[['cirq.Operation'],
+                                   Union[None, Exception]]]
+    = _value_error_describing_bad_operation
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -169,9 +173,10 @@ def decompose(
             also can't be kept, `on_stuck_raise` is used to determine what error
             to raise. `on_stuck_raise` can either directly be an `Exception`, or
             a method that takes the problematic operation and returns an
-            `Exception`. If `on_stuck_raise` is set to `None`, undecomposable
-            operations are simply silently kept. `on_stuck_raise` defaults to a
-            `ValueError` describing the unwanted undecomposable operation.
+            `Exception`. If `on_stuck_raise` is set to `None` or a method that
+            returns `None`, undecomposable operations are simply silently kept.
+            `on_stuck_raise` defaults to a `ValueError` describing the unwanted
+            undecomposable operation.
 
     Returns:
         A list of operations that the given value was decomposed into. If
@@ -234,8 +239,10 @@ def decompose(
         if keep is not None and on_stuck_raise is not None:
             if isinstance(on_stuck_raise, Exception):
                 raise on_stuck_raise
-            else:
-                raise on_stuck_raise(item)
+            elif callable(on_stuck_raise):
+                error = on_stuck_raise(item)
+                if isinstance(error, Exception):
+                    raise error
 
         output.append(item)
 
