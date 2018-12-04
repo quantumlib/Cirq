@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Classes to represent displays."""
+"""Classes to represent displays.
+
+A Display is an operation that signifies extracting some information about the
+qubits it is applied to without actually performing any effect on those qubits.
+Each Display in a circuit has an associated key, and the result of computing
+the values of Displays in a circuit is a dictionary from Display key to
+Display value.
+"""
 
 from typing import Any, Dict, Hashable, Tuple
 
@@ -25,25 +32,35 @@ from cirq.ops import pauli_string, raw_types, op_tree
 
 
 class SamplesDisplay(raw_types.Operation):
-    """A display whose value is computed from measurement results."""
+    """A display whose value is computed from measurement results.
+
+    The value of a SamplesDisplay on some qubits is computed in the following
+    steps:
+        1. Perform some unitary operations on the qubits
+        2. Sample bitstrings from the resulting state a number of times
+        3. Apply a function to the sampled bitstrings
+    """
 
     @property
     @abc.abstractmethod
     def key(self) -> Hashable:
         pass
 
+    @abc.abstractmethod
+    def measurement_basis_change(self) -> op_tree.OP_TREE:
+        """Operations to perform prior to measurement."""
+        pass
+
     @property
     @abc.abstractmethod
     def repetitions(self) -> int:
-        pass
-
-    @abc.abstractmethod
-    def measurement_basis_change(self) -> op_tree.OP_TREE:
+        """The number of measurement samples to take."""
         pass
 
     @abc.abstractmethod
     def value(self,
               measurements: np.ndarray) -> Any:
+        """The value of the display."""
         pass
 
 
@@ -65,6 +82,7 @@ class WaveFunctionDisplay(raw_types.Operation):
 
 @value.value_equality
 class ApproxPauliStringExpectation(SamplesDisplay):
+    """Approximate expectation value of a Pauli string."""
 
     def __init__(self,
                  pauli_string: pauli_string.PauliString,
@@ -91,12 +109,12 @@ class ApproxPauliStringExpectation(SamplesDisplay):
     def key(self) -> Hashable:
         return self._key
 
+    def measurement_basis_change(self) -> op_tree.OP_TREE:
+        return self._pauli_string.to_z_basis_ops()
+
     @property
     def repetitions(self) -> int:
         return self._repetitions
-
-    def measurement_basis_change(self) -> op_tree.OP_TREE:
-        return self._pauli_string.to_z_basis_ops()
 
     def value(self,
               measurements: np.ndarray) -> float:
@@ -108,6 +126,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
 @value.value_equality
 class PauliStringExpectation(WaveFunctionDisplay):
+    """Expectation value of a Pauli string."""
 
     def __init__(self,
                  pauli_string: pauli_string.PauliString,
