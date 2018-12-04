@@ -21,14 +21,18 @@ the values of Displays in a circuit is a dictionary from Display key to
 Display value.
 """
 
-from typing import Any, Dict, Hashable, Tuple
+from typing import Any, Dict, Hashable, Tuple, TYPE_CHECKING
 
 import abc
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import pauli_string, raw_types, op_tree
+from cirq.ops import raw_types, op_tree
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from cirq.ops import pauli_string
 
 
 class SamplesDisplay(raw_types.Operation):
@@ -85,7 +89,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
     """Approximate expectation value of a Pauli string."""
 
     def __init__(self,
-                 pauli_string: pauli_string.PauliString,
+                 pauli_string: 'pauli_string.PauliString',
                  repetitions: int,
                  key: Hashable=''):
         self._pauli_string = pauli_string
@@ -129,7 +133,7 @@ class PauliStringExpectation(WaveFunctionDisplay):
     """Expectation value of a Pauli string."""
 
     def __init__(self,
-                 pauli_string: pauli_string.PauliString,
+                 pauli_string: 'pauli_string.PauliString',
                  key: Hashable=''):
         self._pauli_string = pauli_string
         self._key = key
