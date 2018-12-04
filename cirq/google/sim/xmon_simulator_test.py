@@ -487,13 +487,13 @@ def test_simulate_moment_steps_sample():
     simulator = cg.XmonSimulator()
     for step in simulator.simulate_moment_steps(circuit, qubit_order=[Q1, Q2]):
         pass
-    assert [[True]] == step.sample([Q1])
-    assert [[True, False]] == step.sample([Q1, Q2])
-    assert [[False]] == step.sample([Q2])
+    np.testing.assert_equal([[True]], step.sample([Q1]))
+    np.testing.assert_equal([[True, False]], step.sample([Q1, Q2]))
+    np.testing.assert_equal([[False]], step.sample([Q2]))
 
-    assert [[True]] * 3 == step.sample([Q1], 3)
-    assert [[True, False]] * 3 == step.sample([Q1, Q2], 3)
-    assert [[False]] * 3 == step.sample([Q2], 3)
+    np.testing.assert_equal([[True]] * 3, step.sample([Q1], 3))
+    np.testing.assert_equal([[True, False]] * 3, step.sample([Q1, Q2], 3))
+    np.testing.assert_equal([[False]] * 3, step.sample([Q2], 3))
 
 
 def compute_gate(circuit, resolver, num_qubits=1):

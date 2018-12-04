@@ -37,7 +37,7 @@ class PauliStringGateOperation(ops.Operation,
                     *new_qubits: ops.QubitId
                     ) -> TSelf_PauliStringGateOperation:
         self.validate_args(new_qubits)
-        return self.map_qubits(dict(zip(self.pauli_string.qubits(),
+        return self.map_qubits(dict(zip(self.pauli_string.qubits,
                                         new_qubits)))
 
     @abc.abstractmethod
