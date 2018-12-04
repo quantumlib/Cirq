@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import cirq
 
@@ -151,3 +152,15 @@ def test_commutes_with():
     assert not cirq.Pauli.Z.commutes_with(cirq.Pauli.X)
     assert not cirq.Pauli.Z.commutes_with(cirq.Pauli.Y)
     assert cirq.Pauli.Z.commutes_with(cirq.Pauli.Z)
+
+
+def test_unitary():
+    np.testing.assert_equal(cirq.unitary(cirq.Pauli.X), cirq.unitary(cirq.X))
+    np.testing.assert_equal(cirq.unitary(cirq.Pauli.Y), cirq.unitary(cirq.Y))
+    np.testing.assert_equal(cirq.unitary(cirq.Pauli.Z), cirq.unitary(cirq.Z))
+
+
+def test_apply_unitary():
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.X)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.Y)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.Z)

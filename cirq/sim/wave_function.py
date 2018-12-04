@@ -62,7 +62,7 @@ def density_matrix_from_state_vector(
     state: Sequence,
     indices: Iterable[int] = None
 ) -> np.ndarray:
-    """Returns the density matrix of the wavefunction.
+    r"""Returns the density matrix of the wavefunction.
 
     Calculate the density matrix for the system on the given qubit
     indices, with the qubits not in indices that are present in state
@@ -71,12 +71,18 @@ def density_matrix_from_state_vector(
     convention of numpy.kron.
 
     For example:
+
         state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
         indices = None
-        gives us \rho = \begin{bmatrix}
-                            0.5 & 0.5
-                            0.5 & 0.5
-                        \end{bmatrix}
+
+    gives us
+
+        $$
+        \rho = \begin{bmatrix}
+                0.5 & 0.5
+                0.5 & 0.5
+            \end{bmatrix}
+        $$
 
     Args:
         state: A sequence representing a wave function in which
@@ -120,8 +126,9 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
     """Returns the wavefunction as a string in Dirac notation.
 
     For example:
+
         state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-        print(pretty_state(state)) -> 0.71|0⟩ + 0.71|1⟩
+        print(dirac_notation(state)) -> 0.71|0⟩ + 0.71|1⟩
 
     Args:
         state: A sequence representing a wave function in which the ordering
@@ -223,7 +230,7 @@ def validate_normalized_state(state: np.ndarray,
 
 def sample_state_vector(state: np.ndarray,
                         indices: List[int],
-                        repetitions: int=1) -> List[List[bool]]:
+                        repetitions: int=1) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the passed in state.
@@ -241,7 +248,8 @@ def sample_state_vector(state: np.ndarray,
     Returns:
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
-        measurements ordered by the input indices.
+        measurements ordered by the supplied qubits. These lists
+        are wrapped as an numpy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``state`` is not
@@ -269,7 +277,7 @@ def sample_state_vector(state: np.ndarray,
     result = np.random.choice(len(probs), size=repetitions, p=probs)
     # Convert to bools and rearrange to match repetition being the outer list.
     return np.transpose([(1 & (result >> i)).astype(np.bool) for i in
-                         range(len(indices))]).tolist()
+                         range(len(indices))])
 
 
 def measure_state_vector(
