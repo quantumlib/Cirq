@@ -145,3 +145,17 @@ def test_value_equality_forgot_method():
         @cirq.value_equality
         class _:
             pass
+
+
+@cirq.value_equality(approximate=True)
+class ApproxE:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+def test_value_equality_approximate():
+    assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.3)
+    assert not cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.1)

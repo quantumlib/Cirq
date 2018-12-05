@@ -177,7 +177,8 @@ def value_equality(cls: type = None,
         return lambda deferred_cls: value_equality(
             deferred_cls,
             unhashable=unhashable,
-            distinct_child_types=distinct_child_types)
+            distinct_child_types=distinct_child_types,
+            approximate=approximate)
 
     values_getter = getattr(cls, '_value_equality_values_', None)
     if values_getter is None:
