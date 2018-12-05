@@ -124,9 +124,9 @@ def test_contains(qubit_pauli_map):
 def test_keys(qubit_pauli_map):
     pauli_string = cirq.PauliString(qubit_pauli_map)
     assert (len(qubit_pauli_map.keys()) == len(pauli_string.keys())
-            == len(pauli_string.qubits()))
+            == len(pauli_string.qubits))
     assert (set(qubit_pauli_map.keys()) == set(pauli_string.keys())
-            == set(pauli_string.qubits()))
+            == set(pauli_string.qubits))
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -432,3 +432,16 @@ def test_pass_unsupported_operations_over():
     pauli_string = cirq.PauliString({q0: cirq.Pauli.X})
     with pytest.raises(TypeError):
         pauli_string.pass_operations_over([cirq.X(q0)])
+
+
+def test_with_qubits():
+    old_qubits = cirq.LineQubit.range(9)
+    new_qubits = cirq.LineQubit.range(9, 18)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in old_qubits}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+    new_pauli_string = pauli_string.with_qubits(*new_qubits)
+
+    assert new_pauli_string.qubits == tuple(new_qubits)
+    for q in new_qubits:
+        assert new_pauli_string[q] == cirq.Pauli.XYZ[q.x % 3]
+    assert new_pauli_string.negated is True
