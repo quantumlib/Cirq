@@ -1,4 +1,4 @@
-requirements_file: docs/requirements.txt
+requirements_file: dev_tools/conf/pip-list-dev-tools.txt
 build:
   image: latest
 python:

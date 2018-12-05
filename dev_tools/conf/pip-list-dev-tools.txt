@@ -12,3 +12,9 @@ twine
 
 # For verifying behavior of qasm output.
 qiskit==0.6.*
+
+# For generating documentation.
+pypandoc
+recommonmark >= 0.4.0
+Sphinx
+sphinx_rtd_theme
