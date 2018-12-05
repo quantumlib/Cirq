@@ -241,7 +241,7 @@ def decompose(
                 raise on_stuck_raise
             elif callable(on_stuck_raise):
                 error = on_stuck_raise(item)
-                if isinstance(error, Exception):
+                if error is not None:
                     raise error
 
         output.append(item)
