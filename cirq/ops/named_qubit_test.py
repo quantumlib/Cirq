@@ -62,6 +62,7 @@ def test_pad_digits():
     assert _pad_digits('a00000000:8') == 'a00000000:8:00000008:1'
 
 
+@cirq.testing.only_test_in_python3
 def test_named_qubit_range():
     qubits = cirq.NamedQubit.range('a', 2)
     assert len(qubits) == 2
