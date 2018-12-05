@@ -2587,46 +2587,10 @@ def test_decompose():
     ) == [cirq.X(a), cirq.Y(b), cirq.CZ(a, b)]
 
 
-def test_power():
-    a, b = cirq.LineQubit.range(2)
-    base = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** 0.2)(b),
-                                 (cirq.CZ)(a, b))
-    cirq.testing.assert_same_circuits(base ** 0, cirq.Circuit())
-    cirq.testing.assert_same_circuits(base ** 1, base)
-    cirq.testing.assert_same_circuits(base ** 2, base + base)
-    cirq.testing.assert_same_circuits(base ** 2.5, base + base + base ** 0.5)
-    cirq.testing.assert_same_circuits(base ** 0.5, base ** 0.5)
-    cirq.testing.assert_same_circuits(base ** -1, base ** -1)
-    cirq.testing.assert_same_circuits(base ** -2, base ** -1 + base ** -1)
-    cirq.testing.assert_same_circuits(base ** -2.5,
-                                      base ** -1 + base ** -1 + base ** -0.5)
-    cirq.testing.assert_same_circuits(base ** -0.5, base ** -0.5)
-
-
-def test_power_explicit():
-    a, b = cirq.LineQubit.range(2)
-    ops = [(cirq.X ** 0.5)(a), (cirq.Y ** 0.2)(b), cirq.CZ(a, b)]
-    sqrt_ops = [(cirq.X ** 0.25)(a), (cirq.Y ** 0.1)(b), (cirq.CZ**0.5)(a, b)]
-    base = cirq.Circuit.from_ops(ops)
-    expected_ops = ops + ops + sqrt_ops
-    cirq.testing.assert_same_circuits(base ** 2.5,
-                                      cirq.Circuit.from_ops(expected_ops))
-
-    # Note that moment does not reverse order of operations in moment.
-    inverse_ops = [(cirq.CZ ** -1)(a, b), (cirq.X ** -0.5)(a),
-                   (cirq.Y ** -0.2)(b)]
-    inverse_sqrt_ops = [(cirq.CZ ** -0.5)(a, b), (cirq.X ** -0.25)(a),
-                        (cirq.Y ** -0.1)(b)]
-
-    expected_ops = inverse_ops + inverse_ops + inverse_sqrt_ops
-    cirq.testing.assert_same_circuits(base ** (-2.5),
-                                      cirq.Circuit.from_ops(expected_ops))
-
-
 def test_inverse():
     a, b = cirq.LineQubit.range(2)
     forward = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b),
-                                    (cirq.CZ)(a, b))
+                                    cirq.CZ(a, b))
     backward = cirq.Circuit.from_ops((cirq.CZ ** (-1.0))(a, b),
                                      (cirq.X ** (-0.5))(a),
                                      (cirq.Y ** (0.2))(b))
@@ -2634,3 +2598,31 @@ def test_inverse():
 
     cirq.testing.assert_same_circuits(cirq.inverse(cirq.Circuit()),
                                       cirq.Circuit())
+
+    no_inverse = cirq.Circuit.from_ops(cirq.measure(a, b))
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.inverse(no_inverse)
+
+    # Default when there is no inverse for an op.
+    default = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b))
+    cirq.testing.assert_same_circuits(cirq.inverse(no_inverse, default),
+                                      default)
+    assert cirq.inverse(no_inverse, None) is None
+
+
+def test_pow_valid_only_for_minus_1():
+    a, b = cirq.LineQubit.range(2)
+    forward = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b),
+                                    cirq.CZ(a, b))
+
+    backward = cirq.Circuit.from_ops((cirq.CZ ** (-1.0))(a, b),
+                                     (cirq.X ** (-0.5))(a),
+                                     (cirq.Y ** (0.2))(b))
+
+    cirq.testing.assert_same_circuits(cirq.pow(forward, -1), backward)
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.pow(forward, 1)
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.pow(forward, 0)
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.pow(forward, -2.5)

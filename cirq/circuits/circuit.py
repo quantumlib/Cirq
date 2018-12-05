@@ -247,28 +247,29 @@ class Circuit:
             return NotImplemented
         return self * repetitions
 
-    def __pow__(self, exponent: int):
-        """See `cirq.pow`.
+    def __pow__(self, exponent: int) -> 'Circuit':
+        """A circuit raised to a power, only valid for exponent -1, the inverse.
 
-        Powering is consistent with __mul__ for circuits: it corresponds to
-        repetitions of the circuit the `exponent` number of times. When the
-        exponent is negative, these circuits have their moment order
-        reversed and the inverse of each operation in the moment is applied.
-        This means circuit**-1 corresponds to the inverse circuit.
-
-
-        Args:
-            exponent: The exponent to power by.
-
-        Returns:
-            A new circuit of the corresponding power.
+        This will fail if anything other than -1 is passed to the Circuit by
+        returning NotImplemented.  Otherwise this will return the inverse
+        circuit, which is the circuit with its moment order reversed and for
+        every moment all the moment's operations are replaced by its inverse.
+        If any of the operations do not support inverse, NotImplemented will be
+        returned.
         """
-        d = 1 if exponent > 0 else -1
-        result = Circuit()
-        if exponent != 0:
-            result += Circuit(
-                    [protocols.pow(moment, d) for moment in self[::d]])
-        return result
+        if exponent != -1:
+            return NotImplemented
+        circuit = Circuit(device=self._device)
+        for moment in self[::-1]:
+            moment_ops = []
+            for op in moment.operations:
+                try:
+                    inverse_op = cirq.protocols.inverse(op)
+                except TypeError:
+                    return NotImplemented
+                moment_ops.append(inverse_op)
+            circuit.append(Moment(moment_ops))
+        return circuit
 
     def __repr__(self):
         if not self._moments and self._device == devices.UnconstrainedDevice:

@@ -52,15 +52,8 @@ def pow(val: 'cirq.Operation',
 
 
 @overload
-def pow(val: 'cirq.Moment',
-        exponent: Any,
-        default: TDefault) -> Union[TDefault, 'cirq.Moment']:
-    pass
-
-
-@overload
 def pow(val: 'cirq.Circuit',
-        exponent: Any,
+        exponent: int,
         default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
     pass
 

@@ -16,7 +16,7 @@
 
 from typing import Any, Iterable, TypeVar, Callable, Sequence
 
-from cirq import ops, protocols
+from cirq import ops
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 

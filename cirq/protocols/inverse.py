@@ -67,11 +67,6 @@ def inverse(val: 'cirq.OP_TREE',
 
 
 @overload
-def inverse(val: 'cirq.Moment') -> 'cirq.Moment':
-    pass
-
-
-@overload
 def inverse(val: 'cirq.Circuit') -> 'cirq.Circuit':
     pass
 
