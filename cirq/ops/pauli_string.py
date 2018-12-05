@@ -27,7 +27,7 @@ TDefault = TypeVar('TDefault')
 
 
 @value.value_equality
-class PauliString:
+class PauliString(raw_types.Operation):
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
                  negated: bool = False) -> None:
@@ -69,8 +69,14 @@ class PauliString:
     def keys(self) -> KeysView[raw_types.QubitId]:
         return self._qubit_pauli_map.keys()
 
-    def qubits(self) -> KeysView[raw_types.QubitId]:
-        return self.keys()
+    @property
+    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+        return tuple(sorted(self.keys()))
+
+    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'PauliString':
+        return PauliString(dict(zip(new_qubits,
+                                    (self[q] for q in self.qubits))),
+                           self.negated)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()
@@ -86,11 +92,11 @@ class PauliString:
 
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
-                             for qubit in sorted(self.qubits())))
+                             for qubit in sorted(self.qubits)))
         return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
-        ordered_qubits = sorted(self.qubits())
+        ordered_qubits = sorted(self.qubits)
         return '{{{}, {}}}'.format('+-'[self.negated],
                                    ', '.join(('{!s}:{!s}'.format(q, self[q])
                                              for q in ordered_qubits)))
