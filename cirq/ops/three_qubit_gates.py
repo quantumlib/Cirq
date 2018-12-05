@@ -14,39 +14,34 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Optional, Tuple, Union, Sequence
+from typing import Optional, Tuple
 
 import numpy as np
 
-from cirq import linalg, value, protocols
-from cirq.ops import gate_features, common_gates, raw_types, op_tree, \
-    eigen_gate, controlled_gate
+from cirq import linalg, protocols
+from cirq.ops import (
+    common_gates,
+    controlled_gate,
+    eigen_gate,
+    gate_features,
+    op_tree,
+    raw_types,
+)
 
 
-class _CCZPowGate(eigen_gate.EigenGate,
-                  gate_features.ThreeQubitGate,
-                  gate_features.InterchangeableQubitsGate):
+class CCZPowGate(eigen_gate.EigenGate,
+                 gate_features.ThreeQubitGate,
+                 gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z that can be raised to a power.
 
-    The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
+    The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
     """
-
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
-        super().__init__(exponent=exponent)
-
-    @property
-    def exponent(self):
-        return self._exponent
 
     def _eigen_components(self):
         return [
             (0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
-
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCZPowGate':
-        return _CCZPowGate(exponent=exponent)
 
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
@@ -81,16 +76,15 @@ class _CCZPowGate(eigen_gate.EigenGate,
         yield p(c)**-1
         yield sweep_abc
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
-        ooo = linalg.slice_for_qubits_equal_to(axes, 0b111)
-        target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
-        return target_tensor
+        ooo = args.subspace_index(0b111)
+        args.target_tensor[ooo] *= np.exp(1j * self.exponent * np.pi)
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            args.target_tensor *= p
+        return args.target_tensor
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -112,9 +106,14 @@ class _CCZPowGate(eigen_gate.EigenGate,
         return ''.join(lines)
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.CCZ'
-        return '(cirq.CCZ**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CCZ'
+            return '(cirq.CCZ**{!r})'.format(self._exponent)
+        return (
+            'cirq.CCZPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -122,20 +121,14 @@ class _CCZPowGate(eigen_gate.EigenGate,
         return 'CCZ**{}'.format(self._exponent)
 
 
-class _CCXPowGate(eigen_gate.EigenGate,
-                  gate_features.ThreeQubitGate,
-                  gate_features.InterchangeableQubitsGate):
+class CCXPowGate(eigen_gate.EigenGate,
+                 gate_features.ThreeQubitGate,
+                 gate_features.InterchangeableQubitsGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
-    The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
+    The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area
+    is the matrix of `X**t`.
     """
-
-    def __init__(self, exponent: Union[value.Symbol, float]=1.0) -> None:
-        super().__init__(exponent=exponent)
-
-    @property
-    def exponent(self):
-        return self._exponent
 
     def _eigen_components(self):
         return [
@@ -145,25 +138,23 @@ class _CCXPowGate(eigen_gate.EigenGate,
                                   np.array([[0.5, -0.5], [-0.5, 0.5]]))),
         ]
 
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
-                       ) -> '_CCXPowGate':
-        return _CCXPowGate(exponent=exponent)
-
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
-        return protocols.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            args.target_tensor *= p
+        return protocols.apply_unitary(
             controlled_gate.ControlledGate(
                 controlled_gate.ControlledGate(
                     common_gates.X**self.exponent)),
-            target_tensor,
-            available_buffer,
-            axes,
+            protocols.ApplyUnitaryArgs(
+                args.target_tensor,
+                args.available_buffer,
+                args.axes),
             default=NotImplemented)
 
     def _decompose_(self, qubits):
@@ -189,9 +180,14 @@ class _CCXPowGate(eigen_gate.EigenGate,
                            qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
-        if self._exponent == 1:
-            return 'cirq.TOFFOLI'
-        return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.TOFFOLI'
+            return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+        return (
+            'cirq.CCXPowGate(exponent={!r}, '
+            'global_shift={!r})'
+        ).format(self._exponent, self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -199,8 +195,8 @@ class _CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
-class _CSwapGate(gate_features.ThreeQubitGate,
-                 gate_features.InterchangeableQubitsGate):
+class CSwapGate(gate_features.ThreeQubitGate,
+                gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):
@@ -259,16 +255,13 @@ class _CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.S(c)**-1
         yield common_gates.X(a)**-0.5
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
-        return protocols.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        return protocols.apply_unitary(
             controlled_gate.ControlledGate(common_gates.SWAP),
-            target_tensor,
-            available_buffer,
-            axes,
+            protocols.ApplyUnitaryArgs(
+                args.target_tensor,
+                args.available_buffer,
+                args.axes),
             default=NotImplemented)
 
     def _decompose_outside_control(self,
@@ -334,9 +327,9 @@ class _CSwapGate(gate_features.ThreeQubitGate,
 
 
 # Explicit names.
-CCZ = _CCZPowGate()
-CCX = _CCXPowGate()
-CSWAP = _CSwapGate()
+CCZ = CCZPowGate()
+CCX = CCXPowGate()
+CSWAP = CSwapGate()
 
 # Common names.
 TOFFOLI = CCX

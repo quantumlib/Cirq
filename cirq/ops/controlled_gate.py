@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Sequence, Any
+from typing import Any, Union
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
+@value.value_equality
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
@@ -37,50 +38,39 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('No control qubit specified.')
         self.sub_gate.validate_args(qubits[1:])
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self.sub_gate == other.sub_gate
+    def _value_equality_values_(self):
+        return self.sub_gate
 
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ControlledGate, self.sub_gate))
-
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> np.ndarray:
-        control = axes[0]
-        rest = axes[1:]
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        control = args.axes[0]
+        rest = args.axes[1:]
         active = linalg.slice_for_qubits_equal_to([control], 1)
         sub_axes = [r - int(r > control) for r in rest]
-        target_view = target_tensor[active]
-        buffer_view = available_buffer[active]
-        result = protocols.apply_unitary_to_tensor(
+        target_view = args.target_tensor[active]
+        buffer_view = args.available_buffer[active]
+        result = protocols.apply_unitary(
             self.sub_gate,
-            target_view,
-            buffer_view,
-            sub_axes,
+            protocols.ApplyUnitaryArgs(
+                target_view,
+                buffer_view,
+                sub_axes),
             default=NotImplemented)
 
         if result is NotImplemented:
             return NotImplemented
 
         if result is target_view:
-            return target_tensor
+            return args.target_tensor
 
         if result is buffer_view:
             inactive = linalg.slice_for_qubits_equal_to([control], 0)
-            available_buffer[inactive] = target_tensor[inactive]
-            return available_buffer
+            args.available_buffer[inactive] = args.target_tensor[inactive]
+            return args.available_buffer
 
         # HACK: assume they didn't somehow escape the slice view and edit the
         # rest of target_tensor.
-        target_tensor[active] = result
-        return target_tensor
+        args.target_tensor[active] = result
+        return args.target_tensor
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_gate)
@@ -98,15 +88,6 @@ class ControlledGate(raw_types.Gate):
         if new_sub_gate is NotImplemented:
             return NotImplemented
         return ControlledGate(new_sub_gate)
-
-    def _phase_by_(self, phase_turns: float, qubit_index: int):
-        if qubit_index == 0:
-            return self
-        phased_gate = protocols.phase_by(
-            self.sub_gate, phase_turns, qubit_index-1, None)
-        if phased_gate is None:
-            return NotImplemented
-        return ControlledGate(phased_gate)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)

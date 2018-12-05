@@ -30,9 +30,12 @@ class Tolerance:
         """Initializes a Tolerance instance with the specified parameters.
 
         Notes:
-          Comparisons are done as if by numpy.allclose, which considers x and y
+          Matrix Comparisons (methods beginning with "all_") are done by
+          numpy.allclose, which considers x and y
           to be close when abs(x - y) <= atol + rtol * abs(y). See
-          numpy.allclose's documentation for more details.
+          numpy.allclose's documentation for more details.   The scalar
+          methods perform the same calculations without the numpy
+          matrix construction.
 
         Args:
           rtol: Relative tolerance.
@@ -43,6 +46,7 @@ class Tolerance:
         self.atol = atol
         self.equal_nan = equal_nan
 
+    # Matrix methods
     def all_close(self, a, b):
         return np.allclose(
             a, b, rtol=self.rtol, atol=self.atol, equal_nan=self.equal_nan)
@@ -53,6 +57,17 @@ class Tolerance:
     def all_near_zero_mod(self, a, period):
         return self.all_close((np.array(a) + (period/2)) % period - period/2,
                               np.zeros(np.shape(a)))
+
+    # Scalar methods
+    def close(self, a, b):
+        return abs(a - b) <= self.atol + self.rtol * abs(b)
+
+    def near_zero(self, a):
+        return abs(a) <= self.atol
+
+    def near_zero_mod(self, a, period):
+        half_period = period / 2
+        return self.near_zero((a + half_period) % period - half_period)
 
     def __repr__(self):
         return "Tolerance(rtol={}, atol={}, equal_nan={})".format(

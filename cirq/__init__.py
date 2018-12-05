@@ -21,13 +21,7 @@ from cirq._version import (
 from cirq.circuits import (
     Circuit,
     CircuitDag,
-    ConvertToCzAndSingleGates,
-    DropEmptyMoments,
-    DropNegligible,
-    ExpandComposite,
     InsertStrategy,
-    MergeInteractions,
-    MergeSingleQubitGates,
     Moment,
     OptimizationPass,
     PointOptimizationSummary,
@@ -37,27 +31,10 @@ from cirq.circuits import (
     Unique,
 )
 
-from cirq.decompositions import (
-    controlled_op_to_operations,
-    is_negligible_turn,
-    single_qubit_matrix_to_gates,
-    single_qubit_matrix_to_pauli_rotations,
-    single_qubit_op_to_framed_phase_form,
-    two_qubit_matrix_to_operations,
-)
-
 from cirq.devices import (
     Device,
     GridQubit,
     UnconstrainedDevice,
-)
-
-from cirq.extension import (
-    can_cast,
-    cast,
-    Extensions,
-    PotentialImplementation,
-    try_cast,
 )
 
 from cirq.experiments import (
@@ -87,6 +64,7 @@ from cirq.linalg import (
     is_unitary,
     kak_canonicalize_vector,
     kak_decomposition,
+    KakDecomposition,
     kron,
     kron_factor_4x4_to_2x2s,
     kron_with_controls,
@@ -102,15 +80,22 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    amplitude_damp,
+    AmplitudeDampingChannel,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
+    bit_flip,
+    BitFlipChannel,
     CCX,
+    CCXPowGate,
     CCZ,
+    CCZPowGate,
     SingleQubitCliffordGate,
     CNOT,
     CNotPowGate,
     ControlledGate,
     CSWAP,
+    CSwapGate,
     CZ,
     CZPowGate,
     depolarize,
@@ -121,6 +106,8 @@ from cirq.ops import (
     freeze_op_tree,
     Gate,
     GateOperation,
+    generalized_amplitude_damp,
+    GeneralizedAmplitudeDampingChannel,
     H,
     HPowGate,
     InterchangeableQubitsGate,
@@ -136,14 +123,17 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliTransform,
+    phase_damp,
+    PhaseDampingChannel,
+    phase_flip,
+    PhaseFlipChannel,
     PhasedXPowGate,
     QubitId,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    XPowGate,
-    YPowGate,
-    ZPowGate,
+    rotation_error,
+    RotationErrorChannel,
     Rx,
     Ry,
     Rz,
@@ -159,8 +149,35 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     X,
+    XPowGate,
+    XX,
+    XXPowGate,
     Y,
+    YPowGate,
+    YY,
+    YYPowGate,
     Z,
+    ZPowGate,
+    ZZ,
+    ZZPowGate,
+)
+
+from cirq.optimizers import (
+    ConvertToCzAndSingleGates,
+    DropEmptyMoments,
+    DropNegligible,
+    EjectPhasedPaulis,
+    EjectZ,
+    ExpandComposite,
+    is_negligible_turn,
+    merge_single_qubit_gates_into_phased_x_z,
+    MergeInteractions,
+    MergeSingleQubitGates,
+    single_qubit_matrix_to_gates,
+    single_qubit_matrix_to_pauli_rotations,
+    single_qubit_matrix_to_phased_x_z,
+    single_qubit_op_to_framed_phase_form,
+    two_qubit_matrix_to_operations,
 )
 
 from cirq.schedules import (
@@ -170,11 +187,15 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
+    bloch_vector_from_state_vector,
+    density_matrix_from_state_vector,
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
+    Simulator,
+    SimulatorStep,
     StepResult,
     SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
@@ -201,11 +222,13 @@ from cirq.value import (
     Duration,
     Symbol,
     Timestamp,
+    value_equality,
 )
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
-    apply_unitary_to_tensor,
+    apply_unitary,
+    ApplyUnitaryArgs,
     channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
@@ -218,8 +241,11 @@ from cirq.protocols import (
     pow,
     qasm,
     QasmArgs,
-    SupportsApplyUnitaryToTensor,
+    SupportsApplyUnitary,
+    SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsDecompose,
+    SupportsDecomposeWithQubits,
     SupportsParameterization,
     SupportsPhase,
     SupportsQasm,
@@ -233,6 +259,10 @@ from cirq.protocols import (
     unitary,
     trace_distance_bound,
     phase_by,
+)
+
+from cirq.ion import (
+    MS,
 )
 # pylint: enable=redefined-builtin
 

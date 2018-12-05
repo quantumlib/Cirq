@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union,
-                    cast)
+from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import raw_types, common_gates, op_tree, \
     named_qubit
 from cirq.ops.pauli import Pauli
@@ -32,6 +31,7 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
     pass
 
 
+@value.value_equality
 class SingleQubitCliffordGate(raw_types.Gate):
     """Any single qubit Clifford rotation."""
     I = _pretend_initialized()
@@ -196,22 +196,10 @@ class SingleQubitCliffordGate(raw_types.Gate):
     def transform(self, pauli: Pauli) -> PauliTransform:
         return self._rotation_map[pauli]
 
-    def _eq_tuple(self) -> Tuple[Any, ...]:
-        return (SingleQubitCliffordGate,
-                self.transform(Pauli.X),
+    def _value_equality_values_(self):
+        return (self.transform(Pauli.X),
                 self.transform(Pauli.Y),
                 self.transform(Pauli.Z))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
 
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
         if exponent != -1:

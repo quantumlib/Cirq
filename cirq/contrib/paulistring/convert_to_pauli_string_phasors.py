@@ -16,7 +16,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, decompositions, linalg, protocols
+from cirq import ops, linalg, optimizers, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -61,7 +61,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
     def _matrix_to_pauli_string_phasors(self,
                                         mat: np.ndarray,
                                         qubit: ops.QubitId) -> ops.OP_TREE:
-        rotations = decompositions.single_qubit_matrix_to_pauli_rotations(
+        rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.tolerance)
         out_ops = []  # type: List[ops.Operation]
         for pauli, half_turns in rotations:

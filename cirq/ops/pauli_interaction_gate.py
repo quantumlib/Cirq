@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Hashable, List, Optional, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -32,8 +32,10 @@ pauli_eigen_map = {
 }
 
 
+@value.value_equality
 class PauliInteractionGate(eigen_gate.EigenGate,
-                           gate_features.InterchangeableQubitsGate):
+                           gate_features.InterchangeableQubitsGate,
+                           gate_features.TwoQubitGate):
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
 
@@ -59,22 +61,10 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         self.pauli1 = pauli1
         self.invert1 = invert1
 
-    def _eq_tuple(self) -> Tuple[Hashable, ...]:
-        return (PauliInteractionGate,
-                self.pauli0, self.invert0,
+    def _value_equality_values_(self):
+        return (self.pauli0, self.invert0,
                 self.pauli1, self.invert1,
                 self._canonical_exponent)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._eq_tuple())
 
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         if self.pauli0 == self.pauli1 and self.invert0 == self.invert1:

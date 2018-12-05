@@ -30,22 +30,22 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
 class QasmArgs(string.Formatter):
-    """
-    Attributes:
-        precision: The number of digits after the decimal to show for numbers in
-            the qasm code.
-        version: The QASM version to target. Objects may return different qasm
-            depending on version.
-        qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
-        meas_key_id_map: A dictionary mapping measurement keys to creg QASM
-            identifiers.
-    """
     def __init__(self,
                  precision: int = 10,
                  version: str = '2.0',
                  qubit_id_map: Dict['cirq.QubitId', str] = None,
                  meas_key_id_map: Dict[str, str] = None,
                  ) -> None:
+        """
+        Args:
+            precision: The number of digits after the decimal to show for
+                numbers in the qasm code.
+            version: The QASM version to target. Objects may return different
+                qasm depending on version.
+            qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
+            meas_key_id_map: A dictionary mapping measurement keys to creg QASM
+                identifiers.
+        """
         self.precision = precision
         self.version = version
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
@@ -55,8 +55,9 @@ class QasmArgs(string.Formatter):
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
         from cirq import ops  # HACK: avoids cyclic dependency.
-        if isinstance(value, float):
-            value = round(value, self.precision)
+        if isinstance(value, (float, int)):
+            if isinstance(value, float):
+                value = round(value, self.precision)
             if spec == 'half_turns':
                 value = 'pi*{}'.format(value) if value != 0 else '0'
                 spec = ''

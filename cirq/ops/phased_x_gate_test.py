@@ -12,7 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
+import numpy as np
+import pytest
+
 import cirq
+
+
+@pytest.mark.parametrize('phase_exponent', [
+    -0.5, 0, 0.1, 0.25, 0.5, 1, cirq.Symbol('p')
+    ]
+)
+def test_phased_x_consistent_protocols(phase_exponent):
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.PhasedXPowGate(phase_exponent=phase_exponent,
+                                exponent=1.0,
+                                global_shift=0.1)
+    )
 
 
 def test_new_init():
@@ -41,6 +58,12 @@ def test_new_init():
     assert isinstance(y, cirq.YPowGate)
     assert y.exponent == 0.1
     assert y._global_shift == 0.2
+
+
+def test_no_symbolic_qasm_but_fails_gracefully():
+    q = cirq.NamedQubit('q')
+    v = cirq.PhasedXPowGate(phase_exponent=cirq.Symbol('p')).on(q)
+    assert cirq.qasm(v, args=cirq.QasmArgs(), default=None) is None
 
 
 def test_extrapolate():
@@ -118,14 +141,6 @@ def test_str_repr():
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25)) == 'PhasedX(0.25)'
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25,
                                    exponent=0.5)) == 'PhasedX(0.25)^0.5'
-    cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(phase_exponent=0))
-    cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(
-        phase_exponent=0.1,
-        exponent=0.3,
-        global_shift=0.7))
-    cirq.testing.assert_equivalent_repr(cirq.PhasedXPowGate(
-        phase_exponent=0.1,
-        exponent=0.3))
     assert repr(cirq.PhasedXPowGate(phase_exponent=0.25,
                                     exponent=4,
                                     global_shift=0.125) ==
@@ -133,13 +148,6 @@ def test_str_repr():
                 'exponent=4, global_shift=0.125)')
     assert repr(cirq.PhasedXPowGate(phase_exponent=0.25)
                 ) == 'cirq.PhasedXPowGate(phase_exponent=0.25)'
-
-
-def test_decomposition():
-    cirq.testing.assert_decompose_is_consistent_with_unitary(
-        cirq.PhasedXPowGate(exponent=0.25, phase_exponent=0.75))
-    cirq.testing.assert_decompose_is_consistent_with_unitary(
-        cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25))
 
 
 def test_parameterize():
@@ -182,14 +190,30 @@ def test_phase_by():
     g = cirq.PhasedXPowGate(phase_exponent=0.25)
     g2 = cirq.phase_by(g, 0.25, 0)
     assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
 
     g = cirq.PhasedXPowGate(phase_exponent=0)
     g2 = cirq.phase_by(g, 0.125, 0)
     assert g2 == cirq.PhasedXPowGate(phase_exponent=0.25)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
 
     g = cirq.PhasedXPowGate(phase_exponent=0.5)
     g2 = cirq.phase_by(g, 0.125, 0)
     assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(g)
+
+
+@pytest.mark.parametrize('exponent,phase_exponent',
+        itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2),
+)
+def test_exponent_consistency(exponent, phase_exponent):
+    """Verifies that instances of PhasedX gate expose consistent exponents."""
+    g = cirq.PhasedXPowGate(exponent=exponent, phase_exponent=phase_exponent)
+    assert g.exponent in [exponent, -exponent]
+    assert g.phase_exponent in [
+            cirq.value.canonicalize_half_turns(g.phase_exponent)]
+
+    g2 = cirq.PhasedXPowGate(exponent=g.exponent,
+                             phase_exponent=g.phase_exponent)
+    assert g == g2
+
+    u = cirq.protocols.unitary(g)
+    u2 = cirq.protocols.unitary(g2)
+    assert np.all(u == u2)
