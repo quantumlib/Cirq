@@ -31,7 +31,8 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
                                    q1: ops.QubitId,
                                    mat: np.ndarray,
                                    allow_partial_czs: bool,
-                                   tolerance: float = 1e-8
+                                   tolerance: float = 1e-8,
+                                   clean_operations: bool = True,
                                    ) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into Z/XY/CZ gates.
 
@@ -42,6 +43,8 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
         allow_partial_czs: Enables the use of Partial-CZ gates.
         tolerance: A limit on the amount of error introduced by the
             construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
 
     Returns:
         A list of operations implementing the matrix.
@@ -49,7 +52,10 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
     kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
     operations = _kak_decomposition_to_operations(
         q0, q1, kak, allow_partial_czs, tolerance)
-    return _cleanup_operations(operations)
+    if clean_operations:
+        return _cleanup_operations(operations)
+    else:
+        return operations
 
 
 def _xx_interaction_via_full_czs(q0: ops.QubitId,
