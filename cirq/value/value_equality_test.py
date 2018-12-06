@@ -157,5 +157,62 @@ class ApproxE:
 
 
 def test_value_equality_approximate():
+    assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.0), atol=0.1)
     assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.3)
     assert not cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.1)
+
+
+@cirq.value_equality(approximate=True)
+class PeriodicF:
+    def __init__(self, x, n):
+        self.x = x
+        self.n = n
+
+    def _value_equality_values_(self):
+        return self.x
+
+    def _value_equality_approximate_values_(self):
+        return self.x % self.n
+
+
+def test_value_equality_approximate_specialized():
+    assert PeriodicF(1, 4) != PeriodicF(5, 4)
+    assert cirq.approx_eq(PeriodicF(1, 4), PeriodicF(5, 4), atol=0.1)
+    assert not cirq.approx_eq(PeriodicF(1, 4), PeriodicF(6, 4), atol=0.1)
+
+
+def test_value_equality_approximate_not_supported():
+    assert not cirq.approx_eq(BasicC(0.0), BasicC(0.1), atol=0.2)
+
+
+class ApproxEa(ApproxE):
+    pass
+
+
+class ApproxEb(ApproxE):
+    pass
+
+
+@cirq.value_equality(distinct_child_types=True, approximate=True)
+class ApproxG:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+class ApproxGa(ApproxG):
+    pass
+
+
+class ApproxGb(ApproxG):
+    pass
+
+
+def test_value_equality_approximate_typing():
+    assert not cirq.approx_eq(ApproxE(0.0), PeriodicF(0.0, 1.0), atol=0.1)
+    assert cirq.approx_eq(ApproxEa(0.0), ApproxEb(0.0), atol=0.1)
+    assert cirq.approx_eq(ApproxG(0.0), ApproxG(0.0), atol=0.1)
+    assert not cirq.approx_eq(ApproxGa(0.0), ApproxGb(0.0), atol=0.1)
+    assert not cirq.approx_eq(ApproxG(0.0), ApproxGb(0.0), atol=0.1)

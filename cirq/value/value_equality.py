@@ -111,7 +111,6 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
     )
 
 
-
 # pylint: disable=function-redefined
 @overload
 def value_equality(cls: type,
