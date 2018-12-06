@@ -160,6 +160,7 @@ from cirq.ops import (
     generalized_amplitude_damp,
     measure,
     measure_each,
+    pauli_string_expectation,
     phase_damp,
     phase_flip,
     rotation_error,

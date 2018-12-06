@@ -21,7 +21,7 @@ the values of Displays in a circuit is a dictionary from Display key to
 Display value.
 """
 
-from typing import Any, Dict, Hashable, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Hashable, Optional, Tuple, Union, TYPE_CHECKING
 
 import abc
 
@@ -194,3 +194,13 @@ class PauliStringExpectation(WaveFunctionDisplay):
 
     def _value_equality_values_(self):
         return self._pauli_string, self._key
+
+
+def pauli_string_expectation(
+        pauli_string: 'pauli_string.PauliString',
+        num_samples: Optional[int] = None,
+        key: Hashable='') -> Union[ApproxPauliStringExpectation,
+                                   PauliStringExpectation]:
+    if num_samples is None:
+        return PauliStringExpectation(pauli_string, key=key)
+    return ApproxPauliStringExpectation(pauli_string, num_samples, key=key)

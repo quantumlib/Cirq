@@ -71,6 +71,7 @@ from cirq.ops.display import (
     PauliStringExpectation,
     SamplesDisplay,
     WaveFunctionDisplay,
+    pauli_string_expectation,
 )
 from cirq.ops.eigen_gate import (
     EigenGate,

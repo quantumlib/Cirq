@@ -153,3 +153,14 @@ def test_with_qubits():
             pauli_string, num_samples=1).with_qubits(*new_qubits)
         == cirq.ApproxPauliStringExpectation(
             pauli_string.with_qubits(*new_qubits), num_samples=1))
+
+
+def test_pauli_string_expectation_helper():
+    qubits = cirq.LineQubit.range(9)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in qubits}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+
+    assert (cirq.pauli_string_expectation(pauli_string, key='a')
+            == cirq.PauliStringExpectation(pauli_string, key='a'))
+    assert (cirq.pauli_string_expectation(pauli_string, 5, key='a')
+            == cirq.ApproxPauliStringExpectation(pauli_string, 5, key='a'))
