@@ -247,6 +247,30 @@ class Circuit:
             return NotImplemented
         return self * repetitions
 
+    def __pow__(self, exponent: int) -> 'Circuit':
+        """A circuit raised to a power, only valid for exponent -1, the inverse.
+
+        This will fail if anything other than -1 is passed to the Circuit by
+        returning NotImplemented.  Otherwise this will return the inverse
+        circuit, which is the circuit with its moment order reversed and for
+        every moment all the moment's operations are replaced by its inverse.
+        If any of the operations do not support inverse, NotImplemented will be
+        returned.
+        """
+        if exponent != -1:
+            return NotImplemented
+        circuit = Circuit(device=self._device)
+        for moment in self[::-1]:
+            moment_ops = []
+            for op in moment.operations:
+                try:
+                    inverse_op = cirq.protocols.inverse(op)
+                except TypeError:
+                    return NotImplemented
+                moment_ops.append(inverse_op)
+            circuit.append(Moment(moment_ops))
+        return circuit
+
     def __repr__(self):
         if not self._moments and self._device == devices.UnconstrainedDevice:
             return 'cirq.Circuit()'
