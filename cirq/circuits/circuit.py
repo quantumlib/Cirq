@@ -763,7 +763,7 @@ class Circuit:
     def insert(
             self,
             index: int,
-            operation_tree: ops.OP_TREE,
+            operations: ops.OP_TREE,
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
@@ -772,7 +772,7 @@ class Circuit:
 
         Args:
             index: The index to insert all of the operations at.
-            operation_tree: An operation or tree of operations.
+            operations: An operation or tree of operations.
             strategy: How to pick/create the moment to put operations into.
 
         Returns:
@@ -783,7 +783,7 @@ class Circuit:
             ValueError: Bad insertion strategy.
         """
         moments_and_operations = ops.flatten_op_tree(
-            ops.transform_op_tree(operation_tree,
+            ops.transform_op_tree(operations,
                                   self._device.decompose_operation),
             preserve_moments=True
         )
@@ -1084,15 +1084,15 @@ class Circuit:
 
     def append(
             self,
-            operation_tree: ops.OP_TREE,
+            operations: ops.OP_TREE,
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
         Args:
-            operation_tree: The operation tree to append to the circuit
+            operations: The operation tree to append to the circuit
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self._moments), operation_tree, strategy)
+        self.insert(len(self._moments), operations, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],
