@@ -18,7 +18,7 @@ from typing import Union, Callable, overload, Any
 
 from typing_extensions import Protocol
 
-from cirq import protocols
+from cirq.protocols import approx_eq
 
 
 class _SupportsValueEquality(Protocol):
@@ -104,7 +104,7 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
         return False
 
     # Delegate to cirq.approx_eq for approximate equality comparison.
-    return protocols.approx_eq(
+    return approx_eq(
         self._value_equality_approximate_values_(),
         other._value_equality_approximate_values_(),
         atol=atol
