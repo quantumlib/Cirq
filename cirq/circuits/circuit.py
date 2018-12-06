@@ -774,12 +774,10 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_op_tree(
-                ops.transform_op_tree(operation_tree,
-                                      self._device.decompose_operation),
-                preserve_moments=True
-            )
+        moments_and_operations =  ops.flatten_op_tree(
+            ops.transform_op_tree(operation_tree,
+                                  self._device.decompose_operation),
+            preserve_moments=True
         )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index,
