@@ -93,13 +93,12 @@ def _wrap_operation(op: ops.Operation) -> ops.Operation:
     return _QCircuitOperation(op, diagrammable)
 
 
-def _wrap_moment(moment: circuits.Moment) -> circuits.Moment:
-    return circuits.Moment(_wrap_operation(op)
-                           for op in moment.operations)
-
-
-def _wrap_circuit(circuit: circuits.Circuit) -> circuits.Circuit:
-    return circuits.Circuit(_wrap_moment(moment) for moment in circuit)
+def get_qcircuit_diagram_info(op: ops.Operation,
+                              args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
+    return cast(protocols.CircuitDiagramInfo,
+            cast(protocols.SupportsCircuitDiagramInfo, _wrap_operation(op)
+                )._circuit_diagram_info_(args))
 
 
 def circuit_to_latex_using_qcircuit(
@@ -114,11 +113,8 @@ def circuit_to_latex_using_qcircuit(
     Returns:
         Latex code for the diagram.
     """
-    qcircuit = _wrap_circuit(circuit)
-
-    qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
-
-    diagram = qcircuit.to_text_diagram_drawer(
+    diagram = circuit.to_text_diagram_drawer(
         qubit_namer=qcircuit_qubit_namer,
-        qubit_order=qubit_order)
+        qubit_order=qubit_order,
+        get_circuit_diagram_info=get_qcircuit_diagram_info)
     return _render(diagram)
