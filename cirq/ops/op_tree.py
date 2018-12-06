@@ -19,6 +19,7 @@ import collections
 
 from typing import Any, Iterable, Union, Callable
 
+from cirq.circuits.moment import Moment
 from cirq.ops.raw_types import Operation
 
 
@@ -44,11 +45,15 @@ See: https://github.com/python/mypy/issues/731
 """
 
 
-def flatten_op_tree(root: OP_TREE) -> Iterable[Operation]:
+def flatten_op_tree(root: OP_TREE,
+                    preserve_moments: bool = False
+                    ) -> Iterable[Union[Operation, Moment]]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
         root: The operation or tree of operations to iterate.
+        preserve_moments: Whether to yield Moments intact instead of
+            flattening them
 
     Yields:
         Operations from the tree.
@@ -56,13 +61,14 @@ def flatten_op_tree(root: OP_TREE) -> Iterable[Operation]:
     Raises:
         TypeError: root isn't a valid OP_TREE.
     """
-    if isinstance(root, Operation):
+    if (isinstance(root, Operation)
+            or preserve_moments and isinstance(root, Moment)):
         yield root
         return
 
     if isinstance(root, collections.Iterable):
         for subtree in root:
-            for item in flatten_op_tree(subtree):
+            for item in flatten_op_tree(subtree, preserve_moments):
                 yield item
         return
 
