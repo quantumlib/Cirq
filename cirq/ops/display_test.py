@@ -58,13 +58,20 @@ def test_pauli_string_expectation_value():
             cirq.PauliString({qubits[3]: cirq.Pauli.X})
             )
 
-    np.testing.assert_allclose(z0z1.value_derived_from_wavefunction(state, qubit_index_map), -1)
-    np.testing.assert_allclose(z0z2.value_derived_from_wavefunction(state, qubit_index_map), 0)
-    np.testing.assert_allclose(z0z3.value_derived_from_wavefunction(state, qubit_index_map), 0)
-    np.testing.assert_allclose(z0x1.value_derived_from_wavefunction(state, qubit_index_map), 0)
-    np.testing.assert_allclose(z1x2.value_derived_from_wavefunction(state, qubit_index_map), -1)
-    np.testing.assert_allclose(x0z1.value_derived_from_wavefunction(state, qubit_index_map), 0)
-    np.testing.assert_allclose(x3.value_derived_from_wavefunction(state, qubit_index_map), -1)
+    np.testing.assert_allclose(
+        z0z1.value_derived_from_wavefunction(state, qubit_index_map), -1)
+    np.testing.assert_allclose(
+        z0z2.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z0z3.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z0x1.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z1x2.value_derived_from_wavefunction(state, qubit_index_map), -1)
+    np.testing.assert_allclose(
+        x0z1.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        x3.value_derived_from_wavefunction(state, qubit_index_map), -1)
 
 
 @pytest.mark.parametrize('paulis', [
