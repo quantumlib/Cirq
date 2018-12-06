@@ -147,6 +147,10 @@ def value_equality(cls: type = None,
     This is only used when approximate argument is set. When approximate
     argument is set and _value_equality_approximate_values_ is not defined,
     _value_equality_values_ values are used for approximate equality.
+    For example, this can be used to compare periodic values like angles: the
+    angle value can be wrapped with PeriodicNumberEquivalence. When returned as
+    part of approximate values a special normalization will be done
+    automatically to guarantee correctness.
 
     Note that the type of the decorated value is included as part of the value
     equality values. This is so that completely separate classes with identical
