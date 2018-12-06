@@ -1602,6 +1602,7 @@ def test_insert_moments():
     assert c._moments == [m2, m0, m1]
     assert c._moments[0] == m2
 
+
 def test_apply_unitary_effect_to_state():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
