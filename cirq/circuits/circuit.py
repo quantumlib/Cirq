@@ -51,9 +51,13 @@ class Circuit:
     Methods returning information about the circuit:
         next_moment_operating_on
         prev_moment_operating_on
+        next_moments_operating_on
         operation_at
-        qubits
+        all_qubits
+        all_operations
         findall_operations
+        findall_operations_with_gate_type
+        are_all_measurements_terminal
         to_unitary_matrix
         apply_unitary_effect_to_state
         to_text_diagram
@@ -64,6 +68,10 @@ class Circuit:
         append
         insert_into_range
         clear_operations_touching
+        batch_insert
+        batch_remove
+        batch_insert_into
+        insert_at_frontier
 
     Circuits can also be iterated over,
         for moment in circuit:
