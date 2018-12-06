@@ -98,6 +98,11 @@ def transform_op_tree(
     if isinstance(root, Operation):
         return op_transformation(root)
 
+    if isinstance(root, Moment):
+        return Moment(iter_transformation(
+            transform_op_tree(subtree, op_transformation, iter_transformation)
+            for subtree in root))
+
     if isinstance(root, collections.Iterable):
         return iter_transformation(
             transform_op_tree(subtree, op_transformation, iter_transformation)
