@@ -28,6 +28,46 @@ Or, if a gate specifies a `__pow__` method that works for an exponent of -1, the
 
 We describe some magic methods below.
 
+#### `cirq.unitary` and `def _unitary_` 
+
+When an object can be described by a unitary matrix, it can expose that unitary
+matrix by implementing a `_unitary_(self) -> np.ndarray` method.
+Callers can query whether or not an object has a unitary matrix by calling
+`cirq.unitary` on it.
+The `_unitary_` method may also return `NotImplemented`, in which case
+`cirq.unitary` behaves as if the method is not implemented.
+
+#### `cirq.decompose` and `def _decompose_`
+
+Operations and gates can be defined in terms of other operations by implementing a `_decompose_` method that returns those other operations.
+Operations implement `_decompose_(self)` whereas gates implement `_decompose_(self, qubits)` (since gates don't know their qubits ahead of time).
+
+The main requirements on the output of `_decompose_` methods are:
+
+1. DO NOT CREATE CYCLES. The `cirq.decompose` method will iterative decompose until it finds values satisfying a `keep` predicate. Cycles cause it to enter an infinite loop.
+2. Head towards operations defined by Cirq, because these operations have good decomposition methods that terminate in single-qubit and two qubit gates.
+These gates can be understood by the simulator, optimizers, and other code.
+3. All that matters is functional equivalence.
+Don't worry about staying within or reaching a particular gate set; it's too hard to predict what the caller will want. Gate-set-aware decomposition is useful, but *this is not the protocol that does that*.
+Gate-set-aware decomposition may be added in the future, but doesn't exist within Cirq at the moment.
+
+For example, `cirq.CCZ` decomposes into a series of `cirq.CNOT` and `cirq.T` operations.
+This allows code that doesn't understand three-qubit operation to work with `cirq.CCZ`; by decomposing it into operations they do understand.
+As another example, `cirq.TOFFOLI` decomposes into a `cirq.H` followed by a `cirq.CCZ` followed by a `cirq.H`.
+Although the output contains a three qubit operation (the CCZ), that operation can be decomposed into two qubit and one qubit operations.
+So code that doesn't understand three qubit operations can deal with Toffolis by decomposing them, and then decomposing the CCZs that result from the initial decomposition.
+
+In general, decomposition-aware code consuming operations is expected to recursively decompose unknown operations until the code either hits operations it understands or hits a dead end where no more decomposition is possible.
+The `cirq.decompose` method implements logic for performing exactly this kind of recursive decomposition.
+Callers specify a `keep` predicate, and optionally specify intercepting and fallback decomposers, and then `cirq.decompose` will repeatedly decompose whatever operations it was given until the operations satisfy the given `keep`.
+If `cirq.decompose` hits a dead end, it raises an error.
+
+Cirq doesn't make any guarantees about the "target gate set" decomposition is heading towards.
+`cirq.decompose` is not a method
+Decompositions within Cirq happen to converge towards X, Y, Z, CZ, PhasedX, specified-matrix gates, and others.
+But this set will vary from release to release, and so it is important for consumers of decompositions to look for generic properties of gates,
+such as "two qubit gate with a unitary matrix", instead of specific gate types such as CZ gates.
+
 #### `cirq.inverse` and `__pow__`
 
 Gates and operations are considered to be *invertable* when they implement a `__pow__` method that returns a result besides `NotImplemented` for an exponent of -1.
@@ -63,31 +103,6 @@ print(cirq.unitary(sqrt_x))
 
 The Pauli gates included in Cirq use the convention ``Z**0.5 ≡ S ≡ np.diag(1, i)``, ``Z**-0.5 ≡ S**-1``, ``X**0.5 ≡ H·S·H``, and the square root of ``Y`` is inferred via the right hand rule.
 
-
-#### `cirq.unitary` and `def _unitary_` 
-
-When objects can be described by a unitary matrix, they let `Cirq` know by implementing the ``_unitary_`` method.
-This method should return a numpy ``ndarray`` matrix and this array should be the unitary matrix corresponding to the object.
-The method may also return `NotImplemented`, in which case `cirq.unitary` behaves as if the method is not implemented.
-
-
-#### `cirq.decompose` and `def _decompose_`
-
-A `cirq.Operation` indicates that it can be broken down into smaller simpler
-operations by implementing a `def _decompose_(self):` method.
-Code that doesn't understand a particular operation can call
-`cirq.decompose_once` or `cirq.decompose` on that operation in order to get
-a set of simpler operations that it does understand.
-
-One useful thing about `cirq.decompose` is that it will decompose *recursively*,
-until only operations meeting a `keep` predicate remain.
-You can also give an `intercepting_decomposer` to `cirq.decompose`, which will
-take priority over operations' own decompositions.
-
-For `cirq.Gate`s, the decompose method is slightly different; it takes qubits:
-`def _decompose_(self, qubits)`.
-Callers who know the qubits that the gate is being applied to will use
-`cirq.decompose_once_with_qubits` to trigger this method.
 
 #### `_circuit_diagram_info_(self, args)` and `cirq.circuit_diagram_info(val, [args], [default])`
 
