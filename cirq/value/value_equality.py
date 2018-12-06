@@ -99,7 +99,6 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
     cls_self = self._value_equality_values_cls_()
     if not isinstance(other, cls_self):
         return NotImplemented
-    
     cls_other = other._value_equality_values_cls_()
     if cls_self != cls_other:
         return False
