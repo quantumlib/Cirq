@@ -184,6 +184,9 @@ def test_decompose_on_stuck_raise():
     # Or you say you're fine.
     assert cirq.decompose(
         no_method, keep=lambda _: False, on_stuck_raise=None) == [no_method]
+    assert cirq.decompose(
+        no_method, keep=lambda _: False,
+        on_stuck_raise=lambda _: None) == [no_method]
     # You can customize the error.
     with pytest.raises(TypeError, match='test'):
         _ = cirq.decompose(
@@ -194,6 +197,7 @@ def test_decompose_on_stuck_raise():
             keep=lambda _: False,
             on_stuck_raise=lambda op: NotImplementedError('op {!r}'.format(
                 op)))
+
 
     # There's a nice warning if you specify `on_stuck_raise` but not `keep`.
     with pytest.raises(ValueError, match='on_stuck_raise'):
