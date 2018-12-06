@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import cast
 
-from cirq import circuits, ops, protocols, value
+from cirq import circuits, ops, protocols
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
     known_qcircuit_operation_symbols,
@@ -22,23 +22,9 @@ from cirq.contrib.qcircuit.qcircuit_diagrammable import (
 )
 
 
-@value.value_equality
-class _QCircuitQubit(ops.QubitId):
-    def __init__(self, sub: ops.QubitId) -> None:
-        self.sub = sub
-
-    def _comparison_key(self):
-        return self.sub
-
-    def __repr__(self):
-        return '_QCircuitQubit({!r})'.format(self.sub)
-
-    def __str__(self):
-        # TODO: If qubit name ends with digits, turn them into subscripts.
-        return '\\lstick{\\text{' + str(self.sub) + '}}&'
-
-    def _value_equality_values_(self):
-        return self.sub
+def qcircuit_qubit_namer(qubit: ops.QubitId):
+    # TODO: If qubit name ends with digits, turn them into subscripts.
+    return '\\lstick{\\text{' + str(qubit) + '}}&'
 
 
 class _QCircuitOperation(ops.Operation):
@@ -94,7 +80,6 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 
 def _wrap_operation(op: ops.Operation) -> ops.Operation:
-    new_qubits = [_QCircuitQubit(e) for e in op.qubits]
     diagrammable = known_qcircuit_operation_symbols(op)
     if diagrammable is None:
         info = protocols.circuit_diagram_info(op, default=None)
@@ -105,7 +90,7 @@ def _wrap_operation(op: ops.Operation) -> ops.Operation:
             diagrammable = _FallbackQCircuitGate(op.gate)
         else:
             diagrammable = _FallbackQCircuitGate(op)
-    return _QCircuitOperation(op, diagrammable).with_qubits(*new_qubits)
+    return _QCircuitOperation(op, diagrammable)
 
 
 def _wrap_moment(moment: circuits.Moment) -> circuits.Moment:
@@ -131,12 +116,9 @@ def circuit_to_latex_using_qcircuit(
     """
     qcircuit = _wrap_circuit(circuit)
 
-    # Note: can't be a lambda because we need the type hint.
-    def get_sub(q: _QCircuitQubit) -> ops.QubitId:
-        return q.sub
+    qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
 
     diagram = qcircuit.to_text_diagram_drawer(
-        qubit_name_suffix='',
-        qubit_order=ops.QubitOrder.as_qubit_order(qubit_order).map(
-            internalize=get_sub, externalize=_QCircuitQubit))
+        qubit_namer=qcircuit_qubit_namer,
+        qubit_order=qubit_order)
     return _render(diagram)

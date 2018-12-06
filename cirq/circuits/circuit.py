@@ -1321,7 +1321,6 @@ class Circuit:
         """
         diagram = self.to_text_diagram_drawer(
             use_unicode_characters=use_unicode_characters,
-            qubit_name_suffix='' if transpose else ': ',
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose)
@@ -1337,7 +1336,7 @@ class Circuit:
             self,
             *,
             use_unicode_characters: bool = True,
-            qubit_name_suffix: str = '',
+            qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
             transpose: bool = False,
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
@@ -1359,9 +1358,11 @@ class Circuit:
             self.all_qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
+        if qubit_namer is None:
+            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
         diagram = TextDiagramDrawer()
         for q, i in qubit_map.items():
-            diagram.write(0, i, str(q) + qubit_name_suffix)
+            diagram.write(0, i, qubit_namer(q))
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:

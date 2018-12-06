@@ -14,23 +14,9 @@
 
 import cirq
 from cirq.contrib import circuit_to_latex_using_qcircuit
-from cirq.contrib.qcircuit.qcircuit_diagram import _QCircuitQubit
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     _TextToQCircuitDiagrammable
 )
-
-
-def test_qcircuit_qubit():
-    x = cirq.NamedQubit('x')
-    qx = _QCircuitQubit(x)
-    qx2 = _QCircuitQubit(x)
-    qy = _QCircuitQubit(cirq.NamedQubit('y'))
-    assert repr(qx) == '_QCircuitQubit({!r})'.format(x)
-    assert x != qx
-    assert qx != 0
-    assert qx == qx2
-    assert qx != qy
-    assert sorted([x, qy, qx]) == [x, qx, qy]
 
 
 def test_fallback_diagram():
