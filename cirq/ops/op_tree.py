@@ -107,7 +107,10 @@ def transform_op_tree(
 
     if isinstance(root, collections.Iterable):
         return iter_transformation(
-            transform_op_tree(subtree, op_transformation, iter_transformation)
+            transform_op_tree(subtree,
+                              op_transformation,
+                              iter_transformation,
+                              preserve_moments)
             for subtree in root)
 
     raise TypeError(
