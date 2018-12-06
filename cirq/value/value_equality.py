@@ -117,7 +117,7 @@ def value_equality(cls: type,
                    *,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
-                   approximate: bool = False,
+                   approximate: bool = False
                    ) -> type:
     pass
 
@@ -126,7 +126,7 @@ def value_equality(cls: type,
 def value_equality(*,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
-                   approximate: bool = False,
+                   approximate: bool = False
                    ) -> Callable[[type], type]:
     pass
 
@@ -135,7 +135,7 @@ def value_equality(cls: type = None,
                    *,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
-                   approximate: bool = False,
+                   approximate: bool = False
                    ) -> Union[Callable[[type], type], type]:
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
 
