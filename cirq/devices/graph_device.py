@@ -15,30 +15,11 @@
 import abc
 import itertools
 
-from typing import cast, FrozenSet, Hashable, Iterable, Optional
+from typing import Iterable, Optional
 
 from cirq import circuits, devices, ops, value, schedules
 
 from cirq.devices import hypergraph
-
-
-class HashQubit(ops.QubitId):
-    """A qubit identified by a hashable value."""
-
-    def __init__(self, value: Hashable) -> None:
-        if not isinstance(value, Hashable):
-            raise TypeError('not isinstance({}, Hashable)'.format(value))
-        self.value = value
-
-    def _comparison_key(self):
-        return self.value
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return 'cirq.devices.graph_device.HashQubit({})'.format(
-                repr(self.value))
 
 
 class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
@@ -85,16 +66,21 @@ UnconstrainedUndirectedGraphDeviceEdge = (
 def is_undirected_device_graph(graph: hypergraph.UndirectedHypergraph) -> bool:
     if not isinstance(graph, hypergraph.UndirectedHypergraph):
         return False
+    if not all(isinstance(v, ops.QubitId) for v in graph.vertices):
+        return False
     for _, label in graph.labelled_edges.items():
         if not (label is None or isinstance(label, UndirectedGraphDeviceEdge)):
             return False
     return True
+
 
 def is_crosstalk_graph(graph: hypergraph.UndirectedHypergraph) -> bool:
     if not isinstance(graph, hypergraph.UndirectedHypergraph):
         return False
     for vertex in graph.vertices:
         if not isinstance(vertex, frozenset):
+            return False
+        if not all(isinstance(v, ops.QubitId) for v in vertex):
             return False
     for edge, label in graph.labelled_edges.items():
         if len(edge) < 2:
@@ -155,24 +141,16 @@ class UndirectedGraphDevice(devices.Device):
         self.crosstalk_graph = crosstalk_graph
 
     @property
-    def vertices(self):
-        return sorted(self.device_graph.vertices)
-
-    @property
     def qubits(self):
-        return tuple(HashQubit(v) for v in self.vertices)
+        return sorted(self.device_graph.vertices)
 
     @property
     def edges(self):
         return sorted(self.device_graph.edges)
 
-    def get_vertices(self, operation: ops.Operation) -> FrozenSet[Hashable]:
-        return frozenset(cast(HashQubit, qubit).value
-                         for qubit in operation.qubits)
-
     def get_device_edge_from_op(self, operation: ops.Operation
                         ) -> UndirectedGraphDeviceEdge:
-        return self.device_graph.labelled_edges[self.get_vertices(operation)]
+        return self.device_graph.labelled_edges[frozenset(operation.qubits)]
 
     def duration_of(self, operation: ops.Operation) -> value.Duration:
         return self.get_device_edge_from_op(operation).duration_of(operation)
@@ -181,10 +159,9 @@ class UndirectedGraphDevice(devices.Device):
         try:
             device_edge = self.get_device_edge_from_op(operation)
         except Exception as error:
-            vertices = self.get_vertices(operation)
-            if vertices not in self.device_graph.edges:
+            if frozenset(operation.qubits) not in self.device_graph.edges:
                 error =  ValueError('{} not in device graph edges'.format(
-                    vertices))
+                    operation.qubits))
             raise error
         device_edge.validate_operation(operation)
 
@@ -192,9 +169,9 @@ class UndirectedGraphDevice(devices.Device):
                            operation: ops.Operation,
                            other_operations: Iterable[ops.Operation]
                            ) -> None:
-        vertices = self.get_vertices(operation)
         adjacent_crosstalk_edges = frozenset(
-                self.crosstalk_graph._adjacency_lists.get(vertices, ()))
+                self.crosstalk_graph._adjacency_lists.get(
+                    frozenset(operation.qubits), ()))
         for crosstalk_edge in adjacent_crosstalk_edges:
             label = self.crosstalk_graph.labelled_edges[crosstalk_edge]
             validator = (raise_crosstalk_error(operation, *other_operations)

@@ -18,50 +18,48 @@ import cirq
 
 from cirq.devices.graph_device import (
         FixedDurationUndirectedGraphDeviceEdge,
-        HashQubit, is_undirected_device_graph, is_crosstalk_graph,
+        is_undirected_device_graph, is_crosstalk_graph,
         UnconstrainedUndirectedGraphDeviceEdge, UndirectedGraphDevice)
 from cirq.devices.hypergraph import UndirectedHypergraph
 
-
-@pytest.mark.parametrize('value',
-    (3, (0, 1), 'abc'))
-def test_hash_qubit(value):
-    with pytest.raises(TypeError):
-        HashQubit(list(value))
-    x, y = (HashQubit(value) for _ in (0, 1))
-    assert x == y
-    cirq.testing.assert_equivalent_repr(HashQubit(value))
-    assert str(x) == str(value)
 
 
 def test_is_undirected_device_graph():
     assert not is_undirected_device_graph('abc')
     graph = UndirectedHypergraph()
     assert is_undirected_device_graph(graph)
-    graph.add_edge((0, 1))
+    a, b, c, d, e = cirq.LineQubit.range(5)
+    graph.add_edge((a, b))
     assert is_undirected_device_graph(graph)
-    graph.add_edge((1, 2), UnconstrainedUndirectedGraphDeviceEdge)
+    graph.add_edge((b, c), UnconstrainedUndirectedGraphDeviceEdge)
     assert is_undirected_device_graph(graph)
-    graph.add_edge((3, 4), 'abc')
+    graph.add_edge((d, e), 'abc')
+    assert not is_undirected_device_graph(graph)
+    graph = UndirectedHypergraph(vertices=(0, 1))
     assert not is_undirected_device_graph(graph)
 
+
 def test_is_crosstalk_graph():
+    a, b, c, d, e, f = cirq.LineQubit.range(6)
     assert not is_crosstalk_graph('abc')
     graph = UndirectedHypergraph()
     graph.add_vertex('abc')
     assert not is_crosstalk_graph(graph)
     graph = UndirectedHypergraph()
-    graph.add_edge((frozenset((0, 1)), frozenset((2, 3))), 'abc')
+    graph.add_edge((frozenset((a, b)), frozenset((c, d))), 'abc')
+    assert not is_crosstalk_graph(graph)
+    graph = UndirectedHypergraph()
+    graph.add_edge((frozenset((a, b)), frozenset((c, d))), None)
+    graph.add_edge((frozenset((e, f)), frozenset((c, d))), lambda _: None)
+    assert is_crosstalk_graph(graph)
+    graph = UndirectedHypergraph()
+    graph.add_edge((frozenset((a, b)), frozenset((c, d))), 'abc')
+    assert not is_crosstalk_graph(graph)
+    graph = UndirectedHypergraph()
+    graph.add_edge((frozenset((a, b)),), None)
     assert not is_crosstalk_graph(graph)
     graph = UndirectedHypergraph()
     graph.add_edge((frozenset((0, 1)), frozenset((2, 3))), None)
-    graph.add_edge((frozenset((4, 5)), frozenset((2, 3))), lambda _: None)
-    assert is_crosstalk_graph(graph)
-    graph = UndirectedHypergraph()
-    graph.add_edge((frozenset((0, 1)), frozenset((2, 3))), 'abc')
-    assert not is_crosstalk_graph(graph)
-    graph = UndirectedHypergraph()
-    graph.add_edge((frozenset((0, 1)),), None)
     assert not is_crosstalk_graph(graph)
 
 
@@ -79,8 +77,11 @@ def test_graph_device():
     two_qubit_edge = FixedDurationUndirectedGraphDeviceEdge(two_qubit_duration)
 
     n_qubits = 4
-    edges = {(i, (i + 1) % n_qubits): two_qubit_edge for i in range(n_qubits)}
-    edges.update({(i,): one_qubit_edge for i in range(n_qubits)})
+    qubits = cirq.LineQubit.range(n_qubits)
+    edges = {(cirq.LineQubit(i), cirq.LineQubit((i + 1) % n_qubits)):
+             two_qubit_edge for i in range(n_qubits)}
+    edges.update({(cirq.LineQubit(i),): one_qubit_edge
+                  for i in range(n_qubits)})
     device_graph = UndirectedHypergraph(labelled_edges=edges)
 
     def not_cnots(first_op, second_op):
@@ -91,8 +92,11 @@ def test_graph_device():
     assert is_undirected_device_graph(device_graph)
     with pytest.raises(TypeError):
         UndirectedGraphDevice('abc')
-    constraint_edges = {(frozenset((0, 1)), frozenset((2, 3))): None,
-                        (frozenset((1, 2)), frozenset((0, 3))): not_cnots}
+    constraint_edges = {(frozenset(cirq.LineQubit.range(2)),
+                         frozenset(cirq.LineQubit.range(2, 4))): None,
+                        (frozenset(cirq.LineQubit.range(1, 3)),
+                         frozenset((cirq.LineQubit(0), cirq.LineQubit(3)))):
+                        not_cnots}
     crosstalk_graph = UndirectedHypergraph(labelled_edges=constraint_edges)
     assert is_crosstalk_graph(crosstalk_graph)
 
@@ -106,7 +110,6 @@ def test_graph_device():
     graph_device = UndirectedGraphDevice(device_graph,
                                          crosstalk_graph=crosstalk_graph)
     assert sorted(graph_device.edges) == sorted(device_graph.edges)
-    qubits = tuple(HashQubit(v) for v in range(n_qubits))
     assert graph_device.qubits == qubits
     assert graph_device.device_graph == device_graph
 
