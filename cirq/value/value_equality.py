@@ -52,7 +52,8 @@ class _SupportsValueEquality(Protocol):
         Returns:
             Any type supported by `cirq.approx_eq()`.
         """
-        pass
+        # coverage: ignore
+        return self._value_equality_values_()
 
     def _value_equality_values_cls_(self) -> Any:
         """Automatically implemented by the `cirq.value_equality` decorator.
