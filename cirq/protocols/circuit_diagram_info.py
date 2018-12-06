@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections
-from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict, \
-    overload, Iterable
+from typing import (
+    Any, Callable, TYPE_CHECKING, Optional, Union, Tuple,
+    TypeVar, Dict, overload, Iterable)
 
 from typing_extensions import Protocol
 
-from cirq import value
+from cirq import ops, value
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -233,3 +234,7 @@ def circuit_diagram_info(val: Any,
     raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
                     "method, but it returned NotImplemented.".format(type(val)))
 # pylint: enable=function-redefined
+
+
+OPERATION_DIAGRAM_INFO_GETTER = (Callable[
+    ['cirq.Operation', CircuitDiagramInfoArgs], CircuitDiagramInfo])
