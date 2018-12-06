@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Mapping, Optional, TYPE_CHECKING
+from typing import Hashable, Iterable, Mapping, Optional, TYPE_CHECKING
 
 from cirq import devices, line, ops
 
@@ -33,7 +33,7 @@ def uniform_undirected_graph_device(
     """
 
     labelled_edges = {frozenset(edge): edge_label for edge in edges
-            } # type: Dict[Iterable[ops.QubitId], Any]
+            } # type: Dict[Iterable[Hashable], Any]
     device_graph = devices.UndirectedHypergraph(labelled_edges=labelled_edges)
     return devices.UndirectedGraphDevice(device_graph=device_graph)
 
