@@ -257,23 +257,25 @@ def test_sample_state_big_endian():
         state = cirq.to_valid_state_vector(x, 3)
         sample = cirq.sample_state_vector(state, [2, 1, 0])
         results.append(sample)
-    expected = [[list(reversed(x))] for x in
-                list(itertools.product([False, True], repeat=3))]
-    assert results == expected
+    expecteds = [[list(reversed(x))] for x in
+                 list(itertools.product([False, True], repeat=3))]
+    for result, expected in zip(results, expecteds):
+        np.testing.assert_equal(result, expected)
 
 
 def test_sample_state_partial_indices():
     for index in range(3):
         for x in range(8):
             state = cirq.to_valid_state_vector(x, 3)
-            assert (cirq.sample_state_vector(state, [index])
-                    == [[bool(1 & (x >> (2 - index)))]])
+            np.testing.assert_equal(cirq.sample_state_vector(state, [index]),
+                                    [[bool(1 & (x >> (2 - index)))]])
 
 def test_sample_state_partial_indices_oder():
     for x in range(8):
         state = cirq.to_valid_state_vector(x, 3)
         expected = [[bool(1 & (x >> 0)), bool(1 & (x >> 1))]]
-        assert cirq.sample_state_vector(state, [2, 1]) == expected
+        np.testing.assert_equal(cirq.sample_state_vector(state, [2, 1]),
+                                expected)
 
 
 def test_sample_state_partial_indices_all_orders():
@@ -281,7 +283,8 @@ def test_sample_state_partial_indices_all_orders():
         for x in range(8):
             state = cirq.to_valid_state_vector(x, 3)
             expected = [[bool(1 & (x >> (2 - p))) for p in perm]]
-            assert cirq.sample_state_vector(state, perm) == expected
+            np.testing.assert_equal(cirq.sample_state_vector(state, perm),
+                                    expected)
 
 
 def test_sample_state():
@@ -289,13 +292,13 @@ def test_sample_state():
     state[0] = 1 / np.sqrt(2)
     state[2] = 1 / np.sqrt(2)
     for _ in range(10):
-        assert cirq.sample_state_vector(state, [2, 1, 0]) in [
-            [[False, False, False]],
-            [[False, True, False]]]
+        sample = cirq.sample_state_vector(state, [2, 1, 0])
+        assert (np.array_equal(sample, [[False, False, False]])
+                or np.array_equal(sample, [[False, True, False]]))
     # Partial sample is correct.
     for _ in range(10):
-        assert cirq.sample_state_vector(state, [2]) == [[False]]
-        assert cirq.sample_state_vector(state, [0]) == [[False]]
+        np.testing.assert_equal(cirq.sample_state_vector(state, [2]), [[False]])
+        np.testing.assert_equal(cirq.sample_state_vector(state, [0]), [[False]])
 
 
 def test_sample_empty_state():
@@ -315,7 +318,7 @@ def test_sample_state_repetitions():
             expected = [[bool(1 & (x >> (2 - p))) for p in perm]] * 3
 
             result = cirq.sample_state_vector(state, perm, repetitions=3)
-            assert result == expected
+            np.testing.assert_equal(result, expected)
 
 
 def test_sample_state_negative_repetitions():

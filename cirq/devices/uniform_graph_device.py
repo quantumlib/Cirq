@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Hashable, Iterable, Mapping, Optional, TYPE_CHECKING
+from typing import Iterable, Mapping, Optional, TYPE_CHECKING
 
-from cirq import devices
+from cirq import devices, line, ops
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def uniform_undirected_graph_device(
-        edges: Iterable[Iterable[Hashable]],
+        edges: Iterable[Iterable[ops.QubitId]],
         edge_label: Optional[devices.UndirectedGraphDeviceEdge]=None
         ) -> devices.UndirectedGraphDevice:
     """An undirected graph device all of whose edges are the same.
@@ -33,7 +33,7 @@ def uniform_undirected_graph_device(
     """
 
     labelled_edges = {frozenset(edge): edge_label for edge in edges
-            } # type: Dict[Iterable[Hashable], Any]
+            } # type: Dict[Iterable[ops.QubitId], Any]
     device_graph = devices.UndirectedHypergraph(labelled_edges=labelled_edges)
     return devices.UndirectedGraphDevice(device_graph=device_graph)
 
@@ -63,6 +63,7 @@ def uniform_undirected_linear_device(
 
     device = devices.UndirectedGraphDevice(devices.UndirectedHypergraph())
     for arity, label in edge_labels.items():
-        edges = (range(i, i + arity) for i in range(n_qubits - arity + 1))
+        edges = (line.LineQubit.range(i, i + arity)
+                 for i in range(n_qubits - arity + 1))
         device += uniform_undirected_graph_device(edges, label)
     return device

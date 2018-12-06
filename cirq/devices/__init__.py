@@ -23,7 +23,6 @@ from cirq.devices.unconstrained_device import (
 )
 from cirq.devices.graph_device import (
     FixedDurationUndirectedGraphDeviceEdge,
-    HashQubit,
     UndirectedGraphDevice,
     UndirectedGraphDeviceEdge,
     UnconstrainedUndirectedGraphDeviceEdge,
