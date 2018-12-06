@@ -879,8 +879,9 @@ class Circuit:
 
     @staticmethod
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
-                                          start: int=0,
-                                          frontier: Dict[ops.QubitId, int]=None
+                                          start: int = 0,
+                                          frontier: Dict[ops.QubitId,
+                                                         int] = None
                                           ) -> Tuple[Sequence[int],
                                                      Dict[ops.QubitId, int]]:
         """Greedily assigns operations to moments.
@@ -910,7 +911,7 @@ class Circuit:
     def _push_frontier(self,
                        early_frontier: Dict[ops.QubitId, int],
                        late_frontier: Dict[ops.QubitId, int],
-                       update_qubits: Iterable[ops.QubitId]=None
+                       update_qubits: Iterable[ops.QubitId] = None
                        ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -983,7 +984,7 @@ class Circuit:
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
                            start: int,
-                           frontier: Dict[ops.QubitId, int]=None
+                           frontier: Dict[ops.QubitId, int] = None
                            ) -> Dict[ops.QubitId, int]:
         """Inserts operations inline at frontier.
 
@@ -1548,6 +1549,10 @@ def _draw_moment_in_diagram(moment: Moment,
                             precision: Optional[int],
                             moment_groups: List[Tuple[int, int]]):
     x0 = out_diagram.width()
+
+    if not moment.operations:
+        out_diagram.write(x0, 0, '')
+
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
