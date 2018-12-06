@@ -111,6 +111,10 @@ class XPowGate(eigen_gate.EigenGate,
             return args.format('rx({0:half_turns}) {1};\n',
                                self._exponent, qubits[0])
 
+    @property
+    def phase_exponent(self):
+        return 0.0
+
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
@@ -186,6 +190,10 @@ class YPowGate(eigen_gate.EigenGate,
         else:
             return args.format('ry({0:half_turns}) {1};\n',
                                self._exponent, qubits[0])
+
+    @property
+    def phase_exponent(self):
+        return 0.5
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
@@ -328,18 +336,19 @@ class MeasurementGate(raw_types.Gate):
 
     The measurement gate contains a key that is used to identify results
     of measurements.
-
-    Attributes:
-        key: The string key of the measurement.
-        invert_mask: A list of values indicating whether the corresponding
-            qubits should be flipped. The list's length must not be longer than
-            the number of qubits, but it is permitted to be shorted.
-            Qubits with indices past the end of the mask are not flipped.
     """
 
     def __init__(self,
                  key: str = '',
                  invert_mask: Tuple[bool, ...] = ()) -> None:
+        """
+        Args:
+            key: The string key of the measurement.
+            invert_mask: A list of values indicating whether the corresponding
+                qubits should be flipped. The list's length must not be longer
+                than the number of qubits, but it is permitted to be shorter.
+                Qubits with indices past the end of the mask are not flipped.
+        """
         self.key = key
         self.invert_mask = invert_mask or ()
 
@@ -474,16 +483,20 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
 
-    HPowGate()**t = HPowGate(exponent=t) is given by the matrix
+    The unitary matrix of ``HPowGate(exponent=t)`` is:
+
         [[g·(c-i·s/sqrt(2)), -i·g·s/sqrt(2)],
         [-i·g·s/sqrt(2)], g·(c+i·s/sqrt(2))]]
+
     where
+
         c = cos(π·t/2)
         s = sin(π·t/2)
         g = exp(i·π·t/2).
-    Note in particular that for t=1, this gives the Hadamard matrix.
 
-    `cirq.H`, the Hadamard gate, is an instance of this gate at exponent=1.
+    Note in particular that for `t=1`, this gives the Hadamard matrix.
+
+    `cirq.H`, the Hadamard gate, is an instance of this gate at `exponent=1`.
     """
 
     def _eigen_components(self):
@@ -575,7 +588,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
         g = exp(i·π·t/2).
 
-    `cirq.Z``, the controlled Z gate, is an instance of this gate at
+    `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
     """
 

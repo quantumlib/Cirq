@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, overload, TYPE_CHECKING
+from typing import Optional, Union, overload, TYPE_CHECKING
 
-from cirq import value
+import numpy as np
+
+from cirq import protocols, value
+from cirq.ops import common_gates
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -41,6 +45,23 @@ class Pauli:
 
     def difference(self, second: 'Pauli') -> int:
         return (self._index - second._index + 1) % 3 - 1
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        if self._name == 'X':
+            return protocols.unitary(common_gates.X)
+        elif self._name == 'Y':
+            return protocols.unitary(common_gates.Y)
+        else:
+            return protocols.unitary(common_gates.Z)
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
+        if self._name == 'X':
+            return protocols.apply_unitary(common_gates.X, args)
+        elif self._name == 'Y':
+            return protocols.apply_unitary(common_gates.Y, args)
+        else:
+            return protocols.apply_unitary(common_gates.Z, args)
 
     def _value_equality_values_(self):
         return self._index
