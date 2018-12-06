@@ -79,7 +79,8 @@ def flatten_op_tree(root: OP_TREE,
 def transform_op_tree(
         root: OP_TREE,
         op_transformation: Callable[[Operation], OP_TREE]=lambda e: e,
-        iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE]=lambda e: e
+        iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE]=lambda e: e,
+        preserve_moments: bool = True
 ) -> OP_TREE:
     """Maps transformation functions onto the nodes of an OP_TREE.
 
@@ -88,6 +89,9 @@ def transform_op_tree(
         op_transformation: How to transform the operations (i.e. leaves).
         iter_transformation: How to transform the iterables (i.e. internal
             nodes).
+        preserve_moments: Whether to leave Moments alone. If True, the
+            transformation functions will not be applied to Moments or the
+            operations within them.
 
     Returns:
         A transformed operation tree.
@@ -98,10 +102,8 @@ def transform_op_tree(
     if isinstance(root, Operation):
         return op_transformation(root)
 
-    if isinstance(root, Moment):
-        return Moment(iter_transformation(
-            transform_op_tree(subtree, op_transformation, iter_transformation)
-            for subtree in root))
+    if preserve_moments and isinstance(root, Moment):
+        return root
 
     if isinstance(root, collections.Iterable):
         return iter_transformation(

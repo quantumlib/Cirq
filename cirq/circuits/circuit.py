@@ -785,7 +785,8 @@ class Circuit:
         """
         moments_and_operations = ops.flatten_op_tree(
             ops.transform_op_tree(moment_or_operation_tree,
-                                  self._device.decompose_operation),
+                                  self._device.decompose_operation,
+                                  preserve_moments=True),
             preserve_moments=True
         )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
