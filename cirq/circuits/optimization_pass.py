@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import Callable, Iterable, Optional, Sequence, TYPE_CHECKING
+from typing import (
+    Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast)
 
 import abc
 from collections import defaultdict
@@ -151,7 +152,8 @@ class PointOptimizer(OptimizationPass):
                 circuit.clear_operations_touching(
                     opt.clear_qubits,
                     [e for e in range(i, i + opt.clear_span)])
-                new_operations = self.post_clean_up(opt.new_operations)
+                new_operations = self.post_clean_up(
+                    cast(Tuple[ops.Operation], opt.new_operations))
                 circuit.insert_at_frontier(new_operations, i, frontier)
 
             i += 1

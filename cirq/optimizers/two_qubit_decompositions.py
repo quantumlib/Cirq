@@ -14,7 +14,7 @@
 
 """Utility methods related to optimizing quantum circuits."""
 
-from typing import List, Tuple, Optional, cast
+from typing import Iterable, List, Tuple, Optional, cast
 
 import numpy as np
 
@@ -134,7 +134,7 @@ def _kak_decomposition_to_operations(q0: ops.QubitId,
     a0, a1 = kak.single_qubit_operations_after
     post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
 
-    return list(ops.flatten_op_tree([
+    return list(cast(Iterable[ops.Operation], ops.flatten_op_tree([
         pre,
         _non_local_part(q0,
                         q1,
@@ -142,7 +142,7 @@ def _kak_decomposition_to_operations(q0: ops.QubitId,
                         allow_partial_czs,
                         tolerance),
         post,
-    ]))
+    ])))
 
 
 def _is_trivial_angle(rad: float, tolerance: float) -> bool:

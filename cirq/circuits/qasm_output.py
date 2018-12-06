@@ -135,9 +135,10 @@ class QasmOutput:
         self.operations = tuple(ops.flatten_op_tree(operations))
         self.qubits = qubits
         self.header = header
-        self.measurements = tuple(cast(ops.GateOperation, op)
-                                  for op in self.operations
-                                  if ops.MeasurementGate.is_measurement(op))
+        self.measurements = tuple(
+            cast(ops.GateOperation, op)
+            for op in self.operations
+            if ops.MeasurementGate.is_measurement(cast(ops.GateOperation, op)))
 
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
