@@ -46,6 +46,11 @@ def inverse(val: 'cirq.OP_TREE') -> 'cirq.OP_TREE':
 
 
 @overload
+def inverse(val: 'cirq.Circuit') -> 'cirq.Circuit':
+    pass
+
+
+@overload
 def inverse(val: 'cirq.Gate',
             default: TDefault
             ) -> Union[TDefault, 'cirq.Gate']:
@@ -63,6 +68,13 @@ def inverse(val: 'cirq.Operation',
 def inverse(val: 'cirq.OP_TREE',
             default: TDefault
             ) -> Union[TDefault, 'cirq.OP_TREE']:
+    pass
+
+
+@overload
+def inverse(val: 'cirq.Circuit',
+            default: TDefault
+            ) -> Union[TDefault, 'cirq.Circuit']:
     pass
 
 
