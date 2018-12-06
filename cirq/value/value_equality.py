@@ -18,7 +18,7 @@ from typing import Union, Callable, overload, Any
 
 from typing_extensions import Protocol
 
-import cirq
+from cirq import protocols
 
 
 class _SupportsValueEquality(Protocol):
