@@ -11,42 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast
 
-from cirq import circuits, ops, protocols
-from cirq.contrib.qcircuit.qcircuit_diagrammable import (
-    QCircuitDiagrammable,
-    known_qcircuit_operation_symbols,
-    _TextToQCircuitDiagrammable,
-    _FallbackQCircuitGate,
-)
+from cirq import circuits, ops
+from cirq.contrib.qcircuit.qcircuit_diagram_info import (
+    get_qcircuit_diagram_info)
 
 
 def qcircuit_qubit_namer(qubit: ops.QubitId):
     # TODO: If qubit name ends with digits, turn them into subscripts.
     return '\\lstick{\\text{' + str(qubit) + '}}&'
-
-
-class _QCircuitOperation(ops.Operation):
-    def __init__(self,
-                 sub_operation: ops.Operation,
-                 diagrammable: QCircuitDiagrammable) -> None:
-        self.sub_operation = sub_operation
-        self.diagrammable = diagrammable
-
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
-        return self.diagrammable.qcircuit_diagram_info(args)
-
-    @property
-    def qubits(self):
-        return self.sub_operation.qubits
-
-    def with_qubits(self, *new_qubits: ops.QubitId) -> '_QCircuitOperation':
-        return _QCircuitOperation(
-            self.sub_operation.with_qubits(*new_qubits),
-            self.diagrammable)
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -77,28 +50,6 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     output = '\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
 
     return output
-
-
-def _wrap_operation(op: ops.Operation) -> ops.Operation:
-    diagrammable = known_qcircuit_operation_symbols(op)
-    if diagrammable is None:
-        info = protocols.circuit_diagram_info(op, default=None)
-        if info is not None:
-            diagrammable = _TextToQCircuitDiagrammable(
-                cast(protocols.SupportsCircuitDiagramInfo, op))
-        elif isinstance(op, ops.GateOperation):
-            diagrammable = _FallbackQCircuitGate(op.gate)
-        else:
-            diagrammable = _FallbackQCircuitGate(op)
-    return _QCircuitOperation(op, diagrammable)
-
-
-def get_qcircuit_diagram_info(op: ops.Operation,
-                              args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
-    return cast(protocols.CircuitDiagramInfo,
-            cast(protocols.SupportsCircuitDiagramInfo, _wrap_operation(op)
-                )._circuit_diagram_info_(args))
 
 
 def circuit_to_latex_using_qcircuit(
