@@ -80,7 +80,7 @@ def transform_op_tree(
         root: OP_TREE,
         op_transformation: Callable[[Operation], OP_TREE]=lambda e: e,
         iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE]=lambda e: e,
-        preserve_moments: bool = True
+        preserve_moments: bool = False
 ) -> OP_TREE:
     """Maps transformation functions onto the nodes of an OP_TREE.
 
