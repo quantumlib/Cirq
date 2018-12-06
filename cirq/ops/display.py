@@ -40,9 +40,12 @@ class SamplesDisplay(raw_types.Operation):
 
     The value of a SamplesDisplay on some qubits is computed in the following
     steps:
-        1. Perform some unitary operations on the qubits
-        2. Sample bitstrings from the resulting state a number of times
-        3. Apply a function to the sampled bitstrings
+        1. Repeat the following some number of times:
+            a. Start with the state which exists just prior to the Moment
+               containing the SamplesDisplay
+            b. Perform some unitary operations on the qubits
+            c. Sample a bitstring from the resulting state
+        2. Apply a function to the sampled bitstrings
     """
 
     @property
