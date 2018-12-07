@@ -1548,8 +1548,6 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     return s
 
 
-
-
 def _draw_moment_in_diagram(
         moment: Moment,
         use_unicode_characters: bool,

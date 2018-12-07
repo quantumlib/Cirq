@@ -121,18 +121,19 @@ class CircuitDiagramInfoArgs:
                 self.precision,
                 self.qubit_map))
 
-    def as_dict(self):
-        return {
-            'known_qubits': self.known_qubits,
-            'known_qubit_count': self.known_qubit_count,
-            'use_unicode_characters': self.use_unicode_characters,
-            'precision': self.precision,
-            'qubit_map': self.qubit_map}
+    def copy(self):
+        return self.__class__(
+            known_qubits= self.known_qubits,
+            known_qubit_count= self.known_qubit_count,
+            use_unicode_characters= self.use_unicode_characters,
+            precision= self.precision,
+            qubit_map= self.qubit_map)
 
     def with_args(self, **kwargs):
-        args_dict = self.as_dict()
-        args_dict.update(kwargs)
-        return self.__class__(**args_dict)
+        args = self.copy()
+        for arg_name, val in kwargs.items():
+            setattr(args, arg_name, val)
+        return args
 
 
 CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
