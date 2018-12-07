@@ -220,6 +220,7 @@ from cirq.value import (
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
     Duration,
+    PeriodicEquivalence,
     Symbol,
     Timestamp,
     value_equality,

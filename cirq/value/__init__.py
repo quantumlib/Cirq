@@ -20,6 +20,9 @@ from cirq.value.angle import (
 from cirq.value.duration import (
     Duration,
 )
+from cirq.value.periodic_equivalence import (
+    PeriodicEquivalence,
+)
 from cirq.value.symbol import (
     Symbol,
 )
