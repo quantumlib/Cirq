@@ -14,9 +14,7 @@
 
 import cirq
 from cirq.contrib import circuit_to_latex_using_qcircuit
-from cirq.contrib.qcircuit.qcircuit_diagrammable import (
-    _TextToQCircuitDiagrammable
-)
+
 
 
 def test_fallback_diagram():
@@ -53,53 +51,6 @@ def test_fallback_diagram():
  \\
 }""".strip()
 
-
-def test_text_to_qcircuit_diagrammable():
-    qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
-
-    g = cirq.SwapPowGate(exponent=0.5)
-    f = _TextToQCircuitDiagrammable(g)
-    qubit_map = {q: i for i, q in enumerate(qubits)}
-    actual_info = f.qcircuit_diagram_info(
-            cirq.CircuitDiagramInfoArgs(known_qubits=qubits,
-                                        known_qubit_count=None,
-                                        use_unicode_characters=True,
-                                        precision=3,
-                                        qubit_map=qubit_map))
-    name = '{\\text{SWAP}^{0.5}}'
-    expected_info = cirq.CircuitDiagramInfo(
-            ('\multigate{1}' + name, '\ghost' + name),
-            exponent=0.5,
-            connected=False)
-    assert actual_info == expected_info
-
-    g = cirq.SWAP
-    f = _TextToQCircuitDiagrammable(g)
-    qubit_map = {q: i for q, i in zip(qubits, (4, 3))}
-    actual_info = f.qcircuit_diagram_info(
-            cirq.CircuitDiagramInfoArgs(known_qubits=qubits,
-                                        known_qubit_count=None,
-                                        use_unicode_characters=True,
-                                        precision=3,
-                                        qubit_map=qubit_map))
-    expected_info = cirq.CircuitDiagramInfo(
-            ('\ghost{\\text{SWAP}}', '\multigate{1}{\\text{SWAP}}'),
-            connected=False)
-    assert actual_info == expected_info
-
-    qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
-    actual_info = f.qcircuit_diagram_info(
-            cirq.CircuitDiagramInfoArgs(known_qubits=qubits,
-                                        known_qubit_count=None,
-                                        use_unicode_characters=True,
-                                        precision=3,
-                                        qubit_map=qubit_map))
-    expected_info = cirq.CircuitDiagramInfo(('\\gate{\\text{×}}',) * 2)
-    assert actual_info == expected_info
-
-    actual_info = f.qcircuit_diagram_info(
-            cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
-    assert actual_info == expected_info
 
 
 def test_teleportation_diagram():

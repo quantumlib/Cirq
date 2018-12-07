@@ -19,13 +19,6 @@ import abc
 from cirq import ops, protocols
 
 
-class QCircuitDiagrammable(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
-        pass
-
-
 def _escape_text_for_latex(text):
     escaped = (text
                .replace('\\', '\\textbackslash{}')
@@ -40,50 +33,11 @@ def _escape_text_for_latex(text):
                .replace('#', '\\#'))
     return '\\text{' + escaped + '}'
 
-
-def _get_multigate_parameters(gate: Any,
-                              args: protocols.CircuitDiagramInfoArgs
-                              ) -> Optional[Tuple[int, int]]:
-    if not isinstance(gate, ops.InterchangeableQubitsGate):
-        return None
-    if args.qubit_map is None or args.known_qubits is None:
-        return None
-
-    indices = [args.qubit_map[q] for q in args.known_qubits]
-    min_index = min(indices)
-    n_qubits = len(args.known_qubits)
-    if sorted(indices) != list(range(min_index, min_index + n_qubits)):
-        return None
-    return min_index, n_qubits
-
-
-class _TextToQCircuitDiagrammable(QCircuitDiagrammable):
-    def __init__(self, sub: protocols.SupportsCircuitDiagramInfo) -> None:
-        self.sub = sub
-
+class QCircuitDiagrammable(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
     def qcircuit_diagram_info(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
-        info = protocols.circuit_diagram_info(self.sub, args)
-        multigate_parameters = _get_multigate_parameters(self.sub, args)
-        if multigate_parameters is not None:
-            min_index, n_qubits = multigate_parameters
-            name = _escape_text_for_latex(str(self.sub).rsplit('**', 1)[0])
-            if info.exponent != 1:
-                name += '^{' + str(info.exponent) + '}'
-            box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
-            ghost = '\ghost{' + name + '}'
-            assert args.qubit_map is not None
-            assert args.known_qubits is not None
-            symbols = tuple(box if (args.qubit_map[q] == min_index) else
-                            ghost for q in args.known_qubits)
-            return protocols.CircuitDiagramInfo(symbols,
-                                                exponent=info.exponent,
-                                                connected=False)
-        s = [_escape_text_for_latex(e) for e in info.wire_symbols]
-        if info.exponent != 1:
-            s[0] += '^{' + str(info.exponent) + '}'
-        return protocols.CircuitDiagramInfo(tuple('\\gate{' + e + '}'
-                                                  for e in s))
+        pass
 
 
 class _FallbackQCircuitGate(QCircuitDiagrammable):

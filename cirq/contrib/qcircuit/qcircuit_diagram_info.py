@@ -12,15 +12,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional, Tuple
+from typing import Any, cast, Optional, Tuple
 
 from cirq import ops, protocols
 
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
-    QCircuitDiagrammable,
-    _TextToQCircuitDiagrammable,
     _FallbackQCircuitGate,
 )
+
+
+def _escape_text_for_latex(text):
+    escaped = (text
+               .replace('\\', '\\textbackslash{}')
+               .replace('^', '\\textasciicircum{}')
+               .replace('~', '\\textasciitilde{}')
+               .replace('_', '\\_')
+               .replace('{', '\\{')
+               .replace('}', '\\}')
+               .replace('$', '\\$')
+               .replace('%', '\\%')
+               .replace('&', '\\&')
+               .replace('#', '\\#'))
+    return '\\text{' + escaped + '}'
+
+
+def get_multigate_parameters(gate: Any,
+                              args: protocols.CircuitDiagramInfoArgs
+                              ) -> Optional[Tuple[int, int]]:
+    if ((not isinstance(gate, ops.InterchangeableQubitsGate)) or
+        (args.qubit_map is None) or
+        (args.known_qubits is None)):
+        return None
+
+    indices = [args.qubit_map[q] for q in args.known_qubits]
+    min_index = min(indices)
+    n_qubits = len(args.known_qubits)
+    if sorted(indices) != list(range(min_index, min_index + n_qubits)):
+        return None
+    return min_index, n_qubits
 
 
 def hardcoded_qcircuit_diagram_info(
@@ -37,20 +66,56 @@ def hardcoded_qcircuit_diagram_info(
             if symbols else None)
 
 
+def convert_text_diagram_info_to_qcircuit_diagram_info(
+        info: protocols.CircuitDiagramInfo) -> protocols.CircuitDiagramInfo:
+    labels = [_escape_text_for_latex(e) for e in info.wire_symbols]
+    if info.exponent != 1:
+        labels[0] += '^{' + str(info.exponent) + '}'
+    symbols = tuple('\\gate{' + l + '}' for l in labels)
+    return protocols.CircuitDiagramInfo(symbols)
+
+
+def text_to_qcircuit_diagram_info(
+        op: ops.Operation,
+        args: protocols.CircuitDiagramInfoArgs
+        ) -> Optional[protocols.CircuitDiagramInfo]:
+    args = args.with_args(use_unicode_characters=False)
+    info = protocols.circuit_diagram_info(op, args, default=None)
+    if info is None:
+        return None
+
+    multigate_parameters = (
+            get_multigate_parameters(op.gate, args)
+            if isinstance(op, ops.GateOperation) else None)
+    if multigate_parameters is None:
+        return convert_text_diagram_info_to_qcircuit_diagram_info(info)
+
+    min_index, n_qubits = multigate_parameters
+    name = _escape_text_for_latex(
+            str(cast(ops.GateOperation, op).gate).rsplit('**', 1)[0])
+    if info.exponent != 1:
+        name += '^{' + str(info.exponent) + '}'
+    box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
+    ghost = '\ghost{' + name + '}'
+    assert args.qubit_map is not None
+    assert args.known_qubits is not None
+    symbols = tuple(box if (args.qubit_map[q] == min_index) else
+                    ghost for q in args.known_qubits)
+    return protocols.CircuitDiagramInfo(symbols,
+                                        exponent=info.exponent,
+                                        connected=False)
+
+
 def get_qcircuit_diagram_info(op: ops.Operation,
                               args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
     info = hardcoded_qcircuit_diagram_info(op)
     if info is None:
-        info = protocols.circuit_diagram_info(op, default=None)
-        if info is not None:
-            diagrammable = _TextToQCircuitDiagrammable(
-                cast(protocols.SupportsCircuitDiagramInfo, op)
-                ) # type: QCircuitDiagrammable
-        elif isinstance(op, ops.GateOperation):
+        info = text_to_qcircuit_diagram_info(op, args)
+    if info is None:
+        if isinstance(op, ops.GateOperation):
             diagrammable = _FallbackQCircuitGate(op.gate)
         else:
             diagrammable = _FallbackQCircuitGate(op)
         info = diagrammable.qcircuit_diagram_info(args)
     return info
-

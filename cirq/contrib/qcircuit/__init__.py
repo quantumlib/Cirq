@@ -20,3 +20,5 @@ from cirq.contrib.qcircuit.qcircuit_diagram import (
 from cirq.contrib.qcircuit.qcircuit_diagrammable import (
     QCircuitDiagrammable,
 )
+from cirq.contrib.qcircuit.qcircuit_diagram_info import (
+    get_multigate_parameters, get_qcircuit_diagram_info)
