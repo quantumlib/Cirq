@@ -27,7 +27,11 @@ from cirq.linalg import combinators, diagonalize, predicates
 from cirq.linalg.tolerance import Tolerance
 
 T = TypeVar('T')
-
+MAGIC = np.array([[1, 0, 0, 1j],
+                  [0, 1j, 1, 0],
+                  [0, 1j, -1, 0],
+                  [1, 0, 0, -1j]]) * np.sqrt(0.5)
+MAGIC_CONJ_T = np.conj(MAGIC.T)
 
 def _phase_matrix(angle: float) -> np.ndarray:
     return np.diag([1, np.exp(1j * angle)])
@@ -213,10 +217,6 @@ def kron_factor_4x4_to_2x2s(
         f1 *= -1
         g = -g
 
-    restored = g * combinators.kron(f1, f2)
-    if np.any(np.isnan(restored)) or not tolerance.all_close(restored, matrix):
-        raise ValueError("Can't factor into kronecker product.")
-
     return g, f1, f2
 
 
@@ -243,26 +243,13 @@ def so4_to_magic_su2s(
 
     Raises:
         ValueError: Bad matrix.
-        ArithmeticError: Failed to perform the decomposition to desired
-            tolerance.
         """
     if mat.shape != (4, 4) or not predicates.is_special_orthogonal(mat,
                                                                    tolerance):
         raise ValueError('mat must be 4x4 special orthogonal.')
 
-    magic = np.array([[1, 0, 0, 1j],
-                      [0, 1j, 1, 0],
-                      [0, 1j, -1, 0],
-                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    ab = combinators.dot(magic, mat, np.conj(magic.T))
+    ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
     _, a, b = kron_factor_4x4_to_2x2s(ab, tolerance)
-
-    # Check decomposition against desired tolerance.
-    reconstructed = combinators.dot(np.conj(magic.T),
-                                    combinators.kron(a, b),
-                                    magic)
-    if not tolerance.all_close(reconstructed, mat):
-        raise ArithmeticError('Failed to decompose to desired tolerance.')
 
     return a, b
 

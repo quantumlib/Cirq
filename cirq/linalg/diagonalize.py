@@ -38,19 +38,12 @@ def diagonalize_real_symmetric_matrix(
 
     Raises:
         ValueError: Matrix isn't real symmetric.
-        ArithmeticError: Failed to meet specified tolerance.
     """
 
     if np.any(np.imag(matrix) != 0) or not predicates.is_hermitian(matrix):
         raise ValueError('Input must be real and symmetric.')
 
     _, result = np.linalg.eigh(matrix)
-
-    # Check acceptability vs tolerances.
-    if (not predicates.is_orthogonal(result, tolerance) or
-            not predicates.is_diagonal(result.T.dot(matrix).dot(result),
-                                        tolerance)):
-        raise ArithmeticError('Failed to diagonalize to specified tolerance.')
 
     return result
 
@@ -103,7 +96,6 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
 
     Raises:
         ValueError: Matrices don't meet preconditions (e.g. not symmetric).
-        ArithmeticError: Failed to meet specified tolerance.
     """
 
     # Verify preconditions.
@@ -133,13 +125,6 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
     for start, end in ranges:
         block = symmetric_matrix[start:end, start:end]
         p[start:end, start:end] = diagonalize_real_symmetric_matrix(block)
-
-    # Check acceptability vs tolerances.
-    if (not predicates.is_diagonal(p.T.dot(symmetric_matrix).dot(p),
-                                    tolerance) or
-            not tolerance.all_close(diagonal_matrix,
-                                    p.T.dot(diagonal_matrix).dot(p))):
-        raise ArithmeticError('Failed to diagonalize to specified tolerance.')
 
     return p
 
@@ -174,7 +159,6 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
     Raises:
         ValueError: Matrices don't meet preconditions (e.g. not real).
-        ArithmeticError: Failed to meet specified tolerance.
     """
 
     if np.any(np.imag(mat1) != 0):
@@ -219,11 +203,6 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     left = left_adjust.T.dot(base_left.T)
     right = base_right.T.dot(right_adjust.T)
 
-    # Check acceptability vs tolerances.
-    if any(not predicates.is_diagonal(left.dot(mat).dot(right), tolerance)
-           for mat in [mat1, mat2]):
-        raise ArithmeticError('Failed to diagonalize to specified tolerance.')
-
     return left, right
 
 
@@ -243,7 +222,6 @@ def bidiagonalize_unitary_with_special_orthogonals(
 
     Raises:
         ValueError: Matrices don't meet preconditions (e.g. not real).
-        ArithmeticError: Failed to meet specified tolerance.
     """
 
     if not predicates.is_unitary(mat, tolerance):
@@ -263,9 +241,5 @@ def bidiagonalize_unitary_with_special_orthogonals(
         right[:, 0] *= -1
 
     diag = combinators.dot(left, mat, right)
-
-    # Check acceptability vs tolerances.
-    if not predicates.is_diagonal(diag, tolerance):
-        raise ArithmeticError('Failed to diagonalize to specified tolerance.')
 
     return left, np.diag(diag), right
