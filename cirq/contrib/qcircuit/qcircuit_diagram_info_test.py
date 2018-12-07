@@ -16,32 +16,6 @@ import cirq
 import cirq.contrib.qcircuit as ccq
 
 
-"""
-def test_get_multigate_parameters():
-    qubits = cirq.LineQubit.range(5)
-    known_qubits = tuple(qubits[:2])
-    qubit_map = {q: i for i, q in enumerate(qubits[:2])}
-    args = cirq.CircuitDiagramInfoArgs(
-        known_qubits=known_qubits,
-        known_qubit_count=None,
-        use_unicode_characters=True,
-        precision=3,
-        qubit_map=qubit_map)
-    assert ccq.get_multigate_parameters(cirq.CNOT, args) is None
-    args.known_qubits = None
-    assert ccq.get_multigate_parameters(cirq.CZ, args) is None
-    args.known_qubits = known_qubits
-    args.qubit_map = None
-    assert ccq.get_multigate_parameters(cirq.CZ, args) is None
-
-    a, b, c = qubits[:3]
-    args.known_qubits = (a, b, c)
-    args.qubit_map = {a: 2, b: 5, c: 1}
-    assert ccq.get_multigate_parameters(cirq.CCZ, args) is None
-    args.qubit_map = {a: 4, b: 3, c: 2}
-    assert ccq.get_multigate_parameters(cirq.CCZ, args) == (2, 3)
-"""
-
 def test_get_qcircuit_diagram_info():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
