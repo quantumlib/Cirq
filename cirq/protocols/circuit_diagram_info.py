@@ -247,7 +247,3 @@ def circuit_diagram_info(val: Any,
     raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
                     "method, but it returned NotImplemented.".format(type(val)))
 # pylint: enable=function-redefined
-
-
-OPERATION_DIAGRAM_INFO_GETTER = (Callable[
-    ['cirq.Operation', CircuitDiagramInfoArgs], CircuitDiagramInfo])

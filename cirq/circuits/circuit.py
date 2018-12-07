@@ -1341,7 +1341,9 @@ class Circuit:
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             get_circuit_diagram_info:
-                Optional[protocols.OPERATION_DIAGRAM_INFO_GETTER]=None
+                Optional[Callable[[ops.Operation,
+                                   protocols.CircuitDiagramInfoArgs],
+                                  protocols.CircuitDiagramInfo]]=None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1556,7 +1558,9 @@ def _draw_moment_in_diagram(
         precision: Optional[int],
         moment_groups: List[Tuple[int, int]],
         get_circuit_diagram_info:
-            Optional[protocols.OPERATION_DIAGRAM_INFO_GETTER]=None
+            Optional[Callable[[ops.Operation,
+                               protocols.CircuitDiagramInfoArgs],
+                              protocols.CircuitDiagramInfo]]=None
         ):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (

@@ -31,7 +31,6 @@ from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfoArgs,
     circuit_diagram_info,
     SupportsCircuitDiagramInfo,
-    OPERATION_DIAGRAM_INFO_GETTER
 )
 from cirq.protocols.decompose import (
     decompose,
