@@ -130,7 +130,9 @@ class CircuitDiagramInfoArgs:
             'qubit_map': self.qubit_map}
 
     def with_args(self, **kwargs):
-        return self.__class__(**{**self.as_dict(), **kwargs})
+        args_dict = self.as_dict()
+        args_dict.update(kwargs)
+        return self.__class__(**args_dict)
 
 
 CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
