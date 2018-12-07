@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Dict, List, NamedTuple, Tuple, TYPE_CHECKING
+from typing import (
+        Callable, Dict, Iterable, List, Mapping,
+        NamedTuple, Optional, Tuple, TYPE_CHECKING)
+
+from cirq import value
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -35,16 +39,29 @@ _DiagramText = NamedTuple('DiagramText', [
 ])
 
 
+@value.value_equality
 class TextDiagramDrawer:
     """A utility class for creating simple text diagrams.
     """
 
-    def __init__(self):
-        self.entries = dict()  # type: Dict[Tuple[int, int], _DiagramText]
-        self.vertical_lines = []  # type: List[_VerticalLine]
-        self.horizontal_lines = []  # type: List[_HorizontalLine]
-        self.horizontal_padding = {}  # type: Dict[int, int]
-        self.vertical_padding = {}  # type: Dict[int, int]
+    def __init__(self,
+                 entries: Optional[Mapping[Tuple[int, int],
+                                           _DiagramText]] = None,
+                 horizontal_lines: Optional[Iterable[_HorizontalLine]] = None,
+                 vertical_lines: Optional[Iterable[_VerticalLine]] = None,
+                 horizontal_padding : Optional[Mapping[int, int]] = None,
+                 vertical_padding: Optional[Mapping[int, int]] = None
+                 ) -> None:
+        self.entries = (dict() if entries is None else dict(entries)
+                ) # type: Dict[Tuple[int, int], _DiagramText]
+        self.horizontal_lines = ([] if horizontal_lines is None
+                else list(horizontal_lines)) # type: List[_HorizontalLine]
+        self.vertical_lines = ([] if vertical_lines is None
+                else list(vertical_lines)) # type: List[_VerticalLine]
+        self.horizontal_padding = (dict() if horizontal_padding is None
+                else dict(horizontal_padding)) # type: Dict[int, int]
+        self.vertical_padding = (dict() if vertical_padding is None
+                else dict(vertical_padding)) # type: Dict[int, int]
 
     def write(self, x: int, y: int, text: str, transposed_text: str = None):
         """Adds text to the given location.
@@ -242,6 +259,19 @@ class TextDiagramDrawer:
         return '\n'.join(''.join(sub_row).rstrip()
                          for row in multiline_grid
                          for sub_row in row).rstrip()
+
+    def _value_equality_values_(self):
+        return (self.entries,
+                self.vertical_lines, self.horizontal_lines,
+                self.vertical_padding, self.horizontal_padding)
+
+    def copy(self):
+        return self.__class__(
+                entries=self.entries,
+                vertical_lines=self.vertical_lines,
+                horizontal_lines=self.horizontal_lines,
+                vertical_padding=self.vertical_padding,
+                horizontal_padding=self.horizontal_padding)
 
 
 _BoxChars = [
