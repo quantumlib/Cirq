@@ -18,7 +18,7 @@ from typing import (
 
 from typing_extensions import Protocol
 
-from cirq import ops, value
+from cirq import value
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
