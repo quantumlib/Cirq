@@ -12,9 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 import cirq
 from cirq.contrib import circuit_to_latex_using_qcircuit
 
+
+def assert_qcircuit_diagrams_equal(actual: str, expected: str):
+    zipped_lines = itertools.zip_longest(
+            actual.split(r'\\'), expected.split(r'\\'), fillvalue='')
+    for line_number, (actual_line, expected_line) in enumerate(zipped_lines):
+        zipped_entries = itertools.zip_longest(
+            actual_line.split(r'&'), expected_line.split(r'&'), fillvalue='')
+        for entry_number, (actual_entry, expected_entry) in enumerate(
+                zipped_entries):
+            assert (actual_entry.strip() == expected_entry.strip()
+                ), ('Line {} differs in entry {}:'.format(
+                    line_number, entry_number) +
+                    '{} vs. {}'.format(actual_entry, expected_entry))
 
 
 def test_fallback_diagram():
@@ -41,16 +56,16 @@ def test_fallback_diagram():
         MagicGate().on(cirq.NamedQubit('b'),
                        cirq.NamedQubit('a'),
                        cirq.NamedQubit('c')))
-    diagram = circuit_to_latex_using_qcircuit(circuit)
-    assert diagram.strip() == r"""
+    actual_diagram = circuit_to_latex_using_qcircuit(circuit)
+    expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{a}}& \qw&                    \qw&\text{\#2}       \qw    &\qw\\
- &\lstick{\text{b}}& \qw&\text{MagicOperate} \qw&\text{MagicGate} \qw\qwx&\qw\\
- &\lstick{\text{c}}& \qw&                    \qw&\text{\#3}       \qw\qwx&\qw\\
+ &\lstick{\text{a}}& \qw&                    \qw&\gate{\text{\#2}}       \qw    &\qw\\
+ &\lstick{\text{b}}& \qw&\gate{\text{MagicOperate}} \qw&\gate{\text{MagicGate}} \qw\qwx&\qw\\
+ &\lstick{\text{c}}& \qw&                    \qw&\gate{\text{\#3}}       \qw\qwx&\qw\\
  \\
 }""".strip()
-
+    assert_qcircuit_diagrams_equal(actual_diagram, expected_diagram)
 
 
 def test_teleportation_diagram():
@@ -68,10 +83,10 @@ def test_teleportation_diagram():
         cirq.CNOT(car, bob),
         cirq.CZ(ali, bob))
 
-    diagram = circuit_to_latex_using_qcircuit(
+    actual_diagram = circuit_to_latex_using_qcircuit(
         circuit,
         qubit_order=cirq.QubitOrder.explicit([ali, car, bob]))
-    assert diagram.strip() == r"""
+    expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
  &\lstick{\text{alice}}&   \qw&                \qw&\gate{\text{X}^{0.5}} \qw    &\control \qw    &\gate{\text{H}} \qw&\meter \qw&         \qw    &\control \qw    &\qw\\
@@ -79,6 +94,7 @@ def test_teleportation_diagram():
  &\lstick{\text{bob}}&     \qw&                \qw&\targ                 \qw\qwx&         \qw    &                \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
  \\
 }""".strip()
+    assert_qcircuit_diagrams_equal(actual_diagram, expected_diagram)
 
 
 def test_other_diagram():
@@ -89,8 +105,8 @@ def test_other_diagram():
         cirq.Y(b),
         cirq.Z(c))
 
-    diagram = circuit_to_latex_using_qcircuit(circuit)
-    assert diagram.strip() == r"""
+    actual_diagram = circuit_to_latex_using_qcircuit(circuit)
+    expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
  &\lstick{\text{0}}& \qw&\targ           \qw&\qw\\
@@ -98,3 +114,4 @@ def test_other_diagram():
  &\lstick{\text{2}}& \qw&\gate{\text{Z}} \qw&\qw\\
  \\
 }""".strip()
+    assert_qcircuit_diagrams_equal(actual_diagram, expected_diagram)
