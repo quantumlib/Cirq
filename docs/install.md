@@ -5,6 +5,7 @@ Choose your operating system:
 - [Installing on Linux](#installing-on-linux)
 - [Installing on Mac OS X](#installing-on-mac-os-x)
 - [Installing on Windows](#installing-on-windows)
+- [Installing on Docker](#installing-on-docker)
 
 If you want to create a development environment, see [development.md](development.md).
 
@@ -106,3 +107,34 @@ That way you have control over when a breaking change affects you.
     # │        │        │        │        │        │        │        │        │        │        │
     # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
     ```
+
+
+### Installing on Docker
+
+This will create a Docker image with the source code cloned from Github. This setup can be practical for development when you don't want to change any existing installation on your host machine.
+
+0. On your host sytem docker needs to be installed.
+
+1. Build the docker image for your system:
+    ```bash
+    git clone https://github.com/quantumlib/Cirq
+    cd Cirq
+    docker build -t cirq/cirq . # This builds the actual image based on latest Ubuntu, cloning the Cirq tree into it with the needed dependencies.
+     ```
+
+2. Check that it works!
+
+    ```bash
+    docker run -it cirq/cirq python -c "import cirq; print(cirq.google.Foxtail)"
+    # should print:
+    # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
+    # │        │        │        │        │        │        │        │        │        │        │
+    # │        │        │        │        │        │        │        │        │        │        │
+    # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
+    ```
+
+3. You can use the created image as:
+    ```bash
+    docker run -it cirq/cirq
+     ```
+
