@@ -15,7 +15,7 @@
 import itertools
 
 import cirq
-from cirq.contrib import circuit_to_latex_using_qcircuit
+import cirq.contrib.qcircuit as ccq
 
 
 def assert_qcircuit_diagrams_equal(actual: str, expected: str):
@@ -56,7 +56,7 @@ def test_fallback_diagram():
         MagicGate().on(cirq.NamedQubit('b'),
                        cirq.NamedQubit('a'),
                        cirq.NamedQubit('c')))
-    actual_diagram = circuit_to_latex_using_qcircuit(circuit)
+    actual_diagram = ccq.circuit_to_latex_using_qcircuit(circuit)
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
@@ -83,7 +83,7 @@ def test_teleportation_diagram():
         cirq.CNOT(car, bob),
         cirq.CZ(ali, bob))
 
-    actual_diagram = circuit_to_latex_using_qcircuit(
+    actual_diagram = ccq.circuit_to_latex_using_qcircuit(
         circuit,
         qubit_order=cirq.QubitOrder.explicit([ali, car, bob]))
     expected_diagram = r"""
@@ -105,7 +105,7 @@ def test_other_diagram():
         cirq.Y(b),
         cirq.Z(c))
 
-    actual_diagram = circuit_to_latex_using_qcircuit(circuit)
+    actual_diagram = ccq.circuit_to_latex_using_qcircuit(circuit)
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
