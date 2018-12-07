@@ -111,6 +111,28 @@ def test_eq():
                                    global_shift=0.5))
 
 
+def test_approx_eq():
+    assert cirq.approx_eq(CExpZinGate(1.5), CExpZinGate(1.5), atol=0.1)
+    assert cirq.approx_eq(CExpZinGate(1.5), CExpZinGate(1.7), atol=0.3)
+    assert not cirq.approx_eq(CExpZinGate(1.5), CExpZinGate(1.7), atol=0.1)
+
+    assert cirq.approx_eq(
+        ZGateDef(exponent=1.5),
+        ZGateDef(exponent=1.5),
+        atol=0.1
+    )
+    assert not cirq.approx_eq(
+        CExpZinGate(1.5),
+        ZGateDef(exponent=1.5),
+        atol=0.1
+    )
+    assert not cirq.approx_eq(
+        ZGateDef(exponent=1.5),
+        ZGateDef(exponent=cirq.Symbol('a')),
+        atol=0.1
+    )
+
+
 def test_period():
     class Components(cirq.EigenGate):
         def __init__(self, a, b, c, d):
