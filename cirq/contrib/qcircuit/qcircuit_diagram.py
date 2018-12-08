@@ -109,8 +109,7 @@ def _wrap_operation(op: ops.Operation) -> ops.Operation:
 
 
 def _wrap_moment(moment: ops.Moment) -> ops.Moment:
-    return ops.Moment(_wrap_operation(op)
-                           for op in moment.operations)
+    return ops.Moment(_wrap_operation(op) for op in moment.operations)
 
 
 def _wrap_circuit(circuit: circuits.Circuit) -> circuits.Circuit:
