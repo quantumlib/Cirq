@@ -14,7 +14,7 @@
 
 from typing import Any, Union
 
-import cirq
+import cirq.protocols
 
 
 class PeriodicValue:
@@ -57,11 +57,11 @@ class PeriodicValue:
             return NotImplemented
 
         # Periods must be approximately equal.
-        if not cirq.approx_eq(self.period, other.period, atol=atol):
+        if not cirq.protocols.approx_eq(self.period, other.period, atol=atol):
             return False
 
         # Try to match normalized values.
-        if cirq.approx_eq(self.value, other.value, atol=atol):
+        if cirq.protocols.approx_eq(self.value, other.value, atol=atol):
             return True
 
         # Shift lower value outside of normalization interval in case self and
@@ -72,4 +72,4 @@ class PeriodicValue:
         else:
             s_val = self.value
             o_val = other.value + other.period
-        return cirq.approx_eq(s_val, o_val, atol=atol)
+        return cirq.protocols.approx_eq(s_val, o_val, atol=atol)
