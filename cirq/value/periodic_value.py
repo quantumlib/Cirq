@@ -12,23 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Any, Union
 
 import cirq
 
-from cirq.value.value_equality import value_equality
 
-
-@value_equality
-class PeriodicEquivalence:
-    """Equivalence class wrapper for periodic numerical values.
+class PeriodicValue:
+    """Wrapper for periodic numerical values.
 
     Wrapper for periodic numerical types which implements `__eq__`, `__ne__`,
     `__hash__` and `_approx_eq_` so that values which are in the same
     equivalence class are treated as equal.
 
     Internally the `value` passed to `__init__` is normalized to the interval
-    [0, `period`) and stored as is. Specialized version of `_approx_eq_` is
+    [0, `period`) and stored as that. Specialized version of `_approx_eq_` is
     provided to cover values which end up at the opposite edges of this
     interval.
     """
@@ -47,9 +44,20 @@ class PeriodicEquivalence:
         """Implementation of `_SupportsValueEquality` protocol."""
         return self.value, self.period
 
-    def _approx_eq_(self, other: 'PeriodicEquivalence', atol: float):
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (self.value, self.period) == (other.value, other.period)
+
+    def __ne__(self, other: Any) -> bool:
+        return not self == other
+
+    def __hash__(self) -> int:
+        return hash((type(self), self.value, self.period))
+
+    def _approx_eq_(self, other: Any, atol: float) -> bool:
         """Implementation of `SupportsApproximateEquality` protocol."""
-        if type(self) != type(other):
+        if not isinstance(other, type(self)):
             return NotImplemented
 
         # Periods must be approximately equal.
