@@ -149,8 +149,8 @@ def test_value_equality_forgot_method():
 
 @cirq.value_equality(approximate=True)
 class ApproxE:
-    def __init__(self, x):
-        self.x = x
+    def __init__(self, xy):
+        self.x = xy
 
     def _value_equality_values_(self):
         return self.x
@@ -195,8 +195,8 @@ class ApproxEb(ApproxE):
 
 @cirq.value_equality(distinct_child_types=True, approximate=True)
 class ApproxG:
-    def __init__(self, x):
-        self.x = x
+    def __init__(self, xz):
+        self.x = xz
 
     def _value_equality_values_(self):
         return self.x
