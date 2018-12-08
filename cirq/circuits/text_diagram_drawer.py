@@ -307,12 +307,25 @@ class TextDiagramDrawer:
         return summed
 
     @staticmethod
-    def vstack(top: 'TextDiagramDrawer', bottom: 'TextDiagramDrawer'):
-        return bottom + top.shifted(dy=bottom.height())
+    def vstack(top: 'TextDiagramDrawer', bottom: 'TextDiagramDrawer',
+               padding_resolver: Callable[[int, int], int]=max):
+        stacked = bottom + top.shifted(dy=bottom.height())
+        for x in (top.horizontal_padding.keys() &
+                  bottom.horizontal_padding.keys()):
+            paddings = (d.horizontal_padding[x] for d in (top, bottom))
+            stacked.horizontal_padding[x] = padding_resolver(*paddings)
+        return stacked
+
 
     @staticmethod
-    def hstack(left: 'TextDiagramDrawer', right: 'TextDiagramDrawer'):
-        return left + right.shifted(dx=left.width())
+    def hstack(left: 'TextDiagramDrawer', right: 'TextDiagramDrawer',
+               padding_resolver: Callable[[int, int], int]=max):
+        stacked = left + right.shifted(dx=left.width())
+        for y in (left.vertical_padding.keys() &
+                  right.vertical_padding.keys()):
+            paddings = (d.vertical_padding[y] for d in (left, right))
+            stacked.vertical_padding[y] = padding_resolver(*paddings)
+        return stacked
 
 
 _BoxChars = [

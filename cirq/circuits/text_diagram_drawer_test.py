@@ -231,3 +231,55 @@ A B D
   C E F
     """.strip()
     assert_has_diagram(hstacked, expected, render_method_name='render')
+
+    d.force_horizontal_padding_after(0, 0)
+    dd.force_horizontal_padding_after(0, 2)
+    d.force_vertical_padding_after(0, 1)
+    dd.force_vertical_padding_after(0, 3)
+
+    vstacked = TextDiagramDrawer.vstack(d, dd)
+    expected = """
+D
+
+
+
+E  F
+
+A  B
+
+   C
+    """.strip()
+    assert_has_diagram(vstacked, expected, render_method_name='render')
+
+    hstacked = TextDiagramDrawer.hstack(d, dd)
+    expected = """
+AB D
+
+
+
+ C E  F
+    """.strip()
+    assert_has_diagram(hstacked, expected, render_method_name='render')
+
+    vstacked_min = TextDiagramDrawer.vstack(d, dd, padding_resolver=min)
+    expected = """
+D
+
+
+
+EF
+
+AB
+
+ C
+    """.strip()
+    assert_has_diagram(vstacked_min, expected, render_method_name='render')
+
+    hstacked_min = TextDiagramDrawer.hstack(d, dd, padding_resolver=min)
+    expected = """
+AB D
+
+ C E  F
+    """.strip()
+    assert_has_diagram(hstacked_min, expected, render_method_name='render')
+
