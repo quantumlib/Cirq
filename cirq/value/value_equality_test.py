@@ -124,6 +124,15 @@ class DistinctCb(DistinctC):
     pass
 
 
+@cirq.value_equality
+class BasicCE:
+    def __init__(self, xa):
+        self.x = xa
+
+    def _value_equality_values_(self):
+        return self.x
+
+
 def test_value_equality_distinct_child_types():
     # Lookup is distinct across child types.
     v = {DistinctC(1): 4, DistinctCa(1): 5, DistinctCb(1): 6}
@@ -145,15 +154,6 @@ def test_value_equality_forgot_method():
         @cirq.value_equality
         class _:
             pass
-
-
-@cirq.value_equality
-class BasicCE:
-    def __init__(self, x):
-        self.x = x
-
-    def _value_equality_values_(self):
-        return self.x
 
 
 @cirq.value_equality(approximate=True)
