@@ -140,13 +140,6 @@ def test_value_equality_distinct_child_types():
     eq.add_equality_group(DistinctD(1))
 
 
-def test_value_equality_forgot_method():
-    with pytest.raises(TypeError, match='_value_equality_values_'):
-        @cirq.value_equality
-        class _:
-            pass
-
-
 @cirq.value_equality(approximate=True)
 class ApproxE:
     def __init__(self, x):
@@ -216,3 +209,10 @@ def test_value_equality_approximate_typing():
     assert cirq.approx_eq(ApproxG(0.0), ApproxG(0.0), atol=0.1)
     assert not cirq.approx_eq(ApproxGa(0.0), ApproxGb(0.0), atol=0.1)
     assert not cirq.approx_eq(ApproxG(0.0), ApproxGb(0.0), atol=0.1)
+
+
+def test_value_equality_forgot_method():
+    with pytest.raises(TypeError, match='_value_equality_values_'):
+        @cirq.value_equality
+        class _:
+            pass
