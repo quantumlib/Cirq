@@ -16,7 +16,7 @@ import functools
 import itertools
 import math
 import operator
-from typing import Sequence, Dict, Tuple, List, NamedTuple
+from typing import Sequence, Dict, Tuple, List, NamedTuple, Optional
 
 from cirq import ops, protocols
 
@@ -107,7 +107,7 @@ def _get_max_reach(size: int, round_up: bool=True) -> int:
 
 def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
                        layers: Layers,
-                       acquaintance_size: int,
+                       acquaintance_size: Optional[int],
                        swap_gate: ops.Gate,
                        mapping: Dict[ops.QubitId, int]):
     """Acquaints and shifts a pair of lists of qubits. The first part is
@@ -124,7 +124,9 @@ def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
     Args:
         parts: The two lists of qubits to acquaint.
         layers: The layers to put gates into.
-        acquaintance_size: The number of qubits to acquaint at a time.
+        acquaintance_size: The number of qubits to acquaint at a time. If None,
+            after each pair of parts is shifted the union thereof is
+            acquainted.
         swap_gate: The gate used to swap logical indices.
         mapping: The mapping from qubits to logical indices. Used to keep track
             of the effect of inside-acquainting swaps.
@@ -136,7 +138,10 @@ def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
     shift = CircularShiftGate(left_size,
                               swap_gate=swap_gate)(
                                       *qubits)
-    if max(left_size, right_size) != acquaintance_size - 1:
+    if acquaintance_size is None:
+        layers.intra.append(shift)
+        layers.post.append(ACQUAINT(*qubits))
+    elif max(left_size, right_size) != acquaintance_size - 1:
         layers.intra.append(shift)
     elif acquaintance_size == 2:
         layers.prior_interstitial.append(ACQUAINT(*qubits))
@@ -205,17 +210,18 @@ class SwapNetworkGate(PermutationGate):
             partition defining the swap network.
         acquaintance_size: An int indicating the locality of the logical gates
             desired; used to keep track of this while nesting. If 0, no
-            acquaintance gates are inserted.
+            acquaintance gates are inserted. If None, after each pair of parts
+            is shifted the union thereof is acquainted.
 
     Attributes:
-        part_lens: See above
+        part_lens: See above.
         acquaintance_size: See above.
         swap_gate: The gate used to swap logical indices.
     """
 
     def __init__(self,
                  part_lens: Sequence[int],
-                 acquaintance_size: int=0,
+                 acquaintance_size: Optional[int]=0,
                  swap_gate: ops.Gate=ops.SWAP
                  ) -> None:
         super().__init__(swap_gate)
@@ -233,9 +239,10 @@ class SwapNetworkGate(PermutationGate):
             parts.append(list(qubits[q: q + part_len]))
             q += part_len
         n_parts = len(parts)
-        op_sort_key = (lambda op:
+        op_sort_key = (None if self.acquaintance_size is None else
+                (lambda op:
                 qubit_to_position[min(op.qubits, key=qubit_to_position.get)] %
-                self.acquaintance_size)
+                self.acquaintance_size))
         layers = new_layers()
         for layer_num in range(n_parts):
             layers = new_layers(
