@@ -40,10 +40,6 @@ class PeriodicValue:
         self.value = value % period
         self.period = period
 
-    def _value_equality_values_(self):
-        """Implementation of `_SupportsValueEquality` protocol."""
-        return self.value, self.period
-
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
