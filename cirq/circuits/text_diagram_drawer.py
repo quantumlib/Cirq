@@ -273,6 +273,47 @@ class TextDiagramDrawer:
                 vertical_padding=self.vertical_padding,
                 horizontal_padding=self.horizontal_padding)
 
+    def shifted(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+        shifted_entries = {(x + dx, y + dy): t
+                for (x, y), t in self.entries.items()}
+        shifted_horizontal_lines = [
+                _HorizontalLine(y + dy, x1 + dx, x2 + dx, e)
+                for y, x1, x2, e in self.horizontal_lines]
+        shifted_vertical_lines = [
+                _VerticalLine(x + dx, y1 + dy, y2 + dy, e)
+                for x, y1, y2, e in self.vertical_lines]
+        shifted_horizontal_padding = {x + dx: padding
+                for x, padding in self.horizontal_padding.items()}
+        shifted_vertical_padding = {y + dy: padding
+                for y, padding in self.vertical_padding.items()}
+        return self.__class__(
+                entries=shifted_entries,
+                horizontal_lines=shifted_horizontal_lines,
+                vertical_lines=shifted_vertical_lines,
+                horizontal_padding=shifted_horizontal_padding,
+                vertical_padding=shifted_vertical_padding)
+
+    def __iadd__(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+        self.entries.update(other.entries)
+        self.horizontal_lines += other.horizontal_lines
+        self.vertical_lines += other.vertical_lines
+        self.horizontal_padding.update(other.horizontal_padding)
+        self.vertical_padding.update(other.vertical_padding)
+        return self
+
+    def __add__(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+        summed = self.copy()
+        summed += other
+        return summed
+
+    @staticmethod
+    def vstack(top: 'TextDiagramDrawer', bottom: 'TextDiagramDrawer'):
+        return bottom + top.shifted(dy=bottom.height())
+
+    @staticmethod
+    def hstack(left: 'TextDiagramDrawer', right: 'TextDiagramDrawer'):
+        return left + right.shifted(dx=left.width())
+
 
 _BoxChars = [
     ('─', '━', '-'),

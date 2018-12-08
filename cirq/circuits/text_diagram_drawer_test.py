@@ -18,6 +18,7 @@ from cirq.circuits import TextDiagramDrawer
 from cirq.circuits.text_diagram_drawer import (
         _HorizontalLine, _VerticalLine, _DiagramText)
 from cirq.testing.mock import mock
+from cirq.testing import assert_has_diagram
 
 
 def test_draw_entries_and_lines_with_options():
@@ -199,3 +200,34 @@ def test_drawer_copy():
     copy_drawer = orig_drawer.copy()
     copy_drawer.force_vertical_padding_after(1, 4)
     assert copy_drawer != orig_drawer
+
+
+def test_drawer_stack():
+    d = TextDiagramDrawer()
+    d.write(0, 0, 'A')
+    d.write(1, 0, 'B')
+    d.write(1, 1, 'C')
+    dd = TextDiagramDrawer()
+    dd.write(0, 0, 'D')
+    dd.write(0, 1, 'E')
+    dd.write(1, 1, 'F')
+
+    vstacked = TextDiagramDrawer.vstack(d, dd)
+    expected = """
+D
+
+E F
+
+A B
+
+  C
+    """.strip()
+    assert_has_diagram(vstacked, expected, render_method_name='render')
+
+    hstacked = TextDiagramDrawer.hstack(d, dd)
+    expected = """
+A B D
+
+  C E F
+    """.strip()
+    assert_has_diagram(hstacked, expected, render_method_name='render')
