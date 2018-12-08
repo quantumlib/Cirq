@@ -19,17 +19,16 @@ from typing import Sequence, TYPE_CHECKING, Union
 from cirq import circuits, ops, optimizers
 
 from cirq.contrib.acquaintance.gates import (
-     SwapNetworkGate, AcquaintanceOpportunityGate, ACQUAINT)
-from cirq.contrib.acquaintance.permutation import (
-        PermutationGate)
+    SwapNetworkGate, AcquaintanceOpportunityGate)
 from cirq.contrib.acquaintance.devices import (
-    UnconstrainedAcquaintanceDevice,
     is_acquaintance_strategy, get_acquaintance_size)
+from cirq.contrib.acquaintance.permutation import (
+    PermutationGate)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Type, Dict, List
     from cirq.ops import Gate
+    from typing import Dict, List, Type
 
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
@@ -125,34 +124,3 @@ class ExposeAcquaintanceGates(optimizers.ExpandComposite):
 
 
 expose_acquaintance_gates = ExposeAcquaintanceGates()
-
-
-def complete_acquaintance_strategy(qubit_order: Sequence[ops.QubitId],
-                                   acquaintance_size: int=0,
-                                   ) -> circuits.Circuit:
-    """
-    Returns an acquaintance strategy capable of executing a gate corresponding
-    to any set of at most acquaintance_size qubits.
-
-    Args:
-        qubit_order: The qubits on which the strategy should be defined.
-        acquaintance_size: The maximum number of qubits to be acted on by
-        an operation.
-
-    Returns:
-        An circuit capable of implementing any set of k-local
-        operation.
-    """
-    if acquaintance_size < 0:
-        raise ValueError('acquaintance_size must be non-negative.')
-    elif acquaintance_size == 0:
-        return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
-
-    strategy = circuits.Circuit.from_ops(
-            (ACQUAINT(q) for q in qubit_order),
-            device=UnconstrainedAcquaintanceDevice)
-    for size_to_acquaint in range(2, acquaintance_size + 1):
-        expose_acquaintance_gates(strategy)
-        replace_acquaintance_with_swap_network(
-                strategy, qubit_order, size_to_acquaint)
-    return strategy

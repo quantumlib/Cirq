@@ -13,18 +13,14 @@
 # limitations under the License.
 
 from itertools import combinations
+from string import ascii_lowercase
 from typing import Sequence, Dict, Tuple
 
 import numpy as np
 import pytest
 
 import cirq
-from cirq.contrib.acquaintance.strategy import (
-    complete_acquaintance_strategy)
-from cirq.contrib.acquaintance.permutation import (
-        LinearPermutationGate)
-from cirq.contrib.acquaintance.executor import (
-        StrategyExecutor, GreedyExecutionStrategy)
+import cirq.contrib.acquaintance as cca
 
 
 class ExampleGate(cirq.Gate):
@@ -38,18 +34,18 @@ class ExampleGate(cirq.Gate):
 def test_executor_explicit():
     n_qubits = 8
     qubits = cirq.LineQubit.range(n_qubits)
-    circuit = complete_acquaintance_strategy(qubits, 2)
+    circuit = cca.complete_acquaintance_strategy(qubits, 2)
 
     gates = {(i, j): ExampleGate([str(k) for k in ij])
              for ij in combinations(range(n_qubits), 2)
              for i, j in (ij, ij[::-1])}
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
-    execution_strategy = GreedyExecutionStrategy(gates, initial_mapping)
-    executor = StrategyExecutor(execution_strategy)
+    execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
+    executor = cca.StrategyExecutor(execution_strategy)
 
     with pytest.raises(NotImplementedError):
         bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
-        GreedyExecutionStrategy(bad_gates, initial_mapping)
+        cca.GreedyExecutionStrategy(bad_gates, initial_mapping)
 
     with pytest.raises(TypeError):
         executor(cirq.Circuit())
@@ -82,7 +78,6 @@ def test_executor_explicit():
       │   │   │                   │   │   │                   │   │   │                   │   │   │
 7: ───7───6───╱1╲─────────────────6───4───╱1╲─────────────────4───2───╱1╲─────────────────2───0───╱1╲─────────────────
     """.strip()
-    print(actual_text_diagram)
     assert actual_text_diagram == expected_text_diagram
 
 
@@ -159,20 +154,30 @@ def test_executor_random(n_qubits: int,
                          acquaintance_size: int,
                          gates: Dict[Tuple[cirq.QubitId, ...], cirq.Gate]):
     qubits = cirq.LineQubit.range(n_qubits)
-    circuit = complete_acquaintance_strategy(qubits, acquaintance_size)
+    circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
 
     logical_circuit = cirq.Circuit.from_ops([g(*Q) for Q, g in gates.items()])
     expected_unitary = logical_circuit.to_unitary_matrix()
 
     initial_mapping = {q: q for q in qubits}
-    execution_strategy = GreedyExecutionStrategy(gates, initial_mapping)
-    executor = StrategyExecutor(execution_strategy)
-    final_mapping = executor(circuit)
+    final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
-    circuit.append(LinearPermutationGate(permutation)(*qubits))
+    circuit.append(cca.LinearPermutationGate(permutation)(*qubits))
     actual_unitary = circuit.to_unitary_matrix()
 
     np.testing.assert_allclose(
             actual=actual_unitary,
             desired=expected_unitary,
             verbose=True)
+
+def test_acquaintance_operation():
+    n = 5
+    physical_qubits = tuple(cirq.LineQubit.range(n))
+    logical_qubits = tuple(cirq.NamedQubit(s) for s in ascii_lowercase[:n])
+    int_indices = tuple(range(n))
+    with pytest.raises(ValueError):
+        cca.AcquaintanceOperation(physical_qubits[:3], int_indices[:4])
+    for logical_indices in (logical_qubits, int_indices):
+        op = cca.AcquaintanceOperation(physical_qubits, logical_indices)
+        assert op.logical_indices == logical_indices
+        assert op.qubits == physical_qubits
