@@ -62,7 +62,7 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
         circuit contains measurements.
     """
     return circuits.Circuit(
-                circuits.Moment(op for op in moment.operations
+                ops.Moment(op for op in moment.operations
                                 if not isinstance(op, PauliStringPhasor))
                                 for moment in circuit)
 

@@ -64,7 +64,7 @@ def rectify_acquaintance_strategy(
         for acquaint_first in sorted(gate_type_to_ops.keys(),
                                      reverse=acquaint_first):
             rectified_moments.append(
-                    circuits.Moment(gate_type_to_ops[acquaint_first]))
+                    ops.Moment(gate_type_to_ops[acquaint_first]))
     circuit._moments = rectified_moments
 
 
@@ -107,7 +107,7 @@ def replace_acquaintance_with_swap_network(
             swap_network_gate = SwapNetworkGate.from_operations(
                     qubit_order, moment.operations, acquaintance_size)
             swap_network_op = swap_network_gate(*qubit_order)
-            moment = circuits.Moment([swap_network_op])
+            moment = ops.Moment([swap_network_op])
             reflected = not reflected
         circuit._moments[moment_index] = moment
     return reflected

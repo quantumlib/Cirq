@@ -19,7 +19,7 @@ import collections
 
 from typing import Any, Iterable, Union, Callable
 
-from cirq.circuits.moment import Moment
+from cirq.ops.moment import Moment
 from cirq.ops.raw_types import Operation
 
 

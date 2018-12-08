@@ -31,7 +31,7 @@ import numpy as np
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
+from cirq.ops.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType

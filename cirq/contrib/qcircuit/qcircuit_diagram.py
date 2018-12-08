@@ -108,8 +108,8 @@ def _wrap_operation(op: ops.Operation) -> ops.Operation:
     return _QCircuitOperation(op, diagrammable).with_qubits(*new_qubits)
 
 
-def _wrap_moment(moment: circuits.Moment) -> circuits.Moment:
-    return circuits.Moment(_wrap_operation(op)
+def _wrap_moment(moment: ops.Moment) -> ops.Moment:
+    return ops.Moment(_wrap_operation(op)
                            for op in moment.operations)
 
 

@@ -16,7 +16,7 @@ from random import choice, sample, random
 from typing import Union, Sequence, TYPE_CHECKING, Dict, Optional
 
 from cirq import ops
-from cirq.circuits import Circuit, Moment
+from cirq.circuits import Circuit
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -76,7 +76,7 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
-    moments = [] # type: List[Moment]
+    moments = [] # type: List[ops.Moment]
     for _ in range(n_moments):
         operations = []
         free_qubits = set(q for q in qubits)
@@ -86,6 +86,6 @@ def random_circuit(qubits: Union[Sequence[ops.QubitId], int],
             free_qubits.difference_update(op_qubits)
             if random() <= op_density:
                 operations.append(gate(*op_qubits))
-        moments.append(Moment(operations))
+        moments.append(ops.Moment(operations))
 
     return Circuit(moments)
