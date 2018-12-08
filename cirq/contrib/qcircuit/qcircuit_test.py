@@ -12,24 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-
 import cirq
 import cirq.contrib.qcircuit as ccq
+import cirq.testing as ct
 
 
-def assert_qcircuit_diagrams_equal(actual: str, expected: str):
-    zipped_lines = itertools.zip_longest(
-            actual.split(r'\\'), expected.split(r'\\'), fillvalue='')
-    for line_number, (actual_line, expected_line) in enumerate(zipped_lines):
-        zipped_entries = itertools.zip_longest(
-            actual_line.split(r'&'), expected_line.split(r'&'), fillvalue='')
-        for entry_number, (actual_entry, expected_entry) in enumerate(
-                zipped_entries):
-            assert (actual_entry.strip() == expected_entry.strip()
-                ), ('Line {} differs in entry {}:'.format(
-                    line_number, entry_number) +
-                    '{} vs. {}'.format(actual_entry, expected_entry))
+def assert_has_qcircuit_diagram(
+        actual: cirq.Circuit,
+        desired: str,
+        **kwargs) -> None:
+    """Determines if a given circuit has the desired qcircuit diagram.
+
+    Args:
+        actual: The circuit that was actually computed by some process.
+        desired: The desired qcircuit diagram as a string. Newlines at the
+            beginning and whitespace at the end are ignored.
+        **kwargs: Keyword arguments to be passed to
+            circuit_to_latex_using_qcircuit.
+    """
+    actual_diagram = ccq.circuit_to_latex_using_qcircuit(actual, **kwargs
+            ).lstrip('\n').rstrip()
+    desired_diagram = desired.lstrip("\n").rstrip()
+    assert actual_diagram == desired_diagram, (
+        "Circuit's qcircuit diagram differs from the desired diagram.\n"
+        '\n'
+        'Diagram of actual circuit:\n'
+        '{}\n'
+        '\n'
+        'Desired qcircuit diagram:\n'
+        '{}\n'
+        '\n'
+        'Highlighted differences:\n'
+        '{}\n'.format(actual_diagram, desired_diagram,
+                      ct.highlight_text_differences(actual_diagram,
+                                                 desired_diagram))
+    )
 
 
 def test_fallback_diagram():
@@ -56,16 +73,15 @@ def test_fallback_diagram():
         MagicGate().on(cirq.NamedQubit('b'),
                        cirq.NamedQubit('a'),
                        cirq.NamedQubit('c')))
-    actual_diagram = ccq.circuit_to_latex_using_qcircuit(circuit)
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{a}}& \qw&                    \qw&\gate{\text{\#2}}       \qw    &\qw\\
+ &\lstick{\text{a}}& \qw&                           \qw&\gate{\text{\#2}}       \qw    &\qw\\
  &\lstick{\text{b}}& \qw&\gate{\text{MagicOperate}} \qw&\gate{\text{MagicGate}} \qw\qwx&\qw\\
- &\lstick{\text{c}}& \qw&                    \qw&\gate{\text{\#3}}       \qw\qwx&\qw\\
+ &\lstick{\text{c}}& \qw&                           \qw&\gate{\text{\#3}}       \qw\qwx&\qw\\
  \\
 }""".strip()
-    assert_qcircuit_diagrams_equal(actual_diagram, expected_diagram)
+    assert_has_qcircuit_diagram(circuit, expected_diagram)
 
 
 def test_teleportation_diagram():
@@ -83,9 +99,6 @@ def test_teleportation_diagram():
         cirq.CNOT(car, bob),
         cirq.CZ(ali, bob))
 
-    actual_diagram = ccq.circuit_to_latex_using_qcircuit(
-        circuit,
-        qubit_order=cirq.QubitOrder.explicit([ali, car, bob]))
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
@@ -94,7 +107,8 @@ def test_teleportation_diagram():
  &\lstick{\text{bob}}&     \qw&                \qw&\targ                 \qw\qwx&         \qw    &                \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
  \\
 }""".strip()
-    assert_qcircuit_diagrams_equal(actual_diagram, expected_diagram)
+    assert_has_qcircuit_diagram(circuit, expected_diagram,
+            qubit_order=cirq.QubitOrder.explicit([ali, car, bob]))
 
 
 def test_other_diagram():
@@ -105,7 +119,6 @@ def test_other_diagram():
         cirq.Y(b),
         cirq.Z(c))
 
-    actual_diagram = ccq.circuit_to_latex_using_qcircuit(circuit)
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
@@ -114,4 +127,4 @@ def test_other_diagram():
  &\lstick{\text{2}}& \qw&\gate{\text{Z}} \qw&\qw\\
  \\
 }""".strip()
-    assert_qcircuit_diagrams_equal(actual_diagram, expected_diagram)
+    assert_has_qcircuit_diagram(circuit, expected_diagram)
