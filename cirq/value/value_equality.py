@@ -18,7 +18,7 @@ from typing import Union, Callable, overload, Any
 
 from typing_extensions import Protocol
 
-from cirq import protocols
+import cirq.protocols
 
 
 class _SupportsValueEquality(Protocol):
@@ -104,7 +104,7 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
         return False
 
     # Delegate to cirq.approx_eq for approximate equality comparison.
-    return protocols.approx_eq(
+    return cirq.protocols.approx_eq(
         self._value_equality_approximate_values_(),
         other._value_equality_approximate_values_(),
         atol=atol
@@ -147,9 +147,9 @@ def value_equality(cls: type = None,
     argument is set and _value_equality_approximate_values_ is not defined,
     _value_equality_values_ values are used for approximate equality.
     For example, this can be used to compare periodic values like angles: the
-    angle value can be wrapped with PeriodicNumberEquivalence. When returned as
-    part of approximate values a special normalization will be done
-    automatically to guarantee correctness.
+    angle value can be wrapped with `PeriodicValue`. When returned as part of
+    approximate values a special normalization will be done automatically to
+    guarantee correctness.
 
     Note that the type of the decorated value is included as part of the value
     equality values. This is so that completely separate classes with identical
