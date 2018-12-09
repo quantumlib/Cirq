@@ -111,9 +111,9 @@ That way you have control over when a breaking change affects you.
 
 ### Installing on Docker
 
-This will create a Docker image with the source code cloned from Github. This setup can be practical for development when you don't want to change any existing installation on your host machine.
+This will create a Docker image containing Cirq's source code. It will isolate a Cirq installation from the rest of the system.
 
-0. On your host sytem docker needs to be installed.
+0. [Install Docker](https://docs.docker.com/install/#supported-platforms) on your host sytem.
 
 1. Build the docker image for your system:
     ```bash

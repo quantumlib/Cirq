@@ -2,7 +2,7 @@ FROM ubuntu
 
 # Install dependencies.
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-     python python3-pip python3-tk texlive-latex-base latexmk git emacs locales
+     python python3-pip python3-tk texlive-latex-base latexmk git emacs vim locales
 
 # Configure UTF-8 encoding.
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
