@@ -37,7 +37,7 @@ class NamedQubit(raw_types.QubitId):
         return 'cirq.NamedQubit({})'.format(repr(self.name))
 
     @staticmethod
-    def range(*args, prefix: str) -> Iterable['NamedQubit']:
+    def range(*args, prefix: str):
         """Returns a range of NamedQubits.
 
         The range returned starts with the prefix, and followed by a qubit for
