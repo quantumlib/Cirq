@@ -141,3 +141,15 @@ def test_swap_diagram():
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops((cirq.SWAP(a, b), cirq.XX(b, c)))
+    expected_diagram = r"""
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&    &                         \qw&\qw\\
+ &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&    &\multigate{1}{\text{XX}} \qw&\qw\\
+ &\lstick{\text{2}}& \qw&                 \qw& \qw&\ghost{\text{XX}}        \qw&\qw\\
+ \\
+}""".strip()
+    assert_has_qcircuit_diagram(circuit, expected_diagram)
