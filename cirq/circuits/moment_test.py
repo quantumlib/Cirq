@@ -184,3 +184,8 @@ def test_qubits():
     assert Moment([cirq.X(a), cirq.X(b)]).qubits == {a , b}
     assert Moment([cirq.X(a)]).qubits == {a}
     assert Moment([cirq.CZ(a, b)]).qubits == {a, b}
+
+def test_bool():
+    assert not Moment()
+    a = cirq.NamedQubit('a')
+    assert Moment([cirq.X(a)])

@@ -247,6 +247,30 @@ class Circuit:
             return NotImplemented
         return self * repetitions
 
+    def __pow__(self, exponent: int) -> 'Circuit':
+        """A circuit raised to a power, only valid for exponent -1, the inverse.
+
+        This will fail if anything other than -1 is passed to the Circuit by
+        returning NotImplemented.  Otherwise this will return the inverse
+        circuit, which is the circuit with its moment order reversed and for
+        every moment all the moment's operations are replaced by its inverse.
+        If any of the operations do not support inverse, NotImplemented will be
+        returned.
+        """
+        if exponent != -1:
+            return NotImplemented
+        circuit = Circuit(device=self._device)
+        for moment in self[::-1]:
+            moment_ops = []
+            for op in moment.operations:
+                try:
+                    inverse_op = cirq.protocols.inverse(op)
+                except TypeError:
+                    return NotImplemented
+                moment_ops.append(inverse_op)
+            circuit.append(Moment(moment_ops))
+        return circuit
+
     def __repr__(self):
         if not self._moments and self._device == devices.UnconstrainedDevice:
             return 'cirq.Circuit()'
@@ -855,8 +879,9 @@ class Circuit:
 
     @staticmethod
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
-                                          start: int=0,
-                                          frontier: Dict[ops.QubitId, int]=None
+                                          start: int = 0,
+                                          frontier: Dict[ops.QubitId,
+                                                         int] = None
                                           ) -> Tuple[Sequence[int],
                                                      Dict[ops.QubitId, int]]:
         """Greedily assigns operations to moments.
@@ -886,7 +911,7 @@ class Circuit:
     def _push_frontier(self,
                        early_frontier: Dict[ops.QubitId, int],
                        late_frontier: Dict[ops.QubitId, int],
-                       update_qubits: Iterable[ops.QubitId]=None
+                       update_qubits: Iterable[ops.QubitId] = None
                        ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -959,7 +984,7 @@ class Circuit:
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
                            start: int,
-                           frontier: Dict[ops.QubitId, int]=None
+                           frontier: Dict[ops.QubitId, int] = None
                            ) -> Dict[ops.QubitId, int]:
         """Inserts operations inline at frontier.
 
@@ -1296,7 +1321,6 @@ class Circuit:
         """
         diagram = self.to_text_diagram_drawer(
             use_unicode_characters=use_unicode_characters,
-            qubit_name_suffix='' if transpose else ': ',
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose)
@@ -1312,10 +1336,14 @@ class Circuit:
             self,
             *,
             use_unicode_characters: bool = True,
-            qubit_name_suffix: str = '',
+            qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
             transpose: bool = False,
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            get_circuit_diagram_info:
+                Optional[Callable[[ops.Operation,
+                                   protocols.CircuitDiagramInfoArgs],
+                                  protocols.CircuitDiagramInfo]]=None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1334,9 +1362,11 @@ class Circuit:
             self.all_qubits())
         qubit_map = {qubits[i]: i for i in range(len(qubits))}
 
+        if qubit_namer is None:
+            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
         diagram = TextDiagramDrawer()
         for q, i in qubit_map.items():
-            diagram.write(0, i, str(q) + qubit_name_suffix)
+            diagram.write(0, i, qubit_namer(q))
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
@@ -1345,7 +1375,8 @@ class Circuit:
                                     qubit_map,
                                     diagram,
                                     precision,
-                                    moment_groups)
+                                    moment_groups,
+                                    get_circuit_diagram_info)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -1517,13 +1548,26 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
     return s
 
 
-def _draw_moment_in_diagram(moment: Moment,
-                            use_unicode_characters: bool,
-                            qubit_map: Dict[ops.QubitId, int],
-                            out_diagram: TextDiagramDrawer,
-                            precision: Optional[int],
-                            moment_groups: List[Tuple[int, int]]):
+def _draw_moment_in_diagram(
+        moment: Moment,
+        use_unicode_characters: bool,
+        qubit_map: Dict[ops.QubitId, int],
+        out_diagram: TextDiagramDrawer,
+        precision: Optional[int],
+        moment_groups: List[Tuple[int, int]],
+        get_circuit_diagram_info:
+            Optional[Callable[[ops.Operation,
+                               protocols.CircuitDiagramInfoArgs],
+                              protocols.CircuitDiagramInfo]]=None
+        ):
+    if get_circuit_diagram_info is None:
+        get_circuit_diagram_info = (
+                _get_operation_circuit_diagram_info_with_fallback)
     x0 = out_diagram.width()
+
+    if not moment.operations:
+        out_diagram.write(x0, 0, '')
+
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
@@ -1542,7 +1586,7 @@ def _draw_moment_in_diagram(moment: Moment,
             use_unicode_characters=use_unicode_characters,
             qubit_map=qubit_map,
             precision=precision)
-        info = _get_operation_circuit_diagram_info_with_fallback(op, args)
+        info = get_circuit_diagram_info(op, args)
 
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
