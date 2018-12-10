@@ -293,7 +293,7 @@ class TextDiagramDrawer:
                 horizontal_padding=shifted_horizontal_padding,
                 vertical_padding=shifted_vertical_padding)
 
-    def __iadd__(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+    def update(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
         self.entries.update(other.entries)
         self.horizontal_lines += other.horizontal_lines
         self.vertical_lines += other.vertical_lines
@@ -301,26 +301,22 @@ class TextDiagramDrawer:
         self.vertical_padding.update(other.vertical_padding)
         return self
 
-    def __add__(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
-        summed = self.copy()
-        summed += other
-        return summed
-
     @staticmethod
     def vstack(top: 'TextDiagramDrawer', bottom: 'TextDiagramDrawer',
                padding_resolver: Callable[[int, int], int]=max):
-        stacked = bottom + top.shifted(dy=bottom.height())
+        stacked = bottom.copy()
+        stacked.update(top.shifted(dy=bottom.height()))
         for x in (set(top.horizontal_padding.keys()) &
                   set(bottom.horizontal_padding.keys())):
             paddings = (d.horizontal_padding[x] for d in (top, bottom))
             stacked.horizontal_padding[x] = padding_resolver(*paddings)
         return stacked
 
-
     @staticmethod
     def hstack(left: 'TextDiagramDrawer', right: 'TextDiagramDrawer',
                padding_resolver: Callable[[int, int], int]=max):
-        stacked = left + right.shifted(dx=left.width())
+        stacked = left.copy()
+        stacked.update(right.shifted(dx=left.width()))
         for y in (set(left.vertical_padding.keys()) &
                   set(right.vertical_padding.keys())):
             paddings = (d.vertical_padding[y] for d in (left, right))
