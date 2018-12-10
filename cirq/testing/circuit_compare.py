@@ -216,22 +216,18 @@ def _first_differing_moment_index(circuit1: circuits.Circuit,
 
 
 def assert_has_diagram(
-        actual: Any,
-        desired: str, *,
-        render_method_name: str='to_text_diagram',
+        actual: circuits.Circuit,
+        desired: str,
         **kwargs) -> None:
-    """Determines if an object has the desired text diagram.
+    """Determines if a given circuit has the desired text diagram.
 
     Args:
-        actual: The object that was actually computed by some process.
+        actual: The circuit that was actually computed by some process.
         desired: The desired text diagram as a string. Newlines at the
             beginning and whitespace at the end are ignored.
-        render_method_name: The method of the object used to render it.
-        **kwargs: Keyword arguments to be passed to
-            actual.render_method_name().
+        **kwargs: Keyword arguments to be passed to actual.to_text_diagram().
     """
-    render = getattr(actual, render_method_name)
-    actual_diagram = render(**kwargs).lstrip("\n").rstrip()
+    actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
     assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"
