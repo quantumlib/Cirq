@@ -212,7 +212,7 @@ def test_drawer_stack():
     dd.write(0, 1, 'E')
     dd.write(1, 1, 'F')
 
-    vstacked = TextDiagramDrawer.vstack(d, dd)
+    vstacked = TextDiagramDrawer.vstack((dd, d))
     expected = """
 D
 
@@ -224,7 +224,7 @@ A B
     """.strip()
     assert_has_diagram(vstacked, expected, render_method_name='render')
 
-    hstacked = TextDiagramDrawer.hstack(d, dd)
+    hstacked = TextDiagramDrawer.hstack((d, dd))
     expected = """
 A B D
 
@@ -237,7 +237,7 @@ A B D
     d.force_vertical_padding_after(0, 1)
     dd.force_vertical_padding_after(0, 3)
 
-    vstacked = TextDiagramDrawer.vstack(d, dd)
+    vstacked = TextDiagramDrawer.vstack((dd, d))
     expected = """
 D
 
@@ -251,7 +251,7 @@ A  B
     """.strip()
     assert_has_diagram(vstacked, expected, render_method_name='render')
 
-    hstacked = TextDiagramDrawer.hstack(d, dd)
+    hstacked = TextDiagramDrawer.hstack((d, dd))
     expected = """
 AB D
 
@@ -261,7 +261,7 @@ AB D
     """.strip()
     assert_has_diagram(hstacked, expected, render_method_name='render')
 
-    vstacked_min = TextDiagramDrawer.vstack(d, dd, padding_resolver=min)
+    vstacked_min = TextDiagramDrawer.vstack((dd, d), padding_resolver=min)
     expected = """
 D
 
@@ -275,7 +275,7 @@ AB
     """.strip()
     assert_has_diagram(vstacked_min, expected, render_method_name='render')
 
-    hstacked_min = TextDiagramDrawer.hstack(d, dd, padding_resolver=min)
+    hstacked_min = TextDiagramDrawer.hstack((d, dd), padding_resolver=min)
     expected = """
 AB D
 

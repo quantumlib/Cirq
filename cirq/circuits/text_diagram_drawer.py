@@ -11,15 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import collections
 from typing import (
         Callable, Dict, Iterable, List, Mapping,
-        NamedTuple, Optional, Tuple, TYPE_CHECKING)
+        NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING)
 
 from cirq import value
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Tuple, Dict, Optional
+    from typing import Tuple, DefaultDict, Dict, Optional
 
 _HorizontalLine = NamedTuple('HorizontalLine', [
     ('y', int),
@@ -273,25 +275,12 @@ class TextDiagramDrawer:
                 vertical_padding=self.vertical_padding,
                 horizontal_padding=self.horizontal_padding)
 
+    def shift(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+        self._transform_coordinates(lambda x, y: (x + dx, y + dy))
+        return self
+
     def shifted(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
-        shifted_entries = {(x + dx, y + dy): t
-                for (x, y), t in self.entries.items()}
-        shifted_horizontal_lines = [
-                _HorizontalLine(y + dy, x1 + dx, x2 + dx, e)
-                for y, x1, x2, e in self.horizontal_lines]
-        shifted_vertical_lines = [
-                _VerticalLine(x + dx, y1 + dy, y2 + dy, e)
-                for x, y1, y2, e in self.vertical_lines]
-        shifted_horizontal_padding = {x + dx: padding
-                for x, padding in self.horizontal_padding.items()}
-        shifted_vertical_padding = {y + dy: padding
-                for y, padding in self.vertical_padding.items()}
-        return self.__class__(
-                entries=shifted_entries,
-                horizontal_lines=shifted_horizontal_lines,
-                vertical_lines=shifted_vertical_lines,
-                horizontal_padding=shifted_horizontal_padding,
-                vertical_padding=shifted_vertical_padding)
+        return self.copy().shift(dx, dy)
 
     def update(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
         self.entries.update(other.entries)
@@ -301,26 +290,60 @@ class TextDiagramDrawer:
         self.vertical_padding.update(other.vertical_padding)
         return self
 
-    @staticmethod
-    def vstack(top: 'TextDiagramDrawer', bottom: 'TextDiagramDrawer',
-               padding_resolver: Callable[[int, int], int]=max):
-        stacked = bottom.copy()
-        stacked.update(top.shifted(dy=bottom.height()))
-        for x in (set(top.horizontal_padding.keys()) &
-                  set(bottom.horizontal_padding.keys())):
-            paddings = (d.horizontal_padding[x] for d in (top, bottom))
-            stacked.horizontal_padding[x] = padding_resolver(*paddings)
+    @classmethod
+    def vstack(cls,
+               diagrams: Iterable['TextDiagramDrawer'],
+               padding_resolver: Callable[[Sequence[int]], int]=max):
+        """Vertically stack text diagrams.
+
+        Args:
+            diagrams: The diagrams to stack, ordered from bottom to top.
+            padding_resolver: A function that takes a list of paddings
+                specified for a column and returns the padding to use in the
+                stacked diagram.
+
+        Returns:
+            The vertically stacked diagram.
+        """
+        stacked = cls()
+        dy = 0
+        horizontal_paddings = collections.defaultdict(
+                list) # type: DefaultDict[int, List[int]]
+        for diagram in diagrams:
+            stacked.update(diagram.shifted(dy=dy))
+            for x, p in diagram.horizontal_padding.items():
+                horizontal_paddings[x].append(p)
+            dy += diagram.height()
+        stacked.horizontal_padding = {
+            x: padding_resolver(P) for x, P in horizontal_paddings.items()}
         return stacked
 
-    @staticmethod
-    def hstack(left: 'TextDiagramDrawer', right: 'TextDiagramDrawer',
-               padding_resolver: Callable[[int, int], int]=max):
-        stacked = left.copy()
-        stacked.update(right.shifted(dx=left.width()))
-        for y in (set(left.vertical_padding.keys()) &
-                  set(right.vertical_padding.keys())):
-            paddings = (d.vertical_padding[y] for d in (left, right))
-            stacked.vertical_padding[y] = padding_resolver(*paddings)
+    @classmethod
+    def hstack(cls,
+               diagrams: Iterable['TextDiagramDrawer'],
+               padding_resolver: Callable[[Sequence[int]], int]=max):
+        """Horizontally stack text diagrams.
+
+        Args:
+            diagrams: The diagrams to stack, ordered from left to right.
+            padding_resolver: A function that takes a list of paddings
+                specified for a row and returns the padding to use in the
+                stacked diagram.
+
+        Returns:
+            The horizontally stacked diagram.
+        """
+        stacked = cls()
+        dx = 0
+        vertical_paddings = collections.defaultdict(
+                list) # type: DefaultDict[int, List[int]]
+        for diagram in diagrams:
+            stacked.update(diagram.shifted(dx=dx))
+            for y, p in diagram.vertical_padding.items():
+                vertical_paddings[y].append(p)
+            dx += diagram.width()
+        stacked.vertical_padding = {
+            y: padding_resolver(P) for y, P in vertical_paddings.items()}
         return stacked
 
 
