@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs custom lint checks on the Cirq repository.
+#
+# TODO: Add more desciption
+################################################################################
+
+python dev_tools/custom_lint.py

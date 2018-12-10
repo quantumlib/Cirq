@@ -18,6 +18,7 @@ from dev_tools import (
     check_pytest_v2,
     check_pytest_with_coverage,
     check_typecheck,
+    check_custom_lint,
 )
 
 
@@ -27,6 +28,7 @@ pytest = check_pytest_with_coverage.TestAndPrepareCoverageCheck()
 pytest_v2 = check_pytest_v2.Py2TestCheck()
 incremental_coverage = check_incremental_coverage.IncrementalCoverageCheck(
     pytest)
+custom_lint = check_custom_lint.CustomLintCheck()
 
 ALL_CHECKS = [
     pylint,
@@ -34,4 +36,5 @@ ALL_CHECKS = [
     pytest,
     incremental_coverage,
     pytest_v2,
+    custom_lint,
 ]
