@@ -310,8 +310,8 @@ class TextDiagramDrawer:
     def vstack(top: 'TextDiagramDrawer', bottom: 'TextDiagramDrawer',
                padding_resolver: Callable[[int, int], int]=max):
         stacked = bottom + top.shifted(dy=bottom.height())
-        for x in (top.horizontal_padding.keys() &
-                  bottom.horizontal_padding.keys()):
+        for x in (set(top.horizontal_padding.keys()) &
+                  set(bottom.horizontal_padding.keys())):
             paddings = (d.horizontal_padding[x] for d in (top, bottom))
             stacked.horizontal_padding[x] = padding_resolver(*paddings)
         return stacked
@@ -321,8 +321,8 @@ class TextDiagramDrawer:
     def hstack(left: 'TextDiagramDrawer', right: 'TextDiagramDrawer',
                padding_resolver: Callable[[int, int], int]=max):
         stacked = left + right.shifted(dx=left.width())
-        for y in (left.vertical_padding.keys() &
-                  right.vertical_padding.keys()):
+        for y in (set(left.vertical_padding.keys()) &
+                  set(right.vertical_padding.keys())):
             paddings = (d.vertical_padding[y] for d in (left, right))
             stacked.vertical_padding[y] = padding_resolver(*paddings)
         return stacked
