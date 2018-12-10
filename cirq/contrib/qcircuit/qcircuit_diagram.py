@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Iterable
+
 from cirq import circuits, ops
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     get_qcircuit_diagram_info)
+from cirq.contrib.qcircuit.optimizers import (
+    default_optimizers)
 
 
 def qcircuit_qubit_namer(qubit: ops.QubitId):
@@ -32,7 +36,8 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
     qw = {(x, y)
           for y, x1, x2, _ in diagram.horizontal_lines
-          for x in range(x1, x2)}
+          for x in range(x1, x2)
+          if (x - 1, y) not in diagram.horizontal_occlusions}
 
     diagram2 = circuits.TextDiagramDrawer()
     for y in range(h):
@@ -54,6 +59,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 def circuit_to_latex_using_qcircuit(
         circuit: circuits.Circuit,
+        optimizers: Iterable[circuits.OptimizationPass]=default_optimizers,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
@@ -64,6 +70,10 @@ def circuit_to_latex_using_qcircuit(
     Returns:
         Latex code for the diagram.
     """
+    circuit = circuit.copy()
+    for optimizer in optimizers:
+        optimizer(circuit)
+
     diagram = circuit.to_text_diagram_drawer(
         qubit_namer=qcircuit_qubit_namer,
         qubit_order=qubit_order,

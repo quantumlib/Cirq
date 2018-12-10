@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,19 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Converts cirq circuits into latex using qcircuit."""
+import cirq.contrib.qcircuit as ccq
 
-from cirq.contrib.qcircuit.qcircuit_diagram import (
-    circuit_to_latex_using_qcircuit
-)
-from cirq.contrib.qcircuit.qcircuit_diagram_info import (
-    escape_text_for_latex,
-    get_multigate_parameters,
-    get_qcircuit_diagram_info
-)
-from cirq.contrib.qcircuit.macros import (
-    line_macro
-)
-from cirq.contrib.qcircuit.qcircuit_pdf import (
-    circuit_to_pdf_using_qcircuit_via_tex
-)
+
+def test_line_macro():
+    assert ccq.line_macro((1, 2)) == r'\ar @{-} [2, 1]'
+    assert ccq.line_macro((1, 0), thickness=2) == r'\ar @{-} @*{[|(2)]} [0, 1]'
+    assert ccq.line_macro((1, 1), start=(1, 0)) == r'\ar @{-} [0, 1];[1, 1]'
+    assert (ccq.line_macro((1, 1), start=(1, 0), thickness=3) ==
+            r'\ar @{-} @*{[|(3)]} [0, 1];[1, 1]')
+

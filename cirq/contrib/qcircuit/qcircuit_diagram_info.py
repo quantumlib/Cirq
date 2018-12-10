@@ -16,6 +16,8 @@ from typing import Any, cast, Optional, Tuple
 
 from cirq import ops, protocols
 
+from cirq.contrib.qcircuit.macros import line_macro
+
 
 def escape_text_for_latex(text):
     escaped = (text
@@ -44,6 +46,27 @@ def get_multigate_parameters(
     if sorted(indices) != list(range(min_index, min_index + n_qubits)):
         return None
     return min_index, n_qubits
+
+
+def get_lines(dys):
+    return tuple(line_macro((1, dy)) for dy in dys)
+
+
+def swap_qcircuit_diagram_info(
+        op: ops.Operation,
+        args: protocols.CircuitDiagramInfoArgs,
+        ) -> Optional[protocols.CircuitDiagramInfo]:
+    if not (isinstance(op, ops.GateOperation) and op.gate == ops.SWAP):
+        return None
+    if args.qubit_map is None:
+        return None
+    dys = (args.qubit_map[j] - args.qubit_map[i] for i, j in
+            zip(op.qubits, reversed(op.qubits)))
+    wire_symbols = get_lines(dys)
+    return protocols.CircuitDiagramInfo(
+            wire_symbols=wire_symbols,
+            vconnected=False,
+            hconnected=False)
 
 
 def hardcoded_qcircuit_diagram_info(
@@ -120,6 +143,8 @@ def get_qcircuit_diagram_info(op: ops.Operation,
                               args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
     info = hardcoded_qcircuit_diagram_info(op)
+    if info is None:
+        info = swap_qcircuit_diagram_info(op, args)
     if info is None:
         info = multigate_qcircuit_diagram_info(op, args)
     if info is None:
