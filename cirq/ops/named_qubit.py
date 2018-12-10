@@ -37,18 +37,18 @@ class NamedQubit(raw_types.QubitId):
         return 'cirq.NamedQubit({})'.format(repr(self.name))
 
     @staticmethod
-    def range(prefix: str, *args):
+    def range(*args, prefix: str) -> Iterable['NamedQubit']:
         """Returns a range of NamedQubits.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
 
-        NamedQubit.range("a", 3) -> ["a1", "a2", "a3]
-        NamedQubit.range("a", 2, 4) -> ["a2", "a3]
+        NamedQubit.range(3, prefix="a") -> ["a1", "a2", "a3]
+        NamedQubit.range(2, 4, prefix="a") -> ["a2", "a3]
 
         Args:
-            prefix: A prefix for constructed NamedQubits.
             *args: Args to be passed to Python's standard range function.
+            prefix: A prefix for constructed NamedQubits.
 
         Returns:
             A list of NamedQubits.

@@ -64,12 +64,12 @@ def test_pad_digits():
 
 @cirq.testing.only_test_in_python3
 def test_named_qubit_range():
-    qubits = cirq.NamedQubit.range('a', 2)
+    qubits = cirq.NamedQubit.range(2, prefix='a')
     assert len(qubits) == 2
     assert repr(qubits[0]) == "cirq.NamedQubit('a0')"
     assert repr(qubits[1]) == "cirq.NamedQubit('a1')"
 
-    qubits = cirq.NamedQubit.range('a', -1, 4, 2)
+    qubits = cirq.NamedQubit.range(-1, 4, 2, prefix='a')
     assert len(qubits) == 3
     assert repr(qubits[0]) == "cirq.NamedQubit('a-1')"
     assert repr(qubits[1]) == "cirq.NamedQubit('a1')"
