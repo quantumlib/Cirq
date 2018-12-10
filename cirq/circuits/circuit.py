@@ -787,7 +787,7 @@ class Circuit:
     def insert(
             self,
             index: int,
-            moment_or_operation_tree: ops.OP_TREE,
+            operations: ops.OP_TREE,
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
@@ -796,8 +796,7 @@ class Circuit:
 
         Args:
             index: The index to insert all of the operations at.
-            moment_or_operation_tree: An operation, moment, or tree of
-                operations and moments.
+            operations: The operations to insert.
             strategy: How to pick/create the moment to put operations into.
 
         Returns:
@@ -808,7 +807,7 @@ class Circuit:
             ValueError: Bad insertion strategy.
         """
         moments_and_operations = ops.flatten_op_tree(
-            ops.transform_op_tree(moment_or_operation_tree,
+            ops.transform_op_tree(operations,
                                   self._device.decompose_operation,
                                   preserve_moments=True),
             preserve_moments=True
@@ -1111,18 +1110,17 @@ class Circuit:
 
     def append(
             self,
-            moment_or_operation_tree: ops.OP_TREE,
+            operations: ops.OP_TREE,
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
-        Moments are appended intact.
+        Moments within the operation tree are appended intact.
 
         Args:
-            moment_or_operation_tree: An operation, moment, or tree of
-                operations and moments.
+            operations: The operations to append.
             strategy: How to pick/create the moment to put operations into.
         """
-        self.insert(len(self._moments), moment_or_operation_tree, strategy)
+        self.insert(len(self._moments), operations, strategy)
 
     def clear_operations_touching(self,
                                   qubits: Iterable[ops.QubitId],
