@@ -96,6 +96,9 @@ class Moment(object):
     def __copy__(self):
         return type(self)(self.operations)
 
+    def __bool__(self):
+        return bool(self.operations)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented

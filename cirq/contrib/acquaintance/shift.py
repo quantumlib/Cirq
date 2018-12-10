@@ -17,7 +17,8 @@ from typing import Sequence, Dict, Tuple
 
 from cirq import protocols
 from cirq.ops import Gate, SWAP, OP_TREE, QubitId
-from cirq.contrib.acquaintance.permutation import PermutationGate
+from cirq.contrib.acquaintance.permutation import (
+        SwapPermutationGate, PermutationGate)
 
 
 class CircularShiftGate(PermutationGate):
@@ -36,7 +37,11 @@ class CircularShiftGate(PermutationGate):
         self.shift = shift
 
     def __repr__(self):
-        return 'CircularShiftGate'
+        return ('cirq.contrib.acquaintance.CircularShiftGate(' +
+                str(self.shift) +
+                ('' if self.swap_gate == SWAP else
+                    (', swap_gate=' + repr(self.swap_gate))) +
+                ')')
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -52,9 +57,10 @@ class CircularShiftGate(PermutationGate):
                      range(right_shift))
         maxs = chain(range(left_shift, n),
                      range(n - 1, right_shift, -1))
+        swap_gate = SwapPermutationGate(self.swap_gate)
         for i, j in zip(mins, maxs):
             for k in range(i, j, 2):
-                yield self.swap_gate(*qubits[k:k+2])
+                yield swap_gate(*qubits[k:k+2])
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Tuple[str, ...]:
