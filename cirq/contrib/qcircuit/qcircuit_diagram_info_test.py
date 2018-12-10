@@ -80,7 +80,7 @@ def test_swap_qcircuit_diagram_info():
     gate = cirq.SwapPowGate()
     op = gate(*qubits)
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
-    wire_symbols = ('\\ar @{-}[1, 1]', '\\ar @{-}[-1, 1]')
+    wire_symbols = (r'\ar @{-} [1, 1]', r'\ar @{-} [-1, 1]')
     expected_info = cirq.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             vconnected=False,
