@@ -14,8 +14,38 @@
 
 import pytest
 
+import cirq.testing as ct
 from cirq.circuits import TextDiagramDrawer
 from cirq.testing.mock import mock
+
+
+def assert_has_rendering(
+        actual: TextDiagramDrawer,
+        desired: str,
+        **kwargs) -> None:
+    """Determines if a given diagram has the desired rendering.
+
+    Args:
+        actual: The text diagram.
+        desired: The desired rendering as a string.
+        **kwargs: Keyword arguments to be passed to actual.render.
+    """
+    actual_diagram = actual.render(**kwargs)
+    desired_diagram = desired
+    assert actual_diagram == desired_diagram, (
+        "Diagram's rendering differs from the desired rendering.\n"
+        '\n'
+        'Actual rendering:\n'
+        '{}\n'
+        '\n'
+        'Desired rendering:\n'
+        '{}\n'
+        '\n'
+        'Highlighted differences:\n'
+        '{}\n'.format(actual_diagram, desired_diagram,
+                      ct.highlight_text_differences(actual_diagram,
+                                                 desired_diagram))
+    )
 
 
 def test_draw_entries_and_lines_with_options():
@@ -158,3 +188,161 @@ short     │ │         │
 │         │ long line │
 │         │ │         │
     """.strip()
+
+def test_horizontal_cut():
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=6)
+    d.horizontal_line(y=1, x1=1, x2=5)
+    d.horizontal_cut(y=0, x1=2, x2=4)
+    expected_rendering = """
+────┤   ├───
+
+  ────────
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+    expected_transpose_rendering = """
+│
+│
+│ │
+│ │
+┴ │
+  │
+  │
+  │
+┬ │
+│ │
+│
+│
+"""[1:-1]
+    assert_has_rendering(d.transpose(), expected_transpose_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=2)
+    d.horizontal_line(y=0, x1=5, x2=6)
+    d.horizontal_cut(y=0, x1=2, x2=4)
+    expected_rendering = """
+────┤     ──
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=1)
+    d.horizontal_line(y=0, x1=5, x2=6)
+    d.horizontal_cut(y=0, x1=2, x2=4)
+    expected_rendering = """
+──        ──
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=6)
+    d.horizontal_cut(y=0, x1=2, x2=4, emphasize=True)
+    expected_rendering = """
+────┨   ┠───
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+    expected_transpose_rendering = """
+│
+│
+│
+│
+┷
+
+
+
+┯
+│
+│
+│
+"""[1:-1]
+    assert_has_rendering(d.transpose(), expected_transpose_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=6)
+    d.horizontal_cut(y=0, x1=2, x2=4, use_unicode_characters=False)
+    expected_rendering = """
+----|   |---
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering, use_unicode_characters=False)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=6, emphasize=True)
+    d.horizontal_cut(y=0, x1=2, x2=4)
+    expected_rendering = """
+━━━━┥   ┝━━━
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+    expected_transpose_rendering = """
+┃
+┃
+┃
+┃
+┸
+
+
+
+┰
+┃
+┃
+┃
+"""[1:-1]
+    assert_has_rendering(d.transpose(), expected_transpose_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=6, emphasize=True)
+    d.horizontal_cut(y=0, x1=2, x2=4, use_unicode_characters=False)
+    expected_rendering = """
+|
+|
+|
+|
+-
+
+
+
+-
+|
+|
+|
+"""[1:-1]
+    assert_has_rendering(d.transpose(), expected_rendering,
+            use_unicode_characters=False)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=6, emphasize=True)
+    d.horizontal_cut(y=0, x1=2, x2=4, emphasize=True)
+    expected_rendering = """
+━━━━┫   ┣━━━
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+    expected_transpose_rendering = """
+┃
+┃
+┃
+┃
+┻
+
+
+
+┳
+┃
+┃
+┃
+"""[1:-1]
+    assert_has_rendering(d.transpose(), expected_transpose_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=2, x2=6)
+    d.horizontal_cut(y=0, x1=2, x2=4)
+    expected_rendering = """
+        ├───
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)
+
+    d = TextDiagramDrawer()
+    d.horizontal_line(y=0, x1=0, x2=4)
+    d.horizontal_cut(y=0, x1=2, x2=4)
+    expected_rendering = """
+────┤
+"""[1:-1]
+    assert_has_rendering(d, expected_rendering)

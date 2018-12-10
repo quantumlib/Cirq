@@ -152,6 +152,41 @@ class TextDiagramDrawer:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
+    def horizontal_cut(self, y: int, x1: int, x2: int,
+            emphasize: bool = False, use_unicode_characters: bool = True):
+        "Cuts horizontal lines in row y between columns x1 and x2."""
+        x1, x2 = sorted([x1, x2])
+        cut_lines = []
+        for line in self.horizontal_lines:
+            if line.y != y:
+                cut_lines.append(line)
+                continue
+            if line.x1 < x1:
+                if line.x2 < x1:
+                    cut_lines.append(line)
+                else:
+                    cut_lines.append(line._replace(x2=x1))
+                    if use_unicode_characters:
+                        tee = _TeeChars['left'][emphasize][line.emphasize]
+                        tee_transpose = (
+                                _TeeChars['up'][emphasize][line.emphasize])
+                    else:
+                        tee, tee_transpose = '|', '-'
+                    self.write(x1, y, tee, tee_transpose)
+            if x2 < line.x2:
+                if x2 < line.x1:
+                    cut_lines.append(line)
+                else:
+                    cut_lines.append(line._replace(x1=x2))
+                    if use_unicode_characters:
+                        tee = _TeeChars['right'][emphasize][line.emphasize]
+                        tee_transpose = (
+                                _TeeChars['down'][emphasize][line.emphasize])
+                    else:
+                        tee, tee_transpose = '|', '-'
+                    self.write(x2, y, tee, tee_transpose)
+        self.horizontal_lines = cut_lines
+
     def _transform_coordinates(
         self, func: Callable[[int, int], Tuple[int, int]]) -> None:
         """Helper method to transformer either row or column coordinates."""
@@ -260,6 +295,49 @@ _BoxChars = [
 
 _EmphasisMap = {k: v for k, v, _ in _BoxChars}
 _AsciiMap = {k: v for k, _, v in _BoxChars}
+
+_TeeChars = {
+    'up': {
+        True: {
+            True: '┻',
+            False: '┷'
+            },
+        False: {
+            True: '┸',
+            False: '┴'
+            },
+        },
+    'right': {
+        True: {
+            True: '┣',
+            False: '┠'
+            },
+        False: {
+            True: '┝',
+            False: '├'
+            },
+        },
+    'down': {
+        True: {
+            True: '┳',
+            False: '┯'
+            },
+        False: {
+            True: '┰',
+            False: '┬'
+            },
+        },
+    'left': {
+        True: {
+            True: '┫',
+            False: '┨'
+            },
+        False: {
+            True: '┥',
+            False: '┤'
+            },
+        },
+    }
 
 
 def _normal_char(k: str, emphasize: bool = False) -> str:
