@@ -25,6 +25,3 @@ from cirq.contrib.qcircuit.qcircuit_diagram_info import (
 from cirq.contrib.qcircuit.macros import (
     line_macro
 )
-from cirq.contrib.qcircuit.qcircuit_pdf import (
-    circuit_to_pdf_using_qcircuit_via_tex
-)
