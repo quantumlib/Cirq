@@ -33,7 +33,7 @@ def test_get_qcircuit_diagram_info():
     expected_info = cirq.CircuitDiagramInfo(
             ('\multigate{1}' + name, '\ghost' + name),
             exponent=0.5,
-            connected=False)
+            vconnected=False)
     assert actual_info == expected_info
 
     gate = cirq.SWAP
@@ -48,7 +48,7 @@ def test_get_qcircuit_diagram_info():
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo(
             ('\ghost{\\text{SWAP}}', '\multigate{1}{\\text{SWAP}}'),
-            connected=False)
+            vconnected=False)
     assert actual_info == expected_info
 
     qubit_map = {q: i for q, i in zip(qubits, (2, 5))}

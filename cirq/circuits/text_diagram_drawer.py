@@ -33,6 +33,10 @@ _DiagramText = NamedTuple('DiagramText', [
     ('text', str),
     ('transposed_text', str),
 ])
+_Point = NamedTuple('Point', [
+    ('x', int),
+    ('y', int)
+])
 
 
 class TextDiagramDrawer:
@@ -45,6 +49,7 @@ class TextDiagramDrawer:
         self.horizontal_lines = []  # type: List[_HorizontalLine]
         self.horizontal_padding = {}  # type: Dict[int, int]
         self.vertical_padding = {}  # type: Dict[int, int]
+        self.horizontal_occlusions = [] # type: List[_Point]
 
     def write(self, x: int, y: int, text: str, transposed_text: str = None):
         """Adds text to the given location.
@@ -108,6 +113,9 @@ class TextDiagramDrawer:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
+
+    def horizontal_occlusion(self, x: int, y: int):
+        self.horizontal_occlusions.append(_Point(x, y))
 
     def transpose(self) -> 'TextDiagramDrawer':
         """Returns the same diagram, but mirrored across its diagonal."""
@@ -209,6 +217,7 @@ class TextDiagramDrawer:
             (x, h.y): h.emphasize
             for h in self.horizontal_lines
             for x in range(h.x1, h.x2)
+            if (x, h.y) not in self.horizontal_occlusions
         }
         for (x, y), emph in verticals.items():
             c = char('│', emph)

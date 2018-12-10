@@ -32,7 +32,9 @@ class CircuitDiagramInfo:
     def __init__(self,
                  wire_symbols: Tuple[str, ...],
                  exponent: Any = 1,
-                 connected: bool = True) -> None:
+                 vconnected: bool = True,
+                 hconnected: bool = True
+                 ) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -43,23 +45,30 @@ class CircuitDiagramInfo:
                 (unless it's equal to 1). For example, the square root of X gate
                 has a text diagram exponent of 0.5 and symbol of 'X' so it is
                 drawn as 'X^0.5'.
-            connected: Whether or not to draw a line connecting the qubits.
+            vconnected: Whether or not to draw a vertical line connecting the
+                qubits.
+            hconnected: Whether or not to draw a horizontal following the
+                qubits if specified. No new line will be introduced, but if not
+                hconnected, then any existing line will be occluded.
         """
         if isinstance(wire_symbols, str):
             raise ValueError(
                 'Expected a Tuple[str] for wire_symbols but got a str.')
         self.wire_symbols = wire_symbols
         self.exponent = exponent
-        self.connected = connected
+        self.vconnected = vconnected
+        self.hconnected = hconnected
 
     def _value_equality_values_(self):
-        return self.wire_symbols, self.exponent, self.connected
+        return (self.wire_symbols, self.exponent,
+                self.vconnected, self.hconnected)
 
     def __repr__(self):
         return ('cirq.CircuitDiagramInfo(' +
                 'wire_symbols={!r}, '.format(self.wire_symbols) +
                 'exponent={!r}, '.format(self.exponent) +
-                'connected={!r})'.format(self.connected)
+                'vconnected={!r}, '.format(self.vconnected) +
+                'hconnected={!r})'.format(self.hconnected)
                 )
 
 

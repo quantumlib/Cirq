@@ -98,7 +98,7 @@ def multigate_qcircuit_diagram_info(
                     ghost for q in args.known_qubits)
     return protocols.CircuitDiagramInfo(symbols,
                                         exponent=info.exponent,
-                                        connected=False)
+                                        vconnected=False)
 
 
 def fallback_qcircuit_diagram_info(

@@ -1589,8 +1589,13 @@ def _draw_moment_in_diagram(
         info = get_circuit_diagram_info(op, args)
 
         # Draw vertical line linking the gate's qubits.
-        if y2 > y1 and info.connected:
+        if y2 > y1 and info.vconnected:
             out_diagram.vertical_line(x, y1, y2)
+
+        # Add horizontal occlussions
+        if not info.hconnected:
+            for y in indices:
+                out_diagram.horizontal_occlusion(x, y)
 
         # Print gate qubit labels.
         for s, q in zip(info.wire_symbols, op.qubits):
