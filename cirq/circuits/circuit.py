@@ -247,6 +247,30 @@ class Circuit:
             return NotImplemented
         return self * repetitions
 
+    def __pow__(self, exponent: int) -> 'Circuit':
+        """A circuit raised to a power, only valid for exponent -1, the inverse.
+
+        This will fail if anything other than -1 is passed to the Circuit by
+        returning NotImplemented.  Otherwise this will return the inverse
+        circuit, which is the circuit with its moment order reversed and for
+        every moment all the moment's operations are replaced by its inverse.
+        If any of the operations do not support inverse, NotImplemented will be
+        returned.
+        """
+        if exponent != -1:
+            return NotImplemented
+        circuit = Circuit(device=self._device)
+        for moment in self[::-1]:
+            moment_ops = []
+            for op in moment.operations:
+                try:
+                    inverse_op = cirq.protocols.inverse(op)
+                except TypeError:
+                    return NotImplemented
+                moment_ops.append(inverse_op)
+            circuit.append(Moment(moment_ops))
+        return circuit
+
     def __repr__(self):
         if not self._moments and self._device == devices.UnconstrainedDevice:
             return 'cirq.Circuit()'
@@ -855,8 +879,9 @@ class Circuit:
 
     @staticmethod
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
-                                          start: int=0,
-                                          frontier: Dict[ops.QubitId, int]=None
+                                          start: int = 0,
+                                          frontier: Dict[ops.QubitId,
+                                                         int] = None
                                           ) -> Tuple[Sequence[int],
                                                      Dict[ops.QubitId, int]]:
         """Greedily assigns operations to moments.
@@ -886,7 +911,7 @@ class Circuit:
     def _push_frontier(self,
                        early_frontier: Dict[ops.QubitId, int],
                        late_frontier: Dict[ops.QubitId, int],
-                       update_qubits: Iterable[ops.QubitId]=None
+                       update_qubits: Iterable[ops.QubitId] = None
                        ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -959,7 +984,7 @@ class Circuit:
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
                            start: int,
-                           frontier: Dict[ops.QubitId, int]=None
+                           frontier: Dict[ops.QubitId, int] = None
                            ) -> Dict[ops.QubitId, int]:
         """Inserts operations inline at frontier.
 
@@ -1524,6 +1549,10 @@ def _draw_moment_in_diagram(moment: Moment,
                             precision: Optional[int],
                             moment_groups: List[Tuple[int, int]]):
     x0 = out_diagram.width()
+
+    if not moment.operations:
+        out_diagram.write(x0, 0, '')
+
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
