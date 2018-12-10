@@ -135,9 +135,9 @@ def test_swap_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\ar @{-}[1, 1]  \qw&                   & \qw&\qw\\
- &\lstick{\text{1}}& \qw&\ar @{-}[-1, 1] \qw&\ar @{-}[1, 1]     &    &\qw\\
- &\lstick{\text{2}}& \qw&                \qw&\ar @{-}[-1, 1] \qw&    &\qw\\
+ &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&                    & \qw&\qw\\
+ &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&\ar @{-} [1, 1]     &    &\qw\\
+ &\lstick{\text{2}}& \qw&                 \qw&\ar @{-} [-1, 1] \qw&    &\qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
