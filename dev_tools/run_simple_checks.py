@@ -27,6 +27,7 @@ def main():
         all_checks.typecheck,
         all_checks.pytest,
         all_checks.incremental_coverage,
+        all_checks.custom_lint,
     ]
 
     env = prepared_env.PreparedEnv(
