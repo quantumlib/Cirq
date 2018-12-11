@@ -197,3 +197,9 @@ def test_container_methods():
     assert cirq.H(b) in m
 
     assert len(m) == 2
+
+
+def test_bool():
+    assert not Moment()
+    a = cirq.NamedQubit('a')
+    assert Moment([cirq.X(a)])
