@@ -575,7 +575,7 @@ def _compute_display_value(display: Union[ops.SamplesDisplay,
         return _compute_samples_display_value(
             display, state, qubit_order, qubit_map)
     else:
-        return display.value(state, qubit_map)
+        return display.value_derived_from_wavefunction(state, qubit_map)
 
 
 def _compute_samples_display_value(display: ops.SamplesDisplay,
@@ -590,8 +590,8 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         qubits_that_should_be_present=qubit_map.keys())
     indices = [qubit_map[qubit] for qubit in display.qubits]
     samples = wave_function.sample_state_vector(
-        modified_state, indices, display.repetitions)
-    return display.value(samples)
+        modified_state, indices, display.num_samples)
+    return display.value_derived_from_samples(samples)
 
 
 class StepResult:

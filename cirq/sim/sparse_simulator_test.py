@@ -415,7 +415,7 @@ def test_compute_displays(dtype):
         cirq.ApproxPauliStringExpectation(
             cirq.PauliString({qubits[1]: cirq.Pauli.Z,
                               qubits[2]: cirq.Pauli.X}),
-            repetitions=1,
+            num_samples=1,
             key='approx_z1x2'
         ),
     )
