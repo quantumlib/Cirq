@@ -119,13 +119,13 @@ This will create a Docker image containing Cirq's source code. It will isolate a
     ```bash
     git clone https://github.com/quantumlib/Cirq
     cd Cirq
-    docker build -t cirq/cirq . # This builds the actual image based on latest Ubuntu, cloning the Cirq tree into it with the needed dependencies.
+    docker build -t cirq/cirq . # This builds the actual image based on latest Ubuntu, and installs Cirq with the needed dependencies.
      ```
 
 2. Check that it works!
 
     ```bash
-    docker run -it cirq/cirq python -c "import cirq; print(cirq.google.Foxtail)"
+    docker run -it cirq/cirq python3 -c "import cirq; print(cirq.google.Foxtail)"
     # should print:
     # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
     # │        │        │        │        │        │        │        │        │        │        │
