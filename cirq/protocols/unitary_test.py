@@ -35,13 +35,31 @@ def test_unitary():
         def _unitary_(self) -> np.ndarray:
             return m
 
-    class FullyImplemented:
+    class FullyImplemented(cirq.Gate):
         def __init__(self, unitary_value):
             self.unitary_value = unitary_value
         def _has_unitary_(self) -> bool:
             return self.unitary_value
         def _unitary_(self) -> np.ndarray:
             return m
+
+    class Decomposable(cirq.Gate):
+        def __init__(self, unitary_value):
+            self.unitary_value = unitary_value
+        def _decompose_(self, qubits):
+            for q in qubits:
+                yield cirq.GateOperation(FullyImplemented(self.unitary_value),
+                                         (q,))
+
+    class DecomposableRecursion(cirq.Gate):
+        def __init__(self, unitary_value):
+            self.unitary_value = unitary_value
+        def _has_unitary_(self):
+            return NotImplemented
+        def _decompose_(self, qubits):
+            for q in qubits:
+                yield cirq.GateOperation(Decomposable(self.unitary_value),
+                                         (q,))
 
     with pytest.raises(TypeError, match='no _unitary_ method'):
         _ = cirq.unitary(NoMethod())
@@ -74,3 +92,15 @@ def test_unitary():
     # Explicit function should override
     assert cirq.has_unitary(FullyImplemented(True))
     assert not cirq.has_unitary(FullyImplemented(False))
+
+    # Test if a decomposed operation _has_unitary_
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert cirq.has_unitary(cirq.GateOperation(Decomposable(True), (a, b)))
+    assert not cirq.has_unitary(cirq.GateOperation(ReturnsNotImplemented(), (a, b)))
+    assert cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(True), (a, b)))
+    assert not cirq.has_unitary(cirq.GateOperation(Decomposable(False), (a, b)))
+    assert not cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(False), (a, b)))
+
+    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(Decomposable(True), (a,))), m)

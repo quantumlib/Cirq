@@ -89,8 +89,28 @@ def unitary(val: Any,
         TypeError: `val` doesn't have a _unitary_ method (or that method
             returned NotImplemented) and also no default value was specified.
     """
+    from cirq import Operation, decompose_once, ops, protocols
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()
+
+    if result is NotImplemented and isinstance(val, Operation):
+        n = len(val.qubits)
+        decomposed_val = decompose_once(val, default=None)
+        if decomposed_val is not None:
+            state = np.eye(1 << n, dtype=np.complex128)
+            state.shape = (2,) * (2 * n)
+            buffer = np.zeros(state.shape, dtype=np.complex128)
+            qubit_map = {q: i for i, q in enumerate(val.qubits)}
+            for op in decomposed_val:
+                indices = [qubit_map[q] for q in op.qubits]
+                result = protocols.apply_unitary(
+                    unitary_value=op,
+                    args=protocols.ApplyUnitaryArgs(state, buffer, indices))
+                if result is buffer:
+                    buffer = state
+                state = result
+            if result is not NotImplemented:
+                result = result.reshape((1 << n, 1 << n))
 
     if result is not NotImplemented:
         return result
@@ -113,9 +133,14 @@ def has_unitary(val: Any) -> bool:
         has a _unitary_ method return if that has a non-default value.
         Returns False if neither function exists.
     """
+    from cirq import Operation, decompose_once
     getter = getattr(val, '_has_unitary_', None)
     result = NotImplemented if getter is None else getter()
-
+    if (result is NotImplemented or not result) and isinstance(val, Operation):
+        decomposed_val = decompose_once(val, None)
+        if decomposed_val is not None and len(decomposed_val) > 0 and all(
+                has_unitary(v) for v in decomposed_val):
+            result = True
     if result is not NotImplemented:
         return result
 
