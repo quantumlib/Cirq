@@ -3,7 +3,8 @@
 ################################################################################
 # Runs custom lint checks on the Cirq repository.
 #
-# TODO: Add more desciption
+# TODO(philiptmassey): Add more desciption
 ################################################################################
 
-python dev_tools/custom_lint.py
+# TODO(philiptmassey): Enable this
+# python dev_tools/custom_lint.py
