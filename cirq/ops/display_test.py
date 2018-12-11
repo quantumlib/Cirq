@@ -58,13 +58,20 @@ def test_pauli_string_expectation_value():
             cirq.PauliString({qubits[3]: cirq.Pauli.X})
             )
 
-    np.testing.assert_allclose(z0z1.value(state, qubit_index_map), -1)
-    np.testing.assert_allclose(z0z2.value(state, qubit_index_map), 0)
-    np.testing.assert_allclose(z0z3.value(state, qubit_index_map), 0)
-    np.testing.assert_allclose(z0x1.value(state, qubit_index_map), 0)
-    np.testing.assert_allclose(z1x2.value(state, qubit_index_map), -1)
-    np.testing.assert_allclose(x0z1.value(state, qubit_index_map), 0)
-    np.testing.assert_allclose(x3.value(state, qubit_index_map), -1)
+    np.testing.assert_allclose(
+        z0z1.value_derived_from_wavefunction(state, qubit_index_map), -1)
+    np.testing.assert_allclose(
+        z0z2.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z0z3.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z0x1.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z1x2.value_derived_from_wavefunction(state, qubit_index_map), -1)
+    np.testing.assert_allclose(
+        x0z1.value_derived_from_wavefunction(state, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        x3.value_derived_from_wavefunction(state, qubit_index_map), -1)
 
 
 @pytest.mark.parametrize('paulis', [
@@ -78,7 +85,7 @@ def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
     display = cirq.ApproxPauliStringExpectation(
         cirq.PauliString({qubits[0]: paulis[0],
                           qubits[1]: paulis[1]}),
-        repetitions=1
+        num_samples=1
     )
     matrix = np.kron(cirq.unitary(paulis[0]), cirq.unitary(paulis[1]))
 
@@ -109,20 +116,51 @@ def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
 def test_approx_pauli_string_expectation_value(measurements, value):
     display = cirq.ApproxPauliStringExpectation(
         cirq.PauliString({}),
-        repetitions=1
+        num_samples=1
     )
-    assert display.value(measurements) == value
+    assert display.value_derived_from_samples(measurements) == value
+
+
+def test_properties():
+    qubits = cirq.LineQubit.range(9)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in qubits}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+
+    pauli_string_expectation = cirq.PauliStringExpectation(
+        pauli_string, key='a')
+    assert pauli_string_expectation.qubits == tuple(qubits)
+    assert pauli_string_expectation.key == 'a'
+
+    approx_pauli_string_expectation = cirq.ApproxPauliStringExpectation(
+        pauli_string, num_samples=5, key='a')
+    assert approx_pauli_string_expectation.qubits == tuple(qubits)
+    assert approx_pauli_string_expectation.num_samples == 5
+    assert approx_pauli_string_expectation.key == 'a'
 
 
 def test_with_qubits():
-    a, b, c = cirq.NamedQubit('a'), cirq.NamedQubit('b'), cirq.NamedQubit('c')
-    q, r, s = cirq.LineQubit.range(3)
-    qubit_pauli_map = {a: cirq.Pauli.X, b: cirq.Pauli.Y, c: cirq.Pauli.X}
+    old_qubits = cirq.LineQubit.range(9)
+    new_qubits = cirq.LineQubit.range(9, 18)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in old_qubits}
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
 
-    assert (cirq.PauliStringExpectation(pauli_string).with_qubits(q, r, s)
-            == cirq.PauliStringExpectation(pauli_string.with_qubits(q, r, s)))
-    assert (cirq.ApproxPauliStringExpectation(
-                pauli_string, repetitions=1).with_qubits(q, r, s)
-            == cirq.ApproxPauliStringExpectation(
-                pauli_string.with_qubits(q, r, s), repetitions=1))
+    assert (
+        cirq.PauliStringExpectation(pauli_string).with_qubits(*new_qubits)
+        == cirq.PauliStringExpectation(pauli_string.with_qubits(*new_qubits))
+    )
+    assert (
+        cirq.ApproxPauliStringExpectation(
+            pauli_string, num_samples=1).with_qubits(*new_qubits)
+        == cirq.ApproxPauliStringExpectation(
+            pauli_string.with_qubits(*new_qubits), num_samples=1))
+
+
+def test_pauli_string_expectation_helper():
+    qubits = cirq.LineQubit.range(9)
+    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in qubits}
+    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+
+    assert (cirq.pauli_string_expectation(pauli_string, key='a')
+            == cirq.PauliStringExpectation(pauli_string, key='a'))
+    assert (cirq.pauli_string_expectation(pauli_string, 5, key='a')
+            == cirq.ApproxPauliStringExpectation(pauli_string, 5, key='a'))

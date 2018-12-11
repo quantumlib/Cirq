@@ -160,6 +160,7 @@ from cirq.ops import (
     generalized_amplitude_damp,
     measure,
     measure_each,
+    pauli_string_expectation,
     phase_damp,
     phase_flip,
     rotation_error,
@@ -191,7 +192,6 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    ComputeDisplaysResult,
     SimulatesSamples,
     SimulationTrialResult,
     Simulator,
@@ -234,6 +234,7 @@ from cirq.value import (
 from cirq.protocols import (
     apply_unitary,
     ApplyUnitaryArgs,
+    approx_eq,
     channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
@@ -247,6 +248,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     SupportsApplyUnitary,
+    SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,

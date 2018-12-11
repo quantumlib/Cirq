@@ -21,7 +21,7 @@ the values of Displays in a circuit is a dictionary from Display key to
 Display value.
 """
 
-from typing import Any, Dict, Hashable, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Hashable, Optional, Tuple, Union, TYPE_CHECKING
 
 import abc
 
@@ -40,9 +40,12 @@ class SamplesDisplay(raw_types.Operation):
 
     The value of a SamplesDisplay on some qubits is computed in the following
     steps:
-        1. Perform some unitary operations on the qubits
-        2. Sample bitstrings from the resulting state a number of times
-        3. Apply a function to the sampled bitstrings
+        1. Repeat the following some number of times:
+            a. Start with the state which exists just prior to the Moment
+               containing the SamplesDisplay
+            b. Perform some unitary operations on the qubits
+            c. Sample a bitstring from the resulting state
+        2. Apply a function to the sampled bitstrings
     """
 
     @property
@@ -57,14 +60,25 @@ class SamplesDisplay(raw_types.Operation):
 
     @property
     @abc.abstractmethod
-    def repetitions(self) -> int:
+    def num_samples(self) -> int:
         """The number of measurement samples to take."""
         pass
 
     @abc.abstractmethod
-    def value(self,
-              measurements: np.ndarray) -> Any:
-        """The value of the display."""
+    def value_derived_from_samples(self,
+                                   measurements: np.ndarray) -> Any:
+        """The value of the display, derived from measurement samples.
+
+        Args:
+            measurements: A 2-dimensional numpy array storing measurement
+                results. The first dimension corresponds to the sample and
+                the second to the actual boolean measurement results, ordered
+                by the qubits that were measured. Therefore, the array has
+                shape (self.num_samples, len(self.qubits))
+
+        Returns:
+            The value of the display.
+        """
         pass
 
 
@@ -77,10 +91,17 @@ class WaveFunctionDisplay(raw_types.Operation):
         pass
 
     @abc.abstractmethod
-    def value(self,
-              state: np.ndarray,
-              qubit_map: Dict[raw_types.QubitId, int]
-              ) -> Any:
+    def value_derived_from_wavefunction(self,
+                                        state: np.ndarray,
+                                        qubit_map: Dict[raw_types.QubitId, int]
+                                        ) -> Any:
+        """The value of the display, derived from the full wavefunction.
+
+        Args:
+            state: The wavefunction
+            qubit_map: A dictionary from qubit to qubit index in the
+                ordering used to define the wavefunction
+        """
         pass
 
 
@@ -90,10 +111,10 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
     def __init__(self,
                  pauli_string: 'pauli_string.PauliString',
-                 repetitions: int,
+                 num_samples: int,
                  key: Hashable=''):
         self._pauli_string = pauli_string
-        self._repetitions = repetitions
+        self._num_samples = num_samples
         self._key = key
 
     @property
@@ -105,7 +126,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
                     ) -> 'ApproxPauliStringExpectation':
         return ApproxPauliStringExpectation(
                 self._pauli_string.with_qubits(*new_qubits),
-                self._repetitions,
+                self._num_samples,
                 self._key
         )
 
@@ -117,15 +138,15 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string.to_z_basis_ops()
 
     @property
-    def repetitions(self) -> int:
-        return self._repetitions
+    def num_samples(self) -> int:
+        return self._num_samples
 
-    def value(self,
-              measurements: np.ndarray) -> float:
+    def value_derived_from_samples(self,
+                                   measurements: np.ndarray) -> float:
         return np.mean([(-1)**sum(bitstring) for bitstring in measurements])
 
     def _value_equality_values_(self):
-        return self._pauli_string, self._repetitions, self._key
+        return self._pauli_string, self._num_samples, self._key
 
 
 @value.value_equality
@@ -154,10 +175,10 @@ class PauliStringExpectation(WaveFunctionDisplay):
     def key(self) -> Hashable:
         return self._key
 
-    def value(self,
-              state: np.ndarray,
-              qubit_index_map: Dict[raw_types.QubitId, int]
-              ) -> float:
+    def value_derived_from_wavefunction(self,
+                                        state: np.ndarray,
+                                        qubit_map: Dict[raw_types.QubitId, int]
+                                        ) -> float:
         num_qubits = state.shape[0].bit_length() - 1
         ket = np.reshape(np.copy(state), (2,) * num_qubits)
         for qubit, pauli in self._pauli_string.items():
@@ -165,7 +186,7 @@ class PauliStringExpectation(WaveFunctionDisplay):
             args = protocols.ApplyUnitaryArgs(
                     target_tensor=ket,
                     available_buffer=buffer,
-                    axes=(qubit_index_map[qubit],)
+                    axes=(qubit_map[qubit],)
                     )
             ket = protocols.apply_unitary(pauli, args)
         ket = np.reshape(ket, state.shape)
@@ -173,3 +194,13 @@ class PauliStringExpectation(WaveFunctionDisplay):
 
     def _value_equality_values_(self):
         return self._pauli_string, self._key
+
+
+def pauli_string_expectation(
+        pauli_string: 'pauli_string.PauliString',
+        num_samples: Optional[int] = None,
+        key: Hashable='') -> Union[ApproxPauliStringExpectation,
+                                   PauliStringExpectation]:
+    if num_samples is None:
+        return PauliStringExpectation(pauli_string, key=key)
+    return ApproxPauliStringExpectation(pauli_string, num_samples, key=key)
