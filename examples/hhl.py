@@ -40,7 +40,7 @@ observables of the result.
 
 === REFERENCE ===
 Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
-https://arxiv.org/pdf/1804.03719.pdf
+https://arxiv.org/abs/1804.03719
 
 === CIRCUIT ===
 (0, 0): ───────────────Ry(π)───────Ry(0.333π)───────────────────M───
