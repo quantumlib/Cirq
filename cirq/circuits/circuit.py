@@ -31,7 +31,6 @@ import numpy as np
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.moment import Moment
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
@@ -90,7 +89,7 @@ class Circuit:
     """
 
     def __init__(self,
-                 moments: Iterable[Moment] = (),
+                 moments: Iterable[ops.Moment] = (),
                  device: devices.Device = devices.UnconstrainedDevice) -> None:
         """Initializes a circuit.
 
@@ -160,7 +159,7 @@ class Circuit:
         pass
 
     @overload
-    def __getitem__(self, key: int) -> Moment:
+    def __getitem__(self, key: int) -> ops.Moment:
         pass
 
     def __getitem__(self, key):
@@ -173,22 +172,22 @@ class Circuit:
                 '__getitem__ called with key not of type slice or int.')
 
     @overload
-    def __setitem__(self, key: int, value: Moment):
+    def __setitem__(self, key: int, value: ops.Moment):
         pass
 
     @overload
-    def __setitem__(self, key: slice, value: Iterable[Moment]):
+    def __setitem__(self, key: slice, value: Iterable[ops.Moment]):
         pass
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
-            if not isinstance(value, Moment):
+            if not isinstance(value, ops.Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
             self._device.validate_moment(value)
 
         if isinstance(key, slice):
             value = list(value)
-            if any(not isinstance(v, Moment) for v in value):
+            if any(not isinstance(v, ops.Moment) for v in value):
                 raise TypeError('Can only assign Moments into Circuits.')
             for moment in value:
                 self._device.validate_moment(moment)
@@ -268,7 +267,7 @@ class Circuit:
                 except TypeError:
                     return NotImplemented
                 moment_ops.append(inverse_op)
-            circuit.append(Moment(moment_ops))
+            circuit.append(ops.Moment(moment_ops))
         return circuit
 
     def __repr__(self):
@@ -306,7 +305,7 @@ class Circuit:
             The translated circuit.
         """
         return Circuit(
-            moments=[Moment(operation.transform_qubits(qubit_mapping)
+            moments=[ops.Moment(operation.transform_qubits(qubit_mapping)
                             for operation in moment.operations)
                      for moment in self._moments],
             device=new_device
@@ -743,7 +742,7 @@ class Circuit:
 
         if (strategy is InsertStrategy.NEW or
                 strategy is InsertStrategy.NEW_THEN_INLINE):
-            self._moments.insert(splitter_index, Moment())
+            self._moments.insert(splitter_index, ops.Moment())
             return splitter_index
 
         if strategy is InsertStrategy.INLINE:
@@ -787,16 +786,16 @@ class Circuit:
     def insert(
             self,
             index: int,
-            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
+            moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
-        """ Inserts a moment or operations into the circuit.
-            Moments are inserted at the specified index.
+        """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
             'InsertStrategy'.
+            Moments within the operation tree are inserted intact.
 
         Args:
             index: The index to insert all of the operations at.
-            moment_or_operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: The moment or operation tree to insert.
             strategy: How to pick/create the moment to put operations into.
 
         Returns:
@@ -806,29 +805,31 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        if isinstance(moment_or_operation_tree, Moment):
-            self._device.validate_moment(moment_or_operation_tree)
-            self._moments.insert(index, moment_or_operation_tree)
-            return index + 1
-
-        operations = list(ops.flatten_op_tree(ops.transform_op_tree(
-            moment_or_operation_tree,
-            self._device.decompose_operation)))
-        for op in operations:
-            self._device.validate_operation(op)
-
+        moments_and_operations = ops.flatten_op_tree(
+            ops.transform_op_tree(moment_or_operation_tree,
+                                  self._device.decompose_operation,
+                                  preserve_moments=True),
+            preserve_moments=True
+        )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index,
                     len(self._moments)), 0)
-        for op in operations:
-            p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
-            while p >= len(self._moments):
-                self._moments.append(Moment())
-            self._moments[p] = self._moments[p].with_operation(op)
-            self._device.validate_moment(self._moments[p])
-            k = max(k, p + 1)
-            if strategy is InsertStrategy.NEW_THEN_INLINE:
-                strategy = InsertStrategy.INLINE
+        for moment_or_op in moments_and_operations:
+            if isinstance(moment_or_op, ops.Moment):
+                self._device.validate_moment(moment_or_op)
+                self._moments.insert(k, moment_or_op)
+                k += 1
+            else:
+                self._device.validate_operation(moment_or_op)
+                p = self._pick_or_create_inserted_op_moment_index(
+                    k, moment_or_op, strategy)
+                while p >= len(self._moments):
+                    self._moments.append(ops.Moment())
+                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                self._device.validate_moment(self._moments[p])
+                k = max(k, p + 1)
+                if strategy is InsertStrategy.NEW_THEN_INLINE:
+                    strategy = InsertStrategy.INLINE
         return k
 
     def insert_into_range(self,
@@ -944,7 +945,7 @@ class Circuit:
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
             self._moments[insert_index:insert_index] = (
-                [Moment()] * n_new_moments)
+                [ops.Moment()] * n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -971,14 +972,15 @@ class Circuit:
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the'
                              'same length.')
-        self._moments += [Moment() for _ in range(1 + max(insertion_indices) -
-                                                  len(self))]
+        self._moments += [
+            ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))
+        ]
         moment_to_ops = defaultdict(list
                                     )  # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
-            self._moments[moment_index] = Moment(
+            self._moments[moment_index] = ops.Moment(
                 self._moments[moment_index].operations + tuple(new_ops))
 
     def insert_at_frontier(self,
@@ -1037,9 +1039,10 @@ class Circuit:
                 raise ValueError(
                     "Can't remove {} @ {} because it doesn't exist.".format(
                         op, i))
-            copy._moments[i] = Moment(old_op
-                                      for old_op in copy._moments[i].operations
-                                      if op != old_op)
+            copy._moments[i] = ops.Moment(
+                old_op
+                for old_op in copy._moments[i].operations
+                if op != old_op)
         self._device.validate_circuit(copy)
         self._moments = copy._moments
 
@@ -1108,12 +1111,14 @@ class Circuit:
 
     def append(
             self,
-            moment_or_operation_tree: Union[Moment, ops.OP_TREE],
+            moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
             strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
         """Appends operations onto the end of the circuit.
 
+        Moments within the operation tree are appended intact.
+
         Args:
-            moment_or_operation_tree: An operation or tree of operations.
+            moment_or_operation_tree: The moment or operation tree to append.
             strategy: How to pick/create the moment to put operations into.
         """
         self.insert(len(self._moments), moment_or_operation_tree, strategy)
@@ -1404,7 +1409,7 @@ class Circuit:
             resolved_operations = _resolve_operations(
                 moment.operations,
                 param_resolver)
-            new_moment = Moment(resolved_operations)
+            new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
         resolved_circuit = Circuit(resolved_moments)
         return resolved_circuit
@@ -1549,7 +1554,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
 
 def _draw_moment_in_diagram(
-        moment: Moment,
+        moment: ops.Moment,
         use_unicode_characters: bool,
         qubit_map: Dict[ops.QubitId, int],
         out_diagram: TextDiagramDrawer,
