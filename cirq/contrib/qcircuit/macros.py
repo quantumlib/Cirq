@@ -19,6 +19,20 @@ def line_macro(end: Tuple[int, int],
                thickness: int = 1,
                style: str = '-'
                ) -> str:
+    """Produces Xy-pic (tex) code for drawing a line.
+    
+    Args:
+        end: The end point of the line, relative to the xymatrix element in
+            which the code appears.
+        start: The starting point of the line, relative to the xymatrix element
+            in which the code appears. Default to (0, 0).
+        thickness: The thickness of the line, as an integer multiple of the
+            standard thickness.
+        style: The style of the line, e.g. '.' draws a dashed line. Defaults
+            to '-', specifying a solid line.
+    Returns:
+        The tex code.
+    """
     tex = '\\ar '
     tex += '@{' + str(style) + '} '
     if thickness != 1:
