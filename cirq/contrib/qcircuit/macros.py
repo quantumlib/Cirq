@@ -20,7 +20,7 @@ def line_macro(end: Tuple[int, int],
                style: str = '-'
                ) -> str:
     """Produces Xy-pic (tex) code for drawing a line.
-    
+
     Args:
         end: The end point of the line, relative to the xymatrix element in
             which the code appears.
