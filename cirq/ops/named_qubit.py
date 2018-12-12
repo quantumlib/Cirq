@@ -36,6 +36,25 @@ class NamedQubit(raw_types.QubitId):
     def __repr__(self):
         return 'cirq.NamedQubit({})'.format(repr(self.name))
 
+    @staticmethod
+    def range(*args, prefix: str):
+        """Returns a range of NamedQubits.
+
+        The range returned starts with the prefix, and followed by a qubit for
+        each number in the range, e.g.:
+
+        NamedQubit.range(3, prefix="a") -> ["a1", "a2", "a3]
+        NamedQubit.range(2, 4, prefix="a") -> ["a2", "a3]
+
+        Args:
+            *args: Args to be passed to Python's standard range function.
+            prefix: A prefix for constructed NamedQubits.
+
+        Returns:
+            A list of NamedQubits.
+        """
+        return [NamedQubit(prefix + str(i)) for i in range(*args)]
+
 
 def _pad_digits(text: str) -> str:
     """A str method with hacks to support better lexicographic ordering.
