@@ -42,6 +42,9 @@ class OptimizationPass:
         """
         pass
 
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)
+
 
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
@@ -157,6 +160,3 @@ class PointOptimizer(OptimizationPass):
                 circuit.insert_at_frontier(new_operations, i, frontier)
 
             i += 1
-
-    def __call__(self, circuit: Circuit):
-        return self.optimize_circuit(circuit)
