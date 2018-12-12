@@ -972,8 +972,9 @@ class Circuit:
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the'
                              'same length.')
-        self._moments += [ops.Moment() for _ in range(1 + max(insertion_indices) -
-                                                  len(self))]
+        self._moments += [
+            ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))
+        ]
         moment_to_ops = defaultdict(list
                                     )  # type: Dict[int, List[ops.Operation]]
         for op_index, moment_index in enumerate(insertion_indices):
