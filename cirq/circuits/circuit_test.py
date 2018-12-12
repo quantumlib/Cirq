@@ -107,6 +107,25 @@ def test_append_multiple():
     ])
 
 
+def test_append_moments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = Circuit()
+    c.append(Moment([cirq.X(a), cirq.X(b)]), cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    c = Circuit()
+    c.append([Moment([cirq.X(a), cirq.X(b)]),
+              Moment([cirq.X(a), cirq.X(b)])], cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
@@ -1596,20 +1615,21 @@ def test_insert_moments():
     m0 = cirq.Moment([cirq.X(q)])
     c.append(m0)
     assert list(c) == [m0]
-    assert c[0] is m0
+    assert c[0] == m0
 
     m1 = cirq.Moment([cirq.Y(q)])
     c.append(m1)
     assert list(c) == [m0, m1]
-    assert c[1] is m1
+    assert c[1] == m1
 
     m2 = cirq.Moment([cirq.Z(q)])
     c.insert(0, m2)
     assert list(c) == [m2, m0, m1]
-    assert c[0] is m2
+    assert c[0] == m2
 
     assert c._moments == [m2, m0, m1]
-    assert c._moments[0] is m2
+    assert c._moments[0] == m2
+
 
 def test_apply_unitary_effect_to_state():
     a = cirq.NamedQubit('a')
