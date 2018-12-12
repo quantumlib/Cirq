@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from cirq import circuits, ops
+from cirq.circuits.moment import Moment
 
 class _PadAfterSwapGates(circuits.OptimizationPass):
     @staticmethod
@@ -28,10 +29,10 @@ class _PadAfterSwapGates(circuits.OptimizationPass):
                 for qubit in swap_qubits)
             if not all(op is None or self.is_swap_operation(op)
                     for op in following_operations):
-                circuit.insert(i + 1, circuits.Moment())
+                circuit.insert(i + 1, Moment())
             if any(self.is_swap_operation(op)
                     for op in circuit[-1].operations):
-                circuit.append(circuits.Moment())
+                circuit.append(Moment())
 
 PadAfterSwapGates = _PadAfterSwapGates()
 default_optimizers = (PadAfterSwapGates,)
