@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections
-from typing import Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict, \
-    overload, Iterable
+from typing import (
+    Any, Callable, TYPE_CHECKING, Optional, Union, Tuple,
+    TypeVar, Dict, overload, Iterable)
 
 from typing_extensions import Protocol
 
@@ -119,6 +120,20 @@ class CircuitDiagramInfoArgs:
                 self.use_unicode_characters,
                 self.precision,
                 self.qubit_map))
+
+    def copy(self):
+        return self.__class__(
+            known_qubits= self.known_qubits,
+            known_qubit_count= self.known_qubit_count,
+            use_unicode_characters= self.use_unicode_characters,
+            precision= self.precision,
+            qubit_map= self.qubit_map)
+
+    def with_args(self, **kwargs):
+        args = self.copy()
+        for arg_name, val in kwargs.items():
+            setattr(args, arg_name, val)
+        return args
 
 
 CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
