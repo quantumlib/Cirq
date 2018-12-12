@@ -586,7 +586,7 @@ class StepResult:
             and non-zero floats of the specified accuracy."""
         return wave_function.dirac_notation(self.state(), decimals)
 
-    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
+    def density_matrix(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
         """Returns the density matrix of the wavefunction.
 
         Calculate the density matrix for the system on the given qubit
@@ -605,7 +605,7 @@ class StepResult:
                             \end{bmatrix}
 
         Args:
-            indices: list containing indices for qubits that you would like
+            qubits: list containing qubit IDs that you would like
                 to include in the density matrix (i.e.) qubits that WON'T
                 be traced out.
 
@@ -618,9 +618,11 @@ class StepResult:
                 corresponding to the state.
         """
         return wave_function.density_matrix_from_state_vector(
-            self.state(), indices)
+            self.state(),
+            [self.qubit_map[q] for q in qubits] if qubits is not None else None
+        )
 
-    def bloch_vector(self, index: int) -> np.ndarray:
+    def bloch_vector(self, index: ops.QubitId) -> np.ndarray:
         """Returns the bloch vector of a qubit.
 
         Calculates the bloch vector of the qubit at index
@@ -639,4 +641,4 @@ class StepResult:
                 corresponding to the state.
         """
         return wave_function.bloch_vector_from_state_vector(
-            self.state(), index)
+            self.state(), self.qubit_map[index])
