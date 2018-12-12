@@ -50,9 +50,8 @@ https://arxiv.org/abs/1804.03719
 (2, 0): ───────X────────────────────────────────────────X───────M───
 
 """
-
-import cirq
 import math
+import cirq
 
 
 def bitstring(bits):
@@ -90,7 +89,9 @@ def hhl_circuit(measure_key, observable):
     ])
 
     # Ry(π) for λ=1
-    c.append(cirq.ControlledGate(cirq.Ry(math.pi))(register_qubit, ancilla_qubit))
+    c.append([
+        cirq.ControlledGate(cirq.Ry(math.pi))(register_qubit, ancilla_qubit),
+    ])
 
     # Ry(π/3) for λ=2
     c.append([
@@ -136,7 +137,9 @@ b = [ 1  0 ]
 ''')
 
     for o in observables:
-        result = simulator.run(hhl_circuit(mkey, o), repetitions=trial_count_per_observable)
+        result = simulator.run(
+            hhl_circuit(mkey, o),
+            repetitions=trial_count_per_observable)
         frequencies = result.histogram(key=mkey, fold_func=bitstring)
         print('<{}>: {}'.format(o, expectation(frequencies)))
 
