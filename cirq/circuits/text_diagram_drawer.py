@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 from typing import (
-        Any, Callable, Dict, Iterable, List, Mapping,
+        Any, Callable, cast, Dict, Iterable, List, Mapping,
         NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING)
 
 if TYPE_CHECKING:
@@ -292,7 +291,7 @@ class TextDiagramDrawer:
 
     @classmethod
     def vstack(cls,
-               diagrams: Iterable['TextDiagramDrawer'],
+               diagrams: Sequence['TextDiagramDrawer'],
                padding_resolver: Optional[Callable[[Sequence[int]], int]] = None
                ):
         """Vertically stack text diagrams.
@@ -317,22 +316,19 @@ class TextDiagramDrawer:
 
         stacked = cls()
         dy = 0
-        horizontal_paddings = collections.defaultdict(
-                list) # type: DefaultDict[int, List[int]]
         for diagram in diagrams:
             stacked.update(diagram.shifted(dy=dy))
-            for x, p in diagram.horizontal_padding.items():
-                horizontal_paddings[x].append(p)
             dy += diagram.height()
-        for x, P in horizontal_paddings.items():
-            padding = padding_resolver(P)
-            if padding is not None:
-                stacked.horizontal_padding[x] = padding
+        for x in stacked.horizontal_padding:
+            stacked.horizontal_padding[x] = padding_resolver(tuple(
+                    cast(Mapping[int, Optional[int],
+                         diagram.horizontal_padding.get(x))
+                    for diagram in diagrams))
         return stacked
 
     @classmethod
     def hstack(cls,
-               diagrams: Iterable['TextDiagramDrawer'],
+               diagrams: Sequence['TextDiagramDrawer'],
                padding_resolver:Optional[Callable[[Sequence[int]], int]] = None
                ):
         """Horizontally stack text diagrams.
@@ -354,19 +350,17 @@ class TextDiagramDrawer:
 
         if padding_resolver is None:
             padding_resolver = _same_element_or_throw_error
+
         stacked = cls()
         dx = 0
-        vertical_paddings = collections.defaultdict(
-                list) # type: DefaultDict[int, List[int]]
         for diagram in diagrams:
             stacked.update(diagram.shifted(dx=dx))
-            for y, p in diagram.vertical_padding.items():
-                vertical_paddings[y].append(p)
             dx += diagram.width()
-        for y, P in vertical_paddings.items():
-            padding = padding_resolver(P)
-            if padding is not None:
-                stacked.vertical_padding[y] = padding
+        for y in stacked.vertical_padding:
+            stacked.vertical_padding[y] = padding_resolver(tuple(
+                    cast(Mapping[int, Optional[int]],
+                         diagram.vertical_padding.get(y))
+                    for diagram in diagrams))
         return stacked
 
 

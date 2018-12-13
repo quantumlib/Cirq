@@ -263,6 +263,10 @@ A B D
     assert_has_rendering(hstacked, expected)
 
     d.force_horizontal_padding_after(0, 0)
+
+    with pytest.raises(ValueError):
+        TextDiagramDrawer.vstack((dd, d))
+
     dd.force_horizontal_padding_after(0, 0)
     expected = """
 D
@@ -277,7 +281,13 @@ AB
     assert_has_rendering(vstacked, expected)
 
     d.force_vertical_padding_after(0, 0)
-    d.force_vertical_padding_after(0, 0)
+    with pytest.raises(ValueError):
+        print(d.vertical_padding)
+        print(dd.vertical_padding)
+        TextDiagramDrawer.hstack((d, dd))
+
+
+    dd.force_vertical_padding_after(0, 0)
     expected = """
 AB D
  C EF
