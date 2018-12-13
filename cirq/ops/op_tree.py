@@ -19,6 +19,7 @@ import collections
 
 from typing import Any, Iterable, Union, Callable
 
+from cirq.ops.moment import Moment
 from cirq.ops.raw_types import Operation
 
 
@@ -44,11 +45,15 @@ See: https://github.com/python/mypy/issues/731
 """
 
 
-def flatten_op_tree(root: OP_TREE) -> Iterable[Operation]:
+def flatten_op_tree(root: OP_TREE,
+                    preserve_moments: bool = False
+                    ) -> Iterable[Union[Operation, Moment]]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
         root: The operation or tree of operations to iterate.
+        preserve_moments: Whether to yield Moments intact instead of
+            flattening them
 
     Yields:
         Operations from the tree.
@@ -56,13 +61,14 @@ def flatten_op_tree(root: OP_TREE) -> Iterable[Operation]:
     Raises:
         TypeError: root isn't a valid OP_TREE.
     """
-    if isinstance(root, Operation):
+    if (isinstance(root, Operation)
+            or preserve_moments and isinstance(root, Moment)):
         yield root
         return
 
     if isinstance(root, collections.Iterable):
         for subtree in root:
-            for item in flatten_op_tree(subtree):
+            for item in flatten_op_tree(subtree, preserve_moments):
                 yield item
         return
 
@@ -73,7 +79,8 @@ def flatten_op_tree(root: OP_TREE) -> Iterable[Operation]:
 def transform_op_tree(
         root: OP_TREE,
         op_transformation: Callable[[Operation], OP_TREE]=lambda e: e,
-        iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE]=lambda e: e
+        iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE]=lambda e: e,
+        preserve_moments: bool = False
 ) -> OP_TREE:
     """Maps transformation functions onto the nodes of an OP_TREE.
 
@@ -82,6 +89,9 @@ def transform_op_tree(
         op_transformation: How to transform the operations (i.e. leaves).
         iter_transformation: How to transform the iterables (i.e. internal
             nodes).
+        preserve_moments: Whether to leave Moments alone. If True, the
+            transformation functions will not be applied to Moments or the
+            operations within them.
 
     Returns:
         A transformed operation tree.
@@ -92,9 +102,15 @@ def transform_op_tree(
     if isinstance(root, Operation):
         return op_transformation(root)
 
+    if preserve_moments and isinstance(root, Moment):
+        return root
+
     if isinstance(root, collections.Iterable):
         return iter_transformation(
-            transform_op_tree(subtree, op_transformation, iter_transformation)
+            transform_op_tree(subtree,
+                              op_transformation,
+                              iter_transformation,
+                              preserve_moments)
             for subtree in root)
 
     raise TypeError(

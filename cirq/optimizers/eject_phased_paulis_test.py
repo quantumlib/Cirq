@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterable
+from typing import Iterable, cast
 
 import cirq
 
@@ -53,7 +53,9 @@ def assert_optimizes(before: cirq.Circuit,
 
 
 def quick_circuit(*moments: Iterable[cirq.OP_TREE]) -> cirq.Circuit:
-    return cirq.Circuit([cirq.Moment(cirq.flatten_op_tree(m)) for m in moments])
+    return cirq.Circuit([
+        cirq.Moment(cast(Iterable[cirq.Operation], cirq.flatten_op_tree(m)))
+        for m in moments])
 
 
 def test_absorbs_z():

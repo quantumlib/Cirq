@@ -28,7 +28,7 @@ import abc
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, op_tree
+from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

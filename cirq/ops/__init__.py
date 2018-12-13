@@ -95,6 +95,9 @@ from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
+from cirq.ops.moment import (
+    Moment,
+)
 from cirq.ops.named_qubit import (
     NamedQubit,
 )
