@@ -19,9 +19,9 @@ import cirq
 
 def test_equals():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.Pauli.X, cirq.Pauli(_index=0, _name='X'))
-    eq.add_equality_group(cirq.Pauli.Y, cirq.Pauli(_index=1, _name='Y'))
-    eq.add_equality_group(cirq.Pauli.Z, cirq.Pauli(_index=2, _name='Z'))
+    eq.add_equality_group(cirq.Pauli.X, cirq.XPowGate())
+    eq.add_equality_group(cirq.Pauli.Y, cirq.YPowGate())
+    eq.add_equality_group(cirq.Pauli.Z, cirq.ZPowGate())
 
 
 def test_singletons():
@@ -124,9 +124,9 @@ def test_str():
 
 
 def test_repr():
-    assert repr(cirq.Pauli.X) == 'cirq.Pauli.X'
-    assert repr(cirq.Pauli.Y) == 'cirq.Pauli.Y'
-    assert repr(cirq.Pauli.Z) == 'cirq.Pauli.Z'
+    assert repr(cirq.Pauli.X) == 'cirq.X'
+    assert repr(cirq.Pauli.Y) == 'cirq.Y'
+    assert repr(cirq.Pauli.Z) == 'cirq.Z'
 
 
 def test_third():

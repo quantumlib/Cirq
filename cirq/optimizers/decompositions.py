@@ -112,10 +112,8 @@ def single_qubit_matrix_to_gates(
         A list of gates that, when applied in order, perform the desired
             operation.
     """
-    pauli_to_gate = {ops.Pauli.X: ops.X, ops.Pauli.Y: ops.Y, ops.Pauli.Z: ops.Z}
     rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
-    return [cast(ops.SingleQubitGate, pauli_to_gate[pauli] ** ht)
-            for pauli, ht in rotations]
+    return [cast(ops.SingleQubitGate, pauli ** ht) for pauli, ht in rotations]
 
 
 def single_qubit_op_to_framed_phase_form(

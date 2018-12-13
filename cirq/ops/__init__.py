@@ -59,9 +59,6 @@ from cirq.ops.common_gates import (
     SWAP,
     SwapPowGate,
     T,
-    X,
-    Y,
-    Z,
 )
 from cirq.ops.controlled_gate import (
     ControlledGate,
@@ -110,6 +107,9 @@ from cirq.ops.parity_gates import (
 )
 from cirq.ops.pauli import (
     Pauli,
+    X,
+    Y,
+    Z,
 )
 from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,
