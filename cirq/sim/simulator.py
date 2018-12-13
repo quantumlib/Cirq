@@ -22,7 +22,7 @@ Simulator types include
 import abc
 import collections
 
-from typing import Dict, Iterable, Iterator, List, Tuple, Union, Optional
+from typing import Dict, Iterable, Iterator, List, Union, Optional
 
 import numpy as np
 
