@@ -148,7 +148,7 @@ class XmonDevice(devices.Device):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def validate_moment(self, moment: circuits.Moment):
+    def validate_moment(self, moment: ops.Moment):
         super().validate_moment(moment)
         for op in moment.operations:
             if (isinstance(op, ops.GateOperation) and
@@ -163,7 +163,7 @@ class XmonDevice(devices.Device):
 
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
-                                      moment: circuits.Moment) -> bool:
+                                      moment: ops.Moment) -> bool:
         self.validate_moment(moment)
 
         if not super().can_add_operation_into_moment(operation, moment):
