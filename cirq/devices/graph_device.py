@@ -17,7 +17,7 @@ import itertools
 
 from typing import Iterable, Optional
 
-from cirq import circuits, devices, ops, value, schedules
+from cirq import devices, ops, value, schedules
 
 from cirq.devices import hypergraph
 
@@ -180,7 +180,7 @@ class UndirectedGraphDevice(devices.Device):
                     other_operations, len(crosstalk_edge) - 1):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: circuits.Moment):
+    def validate_moment(self, moment: ops.Moment):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):
