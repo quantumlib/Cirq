@@ -12,4 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Primitives for generalized swap networks."""
+"""Tools for creating and using acquaintance strategies."""
+
+from cirq.contrib.acquaintance.bipartite import (
+        BipartiteGraphType, BipartiteSwapNetworkGate)
+
+from cirq.contrib.acquaintance.devices import (
+        get_acquaintance_size, UnconstrainedAcquaintanceDevice)
+
+from cirq.contrib.acquaintance.executor import (
+        AcquaintanceOperation, GreedyExecutionStrategy, StrategyExecutor)
+
+from cirq.contrib.acquaintance.gates import (
+        ACQUAINT, AcquaintanceOpportunityGate, SwapNetworkGate)
+
+from cirq.contrib.acquaintance.inspection_utils import (
+        get_logical_acquaintance_opportunities)
+
+from cirq.contrib.acquaintance.mutation_utils import (
+    rectify_acquaintance_strategy,
+    replace_acquaintance_with_swap_network)
+
+from cirq.contrib.acquaintance.permutation import (
+        LinearPermutationGate, PermutationGate,
+        SwapPermutationGate, update_mapping)
+
+from cirq.contrib.acquaintance.shift import (
+        CircularShiftGate)
+
+from cirq.contrib.acquaintance.strategies import (
+    complete_acquaintance_strategy)
+
