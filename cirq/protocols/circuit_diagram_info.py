@@ -13,7 +13,7 @@
 # limitations under the License.
 import collections
 from typing import (
-    Any, TYPE_CHECKING, Optional, Union, Tuple,
+    Any, Callable, TYPE_CHECKING, Optional, Union, Tuple,
     TypeVar, Dict, overload, Iterable)
 
 from typing_extensions import Protocol
