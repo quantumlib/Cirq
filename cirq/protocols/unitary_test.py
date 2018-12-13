@@ -20,6 +20,10 @@ import cirq
 
 def test_unitary():
     m = np.array([[0, 1], [1, 0]])
+    m2 = np.array([[0, 0, 0, 1],
+                   [0, 0, 1, 0],
+                   [0, 1, 0, 0],
+                   [1, 0, 0, 0]])
     d = np.array([])
 
     class NoMethod:
@@ -54,12 +58,17 @@ def test_unitary():
     class DecomposableRecursion(cirq.Gate):
         def __init__(self, unitary_value):
             self.unitary_value = unitary_value
-        def _has_unitary_(self):
-            return NotImplemented
         def _decompose_(self, qubits):
             for q in qubits:
                 yield cirq.GateOperation(Decomposable(self.unitary_value),
                                          (q,))
+
+    class DecomposableCombination(cirq.Gate):
+        def _decompose_(self, qubits):
+            unitary_value = True
+            for q in qubits:
+                yield cirq.GateOperation(FullyImplemented(unitary_value), (q,))
+                unitary_value = False
 
     with pytest.raises(TypeError, match='no _unitary_ method'):
         _ = cirq.unitary(NoMethod())
@@ -93,14 +102,32 @@ def test_unitary():
     assert cirq.has_unitary(FullyImplemented(True))
     assert not cirq.has_unitary(FullyImplemented(False))
 
-    # Test if a decomposed operation _has_unitary_
+    # Test if decomposed operations _has_unitary_
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     assert cirq.has_unitary(cirq.GateOperation(Decomposable(True), (a, b)))
-    assert not cirq.has_unitary(cirq.GateOperation(ReturnsNotImplemented(), (a, b)))
-    assert cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(True), (a, b)))
+    assert not cirq.has_unitary(cirq.GateOperation(ReturnsNotImplemented(),
+                                                   (a, b)))
+    assert cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(True),
+                                               (a, b)))
     assert not cirq.has_unitary(cirq.GateOperation(Decomposable(False), (a, b)))
-    assert not cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(False), (a, b)))
+    assert not cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(False),
+                                                   (a, b)))
 
-    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(Decomposable(True), (a,))), m)
+    assert cirq.has_unitary(cirq.GateOperation(DecomposableCombination(), (a,)))
+    assert not cirq.has_unitary(cirq.GateOperation(DecomposableCombination(),
+                                                   (a, b)))
+
+    # Test if decomposed operations has _unitary_
+    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
+        Decomposable(True), (a,))), m)
+    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
+        DecomposableRecursion(True), (a,))), m)
+
+    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
+        Decomposable(True), (a, b))), m2)
+    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
+        DecomposableRecursion(True), (a, b))), m2)
+
+    # assert cirq.unitary(FullyImplemented(False), None)

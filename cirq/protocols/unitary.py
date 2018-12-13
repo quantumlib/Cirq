@@ -18,6 +18,8 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
+from cirq.ops.raw_types import Operation
+from cirq.protocols.decompose import decompose_once
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -82,30 +84,38 @@ def unitary(val: Any,
 
     Returns:
         If `val` has a _unitary_ method and its result is not NotImplemented,
-        that result is returned. Otherwise, if a default value was specified,
+        that result is returned. Otherwise, if `val` is a cirq.Operation, a
+        decomposition will be attempted and the resulting unitary will be
+        returned if unitaries exist for all operations of the decompostion.
+        If the result is still NotImplemented and a default value was specified,
         the default value is returned.
 
     Raises:
         TypeError: `val` doesn't have a _unitary_ method (or that method
             returned NotImplemented) and also no default value was specified.
     """
-    from cirq import Operation, decompose_once, ops, protocols
+
+    from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
+    # Avoids circular import
+
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()
 
+    # Fallback to decomposition for operations
     if result is NotImplemented and isinstance(val, Operation):
         n = len(val.qubits)
         decomposed_val = decompose_once(val, default=None)
         if decomposed_val is not None:
+            # Calculate the resulting unitary (if it exists)
             state = np.eye(1 << n, dtype=np.complex128)
             state.shape = (2,) * (2 * n)
             buffer = np.zeros(state.shape, dtype=np.complex128)
             qubit_map = {q: i for i, q in enumerate(val.qubits)}
             for op in decomposed_val:
                 indices = [qubit_map[q] for q in op.qubits]
-                result = protocols.apply_unitary(
+                result = apply_unitary(
                     unitary_value=op,
-                    args=protocols.ApplyUnitaryArgs(state, buffer, indices))
+                    args=ApplyUnitaryArgs(state, buffer, indices))
                 if result is buffer:
                     buffer = state
                 state = result
@@ -129,18 +139,22 @@ def has_unitary(val: Any) -> bool:
 
     Returns:
         If `val` has a _has_unitary_ method and its result is not
-        NotImplemented, that result is returned. Otherwise, if the value
-        has a _unitary_ method return if that has a non-default value.
-        Returns False if neither function exists.
+        NotImplemented, that result is returned. Otherwise, if `val` is a
+        cirq.Operation, a decomposition will be attempted and the resulting
+        unitary will be returned if unitaries exist for all operations of the
+        decompostion. Otherwise, if the value has a _unitary_ method return if
+        that has a non-default value. Returns False if neither function exists.
     """
-    from cirq import Operation, decompose_once
     getter = getattr(val, '_has_unitary_', None)
     result = NotImplemented if getter is None else getter()
+
+    # Fallback to decomposition for operations
     if (result is NotImplemented or not result) and isinstance(val, Operation):
-        decomposed_val = decompose_once(val, None)
-        if decomposed_val is not None and len(decomposed_val) > 0 and all(
-                has_unitary(v) for v in decomposed_val):
+        decomposed_val = decompose_once(val, [])
+        if (len(decomposed_val) > 0 and
+                all(has_unitary(v) for v in decomposed_val)):
             result = True
+
     if result is not NotImplemented:
         return result
 
