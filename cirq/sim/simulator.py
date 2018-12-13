@@ -589,16 +589,16 @@ class StepResult:
     def density_matrix(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
         """Returns the density matrix of the wavefunction.
 
-        Calculate the density matrix for the system on the given qubit
-        indices, with the qubits not in indices that are present in self.state
-        traced out. If indices is None the full density matrix for self.state
+        Calculate the density matrix for the system on the list, qubits.
+        Any qubits not in the list that are present in self.state will be
+        traced out. If qubits is None the full density matrix for self.state
         is returned, given self.state follows standard Kronecker convention
         of numpy.kron.
 
         For example:
             self.state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
                 dtype=np.complex64)
-            indices = None
+            qubits = None
             gives us \rho = \begin{bmatrix}
                                 0.5 & 0.5
                                 0.5 & 0.5
@@ -625,8 +625,8 @@ class StepResult:
     def bloch_vector(self, qubit: ops.QubitId) -> np.ndarray:
         """Returns the bloch vector of a qubit.
 
-        Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state. Given that self.state
+        Calculates the bloch vector of the given qubit
+        in the wavefunction given by self.state, given that self.state
         follows the standard Kronecker convention of numpy.kron.
 
         Args:
