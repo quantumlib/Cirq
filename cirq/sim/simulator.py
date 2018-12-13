@@ -622,7 +622,7 @@ class StepResult:
             [self.qubit_map[q] for q in qubits] if qubits is not None else None
         )
 
-    def bloch_vector(self, index: ops.QubitId) -> np.ndarray:
+    def bloch_vector(self, qubit: ops.QubitId) -> np.ndarray:
         """Returns the bloch vector of a qubit.
 
         Calculates the bloch vector of the qubit at index
@@ -630,7 +630,7 @@ class StepResult:
         follows the standard Kronecker convention of numpy.kron.
 
         Args:
-            index: index of qubit who's bloch vector we want to find.
+            qubit: qubit who's bloch vector we want to find.
 
         Returns:
             A length 3 numpy array representing the qubit's bloch vector.
@@ -641,4 +641,4 @@ class StepResult:
                 corresponding to the state.
         """
         return wave_function.bloch_vector_from_state_vector(
-            self.state(), self.qubit_map[index])
+            self.state(), self.qubit_map[qubit])
