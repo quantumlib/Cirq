@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from cirq import circuits, ops
-from cirq.circuits.moment import Moment
+from cirq.circuits.moments import Moment
 
 class _PadAfterSwapGates(circuits.OptimizationPass):
     @staticmethod
