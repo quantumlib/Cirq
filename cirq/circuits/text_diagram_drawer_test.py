@@ -18,7 +18,36 @@ from cirq.circuits import TextDiagramDrawer
 from cirq.circuits.text_diagram_drawer import (
         _HorizontalLine, _VerticalLine, _DiagramText)
 from cirq.testing.mock import mock
-from cirq.testing import assert_has_diagram
+import cirq.testing as ct
+
+
+def assert_has_rendering(
+        actual: TextDiagramDrawer,
+        desired: str,
+        **kwargs) -> None:
+    """Determines if a given diagram has the desired rendering.
+
+    Args:
+        actual: The text diagram.
+        desired: The desired rendering as a string.
+        **kwargs: Keyword arguments to be passed to actual.render.
+    """
+    actual_diagram = actual.render(**kwargs)
+    desired_diagram = desired
+    assert actual_diagram == desired_diagram, (
+    "Diagram's rendering differs from the desired rendering.\n"
+    '\n'
+    'Actual rendering:\n'
+    '{}\n'
+    '\n'
+    'Desired rendering:\n'
+    '{}\n'
+    '\n'
+    'Highlighted differences:\n'
+    '{}\n'.format(actual_diagram, desired_diagram,
+            ct.highlight_text_differences(actual_diagram,
+                                          desired_diagram))
+    )
 
 
 def test_draw_entries_and_lines_with_options():
@@ -162,6 +191,7 @@ short     │ │         │
 │         │ │         │
     """.strip()
 
+
 def test_drawer_copy():
     orig_entries = {(0, 0): _DiagramText('entry', '')}
     orig_vertical_lines = [_VerticalLine(1, 1, 3, True)]
@@ -222,7 +252,7 @@ A B
 
   C
     """.strip()
-    assert_has_diagram(vstacked, expected, render_method_name='render')
+    assert_has_rendering(vstacked, expected)
 
     hstacked = TextDiagramDrawer.hstack((d, dd))
     expected = """
@@ -230,14 +260,41 @@ A B D
 
   C E F
     """.strip()
-    assert_has_diagram(hstacked, expected, render_method_name='render')
+    assert_has_rendering(hstacked, expected)
+
+    d.force_horizontal_padding_after(0, 0)
+    dd.force_horizontal_padding_after(0, 0)
+    expected = """
+D
+
+EF
+
+AB
+
+ C
+    """.strip()
+    vstacked = TextDiagramDrawer.vstack((dd, d))
+    assert_has_rendering(vstacked, expected)
+
+    d.force_vertical_padding_after(0, 0)
+    d.force_vertical_padding_after(0, 0)
+    expected = """
+AB D
+ C EF
+    """.strip()
+    hstacked = TextDiagramDrawer.hstack((d, dd))
+    assert_has_rendering(hstacked, expected)
 
     d.force_horizontal_padding_after(0, 0)
     dd.force_horizontal_padding_after(0, 2)
     d.force_vertical_padding_after(0, 1)
     dd.force_vertical_padding_after(0, 3)
 
-    vstacked = TextDiagramDrawer.vstack((dd, d))
+    with pytest.raises(ValueError):
+        TextDiagramDrawer.vstack((d, dd))
+
+
+    vstacked = TextDiagramDrawer.vstack((dd, d), padding_resolver=max)
     expected = """
 D
 
@@ -249,9 +306,9 @@ A  B
 
    C
     """.strip()
-    assert_has_diagram(vstacked, expected, render_method_name='render')
+    assert_has_rendering(vstacked, expected)
 
-    hstacked = TextDiagramDrawer.hstack((d, dd))
+    hstacked = TextDiagramDrawer.hstack((d, dd), padding_resolver=max)
     expected = """
 AB D
 
@@ -259,7 +316,7 @@ AB D
 
  C E  F
     """.strip()
-    assert_has_diagram(hstacked, expected, render_method_name='render')
+    assert_has_rendering(hstacked, expected)
 
     vstacked_min = TextDiagramDrawer.vstack((dd, d), padding_resolver=min)
     expected = """
@@ -273,7 +330,7 @@ AB
 
  C
     """.strip()
-    assert_has_diagram(vstacked_min, expected, render_method_name='render')
+    assert_has_rendering(vstacked_min, expected)
 
     hstacked_min = TextDiagramDrawer.hstack((d, dd), padding_resolver=min)
     expected = """
@@ -281,5 +338,7 @@ AB D
 
  C E  F
     """.strip()
-    assert_has_diagram(hstacked_min, expected, render_method_name='render')
+    assert_has_rendering(hstacked_min, expected)
 
+def test_drawer_eq():
+    assert TextDiagramDrawer().__eq__(23) == NotImplemented

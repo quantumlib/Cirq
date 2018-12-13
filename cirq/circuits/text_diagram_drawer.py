@@ -14,10 +14,8 @@
 
 import collections
 from typing import (
-        Callable, Dict, Iterable, List, Mapping,
+        Any, Callable, Dict, Iterable, List, Mapping,
         NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING)
-
-from cirq import value
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -41,7 +39,6 @@ _DiagramText = NamedTuple('DiagramText', [
 ])
 
 
-@value.value_equality
 class TextDiagramDrawer:
     """A utility class for creating simple text diagrams.
     """
@@ -64,6 +61,14 @@ class TextDiagramDrawer:
                 else dict(horizontal_padding)) # type: Dict[int, int]
         self.vertical_padding = (dict() if vertical_padding is None
                 else dict(vertical_padding)) # type: Dict[int, int]
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        attrs = ('entries', 'horizontal_lines', 'vertical_lines',
+                 'horizontal_padding', 'vertical_padding')
+        return all(getattr(self, attr) ==
+                   getattr(other, attr) for attr in attrs)
 
     def write(self, x: int, y: int, text: str, transposed_text: str = None):
         """Adds text to the given location.
@@ -262,11 +267,6 @@ class TextDiagramDrawer:
                          for row in multiline_grid
                          for sub_row in row).rstrip()
 
-    def _value_equality_values_(self):
-        return (self.entries,
-                self.vertical_lines, self.horizontal_lines,
-                self.vertical_padding, self.horizontal_padding)
-
     def copy(self):
         return self.__class__(
                 entries=self.entries,
@@ -293,18 +293,28 @@ class TextDiagramDrawer:
     @classmethod
     def vstack(cls,
                diagrams: Iterable['TextDiagramDrawer'],
-               padding_resolver: Callable[[Sequence[int]], int]=max):
+               padding_resolver: Optional[Callable[[Sequence[int]], int]] = None
+               ):
         """Vertically stack text diagrams.
 
         Args:
             diagrams: The diagrams to stack, ordered from bottom to top.
             padding_resolver: A function that takes a list of paddings
                 specified for a column and returns the padding to use in the
-                stacked diagram.
+                stacked diagram. If None, defaults to raising ValueError if the
+                diagrams to stack contain inconsistent padding in any column,
+                including if some specify a padding and others don't.
+
+        Raises:
+            ValueError: Inconsistent padding cannot be resolved.
 
         Returns:
             The vertically stacked diagram.
         """
+
+        if padding_resolver is None:
+            padding_resolver = _same_element_or_throw_error
+
         stacked = cls()
         dy = 0
         horizontal_paddings = collections.defaultdict(
@@ -314,25 +324,36 @@ class TextDiagramDrawer:
             for x, p in diagram.horizontal_padding.items():
                 horizontal_paddings[x].append(p)
             dy += diagram.height()
-        stacked.horizontal_padding = {
-            x: padding_resolver(P) for x, P in horizontal_paddings.items()}
+        for x, P in horizontal_paddings.items():
+            padding = padding_resolver(P)
+            if padding is not None:
+                stacked.horizontal_padding[x] = padding
         return stacked
 
     @classmethod
     def hstack(cls,
                diagrams: Iterable['TextDiagramDrawer'],
-               padding_resolver: Callable[[Sequence[int]], int]=max):
+               padding_resolver:Optional[Callable[[Sequence[int]], int]] = None
+               ):
         """Horizontally stack text diagrams.
 
         Args:
             diagrams: The diagrams to stack, ordered from left to right.
             padding_resolver: A function that takes a list of paddings
                 specified for a row and returns the padding to use in the
-                stacked diagram.
+                stacked diagram. Defaults to raising ValueError if the diagrams
+                to stack contain inconsistent padding in any row, including
+                if some specify a padding and others don't.
+
+        Raises:
+            ValueError: Inconsistent padding cannot be resolved.
 
         Returns:
             The horizontally stacked diagram.
         """
+
+        if padding_resolver is None:
+            padding_resolver = _same_element_or_throw_error
         stacked = cls()
         dx = 0
         vertical_paddings = collections.defaultdict(
@@ -342,8 +363,10 @@ class TextDiagramDrawer:
             for y, p in diagram.vertical_padding.items():
                 vertical_paddings[y].append(p)
             dx += diagram.width()
-        stacked.vertical_padding = {
-            y: padding_resolver(P) for y, P in vertical_paddings.items()}
+        for y, P in vertical_paddings.items():
+            padding = padding_resolver(P)
+            if padding is not None:
+                stacked.vertical_padding[y] = padding
         return stacked
 
 
@@ -428,3 +451,23 @@ def _pad_into_multiline(width: int,
                     col_width, pad_char)
 
     return multiline_grid
+
+def _same_element_or_throw_error(elements: Sequence[Any]):
+    """Extract an element or throw an error.
+
+    Args:
+        elements: A sequence of something.
+
+    copies of it. Returns None on an empty sequence.
+
+    Raises:
+        ValueError: The sequence constai
+
+    Returns:
+        The element when given a sequence containing only multiple copies of a
+        single element. None if elements is empty.
+    """
+    unique_elements = set(elements)
+    if len(unique_elements) > 1:
+        raise ValueError('len(set({})) > 1'.format(elements))
+    return unique_elements.pop() if elements else None
