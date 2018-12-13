@@ -292,7 +292,8 @@ class TextDiagramDrawer:
     @classmethod
     def vstack(cls,
                diagrams: Sequence['TextDiagramDrawer'],
-               padding_resolver: Optional[Callable[[Sequence[int]], int]] = None
+               padding_resolver:
+                   Optional[Callable[[Sequence[Optional[int]]], int]] = None
                ):
         """Vertically stack text diagrams.
 
@@ -320,16 +321,18 @@ class TextDiagramDrawer:
             stacked.update(diagram.shifted(dy=dy))
             dy += diagram.height()
         for x in stacked.horizontal_padding:
-            stacked.horizontal_padding[x] = padding_resolver(tuple(
-                    cast(Mapping[int, Optional[int],
-                         diagram.horizontal_padding.get(x))
+            resolved_padding = padding_resolver(tuple(
+                    cast(Optional[int], diagram.horizontal_padding.get(x))
                     for diagram in diagrams))
+            if resolved_padding is not None:
+                stacked.horizontal_padding[x] = resolved_padding
         return stacked
 
     @classmethod
     def hstack(cls,
                diagrams: Sequence['TextDiagramDrawer'],
-               padding_resolver:Optional[Callable[[Sequence[int]], int]] = None
+               padding_resolver:
+                   Optional[Callable[[Sequence[Optional[int]]], int]] = None
                ):
         """Horizontally stack text diagrams.
 
@@ -357,10 +360,11 @@ class TextDiagramDrawer:
             stacked.update(diagram.shifted(dx=dx))
             dx += diagram.width()
         for y in stacked.vertical_padding:
-            stacked.vertical_padding[y] = padding_resolver(tuple(
-                    cast(Mapping[int, Optional[int]],
-                         diagram.vertical_padding.get(y))
+            resolved_padding = padding_resolver(tuple(
+                    cast(Optional[int], diagram.vertical_padding.get(y))
                     for diagram in diagrams))
+            if resolved_padding is not None:
+                stacked.vertical_padding[y] = resolved_padding
         return stacked
 
 
