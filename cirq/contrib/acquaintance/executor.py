@@ -25,7 +25,7 @@ from cirq.contrib.acquaintance.devices import (
         is_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate,
-        LogicalIndex,
+        LogicalIndex, LogicalIndexSequence,
         LogicalGates, LogicalMapping)
 from cirq.contrib.acquaintance.mutation_utils import (
         expose_acquaintance_gates)
