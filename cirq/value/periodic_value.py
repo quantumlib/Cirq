@@ -68,5 +68,5 @@ class PeriodicValue:
         # high values are at the opposite borders of normalization interval.
         if high - low > self.period / 2:
             low += self.period
-            
+        
         return cirq.protocols.approx_eq(low, high, atol=atol)
