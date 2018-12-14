@@ -14,7 +14,7 @@
 
 from typing import Dict
 
-from cirq.study import resolver
+from cirq.study.resolver import ParamResolver
 
 """Defines ComputeDisplaysResult."""
 
@@ -28,7 +28,7 @@ class ComputeDisplaysResult:
     """
 
     def __init__(self,
-                 params: resolver.ParamResolver,
+                 params: ParamResolver,
                  display_values: Dict) -> None:
         self.params = params
         self.display_values = display_values
