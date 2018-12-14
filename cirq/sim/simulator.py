@@ -506,7 +506,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in param_resolvers:
-            display_values = {}
+            display_values = {}  # type: ignore
 
             # Compute the displays in the first Moment
             moment = circuit[0]
