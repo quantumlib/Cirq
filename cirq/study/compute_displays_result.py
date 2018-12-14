@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Defines ComputeDisplaysResult."""
+
 from typing import Dict
 
-from cirq.study.resolver import ParamResolver
-
-"""Defines ComputeDisplaysResult."""
+from cirq.study import resolver
 
 
 class ComputeDisplaysResult:
@@ -28,7 +28,7 @@ class ComputeDisplaysResult:
     """
 
     def __init__(self,
-                 params: ParamResolver,
+                 params: resolver.ParamResolver,
                  display_values: Dict) -> None:
         self.params = params
         self.display_values = display_values
