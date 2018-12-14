@@ -6,7 +6,7 @@ from dev_tools import check, env_tools
 def RequiresRStringChange(filepath: str, verbose: bool):
     """Returns if the file contains a docstring that needs to be an r-string.
     """
-    docstring_pattern = re.compile('""".*?"""', re.DOTALL)
+    docstring_pattern = re.compile('[^r]""".*?"""', re.DOTALL)
     latex_pattern = re.compile('\\\.+?\{.+?\}')
 
     with open(filepath, 'r') as inputfile:
