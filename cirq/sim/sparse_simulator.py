@@ -203,9 +203,9 @@ class Simulator(simulator.SimulatesSamples,
             measurements = collections.defaultdict(
                     list)  # type: Dict[str, List[bool]]
 
-            non_display_ops = [op for op in moment
+            non_display_ops = (op for op in moment
                                if not isinstance(op, (ops.SamplesDisplay,
-                                                      ops.WaveFunctionDisplay))]
+                                                      ops.WaveFunctionDisplay)))
             unitary_ops_and_measurements = protocols.decompose(
                 non_display_ops,
                 keep=keep,
