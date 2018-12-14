@@ -56,20 +56,17 @@ class PeriodicValue:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        # Periods must be approximately equal.
-        if not cirq.protocols.approx_eq(self.period, other.period, atol=atol):
+        # Periods must be exactly equal to avoid drift of normalized value when
+        # original value increases.
+        if self.period != other.period:
             return False
 
-        # Try to match normalized values.
-        if cirq.protocols.approx_eq(self.value, other.value, atol=atol):
-            return True
+        low = min(self.value, other.value)
+        high = max(self.value, other.value)
 
-        # Shift lower value outside of normalization interval in case self and
-        # other values are at the opposite borders of normalization interval.
-        if self.value < other.value:
-            s_val = self.value + self.period
-            o_val = other.value
-        else:
-            s_val = self.value
-            o_val = other.value + other.period
-        return cirq.protocols.approx_eq(s_val, o_val, atol=atol)
+        # Shift lower value outside of normalization interval in case low and
+        # high values are at the opposite borders of normalization interval.
+        if high - low > self.period / 2:
+            low += self.period
+            
+        return cirq.protocols.approx_eq(low, high, atol=atol)

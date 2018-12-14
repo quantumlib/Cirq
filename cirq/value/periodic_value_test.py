@@ -50,7 +50,7 @@ def test_periodic_value_approx_eq_basic():
         cirq.PeriodicValue(1.2, 2.0),
         atol=0.1
     )
-    assert cirq.approx_eq(
+    assert not cirq.approx_eq(
         cirq.PeriodicValue(1.0, 2.0),
         cirq.PeriodicValue(1.0, 2.2),
         atol=0.3
@@ -60,7 +60,7 @@ def test_periodic_value_approx_eq_basic():
         cirq.PeriodicValue(1.0, 2.2),
         atol=0.1
     )
-    assert cirq.approx_eq(
+    assert not cirq.approx_eq(
         cirq.PeriodicValue(1.0, 2.0),
         cirq.PeriodicValue(1.2, 2.2),
         atol=0.3
@@ -110,6 +110,16 @@ def test_periodic_value_approx_eq_boundary():
         cirq.PeriodicValue(0, 1.0),
         cirq.PeriodicValue(0.5, 1.0),
         atol=0.6
+    )
+    assert not cirq.approx_eq(
+        cirq.PeriodicValue(0, 1.0),
+        cirq.PeriodicValue(0.5, 1.0),
+        atol=0.1
+    )
+    assert cirq.approx_eq(
+        cirq.PeriodicValue(0.4, 1.0),
+        cirq.PeriodicValue(0.6, 1.0),
+        atol=0.3
     )
 
 
