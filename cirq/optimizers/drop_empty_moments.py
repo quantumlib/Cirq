@@ -15,10 +15,14 @@
 """An optimization pass that removes empty moments from a circuit."""
 
 from cirq.circuits.circuit import Circuit
+from cirq.circuits import circuit as _circuit
 
 
 class DropEmptyMoments():
     """Removes empty moments from a circuit."""
+
+    def __call__(self, circuit: _circuit.Circuit):
+        self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: Circuit):
         circuit[:] = (m for m in circuit if m.operations)

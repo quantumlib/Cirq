@@ -33,8 +33,8 @@ def assert_optimizes(
         cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
-        post.optimize_circuit(before) # type: ignore
-        post.optimize_circuit(expected) # type: ignore
+        post(before)
+        post(expected)
 
     try:
         assert before == expected

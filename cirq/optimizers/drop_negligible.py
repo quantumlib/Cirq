@@ -31,6 +31,9 @@ class DropNegligible():
     def __init__(self, tolerance: float = 1e-8) -> None:
         self.tolerance = tolerance
 
+    def __call__(self, circuit: _circuit.Circuit):
+        self.optimize_circuit(circuit)
+
     def optimize_circuit(self, circuit: _circuit.Circuit) -> None:
         deletions = []  # type: List[Tuple[int, ops.Operation]]
         for moment_index, moment in enumerate(circuit):
