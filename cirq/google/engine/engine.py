@@ -38,7 +38,8 @@ from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto_dict
 from cirq.google.programs import schedule_to_proto_dicts, unpack_results
 from cirq.schedules import Schedule, moment_by_moment_schedule
-from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
+from cirq.study import (
+    ComputeDisplaysResult, ParamResolver, Sweep, Sweepable, TrialResult)
 from cirq.study.sweeps import Points, UnitSweep, Zip
 
 if TYPE_CHECKING:
@@ -526,6 +527,25 @@ class Engine:
         if new_labels != old_labels:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
+
+    def compute_displays_sweep(
+            self,
+            program: Union[circuits.Circuit, Schedule],
+            params: Sweepable = None,
+    ) -> List[ComputeDisplaysResult]:
+        """Computes displays in the supplied Circuit or Schedule.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
 
 
 class EngineJob:
