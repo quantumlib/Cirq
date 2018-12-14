@@ -12,28 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods for running studies (repeated trials)."""
+import cirq
 
-from cirq.study.compute_displays_result import (
-    ComputeDisplaysResult,
-)
+# Python 2 gives a different repr due to unicode strings being prefixed with u.
+@cirq.testing.only_test_in_python3
+def test_compute_displays_result_repr():
+    v = cirq.ComputeDisplaysResult(
+        params=cirq.ParamResolver({'a': 2}),
+        display_values={'k': 1.0})
 
-from cirq.study.resolver import (
-    ParamResolver,
-)
-from cirq.study.sweepable import (
-    Sweepable,
-    to_resolvers,
-)
-from cirq.study.sweeps import (
-    Linspace,
-    Points,
-    Sweep,
-    UnitSweep,
-)
-from cirq.study.trial_result import (
-    TrialResult,
-)
-from cirq.study.visualize import (
-    plot_state_histogram,
-)
+    assert repr(v) == ("cirq.ComputeDisplaysResult("
+                       "params=cirq.ParamResolver({'a': 2}), "
+                       "display_values={'k': 1.0})")

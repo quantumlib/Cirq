@@ -15,7 +15,6 @@
 """Base simulation classes and generic simulators."""
 
 from cirq.sim.simulator import (
-    ComputeDisplaysResult,
     SimulatesSamples,
     SimulationTrialResult,
     StepResult,
