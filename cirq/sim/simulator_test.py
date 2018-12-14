@@ -149,18 +149,6 @@ def test_wave_simulator_sweeps():
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
 @cirq.testing.only_test_in_python3
-def test_compute_displays_result_repr():
-    v = cirq.ComputeDisplaysResult(
-        params=cirq.ParamResolver({'a': 2}),
-        display_values={'k': 1.0})
-
-    assert repr(v) == ("cirq.ComputeDisplaysResult("
-                       "params=cirq.ParamResolver({'a': 2}), "
-                       "display_values={'k': 1.0})")
-
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
 def test_simulator_simulate_trial_result_repr():
     v = cirq.SimulationTrialResult(
         params=cirq.ParamResolver({'a': 2}),

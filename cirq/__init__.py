@@ -194,7 +194,6 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    ComputeDisplaysResult,
     SimulatesSamples,
     SimulationTrialResult,
     Simulator,
@@ -212,6 +211,7 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    ComputeDisplaysResult,
     Linspace,
     ParamResolver,
     plot_state_histogram,

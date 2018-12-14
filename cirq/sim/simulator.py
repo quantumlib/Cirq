@@ -321,27 +321,6 @@ class SimulationTrialResult:
                 self.final_state.tolist())
 
 
-class ComputeDisplaysResult:
-    """Results of computing the values of displays in a circuit.
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        display_values: A dictionary from display key to display value.
-    """
-
-    def __init__(self,
-                 params: study.ParamResolver,
-                 display_values: Dict) -> None:
-        self.params = params
-        self.display_values = display_values
-
-    def __repr__(self):
-        return ('cirq.ComputeDisplaysResult('
-                'params={!r}, '
-                'display_values={!r})').format(self.params,
-                                               self.display_values)
-
-
 class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     """A SimulatesFinalWaveFunction that simulates a circuit by moments.
 
@@ -471,7 +450,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             param_resolver: study.ParamResolver = study.ParamResolver({}),
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
-    ) -> ComputeDisplaysResult:
+    ) -> study.ComputeDisplaysResult:
         """Computes displays in the supplied Circuit.
 
         Args:
@@ -497,7 +476,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             params: study.Sweepable = study.ParamResolver({}),
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
-    ) -> List[ComputeDisplaysResult]:
+    ) -> List[study.ComputeDisplaysResult]:
         """Computes displays in the supplied Circuit.
 
         In contrast to `compute_displays`, this allows for sweeping
@@ -525,7 +504,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
-        compute_displays_results = []  # type: List[ComputeDisplaysResult]
+        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in param_resolvers:
             display_values = {}
 
@@ -550,7 +529,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                     qubit_order,
                     step_result.qubit_map)
 
-            compute_displays_results.append(ComputeDisplaysResult(
+            compute_displays_results.append(study.ComputeDisplaysResult(
                 params=param_resolver,
                 display_values=display_values))
 
