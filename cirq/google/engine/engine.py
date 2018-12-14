@@ -531,7 +531,10 @@ class Engine:
     def compute_displays_sweep(
             self,
             program: Union[circuits.Circuit, Schedule],
-            params: Sweepable = None,
+            job_config: Optional[JobConfig] = None,
+            params: Optional[Sweepable] = None,
+            priority: int = 50,
+            target_route: str = '/xmonsim'
     ) -> List[ComputeDisplaysResult]:
         """Computes displays in the supplied Circuit or Schedule.
 
