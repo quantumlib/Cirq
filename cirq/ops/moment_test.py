@@ -185,6 +185,20 @@ def test_qubits():
     assert Moment([cirq.X(a)]).qubits == {a}
     assert Moment([cirq.CZ(a, b)]).qubits == {a, b}
 
+
+def test_container_methods():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = Moment([cirq.H(a), cirq.H(b)])
+    assert list(m) == list(m.operations)
+    # __iter__
+    assert list(iter(m)) == list(m.operations)
+    # __contains__ for free.
+    assert cirq.H(b) in m
+
+    assert len(m) == 2
+
+
 def test_bool():
     assert not Moment()
     a = cirq.NamedQubit('a')

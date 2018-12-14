@@ -16,7 +16,7 @@
 
 from typing import Any, Iterable, TypeVar, Callable, Sequence
 
-from cirq import ops
+from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
@@ -35,7 +35,7 @@ class Moment(object):
         qubits: A set of the qubits acted upon by this Moment.
     """
 
-    def __init__(self, operations: Iterable[ops.Operation] = ()) -> None:
+    def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
         """Constructs a moment with the given operations.
 
         Args:
@@ -54,7 +54,7 @@ class Moment(object):
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
 
-    def operates_on(self, qubits: Iterable[ops.QubitId]) -> bool:
+    def operates_on(self, qubits: Iterable[raw_types.QubitId]) -> bool:
         """Determines if the moment has operations touching the given qubits.
 
         Args:
@@ -66,7 +66,7 @@ class Moment(object):
         qubits = frozenset(qubits)
         return any(q in qubits for op in self.operations for q in op.qubits)
 
-    def with_operation(self, operation: ops.Operation):
+    def with_operation(self, operation: raw_types.Operation):
         """Returns an equal moment, but with the given op added.
 
         Args:
@@ -77,7 +77,7 @@ class Moment(object):
         """
         return Moment(self.operations + (operation,))
 
-    def without_operations_touching(self, qubits: Iterable[ops.QubitId]):
+    def without_operations_touching(self, qubits: Iterable[raw_types.QubitId]):
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -110,6 +110,12 @@ class Moment(object):
     def __hash__(self):
         return hash((Moment, self.operations))
 
+    def __iter__(self):
+        return iter(self.operations)
+
+    def __len__(self):
+        return len(self.operations)
+
     def __repr__(self):
         if not self.operations:
             return 'cirq.Moment()'
@@ -120,7 +126,7 @@ class Moment(object):
         return ' and '.join(str(op) for op in self.operations)
 
     def transform_qubits(self: TSelf_Moment,
-                         func: Callable[[ops.QubitId], ops.QubitId]
+                         func: Callable[[raw_types.QubitId], raw_types.QubitId]
                          ) -> TSelf_Moment:
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
