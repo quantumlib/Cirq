@@ -531,17 +531,11 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
 
             # Compute the displays in the first Moment
             moment = circuit[0]
-            displays = [op for op in moment
-                        if isinstance(op, (ops.SamplesDisplay,
-                                           ops.WaveFunctionDisplay))]
+            state = wave_function.to_valid_state_vector(
+                initial_state, num_qubits=len(qubits))
             qubit_map = {q: i for i, q in enumerate(qubits)}
-            for display in displays:
-                display_values[display.key] = _compute_display_value(
-                    display,
-                    wave_function.to_valid_state_vector(
-                        initial_state, num_qubits=len(qubits)),
-                    qubit_order,
-                    qubit_map)
+            _enter_moment_display_values_into_dictionary(
+                display_values, moment, state, qubit_order, qubit_map)
 
             # Compute the displays in the rest of the Moments
             all_step_results = self.simulate_moment_steps(circuit,
@@ -549,15 +543,12 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                                                           qubit_order,
                                                           initial_state)
             for step_result, moment in zip(all_step_results, circuit[1:]):
-                displays = [op for op in moment
-                            if isinstance(op, (ops.SamplesDisplay,
-                                               ops.WaveFunctionDisplay))]
-                for display in displays:
-                    display_values[display.key] = _compute_display_value(
-                                display,
-                                step_result.state(),
-                                qubit_order,
-                                step_result.qubit_map)
+                _enter_moment_display_values_into_dictionary(
+                    display_values,
+                    moment,
+                    step_result.state(),
+                    qubit_order,
+                    step_result.qubit_map)
 
             compute_displays_results.append(ComputeDisplaysResult(
                 params=param_resolver,
@@ -566,16 +557,22 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         return compute_displays_results
 
 
-def _compute_display_value(display: Union[ops.SamplesDisplay,
-                                          ops.WaveFunctionDisplay],
-                           state: np.ndarray,
-                           qubit_order: ops.QubitOrder,
-                           qubit_map: Dict[ops.QubitId, int]):
-    if isinstance(display, ops.SamplesDisplay):
-        return _compute_samples_display_value(
-            display, state, qubit_order, qubit_map)
-    else:
-        return display.value_derived_from_wavefunction(state, qubit_map)
+def _enter_moment_display_values_into_dictionary(
+        display_values: Dict,
+        moment: ops.Moment,
+        state: np.ndarray,
+        qubit_order: ops.QubitOrder,
+        qubit_map: Dict[ops.QubitId, int]):
+    displays = (op for op in moment
+                if isinstance(op, (ops.SamplesDisplay,
+                                   ops.WaveFunctionDisplay)))
+    for display in displays:
+        if isinstance(display, ops.WaveFunctionDisplay):
+            display_values[display.key] = (
+                display.value_derived_from_wavefunction(state, qubit_map))
+        else:
+            display_values[display.key] = _compute_samples_display_value(
+                display, state, qubit_order, qubit_map)
 
 
 def _compute_samples_display_value(display: ops.SamplesDisplay,
