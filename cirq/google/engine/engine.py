@@ -543,12 +543,48 @@ class Engine:
 
         Args:
             program: The circuit or schedule to simulate.
+            job_config: Configures the names of programs and jobs.
+                This method will spawn multiple jobs. The job ids will
+                have the form 'JOB_ID-0', 'JOB_ID-1', etc, where JOB_ID
+                is the job id of the given job_config.
             params: Parameters to run with the program.
+            priority: The priority to run at, 0-100.
+            target_route: The engine route to run against.
 
         Returns:
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
+        job_config = self.implied_job_config(job_config)
+        schedule = self.program_as_schedule(program)
+
+        # Check program to run and program parameters.
+        if not 0 <= priority < 1000:
+            raise ValueError('priority must be between 0 and 1000')
+
+        schedule.device.validate_schedule(schedule)
+
+        # Create program.
+        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        program_dict = {}  # type: Dict[str, Any]
+
+        program_dict['parameter_sweeps'] = [
+            sweep_to_proto_dict(sweep, repetitions) for
+            sweep in sweeps]
+        program_dict['operations'] = [op for op in
+                                      schedule_to_proto_dicts(schedule)]
+        code = {
+            '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
+        code.update(program_dict)
+        request = {
+            'name': 'projects/%s/programs/%s' % (job_config.project_id,
+                                                 job_config.program_id,),
+            'gcs_code_location': {'uri': job_config.gcs_program},
+            'code': code,
+        }
+        response = self.service.projects().programs().create(
+            parent='projects/%s' % job_config.project_id,
+            body=request).execute()
 
 
 class EngineJob:
