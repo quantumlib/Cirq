@@ -18,7 +18,6 @@
 import numpy as np
 
 from cirq.circuits.circuit import Circuit
-from cirq.circuits.circuit import Moment
 from cirq.contrib.jobs import Job
 from cirq.study.sweeps import Points, Zip
 from cirq.value import Symbol
@@ -113,7 +112,7 @@ class DepolarizerChannel(object):
                         error_number += 1
 
                 if error_gates:
-                    moments.append(Moment(error_gates))
+                    moments.append(ops.Moment(error_gates))
 
         sweep = job.sweep
         if error_sweep:
