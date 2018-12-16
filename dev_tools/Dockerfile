@@ -17,7 +17,7 @@ RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/quantumlib/Cirq
 
 # Install the needed Python libraries.
-RUN pip3 install numpy typing_extensions networkx sortedcontainers google-api-python-client
+RUN pip3 install -r Cirq/requirements.txt -r Cirq/cirq/contrib/contrib-requirements.txt -r Cirq/dev_tools/conf/pip-list-dev-tools.txt
 
 WORKDIR /Cirq
 
