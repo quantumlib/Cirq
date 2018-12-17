@@ -39,21 +39,21 @@ class SimulatesSamples:
 
     def run(
         self,
-        circuit: circuits.Circuit,
+        program: Union[circuits.Circuit, schedules.Schedule],
         param_resolver: study.ParamResolver = study.ParamResolver({}),
         repetitions: int = 1,
     ) -> study.TrialResult:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(circuit, [param_resolver], repetitions)[0]
+        return self.run_sweep(program, [param_resolver], repetitions)[0]
 
     def run_sweep(
         self,
@@ -111,6 +111,72 @@ class SimulatesSamples:
             by the qubits being measured.)
         """
         raise NotImplementedError()
+
+    def compute_displays(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            param_resolver: Optional[study.ParamResolver] = None,
+    ) -> study.ComputeDisplaysResult:
+        """Computes displays in the supplied Circuit.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            param_resolver: Parameters to run with the program.
+
+        Returns:
+            ComputeDisplaysResult for the simulation.
+        """
+        return self.compute_displays_sweep(
+            program, [param_resolver or study.ParamResolver({})])[0]
+
+    def compute_displays_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            params: Optional[study.Sweepable] = None
+    ) -> List[study.ComputeDisplaysResult]:
+        """Computes displays in the supplied Circuit.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
+        circuit = (program if isinstance(program, circuits.Circuit)
+                   else program.to_circuit())
+        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+
+        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        for param_resolver in param_resolvers:
+            display_values = {}  # type: ignore
+            for i, moment in enumerate(circuit):
+                displays = (op for op in moment
+                            if isinstance(op, ops.SamplesDisplay))
+                preceding_circuit = circuit[:i]
+                for display in displays:
+                    measurement_key = str(display.key)
+                    measurement_circuit = circuits.Circuit.from_ops(
+                        display.measurement_basis_change(),
+                        ops.measure(*display.qubits,
+                                    key=measurement_key)
+                    )
+                    measurements = self._run(
+                        preceding_circuit + measurement_circuit,
+                        param_resolver,
+                        display.num_samples)
+                    display_values[display.key] = (
+                        display.value_derived_from_samples(
+                            measurements[measurement_key]))
+            compute_displays_results.append(study.ComputeDisplaysResult(
+                params=param_resolver,
+                display_values=display_values))
+
+        return compute_displays_results
 
 
 class SimulatesFinalWaveFunction:
