@@ -539,7 +539,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def compute_displays_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            params: study.Sweepable = study.ParamResolver({}),
+            params: Optional[study.Sweepable] = None,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
     ) -> List[study.ComputeDisplaysResult]:

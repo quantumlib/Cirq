@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Defines ComputeDisplaysResult."""
+
 from typing import Dict
 
 from cirq.study import resolver
-
-"""Defines ComputeDisplaysResult."""
 
 
 class ComputeDisplaysResult:
