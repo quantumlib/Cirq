@@ -28,7 +28,14 @@ def test_phased_x_consistent_protocols(phase_exponent):
     cirq.testing.assert_implements_consistent_protocols(
             cirq.PhasedXPowGate(phase_exponent=phase_exponent,
                                 exponent=1.0,
-                                global_shift=0.1)
+                                global_shift=0),
+            is_global_phase_sensitive = False
+    )
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.PhasedXPowGate(phase_exponent=phase_exponent,
+                                exponent=1.0,
+                                global_shift=0.1),
+            is_global_phase_sensitive = True
     )
 
 

@@ -26,19 +26,20 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, -1j, -1, 1j]]) * 0.5
 
 
-@pytest.mark.parametrize('eigen_gate_type', [
-    cirq.CNotPowGate,
-    cirq.CZPowGate,
-    cirq.HPowGate,
-    cirq.ISwapPowGate,
-    cirq.SwapPowGate,
-    cirq.XPowGate,
-    cirq.YPowGate,
-    cirq.ZPowGate,
+@pytest.mark.parametrize('eigen_gate_and_phase_sensitivity', [
+    [cirq.CNotPowGate, True],
+    [cirq.CZPowGate, False],
+    [cirq.HPowGate, True],
+    [cirq.ISwapPowGate, True],
+    [cirq.SwapPowGate, True],
+    [cirq.XPowGate, False],
+    [cirq.YPowGate, False],
+    [cirq.ZPowGate, False],
 ])
-def test_eigen_gates_consistent_protocols(eigen_gate_type):
+def test_eigen_gates_consistent_protocols(eigen_gate_and_phase_sensitivity):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-            eigen_gate_type)
+            eigen_gate_and_phase_sensitivity[0],
+            is_global_phase_sensitive = eigen_gate_and_phase_sensitivity[1])
 
 
 def test_consistent_protocols():

@@ -22,7 +22,7 @@ from cirq.testing import lin_alg_utils
 
 def assert_decompose_is_consistent_with_unitary(
         val: Any,
-        including_global_phase: bool=False):
+        including_global_phase: bool=True):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
 
     expected = protocols.unitary(val, None)
