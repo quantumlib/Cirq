@@ -432,6 +432,51 @@ def test_compute_displays(dtype):
                                atol=1e-7)
 
 
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_compute_samples_displays(dtype):
+    class SamplesDisplaySimulator(cirq.Simulator):
+        def compute_displays(self, program, param_resolver=None):
+            return super(
+                cirq.SimulatesIntermediateWaveFunction,
+                self).compute_displays(program, param_resolver)
+        def compute_displays_sweep(self, program, param_resolver=None):
+            return super(
+                cirq.SimulatesIntermediateWaveFunction,
+                self).compute_displays_sweep(program, param_resolver)
+
+    qubits = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qubits[1]),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({qubits[3]: cirq.Pauli.X}),
+            key='x3'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
+                              qubits[2]: cirq.Pauli.X}),
+            num_samples=10,
+            key='approx_z1x2'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
+                              qubits[3]: cirq.Pauli.X}),
+            num_samples=10,
+            key='approx_z1x3'
+        ),
+    )
+    simulator = SamplesDisplaySimulator(dtype=dtype)
+    result = simulator.compute_displays(circuit)
+
+    assert 'x3' not in result.display_values
+    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
+                               atol=1e-7)
+    np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
+                               atol=1e-7)
+
+
 def test_invalid_run_no_unitary():
     class NoUnitary(cirq.Gate):
         pass
