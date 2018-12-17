@@ -107,6 +107,25 @@ def test_append_multiple():
     ])
 
 
+def test_append_moments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = Circuit()
+    c.append(Moment([cirq.X(a), cirq.X(b)]), cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    c = Circuit()
+    c.append([Moment([cirq.X(a), cirq.X(b)]),
+              Moment([cirq.X(a), cirq.X(b)])], cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
@@ -144,6 +163,34 @@ def test_repr():
     ]),
 ], device=cirq.google.Foxtail)"""
 
+def test_empty_moments():
+    # 1-qubit test
+    op = cirq.X(cirq.NamedQubit('a'))
+    op_moment = cirq.Moment([op])
+    circuit = cirq.Circuit([op_moment, op_moment, cirq.Moment(), op_moment])
+
+    cirq.testing.assert_has_diagram(circuit,
+                                    "a: ───X───X───────X───",
+                                    use_unicode_characters=True)
+    # 1-qubit ascii-only test
+    cirq.testing.assert_has_diagram(circuit,
+                                    "a: ---X---X-------X---",
+                                    use_unicode_characters=False)
+    # 2-qubit test
+    op = cirq.CNOT(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
+    op_moment = cirq.Moment([op])
+    circuit = cirq.Circuit([op_moment, op_moment, cirq.Moment(), op_moment])
+
+    cirq.testing.assert_has_diagram(circuit, """
+a: ───@───@───────@───
+      │   │       │
+b: ───X───X───────X───""", use_unicode_characters=True)
+
+     # 2-qubit ascii-only test
+    cirq.testing.assert_has_diagram(circuit, """
+a: ---@---@-------@---
+      |   |       |
+b: ---X---X-------X---""", use_unicode_characters=False)
 
 def test_slice():
     a = cirq.NamedQubit('a')
@@ -1568,20 +1615,21 @@ def test_insert_moments():
     m0 = cirq.Moment([cirq.X(q)])
     c.append(m0)
     assert list(c) == [m0]
-    assert c[0] is m0
+    assert c[0] == m0
 
     m1 = cirq.Moment([cirq.Y(q)])
     c.append(m1)
     assert list(c) == [m0, m1]
-    assert c[1] is m1
+    assert c[1] == m1
 
     m2 = cirq.Moment([cirq.Z(q)])
     c.insert(0, m2)
     assert list(c) == [m2, m0, m1]
-    assert c[0] is m2
+    assert c[0] == m2
 
     assert c._moments == [m2, m0, m1]
-    assert c._moments[0] is m2
+    assert c._moments[0] == m2
+
 
 def test_apply_unitary_effect_to_state():
     a = cirq.NamedQubit('a')
@@ -2579,3 +2627,44 @@ def test_decompose():
     assert cirq.decompose(
         cirq.Circuit.from_ops(cirq.X(a), cirq.Y(b), cirq.CZ(a, b))
     ) == [cirq.X(a), cirq.Y(b), cirq.CZ(a, b)]
+
+
+def test_inverse():
+    a, b = cirq.LineQubit.range(2)
+    forward = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b),
+                                    cirq.CZ(a, b))
+    backward = cirq.Circuit.from_ops((cirq.CZ ** (-1.0))(a, b),
+                                     (cirq.X ** (-0.5))(a),
+                                     (cirq.Y ** (0.2))(b))
+    cirq.testing.assert_same_circuits(cirq.inverse(forward), backward)
+
+    cirq.testing.assert_same_circuits(cirq.inverse(cirq.Circuit()),
+                                      cirq.Circuit())
+
+    no_inverse = cirq.Circuit.from_ops(cirq.measure(a, b))
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.inverse(no_inverse)
+
+    # Default when there is no inverse for an op.
+    default = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b))
+    cirq.testing.assert_same_circuits(cirq.inverse(no_inverse, default),
+                                      default)
+    assert cirq.inverse(no_inverse, None) is None
+
+
+def test_pow_valid_only_for_minus_1():
+    a, b = cirq.LineQubit.range(2)
+    forward = cirq.Circuit.from_ops((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b),
+                                    cirq.CZ(a, b))
+
+    backward = cirq.Circuit.from_ops((cirq.CZ ** (-1.0))(a, b),
+                                     (cirq.X ** (-0.5))(a),
+                                     (cirq.Y ** (0.2))(b))
+
+    cirq.testing.assert_same_circuits(cirq.pow(forward, -1), backward)
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.pow(forward, 1)
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.pow(forward, 0)
+    with pytest.raises(TypeError, match='__pow__'):
+        cirq.pow(forward, -2.5)

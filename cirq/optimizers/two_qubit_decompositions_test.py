@@ -213,6 +213,14 @@ def test_kak_decomposition_depth_full_cz():
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
+    # Test unoptimized/un-cleaned length of Double-axis interaction.
+    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
+                                           cirq.CNOT(b, a)))
+    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
+                                                               1e-8, False)
+    c = cirq.Circuit.from_ops(operations_with_part)
+    assert len(c) > 6 # Length should be 13 with extra Pauli gates
+
     # Partial single-axis interaction.
     u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
