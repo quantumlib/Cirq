@@ -119,6 +119,8 @@ class SimulatesSamples:
     ) -> study.ComputeDisplaysResult:
         """Computes displays in the supplied Circuit.
 
+        Only SamplesDisplays are computed; any WaveFunctionDisplays are ignored.
+
         Args:
             program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
@@ -138,6 +140,7 @@ class SimulatesSamples:
 
         In contrast to `compute_displays`, this allows for sweeping
         over different parameter values.
+        Only SamplesDisplays are computed; any WaveFunctionDisplays are ignored.
 
         Args:
             program: The circuit or schedule to simulate.
