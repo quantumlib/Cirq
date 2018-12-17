@@ -25,17 +25,17 @@ from cirq.testing.mock import mock
 @mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
 def test_run_simulator_run():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': [[1]]}
+    expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     expected_result = cirq.TrialResult(repetitions=10,
                                        measurements=expected_measurements,
                                        params=param_resolver)
-    assert expected_result == simulator.run(circuit=circuit,
+    assert expected_result == simulator.run(program=circuit,
                                             repetitions=10,
                                             param_resolver=param_resolver)
-    simulator._run.assert_called_once_with(circuit=circuit,
+    simulator._run.assert_called_once_with(program=circuit,
                                            repetitions=10,
                                            param_resolver=param_resolver)
 
@@ -43,7 +43,7 @@ def test_run_simulator_run():
 @mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
 def test_run_simulator_sweeps():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': [[1]]}
+    expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [mock.Mock(cirq.ParamResolver),
@@ -57,7 +57,7 @@ def test_run_simulator_sweeps():
     assert expected_results == simulator.run_sweep(program=circuit,
                                                 repetitions=10,
                                                 params=param_resolvers)
-    simulator._run.assert_called_with(circuit=circuit,
+    simulator._run.assert_called_with(program=circuit,
                                       repetitions=10,
                                       param_resolver=mock.ANY)
     assert simulator._run.call_count == 2
