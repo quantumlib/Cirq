@@ -16,17 +16,18 @@ from typing import Any, cast, Optional, Tuple
 
 from cirq import ops, protocols
 
-from cirq.contrib.qcircuit.macros import line_macro
+from cirq.contrib.qcircuit.macros import (
+    gate_macro, line_macro)
 
 
 def escape_text_for_latex(text):
     escaped = (text
+               .replace('{', '\\{')
+               .replace('}', '\\}')
                .replace('\\', '\\textbackslash{}')
                .replace('^', '\\textasciicircum{}')
                .replace('~', '\\textasciitilde{}')
                .replace('_', '\\_')
-               .replace('{', '\\{')
-               .replace('}', '\\}')
                .replace('$', '\\$')
                .replace('%', '\\%')
                .replace('&', '\\&')
@@ -88,7 +89,7 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
     labels = [escape_text_for_latex(e) for e in info.wire_symbols]
     if info.exponent != 1:
         labels[0] += '^{' + str(info.exponent) + '}'
-    symbols = tuple('\\gate{' + l + '}' for l in labels)
+    symbols = tuple(gate_macro(l) for l in labels)
     return protocols.CircuitDiagramInfo(symbols)
 
 

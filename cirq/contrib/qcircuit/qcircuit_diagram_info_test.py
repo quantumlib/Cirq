@@ -51,7 +51,9 @@ def test_get_qcircuit_diagram_info():
             precision=3,
             qubit_map=qubit_map)
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
-    expected_info = cirq.CircuitDiagramInfo(('\\gate{\\text{foo}}',) * 2)
+    expected_info = cirq.CircuitDiagramInfo((
+        '*+<.6em>{\\text{foo}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL '
+        '**\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"',) * 2)
     assert actual_info == expected_info
 
     actual_info = ccq.get_qcircuit_diagram_info(op,
@@ -89,7 +91,9 @@ def test_swap_qcircuit_diagram_info():
 
     args.qubit_map = None
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
-    wire_symbols = ('\\gate{\\text{swap}}',) * 2
+    wire_symbols = (
+            '*+<.6em>{\\text{swap}} \\POS ="i","i"+UR;"i"+UL **\\dir{-};"i"+DL '
+            '**\\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"',) * 2
     expected_info = cirq.CircuitDiagramInfo(
             wire_symbols=wire_symbols)
     assert actual_info == expected_info
