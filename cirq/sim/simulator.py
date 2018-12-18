@@ -59,7 +59,7 @@ class SimulatesSamples:
     def run_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: Optional[study.Sweepable] = None,
+        params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
@@ -78,7 +78,7 @@ class SimulatesSamples:
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
@@ -159,7 +159,7 @@ class SimulatesFinalWaveFunction:
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: Optional[study.Sweepable] = None,
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
@@ -338,7 +338,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: Optional[study.Sweepable] = None,
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
@@ -366,7 +366,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[SimulationTrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
