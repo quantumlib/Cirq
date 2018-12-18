@@ -14,6 +14,12 @@
 
 """Converts cirq circuits into latex using qcircuit."""
 
+from cirq.contrib.qcircuit.macros import (
+    ghost_macro, line_macro, multigate_macro
+)
+from cirq.contrib.qcircuit.optimizers import (
+    default_optimizers, PadBetweenOps
+)
 from cirq.contrib.qcircuit.qcircuit_diagram import (
     circuit_to_latex_using_qcircuit
 )
@@ -22,6 +28,6 @@ from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     get_multigate_parameters,
     get_qcircuit_diagram_info
 )
-from cirq.contrib.qcircuit.macros import (
-    line_macro
+from cirq.contrib.qcircuit.qcircuit_pdf import (
+    circuit_to_pdf_using_qcircuit_via_tex
 )
