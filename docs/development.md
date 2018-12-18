@@ -84,6 +84,7 @@ See the previous section for instructions.
     pip install --upgrade pip
     pip install -r requirements.txt
     pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    pip install -r cirq/contrib/contrib-requirements.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
