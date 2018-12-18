@@ -546,16 +546,13 @@ def _enter_moment_display_values_into_dictionary(
         state: np.ndarray,
         qubit_order: ops.QubitOrder,
         qubit_map: Dict[ops.QubitId, int]):
-    displays = (op for op in moment
-                if isinstance(op, (ops.SamplesDisplay,
-                                   ops.WaveFunctionDisplay)))
-    for display in displays:
-        if isinstance(display, ops.WaveFunctionDisplay):
-            display_values[display.key] = (
-                display.value_derived_from_wavefunction(state, qubit_map))
-        else:
-            display_values[display.key] = _compute_samples_display_value(
-                display, state, qubit_order, qubit_map)
+    for op in moment:
+        if isinstance(op, ops.WaveFunctionDisplay):
+            display_values[op.key] = (
+                op.value_derived_from_wavefunction(state, qubit_map))
+        elif isinstance(op, ops.SamplesDisplay):
+            display_values[op.key] = _compute_samples_display_value(
+                op, state, qubit_order, qubit_map)
 
 
 def _compute_samples_display_value(display: ops.SamplesDisplay,
