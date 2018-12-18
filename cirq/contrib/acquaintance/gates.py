@@ -24,7 +24,7 @@ from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
 
-class AcquaintanceOpportunityGate(ops.Gate):
+class AcquaintanceOpportunityGate(ops.Gate, ops.InterchangeableQubitsGate):
     """Represents an acquaintance opportunity. An acquaintance opportunity is
     essentially a placeholder in a swap network that may later be replaced with
     a logical gate."""
