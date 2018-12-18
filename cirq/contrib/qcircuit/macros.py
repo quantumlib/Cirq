@@ -41,3 +41,22 @@ def line_macro(end: Tuple[int, int],
         tex += '[{1}, {0}];'.format(*start)
     tex += '[{1}, {0}]'.format(*end)
     return tex
+
+
+def gate_macro(label: str = '') -> str:
+    r"""Same as qcircuit's '\gate' but without final '\qw'."""
+    return ('*+<.6em>{' + str(label) + '} \POS ="i","i"+UR;"i"+UL **\dir{-};'
+            '"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"')
+
+def ghost_macro(label: str='') -> str:
+    r"""Same as qcircuit's '\nghost'."""
+    return '*+<1em,.9em>{\hphantom{' + str(label) + '}}'
+
+
+def multigate_macro(n_qubits: int, label: str='') -> str:
+    r"""Same as qcircuit's '\multigate' but without final '\qw'."""
+    return (
+        '*+<1em,.9em>{\hphantom{' + str(label) + '}} \POS [0,0]="i",[0,0].[' +
+        str(n_qubits - 1) + ',0]="e",!C *{' + str(label) +
+        '},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};' +
+        '"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')
