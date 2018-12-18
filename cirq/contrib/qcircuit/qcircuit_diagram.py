@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
+from typing import Callable, Iterable, Optional
 
-from cirq import circuits, ops
+from cirq import circuits, ops, protocols
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     get_qcircuit_diagram_info)
 from cirq.contrib.qcircuit.optimizers import (
@@ -58,9 +58,14 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 
 def circuit_to_latex_using_qcircuit(
-        circuit: circuits.Circuit,
+        circuit: circuits.Circuit, *,
         optimizers: Iterable[circuits.OptimizationPass]=default_optimizers,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
+        get_circuit_diagram_info: Optional[Callable[
+            [ops.Operation, protocols.CircuitDiagramInfoArgs],
+            protocols.CircuitDiagramInfo]] = None,
+        qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+        ) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
     Args:
@@ -74,8 +79,13 @@ def circuit_to_latex_using_qcircuit(
     for optimizer in optimizers:
         optimizer(circuit)
 
+    if get_circuit_diagram_info is None:
+        get_circuit_diagram_info = get_qcircuit_diagram_info
+    if qubit_namer is None:
+        qubit_namer = qcircuit_qubit_namer
+
     diagram = circuit.to_text_diagram_drawer(
-        qubit_namer=qcircuit_qubit_namer,
+        qubit_namer=qubit_namer,
         qubit_order=qubit_order,
-        get_circuit_diagram_info=get_qcircuit_diagram_info)
+        get_circuit_diagram_info=get_circuit_diagram_info)
     return _render(diagram)
