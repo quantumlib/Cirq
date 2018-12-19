@@ -37,10 +37,11 @@ class PadBetweenOps(circuits.OptimizationPass):
     def optimize_circuit(self, circuit: circuits.Circuit):
         for i in reversed(range(len(circuit) - 1)):
             op_pairs = itertools.product(circuit[i], circuit[i + 1])
-            padding = max(
-                    self.padding_needed(*op_pair) for op_pair in op_pairs)
+            padding = max(itertools.chain((0,),
+                    (self.padding_needed(*op_pair) for op_pair in op_pairs)))
             circuit.insert(i + 1, (ops.Moment(),) * padding)
-        padding = max(self.padding_needed(op, None) for op in circuit[-1])
+        padding = max(itertools.chain((0,),
+                (self.padding_needed(op, None) for op in circuit[-1])))
         circuit.append((ops.Moment(),) * padding)
 
 def swap_followed_by_non_swap(
