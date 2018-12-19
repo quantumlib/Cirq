@@ -641,6 +641,18 @@ y: ───────────────@──────────�
 """)
 
 
+def test_insert_into_range_moments():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+    c = Circuit([Moment([cirq.X(x)])] * 4)
+    c.insert_into_range([cirq.Y(y), Moment([cirq.Z(y), cirq.Z(x)]), cirq.Y(y)], 2, 4)
+    cirq.testing.assert_has_diagram(c, """
+x: ───X───X───X───Z───X───
+
+y: ───────────Y───Z───Y───
+""")
+
+
 def test_next_moment_operating_on():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

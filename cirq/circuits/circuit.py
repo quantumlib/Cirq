@@ -833,10 +833,11 @@ class Circuit:
         return k
 
     def insert_into_range(self,
-                          operations: ops.OP_TREE,
+                          moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
                           start: int,
                           end: int) -> int:
         """Writes operations inline into an area of the circuit.
+        Moments within the operation tree are inserted intact
 
         Args:
             start: The start of the range (inclusive) to write the
@@ -844,7 +845,7 @@ class Circuit:
             end: The end of the range (exclusive) to write the given
                 operations into. If there are still operations remaining,
                 new moments are created to fit them.
-            operations: An operation or tree of operations to insert.
+            moment_or_operation_tree: The moment or operation tree to insert.
 
         Returns:
             An insertion index that will place operations after the operations
@@ -857,26 +858,41 @@ class Circuit:
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
-        operations = list(ops.flatten_op_tree(operations))
-        for op in operations:
-            self._device.validate_operation(op)
+        moments_and_operations = list(ops.flatten_op_tree(
+            ops.transform_op_tree(moment_or_operation_tree,
+                                  self._device.decompose_operation,
+                                  preserve_moments=True),
+            preserve_moments=True
+        ))
+
+        for moment_or_op in moments_and_operations:
+            if isinstance(moment_or_op, ops.Moment):
+                self._device.validate_moment(moment_or_op)
+            else:
+                self._device.validate_operation(moment_or_op)
 
         i = start
-        op_index = 0
-        while op_index < len(operations):
-            op = operations[op_index]
-            while i < end and not self._device.can_add_operation_into_moment(
-                    op, self._moments[i]):
-                i += 1
-            if i >= end:
-                break
-            self._moments[i] = self._moments[i].with_operation(op)
-            op_index += 1
+        moment_or_op_index = 0
+        while moment_or_op_index < len(moments_and_operations):
+            moment_or_op = moments_and_operations[moment_or_op_index]
+            print(moment_or_op)
+            if isinstance(moment_or_op, ops.Moment):
+                self._moments.insert(i+1, moment_or_op)
+                i += 2
+                end += 1
+            else:
+                while i < end and not self._device.can_add_operation_into_moment(
+                        moment_or_op, self._moments[i]):
+                    i += 1
+                if i >= end:
+                    break
+                self._moments[i] = self._moments[i].with_operation(moment_or_op)
+            moment_or_op_index += 1
 
-        if op_index >= len(operations):
+        if moment_or_op_index >= len(moments_and_operations):
             return end
 
-        return self.insert(end, operations[op_index:])
+        return self.insert(end, moments_and_operations[moment_or_op_index:])
 
     @staticmethod
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
