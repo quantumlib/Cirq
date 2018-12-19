@@ -813,9 +813,10 @@ class Circuit:
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_operation_tree, ops.Moment):
-                self._device.validate_moment(moment_or_op)
+                self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
-                self._device.validate_operation(moment_or_op)
+                self._device.validate_operation(
+                    cast(ops.Operation, moment_or_op))
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index,
