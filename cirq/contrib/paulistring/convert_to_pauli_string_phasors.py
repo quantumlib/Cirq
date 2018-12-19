@@ -111,7 +111,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         converted = self._convert_one(op)
         if converted is op:
             return converted
-        return [self.convert(e) for e in ops.flatten_op_tree(converted)]
+        return [self.convert(cast(ops.Operation, e))
+                for e in ops.flatten_op_tree(converted)]
 
     def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
                         ) -> Optional[PointOptimizationSummary]:
