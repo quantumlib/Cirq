@@ -178,6 +178,8 @@ class TextDiagramDrawer:
             for x, padding in self.horizontal_padding.items()}
         self.vertical_padding = {func_y(y): padding
             for y, padding in self.vertical_padding.items()}
+        self.horizontal_occlusions = [_Point(*func(p.x, p.y))
+            for p in self.horizontal_occlusions]
 
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
