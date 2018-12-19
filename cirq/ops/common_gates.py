@@ -46,6 +46,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.phased_x_gate
 
 
+@value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the X axis of the Bloch sphere.
@@ -139,6 +140,7 @@ class XPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
@@ -219,6 +221,7 @@ class YPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
