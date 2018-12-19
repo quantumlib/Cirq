@@ -16,7 +16,8 @@ RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 # Install Cirq with the needed Python libraries.
 RUN pip3 install cirq
 
-ADD examples/*.py /examples/
+RUN git clone -n --depth=1 https://github.com/quantumlib/Cirq  && cd Cirq && git checkout HEAD -- examples && mv examples / && cd .. && rm -r -f Cirq
+
 WORKDIR /examples
 
 EXPOSE 8888
