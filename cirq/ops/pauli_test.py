@@ -19,148 +19,151 @@ import cirq
 
 def test_equals():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.Pauli.X, cirq.XPowGate())
-    eq.add_equality_group(cirq.Pauli.Y, cirq.YPowGate())
-    eq.add_equality_group(cirq.Pauli.Z, cirq.ZPowGate())
+    eq.add_equality_group(cirq.X, cirq.ops.pauli.X, cirq.XPowGate())
+    eq.add_equality_group(cirq.Y, cirq.ops.pauli.Y, cirq.YPowGate())
+    eq.add_equality_group(cirq.Z, cirq.ops.pauli.Z, cirq.ZPowGate())
 
 
-def test_singletons():
-    assert cirq.Pauli.XYZ[0] == cirq.Pauli.X
-    assert cirq.Pauli.XYZ[1] == cirq.Pauli.Y
-    assert cirq.Pauli.XYZ[2] == cirq.Pauli.Z
-    assert len(cirq.Pauli.XYZ) == 3
+def test_by_index():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+            cirq.X, *[cirq.Pauli.by_index(i) for i in (-3, 0, 3, 6)])
+    eq.add_equality_group(
+            cirq.Y, *[cirq.Pauli.by_index(i) for i in (-2, 1, 4, 7)])
+    eq.add_equality_group(
+            cirq.Z, *[cirq.Pauli.by_index(i) for i in (-1, 2, 5, 8)])
 
 
 def test_difference():
-    assert cirq.Pauli.X - cirq.Pauli.X == 0
-    assert cirq.Pauli.X - cirq.Pauli.Y == -1
-    assert cirq.Pauli.X - cirq.Pauli.Z == 1
-    assert cirq.Pauli.Y - cirq.Pauli.X == 1
-    assert cirq.Pauli.Y - cirq.Pauli.Y == 0
-    assert cirq.Pauli.Y - cirq.Pauli.Z == -1
-    assert cirq.Pauli.Z - cirq.Pauli.X == -1
-    assert cirq.Pauli.Z - cirq.Pauli.Y == 1
-    assert cirq.Pauli.Z - cirq.Pauli.Z == 0
+    assert cirq.X - cirq.X == 0
+    assert cirq.X - cirq.Y == -1
+    assert cirq.X - cirq.Z == 1
+    assert cirq.Y - cirq.X == 1
+    assert cirq.Y - cirq.Y == 0
+    assert cirq.Y - cirq.Z == -1
+    assert cirq.Z - cirq.X == -1
+    assert cirq.Z - cirq.Y == 1
+    assert cirq.Z - cirq.Z == 0
 
 
 def test_gt():
-    assert not cirq.Pauli.X > cirq.Pauli.X
-    assert not cirq.Pauli.X > cirq.Pauli.Y
-    assert cirq.Pauli.X > cirq.Pauli.Z
-    assert cirq.Pauli.Y > cirq.Pauli.X
-    assert not cirq.Pauli.Y > cirq.Pauli.Y
-    assert not cirq.Pauli.Y > cirq.Pauli.Z
-    assert not cirq.Pauli.Z > cirq.Pauli.X
-    assert cirq.Pauli.Z > cirq.Pauli.Y
-    assert not cirq.Pauli.Z > cirq.Pauli.Z
+    assert not cirq.X > cirq.X
+    assert not cirq.X > cirq.Y
+    assert cirq.X > cirq.Z
+    assert cirq.Y > cirq.X
+    assert not cirq.Y > cirq.Y
+    assert not cirq.Y > cirq.Z
+    assert not cirq.Z > cirq.X
+    assert cirq.Z > cirq.Y
+    assert not cirq.Z > cirq.Z
 
 
 @cirq.testing.only_test_in_python3
 def test_gt_other_type():
     with pytest.raises(TypeError):
-        _ = cirq.Pauli.X > object()
+        _ = cirq.X > object()
 
 
 def test_lt():
-    assert not cirq.Pauli.X < cirq.Pauli.X
-    assert cirq.Pauli.X < cirq.Pauli.Y
-    assert not cirq.Pauli.X < cirq.Pauli.Z
-    assert not cirq.Pauli.Y < cirq.Pauli.X
-    assert not cirq.Pauli.Y < cirq.Pauli.Y
-    assert cirq.Pauli.Y < cirq.Pauli.Z
-    assert cirq.Pauli.Z < cirq.Pauli.X
-    assert not cirq.Pauli.Z < cirq.Pauli.Y
-    assert not cirq.Pauli.Z < cirq.Pauli.Z
+    assert not cirq.X < cirq.X
+    assert cirq.X < cirq.Y
+    assert not cirq.X < cirq.Z
+    assert not cirq.Y < cirq.X
+    assert not cirq.Y < cirq.Y
+    assert cirq.Y < cirq.Z
+    assert cirq.Z < cirq.X
+    assert not cirq.Z < cirq.Y
+    assert not cirq.Z < cirq.Z
 
 
 @cirq.testing.only_test_in_python3
 def test_lt_other_type():
     with pytest.raises(TypeError):
-        _ = cirq.Pauli.X < object()
+        _ = cirq.X < object()
 
 
 def test_addition():
-    assert cirq.Pauli.X + -3 == cirq.Pauli.X
-    assert cirq.Pauli.X + -2 == cirq.Pauli.Y
-    assert cirq.Pauli.X + -1 == cirq.Pauli.Z
-    assert cirq.Pauli.X + 0 == cirq.Pauli.X
-    assert cirq.Pauli.X + 1 == cirq.Pauli.Y
-    assert cirq.Pauli.X + 2 == cirq.Pauli.Z
-    assert cirq.Pauli.X + 3 == cirq.Pauli.X
-    assert cirq.Pauli.X + 4 == cirq.Pauli.Y
-    assert cirq.Pauli.X + 5 == cirq.Pauli.Z
-    assert cirq.Pauli.X + 6 == cirq.Pauli.X
-    assert cirq.Pauli.Y + 0 == cirq.Pauli.Y
-    assert cirq.Pauli.Y + 1 == cirq.Pauli.Z
-    assert cirq.Pauli.Y + 2 == cirq.Pauli.X
-    assert cirq.Pauli.Z + 0 == cirq.Pauli.Z
-    assert cirq.Pauli.Z + 1 == cirq.Pauli.X
-    assert cirq.Pauli.Z + 2 == cirq.Pauli.Y
+    assert cirq.X + -3 == cirq.X
+    assert cirq.X + -2 == cirq.Y
+    assert cirq.X + -1 == cirq.Z
+    assert cirq.X + 0 == cirq.X
+    assert cirq.X + 1 == cirq.Y
+    assert cirq.X + 2 == cirq.Z
+    assert cirq.X + 3 == cirq.X
+    assert cirq.X + 4 == cirq.Y
+    assert cirq.X + 5 == cirq.Z
+    assert cirq.X + 6 == cirq.X
+    assert cirq.Y + 0 == cirq.Y
+    assert cirq.Y + 1 == cirq.Z
+    assert cirq.Y + 2 == cirq.X
+    assert cirq.Z + 0 == cirq.Z
+    assert cirq.Z + 1 == cirq.X
+    assert cirq.Z + 2 == cirq.Y
 
 
 def test_subtraction():
-    assert cirq.Pauli.X - -3 == cirq.Pauli.X
-    assert cirq.Pauli.X - -2 == cirq.Pauli.Z
-    assert cirq.Pauli.X - -1 == cirq.Pauli.Y
-    assert cirq.Pauli.X - 0 == cirq.Pauli.X
-    assert cirq.Pauli.X - 1 == cirq.Pauli.Z
-    assert cirq.Pauli.X - 2 == cirq.Pauli.Y
-    assert cirq.Pauli.X - 3 == cirq.Pauli.X
-    assert cirq.Pauli.X - 4 == cirq.Pauli.Z
-    assert cirq.Pauli.X - 5 == cirq.Pauli.Y
-    assert cirq.Pauli.X - 6 == cirq.Pauli.X
-    assert cirq.Pauli.Y - 0 == cirq.Pauli.Y
-    assert cirq.Pauli.Y - 1 == cirq.Pauli.X
-    assert cirq.Pauli.Y - 2 == cirq.Pauli.Z
-    assert cirq.Pauli.Z - 0 == cirq.Pauli.Z
-    assert cirq.Pauli.Z - 1 == cirq.Pauli.Y
-    assert cirq.Pauli.Z - 2 == cirq.Pauli.X
+    assert cirq.X - -3 == cirq.X
+    assert cirq.X - -2 == cirq.Z
+    assert cirq.X - -1 == cirq.Y
+    assert cirq.X - 0 == cirq.X
+    assert cirq.X - 1 == cirq.Z
+    assert cirq.X - 2 == cirq.Y
+    assert cirq.X - 3 == cirq.X
+    assert cirq.X - 4 == cirq.Z
+    assert cirq.X - 5 == cirq.Y
+    assert cirq.X - 6 == cirq.X
+    assert cirq.Y - 0 == cirq.Y
+    assert cirq.Y - 1 == cirq.X
+    assert cirq.Y - 2 == cirq.Z
+    assert cirq.Z - 0 == cirq.Z
+    assert cirq.Z - 1 == cirq.Y
+    assert cirq.Z - 2 == cirq.X
 
 
 def test_str():
-    assert str(cirq.Pauli.X) == 'X'
-    assert str(cirq.Pauli.Y) == 'Y'
-    assert str(cirq.Pauli.Z) == 'Z'
+    assert str(cirq.X) == 'X'
+    assert str(cirq.Y) == 'Y'
+    assert str(cirq.Z) == 'Z'
 
 
 def test_repr():
-    assert repr(cirq.Pauli.X) == 'cirq.X'
-    assert repr(cirq.Pauli.Y) == 'cirq.Y'
-    assert repr(cirq.Pauli.Z) == 'cirq.Z'
+    assert repr(cirq.X) == 'cirq.X'
+    assert repr(cirq.Y) == 'cirq.Y'
+    assert repr(cirq.Z) == 'cirq.Z'
 
 
 def test_third():
-    assert cirq.Pauli.X.third(cirq.Pauli.Y) == cirq.Pauli.Z
-    assert cirq.Pauli.Y.third(cirq.Pauli.X) == cirq.Pauli.Z
-    assert cirq.Pauli.Y.third(cirq.Pauli.Z) == cirq.Pauli.X
-    assert cirq.Pauli.Z.third(cirq.Pauli.Y) == cirq.Pauli.X
-    assert cirq.Pauli.Z.third(cirq.Pauli.X) == cirq.Pauli.Y
-    assert cirq.Pauli.X.third(cirq.Pauli.Z) == cirq.Pauli.Y
+    assert cirq.X.third(cirq.Y) == cirq.Z
+    assert cirq.Y.third(cirq.X) == cirq.Z
+    assert cirq.Y.third(cirq.Z) == cirq.X
+    assert cirq.Z.third(cirq.Y) == cirq.X
+    assert cirq.Z.third(cirq.X) == cirq.Y
+    assert cirq.X.third(cirq.Z) == cirq.Y
 
-    assert cirq.Pauli.X.third(cirq.Pauli.X) == cirq.Pauli.X
-    assert cirq.Pauli.Y.third(cirq.Pauli.Y) == cirq.Pauli.Y
-    assert cirq.Pauli.Z.third(cirq.Pauli.Z) == cirq.Pauli.Z
+    assert cirq.X.third(cirq.X) == cirq.X
+    assert cirq.Y.third(cirq.Y) == cirq.Y
+    assert cirq.Z.third(cirq.Z) == cirq.Z
 
 
 def test_commutes_with():
-    assert cirq.Pauli.X.commutes_with(cirq.Pauli.X)
-    assert not cirq.Pauli.X.commutes_with(cirq.Pauli.Y)
-    assert not cirq.Pauli.X.commutes_with(cirq.Pauli.Z)
-    assert not cirq.Pauli.Y.commutes_with(cirq.Pauli.X)
-    assert cirq.Pauli.Y.commutes_with(cirq.Pauli.Y)
-    assert not cirq.Pauli.Y.commutes_with(cirq.Pauli.Z)
-    assert not cirq.Pauli.Z.commutes_with(cirq.Pauli.X)
-    assert not cirq.Pauli.Z.commutes_with(cirq.Pauli.Y)
-    assert cirq.Pauli.Z.commutes_with(cirq.Pauli.Z)
+    assert cirq.X.commutes_with(cirq.X)
+    assert not cirq.X.commutes_with(cirq.Y)
+    assert not cirq.X.commutes_with(cirq.Z)
+    assert not cirq.Y.commutes_with(cirq.X)
+    assert cirq.Y.commutes_with(cirq.Y)
+    assert not cirq.Y.commutes_with(cirq.Z)
+    assert not cirq.Z.commutes_with(cirq.X)
+    assert not cirq.Z.commutes_with(cirq.Y)
+    assert cirq.Z.commutes_with(cirq.Z)
 
 
 def test_unitary():
-    np.testing.assert_equal(cirq.unitary(cirq.Pauli.X), cirq.unitary(cirq.X))
-    np.testing.assert_equal(cirq.unitary(cirq.Pauli.Y), cirq.unitary(cirq.Y))
-    np.testing.assert_equal(cirq.unitary(cirq.Pauli.Z), cirq.unitary(cirq.Z))
+    np.testing.assert_equal(cirq.unitary(cirq.X), cirq.unitary(cirq.X))
+    np.testing.assert_equal(cirq.unitary(cirq.Y), cirq.unitary(cirq.Y))
+    np.testing.assert_equal(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
 
 
 def test_apply_unitary():
-    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.X)
-    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.Y)
-    cirq.testing.assert_has_consistent_apply_unitary(cirq.Pauli.Z)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Y)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.Z)

@@ -135,11 +135,11 @@ def test_fail_unsupported_gate():
 def test_rotation_to_clifford_gate():
     conv = ConvertToSingleQubitCliffordGates()
 
-    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 0.0)
+    assert (conv._rotation_to_clifford_gate(cirq.X, 0.0)
             == cirq.SingleQubitCliffordGate.I)
-    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 0.5)
+    assert (conv._rotation_to_clifford_gate(cirq.X, 0.5)
             == cirq.SingleQubitCliffordGate.X_sqrt)
-    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, 1.0)
+    assert (conv._rotation_to_clifford_gate(cirq.X, 1.0)
             == cirq.SingleQubitCliffordGate.X)
-    assert (conv._rotation_to_clifford_gate(cirq.Pauli.X, -0.5)
+    assert (conv._rotation_to_clifford_gate(cirq.X, -0.5)
             == cirq.SingleQubitCliffordGate.X_nsqrt)

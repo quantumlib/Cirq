@@ -17,7 +17,7 @@ from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
 
 from cirq import value
 from cirq.ops import (
-    raw_types, gate_operation, common_gates, op_tree
+    raw_types, gate_operation, common_gates, op_tree, pauli as pauli_gates
 )
 from cirq.ops.pauli import Pauli
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -135,7 +135,7 @@ class PauliString(raw_types.Operation):
         """
         for qubit, pauli in self.items():
             yield SingleQubitCliffordGate.from_single_map(
-                {pauli: (Pauli.Z, False)})(qubit)
+                {pauli: (pauli_gates.Z, False)})(qubit)
 
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],

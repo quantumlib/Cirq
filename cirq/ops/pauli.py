@@ -28,10 +28,11 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
     This is an abstract class with no public subclasses. The only instances
     of private subclasses are the X, Y, or Z Pauli gates defined below.
     """
-    X = None  # type: Pauli
-    Y = None  # type: Pauli
-    Z = None  # type: Pauli
-    XYZ = None  # type: Tuple[Pauli, Pauli, Pauli]
+    _XYZ = None  # type: Tuple[Pauli, Pauli, Pauli]
+
+    @staticmethod
+    def by_index(index: int) -> 'Pauli':
+        return Pauli._XYZ[index % 3]
 
     def __init__(
             self, *args: Any, _index: int, _name: str, **kwargs: Any) -> None:
@@ -43,7 +44,7 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
         return self is other
 
     def third(self, second: 'Pauli') -> 'Pauli':
-        return Pauli.XYZ[(-self._index - second._index) % 3]
+        return Pauli._XYZ[(-self._index - second._index) % 3]
 
     def difference(self, second: 'Pauli') -> int:
         return (self._index - second._index + 1) % 3 - 1
@@ -59,7 +60,7 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
         return (other._index - self._index) % 3 == 1
 
     def __add__(self, shift: int) -> 'Pauli':
-        return Pauli.XYZ[(self._index + shift) % 3]
+        return Pauli._XYZ[(self._index + shift) % 3]
 
     # pylint: disable=function-redefined
     @overload
@@ -127,7 +128,4 @@ Y = _PauliY()
 Z = _PauliZ()
 
 
-Pauli.X = X
-Pauli.Y = Y
-Pauli.Z = Z
-Pauli.XYZ = (X, Y, Z)
+Pauli._XYZ = (X, Y, Z)

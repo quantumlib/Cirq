@@ -69,7 +69,7 @@ def single_qubit_matrix_to_pauli_rotations(
         linalg.deconstruct_single_qubit_matrix_into_angles(mat))
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    m_pauli = ops.Pauli.X
+    m_pauli = ops.pauli.X  # type: ops.pauli.Pauli
     z_ht_after = z_rad_after / np.pi + 0.5
 
     # Clean up angles
@@ -78,7 +78,7 @@ def single_qubit_matrix_to_pauli_rotations(
             (is_half_turn(m_ht) and is_no_turn(z_ht_before-z_ht_after))):
             z_ht_before += 0.5
             z_ht_after -= 0.5
-            m_pauli = ops.Pauli.Y
+            m_pauli = ops.pauli.Y
         if is_half_turn(z_ht_before) or is_half_turn(z_ht_after):
             z_ht_before -= 1
             z_ht_after += 1
@@ -92,9 +92,9 @@ def single_qubit_matrix_to_pauli_rotations(
 
     # Generate operations
     rotation_list = [
-        (ops.Pauli.Z, z_ht_before),
+        (ops.pauli.Z, z_ht_before),
         (m_pauli, m_ht),
-        (ops.Pauli.Z, z_ht_after)]
+        (ops.pauli.Z, z_ht_after)]
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
