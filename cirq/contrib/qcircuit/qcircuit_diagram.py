@@ -57,7 +57,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     return output
 
 
-def circuit_to_latex_using_qcircuit(
+def circuit_to_qcircuit_diagram(
         circuit: circuits.Circuit, *,
         optimizers: Iterable[circuits.OptimizationPass]=default_optimizers,
         get_circuit_diagram_info: Optional[Callable[
@@ -65,12 +65,14 @@ def circuit_to_latex_using_qcircuit(
             protocols.CircuitDiagramInfo]] = None,
         qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
-        ) -> str:
-    """Returns a QCircuit-based latex diagram of the given circuit.
+        ) -> circuits.TextDiagramDrawer:
+    """Returns a qcircuit-suitable diagram of the given circuit.
 
     Args:
         circuit: The circuit to represent in latex.
         qubit_order: Determines the order of qubit wires in the diagram.
+        qubit_namer: How to display the qubits. Defaults to the qubit's str
+            method.
 
     Returns:
         Latex code for the diagram.
@@ -88,4 +90,21 @@ def circuit_to_latex_using_qcircuit(
         qubit_namer=qubit_namer,
         qubit_order=qubit_order,
         get_circuit_diagram_info=get_circuit_diagram_info)
+    return diagram
+
+
+def circuit_to_latex_using_qcircuit(
+        circuit: circuits.Circuit,
+        **kwargs
+        ) -> str:
+    """Returns a QCircuit-based latex diagram of the given circuit.
+
+    Args:
+        circuit: The circuit to represent in latex.
+        qubit_order: Determines the order of qubit wires in the diagram.
+
+    Returns:
+        Latex code for the diagram.
+    """
+    diagram = circuit_to_qcircuit_diagram(circuit, **kwargs)
     return _render(diagram)

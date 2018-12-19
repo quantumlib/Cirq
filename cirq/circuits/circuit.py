@@ -1355,10 +1355,14 @@ class Circuit:
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_name_suffix: Appended to qubit names in the diagram.
             transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
+            qubit_namer: How to display the qubits. Defaults to the qubit's str
+                method, with a colon appended if not transposed.
+            get_circuit_diagram_info: The function that takes an operation and
+                diagram info args and returns diagram info. Defaults to
+                _get_operation_circuit_diagram_info_with_fallback.
 
         Returns:
             The TextDiagramDrawer instance.
