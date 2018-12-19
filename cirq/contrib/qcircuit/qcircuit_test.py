@@ -76,9 +76,9 @@ def test_fallback_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{a}}& \qw&                                                                                                                       \qw&*+<.6em>{\text{\#2}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"       \qw    &\qw\\
- &\lstick{\text{b}}& \qw&*+<.6em>{\text{MagicOperate}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&*+<.6em>{\text{MagicGate}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw\qwx&\qw\\
- &\lstick{\text{c}}& \qw&                                                                                                                       \qw&*+<.6em>{\text{\#3}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"       \qw\qwx&\qw\\
+ &\lstick{\text{a}}& \qw&                                                                                                                       \qw&*+<.6em>{\text{\#2}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"       \qw    & \qw\\
+ &\lstick{\text{b}}& \qw&*+<.6em>{\text{MagicOperate}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&*+<.6em>{\text{MagicGate}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw\qwx& \qw\\
+ &\lstick{\text{c}}& \qw&                                                                                                                       \qw&*+<.6em>{\text{\#3}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"       \qw\qwx& \qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
@@ -102,9 +102,9 @@ def test_teleportation_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{alice}}&   \qw&                                                                                                            \qw&*+<.6em>{\text{X}^{0.5}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw    &\control \qw    &*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\meter \qw&         \qw    &\control \qw    &\qw\\
- &\lstick{\text{carrier}}& \qw&*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\control                                                                                                          \qw    &\targ    \qw\qwx&                                                                                                            \qw&\meter \qw&\control \qw    &         \qw\qwx&\qw\\
- &\lstick{\text{bob}}&     \qw&                                                                                                            \qw&\targ                                                                                                             \qw\qwx&         \qw    &                                                                                                            \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
+ &\lstick{\text{alice}}&   \qw&                                                                                                            \qw&*+<.6em>{\text{X}^{0.5}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw    &\control \qw    &*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\meter \qw&         \qw    &\control \qw    & \qw\\
+ &\lstick{\text{carrier}}& \qw&*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\control                                                                                                          \qw    &\targ    \qw\qwx&                                                                                                            \qw&\meter \qw&\control \qw    &         \qw\qwx& \qw\\
+ &\lstick{\text{bob}}&     \qw&                                                                                                            \qw&\targ                                                                                                             \qw\qwx&         \qw    &                                                                                                            \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx& \qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram,
@@ -122,9 +122,9 @@ def test_other_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\targ                                                                                                       \qw&\qw\\
- &\lstick{\text{1}}& \qw&*+<.6em>{\text{Y}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\qw\\
- &\lstick{\text{2}}& \qw&*+<.6em>{\text{Z}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\qw\\
+ &\lstick{\text{0}}& \qw&\targ                                                                                                       \qw& \qw\\
+ &\lstick{\text{1}}& \qw&*+<.6em>{\text{Y}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw& \qw\\
+ &\lstick{\text{2}}& \qw&*+<.6em>{\text{Z}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw& \qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
@@ -135,9 +135,9 @@ def test_swap_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&                    & \qw&\qw\\
- &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&\ar @{-} [1, 1]     &    &\qw\\
- &\lstick{\text{2}}& \qw&                 \qw&\ar @{-} [-1, 1] \qw&    &\qw\\
+ &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&                    & \qw& \qw\\
+ &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&\ar @{-} [1, 1]     &    & \qw\\
+ &\lstick{\text{2}}& \qw&                 \qw&\ar @{-} [-1, 1] \qw&    & \qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
@@ -147,9 +147,22 @@ def test_swap_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&    &                         \qw&\qw\\
- &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&    &\multigate{1}{\text{XX}} \qw&\qw\\
- &\lstick{\text{2}}& \qw&                 \qw& \qw&\ghost{\text{XX}}        \qw&\qw\\
+ &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&    &                         \qw& \qw\\
+ &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&    &\multigate{1}{\text{XX}} \qw& \qw\\
+ &\lstick{\text{2}}& \qw&                 \qw& \qw&\ghost{\text{XX}}        \qw& \qw\\
+ \\
+}""".strip()
+    assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+            [cirq.Moment([cirq.SWAP(a, b)]), cirq.Moment([cirq.X(c)])])
+    expected_diagram = r"""
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{0}}& \qw&\ar @{-} [1, 1]  \qw&         & \qw\\
+ &\lstick{\text{1}}& \qw&\ar @{-} [-1, 1] \qw&         & \qw\\
+ &\lstick{\text{2}}& \qw&                 \qw&\targ \qw& \qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)

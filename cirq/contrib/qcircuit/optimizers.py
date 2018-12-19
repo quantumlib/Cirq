@@ -19,31 +19,44 @@ from typing import Callable, Optional
 from cirq import circuits, ops
 
 
+class _EnsureFinalMomentEmpty(circuits.OptimizationPass):
+    def optimize_circuit(self, circuit: circuits.Circuit):
+        if circuit[-1]:
+            circuit.append(ops.Moment())
+
+
+EnsureFinalMomentEmpty = _EnsureFinalMomentEmpty()
+
 class PadBetweenOps(circuits.OptimizationPass):
     def __init__(self,
-                 needs_padding: Callable[[ops.Operation,
-                                          Optional[ops.Operation]], bool],
+                 padding_needed: Callable[[ops.Operation,
+                                          Optional[ops.Operation]], int],
                  ) -> None:
-        self.needs_padding = needs_padding
+        self.padding_needed = padding_needed
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         for i in reversed(range(len(circuit) - 1)):
             op_pairs = itertools.product(circuit[i], circuit[i + 1])
-            if any(self.needs_padding(*op_pair) for op_pair in op_pairs):
-                circuit.insert(i + 1, ops.Moment())
-        if any(self.needs_padding(op, None) for op in circuit[-1]):
-            circuit.append(ops.Moment())
+            padding = max(
+                    self.padding_needed(*op_pair) for op_pair in op_pairs)
+            circuit.insert(i + 1, (ops.Moment(),) * padding)
+        padding = max(self.padding_needed(op, None) for op in circuit[-1])
+        circuit.append((ops.Moment(),) * padding)
 
 def swap_followed_by_non_swap(
-        first_op: ops.Operation, second_op: Optional[ops.Operation]) -> bool:
-    return bool(
-        ((second_op is None) or
-         (set(first_op.qubits) & set(second_op.qubits))) and
-        isinstance(first_op, ops.GateOperation) and
-        first_op.gate == ops.SWAP and
-        not (isinstance(second_op, ops.GateOperation) and
-             second_op.gate == ops.SWAP))
+        first_op: ops.Operation, second_op: Optional[ops.Operation]) -> int:
+    if not (isinstance(first_op, ops.GateOperation) and
+            first_op.gate == ops.SWAP):
+        return 0
+    if second_op is None:
+        return 2
+    if not (set(first_op.qubits) & set(second_op.qubits)):
+        return 0
+    if (isinstance(second_op, ops.GateOperation) and
+        second_op.gate == ops.SWAP):
+        return 0
+    return 1
 
 PadAfterSwapGates = PadBetweenOps(swap_followed_by_non_swap)
 
-default_optimizers = (PadAfterSwapGates,)
+default_optimizers = (PadAfterSwapGates, EnsureFinalMomentEmpty)

@@ -49,7 +49,7 @@ def render(diagram: circuits.TextDiagramDrawer) -> str:
             post1 = '\\qw' if key in qw else ''
             post2 = '\\qwx' if key in qwx else ''
             diagram2.write(2*x + 2, y, post1 + post2)
-        diagram2.write(2*w - 1, y, '&\\qw\\\\')
+        diagram2.write(2*w - 1, y, '\\\\')
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
     output = '\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
