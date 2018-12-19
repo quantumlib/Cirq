@@ -23,7 +23,15 @@ def test_unitary():
     m2 = np.array([[0, 0, 0, 1],
                    [0, 0, 1, 0],
                    [0, 1, 0, 0],
-                   [1, 0, 0, 0]])
+                   [1, 0, 0, 0]])  # corresponds to X on two qubits
+    m3 = [[0, 0, 0, 0, 0, 1, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 0, 0, 1, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 0, 0, 0, 0],
+          [0, 0, 1, 0, 0, 0, 0, 0]]  # corresponds to X on qubit 1 and 3
     d = np.array([])
 
     class NoMethod:
@@ -47,28 +55,32 @@ def test_unitary():
         def _unitary_(self) -> np.ndarray:
             return m
 
-    class Decomposable(cirq.Gate):
-        def __init__(self, unitary_value):
+    class Decomposable(cirq.Operation):
+        qubits = ()
+        with_qubits = NotImplemented
+        def __init__(self, qubits, unitary_value):
+            self.qubits = qubits
             self.unitary_value = unitary_value
-        def _decompose_(self, qubits):
-            for q in qubits:
-                yield cirq.GateOperation(FullyImplemented(self.unitary_value),
-                                         (q,))
+        def _decompose_(self):
+            for q in self.qubits:
+                yield FullyImplemented(self.unitary_value)(q)
 
-    class DecomposableRecursion(cirq.Gate):
-        def __init__(self, unitary_value):
-            self.unitary_value = unitary_value
-        def _decompose_(self, qubits):
-            for q in qubits:
-                yield cirq.GateOperation(Decomposable(self.unitary_value),
-                                         (q,))
+    class DecomposableOrder(cirq.Operation):
+        qubits = ()
+        with_qubits = NotImplemented
+        def __init__(self, qubits):
+            self.qubits = qubits
+        def _decompose_(self):
+            yield FullyImplemented(True)(self.qubits[2])
+            yield FullyImplemented(True)(self.qubits[0])
 
-    class DecomposableCombination(cirq.Gate):
-        def _decompose_(self, qubits):
-            unitary_value = True
-            for q in qubits:
-                yield cirq.GateOperation(FullyImplemented(unitary_value), (q,))
-                unitary_value = False
+    class DummyOperation(cirq.Operation):
+        qubits = ()
+        with_qubits = NotImplemented
+        def __init__(self, qubits):
+            self.qubits = qubits
+        def _decompose_(self):
+            return ()
 
     with pytest.raises(TypeError, match='no _unitary_ method'):
         _ = cirq.unitary(NoMethod())
@@ -105,29 +117,28 @@ def test_unitary():
     # Test if decomposed operations _has_unitary_
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
 
-    assert cirq.has_unitary(cirq.GateOperation(Decomposable(True), (a, b)))
-    assert not cirq.has_unitary(cirq.GateOperation(ReturnsNotImplemented(),
-                                                   (a, b)))
-    assert cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(True),
-                                               (a, b)))
-    assert not cirq.has_unitary(cirq.GateOperation(Decomposable(False), (a, b)))
-    assert not cirq.has_unitary(cirq.GateOperation(DecomposableRecursion(False),
-                                                   (a, b)))
+    assert cirq.has_unitary(Decomposable((a, b), True))
+    assert not cirq.has_unitary(Decomposable((a,), False))
+    assert cirq.has_unitary(DummyOperation((a,)))
+    assert cirq.has_unitary(DummyOperation((a, b)))
 
-    assert cirq.has_unitary(cirq.GateOperation(DecomposableCombination(), (a,)))
-    assert not cirq.has_unitary(cirq.GateOperation(DecomposableCombination(),
-                                                   (a, b)))
+    # Test decompose_and_get_unitary
+    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+        Decomposable((a,), True)), m)
+    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+        Decomposable((a, b), True)), m2)
+    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+        DecomposableOrder((a, b, c))), m3)
+    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+        DummyOperation((a,))), np.eye(2))
+    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+        DummyOperation((a, b))), np.eye(4))
 
     # Test if decomposed operations has _unitary_
-    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
-        Decomposable(True), (a,))), m)
-    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
-        DecomposableRecursion(True), (a,))), m)
-
-    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
-        Decomposable(True), (a, b))), m2)
-    np.testing.assert_allclose(cirq.unitary(cirq.GateOperation(
-        DecomposableRecursion(True), (a, b))), m2)
-
-    # assert cirq.unitary(FullyImplemented(False), None)
+    np.testing.assert_allclose(cirq.unitary(Decomposable((a,), True)), m)
+    np.testing.assert_allclose(cirq.unitary(Decomposable((a, b), True)), m2)
+    np.testing.assert_allclose(cirq.unitary(DecomposableOrder((a, b, c))), m3)
+    np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
+    np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))

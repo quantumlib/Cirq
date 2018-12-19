@@ -18,8 +18,6 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
-from cirq.ops.raw_types import Operation
-from cirq.protocols.decompose import decompose_once
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -94,33 +92,15 @@ def unitary(val: Any,
         TypeError: `val` doesn't have a _unitary_ method (or that method
             returned NotImplemented) and also no default value was specified.
     """
-
-    from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
-    # Avoids circular import
-
+    from cirq import Operation  # HACK: Avoids circular dependencies.
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()
 
     # Fallback to decomposition for operations
     if result is NotImplemented and isinstance(val, Operation):
-        n = len(val.qubits)
-        decomposed_val = decompose_once(val, default=None)
-        if decomposed_val is not None:
-            # Calculate the resulting unitary (if it exists)
-            state = np.eye(1 << n, dtype=np.complex128)
-            state.shape = (2,) * (2 * n)
-            buffer = np.zeros(state.shape, dtype=np.complex128)
-            qubit_map = {q: i for i, q in enumerate(val.qubits)}
-            for op in decomposed_val:
-                indices = [qubit_map[q] for q in op.qubits]
-                result = apply_unitary(
-                    unitary_value=op,
-                    args=ApplyUnitaryArgs(state, buffer, indices))
-                if result is buffer:
-                    buffer = state
-                state = result
-            if result is not NotImplemented:
-                result = result.reshape((1 << n, 1 << n))
+        decomposed_unitary = decompose_and_get_unitary(val)
+        if decomposed_unitary is not None:
+            result = decomposed_unitary
 
     if result is not NotImplemented:
         return result
@@ -145,18 +125,53 @@ def has_unitary(val: Any) -> bool:
         decompostion. Otherwise, if the value has a _unitary_ method return if
         that has a non-default value. Returns False if neither function exists.
     """
+    from cirq.protocols.decompose import decompose_once
+    from cirq import Operation  # HACK: Avoids circular dependencies.
     getter = getattr(val, '_has_unitary_', None)
     result = NotImplemented if getter is None else getter()
 
     # Fallback to decomposition for operations
-    if (result is NotImplemented or not result) and isinstance(val, Operation):
-        decomposed_val = decompose_once(val, [])
-        if (len(decomposed_val) > 0 and
-                all(has_unitary(v) for v in decomposed_val)):
-            result = True
+    if result is NotImplemented and isinstance(val, Operation):
+        decomposed_val = decompose_once(val, None)
+        if decomposed_val is not None:
+            result = all(has_unitary(v) for v in decomposed_val)
 
     if result is not NotImplemented:
         return result
 
     # No _has_unitary_ function, use _unitary_ instead
     return unitary(val, None) is not None
+
+
+def decompose_and_get_unitary(val):
+    """Try to decompose an `Operation` and return its unitary.
+
+    Returns:
+     If `val` can be decomposed into unitaries, calculate the resulting unitary
+     and return it. If it doesn't exist, None is returned.
+    """
+    from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
+    from cirq.protocols.decompose import decompose_once
+
+    decomposed_val = decompose_once(val, None)
+    if decomposed_val is not None:
+        # Calculate the resulting unitary (if it exists)
+        n = len(val.qubits)
+        state = np.eye(1 << n, dtype=np.complex128)
+        state.shape = (2,) * (2 * n)
+        buffer = np.zeros(state.shape, dtype=np.complex128)
+        qubit_map = {q: i for i, q in enumerate(val.qubits)}
+        result = state
+        for op in decomposed_val:
+            indices = [qubit_map[q] for q in op.qubits]
+            result = apply_unitary(
+                unitary_value=op,
+                args=ApplyUnitaryArgs(state, buffer, indices),
+                default=None)
+            if result is None:
+                break
+            if result is buffer:
+                buffer = state
+            state = result
+        if result is not None:
+            return result.reshape((1 << n, 1 << n))

@@ -74,4 +74,5 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     has_unitary,
     unitary,
+    decompose_and_get_unitary,
 )
