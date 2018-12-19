@@ -28,6 +28,3 @@ from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     get_multigate_parameters,
     get_qcircuit_diagram_info
 )
-from cirq.contrib.qcircuit.qcircuit_pdf import (
-    circuit_to_pdf_using_qcircuit_via_tex
-)
