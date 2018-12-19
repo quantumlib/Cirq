@@ -66,6 +66,13 @@ from cirq.ops.common_gates import (
 from cirq.ops.controlled_gate import (
     ControlledGate,
 )
+from cirq.ops.display import (
+    ApproxPauliStringExpectation,
+    PauliStringExpectation,
+    SamplesDisplay,
+    WaveFunctionDisplay,
+    pauli_string_expectation,
+)
 from cirq.ops.eigen_gate import (
     EigenGate,
 )
