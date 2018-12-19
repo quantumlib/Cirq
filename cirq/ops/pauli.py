@@ -46,7 +46,7 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
     def third(self, second: 'Pauli') -> 'Pauli':
         return Pauli._XYZ[(-self._index - second._index) % 3]
 
-    def difference(self, second: 'Pauli') -> int:
+    def _difference(self, second: 'Pauli') -> int:
         return (self._index - second._index + 1) % 3 - 1
 
     def __gt__(self, other):
@@ -73,7 +73,7 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
         if isinstance(other_or_shift, int):
             return self + -other_or_shift
         else:
-            return self.difference(other_or_shift)
+            return self._difference(other_or_shift)
     # pylint: enable=function-redefined
 
 
