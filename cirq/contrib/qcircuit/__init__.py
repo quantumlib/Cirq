@@ -21,7 +21,9 @@ from cirq.contrib.qcircuit.optimizers import (
     default_optimizers, PadBetweenOps
 )
 from cirq.contrib.qcircuit.qcircuit_diagram import (
-    circuit_to_latex_using_qcircuit
+    circuit_to_qcircuit_diagram,
+    circuit_to_latex_using_qcircuit,
+    render
 )
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     escape_text_for_latex,

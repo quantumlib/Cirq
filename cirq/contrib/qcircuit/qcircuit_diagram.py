@@ -26,7 +26,7 @@ def qcircuit_qubit_namer(qubit: ops.QubitId):
     return '\\lstick{\\text{' + str(qubit) + '}}&'
 
 
-def _render(diagram: circuits.TextDiagramDrawer) -> str:
+def render(diagram: circuits.TextDiagramDrawer) -> str:
     w = diagram.width()
     h = diagram.height()
 
@@ -107,4 +107,4 @@ def circuit_to_latex_using_qcircuit(
         Latex code for the diagram.
     """
     diagram = circuit_to_qcircuit_diagram(circuit, **kwargs)
-    return _render(diagram)
+    return render(diagram)
