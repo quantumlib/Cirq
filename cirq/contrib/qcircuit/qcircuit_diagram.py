@@ -23,7 +23,7 @@ from cirq.contrib.qcircuit.optimizers import (
 
 def qcircuit_qubit_namer(qubit: ops.QubitId):
     # TODO: If qubit name ends with digits, turn them into subscripts.
-    return '\\lstick{\\text{' + str(qubit) + '}}&'
+    return '\\lstick{\\text{' + str(qubit) + '}}'
 
 
 def render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -36,7 +36,7 @@ def render(diagram: circuits.TextDiagramDrawer) -> str:
 
     qw = {(x, y)
           for y, x1, x2, _ in diagram.horizontal_lines
-          for x in range(x1, x2)
+          for x in range(x1 + 1, x2)
           if (x - 1, y) not in diagram.horizontal_occlusions}
 
     diagram2 = circuits.TextDiagramDrawer()
