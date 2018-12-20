@@ -112,7 +112,7 @@ from cirq.ops.parity_gates import (
     ZZ,
     ZZPowGate,
 )
-from cirq.ops.pauli import (
+from cirq.ops.pauli_gates import (
     Pauli,
     X,
     Y,

@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq import value, protocols
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
-        op_tree, pauli as pauli_gates
+        op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 

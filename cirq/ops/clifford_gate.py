@@ -18,8 +18,8 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types, common_gates, op_tree, \
-    named_qubit, pauli as pauli_gates
-from cirq.ops.pauli import Pauli
+    named_qubit, pauli_gates
+from cirq.ops.pauli_gates import Pauli
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])

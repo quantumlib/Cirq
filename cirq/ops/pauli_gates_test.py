@@ -19,9 +19,9 @@ import cirq
 
 def test_equals():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.X, cirq.ops.pauli.X, cirq.XPowGate())
-    eq.add_equality_group(cirq.Y, cirq.ops.pauli.Y, cirq.YPowGate())
-    eq.add_equality_group(cirq.Z, cirq.ops.pauli.Z, cirq.ZPowGate())
+    eq.add_equality_group(cirq.X, cirq.ops.pauli_gates.X, cirq.XPowGate())
+    eq.add_equality_group(cirq.Y, cirq.ops.pauli_gates.Y, cirq.YPowGate())
+    eq.add_equality_group(cirq.Z, cirq.ops.pauli_gates.Z, cirq.ZPowGate())
 
 
 def test_isinstance():
