@@ -135,6 +135,9 @@ class Circuit:
     def copy(self) -> 'Circuit':
         return Circuit(self._moments, self._device)
 
+    def __bool__(self):
+        return bool(self._moments)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented

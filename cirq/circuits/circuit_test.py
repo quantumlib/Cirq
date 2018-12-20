@@ -126,6 +126,11 @@ def test_append_moments():
     ])
 
 
+def test_bool():
+    assert not Circuit()
+    assert Circuit.from_ops(cirq.X(cirq.NamedQubit('a')))
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
