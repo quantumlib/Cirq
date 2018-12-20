@@ -59,12 +59,16 @@ from cirq.ops.common_gates import (
     SWAP,
     SwapPowGate,
     T,
-    X,
-    Y,
-    Z,
 )
 from cirq.ops.controlled_gate import (
     ControlledGate,
+)
+from cirq.ops.display import (
+    ApproxPauliStringExpectation,
+    PauliStringExpectation,
+    SamplesDisplay,
+    WaveFunctionDisplay,
+    pauli_string_expectation,
 )
 from cirq.ops.eigen_gate import (
     EigenGate,
@@ -108,8 +112,11 @@ from cirq.ops.parity_gates import (
     ZZ,
     ZZPowGate,
 )
-from cirq.ops.pauli import (
+from cirq.ops.pauli_gates import (
     Pauli,
+    X,
+    Y,
+    Z,
 )
 from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,
