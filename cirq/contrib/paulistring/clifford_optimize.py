@@ -120,7 +120,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                   and other_op.gate.exponent == 1
                   and quarter_turns == 2):
                 # Pass whole Pauli gate over CZ, possibly adding a Z gate
-                if pauli != ops.Pauli.Z:
+                if pauli != ops.pauli_gates.Z:
                     other_qubit = other_op.qubits[
                                     other_op.qubits.index(qubit)-1]
                     all_ops.insert(merge_i+1,
