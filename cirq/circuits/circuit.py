@@ -808,22 +808,27 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = ops.flatten_op_tree(
+        moments_and_operations = list(ops.flatten_op_tree(
             ops.transform_op_tree(moment_or_operation_tree,
                                   self._device.decompose_operation,
                                   preserve_moments=True),
-            preserve_moments=True
-        )
+            preserve_moments=True))
+
+        for moment_or_op in moments_and_operations:
+            if isinstance(moment_or_operation_tree, ops.Moment):
+                self._device.validate_moment(cast(ops.Moment, moment_or_op))
+            else:
+                self._device.validate_operation(
+                    cast(ops.Operation, moment_or_op))
+
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index,
                     len(self._moments)), 0)
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
-                self._device.validate_moment(moment_or_op)
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
-                self._device.validate_operation(moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(
                     k, moment_or_op, strategy)
                 while p >= len(self._moments):
