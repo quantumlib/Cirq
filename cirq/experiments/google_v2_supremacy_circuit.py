@@ -39,7 +39,7 @@ def generate_supremacy_circuit_google_v2(qubits: Iterable[devices.GridQubit],
     (as in the QASM mapping)
     """
 
-    non_diagonal_gates = [ops.common_gates.X**(1/2), ops.common_gates.Y**(1/2)]
+    non_diagonal_gates = [ops.pauli_gates.X**(1/2), ops.pauli_gates.Y**(1/2)]
     rand_gen = random.Random(seed).random
 
     circuit = circuits.Circuit()
