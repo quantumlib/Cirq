@@ -499,6 +499,17 @@ def test_insert_moment():
         assert c.operation_at(qubit, actual_index) == operation[0]
 
 
+def test_insert_validates_all_operations_before_inserting():
+    a, b = cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)
+    c = Circuit(device=cg.Foxtail)
+    operations = [cirq.Z(a), cirq.CZ(a, b)]
+
+    with pytest.raises(ValueError, match='Non-local interaction'):
+        c.insert(0, operations)
+
+    assert len(c) == 0
+
+
 def test_insert_inline_near_start():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
