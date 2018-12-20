@@ -24,6 +24,21 @@ def test_equals():
     eq.add_equality_group(cirq.Z, cirq.ops.pauli.Z, cirq.ZPowGate())
 
 
+def test_isinstance():
+    assert isinstance(cirq.X, cirq.XPowGate)
+    assert isinstance(cirq.Y, cirq.YPowGate)
+    assert isinstance(cirq.Z, cirq.ZPowGate)
+
+    assert not isinstance(cirq.X, cirq.YPowGate)
+    assert not isinstance(cirq.X, cirq.ZPowGate)
+
+    assert not isinstance(cirq.Y, cirq.XPowGate)
+    assert not isinstance(cirq.Y, cirq.ZPowGate)
+
+    assert not isinstance(cirq.Z, cirq.XPowGate)
+    assert not isinstance(cirq.Z, cirq.YPowGate)
+
+
 def test_by_index():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
