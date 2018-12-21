@@ -22,7 +22,6 @@ from cirq.circuits import (
     Circuit,
     CircuitDag,
     InsertStrategy,
-    OptimizationPass,
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from typing import Dict, List, Tuple
 
 
-class EjectZ(circuits.OptimizationPass):
+class EjectZ():
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into

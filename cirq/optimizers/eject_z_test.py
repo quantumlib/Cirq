@@ -12,17 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
-
 import cirq
 from cirq.optimizers.eject_z import _try_get_known_z_half_turns
 
 
 def assert_optimizes(before: cirq.Circuit,
-                     expected: cirq.Circuit,
-                     post_opts: Iterable[cirq.OptimizationPass] = (
-                             cirq.DropEmptyMoments(),
-                     )):
+                     expected: cirq.Circuit):
     opt = cirq.EjectZ()
 
     if cirq.has_unitary(before):
@@ -31,9 +26,7 @@ def assert_optimizes(before: cirq.Circuit,
 
     circuit = before.copy()
     opt.optimize_circuit(circuit)
-    for post in post_opts:
-        post.optimize_circuit(circuit)
-        post.optimize_circuit(expected)
+    opt.optimize_circuit(expected)
 
     cirq.testing.assert_same_circuits(circuit, expected)
 
@@ -182,7 +175,8 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u(q)]),
             cirq.Moment(),
-            cirq.Moment([cirq.Y(q)]),
+            cirq.Moment([cirq.Y(q)**-1.0]),
+            cirq.Moment(),
             cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.75).on(q)]),
             cirq.Moment([cirq.Z(q)**0.75]),
             cirq.Moment([u(q)]),
@@ -198,6 +192,7 @@ def test_symbols_block():
             cirq.Moment([cirq.Z(q)**0.25]),
         ]),
         expected=cirq.Circuit([
+            cirq.Moment(),
             cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
             cirq.Moment([cirq.Z(q)**1.25]),
         ]))
