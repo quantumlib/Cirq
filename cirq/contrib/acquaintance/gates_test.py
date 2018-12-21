@@ -21,6 +21,7 @@ from numpy.random import poisson
 import pytest
 
 import cirq
+import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
 if TYPE_CHECKING:
@@ -60,7 +61,6 @@ def test_swap_network_gate():
     swap_network_op = cca.SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
     swap_network = cirq.Circuit.from_ops(swap_network_op)
-    actual_text_diagram = swap_network.to_text_diagram().strip()
     expected_text_diagram = """
 a: ───×(0,0)───
       │
@@ -74,13 +74,12 @@ e: ───×(2,0)───
       │
 f: ───×(2,1)───
     """.strip()
-    assert actual_text_diagram == expected_text_diagram
+    ct.assert_has_diagram(swap_network, expected_text_diagram)
 
     no_decomp = lambda op: isinstance(op.gate,
             (cca.CircularShiftGate, cca.LinearPermutationGate))
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     expander(swap_network)
-    actual_text_diagram = swap_network.to_text_diagram().strip()
     expected_text_diagram = """
 a: ───█───────╲0╱───█─────────────────█───────────╲0╱───█───────0↦1───
       │       │     │                 │           │     │       │
@@ -94,7 +93,7 @@ e: ─────────────────█───────�
                     │           │     │           │
 f: ─────────────────█───────────╱3╲───█───────────1↦0─────────────────
     """.strip()
-    assert actual_text_diagram == expected_text_diagram
+    ct.assert_has_diagram(swap_network, expected_text_diagram)
 
     no_decomp = lambda op: isinstance(op.gate, cca.CircularShiftGate)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
@@ -108,7 +107,6 @@ f: ─────────────────█───────�
     swap_network = cirq.Circuit.from_ops(swap_network_op)
 
     expander(swap_network)
-    actual_text_diagram = swap_network.to_text_diagram().strip()
     expected_text_diagram = """
 a: ───╲0╱─────────╲0╱─────────╲0╱─────────
       │           │           │
@@ -122,7 +120,8 @@ e: ───╲0╱───╱1╲───╲0╱───╱1╲───╲0
       │           │           │
 f: ───╱1╲─────────╱1╲─────────╱1╲─────────
     """.strip()
-    assert actual_text_diagram == expected_text_diagram
+    ct.assert_has_diagram(swap_network, expected_text_diagram)
+
 
 @pytest.mark.parametrize('part_lens',
     [tuple(randint(1, 3) for _ in range(randint(2, 10))) for _ in range(3)])
@@ -183,7 +182,6 @@ def test_swap_network_decomposition():
     swap_network_gate = cca.SwapNetworkGate((4, 4), 5)
     operations = cirq.decompose_once_with_qubits(swap_network_gate, qubits)
     circuit = cirq.Circuit.from_ops(operations)
-    actual_text_diagram = circuit.to_text_diagram()
     expected_text_diagram = """
 0: ───█─────────────█─────────────╲0╱─────────────█─────────█───────0↦2───
       │             │             │               │         │       │
@@ -201,7 +199,7 @@ def test_swap_network_decomposition():
           │                   │   │     │                       │   │
 7: ───────█───────────────────█───╱7╲───█───────────────────────█───3↦1───
     """.strip()
-    assert actual_text_diagram == expected_text_diagram
+    ct.assert_has_diagram(circuit, expected_text_diagram)
 
 def test_swap_network_init_error():
     with pytest.raises(ValueError):
