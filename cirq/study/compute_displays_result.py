@@ -33,6 +33,12 @@ class ComputeDisplaysResult:
         self.params = params
         self.display_values = display_values
 
+    def __eq__(self, other):
+        if not isinstance(other, ComputeDisplaysResult):
+            return NotImplemented
+        return (self.params == other.params
+                and self.display_values == other.display_values)
+
     def __repr__(self):
         return ('cirq.ComputeDisplaysResult('
                 'params={!r}, '
