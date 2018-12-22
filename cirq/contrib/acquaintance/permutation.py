@@ -94,6 +94,11 @@ class SwapPermutationGate(PermutationGate):
         yield self.swap_gate(*qubits)
 
 
+def _permutation_eq(first: Dict[int, int], second: Dict[int, int]) -> bool:
+    return all(first.get(i, i) == second.get(i, i)
+               for i in (set(first) | set(second)))
+
+
 class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
         sorting network."""
@@ -124,6 +129,16 @@ class LinearPermutationGate(PermutationGate):
                 if mapping[i] > mapping[i + 1]:
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
+
+    def __repr__(self):
+        return ('cirq.contrib.acquaintance.LinearPermutationGate('
+                '{!r}, {!r})'.format(self._permutation, self.swap_gate))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (_permutation_eq(self._permutation, other._permutation) and
+                self.swap_gate == other.swap_gate)
 
 
 def update_mapping(mapping: Dict[ops.QubitId, LogicalIndex],
