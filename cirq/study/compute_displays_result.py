@@ -27,7 +27,7 @@ class ComputeDisplaysResult:
         display_values: A dictionary from display key to display value.
     """
 
-    __hash__ = None
+    __hash__ = None  # type: ignore
 
     def __init__(self,
                  params: resolver.ParamResolver,
