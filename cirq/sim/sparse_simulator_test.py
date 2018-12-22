@@ -382,40 +382,40 @@ def test_compute_displays(dtype):
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.Pauli.Z}),
+            cirq.PauliString({qubits[3]: cirq.Z}),
             key='z3'
         ),
         cirq.X(qubits[1]),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[1]: cirq.Pauli.Z}),
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[1]: cirq.Z}),
             key='z0z1'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[1]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[1]: cirq.X}),
             key='z0x1'
         ),
         cirq.H(qubits[2]),
         cirq.X(qubits[3]),
         cirq.H(qubits[3]),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
-                              qubits[2]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[1]: cirq.Z,
+                              qubits[2]: cirq.X}),
             key='z1x2'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.X,
-                              qubits[1]: cirq.Pauli.Z}),
+            cirq.PauliString({qubits[0]: cirq.X,
+                              qubits[1]: cirq.Z}),
             key='x0z1'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[3]: cirq.X}),
             key='x3'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
-                              qubits[2]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[1]: cirq.Z,
+                              qubits[2]: cirq.X}),
             num_samples=1,
             key='approx_z1x2'
         ),
@@ -452,18 +452,18 @@ def test_compute_samples_displays(dtype):
         cirq.X(qubits[3]),
         cirq.H(qubits[3]),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[3]: cirq.X}),
             key='x3'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
-                              qubits[2]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[1]: cirq.Z,
+                              qubits[2]: cirq.X}),
             num_samples=10,
             key='approx_z1x2'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
-                              qubits[3]: cirq.Pauli.X}),
+            cirq.PauliString({qubits[1]: cirq.Z,
+                              qubits[3]: cirq.X}),
             num_samples=10,
             key='approx_z1x3'
         ),

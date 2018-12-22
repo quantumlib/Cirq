@@ -34,8 +34,8 @@ class GoodGate(cirq.SingleQubitGate):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        z = cirq.unitary(cirq.ops.common_gates.Z**self.phase_exponent)
-        x = cirq.unitary(cirq.ops.common_gates.X**self.exponent)
+        z = cirq.unitary(cirq.Z**self.phase_exponent)
+        x = cirq.unitary(cirq.X**self.exponent)
         return np.dot(np.dot(z, x), np.conj(z))
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
@@ -57,8 +57,8 @@ class GoodGate(cirq.SingleQubitGate):
     def _decompose_(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
-        z = cirq.ops.common_gates.Z(q)**self.phase_exponent
-        x = cirq.ops.common_gates.X(q)**self.exponent
+        z = cirq.Z(q)**self.phase_exponent
+        x = cirq.X(q)**self.exponent
         if cirq.is_parameterized(z):
             # coverage: ignore
             return NotImplemented
@@ -126,8 +126,8 @@ class BadGateDecompose(GoodGate):
     def _decompose_(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
-        z = cirq.ops.common_gates.Z(q)**self.phase_exponent
-        x = cirq.ops.common_gates.X(q)**(2*self.exponent)
+        z = cirq.Z(q)**self.phase_exponent
+        x = cirq.X(q)**(2*self.exponent)
         if cirq.is_parameterized(z):
             # coverage: ignore
             return NotImplemented

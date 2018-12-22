@@ -27,11 +27,22 @@ class ComputeDisplaysResult:
         display_values: A dictionary from display key to display value.
     """
 
+    __hash__ = None  # type: ignore
+
     def __init__(self,
                  params: resolver.ParamResolver,
                  display_values: Dict) -> None:
         self.params = params
         self.display_values = display_values
+
+    def __eq__(self, other):
+        if not isinstance(other, ComputeDisplaysResult):
+            return NotImplemented
+        return (self.params == other.params
+                and self.display_values == other.display_values)
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return ('cirq.ComputeDisplaysResult('
