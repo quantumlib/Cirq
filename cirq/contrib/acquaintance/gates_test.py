@@ -207,10 +207,14 @@ def test_swap_network_init_error():
     with pytest.raises(ValueError):
         cca.SwapNetworkGate((3,))
 
-@pytest.mark.parametrize('part_lens, acquaintance_size', [
+
+part_lens_and_acquaintance_sizes = [
     [[l + 1 for l in poisson(size=n_parts, lam=lam)], poisson(4)]
     for n_parts, lam in product(range(2, 20, 3), range(1, 4))
-     ])
+]
+
+@pytest.mark.parametrize('part_lens, acquaintance_size',
+        part_lens_and_acquaintance_sizes)
 def test_swap_network_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
@@ -219,10 +223,19 @@ def test_swap_network_permutation(part_lens, acquaintance_size):
             zip(range(n_qubits), reversed(range(n_qubits)))}
     assert gate.permutation(n_qubits) == expected_permutation
 
+
+@pytest.mark.parametrize('part_lens, acquaintance_size',
+        part_lens_and_acquaintance_sizes)
+def test_swap_network_repr(part_lens, acquaintance_size):
+    gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
+    ct.assert_equivalent_repr(gate)
+
+
 def test_swap_network_permutation_error():
     gate = cca.SwapNetworkGate((1, 1))
     with pytest.raises(ValueError):
         gate.permutation(1)
+
 
 class OtherOperation(cirq.Operation):
     def __init__(self, qubits: Sequence[cirq.QubitId]) -> None:
@@ -238,6 +251,7 @@ class OtherOperation(cirq.Operation):
     def __eq__(self, other):
         return (isinstance(other, type(self)) and
                 self.qubits == other.qubits)
+
 
 def test_get_acquaintance_size():
     qubits = cirq.LineQubit.range(5)
