@@ -210,6 +210,7 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    ComputeDisplaysResult,
     Linspace,
     ParamResolver,
     plot_state_histogram,
