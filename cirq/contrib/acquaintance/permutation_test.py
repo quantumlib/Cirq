@@ -103,3 +103,13 @@ def test_linear_permutation_gate(n_elements, n_permuted):
     for i in range(n_elements):
         p = permutation.get(elements[i], i)
         assert mapping.get(qubits[p], elements[i]) == i
+
+def test_linear_permutation_gate_eq():
+    f = cca.LinearPermutationGate({})
+    assert not f
+    assert f.__eq__(cirq.X) == NotImplemented
+    g = cca.LinearPermutationGate({0: 1, 1: 2, 2: 0, 3: 3})
+    h = cca.LinearPermutationGate({0: 1, 1: 2, 2: 0, 4: 4})
+    assert g == h
+    hh = cca.LinearPermutationGate({0: 1, 1: 2, 2: 0, 4: 4}, cirq.XX)
+    assert g != hh

@@ -140,6 +140,9 @@ class LinearPermutationGate(PermutationGate):
         return (_permutation_eq(self._permutation, other._permutation) and
                 self.swap_gate == other.swap_gate)
 
+    def __bool__(self):
+        return not _permutation_eq(self._permutation, {})
+
 
 def update_mapping(mapping: Dict[ops.QubitId, LogicalIndex],
                    operations: ops.OP_TREE
