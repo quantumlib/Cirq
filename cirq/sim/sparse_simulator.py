@@ -24,8 +24,8 @@ from cirq import circuits, study, ops, protocols
 from cirq.sim import simulator, wave_function
 
 
-class Simulator(simulator.SimulatesIntermediateWaveFunction,
-                simulator.SimulatesSamples):
+class Simulator(simulator.SimulatesSamples,
+                simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
 
     This simulator can be applied on circuits that are made up of operations

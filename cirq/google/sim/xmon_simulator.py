@@ -93,8 +93,8 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulator(simulator.SimulatesIntermediateWaveFunction,
-                    simulator.SimulatesSamples):
+class XmonSimulator(simulator.SimulatesSamples,
+                    simulator.SimulatesIntermediateWaveFunction):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
