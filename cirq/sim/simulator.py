@@ -114,14 +114,12 @@ class SimulatesSamples:
         """
         raise NotImplementedError()
 
-    def compute_displays(
+    def compute_samples_displays(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
             param_resolver: Optional[study.ParamResolver] = None,
     ) -> study.ComputeDisplaysResult:
-        """Computes displays in the supplied Circuit or Schedule.
-
-        Only SamplesDisplays are computed; any WaveFunctionDisplays are ignored.
+        """Computes SamplesDisplays in the supplied Circuit or Schedule.
 
         Args:
             program: The circuit or schedule to simulate.
@@ -130,19 +128,18 @@ class SimulatesSamples:
         Returns:
             ComputeDisplaysResult for the simulation.
         """
-        return self.compute_displays_sweep(
+        return self.compute_samples_displays_sweep(
             program, [param_resolver or study.ParamResolver({})])[0]
 
-    def compute_displays_sweep(
+    def compute_samples_displays_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
             params: Optional[study.Sweepable] = None
     ) -> List[study.ComputeDisplaysResult]:
-        """Computes displays in the supplied Circuit or Schedule.
+        """Computes SamplesDisplays in the supplied Circuit or Schedule.
 
         In contrast to `compute_displays`, this allows for sweeping
         over different parameter values.
-        Only SamplesDisplays are computed; any WaveFunctionDisplays are ignored.
 
         Args:
             program: The circuit or schedule to simulate.
