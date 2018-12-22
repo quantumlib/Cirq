@@ -43,7 +43,7 @@ class SimulatesSamples:
         param_resolver: Optional[study.ParamResolver] = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
+        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
         Args:
             program: The circuit or schedule to simulate.
@@ -63,7 +63,7 @@ class SimulatesSamples:
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
+        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
         In contrast to run, this allows for sweeping over different parameter
         values.
@@ -119,7 +119,7 @@ class SimulatesSamples:
             program: Union[circuits.Circuit, schedules.Schedule],
             param_resolver: Optional[study.ParamResolver] = None,
     ) -> study.ComputeDisplaysResult:
-        """Computes displays in the supplied Circuit.
+        """Computes displays in the supplied Circuit or Schedule.
 
         Only SamplesDisplays are computed; any WaveFunctionDisplays are ignored.
 
@@ -138,7 +138,7 @@ class SimulatesSamples:
             program: Union[circuits.Circuit, schedules.Schedule],
             params: Optional[study.Sweepable] = None
     ) -> List[study.ComputeDisplaysResult]:
-        """Computes displays in the supplied Circuit.
+        """Computes displays in the supplied Circuit or Schedule.
 
         In contrast to `compute_displays`, this allows for sweeping
         over different parameter values.
@@ -200,7 +200,7 @@ class SimulatesFinalWaveFunction:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> 'SimulationTrialResult':
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function.
@@ -233,7 +233,7 @@ class SimulatesFinalWaveFunction:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
@@ -412,7 +412,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
@@ -524,7 +524,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
     ) -> study.ComputeDisplaysResult:
-        """Computes displays in the supplied Circuit.
+        """Computes displays in the supplied Circuit or Schedule.
 
         Args:
             program: The circuit or schedule to simulate.
@@ -550,7 +550,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
     ) -> List[study.ComputeDisplaysResult]:
-        """Computes displays in the supplied Circuit.
+        """Computes displays in the supplied Circuit or Schedule.
 
         In contrast to `compute_displays`, this allows for sweeping
         over different parameter values.
