@@ -311,5 +311,11 @@ class SwapNetworkGate(PermutationGate):
         return {i: j for i, j in
                 enumerate(reversed(range(sum(self.part_lens))))}
 
+    def __repr__(self):
+        return ('cirq.contrib.acquaintance.SwapNetworkGate('
+                '{!r}, {!r})'.format(self.part_lens, self.acquaintance_size))
 
+    def __eq__(self, other):
+        return ((self.part_lens == other.part_lens) and
+                (self.acquaintance_size == other.acquaintance_size))
 
