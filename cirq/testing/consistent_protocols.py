@@ -37,10 +37,8 @@ def assert_implements_consistent_protocols(
         local_vals: Optional[Dict[str, Any]] = None
         ) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
-    if global_vals is None:
-        global_vals = {}  # type: Dict[str, Any]
-    if local_vals is None:
-        local_vals = {}  # type: Dict[str, Any]
+    global_vals = global_vals or {}
+    local_vals = local_vals or {}
 
     _assert_meets_standards_helper(val,
                                    qubit_count,

@@ -29,10 +29,8 @@ def assert_equivalent_repr(
         setup_code: Code that must be executed before the repr can be evaluated.
             Ideally this should just be a series of 'import' lines.
     """
-    if global_vals is None:
-        global_vals = {}  # type: Dict[str, Any]
-    if local_vals is None:
-        local_vals = {}  # type: Dict[str, Any]
+    global_vals = global_vals or {}
+    local_vals = local_vals or {}
 
     exec(setup_code, global_vals, local_vals)
 
