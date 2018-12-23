@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional
 
 
 def assert_equivalent_repr(
@@ -29,9 +29,11 @@ def assert_equivalent_repr(
         setup_code: Code that must be executed before the repr can be evaluated.
             Ideally this should just be a series of 'import' lines.
     """
+    if global_vals is None:
+        global_vals = {}  # type: Dict[str, Any]
+    if local_vals is None:
+        local_vals = {}  # type: Dict[str, Any]
 
-    global_vals = global_vals or {}  # type: Dict[str, Any]
-    local_vals = local_vals or {}  # type: Dict[str, Any]
     exec(setup_code, global_vals, local_vals)
 
     try:

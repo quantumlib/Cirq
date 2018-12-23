@@ -34,10 +34,13 @@ def assert_implements_consistent_protocols(
         qubit_count: Optional[int] = None,
         setup_code: str = 'import cirq\nimport numpy as np',
         global_vals: Optional[Dict[str, Any]] = None,
-        local_vals: Optional[Dict[str, Any]] = None) -> None:
+        local_vals: Optional[Dict[str, Any]] = None
+        ) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
-    global_vals = global_vals or {}  # type: Dict[str, Any]
-    local_vals = local_vals or {}  # type: Dict[str, Any]
+    if global_vals is None:
+        global_vals = {}  # type: Dict[str, Any]
+    if local_vals is None:
+        local_vals = {}  # type: Dict[str, Any]
 
     _assert_meets_standards_helper(val,
                                    qubit_count,
