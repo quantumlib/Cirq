@@ -195,9 +195,10 @@ class Schedule:
         time = None  # type: Optional[Timestamp]
         for so in self.scheduled_operations:
             if so.time != time:
-                circuit.append(so.operation, strategy=InsertStrategy.NEW_THEN_INLINE)
+                circuit.append(so.operation,
+                               strategy=InsertStrategy.NEW_THEN_INLINE)
                 time = so.time
             else:
                 circuit.append(so.operation,
-                           strategy=InsertStrategy.INLINE)
+                               strategy=InsertStrategy.INLINE)
         return circuit
