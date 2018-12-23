@@ -82,7 +82,7 @@ def test_wave_simulator():
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = mock.Mock(cirq.QubitOrder)
-    result = simulator.simulate(circuit=circuit,
+    result = simulator.simulate(program=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=qubit_order,
                                 initial_state=2)
@@ -104,7 +104,7 @@ def test_wave_simulator_no_steps():
     circuit = cirq.testing.random_circuit(2, 20, 0.99)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = circuit.all_qubits()
-    result = simulator.simulate(circuit=circuit,
+    result = simulator.simulate(program=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=list(qubit_order),
                                 initial_state=initial_state)

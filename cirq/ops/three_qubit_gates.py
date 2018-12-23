@@ -24,6 +24,7 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
+    pauli_gates,
     op_tree,
     raw_types,
 )
@@ -150,7 +151,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(
                 controlled_gate.ControlledGate(
-                    common_gates.X**self.exponent)),
+                    pauli_gates.X**self.exponent)),
             protocols.ApplyUnitaryArgs(
                 args.target_tensor,
                 args.available_buffer,
@@ -245,7 +246,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.T(c)**-1
         yield common_gates.CNOT(a, b)
         yield common_gates.CNOT(b, c)
-        yield common_gates.X(b)**0.5
+        yield pauli_gates.X(b)**0.5
         yield common_gates.T(c)**-1
         yield common_gates.CNOT(b, a)
         yield common_gates.CNOT(b, c)
@@ -253,7 +254,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.CNOT(b, c)
         yield common_gates.H(c)
         yield common_gates.S(c)**-1
-        yield common_gates.X(a)**-0.5
+        yield pauli_gates.X(a)**-0.5
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         return protocols.apply_unitary(
@@ -284,7 +285,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
                      common_gates.CNOT(b, c)]
 
         yield common_gates.CNOT(c, b)
-        yield common_gates.Y(c)**-0.5
+        yield pauli_gates.Y(c)**-0.5
         yield t(a), t(b), t(c)
         yield sweep_abc
         yield t(b) ** -1, t(c)
@@ -292,11 +293,11 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield t(c) ** -1
         yield sweep_abc
         yield t(c) ** -1
-        yield common_gates.X(b)**0.5
+        yield pauli_gates.X(b)**0.5
         yield sweep_abc
         yield common_gates.S(c)
-        yield common_gates.X(b)**0.5
-        yield common_gates.X(c)**-0.5
+        yield pauli_gates.X(b)**0.5
+        yield pauli_gates.X(c)**-0.5
 
     def _has_unitary_(self) -> bool:
         return True
