@@ -46,6 +46,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.phased_x_gate
 
 
+@value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the X axis of the Bloch sphere.
@@ -139,6 +140,7 @@ class XPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
@@ -219,6 +221,7 @@ class YPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
@@ -536,9 +539,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             yield cirq.XPowGate(global_shift=-0.25).on(q)
             return
 
-        yield Y(q)**0.25
-        yield X(q)**self._exponent
-        yield Y(q)**-0.25
+        yield YPowGate(exponent=0.25).on(q)
+        yield XPowGate(exponent=self._exponent).on(q)
+        yield YPowGate(exponent=-0.25).on(q)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -682,9 +685,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _decompose_(self, qubits):
         c, t = qubits
-        yield Y(t)**-0.5
+        yield YPowGate(exponent=-0.5).on(t)
         yield CZ(c, t)**self._exponent
-        yield Y(t)**0.5
+        yield YPowGate(exponent=0.5).on(t)
 
     def _eigen_components(self):
         return [
@@ -949,34 +952,6 @@ def Rz(rads: float) -> ZPowGate:
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
-X = XPowGate()
-"""The Pauli X gate.
-
-Matrix:
-
-    [[0, 1],
-     [1, 0]]
-"""
-
-
-#: The Pauli Y gate.
-#:
-#: Matrix:
-#:
-#:     [[0, -i],
-#:      [i, 0]]
-Y = YPowGate()
-
-
-# The Pauli Z gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, -1]]
-Z = ZPowGate()
-
-
 # The Hadamard gate.
 #
 # Matrix:
@@ -993,7 +968,7 @@ H = HPowGate()
 #
 #     [[1, 0],
 #      [0, i]]
-S = Z**0.5
+S = ZPowGate(exponent=0.5)
 
 
 # The T gate.
@@ -1002,7 +977,7 @@ S = Z**0.5
 #
 #     [[1, 0]
 #      [0, exp(i pi / 4)]]
-T = Z**0.25
+T = ZPowGate(exponent=0.25)
 
 
 # The controlled Z gate.

@@ -22,7 +22,6 @@ from cirq.circuits import (
     Circuit,
     CircuitDag,
     InsertStrategy,
-    OptimizationPass,
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
@@ -211,6 +210,7 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    ComputeDisplaysResult,
     Linspace,
     ParamResolver,
     plot_state_histogram,
@@ -227,6 +227,7 @@ from cirq.value import (
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
     Duration,
+    PeriodicValue,
     Symbol,
     Timestamp,
     value_equality,

@@ -126,6 +126,11 @@ def test_append_moments():
     ])
 
 
+def test_bool():
+    assert not Circuit()
+    assert Circuit.from_ops(cirq.X(cirq.NamedQubit('a')))
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
@@ -492,6 +497,17 @@ def test_insert_moment():
     for given_index, actual_index, operation, qubit, strat in moment_list:
         c.insert(given_index, Moment(operation), strat)
         assert c.operation_at(qubit, actual_index) == operation[0]
+
+
+def test_insert_validates_all_operations_before_inserting():
+    a, b = cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)
+    c = Circuit(device=cg.Foxtail)
+    operations = [cirq.Z(a), cirq.CZ(a, b)]
+
+    with pytest.raises(ValueError, match='Non-local interaction'):
+        c.insert(0, operations)
+
+    assert len(c) == 0
 
 
 def test_insert_inline_near_start():
