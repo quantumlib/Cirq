@@ -1771,4 +1771,4 @@ def _group_until_different(items: Iterable[TIn],
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [value(i) for i in v]) for (k, v) in itertools.groupby(items, key))
+    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
