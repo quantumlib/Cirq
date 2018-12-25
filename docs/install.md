@@ -131,7 +131,7 @@ This will use a Docker image that will isolate Cirq's installation from the rest
     # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
     ```
 
-3. You can use the created image as:
+3. To run the image:
     ```bash
     docker run -it quantumlib/cirq
      ```
