@@ -274,7 +274,7 @@ specified in "half turns". For a rotation about X this is the
 gate cos(half_turns * pi) I + i sin(half_turns * pi) X.
 
 There is a lot of freedom defining a variational ansatz.
-Here we will do a variation on a [QOAO strategy](https://arxiv.org/abs/1411.4028)
+Here we will do a variation on a [QAOA strategy](https://arxiv.org/abs/1411.4028)
 and define an ansatz related to the problem we are trying to solve.
 
 First we need to choose how the instances of the

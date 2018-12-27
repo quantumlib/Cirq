@@ -19,7 +19,7 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import common_gates, raw_types
+from cirq.ops import common_gates, pauli_gates, raw_types
 
 
 @value.value_equality
@@ -763,7 +763,7 @@ def bit_flip(
         ValueError: if p is not a valid probability.
     """
     if p is None:
-        return common_gates.X
+        return pauli_gates.X
 
     return _bit_flip(p)
 

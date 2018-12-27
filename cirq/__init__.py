@@ -22,7 +22,6 @@ from cirq.circuits import (
     Circuit,
     CircuitDag,
     InsertStrategy,
-    OptimizationPass,
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
@@ -211,6 +210,7 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    ComputeDisplaysResult,
     Linspace,
     ParamResolver,
     plot_state_histogram,
