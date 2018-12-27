@@ -37,7 +37,7 @@ def test_unitary():
     class NoMethod:
         pass
 
-    class ReturnsNotImplemented:
+    class ReturnsNotImplemented(cirq.Gate):
         def _has_unitary_(self):
             return NotImplemented
         def _unitary_(self):
@@ -73,6 +73,15 @@ def test_unitary():
         def _decompose_(self):
             yield FullyImplemented(True)(self.qubits[2])
             yield FullyImplemented(True)(self.qubits[0])
+
+    class DecomposableNoUnitary(cirq.Operation):
+        qubits = ()
+        with_qubits = NotImplemented
+        def __init__(self, qubits):
+            self.qubits = qubits
+        def _decompose_(self):
+            for q in self.qubits:
+                yield ReturnsNotImplemented()(q)
 
     class DummyOperation(cirq.Operation):
         qubits = ()
@@ -142,3 +151,5 @@ def test_unitary():
     np.testing.assert_allclose(cirq.unitary(DecomposableOrder((a, b, c))), m3)
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))
+
+    assert cirq.unitary(DecomposableNoUnitary((a,)), None) is None
