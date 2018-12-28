@@ -297,27 +297,6 @@ class SimulationTrialResult:
         return wave_function.density_matrix_from_state_vector(
             self.final_state, indices)
 
-    def bloch_vector(self, index: int) -> np.ndarray:
-        """Returns the bloch vector of a qubit.
-
-        Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state. Given that self.state
-        follows the standard Kronecker convention of numpy.kron.
-
-        Args:
-            index: index of qubit who's bloch vector we want to find.
-
-        Returns:
-            A length 3 numpy array representing the qubit's bloch vector.
-
-        Raises:
-            ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
-        """
-        return wave_function.bloch_vector_from_state_vector(
-            self.final_state, index)
-
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
@@ -746,24 +725,3 @@ class StepResult:
         """
         return wave_function.density_matrix_from_state_vector(
             self.state(), indices)
-
-    def bloch_vector(self, index: int) -> np.ndarray:
-        """Returns the bloch vector of a qubit.
-
-        Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state. Given that self.state
-        follows the standard Kronecker convention of numpy.kron.
-
-        Args:
-            index: index of qubit who's bloch vector we want to find.
-
-        Returns:
-            A length 3 numpy array representing the qubit's bloch vector.
-
-        Raises:
-            ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
-        """
-        return wave_function.bloch_vector_from_state_vector(
-            self.state(), index)

@@ -213,7 +213,7 @@ def test_simulator_trial_bloch_vector():
         final_state=np.array([0, 1, 0, 0]))
     bloch = np.array([0,0,-1])
     np.testing.assert_array_almost_equal(bloch,
-        result.bloch_vector(1))
+        cirq.bloch_vector_from_state_vector(result.final_state, 1))
 
 
 def test_step_result_pretty_state():
@@ -262,7 +262,7 @@ def test_step_result_bloch_vector():
     step_result = BasicStepResult({}, {})
     bloch = np.array([0,0,-1])
     np.testing.assert_array_almost_equal(bloch,
-        step_result.bloch_vector(1))
+        cirq.bloch_vector_from_state_vector(step_result.state(), 1))
 
 
 class FakeStepResult(cirq.StepResult):
