@@ -29,6 +29,7 @@ User Documentation
     simulation
     schedules
     development
+    examples
 
 
 API Reference
