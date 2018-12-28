@@ -31,31 +31,31 @@ def test_pauli_string_expectation_value():
     state = circuit.apply_unitary_effect_to_state(qubit_order=qubits)
 
     z0z1 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[1]: cirq.Pauli.Z})
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[1]: cirq.Z})
             )
     z0z2 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[2]: cirq.Pauli.Z})
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[2]: cirq.Z})
             )
     z0z3 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[3]: cirq.Pauli.Z})
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[3]: cirq.Z})
             )
     z0x1 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.Z,
-                              qubits[1]: cirq.Pauli.X})
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[1]: cirq.X})
             )
     z1x2 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[1]: cirq.Pauli.Z,
-                              qubits[2]: cirq.Pauli.X})
+            cirq.PauliString({qubits[1]: cirq.Z,
+                              qubits[2]: cirq.X})
             )
     x0z1 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[0]: cirq.Pauli.X,
-                              qubits[1]: cirq.Pauli.Z})
+            cirq.PauliString({qubits[0]: cirq.X,
+                              qubits[1]: cirq.Z})
             )
     x3 = cirq.PauliStringExpectation(
-            cirq.PauliString({qubits[3]: cirq.Pauli.X})
+            cirq.PauliString({qubits[3]: cirq.X})
             )
 
     np.testing.assert_allclose(
@@ -75,10 +75,10 @@ def test_pauli_string_expectation_value():
 
 
 @pytest.mark.parametrize('paulis', [
-    (cirq.Pauli.Z, cirq.Pauli.Z),
-    (cirq.Pauli.Z, cirq.Pauli.X),
-    (cirq.Pauli.X, cirq.Pauli.X),
-    (cirq.Pauli.X, cirq.Pauli.Y),
+    (cirq.Z, cirq.Z),
+    (cirq.Z, cirq.X),
+    (cirq.X, cirq.X),
+    (cirq.X, cirq.Y),
 ])
 def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
     qubits = cirq.LineQubit.range(2)
@@ -123,7 +123,7 @@ def test_approx_pauli_string_expectation_value(measurements, value):
 
 def test_properties():
     qubits = cirq.LineQubit.range(9)
-    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in qubits}
+    qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in qubits}
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
 
     pauli_string_expectation = cirq.PauliStringExpectation(
@@ -141,7 +141,7 @@ def test_properties():
 def test_with_qubits():
     old_qubits = cirq.LineQubit.range(9)
     new_qubits = cirq.LineQubit.range(9, 18)
-    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in old_qubits}
+    qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in old_qubits}
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
 
     assert (
@@ -157,7 +157,7 @@ def test_with_qubits():
 
 def test_pauli_string_expectation_helper():
     qubits = cirq.LineQubit.range(9)
-    qubit_pauli_map = {q: cirq.Pauli.XYZ[q.x % 3] for q in qubits}
+    qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in qubits}
     pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
 
     assert (cirq.pauli_string_expectation(pauli_string, key='a')
