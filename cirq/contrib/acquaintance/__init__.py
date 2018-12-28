@@ -41,5 +41,5 @@ from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
 
 from cirq.contrib.acquaintance.strategies import (
-    complete_acquaintance_strategy)
-
+    complete_acquaintance_strategy,
+    cubic_acquaintance_strategy)
