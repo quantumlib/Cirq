@@ -33,6 +33,9 @@ from cirq.contrib.acquaintance.mutation_utils import (
     rectify_acquaintance_strategy,
     replace_acquaintance_with_swap_network)
 
+from cirq.contrib.acquaintance.optimizers import (
+    remove_redundant_acquaintance_opportunities)
+
 from cirq.contrib.acquaintance.permutation import (
         LinearPermutationGate, PermutationGate,
         SwapPermutationGate, update_mapping)
