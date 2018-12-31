@@ -16,12 +16,13 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, optimizers
+from cirq import ops, protocols, optimizers
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
+from cirq.linalg import all_near_zero_mod
 
 
 class ConvertToSingleQubitCliffordGates(PointOptimizer):
@@ -38,19 +39,18 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def __init__(self,
                  ignore_failures: bool = False,
-                 tolerance: float = 0) -> None:
+                 atol: float = 0) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
-            tolerance: Maximum absolute error tolerance. The optimization is
+            atol: Maximum absolute error tolerance. The optimization is
                 permitted to round angles with a threshold determined by this
                 tolerance.
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        self.tolerance = tolerance
-        self._tol = linalg.Tolerance(atol=tolerance)
+        self.atol = atol
 
     def _rotation_to_clifford_gate(self, pauli: ops.Pauli, half_turns: float
                                    ) -> ops.SingleQubitCliffordGate:
@@ -67,10 +67,10 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
     def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.QubitId
                                ) -> Optional[ops.Operation]:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
-            mat, self.tolerance)
+            mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I
         for pauli, half_turns in rotations:
-            if self._tol.all_near_zero_mod(half_turns, 0.5):
+            if all_near_zero_mod(half_turns, 0.5):
                 clifford_gate = clifford_gate.merged_with(
                     self._rotation_to_clifford_gate(pauli, half_turns))
             else:

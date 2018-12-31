@@ -52,7 +52,9 @@ from cirq.linalg.predicates import (
     is_unitary,
 )
 from cirq.linalg.tolerance import (
-    Tolerance,
+    all_close,
+    all_near_zero,
+    all_near_zero_mod
 )
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,
