@@ -14,6 +14,7 @@
 import abc
 from typing import Any, Union, overload, TYPE_CHECKING
 
+import sympy
 from cirq import value
 from cirq.ops import common_gates, eigen_gate
 
@@ -78,17 +79,17 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
 
 
 class _PauliX(Pauli, common_gates.XPowGate):
-    def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
+    def __init__(self, *, exponent: Union[sympy.Symbol, float] = 1.0):
         super(_PauliX, self).__init__(_index=0, _name='X', exponent=exponent)
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
-    def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
+    def __init__(self, *, exponent: Union[sympy.Symbol, float] = 1.0):
         super(_PauliY, self).__init__(_index=1, _name='Y', exponent=exponent)
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
-    def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
+    def __init__(self, *, exponent: Union[sympy.Symbol, float] = 1.0):
         super(_PauliZ, self).__init__(_index=2, _name='Z', exponent=exponent)
 
 

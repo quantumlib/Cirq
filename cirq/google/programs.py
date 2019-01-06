@@ -16,6 +16,7 @@ from typing import (
     Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, Union
 )
 
+import sympy
 import numpy as np
 
 from cirq import ops, devices, value
@@ -351,7 +352,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
 
 
 def _parameterized_value_from_proto_dict(message: Dict
-                                         ) -> Union[value.Symbol, float]:
+                                         ) -> Union[sympy.Symbol, float]:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return value.Symbol(parameter_key)
@@ -362,10 +363,10 @@ def _parameterized_value_from_proto_dict(message: Dict
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: Union[value.Symbol, float]
+def _parameterized_value_to_proto_dict(param: Union[sympy.Symbol, float]
                                        ) -> Dict:
     out = {}  # type: Dict
-    if isinstance(param, value.Symbol):
+    if isinstance(param, sympy.Basic):
         out['parameter_key'] = param.name
     else:
         out['raw'] = float(param)

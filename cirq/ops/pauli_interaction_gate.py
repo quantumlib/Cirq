@@ -14,6 +14,7 @@
 
 from typing import List, Sequence, Tuple, Union
 
+import sympy
 import numpy as np
 
 from cirq import value, protocols
@@ -43,7 +44,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                  pauli0: pauli_gates.Pauli, invert0: bool,
                  pauli1: pauli_gates.Pauli, invert1: bool,
                  *,
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
+                 exponent: Union[sympy.Symbol, float] = 1.0) -> None:
         """
         Args:
             pauli0: The interaction axis for the first qubit.
@@ -71,7 +72,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             return 0
         return index
 
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
+    def _with_exponent(self, exponent: Union[sympy.Symbol, float]
                        ) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
