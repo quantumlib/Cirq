@@ -33,16 +33,16 @@ def _check_duplicate_keys(sweeps):
 class Sweep(metaclass=abc.ABCMeta):
     """A sweep is an iterator over ParamResolvers.
 
-    A ParamResolver assigns values to Symbols. For sweeps, each ParamResolver
-    must specify the same Symbols that are assigned.  So a sweep is a way to
-    iterate over a set of different values for a fixed set of Symbols. This is
-    useful for a circuit, where there are a fixed set of Symbols, and you want
+    A ParamResolver assigns values to sympy.Symbols. For sweeps, each ParamResolver
+    must specify the same sympy.Symbols that are assigned.  So a sweep is a way to
+    iterate over a set of different values for a fixed set of sympy.Symbols. This is
+    useful for a circuit, where there are a fixed set of sympy.Symbols, and you want
     to iterate over an assignment of all values to all symbols.
 
     For example, a sweep can explicitly assign a set of equally spaced points
     between two endpoints using a Linspace,
         sweep = Linspace("angle", start=0.0, end=2.0, length=10)
-    This can then be used with a circuit that has an 'angle' Symbol to
+    This can then be used with a circuit that has an 'angle' sympy.Symbol to
     run simulations multiple simulations, one for each of the values in the
     sweep
         result = simulator.run_sweep(program=circuit, params=sweep)
@@ -88,7 +88,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @abc.abstractproperty
     def keys(self) -> List[str]:
-        """The keys for the all of the Symbols that are resolved."""
+        """The keys for the all of the sympy.Symbols that are resolved."""
         pass
 
     @abc.abstractmethod
@@ -101,7 +101,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
-        """An iterator over (key, value) pairs assigning Symbol key to value."""
+        """An iterator over (key, value) pairs assigning sympy.Symbol key to value."""
         pass
 
 
