@@ -49,7 +49,7 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
     Returns:
         A list of operations implementing the matrix.
     """
-    kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=tolerance))
+    kak = linalg.kak_decomposition(mat, atol=tolerance)
     operations = _kak_decomposition_to_operations(
         q0, q1, kak, allow_partial_czs, tolerance)
     if clean_operations:

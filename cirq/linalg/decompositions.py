@@ -24,7 +24,6 @@ import numpy as np
 
 from cirq import value
 from cirq.linalg import combinators, diagonalize, predicates
-from cirq.linalg.tolerance import Tolerance
 
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
@@ -96,7 +95,8 @@ def _group_similar(items: List[T],
     return groups
 
 
-def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
+def _perp_eigendecompose(matrix: np.ndarray, rtol: float = 1e-5,
+                         atol: float = 1e-8
                          ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
 
@@ -128,7 +128,7 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
     n = len(vecs)
     groups = _group_similar(
         list(range(n)),
-        lambda k1, k2: tolerance.all_close(vals[k1], vals[k2]))
+        lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol, atol=atol))
 
     # Remove overlap between eigenvectors with the same eigenvalue.
     for g in groups:
@@ -139,7 +139,9 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
     # Ensure no eigenvectors overlap.
     for i in range(len(vecs)):
         for j in range(i + 1, len(vecs)):
-            if not tolerance.all_near_zero(np.dot(np.conj(vecs[i].T), vecs[j])):
+            dot_conj = np.dot(np.conj(vecs[i].T), vecs[j])
+            if not np.allclose(dot_conj, np.zeros(np.shape(dot_conj)),
+                               rtol=rtol, atol=atol):
                 raise ArithmeticError('Eigenvectors overlap.')
 
     return vals, vecs
@@ -148,7 +150,8 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
 def map_eigenvalues(
         matrix: np.ndarray,
         func: Callable[[complex], complex],
-        tolerance: Tolerance = Tolerance.DEFAULT
+        rtol: float = 1e-5,
+        atol: float = 1e-8
 ) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
@@ -162,7 +165,7 @@ def map_eigenvalues(
     Returns:
         The transformed matrix.
     """
-    vals, vecs = _perp_eigendecompose(matrix, tolerance)
+    vals, vecs = _perp_eigendecompose(matrix, rtol=rtol, atol=atol)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
@@ -174,7 +177,6 @@ def map_eigenvalues(
 
 def kron_factor_4x4_to_2x2s(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
 ) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
@@ -222,7 +224,8 @@ def kron_factor_4x4_to_2x2s(
 
 def so4_to_magic_su2s(
         mat: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
+        rtol: float = 1e-5,
+        atol: float = 1e-8
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
@@ -245,11 +248,12 @@ def so4_to_magic_su2s(
         ValueError: Bad matrix.
         """
     if mat.shape != (4, 4) or not predicates.is_special_orthogonal(mat,
-                                                                   tolerance):
+                                                                   rtol=rtol,
+                                                                   atol=atol):
         raise ValueError('mat must be 4x4 special orthogonal.')
 
     ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
-    _, a, b = kron_factor_4x4_to_2x2s(ab, tolerance)
+    _, a, b = kron_factor_4x4_to_2x2s(ab)
 
     return a, b
 
@@ -464,7 +468,8 @@ def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
 
 def kak_decomposition(
         mat: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
+        rtol: float = 1e-5,
+        atol: float = 1e-8
 ) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
@@ -500,11 +505,11 @@ def kak_decomposition(
     left, d, right = (
         diagonalize.bidiagonalize_unitary_with_special_orthogonals(
             combinators.dot(np.conj(magic.T), mat, magic),
-            tolerance))
+            rtol=rtol, atol=atol))
 
     # Recover pieces.
-    a1, a0 = so4_to_magic_su2s(left.T, tolerance)
-    b1, b0 = so4_to_magic_su2s(right.T, tolerance)
+    a1, a0 = so4_to_magic_su2s(left.T, rtol=rtol, atol=atol)
+    b1, b0 = so4_to_magic_su2s(right.T, rtol=rtol, atol=atol)
     w, x, y, z = gamma.dot(np.vstack(np.angle(d))).flatten()
     g = np.exp(1j * w)
 

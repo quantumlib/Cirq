@@ -21,7 +21,6 @@ import pytest
 from cirq.linalg import combinators
 from cirq.linalg import diagonalize
 from cirq.linalg import predicates
-from cirq.linalg.tolerance import Tolerance
 from cirq import testing
 
 
@@ -74,12 +73,13 @@ def random_bi_diagonalizable_pair(
     return a, b
 
 
-def assertdiagonalized_by(m, p, tol=Tolerance.DEFAULT):
+def assertdiagonalized_by(m, p, rtol: float = 1e-5,
+                          atol: float = 1e-8):
     d = p.T.dot(m).dot(p)
 
     try:
         assert predicates.is_orthogonal(p)
-        assert predicates.is_diagonal(d, tol)
+        assert predicates.is_diagonal(d, rtol=rtol, atol=atol)
     except AssertionError:
         # coverage: ignore
 
@@ -95,13 +95,14 @@ def assertdiagonalized_by(m, p, tol=Tolerance.DEFAULT):
         raise
 
 
-def assert_bidiagonalized_by(m, p, q, tol=Tolerance.DEFAULT):
+def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
+                             atol: float = 1e-8):
     d = p.dot(m).dot(q)
 
     try:
         assert predicates.is_orthogonal(p)
         assert predicates.is_orthogonal(q)
-        assert predicates.is_diagonal(d, tol)
+        assert predicates.is_diagonal(d, rtol=rtol, atol=atol)
     except AssertionError:
         # coverage: ignore
 

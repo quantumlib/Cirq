@@ -16,7 +16,7 @@ from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, optimizers, protocols
+from cirq import ops, optimizers, protocols
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -56,7 +56,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self.ignore_failures = ignore_failures
         self.keep_clifford = keep_clifford
         self.tolerance = tolerance
-        self._tol = linalg.Tolerance(atol=tolerance)
+        self._tol = tolerance
 
     def _matrix_to_pauli_string_phasors(self,
                                         mat: np.ndarray,
@@ -64,9 +64,14 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.tolerance)
         out_ops = []  # type: List[ops.Operation]
+        period = 0.5
         for pauli, half_turns in rotations:
+            half_turns_period = (np.array(half_turns) +
+                                 (period/2)) % period - period/2
             if (self.keep_clifford
-                    and self._tol.all_near_zero_mod(half_turns, 0.5)):
+                and np.allclose(half_turns_period,
+                                np.zeros(np.shape(half_turns_period)),
+                                atol= self.tolerance)):
                 cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
                     pauli, round(half_turns * 2))
                 if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):

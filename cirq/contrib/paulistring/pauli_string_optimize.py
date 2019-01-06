@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import networkx
 
-from cirq import circuits, linalg
+from cirq import circuits
 from cirq.contrib.paulistring.pauli_string_raw_types import (
     PauliStringGateOperation)
 from cirq.contrib.paulistring.pauli_string_dag import (
@@ -73,7 +74,15 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
 
 
 def remove_negligible_strings(string_dag: circuits.CircuitDag,
-                              tolerance=linalg.Tolerance.DEFAULT) -> None:
+                              rtol: float = 1e-5,
+                              atol: float = 1e-8) -> None:
     for node in tuple(string_dag.nodes()):
-        if tolerance.all_near_zero_mod(node.val.half_turns, 2):
+        period = 2
+        half_turns_period = (np.array(node.val.half_turns) +
+                             (period/2)) % period - period/2
+
+        if np.allclose((np.array(half_turns_period) +
+                        (period/2)) % period - period/2,
+                       np.zeros(np.shape(half_turns_period)),
+                       rtol=rtol, atol=atol):
             string_dag.remove_node(node)

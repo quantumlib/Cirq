@@ -20,7 +20,6 @@ import numpy as np
 
 from cirq import ops, linalg, protocols
 
-
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
     return abs(_signed_mod_1(turns)) <= tolerance
 
@@ -43,11 +42,11 @@ def single_qubit_matrix_to_pauli_rotations(
         A list of (Pauli, half_turns) tuples that, when applied in order,
         perform the desired operation.
     """
-
-    tol = linalg.Tolerance(atol=tolerance)
-
     def is_clifford_rotation(half_turns):
-        return tol.near_zero_mod(half_turns, 0.5)
+        period = 0.5
+        half_period = period  / 2
+        return abs((half_turns + half_period)
+                   % period - half_period) <= tolerance
 
     def to_quarter_turns(half_turns):
         return round(2 * half_turns) % 4
