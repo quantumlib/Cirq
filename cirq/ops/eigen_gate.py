@@ -18,6 +18,7 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
 import abc
 
 import numpy as np
+import sympy
 
 from cirq import value, protocols
 from cirq.ops import raw_types
@@ -59,7 +60,7 @@ class EigenGate(raw_types.Gate):
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0,
+                 exponent: Union[sympy.Symbol, float] = 1.0,
                  global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
@@ -103,12 +104,12 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> Union[value.Symbol, float]:
+    def exponent(self) -> Union[sympy.Symbol, float]:
         return self._exponent
 
     # virtual method
     def _with_exponent(self: TSelf,
-                       exponent: Union[value.Symbol, float]) -> TSelf:
+                       exponent: Union[sympy.Symbol, float]) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -262,7 +263,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2/e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
+    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -272,7 +273,7 @@ class EigenGate(raw_types.Gate):
     def _canonical_exponent(self):
         if self._canonical_exponent_cached is None:
             period = self._period()
-            if not period or isinstance(self._exponent, value.Symbol):
+            if not period or isinstance(self._exponent, sympy.Symbol):
                 self._canonical_exponent_cached = self._exponent
             else:
                 self._canonical_exponent_cached = self._exponent % period
@@ -282,7 +283,7 @@ class EigenGate(raw_types.Gate):
         return self._canonical_exponent, self._global_shift
 
     def _trace_distance_bound_(self):
-        if isinstance(self._exponent, value.Symbol):
+        if isinstance(self._exponent, sympy.Symbol):
             return 1
 
         angles = [half_turns for half_turns, _ in self._eigen_components()]
@@ -304,7 +305,7 @@ class EigenGate(raw_types.Gate):
         ], axis=0)
 
     def _is_parameterized_(self) -> bool:
-        return isinstance(self._exponent, value.Symbol)
+        return isinstance(self._exponent, sympy.Basic)
 
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(

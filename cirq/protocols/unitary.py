@@ -15,6 +15,7 @@
 from typing import Any, TypeVar, Union
 
 import numpy as np
+import sympy
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
@@ -41,7 +42,7 @@ class SupportsUnitary(Protocol):
         or default result when calling `cirq.unitary` on it). (The ability to
         return NotImplemented is useful when a class cannot know if it has a
         matrix until runtime, e.g. cirq.X**c normally has a matrix but
-        cirq.X**cirq.Symbol('a') doesn't.)
+        cirq.X**sympy.Symbol('a') doesn't.)
 
         The order of cells in the matrix is always implicit with respect to the
         object being called. For example, for gates the matrix must be ordered
