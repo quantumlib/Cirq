@@ -355,7 +355,7 @@ def _parameterized_value_from_proto_dict(message: Dict
                                          ) -> Union[sympy.Symbol, float]:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
-        return value.Symbol(parameter_key)
+        return sympy.Symbol(parameter_key)
     if 'raw' in message:
         return message['raw']
     raise ValueError('No value specified for parameterized float. '
@@ -367,7 +367,7 @@ def _parameterized_value_to_proto_dict(param: Union[sympy.Symbol, float]
                                        ) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Basic):
-        out['parameter_key'] = param.name
+        out['parameter_key'] = str(param.free_symbols.pop())
     else:
         out['raw'] = float(param)
     return out
