@@ -15,6 +15,7 @@
 from typing import (
     Dict, Iterable, Optional, Union, cast
 )
+import sympy
 
 from cirq import ops, value, study, protocols
 from cirq.contrib.paulistring.pauli_string_raw_types import (
@@ -115,7 +116,7 @@ class PauliStringPhasor(PauliStringGateOperation):
         return protocols.trace_distance_bound(ops.Z**self.half_turns)
 
     def _is_parameterized_(self) -> bool:
-        return isinstance(self.half_turns, value.Symbol)
+        return isinstance(self.half_turns, sympy.Basic)
 
     def _resolve_parameters_(self, param_resolver: study.ParamResolver
                                     ) -> 'PauliStringPhasor':
