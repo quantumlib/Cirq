@@ -46,6 +46,7 @@ class Moment(object):
             ValueError: A qubit appears more than once.
         """
         self.operations = tuple(operations)
+        print("Operantions ", operations)
 
         # Check that operations don't overlap.
         affected_qubits = [q for op in self.operations for q in op.qubits]

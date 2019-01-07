@@ -21,7 +21,7 @@ import sympy
 class ParamResolver(object):
     """Resolves sympy.Symbols to actual values.
 
-    A sympy.Symbol is a wrapped parameter name (str). A ParamResolver is an object
+    A Symbol is a wrapped parameter name (str). A ParamResolver is an object
     that can be used to assign values for these keys.
 
     ParamResolvers are hashable.
@@ -39,7 +39,7 @@ class ParamResolver(object):
             self,
             value: Union[sympy.Symbol, float, str]
     ) -> Union[sympy.Symbol, float]:
-        """Attempt to resolve a sympy.Symbol or name or float to its assigned value.
+        """Attempt to resolve a Symbol or name or float to its assigned value.
 
         If unable to resolve a sympy.Symbol, returns it unchanged.
         If unable to resolve a name, returns a sympy.Symbol with that name.

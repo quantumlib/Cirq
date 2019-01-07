@@ -18,6 +18,7 @@ from random import randint, random, sample, randrange
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq.circuits.optimization_pass import (PointOptimizer,
@@ -1265,8 +1266,8 @@ def test_to_text_diagram_parameterized_value():
     c = Circuit.from_ops(
         PGate(1).on(q),
         PGate(2).on(q),
-        PGate(cirq.Symbol('a')).on(q),
-        PGate(cirq.Symbol('%$&#*(')).on(q),
+        PGate(sympy.Symbol('a')).on(q),
+        PGate(sympy.Symbol('%$&#*(')).on(q),
     )
     assert str(c).strip() == 'cube: ───P───P^2───P^a───P^Symbol("%$&#*(")───'
 
@@ -1762,9 +1763,9 @@ def test_apply_unitary_effect_to_state():
 def test_is_parameterized():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
-        cirq.CZ(a, b)**cirq.Symbol('u'),
-        cirq.X(a)**cirq.Symbol('v'),
-        cirq.Y(b)**cirq.Symbol('w'),
+        cirq.CZ(a, b)**sympy.Symbol('u'),
+        cirq.X(a)**sympy.Symbol('v'),
+        cirq.Y(b)**sympy.Symbol('w'),
     )
     assert cirq.is_parameterized(circuit)
 
@@ -1780,9 +1781,9 @@ def test_is_parameterized():
 def test_resolve_parameters():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(
-        cirq.CZ(a, b)**cirq.Symbol('u'),
-        cirq.X(a)**cirq.Symbol('v'),
-        cirq.Y(b)**cirq.Symbol('w'),
+        cirq.CZ(a, b)**sympy.Symbol('u'),
+        cirq.X(a)**sympy.Symbol('v'),
+        cirq.Y(b)**sympy.Symbol('w'),
     )
     resolved_circuit = cirq.resolve_parameters(
         circuit,
@@ -1802,7 +1803,7 @@ def test_resolve_parameters():
     cirq.testing.assert_same_circuits(circuit, resolved_circuit)
     # actually resolve something
     circuit = cirq.Circuit([
-        cirq.Moment(), cirq.Moment([cirq.X(q)**cirq.Symbol('x')])])
+        cirq.Moment(), cirq.Moment([cirq.X(q)**sympy.Symbol('x')])])
     resolved_circuit = cirq.resolve_parameters(
         circuit,
         cirq.ParamResolver({'x': 0.2}))

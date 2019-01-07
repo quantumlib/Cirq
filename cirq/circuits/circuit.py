@@ -26,6 +26,9 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
+import json
+import re
+import sympy
 import numpy as np
 
 from cirq import devices, ops, study, protocols
@@ -141,6 +144,8 @@ class Circuit:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
+        #print("Self moments ", self._moments)
+        #print("Other moment ", other._moments)
         return self._moments == other._moments and self._device == other._device
 
     def __ne__(self, other):
@@ -1525,10 +1530,23 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
+def _is_valid_identifier(text):
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
+
+
+def _encode(text):
+    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
+
+    if isinstance(info.exponent, sympy.Basic):
+        name = str(info.exponent.free_symbols.pop())
+        return (name
+                if _is_valid_identifier(name)
+                else 'Symbol({})'.format(_encode(name)))
+
     if info.exponent == 0:
         return '0'
 

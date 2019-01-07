@@ -14,9 +14,8 @@
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
 import fractions
-import sympy
 from typing import Union, Sequence, Tuple, Optional, cast
-
+import sympy
 import numpy as np
 
 from cirq import value, protocols

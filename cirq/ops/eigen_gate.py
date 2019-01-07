@@ -99,7 +99,10 @@ class EigenGate(raw_types.Gate):
                 `cirq.Rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
         """
-        self._exponent = exponent
+        if isinstance(exponent, sympy.Basic):
+            self._exponent = exponent.free_symbols.pop()
+        else:
+            self._exponent = exponent
         self._global_shift = global_shift
         self._canonical_exponent_cached = None
 
@@ -265,6 +268,7 @@ class EigenGate(raw_types.Gate):
 
     def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
+        #print("Type of exponent in pow ", new_exponent)
         if new_exponent is NotImplemented:
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)

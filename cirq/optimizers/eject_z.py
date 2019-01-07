@@ -15,8 +15,8 @@
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
-import sympy
 from collections import defaultdict
+import sympy
 
 from cirq import circuits, ops, value, protocols
 from cirq.optimizers import decompositions

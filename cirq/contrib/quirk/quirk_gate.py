@@ -55,7 +55,7 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
 
 
 def angle_to_exponent_key(t: Union[float, sympy.Symbol]) -> Optional[str]:
-    if isinstance(t, sympy.Symbol):
+    if isinstance(t, sympy.Basic):
         return '^t'
 
     if same_half_turns(t, 1):
