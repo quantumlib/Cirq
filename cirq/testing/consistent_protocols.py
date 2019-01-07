@@ -15,7 +15,7 @@
 from typing import Any, Optional, Sequence, Type, Union
 import sympy
 
-from cirq import ops, protocols, value
+from cirq import ops, protocols
 from cirq.testing.circuit_compare import (
         assert_has_consistent_apply_unitary)
 from cirq.testing.consistent_decomposition import (

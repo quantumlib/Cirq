@@ -19,7 +19,7 @@ import itertools
 import sympy
 import numpy as np
 
-from cirq import circuits, ops, linalg, protocols, value, EigenGate
+from cirq import circuits, ops, linalg, protocols, EigenGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

@@ -17,7 +17,7 @@ from typing import Any, Callable, cast, Dict, Optional, Union
 import sympy
 import numpy as np
 
-from cirq import ops, value
+from cirq import ops
 
 
 class QuirkOp:

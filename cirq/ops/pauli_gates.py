@@ -15,7 +15,6 @@ import abc
 from typing import Any, Union, overload, TYPE_CHECKING
 
 import sympy
-from cirq import value
 from cirq.ops import common_gates, eigen_gate
 
 if TYPE_CHECKING:

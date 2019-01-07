@@ -15,7 +15,6 @@
 from typing import Any, TypeVar, Union
 
 import numpy as np
-import sympy
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType

@@ -19,7 +19,7 @@ from typing import (
 import sympy
 import numpy as np
 
-from cirq import ops, devices, value
+from cirq import ops, devices
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 

@@ -18,7 +18,7 @@ from typing import Optional, cast, TYPE_CHECKING, Iterable
 from collections import defaultdict
 import sympy
 
-from cirq import circuits, ops, value, protocols
+from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
