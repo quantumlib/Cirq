@@ -13,9 +13,8 @@
 # limitations under the License.
 
 import pytest
-import sympy
-
 import numpy as np
+import sympy
 
 import cirq
 

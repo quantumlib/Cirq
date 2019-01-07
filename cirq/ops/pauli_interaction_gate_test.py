@@ -14,8 +14,9 @@
 
 import itertools
 import pytest
-import sympy
 import numpy as np
+import sympy
+
 
 import cirq
 

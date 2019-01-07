@@ -14,8 +14,8 @@
 
 import itertools
 import pytest
-import sympy
 import numpy as np
+import sympy
 
 import cirq
 from cirq.contrib.paulistring import PauliStringPhasor

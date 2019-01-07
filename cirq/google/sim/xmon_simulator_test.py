@@ -19,11 +19,10 @@ import itertools
 import math
 import time
 from typing import Optional, Callable
-import sympy
-
-
 import numpy as np
 import pytest
+import sympy
+
 
 import cirq
 import cirq.google as cg

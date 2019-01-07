@@ -14,8 +14,8 @@
 
 """Error simulator that adds randomly activated error gates after every moment.
 """
-import sympy
 import numpy as np
+import sympy
 
 from cirq.circuits.circuit import Circuit
 from cirq.contrib.jobs import Job

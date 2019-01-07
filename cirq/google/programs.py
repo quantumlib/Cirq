@@ -15,9 +15,8 @@ import json
 from typing import (
     Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, Union
 )
-
-import sympy
 import numpy as np
+import sympy
 
 from cirq import ops, devices
 from cirq.schedules import Schedule, ScheduledOperation

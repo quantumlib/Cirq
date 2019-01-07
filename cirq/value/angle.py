@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from typing import Union, Optional, overload
-
-import sympy
 import numpy as np
+import sympy
 
 from cirq.value import symbol
 

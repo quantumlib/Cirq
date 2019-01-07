@@ -14,8 +14,8 @@
 
 from typing import List, Sequence, Tuple, Union
 
-import sympy
 import numpy as np
+import sympy
 
 from cirq import value, protocols
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \

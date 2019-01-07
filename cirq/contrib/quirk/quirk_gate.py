@@ -14,8 +14,8 @@
 
 from typing import Any, Callable, cast, Dict, Optional, Union
 
-import sympy
 import numpy as np
+import sympy
 
 from cirq import ops
 
