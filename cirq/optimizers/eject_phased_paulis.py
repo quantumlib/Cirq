@@ -36,7 +36,7 @@ class _OptimizerState:
         self.insertions = []  # type: List[Tuple[int, ops.Operation]]
 
 
-class EjectPhasedPaulis(circuits.OptimizationPass):
+class EjectPhasedPaulis():
     """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other

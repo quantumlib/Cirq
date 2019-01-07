@@ -40,7 +40,7 @@ class SimulatesSamples:
     def run(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        param_resolver: Optional[study.ParamResolver] = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
@@ -53,12 +53,14 @@ class SimulatesSamples:
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(program, [param_resolver], repetitions)[0]
+        return self.run_sweep(program,
+                              [param_resolver or study.ParamResolver({})],
+                              repetitions)[0]
 
     def run_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
@@ -77,7 +79,7 @@ class SimulatesSamples:
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
@@ -191,7 +193,7 @@ class SimulatesFinalWaveFunction:
     def simulate(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> 'SimulationTrialResult':
@@ -215,14 +217,16 @@ class SimulatesFinalWaveFunction:
             SimulateTrialResults for the simulation. Includes the final wave
             function.
         """
-        return self.simulate_sweep(program, [param_resolver], qubit_order,
+        return self.simulate_sweep(program,
+                                   [param_resolver or study.ParamResolver({})],
+                                   qubit_order,
                                    initial_state)[0]
 
     @abc.abstractmethod
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
@@ -401,7 +405,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
@@ -429,7 +433,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[SimulationTrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
@@ -460,7 +464,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def simulate_moment_steps(
         self,
         circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = None,
+        param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0
     ) -> Iterator['StepResult']:
@@ -608,16 +612,13 @@ def _enter_moment_display_values_into_dictionary(
         state: np.ndarray,
         qubit_order: ops.QubitOrder,
         qubit_map: Dict[ops.QubitId, int]):
-    displays = (op for op in moment
-                if isinstance(op, (ops.SamplesDisplay,
-                                   ops.WaveFunctionDisplay)))
-    for display in displays:
-        if isinstance(display, ops.WaveFunctionDisplay):
-            display_values[display.key] = (
-                display.value_derived_from_wavefunction(state, qubit_map))
-        else:
-            display_values[display.key] = _compute_samples_display_value(
-                display, state, qubit_order, qubit_map)
+    for op in moment:
+        if isinstance(op, ops.WaveFunctionDisplay):
+            display_values[op.key] = (
+                op.value_derived_from_wavefunction(state, qubit_map))
+        elif isinstance(op, ops.SamplesDisplay):
+            display_values[op.key] = _compute_samples_display_value(
+                op, state, qubit_order, qubit_map)
 
 
 def _compute_samples_display_value(display: ops.SamplesDisplay,
@@ -668,17 +669,18 @@ class StepResult:
              qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
-               |   | QubitA | QubitB | QubitC |
-               +---+--------+--------+--------+
-               | 0 |   0    |   0    |   0    |
-               | 1 |   0    |   0    |   1    |
-               | 2 |   0    |   1    |   0    |
-               | 3 |   0    |   1    |   1    |
-               | 4 |   1    |   0    |   0    |
-               | 5 |   1    |   0    |   1    |
-               | 6 |   1    |   1    |   0    |
-               | 7 |   1    |   1    |   1    |
-               +---+--------+--------+--------+
+
+                    | QubitA | QubitB | QubitC
+                :-: | :----: | :----: | :----:
+                 0  |   0    |   0    |   0
+                 1  |   0    |   0    |   1
+                 2  |   0    |   1    |   0
+                 3  |   0    |   1    |   1
+                 4  |   1    |   0    |   0
+                 5  |   1    |   0    |   1
+                 6  |   1    |   1    |   0
+                 7  |   1    |   1    |   1
+
         """
         raise NotImplementedError()
 

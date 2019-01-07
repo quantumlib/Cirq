@@ -12,15 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 import cirq
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
+def test_compute_displays_result_eq():
+    eq = cirq.testing.EqualsTester()
+
+    u = cirq.ComputeDisplaysResult(
+        params=cirq.ParamResolver({'a': 2}),
+        display_values={'k': 1.0})
+    v = cirq.ComputeDisplaysResult(
+        params=cirq.ParamResolver({'a': 2}),
+        display_values={'k': 1.0})
+    w = cirq.ComputeDisplaysResult(
+        params=cirq.ParamResolver({'b': 2}),
+        display_values={'k': 1.0})
+    x = cirq.TrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'k': np.array([[1]])},
+        repetitions=1)
+
+    eq.add_equality_group(u, v)
+    eq.add_equality_group(w)
+    eq.add_equality_group(x)
+
+
 def test_compute_displays_result_repr():
     v = cirq.ComputeDisplaysResult(
         params=cirq.ParamResolver({'a': 2}),
         display_values={'k': 1.0})
 
-    assert repr(v) == ("cirq.ComputeDisplaysResult("
-                       "params=cirq.ParamResolver({'a': 2}), "
-                       "display_values={'k': 1.0})")
+    cirq.testing.assert_equivalent_repr(v)
