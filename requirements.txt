@@ -8,4 +8,5 @@ protobuf~=3.5
 requests~=2.18
 sortedcontainers~=2.0
 scipy
+sympy
 typing_extensions

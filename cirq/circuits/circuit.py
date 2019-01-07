@@ -28,8 +28,8 @@ from typing import (
 
 import json
 import re
-import sympy
 import numpy as np
+import sympy
 
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
