@@ -55,9 +55,9 @@ def test_run_simulator_sweeps():
                                          measurements=expected_measurements,
                                          params=param_resolvers[1])]
     assert expected_results == simulator.run_sweep(program=circuit,
-                                                repetitions=10,
-                                                params=param_resolvers)
-    simulator._run.assert_called_with(program=circuit,
+                                                   repetitions=10,
+                                                   params=param_resolvers)
+    simulator._run.assert_called_with(circuit=circuit,
                                       repetitions=10,
                                       param_resolver=mock.ANY)
     assert simulator._run.call_count == 2
