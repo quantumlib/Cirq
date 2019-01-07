@@ -16,8 +16,8 @@ from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type
 
 from collections import defaultdict
 import itertools
-import sympy
 import numpy as np
+import sympy
 
 from cirq import circuits, ops, linalg, protocols, EigenGate
 
