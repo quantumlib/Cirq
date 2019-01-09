@@ -238,7 +238,6 @@ Classes and methods for rewriting circuits.
     merge_single_qubit_gates_into_phased_x_z
     MergeInteractions
     MergeSingleQubitGates
-    OptimizationPass
     PointOptimizationSummary
     PointOptimizer
     single_qubit_matrix_to_gates
