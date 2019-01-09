@@ -311,17 +311,18 @@ class XmonStepResult(simulator.StepResult):
              qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
-               |   | QubitA | QubitB | QubitC |
-               +---+--------+--------+--------+
-               | 0 |   0    |   0    |   0    |
-               | 1 |   0    |   0    |   1    |
-               | 2 |   0    |   1    |   0    |
-               | 3 |   0    |   1    |   1    |
-               | 4 |   1    |   0    |   0    |
-               | 5 |   1    |   0    |   1    |
-               | 6 |   1    |   1    |   0    |
-               | 7 |   1    |   1    |   1    |
-               +---+--------+--------+--------+
+
+                    | QubitA | QubitB | QubitC
+                :-: | :----: | :----: | :----:
+                 0  |   0    |   0    |   0
+                 1  |   0    |   0    |   1
+                 2  |   0    |   1    |   0
+                 3  |   0    |   1    |   1
+                 4  |   1    |   0    |   0
+                 5  |   1    |   0    |   1
+                 6  |   1    |   1    |   0
+                 7  |   1    |   1    |   1
+
         """
         return self._stepper.current_state
 
