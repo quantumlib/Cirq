@@ -21,6 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from collections import defaultdict
 from fractions import Fraction
+from itertools import groupby
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -1770,15 +1771,4 @@ def _group_until_different(items: Iterable[TIn],
     Yields:
         Tuples containing the group key and item values.
     """
-    prev_item_key = None
-    cur_items = []  # type: List[Any]
-    for item in items:
-        item_key = key(item)
-        if cur_items and item_key != prev_item_key:
-            yield prev_item_key, cur_items
-            cur_items = []
-        cur_items.append(value(item))
-        prev_item_key = item_key
-
-    if cur_items:
-        yield prev_item_key, cur_items
+    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
