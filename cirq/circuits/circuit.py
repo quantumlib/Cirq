@@ -144,8 +144,6 @@ class Circuit:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        #print("Self moments ", self._moments)
-        #print("Other moment ", other._moments)
         return self._moments == other._moments and self._device == other._device
 
     def __ne__(self, other):

@@ -39,8 +39,6 @@ class Job(object):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        #print(self.circuit)
-        #print(other.circuit)
         return (self.circuit == other.circuit and
                 self.repetitions == other.repetitions and
                 self.sweep == other.sweep)

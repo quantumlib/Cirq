@@ -268,7 +268,6 @@ class EigenGate(raw_types.Gate):
 
     def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
-        #print("Type of exponent in pow ", new_exponent)
         if new_exponent is NotImplemented:
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)

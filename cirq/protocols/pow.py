@@ -89,10 +89,7 @@ def pow(val: Any,
         TypeError: `val` doesn't have a __pow__ method (or that method returned
             NotImplemented) and no `default` value was specified.
     """
-    #print("Val ", val)
-    #print("Exponent ", exponent)
     raiser = getattr(val, '__pow__', None)
-    #print("Raiser ", raiser)
     result = NotImplemented if raiser is None else raiser(exponent)
     if result is not NotImplemented:
         return result
