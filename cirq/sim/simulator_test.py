@@ -206,16 +206,6 @@ def test_simulator_trial_density_matrix():
         result.density_matrix())
 
 
-def test_simulator_trial_bloch_vector():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    bloch = np.array([0,0,-1])
-    np.testing.assert_array_almost_equal(bloch,
-        cirq.bloch_vector_from_state_vector(result.final_state, 1))
-
-
 def test_step_result_pretty_state():
     class BasicStepResult(cirq.StepResult):
 
@@ -247,22 +237,6 @@ def test_step_result_density_matrix():
                     [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho,
         step_result.density_matrix())
-
-
-def test_step_result_bloch_vector():
-    class BasicStepResult(cirq.StepResult):
-
-        def __init__(self, qubit_map: Dict,
-                measurements: Dict[str, List[bool]]) -> None:
-            super().__init__(qubit_map, measurements)
-
-        def state(self) -> np.ndarray:
-            return np.array([0, 1, 0, 0])
-
-    step_result = BasicStepResult({}, {})
-    bloch = np.array([0,0,-1])
-    np.testing.assert_array_almost_equal(bloch,
-        cirq.bloch_vector_from_state_vector(step_result.state(), 1))
 
 
 class FakeStepResult(cirq.StepResult):
