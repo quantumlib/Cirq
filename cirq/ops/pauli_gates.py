@@ -34,11 +34,9 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
     def by_index(index: int) -> 'Pauli':
         return Pauli._XYZ[index % 3]
 
-    def __init__(
-            self, *args: Any, _index: int, _name: str, **kwargs: Any) -> None:
-        super(Pauli, self).__init__(*args, **kwargs)  # type: ignore #4335
-        self._index = _index
-        self._name = _name
+    def __init__(self, index: int, name: str) -> None:
+        self._index = index
+        self._name = name
 
     def commutes_with(self, other: 'Pauli') -> bool:
         return self is other
@@ -79,17 +77,20 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
 
 class _PauliX(Pauli, common_gates.XPowGate):
     def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
-        super(_PauliX, self).__init__(_index=0, _name='X', exponent=exponent)
+        Pauli.__init__(self, index=0, name='X')
+        common_gates.XPowGate.__init__(self, exponent=exponent)
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
     def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
-        super(_PauliY, self).__init__(_index=1, _name='Y', exponent=exponent)
+        Pauli.__init__(self, index=1, name='Y')
+        common_gates.YPowGate.__init__(self, exponent=exponent)
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
     def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
-        super(_PauliZ, self).__init__(_index=2, _name='Z', exponent=exponent)
+        Pauli.__init__(self, index=2, name='Z')
+        common_gates.ZPowGate.__init__(self, exponent=exponent)
 
 
 # The Pauli X gate.
