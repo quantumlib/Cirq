@@ -321,7 +321,8 @@ def _assert_pass_over(ops, before, after):
         itertools.product(range(3), (True, False)))
 def test_pass_operations_over_single(shift, t_or_f):
     q0, q1 = _make_qubits(2)
-    X, Y, Z = (pauli+shift for pauli in (cirq.X, cirq.Y, cirq.Z))
+    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
+               for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
     ps_before = cirq.PauliString({q0: X}, t_or_f)
@@ -359,7 +360,8 @@ def test_pass_operations_over_single(shift, t_or_f):
         itertools.product(range(3), *((True, False),)*3))
 def test_pass_operations_over_double(shift, t_or_f1, t_or_f2, neg):
     q0, q1, q2 = _make_qubits(3)
-    X, Y, Z = (pauli+shift for pauli in (cirq.X, cirq.Y, cirq.Z))
+    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
+               for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
     ps_before = cirq.PauliString({q0: Z, q2: Y}, neg)
