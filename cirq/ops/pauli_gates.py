@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, Union, overload, TYPE_CHECKING
+from typing import Any, Union, TYPE_CHECKING
 
 from cirq import value
 from cirq.ops import common_gates, eigen_gate
@@ -34,6 +34,10 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
     def by_index(index: int) -> 'Pauli':
         return Pauli._XYZ[index % 3]
 
+    @staticmethod
+    def by_relative_index(p: 'Pauli', relative_index: int) -> 'Pauli':
+        return Pauli._XYZ[(p._index + relative_index) % 3]
+
     def __init__(self, index: int, name: str) -> None:
         self._index = index
         self._name = name
@@ -44,7 +48,8 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
     def third(self, second: 'Pauli') -> 'Pauli':
         return Pauli._XYZ[(-self._index - second._index) % 3]
 
-    def _difference(self, second: 'Pauli') -> int:
+    def relative_index(self, second: 'Pauli') -> int:
+        """Relative index of self w.r.t. second in the (X, Y, Z) cycle."""
         return (self._index - second._index + 1) % 3 - 1
 
     def __gt__(self, other):
@@ -56,23 +61,6 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
         if not isinstance(other, Pauli):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
-
-    def __add__(self, shift: int) -> 'Pauli':
-        return Pauli._XYZ[(self._index + shift) % 3]
-
-    # pylint: disable=function-redefined
-    @overload
-    def __sub__(self, other: 'Pauli') -> int: pass
-    @overload
-    def __sub__(self, shift: int) -> 'Pauli': pass
-
-    def __sub__(self, other_or_shift: Union['Pauli', int]
-                ) -> Union[int, 'Pauli']:
-        if isinstance(other_or_shift, int):
-            return self + -other_or_shift
-        else:
-            return self._difference(other_or_shift)
-    # pylint: enable=function-redefined
 
 
 class _PauliX(Pauli, common_gates.XPowGate):
