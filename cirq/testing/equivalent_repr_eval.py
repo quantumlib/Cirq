@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict
+from typing import Any, Dict, Optional
 
 
 def assert_equivalent_repr(
         value: Any,
         *,
-        setup_code: str = 'import cirq\nimport numpy as np') -> None:
+        setup_code: str = 'import cirq\nimport numpy as np',
+        global_vals: Optional[Dict[str, Any]] = None,
+        local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that eval(repr(v)) == v.
 
     Args:
@@ -31,9 +29,9 @@ def assert_equivalent_repr(
         setup_code: Code that must be executed before the repr can be evaluated.
             Ideally this should just be a series of 'import' lines.
     """
+    global_vals = global_vals or {}
+    local_vals = local_vals or {}
 
-    global_vals = {}  # type: Dict[str, Any]
-    local_vals = {}  # type: Dict[str, Any]
     exec(setup_code, global_vals, local_vals)
 
     try:
