@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from cirq.linalg.tolerance import all_close, all_near_zero, all_near_zero_mod, \
-    close, near_zero, near_zero_mod
+    near_zero, near_zero_mod
 
 
 def test_all_close():
@@ -90,45 +90,6 @@ def test_all_zero_mod():
                              rtol=rtol)
     assert not all_near_zero_mod([-4.5, 0, 1, 4.5, 30], 100, atol=atol,
                                  rtol=rtol)
-
-
-def test_close():
-    assert close(1, 1)
-    assert not close(1, 0.5)
-    assert not close(1, 1.5)
-    assert not close(1, 100.5)
-    assert close(100, 100)
-    assert not close(100, 99.5)
-    assert not close(100, 100.5)
-
-    atol = 5
-    assert close(1, 1, atol=atol)
-    assert close(1, 0.5, atol=atol)
-    assert close(1, 1.5, atol=atol)
-    assert close(1, 5.5, atol=atol)
-    assert close(1, -3.5, atol=atol)
-    assert not close(1, 6.5, atol=atol)
-    assert not close(1, -4.5, atol=atol)
-    assert not close(1, 100.5, atol=atol)
-    assert close(100, 100, atol=atol)
-    assert close(100, 100.5, atol=atol)
-    assert close(100, 104.5, atol=atol)
-    assert not close(100, 105.5, atol=atol)
-
-    rtol = 2
-    assert close(100, 100, rtol=rtol)
-    assert close(299.5, 100, rtol=rtol)
-    assert close(1, 100, rtol=rtol)
-    assert close(-99, 100, rtol=rtol)
-    assert not close(100, 1, rtol=rtol)  # Doesn't commute.
-    assert not close(300.5, 100, rtol=rtol)
-    assert not close(-101, 100, rtol=rtol)
-
-    assert close(100, 100, rtol=rtol, atol=atol)
-    assert close(106, 100, rtol=rtol, atol=atol)
-    assert close(201, 100, rtol=rtol, atol=atol)
-    assert close(304.5, 100, rtol=rtol, atol=atol)
-    assert not close(305.5, 100, rtol=rtol, atol=atol)
 
 
 def test_near_zero():

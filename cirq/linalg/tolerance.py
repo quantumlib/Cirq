@@ -59,9 +59,6 @@ def all_near_zero_mod(a,
                      np.zeros(np.shape(a)), rtol, atol, equal_nan)
 
 
-def close(a, b, rtol: float = DEFAULT_RTOL, atol: float = DEFAULT_ATOL):
-    return abs(a - b) <= atol + rtol * abs(b)
-
 
 def near_zero(a, atol: float = DEFAULT_ATOL):
     return abs(a) <= atol
