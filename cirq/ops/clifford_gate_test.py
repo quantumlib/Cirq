@@ -31,7 +31,7 @@ def _assert_not_mirror(gate) -> None:
     trans_y = gate.transform(cirq.Y)
     trans_z = gate.transform(cirq.Z)
     right_handed = (trans_x.flip ^ trans_y.flip ^ trans_z.flip ^
-                   (trans_x.to - trans_y.to != 1))
+                   (trans_x.to.relative_index(trans_y.to) != 1))
     assert right_handed, 'Mirrors'
 
 
@@ -86,7 +86,7 @@ def test_init_from_xz(trans_x, trans_z):
                                                     _paulis)
      if trans1.to != trans2.to))
 def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
-    from2 = from1 + 1
+    from2 = cirq.Pauli.by_relative_index(from1, 1)
     from1_str, from2_str = (str(frm).lower()+'_to' for frm in (from1, from2))
     gate_kw = cirq.SingleQubitCliffordGate.from_double_map(**{from1_str: trans1,
                                                    from2_str: trans2})
@@ -103,7 +103,7 @@ def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
                                                     _paulis)
      if trans1.to == trans2.to))
 def test_init_from_double_invalid(trans1, trans2, from1):
-    from2 = from1 + 1
+    from2 = cirq.Pauli.by_relative_index(from1, 1)
     # Test throws on invalid arguments
     with pytest.raises(ValueError):
         cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
@@ -117,7 +117,7 @@ def test_init_from_double_invalid(trans1, trans2, from1):
                                                     _paulis)
      if trans1.to != trans2.to))
 def test_init_from_double(trans1, trans2, from1):
-    from2 = from1 + 1
+    from2 = cirq.Pauli.by_relative_index(from1, 1)
     gate = cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
                                                          from2: trans2})
     # Test initializes what was expected
