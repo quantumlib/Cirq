@@ -342,6 +342,7 @@ class MeasurementGate(raw_types.Gate):
     """
 
     def __init__(self,
+                 num_qubits: int,
                  key: str = '',
                  invert_mask: Tuple[bool, ...] = ()) -> None:
         """
@@ -352,8 +353,11 @@ class MeasurementGate(raw_types.Gate):
                 than the number of qubits, but it is permitted to be shorter.
                 Qubits with indices past the end of the mask are not flipped.
         """
+        self.num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
+        if self.invert_mask and len(self.invert_mask) > self.num_qubits:
+            raise ValueError('len(invert_mask) > num_qubits')
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -374,16 +378,14 @@ class MeasurementGate(raw_types.Gate):
         return MeasurementGate(key=self.key, invert_mask=tuple(new_mask))
 
     def validate_args(self, qubits):
-        if (self.invert_mask is not None and
-                len(self.invert_mask) > len(qubits)):
-            raise ValueError('len(invert_mask) > len(qubits)')
+        if len(qubits) != self.num_qubits:
+            raise ValueError(
+                '{}-qubit MeasurementGate cannot act on {} qubits'.format(
+                    self.num_qubits, len(qubits)))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        n = (max(1, len(self.invert_mask))
-             if args.known_qubit_count is None
-             else args.known_qubit_count)
-        symbols = ['M'] * n
+        symbols = ['M'] * self.num_qubits
 
         # Show which output bits are negated.
         if self.invert_mask:
@@ -392,8 +394,7 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if (not args.known_qubits or
-                self.key != _default_measurement_key(args.known_qubits)):
+        if self.key != _default_measurement_key(args.known_qubits):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
@@ -416,11 +417,12 @@ class MeasurementGate(raw_types.Gate):
         return ''.join(lines)
 
     def __repr__(self):
-        return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
-                                                     repr(self.invert_mask))
+        return 'cirq.MeasurementGate({}, {}, {})'.format(repr(self.num_qubits),
+                                                         repr(self.key),
+                                                         repr(self.invert_mask))
 
     def _value_equality_values_(self):
-        return self.key, self.invert_mask
+        return self.num_qubits, self.key, self.invert_mask
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
@@ -461,7 +463,7 @@ def measure(*qubits: raw_types.QubitId,
 
     if key is None:
         key = _default_measurement_key(qubits)
-    return MeasurementGate(key, invert_mask).on(*qubits)
+    return MeasurementGate(len(qubits), key, invert_mask).on(*qubits)
 
 
 def measure_each(*qubits: raw_types.QubitId,
@@ -479,7 +481,7 @@ def measure_each(*qubits: raw_types.QubitId,
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(key_func(q)).on(q) for q in qubits]
+    return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):

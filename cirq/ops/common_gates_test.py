@@ -43,7 +43,7 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
-            cirq.MeasurementGate(''), qubit_count=1)
+            cirq.MeasurementGate(1, ''), qubit_count=1)
 
 
 def test_cz_init():
@@ -390,15 +390,15 @@ def test_str():
 
 def test_measurement_gate_diagram():
     # Shows key.
-    assert cirq.circuit_diagram_info(cirq.MeasurementGate()
+    assert cirq.circuit_diagram_info(cirq.MeasurementGate(1)
                                      ) == cirq.CircuitDiagramInfo(("M('')",))
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(key='test')
+        cirq.MeasurementGate(1, key='test')
     ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(),
+        cirq.MeasurementGate(3),
         cirq.CircuitDiagramInfoArgs(
             known_qubits=None,
             known_qubit_count=3,
@@ -409,7 +409,7 @@ def test_measurement_gate_diagram():
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(invert_mask=(False, True))
+        cirq.MeasurementGate(2, invert_mask=(False, True))
     ) == cirq.CircuitDiagramInfo(("M('')", "!M"))
 
     # Omits key when it is the default.
@@ -443,12 +443,12 @@ def test_measure():
     with pytest.raises(ValueError, match='empty set of qubits'):
         _ = cirq.measure()
 
-    assert cirq.measure(a) == cirq.MeasurementGate(key='a').on(a)
-    assert cirq.measure(a, b) == cirq.MeasurementGate(key='a,b').on(a, b)
-    assert cirq.measure(b, a) == cirq.MeasurementGate(key='b,a').on(b, a)
-    assert cirq.measure(a, key='b') == cirq.MeasurementGate(key='b').on(a)
+    assert cirq.measure(a) == cirq.MeasurementGate(1, key='a').on(a)
+    assert cirq.measure(a, b) == cirq.MeasurementGate(2, key='a,b').on(a, b)
+    assert cirq.measure(b, a) == cirq.MeasurementGate(3, key='b,a').on(b, a)
+    assert cirq.measure(a, key='b') == cirq.MeasurementGate(1, key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
-        key='a', invert_mask=(True,)).on(a)
+        1, key='a', invert_mask=(True,)).on(a)
 
     with pytest.raises(ValueError, match='ndarray'):
         _ = cirq.measure(np.ndarray([1, 0]))

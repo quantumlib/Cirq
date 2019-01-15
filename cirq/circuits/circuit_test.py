@@ -894,8 +894,10 @@ def test_findall_operations_with_gate():
         (3, cirq.CZ(a, b), cirq.CZ),
     ]
     assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
-        (4, cirq.MeasurementGate(key='a').on(a), cirq.MeasurementGate(key='a')),
-        (4, cirq.MeasurementGate(key='b').on(b), cirq.MeasurementGate(key='b')),
+        (4, cirq.MeasurementGate(1, key='a').on(a),
+         cirq.MeasurementGate(1, key='a')),
+        (4, cirq.MeasurementGate(1, key='b').on(b),
+         cirq.MeasurementGate(1, key='b')),
     ]
 
 
@@ -906,8 +908,8 @@ def test_are_all_measurements_terminal():
     xa = cirq.X.on(a)
     xb = cirq.X.on(b)
 
-    ma = cirq.MeasurementGate().on(a)
-    mb = cirq.MeasurementGate().on(b)
+    ma = cirq.MeasurementGate(1).on(a)
+    mb = cirq.MeasurementGate(1).on(b)
 
     c = Circuit()
     assert c.are_all_measurements_terminal()
