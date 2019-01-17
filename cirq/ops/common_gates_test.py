@@ -461,6 +461,9 @@ def test_measure():
     with pytest.raises(ValueError, match='QubitId'):
         _ = cirq.measure("bork")
 
+    with pytest.raises(ValueError, match='2-qubit'):
+        _ = cirq.MeasurementGate(2).on(a)
+
 def test_measurement_qubit_count_vs_mask_length():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
