@@ -20,6 +20,7 @@ from cirq import linalg, protocols, value
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
+NonDecomposable = ([],)  # type: Any
 
 @value.value_equality
 class ControlledGate(raw_types.Gate):
@@ -32,6 +33,34 @@ class ControlledGate(raw_types.Gate):
             sub_gate: The gate to add a control qubit to.
         """
         self.sub_gate = sub_gate
+
+    def _decompose_(self, qubits):
+        # iterate manually through the control bits otherwise
+        # decompose_once_with_qubits runs into an infinite recursion
+
+        sg = self.sub_gate
+        num_control_bits = 1
+        while isinstance(sg, ControlledGate):
+            sg = sg.sub_gate
+            num_control_bits += 1
+        result = protocols.decompose_once_with_qubits(sg,
+                                                      qubits[num_control_bits:],
+                                                      NonDecomposable)
+
+        if result is NonDecomposable:
+            yield self(*qubits)
+            return
+
+        for c in protocols.decompose(sg(*qubits[num_control_bits:])):
+            # wrap the component gate in the control gates
+            g = c._gate
+            qbits = []
+            for i in range(0, num_control_bits):
+                g = ControlledGate(g)
+                qbits.append(qubits[i])
+
+            qbits += c._qubits
+            yield g(*qbits)
 
     def validate_args(self, qubits) -> None:
         if len(qubits) < 1:
