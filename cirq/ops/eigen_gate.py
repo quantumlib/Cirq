@@ -20,7 +20,7 @@ import abc
 import numpy as np
 
 from cirq import value, protocols
-from cirq.ops import raw_types
+from cirq.ops import linear_operator, raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -46,7 +46,7 @@ EigenComponent = NamedTuple(
 
 
 @value.value_equality(distinct_child_types=True, approximate=True)
-class EigenGate(raw_types.Gate):
+class EigenGate(linear_operator.UnitaryMixin, raw_types.Gate):
     """A gate with a known eigendecomposition.
 
     EigenGate is particularly useful when one wishes for different parts of

@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Optional
 import re
 
 import numpy as np
@@ -215,3 +217,107 @@ def test_two_qubit_consistent():
     u = cirq.testing.random_unitary(4)
     g = cirq.TwoQubitMatrixGate(u)
     cirq.testing.assert_implements_consistent_protocols(g)
+
+
+@pytest.mark.parametrize('expression, expected_matrix', (
+    (-cirq.X,
+     cirq.SingleQubitMatrixGate(np.array([[0, -1], [-1, 0]]))),
+    (1j * cirq.H,
+     cirq.SingleQubitMatrixGate(1j * np.sqrt(.5) * np.array([[1, 1],
+                                                             [1, -1]]))),
+    (cirq.S / 1j,
+     cirq.SingleQubitMatrixGate(np.diag([-1j, 1]))),
+    ((cirq.X + cirq.Y) / np.sqrt(2),
+     cirq.SingleQubitMatrixGate(np.array([[0, np.sqrt(-1j)],
+                                          [np.sqrt(1j), 0]]))),
+    ((cirq.X - cirq.Y) / np.sqrt(2),
+     cirq.SingleQubitMatrixGate(np.array([[0, np.sqrt(1j)],
+                                          [np.sqrt(-1j), 0]]))),
+    (np.e**(-.25j * cirq.Y * np.pi),
+     cirq.SingleQubitMatrixGate(np.sqrt(.5) * np.array([[1, -1], [1, 1]]))),
+    (-cirq.CZ,
+     cirq.TwoQubitMatrixGate(np.diag([-1, -1, -1, 1]))),
+    (2**(cirq.CNOT - cirq.CNOT),
+     cirq.TwoQubitMatrixGate(np.eye(4))),
+    (np.exp(1j * np.pi * (cirq.XX + cirq.YY) / 4),
+     cirq.TwoQubitMatrixGate(np.array([[1, 0, 0, 0],
+                                       [0, 0, 1j, 0],
+                                       [0, 1j, 0, 0],
+                                       [0, 0, 0, 1]]))),
+))
+def test_make_gate(expression, expected_matrix):
+    assert cirq.make_gate(expression).approx_eq(expected_matrix,
+                                                ignore_global_phase=False)
+
+
+class FakeLinearOperator(cirq.AbstractLinearOperator):
+    def __init__(self, matrix: Optional[np.ndarray]) -> None:
+        self._matrix = matrix
+
+    def _n_dim_(self) -> Optional[int]:
+        pass
+
+    def _matrix_(self) -> Optional[np.ndarray]:
+        return self._matrix
+
+    def _pauli_expansion_(self) -> None:
+        pass
+
+
+@pytest.mark.parametrize('expression', (
+    2 * cirq.Y, cirq.X + cirq.Z, cirq.CNOT + cirq.CZ, cirq.TOFFOLI,
+    FakeLinearOperator(None),
+    FakeLinearOperator(np.zeros((2, 2, 2))),
+    FakeLinearOperator(np.zeros((2, 3))),
+    FakeLinearOperator(np.zeros((3, 3))),
+))
+def test_make_gate_errors(expression):
+    with pytest.raises(ValueError):
+        cirq.make_gate(expression)
+
+
+@pytest.mark.parametrize('expression, expected_matrix', (
+    (2 * cirq.Y,
+     cirq.SingleQubitMatrixGate(np.array([[0, -1j], [1j, 0]]))),
+    (cirq.X + cirq.Z,
+     cirq.SingleQubitMatrixGate(np.sqrt(.5) * np.array([[1, 1],
+                                                        [1, -1]]))),
+    (3j * cirq.H,
+     cirq.SingleQubitMatrixGate(1j * np.sqrt(.5) * np.array([[1, 1],
+                                                             [1, -1]]))),
+    (cirq.S / 10j,
+     cirq.SingleQubitMatrixGate(np.diag([-1j, 1]))),
+    (cirq.X + cirq.Y,
+     cirq.SingleQubitMatrixGate(np.array([[0, np.sqrt(-1j)],
+                                          [np.sqrt(1j), 0]]))),
+    (cirq.X - cirq.Y,
+     cirq.SingleQubitMatrixGate(np.array([[0, np.sqrt(1j)],
+                                          [np.sqrt(-1j), 0]]))),
+    (np.e**cirq.Y,
+     cirq.SingleQubitMatrixGate(np.eye(2))),
+    (cirq.CNOT + cirq.CZ,
+     cirq.TwoQubitMatrixGate(np.array([[1, 0, 0, 0],
+                                       [0, 1, 0, 0],
+                                       [0, 0, np.sqrt(.5), np.sqrt(.5)],
+                                       [0, 0, np.sqrt(.5), -np.sqrt(.5)]]))),
+    (-2 * cirq.CZ,
+     cirq.TwoQubitMatrixGate(np.diag([-1, -1, -1, 1]))),
+    (2**cirq.CNOT,
+     cirq.TwoQubitMatrixGate(np.eye(4))),
+    (2 * np.exp(1j * np.pi * (cirq.XX + cirq.YY) / 4),
+     cirq.TwoQubitMatrixGate(np.array([[1, 0, 0, 0],
+                                       [0, 0, 1j, 0],
+                                       [0, 1j, 0, 0],
+                                       [0, 0, 0, 1]]))),
+))
+def test_forge_gate(expression, expected_matrix):
+    assert cirq.forge_gate(expression).approx_eq(expected_matrix,
+                                                 ignore_global_phase=False)
+
+
+@pytest.mark.parametrize('expression', (
+    cirq.TOFFOLI, cirq.FREDKIN * 1j,
+))
+def test_forge_gate_errors(expression):
+    with pytest.raises(ValueError):
+        cirq.forge_gate(expression)

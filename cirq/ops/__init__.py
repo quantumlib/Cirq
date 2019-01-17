@@ -82,6 +82,11 @@ from cirq.ops.gate_features import (
 from cirq.ops.gate_operation import (
     GateOperation,
 )
+from cirq.ops.linear_operator import (
+    AbstractLinearOperator,
+    LinearOperator,
+    UnitaryMixin,
+)
 from cirq.ops.qubit_order import (
     QubitOrder,
 )
@@ -89,6 +94,8 @@ from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,
 )
 from cirq.ops.matrix_gates import (
+    forge_gate,
+    make_gate,
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )

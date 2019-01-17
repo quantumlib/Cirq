@@ -90,6 +90,13 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
+    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+        if protocols.is_parameterized(self):
+            return None
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return phase * np.array([np.cos(angle), -1j * np.sin(angle), 0, 0])
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
@@ -170,6 +177,13 @@ class YPowGate(eigen_gate.EigenGate,
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
+
+    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+        if protocols.is_parameterized(self):
+            return None
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return phase * np.array([np.cos(angle), 0, -1j * np.sin(angle), 0])
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
@@ -262,6 +276,13 @@ class ZPowGate(eigen_gate.EigenGate,
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),
         ]
+
+    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+        if protocols.is_parameterized(self):
+            return None
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return phase * np.array([np.cos(angle), 0, 0, -1j * np.sin(angle)])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
@@ -516,6 +537,16 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         ]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
+
+    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+        if protocols.is_parameterized(self):
+            return None
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return phase * np.array([np.cos(angle),
+                                 -1j * np.sin(angle) / np.sqrt(2),
+                                 0,
+                                 -1j * np.sin(angle) / np.sqrt(2)])
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:

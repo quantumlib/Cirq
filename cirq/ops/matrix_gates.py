@@ -19,14 +19,14 @@ from typing import cast, Any
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq.ops import raw_types
+from cirq.ops import linear_operator, raw_types
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(raw_types.Gate):
+class SingleQubitMatrixGate(linear_operator.UnitaryMixin, raw_types.Gate):
     """A 1-qubit gate defined by its matrix.
 
     More general than specialized classes like `ZPowGate`, but more expensive
@@ -106,7 +106,7 @@ class SingleQubitMatrixGate(raw_types.Gate):
         return str(self._matrix.round(3))
 
 
-class TwoQubitMatrixGate(raw_types.Gate):
+class TwoQubitMatrixGate(linear_operator.UnitaryMixin, raw_types.Gate):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like `CZPowGate`, but more expensive
@@ -121,7 +121,6 @@ class TwoQubitMatrixGate(raw_types.Gate):
         Args:
             matrix: The matrix that defines the gate.
         """
-
         if matrix.shape != (4, 4) or not linalg.is_unitary(matrix):
             raise ValueError('Not a 4x4 unitary matrix: {}'.format(matrix))
         self._matrix = matrix
@@ -203,3 +202,64 @@ def _matrix_to_diagram_symbol(matrix: np.ndarray,
 
 def _numpy_array_repr(arr: np.ndarray) -> str:
     return 'np.array({!r})'.format(arr.tolist())
+
+
+def _is_power_of_two(n: int) -> bool:
+    return n > 0 and n & (n-1) == 0
+
+
+def _infer_n_qubits(op: linear_operator.AbstractLinearOperator) -> int:
+    matrix = op.matrix()
+
+    if matrix is None:
+        raise ValueError('Cannot make gate from operator without matrix')
+    if len(matrix.shape) != 2:
+        raise ValueError('Cannot make gate from array of {} dimensions'
+                         .format(len(matrix.shape)))
+    if matrix.shape[0] != matrix.shape[1]:
+        raise ValueError('Cannot make gate from rectangular matrix of shape {}'
+                         .format(matrix.shape))
+    if not _is_power_of_two(matrix.shape[0]):
+        raise ValueError('Cannot make gate from matrix of shape {}'
+                         .format(matrix.shape))
+
+    return round(np.log2(matrix.shape[0]))
+
+
+def make_gate(op: linear_operator.AbstractLinearOperator) -> raw_types.Gate:
+    """Makes quantum gate from unitary operator op.
+
+    Args:
+        op: unitary linear operator to make a gate out of.
+
+    Returns:
+        1- or 2-qubit matrix gate corresponding to the given linear operator.
+
+    Raises:
+        ValueError if the given linear operator is not unitary or if it acts
+        on the space of more than two qubits.
+    """
+    n_qubits = _infer_n_qubits(op)
+    if n_qubits == 1:
+        return SingleQubitMatrixGate(op.matrix())
+    elif n_qubits == 2:
+        return TwoQubitMatrixGate(op.matrix())
+    else:
+        raise ValueError('Matrix gates of {} qubits are not supported'
+                         .format(n_qubits))
+
+
+def forge_gate(op: linear_operator.LinearOperator) -> raw_types.Gate:
+    """Makes quantum gate from unitary factor in polar decomposition of op.
+
+    Args:
+        op: linear operator to make a gate out of.
+
+    Returns:
+        1- or 2-qubit matrix gate corresponding to the given linear operator.
+
+    Raises:
+        ValueError if the given linear operator acts on the space of more than
+        two qubits.
+    """
+    return make_gate(op.unitary_factor())

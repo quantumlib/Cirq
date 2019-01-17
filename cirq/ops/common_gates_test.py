@@ -710,3 +710,33 @@ q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
         ), """
 q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(0.5π)───
     """)
+
+
+@pytest.mark.parametrize('gate', (
+    cirq.X**cirq.Symbol('t'),
+    cirq.Y**cirq.Symbol('t'),
+    cirq.Z**cirq.Symbol('t'),
+    cirq.H**cirq.Symbol('t'),
+))
+def test_pauli_expansion_of_parametrized_gates(gate):
+    assert gate.pauli_expansion() is None
+
+
+@pytest.mark.parametrize('gate', (
+    cirq.X, cirq.Y, cirq.Z, cirq.S, cirq.T, cirq.H,
+    cirq.X**.1, cirq.Y**.2, cirq.Z**.3, cirq.S**.4, cirq.T**.5, cirq.H**.6,
+    cirq.X**-.1, cirq.H**-.5, cirq.XPowGate(exponent=.3, global_shift=.2),
+    cirq.Rx(.1), cirq.Ry(.2), cirq.Rz(.3), cirq.Rx(12.34 * np.pi),
+    cirq.Rx(np.pi / 3), cirq.Ry(np.pi / 5), cirq.Rz(np.pi / 7),
+))
+def test_pauli_expansion_of_fixed_gates(gate):
+    original_unitary = cirq.protocols.unitary(gate)
+
+    pauli_expansion = gate.pauli_expansion()
+    expected_pauli_expansion = cirq.linalg.expand_in_basis(
+        original_unitary, cirq.linalg.operator_spaces.PAULI_BASIS)
+    assert np.allclose(pauli_expansion, expected_pauli_expansion)
+
+    recovered_unitary = cirq.linalg.reconstruct_from_expansion(
+        pauli_expansion, cirq.linalg.operator_spaces.PAULI_BASIS)
+    assert np.allclose(recovered_unitary, original_unitary)

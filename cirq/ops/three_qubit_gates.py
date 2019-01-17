@@ -24,6 +24,7 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
+    linear_operator,
     pauli_gates,
     op_tree,
     raw_types,
@@ -196,7 +197,8 @@ class CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
-class CSwapGate(gate_features.ThreeQubitGate,
+class CSwapGate(linear_operator.UnitaryMixin,
+                gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
 
@@ -304,7 +306,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
 
     def _unitary_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]),
-                                 np.array([[0, 1], [1, 0]]),
+                                 np.array([[0, 1], [1, 0]], dtype=np.complex64),
                                  np.diag([1]))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs

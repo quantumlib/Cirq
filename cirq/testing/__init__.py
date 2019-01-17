@@ -53,6 +53,10 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
     assert_allclose_up_to_global_phase,
 )
+from cirq.testing.linear_operator_compare import (
+    assert_linear_operator_is_consistent,
+    assert_linear_operators_are_equal,
+)
 from cirq.testing.order_tester import (
     OrderTester,
 )

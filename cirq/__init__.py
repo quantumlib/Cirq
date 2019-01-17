@@ -78,6 +78,7 @@ from cirq.line import (
 )
 
 from cirq.ops import (
+    AbstractLinearOperator,
     AmplitudeDampingChannel,
     ApproxPauliStringExpectation,
     AsymmetricDepolarizingChannel,
@@ -95,6 +96,7 @@ from cirq.ops import (
     ControlledGate,
     DepolarizingChannel,
     EigenGate,
+    forge_gate,
     FREDKIN,
     Gate,
     GateOperation,
@@ -104,6 +106,8 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    LinearOperator,
+    make_gate,
     MeasurementGate,
     Moment,
     measure,
@@ -139,6 +143,7 @@ from cirq.ops import (
     ThreeQubitGate,
     TwoQubitGate,
     TwoQubitMatrixGate,
+    UnitaryMixin,
     WaveFunctionDisplay,
     X,
     XPowGate,
