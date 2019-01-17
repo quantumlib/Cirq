@@ -343,6 +343,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         if 'key' not in meas or 'targets' not in meas:
             raise_missing_fields('Measurement')
         return ops.MeasurementGate(
+            len(meas['targets']),
             key=meas['key'],
             invert_mask=invert_mask
         ).on(*[qubit(q) for q in meas['targets']])

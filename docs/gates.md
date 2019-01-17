@@ -142,8 +142,7 @@ a physical modification applied to the qubits.
 A two qubit gate that phases the ``|11>`` state.
 The matrix of `cirq.CZ**t` is ``exp(i pi |11><11| t)``.
 
-**cirq.MeasurementGate** This is a single qubit measurement
-in the computational basis. 
+**cirq.MeasurementGate** This is a multi-qubit measurement in the computational basis.
 
 
 ### Other Common Gates

@@ -375,7 +375,8 @@ class MeasurementGate(raw_types.Gate):
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
-        return MeasurementGate(key=self.key, invert_mask=tuple(new_mask))
+        return MeasurementGate(self.num_qubits, key=self.key,
+                               invert_mask=tuple(new_mask))
 
     def validate_args(self, qubits):
         if len(qubits) != self.num_qubits:
@@ -394,7 +395,8 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if self.key != _default_measurement_key(args.known_qubits):
+        if (not args.known_qubits or self.key != _default_measurement_key(
+            args.known_qubits)):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))

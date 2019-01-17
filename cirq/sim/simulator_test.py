@@ -340,10 +340,9 @@ def test_simulates_composite():
 def test_simulate_measurement_inversions():
     q = cirq.NamedQubit('q')
 
-    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
-                                                   invert_mask=(True,)).on(q))
+    c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(True,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([True])}
 
-    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
-                                                   invert_mask=(False,)).on(q))
+
+    c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(False,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}
