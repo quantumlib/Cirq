@@ -24,7 +24,7 @@ from cirq.ops import gate_features
 
 
 class AbstractLinearOperator(metaclass=abc.ABCMeta):
-    """General linear operator on a vector space.
+    """General linear operator on a finite-dimensional vector space.
 
     AbstractLinearOperators encompass both quantum gates and other (not
     necessarily unitary) linear operators. Subclasses choose one or more
@@ -73,10 +73,11 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
             return pauli_expansion
 
         matrix = self._matrix_()
-        if matrix is None:
-            return None
-        return operator_spaces.expand_in_basis(
-            matrix, operator_spaces.PAULI_BASIS)
+        if matrix is not None:
+            return operator_spaces.expand_in_basis(
+                matrix, operator_spaces.PAULI_BASIS)
+
+        return None
 
     def __add__(
             self,
