@@ -39,7 +39,7 @@ In addition to checking that the code executes:
       (like number of qubits or number of repetitions).  For `.md` files the
       substitution is of the form
 
-            <---test_substitution
+            <!---test_substitution
             pattern
             substitution
             --->
@@ -110,7 +110,7 @@ def find_markdown_code_snippets(content: str) -> List[Tuple[str, int]]:
 
 
 def find_markdown_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
-    test_sub_text = find_code_snippets("<---test_substitution\n(.*?)--->",
+    test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->",
                                        content)
     substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
     return [(re.compile(match), sub) for match, sub in substitutions]
@@ -287,11 +287,11 @@ A 3 by 3 grid of qubits using
 ```python
 print("hello world")
 ```
-<---test_substitution
+<!---test_substitution
 hello
 goodbye
 --->
-<---test_substitution
+<!---test_substitution
 world
 universe
 --->
@@ -309,11 +309,11 @@ A 3 by 3 grid of qubits using
 ```python
 print("hello world")
 ```
-<---test_substitution
+<!---test_substitution
 hello
 goodbye
 --->
-<---test_substitution
+<!---test_substitution
 world
 universe
 --->
@@ -325,11 +325,11 @@ A 3 by 3 grid of qubits using
 ```python
 print("goodbye universe")
 ```
-<---test_substitution
+<!---test_substitution
 goodbye
 goodbye
 --->
-<---test_substitution
+<!---test_substitution
 universe
 universe
 --->
