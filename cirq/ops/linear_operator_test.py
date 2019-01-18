@@ -247,7 +247,7 @@ def test_can_compute_both_matrix_and_pauli_expansion(expression):
                     ' [0.+0.j 0.+0.j 2.+0.j 0.+0.j]]'),
 ))
 def test_operator_str(expression, string):
-    assert str(expression) == string
+    assert (str(expression).replace(' ', '') == string.replace(' ', ''))
 
 
 @pytest.mark.parametrize('original', (
