@@ -231,7 +231,7 @@ class UnitaryMixin(AbstractLinearOperator):
 
 
 class LinearOperator(AbstractLinearOperator):
-    """General linear operator on a vector space.
+    """General linear operator on a finite-dimensional vector space.
 
     LinearOperator is never a gate. Instances of LinearOperator are used to
     represent intermediate values in manipulations of quantum gates that go
