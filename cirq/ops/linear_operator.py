@@ -57,10 +57,11 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
             return matrix
 
         pauli_expansion = self._pauli_expansion_()
-        if pauli_expansion is None:
-            return None
-        return operator_spaces.reconstruct_from_expansion(
-            pauli_expansion, operator_spaces.PAULI_BASIS)
+        if pauli_expansion is not None:
+            return operator_spaces.reconstruct_from_expansion(
+                pauli_expansion, operator_spaces.PAULI_BASIS)
+
+        return None
 
     def pauli_expansion(self) -> Optional[np.ndarray]:
         """Returns or computes expansion of self in the Pauli basis."""
