@@ -351,9 +351,6 @@ class Engine:
         sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
         program_dict = {}  # type: Dict[str, Any]
 
-        program_dict['parameter_sweeps'] = [
-            sweep_to_proto_dict(sweep, repetitions) for
-            sweep in sweeps]
         program_dict['operations'] = [op for op in
                                       schedule_to_proto_dicts(schedule)]
         code = {
@@ -370,6 +367,12 @@ class Engine:
             body=request).execute()
 
         # Create job.
+        run_context = {}  # type: Dict[str, Any]
+
+        run_context['parameter_sweeps'] = [
+            sweep_to_proto_dict(sweep, repetitions) for
+            sweep in sweeps]
+
         request = {
             'name': '%s/jobs/%s' % (response['name'], job_config.job_id),
             'output_config': {
@@ -381,6 +384,7 @@ class Engine:
                 'priority': priority,
                 'target_route': target_route
             },
+            'run_context': run_context,
         }
         response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()

@@ -265,14 +265,14 @@ def test_run_sweep_params(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    sweeps = programs.create.call_args[1]['body']['code']['parameter_sweeps']
+    assert jobs.create.call_args[1][
+        'parent'] == 'projects/project-id/programs/test'
+    sweeps = jobs.create.call_args[1]['body']['run_context']['parameter_sweeps']
     assert len(sweeps) == 2
     for i, v in enumerate([1, 2]):
         assert sweeps[i]['repetitions'] == 1
         assert sweeps[i]['sweep']['factors'][0]['sweeps'][0]['points'][
             'points'] == [v]
-    assert jobs.create.call_args[1][
-        'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
@@ -310,13 +310,13 @@ def test_run_sweep_sweeps(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    sweeps = programs.create.call_args[1]['body']['code']['parameter_sweeps']
+    assert jobs.create.call_args[1][
+        'parent'] == 'projects/project-id/programs/test'
+    sweeps = jobs.create.call_args[1]['body']['run_context']['parameter_sweeps']
     assert len(sweeps) == 1
     assert sweeps[0]['repetitions'] == 1
     assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['points'][
         'points'] == [1, 2]
-    assert jobs.create.call_args[1][
-        'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
