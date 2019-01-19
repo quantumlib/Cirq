@@ -15,6 +15,7 @@ from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
+import types
 
 import numpy as np
 import pytest
@@ -27,43 +28,36 @@ from cirq.testing import random_circuit
 import cirq.google as cg
 
 
-class _TypeValidatingDevice(cirq.Device):
-    @staticmethod
-    def raise_value_error_if_wrong_type(obj, types):
-        if not isinstance(obj, types):
-            raise ValueError('not isinstance({!r}, {!r})'.format(obj, types))
+def raise_value_error_if_wrong_type(obj, classinfo):
+    if not isinstance(obj, classinfo):
+        raise ValueError('not isinstance({!r}, {!r})'.format(obj, classinfo))
 
-    def duration_of(self, operation):
-        return Duration(picos=0)
-
-    def validate_operation(self, operation):
-        self.raise_value_error_if_wrong_type(operation, cirq.Operation)
-
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        self.raise_value_error_if_wrong_type(schedule, cirq.Schedule)
-        self.raise_value_error_if_wrong_type(
-                scheduled_operation, cirq.ScheduledOperation)
-
-    def validate_circuit(self, circuit):
-        self.raise_value_error_if_wrong_type(circuit, cirq.Circuit)
-
-    def validate_moment(self, moment):
-        self.raise_value_error_if_wrong_type(moment, cirq.Moment)
-
-    def validate_schedule(self, schedule):
-        self.raise_value_error_if_wrong_type(schedule, cirq.Schedule)
-
-TypeValidatingDevice = _TypeValidatingDevice()
+moment_and_op_type_validating_device = (
+        cirq.devices.unconstrained_device._UnconstrainedDeviceType())
+moment_and_op_type_validating_device.validate_operation = types.MethodType(
+        lambda self, operation: raise_value_error_if_wrong_type(
+            operation, cirq.Operation), moment_and_op_type_validating_device)
+moment_and_op_type_validating_device.validate_moment = types.MethodType(
+        lambda self, moment: raise_value_error_if_wrong_type(
+            moment, cirq.Moment), moment_and_op_type_validating_device)
 
 def test_insert_moment_types():
     x = cirq.NamedQubit('x')
-    circuit = cirq.Circuit(device=TypeValidatingDevice)
+
+    with pytest.raises(ValueError):
+        moment_and_op_type_validating_device.validate_operation(cirq.Moment())
+
+    with pytest.raises(ValueError):
+        moment_and_op_type_validating_device.validate_moment(cirq.X(x))
+
+    circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
 
     moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
     circuit.insert(0, moment_or_operation_tree)
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
     circuit.insert(0, moment_or_operation_tree)
+
 
 
 def test_equality():
