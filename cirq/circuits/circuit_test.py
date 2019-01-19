@@ -27,6 +27,45 @@ from cirq.testing import random_circuit
 import cirq.google as cg
 
 
+class _TypeValidatingDevice(cirq.Device):
+    @staticmethod
+    def raise_value_error_if_wrong_type(obj, types):
+        if not isinstance(obj, types):
+            raise ValueError('not isinstance({!r}, {!r})'.format(obj, types))
+
+    def duration_of(self, operation):
+        return Duration(picos=0)
+
+    def validate_operation(self, operation):
+        self.raise_value_error_if_wrong_type(operation, cirq.Operation)
+
+    def validate_scheduled_operation(self, schedule, scheduled_operation):
+        self.raise_value_error_if_wrong_type(schedule, cirq.Schedule)
+        self.raise_value_error_if_wrong_type(
+                scheduled_operation, cirq.ScheduledOperation)
+
+    def validate_circuit(self, circuit):
+        self.raise_value_error_if_wrong_type(circuit, cirq.Circuit)
+
+    def validate_moment(self, moment):
+        self.raise_value_error_if_wrong_type(moment, cirq.Moment)
+
+    def validate_schedule(self, schedule):
+        self.raise_value_error_if_wrong_type(schedule, cirq.Schedule)
+
+TypeValidatingDevice = _TypeValidatingDevice()
+
+def test_insert_moment_types():
+    x = cirq.NamedQubit('x')
+    circuit = cirq.Circuit(device=TypeValidatingDevice)
+
+    moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
+    circuit.insert(0, moment_or_operation_tree)
+
+    moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
+    circuit.insert(0, moment_or_operation_tree)
+
+
 def test_equality():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
