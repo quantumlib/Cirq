@@ -15,7 +15,6 @@ from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
-import types
 
 import numpy as np
 import pytest
@@ -32,14 +31,16 @@ def raise_value_error_if_wrong_type(obj, classinfo):
     if not isinstance(obj, classinfo):
         raise ValueError('not isinstance({!r}, {!r})'.format(obj, classinfo))
 
-moment_and_op_type_validating_device = (
-        cirq.devices.unconstrained_device._UnconstrainedDeviceType())
-moment_and_op_type_validating_device.validate_operation = types.MethodType(
-        lambda self, operation: raise_value_error_if_wrong_type(
-            operation, cirq.Operation), moment_and_op_type_validating_device)
-moment_and_op_type_validating_device.validate_moment = types.MethodType(
-        lambda self, moment: raise_value_error_if_wrong_type(
-            moment, cirq.Moment), moment_and_op_type_validating_device)
+
+class _MomentAndOpTypeValidatingDevice(
+        cirq.devices.unconstrained_device._UnconstrainedDeviceType):
+    def validate_operation(self, operation):
+        raise_value_error_if_wrong_type(operation, cirq.Operation)
+
+    def validate_moment(self, moment):
+        raise_value_error_if_wrong_type(moment, cirq.Moment)
+moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDevice()
+
 
 def test_insert_moment_types():
     x = cirq.NamedQubit('x')
