@@ -27,18 +27,26 @@ from cirq.testing import random_circuit
 import cirq.google as cg
 
 
-def raise_value_error_if_wrong_type(obj, classinfo):
-    if not isinstance(obj, classinfo):
-        raise ValueError('not isinstance({!r}, {!r})'.format(obj, classinfo))
-
-
-class _MomentAndOpTypeValidatingDeviceType(
-        cirq.devices.unconstrained_device._UnconstrainedDeviceType):
+class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
     def validate_operation(self, operation):
-        raise_value_error_if_wrong_type(operation, cirq.Operation)
+        if not isinstance(operation, cirq.Operation):
+            raise ValueError('not isinstance({!r}, {!r})'.format(
+                operation, cirq.Operation))
 
     def validate_moment(self, moment):
-        raise_value_error_if_wrong_type(moment, cirq.Moment)
+        if not isinstance(moment, cirq.Moment):
+            raise ValueError('not isinstance({!r}, {!r})'.format(
+                moment, cirq.Moment))
+
+    def duration_of(self, operation):
+        return cirq.Duration(picos=0) # coverage: ignore
+
+    def validate_schedule(self, schedule):
+        pass
+
+    def validate_scheduled_operation(self, schedule, scheduled_operation):
+        pass
+
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
