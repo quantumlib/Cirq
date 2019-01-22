@@ -36,6 +36,17 @@ def cubic_acquaintance_strategy(
         qubits: Iterable[ops.QubitId],
         swap_gate: ops.Gate=ops.SWAP
         ) -> circuits.Circuit:
+    """Acquaints every triple of qubits.
+
+    Exploits the fact that in a simple linear swap network every pair of
+    logical qubits that starts at distance two remains so (except temporarily
+    near the edge), and that every third one `goes through` the pair at some
+    point in the network. The strategy then iterates through a series of
+    mappings in which qubits i and i + k are placed at distance two, for k = 1
+    through n / 2. Linear swap networks are used in between to effect the
+    permutation.
+    """
+
     qubits = tuple(qubits)
     n_qubits = len(qubits)
 
