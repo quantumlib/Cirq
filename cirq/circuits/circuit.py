@@ -21,6 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from collections import defaultdict
 from fractions import Fraction
+from itertools import groupby
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -112,7 +113,7 @@ class Circuit:
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
-                 strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE,
+                 strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
@@ -790,7 +791,7 @@ class Circuit:
             self,
             index: int,
             moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
+            strategy: InsertStrategy = InsertStrategy.EARLIEST) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
             'InsertStrategy'.
@@ -815,7 +816,7 @@ class Circuit:
             preserve_moments=True))
 
         for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_operation_tree, ops.Moment):
+            if isinstance(moment_or_op, ops.Moment):
                 self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
                 self._device.validate_operation(
@@ -1120,7 +1121,7 @@ class Circuit:
     def append(
             self,
             moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
+            strategy: InsertStrategy = InsertStrategy.EARLIEST):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.
@@ -1770,15 +1771,4 @@ def _group_until_different(items: Iterable[TIn],
     Yields:
         Tuples containing the group key and item values.
     """
-    prev_item_key = None
-    cur_items = []  # type: List[Any]
-    for item in items:
-        item_key = key(item)
-        if cur_items and item_key != prev_item_key:
-            yield prev_item_key, cur_items
-            cur_items = []
-        cur_items.append(value(item))
-        prev_item_key = item_key
-
-    if cur_items:
-        yield prev_item_key, cur_items
+    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
