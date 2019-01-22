@@ -19,10 +19,11 @@ Simulator types include
     SimulatesFinalWaveFunction: allows access to the wave function.
 """
 
+from typing import (
+    Dict, Iterable, Iterator, List, Tuple, Union, Optional)
+
 import abc
 import collections
-
-from typing import Dict, Iterable, Iterator, List, Tuple, Union, Optional
 
 import numpy as np
 
@@ -39,7 +40,7 @@ class SimulatesSamples:
     def run(
         self,
         circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        param_resolver: Optional[study.ParamResolver] = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
@@ -52,12 +53,14 @@ class SimulatesSamples:
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(circuit, [param_resolver], repetitions)[0]
+        return self.run_sweep(circuit,
+                              [param_resolver or study.ParamResolver({})],
+                              repetitions)[0]
 
     def run_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
         """Runs the entire supplied Circuit, mimicking the quantum hardware.
@@ -76,7 +79,7 @@ class SimulatesSamples:
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
@@ -123,8 +126,8 @@ class SimulatesFinalWaveFunction:
 
     def simulate(
         self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        program: Union[circuits.Circuit, schedules.Schedule],
+        param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> 'SimulationTrialResult':
@@ -134,7 +137,7 @@ class SimulatesFinalWaveFunction:
         wave function.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits used
                 to define the order of amplitudes in the wave function.
@@ -148,14 +151,16 @@ class SimulatesFinalWaveFunction:
             SimulateTrialResults for the simulation. Includes the final wave
             function.
         """
-        return self.simulate_sweep(circuit, [param_resolver], qubit_order,
+        return self.simulate_sweep(program,
+                                   [param_resolver or study.ParamResolver({})],
+                                   qubit_order,
                                    initial_state)[0]
 
     @abc.abstractmethod
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
@@ -334,7 +339,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
@@ -362,7 +367,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[SimulationTrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
@@ -393,7 +398,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def simulate_moment_steps(
         self,
         circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = None,
+        param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0
     ) -> Iterator['StepResult']:
@@ -443,9 +448,131 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         """
         raise NotImplementedError()
 
+    def compute_displays(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            param_resolver: study.ParamResolver = study.ParamResolver({}),
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Union[int, np.ndarray] = 0,
+    ) -> study.ComputeDisplaysResult:
+        """Computes displays in the supplied Circuit.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used
+                to define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state. Otherwise  if this
+                is a np.ndarray it is the full initial state. In this case it
+                must be the correct size, be normalized (an L2 norm of 1), and
+                be safely castable to an appropriate dtype for the simulator.
+
+        Returns:
+            ComputeDisplaysResult for the simulation.
+        """
+        return self.compute_displays_sweep(
+            program, [param_resolver], qubit_order, initial_state)[0]
+
+    def compute_displays_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            params: Optional[study.Sweepable] = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Union[int, np.ndarray] = 0,
+    ) -> List[study.ComputeDisplaysResult]:
+        """Computes displays in the supplied Circuit.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state.
+                Otherwise if this is a np.ndarray it is the full initial state.
+                In this case it must be the correct size, be normalized (an L2
+                norm of 1), and  be safely castable to an appropriate
+                dtype for the simulator.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
+        circuit = (program if isinstance(program, circuits.Circuit)
+                   else program.to_circuit())
+        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qubits = qubit_order.order_for(circuit.all_qubits())
+
+        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        for param_resolver in param_resolvers:
+            display_values = {}  # type: ignore
+
+            # Compute the displays in the first Moment
+            moment = circuit[0]
+            state = wave_function.to_valid_state_vector(
+                initial_state, num_qubits=len(qubits))
+            qubit_map = {q: i for i, q in enumerate(qubits)}
+            _enter_moment_display_values_into_dictionary(
+                display_values, moment, state, qubit_order, qubit_map)
+
+            # Compute the displays in the rest of the Moments
+            all_step_results = self.simulate_moment_steps(circuit,
+                                                          param_resolver,
+                                                          qubit_order,
+                                                          initial_state)
+            for step_result, moment in zip(all_step_results, circuit[1:]):
+                _enter_moment_display_values_into_dictionary(
+                    display_values,
+                    moment,
+                    step_result.state(),
+                    qubit_order,
+                    step_result.qubit_map)
+
+            compute_displays_results.append(study.ComputeDisplaysResult(
+                params=param_resolver,
+                display_values=display_values))
+
+        return compute_displays_results
+
+
+def _enter_moment_display_values_into_dictionary(
+        display_values: Dict,
+        moment: ops.Moment,
+        state: np.ndarray,
+        qubit_order: ops.QubitOrder,
+        qubit_map: Dict[ops.QubitId, int]):
+    for op in moment:
+        if isinstance(op, ops.WaveFunctionDisplay):
+            display_values[op.key] = (
+                op.value_derived_from_wavefunction(state, qubit_map))
+        elif isinstance(op, ops.SamplesDisplay):
+            display_values[op.key] = _compute_samples_display_value(
+                op, state, qubit_order, qubit_map)
+
+
+def _compute_samples_display_value(display: ops.SamplesDisplay,
+                                   state: np.ndarray,
+                                   qubit_order: ops.QubitOrder,
+                                   qubit_map: Dict[ops.QubitId, int]):
+    basis_change_circuit = circuits.Circuit.from_ops(
+        display.measurement_basis_change())
+    modified_state = basis_change_circuit.apply_unitary_effect_to_state(
+        state,
+        qubit_order=qubit_order,
+        qubits_that_should_be_present=qubit_map.keys())
+    indices = [qubit_map[qubit] for qubit in display.qubits]
+    samples = wave_function.sample_state_vector(
+        modified_state, indices, display.num_samples)
+    return display.value_derived_from_samples(samples)
+
 
 class StepResult:
-    """Results of a step of a SimulatesFinalWaveFunction.
+    """Results of a step of a SimulatesIntermediateWaveFunction.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
@@ -456,7 +583,7 @@ class StepResult:
     """
 
     def __init__(self,
-                 qubit_map: Optional[Dict],
+                 qubit_map: Optional[Dict[ops.QubitId, int]],
                  measurements: Optional[Dict[str, List[bool]]]) -> None:
         self.qubit_map = qubit_map or {}
         self.measurements = measurements or collections.defaultdict(list)
@@ -476,17 +603,18 @@ class StepResult:
              qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
-               |   | QubitA | QubitB | QubitC |
-               +---+--------+--------+--------+
-               | 0 |   0    |   0    |   0    |
-               | 1 |   0    |   0    |   1    |
-               | 2 |   0    |   1    |   0    |
-               | 3 |   0    |   1    |   1    |
-               | 4 |   1    |   0    |   0    |
-               | 5 |   1    |   0    |   1    |
-               | 6 |   1    |   1    |   0    |
-               | 7 |   1    |   1    |   1    |
-               +---+--------+--------+--------+
+
+                    | QubitA | QubitB | QubitC
+                :-: | :----: | :----: | :----:
+                 0  |   0    |   0    |   0
+                 1  |   0    |   0    |   1
+                 2  |   0    |   1    |   0
+                 3  |   0    |   1    |   1
+                 4  |   1    |   0    |   0
+                 5  |   1    |   0    |   1
+                 6  |   1    |   1    |   0
+                 7  |   1    |   1    |   1
+
         """
         raise NotImplementedError()
 

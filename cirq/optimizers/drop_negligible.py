@@ -17,7 +17,7 @@
 from typing import TYPE_CHECKING
 
 from cirq import protocols
-from cirq.circuits import optimization_pass, circuit as _circuit
+from cirq.circuits import circuit as _circuit
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -25,11 +25,14 @@ if TYPE_CHECKING:
     from cirq import ops
 
 
-class DropNegligible(optimization_pass.OptimizationPass):
+class DropNegligible():
     """An optimization pass that removes operations with tiny effects."""
 
     def __init__(self, tolerance: float = 1e-8) -> None:
         self.tolerance = tolerance
+
+    def __call__(self, circuit: _circuit.Circuit):
+        self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: _circuit.Circuit) -> None:
         deletions = []  # type: List[Tuple[int, ops.Operation]]
