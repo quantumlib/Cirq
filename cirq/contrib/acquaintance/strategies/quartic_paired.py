@@ -28,8 +28,8 @@ def qubit_pairs_to_qubit_order(
     """Takes a sequence of qubit pairs and returns a sequence in which every
     pair is at distance two.
 
-    Specifically, given pairs (1-a, 1-b), (2-a, 2-b), ..., (n-a, n-b) returns
-    (1-a, n-b, 1-b, n-a, 2-a, (n-1)-b, ...).
+    Specifically, given pairs (1a, 1b), (2a, 2b), etc. returns
+    (1a, 2a, 1b, 2b, 3a, 4a, 3b, 4b, ...).
     """
 
     if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):
@@ -49,6 +49,12 @@ def qubit_pairs_to_qubit_order(
 def quartic_paired_acquaintance_strategy(
     qubit_pairs: Iterable[Tuple[ops.QubitId, ops.QubitId]]
     ) -> Tuple[circuits.Circuit, Sequence[ops.QubitId]]:
+    """Acquaintance strategy for pairs of pairs.
+
+    Implements UpCCGSD ansatz from arXiv:1810.02327.
+    """
+
+    Based on the 
     qubit_pairs = tuple(
             cast(Tuple[ops.QubitId, ops.QubitId], tuple(qubit_pair))
             for qubit_pair in qubit_pairs)
