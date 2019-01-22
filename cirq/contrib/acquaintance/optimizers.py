@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 def remove_redundant_acquaintance_opportunities(
         strategy: circuits.Circuit) -> None:
+    """Removes redundant acquaintance opportunities."""
     if not is_acquaintance_strategy(strategy):
         raise TypeError('not is_acquaintance_strategy(circuit)')
 
