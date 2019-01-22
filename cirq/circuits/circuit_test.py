@@ -32,14 +32,14 @@ def raise_value_error_if_wrong_type(obj, classinfo):
         raise ValueError('not isinstance({!r}, {!r})'.format(obj, classinfo))
 
 
-class _MomentAndOpTypeValidatingDevice(
+class _MomentAndOpTypeValidatingDeviceType(
         cirq.devices.unconstrained_device._UnconstrainedDeviceType):
     def validate_operation(self, operation):
         raise_value_error_if_wrong_type(operation, cirq.Operation)
 
     def validate_moment(self, moment):
         raise_value_error_if_wrong_type(moment, cirq.Moment)
-moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDevice()
+moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
 def test_insert_moment_types():
@@ -58,7 +58,6 @@ def test_insert_moment_types():
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
     circuit.insert(0, moment_or_operation_tree)
-
 
 
 def test_equality():
