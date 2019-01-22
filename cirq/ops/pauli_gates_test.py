@@ -49,16 +49,41 @@ def test_by_index():
             cirq.Z, *[cirq.Pauli.by_index(i) for i in (-1, 2, 5, 8)])
 
 
-def test_difference():
-    assert cirq.X - cirq.X == 0
-    assert cirq.X - cirq.Y == -1
-    assert cirq.X - cirq.Z == 1
-    assert cirq.Y - cirq.X == 1
-    assert cirq.Y - cirq.Y == 0
-    assert cirq.Y - cirq.Z == -1
-    assert cirq.Z - cirq.X == -1
-    assert cirq.Z - cirq.Y == 1
-    assert cirq.Z - cirq.Z == 0
+def test_relative_index():
+    assert cirq.X.relative_index(cirq.X) == 0
+    assert cirq.X.relative_index(cirq.Y) == -1
+    assert cirq.X.relative_index(cirq.Z) == 1
+    assert cirq.Y.relative_index(cirq.X) == 1
+    assert cirq.Y.relative_index(cirq.Y) == 0
+    assert cirq.Y.relative_index(cirq.Z) == -1
+    assert cirq.Z.relative_index(cirq.X) == -1
+    assert cirq.Z.relative_index(cirq.Y) == 1
+    assert cirq.Z.relative_index(cirq.Z) == 0
+
+
+def test_by_relative_index():
+    assert cirq.Pauli.by_relative_index(cirq.X, -1) == cirq.Z
+    assert cirq.Pauli.by_relative_index(cirq.X, 0) == cirq.X
+    assert cirq.Pauli.by_relative_index(cirq.X, 1) == cirq.Y
+    assert cirq.Pauli.by_relative_index(cirq.X, 2) == cirq.Z
+    assert cirq.Pauli.by_relative_index(cirq.X, 3) == cirq.X
+    assert cirq.Pauli.by_relative_index(cirq.Y, -1) == cirq.X
+    assert cirq.Pauli.by_relative_index(cirq.Y, 0) == cirq.Y
+    assert cirq.Pauli.by_relative_index(cirq.Y, 1) == cirq.Z
+    assert cirq.Pauli.by_relative_index(cirq.Y, 2) == cirq.X
+    assert cirq.Pauli.by_relative_index(cirq.Y, 3) == cirq.Y
+    assert cirq.Pauli.by_relative_index(cirq.Z, -1) == cirq.Y
+    assert cirq.Pauli.by_relative_index(cirq.Z, 0) == cirq.Z
+    assert cirq.Pauli.by_relative_index(cirq.Z, 1) == cirq.X
+    assert cirq.Pauli.by_relative_index(cirq.Z, 2) == cirq.Y
+    assert cirq.Pauli.by_relative_index(cirq.Z, 3) == cirq.Z
+
+
+def test_relative_index_consistency():
+    for pauli_1 in (cirq.X, cirq.Y, cirq.Z):
+        for pauli_2 in (cirq.X, cirq.Y, cirq.Z):
+            shift = pauli_2.relative_index(pauli_1)
+            assert cirq.Pauli.by_relative_index(pauli_1, shift) == pauli_2
 
 
 def test_gt():
@@ -95,44 +120,6 @@ def test_lt():
 def test_lt_other_type():
     with pytest.raises(TypeError):
         _ = cirq.X < object()
-
-
-def test_addition():
-    assert cirq.X + -3 == cirq.X
-    assert cirq.X + -2 == cirq.Y
-    assert cirq.X + -1 == cirq.Z
-    assert cirq.X + 0 == cirq.X
-    assert cirq.X + 1 == cirq.Y
-    assert cirq.X + 2 == cirq.Z
-    assert cirq.X + 3 == cirq.X
-    assert cirq.X + 4 == cirq.Y
-    assert cirq.X + 5 == cirq.Z
-    assert cirq.X + 6 == cirq.X
-    assert cirq.Y + 0 == cirq.Y
-    assert cirq.Y + 1 == cirq.Z
-    assert cirq.Y + 2 == cirq.X
-    assert cirq.Z + 0 == cirq.Z
-    assert cirq.Z + 1 == cirq.X
-    assert cirq.Z + 2 == cirq.Y
-
-
-def test_subtraction():
-    assert cirq.X - -3 == cirq.X
-    assert cirq.X - -2 == cirq.Z
-    assert cirq.X - -1 == cirq.Y
-    assert cirq.X - 0 == cirq.X
-    assert cirq.X - 1 == cirq.Z
-    assert cirq.X - 2 == cirq.Y
-    assert cirq.X - 3 == cirq.X
-    assert cirq.X - 4 == cirq.Z
-    assert cirq.X - 5 == cirq.Y
-    assert cirq.X - 6 == cirq.X
-    assert cirq.Y - 0 == cirq.Y
-    assert cirq.Y - 1 == cirq.X
-    assert cirq.Y - 2 == cirq.Z
-    assert cirq.Z - 0 == cirq.Z
-    assert cirq.Z - 1 == cirq.Y
-    assert cirq.Z - 2 == cirq.X
 
 
 def test_str():
