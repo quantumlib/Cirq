@@ -83,7 +83,7 @@ def assert_eigengate_implements_consistent_protocols(
                     setup_code,
                     global_vals,
                     local_vals)
-            
+
 def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
     assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]

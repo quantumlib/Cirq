@@ -64,22 +64,22 @@ class Pauli(eigen_gate.EigenGate, metaclass=abc.ABCMeta):
 
 
 class _PauliX(Pauli, common_gates.XPowGate):
-    def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
+    def __init__(self, *, exponent: Union[sympy.Symbol, float] = 1.0):
         Pauli.__init__(self, index=0, name='X')
         common_gates.XPowGate.__init__(self, exponent=exponent)
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
-    def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
+    def __init__(self, *, exponent: Union[sympy.Symbol, float] = 1.0):
         Pauli.__init__(self, index=1, name='Y')
         common_gates.YPowGate.__init__(self, exponent=exponent)
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
-    def __init__(self, *, exponent: Union[value.Symbol, float] = 1.0):
+    def __init__(self, *, exponent: Union[sympy.Symbol, float] = 1.0):
         Pauli.__init__(self, index=2, name='Z')
         common_gates.ZPowGate.__init__(self, exponent=exponent)
-        
+
 # The Pauli X gate.
 #
 # Matrix:
