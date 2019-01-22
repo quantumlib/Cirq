@@ -47,6 +47,7 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
     def validate_scheduled_operation(self, schedule, scheduled_operation):
         pass
 
+
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
