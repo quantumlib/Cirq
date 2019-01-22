@@ -20,10 +20,20 @@ import pytest
 import cirq
 import cirq.contrib.acquaintance as cca
 
+
+def test_bad_qubit_pairs():
+    a, b, c, d, e = cirq.LineQubit.range(5)
+    bad_qubit_pairs = [(a, b), (c, d), (e,)]
+    with pytest.raises(ValueError):
+        cca.strategies.quartic_paired.qubit_pairs_to_qubit_order(
+                bad_qubit_pairs)
+
+
 def random_index_pairs(n_pairs: int):
     indices = list(range(2 * n_pairs))
     random.shuffle(indices)
     return tuple(indices[2 * i: 2 * (i + 1)] for i in range(n_pairs))
+
 
 @pytest.mark.parametrize('index_pairs',
     [random_index_pairs(n_pairs)
