@@ -25,6 +25,13 @@ from cirq.contrib.acquaintance.mutation_utils import (
 def qubit_pairs_to_qubit_order(
     qubit_pairs: Sequence[Sequence[ops.QubitId]]
     ) -> List[ops.QubitId]:
+    """Takes a sequence of qubit pairs and returns a sequence in which every
+    pair is at distance two.
+
+    Specifically, given pairs (1-a, 1-b), (2-a, 2-b), ..., (n-a, n-b) returns
+    (1-a, n-b, 1-b, n-a, 2-a, (n-1)-b, ...).
+    """
+
     if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):
         raise ValueError(
             'set(len(qubit_pair) for qubit_pair in qubit_pairs) != '
