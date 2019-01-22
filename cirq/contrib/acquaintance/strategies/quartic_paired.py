@@ -54,7 +54,6 @@ def quartic_paired_acquaintance_strategy(
     Implements UpCCGSD ansatz from arXiv:1810.02327.
     """
 
-    Based on the 
     qubit_pairs = tuple(
             cast(Tuple[ops.QubitId, ops.QubitId], tuple(qubit_pair))
             for qubit_pair in qubit_pairs)
