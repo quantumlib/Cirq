@@ -816,7 +816,7 @@ class Circuit:
             preserve_moments=True))
 
         for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_operation_tree, ops.Moment):
+            if isinstance(moment_or_op, ops.Moment):
                 self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
                 self._device.validate_operation(
