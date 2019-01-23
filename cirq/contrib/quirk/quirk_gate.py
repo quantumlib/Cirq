@@ -107,6 +107,11 @@ def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
 
 
 def _gate_to_quirk_op(gate: ops.Gate) -> Optional[QuirkOp]:
+    if isinstance(gate, ops.ControlledGate):
+        sub = _gate_to_quirk_op(gate.sub_gate)
+        if sub is not None:
+            return QuirkOp('•', *sub.keys, False)
+
     for gate_type, func in _known_gate_conversions.items():
         if isinstance(gate, gate_type):
             return func(gate)
