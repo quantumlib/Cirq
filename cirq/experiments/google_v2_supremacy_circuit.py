@@ -75,7 +75,8 @@ def generate_supremacy_circuit_google_v2(qubits: Iterable[devices.GridQubit],
                                        strategy=InsertStrategy.EARLIEST)
 
     # Add a final moment of Hadamards
-    circuit.append(ops.common_gates.H(qubit) for qubit in qubits)
+    circuit.append([ops.common_gates.H(qubit) for qubit in qubits],
+                   strategy=InsertStrategy.NEW_THEN_INLINE)
 
     return circuit
 
@@ -166,7 +167,7 @@ def _add_cz_layer(layer_index: int, circuit: circuits.Circuit) -> int:
         cz_layer = list(_make_cz_layer(qubits, layer_index))
         layer_index += 1
 
-    circuit.append(cz_layer)
+    circuit.append(cz_layer, strategy=InsertStrategy.NEW_THEN_INLINE)
     return layer_index
 
 
