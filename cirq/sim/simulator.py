@@ -156,10 +156,10 @@ class SimulatesSamples:
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in param_resolvers:
             display_values = {}  # type: ignore
+            preceding_circuit = circuits.Circuit()
             for i, moment in enumerate(circuit):
                 displays = (op for op in moment
                             if isinstance(op, ops.SamplesDisplay))
-                preceding_circuit = circuit[:i]
                 for display in displays:
                     measurement_key = str(display.key)
                     measurement_circuit = circuits.Circuit.from_ops(
@@ -174,6 +174,7 @@ class SimulatesSamples:
                     display_values[display.key] = (
                         display.value_derived_from_samples(
                             measurements[measurement_key]))
+                preceding_circuit.append(circuit[i])
             compute_displays_results.append(study.ComputeDisplaysResult(
                 params=param_resolver,
                 display_values=display_values))
