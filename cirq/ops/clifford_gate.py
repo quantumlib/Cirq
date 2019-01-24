@@ -90,8 +90,8 @@ class SingleQubitCliffordGate(raw_types.Gate):
                                         x_to=x_to, y_to=y_to, z_to=z_to)
         (trans_from, (trans_to, flip)), = tuple(rotation_map.items())
         if trans_from == trans_to:
-            trans_from2 = trans_to + 1  # Either +1 or +2 work
-            trans_to2 = trans_from + 1
+            trans_from2 = Pauli.by_relative_index(trans_to, 1)  # 1 or 2 work
+            trans_to2 = Pauli.by_relative_index(trans_from, 1)
             flip2 = False
         else:
             trans_from2 = trans_to
@@ -139,14 +139,16 @@ class SingleQubitCliffordGate(raw_types.Gate):
     @staticmethod
     def from_pauli(pauli: Pauli,
                    sqrt: bool = False) -> 'SingleQubitCliffordGate':
+        prev_pauli = Pauli.by_relative_index(pauli, -1)
+        next_pauli = Pauli.by_relative_index(pauli, 1)
         if sqrt:
-            rotation_map = {pauli:   PauliTransform(pauli, False),
-                            pauli+1: PauliTransform(pauli+2, False),
-                            pauli+2: PauliTransform(pauli+1, True)}
+            rotation_map = {prev_pauli: PauliTransform(next_pauli, True),
+                            pauli:      PauliTransform(pauli, False),
+                            next_pauli: PauliTransform(prev_pauli, False)}
         else:
-            rotation_map = {pauli:   PauliTransform(pauli, False),
-                            pauli+1: PauliTransform(pauli+1, True),
-                            pauli+2: PauliTransform(pauli+2, True)}
+            rotation_map = {prev_pauli: PauliTransform(prev_pauli, True),
+                            pauli:      PauliTransform(pauli, False),
+                            next_pauli: PauliTransform(next_pauli, True)}
         inverse_map = {to: PauliTransform(frm, flip)
                        for frm, (to, flip) in rotation_map.items()}
         return SingleQubitCliffordGate(_rotation_map=rotation_map,
@@ -296,13 +298,14 @@ class SingleQubitCliffordGate(raw_types.Gate):
         elif num_whole == 1:
             index = whole_arr.index(True)
             pauli = Pauli.by_index(index)
+            next_pauli = Pauli.by_index(index + 1)
             flip = flip_arr[index]
             output = []
             if flip:
                 # 180 degree rotation
-                output.append((pauli + 1, 2))
+                output.append((next_pauli, 2))
             # 90 degree rotation about some axis
-            if self.transform(pauli + 1).flip:
+            if self.transform(next_pauli).flip:
                 # Negative 90 degree rotation
                 output.append((pauli, -1))
             else:
