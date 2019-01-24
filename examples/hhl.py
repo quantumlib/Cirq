@@ -1,4 +1,5 @@
-"""Demonstrates the algorithm for solving linear systems by Harrow, Hassidim,
+"""
+Demonstrates the algorithm for solving linear systems by Harrow, Hassidim,
 Lloyd (HHL).
 
 The HHL algorithm solves a system of linear equations, specifically equations
@@ -19,129 +20,394 @@ For details about the algorithm, please refer to the paper in the
 REFERENCE section below. The following description uses variables defined
 in the paper.
 
-This example is an implementation of the HHL algorithm for the equation where
-A = [ 1.5  0.5 ]
-    [ 0.5  1.5 ]
-|b> = [ 1  0 ]^T = |0>
-|x> = [ 0.948683  -0.316228 ]
-Eigenvalues of A are 1 (with eigenvector |->) and 2 (with eigenvector |+>)
+This example is an implementation of the HHL algorithm for arbitrary 2x2
+Hermitian matrices. The output of the algorithm is a display of Pauli
+observables of |x>. Note that the accuracy of the result depends on the
+following factors:
+* Register size
+* Choice of parameters C and t
 
-Because there are 2 eigenvalues, exactly 1 register qubit is needed.
-As a result, t is set to π, and
+The result is perfect if
+* Each eigenvalue of the matrix is in the form
 
-exp(iAt) = exp(i(H [ 2  0 ] H)*0.5) = H [ exp(i2π)  0 ] H = HZH = X
-                   [ 0  1 ]             [ 0   exp(iπ) ]
+  2π/t * k/N,
 
-|0> for the register qubit corresponds to λ=1, and |1> corresponds to λ=2.
-By setting C = 1, the rotations are Ry(π) for λ=1 and for Ry(π/3) λ=2
+  where 0≤k<N, and N=2^n, where n is the register size. In other words, k is a
+  value that can be represented exactly by the register.
+* C ≤ 2π/t * 1/N, the smallest eigenvalue that can be stored in the circuit.
 
-Instead of outputting the result directly, this example measures various
-observables of the result.
+The result is good if the register size is large enough such that for every
+pair of eigenvalues, the ratio can be approximated by a pair of possible
+register values. Let s be the scaling factor from possible register values to
+eigenvalues. One way to set t is
+
+t = 2π/sN
+
+For arbitrary matrices, because properties of their eigenvalues are typically
+unknown, parameters C and t are fine-tuned based on their condition number.
+
 
 === REFERENCE ===
 Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
 https://arxiv.org/abs/1804.03719
 
 === CIRCUIT ===
-(0, 0): ───────────────Ry(π)───────Ry(0.333π)───────────────────M───
-                       │           │                            │
-(1, 0): ───H───@───H───@───────X───@────────────X───H───@───H───┼───
-               │                                        │       │
-(2, 0): ───────X────────────────────────────────────────X───────M───
+Example of circuit with 2 register qubits.
 
+(0, 0): ─────────────────────────Ry(θ₄)─Ry(θ₁)─Ry(θ₂)─Ry(θ₃)──────────────M──
+                     ┌──────┐    │      │      │      │ ┌───┐
+(1, 0): ─H─@─────────│      │──X─@──────@────X─@──────@─│   │─────────@─H────
+           │         │QFT^-1│    │      │      │      │ │QFT│         │
+(2, 0): ─H─┼─────@───│      │──X─@────X─@────X─@────X─@─│   │─@───────┼─H────
+           │     │   └──────┘                           └───┘ │       │
+(3, 0): ───e^iAt─e^2iAt───────────────────────────────────────e^-2iAt─e^-iAt─
+
+Note: QFT in the above diagram omits swaps, which are included implicitly by
+reversing qubit order for phase kickbacks.
 """
+
 import math
 import cirq
+import numpy as np
 
 
-def bitstring(bits):
-    return ''.join(str(int(b)) for b in bits)
+class PhaseEstimation(cirq.MultiQubitGate):
+    """
+    A gate for Quantum Phase Estimation.
+
+    U is the unitary matrix whose phases will be estimated.
+    The last qubit stores the eigenvector; all other qubits store the
+    estimated phase, in big-endian.
+    """
+
+    def __init__(self, num_qubits, U, invert=False):
+        super().__init__(num_qubits)
+        self.U = U
+        self.invert = invert
+
+    def _decompose_(self, qubits):
+        if self.invert:
+            qubits = list(qubits)
+            yield Qft(self._num_qubits-1)(*qubits[:-1])
+            yield (PhaseKickback(self.num_qubits(), self.U)**-1)(*qubits)
+            yield cirq.H.on_each(qubits[:-1])
+        else:
+            qubits = list(qubits)
+            yield cirq.H.on_each(qubits[:-1])
+            yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
+            yield (Qft(self._num_qubits-1)**-1)(*qubits[:-1])
+
+    def __pow__(self, exponent):
+        if exponent == -1:
+            return PhaseEstimation(self.num_qubits(), self.U, invert=True)
+        return NotImplemented
 
 
-def expectation(frequencies):
-    # Post select on ancilla qubit = 1
-    post_select = {k[1]: v for k, v in frequencies.items() if k[0] == '1'}
+class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
+    """
+    A gate that represents e^iAt.
 
-    s = sum(post_select.values())
-    expected_value = 0
-    for output, occurrence in post_select.items():
-        v = 1 if output == '0' else -1
-        expected_value += v * occurrence / s
-    return expected_value
+    This EigenGate + np.linalg.eigh() implementation is temporary.
+    Actual implementation will use linear operators.
+    """
+
+    def __init__(self, A, t, exponent=1.0):
+        cirq.SingleQubitGate.__init__(self)
+        cirq.EigenGate.__init__(self, exponent=exponent)
+        self.A = A
+        self.t = t
+        ws, vs = np.linalg.eigh(A)
+        self.eigen_components = []
+        for w, v in zip(ws, vs.T):
+            theta = w*t / math.pi
+            P = np.outer(v, v)
+            self.eigen_components.append((theta, P))
+
+    def _with_exponent(self, exponent):
+        return HamiltonianSimulation(self.A, self.t, exponent)
+
+    def _eigen_components(self):
+        return self.eigen_components
 
 
-def hhl_circuit(measure_key, observable):
-    ancilla_qubit = cirq.GridQubit(0, 0)
-    register_qubit = cirq.GridQubit(1, 0) # to store eigenvalues of the matrix
-    memory_qubit = cirq.GridQubit(2, 0) # to store input and output vectors
+class PhaseKickback(cirq.MultiQubitGate):
+    """
+    A gate for the phase kickback stage of Quantum Phase Estimation.
+
+    It consists of a series of controlled e^iAt gates with the memory qubit as
+    the target and each register qubit as the control, raised
+    to the power of 2 based on the qubit index.
+    """
+
+    def __init__(self, num_qubits, U, invert=False):
+        super(PhaseKickback, self).__init__(num_qubits)
+        self.U = U
+        self.invert = invert
+
+    def _decompose_(self, qubits):
+        if self.invert:
+            qubits = list(qubits)
+            memory = qubits.pop()
+            for i, qubit in reversed(list(enumerate(qubits))):
+                yield cirq.ControlledGate(self.U**(-2**i))(qubit, memory)
+        else:
+            qubits = list(qubits)
+            memory = qubits.pop()
+            for i, qubit in enumerate(qubits):
+                yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
+
+    def __pow__(self, exponent):
+        if exponent == -1:
+            return PhaseKickback(self.num_qubits(), self.U, invert=True)
+        return NotImplemented
+
+
+class Qft(cirq.MultiQubitGate):
+    """
+    Quantum gate for the Quantum Fourier Transformation.
+
+    Swaps are omitted here because it's done implicitly in the PhaseKickback
+    gate by reversing the control qubit order.
+    """
+
+    def __init__(self, num_qubits, invert=False):
+        super().__init__(num_qubits)
+        self.invert = invert
+
+    def _decompose_(self, qubits):
+        if self.invert:
+            qubits = list(qubits)
+            qubits.reverse()
+            while len(qubits) > 0:
+                q_head = qubits.pop(0)
+                yield cirq.H(q_head)
+                for i, qubit in enumerate(qubits):
+                    yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
+        else:
+            processed_qubits = []
+            for q_head in qubits:
+                for i, qubit in enumerate(processed_qubits):
+                    yield (cirq.CZ**(1/2.0**(i+1)))(qubit, q_head)
+                yield cirq.H(q_head)
+                processed_qubits.insert(0, q_head)
+
+    def __pow__(self, exponent):
+        if exponent == -1:
+            return Qft(self.num_qubits(), invert=True)
+        return NotImplemented
+
+
+class EigenRotation(cirq.MultiQubitGate):
+    """
+    EigenRotation performs the set of rotation on the ancilla qubit equivalent
+    to division on the memory register by each eigenvalue of the matrix. The
+    last qubit is the ancilla qubit; all remaining qubits are the register,
+    assumed to be big-endian.
+
+    It consists of a controlled ancilla qubit rotation for each possible value
+    that can be represented by the register. Each rotation is a Ry gate where
+    the angle is calculated from the eigenvalue corresponding to the register
+    value, up to a normalization factor C.
+    """
+
+    def __init__(self, num_qubits, C, t):
+        super().__init__(num_qubits)
+        self.C = C
+        self.t = t
+        self.N = 2**(num_qubits-1)
+
+    def _decompose_(self, qubits):
+        for k in range(self.N):
+            kGate = self.__ancilla_rotation(k)
+
+            # xor's 1 bits correspond to X gate positions.
+            xor = k ^ (k-1)
+
+            for q in qubits[-2::-1]:
+                # Place X gates
+                if xor % 2 == 1:
+                    yield cirq.X(q)
+                xor >>= 1
+
+                # Build controlled ancilla rotation
+                kGate = cirq.ControlledGate(kGate)
+
+            yield kGate(*qubits)
+
+    def __ancilla_rotation(self, k):
+        if k == 0:
+            k = self.N
+        theta = 2*math.asin(self.C * self.N * self.t / (2*math.pi * k))
+        return cirq.Ry(theta)
+
+
+def hhl_circuit(A, C, t, register_size, *input_prep_gates):
+    """
+    Constructs the HHL circuit.
+
+    A is the input Hermitian matrix.
+    C and t are tunable parameters for the algorithm.
+    register_size is the size of the eigenvalue register.
+    input_prep_gates is a list of gates to be applied to |0> to generate the
+      desired input state |b>.
+    """
+
+    ancilla = cirq.GridQubit(0, 0)
+    # to store eigenvalues of the matrix
+    register = [cirq.GridQubit(i+1, 0) for i in range(register_size)]
+    # to store input and output vectors
+    memory = cirq.GridQubit(register_size+1, 0)
+
     c = cirq.Circuit()
-
-    # Uncomment 2nd line to set |b> = |+>
-    # Uncomment both lines to set |b> = |->
-    # c.append(cirq.X(memory_qubit))
-    # c.append(cirq.H(memory_qubit))
-
-    # Phase estimation
+    hs = HamiltonianSimulation(A, t)
+    pe = PhaseEstimation(register_size+1, hs)
+    c.append([gate(memory) for gate in input_prep_gates])
     c.append([
-        cirq.H(register_qubit),
-        cirq.CNOT(register_qubit, memory_qubit),
-        cirq.H(register_qubit),
+        pe(*register, memory),
+        EigenRotation(register_size+1, C, t)(*register, ancilla),
+        (pe**-1)(*register, memory),
+        cirq.measure(ancilla)
     ])
 
-    # Ry(π) for λ=1
+    # Pauli observable display
     c.append([
-        cirq.ControlledGate(cirq.Ry(math.pi))(register_qubit, ancilla_qubit),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({ancilla: cirq.Z}),
+            key='a'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({memory: cirq.X}),
+            key='x'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({memory: cirq.Y}),
+            key='y'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({memory: cirq.Z}),
+            key='z'
+        ),
     ])
-
-    # Ry(π/3) for λ=2
-    c.append([
-        cirq.X(register_qubit),
-        cirq.ControlledGate(cirq.Ry(math.pi/3))(register_qubit, ancilla_qubit),
-        cirq.X(register_qubit),
-    ])
-
-    # Inverse phase estimation
-    c.append([
-        cirq.H(register_qubit),
-        cirq.CNOT(register_qubit, memory_qubit),
-        cirq.H(register_qubit),
-    ])
-
-    # Preparing the observable
-    if observable == 'X':
-        c.append((cirq.H)(memory_qubit))  # X observable
-    elif observable == 'Y':
-        c.append((cirq.X**-0.5)(memory_qubit))  # Y observable
-    # otherwise assume observable == 'Z'
-
-    c.append(cirq.measure(ancilla_qubit, memory_qubit, key=measure_key))
 
     return c
 
 
-def main():
-    trial_count_per_observable = 10000
-    mkey = 'result'
-
-    # Expected observables:
-    # <X> = -0.6
-    # <Y> = 0.0
-    # <Z> = 0.8
+def simulate(circuit):
     simulator = cirq.Simulator()
-    observables = ['X', 'Y', 'Z']
 
-    print('''
-A = [ 1.5  0.5 ]
-    [ 0.5  1.5 ]
-b = [ 1  0 ]
-''')
+    # TODO optimize using amplitude amplification algorithm
+    ancilla_expectation = 0.0
+    while ancilla_expectation != -1.0:
+        result = simulator.compute_displays(circuit)
+        ancilla_expectation = round(result.display_values['a'], 3)
 
-    for o in observables:
-        result = simulator.run(
-            hhl_circuit(mkey, o),
-            repetitions=trial_count_per_observable)
-        frequencies = result.histogram(key=mkey, fold_func=bitstring)
-        print('<{}>: {}'.format(o, expectation(frequencies)))
+    # Compute displays
+    print('X = {}'.format(result.display_values['x']))
+    print('Y = {}'.format(result.display_values['y']))
+    print('Z = {}'.format(result.display_values['z']))
+
+
+def main():
+    """
+    Simulates HHL with input given in each test case, and outputs Pauli
+    observables of the resulting qubit state |x>.
+    Expected observables are calculated from the expected solution |x>.
+    """
+
+    testcases = [
+        {
+            # Eigendecomposition: [(2, |+>), (1, |->)
+            # |b> = |0>
+            # |x> = (0.948683, -0.316228)
+            'A': np.array([[1.5, 0.5], [0.5, 1.5]]),
+            't': math.pi,
+            'register_size': 1,
+            'input_prep_gates': [],
+            'expected': (-0.6, 0.0, 0.8),
+        },
+        {
+            # Eigendecomposition: [(4, |+>), (1, |->)
+            # |b> = |0>
+            # |x> = (0.857493, -0.514496)
+            'A': np.array([[2.5, 1.5], [1.5, 2.5]]),
+            't': math.pi / 2,
+            'register_size': 2,
+            'input_prep_gates': [],
+            'expected': (-0.882353, 0.0, 0.470588),
+        },
+        {
+            # Eigendecomposition: [(8, |+>), (1, |->)
+            # |b> = |+>
+            # |x> = (0.707107, 0.707107)
+            'A': np.array([[4.5, 3.5], [3.5, 4.5]]),
+            't': math.pi / 4,
+            'register_size': 3,
+            'input_prep_gates': [cirq.H],
+            'expected': (1.0, 0.0, 0.0),
+        },
+        {
+            # Eigendecomposition: [(3, |+>), (1, |->)
+            # |b> = |0>
+            # |x> = (2/sqrt(5), -1/sqrt(5))
+            'A': np.array([[2, 1], [1, 2]]),
+            't': math.pi / 2,
+            'register_size': 2,
+            'input_prep_gates': [],
+            'expected': (-0.8, 0.0, 0.6),
+        },
+        {
+            # Eigendecomposition: [(4, |+>), (2, |->)
+            # |b> = |0>
+            # |x> = (3/sqrt(10), -1/sqrt(10))
+            'A': np.array([[3, 1], [1, 3]]),
+            't': math.pi / 2,
+            'register_size': 2,
+            'input_prep_gates': [],
+            'expected': (-0.6, 0.0, 0.8),
+        },
+        {
+            # Eigendecomposition: [(0.5, |+>), (0.25, |->)
+            # |b> = |0>
+            # |x> = (0.948683, -0.316228)
+            'A': np.array([[0.375, 0.125], [0.125, 0.375]]),
+            't': 4*math.pi,
+            'register_size': 1,
+            'input_prep_gates': [],
+            'expected': (-0.6, 0.0, 0.8),
+        },
+        # TODO verify math for test case below.
+        # {
+        #     # Eigendecomposition:
+        #     #   (4.537, [0.97149-0.0116j, 0.05508-0.23032j])
+        #     #   (0.349, [0.05508-0.23032j, 0.86132+0.44949j])
+        #     # |b> = (0.64510-0.47848j, 0.35490-0.47848j)
+        #     # |x> = (-0.0662741-0.214548j, 0.784392-0.578192j)
+        #     'A': np.array([[4.30217-6.93889e-18j,
+        #                     0.235321+0.934396j],
+        #                    [0.235321-0.934396j,
+        #                     0.583866-6.938893903907228e-18j]]),
+        #     't': 0.358166*math.pi,
+        #     'register_size': 4,
+        #     'input_prep_gates': [cirq.Rx(1.276359), cirq.Rz(1.276359)],
+        #     'expected': (0.144130, -0.413218, -0.899154),
+        # },
+    ]
+
+    for t in testcases:
+        # Set C to be the smallest eigenvalue that can be represented by the
+        # circuit.
+        t['C'] = 2*math.pi / (2**t['register_size'] * t['t'])
+
+    # Simulate circuit
+    for t in testcases:
+        print("Expected observable outputs:")
+        print("X =", t['expected'][0])
+        print("Y =", t['expected'][1])
+        print("Z =", t['expected'][2])
+        print("Actual: ")
+        simulate(hhl_circuit(t['A'], t['C'], t['t'], t['register_size'],
+                             *t['input_prep_gates']))
+        print()
 
 
 if __name__ == '__main__':
