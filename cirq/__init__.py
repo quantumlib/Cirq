@@ -109,6 +109,7 @@ from cirq.ops import (
     measure,
     measure_each,
     NamedQubit,
+    ControlledOperation,
     OP_TREE,
     Operation,
     Pauli,

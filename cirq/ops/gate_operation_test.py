@@ -96,7 +96,7 @@ def test_extrapolate():
 def test_inverse():
     q = cirq.NamedQubit('q')
 
-    # If the gate isn't reversible, you get a type error.
+    # If the gate isn't reversible, you get None.
     op0 = cirq.GateOperation(cirq.Gate(), [q])
     assert cirq.inverse(op0, None) is None
 
