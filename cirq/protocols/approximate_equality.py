@@ -64,7 +64,8 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
         val: Source object for approximate comparison.
         other: Target object for approximate comparison.
         atol: The minimum absolute tolerance. See np.isclose() documentation for
-              details.
+              details. Defaults to 1e-8 which matches np.isclose() default
+              absolute tolerance.
 
     Returns:
         True if objects are approximately equal, False otherwise.
