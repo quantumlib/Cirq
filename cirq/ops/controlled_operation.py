@@ -87,7 +87,9 @@ class ControlledOperation(raw_types.Operation):
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        sub_info = protocols.circuit_diagram_info(self.sub_operation, args, None)
+        sub_info = protocols.circuit_diagram_info(self.sub_operation,
+                                                  args,
+                                                  None)
         if sub_info is None:
             return NotImplemented
         return protocols.CircuitDiagramInfo(
