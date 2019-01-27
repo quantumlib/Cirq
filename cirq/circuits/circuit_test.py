@@ -219,10 +219,20 @@ def test_empty_moments():
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ───X───X───────X───",
                                     use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(circuit,
+            '\n'.join(['a', '│', 'X', '│', 'X', '│', '│', '│', 'X', '│']),
+            use_unicode_characters=True,
+            transpose=True)
+
     # 1-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ---X---X-------X---",
                                     use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(circuit,
+            '\n'.join(['a', '|', 'X', '|', 'X', '|', '|', '|', 'X', '|']),
+            use_unicode_characters=False,
+            transpose=True)
+
     # 2-qubit test
     op = cirq.CNOT(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
     op_moment = cirq.Moment([op])
@@ -232,12 +242,40 @@ def test_empty_moments():
 a: ───@───@───────@───
       │   │       │
 b: ───X───X───────X───""", use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(circuit, """
+a b
+│ │
+@─X
+│ │
+@─X
+│ │
+│ │
+│ │
+@─X
+│ │
+""",
+        use_unicode_characters=True,
+        transpose=True)
 
      # 2-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit, """
 a: ---@---@-------@---
       |   |       |
 b: ---X---X-------X---""", use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(circuit, """
+a b
+| |
+@-X
+| |
+@-X
+| |
+| |
+| |
+@-X
+| |
+""",
+        use_unicode_characters=False,
+        transpose=True)
 
 def test_slice():
     a = cirq.NamedQubit('a')
