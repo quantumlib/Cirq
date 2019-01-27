@@ -191,7 +191,7 @@ def test_measuring_qubits():
 @pytest.mark.parametrize(
     'circuit',
     [
-        cirq.testing.random_circuit(cirq.LineQubit.range(2), 4, 0.5)
+        cirq.testing.RandomCircuit(cirq.LineQubit.range(2), 4, 0.5).random_circuit()
         for _ in range(5)
     ]
 )
