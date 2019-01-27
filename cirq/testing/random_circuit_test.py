@@ -27,7 +27,8 @@ def test_random_circuit_errors():
         RandomCircuit(randint(1, 10), randint(1, 10), 1.).random_circuit()
 
     with pytest.raises(ValueError):
-        RandomCircuit(randint(1, 10), randint(1, 10), random(), gate_domain={}).random_circuit()
+        RandomCircuit(randint(1, 10), randint(1, 10),
+                      random(), gate_domain={}).random_circuit()
 
     with pytest.raises(ValueError):
         RandomCircuit(0, randint(1, 10), random()).random_circuit()
@@ -58,7 +59,11 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.QubitId]],
                         pass_qubits: bool):
     qubit_set = cirq.LineQubit.range(n_qubits)
     qubit_arg = qubit_set if pass_qubits else n_qubits
-    circuit = RandomCircuit(qubit_arg, n_moments, op_density, gate_domain).random_circuit()
+    circuit_class = RandomCircuit(qubit_arg, n_moments, op_density, gate_domain)
+    circuit = circuit_class.random_circuit()
+    circuit_class = RandomCircuit(qubit_arg, n_moments, 0.5)
+    circuit_class.random_superposition()
+
     if qubit_arg is qubit_set:
         assert circuit.all_qubits().issubset(qubit_set)
     assert len(circuit) == n_moments

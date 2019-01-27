@@ -50,7 +50,7 @@ def test_uses_threadless_pool():
                               num_prefix_qubits=1) as s:
         assert not isinstance(s._pool, xmon_stepper.ThreadlessPool)
 
-"""
+
 def test_use_processes():
     with xmon_stepper.Stepper(num_qubits=10,
                               min_qubits_before_shard=4,
@@ -60,7 +60,7 @@ def test_use_processes():
                               min_qubits_before_shard=4,
                               use_processes=False) as s:
         assert isinstance(s._pool, pool.ThreadPool)
-"""
+
 
 @pytest.mark.parametrize('num_prefix_qubits', (0, 2))
 def test_initial_state_computational_basis(num_prefix_qubits):

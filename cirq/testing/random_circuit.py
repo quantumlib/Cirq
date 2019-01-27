@@ -50,6 +50,24 @@ class RandomCircuit:
         self.gate_domain = gate_domain
 
     def random_circuit(self) -> Circuit:
+        """Generates a random circuit.
+    Args:
+        qubits: the qubits that the circuit acts on. Because the qubits on
+            which an operation acts are chosen randomly, not all given qubits
+            may be acted upon.
+        n_moments: the number of moments in the generated circuit.
+        op_density: the expected proportion of qubits that are acted on in any
+            moment.
+        gate_domain: The set of gates to choose from, with a specified arity.
+    Raises:
+        ValueError:
+            * op_density is not in (0, 1).
+            * gate_domain is empty.
+            * qubits is an int less than 1 or an empty sequence.
+    Returns:
+        The randomly generated Circuit.
+        """
+
         if not 0 < self.op_density < 1:
             raise ValueError('op_density must be in (0, 1).')
         if self.gate_domain is None:
@@ -59,7 +77,8 @@ class RandomCircuit:
         max_arity = max(self.gate_domain.values())
 
         if isinstance(self.qubits, int):
-            self.qubits = tuple(ops.NamedQubit(str(i)) for i in range(self.qubits))
+            self.qubits = tuple(
+                ops.NamedQubit(str(i)) for i in range(self.qubits))
         n_qubits = len(self.qubits)
         if n_qubits < 1:
             raise ValueError('At least one qubit must be specified.')
@@ -79,8 +98,7 @@ class RandomCircuit:
         return Circuit(moments)
 
     def random_superposition(self):
-        circuit = self.random_circuit(self.qubits, self.n_density,
-                                      self.gate_domain)
+        circuit = self.random_circuit()
         return Simulator().simulate(circuit).final_state
 
 

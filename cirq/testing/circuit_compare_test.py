@@ -17,7 +17,7 @@ import pytest
 import numpy as np
 
 import cirq
-
+from cirq.testing.random_circuit import RandomCircuit
 
 def test_sensitive_to_phase():
     q = cirq.NamedQubit('q')
@@ -191,7 +191,7 @@ def test_measuring_qubits():
 @pytest.mark.parametrize(
     'circuit',
     [
-        cirq.testing.RandomCircuit(cirq.LineQubit.range(2), 4, 0.5).random_circuit()
+        RandomCircuit(cirq.LineQubit.range(2), 4, 0.5).random_circuit()
         for _ in range(5)
     ]
 )
