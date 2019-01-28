@@ -175,6 +175,9 @@ class CircuitDag(networkx.DiGraph):
     def all_operations(self) -> Iterator[ops.Operation]:
         return (node.val for node in self.ordered_nodes())
 
+    def all_qubits(self):
+        return frozenset(q for node in self.nodes for q in node.val.qubits)
+
     def to_circuit(self) -> circuit.Circuit:
         return circuit.Circuit.from_ops(
                     self.all_operations(),

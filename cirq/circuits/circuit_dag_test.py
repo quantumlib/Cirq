@@ -112,6 +112,7 @@ def test_from_circuit():
     assert len(dag.nodes()) == 2
     assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
+    assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
 def test_from_circuit_with_device():
@@ -126,6 +127,7 @@ def test_from_circuit_with_device():
     assert len(dag.nodes()) == 2
     assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
+    assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
 def test_to_empty_circuit():
