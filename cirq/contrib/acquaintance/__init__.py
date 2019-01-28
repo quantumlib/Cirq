@@ -35,7 +35,8 @@ from cirq.contrib.acquaintance.mutation_utils import (
 
 from cirq.contrib.acquaintance.permutation import (
         LinearPermutationGate, PermutationGate,
-        SwapPermutationGate, update_mapping)
+        SwapPermutationGate, update_mapping,
+        get_logical_operations)
 
 from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
