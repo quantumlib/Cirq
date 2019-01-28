@@ -1,5 +1,3 @@
-from typing import Sequence
-
 import itertools
 
 import networkx
