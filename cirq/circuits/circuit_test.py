@@ -219,8 +219,18 @@ def test_empty_moments():
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ───X───X───────X───",
                                     use_unicode_characters=True)
-    cirq.testing.assert_has_diagram(circuit,
-            '\n'.join(['a', '│', 'X', '│', 'X', '│', '│', '│', 'X', '│']),
+    cirq.testing.assert_has_diagram(circuit, """
+a
+│
+X
+│
+X
+│
+│
+│
+X
+│
+""",
             use_unicode_characters=True,
             transpose=True)
 
@@ -228,8 +238,18 @@ def test_empty_moments():
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ---X---X-------X---",
                                     use_unicode_characters=False)
-    cirq.testing.assert_has_diagram(circuit,
-            '\n'.join(['a', '|', 'X', '|', 'X', '|', '|', '|', 'X', '|']),
+    cirq.testing.assert_has_diagram(circuit, """
+a
+|
+X
+|
+X
+|
+|
+|
+X
+|
+""",
             use_unicode_characters=False,
             transpose=True)
 
