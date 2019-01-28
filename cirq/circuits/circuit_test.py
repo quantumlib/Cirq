@@ -27,6 +27,48 @@ from cirq.testing import random_circuit
 import cirq.google as cg
 
 
+class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
+    def validate_operation(self, operation):
+        if not isinstance(operation, cirq.Operation):
+            raise ValueError('not isinstance({!r}, {!r})'.format(
+                operation, cirq.Operation))
+
+    def validate_moment(self, moment):
+        if not isinstance(moment, cirq.Moment):
+            raise ValueError('not isinstance({!r}, {!r})'.format(
+                moment, cirq.Moment))
+
+    def duration_of(self, operation):
+        return cirq.Duration(picos=0) # coverage: ignore
+
+    def validate_schedule(self, schedule):
+        pass
+
+    def validate_scheduled_operation(self, schedule, scheduled_operation):
+        pass
+
+
+moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_insert_moment_types():
+    x = cirq.NamedQubit('x')
+
+    with pytest.raises(ValueError):
+        moment_and_op_type_validating_device.validate_operation(cirq.Moment())
+
+    with pytest.raises(ValueError):
+        moment_and_op_type_validating_device.validate_moment(cirq.X(x))
+
+    circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
+
+    moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
+    circuit.insert(0, moment_or_operation_tree)
+
+    moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
+    circuit.insert(0, moment_or_operation_tree)
+
+
 def test_equality():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
