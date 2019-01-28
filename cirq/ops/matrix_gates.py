@@ -83,12 +83,10 @@ class SingleQubitMatrixGate(raw_types.Gate):
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))
         return hash((SingleQubitMatrixGate, vals))
 
-    def approx_eq(self, other, ignore_global_phase=True):
+    def _approx_eq_(self, other: Any, atol) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        cmp = (linalg.allclose_up_to_global_phase if ignore_global_phase
-               else np.allclose)
-        return cmp(self._matrix, other._matrix)
+        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -146,12 +144,10 @@ class TwoQubitMatrixGate(raw_types.Gate):
         phased_matrix = z2.dot(self._matrix).dot(np.conj(z2.T))
         return TwoQubitMatrixGate(phased_matrix)
 
-    def approx_eq(self, other, ignore_global_phase=True):
+    def _approx_eq_(self, other: Any, atol) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        cmp = (linalg.allclose_up_to_global_phase if ignore_global_phase
-               else np.allclose)
-        return cmp(self._matrix, other._matrix)
+        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
 
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)
