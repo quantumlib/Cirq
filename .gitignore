@@ -24,3 +24,6 @@ docs/generated
 
 # swap files
 *.swp
+
+# Mac only
+.DS_Store
