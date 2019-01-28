@@ -26,6 +26,7 @@ import sympy
 
 import cirq
 import cirq.google as cg
+from cirq.circuits.insert_strategy import InsertStrategy
 
 Q1 = cirq.GridQubit(0, 0)
 Q2 = cirq.GridQubit(1, 0)
@@ -110,7 +111,8 @@ def test_run(scheduler):
     circuit = basic_circuit()
     circuit.append(
         [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+         cirq.MeasurementGate(key='b')(Q2)],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
@@ -409,7 +411,8 @@ def test_run_no_sharing_few_qubits(scheduler):
     circuit = basic_circuit()
     circuit.append(
         [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+         cirq.MeasurementGate(key='b')(Q2)],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator(
         cg.XmonOptions(min_qubits_before_shard=0))
@@ -429,7 +432,8 @@ def test_simulate_moment_steps():
     circuit = basic_circuit()
     circuit.append(
         [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+         cirq.MeasurementGate(key='b')(Q2)],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator()
     results = []
