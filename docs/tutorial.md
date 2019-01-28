@@ -594,3 +594,16 @@ We've created a simple variational quantum algorithm using Cirq.
 Where to go next?  Perhaps you can play around with the above code
 and work on analyzing the algorithms performance.  Add new parameterized
 circuits and build an end to end program for analyzing these circuits.
+
+<!---test_substitution
+repetitions=100
+repetitions=1
+--->
+<!---test_substitution
+length=10
+length=2
+--->
+<!---test_substitution
+length=5
+length=2
+--->

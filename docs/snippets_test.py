@@ -11,10 +11,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Tests for executable snippets in documentation.
 
+This tests runs code snippets that are executable in `.md` and `.rst`
+documentation. It covers all such files under the docs directory, as well as
+the top level README file.
+
+In addition to checking that the code executes:
+
+    * The test looks for comments of the form `# prints` and then the test
+      checks that the result of the code snippets commented out code after
+      that print statement.  So if the snippet is
+
+          print('foo')
+          # prints
+          # foo
+
+      Then this checks that the print statement indeed prints 'foo'.  Note that
+      leading spaces are ignored.  If there are any characters after `# prints`,
+      like for instance `# prints something like` then this comparison is
+      not done. This is useful for documenting code that does print but
+      the output is non-deterministic.
+
+    * The test looks for substitutions that will be applied to the snippets
+      before running the code. This is useful if a documentation example has
+      a very long runtime, but can be made shorter by changing some variables
+      (like number of qubits or number of repetitions).  For `.md` files the
+      substitution is of the form
+
+            <!---test_substitution
+            pattern
+            substitution
+            --->
+
+      and for `.rst` ithe substitution is of the form
+
+            .. test-subsitution::
+                pattern
+                substitution
+
+      where pattern is the regex matchin pattern (passed to re.compile) and
+      substitution is the replacement string.
+"""
 import inspect
 import sys
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Pattern, Tuple, TYPE_CHECKING
 
 import os
 import re
@@ -68,6 +109,19 @@ def find_markdown_code_snippets(content: str) -> List[Tuple[str, int]]:
     return find_code_snippets("\n```python(.*?)\n```\n", content)
 
 
+def find_markdown_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
+    test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->",
+                                       content)
+    substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
+    return [(re.compile(match), sub) for match, sub in substitutions]
+
+
+def apply_overrides(content: str, overrides: List[Tuple[Pattern, str]]) -> str:
+    override_content = content
+    for pattern, sub in overrides:
+        override_content = re.sub(pattern, sub, override_content)
+    return override_content
+
 def deindent_snippet(snippet: str) -> str:
     deindented_lines = []
     indentation_amount = None
@@ -91,6 +145,14 @@ def find_rst_code_snippets(content: str) -> List[Tuple[str, int]]:
         r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)', content)
     return [(deindent_snippet(content), line_number)
             for content, line_number in snippets]
+
+def find_rst_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
+    # Find ".. test-substitution::"
+    test_sub_text = find_code_snippets(
+        r'.. test-substitution::\n(([^\n]*\n){2})', content)
+    substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
+    return [(re.compile(match.lstrip()), sub.lstrip()) for match, sub in
+            substitutions]
 
 
 def test_find_rst_code_snippets():
@@ -126,6 +188,66 @@ More text.
     ]
 
 
+def test_find_rst_overrides():
+    overrides = find_rst_test_overrides("""
+A 3 by 3 grid of qubits using
+
+.. code-block:: python
+
+    print("hello world")
+    print("golden")
+
+.. test-substitution::
+    hello world
+    goodbye cruel world
+
+.. test-substitution::
+    golden
+    yellow
+""")
+    assert overrides == [
+        (re.compile('hello world'), 'goodbye cruel world'),
+        (re.compile('golden'), 'yellow')
+    ]
+
+
+def test_apply_rst_overrides():
+    content = ("""
+A 3 by 3 grid of qubits using
+
+.. code-block:: python
+
+    print("hello world")
+    print("golden")
+
+.. test-substitution::
+    hello world
+    goodbye cruel world
+
+.. test-substitution::
+    golden
+    yellow
+""")
+    overrides = find_rst_test_overrides(content)
+    print(overrides)
+    assert apply_overrides(content, overrides) == """
+A 3 by 3 grid of qubits using
+
+.. code-block:: python
+
+    print("goodbye cruel world")
+    print("yellow")
+
+.. test-substitution::
+    goodbye cruel world
+    goodbye cruel world
+
+.. test-substitution::
+    yellow
+    yellow
+"""
+
+
 def test_find_markdown_code_snippets():
     snippets = find_markdown_code_snippets("""
 A 3 by 3 grid of qubits using
@@ -158,6 +280,62 @@ print("last line")
     ]
 
 
+def test_find_markdown_test_overrides():
+    overrides = find_markdown_test_overrides("""
+A 3 by 3 grid of qubits using
+
+```python
+print("hello world")
+```
+<!---test_substitution
+hello
+goodbye
+--->
+<!---test_substitution
+world
+universe
+--->
+""")
+
+    assert overrides == [
+        (re.compile('hello'), 'goodbye'), (re.compile('world'), 'universe')
+    ]
+
+
+def test_apply_overrides_markdown():
+    content = ("""
+A 3 by 3 grid of qubits using
+
+```python
+print("hello world")
+```
+<!---test_substitution
+hello
+goodbye
+--->
+<!---test_substitution
+world
+universe
+--->
+""")
+    overrides = find_markdown_test_overrides(content)
+    assert apply_overrides(content, overrides) == """
+A 3 by 3 grid of qubits using
+
+```python
+print("goodbye universe")
+```
+<!---test_substitution
+goodbye
+goodbye
+--->
+<!---test_substitution
+universe
+universe
+--->
+"""
+
+
 def assert_file_has_working_code_snippets(path: str, assume_import: bool):
     """Checks that code snippets in a file actually run."""
 
@@ -166,8 +344,12 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
 
     # Find snippets of code, and execute them. They should finish.
     if path.endswith('.md'):
+        overrides = find_markdown_test_overrides(content)
+        content = apply_overrides(content, overrides)
         snippets = find_markdown_code_snippets(content)
     else:
+        overrides = find_rst_test_overrides(content)
+        content = apply_overrides(content, overrides)
         snippets = find_rst_code_snippets(content)
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
