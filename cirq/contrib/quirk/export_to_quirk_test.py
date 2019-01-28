@@ -232,6 +232,15 @@ def test_toffoli():
             ["•","•","X^½"],[1,1,1,"H"]]}
     """, escape_url=False)
 
+    # Unknown exponent.
+    circuit = cirq.Circuit.from_ops(
+        cirq.CCX(a, b, c)**0.01)
+    assert_links_to(circuit, """
+        http://algassert.com/quirk#circuit={"cols":[
+            ["UNKNOWN","UNKNOWN","UNKNOWN"]
+        ]}
+    """, escape_url=False, prefer_unknown_gate_to_failure=True)
+
 
 def test_fredkin():
     a, b, c = cirq.LineQubit.range(3)
@@ -263,6 +272,22 @@ def test_ccz():
     assert_links_to(circuit, """
         http://algassert.com/quirk#circuit={"cols":[["•","•","Z"]]}
     """, escape_url=False)
+
+    # Symbolic exponent.
+    circuit = cirq.Circuit.from_ops(
+        cirq.CCZ(a, b, c)**cirq.Symbol('t'))
+    assert_links_to(circuit, """
+        http://algassert.com/quirk#circuit={"cols":[["•","•","Z^t"]]}
+    """, escape_url=False)
+
+    # Unknown exponent.
+    circuit = cirq.Circuit.from_ops(
+        cirq.CCZ(a, b, c)**0.01)
+    assert_links_to(circuit, """
+        http://algassert.com/quirk#circuit={"cols":[
+            ["UNKNOWN","UNKNOWN","UNKNOWN"]
+        ]}
+    """, escape_url=False, prefer_unknown_gate_to_failure=True)
 
     # With exponent. Doesn't merge with other operation.
     circuit = cirq.Circuit.from_ops(
