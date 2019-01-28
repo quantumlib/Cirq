@@ -11,7 +11,7 @@ import cirq
 
 def main():
     # Set problem parameters
-    n = 16
+    n = 8
     p = 2
 
     # Generate a random 3-regular graph on n nodes
@@ -19,6 +19,13 @@ def main():
 
     # Make qubits
     qubits = cirq.LineQubit.range(n)
+
+    # Print an example circuit
+    betas = np.random.uniform(-np.pi, np.pi, size=p)
+    gammas = np.random.uniform(-np.pi, np.pi, size=p)
+    circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph)
+    print('Example QAOA circuit:')
+    print(circuit.to_text_diagram(transpose=True))
 
     # Create variables to store the largest cut and cut value found
     largest_cut_found = None
@@ -54,6 +61,7 @@ def main():
     x0 = np.random.uniform(-np.pi, np.pi, size=2*p)
 
     # Optimize f
+    print('Optimizing objective function ...')
     scipy.optimize.minimize(f,
                             x0,
                             method='Nelder-Mead',
