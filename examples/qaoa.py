@@ -1,3 +1,53 @@
+"""Runs the Quantum Approximate Optimization Algorithm on Max-Cut.
+
+=== EXAMPLE OUTPUT ===
+
+Example QAOA circuit:
+  0           1           2           3           4           5
+  │           │           │           │           │           │
+  H           H           H           H           H           H
+  │           │           │           │           │           │
+  ZZ──────────ZZ^(-4/13)  │           │           │           │
+┌ │           │           │           │           │           │           ┐
+│ ZZ──────────┼───────────ZZ^(-4/13)  │           │           │           │
+│ │           ZZ──────────┼───────────ZZ^(-4/13)  │           │           │
+└ │           │           │           │           │           │           ┘
+┌ │           │           │           │           │           │           ┐
+│ ZZ──────────┼───────────┼───────────┼───────────ZZ^(-4/13)  │           │
+│ │           ZZ──────────┼───────────┼───────────┼───────────ZZ^(-4/13)  │
+└ │           │           │           │           │           │           ┘
+  Rx(0.151π)  Rx(0.151π)  ZZ──────────┼───────────ZZ^(-4/13)  │
+  │           │           │           │           │           │
+  ZZ──────────ZZ^-0.941   ZZ──────────┼───────────┼───────────ZZ^(-4/13)
+  │           │           │           ZZ──────────ZZ^(-4/13)  │
+┌ │           │           │           │           │           │           ┐
+│ │           │           Rx(0.151π)  ZZ──────────┼───────────ZZ^(-4/13)  │
+│ │           │           │           │           Rx(0.151π)  │           │
+└ │           │           │           │           │           │           ┘
+  ZZ──────────┼───────────ZZ^-0.941   Rx(0.151π)  │           Rx(0.151π)
+┌ │           │           │           │           │           │           ┐
+│ ZZ──────────┼───────────┼───────────┼───────────ZZ^-0.941   │           │
+│ │           ZZ──────────┼───────────ZZ^-0.941   │           │           │
+└ │           │           │           │           │           │           ┘
+  Rx(-0.448π) ZZ──────────┼───────────┼───────────┼───────────ZZ^-0.941
+  │           │           ZZ──────────┼───────────ZZ^-0.941   │
+  │           │           │           │           │           │
+  │           Rx(-0.448π) ZZ──────────┼───────────┼───────────ZZ^-0.941
+  │           │           │           ZZ──────────ZZ^-0.941   │
+┌ │           │           │           │           │           │           ┐
+│ │           │           Rx(-0.448π) ZZ──────────┼───────────ZZ^-0.941   │
+│ │           │           │           │           Rx(-0.448π) │           │
+└ │           │           │           │           │           │           ┘
+  │           │           │           Rx(-0.448π) │           Rx(-0.448π)
+  │           │           │           │           │           │
+  M('m')──────M───────────M───────────M───────────M───────────M
+  │           │           │           │           │           │
+Optimizing objective function ...
+The largest cut value found was 7.
+The largest possible cut has size 7.
+The approximation ratio achieved is 1.0.
+"""
+
 import itertools
 
 import networkx
@@ -9,7 +59,7 @@ import cirq
 
 def main():
     # Set problem parameters
-    n = 8
+    n = 6
     p = 2
 
     # Generate a random 3-regular graph on n nodes
@@ -89,7 +139,7 @@ def qaoa_max_cut_unitary(
 ) -> cirq.OP_TREE:
     for beta, gamma in zip(betas, gammas):
         yield (Rzz(-0.5*gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
-        yield (cirq.Rx(beta).on(q) for q in qubits)
+        yield cirq.Rx(beta).on_each(qubits)
 
 
 def qaoa_max_cut_circuit(
