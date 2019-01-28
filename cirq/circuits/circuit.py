@@ -816,7 +816,7 @@ class Circuit:
             preserve_moments=True))
 
         for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_operation_tree, ops.Moment):
+            if isinstance(moment_or_op, ops.Moment):
                 self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
                 self._device.validate_operation(
@@ -1364,10 +1364,12 @@ class Circuit:
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_name_suffix: Appended to qubit names in the diagram.
+            qubit_namer: Names qubits in diagram. Defaults to str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
+            get_circuit_diagram_info: Gets circuit diagram info. Defaults to
+                protocol with fallback.
 
         Returns:
             The TextDiagramDrawer instance.
