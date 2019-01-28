@@ -180,3 +180,20 @@ class CircuitDag(networkx.DiGraph):
                     self.all_operations(),
                     strategy=circuit.InsertStrategy.EARLIEST,
                     device=self.device)
+
+    def is_topologically_sorted(self, operations: ops.OP_TREE):
+        remaining_dag = self.copy()
+        frontier = list(node for node in remaining_dag.nodes()
+                        if not remaining_dag.pred[node])
+        for operation in ops.flatten_op_tree(operations):
+            for i, node in enumerate(frontier):
+                if node.val == operation:
+                    frontier.pop(i)
+                    succ = remaining_dag.succ[node]
+                    remaining_dag.remove_node(node)
+                    frontier.extend(new_node for new_node in succ
+                                    if not remaining_dag.pred[new_node])
+                    break
+            else:
+                return False
+        return not bool(frontier)

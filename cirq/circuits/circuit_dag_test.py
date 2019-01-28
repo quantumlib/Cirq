@@ -71,7 +71,6 @@ def test_append():
     dag = cirq.CircuitDag()
     dag.append(cirq.X(q0))
     dag.append(cirq.Y(q0))
-    print(dag.edges())
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert len(dag.nodes()) == 2
     assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
@@ -244,3 +243,28 @@ def test_larger_circuit():
         circuit.to_unitary_matrix(),
         dag.to_circuit().to_unitary_matrix(),
         atol=1e-7)
+
+
+@pytest.mark.parametrize('circuit_dag,sorted_nodes',
+        [(dag, cirq.testing.random_topological_sort(dag))
+         for dag in [cirq.testing.random_circuit_dag(10, 10, 0.5)
+                     for _ in range(5)]
+         for _ in range(5)])
+def test_topological_sort(circuit_dag, sorted_nodes):
+    sorted_nodes = list(sorted_nodes)
+    assert circuit_dag.is_topologically_sorted(
+            node.val for node in sorted_nodes)
+
+    assert not circuit_dag.is_topologically_sorted(
+            node.val for node in sorted_nodes[:-1])
+
+    assert not circuit_dag.is_topologically_sorted(
+            node.val for node in sorted_nodes + sorted_nodes[:2])
+
+    v, w = next(iter(circuit_dag.edges))
+    i = sorted_nodes.index(v)
+    j = sorted_nodes.index(w, i + 1)
+    sorted_nodes[i], sorted_nodes[j] = sorted_nodes[j], sorted_nodes[j]
+
+    assert circuit_dag.is_topologically_sorted(
+            node.val for node in sorted_nodes) == (v.val == w.val)

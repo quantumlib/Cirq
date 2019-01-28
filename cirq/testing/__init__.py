@@ -59,6 +59,9 @@ from cirq.testing.order_tester import (
 from cirq.testing.random_circuit import (
     random_circuit,
 )
+from cirq.testing.random_dag import (
+    random_circuit_dag, random_topological_sort,
+)
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
 )
