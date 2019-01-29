@@ -212,7 +212,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
         raise ValueError(
             "Expected same reps for all keys: shapes={}".format(shapes))
 
-    bits = np.hstack(np.asarray(data, dtype=bool) for _, data in measurements)
+    bits = np.hstack([np.asarray(data, dtype=bool) for _, data in measurements])
     bits = bits.reshape(-1)
 
     # Pad length to multiple of 8 if needed.
@@ -352,10 +352,11 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
 
 def _parameterized_value_from_proto_dict(message: Dict
                                          ) -> Union[value.Symbol, float]:
+    parameter_key = message.get('parameter_key', None)
+    if parameter_key:
+        return value.Symbol(parameter_key)
     if 'raw' in message:
         return message['raw']
-    if 'parameter_key' in message:
-        return value.Symbol(message['parameter_key'])
     raise ValueError('No value specified for parameterized float. '
                      'Expected "raw" or "parameter_key" to be set. '
                      'message: {!r}'.format(message))

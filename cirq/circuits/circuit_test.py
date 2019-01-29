@@ -27,6 +27,48 @@ from cirq.testing import random_circuit
 import cirq.google as cg
 
 
+class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
+    def validate_operation(self, operation):
+        if not isinstance(operation, cirq.Operation):
+            raise ValueError('not isinstance({!r}, {!r})'.format(
+                operation, cirq.Operation))
+
+    def validate_moment(self, moment):
+        if not isinstance(moment, cirq.Moment):
+            raise ValueError('not isinstance({!r}, {!r})'.format(
+                moment, cirq.Moment))
+
+    def duration_of(self, operation):
+        return cirq.Duration(picos=0) # coverage: ignore
+
+    def validate_schedule(self, schedule):
+        pass
+
+    def validate_scheduled_operation(self, schedule, scheduled_operation):
+        pass
+
+
+moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_insert_moment_types():
+    x = cirq.NamedQubit('x')
+
+    with pytest.raises(ValueError):
+        moment_and_op_type_validating_device.validate_operation(cirq.Moment())
+
+    with pytest.raises(ValueError):
+        moment_and_op_type_validating_device.validate_moment(cirq.X(x))
+
+    circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
+
+    moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
+    circuit.insert(0, moment_or_operation_tree)
+
+    moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
+    circuit.insert(0, moment_or_operation_tree)
+
+
 def test_equality():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -107,6 +149,30 @@ def test_append_multiple():
     ])
 
 
+def test_append_moments():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = Circuit()
+    c.append(Moment([cirq.X(a), cirq.X(b)]), cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    c = Circuit()
+    c.append([Moment([cirq.X(a), cirq.X(b)]),
+              Moment([cirq.X(a), cirq.X(b)])], cirq.InsertStrategy.NEW)
+    assert c == Circuit([
+        Moment([cirq.X(a), cirq.X(b)]),
+        Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+
+def test_bool():
+    assert not Circuit()
+    assert Circuit.from_ops(cirq.X(cirq.NamedQubit('a')))
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
@@ -153,10 +219,40 @@ def test_empty_moments():
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ───X───X───────X───",
                                     use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(circuit, """
+a
+│
+X
+│
+X
+│
+│
+│
+X
+│
+""",
+            use_unicode_characters=True,
+            transpose=True)
+
     # 1-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ---X---X-------X---",
                                     use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(circuit, """
+a
+|
+X
+|
+X
+|
+|
+|
+X
+|
+""",
+            use_unicode_characters=False,
+            transpose=True)
+
     # 2-qubit test
     op = cirq.CNOT(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
     op_moment = cirq.Moment([op])
@@ -166,12 +262,40 @@ def test_empty_moments():
 a: ───@───@───────@───
       │   │       │
 b: ───X───X───────X───""", use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(circuit, """
+a b
+│ │
+@─X
+│ │
+@─X
+│ │
+│ │
+│ │
+@─X
+│ │
+""",
+        use_unicode_characters=True,
+        transpose=True)
 
      # 2-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit, """
 a: ---@---@-------@---
       |   |       |
 b: ---X---X-------X---""", use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(circuit, """
+a b
+| |
+@-X
+| |
+@-X
+| |
+| |
+| |
+@-X
+| |
+""",
+        use_unicode_characters=False,
+        transpose=True)
 
 def test_slice():
     a = cirq.NamedQubit('a')
@@ -473,6 +597,17 @@ def test_insert_moment():
     for given_index, actual_index, operation, qubit, strat in moment_list:
         c.insert(given_index, Moment(operation), strat)
         assert c.operation_at(qubit, actual_index) == operation[0]
+
+
+def test_insert_validates_all_operations_before_inserting():
+    a, b = cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)
+    c = Circuit(device=cg.Foxtail)
+    operations = [cirq.Z(a), cirq.CZ(a, b)]
+
+    with pytest.raises(ValueError, match='Non-local interaction'):
+        c.insert(0, operations)
+
+    assert len(c) == 0
 
 
 def test_insert_inline_near_start():
@@ -1051,8 +1186,8 @@ def test_from_ops():
     )
 
     assert actual == Circuit([
-        Moment([cirq.X(a)]),
-        Moment([cirq.Y(a), cirq.Z(b)]),
+        Moment([cirq.X(a), cirq.Z(b)]),
+        Moment([cirq.Y(a)]),
         Moment([cirq.CZ(a, b)]),
         Moment([cirq.X(a), cirq.Z(b)]),
         Moment([cirq.Y(a)]),
@@ -1596,20 +1731,21 @@ def test_insert_moments():
     m0 = cirq.Moment([cirq.X(q)])
     c.append(m0)
     assert list(c) == [m0]
-    assert c[0] is m0
+    assert c[0] == m0
 
     m1 = cirq.Moment([cirq.Y(q)])
     c.append(m1)
     assert list(c) == [m0, m1]
-    assert c[1] is m1
+    assert c[1] == m1
 
     m2 = cirq.Moment([cirq.Z(q)])
     c.insert(0, m2)
     assert list(c) == [m2, m0, m1]
-    assert c[0] is m2
+    assert c[0] == m2
 
     assert c._moments == [m2, m0, m1]
-    assert c._moments[0] is m2
+    assert c._moments[0] == m2
+
 
 def test_apply_unitary_effect_to_state():
     a = cirq.NamedQubit('a')
@@ -2542,68 +2678,62 @@ def test_submoments():
     )
 
     cirq.testing.assert_has_diagram(circuit, """
-         ┌──┐  ┌───────────────┐
-0: ───H───@─────@─────────────────────
-          │     │
-1: ───────┼@────┼────@────────────────
-          ││    │    │
-2: ───────┼@────┼────┼────@───────H───
-          │     │    │    │
-3: ───H───@─────X^0.5┼────┼───────────
-                     │    │
-4: ──────────────────X^0.5┼───────H───
-                          │
-5: ───────────────────────X^0.5───────
-         └──┘  └───────────────┘
+         ┌───────────┐
+0: ───H───@─────────────@────────
+          │             │
+1: ───@───┼@────────────┼────────
+      │   ││            │
+2: ───@───┼┼────@───────┼────H───
+          ││    │       │
+3: ───H───@┼────┼───────X^0.5────
+           │    │
+4: ────────X^0.5┼───────H────────
+                │
+5: ─────────────X^0.5────────────
+         └───────────┘
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
   0 1 2 3     4     5
   │ │ │ │     │     │
-  H │ │ H     │     │
+  H @─@ H     │     │
 ┌ │ │ │ │     │     │     ┐
 │ @─┼─┼─@     │     │     │
-│ │ @─@ │     │     │     │
-└ │ │ │ │     │     │     ┘
-┌ │ │ │ │     │     │     ┐
-│ @─┼─┼─X^0.5 │     │     │
 │ │ @─┼─┼─────X^0.5 │     │
 │ │ │ @─┼─────┼─────X^0.5 │
 └ │ │ │ │     │     │     ┘
-  │ │ H │     H     │
+  @─┼─┼─X^0.5 H     │
+  │ │ H │     │     │
   │ │ │ │     │     │
 """, transpose=True)
 
     cirq.testing.assert_has_diagram(circuit, r"""
-         /--\  /---------------\
-0: ---H---@-----@---------------------
-          |     |
-1: -------|@----|----@----------------
-          ||    |    |
-2: -------|@----|----|----@-------H---
-          |     |    |    |
-3: ---H---@-----X^0.5|----|-----------
-                     |    |
-4: ------------------X^0.5|-------H---
-                          |
-5: -----------------------X^0.5-------
-         \--/  \---------------/
+         /-----------\
+0: ---H---@-------------@--------
+          |             |
+1: ---@---|@------------|--------
+      |   ||            |
+2: ---@---||----@-------|----H---
+          ||    |       |
+3: ---H---@|----|-------X^0.5----
+           |    |
+4: --------X^0.5|-------H--------
+                |
+5: -------------X^0.5------------
+         \-----------/
 """, use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit, r"""
   0 1 2 3     4     5
   | | | |     |     |
-  H | | H     |     |
+  H @-@ H     |     |
 / | | | |     |     |     \
 | @-----@     |     |     |
-| | @-@ |     |     |     |
-\ | | | |     |     |     /
-/ | | | |     |     |     \
-| @-----X^0.5 |     |     |
 | | @---------X^0.5 |     |
 | | | @-------------X^0.5 |
 \ | | | |     |     |     /
-  | | H |     H     |
+  @-----X^0.5 H     |
+  | | H |     |     |
   | | | |     |     |
 """, use_unicode_characters=False, transpose=True)
 

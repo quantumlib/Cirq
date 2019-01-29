@@ -20,12 +20,13 @@ import cirq
 
 
 _bools = (False, True)
+_paulis = (cirq.X, cirq.Y, cirq.Z)
 
 
 def _all_interaction_gates(exponents=(1,)):
     for pauli0, invert0, pauli1, invert1, e in itertools.product(
-            cirq.Pauli.XYZ, _bools,
-            cirq.Pauli.XYZ, _bools,
+            _paulis, _bools,
+            _paulis, _bools,
             exponents):
         yield cirq.PauliInteractionGate(pauli0, invert0,
                                         pauli1, invert1,
@@ -41,8 +42,8 @@ def test_pauli_interaction_gates_consistent_protocols(gate):
 def test_eq_ne_and_hash():
     eq = cirq.testing.EqualsTester()
     for pauli0, invert0, pauli1, invert1, e in itertools.product(
-            cirq.Pauli.XYZ, _bools,
-            cirq.Pauli.XYZ, _bools,
+            _paulis, _bools,
+            _paulis, _bools,
             (0.125, -0.25, 1)):
         def gate_gen(offset):
             return cirq.PauliInteractionGate(
@@ -71,7 +72,7 @@ def test_interchangeable_qubits(gate):
 
 
 def test_exponent():
-    cnot = cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.X, False)
+    cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
     np.testing.assert_almost_equal(
         cirq.unitary(cnot**0.5),
         np.array([
@@ -84,7 +85,7 @@ def test_exponent():
 
 def test_decomposes_despite_symbol():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
-    gate = cirq.PauliInteractionGate(cirq.Pauli.Z, False, cirq.Pauli.X, False,
+    gate = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False,
                                      exponent=cirq.Symbol('x'))
     assert cirq.decompose_once_with_qubits(gate, [q0, q1])
 
@@ -92,24 +93,24 @@ def test_decomposes_despite_symbol():
 def test_text_diagrams():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     circuit = cirq.Circuit.from_ops(
-        cirq.PauliInteractionGate(cirq.Pauli.X, False,
-                                  cirq.Pauli.X, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.X, True,
-                                  cirq.Pauli.X, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.X, False,
-                                  cirq.Pauli.X, True)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.X, True,
-                                  cirq.Pauli.X, True)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.X, False,
-                                  cirq.Pauli.Y, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.Y, False,
-                                  cirq.Pauli.Z, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.Z, False,
-                                  cirq.Pauli.Y, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.Y, True,
-                                  cirq.Pauli.Z, True)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Pauli.Z, True,
-                                  cirq.Pauli.Y, True)(q0, q1))
+        cirq.PauliInteractionGate(cirq.X, False,
+                                  cirq.X, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, True,
+                                  cirq.X, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, False,
+                                  cirq.X, True)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, True,
+                                  cirq.X, True)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, False,
+                                  cirq.Y, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Y, False,
+                                  cirq.Z, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Z, False,
+                                  cirq.Y, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Y, True,
+                                  cirq.Z, True)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Z, True,
+                                  cirq.Y, True)(q0, q1))
     assert circuit.to_text_diagram().strip() == """
 q0: ───X───(-X)───X──────(-X)───X───Y───@───(-Y)───(-@)───
        │   │      │      │      │   │   │   │      │

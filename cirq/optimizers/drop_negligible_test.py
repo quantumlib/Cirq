@@ -15,7 +15,7 @@
 import cirq
 
 
-def assert_optimizes(optimizer: cirq.OptimizationPass,
+def assert_optimizes(optimizer,
                      initial_circuit: cirq.Circuit,
                      expected_circuit: cirq.Circuit):
     circuit = cirq.Circuit(initial_circuit)
