@@ -20,7 +20,7 @@ Simulator types include
 """
 
 from typing import (
-    Dict, Iterable, Iterator, List, Tuple, Union, Optional)
+    Any, Dict, Hashable, Iterable, Iterator, List, Tuple, Union, Optional)
 
 import abc
 import collections
@@ -155,7 +155,7 @@ class SimulatesSamples:
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in param_resolvers:
-            display_values = {}  # type: ignore
+            display_values = {}  # type: Dict[Hashable, Any]
             preceding_circuit = circuits.Circuit()
             for i, moment in enumerate(circuit):
                 displays = (op for op in moment
@@ -577,7 +577,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in param_resolvers:
-            display_values = {}  # type: ignore
+            display_values = {}  # type: Dict[Hashable, Any]
 
             # Compute the displays in the first Moment
             moment = circuit[0]
