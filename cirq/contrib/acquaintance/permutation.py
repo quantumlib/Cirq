@@ -98,7 +98,7 @@ def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:
     return {i: j for i, j in permutation.items() if i != j}
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
         sorting network."""
