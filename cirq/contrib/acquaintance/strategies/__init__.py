@@ -16,3 +16,6 @@
 
 from cirq.contrib.acquaintance.strategies.complete import (
     complete_acquaintance_strategy)
+
+from cirq.contrib.acquaintance.strategies.quartic_paired import (
+    quartic_paired_acquaintance_strategy)
