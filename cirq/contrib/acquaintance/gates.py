@@ -18,7 +18,7 @@ import math
 import operator
 from typing import Sequence, Dict, Tuple, List, NamedTuple, Optional
 
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
@@ -202,6 +202,7 @@ def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
                     mapping=mapping)
 
 
+@value.value_equality
 class SwapNetworkGate(PermutationGate):
     """A single gate representing a generalized swap network.
 
@@ -315,7 +316,5 @@ class SwapNetworkGate(PermutationGate):
         return ('cirq.contrib.acquaintance.SwapNetworkGate('
                 '{!r}, {!r})'.format(self.part_lens, self.acquaintance_size))
 
-    def __eq__(self, other):
-        return ((self.part_lens == other.part_lens) and
-                (self.acquaintance_size == other.acquaintance_size))
-
+    def _value_equality_values_(self):
+        return (self.part_lens, self.acquaintance_size, self.swap_gate)
