@@ -98,7 +98,7 @@ def _assert_meets_standards_helper(
     assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
     assert_qasm_is_consistent_with_unitary(val)
     assert_decompose_is_consistent_with_unitary(val,
-        ignoring_global_phase = ignoring_global_phase)
+        ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
     assert_equivalent_repr(val,
                            setup_code=setup_code,
