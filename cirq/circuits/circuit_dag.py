@@ -186,8 +186,8 @@ class CircuitDag(networkx.DiGraph):
 
     def is_topologically_sorted(self, operations: ops.OP_TREE):
         remaining_dag = self.copy()
-        frontier = list(node for node in remaining_dag.nodes()
-                        if not remaining_dag.pred[node])
+        frontier = [node for node in remaining_dag.nodes()
+                    if not remaining_dag.pred[node]]
         for operation in ops.flatten_op_tree(operations):
             for i, node in enumerate(frontier):
                 if node.val == operation:
