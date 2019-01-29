@@ -55,10 +55,10 @@ def test_single_qubit_approx_eq():
     i = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, 1]]))
     i_ish = cirq.SingleQubitMatrixGate(
         np.array([[1, 0.000000000000001], [0, 1]]))
-    assert i.approx_eq(i_ish)
-    assert i.approx_eq(i)
-    assert not i.approx_eq(x)
-    assert i.approx_eq('') is NotImplemented
+    assert cirq.approx_eq(i, i_ish, atol=1e-9)
+    assert cirq.approx_eq(i, i, atol=1e-9)
+    assert not cirq.approx_eq(i, x, atol=1e-9)
+    assert not cirq.approx_eq(i, '', atol=1e-9)
 
 
 def test_single_qubit_extrapolate():
@@ -69,17 +69,17 @@ def test_single_qubit_extrapolate():
     assert cirq.has_unitary(x2)
     x2i = cirq.SingleQubitMatrixGate(np.conj(cirq.unitary(x2).T))
 
-    assert (x**0).approx_eq(i)
-    assert (x2**0).approx_eq(i)
-    assert (x2**2).approx_eq(x)
-    assert (x2**-1).approx_eq(x2i)
-    assert (x2**3).approx_eq(x2i)
-    assert (x**-1).approx_eq(x)
+    assert cirq.approx_eq(x**0, i, atol=1e-9)
+    assert cirq.approx_eq(x2**0, i, atol=1e-9)
+    assert cirq.approx_eq(x2**2, x, atol=1e-9)
+    assert cirq.approx_eq(x2**-1, x2i, atol=1e-9)
+    assert cirq.approx_eq(x2**3, x2i, atol=1e-9)
+    assert cirq.approx_eq(x**-1, x, atol=1e-9)
 
     z2 = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, 1j]]))
     z4 = cirq.SingleQubitMatrixGate(
         np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
-    assert (z2**0.5).approx_eq(z4)
+    assert cirq.approx_eq(z2**0.5, z4, atol=1e-9)
     with pytest.raises(TypeError):
         _ = x**cirq.Symbol('a')
 
@@ -100,10 +100,18 @@ def test_two_qubit_eq():
 def test_two_qubit_approx_eq():
     f = cirq.TwoQubitMatrixGate(QFT2)
     perturb = np.zeros(shape=QFT2.shape, dtype=np.float64)
-    perturb[1, 2] = 0.00000001
-    assert f.approx_eq(cirq.TwoQubitMatrixGate(QFT2))
-    assert f.approx_eq(cirq.TwoQubitMatrixGate(QFT2 + perturb))
-    assert not f.approx_eq(cirq.TwoQubitMatrixGate(HH))
+    perturb[1, 2] = 1e-8
+
+    assert cirq.approx_eq(f, cirq.TwoQubitMatrixGate(QFT2), atol=1e-9)
+
+    assert not cirq.approx_eq(
+        f,
+        cirq.TwoQubitMatrixGate(QFT2 + perturb),
+        atol=1e-9
+    )
+    assert cirq.approx_eq(f, cirq.TwoQubitMatrixGate(QFT2 + perturb), atol=1e-7)
+
+    assert not cirq.approx_eq(f, cirq.TwoQubitMatrixGate(HH), atol=1e-9)
 
 
 def test_two_qubit_extrapolate():
@@ -111,9 +119,9 @@ def test_two_qubit_extrapolate():
     cz4 = cirq.TwoQubitMatrixGate(np.diag([1, 1, 1, (1 + 1j) * np.sqrt(0.5)]))
     i = cirq.TwoQubitMatrixGate(np.eye(4))
 
-    assert (cz2**0).approx_eq(i)
-    assert (cz4**0).approx_eq(i)
-    assert (cz2**0.5).approx_eq(cz4)
+    assert cirq.approx_eq(cz2**0, i, atol=1e-9)
+    assert cirq.approx_eq(cz4**0, i, atol=1e-9)
+    assert cirq.approx_eq(cz2**0.5, cz4, atol=1e-9)
     with pytest.raises(TypeError):
         _ = cz2**cirq.Symbol('a')
 
