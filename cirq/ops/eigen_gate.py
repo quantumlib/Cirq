@@ -281,6 +281,14 @@ class EigenGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self._canonical_exponent, self._global_shift
 
+    def _value_equality_approximate_values_(self):
+        period = self._period()
+        if not period or isinstance(self._exponent, value.Symbol):
+            exponent = self._exponent
+        else:
+            exponent = value.PeriodicValue(self._exponent, period)
+        return exponent, self._global_shift
+
     def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):
             return 1

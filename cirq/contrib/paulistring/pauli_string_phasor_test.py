@@ -27,10 +27,8 @@ def _make_qubits(n):
 def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
-    ps1 = cirq.PauliString({q0: cirq.Pauli.X, q1: cirq.Pauli.Y,
-                            q2: cirq.Pauli.Z})
-    ps2 = cirq.PauliString({q0: cirq.Pauli.X, q1: cirq.Pauli.Y,
-                            q2: cirq.Pauli.X})
+    ps1 = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z})
+    ps2 = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.X})
     eq.make_equality_group(
         lambda: PauliStringPhasor(cirq.PauliString({}), half_turns=0.5),
         lambda: PauliStringPhasor(cirq.PauliString({}), half_turns=-1.5),
@@ -60,21 +58,20 @@ def test_map_qubits():
     q0, q1, q2, q3 = _make_qubits(4)
     qubit_map = {q1: q2, q0: q3}
     before = PauliStringPhasor(
-                    cirq.PauliString({q0: cirq.Pauli.Z, q1: cirq.Pauli.Y}),
+                    cirq.PauliString({q0: cirq.Z, q1: cirq.Y}),
                     half_turns=0.1)
     after = PauliStringPhasor(
-                    cirq.PauliString({q3: cirq.Pauli.Z, q2: cirq.Pauli.Y}),
+                    cirq.PauliString({q3: cirq.Z, q2: cirq.Y}),
                     half_turns=0.1)
     assert before.map_qubits(qubit_map) == after
 
 
 def test_pass_operations_over():
     q0, q1 = _make_qubits(2)
-    X, Y, Z = cirq.Pauli.XYZ
-    op = cirq.SingleQubitCliffordGate.from_double_map({Z: (X,False),
-                                                       X: (Z,False)})(q0)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, True)
-    ps_after = cirq.PauliString({q0: Z, q1: Y}, True)
+    op = cirq.SingleQubitCliffordGate.from_double_map(
+            {cirq.Z: (cirq.X, False), cirq.X: (cirq.Z, False)})(q0)
+    ps_before = cirq.PauliString({q0: cirq.X, q1: cirq.Y}, True)
+    ps_after = cirq.PauliString({q0: cirq.Z, q1: cirq.Y}, True)
     before = PauliStringPhasor(ps_before, half_turns=0.1)
     after = PauliStringPhasor(ps_after, half_turns=0.1)
     assert before.pass_operations_over([op]) == after
@@ -126,15 +123,15 @@ def test_can_merge_with():
     assert op1.can_merge_with(op2)
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.75)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=0.75)
     assert op1.can_merge_with(op2)
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.Y}, True), half_turns=0.75)
+            cirq.PauliString({q0: cirq.Y}, True), half_turns=0.75)
     assert not op1.can_merge_with(op2)
 
 
@@ -147,41 +144,41 @@ def test_merge_with():
     assert op1.merged_with(op2) == op12
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.75)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.75)
     op12 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=1.0)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=1.0)
     assert op1.merged_with(op2) == op12
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.75)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=0.75)
     op12 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=-0.5)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=-0.5)
     assert op1.merged_with(op2) == op12
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.75)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.75)
     op12 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=-0.5)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=-0.5)
     assert op1.merged_with(op2) == op12
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=0.75)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=0.75)
     op12 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, True), half_turns=1.0)
+            cirq.PauliString({q0: cirq.X}, True), half_turns=1.0)
     assert op1.merged_with(op2) == op12
 
     op1 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.X}, False), half_turns=0.25)
+            cirq.PauliString({q0: cirq.X}, False), half_turns=0.25)
     op2 = PauliStringPhasor(
-            cirq.PauliString({q0: cirq.Pauli.Y}, True), half_turns=0.75)
+            cirq.PauliString({q0: cirq.Y}, True), half_turns=0.75)
     with pytest.raises(ValueError):
         op1.merged_with(op2)
 
@@ -206,13 +203,13 @@ def test_drop_negligible():
     q0, = _make_qubits(1)
     sym = cirq.Symbol('a')
     circuit = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})) ** 0.25,
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})) ** 1e-10,
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})) ** sym,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 1e-10,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** sym,
     )
     expected = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})) ** 0.25,
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})) ** sym,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** sym,
     )
     cirq.DropNegligible().optimize_circuit(circuit)
     cirq.DropEmptyMoments().optimize_circuit(circuit)
@@ -223,23 +220,23 @@ def test_manual_default_decompose():
     q0, q1, q2 = _make_qubits(3)
 
     mat = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})) ** 0.25,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25,
         cirq.Z(q0) ** -0.25,
     ).to_unitary_matrix()
     cirq.testing.assert_allclose_up_to_global_phase(mat, np.eye(2),
                                                     rtol=1e-7, atol=1e-7)
 
     mat = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Y})) ** 0.25,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Y})) ** 0.25,
         cirq.Y(q0) ** -0.25,
     ).to_unitary_matrix()
     cirq.testing.assert_allclose_up_to_global_phase(mat, np.eye(2),
                                                     rtol=1e-7, atol=1e-7)
 
     mat = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z,
-                                            q1: cirq.Pauli.Z,
-                                            q2: cirq.Pauli.Z}))
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z,
+                                            q1: cirq.Z,
+                                            q2: cirq.Z}))
     ).to_unitary_matrix()
     cirq.testing.assert_allclose_up_to_global_phase(
         mat,
@@ -247,9 +244,9 @@ def test_manual_default_decompose():
         rtol=1e-7, atol=1e-7)
 
     mat = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z,
-                                            q1: cirq.Pauli.Y,
-                                            q2: cirq.Pauli.X})) ** 0.5
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z,
+                                            q1: cirq.Y,
+                                            q2: cirq.X})) ** 0.5
     ).to_unitary_matrix()
     cirq.testing.assert_allclose_up_to_global_phase(
         mat,
@@ -268,7 +265,7 @@ def test_manual_default_decompose():
 
 @pytest.mark.parametrize('paulis,half_turns,neg',
     itertools.product(
-        itertools.product(cirq.Pauli.XYZ + (None,), repeat=3),
+        itertools.product((cirq.X, cirq.Y, cirq.Z, None), repeat=3),
         (0, 0.1, 0.5, 1, -0.25),
         (False, True)))
 def test_default_decompose(paulis, half_turns, neg):
@@ -282,9 +279,9 @@ def test_default_decompose(paulis, half_turns, neg):
     ).to_unitary_matrix()
 
     # Calculate expected matrix
-    to_z_mats = {cirq.Pauli.X: cirq.unitary(cirq.Y ** -0.5),
-                 cirq.Pauli.Y: cirq.unitary(cirq.X ** 0.5),
-                 cirq.Pauli.Z: np.eye(2)}
+    to_z_mats = {cirq.X: cirq.unitary(cirq.Y ** -0.5),
+                 cirq.Y: cirq.unitary(cirq.X ** 0.5),
+                 cirq.Z: np.eye(2)}
     expected_convert = np.eye(1)
     for pauli in paulis:
         expected_convert = np.kron(expected_convert, to_z_mats[pauli])
@@ -298,13 +295,13 @@ def test_default_decompose(paulis, half_turns, neg):
 
 def test_decompose_with_symbol():
     q0, = _make_qubits(1)
-    ps = cirq.PauliString({q0: cirq.Pauli.Y})
+    ps = cirq.PauliString({q0: cirq.Y})
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
     cirq.testing.assert_has_diagram(circuit, "q0: ───X^0.5───Z^a───X^-0.5───")
 
-    ps = cirq.PauliString({q0: cirq.Pauli.Y}, True)
+    ps = cirq.PauliString({q0: cirq.Y}, True)
     op = PauliStringPhasor(ps, half_turns=cirq.Symbol('a'))
     circuit = cirq.Circuit.from_ops(op)
     cirq.ExpandComposite().optimize_circuit(circuit)
@@ -315,21 +312,21 @@ def test_decompose_with_symbol():
 def test_text_diagram():
     q0, q1, q2 = _make_qubits(3)
     circuit = cirq.Circuit.from_ops(
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z})),
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Y})) ** 0.25,
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z,
-                                            q1: cirq.Pauli.Z,
-                                            q2: cirq.Pauli.Z})),
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z,
-                                            q1: cirq.Pauli.Y,
-                                            q2: cirq.Pauli.X}, True)) ** 0.5,
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z,
-                                            q1: cirq.Pauli.Y,
-                                            q2: cirq.Pauli.X}),
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z})),
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Y})) ** 0.25,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z,
+                                            q1: cirq.Z,
+                                            q2: cirq.Z})),
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z,
+                                            q1: cirq.Y,
+                                            q2: cirq.X}, True)) ** 0.5,
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z,
+                                            q1: cirq.Y,
+                                            q2: cirq.X}),
                           half_turns=cirq.Symbol('a')),
-        PauliStringPhasor(cirq.PauliString({q0: cirq.Pauli.Z,
-                                            q1: cirq.Pauli.Y,
-                                            q2: cirq.Pauli.X}, True),
+        PauliStringPhasor(cirq.PauliString({q0: cirq.Z,
+                                            q1: cirq.Y,
+                                            q2: cirq.X}, True),
                           half_turns=cirq.Symbol('b')))
 
     cirq.testing.assert_has_diagram(circuit, """
@@ -343,15 +340,15 @@ q2: ────────────────────[Z]───[X]^
 
 def test_repr():
     q0, q1, q2 = _make_qubits(3)
-    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Pauli.Z,
-                                             q1: cirq.Pauli.Y,
-                                             q0: cirq.Pauli.X})) ** 0.5
+    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,
+                                             q1: cirq.Y,
+                                             q0: cirq.X})) ** 0.5
     assert (repr(ps) ==
             'PauliStringPhasor({+, q0:X, q1:Y, q2:Z}, half_turns=0.5)')
 
-    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Pauli.Z,
-                                             q1: cirq.Pauli.Y,
-                                             q0: cirq.Pauli.X}, True)
+    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,
+                                             q1: cirq.Y,
+                                             q0: cirq.X}, True)
                                 ) ** -0.5
     assert (repr(ps) ==
             'PauliStringPhasor({-, q0:X, q1:Y, q2:Z}, half_turns=-0.5)')
@@ -359,13 +356,13 @@ def test_repr():
 
 def test_str():
     q0, q1, q2 = _make_qubits(3)
-    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Pauli.Z,
-                                             q1: cirq.Pauli.Y,
-                                             q0: cirq.Pauli.X}, False)
+    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,
+                                             q1: cirq.Y,
+                                             q0: cirq.X}, False)
                                 ) ** 0.5
     assert (str(ps) == '{+, q0:X, q1:Y, q2:Z}**0.5')
 
-    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Pauli.Z,
-                                             q1: cirq.Pauli.Y,
-                                             q0: cirq.Pauli.X}, True)) ** -0.5
+    ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,
+                                             q1: cirq.Y,
+                                             q0: cirq.X}, True)) ** -0.5
     assert (str(ps) == '{-, q0:X, q1:Y, q2:Z}**-0.5')

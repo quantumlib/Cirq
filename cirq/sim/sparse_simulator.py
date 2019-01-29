@@ -78,7 +78,7 @@ class Simulator(simulator.SimulatesSamples,
     the parameters that were used in the simulation access to the state
     viat the `final_state` method.
 
-    Finally if one wishes to perform simulations that have access to the
+    If one wishes to perform simulations that have access to the
     wave function as one steps through running the circuit there is a generator
     which can be iterated over and each step is an object that gives access
     to the wave function.  This stepping through a `Circuit` is done on a
@@ -91,6 +91,16 @@ class Simulator(simulator.SimulatesSamples,
 
         for step_result in simulate_moments(circuit):
            # do something with the wave function via step_result.state
+
+    Finally, one can compute the values of displays (instances of
+    `SamplesDisplay` or `WaveFunctionDisplay`) in the circuit:
+
+        compute_displays(circuit, param_resolver, qubit_order, initial_state)
+
+        compute_displays_sweep(circuit, params, qubit_order, initial_state)
+
+    The result of computing display values is stored in a
+    `ComputeDisplaysResult`.
 
 
     See `Simulator` for the definitions of the supported methods.
@@ -203,8 +213,11 @@ class Simulator(simulator.SimulatesSamples,
             measurements = collections.defaultdict(
                     list)  # type: Dict[str, List[bool]]
 
+            non_display_ops = (op for op in moment
+                               if not isinstance(op, (ops.SamplesDisplay,
+                                                      ops.WaveFunctionDisplay)))
             unitary_ops_and_measurements = protocols.decompose(
-                moment.operations,
+                non_display_ops,
                 keep=keep,
                 on_stuck_raise=on_stuck)
 

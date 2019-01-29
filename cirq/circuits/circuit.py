@@ -21,6 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from collections import defaultdict
 from fractions import Fraction
+from itertools import groupby
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -112,7 +113,7 @@ class Circuit:
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
-                 strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE,
+                 strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
@@ -134,6 +135,9 @@ class Circuit:
 
     def copy(self) -> 'Circuit':
         return Circuit(self._moments, self._device)
+
+    def __bool__(self):
+        return bool(self._moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -787,7 +791,7 @@ class Circuit:
             self,
             index: int,
             moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
+            strategy: InsertStrategy = InsertStrategy.EARLIEST) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
             'InsertStrategy'.
@@ -805,22 +809,27 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = ops.flatten_op_tree(
+        moments_and_operations = list(ops.flatten_op_tree(
             ops.transform_op_tree(moment_or_operation_tree,
                                   self._device.decompose_operation,
                                   preserve_moments=True),
-            preserve_moments=True
-        )
+            preserve_moments=True))
+
+        for moment_or_op in moments_and_operations:
+            if isinstance(moment_or_op, ops.Moment):
+                self._device.validate_moment(cast(ops.Moment, moment_or_op))
+            else:
+                self._device.validate_operation(
+                    cast(ops.Operation, moment_or_op))
+
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index,
                     len(self._moments)), 0)
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
-                self._device.validate_moment(moment_or_op)
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
-                self._device.validate_operation(moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(
                     k, moment_or_op, strategy)
                 while p >= len(self._moments):
@@ -1112,7 +1121,7 @@ class Circuit:
     def append(
             self,
             moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
+            strategy: InsertStrategy = InsertStrategy.EARLIEST):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.
@@ -1355,10 +1364,12 @@ class Circuit:
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_name_suffix: Appended to qubit names in the diagram.
+            qubit_namer: Names qubits in diagram. Defaults to str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
+            get_circuit_diagram_info: Gets circuit diagram info. Defaults to
+                protocol with fallback.
 
         Returns:
             The TextDiagramDrawer instance.
@@ -1762,15 +1773,4 @@ def _group_until_different(items: Iterable[TIn],
     Yields:
         Tuples containing the group key and item values.
     """
-    prev_item_key = None
-    cur_items = []  # type: List[Any]
-    for item in items:
-        item_key = key(item)
-        if cur_items and item_key != prev_item_key:
-            yield prev_item_key, cur_items
-            cur_items = []
-        cur_items.append(value(item))
-        prev_item_key = item_key
-
-    if cur_items:
-        yield prev_item_key, cur_items
+    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))

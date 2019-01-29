@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 
@@ -46,7 +46,7 @@ class SupportsApproximateEquality(Protocol):
         pass
 
 
-def approx_eq(val: Any, other: Any, *, atol) -> bool:
+def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     """Approximately compares two objects.
 
     If `val` implements SupportsApproxEquality protocol then it is invoked and
@@ -64,7 +64,8 @@ def approx_eq(val: Any, other: Any, *, atol) -> bool:
         val: Source object for approximate comparison.
         other: Target object for approximate comparison.
         atol: The minimum absolute tolerance. See np.isclose() documentation for
-              details.
+              details. Defaults to 1e-8 which matches np.isclose() default
+              absolute tolerance.
 
     Returns:
         True if objects are approximately equal, False otherwise.
