@@ -49,11 +49,22 @@ class PullRequestDetails:
         return PullRequestDetails(payload, repo)
 
     @property
-    def remote_repo(self):
+    def remote_repo(self) -> GithubRepository:
         return GithubRepository(
             organization=self.payload['head']['repo']['owner']['login'],
             name=self.payload['head']['repo']['name'],
             access_token=self.repo.access_token)
+
+    def is_on_fork(self) -> bool:
+        local = (
+            self.repo.organization.lower(),
+            self.repo.name.lower()
+        )
+        remote = (
+            self.remote_repo.organization.lower(),
+            self.remote_repo.name.lower()
+        )
+        return local != remote
 
     def has_label(self, desired_label: str) -> bool:
         return any(label['name'] == desired_label
@@ -463,7 +474,8 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
                 response.status_code, response.content))
 
 
-def attempt_sync_with_master(pr: PullRequestDetails) -> Optional[CannotAutomergeError]:
+def attempt_sync_with_master(pr: PullRequestDetails
+                             ) -> Union[bool, CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/repos/merging/#perform-a-merge
@@ -484,11 +496,11 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Optional[CannotAutomerge
     if response.status_code == 201:
         # Merge succeeded.
         log('Synced #{} ({!r}) with master.'.format(pr.pull_id, pr.title))
-        return None
+        return True
 
     if response.status_code == 204:
         # Already merged.
-        return None
+        return False
 
     if response.status_code == 409:
         # Merge conflict.
@@ -506,7 +518,8 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Optional[CannotAutomerge
                                                        response.content))
 
 
-def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, Exception]:
+def attempt_squash_merge(pr: PullRequestDetails
+                         ) -> Union[bool, CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
@@ -556,8 +569,7 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         return False
 
     remote = pr.remote_repo
-    if (pr.repo.organization.lower() != remote.organization.lower() or
-            pr.repo.name.lower() != remote.name.lower()):
+    if pr.is_on_fork():
         log('Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
             pr.branch_name,
             pr.remote_repo.organization,
@@ -747,16 +759,57 @@ def gather_auto_mergeable_prs(repo: GithubRepository
     return result
 
 
+def merge_desirability(pr: PullRequestDetails) -> Any:
+    synced = classify_pr_synced_state(pr) is True
+    tested = synced and (classify_pr_status_check_state(pr) is True)
+    forked = pr.is_on_fork()
+
+    # 1. Prefer to merge already-synced PRs. This minimizes the number of builds
+    #    performed by travis.
+    # 2. Prefer to merge synced PRs from forks. This minimizes manual labor;
+    #    currently the bot can't resync these PRs. Secondarily, avoid unsynced
+    #    PRs from forks until necessary because they will fail when hit.
+    # 3. Prefer to merge PRs where the status checks have already completed.
+    #    This is just faster, because the next build can be started sooner.
+    # 4. Use seniority as a tie breaker.
+
+    # Desired order is:
+    #   TF
+    #   SF
+    #   T_
+    #   S_
+    #   __
+    #   _F
+    # (S = synced, T = tested, F = forked.)
+
+    if forked:
+        if tested:
+            rank = 5
+        elif synced:
+            rank = 4
+        else:
+            rank = 0
+    else:
+        if tested:
+            rank = 3
+        elif synced:
+            rank = 2
+        else:
+            rank = 1
+
+    return rank, -pr.pull_id
+
+
 def pick_head_pr(active_prs: List[PullRequestDetails]
                  ) -> Optional[PullRequestDetails]:
     if not active_prs:
         return None
 
-    for pr in sorted(active_prs, key=lambda e: e.pull_id):
+    for pr in sorted(active_prs, key=merge_desirability, reverse=True):
         if pr.has_label(HEAD_AUTO_MERGE_LABEL):
             return pr
 
-    promoted = min(active_prs, key=lambda e: e.pull_id)
+    promoted = max(active_prs, key=merge_desirability)
     log('Automerging PR#{} ({!r}).'.format(
         promoted.pull_id,
         promoted.title))
@@ -781,7 +834,7 @@ def duty_cycle(repo: GithubRepository):
                 remove_label_from_pr(repo, head_pr.pull_id, label)
     else:
         # `gather_auto_mergeable_prs` is responsible for this case.
-        result = None
+        result = False
 
     if isinstance(result, CannotAutomergeError):
         cannot_merge_pr(head_pr, result)
