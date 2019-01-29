@@ -17,13 +17,125 @@ import itertools
 
 from typing import Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING
 
+import abc
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, ops
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from cirq.sim import simulator
+
+
+class State:
+    """Represent a quantum state (wave function), and provide various
+    convenience methods.
+
+    Attributes:
+        qubit_map: A map from the Qubits in the Circuit to the the index
+            of this qubit for a canonical ordering. This canonical ordering is
+            used to define the state (see the state() method).
+    """
+
+    qubit_map: dict = {}
+
+    @abc.abstractmethod
+    def state(self) -> np.ndarray:
+        """Return the state (wave function).
+
+        The state is returned in the computational basis with these basis
+        states defined by the `qubit_map`. In particular the value in the
+        `qubit_map` is the index of the qubit, and these are translated into
+        binary vectors where the last qubit is the 1s bit of the index, the
+        second-to-last is the 2s bit of the index, and so forth (i.e. big
+        endian ordering).
+
+        Example:
+             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
+             Then the returned vector will have indices mapped to qubit basis
+             states like the following table
+
+                    | QubitA | QubitB | QubitC
+                :-: | :----: | :----: | :----:
+                 0  |   0    |   0    |   0
+                 1  |   0    |   0    |   1
+                 2  |   0    |   1    |   0
+                 3  |   0    |   1    |   1
+                 4  |   1    |   0    |   0
+                 5  |   1    |   0    |   1
+                 6  |   1    |   1    |   0
+                 7  |   1    |   1    |   1
+
+        """
+        raise NotImplementedError()
+
+    def dirac_notation(self, decimals: int = 2) -> str:
+        """Returns the state as a string in Dirac notation.
+
+        Args:
+            decimals: How many decimals to include in the pretty print.
+
+        Returns:
+            A pretty string consisting of a sum of computational basis kets
+            and non-zero floats of the specified accuracy."""
+        return dirac_notation(self.state(), decimals)
+
+    def density_matrix(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
+        """Returns the density matrix of the state.
+
+        Calculate the density matrix for the system on the list, qubits.
+        Any qubits not in the list that are present in self.state() will be
+        traced out. If qubits is None the full density matrix for self.state()
+        is returned, given self.state() follows standard Kronecker convention
+        of numpy.kron.
+
+        For example:
+            self.state() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                dtype=np.complex64)
+            qubits = None
+            gives us \rho = \begin{bmatrix}
+                                0.5 & 0.5
+                                0.5 & 0.5
+                            \end{bmatrix}
+
+        Args:
+            qubits: list containing qubit IDs that you would like
+                to include in the density matrix (i.e.) qubits that WON'T
+                be traced out.
+
+        Returns:
+            A numpy array representing the density matrix.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if the indices are out of range for the number of qubits
+                corresponding to the state.
+        """
+        return density_matrix_from_state_vector(
+            self.state(),
+            [self.qubit_map[q] for q in qubits] if qubits is not None else None
+        )
+
+    def bloch_vector(self, qubit: ops.QubitId) -> np.ndarray:
+        """Returns the bloch vector of a qubit in the state.
+
+        Calculates the bloch vector of the given qubit
+        in the state given by self.state(), given that self.state()
+        follows the standard Kronecker convention of numpy.kron.
+
+        Args:
+            qubit: qubit who's bloch vector we want to find.
+
+        Returns:
+            A length 3 numpy array representing the qubit's bloch vector.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if index is out of range for the number of qubits
+                corresponding to the state.
+        """
+        return bloch_vector_from_state_vector(self.state(),
+                                              self.qubit_map[qubit])
 
 
 def bloch_vector_from_state_vector(state: Sequence, index: int) -> np.ndarray:
