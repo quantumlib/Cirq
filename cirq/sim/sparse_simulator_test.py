@@ -435,25 +435,25 @@ def test_compute_displays(dtype):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_compute_samples_displays(dtype):
-    qubits = cirq.LineQubit.range(4)
+    a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(
-        cirq.X(qubits[1]),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
+        cirq.X(a),
+        cirq.H(b),
+        cirq.X(c),
+        cirq.H(c),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.X}),
+            cirq.PauliString({c: cirq.X}),
             key='x3'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[2]: cirq.X}),
+            cirq.PauliString({a: cirq.Z,
+                              b: cirq.X}),
             num_samples=10,
             key='approx_z1x2'
         ),
         cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[3]: cirq.X}),
+            cirq.PauliString({a: cirq.Z,
+                              c: cirq.X}),
             num_samples=10,
             key='approx_z1x3'
         ),
