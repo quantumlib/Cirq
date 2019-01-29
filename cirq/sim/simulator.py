@@ -652,7 +652,7 @@ class StepResult(wave_function.State):
     def __init__(self,
                  qubit_map: Optional[Dict[ops.QubitId, int]],
                  measurements: Optional[Dict[str, List[bool]]]) -> None:
-        self.qubit_map = qubit_map or {}
+        super().__init__(qubit_map)
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod

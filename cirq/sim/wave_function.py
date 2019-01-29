@@ -15,7 +15,8 @@
 
 import itertools
 
-from typing import Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING
+from typing import (Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING,
+                    Optional, Dict)
 
 import abc
 import numpy as np
@@ -37,7 +38,8 @@ class State:
             used to define the state (see the state() method).
     """
 
-    qubit_map: dict = {}
+    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]]):
+        self.qubit_map = qubit_map or {}
 
     @abc.abstractmethod
     def state(self) -> np.ndarray:
