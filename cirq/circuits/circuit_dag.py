@@ -187,7 +187,7 @@ class CircuitDag(networkx.DiGraph):
     def is_topologically_sorted(self, operations: ops.OP_TREE) -> bool:
         """Whether a given order of operations is consistent with the dag.
 
-        For example, suppose the (transitive reduction of the) circuit DAG is 
+        For example, suppose the (transitive reduction of the) circuit DAG is
 
              ╭─> Op2 ─╮
         Op1 ─┤        ├─> Op4
@@ -199,11 +199,11 @@ class CircuitDag(networkx.DiGraph):
 
         Evaluates to False when the set of operations is different from those
         in the nodes of the DAG, regardless of the ordering.
-    
+
         Args:
             operations: The ordered operations.
 
-        Returns: 
+        Returns:
             Whether or not the operations given are topologically sorted
             according to the DAG.
         """
