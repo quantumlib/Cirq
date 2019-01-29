@@ -212,7 +212,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
         raise ValueError(
             "Expected same reps for all keys: shapes={}".format(shapes))
 
-    bits = np.hstack(np.asarray(data, dtype=bool) for _, data in measurements)
+    bits = np.hstack([np.asarray(data, dtype=bool) for _, data in measurements])
     bits = bits.reshape(-1)
 
     # Pad length to multiple of 8 if needed.
