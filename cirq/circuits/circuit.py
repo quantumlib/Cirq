@@ -1538,12 +1538,12 @@ def _is_valid_identifier(text):
 def _encode(text):
     return json.JSONEncoder().encode(text)
 
-def _formatted_exponent(info: protocols.CircuitDiagramInfo,
+def _is_exposed_formula(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
 
     if isinstance(info.exponent, sympy.Basic):
-        name = str(info.exponent.free_symbols.pop())
+        name = str(info.exponent)
         return (name
                 if _is_valid_identifier(name)
                 else 'Symbol({})'.format(_encode(name)))
@@ -1629,7 +1629,7 @@ def _draw_moment_in_diagram(
             out_diagram.write(x, qubit_map[q], s)
 
         # Add an exponent to the last label.
-        exponent = _formatted_exponent(info, args)
+        exponent = _is_exposed_formula(info, args)
         if exponent is not None:
             out_diagram.write(x, y2, '^' + exponent)
 

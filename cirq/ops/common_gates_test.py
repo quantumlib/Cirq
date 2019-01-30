@@ -256,15 +256,17 @@ def test_text_diagrams():
         cirq.ISWAP(a, b)**-1)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
-      │                     │   │   │       │       │
-b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+a: ───×───X───Y───Z───Z^Symbol("1.0*x")───@───@───X───H───iSwap───iSwap──────
+      │                                   │   │   │       │       │
+b: ───×───────────────────────────────────@───X───@───────iSwap───iSwap^-1───
+
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
-      |                        |   |   |       |       |
-b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
+a: ---swap---X---Y---Z---Z^Symbol("1.0*x")---@---@---X---H---iSwap---iSwap------
+      |                                      |   |   |       |       |
+b: ---swap-----------------------------------@---X---@-------iSwap---iSwap^-1---
+
 """, use_unicode_characters=False)
 
 

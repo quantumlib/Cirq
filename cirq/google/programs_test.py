@@ -226,21 +226,21 @@ def test_multi_qubit_measurement_to_proto_dict():
 
 
 def test_z_proto_dict_convert():
-    gate = cirq.Z**sympy.Symbol('k')
-    proto_dict = {
-        'exp_z': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'half_turns': {
-                'parameter_key': 'k'
+    with pytest.raises(NotImplementedError):
+        gate = cirq.Z**sympy.Symbol('k')
+        proto_dict = {
+            'exp_z': {
+                'target': {
+                    'row': 2,
+                    'col': 3
+                },
+                'half_turns': {
+                    'parameter_key': 'k'
+                }
             }
         }
-    }
-    assert_proto_dict_convert(gate, proto_dict,
-                              cirq.GridQubit(2, 3))
-
+        assert_proto_dict_convert(gate, proto_dict,
+                                  cirq.GridQubit(2, 3))
     gate = cirq.Z**0.5
     proto_dict = {
         'exp_z': {
@@ -258,24 +258,25 @@ def test_z_proto_dict_convert():
 
 
 def test_cz_proto_dict_convert():
-    gate = cirq.CZ**sympy.Symbol('k')
-    proto_dict = {
-        'exp_11': {
-            'target1': {
-                'row': 2,
-                'col': 3
-            },
-            'target2': {
-                'row': 3,
-                'col': 4
-            },
-            'half_turns': {
-                'parameter_key': 'k'
+    with pytest.raises(NotImplementedError):
+        gate = cirq.CZ**sympy.Symbol('k')
+        proto_dict = {
+            'exp_11': {
+                'target1': {
+                    'row': 2,
+                    'col': 3
+                },
+                'target2': {
+                    'row': 3,
+                    'col': 4
+                },
+                'half_turns': {
+                    'parameter_key': 'k'
+                }
             }
         }
-    }
-    assert_proto_dict_convert(gate, proto_dict,
-                              cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
+        assert_proto_dict_convert(gate, proto_dict,
+                                  cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
     gate = cirq.CZ**0.5
     proto_dict = {
@@ -343,41 +344,43 @@ def test_cz_invalid_dict():
 
 
 def test_w_to_proto_dict():
-    gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('k'), phase_exponent=1)
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'raw': 1
-            },
-            'half_turns': {
-                'parameter_key': 'k'
+    with pytest.raises(NotImplementedError):
+        gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('k'), phase_exponent=1)
+        proto_dict = {
+            'exp_w': {
+                'target': {
+                    'row': 2,
+                    'col': 3
+                },
+                'axis_half_turns': {
+                    'raw': 1
+                },
+                'half_turns': {
+                    'parameter_key': 'k'
+                }
             }
         }
-    }
-    assert_proto_dict_convert(gate, proto_dict,
-                              cirq.GridQubit(2, 3))
+        assert_proto_dict_convert(gate, proto_dict,
+                                  cirq.GridQubit(2, 3))
 
-    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=sympy.Symbol('j'))
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'parameter_key': 'j'
-            },
-            'half_turns': {
-                'raw': 0.5
+        gate = cirq.PhasedXPowGate(exponent=0.5,
+                                   phase_exponent=sympy.Symbol('j'))
+        proto_dict = {
+            'exp_w': {
+                'target': {
+                    'row': 2,
+                    'col': 3
+                },
+                'axis_half_turns': {
+                    'parameter_key': 'j'
+                },
+                'half_turns': {
+                    'raw': 0.5
+                }
             }
         }
-    }
-    assert_proto_dict_convert(gate, proto_dict,
-                              cirq.GridQubit(2, 3))
+        assert_proto_dict_convert(gate, proto_dict,
+                                  cirq.GridQubit(2, 3))
 
     gate = cirq.X**0.25
     proto_dict = {
@@ -413,23 +416,25 @@ def test_w_to_proto_dict():
     }
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
-    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=sympy.Symbol('j'))
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'parameter_key': 'j'
-            },
-            'half_turns': {
-                'raw': 0.5
+    with pytest.raises(NotImplementedError):
+        gate = cirq.PhasedXPowGate(exponent=0.5,
+                                   phase_exponent=sympy.Symbol('j'))
+        proto_dict = {
+            'exp_w': {
+                'target': {
+                    'row': 2,
+                    'col': 3
+                },
+                'axis_half_turns': {
+                    'parameter_key': 'j'
+                },
+                'half_turns': {
+                    'raw': 0.5
+                }
             }
         }
-    }
-    assert_proto_dict_convert(gate, proto_dict,
-                              cirq.GridQubit(2, 3))
+        assert_proto_dict_convert(gate, proto_dict,
+                                  cirq.GridQubit(2, 3))
 
 
 def test_w_invalid_dict():

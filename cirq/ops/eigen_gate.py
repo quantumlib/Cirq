@@ -60,7 +60,7 @@ class EigenGate(raw_types.Gate):
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[sympy.Symbol, float] = 1.0,
+                 exponent: Union[sympy.Basic, float] = 1.0,
                  global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
@@ -99,20 +99,17 @@ class EigenGate(raw_types.Gate):
                 `cirq.Rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
         """
-        if isinstance(exponent, sympy.Basic):
-            self._exponent = exponent.free_symbols.pop()
-        else:
-            self._exponent = exponent
+        self._exponent = exponent
         self._global_shift = global_shift
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> Union[sympy.Symbol, float]:
+    def exponent(self) -> Union[sympy.Basic, float]:
         return self._exponent
 
     # virtual method
     def _with_exponent(self: TSelf,
-                       exponent: Union[sympy.Symbol, float]) -> TSelf:
+                       exponent: Union[sympy.Basic, float]) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__

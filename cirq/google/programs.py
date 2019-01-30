@@ -351,7 +351,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
 
 
 def _parameterized_value_from_proto_dict(message: Dict
-                                         ) -> Union[sympy.Symbol, float]:
+                                         ) -> Union[sympy.Basic, float]:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -362,11 +362,14 @@ def _parameterized_value_from_proto_dict(message: Dict
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: Union[sympy.Symbol, float]
+def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
                                        ) -> Dict:
     out = {}  # type: Dict
-    if isinstance(param, sympy.Basic):
+    if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())
+    if isinstance(param, sympy.Basic):
+        raise NotImplementedError(
+            'Cirq does not support serialization of {!r}.'.format(param))
     else:
         out['raw'] = float(param)
     return out

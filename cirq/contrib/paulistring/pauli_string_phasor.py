@@ -29,7 +29,7 @@ class PauliStringPhasor(PauliStringGateOperation):
     def __init__(self,
                  pauli_string: PauliString,
                  *,  # Forces keyword args.
-                 half_turns: Optional[Union[sympy.Symbol, float]] = None,
+                 half_turns: Optional[Union[sympy.Basic, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
         """Initializes the operation.

@@ -96,8 +96,8 @@ def canonicalize_half_turns(half_turns: symbol.Symbol) -> symbol.Symbol:
 
 
 def canonicalize_half_turns(
-        half_turns: Union[sympy.Symbol, float]
-) -> Union[sympy.Symbol, float]:
+        half_turns: Union[sympy.Basic, float]
+) -> Union[sympy.Basic, float]:
     """Wraps the input into the range (-1, +1]."""
     if isinstance(half_turns, sympy.Basic):
         return half_turns

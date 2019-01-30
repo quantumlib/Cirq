@@ -37,8 +37,8 @@ class ParamResolver(object):
 
     def value_of(
             self,
-            value: Union[sympy.Symbol, float, str]
-    ) -> Union[sympy.Symbol, float]:
+            value: Union[sympy.Basic, float, str]
+    ) -> Union[sympy.Basic, float]:
         """Attempt to resolve a Symbol or name or float to its assigned value.
 
         If unable to resolve a sympy.Symbol, returns it unchanged.
