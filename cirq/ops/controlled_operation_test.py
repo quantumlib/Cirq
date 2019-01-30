@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import cirq
+from cirq import protocols
 
 
 def test_controlled_gate_operation_init():
@@ -27,26 +28,70 @@ def test_controlled_gate_operation_init():
 
 
 def test_gate_operation_eq():
-    g1 = cirq.Gate()
-    g2 = cirq.Gate()
     c1 = cirq.NamedQubit('c1')
-    q1 = [cirq.NamedQubit('q1')]
+    q1 = cirq.NamedQubit('q1')
     c2 = cirq.NamedQubit('c2')
-    q2 = [cirq.NamedQubit('q2')]
 
     eq = cirq.testing.EqualsTester()
 
-    eq.make_equality_group(lambda:
-                           cirq.ControlledOperation(c1,
-                                                    cirq.GateOperation(g1, q1)))
-    eq.make_equality_group(lambda:
-                           cirq.ControlledOperation(c2,
-                                                    cirq.GateOperation(g1, q1)))
-    eq.make_equality_group(lambda:
-                           cirq.ControlledOperation(c2,
-                                                    cirq.GateOperation(g2, q1)))
-    eq.make_equality_group(lambda:
-                           cirq.ControlledOperation(c1,
-                                                    cirq.GateOperation(g1, q2)))
+    eq.make_equality_group(lambda: cirq.ControlledOperation(c1, cirq.X(q1)))
+    eq.make_equality_group(lambda: cirq.ControlledOperation(c2, cirq.X(q1)))
+    eq.make_equality_group(lambda: cirq.ControlledOperation(c1, cirq.Z(q1)))
+    eq.make_equality_group(lambda: cirq.ControlledOperation(c2, cirq.Z(q1)))
 
-## TODO(balintp): more tests to cover magic methods
+
+def test_str():
+    c1 = cirq.NamedQubit('c1')
+    c2 = cirq.NamedQubit('c2')
+    q2 = cirq.NamedQubit('q2')
+
+    assert (str(cirq.ControlledOperation(c1, cirq.CZ(c2, q2))) ==
+            "C(c1)CZ(c2, q2)")
+
+
+def test_repr():
+    c1 = cirq.NamedQubit('c1')
+    c2 = cirq.NamedQubit('c2')
+    q2 = cirq.NamedQubit('q2')
+
+    assert (repr(cirq.ControlledOperation(c1, cirq.CZ(c2, q2))) ==
+            "cirq.ControlledOperation(control=cirq.NamedQubit('c1')"
+            ", sub_operation=cirq.CZ.on(cirq.NamedQubit('c2')"
+            ", cirq.NamedQubit('q2')))")
+
+
+# A contrived multiqubit Hadamard gate that asserts the consistency of
+# the passed in Args and puts an H on all qubits
+# displays them as 'H(qubit)' on the wire
+class MultiH(cirq.Gate):
+
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        assert args.known_qubit_count is not None
+        assert args.known_qubits is not None
+
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits),
+            connected=True
+        )
+
+
+def test_circuit_diagram_info():
+    qbits = cirq.LineQubit.range(3)
+    c = cirq.Circuit()
+    c.append(cirq.ControlledOperation(qbits[0], MultiH()(*qbits[1:])))
+
+    cirq.testing.assert_has_diagram(c, """
+0: ───@──────
+      │
+1: ───H(1)───
+      │
+2: ───H(2)───
+""", use_unicode_characters=True)
+
+# TODO(balintp): more tests to cover
+#  - None case for known qubits in diagram info
+#  - parameters
+#  - trace_distance
+#  - __pow__

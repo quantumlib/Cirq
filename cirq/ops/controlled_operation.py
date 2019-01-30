@@ -28,7 +28,6 @@ class ControlledOperation(raw_types.Operation):
         self.control = control
         self.sub_operation = sub_operation
 
-
     @property
     def qubits(self):
         return (self.control,) + self.sub_operation.qubits
@@ -39,16 +38,14 @@ class ControlledOperation(raw_types.Operation):
             self.sub_operation.with_qubits(*new_qubits[1:]))
 
     def _decompose_(self):
-        result = protocols.decompose_once_with_qubits(self.sub_operation,
-                                                      self.qubits[1:],
-                                                      NotImplemented)
+        result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
         return [ControlledOperation(self.control, op) for op in result]
 
     def _value_equality_values_(self):
-        return self.control, self.sub_operation
+        return tuple([self.control, self.sub_operation])
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
@@ -60,7 +57,7 @@ class ControlledOperation(raw_types.Operation):
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
     def __str__(self):
-        return 'C{}'.format(self.control) + str(self.sub_operation)
+        return 'C({})'.format(self.control) + str(self.sub_operation)
 
     def __repr__(self):
         return 'cirq.ControlledOperation(control={!r},' \
@@ -87,8 +84,19 @@ class ControlledOperation(raw_types.Operation):
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
+
+        sub_args = protocols.CircuitDiagramInfoArgs(
+            known_qubit_count=(args.known_qubit_count - 1
+                               if args.known_qubit_count is not None else None),
+            known_qubits=(tuple(b for b in args.known_qubits
+                                if b != self.control)
+                          if args.known_qubits is not None else None),
+            use_unicode_characters=args.use_unicode_characters,
+            precision=args.precision,
+            qubit_map=args.qubit_map
+        )
         sub_info = protocols.circuit_diagram_info(self.sub_operation,
-                                                  args,
+                                                  sub_args,
                                                   None)
         if sub_info is None:
             return NotImplemented
