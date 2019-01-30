@@ -16,7 +16,7 @@ from typing import Dict, Sequence, Tuple, TypeVar, Union
 
 import abc
 
-from cirq import protocols, ops
+from cirq import protocols, ops, value
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.QubitId)
 LogicalIndexSequence = Union[Sequence[int], Sequence[ops.QubitId]]
@@ -94,6 +94,11 @@ class SwapPermutationGate(PermutationGate):
         yield self.swap_gate(*qubits)
 
 
+def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:
+    return {i: j for i, j in permutation.items() if i != j}
+
+
+@value.value_equality(unhashable=True)
 class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
         sorting network."""
@@ -124,6 +129,13 @@ class LinearPermutationGate(PermutationGate):
                 if mapping[i] > mapping[i + 1]:
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
+
+    def __repr__(self):
+        return ('cirq.contrib.acquaintance.LinearPermutationGate('
+                '{!r}, {!r})'.format(self._permutation, self.swap_gate))
+
+    def _value_equality_values_(self):
+        return (_canonicalize_permutation(self._permutation), self.swap_gate)
 
 
 def update_mapping(mapping: Dict[ops.QubitId, LogicalIndex],
