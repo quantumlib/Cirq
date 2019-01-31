@@ -32,6 +32,7 @@ CRestricted = cirq.ControlledGate(RestrictedGate())
 def test_init():
     gate = cirq.ControlledGate(cirq.Z)
     assert gate.sub_gate is cirq.Z
+    assert gate.num_qubits() == 2
 
 
 def test_validate_args():
