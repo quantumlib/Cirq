@@ -75,7 +75,7 @@ def prepare_temporary_test_environment(
         pull_request_number: Optional[int],
         verbose: bool,
         env_name: str = '.test_virtualenv',
-        python_path: str = '/usr/bin/python3.5',
+        python_path: str = sys.executable,
         commit_ids_known_callback: Callable[[PreparedEnv], None] = None
 ) -> PreparedEnv:
     """Prepares a temporary test environment at the (existing empty) directory.

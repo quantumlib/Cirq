@@ -33,8 +33,8 @@ def assert_optimizes(
         cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
-        post.optimize_circuit(before)
-        post.optimize_circuit(expected)
+        post(before)  # type: ignore #  error: "object" not callable
+        post(expected)  # type: ignore #  error: "object" not callable
 
     try:
         assert before == expected
