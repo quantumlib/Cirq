@@ -13,8 +13,8 @@
 # limitations under the License.
 import pytest
 
-import cirq
 import numpy as np
+import cirq
 from cirq import protocols
 
 
