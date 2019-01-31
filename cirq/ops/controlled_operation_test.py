@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 
 import cirq
+import numpy as np
 from cirq import protocols
 
 
@@ -25,6 +27,9 @@ def test_controlled_gate_operation_init():
     assert c.sub_operation == v
     assert c.control == cb
     assert c.qubits == (cb, q)
+
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(c, c.with_qubits(cb, q))
 
 
 def test_gate_operation_eq():
@@ -77,10 +82,10 @@ class MultiH(cirq.Gate):
         )
 
 
-def test_circuit_diagram_info():
-    qbits = cirq.LineQubit.range(3)
+def test_circuit_diagram():
+    qubits = cirq.LineQubit.range(3)
     c = cirq.Circuit()
-    c.append(cirq.ControlledOperation(qbits[0], MultiH()(*qbits[1:])))
+    c.append(cirq.ControlledOperation(qubits[0], MultiH()(*qubits[1:])))
 
     cirq.testing.assert_has_diagram(c, """
 0: ───@──────
@@ -90,8 +95,67 @@ def test_circuit_diagram_info():
 2: ───H(2)───
 """, use_unicode_characters=True)
 
-# TODO(balintp): more tests to cover
-#  - None case for known qubits in diagram info
-#  - parameters
-#  - trace_distance
-#  - __pow__
+
+class MockGate(cirq.Gate):
+    def __init__(self, diagram_info: protocols.CircuitDiagramInfo):
+        self.diagram_info = diagram_info
+
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        self.captured_diagram_args = args
+        return self.diagram_info
+
+
+def test_circuit_diagram_info():
+    qbits = cirq.LineQubit.range(3)
+    mock_gate = MockGate(None)
+    c_op = cirq.ControlledOperation(qbits[0],
+                                    mock_gate(*qbits[1:]))
+    args = protocols.CircuitDiagramInfoArgs(
+        known_qubits=None,
+        known_qubit_count=None,
+        use_unicode_characters=True,
+        precision=1,
+        qubit_map=None
+    )
+
+    assert cirq.circuit_diagram_info(c_op, args) is None
+    assert mock_gate.captured_diagram_args == args
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.X(cirq.NamedQubit('q1')),
+    cirq.X(cirq.NamedQubit('q1')) ** 0.5,
+    cirq.Rx(np.pi)(cirq.NamedQubit('q1')),
+    cirq.Rx(np.pi / 2)(cirq.NamedQubit('q1')),
+    cirq.Z(cirq.NamedQubit('q1')),
+    cirq.H(cirq.NamedQubit('q1')),
+    cirq.CNOT(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
+    cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
+    cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
+             cirq.NamedQubit('q3')),
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(*cirq.LineQubit.range(5))
+])
+def test_controlled_gate_is_consistent(gate: cirq.GateOperation):
+    cb = cirq.NamedQubit('ctr')
+    cgate = cirq.ControlledOperation(cb, gate)
+    cirq.testing.assert_implements_consistent_protocols(cgate)
+
+
+def test_parameterizable():
+    a = cirq.Symbol('a')
+    qubits = cirq.LineQubit.range(3)
+
+    cz = cirq.ControlledOperation(qubits[0], cirq.Z(qubits[1]))
+    cza = cirq.ControlledOperation(qubits[0],
+                                   cirq.ZPowGate(exponent=a)(qubits[1]))
+    assert cirq.is_parameterized(cza)
+    assert not cirq.is_parameterized(cz)
+    assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
+
+
+def test_bounded_effect():
+    qubits = cirq.LineQubit.range(2)
+    cy = cirq.ControlledOperation(qubits[0], cirq.Y(qubits[1]))
+    assert cirq.trace_distance_bound(cy ** 0.001) < 0.01

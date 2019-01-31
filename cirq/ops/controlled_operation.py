@@ -99,7 +99,7 @@ class ControlledOperation(raw_types.Operation):
                                                   sub_args,
                                                   None)
         if sub_info is None:
-            return NotImplemented
+            return None
         return protocols.CircuitDiagramInfo(
             wire_symbols=('@',) + sub_info.wire_symbols,
             exponent=sub_info.exponent)
