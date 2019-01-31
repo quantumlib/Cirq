@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Any
+from typing import Union, Any, Optional
 
 import numpy as np
 
@@ -83,7 +83,7 @@ class ControlledOperation(raw_types.Operation):
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               ) -> Optional[protocols.CircuitDiagramInfo]:
 
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(args.known_qubit_count - 1
@@ -99,7 +99,8 @@ class ControlledOperation(raw_types.Operation):
                                                   sub_args,
                                                   None)
         if sub_info is None:
-            return None
+            return NotImplemented
+
         return protocols.CircuitDiagramInfo(
             wire_symbols=('@',) + sub_info.wire_symbols,
             exponent=sub_info.exponent)

@@ -16,8 +16,8 @@ from typing import Any, Union
 
 import numpy as np
 
-from cirq import linalg, protocols, value, ops
-from cirq.ops import raw_types
+from cirq import linalg, protocols, value
+from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -40,7 +40,7 @@ class ControlledGate(raw_types.Gate):
         if result is NotImplemented:
             return NotImplemented
 
-        return [ops.ControlledOperation(qubits[0], op) for op in result]
+        return [cop.ControlledOperation(qubits[0], op) for op in result]
 
     def validate_args(self, qubits) -> None:
         if len(qubits) < 1:

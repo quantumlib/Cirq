@@ -97,31 +97,39 @@ def test_circuit_diagram():
 
 
 class MockGate(cirq.Gate):
-    def __init__(self, diagram_info: protocols.CircuitDiagramInfo):
-        self.diagram_info = diagram_info
-
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         self.captured_diagram_args = args
-        return self.diagram_info
+        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1,
+                                       connected=True)
 
 
-def test_circuit_diagram_info():
+def test_uninformed_circuit_diagram_info():
     qbits = cirq.LineQubit.range(3)
-    mock_gate = MockGate(None)
+    mock_gate = MockGate()
     c_op = cirq.ControlledOperation(qbits[0],
                                     mock_gate(*qbits[1:]))
-    args = protocols.CircuitDiagramInfoArgs(
-        known_qubits=None,
-        known_qubit_count=None,
-        use_unicode_characters=True,
-        precision=1,
-        qubit_map=None
-    )
 
-    assert cirq.circuit_diagram_info(c_op, args) is None
+    args = protocols.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+
+    assert (cirq.circuit_diagram_info(c_op, args) ==
+            cirq.CircuitDiagramInfo(wire_symbols=('@', 'MOCK'), exponent=1,
+                                    connected=True))
     assert mock_gate.captured_diagram_args == args
+
+
+def test_non_diagrammable_subop():
+    qbits = cirq.LineQubit.range(2)
+
+    class UndiagrammableGate(cirq.Gate):
+        pass
+
+    undiagrammable_op = UndiagrammableGate()(qbits[1])
+
+    c_op = cirq.ControlledOperation(qbits[0], undiagrammable_op)
+    assert cirq.circuit_diagram_info(c_op,
+                                     default=None) is None
 
 
 @pytest.mark.parametrize('gate', [
