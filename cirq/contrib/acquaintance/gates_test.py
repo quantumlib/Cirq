@@ -290,8 +290,9 @@ def test_get_acquaintance_size():
     op = gate(*qubits[:sum(part_lens)])
     assert cca.get_acquaintance_size(op) == 0
 
-@pytest.mark.parametrize('part_len_sets',
-    [[[randint(1, 5) for _ in range(randint(2, 7))] for _ in range(5)]])
+@pytest.mark.parametrize('part_len_sets', [
+    set(tuple(randint(1, 5) for _ in range(randint(2, 7))) for _ in range(5))
+    ])
 def test_swap_network_gate_equality(part_len_sets):
     acquaintance_sizes = [None, 0, 1, 2, 3]
     swap_gates = [cirq.SWAP, cirq.CNOT]
