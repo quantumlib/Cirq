@@ -44,18 +44,15 @@ def test_gate_operation_eq():
 
     # Interchangeable subsets.
     @cirq.value_equality
-    class PairGate(cirq.Gate, cirq.InterchangeableQubitsGate):
+    class PairGate(cirq.MultiQubitGate, cirq.InterchangeableQubitsGate):
         def __init__(self, num_qubits):
-            self.num_qubits = num_qubits
-
-        def num_qubits(self):
-            return self.num_qubits
+            super(PairGate, self).__init__(num_qubits)
 
         def qubit_index_to_equivalence_group_key(self, index: int):
             return index // 2
 
         def _value_equality_values_(self):
-            return self.num_qubits,
+            return self.num_qubits(),
 
     def p(*q):
         return PairGate(len(q)).on(*q)

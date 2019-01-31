@@ -1289,12 +1289,9 @@ def test_circuit_diagram_on_gate_without_info():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
 
-    class FGate(cirq.Gate):
+    class FGate(cirq.MultiQubitGate):
         def __init__(self, num_qubits=1):
-            self._num_qubits = num_qubits
-
-        def num_qubits(self) -> int:
-            return self._num_qubits
+            super(FGate, self).__init__(num_qubits)
 
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'

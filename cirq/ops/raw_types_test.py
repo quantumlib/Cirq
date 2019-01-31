@@ -27,6 +27,8 @@ def test_gate_calls_validate():
                 raise ValueError()
 
     g = ValiGate()
+    assert g.num_qubits() == 2
+
     q00 = cirq.NamedQubit('q00')
     q01 = cirq.NamedQubit('q01')
     q10 = cirq.NamedQubit('q10')

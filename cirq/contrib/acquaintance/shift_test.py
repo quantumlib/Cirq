@@ -57,7 +57,7 @@ def test_circular_shift_gate_decomposition():
     qubits = [cirq.NamedQubit(q) for q in 'abcdef']
 
     expander = cirq.ExpandComposite()
-    circular_shift = cca.CircularShiftGate(3, 1, cirq.CZ)(*qubits[:2])
+    circular_shift = cca.CircularShiftGate(2, 1, cirq.CZ)(*qubits[:2])
     circuit = cirq.Circuit.from_ops(circular_shift)
     expander.optimize_circuit(circuit)
     expected_circuit = cirq.Circuit(

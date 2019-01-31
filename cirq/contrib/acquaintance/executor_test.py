@@ -23,12 +23,10 @@ import cirq
 import cirq.contrib.acquaintance as cca
 
 
-class ExampleGate(cirq.Gate):
+class ExampleGate(cirq.MultiQubitGate):
     def __init__(self, wire_symbols: Sequence[str]) -> None:
+        super(ExampleGate, self).__init__(len(wire_symbols))
         self._wire_symbols = tuple(wire_symbols)
-
-    def num_qubits(self):
-        return len(self._wire_symbols)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         return self._wire_symbols
@@ -84,8 +82,9 @@ def test_executor_explicit():
     assert actual_text_diagram == expected_text_diagram
 
 
-class DiagonalGate(cirq.Gate):
+class DiagonalGate(cirq.MultiQubitGate):
     def __init__(self, num_qubits: int, diagonal: np.ndarray) -> None:
+        super(DiagonalGate, self).__init__(num_qubits)
 
         dimension = 2 ** num_qubits
         if (diagonal.shape != (dimension,) or not
@@ -95,9 +94,6 @@ class DiagonalGate(cirq.Gate):
                     'vector with unit-norm entries.')
         self._num_qubits = num_qubits
         self.diagonal = diagonal
-
-    def num_qubits(self) -> int:
-        return self._num_qubits
 
     def _unitary_(self) -> np.ndarray:
         return np.diag(self.diagonal)
