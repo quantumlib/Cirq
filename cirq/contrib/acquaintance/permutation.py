@@ -47,6 +47,13 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return self._num_qubits
 
+    def validate_args(self, qubits: Sequence[ops.raw_types.QubitId]):
+        if len(qubits) != self.num_qubits():
+            raise ValueError(
+                '{}-qubit gate applied to {} qubits'.format(self.num_qubits(),
+                                                            qubits))
+
+
     def update_mapping(self, mapping: Dict[ops.QubitId, LogicalIndex],
                        keys: Sequence[ops.QubitId]
                        ) -> None:

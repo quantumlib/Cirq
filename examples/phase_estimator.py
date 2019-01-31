@@ -53,6 +53,19 @@ class QftInverse(cirq.Gate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
 
+    def __init__(self, num_qubits):
+        self._num_qubits = num_qubits
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
+
+    def validate_args(self, qubits: Sequence[QubitId]):
+        if len(qubits) != self.num_qubits():
+            raise ValueError(
+                '{}-qubit gate applied to {} qubits'.format(self.num_qubits(),
+                                                            len(qubits)))
+
+
     def _decompose_(self, qubits):
         """A quantum circuit (QFT_inv) with the following structure.
 
@@ -103,7 +116,7 @@ def run_estimate(unknown_gate, qnum, repeats):
         cirq.H.on_each(qubits),
         [cirq.ControlledGate(unknown_gate**(2**i)).on(qubits[qnum-i-1], ancilla)
          for i in range(qnum)],
-        QftInverse()(*qubits),
+        QftInverse(qnum)(*qubits),
         cirq.measure(*qubits, key='phase'))
     simulator = cirq.google.XmonSimulator()
     result = simulator.run(circuit, repetitions=repeats)
