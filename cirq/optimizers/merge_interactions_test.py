@@ -193,7 +193,7 @@ def test_not_decompose_partial_czs():
 
 
 def test_post_clean_up():
-    class Marker(cirq.Gate):
+    class Marker(cirq.TwoQubitGate):
         pass
 
     a, b = cirq.LineQubit.range(2)

@@ -90,7 +90,7 @@ def test_linear_permutation_gate():
                        zip(elements_to_permute, permuted_elements)}
         cca.PermutationGate.validate_permutation(permutation, n_elements)
         gate = cca.LinearPermutationGate(permutation)
-        assert gate.permutation(n_elements) == permutation
+        assert gate.permutation() == permutation
         mapping = dict(zip(qubits, elements))
         for swap in cirq.flatten_op_tree(cirq.decompose_once_with_qubits(
                 gate, qubits)):

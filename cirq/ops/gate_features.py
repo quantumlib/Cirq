@@ -34,6 +34,8 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
+    def num_qubits(self) -> int:
+        return 1
 
     def validate_args(self, qubits):
         if len(qubits) != 1:
@@ -55,6 +57,8 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly two qubits."""
+    def num_qubits(self) -> int:
+        return 2
 
     def validate_args(self, qubits):
         if len(qubits) != 2:
@@ -65,6 +69,8 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
+    def num_qubits(self) -> int:
+        return 3
 
     def validate_args(self, qubits):
         if len(qubits) != 3:

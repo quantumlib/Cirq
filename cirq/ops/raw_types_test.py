@@ -19,6 +19,9 @@ import cirq
 
 def test_gate_calls_validate():
     class ValiGate(cirq.Gate):
+        def num_qubits(self):
+            return 2
+
         def validate_args(self, qubits):
             if len(qubits) == 3:
                 raise ValueError()
@@ -28,8 +31,6 @@ def test_gate_calls_validate():
     q01 = cirq.NamedQubit('q01')
     q10 = cirq.NamedQubit('q10')
 
-    _ = g.on(q00)
-    _ = g.on(q01)
     _ = g.on(q00, q10)
     with pytest.raises(ValueError):
         _ = g.on(q00, q10, q01)

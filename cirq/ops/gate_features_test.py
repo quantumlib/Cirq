@@ -119,8 +119,8 @@ def test_qasm_output_args_validate():
 def test_qasm_output_args_format():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    m_a = cirq.MeasurementGate('meas_a')(a)
-    m_b = cirq.MeasurementGate('meas_b')(b)
+    m_a = cirq.measure(a, key='meas_a')
+    m_b = cirq.measure(b, key='meas_b')
     args = cirq.QasmArgs(
                     precision=4,
                     version='2.0',

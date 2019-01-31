@@ -31,23 +31,23 @@ class CircularShiftGate(PermutationGate):
     """
 
     def __init__(self,
+                 num_qubits: int,
                  shift: int,
                  swap_gate: Gate=SWAP) -> None:
-        super().__init__(swap_gate)
+        super().__init__(num_qubits, swap_gate)
         self.shift = shift
 
+
     def __repr__(self):
-        return ('cirq.contrib.acquaintance.CircularShiftGate(' +
-                str(self.shift) +
-                ('' if self.swap_gate == SWAP else
-                    (', swap_gate=' + repr(self.swap_gate))) +
-                ')')
+        return ('cirq.contrib.acquaintance.CircularShiftGate({!r}, {!r}, {!r})'
+                .format(self.num_qubits, self.shift, self.swap_gate))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
         return ((self.shift == other.shift) and
-                (self.swap_gate == other.swap_gate))
+                (self.swap_gate == other.swap_gate) and
+                (self.num_qubits() == other.num_qubits()))
 
     def _decompose_(self, qubits: Sequence[QubitId]) -> OP_TREE:
         n = len(qubits)
@@ -73,11 +73,11 @@ class CircularShiftGate(PermutationGate):
                 direction_symbols[int(i >= self.shift)] +
                 str(i) +
                 direction_symbols[int(i < self.shift)]
-                for i in range(args.known_qubit_count))
+                for i in range(self.num_qubits()))
         return wire_symbols
 
-    def permutation(self, qubit_count: int) -> Dict[int, int]:
-        shift = self.shift % qubit_count
-        permuted_indices = chain(range(shift, qubit_count),
+    def permutation(self) -> Dict[int, int]:
+        shift = self.shift % self.num_qubits()
+        permuted_indices = chain(range(shift, self.num_qubits()),
                                  range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}

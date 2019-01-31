@@ -34,14 +34,18 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             qubits (e.g. SWAP or fermionic swap).
     """
 
-    def __init__(self, swap_gate: ops.Gate=ops.SWAP) -> None:
+    def __init__(self, num_qubits: int, swap_gate: ops.Gate=ops.SWAP) -> None:
+        self._num_qubits = num_qubits
         self.swap_gate = swap_gate
 
     @abc.abstractmethod
-    def permutation(self, qubit_count: int) -> Dict[int, int]:
+    def permutation(self) -> Dict[int, int]:
         """permutation = {i: s[i]} indicates that the i-th element is mapped to
         the s[i]-th element."""
         pass
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def update_mapping(self, mapping: Dict[ops.QubitId, LogicalIndex],
                        keys: Sequence[ops.QubitId]
@@ -52,8 +56,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             mapping: The mapping to update.
             keys: The qubits acted on by the gate.
         """
-        n_elements = len(keys)
-        permutation = self.permutation(n_elements)
+        permutation = self.permutation()
         indices = tuple(permutation.keys())
         new_keys = [keys[permutation[i]] for i in indices]
         old_elements = [mapping[keys[i]] for i in indices]
@@ -76,17 +79,20 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
                                ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
-        permutation = self.permutation(args.known_qubit_count)
+        permutation = self.permutation()
         arrow = '↦' if args.use_unicode_characters else '->'
         wire_symbols = tuple(str(i) + arrow + str(permutation.get(i, i))
-                        for i in range(args.known_qubit_count))
+                        for i in range(self.num_qubits()))
         return wire_symbols
 
 
 class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
-    def permutation(self, qubit_count: int) -> Dict[int, int]:
+    def __init__(self, swap_gate: ops.Gate=ops.SWAP):
+        super(SwapPermutationGate, self).__init__(2, swap_gate)
+
+    def permutation(self) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
     def _decompose_(
@@ -108,11 +114,11 @@ class LinearPermutationGate(PermutationGate):
             permutation: The permutation effected by the gate.
             swap_gate: The swap gate used in decompositions.
         """
-        super().__init__(swap_gate)
+        super().__init__(len(permutation), swap_gate)
         PermutationGate.validate_permutation(permutation)
         self._permutation = permutation
 
-    def permutation(self, qubit_count: int) -> Dict[int, int]:
+    def permutation(self) -> Dict[int, int]:
         return self._permutation
 
     def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
