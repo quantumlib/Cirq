@@ -200,7 +200,7 @@ from cirq.sim import (
     StepResult,
     SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
-    State,
+    StateVector,
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,

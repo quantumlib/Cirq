@@ -317,9 +317,11 @@ def test_simulate_moment_steps(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
-            np.testing.assert_almost_equal(step.state(), np.array([0.5] * 4))
+            np.testing.assert_almost_equal(step.state_vector(),
+                                           np.array([0.5] * 4))
         else:
-            np.testing.assert_almost_equal(step.state(), np.array([1, 0, 0, 0]))
+            np.testing.assert_almost_equal(step.state_vector(),
+                                           np.array([1, 0, 0, 0]))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -339,7 +341,7 @@ def test_simulate_moment_steps_set_state(dtype):
                                     cirq.H(q1))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
-        np.testing.assert_almost_equal(step.state(), np.array([0.5] * 4))
+        np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
         if i == 0:
             step.set_state(np.array([1, 0, 0, 0], dtype=dtype))
 
@@ -371,10 +373,10 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
             result = int(step.measurements['0'][0])
             expected = np.zeros(2)
             expected[result] = 1
-            np.testing.assert_almost_equal(step.state(), expected)
+            np.testing.assert_almost_equal(step.state_vector(), expected)
         if i == 2:
             expected = np.array([np.sqrt(0.5), np.sqrt(0.5) * (-1) ** result])
-            np.testing.assert_almost_equal(step.state(), expected)
+            np.testing.assert_almost_equal(step.state_vector(), expected)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

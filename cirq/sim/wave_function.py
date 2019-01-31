@@ -28,21 +28,21 @@ if TYPE_CHECKING:
     from cirq.sim import simulator
 
 
-class State:
+class StateVector:
     """Represent a quantum state (wave function), and provide various
     convenience methods.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
             of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state() method).
+            used to define the state (see the state_vector() method).
     """
 
-    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]]):
+    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None):
         self.qubit_map = qubit_map or {}
 
     @abc.abstractmethod
-    def state(self) -> np.ndarray:
+    def state_vector(self) -> np.ndarray:
         """Return the state (wave function).
 
         The state is returned in the computational basis with these basis
@@ -80,19 +80,19 @@ class State:
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return dirac_notation(self.state(), decimals)
+        return dirac_notation(self.state_vector(), decimals)
 
-    def density_matrix(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
         """Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
-        Any qubits not in the list that are present in self.state() will be
-        traced out. If qubits is None the full density matrix for self.state()
-        is returned, given self.state() follows standard Kronecker convention
-        of numpy.kron.
+        Any qubits not in the list that are present in self.state_vector() will
+        be traced out. If qubits is None the full density matrix for
+        self.state_vector() is returned, given self.state_vector() follows
+        standard Kronecker convention of numpy.kron.
 
         For example:
-            self.state() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+            self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
                 dtype=np.complex64)
             qubits = None
             gives us \rho = \begin{bmatrix}
@@ -114,16 +114,17 @@ class State:
                 corresponding to the state.
         """
         return density_matrix_from_state_vector(
-            self.state(),
+            self.state_vector(),
             [self.qubit_map[q] for q in qubits] if qubits is not None else None
         )
 
-    def bloch_vector(self, qubit: ops.QubitId) -> np.ndarray:
+    def bloch_vector_of(self, qubit: ops.QubitId) -> np.ndarray:
         """Returns the bloch vector of a qubit in the state.
 
         Calculates the bloch vector of the given qubit
-        in the state given by self.state(), given that self.state()
-        follows the standard Kronecker convention of numpy.kron.
+        in the state given by self.state_vector(), given that
+        self.state_vector() follows the standard Kronecker convention of
+        numpy.kron.
 
         Args:
             qubit: qubit who's bloch vector we want to find.
@@ -136,7 +137,7 @@ class State:
             IndexError: if index is out of range for the number of qubits
                 corresponding to the state.
         """
-        return bloch_vector_from_state_vector(self.state(),
+        return bloch_vector_from_state_vector(self.state_vector(),
                                               self.qubit_map[qubit])
 
 

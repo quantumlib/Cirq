@@ -450,7 +450,7 @@ def test_simulate_moment_steps_state():
     simulator = cg.XmonSimulator()
     results = []
     for step in simulator.simulate_moment_steps(circuit):
-        results.append(step.state())
+        results.append(step.state_vector())
     np.testing.assert_almost_equal(results,
                                    np.array([[0.5, 0.5j, 0.5j, -0.5],
                                              [0.5, 0.5j, 0.5j, 0.5],
@@ -467,7 +467,8 @@ def test_simulate_moment_steps_set_state():
 
     result = next(step)
     result.set_state(0)
-    np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
+    np.testing.assert_almost_equal(result.state_vector(),
+                                   np.array([1, 0, 0, 0]))
 
 
 def test_simulate_moment_steps_set_state_2():
@@ -479,7 +480,7 @@ def test_simulate_moment_steps_set_state_2():
 
     result = next(step)
     result.set_state(np.array([1j, 0, 0, 0], dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state(),
+    np.testing.assert_almost_equal(result.state_vector(),
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
 
 
@@ -744,7 +745,7 @@ def test_handedness_of_xmon_exp_x_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, -1j]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -754,7 +755,7 @@ def test_handedness_of_xmon_exp_y_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -765,7 +766,7 @@ def test_handedness_of_xmon_exp_z_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -777,7 +778,7 @@ def test_handedness_of_xmon_exp_11_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1, 1, 1j]) / 2,
         atol=1e-7)
 
@@ -787,7 +788,7 @@ def test_handedness_of_x_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, -1j]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -797,7 +798,7 @@ def test_handedness_of_y_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -807,7 +808,7 @@ def test_handedness_of_z_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -819,7 +820,7 @@ def test_handedness_of_cz_gate():
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1, 1, 1j]) / 2,
         atol=1e-7)
 
@@ -938,7 +939,7 @@ def assert_simulated_states_match_circuit_matrix_by_basis(circuit):
             qubit_order=basis))[-1]
         cirq.testing.assert_allclose_up_to_global_phase(
             col,
-            result.state(),
+            result.state_vector(),
             atol=1e-5)
 
 
@@ -1014,5 +1015,3 @@ def test_simulator_implied_measurement_key():
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == "(0, 0)=11111\nother=11111"
-
-

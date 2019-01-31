@@ -449,7 +449,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=bool)
             if step_result:
-                final_state = step_result.state()
+                final_state = step_result.state_vector()
             else:
                 # Empty circuit, so final state should be initial state.
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
@@ -596,7 +596,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 _enter_moment_display_values_into_dictionary(
                     display_values,
                     moment,
-                    step_result.state(),
+                    step_result.state_vector(),
                     qubit_order,
                     step_result.qubit_map)
 
@@ -638,20 +638,20 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     return display.value_derived_from_samples(samples)
 
 
-class StepResult(wave_function.State):
+class StepResult(wave_function.StateVector):
     """Results of a step of a SimulatesIntermediateWaveFunction.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
             of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state() method).
+            used to define the state (see the state_vector() method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
 
     def __init__(self,
-                 qubit_map: Optional[Dict[ops.QubitId, int]],
-                 measurements: Optional[Dict[str, List[bool]]]) -> None:
+                 qubit_map: Optional[Dict[ops.QubitId, int]] = None,
+                 measurements: Optional[Dict[str, List[bool]]] = None) -> None:
         super().__init__(qubit_map)
         self.measurements = measurements or collections.defaultdict(list)
 
