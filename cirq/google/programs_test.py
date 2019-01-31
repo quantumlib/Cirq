@@ -83,22 +83,22 @@ def test_pack_results():
     measurements = [
         ('a',
          np.array([
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 1, 0],])),
+             [0, 0, 0],
+             [0, 0, 1],
+             [0, 1, 0],
+             [0, 1, 1],
+             [1, 0, 0],
+             [1, 0, 1],
+             [1, 1, 0], ])),
         ('b',
          np.array([
-            [0, 0],
-            [0, 1],
-            [1, 0],
-            [1, 1],
-            [0, 0],
-            [0, 1],
-            [1, 0],])),
+             [0, 0],
+             [0, 1],
+             [1, 0],
+             [1, 1],
+             [0, 0],
+             [0, 1],
+             [1, 0], ])),
     ]
     data = cg.pack_results(measurements)
     expected = make_bytes("""
@@ -153,7 +153,7 @@ def test_unpack_results():
          [0, 1, 1],
          [1, 0, 0],
          [1, 0, 1],
-         [1, 1, 0],])
+         [1, 1, 0], ])
 
     assert 'b' in results
     assert results['b'].shape == (7, 2)
@@ -166,7 +166,7 @@ def test_unpack_results():
          [1, 1],
          [0, 0],
          [0, 1],
-         [1, 0],])
+         [1, 0], ])
 
 
 def test_single_qubit_measurement_proto_dict_convert():
@@ -225,7 +225,7 @@ def test_multi_qubit_measurement_to_proto_dict():
                               cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
 
-def test_z_proto_dict_convert():    
+def test_z_proto_dict_convert():
     gate = cirq.Z**sympy.Symbol('k')
     proto_dict = {
         'exp_z': {
@@ -257,7 +257,7 @@ def test_z_proto_dict_convert():
                               cirq.GridQubit(2, 3))
 
 
-def test_cz_proto_dict_convert():    
+def test_cz_proto_dict_convert():
     gate = cirq.CZ**sympy.Symbol('k')
     proto_dict = {
         'exp_11': {
@@ -343,7 +343,7 @@ def test_cz_invalid_dict():
         cg.xmon_op_from_proto_dict(proto_dict)
 
 
-def test_w_to_proto_dict():   
+def test_w_to_proto_dict():
     gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('k'), phase_exponent=1)
     proto_dict = {
         'exp_w': {
@@ -362,7 +362,7 @@ def test_w_to_proto_dict():
     with pytest.raises(NotImplementedError):
         assert_proto_dict_convert(gate, proto_dict,
                                   cirq.GridQubit(2, 3))
-    
+
     gate = cirq.PhasedXPowGate(exponent=0.5,
                                phase_exponent=sympy.Symbol('j'))
     proto_dict = {
@@ -417,7 +417,6 @@ def test_w_to_proto_dict():
     }
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
-    
     gate = cirq.PhasedXPowGate(exponent=0.5,
                                phase_exponent=sympy.Symbol('j'))
     proto_dict = {
