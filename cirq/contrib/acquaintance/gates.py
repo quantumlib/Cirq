@@ -24,16 +24,13 @@ from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
 
-class AcquaintanceOpportunityGate(ops.Gate):
+class AcquaintanceOpportunityGate(ops.MultiQubitGate):
     """Represents an acquaintance opportunity. An acquaintance opportunity is
     essentially a placeholder in a swap network that may later be replaced with
     a logical gate."""
 
     def __init__(self, num_qubits: int):
-        self._num_qubits = num_qubits
-
-    def num_qubits(self) -> int:
-        return self._num_qubits
+        super(AcquaintanceOpportunityGate, self).__init__(num_qubits)
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.AcquaintanceOpportunityGate('

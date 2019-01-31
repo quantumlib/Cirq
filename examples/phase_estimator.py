@@ -49,21 +49,12 @@ import numpy as np
 import cirq
 
 
-class QftInverse(cirq.Gate):
+class QftInverse(cirq.MultiQubitGate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
 
     def __init__(self, num_qubits):
-        self._num_qubits = num_qubits
-
-    def num_qubits(self) -> int:
-        return self._num_qubits
-
-    def validate_args(self, qubits: Sequence[QubitId]):
-        if len(qubits) != self.num_qubits():
-            raise ValueError(
-                '{}-qubit gate applied to {} qubits'.format(self.num_qubits(),
-                                                            len(qubits)))
+        super(QftInverse, self).__init__(num_qubits)
 
 
     def _decompose_(self, qubits):

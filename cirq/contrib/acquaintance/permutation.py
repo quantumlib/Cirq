@@ -25,7 +25,7 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.QubitId)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
-class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
+class PermutationGate(ops.MultiQubitGate, metaclass=abc.ABCMeta):
     """A permutation gate indicates a change in the mapping from qubits to
     logical indices.
 
@@ -35,7 +35,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, num_qubits: int, swap_gate: ops.Gate=ops.SWAP) -> None:
-        self._num_qubits = num_qubits
+        super(PermutationGate, self).__init__(num_qubits)
         self.swap_gate = swap_gate
 
     @abc.abstractmethod
@@ -43,16 +43,6 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         """permutation = {i: s[i]} indicates that the i-th element is mapped to
         the s[i]-th element."""
         pass
-
-    def num_qubits(self):
-        return self._num_qubits
-
-    def validate_args(self, qubits: Sequence[ops.raw_types.QubitId]):
-        if len(qubits) != self.num_qubits():
-            raise ValueError(
-                '{}-qubit gate applied to {} qubits'.format(self.num_qubits(),
-                                                            qubits))
-
 
     def update_mapping(self, mapping: Dict[ops.QubitId, LogicalIndex],
                        keys: Sequence[ops.QubitId]

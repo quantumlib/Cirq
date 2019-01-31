@@ -1681,14 +1681,10 @@ def test_composite_gate_to_unitary_matrix():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.Gate):
+    class MultiTargetCZ(cirq.MultiQubitGate):
 
         def __init__(self, num_qubits):
-            self._num_qubits = num_qubits
-
-
-        def num_qubits(self):
-            return self._num_qubits
+            super(MultiTargetCZ, self).__init__(num_qubits)
 
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs

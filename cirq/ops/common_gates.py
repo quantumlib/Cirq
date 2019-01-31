@@ -334,7 +334,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(raw_types.Gate):
+class MeasurementGate(gate_features.MultiQubitGate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
@@ -357,15 +357,12 @@ class MeasurementGate(raw_types.Gate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
-        self._num_qubits = num_qubits
+        super(MeasurementGate, self).__init__(num_qubits)
         self.key = key
         self.invert_mask = invert_mask or ()
         if (self.invert_mask is not None and
             len(self.invert_mask) > self.num_qubits()):
             raise ValueError('len(invert_mask) > num_qubits')
-
-    def num_qubits(self) -> int:
-        return self._num_qubits
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -385,12 +382,6 @@ class MeasurementGate(raw_types.Gate):
             new_mask[b] = not new_mask[b]
         return MeasurementGate(self.num_qubits(), key=self.key,
                                invert_mask=tuple(new_mask))
-
-    def validate_args(self, qubits):
-        if len(qubits) != self.num_qubits():
-            raise ValueError(
-                '{} qubit measurement gate cannot act on {} qubits'.format(
-                    self.num_qubits(), len(qubits)))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:

@@ -253,7 +253,7 @@ class OtherOperation(cirq.Operation):
 
 
 def test_get_acquaintance_size():
-    qubits = cirq.LineQubit.range(5)
+    qubits = cirq.LineQubit.range(8)
     op = OtherOperation(qubits)
     assert op.with_qubits(qubits) == op
     assert cca.get_acquaintance_size(op) == 0
