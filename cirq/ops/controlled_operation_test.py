@@ -18,7 +18,7 @@ import cirq
 from cirq import protocols
 
 
-def test_controlled_gate_operation_init():
+def test_controlled_operation_init():
     cb = cirq.NamedQubit('ctr')
     q = cirq.NamedQubit('q')
     g = cirq.Gate()
@@ -32,7 +32,7 @@ def test_controlled_gate_operation_init():
     eq.add_equality_group(c, c.with_qubits(cb, q))
 
 
-def test_gate_operation_eq():
+def test_controlled_operation_eq():
     c1 = cirq.NamedQubit('c1')
     q1 = cirq.NamedQubit('q1')
     c2 = cirq.NamedQubit('c2')
@@ -142,7 +142,7 @@ def test_non_diagrammable_subop():
              cirq.NamedQubit('q3')),
     cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(*cirq.LineQubit.range(5))
 ])
-def test_controlled_gate_is_consistent(gate: cirq.GateOperation):
+def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
     cb = cirq.NamedQubit('ctr')
     cgate = cirq.ControlledOperation(cb, gate)
     cirq.testing.assert_implements_consistent_protocols(cgate)
