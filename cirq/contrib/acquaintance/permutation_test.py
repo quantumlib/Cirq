@@ -27,7 +27,9 @@ def test_swap_permutation_gate():
                             op.gate == cirq.SWAP)
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate()(a, b))
+    gate = cca.SwapPermutationGate()
+    assert gate.num_qubits() == 2
+    circuit = cirq.Circuit.from_ops(gate(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 

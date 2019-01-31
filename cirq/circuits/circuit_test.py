@@ -1284,33 +1284,40 @@ def test_diagram_with_unknown_exponent():
     cirq.testing.assert_has_diagram(c, 'q: ───B^fancy───W^(fancy-that)───')
 
 
-# def test_circuit_diagram_on_gate_without_info():
-#     q = cirq.NamedQubit('(0, 0)')
-#     q2 = cirq.NamedQubit('(0, 1)')
-#     q3 = cirq.NamedQubit('(0, 2)')
-#
-#     class FGate(cirq.Gate):
-#         def __repr__(self):
-#             return 'python-object-FGate:arbitrary-digits'
-#
-#     # Fallback to repr.
-#     f = FGate()
-#     cirq.testing.assert_has_diagram(Circuit([
-#         Moment([f.on(q)]),
-#     ]), """
-# (0, 0): ---python-object-FGate:arbitrary-digits---
-# """, use_unicode_characters=False)
-#
-#     # When used on multiple qubits, show the qubit order as a digit suffix.
-#     cirq.testing.assert_has_diagram(Circuit([
-#         Moment([f.on(q, q3, q2)]),
-#     ]), """
-# (0, 0): ---python-object-FGate:arbitrary-digits---
-#            |
-# (0, 1): ---#3-------------------------------------
-#            |
-# (0, 2): ---#2-------------------------------------
-# """, use_unicode_characters=False)
+def test_circuit_diagram_on_gate_without_info():
+    q = cirq.NamedQubit('(0, 0)')
+    q2 = cirq.NamedQubit('(0, 1)')
+    q3 = cirq.NamedQubit('(0, 2)')
+
+    class FGate(cirq.Gate):
+        def __init__(self, num_qubits=1):
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
+
+        def __repr__(self):
+            return 'python-object-FGate:arbitrary-digits'
+
+    # Fallback to repr.
+    f = FGate()
+    cirq.testing.assert_has_diagram(Circuit([
+        Moment([f.on(q)]),
+    ]), """
+(0, 0): ---python-object-FGate:arbitrary-digits---
+""", use_unicode_characters=False)
+
+    f3 = FGate(3)
+    # When used on multiple qubits, show the qubit order as a digit suffix.
+    cirq.testing.assert_has_diagram(Circuit([
+        Moment([f3.on(q, q3, q2)]),
+    ]), """
+(0, 0): ---python-object-FGate:arbitrary-digits---
+           |
+(0, 1): ---#3-------------------------------------
+           |
+(0, 2): ---#2-------------------------------------
+""", use_unicode_characters=False)
 
 
 def test_to_text_diagram_multi_qubit_gate():
@@ -1677,11 +1684,11 @@ def test_expanding_gate_symbols():
     class MultiTargetCZ(cirq.Gate):
 
         def __init__(self, num_qubits):
-            self.num_qubits = num_qubits
+            self._num_qubits = num_qubits
 
 
         def num_qubits(self):
-            return self.num_qubits
+            return self._num_qubits
 
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs

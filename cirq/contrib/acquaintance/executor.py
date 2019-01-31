@@ -20,7 +20,7 @@ from collections import defaultdict
 from cirq import circuits, devices, ops
 
 from cirq.contrib.acquaintance.gates import (
-        AcquaintanceOpportunityGate, acquaint)
+        AcquaintanceOpportunityGate)
 from cirq.contrib.acquaintance.devices import (
         is_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (

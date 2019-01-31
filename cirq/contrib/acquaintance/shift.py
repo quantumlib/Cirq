@@ -39,7 +39,8 @@ class CircularShiftGate(PermutationGate):
 
 
     def __repr__(self):
-        return ('cirq.contrib.acquaintance.CircularShiftGate({!r}, {!r}, {!r})'
+        return ('cirq.contrib.acquaintance.CircularShiftGate('
+                'num_qubits={!r}, shift={!r}, swap_gate={!r})'
                 .format(self.num_qubits(), self.shift, self.swap_gate))
 
     def __eq__(self, other):

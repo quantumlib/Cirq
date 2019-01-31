@@ -21,11 +21,11 @@ def test_single_qubit_gate_validate_args():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
-
     g = Dummy()
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
 
+    assert g.num_qubits() == 1
     g.validate_args([q1])
     g.validate_args([q2])
     with pytest.raises(ValueError):
@@ -53,6 +53,7 @@ def test_two_qubit_gate_validate_pass():
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
 
+    assert g.num_qubits() == 2
     g.validate_args([q1, q2])
     g.validate_args([q2, q3])
     g.validate_args([q3, q2])
@@ -83,6 +84,8 @@ def test_three_qubit_gate_validate():
 
     g = Dummy()
     a, b, c, d = cirq.LineQubit.range(4)
+
+    assert g.num_qubits() == 3
 
     g.validate_args([a, b, c])
     with pytest.raises(ValueError):
