@@ -101,6 +101,8 @@ from cirq.ops import (
     GeneralizedAmplitudeDampingChannel,
     H,
     HPowGate,
+    I,
+    IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,

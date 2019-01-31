@@ -179,6 +179,23 @@ def test_x_unitary():
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
 
+@pytest.mark.parametrize('num_qubits', [1, 2, 4])
+def test_identity_init(num_qubits):
+    assert cirq.IdentityGate(num_qubits).num_qubits() == num_qubits
+
+
+@pytest.mark.parametrize('num_qubits', [1, 2, 4])
+def test_identity_unitary(num_qubits):
+    i = cirq.IdentityGate(num_qubits)
+    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
+
+
+@pytest.mark.parametrize('num_qubits', [1, 2])
+def test_identity_str(num_qubits):
+    assert str(cirq.IdentityGate(1)) == 'I(1)'
+    assert str(cirq.IdentityGate(2)) == 'I(2)'
+
+
 def test_h_unitary():
     sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
@@ -255,18 +272,20 @@ def test_text_diagrams():
         cirq.CNOT(b, a),
         cirq.H(a),
         cirq.ISWAP(a, b),
-        cirq.ISWAP(a, b)**-1)
+        cirq.ISWAP(a, b)**-1,
+        cirq.I(a),
+        cirq.IdentityGate(2)(a,b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
-      │                     │   │   │       │       │
-b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────I───I───
+      │                     │   │   │       │       │              │
+b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───────I───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
-      |                        |   |   |       |       |
-b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
+a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------I---I---
+      |                        |   |   |       |       |              |
+b: ---swap---------------------@---X---@-------iSwap---iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 

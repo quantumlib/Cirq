@@ -486,6 +486,34 @@ def measure_each(*qubits: raw_types.QubitId,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+@value.value_equality
+class IdentityGate(gate_features.MultiQubitGate):
+
+    def __init__(self, num_qubits):
+        super(IdentityGate, self).__init__(num_qubits)
+
+    def _unitary_(self):
+        return np.identity(2 ** self.num_qubits())
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[
+        np.ndarray]:
+        return args.target_tensor
+
+    def __repr__(self):
+        return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
+
+    def __str__(self):
+        return 'I({})'.format(self.num_qubits())
+
+    def _circuit_diagram_info_(self,
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('I',) * self.num_qubits(), connected=True)
+
+    def _value_equality_values_(self):
+        return self.num_qubits(),
+
+
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
@@ -956,6 +984,15 @@ def Rz(rads: float) -> ZPowGate:
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
+# The one qubit identity gate.
+#
+# Matrix:
+#
+#     [[1, 0],
+#      [0, 1]]
+I = IdentityGate(num_qubits=1)
+
+
 # The Hadamard gate.
 #
 # Matrix:
@@ -964,7 +1001,6 @@ def Rz(rads: float) -> ZPowGate:
 #      [s, -s]]
 #     where s = sqrt(0.5).
 H = HPowGate()
-
 
 # The Clifford S gate.
 #
