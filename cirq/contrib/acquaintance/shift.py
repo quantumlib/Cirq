@@ -34,13 +34,13 @@ class CircularShiftGate(PermutationGate):
                  num_qubits: int,
                  shift: int,
                  swap_gate: Gate=SWAP) -> None:
-        super().__init__(num_qubits, swap_gate)
+        super(CircularShiftGate, self).__init__(num_qubits, swap_gate)
         self.shift = shift
 
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.CircularShiftGate({!r}, {!r}, {!r})'
-                .format(self.num_qubits, self.shift, self.swap_gate))
+                .format(self.num_qubits(), self.shift, self.swap_gate))
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
