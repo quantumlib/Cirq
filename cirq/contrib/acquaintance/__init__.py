@@ -45,5 +45,5 @@ from cirq.contrib.acquaintance.shift import (
 
 from cirq.contrib.acquaintance.strategies import (
     complete_acquaintance_strategy,
+    cubic_acquaintance_strategy,
     quartic_paired_acquaintance_strategy)
-

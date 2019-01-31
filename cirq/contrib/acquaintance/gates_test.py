@@ -21,6 +21,7 @@ from numpy.random import poisson
 import pytest
 
 import cirq
+import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
 if TYPE_CHECKING:
@@ -211,10 +212,14 @@ def test_swap_network_init_error():
     with pytest.raises(ValueError):
         cca.SwapNetworkGate((3,))
 
-@pytest.mark.parametrize('part_lens, acquaintance_size', [
+
+part_lens_and_acquaintance_sizes = [
     [[l + 1 for l in poisson(size=n_parts, lam=lam)], poisson(4)]
     for n_parts, lam in product(range(2, 20, 3), range(1, 4))
-     ])
+]
+
+@pytest.mark.parametrize('part_lens, acquaintance_size',
+        part_lens_and_acquaintance_sizes)
 def test_swap_network_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
@@ -222,6 +227,14 @@ def test_swap_network_permutation(part_lens, acquaintance_size):
     expected_permutation = {i: j for i, j in
             zip(range(n_qubits), reversed(range(n_qubits)))}
     assert gate.permutation() == expected_permutation
+
+
+@pytest.mark.parametrize('part_lens, acquaintance_size',
+        part_lens_and_acquaintance_sizes)
+def test_swap_network_repr(part_lens, acquaintance_size):
+    gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
+    ct.assert_equivalent_repr(gate)
+
 
 class OtherOperation(cirq.Operation):
     def __init__(self, qubits: Sequence[cirq.QubitId]) -> None:
@@ -237,6 +250,7 @@ class OtherOperation(cirq.Operation):
     def __eq__(self, other):
         return (isinstance(other, type(self)) and
                 self.qubits == other.qubits)
+
 
 def test_get_acquaintance_size():
     qubits = cirq.LineQubit.range(5)
@@ -271,3 +285,14 @@ def test_get_acquaintance_size():
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
     op = gate(*qubits[:sum(part_lens)])
     assert cca.get_acquaintance_size(op) == 0
+
+@pytest.mark.parametrize('part_len_sets',
+    [[[randint(1, 5) for _ in range(randint(2, 7))] for _ in range(5)]])
+def test_swap_network_gate_equality(part_len_sets):
+    acquaintance_sizes = [None, 0, 1, 2, 3]
+    swap_gates = [cirq.SWAP, cirq.CNOT]
+    equals_tester = ct.EqualsTester()
+    for args in product(part_len_sets, acquaintance_sizes, swap_gates):
+        first_gate = cca.SwapNetworkGate(*args)
+        second_gate = cca.SwapNetworkGate(*args)
+        equals_tester.add_equality_group(first_gate, second_gate)
