@@ -11,7 +11,7 @@ def test_rabi_oscillations():
     # Check that the excited state population matches the ideal case within a
     # small statistical error.
     qubit = GridQubit(0, 0)
-    angles, actual_pops = rabi_oscillations(qubit, 1.0, 1000, 10, False)
+    angles, actual_pops = rabi_oscillations(qubit, 1.0, 1000, 10, plot=False)
     target_pops = 0.5 - 0.5 * numpy.cos(angles * numpy.pi)
     rms_err = numpy.sqrt(numpy.mean((target_pops - actual_pops) ** 2))
     assert rms_err < 0.1
@@ -23,7 +23,7 @@ def test_single_qubit_randomized_benchmarking():
     qubit = GridQubit(0, 0)
     num_cfds = range(5, 20, 5)
     g_pops = single_qubit_randomized_benchmarking(qubit, num_cfds, 10, 100,
-                                                  False)
+                                                  plot=False)
     assert numpy.mean(g_pops) == 1.0
 
 
@@ -34,7 +34,7 @@ def test_two_qubit_randomized_benchmarking():
     q_1 = GridQubit(0, 1)
     num_cfds = range(5, 20, 5)
     g_pops = two_qubit_randomized_benchmarking(q_0, q_1, num_cfds, 10, 1000,
-                                               False)
+                                               plot=False)
     assert numpy.mean(g_pops) == 1.0
 
 
