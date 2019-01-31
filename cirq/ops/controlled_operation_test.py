@@ -55,14 +55,11 @@ def test_str():
 
 
 def test_repr():
-    c1 = cirq.NamedQubit('c1')
-    c2 = cirq.NamedQubit('c2')
-    q2 = cirq.NamedQubit('q2')
+    qubits = cirq.LineQubit.range(3)
 
-    assert (repr(cirq.ControlledOperation(c1, cirq.CZ(c2, q2))) ==
-            "cirq.ControlledOperation(control=cirq.NamedQubit('c1')"
-            ", sub_operation=cirq.CZ.on(cirq.NamedQubit('c2')"
-            ", cirq.NamedQubit('q2')))")
+    assert (repr(cirq.ControlledOperation(qubits[0], cirq.CZ(*qubits[1:]))) ==
+            "cirq.ControlledOperation(control=cirq.LineQubit(0), "
+            "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
 
 
 # A contrived multiqubit Hadamard gate that asserts the consistency of
