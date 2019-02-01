@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 import numpy as np
 
@@ -25,18 +25,38 @@ from cirq.type_workarounds import NotImplementedType
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
-    def __init__(self, sub_gate: raw_types.Gate) -> None:
+    def __init__(self, sub_gate: raw_types.Gate,
+                 control_qubit: Optional[raw_types.QubitId] = None) -> None:
         """Initializes the controlled gate.
 
         Args:
             sub_gate: The gate to add a control qubit to.
         """
         self.sub_gate = sub_gate
+        self.control_qubit = control_qubit
 
     def validate_args(self, qubits) -> None:
+        if self.control_qubit is not None:
+            qubits = [self.control_qubit] + qubits
         if len(qubits) < 1:
             raise ValueError('No control qubit specified.')
         self.sub_gate.validate_args(qubits[1:])
+
+    def on(self, *qubits: raw_types.QubitId) -> 'gate_operation.GateOperation':
+        if self.control_qubit is not None:
+            qubits = (self.control_qubit,) + qubits
+        # Avoids circular import.
+        from cirq.ops import gate_operation
+
+        if len(qubits) == 0:
+            raise ValueError(
+                "Applied a gate to an empty set of qubits. Gate: {}".format(
+                    repr(self)))
+        if self.control_qubit is not None:
+            self.validate_args(list(qubits[1:]))
+        else:
+            self.validate_args(qubits)
+        return gate_operation.GateOperation(self, list(qubits))
 
     def _value_equality_values_(self):
         return self.sub_gate
@@ -87,7 +107,7 @@ class ControlledGate(raw_types.Gate):
                                      NotImplemented)
         if new_sub_gate is NotImplemented:
             return NotImplemented
-        return ControlledGate(new_sub_gate)
+        return ControlledGate(new_sub_gate, self.control_qubit)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)
@@ -95,7 +115,7 @@ class ControlledGate(raw_types.Gate):
     def _resolve_parameters_(self, param_resolver):
         new_sub_gate = protocols.resolve_parameters(self.sub_gate,
                                                     param_resolver)
-        return ControlledGate(new_sub_gate)
+        return ControlledGate(new_sub_gate, self.control_qubit)
 
     def _trace_distance_bound_(self):
         return protocols.trace_distance_bound(self.sub_gate)

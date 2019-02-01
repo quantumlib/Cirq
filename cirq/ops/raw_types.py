@@ -14,7 +14,9 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, Any
+from typing import (
+    Sequence, Tuple, Optional, TYPE_CHECKING, Callable, TypeVar, Any
+)
 
 import abc
 
@@ -122,7 +124,9 @@ class Gate:
 
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
-
+        
+    def __control__(self, control_qubit: Optional[QubitId] = None):
+        pass
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
@@ -156,3 +160,12 @@ class Operation(metaclass=abc.ABCMeta):
                 function.
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
+        
+    def __control__(self, control_qubit: QubitId):
+        pass
+
+    def __control__(self):
+        if control_qubit is None:
+            raise ValueError(
+                "Can't get controlled operation without control qubit. Op: {}"
+                .format(repr(self)))

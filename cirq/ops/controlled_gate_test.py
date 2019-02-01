@@ -23,15 +23,25 @@ from cirq.type_workarounds import NotImplementedType
 class RestrictedGate(cirq.Gate):
     pass
 
+q = cirq.NamedQubit('q')
 
 CY = cirq.ControlledGate(cirq.Y)
+SCY = cirq.ControlledGate(cirq.Y, q)
 CCH = cirq.ControlledGate(cirq.ControlledGate(cirq.H))
+SCCH = cirq.ControlledGate(cirq.ControlledGate(cirq.H, q))
 CRestricted = cirq.ControlledGate(RestrictedGate())
+SCRestricted = cirq.ControlledGate(RestrictedGate(), q)
 
 
 def test_init():
     gate = cirq.ControlledGate(cirq.Z)
     assert gate.sub_gate is cirq.Z
+
+
+def test_init2():
+    gate = cirq.ControlledGate(cirq.Z, q)
+    assert gate.sub_gate is cirq.Z
+    assert gate.control_qubit is q
 
 
 def test_validate_args():
@@ -44,12 +54,25 @@ def test_validate_args():
         CRestricted.validate_args([])
     CRestricted.validate_args([a])
 
+    # Does not need a control qubit. It's already specified.
+    SCRestricted.validate_args([])
+
     # CY is a two-qubit operation (control + single-qubit sub gate).
     with pytest.raises(ValueError):
         CY.validate_args([a])
     with pytest.raises(ValueError):
         CY.validate_args([a, b, c])
     CY.validate_args([a, b])
+
+    # SCY is a two-qubit operation (control + single-qubit sub gate).
+    # Control qubit is already specified.
+    with pytest.raises(ValueError):
+        SCY.validate_args([])
+    with pytest.raises(ValueError):
+        SCY.validate_args([a, b, c])
+    with pytest.raises(ValueError):
+        SCY.validate_args([a, b])
+    SCY.validate_args([a])
 
     # Applies when creating operations.
     with pytest.raises(ValueError):
@@ -58,11 +81,20 @@ def test_validate_args():
         _ = CY.on(a, b, c)
     _ = CY.on(a, b)
 
+    # Applies when creating operations. Control qubit is already specified.
+    with pytest.raises(ValueError):
+        _ = SCY.on()
+    with pytest.raises(ValueError):
+        _ = SCY.on(a, b, c)
+    with pytest.raises(ValueError):
+        _ = SCY.on(a, b)
+    _ = SCY.on(a)
+
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(CY, cirq.ControlledGate(cirq.Y))
-    eq.add_equality_group(CCH)
+    eq.add_equality_group(CY, SCY, cirq.ControlledGate(cirq.Y))
+    eq.add_equality_group(CCH, SCCH)
     eq.add_equality_group(cirq.ControlledGate(cirq.H))
     eq.add_equality_group(cirq.ControlledGate(cirq.X))
     eq.add_equality_group(cirq.X)
