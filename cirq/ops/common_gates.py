@@ -487,8 +487,7 @@ def measure_each(*qubits: raw_types.QubitId,
 
 
 @value.value_equality
-class IdentityGate(gate_features.MultiQubitGate,
-                   protocols.SupportsApplyUnitary):
+class IdentityGate(gate_features.MultiQubitGate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
