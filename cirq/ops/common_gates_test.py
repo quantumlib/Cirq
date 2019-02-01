@@ -190,9 +190,8 @@ def test_identity_unitary(num_qubits):
     assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
 
 
-@pytest.mark.parametrize('num_qubits', [1, 2])
-def test_identity_str(num_qubits):
-    assert str(cirq.IdentityGate(1)) == 'I(1)'
+def test_identity_str():
+    assert str(cirq.IdentityGate(1)) == 'I'
     assert str(cirq.IdentityGate(2)) == 'I(2)'
 
 

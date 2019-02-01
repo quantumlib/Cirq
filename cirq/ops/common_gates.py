@@ -503,7 +503,10 @@ class IdentityGate(gate_features.MultiQubitGate):
         return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
 
     def __str__(self):
-        return 'I({})'.format(self.num_qubits())
+        if (self.num_qubits() == 1):
+            return 'I'
+        else:
+            return 'I({})'.format(self.num_qubits())
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
@@ -1011,7 +1014,7 @@ H = HPowGate()
 S = ZPowGate(exponent=0.5)
 
 
-# The T gate.
+# The non-Clifford T gate.
 #
 # Matrix:
 #
