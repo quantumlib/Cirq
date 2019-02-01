@@ -120,8 +120,20 @@ def random_equal_permutations(n_perms, n_items, prob):
     return permutations
 
 
+def random_permutation_equality_groups(
+        n_groups, n_perms_per_group, n_items, prob):
+    fingerprints = set()
+    for _ in range(n_groups):
+        perms = random_equal_permutations(n_perms_per_group, n_items, prob)
+        perm = perms[0]
+        fingerprint = tuple(perm.get(i, i) for i in range(n_items))
+        if fingerprint not in fingerprints:
+            yield perms
+            fingerprints.add(fingerprint)
+
+
 @pytest.mark.parametrize('permutation_sets',
-    [[random_equal_permutations(3, 10, 0.5) for _ in range(5)]])
+    [random_permutation_equality_groups(5, 3, 10, 0.5)])
 def test_linear_permutation_gate_equality(permutation_sets):
     swap_gates = [cirq.SWAP, cirq.CNOT]
     equals_tester = ct.EqualsTester()
