@@ -15,7 +15,7 @@
 from itertools import chain
 from typing import Sequence, Dict, Tuple
 
-from cirq import protocols, valuse
+from cirq import protocols, value
 from cirq.ops import Gate, SWAP, OP_TREE, QubitId
 from cirq.contrib.acquaintance.permutation import (
         SwapPermutationGate, PermutationGate)
