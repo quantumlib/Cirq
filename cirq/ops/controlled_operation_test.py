@@ -93,9 +93,7 @@ def test_circuit_diagram():
 """)
 
 
-class MockGate(cirq.Gate):
-    def num_qubits(self) -> int:
-        return 1
+class MockGate(cirq.SingleQubitGate):
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
@@ -122,9 +120,8 @@ def test_uninformed_circuit_diagram_info():
 def test_non_diagrammable_subop():
     qbits = cirq.LineQubit.range(2)
 
-    class UndiagrammableGate(cirq.Gate):
-        def num_qubits(self) -> int:
-            return 1
+    class UndiagrammableGate(cirq.SingleQubitGate):
+        pass
 
     undiagrammable_op = UndiagrammableGate()(qbits[1])
 
