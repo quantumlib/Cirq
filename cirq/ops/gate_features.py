@@ -103,14 +103,14 @@ class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         class MyGate(MultiQubitGate):
 
             def __init__(self, num_qubits, **args):
-                super(MyGate, self).__init__(num_qubits)
+                super().__init__(num_qubits)
                 # other arg work
 
     Validation of number of qubits is handled in this class. If more validation
     is necessary, remember to call the super method:
 
             def validate_args(self, qubits):
-                super(MyGate, self).validate_args(qubits)
+                super().validate_args(qubits)
                 # your validation here
     """
 

@@ -25,7 +25,7 @@ import cirq.contrib.acquaintance as cca
 
 class ExampleGate(cirq.MultiQubitGate):
     def __init__(self, wire_symbols: Sequence[str]) -> None:
-        super(ExampleGate, self).__init__(len(wire_symbols))
+        super().__init__(len(wire_symbols))
         self._wire_symbols = tuple(wire_symbols)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
@@ -84,7 +84,7 @@ def test_executor_explicit():
 
 class DiagonalGate(cirq.MultiQubitGate):
     def __init__(self, num_qubits: int, diagonal: np.ndarray) -> None:
-        super(DiagonalGate, self).__init__(num_qubits)
+        super().__init__(num_qubits)
 
         dimension = 2 ** num_qubits
         if (diagonal.shape != (dimension,) or not
