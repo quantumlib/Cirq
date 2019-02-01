@@ -35,7 +35,7 @@ class PermutationGate(ops.MultiQubitGate, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, num_qubits: int, swap_gate: ops.Gate=ops.SWAP) -> None:
-        super(PermutationGate, self).__init__(num_qubits)
+        super().__init__(num_qubits)
         self.swap_gate = swap_gate
 
     @abc.abstractmethod
@@ -87,7 +87,7 @@ class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
     def __init__(self, swap_gate: ops.Gate=ops.SWAP):
-        super(SwapPermutationGate, self).__init__(2, swap_gate)
+        super().__init__(2, swap_gate)
 
     def permutation(self) -> Dict[int, int]:
         return {0: 1, 1: 0}

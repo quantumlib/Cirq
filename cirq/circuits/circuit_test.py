@@ -1291,7 +1291,7 @@ def test_circuit_diagram_on_gate_without_info():
 
     class FGate(cirq.MultiQubitGate):
         def __init__(self, num_qubits=1):
-            super(FGate, self).__init__(num_qubits)
+            super().__init__(num_qubits)
 
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'
@@ -1681,7 +1681,7 @@ def test_expanding_gate_symbols():
     class MultiTargetCZ(cirq.MultiQubitGate):
 
         def __init__(self, num_qubits):
-            super(MultiTargetCZ, self).__init__(num_qubits)
+            super().__init__(num_qubits)
 
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs

@@ -149,7 +149,7 @@ def test_multi_qubit_gate_validate():
     class Dummy(cirq.MultiQubitGate):
 
         def __init__(self, num_qubits):
-            super(Dummy, self).__init__(num_qubits)
+            super().__init__(num_qubits)
 
     a, b, c, d = cirq.LineQubit.range(4)
 

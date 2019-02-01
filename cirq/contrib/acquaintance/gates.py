@@ -30,7 +30,7 @@ class AcquaintanceOpportunityGate(ops.MultiQubitGate):
     a logical gate."""
 
     def __init__(self, num_qubits: int):
-        super(AcquaintanceOpportunityGate, self).__init__(num_qubits)
+        super().__init__(num_qubits)
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.AcquaintanceOpportunityGate('
@@ -229,7 +229,7 @@ class SwapNetworkGate(PermutationGate):
                  acquaintance_size: Optional[int]=0,
                  swap_gate: ops.Gate=ops.SWAP
                  ) -> None:
-        super(SwapNetworkGate, self).__init__(sum(part_lens), swap_gate)
+        super().__init__(sum(part_lens), swap_gate)
         if len(part_lens) < 2:
             raise ValueError('len(part_lens) < 2.')
         self.part_lens = tuple(part_lens)
