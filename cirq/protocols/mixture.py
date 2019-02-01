@@ -1,0 +1,84 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Protocol for objects that are mixtures (probabilistic combinations)."""
+
+from typing import Any, Iterable, Tuple, TypeVar, Union
+
+from typing_extensions import Protocol
+
+import numpy as np
+
+from cirq.type_workarounds import NotImplementedType
+
+# This is a special indicator value used by the inverse method to determine
+# whether or not the caller provided a 'default' argument.
+RaiseTypeErrorIfNotProvided = (None,)
+
+
+TDefault = TypeVar('TDefault')
+
+
+class SupportsMixture(Protocol):
+  """An object that may be describable as a probablisitic combination.
+
+  A mixture is described by an iterable of tuples of the form
+
+      (probability of object, object)
+
+  The probability components of the tuples must sum to 1.0 and be between
+  0 and 1 (inclusive).
+  """
+
+  def _mixture_(self) -> Union[Iterable[Tuple[float, Any]], NotImplementedType]:
+    pass
+
+
+def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Iterable[
+  Tuple[float, Any]]:
+  getter = getattr(val, '_mixture_', None)
+  result = NotImplemented if getter is None else getter()
+
+  if result is not NotImplemented:
+    return result
+  if default is not RaiseTypeErrorIfNotProvided:
+    return default
+
+  if getter is None:
+    raise TypeError(
+        "object of type '{}' has no _mixture_ method.".format(type(val)))
+
+  raise TypeError("object of type '{}' does have a _mixture_ method, "
+                  "but it returned NotImplemented.".format(type(val)))
+
+
+
+def validate_mixture(supports_mixture: SupportsMixture):
+  """Validates that the mixture's tuple are valid probabilities."""
+  mixture_tuple = mixture(supports_mixture, None)
+  if mixture_tuple is None:
+    raise TypeError('{}_mixture did not have a _mixture_ method'.format(
+        supports_mixture))
+
+  def validate_probability(p, p_str):
+    if p < 0:
+      raise ValueError('{} was less than 0.'.format(p_str))
+    elif p > 1:
+      raise ValueError('{} was greater than 1.'.format(p_str))
+  sum = 0
+  for p, val in mixture_tuple:
+    validate_probability(p, '{}\'s probability'.format(str(val)))
+    sum += p
+  if not np.isclose(sum, 1.0):
+    raise ValueError('Sum of probabilities of a mixture was not 1.0')
