@@ -169,7 +169,7 @@ def test_unpack_results():
 
 
 def test_single_qubit_measurement_proto_dict_convert():
-    gate = cirq.MeasurementGate('test')
+    gate = cirq.MeasurementGate(1, 'test')
     proto_dict = {
         'measurement': {
             'targets': [
@@ -187,7 +187,7 @@ def test_single_qubit_measurement_proto_dict_convert():
 
 
 def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
-    gate = cirq.MeasurementGate('test', invert_mask=(True,))
+    gate = cirq.MeasurementGate(1, 'test', invert_mask=(True,))
     proto_dict = {
         'measurement': {
             'targets': [
@@ -203,8 +203,30 @@ def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
 
+def test_single_qubit_measurement_to_proto_dict_pad_invert_mask():
+    gate = cirq.MeasurementGate(2, 'test', invert_mask=(True,))
+    proto_dict = {
+        'measurement': {
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                },
+                {
+                    'row': 2,
+                    'col': 4
+                }
+            ],
+            'key': 'test',
+            'invert_mask': ['true', 'false']
+        }
+    }
+    assert cg.gate_to_proto_dict(
+        gate, (cirq.GridQubit(2, 3), cirq.GridQubit(2, 4))) == proto_dict
+
+
 def test_multi_qubit_measurement_to_proto_dict():
-    gate = cirq.MeasurementGate('test')
+    gate = cirq.MeasurementGate(2, 'test')
     proto_dict = {
         'measurement': {
             'targets': [
@@ -547,11 +569,11 @@ def test_single_qubit_measurement_invalid_dict():
 def test_invalid_measurement_gate():
     with pytest.raises(ValueError, match='length'):
         _ = cg.gate_to_proto_dict(
-            cirq.MeasurementGate('test', invert_mask=(True,)),
+            cirq.MeasurementGate(3, 'test', invert_mask=(True,)),
             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='no qubits'):
         _ = cg.gate_to_proto_dict(
-            cirq.MeasurementGate('test'), ())
+            cirq.MeasurementGate(1, 'test'), ())
 
 
 def test_z_invalid_dict():

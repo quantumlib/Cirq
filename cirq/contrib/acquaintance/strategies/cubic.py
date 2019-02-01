@@ -18,8 +18,7 @@ from typing import Iterable, Sequence, Tuple, TypeVar
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import(
     UnconstrainedAcquaintanceDevice)
-from cirq.contrib.acquaintance.gates import (
-    ACQUAINT)
+from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
     LinearPermutationGate, SwapPermutationGate)
 
@@ -66,7 +65,7 @@ def cubic_acquaintance_strategy(
         moments.append(ops.Moment([permutation_gate(*qubits)]))
         for i in range(n_qubits + 1):
             for offset in range(3):
-                moment = ops.Moment(ACQUAINT(*qubits[j:j+3])
+                moment = ops.Moment(acquaint(*qubits[j:j+3])
                         for j in range(offset, n_qubits - 2, 3))
                 moments.append(moment)
             if i < n_qubits:

@@ -18,9 +18,8 @@ from cirq import circuits, ops
 
 from cirq.contrib.acquaintance.devices import (
     is_acquaintance_strategy)
-from cirq.contrib.acquaintance.gates import ACQUAINT
-from cirq.contrib.acquaintance.executor import (
-    AcquaintanceOperation)
+from cirq.contrib.acquaintance.gates import acquaint
+from cirq.contrib.acquaintance.executor import AcquaintanceOperation
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.inspection_utils import LogicalAnnotator
 
@@ -51,7 +50,7 @@ def remove_redundant_acquaintance_opportunities(
                 opp = frozenset(cast(Sequence[int], op.logical_indices))
                 if opp not in acquaintance_opps:
                     acquaintance_opps.add(opp)
-                    new_moment.append(ACQUAINT(*op.qubits))
+                    new_moment.append(acquaint(*op.qubits))
             else:
                 new_moment.append(op)
         new_moments.append(ops.Moment(new_moment))

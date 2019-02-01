@@ -24,7 +24,7 @@ from cirq.contrib.acquaintance.executor import (
         AcquaintanceOperation, GreedyExecutionStrategy, StrategyExecutor)
 
 from cirq.contrib.acquaintance.gates import (
-        ACQUAINT, AcquaintanceOpportunityGate, SwapNetworkGate)
+        acquaint, AcquaintanceOpportunityGate, SwapNetworkGate)
 
 from cirq.contrib.acquaintance.inspection_utils import (
         get_logical_acquaintance_opportunities)
