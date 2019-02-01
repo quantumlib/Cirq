@@ -74,7 +74,7 @@ def validate_mixture(supports_mixture: SupportsMixture):
         elif p > 1:
             raise ValueError('{} was greater than 1.'.format(p_str))
 
-    total = 0
+    total = 0.0
     for p, val in mixture_tuple:
         validate_probability(p, '{}\'s probability'.format(str(val)))
         total += p
