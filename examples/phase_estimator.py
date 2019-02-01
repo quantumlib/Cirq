@@ -54,7 +54,7 @@ class QftInverse(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super(Quantum, self).__init__(num_qubits)
+        super(QftInverse, self).__init__(num_qubits)
 
 
     def _decompose_(self, qubits):
