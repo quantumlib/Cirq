@@ -156,13 +156,42 @@ def h_to_known(gate: ops.HPowGate) -> Optional[QuirkOp]:
 
 def swap_to_known(gate: ops.SwapPowGate) -> Optional[QuirkOp]:
     if gate.exponent == 1:
-        return QuirkOp('Swap', 'Swap')
+        return QuirkOp('Swap', 'Swap', can_merge=False)
     return None
+
+
+def cswap_to_known(gate: ops.CSwapGate) -> Optional[QuirkOp]:
+    return QuirkOp('•', 'Swap', 'Swap', can_merge=False)
+
+
+def ccx_to_known(gate: ops.CCXPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('•', '•', 'X' + e, can_merge=False)
+
+
+def ccz_to_known(gate: ops.CCZPowGate) -> Optional[QuirkOp]:
+    e = angle_to_exponent_key(gate.exponent)
+    if e is None:
+        return None
+    return QuirkOp('•', '•', 'Z' + e, can_merge=False)
+
+
+def controlled_unwrap(gate: ops.ControlledGate) -> Optional[QuirkOp]:
+    sub = _gate_to_quirk_op(gate.sub_gate)
+    if sub is None:
+        return None
+    return QuirkOp('•', *sub.keys, can_merge=False)
 
 
 _known_gate_conversions = cast(
     Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
     {
+        ops.CCXPowGate: ccx_to_known,
+        ops.CCZPowGate: ccz_to_known,
+        ops.ControlledGate: controlled_unwrap,
+        ops.CSwapGate: cswap_to_known,
         ops.XPowGate: x_to_known,
         ops.YPowGate: y_to_known,
         ops.ZPowGate: z_to_known,
