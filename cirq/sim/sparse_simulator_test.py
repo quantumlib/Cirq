@@ -469,7 +469,7 @@ def test_compute_samples_displays(dtype):
 
 
 def test_invalid_run_no_unitary():
-    class NoUnitary(cirq.Gate):
+    class NoUnitary(cirq.SingleQubitGate):
         pass
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
@@ -479,7 +479,7 @@ def test_invalid_run_no_unitary():
 
 
 def test_allocates_new_state():
-    class NoUnitary(cirq.Gate):
+    class NoUnitary(cirq.SingleQubitGate):
 
         def _has_unitary_(self):
             return True

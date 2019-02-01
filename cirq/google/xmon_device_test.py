@@ -52,7 +52,7 @@ def test_init():
     assert d.duration_of(cirq.X(q00)) == 2 * ns
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * ns
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.Gate().on(q00))
+        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
 
 
 @cirq.testing.only_test_in_python3
@@ -108,8 +108,7 @@ def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
     d.validate_operation(cirq.GateOperation(
-        cirq.MeasurementGate(key=''),
-        (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
+        cirq.MeasurementGate(2), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
 
 
 def test_validate_operation_existing_qubits():
@@ -179,7 +178,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_measure():
     q2 = cirq.GridQubit(2, 0)
     s = cirq.Schedule(d, [
         cirq.ScheduledOperation.op_at_on(
-            cirq.MeasurementGate().on(q0), cirq.Timestamp(), d),
+            cirq.measure(q0), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
             cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
@@ -204,8 +203,8 @@ def test_validate_circuit_repeat_measurement_keys():
     d = square_device(3, 3)
 
     circuit = cirq.Circuit()
-    circuit.append([cirq.MeasurementGate('a').on(cirq.GridQubit(0, 0)),
-                    cirq.MeasurementGate('a').on(cirq.GridQubit(0, 1))])
+    circuit.append([cirq.measure(cirq.GridQubit(0, 0), key='a'),
+                    cirq.measure(cirq.GridQubit(0, 1), key='a')])
 
     with pytest.raises(ValueError, message='Measurement key a repeated'):
         d.validate_circuit(circuit)
@@ -216,11 +215,9 @@ def test_validate_schedule_repeat_measurement_keys():
 
     s = cirq.Schedule(d, [
         cirq.ScheduledOperation.op_at_on(
-            cirq.MeasurementGate('a').on(
-                cirq.GridQubit(0, 0)), cirq.Timestamp(), d),
+            cirq.measure(cirq.GridQubit(0, 0), key='a'), cirq.Timestamp(), d),
         cirq.ScheduledOperation.op_at_on(
-            cirq.MeasurementGate('a').on(
-                cirq.GridQubit(0, 1)), cirq.Timestamp(), d),
+            cirq.measure(cirq.GridQubit(0, 1), key='a'), cirq.Timestamp(), d),
     ])
 
     with pytest.raises(ValueError, message='Measurement key a repeated'):
