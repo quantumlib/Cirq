@@ -377,6 +377,8 @@ def test_repr():
     assert repr(cirq.Y) == 'cirq.Y'
     assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
 
+    assert repr(cirq.I) == 'cirq.I'
+
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
@@ -385,6 +387,7 @@ def test_repr():
 
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
     assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
+
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other

@@ -488,18 +488,27 @@ def measure_each(*qubits: raw_types.QubitId,
 
 @value.value_equality
 class IdentityGate(gate_features.MultiQubitGate):
+    """A Gate that perform no operation on qubits.
+
+    The unitary matrix of this gate is a diagonal matrix with all 1s on the
+    diagonal and all 0s off the diagonal in any basis.
+
+    `cirq.I` is the single qubit identity gate.
+    """
 
     def __init__(self, num_qubits):
-        super(IdentityGate, self).__init__(num_qubits)
+        super().__init__(num_qubits)
 
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[
-        np.ndarray]:
+    def _apply_unitary_(
+        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         return args.target_tensor
 
     def __repr__(self):
+        if self.num_qubits() == 1:
+            return 'cirq.I'
         return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
 
     def __str__(self):
@@ -519,7 +528,6 @@ class IdentityGate(gate_features.MultiQubitGate):
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
-
 
     The unitary matrix of ``HPowGate(exponent=t)`` is:
 
