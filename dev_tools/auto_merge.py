@@ -1,4 +1,5 @@
-from typing import Optional, List, Any, Dict, Set
+import datetime
+from typing import Optional, List, Any, Dict, Set, Union
 
 import json
 import os
@@ -10,10 +11,12 @@ import requests
 from dev_tools.github_repository import GithubRepository
 
 
-cla_access_token = None
+HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
+AUTO_MERGE_LABELS = ['automerge', HEAD_AUTO_MERGE_LABEL]
+RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
 
-class CurrentStuckGoToNextError(RuntimeError):
+class CannotAutomergeError(RuntimeError):
     pass
 
 
@@ -46,21 +49,41 @@ class PullRequestDetails:
         return PullRequestDetails(payload, repo)
 
     @property
-    def remote_repo(self):
+    def remote_repo(self) -> GithubRepository:
         return GithubRepository(
             organization=self.payload['head']['repo']['owner']['login'],
             name=self.payload['head']['repo']['name'],
             access_token=self.repo.access_token)
 
-    @property
-    def marked_automergeable(self) -> bool:
-        return any(label['name'] == 'automerge'
+    def is_on_fork(self) -> bool:
+        local = (
+            self.repo.organization.lower(),
+            self.repo.name.lower()
+        )
+        remote = (
+            self.remote_repo.organization.lower(),
+            self.remote_repo.name.lower()
+        )
+        return local != remote
+
+    def has_label(self, desired_label: str) -> bool:
+        return any(label['name'] == desired_label
                    for label in self.payload['labels'])
 
     @property
-    def marked_cla_no(self) -> bool:
-        return any(label['name'] == 'cla: no'
-                   for label in self.payload['labels'])
+    def last_updated(self) -> datetime.datetime:
+        return datetime.datetime.strptime(
+            self.payload['updated_at'],
+            '%Y-%m-%dT%H:%M:%SZ')
+
+    @property
+    def modified_recently(self) -> bool:
+        d = datetime.datetime.utcnow() - self.last_updated
+        return d < RECENTLY_MODIFIED_THRESHOLD
+
+    @property
+    def marked_automergeable(self) -> bool:
+        return any(self.has_label(label) for label in AUTO_MERGE_LABELS)
 
     @property
     def pull_id(self) -> int:
@@ -87,7 +110,8 @@ class PullRequestDetails:
         return self.payload['body']
 
 
-def check_collaborator_has_write(repo: GithubRepository, username: str):
+def check_collaborator_has_write(repo: GithubRepository, username: str
+                                 ) -> Optional[CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
@@ -107,11 +131,14 @@ def check_collaborator_has_write(repo: GithubRepository, username: str):
 
     payload = json.JSONDecoder().decode(response.content.decode())
     if payload['permission'] not in ['admin', 'write']:
-        raise CurrentStuckGoToNextError(
+        return CannotAutomergeError(
             'Only collaborators with write permission can use automerge.')
 
+    return None
 
-def check_auto_merge_labeler(repo: GithubRepository, pull_id: int):
+
+def check_auto_merge_labeler(repo: GithubRepository, pull_id: int
+                             ) -> Optional[CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
@@ -133,11 +160,11 @@ def check_auto_merge_labeler(repo: GithubRepository, pull_id: int):
     relevant = [event
                 for event in payload
                 if event['event'] == 'labeled' and
-                event['label']['name'] == 'automerge']
+                event['label']['name'] in AUTO_MERGE_LABELS]
     if not relevant:
-        raise CurrentStuckGoToNextError('"automerge" label was never added.')
+        return CannotAutomergeError('"automerge" label was never added.')
 
-    check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
+    return check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
 
 
 def find_existing_status_comment(repo: GithubRepository, pull_id: int
@@ -300,6 +327,20 @@ def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
     return True
 
 
+def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
+    """
+    References:
+        https://developer.github.com/v3/pulls/#get-a-single-pull-request
+        https://developer.github.com/v4/enum/mergestatestatus/
+    """
+    state = pr.payload['mergeable_state'].lower()
+    classification = {
+        'behind': False,
+        'clean': True,
+    }
+    return classification.get(state, None)
+
+
 def get_pr_review_status(pr: PullRequestDetails) -> Any:
     """
     References:
@@ -342,7 +383,20 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     return json.JSONDecoder().decode(response.content.decode())
 
 
+_last_print_was_tick = False
+
+
+def log(*args):
+    global _last_print_was_tick
+    if _last_print_was_tick:
+        print()
+    _last_print_was_tick = False
+    print(*args)
+
+
 def wait_a_tick():
+    global _last_print_was_tick
+    _last_print_was_tick = True
     print('.', end='', flush=True)
     time.sleep(5)
 
@@ -356,61 +410,6 @@ def absent_status_checks(pr: PullRequestDetails) -> Set[str]:
     checks_present = {check['name'] for check in check_data['check_runs']}
     reqs = branch_data['protection']['required_status_checks']['contexts']
     return set(reqs) - statuses_present - checks_present
-
-
-def wait_for_status(repo: GithubRepository,
-                    pull_id: int,
-                    prev_pr: Optional[PullRequestDetails],
-                    fail_if_same: bool,
-                    ) -> PullRequestDetails:
-    while True:
-        pr = PullRequestDetails.from_github(repo, pull_id)
-        if pr.payload['state'] != 'open':
-            raise CurrentStuckGoToNextError('Not an open pull request.')
-
-        if prev_pr and pr.branch_sha == prev_pr.branch_sha:
-            if fail_if_same:
-                raise CurrentStuckGoToNextError("I think I'm stuck in a loop.")
-            wait_a_tick()
-            continue
-
-        if not pr.marked_automergeable:
-            raise CurrentStuckGoToNextError('"automerge" label was removed.')
-        if pr.base_branch_name != 'master':
-            raise CurrentStuckGoToNextError('Can only automerge into master.')
-
-        review_status = get_pr_review_status(pr)
-        if not any(review['state'] == 'APPROVED' for review in review_status):
-            raise CurrentStuckGoToNextError('No approved review.')
-        if any(review['state'] == 'REQUEST_CHANGES'
-               for review in review_status):
-            raise CurrentStuckGoToNextError('A review is requesting changes.')
-
-        check_status = classify_pr_status_check_state(pr)
-        if check_status is None:
-            wait_a_tick()
-            continue
-        if not check_status:
-            raise CurrentStuckGoToNextError('A status check is failing.')
-
-        if pr.payload['mergeable'] is None:
-            # Github still computing mergeable flag.
-            wait_a_tick()
-            continue
-
-        if pr.payload['mergeable_state'] == 'blocked':
-            # Note: not sure if moving this into the main loop would create a
-            # race between status checks starting and auto merge moving on.
-            missing_statuses = absent_status_checks(pr)
-            if missing_statuses:
-                raise CurrentStuckGoToNextError(
-                    'A required status check is not present.\n\n'
-                    'Missing statuses: {!r}'.format(sorted(missing_statuses)))
-
-            raise CurrentStuckGoToNextError(
-                "Merging is blocked but I don't understand why.")
-
-        return pr
 
 
 def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
@@ -436,35 +435,6 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
 def get_master_sha(repo: GithubRepository) -> str:
     ref = get_repo_ref(repo, 'heads/master')
     return ref['object']['sha']
-
-
-def watch_for_spurious_cla_failure(pr: PullRequestDetails) -> bool:
-    # It's not spurious if it was already there!
-    if pr.marked_cla_no:
-        return False
-
-    print('Waiting for spurious CLA failure..', flush=True, end='')
-    for _ in range(6):
-        wait_a_tick()
-        new_pr = PullRequestDetails.from_github(pr.repo, pr.pull_id)
-        if new_pr.marked_cla_no:
-            print('\nCaught spurious failure occurring.')
-            return True
-
-    print('\nGooglebot appears to be sleeping peacefully.')
-    return False
-
-
-def watch_for_cla_restore(pr: PullRequestDetails):
-    print('Waiting for CLA restore..', flush=True, end='')
-    for _ in range(6):
-        wait_a_tick()
-        new_pr = PullRequestDetails.from_github(pr.repo, pr.pull_id)
-        if not new_pr.marked_cla_no:
-            print('\nCLA restored.')
-            return
-
-    raise CurrentStuckGoToNextError('CLA stuck on no.')
 
 
 def list_pr_comments(repo: GithubRepository, pull_id: int
@@ -504,63 +474,8 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
                 response.status_code, response.content))
 
 
-def find_spurious_coauthor_comment_id(pr: PullRequestDetails) -> Optional[int]:
-    expected_user = 'googlebot'
-    expected_text = ('one or more commits were authored or co-authored '
-                     'by someone other than the pull request submitter')
-
-    comments = list_pr_comments(pr.repo, pr.pull_id)
-    for comment in comments:
-        if comment['user']['login'] == expected_user:
-            if expected_text in comment['body']:
-                return comment['id']
-
-    return None
-
-
-def find_spurious_fixed_comment_id(pr: PullRequestDetails) -> Optional[int]:
-    expected_user = 'googlebot'
-    expected_text = 'A Googler has manually verified that the CLAs look good.'
-
-    comments = list_pr_comments(pr.repo, pr.pull_id)
-    for comment in comments:
-        if comment['user']['login'] == expected_user:
-            if expected_text in comment['body']:
-                return comment['id']
-
-    return None
-
-
-def fight_cla_bot(pr: PullRequestDetails) -> None:
-    """The cla bot is *not* happy when someone updates others' PRs.
-
-    This bounces the 'cla: no' label back to 'cla: yes'. Only works if the
-    access token being used corresponds to a registered Google employee account.
-    Otherwise cla bot will just restore the label and message.
-    """
-    if not watch_for_spurious_cla_failure(pr):
-        return
-
-    # Manually indicate that this is fine.
-    add_labels_to_pr(pr.repo,
-                     pr.pull_id,
-                     'cla: yes',
-                     override_token=cla_access_token)
-
-    spurious_comment_id = find_spurious_coauthor_comment_id(pr)
-    if spurious_comment_id is not None:
-        print("Deleting spurious co-author comment from googlebot.")
-        delete_comment(pr.repo, spurious_comment_id)
-
-    watch_for_cla_restore(pr)
-
-    spurious_comment_id_2 = find_spurious_fixed_comment_id(pr)
-    if spurious_comment_id_2 is not None:
-        print("Deleting spurious repair comment from googlebot.")
-        delete_comment(pr.repo, spurious_comment_id_2)
-
-
-def sync_with_master(pr: PullRequestDetails) -> bool:
+def attempt_sync_with_master(pr: PullRequestDetails
+                             ) -> Union[bool, CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/repos/merging/#perform-a-merge
@@ -580,7 +495,7 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
 
     if response.status_code == 201:
         # Merge succeeded.
-        fight_cla_bot(pr)
+        log('Synced #{} ({!r}) with master.'.format(pr.pull_id, pr.title))
         return True
 
     if response.status_code == 204:
@@ -589,20 +504,22 @@ def sync_with_master(pr: PullRequestDetails) -> bool:
 
     if response.status_code == 409:
         # Merge conflict.
-        raise CurrentStuckGoToNextError("There's a merge conflict.")
+        return CannotAutomergeError("There's a merge conflict.")
 
     if response.status_code == 403:
         # Permission denied.
-        raise CurrentStuckGoToNextError(
+        return CannotAutomergeError(
             "Spurious failure. Github API requires me to be an admin on the "
             "fork repository to merge master into the PR branch. Hit "
             "'Update Branch' for me before trying again.")
 
-    raise RuntimeError('Sync with master failed. Code: {}. Content: {}.'.format(
-        response.status_code, response.content))
+    raise RuntimeError('Sync with master failed for unknown reason. '
+                       'Code: {}. Content: {}.'.format(response.status_code,
+                                                       response.content))
 
 
-def squash_merge(pr: PullRequestDetails) -> bool:
+def attempt_squash_merge(pr: PullRequestDetails
+                         ) -> Union[bool, CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
@@ -622,14 +539,17 @@ def squash_merge(pr: PullRequestDetails) -> bool:
 
     if response.status_code == 200:
         # Merge succeeded.
+        log('Merged PR#{} ({!r}):\n{}\n'.format(
+            pr.pull_id,
+            pr.title,
+            indent(pr.body)))
         return True
 
     if response.status_code == 405:
-        # Not allowed. Maybe checks need to be run again?
-        return False
+        return CannotAutomergeError("Pull Request is not mergeable.")
 
     if response.status_code == 409:
-        # Head was modified. We should try again.
+        # Need to sync.
         return False
 
     raise RuntimeError('Merge failed. Code: {}. Content: {}.'.format(
@@ -644,14 +564,13 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
 
     open_pulls = list_open_pull_requests(pr.repo, base_branch=pr.branch_name)
     if any(open_pulls):
-        print('Not deleting branch {!r}. It is used elsewhere.'.format(
+        log('Not deleting branch {!r}. It is used elsewhere.'.format(
             pr.branch_name))
         return False
 
     remote = pr.remote_repo
-    if (pr.repo.organization.lower() != remote.organization.lower() or
-            pr.repo.name.lower() != remote.name.lower()):
-        print('Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
+    if pr.is_on_fork():
+        log('Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
             pr.branch_name,
             pr.remote_repo.organization,
             pr.remote_repo.name))
@@ -666,10 +585,10 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
 
     if response.status_code == 204:
         # Delete succeeded.
-        print('Deleted branch {!r}.'.format(pr.branch_name))
+        log('Deleted branch {!r}.'.format(pr.branch_name))
         return True
 
-    print('Delete failed. Code: {}. Content: {}.'.format(
+    log('Delete failed. Code: {}. Content: {}.'.format(
         response.status_code, response.content))
     return False
 
@@ -759,108 +678,177 @@ def find_auto_mergeable_prs(repo: GithubRepository) -> List[int]:
     return [pr.payload['number'] for pr in auto_mergeable_prs]
 
 
-def auto_merge_pull_request(repo: GithubRepository, pull_id: int) -> None:
-    r"""
-    START                out of date
-    |         .---------------------------------.
-    |         |                                 |
-    \         V          yes           yes      |     yes               any
-    `-> WAIT_FOR_CHECKS -----> SYNC ---------> MERGE ------> TRY_DELETE --> DONE
-              |                 |
-              | checks fail     | merge conflict
-              \                 \
-              `-----------------`------------> TERMINAL_FAILURE
-    """
+def find_problem_with_automergeability_of_pr(
+        pr: PullRequestDetails) -> Optional[CannotAutomergeError]:
+    # Sanity.
+    if pr.payload['state'] != 'open':
+        return CannotAutomergeError('Not an open pull request.')
+    if pr.base_branch_name != 'master':
+        return CannotAutomergeError('Can only automerge into master.')
 
-    pr = PullRequestDetails.from_github(repo, pull_id)
-    print('Auto-merging PR#{} ({})'.format(pull_id, repr(pr.title)))
-    prev_pr = None
-    fail_if_same = False
-    while True:
-        check_auto_merge_labeler(repo, pull_id)
+    # Only collaborators with write access can use the automerge labels.
+    label_problem = check_auto_merge_labeler(pr.repo, pr.pull_id)
+    if label_problem is not None:
+        return label_problem
 
-        print('Waiting for checks to succeed..', end='', flush=True)
-        pr = wait_for_status(repo, pull_id, prev_pr, fail_if_same)
+    # Check review status.
+    review_status = get_pr_review_status(pr)
+    if not any(review['state'] == 'APPROVED' for review in review_status):
+        return CannotAutomergeError('No approved review.')
+    if any(review['state'] == 'REQUEST_CHANGES'
+           for review in review_status):
+        return CannotAutomergeError('A review is requesting changes.')
 
-        check_auto_merge_labeler(repo, pull_id)
+    # Any failing status checks?
+    status_check_state = classify_pr_status_check_state(pr)
+    if status_check_state is False:
+        return CannotAutomergeError('A status check is failing.')
 
-        print('\nChecks succeeded. Checking if synced...')
-        if pr.payload['mergeable_state'] != 'clean':
-            if sync_with_master(pr):
-                print('Had to resync with master.')
-                prev_pr = pr
-                fail_if_same = False
-                continue
+    # Some issues can only be detected after waiting a bit.
+    if not pr.modified_recently:
+        # Nothing is setting a required status check.
+        missing_statuses = absent_status_checks(pr)
+        if missing_statuses:
+            return CannotAutomergeError(
+                'A required status check is not present.\n\n'
+                'Missing statuses: {!r}'.format(sorted(missing_statuses)))
 
-        print('Still synced. Attempting merge...')
-        if not squash_merge(pr):
-            print('Merge not allowed. Starting over again...')
-            prev_pr = pr
-            fail_if_same = True
+        # Can't figure out how to make it merge.
+        if pr.payload['mergeable'] is None:
+            return CannotAutomergeError(
+                "PR isn't classified as mergeable (I don't understand why).")
+        if pr.payload['mergeable_state'] == 'blocked':
+            if status_check_state is True:
+                return CannotAutomergeError(
+                    "Merging is blocked (I don't understand why).")
+
+    return None
+
+
+def cannot_merge_pr(pr: PullRequestDetails, reason: CannotAutomergeError):
+    log('Cancelled automerge of PR#{} ({!r}): {}'.format(
+        pr.pull_id,
+        pr.title,
+        reason.args[0]))
+
+    add_comment(pr.repo,
+                pr.pull_id,
+                'Automerge cancelled: {}'.format(reason))
+
+    for label in AUTO_MERGE_LABELS:
+        if pr.has_label(label):
+            remove_label_from_pr(pr.repo, pr.pull_id, label)
+
+
+def gather_auto_mergeable_prs(repo: GithubRepository
+                              ) -> List[PullRequestDetails]:
+    result = []
+    raw_prs = list_open_pull_requests(repo)
+    for raw_pr in raw_prs:
+        if not raw_pr.marked_automergeable:
             continue
 
-        print('Merged successfully!')
-        break
+        # Looking up a single PR gives more data, e.g. the 'mergeable' entry.
+        pr = PullRequestDetails.from_github(repo, raw_pr.pull_id)
+        problem = find_problem_with_automergeability_of_pr(pr)
+        if problem is not None:
+            cannot_merge_pr(pr, problem)
+            continue
 
-    auto_delete_pr_branch(pr)
-    print('Done merging "{} (#{})".'.format(pr.title, pull_id))
-    print()
-
-
-def auto_merge_multiple_pull_requests(repo: GithubRepository,
-                                      pull_ids: List[int]) -> None:
-    print('Automerging multiple PRs: {}'.format(pull_ids))
-    for pull_id in pull_ids:
-        try:
-            leave_status_comment(repo,
-                                 pull_id,
-                                 None,
-                                 'started')
-            auto_merge_pull_request(repo, pull_id)
-            leave_status_comment(repo,
-                                 pull_id,
-                                 True,
-                                 'merged successfully')
-        except CurrentStuckGoToNextError as ex:
-            print('#!\nPR#{} is stuck: {}'.format(pull_id, ex.args))
-            print('Continuing to next.')
-            leave_status_comment(repo,
-                                 pull_id,
-                                 False,
-                                 ex.args[0])
-        except Exception:
-            leave_status_comment(repo, pull_id, False, 'Unexpected error.')
-            raise
-        finally:
-            remove_label_from_pr(repo, pull_id, 'automerge')
-    print('Finished attempting to automerge {}.'.format(pull_ids))
-
-    # Give some leeway for updates to propagate on github's side.
-    time.sleep(5)
+        result.append(pr)
+    return result
 
 
-def watch_for_auto_mergeable_pull_requests(repo: GithubRepository):
-    while True:
-        print('Watching for automergeable PRs..', end='', flush=True)
-        while True:
-            auto_ids = find_auto_mergeable_prs(repo)
-            if auto_ids:
-                print('\nFound automergeable PRs: {}'.format(auto_ids))
-                break
-            wait_a_tick()
-        auto_merge_multiple_pull_requests(repo, auto_ids)
+def merge_desirability(pr: PullRequestDetails) -> Any:
+    synced = classify_pr_synced_state(pr) is True
+    tested = synced and (classify_pr_status_check_state(pr) is True)
+    forked = pr.is_on_fork()
+
+    # 1. Prefer to merge already-synced PRs. This minimizes the number of builds
+    #    performed by travis.
+    # 2. Prefer to merge synced PRs from forks. This minimizes manual labor;
+    #    currently the bot can't resync these PRs. Secondarily, avoid unsynced
+    #    PRs from forks until necessary because they will fail when hit.
+    # 3. Prefer to merge PRs where the status checks have already completed.
+    #    This is just faster, because the next build can be started sooner.
+    # 4. Use seniority as a tie breaker.
+
+    # Desired order is:
+    #   TF
+    #   SF
+    #   T_
+    #   S_
+    #   __
+    #   _F
+    # (S = synced, T = tested, F = forked.)
+
+    if forked:
+        if tested:
+            rank = 5
+        elif synced:
+            rank = 4
+        else:
+            rank = 0
+    else:
+        if tested:
+            rank = 3
+        elif synced:
+            rank = 2
+        else:
+            rank = 1
+
+    return rank, -pr.pull_id
+
+
+def pick_head_pr(active_prs: List[PullRequestDetails]
+                 ) -> Optional[PullRequestDetails]:
+    if not active_prs:
+        return None
+
+    for pr in sorted(active_prs, key=merge_desirability, reverse=True):
+        if pr.has_label(HEAD_AUTO_MERGE_LABEL):
+            return pr
+
+    promoted = max(active_prs, key=merge_desirability)
+    log('Automerging PR#{} ({!r}).'.format(
+        promoted.pull_id,
+        promoted.title))
+    add_labels_to_pr(promoted.repo, promoted.pull_id, HEAD_AUTO_MERGE_LABEL)
+    return promoted
+
+
+def duty_cycle(repo: GithubRepository):
+    active_prs = gather_auto_mergeable_prs(repo)
+    head_pr = pick_head_pr(active_prs)
+    if head_pr is None:
+        return
+
+    state = classify_pr_synced_state(head_pr)
+    if state is False:
+        result = attempt_sync_with_master(head_pr)
+    elif state is True:
+        result = attempt_squash_merge(head_pr)
+        if result is True:
+            auto_delete_pr_branch(head_pr)
+            for label in AUTO_MERGE_LABELS:
+                remove_label_from_pr(repo, head_pr.pull_id, label)
+    else:
+        # `gather_auto_mergeable_prs` is responsible for this case.
+        result = False
+
+    if isinstance(result, CannotAutomergeError):
+        cannot_merge_pr(head_pr, result)
+        return
+
+
+def indent(text: str) -> str:
+    return '    ' + text.replace('\n', '\n    ')
 
 
 def main():
-    global cla_access_token
-    pull_ids = [int(e) for e in sys.argv[1:]]
     access_token = os.getenv('CIRQ_BOT_GITHUB_ACCESS_TOKEN')
-    cla_access_token = os.getenv('CIRQ_BOT_ALT_CLA_GITHUB_ACCESS_TOKEN')
     if not access_token:
         print('CIRQ_BOT_GITHUB_ACCESS_TOKEN not set.', file=sys.stderr)
-        sys.exit(1)
-    if not cla_access_token:
-        print('CIRQ_BOT_ALT_CLA_GITHUB_ACCESS_TOKEN not set.', file=sys.stderr)
         sys.exit(1)
 
     repo = GithubRepository(
@@ -868,10 +856,10 @@ def main():
         name='cirq',
         access_token=access_token)
 
-    if pull_ids:
-        auto_merge_multiple_pull_requests(repo, pull_ids)
-    else:
-        watch_for_auto_mergeable_pull_requests(repo)
+    log('Watching for automergeable PRs.')
+    while True:
+        duty_cycle(repo)
+        wait_a_tick()
 
 
 if __name__ == '__main__':

@@ -33,6 +33,9 @@ class ControlledGate(raw_types.Gate):
         """
         self.sub_gate = sub_gate
 
+    def num_qubits(self) -> int:
+        return self.sub_gate.num_qubits() + 1
+
     def _decompose_(self, qubits):
         result = protocols.decompose_once_with_qubits(self.sub_gate,
                                                       qubits[1:],

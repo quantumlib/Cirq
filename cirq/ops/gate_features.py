@@ -34,6 +34,8 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
+    def num_qubits(self) -> int:
+        return 1
 
     def validate_args(self, qubits):
         if len(qubits) != 1:
@@ -55,6 +57,8 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly two qubits."""
+    def num_qubits(self) -> int:
+        return 2
 
     def validate_args(self, qubits):
         if len(qubits) != 2:
@@ -65,9 +69,59 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
+    def num_qubits(self) -> int:
+        return 3
 
     def validate_args(self, qubits):
         if len(qubits) != 3:
             raise ValueError(
                 'Three-qubit gate not applied to three qubits: {}({})'.
                 format(self, qubits))
+
+
+class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to multiple qubits.
+
+    This class can be used to get rid of a bit of boiler plate. Typically one
+    would implement a multiqubit gate like
+
+        class MyGate:
+
+            def __init__(self, num_qubits, **args):
+                self._num_qubits
+                # other arg work
+
+            def num_qubits(self):
+                return self._num_qubits
+
+            def validate_args(self, qubits):
+                if self.num_qubits != len(qubits):
+                    raise ValueError('Acting on wrong number of qubits')
+
+    This class allows you to instead use
+
+        class MyGate(MultiQubitGate):
+
+            def __init__(self, num_qubits, **args):
+                super().__init__(num_qubits)
+                # other arg work
+
+    Validation of number of qubits is handled in this class. If more validation
+    is necessary, remember to call the super method:
+
+            def validate_args(self, qubits):
+                super().validate_args(qubits)
+                # your validation here
+    """
+
+    def __init__(self, num_qubits: int):
+        self._num_qubits = num_qubits
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
+
+    def validate_args(self, qubits):
+        if len(qubits) != self.num_qubits():
+            raise ValueError(
+                '{}-qubit gate was applied to {} qubits'.
+                    format(self.num_qubits(), len(qubits)))
