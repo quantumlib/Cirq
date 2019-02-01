@@ -57,7 +57,7 @@ class ControlledOperation(raw_types.Operation):
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
     def __str__(self):
-        return 'C({})'.format(self.control) + str(self.sub_operation)
+        return 'C({}){}'.format(self.control, str(self.sub_operation))
 
     def __repr__(self):
         return 'cirq.ControlledOperation(control={!r},' \
@@ -88,8 +88,7 @@ class ControlledOperation(raw_types.Operation):
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(args.known_qubit_count - 1
                                if args.known_qubit_count is not None else None),
-            known_qubits=(tuple(b for b in args.known_qubits
-                                if b != self.control)
+            known_qubits=(args.known_qubits[1:]
                           if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,

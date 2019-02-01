@@ -21,15 +21,13 @@ from cirq import protocols
 def test_controlled_operation_init():
     cb = cirq.NamedQubit('ctr')
     q = cirq.NamedQubit('q')
-    g = cirq.Gate()
+    g = cirq.SingleQubitGate()
     v = cirq.GateOperation(g, (q,))
     c = cirq.ControlledOperation(cb, v)
     assert c.sub_operation == v
     assert c.control == cb
     assert c.qubits == (cb, q)
-
-    eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(c, c.with_qubits(cb, q))
+    assert c == c.with_qubits(cb, q)
 
 
 def test_controlled_operation_eq():
@@ -57,15 +55,17 @@ def test_str():
 def test_repr():
     qubits = cirq.LineQubit.range(3)
 
-    assert (repr(cirq.ControlledOperation(qubits[0], cirq.CZ(*qubits[1:]))) ==
+    ccz = cirq.ControlledOperation(qubits[0], cirq.CZ(*qubits[1:]))
+    assert (repr(ccz) ==
             "cirq.ControlledOperation(control=cirq.LineQubit(0), "
             "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
+    cirq.testing.assert_equivalent_repr(ccz)
 
 
 # A contrived multiqubit Hadamard gate that asserts the consistency of
 # the passed in Args and puts an H on all qubits
 # displays them as 'H(qubit)' on the wire
-class MultiH(cirq.Gate):
+class MultiH(cirq.MultiQubitGate):
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
@@ -82,7 +82,7 @@ class MultiH(cirq.Gate):
 def test_circuit_diagram():
     qubits = cirq.LineQubit.range(3)
     c = cirq.Circuit()
-    c.append(cirq.ControlledOperation(qubits[0], MultiH()(*qubits[1:])))
+    c.append(cirq.ControlledOperation(qubits[0], MultiH(2)(*qubits[1:])))
 
     cirq.testing.assert_has_diagram(c, """
 0: ───@──────
@@ -90,10 +90,13 @@ def test_circuit_diagram():
 1: ───H(1)───
       │
 2: ───H(2)───
-""", use_unicode_characters=True)
+""")
 
 
 class MockGate(cirq.Gate):
+    def num_qubits(self) -> int:
+        return 1
+
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -120,7 +123,8 @@ def test_non_diagrammable_subop():
     qbits = cirq.LineQubit.range(2)
 
     class UndiagrammableGate(cirq.Gate):
-        pass
+        def num_qubits(self) -> int:
+            return 1
 
     undiagrammable_op = UndiagrammableGate()(qbits[1])
 
