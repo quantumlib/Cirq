@@ -45,6 +45,24 @@ def _mixture_(self) -> Union[Iterable[Tuple[float, Any]], NotImplementedType]:
 def mixture(
     val: Any,
     default: Any = RaiseTypeErrorIfNotProvided) -> Iterable[Tuple[float, Any]]:
+    """Return a iterable of the tuples representing a probabilistic combination.
+
+    A mixture is describey by an iterable of tuples of the form
+
+        (probability of object, object)
+
+    The probability components of the tuples must sum to 1.0 and be between
+    0 and 1 (inclusive).
+
+    Args:
+        val: The value whose mixture is being computed.
+        default: A default value if val does not support mixture.
+
+    Returns:
+        An iterable of tuples of size 2. The first element of the tuple is a
+        probability (between 0 and 1) and th second is the object that occurs
+        with that probability in the mixture. The probabilities will sum to 1.0.
+    """
 
     getter = getattr(val, '_mixture_', None)
     result = NotImplemented if getter is None else getter()
