@@ -226,7 +226,8 @@ class TextDiagramDrawer:
 
         # Place entries.
         for (x, y), v in self.entries.items():
-            grid[y][x] = v.text
+            if v.text:
+                grid[y][x] = v.text
 
         # Pad rows and columns to fit contents with desired spacing.
         multiline_grid = _pad_into_multiline(w,

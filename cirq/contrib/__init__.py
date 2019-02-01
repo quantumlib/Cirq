@@ -18,5 +18,6 @@ Any contributions not ready for full production can be put in a subdirectory in
 this package.
 """
 
+from cirq.contrib import acquaintance
 from cirq.contrib import jobs
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
