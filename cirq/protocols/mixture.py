@@ -24,7 +24,7 @@ from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = (None,)
+RaiseTypeErrorIfNotProvided = ([],)
 
 
 class SupportsMixture(Protocol):
@@ -42,8 +42,9 @@ def _mixture_(self) -> Union[Iterable[Tuple[float, Any]], NotImplementedType]:
     pass
 
 
-def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Iterable[
-    Tuple[float, Any]]:
+def mixture(
+    val: Any,
+    default: Any = RaiseTypeErrorIfNotProvided) -> Iterable[Tuple[float, Any]]:
 
     getter = getattr(val, '_mixture_', None)
     result = NotImplemented if getter is None else getter()
