@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,26 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.value.angle import (
-    canonicalize_half_turns,
-    chosen_angle_to_canonical_half_turns,
-    chosen_angle_to_half_turns,
-)
-from cirq.value.duration import (
-    Duration,
-)
-from cirq.value.probability import (
-    validate_probability,
-)
-from cirq.value.periodic_value import (
-    PeriodicValue,
-)
-from cirq.value.symbol import (
-    Symbol,
-)
-from cirq.value.timestamp import (
-    Timestamp,
-)
-from cirq.value.value_equality import (
-    value_equality,
-)
+"""Utilities for handling probabilities."""
+
+
+def validate_probability(p, p_str):
+    if p < 0:
+        raise ValueError('{} was less than 0.'.format(p_str))
+    elif p > 1:
+        raise ValueError('{} was greater than 1.'.format(p_str))
+    return p

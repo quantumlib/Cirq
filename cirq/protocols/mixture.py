@@ -14,7 +14,7 @@
 
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Sequence, Tuple, Union
 
 from typing_extensions import Protocol
 
@@ -24,7 +24,7 @@ from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ([],)
+RaiseTypeErrorIfNotProvided = ((0.0, []),) 
 
 
 class SupportsMixture(Protocol):
@@ -38,16 +38,16 @@ class SupportsMixture(Protocol):
     0 and 1 (inclusive).
     """
 
-def _mixture_(self) -> Union[Iterable[Tuple[float, Any]], NotImplementedType]:
+def _mixture_(self) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
     pass
 
 
 def mixture(
     val: Any,
-    default: Any = RaiseTypeErrorIfNotProvided) -> Iterable[Tuple[float, Any]]:
+    default: Any = RaiseTypeErrorIfNotProvided) -> Sequence[Tuple[float, Any]]:
     """Return a iterable of the tuples representing a probabilistic combination.
 
-    A mixture is describey by an iterable of tuples of the form
+    A mixture is described by an iterable of tuples of the form
 
         (probability of object, object)
 

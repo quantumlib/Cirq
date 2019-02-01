@@ -342,38 +342,3 @@ def test_bit_flip_channel_invalid_probability():
 def test_bit_flip_channel_text_diagram():
     assert (cirq.circuit_diagram_info(cirq.bit_flip(0.3))
             == cirq.CircuitDiagramInfo(wire_symbols=('BF(0.3)',)))
-
-
-def test_rotation_error_channel():
-    d = cirq.rotation_error(np.pi / 6., np.pi/12., np.pi/8.)
-    np.testing.assert_almost_equal(cirq.channel(d),
-                               (np.exp( X * 0.5 * (0.0 - 1.0j) * np.pi / 6.),
-                                np.exp( Y * 0.5 * (0.0 - 1.0j) * np.pi / 12.),
-                                np.exp( Z * 0.5 * (0.0 - 1.0j) * np.pi / 8.)))
-
-
-def test_rotation_error_channel_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.RotationErrorChannel(np.pi / 6., np.pi / 12., np.pi / 8.))
-
-
-def test_rotation_error_channel_str():
-    assert (str(cirq.rotation_error(0.3, 0.4, 0.5))
-            == 'rotation_error(eps_x=0.3,eps_y=0.4,eps_z=0.5)')
-
-
-def test_rotation_error_channel_eq():
-    et = cirq.testing.EqualsTester()
-    c = cirq.rotation_error(0.0, 0.0, 0.0)
-    et.make_equality_group(lambda: c)
-    et.add_equality_group(cirq.rotation_error(0.1, 0.1, 0.1))
-    et.add_equality_group(cirq.rotation_error(0.9, 0.9, 0.9))
-    et.add_equality_group(cirq.rotation_error(0.3, 0.4, 0.5))
-    et.add_equality_group(cirq.rotation_error(0.0, 0.0, 0.1))
-    et.add_equality_group(cirq.rotation_error(0.0, 0.1, 0.0))
-    et.add_equality_group(cirq.rotation_error(0.1, 0.0, 0.0))
-
-
-def test_rotation_error_channel_text_diagram():
-    assert (cirq.circuit_diagram_info(cirq.rotation_error(0.3,0.4,0.5))
-            == cirq.CircuitDiagramInfo(wire_symbols=('RE(0.3,0.4,0.5)',)))

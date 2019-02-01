@@ -126,7 +126,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    RotationErrorChannel,
     Rx,
     Ry,
     Rz,
@@ -167,7 +166,6 @@ from cirq.ops import (
     pauli_string_expectation,
     phase_damp,
     phase_flip,
-    rotation_error,
     transform_op_tree,
 )
 
@@ -233,6 +231,7 @@ from cirq.value import (
     PeriodicValue,
     Symbol,
     Timestamp,
+    validate_probability,
     value_equality,
 )
 
