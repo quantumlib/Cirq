@@ -14,7 +14,7 @@
 
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 
-from typing import Any, Iterable, Tuple, TypeVar, Union
+from typing import Any, Iterable, Tuple, Union
 
 from typing_extensions import Protocol
 
@@ -27,58 +27,57 @@ from cirq.type_workarounds import NotImplementedType
 RaiseTypeErrorIfNotProvided = (None,)
 
 
-TDefault = TypeVar('TDefault')
-
-
 class SupportsMixture(Protocol):
-  """An object that may be describable as a probablisitic combination.
+    """An object that may be describable as a probablisitic combination.
 
-  A mixture is described by an iterable of tuples of the form
+    A mixture is described by an iterable of tuples of the form
 
-      (probability of object, object)
+        (probability of object, object)
 
-  The probability components of the tuples must sum to 1.0 and be between
-  0 and 1 (inclusive).
-  """
+    The probability components of the tuples must sum to 1.0 and be between
+    0 and 1 (inclusive).
+    """
 
-  def _mixture_(self) -> Union[Iterable[Tuple[float, Any]], NotImplementedType]:
+def _mixture_(self) -> Union[Iterable[Tuple[float, Any]], NotImplementedType]:
     pass
 
 
 def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Iterable[
-  Tuple[float, Any]]:
-  getter = getattr(val, '_mixture_', None)
-  result = NotImplemented if getter is None else getter()
+    Tuple[float, Any]]:
 
-  if result is not NotImplemented:
-    return result
-  if default is not RaiseTypeErrorIfNotProvided:
-    return default
+    getter = getattr(val, '_mixture_', None)
+    result = NotImplemented if getter is None else getter()
 
-  if getter is None:
-    raise TypeError(
-        "object of type '{}' has no _mixture_ method.".format(type(val)))
+    if result is not NotImplemented:
+        return result
+    if default is not RaiseTypeErrorIfNotProvided:
+        return default
 
-  raise TypeError("object of type '{}' does have a _mixture_ method, "
-                  "but it returned NotImplemented.".format(type(val)))
+    if getter is None:
+        raise TypeError(
+            "object of type '{}' has no _mixture_ method.".format(type(val)))
 
+    raise TypeError("object of type '{}' does have a _mixture_ method, "
+                    "but it returned NotImplemented.".format(type(val)))
 
 
 def validate_mixture(supports_mixture: SupportsMixture):
-  """Validates that the mixture's tuple are valid probabilities."""
-  mixture_tuple = mixture(supports_mixture, None)
-  if mixture_tuple is None:
-    raise TypeError('{}_mixture did not have a _mixture_ method'.format(
-        supports_mixture))
+    """Validates that the mixture's tuple are valid probabilities."""
+    mixture_tuple = mixture(supports_mixture, None)
+    if mixture_tuple is None:
+        raise TypeError('{}_mixture did not have a _mixture_ method'.format(
+            supports_mixture))
 
-  def validate_probability(p, p_str):
-    if p < 0:
-      raise ValueError('{} was less than 0.'.format(p_str))
-    elif p > 1:
-      raise ValueError('{} was greater than 1.'.format(p_str))
-  sum = 0
-  for p, val in mixture_tuple:
-    validate_probability(p, '{}\'s probability'.format(str(val)))
-    sum += p
-  if not np.isclose(sum, 1.0):
-    raise ValueError('Sum of probabilities of a mixture was not 1.0')
+    def validate_probability(p, p_str):
+        if p < 0:
+            raise ValueError('{} was less than 0.'.format(p_str))
+        elif p > 1:
+            raise ValueError('{} was greater than 1.'.format(p_str))
+
+    total = 0
+    for p, val in mixture_tuple:
+        validate_probability(p, '{}\'s probability'.format(str(val)))
+        total += p
+    if not np.isclose(total, 1.0):
+        raise ValueError('Sum of probabilities of a mixture was not 1.0')
+
