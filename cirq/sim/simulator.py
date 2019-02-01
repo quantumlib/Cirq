@@ -781,26 +781,26 @@ class StepResult:
             and non-zero floats of the specified accuracy."""
         return wave_function.dirac_notation(self.state(), decimals)
 
-    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
+    def density_matrix(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
         """Returns the density matrix of the wavefunction.
 
-        Calculate the density matrix for the system on the given qubit
-        indices, with the qubits not in indices that are present in self.state
-        traced out. If indices is None the full density matrix for self.state
+        Calculate the density matrix for the system on the list, qubits.
+        Any qubits not in the list that are present in self.state will be
+        traced out. If qubits is None the full density matrix for self.state
         is returned, given self.state follows standard Kronecker convention
         of numpy.kron.
 
         For example:
             self.state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
                 dtype=np.complex64)
-            indices = None
+            qubits = None
             gives us \rho = \begin{bmatrix}
                                 0.5 & 0.5
                                 0.5 & 0.5
                             \end{bmatrix}
 
         Args:
-            indices: list containing indices for qubits that you would like
+            qubits: list containing qubit IDs that you would like
                 to include in the density matrix (i.e.) qubits that WON'T
                 be traced out.
 
@@ -813,17 +813,19 @@ class StepResult:
                 corresponding to the state.
         """
         return wave_function.density_matrix_from_state_vector(
-            self.state(), indices)
+            self.state(),
+            [self.qubit_map[q] for q in qubits] if qubits is not None else None
+        )
 
-    def bloch_vector(self, index: int) -> np.ndarray:
+    def bloch_vector(self, qubit: ops.QubitId) -> np.ndarray:
         """Returns the bloch vector of a qubit.
 
-        Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state. Given that self.state
+        Calculates the bloch vector of the given qubit
+        in the wavefunction given by self.state, given that self.state
         follows the standard Kronecker convention of numpy.kron.
 
         Args:
-            index: index of qubit who's bloch vector we want to find.
+            qubit: qubit who's bloch vector we want to find.
 
         Returns:
             A length 3 numpy array representing the qubit's bloch vector.
@@ -834,4 +836,4 @@ class StepResult:
                 corresponding to the state.
         """
         return wave_function.bloch_vector_from_state_vector(
-            self.state(), index)
+            self.state(), self.qubit_map[qubit])
