@@ -17,6 +17,7 @@ from typing import Iterable, List, TYPE_CHECKING, Union, cast
 from sortedcontainers import SortedListWithKey
 
 from cirq.circuits import Circuit
+from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.devices import Device
 from cirq.ops import QubitId
 from cirq.schedules.scheduled_operation import ScheduledOperation
@@ -191,14 +192,13 @@ class Schedule:
         operations that are scheduled at the same time in the same Moment.
         """
         circuit = Circuit()
-        ops = []  # type: List[Operation]
         time = None  # type: Optional[Timestamp]
         for so in self.scheduled_operations:
             if so.time != time:
-                circuit.append(ops)
-                ops = [so.operation]
+                circuit.append(so.operation,
+                               strategy=InsertStrategy.NEW_THEN_INLINE)
                 time = so.time
             else:
-                ops.append(so.operation)
-        circuit.append(ops)
+                circuit.append(so.operation,
+                               strategy=InsertStrategy.INLINE)
         return circuit
