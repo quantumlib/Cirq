@@ -51,6 +51,13 @@ def test_approx_eq_list():
     assert not cirq.approx_eq([1.1, 1.2, 1.3], [1, 1, 1], atol=0.2)
 
 
+def test_approx_eq_default():
+    assert cirq.approx_eq(1.0, 1.0 + 1e-9)
+    assert cirq.approx_eq(1.0, 1.0 - 1e-9)
+    assert not cirq.approx_eq(1.0, 1.0 + 1e-7)
+    assert not cirq.approx_eq(1.0, 1.0 - 1e-7)
+
+
 def test_approx_eq_iterables():
     def gen_1_1():
         yield 1

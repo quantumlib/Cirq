@@ -17,8 +17,8 @@ from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, common_gates, op_tree, \
-    named_qubit, pauli_gates
+from cirq.ops import common_gates, gate_features, named_qubit, op_tree, \
+    pauli_gates, raw_types
 from cirq.ops.pauli_gates import Pauli
 
 
@@ -32,7 +32,7 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
 
 
 @value.value_equality
-class SingleQubitCliffordGate(raw_types.Gate):
+class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     """Any single qubit Clifford rotation."""
     I = _pretend_initialized()
     H = _pretend_initialized()

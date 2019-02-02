@@ -85,13 +85,18 @@ class QubitId(metaclass=abc.ABCMeta):
 TSelf_Gate = TypeVar('TSelf_Gate', bound='Gate')
 
 
-class Gate:
+class Gate(metaclass=abc.ABCMeta):
     """An operation type that can be applied to a collection of qubits.
 
     Gates can be applied to qubits by calling their on() method with
     the qubits to be applied to supplied, or, alternatively, by simply
     calling the gate on the qubits.  In other words calling MyGate.on(q1, q2)
     to create an Operation on q1 and q2 is equivalent to MyGate(q1,q2).
+
+    Gates operate on a certain number of qubits. All implementations of gate
+    must implement the `num_qubits` method declaring how many qubits they
+    act on. The gate feature classes `SingleQubitGate` and `TwoQubitGate`
+    can be used to avoid writing this boilerplate.
     """
 
     # noinspection PyMethodMayBeStatic
@@ -132,6 +137,11 @@ class Gate:
         # Avoids circular import.
         from cirq.ops import ControlledGate
         return ControlledGate(self, control_qubit)
+
+    @abc.abstractmethod
+    def num_qubits(self) -> int:
+        """The number of qubits this gate acts on."""
+        raise NotImplementedError()
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 

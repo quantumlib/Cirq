@@ -178,8 +178,9 @@ def test_simulate_random_unitary(dtype):
             result = simulator.simulate(random_circuit, qubit_order=[q0, q1],
                                         initial_state=x)
             circuit_unitary.append(result.final_state)
-        np.testing.assert_almost_equal(np.transpose(circuit_unitary),
-                                       random_circuit.to_unitary_matrix())
+        np.testing.assert_almost_equal(
+            np.transpose(circuit_unitary),
+            random_circuit.to_unitary_matrix(qubit_order=[q0, q1]))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -316,9 +317,11 @@ def test_simulate_moment_steps(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
-            np.testing.assert_almost_equal(step.state(), np.array([0.5] * 4))
+            np.testing.assert_almost_equal(step.state_vector(),
+                                           np.array([0.5] * 4))
         else:
-            np.testing.assert_almost_equal(step.state(), np.array([1, 0, 0, 0]))
+            np.testing.assert_almost_equal(step.state_vector(),
+                                           np.array([1, 0, 0, 0]))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -338,7 +341,7 @@ def test_simulate_moment_steps_set_state(dtype):
                                     cirq.H(q1))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
-        np.testing.assert_almost_equal(step.state(), np.array([0.5] * 4))
+        np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
         if i == 0:
             step.set_state(np.array([1, 0, 0, 0], dtype=dtype))
 
@@ -370,10 +373,10 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
             result = int(step.measurements['0'][0])
             expected = np.zeros(2)
             expected[result] = 1
-            np.testing.assert_almost_equal(step.state(), expected)
+            np.testing.assert_almost_equal(step.state_vector(), expected)
         if i == 2:
             expected = np.array([np.sqrt(0.5), np.sqrt(0.5) * (-1) ** result])
-            np.testing.assert_almost_equal(step.state(), expected)
+            np.testing.assert_almost_equal(step.state_vector(), expected)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -432,8 +435,43 @@ def test_compute_displays(dtype):
                                atol=1e-7)
 
 
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_compute_samples_displays(dtype):
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.H(b),
+        cirq.X(c),
+        cirq.H(c),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({c: cirq.X}),
+            key='x3'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({a: cirq.Z,
+                              b: cirq.X}),
+            num_samples=10,
+            key='approx_z1x2'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({a: cirq.Z,
+                              c: cirq.X}),
+            num_samples=10,
+            key='approx_z1x3'
+        ),
+    )
+    simulator = cirq.Simulator(dtype=dtype)
+    result = simulator.compute_samples_displays(circuit)
+
+    assert 'x3' not in result.display_values
+    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
+                               atol=1e-7)
+    np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
+                               atol=1e-7)
+
+
 def test_invalid_run_no_unitary():
-    class NoUnitary(cirq.Gate):
+    class NoUnitary(cirq.SingleQubitGate):
         pass
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
@@ -443,7 +481,7 @@ def test_invalid_run_no_unitary():
 
 
 def test_allocates_new_state():
-    class NoUnitary(cirq.Gate):
+    class NoUnitary(cirq.SingleQubitGate):
 
         def _has_unitary_(self):
             return True

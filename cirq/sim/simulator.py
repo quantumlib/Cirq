@@ -20,7 +20,7 @@ Simulator types include
 """
 
 from typing import (
-    Dict, Iterable, Iterator, List, Tuple, Union, Optional)
+    Any, Dict, Hashable, Iterable, Iterator, List, Tuple, Union, Optional)
 
 import abc
 import collections
@@ -39,21 +39,21 @@ class SimulatesSamples:
 
     def run(
         self,
-        circuit: circuits.Circuit,
+        program: Union[circuits.Circuit, schedules.Schedule],
         param_resolver: Optional[study.ParamResolver] = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
+        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(circuit,
+        return self.run_sweep(program,
                               [param_resolver or study.ParamResolver({})],
                               repetitions)[0]
 
@@ -63,7 +63,7 @@ class SimulatesSamples:
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
+        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
         In contrast to run, this allows for sweeping over different parameter
         values.
@@ -114,6 +114,73 @@ class SimulatesSamples:
         """
         raise NotImplementedError()
 
+    def compute_samples_displays(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            param_resolver: Optional[study.ParamResolver] = None,
+    ) -> study.ComputeDisplaysResult:
+        """Computes SamplesDisplays in the supplied Circuit or Schedule.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            param_resolver: Parameters to run with the program.
+
+        Returns:
+            ComputeDisplaysResult for the simulation.
+        """
+        return self.compute_samples_displays_sweep(
+            program, [param_resolver or study.ParamResolver({})])[0]
+
+    def compute_samples_displays_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            params: Optional[study.Sweepable] = None
+    ) -> List[study.ComputeDisplaysResult]:
+        """Computes SamplesDisplays in the supplied Circuit or Schedule.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
+        circuit = (program if isinstance(program, circuits.Circuit)
+                   else program.to_circuit())
+        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+
+        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        for param_resolver in param_resolvers:
+            display_values = {}  # type: Dict[Hashable, Any]
+            preceding_circuit = circuits.Circuit()
+            for i, moment in enumerate(circuit):
+                displays = (op for op in moment
+                            if isinstance(op, ops.SamplesDisplay))
+                for display in displays:
+                    measurement_key = str(display.key)
+                    measurement_circuit = circuits.Circuit.from_ops(
+                        display.measurement_basis_change(),
+                        ops.measure(*display.qubits,
+                                    key=measurement_key)
+                    )
+                    measurements = self._run(
+                        preceding_circuit + measurement_circuit,
+                        param_resolver,
+                        display.num_samples)
+                    display_values[display.key] = (
+                        display.value_derived_from_samples(
+                            measurements[measurement_key]))
+                preceding_circuit.append(circuit[i])
+            compute_displays_results.append(study.ComputeDisplaysResult(
+                params=param_resolver,
+                display_values=display_values))
+
+        return compute_displays_results
+
 
 class SimulatesFinalWaveFunction:
     """Simulator that allows access to a quantum computer's wavefunction.
@@ -131,7 +198,7 @@ class SimulatesFinalWaveFunction:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> 'SimulationTrialResult':
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function.
@@ -164,7 +231,7 @@ class SimulatesFinalWaveFunction:
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
@@ -343,7 +410,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Union[int, np.ndarray] = 0,
     ) -> List['SimulationTrialResult']:
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
@@ -382,7 +449,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=bool)
             if step_result:
-                final_state = step_result.state()
+                final_state = step_result.state_vector()
             else:
                 # Empty circuit, so final state should be initial state.
                 num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
@@ -455,7 +522,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
     ) -> study.ComputeDisplaysResult:
-        """Computes displays in the supplied Circuit.
+        """Computes displays in the supplied Circuit or Schedule.
 
         Args:
             program: The circuit or schedule to simulate.
@@ -481,7 +548,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             initial_state: Union[int, np.ndarray] = 0,
     ) -> List[study.ComputeDisplaysResult]:
-        """Computes displays in the supplied Circuit.
+        """Computes displays in the supplied Circuit or Schedule.
 
         In contrast to `compute_displays`, this allows for sweeping
         over different parameter values.
@@ -510,7 +577,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in param_resolvers:
-            display_values = {}  # type: ignore
+            display_values = {}  # type: Dict[Hashable, Any]
 
             # Compute the displays in the first Moment
             moment = circuit[0]
@@ -529,7 +596,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
                 _enter_moment_display_values_into_dictionary(
                     display_values,
                     moment,
-                    step_result.state(),
+                    step_result.state_vector(),
                     qubit_order,
                     step_result.qubit_map)
 
@@ -571,52 +638,22 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     return display.value_derived_from_samples(samples)
 
 
-class StepResult:
+class StepResult(wave_function.StateVector):
     """Results of a step of a SimulatesIntermediateWaveFunction.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
             of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state() method).
+            used to define the state (see the state_vector() method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
 
     def __init__(self,
-                 qubit_map: Optional[Dict[ops.QubitId, int]],
-                 measurements: Optional[Dict[str, List[bool]]]) -> None:
-        self.qubit_map = qubit_map or {}
+                 qubit_map: Optional[Dict[ops.QubitId, int]] = None,
+                 measurements: Optional[Dict[str, List[bool]]] = None) -> None:
+        super().__init__(qubit_map)
         self.measurements = measurements or collections.defaultdict(list)
-
-    @abc.abstractmethod
-    def state(self) -> np.ndarray:
-        """Return the state (wave function) at this point in the computation.
-
-        The state is returned in the computational basis with these basis
-        states defined by the `qubit_map`. In particular the value in the
-        `qubit_map` is the index of the qubit, and these are translated into
-        binary vectors where the last qubit is the 1s bit of the index, the
-        second-to-last is the 2s bit of the index, and so forth (i.e. big
-        endian ordering).
-
-        Example:
-             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
-             Then the returned vector will have indices mapped to qubit basis
-             states like the following table
-
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
-
-        """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def set_state(self, state: Union[int, np.ndarray]) -> None:
@@ -702,69 +739,3 @@ class StepResult:
         indexed_sample = self.sample(all_qubits, repetitions)
         return {k: np.array([x[s:e] for x in indexed_sample]) for k, (s, e) in
                 bounds.items()}
-
-    def dirac_notation(self, decimals: int = 2) -> str:
-        """Returns the wavefunction as a string in Dirac notation.
-
-        Args:
-            decimals: How many decimals to include in the pretty print.
-
-        Returns:
-            A pretty string consisting of a sum of computational basis kets
-            and non-zero floats of the specified accuracy."""
-        return wave_function.dirac_notation(self.state(), decimals)
-
-    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
-        """Returns the density matrix of the wavefunction.
-
-        Calculate the density matrix for the system on the given qubit
-        indices, with the qubits not in indices that are present in self.state
-        traced out. If indices is None the full density matrix for self.state
-        is returned, given self.state follows standard Kronecker convention
-        of numpy.kron.
-
-        For example:
-            self.state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-                dtype=np.complex64)
-            indices = None
-            gives us \rho = \begin{bmatrix}
-                                0.5 & 0.5
-                                0.5 & 0.5
-                            \end{bmatrix}
-
-        Args:
-            indices: list containing indices for qubits that you would like
-                to include in the density matrix (i.e.) qubits that WON'T
-                be traced out.
-
-        Returns:
-            A numpy array representing the density matrix.
-
-        Raises:
-            ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if the indices are out of range for the number of qubits
-                corresponding to the state.
-        """
-        return wave_function.density_matrix_from_state_vector(
-            self.state(), indices)
-
-    def bloch_vector(self, index: int) -> np.ndarray:
-        """Returns the bloch vector of a qubit.
-
-        Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state. Given that self.state
-        follows the standard Kronecker convention of numpy.kron.
-
-        Args:
-            index: index of qubit who's bloch vector we want to find.
-
-        Returns:
-            A length 3 numpy array representing the qubit's bloch vector.
-
-        Raises:
-            ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
-        """
-        return wave_function.bloch_vector_from_state_vector(
-            self.state(), index)

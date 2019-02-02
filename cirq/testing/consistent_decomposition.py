@@ -22,7 +22,7 @@ from cirq.testing import lin_alg_utils
 
 def assert_decompose_is_consistent_with_unitary(
         val: Any,
-        including_global_phase: bool=False):
+        ignoring_global_phase: bool=False):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
 
     expected = protocols.unitary(val, None)
@@ -43,10 +43,10 @@ def assert_decompose_is_consistent_with_unitary(
     actual = circuits.Circuit.from_ops(dec).to_unitary_matrix(
         qubit_order=qubits)
 
-    if including_global_phase:
-        # coverage: ignore
-        np.testing.assert_allclose(actual, expected, atol=1e-8)
-    else:
+    if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual,
                                                          expected,
                                                          atol=1e-8)
+    else:
+        # coverage: ignore
+        np.testing.assert_allclose(actual, expected, atol=1e-8)

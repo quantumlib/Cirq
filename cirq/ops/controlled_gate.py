@@ -17,7 +17,7 @@ from typing import Any, Union, Optional
 import numpy as np
 
 from cirq import linalg, protocols, value
-from cirq.ops import raw_types, gate_operation
+from cirq.ops import raw_types, gate_operation, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -34,6 +34,28 @@ class ControlledGate(raw_types.Gate):
         """
         self.sub_gate = sub_gate
         self.control_qubit = control_qubit
+
+    def num_qubits(self) -> int:
+        return self.sub_gate.num_qubits() + 1
+
+    def _decompose_(self, qubits):
+        if self.control_qubit is None:
+            result = protocols.decompose_once_with_qubits(self.sub_gate,
+                                                          qubits[1:],
+                                                          NotImplemented)
+        else:
+            result = protocols.decompose_once_with_qubits(self.sub_gate,
+                                                          qubits,
+                                                          NotImplemented)
+
+        if result is NotImplemented:
+            return NotImplemented
+
+        if self.control_qubit is None:
+            return [cop.ControlledOperation(qubits[0], op) for op in result]
+        else:
+            return [cop.ControlledOperation(
+                        self.control_qubit, op) for op in result]
 
     def validate_args(self, qubits) -> None:
         if self.control_qubit is None:

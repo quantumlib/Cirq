@@ -25,10 +25,17 @@ import cirq
     ]
 )
 def test_phased_x_consistent_protocols(phase_exponent):
+    # If there is no global_shift, the gate is global phase insensitive.
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.PhasedXPowGate(phase_exponent=phase_exponent,
+                                exponent=1.0),
+            ignoring_global_phase=False
+    )
     cirq.testing.assert_implements_consistent_protocols(
             cirq.PhasedXPowGate(phase_exponent=phase_exponent,
                                 exponent=1.0,
-                                global_shift=0.1)
+                                global_shift=0.1),
+            ignoring_global_phase=True
     )
 
 
