@@ -33,6 +33,9 @@ class ControlledGate(raw_types.Gate):
         """
         self.sub_gate = sub_gate
 
+    def num_qubits(self) -> int:
+        return self.sub_gate.num_qubits() + 1
+
     def validate_args(self, qubits) -> None:
         if len(qubits) < 1:
             raise ValueError('No control qubit specified.')

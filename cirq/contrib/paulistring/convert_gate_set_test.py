@@ -42,8 +42,8 @@ from cirq.contrib.paulistring import converted_gate_set
 
     (cirq.CZ(q0, q1), cirq.CZ(q0, q1)),
 
-    (cirq.MeasurementGate('key')(q0, q1),
-     cirq.MeasurementGate('key')(q0, q1)),
+    (cirq.measure(q0, q1, key='key'),
+     cirq.measure(q0, q1, key='key')),
 ))(cirq.LineQubit(0), cirq.LineQubit(1)))
 def test_converts_various_ops(op, expected_ops):
     before = cirq.Circuit.from_ops(op)
