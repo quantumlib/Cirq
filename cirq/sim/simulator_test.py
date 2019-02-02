@@ -352,7 +352,7 @@ def test_step_sample_measurement_ops_repeated_qubit():
                 [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)])
 
 
-class MultiHTestGate(cirq.Gate):
+class MultiHTestGate(cirq.TwoQubitGate):
     def _decompose_(self, qubits):
         return cirq.H.on_each(qubits)
 
@@ -369,10 +369,8 @@ def test_simulates_composite():
 def test_simulate_measurement_inversions():
     q = cirq.NamedQubit('q')
 
-    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
-                                                   invert_mask=(True,)).on(q))
+    c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(True,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([True])}
 
-    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
-                                                   invert_mask=(False,)).on(q))
+    c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(False,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}

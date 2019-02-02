@@ -20,7 +20,7 @@ import cirq
 from cirq.type_workarounds import NotImplementedType
 
 
-class RestrictedGate(cirq.Gate):
+class RestrictedGate(cirq.SingleQubitGate):
     pass
 
 
@@ -32,6 +32,7 @@ CRestricted = cirq.ControlledGate(RestrictedGate())
 def test_init():
     gate = cirq.ControlledGate(cirq.Z)
     assert gate.sub_gate is cirq.Z
+    assert gate.num_qubits() == 2
 
 
 def test_validate_args():
@@ -41,8 +42,8 @@ def test_validate_args():
 
     # Need a control qubit.
     with pytest.raises(ValueError):
-        CRestricted.validate_args([])
-    CRestricted.validate_args([a])
+        CRestricted.validate_args([a])
+    CRestricted.validate_args([a, b])
 
     # CY is a two-qubit operation (control + single-qubit sub gate).
     with pytest.raises(ValueError):
@@ -218,7 +219,7 @@ def test_circuit_diagram_info():
         wire_symbols=('@', 'S'),
         exponent=1)
 
-    class UndiagrammableGate(cirq.Gate):
+    class UndiagrammableGate(cirq.SingleQubitGate):
         pass
 
     assert cirq.circuit_diagram_info(cirq.ControlledGate(UndiagrammableGate()),

@@ -75,12 +75,16 @@ from cirq.ops.eigen_gate import (
 )
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
+    MultiQubitGate,
     SingleQubitGate,
     ThreeQubitGate,
     TwoQubitGate,
 )
 from cirq.ops.gate_operation import (
     GateOperation,
+)
+from cirq.ops.controlled_operation import (
+    ControlledOperation,
 )
 from cirq.ops.qubit_order import (
     QubitOrder,
