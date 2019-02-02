@@ -42,6 +42,11 @@ from cirq.protocols.decompose import (
 from cirq.protocols.inverse import (
     inverse,
 )
+from cirq.protocols.mixture import (
+    mixture,
+    SupportsMixture,
+    validate_mixture,
+)
 from cirq.protocols.mul import (
     mul,
 )
