@@ -40,8 +40,8 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def validate_args(self, qubits):
         if len(qubits) != 1:
             raise ValueError(
-                'Single-qubit gate applied to multiple qubits: {}({})'.
-                format(self, qubits))
+                'Single-qubit gate applied to {} qubits, instead of 1: {}({})'.
+                format(len(qubits), self, qubits))
 
     def on_each(self, targets: Iterable[raw_types.QubitId]) -> op_tree.OP_TREE:
         """Returns a list of operations apply this gate to each of the targets.
