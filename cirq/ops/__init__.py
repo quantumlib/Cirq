@@ -44,6 +44,8 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
+    I,
+    IdentityGate,
     ISWAP,
     ISwapPowGate,
     measure,
