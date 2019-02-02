@@ -16,9 +16,8 @@
 
 from typing import Any, Sequence, Tuple, Union
 
-from typing_extensions import Protocol
-
 import numpy as np
+from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
 
