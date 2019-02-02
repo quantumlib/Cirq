@@ -110,6 +110,7 @@ from cirq.ops import (
     Moment,
     MultiQubitGate,
     NamedQubit,
+    ControlledOperation,
     OP_TREE,
     Operation,
     Pauli,
