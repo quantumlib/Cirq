@@ -17,7 +17,7 @@ from typing import Any, Union, Optional
 import numpy as np
 
 from cirq import linalg, protocols, value
-from cirq.ops import raw_types
+from cirq.ops import raw_types, gate_operation
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -36,26 +36,20 @@ class ControlledGate(raw_types.Gate):
         self.control_qubit = control_qubit
 
     def validate_args(self, qubits) -> None:
-        if self.control_qubit is not None:
-            qubits = [self.control_qubit] + qubits
-        if len(qubits) < 1:
-            raise ValueError('No control qubit specified.')
-        self.sub_gate.validate_args(qubits[1:])
-
-    def on(self, *qubits: raw_types.QubitId) -> 'gate_operation.GateOperation':
-        if self.control_qubit is not None:
-            qubits = (self.control_qubit,) + qubits
-        # Avoids circular import.
-        from cirq.ops import gate_operation
-
-        if len(qubits) == 0:
-            raise ValueError(
-                "Applied a gate to an empty set of qubits. Gate: {}".format(
-                    repr(self)))
-        if self.control_qubit is not None:
-            self.validate_args(list(qubits[1:]))
+        if self.control_qubit is None:
+            if len(qubits) < 1:
+                raise ValueError('No control qubit specified.')
+            self.sub_gate.validate_args(qubits[1:])
         else:
-            self.validate_args(qubits)
+            self.sub_gate.validate_args(qubits)
+
+    def on(self, *qubits: raw_types.QubitId) -> gate_operation.GateOperation:
+        if self.control_qubit is None:
+            if len(qubits) == 0:
+                raise ValueError(
+                    "Applied a gate to an empty set of qubits. Gate: {}".format(
+                     repr(self)))
+        self.validate_args(qubits)
         return gate_operation.GateOperation(self, list(qubits))
 
     def _value_equality_values_(self):
@@ -134,4 +128,8 @@ class ControlledGate(raw_types.Gate):
         return 'C' + str(self.sub_gate)
 
     def __repr__(self):
-        return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
+        if self.control_qubit is None:
+            return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
+        else:
+            return ('cirq.ControlledGate(sub_gate={!r}, control_qubit={!r})'.
+                    format(self.sub_gate, self.control_qubit))

@@ -82,6 +82,8 @@ class QubitId(metaclass=abc.ABCMeta):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
 
+TSelf_Gate = TypeVar('TSelf_Gate', bound='Gate')
+
 
 class Gate:
     """An operation type that can be applied to a collection of qubits.
@@ -124,9 +126,12 @@ class Gate:
 
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
-        
-    def __control__(self, control_qubit: Optional[QubitId] = None):
-        pass
+
+    def __control__(self,
+                    control_qubit: Optional[QubitId] = None) -> 'Gate':
+        # Avoids circular import.
+        from cirq.ops import ControlledGate
+        return ControlledGate(self, control_qubit)
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
@@ -160,12 +165,13 @@ class Operation(metaclass=abc.ABCMeta):
                 function.
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
-        
-    def __control__(self, control_qubit: QubitId):
-        pass
 
-    def __control__(self):
+    def __control__(self, control_qubit:
+                              Optional[QubitId] = None) -> TSelf_Operation:
         if control_qubit is None:
             raise ValueError(
                 "Can't get controlled operation without control qubit. Op: {}"
                 .format(repr(self)))
+        else:
+        # return ControlledOperation(self, control_qubit)
+            raise NotImplementedError()
