@@ -75,7 +75,7 @@ def test_wave_simulator():
         yield result
         result = mock.Mock()
         result.measurements = {'b': [True, False]}
-        result.state.return_value = final_state
+        result.state_vector.return_value = final_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -122,7 +122,7 @@ def test_wave_simulator_sweeps():
     def steps(*args, **kwargs):
         result = mock.Mock()
         result.measurements = {'a': np.array([True, True])}
-        result.state.return_value = final_state
+        result.state_vector.return_value = final_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -222,7 +222,7 @@ class BasicStepResult(cirq.StepResult):
             measurements: Dict[str, List[bool]]) -> None:
         super().__init__(qubit_map, measurements)
 
-    def state(self) -> np.ndarray:
+    def state_vector(self) -> np.ndarray:
         return np.array([0, 1, 0, 0])
 
 
@@ -240,22 +240,22 @@ def test_step_result_density_matrix():
                     [0, 0, 0, 0],
                     [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix([q0, q1]))
+        step_result.density_matrix_of([q0, q1]))
 
     np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix())
+        step_result.density_matrix_of())
 
     rho_ind_rev = np.array([[0, 0, 0, 0],
                             [0, 0, 0, 0],
                             [0, 0, 1, 0],
                             [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho_ind_rev,
-        step_result.density_matrix([q1, q0]))
+        step_result.density_matrix_of([q1, q0]))
 
     single_rho = np.array([[0, 0],
                            [0, 1]])
     np.testing.assert_array_almost_equal(single_rho,
-        step_result.density_matrix([q1]))
+        step_result.density_matrix_of([q1]))
 
 
 def test_step_result_density_matrix_invalid():
@@ -264,11 +264,11 @@ def test_step_result_density_matrix_invalid():
     step_result = BasicStepResult({q0: 0}, {})
 
     with pytest.raises(KeyError):
-        step_result.density_matrix([q1])
+        step_result.density_matrix_of([q1])
     with pytest.raises(KeyError):
-        step_result.density_matrix('junk')
+        step_result.density_matrix_of('junk')
     with pytest.raises(TypeError):
-        step_result.density_matrix(0)
+        step_result.density_matrix_of(0)
 
 
 def test_step_result_bloch_vector():
@@ -277,9 +277,9 @@ def test_step_result_bloch_vector():
     bloch1 = np.array([0,0,-1])
     bloch0 = np.array([0,0,1])
     np.testing.assert_array_almost_equal(bloch1,
-        step_result.bloch_vector(q1))
+        step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0,
-        step_result.bloch_vector(q0))
+        step_result.bloch_vector_of(q0))
 
 
 def test_bloch_vector_invalid():
@@ -287,11 +287,11 @@ def test_bloch_vector_invalid():
 
     step_result = BasicStepResult({q0: 0}, {})
     with pytest.raises(KeyError):
-        step_result.bloch_vector(q1)
+        step_result.bloch_vector_of(q1)
     with pytest.raises(KeyError):
-        step_result.bloch_vector('junk')
+        step_result.bloch_vector_of('junk')
     with pytest.raises(KeyError):
-        step_result.bloch_vector(0)
+        step_result.bloch_vector_of(0)
 
 
 class FakeStepResult(cirq.StepResult):
@@ -299,7 +299,7 @@ class FakeStepResult(cirq.StepResult):
     def __init__(self, ones_qubits):
         self._ones_qubits = set(ones_qubits)
 
-    def state(self):
+    def state_vector(self):
         pass
 
     def __setstate__(self, state):
