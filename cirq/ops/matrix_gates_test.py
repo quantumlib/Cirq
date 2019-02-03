@@ -263,8 +263,10 @@ class FakeLinearOperator(cirq.AbstractLinearOperator):
     def __init__(self, matrix: Optional[np.ndarray]) -> None:
         self._matrix = matrix
 
-    def _n_dim_(self) -> Optional[int]:
-        pass
+    def num_qubits(self) -> int:
+        if self._matrix is None:
+            raise ValueError('Cannot compute qubit count without matrix')
+        return round(np.log2(self._matrix.shape[0]))
 
     def _matrix_(self) -> Optional[np.ndarray]:
         return self._matrix
@@ -279,6 +281,8 @@ class FakeLinearOperator(cirq.AbstractLinearOperator):
     FakeLinearOperator(np.zeros((2, 2, 2))),
     FakeLinearOperator(np.zeros((2, 3))),
     FakeLinearOperator(np.zeros((3, 3))),
+    FakeLinearOperator(np.zeros((5, 5))),
+    FakeLinearOperator(np.zeros((8, 8))),
 ))
 def test_make_gate_errors(expression):
     with pytest.raises(ValueError):

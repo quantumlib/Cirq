@@ -202,28 +202,6 @@ def _numpy_array_repr(arr: np.ndarray) -> str:
     return 'np.array({!r})'.format(arr.tolist())
 
 
-def _is_power_of_two(n: int) -> bool:
-    return n > 0 and n & (n-1) == 0
-
-
-def _infer_n_qubits(op: linear_operator.AbstractLinearOperator) -> int:
-    matrix = op.matrix()
-
-    if matrix is None:
-        raise ValueError('Cannot make gate from operator without matrix')
-    if len(matrix.shape) != 2:
-        raise ValueError('Cannot make gate from array of {} dimensions'
-                         .format(len(matrix.shape)))
-    if matrix.shape[0] != matrix.shape[1]:
-        raise ValueError('Cannot make gate from rectangular matrix of shape {}'
-                         .format(matrix.shape))
-    if not _is_power_of_two(matrix.shape[0]):
-        raise ValueError('Cannot make gate from matrix of shape {}'
-                         .format(matrix.shape))
-
-    return round(np.log2(matrix.shape[0]))
-
-
 def make_gate(op: linear_operator.AbstractLinearOperator) -> raw_types.Gate:
     """Makes quantum gate from unitary operator op.
 
@@ -237,7 +215,7 @@ def make_gate(op: linear_operator.AbstractLinearOperator) -> raw_types.Gate:
         ValueError if the given linear operator is not unitary or if it acts
         on the space of more than two qubits.
     """
-    n_qubits = _infer_n_qubits(op)
+    n_qubits = op.num_qubits()
     if n_qubits == 1:
         return SingleQubitMatrixGate(op.matrix())
     elif n_qubits == 2:

@@ -29,10 +29,10 @@ class FakeLinearOperator(cirq.AbstractLinearOperator):
         self._matrix = matrix
         self._pauli_expansion = pauli_expansion
 
-    def _n_dim_(self) -> Optional[int]:
+    def num_qubits(self) -> int:
         if self._matrix is not None:
-            return self._matrix.shape[0]
-        return None
+            return int(np.log2(self._matrix.shape[0]))
+        return 0
 
     def _matrix_(self) -> Optional[np.ndarray]:
         return self._matrix

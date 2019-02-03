@@ -20,7 +20,6 @@ import scipy.linalg
 
 from cirq import protocols
 from cirq.linalg import operator_spaces
-from cirq.ops import gate_features
 
 
 class AbstractLinearOperator(metaclass=abc.ABCMeta):
@@ -32,10 +31,8 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
     below. This class in turn equips then with basic linear algebraic
     operations.
     """
-    @abc.abstractmethod
-    def _n_dim_(self) -> Optional[int]:
-        """Returns the number of dimensions of the space self acts on."""
-        pass
+    def num_qubits(self):
+        return super().num_qubits()
 
     @abc.abstractmethod
     def _matrix_(self) -> Optional[np.ndarray]:
@@ -65,7 +62,7 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
 
     def pauli_expansion(self) -> Optional[np.ndarray]:
         """Returns or computes expansion of self in the Pauli basis."""
-        if self._n_dim_() != 2:
+        if self.num_qubits() != 1:
             return None
 
         pauli_expansion = self._pauli_expansion_()
@@ -211,15 +208,6 @@ class UnitaryMixin(AbstractLinearOperator):
     To enable linear algebraic operations involving a gate, the gate must
     override one or both of _pauli_expansion_(), _unitary_().
     """
-    def _n_dim_(self) -> Optional[int]:
-        if isinstance(self, gate_features.SingleQubitGate):
-            return 2
-        if isinstance(self, gate_features.TwoQubitGate):
-            return 4
-        if isinstance(self, gate_features.ThreeQubitGate):
-            return 8
-        return None
-
     def _matrix_(self) -> Optional[np.ndarray]:
         """Returns the matrix of the unitary operator."""
         return protocols.unitary(self, None)
@@ -230,6 +218,10 @@ class UnitaryMixin(AbstractLinearOperator):
         Gates which know the expansion, should override.
         """
         pass
+
+
+def _is_power_of_two(n: int) -> bool:
+    return n > 0 and n & (n-1) == 0
 
 
 class LinearOperator(AbstractLinearOperator):
@@ -257,8 +249,14 @@ class LinearOperator(AbstractLinearOperator):
             if pauli_expansion is not None and matrix.shape[0] != 2:
                 raise ValueError('Only single-qubit operators can have Pauli '
                                  'expansion.')
+            self._num_qubits = round(np.log2(matrix.shape[0]))
+        if pauli_expansion is not None:
+            self._num_qubits = 1
         self._matrix = matrix
         self._pauli_expansion = pauli_expansion
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     @staticmethod
     def _validate_matrix(matrix: np.ndarray) -> None:
@@ -270,14 +268,10 @@ class LinearOperator(AbstractLinearOperator):
             raise ValueError(
                 'Cannot make LinearOperator from matrix of shape {}'
                 .format(matrix.shape))
-
-    def _n_dim_(self) -> Optional[int]:
-        if self._pauli_expansion_() is not None:
-            return 2
-        matrix = self._matrix_()
-        if matrix is not None:
-            return matrix.shape[0]
-        return None
+        if not _is_power_of_two(matrix.shape[0]):
+            raise ValueError(
+                'Cannot make LinearOperator from matrix os size {}x{}'
+                .format(*matrix.shape))
 
     def _matrix_(self) -> Optional[np.ndarray]:
         return self._matrix

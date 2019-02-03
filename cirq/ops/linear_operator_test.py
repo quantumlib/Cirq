@@ -30,6 +30,7 @@ ZERO2 = cirq.LinearOperator(np.zeros((2, 2)),
     (None, None),
     (np.ones((2, 2, 2)), None),
     (np.ones((2, 3)), None),
+    (np.ones((3, 3)), None),
     (np.eye(4), np.array([1, 0, 0, 0])),
 ))
 def test_init_invalid_inputs(matrix, pauli_expansion):
@@ -41,6 +42,10 @@ class FakeMatrixOperator(cirq.LinearOperator):
     def __init__(self, matrix: Optional[np.ndarray]) -> None:
         self._matrix = matrix
         self._pauli_expansion = None
+        if matrix is not None:
+            self._num_qubits = round(np.log2(matrix.shape[0]))
+        else:
+            self._num_qubits = 0
 
 
 @pytest.mark.parametrize('matrix, expected_pauli_expansion', (
