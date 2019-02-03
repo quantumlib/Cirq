@@ -91,8 +91,8 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
             pauli_expansion = pauli_expansion_a + pauli_expansion_b
 
         matrix = None
-        matrix_a = self.matrix()
-        matrix_b = other.matrix()
+        matrix_a = self._matrix_()
+        matrix_b = other._matrix_()
         if matrix_a is not None and matrix_b is not None:
             matrix = matrix_a + matrix_b
 

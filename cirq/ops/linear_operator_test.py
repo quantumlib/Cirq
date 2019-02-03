@@ -107,14 +107,20 @@ def test_internal_consistency(op):
     (cirq.LinearOperator(pauli_expansion=np.array([1, 2, 3, 4])) +
      cirq.LinearOperator(pauli_expansion=np.array([5, 3, 1, -1])),
      cirq.LinearOperator(pauli_expansion=np.array([6, 5, 4, 3]))),
-    (cirq.LinearOperator(np.array([[0, 1], [1, 0]])) +
-     cirq.LinearOperator(pauli_expansion=np.array([0, 0, 0, 1])),
-     cirq.LinearOperator(np.array([[1, 1], [1, -1]]))),
     (I4 + cirq.ZZ, cirq.LinearOperator(np.diag([2, 0, 0, 2]))),
     (cirq.TOFFOLI + cirq.TOFFOLI, 2 * cirq.TOFFOLI),
 ))
 def test_addition(expression, expected_value):
     cirq.testing.assert_linear_operators_are_equal(expression, expected_value)
+
+
+@pytest.mark.parametrize('a, b', (
+    (cirq.LinearOperator(np.array([[0, 1], [1, 0]])),
+     cirq.LinearOperator(pauli_expansion=np.array([0, 0, 0, 1]))),
+))
+def test_inalid_addition(a, b):
+    with pytest.raises(ValueError):
+        a + b
 
 
 @pytest.mark.parametrize('expression, expected_value', (
