@@ -86,7 +86,9 @@ def is_orthogonal(
     """
     return (matrix.shape[0] == matrix.shape[1] and
             np.all(np.imag(matrix) == 0) and
-            np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]), rtol=rtol, atol=atol))
+            np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]),
+                        rtol=rtol,
+                        atol=atol))
 
 
 def is_special_orthogonal(
@@ -127,8 +129,10 @@ def is_unitary(
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and np.allclose(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol))
+    return (matrix.shape[0] == matrix.shape[1] and
+            np.allclose(matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]),
+                        rtol=rtol,
+                        atol=atol))
 
 
 def is_special_unitary(
