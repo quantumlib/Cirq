@@ -178,7 +178,15 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
 
     def polar_decomposition(self) -> Tuple['AbstractLinearOperator',
                                            'AbstractLinearOperator']:
-        """Computes (right) polar decomposition of self."""
+        """Computes (right) polar decomposition of self.
+
+        Returns a pair of operators (U, P) with U unitary and P positive
+        (and hence hermitian) such that
+
+            M = UP
+
+        where M is self.
+        """
         matrix = self._matrix_()
         if matrix is None:
             pauli_expansion = self._pauli_expansion_()
