@@ -254,8 +254,9 @@ def test_two_qubit_consistent():
                                        [0, 0, 0, 1]]))),
 ))
 def test_make_gate(expression, expected_matrix):
-    assert cirq.make_gate(expression).approx_eq(expected_matrix,
-                                                ignore_global_phase=False)
+    assert cirq.approx_eq(cirq.make_gate(expression),
+                          expected_matrix,
+                          atol=1e-12)
 
 
 class FakeLinearOperator(cirq.AbstractLinearOperator):
@@ -319,8 +320,9 @@ def test_make_gate_errors(expression):
                                        [0, 0, 0, 1]]))),
 ))
 def test_forge_gate(expression, expected_matrix):
-    assert cirq.forge_gate(expression).approx_eq(expected_matrix,
-                                                 ignore_global_phase=False)
+    assert cirq.approx_eq(cirq.forge_gate(expression),
+                          expected_matrix,
+                          atol=1e-12)
 
 
 @pytest.mark.parametrize('expression', (
