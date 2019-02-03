@@ -21,11 +21,11 @@ def test_single_qubit_gate_validate_args():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
-
     g = Dummy()
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
 
+    assert g.num_qubits() == 1
     g.validate_args([q1])
     g.validate_args([q2])
     with pytest.raises(ValueError):
@@ -53,6 +53,7 @@ def test_two_qubit_gate_validate_pass():
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
 
+    assert g.num_qubits() == 2
     g.validate_args([q1, q2])
     g.validate_args([q2, q3])
     g.validate_args([q3, q2])
@@ -83,6 +84,8 @@ def test_three_qubit_gate_validate():
 
     g = Dummy()
     a, b, c, d = cirq.LineQubit.range(4)
+
+    assert g.num_qubits() == 3
 
     g.validate_args([a, b, c])
     with pytest.raises(ValueError):
@@ -119,8 +122,8 @@ def test_qasm_output_args_validate():
 def test_qasm_output_args_format():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    m_a = cirq.MeasurementGate('meas_a')(a)
-    m_b = cirq.MeasurementGate('meas_b')(b)
+    m_a = cirq.measure(a, key='meas_a')
+    m_b = cirq.measure(b, key='meas_b')
     args = cirq.QasmArgs(
                     precision=4,
                     version='2.0',
@@ -140,3 +143,25 @@ def test_qasm_output_args_format():
     assert args.format('_{0:half_turns}_', 1.23) == '_pi*1.23_'
 
     assert args.format('_{0}_', 'other') == '_other_'
+
+
+def test_multi_qubit_gate_validate():
+    class Dummy(cirq.MultiQubitGate):
+
+        def __init__(self, num_qubits):
+            super().__init__(num_qubits)
+
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    g = Dummy(3)
+
+    assert g.num_qubits() == 3
+    g.validate_args([a, b, c])
+    with pytest.raises(ValueError):
+        g.validate_args([])
+    with pytest.raises(ValueError):
+        g.validate_args([a])
+    with pytest.raises(ValueError):
+        g.validate_args([a, b])
+    with pytest.raises(ValueError):
+        g.validate_args([a, b, c, d])

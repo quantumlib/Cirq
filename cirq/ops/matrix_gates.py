@@ -19,14 +19,14 @@ from typing import cast, Any
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq.ops import linear_operator, raw_types
+from cirq.ops import linear_operator, gate_features
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(linear_operator.UnitaryMixin, raw_types.Gate):
+class SingleQubitMatrixGate(linear_operator.UnitaryMixin, gate_features.SingleQubitGate):
     """A 1-qubit gate defined by its matrix.
 
     More general than specialized classes like `ZPowGate`, but more expensive
@@ -104,7 +104,7 @@ class SingleQubitMatrixGate(linear_operator.UnitaryMixin, raw_types.Gate):
         return str(self._matrix.round(3))
 
 
-class TwoQubitMatrixGate(linear_operator.UnitaryMixin, raw_types.Gate):
+class TwoQubitMatrixGate(linear_operator.UnitaryMixin, gate_features.TwoQubitGate):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like `CZPowGate`, but more expensive
