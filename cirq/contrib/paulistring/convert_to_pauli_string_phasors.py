@@ -16,14 +16,13 @@ from typing import Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, optimizers, protocols
+from cirq import ops, optimizers, protocols, linalg
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
 from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
-from cirq.linalg import all_near_zero_mod
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -66,7 +65,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         out_ops = []  # type: List[ops.Operation]
         for pauli, half_turns in rotations:
             if (self.keep_clifford
-                    and all_near_zero_mod(half_turns, 0.5)):
+                    and linalg.all_near_zero_mod(half_turns, 0.5)):
                 cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
                     pauli, round(half_turns * 2))
                 if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):

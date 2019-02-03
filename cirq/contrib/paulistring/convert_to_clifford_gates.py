@@ -16,13 +16,12 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import ops, protocols, optimizers
+from cirq import ops, protocols, optimizers, linalg
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.linalg import all_near_zero_mod
 
 
 class ConvertToSingleQubitCliffordGates(PointOptimizer):
@@ -70,7 +69,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
             mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I
         for pauli, half_turns in rotations:
-            if all_near_zero_mod(half_turns, 0.5):
+            if linalg.all_near_zero_mod(half_turns, 0.5):
                 clifford_gate = clifford_gate.merged_with(
                     self._rotation_to_clifford_gate(pauli, half_turns))
             else:
