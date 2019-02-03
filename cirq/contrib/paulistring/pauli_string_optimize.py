@@ -24,7 +24,6 @@ from cirq.contrib.paulistring.recombine import (
 from cirq.contrib.paulistring.separate import (
     convert_and_separate_circuit)
 from cirq.linalg import all_near_zero_mod
-from cirq.linalg.tolerance import DEFAULT_ATOL
 
 
 def pauli_string_optimized_circuit(circuit: circuits.Circuit,
@@ -75,7 +74,7 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
 
 
 def remove_negligible_strings(string_dag: circuits.CircuitDag,
-                              atol=DEFAULT_ATOL) -> None:
+                              atol=1e-8) -> None:
     for node in tuple(string_dag.nodes()):
         if all_near_zero_mod(node.val.half_turns, 2, atol=atol):
             string_dag.remove_node(node)
