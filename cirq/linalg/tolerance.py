@@ -17,28 +17,9 @@ tolerances."""
 
 import numpy as np
 
-DEFAULT_RTOL = 1e-5
-DEFAULT_ATOL = 1e-8
-DEFAULT_EQUAL_NAN = False
 
-
-def all_close(a, b, rtol: float = DEFAULT_RTOL, atol: float = DEFAULT_ATOL,
-              equal_nan: bool = DEFAULT_EQUAL_NAN) -> bool:
-    """Returns whether the matrices are approximately equal within the tolerance
-    parameters.
-
-    Args:
-        a: First matrix to compare.
-        b: Second matrix to compare.
-        rtol: Relative tolerance.
-        atol: Absolute tolerance.
-        equal_nan: Whether to compare NaN's as equal.
-    """
-    return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
-
-
-def all_near_zero(a, rtol: float = DEFAULT_RTOL, atol: float = DEFAULT_ATOL,
-                  equal_nan: bool = DEFAULT_EQUAL_NAN) -> bool:
+def all_near_zero(a, rtol: float = 1e-5, atol: float = 1e-8,
+                  equal_nan: bool = False) -> bool:
     """Returns whether the matrix approximately contains all zero elements.
 
     Args:
@@ -47,23 +28,22 @@ def all_near_zero(a, rtol: float = DEFAULT_RTOL, atol: float = DEFAULT_ATOL,
         atol: Absolute tolerance.
         equal_nan: Whether to compare NaN's as equal.
     """
-    return all_close(a, np.zeros(np.shape(a)), rtol, atol, equal_nan)
+    return np.allclose(a, np.zeros(np.shape(a)), rtol=rtol, atol=atol)
 
 
 def all_near_zero_mod(a,
                       period,
-                      rtol: float = DEFAULT_RTOL,
-                      atol: float = DEFAULT_ATOL,
-                      equal_nan: bool = DEFAULT_EQUAL_NAN):
-    return all_close((np.array(a) + (period / 2)) % period - period / 2,
-                     np.zeros(np.shape(a)), rtol, atol, equal_nan)
+                      rtol: float = 1e-5,
+                      atol: float = 1e-8,
+                      equal_nan: bool = False):
+    return np.allclose((np.array(a) + (period / 2)) % period - period / 2,
+                        np.zeros(np.shape(a)), atol=atol, rtol=rtol)
 
 
-
-def near_zero(a, atol: float = DEFAULT_ATOL):
+def near_zero(a, atol: float = 1e-8):
     return abs(a) <= atol
 
 
-def near_zero_mod(a, period, atol: float = DEFAULT_ATOL):
+def near_zero_mod(a, period, atol: float = 1e-8):
     half_period = period / 2
     return near_zero((a + half_period) % period - half_period, atol)

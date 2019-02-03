@@ -12,50 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.linalg.tolerance import all_close, all_near_zero, all_near_zero_mod, \
+from cirq.linalg.tolerance import all_near_zero, all_near_zero_mod, \
     near_zero, near_zero_mod
-
-
-def test_all_close():
-    assert all_close(1, 1)
-    assert not all_close(1, 0.5)
-    assert not all_close(1, 1.5)
-    assert not all_close(1, 100.5)
-    assert all_close(100, 100)
-    assert not all_close(100, 99.5)
-    assert not all_close(100, 100.5)
-
-    assert all_close([1, 2], [1, 2])
-    assert not all_close([1, 2], [1, 3])
-
-    atol = 5
-    assert all_close(1, 1, atol=atol)
-    assert all_close(1, 0.5, atol=atol)
-    assert all_close(1, 1.5, atol=atol)
-    assert all_close(1, 5.5, atol=atol)
-    assert all_close(1, -3.5, atol=atol)
-    assert not all_close(1, 6.5, atol=atol)
-    assert not all_close(1, -4.5, atol=atol)
-    assert not all_close(1, 100.5, atol=atol)
-    assert all_close(100, 100, atol=atol)
-    assert all_close(100, 100.5, atol=atol)
-    assert all_close(100, 104.5, atol=atol)
-    assert not all_close(100, 105.5, atol=atol)
-
-    rtol = 2
-    assert all_close(100, 100, rtol=rtol)
-    assert all_close(299.5, 100, rtol=rtol)
-    assert all_close(1, 100, rtol=rtol)
-    assert all_close(-99, 100, rtol=rtol)
-    assert not all_close(100, 1, rtol=rtol)  # Doesn't commute.
-    assert not all_close(300.5, 100, rtol=rtol)
-    assert not all_close(-101, 100, rtol=rtol)
-
-    assert all_close(100, 100, rtol=rtol, atol=atol)
-    assert all_close(106, 100, rtol=rtol, atol=atol)
-    assert all_close(201, 100, rtol=rtol, atol=atol)
-    assert all_close(304.5, 100, rtol=rtol, atol=atol)
-    assert not all_close(305.5, 100, rtol=rtol, atol=atol)
 
 
 def test_all_zero():

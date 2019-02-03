@@ -17,8 +17,7 @@ from typing import Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.linalg.tolerance import DEFAULT_RTOL, DEFAULT_ATOL, all_near_zero, \
-    all_close
+from cirq.linalg.tolerance import all_near_zero
 from cirq.linalg.transformations import match_global_phase
 
 if TYPE_CHECKING:
@@ -28,8 +27,8 @@ if TYPE_CHECKING:
 
 def is_diagonal(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is a approximately diagonal.
 
     A matrix is diagonal if i!=j implies m[i,j]==0.
@@ -50,8 +49,8 @@ def is_diagonal(
 
 def is_hermitian(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately Hermitian.
 
     A matrix is Hermitian if it's square and equal to its adjoint.
@@ -65,13 +64,13 @@ def is_hermitian(
         Whether the matrix is Hermitian within the given tolerance.
     """
     return (matrix.shape[0] == matrix.shape[1] and
-            all_close(matrix, np.conj(matrix.T), rtol=rtol, atol=atol))
+            np.allclose(matrix, np.conj(matrix.T), rtol=rtol, atol=atol))
 
 
 def is_orthogonal(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately orthogonal.
 
     A matrix is orthogonal if it's square and real and its transpose is its
@@ -87,14 +86,13 @@ def is_orthogonal(
     """
     return (matrix.shape[0] == matrix.shape[1] and
             np.all(np.imag(matrix) == 0) and
-            all_close(matrix.dot(matrix.T), np.eye(matrix.shape[0]), rtol=rtol,
-                      atol=atol))
+            np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]), rtol=rtol, atol=atol))
 
 
 def is_special_orthogonal(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately special orthogonal.
 
     A matrix is special orthogonal if it is square and real and its transpose
@@ -110,13 +108,13 @@ def is_special_orthogonal(
     """
     return (is_orthogonal(matrix, rtol=rtol, atol=atol) and
             (matrix.shape[0] == 0 or
-             all_close(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
+             np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
 def is_unitary(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary.
 
     A matrix is unitary if it's square and its adjoint is its inverse.
@@ -129,15 +127,14 @@ def is_unitary(
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and all_close(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol,
-        atol=atol))
+    return (matrix.shape[0] == matrix.shape[1] and np.allclose(
+        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol))
 
 
 def is_special_unitary(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary with unit determinant.
 
     A matrix is special-unitary if it is square and its adjoint is its inverse
@@ -153,14 +150,14 @@ def is_special_unitary(
     """
     return (is_unitary(matrix, rtol=rtol, atol=atol) and
             (matrix.shape[0] == 0 or
-             all_close(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
+             np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
 def commutes(
         m1: np.ndarray,
         m2: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> bool:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if two matrices approximately commute.
 
     Two matrices A and B commute if they are square and have the same size and
@@ -178,7 +175,7 @@ def commutes(
   """
     return (m1.shape[0] == m1.shape[1] and
             m1.shape == m2.shape and
-            all_close(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol))
+            np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol))
 
 
 def allclose_up_to_global_phase(

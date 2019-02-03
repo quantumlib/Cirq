@@ -24,8 +24,7 @@ import numpy as np
 
 from cirq import value
 from cirq.linalg import combinators, diagonalize, predicates
-from cirq.linalg.tolerance import DEFAULT_ATOL, DEFAULT_RTOL, all_close, \
-    all_near_zero
+from cirq.linalg.tolerance import all_near_zero
 
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
@@ -99,8 +98,8 @@ def _group_similar(items: List[T],
 
 
 def _perp_eigendecompose(matrix: np.ndarray,
-                         rtol: float = DEFAULT_RTOL,
-                         atol: float = DEFAULT_ATOL
+                         rtol: float = 1e-5,
+                         atol: float = 1e-8
                          ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
 
@@ -134,7 +133,7 @@ def _perp_eigendecompose(matrix: np.ndarray,
     n = len(vecs)
     groups = _group_similar(
         list(range(n)),
-        lambda k1, k2: all_close(vals[k1], vals[k2], rtol=rtol, atol=atol))
+        lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol))
 
     # Remove overlap between eigenvectors with the same eigenvalue.
     for g in groups:
@@ -155,8 +154,8 @@ def _perp_eigendecompose(matrix: np.ndarray,
 def map_eigenvalues(
         matrix: np.ndarray,
         func: Callable[[complex], complex],
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> np.ndarray:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -227,8 +226,8 @@ def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[
 
 def so4_to_magic_su2s(
         mat: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> Tuple[np.ndarray, np.ndarray]:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
     Mag is the magic basis matrix:
@@ -472,8 +471,8 @@ def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
 
 def kak_decomposition(
         mat: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> KakDecomposition:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:

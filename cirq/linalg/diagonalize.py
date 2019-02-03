@@ -20,20 +20,19 @@ import numpy as np
 
 from cirq.linalg import combinators
 from cirq.linalg import predicates
-from cirq.linalg.tolerance import DEFAULT_RTOL, DEFAULT_ATOL, all_close, \
-    all_near_zero
+from cirq.linalg.tolerance import all_near_zero
 
 
 def diagonalize_real_symmetric_matrix(
         matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> np.ndarray:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes the given matrix.
 
     Args:
         matrix: A real symmetric matrix to diagonalize.
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL
+        rtol: float = 1e-5,
+        atol: float = 1e-8
 
     Returns:
         An orthogonal matrix P such that P.T @ matrix @ P is diagonal.
@@ -79,8 +78,8 @@ def _contiguous_groups(
 def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         symmetric_matrix: np.ndarray,
         diagonal_matrix: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> np.ndarray:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes both given matrices.
 
     The given matrices must commute.
@@ -115,8 +114,8 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         raise ValueError('Given matrices must commute.')
 
     def similar_singular(i, j):
-        return all_close(diagonal_matrix[i, i],
-                         diagonal_matrix[j, j], rtol=rtol, atol=atol)
+        return np.allclose(diagonal_matrix[i, i],
+                            diagonal_matrix[j, j], rtol=rtol)
 
     # Because the symmetric matrix commutes with the diagonal singulars matrix,
     # the symmetric matrix should be block-diagonal with a block boundary
@@ -144,8 +143,8 @@ def _svd_handling_empty(mat):
 def bidiagonalize_real_matrix_pair_with_symmetric_products(
         mat1: np.ndarray,
         mat2: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> Tuple[np.ndarray, np.ndarray]:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> Tuple[np.ndarray, np.ndarray]:
     """Finds orthogonal matrices that diagonalize both mat1 and mat2.
 
     Requires mat1 and mat2 to be real.
@@ -213,8 +212,8 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
 def bidiagonalize_unitary_with_special_orthogonals(
         mat: np.ndarray,
-        rtol: float = DEFAULT_RTOL,
-        atol: float = DEFAULT_ATOL) -> Tuple[np.ndarray, np.array, np.ndarray]:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> Tuple[np.ndarray, np.array, np.ndarray]:
     """Finds orthogonal matrices L, R such that L @ matrix @ R is diagonal.
 
     Args:
