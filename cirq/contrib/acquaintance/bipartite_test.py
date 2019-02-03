@@ -257,12 +257,6 @@ def test_bad_args():
         gate._circuit_diagram_info_(args)
 
     with pytest.raises(ValueError):
-        gate.permutation(3)
-
-    with pytest.raises(NotImplementedError):
-        gate.permutation(4)
-
-    with pytest.raises(ValueError):
         gate._decompose_(qubits[:3])
 
     gate.subgraph = 'unimplemented subgraph'
@@ -294,5 +288,5 @@ def test_decomposition_permutation_consistency(part_size, subgraph):
     qubits = cirq.LineQubit.range(2 * part_size)
     mapping = {q: i for i, q in enumerate(qubits)}
     cca.update_mapping(mapping, gate._decompose_(qubits))
-    permutation = gate.permutation(2 * part_size)
+    permutation = gate.permutation()
     assert {qubits[i]: j for i, j in permutation.items()} == mapping

@@ -65,8 +65,8 @@ def test_handles_measurement_gate():
         cirq.CZ(q0, q1),
         cirq.H(q0),
         cirq.X(q0) ** 0.125,
-        cirq.MeasurementGate('m1')(q1),
-        cirq.MeasurementGate('m0')(q0),
+        cirq.measure(q1, key='m1'),
+        cirq.measure(q0, key='m0')
     )
     c_opt = pauli_string_optimized_circuit(c_orig)
 
