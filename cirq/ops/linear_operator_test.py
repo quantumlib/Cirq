@@ -125,7 +125,7 @@ def test_addition(expression, expected_value):
 ))
 def test_inalid_addition(a, b):
     with pytest.raises(ValueError):
-        a + b
+        print(a + b)
 
 
 @pytest.mark.parametrize('expression, expected_value', (
