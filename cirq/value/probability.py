@@ -15,7 +15,19 @@
 """Utilities for handling probabilities."""
 
 
-def validate_probability(p, p_str):
+def validate_probability(p: float, p_str: str) -> float:
+    """Validates that a probability is between 0 and 1 inclusively.
+
+    Args:
+        p: The value to validate.
+        p_str: What to call the probability in error messages.
+
+    Returns:
+        The probability p if the probability if valid.
+
+    Raises:
+        ValueError if the probability is invalid.
+    """
     if p < 0:
         raise ValueError('{} was less than 0.'.format(p_str))
     elif p > 1:
