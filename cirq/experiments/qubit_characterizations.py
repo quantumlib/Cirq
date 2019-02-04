@@ -1,13 +1,94 @@
-from typing import Sequence, Tuple
+import itertools
+from typing import Sequence, Dict
 from cirq import circuits, devices, ops, protocols, sim, study, value
 import numpy
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 
 
+class RabiExperimentResult(object):
+    """Class for storing and plotting data from a Rabi oscillation
+    experiment.
+    """
+
+    def __init__(self, num_shots: int, rabi_angles: Sequence[float],
+                 excited_state_pops: Sequence[float]):
+        """
+        Args:
+            num_shots: The number of repetitions of the circuit for each Rabi
+              angle.
+            rabi_angles: The rotation angles of the qubit around the x-axis
+              of the Bloch sphere.
+            excited_state_pops: The corresponding probabilities that the
+            qubit is in the excited state.
+        """
+        self._num_shots = num_shots
+        self._rabi_angles = rabi_angles
+        self._excited_state_pops = excited_state_pops
+
+    @property
+    def data(self) -> Dict[str, Sequence[float]]:
+        return {'rabi_angles': self._rabi_angles,
+                'excited_state_probability': self._excited_state_pops}
+
+    def plot(self) -> None:
+        fig = pyplot.figure()
+        pyplot.plot(self._rabi_angles, self._excited_state_pops, 'ro-',
+                    figure=fig)
+        pyplot.xlabel(r"Rabi Angle ($\pi$)")
+        pyplot.ylabel('Excited State Probability')
+
+
+class RandomizedBenchmarkingResult(object):
+    """Class for storing and plotting data from a randomized benchmarking
+    experiment.
+    """
+
+    def __init__(self, num_cfds_seq: Sequence[float],
+                 gnd_state_pops: Sequence[float]):
+        """
+        Args:
+            num_cfds_seq: The different numbers of Cliffords in the RB study.
+            gnd_state_pops: The corresponding average ground state
+              probabilities.
+        """
+        self._num_cfds_seq = num_cfds_seq
+        self._gnd_state_pops = gnd_state_pops
+
+    @property
+    def data(self) -> Dict[str, Sequence[float]]:
+        return {'number_of_cliffords': self._num_cfds_seq,
+                'ground_state_probability': self._gnd_state_pops}
+
+    def plot(self) -> None:
+        fig = pyplot.figure()
+        pyplot.plot(self._num_cfds_seq, self._gnd_state_pops, 'ro-', figure=fig)
+        pyplot.xlabel(r"Number of Cliffords")
+        pyplot.ylabel('Ground State Probability')
+
+
+class StateTomographyResult(object):
+    """Class for storing and plotting a density matrix obtained from a state
+    tomography experiment."""
+
+    def __init__(self, density_matrix: numpy.ndarray):
+        """
+        Args:
+            density_matrix: The density matrix obtained from tomography.
+        """
+        self._density_matrix = density_matrix
+
+    @property
+    def data(self) -> numpy.ndarray:
+        return self._density_matrix
+
+    def plot(self) -> None:
+        _plot_density_matrix(self._density_matrix)
+
+
 def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
-                      final_angle: float, num_shots: int, num_points: int,
-                      plot=True) -> Tuple[numpy.ndarray, numpy.ndarray]:
+                      final_angle: float, num_shots: int, num_points: int) \
+        -> RabiExperimentResult:
     """
     Rotates a qubit around the x-axis of the Bloch sphere by a sequence of Rabi
     angles evenly spaced between 0 and final_angle. For each rotation,
@@ -20,11 +101,9 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
         final_angle: The final Rabi angle in units of pi.
         num_shots: The number of repetitions of the circuit for each Rabi angle.
         num_points: The number of Rabi angles.
-        plot: Whether to plot out the result.
 
     Returns:
-        half_turns: A sequence of Rabi angles in units of pi.
-        excited_state_pops: Corresponding excited state probabilities.
+        A RabiExperimentalResult object that stores and plots the result.
     """
     circuit = circuits.Circuit()
     theta = value.Symbol('theta')
@@ -38,21 +117,15 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
     for i in range(num_points):
         excited_state_pops[i] = numpy.mean(results[i].measurements['z'])
 
-    if plot:
-        fig = pyplot.figure()
-        pyplot.plot(half_turns, excited_state_pops, 'ro-', figure=fig)
-        pyplot.xlabel(r"Rabi Angle ($\pi$)")
-        pyplot.ylabel('Excited State Probability')
-
-    return half_turns, excited_state_pops
+    return RabiExperimentResult(num_shots, half_turns, excited_state_pops)
 
 
 def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
                                          qubit: devices.GridQubit,
                                          num_cfds_seq: Sequence[int],
                                          num_circuits: int, num_shots: int,
-                                         basis='xz',
-                                         plot=True) -> Sequence[float]:
+                                         basis='xz') \
+        -> RandomizedBenchmarkingResult:
     """
     Clifford-based randomized benchmarking (RB) of a single qubit.
 
@@ -77,10 +150,9 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
         num_shots: The number of repetitions of each circuit.
         basis: Can only be 'xz' or 'xy' and determine whether the Clifford
         gates are built with x and z rotations or x and y rotations.
-        plot: Whether to plot out the result.
 
     Returns:
-        The average |0> state population for every number of Clifford gates.
+        A RandomizedBenchmarkingResult object that stores and plots the result.
     """
     if basis != 'xy' and basis != 'xz':
         raise KeyError
@@ -99,21 +171,15 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
             excited_pops_l.append(numpy.mean(results.measurements['z']))
         gnd_pops.append(1.0 - numpy.mean(excited_pops_l))
 
-    if plot:
-        fig = pyplot.figure()
-        pyplot.plot(num_cfds_seq, gnd_pops, 'ro-', figure=fig)
-        pyplot.xlabel(r"Number of Cliffords")
-        pyplot.ylabel('Ground State Probability')
-
-    return gnd_pops
+    return RandomizedBenchmarkingResult(num_cfds_seq, gnd_pops)
 
 
 def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
                                       q_0: devices.GridQubit,
                                       q_1: devices.GridQubit,
                                       num_cfds_seq: Sequence[int],
-                                      num_circuits: int, num_shots: int,
-                                      plot=True) -> Sequence[float]:
+                                      num_circuits: int, num_shots: int) \
+        -> RandomizedBenchmarkingResult:
     """
     Clifford-based randomized benchmarking (RB) of two qubits.
 
@@ -138,10 +204,9 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
         num_circuits: The number of random circuits generated for each number of
         Cliffords.
         num_shots: The number of repetitions of each circuit.
-        plot: Whether to plot out the result.
 
     Returns:
-        The average |00> state population for every number of Clifford gates.
+        A RandomizedBenchmarkingResult object that stores and plots the result.
     """
     c1, _, s1, s1_x, s1_y = _single_qubit_cliffords()
     cfd_matrices = _two_qubit_clifford_matrices(q_0, q_1, c1, s1, s1_x, s1_y)
@@ -157,19 +222,13 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
             gnd_probs.append(numpy.mean(gnds))
         gnd_pops.append(float(numpy.mean(gnd_probs)))
 
-    if plot:
-        fig = pyplot.figure()
-        pyplot.plot(num_cfds_seq, gnd_pops, 'ro-', figure=fig)
-        pyplot.xlabel(r"Number of Cliffords")
-        pyplot.ylabel('|00> State Probability')
-
-    return gnd_pops
+    return RandomizedBenchmarkingResult(num_cfds_seq, gnd_pops)
 
 
 def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
-                                  num_shots: int, plot=True) -> numpy.ndarray:
+                                  num_shots: int) -> StateTomographyResult:
     """
     Single-qubit state tomography.
 
@@ -186,10 +245,9 @@ def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
         qubit: The qubit under test.
         circuit: The circuit to execute on the qubit before tomography.
         num_shots: The number of measurements for each basis rotation.
-        plot: Whether to plot the density matrix in two bar plots.
 
     Returns:
-        A 2x2 complex matrix representing the density matrix.
+        A StateTomographyResult object that stores and plots the density matrix.
     """
     circuit_z = circuit.copy()
     circuit_z.append(ops.measure(qubit, key='z'))
@@ -214,16 +272,13 @@ def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
 
     rho = numpy.array([[rho_00, rho_01], [rho_10, rho_11]])
 
-    if plot:
-        _plot_density_matrix(rho)
-
-    return rho
+    return StateTomographyResult(rho)
 
 
 def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
                                q_0: devices.GridQubit, q_1: devices.GridQubit,
-                               circuit: circuits.Circuit, num_shots: int,
-                               plot=True):
+                               circuit: circuits.Circuit, num_shots: int) \
+        -> StateTomographyResult:
     """
     Two-qubit state tomography.
 
@@ -242,10 +297,9 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
         q_1: The second qubit under test.
         circuit: The circuit to execute on the qubits before tomography.
         num_shots: The number of measurements for each basis rotation.
-        plot: Whether to plot the density matrix in two bar plots.
 
     Returns:
-        A 4x4 complex matrix representing the density matrix.
+        A StateTomographyResult object that stores and plots the density matrix.
     """
 
     def _measurement(circ):
@@ -301,10 +355,7 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
         for j in range(4):
             rho = rho + c[i, j] * numpy.kron(sigmas[i], sigmas[j])
 
-    if plot:
-        _plot_density_matrix(rho)
-
-    return rho
+    return StateTomographyResult(rho)
 
 
 def _two_qubit_clifford_matrices(q_0, q_1, c1, s1, s1_x, s1_y):
@@ -378,11 +429,14 @@ def _matrix_bar_plot(mat, z_label: str, kets=None, title=None) -> None:
 
 
 def _plot_density_matrix(mat: numpy.ndarray) -> None:
-    single_qubit_kets = ['|0>', '|1>']
-    two_qubit_kets = ['|0,0>', '|0,1>', '|1,0>', '|1,1>']
+    a, _ = mat.shape
+    num_qubits = int(numpy.sqrt(a))
+    state_labels = [[0, 1]] * num_qubits
+    kets = []
+    for label in itertools.product(*state_labels):
+        kets.append('|' + str(list(label))[1:-1] + '>')
     mat_re = numpy.real(mat)
     mat_im = numpy.imag(mat)
-    kets = single_qubit_kets if mat.size == 4 else two_qubit_kets
     _matrix_bar_plot(mat_re, r'Real($\rho$)', kets)
     _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', kets)
 
