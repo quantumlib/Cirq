@@ -16,19 +16,18 @@
 
 from typing import Any, Sequence, Tuple, Union
 
-from typing_extensions import Protocol
-
 import numpy as np
+from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ((0.0, []),) 
+RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
 
 
 class SupportsMixture(Protocol):
-    """An object that may be describable as a probablisitic combination.
+    """An object that may be describable as a probabilistic combination.
 
     A mixture is described by an iterable of tuples of the form
 

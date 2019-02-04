@@ -68,6 +68,7 @@ def test_objects_with_mixture(val, mixture):
 def test_valid_mixture():
     cirq.validate_mixture(ReturnsValidTuple())
 
+
 @pytest.mark.parametrize('val,message', (
     (ReturnsNonnormalizedTuple(), '1.0'),
     (ReturnsNegativeProbability(), 'less than 0'),
@@ -77,3 +78,7 @@ def test_invalid_mixture(val, message):
     with pytest.raises(ValueError, match=message):
         cirq.validate_mixture(val)
 
+
+def test_missing_mixture():
+    with pytest.raises(TypeError, match='_mixture_'):
+        cirq.validate_mixture(NoMethod)
