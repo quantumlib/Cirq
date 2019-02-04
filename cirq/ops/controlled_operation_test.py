@@ -143,7 +143,8 @@ def test_non_diagrammable_subop():
     cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
              cirq.NamedQubit('q3')),
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(*cirq.LineQubit.range(5)),
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(
+        *cirq.LineQubit.range(5)),
     GateUsingWorkspaceForApplyUnitary()(cirq.NamedQubit('q1')),
     GateAllocatingNewSpaceForResult()(cirq.NamedQubit('q1')),
 ])

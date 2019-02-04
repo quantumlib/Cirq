@@ -1,7 +1,7 @@
 from typing import Union, Tuple, cast
 
-import cirq
 import numpy as np
+import cirq
 from cirq.type_workarounds import NotImplementedType
 
 
