@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -98,7 +102,7 @@ def unitary(val: Any,
 
     # Fallback to decomposition for operations
     if result is NotImplemented and isinstance(val, Operation):
-        decomposed_unitary = decompose_and_get_unitary(val)
+        decomposed_unitary = _decompose_and_get_unitary(val)
         if decomposed_unitary is not None:
             result = decomposed_unitary
 
@@ -143,12 +147,12 @@ def has_unitary(val: Any) -> bool:
     return unitary(val, None) is not None
 
 
-def decompose_and_get_unitary(val):
+def _decompose_and_get_unitary(val: 'cirq.Operation') -> np.ndarray:
     """Try to decompose an `Operation` and return its unitary.
 
     Returns:
-     If `val` can be decomposed into unitaries, calculate the resulting unitary
-     and return it. If it doesn't exist, None is returned.
+        If `val` can be decomposed into unitaries, calculate the resulting
+        unitary and return it. If it doesn't exist, None is returned.
     """
     from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
     from cirq.protocols.decompose import decompose_once
@@ -169,7 +173,7 @@ def decompose_and_get_unitary(val):
                 args=ApplyUnitaryArgs(state, buffer, indices),
                 default=None)
             if result is None:
-                break
+                return None
             if result is buffer:
                 buffer = state
             state = result

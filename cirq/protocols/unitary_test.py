@@ -133,16 +133,17 @@ def test_unitary():
     assert cirq.has_unitary(DummyOperation((a,)))
     assert cirq.has_unitary(DummyOperation((a, b)))
 
-    # Test decompose_and_get_unitary
-    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+    # Test _decompose_and_get_unitary
+    from cirq.protocols.unitary import _decompose_and_get_unitary
+    np.testing.assert_allclose(_decompose_and_get_unitary(
         Decomposable((a,), True)), m)
-    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+    np.testing.assert_allclose(_decompose_and_get_unitary(
         Decomposable((a, b), True)), m2)
-    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+    np.testing.assert_allclose(_decompose_and_get_unitary(
         DecomposableOrder((a, b, c))), m3)
-    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+    np.testing.assert_allclose(_decompose_and_get_unitary(
         DummyOperation((a,))), np.eye(2))
-    np.testing.assert_allclose(cirq.protocols.decompose_and_get_unitary(
+    np.testing.assert_allclose(_decompose_and_get_unitary(
         DummyOperation((a, b))), np.eye(4))
 
     # Test if decomposed operations has _unitary_
